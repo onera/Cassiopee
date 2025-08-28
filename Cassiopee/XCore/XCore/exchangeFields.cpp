@@ -71,26 +71,27 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < fsize; i++) {
     PyObject *fld = PyList_GetItem(flds, i);
     E_Int nc = -1;
-    ret = K_NUMPY::getFromNumpyArray(fld, fields[i], nc, true);
+    ret = K_NUMPY::getFromNumpyArray(fld, fields[i], nc);
     assert(nc == cn->getNElts());
   }
 
   // Parent Elements
   E_Int *PE;
   E_Int pe_size;
-  K_NUMPY::getFromNumpyArray(pe, PE, pe_size, true);
+  K_NUMPY::getFromNumpyArray(pe, PE, pe_size);
   assert(pe_size == 2*cn->getNFaces());
 
   // Comm data
   E_Int *procs = (E_Int *)malloc(psize * sizeof(E_Int));
   E_Int **ptlists = (E_Int **)calloc(psize, sizeof(E_Int *));
   E_Int *npfaces = (E_Int *)malloc(psize * sizeof(E_Int));
-  for (E_Int i = 0; i < psize; i++) {
+  for (E_Int i = 0; i < psize; i++) 
+  {
     PyObject *proc_and_list = PyList_GetItem(comm_list, i);
     PyObject *proc = PyList_GetItem(proc_and_list, 0);
     PyObject *list = PyList_GetItem(proc_and_list, 1);
     procs[i] = PyLong_AsLong(proc);
-    ret = K_NUMPY::getFromNumpyArray(list, ptlists[i], npfaces[i], true);
+    ret = K_NUMPY::getFromNumpyArray(list, ptlists[i], npfaces[i]);
   }
 
   // Exchange fields one by one

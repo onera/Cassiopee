@@ -78,7 +78,7 @@ class GenIO
     /** Wait s milliseconds. */
     E_Int wait_micsec(E_Int s);
     /** Return the convert endian variable. */
-    E_Boolean getConvertEndian();
+    E_Bool getConvertEndian();
     /** Return endianess of the current machine:
         1: big endian, 0: little endian. */
     E_Int machineEndianess();
@@ -166,11 +166,11 @@ class GenIO
     /** Write triangles (tp format) described by field and connect.
 	Field contains coord and other possible fields. */
     E_Int tpwriteTriangles(char* file, FldArrayF& field, FldArrayI& connect,
-                           E_Boolean add=false);
+                           E_Bool add=false);
     /** Write quadrangles (tp format) described by field and connect.
 	Field contains coord and other possible fields. */
     E_Int tpwriteQuads(char* file, FldArrayF& field, FldArrayI& connect,
-                       E_Boolean add=false);
+                       E_Bool add=false);
     /** Write text "number" near each point */
     E_Int tpwriteText(char* file, FldArrayF& field, FldArrayI& number);
 
@@ -186,7 +186,7 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& field,
       std::vector<char*>& zoneNames, E_Int isize=8,
-      E_Int rsize=8, E_Boolean convertEndian=false);
+      E_Int rsize=8, E_Bool convertEndian=false);
     ///-
 
     ///+ bin plot3d file functions
@@ -201,7 +201,7 @@ class GenIO
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& field,
       std::vector<char*>& zoneNames, E_Int isize=8,
-      E_Int rsize=8, E_Boolean convertEndian=false);
+      E_Int rsize=8, E_Bool convertEndian=false);
     ///-
 
     ///+ fmt plot3d file functions
@@ -964,12 +964,12 @@ class GenIO
                         FldArrayF*& f);
     void writeInt(E_Int value, E_Int isize,
                   FILE* ptrFile,
-                  E_Boolean convertEndian,
+                  E_Bool convertEndian,
                   E_Int sizeInt, E_Int sizeLong);
     E_Int readInt(E_Int& value,
                   E_Int size,
                   FILE* ptrFile,
-                  E_Boolean convertEndian,
+                  E_Bool convertEndian,
                   E_Int sizeInt, E_Int sizeLong);
     E_Int readIntTuple(FILE* ptrFile, E_Int& value);
     E_Int readIntTuple2(FILE* ptrFile, E_Int& value1, E_Int& value2);
@@ -1000,17 +1000,17 @@ class GenIO
       char* file, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& field, E_Int isize, E_Int rsize,
-      E_Boolean convertEndian);
+      E_Bool convertEndian);
     E_Int qwrite(
       char* file, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& field, E_Int isize, E_Int rsize,
-      E_Boolean convertEndian);
+      E_Bool convertEndian);
     E_Int ffwrite(
       char* file, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector<FldArrayF*>& field, E_Int isize, E_Int rsize,
-      E_Boolean convertEndian, E_Boolean writeConservative);
+      E_Bool convertEndian, E_Bool writeConservative);
     E_Int readWord(FILE* ptrFile, char* buf);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword);
     E_Int readGivenKeyword(FILE* ptrFile, const char* keyword1,
@@ -1059,7 +1059,7 @@ class GenIO
     ~GenIO();
 
     // Should I convert endians?
-    E_Boolean _convertEndian;
+    E_Bool _convertEndian;
 
     // Integers length (4 or 8)
     E_Int _intLength;

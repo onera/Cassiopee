@@ -30,7 +30,7 @@ PyObject* K_CONVERTER::adaptNGon32NGon4(PyObject* self, PyObject* args)
 
   // Check numpy (connect)
   FldArrayI* connect;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayConnect, connect, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayConnect, connect);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

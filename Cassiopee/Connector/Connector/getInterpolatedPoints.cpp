@@ -26,7 +26,6 @@ using namespace std;
 /* Search for the fringe of interpolated nodes near blanked points; depth is
    the number of layers of interpolated nodes.
    IN: blankedCells: -1, point masque, 0: point interpole, 1, point normal.
-   IN: typeUnstr: 0 : EB, 1 : NGON : connect is thus the cEV or NGON connectivity 
    IN/OUT: cellN: -1, point masque, 0, point interpole, 1, point normal.*/
 //=============================================================================
 void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(

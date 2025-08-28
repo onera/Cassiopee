@@ -326,7 +326,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     //FldArrayF error(n1, pos1.size(), errors[i], true);
     FldArrayF& error = *(errors[i]);
     error.setAllValuesAt(1.e6);
-    E_Boolean found = false;
+    E_Bool found = false;
     
     found = searchField2(f1, error,
                          field2,
@@ -735,14 +735,14 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
 }
 
 //=============================================================================
-E_Boolean K_CONVERTER::searchField2(FldArrayF& f1,
+E_Bool K_CONVERTER::searchField2(FldArrayF& f1,
                                     FldArrayF& error,
                                     vector<FldArrayF*>& field2,
                                     vector<E_Int>& pos1,
                                     vector<E_Int>& pos2,
                                     E_Int posx1, E_Int posy1, E_Int posz1,
                                     E_Int posx2, E_Int posy2, E_Int posz2,
-                                    E_Boolean coordPresent)
+                                    E_Bool coordPresent)
 {
   const E_Float EPS = 1.e-12;
   int sizefield2 = field2.size();

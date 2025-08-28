@@ -108,7 +108,7 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   else
   {
     E_Int api = f->getApi();
-    E_Boolean compact = false;
+    E_Bool compact = false;
     if (api == 1) compact = true;
     FldArrayF f2(fSize, nt, compact);
     tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType);

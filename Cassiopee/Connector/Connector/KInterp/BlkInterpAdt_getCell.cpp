@@ -328,7 +328,7 @@ short K_KINTERP::BlkInterpAdt::searchInterpolationCell(
   
   list<E_Int>::iterator itr;
 
-  E_Boolean JUMP;
+  E_Bool JUMP;
 
   E_Int ind;
   E_Int i;

@@ -92,9 +92,9 @@ PyObject* K_CONVERTER::nullifyVectorAtBCFaceStruct(PyObject* self, PyObject* arg
 
   // flow field at BC (Vertex or Faces)
   FldArrayF *fXInt, *fYInt, *fZInt;
-  K_NUMPY::getFromNumpyArray(dataBCX, fXInt, true);
-  K_NUMPY::getFromNumpyArray(dataBCY, fYInt, true);
-  K_NUMPY::getFromNumpyArray(dataBCZ, fZInt, true);
+  K_NUMPY::getFromNumpyArray(dataBCX, fXInt);
+  K_NUMPY::getFromNumpyArray(dataBCY, fYInt);
+  K_NUMPY::getFromNumpyArray(dataBCZ, fZInt);
   E_Float* ptrBCFX = fXInt->begin();
   E_Float* ptrBCFY = fYInt->begin();
   E_Float* ptrBCFZ = fZInt->begin();

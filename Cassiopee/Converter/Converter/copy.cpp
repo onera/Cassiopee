@@ -102,7 +102,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   }
   else if (res == 2)
   {
-    E_Boolean center = false;
+    E_Bool center = false;
     if (strchr(eltType, '*') != NULL) center = true;
     E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
     E_Int nelts=0, nfaces=0, sizeNGon=0, sizeNFace=0;
@@ -247,7 +247,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
       E_Int nfaces = cn->getNFaces();
       E_Int sizeNGon = cn->getSizeNGon();
       E_Int sizeNFace = cn->getSizeNFace();
-      E_Boolean center = false;
+      E_Bool center = false;
       if (strchr(eltType, '*') != NULL) center = true;
       PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
         eltType, sizeNGon, sizeNFace, ngonType, center, api);
@@ -296,7 +296,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
     else // BE
     {
       E_Int ncon = cn->getNConnect();
-      E_Boolean center = false;
+      E_Bool center = false;
       if (strchr(eltType, '*') != NULL) center = true;
       vector< E_Int > neltsPerConnect(ncon);
       E_Int nelts = 0;

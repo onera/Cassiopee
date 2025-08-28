@@ -751,7 +751,34 @@ else if ($MAC == "sator_gcc") then
         setenv ASAN_OPTIONS verify_asan_link_order=false
         setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
         setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+
+else if ($MAC == "sator_coda") then
+#------------------------------- sator coda ------------------------------------
+        setenv ELSAPROD sat_coda
+        setenv ELSAPROD "$ELSAPROD$EXT"
+        # Number of threads
+        setenv OMP_NUM_THREADS 48
+        source /etc/profile.d/modules-onera.csh
+        setenv CASSIOPEESAVE $CASSIOPEE
+        setenv ELSAPRODSAVE $ELSAPROD
+        module purge
+        module load fssuite/2025.02.0-gnu1210
+        setenv CASSIOPEE $CASSIOPEESAVE
+        setenv ELSAPROD $ELSAPRODSAVE
+        module load occt/7.6.1-gnu831
+        setenv OMP_PLACES cores
+        setenv PYTHONEXE python3
+        setenv PRODMODE 1
+        setenv PIP_DISABLE_PIP_VERSION_CHECK 1
+        setenv ASAN_OPTIONS verify_asan_link_order=false
+        setenv LSAN_OPTIONS suppressions="$CASSIOPEE"/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+        setenv ASAN_LIB /opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+
+else
+        echo 'Error: your machine was not found in Envs.'
+        exit 1
 endif
+
 #---------------------------Common---------------------------------------------
 
 if ($?PATHL != 0) then

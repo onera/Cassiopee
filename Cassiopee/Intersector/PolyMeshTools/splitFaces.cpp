@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 # include <string>
 # include <sstream> 
 # include "intersector.h"
@@ -52,7 +51,7 @@ PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
 
   E_Int sz{0}, r;
   E_Int* oids;
-  E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r, true/*shared*/);
+  E_Int res = K_NUMPY::getFromNumpyArray(py_oids, oids, sz, r);
   if (res != 1) return NULL;
   
   // WARNING : oids might have IDX_NONE (created entities, e.g. internal faces with adaptCells) and is 0-based 
@@ -183,7 +182,7 @@ PyObject* K_INTERSECTOR::triangulateSpecifiedFaces(PyObject* self, PyObject* arg
   E_Int* pgsList=NULL;
   E_Int size, nfld;
   if (py_pgs != Py_None)
-    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/);
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld);
 
   if (res != 1) return NULL;
   
@@ -250,7 +249,7 @@ PyObject* K_INTERSECTOR::triangulateNFaces(PyObject* self, PyObject* args)
   E_Int* pgsList=NULL;
   E_Int size, nfld, res(1);
   if (py_pgs != Py_None)
-    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, true/*shared*/);
+    res = K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld);
 
   if (res != 1) return NULL;
   
@@ -409,9 +408,9 @@ PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
   // ==========================
   FldArrayI *ancA, *ancB;
   FldArrayF *weight;
-  K_NUMPY::getFromNumpyArray(py_ancA,   ancA,   true);
-  K_NUMPY::getFromNumpyArray(py_ancB,   ancB,   true);
-  K_NUMPY::getFromNumpyArray(py_weight, weight, true);
+  K_NUMPY::getFromNumpyArray(py_ancA, ancA);
+  K_NUMPY::getFromNumpyArray(py_ancB, ancB);
+  K_NUMPY::getFromNumpyArray(py_weight, weight);
 
   for (E_Int ifld = 0; ifld < nfld; ifld++)
   {
@@ -691,7 +690,7 @@ PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
 
   E_Int sz{0}, r;
   E_Int* vfoid;
-  E_Int res = K_NUMPY::getFromNumpyArray(py_vfoid, vfoid, sz, r, true/*shared*/);
+  E_Int res = K_NUMPY::getFromNumpyArray(py_vfoid, vfoid, sz, r);
   if (res != 1) return NULL;
 
   // construction des structures de type "mesh" a pertir des ngon

@@ -35,7 +35,8 @@ void Smesh::get_edge_centers(E_Int p, E_Int q, std::vector<E_Int> &edge_centers)
 {
     u_edge e(p, q);
     auto it = ecenter.find(e);
-    if (it == ecenter.end()) {
+    if (it == ecenter.end()) 
+    {
         edge_centers.push_back(p);
         return;
     }
@@ -65,12 +66,14 @@ void Smesh::conformize()
 
     std::vector<std::vector<E_Int>> new_Fc(nf);
     
-    for (E_Int fid = 0; fid < nf; fid++) {
+    for (E_Int fid = 0; fid < nf; fid++) 
+    {
         const auto &pn = Fc[fid];
 
         std::vector<E_Int> new_pn;
 
-        for (size_t i = 0; i < pn.size(); i++) {
+        for (size_t i = 0; i < pn.size(); i++) 
+        {
             E_Int p = pn[i];
             E_Int q = pn[(i+1)%pn.size()];
 
@@ -103,16 +106,20 @@ Smesh Smesh::Smesh_from_point_tags(const IMesh &M, const E_Float *ptag,
     bool check_Euler)
 {
     std::vector<E_Int> fids;
-    for (E_Int fid = 0; fid < M.nf; fid++) {
+    for (E_Int fid = 0; fid < M.nf; fid++) 
+    {
         const auto &pn = M.F[fid];
         bool keep = true;
-        for (auto p : pn) {
-            if (ptag[p] != 1.0) {
+        for (auto p : pn) 
+        {
+            if (ptag[p] != 1.0) 
+            {
                 keep = false;
                 break;
             }
         }
-        if (keep) {
+        if (keep) 
+        {
             assert(pn.size() == 3);
             fids.push_back(fid);
         }
@@ -311,15 +318,15 @@ void Smesh::make_edges()
     for (E_Int i = 0; i < nf; i++) 
     {
         const auto &pe = F2E[i];
-        const auto &pn = Fc[i];
-        assert(pe.size() == pn.size());
+        assert(pe.size() == Fc[i].size());
 
         for (size_t j = 0; j < pe.size(); j++) {
             E_Int e = pe[j];
             count[e]++;
 
             if (E2F[e][0] == -1) E2F[e][0] = i;
-            else {
+            else 
+            {
                 assert(E2F[e][1] == -1);
                 E2F[e][1] = i;
             }
@@ -402,7 +409,8 @@ void Smesh::make_point_faces()
     P2F.clear();
     P2F.resize(np);
 
-    for (E_Int fid = 0; fid < nf; fid++) {
+    for (E_Int fid = 0; fid < nf; fid++) 
+    {
         const auto &pn = Fc[fid];
         for (auto p : pn) P2F[p].push_back(fid);
     }
@@ -413,18 +421,22 @@ void Smesh::make_point_edges()
     P2E.clear();
     P2E.resize(np);
 
-    for (E_Int eid = 0; eid < ne; eid++) {
+    for (E_Int eid = 0; eid < ne; eid++) 
+    {
         P2E[E[eid].p].push_back(eid);
         P2E[E[eid].q].push_back(eid);
     }
 
-    for (E_Int pid = 0; pid < np; pid++) {
+#ifndef NDEBUG
+    for (E_Int pid = 0; pid < np; pid++) 
+    {
         const auto &pe = P2E[pid];
-        for (auto eid : pe) {
-            const auto &e = E[eid];
-            assert(e.p == pid || e.q == pid);
+        for (auto eid : pe)
+        {
+            assert(E[eid].p == pid || E[eid].q == pid);
         }
     }
+#endif
 
 }
 

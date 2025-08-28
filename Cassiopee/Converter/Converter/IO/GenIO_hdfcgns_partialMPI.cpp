@@ -83,7 +83,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
   while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {
     // Multiple path or Not ?
-    E_Boolean isKeyString = false;
+    E_Bool isKeyString = false;
     if (PyString_Check(key)) isKeyString = true;
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(key)) isKeyString = true; 
@@ -733,7 +733,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     E_Int FilterSize = PyList_Size(DataSpaceDIM);
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
     /* Check if key is String values */
-    E_Boolean isKeyString = false;
+    E_Bool isKeyString = false;
     if (PyString_Check(key)) isKeyString = true;
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(key)) isKeyString = true; 

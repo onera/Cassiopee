@@ -363,7 +363,7 @@ void StructBlock::computeDistanceOfNodeToCell(
   taking iblank into account.
 */
 //=============================================================================
-void StructBlock::write(const char* fileName, E_Boolean add)
+void StructBlock::write(const char* fileName, E_Bool add)
 {
   E_Int im = _im;
   E_Int im1 = im-1;
@@ -423,7 +423,7 @@ void StructBlock::write(const char* fileName, E_Boolean add)
 
 //=============================================================================
 void StructBlock::writeLine(FldArrayI& indices,
-                            const char* fileName, E_Boolean add)
+                            const char* fileName, E_Bool add)
 {
   // Note : lines are defined by degenerated triangles
   E_Int ind;
@@ -464,7 +464,7 @@ void StructBlock::writeLine(FldArrayI& indices,
 //=============================================================================
 /* Test if blk1 and blk2 have a matching boundary condition */
 //=============================================================================
-E_Boolean StructBlock::testMatchingBlks( StructBlock* blk1,
+E_Bool StructBlock::testMatchingBlks( StructBlock* blk1,
                                          StructBlock* blk2)
 {
   E_Int im1 = blk1->getIm();
@@ -550,7 +550,7 @@ E_Boolean StructBlock::testMatchingBlks( StructBlock* blk1,
    un epsilon près.
 */
 //=============================================================================
-E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
                                     E_Int dir)
 {
   E_Float eps  = _matchTol;
@@ -839,7 +839,7 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
    And if the corresponding point is not blanked nor interpolated.
    Return true if it is a match/nearmatch/nomatch bnd */
 //=============================================================================
-E_Boolean StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
                                             StructBlock* blk2)
 {
   FldArrayF& cfd2 =  blk2->getCfdField();
@@ -943,7 +943,7 @@ E_Boolean StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
 /* Look if point (x,y,z) is on a matching bnd of blk2.
    Return true if match is found */
 //=============================================================================
-E_Boolean StructBlock::searchForMatchingBnd2(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::searchForMatchingBnd2(E_Float x, E_Float y, E_Float z,
                                              StructBlock* blk2,
                                              E_Int& ind2)
 {
@@ -1032,7 +1032,7 @@ void StructBlock::checkValidityOfInterpolationCell(
   E_Int ind1, ind2;
   E_Float dist1, dist2;
   E_Float x1, y1, z1;
-  E_Boolean erased;
+  E_Bool erased;
  
   vector<StructBlock*> testBlks = _overlappingBlks;
   vector<StructBlock*> matchingBlks = _matchingBlks;
@@ -1120,7 +1120,7 @@ void StructBlock::eliminateDoubleElts(vector<StructBlock*>& vectOfBlks)
   E_Int  vectOfBlksSize = vectOfBlks.size();
   for (E_Int i = 0; i < vectOfBlksSize; i++)
   {
-    E_Boolean found = false;
+    E_Bool found = false;
     for (E_Int j = 0; j < i; j++)
     {
       if ( vectOfBlks[i] == vectOfBlks[j])
@@ -1142,7 +1142,7 @@ void StructBlock::eliminateDoubleElts(vector<StructBlock*>& vectOfBlks)
 //=============================================================================
 /* Search For matching bnds . Return true if match is found*/
 //=============================================================================
-E_Boolean StructBlock::isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
+E_Bool StructBlock::isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
                                       StructBlock* blk2)
 {
   FldArrayF& cfd2 =  blk2->getCfdField();
@@ -1277,7 +1277,7 @@ void StructBlock::createArrayOfBorders(E_Int dir, FldArrayI& indBord)
    out : n : index of next element of the string.   
 */
 //=========================================================================
-E_Boolean StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
+E_Bool StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
                                       StructBlock* blk2, E_Int& n)
 {
   E_Float x11, y11, z11;

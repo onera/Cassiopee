@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::isFinite(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   FldArrayF* f; 
-  E_Int res = K_NUMPY::getFromNumpyArray(array, f, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(array, f);
 
   if (res != 1)
   {

@@ -990,22 +990,22 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
       E_Int size = -1, nfld = -1;
 
       PyObject *py_mxx = PyList_GetItem(dataSensor, 0);
-      K_NUMPY::getFromNumpyArray(py_mxx, mxx, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxx, mxx, size, nfld);
       
       PyObject *py_mxy = PyList_GetItem(dataSensor, 1);
-      K_NUMPY::getFromNumpyArray(py_mxy, mxy, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxy, mxy, size, nfld);
       
       PyObject *py_mxz = PyList_GetItem(dataSensor, 2);
-      K_NUMPY::getFromNumpyArray(py_mxz, mxz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxz, mxz, size, nfld);
       
       PyObject *py_myy = PyList_GetItem(dataSensor, 3);
-      K_NUMPY::getFromNumpyArray(py_myy, myy, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_myy, myy, size, nfld);
       
       PyObject *py_myz = PyList_GetItem(dataSensor, 4);
-      K_NUMPY::getFromNumpyArray(py_myz, myz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_myz, myz, size, nfld);
       
       PyObject *py_mzz = PyList_GetItem(dataSensor, 5);
-      K_NUMPY::getFromNumpyArray(py_mzz, mzz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mzz, mzz, size, nfld);
 
       // remplir fS
       fS.resize(6, nfld);
@@ -1029,7 +1029,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   else // assuming numpy for nodal/cell
   {
      E_Int *nodv, size, nfld;
-     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld, true/* shared*/);
+     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld);
      sens_data.resize(size);  
      for (E_Int i=0; i < size; ++i)
      {
@@ -1871,7 +1871,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       PyObject* fieldFi = PyList_GetItem(pyfieldsF, j);
 
       FldArrayF* Fid;
-      K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
+      K_NUMPY::getFromNumpyArray(fieldFi, Fid);
       pFid[j] = Fid->begin(1);
       fieldsF[j].resize(Fid->getSize());
     }

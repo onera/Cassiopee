@@ -137,20 +137,20 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             // Indices des points à interpoler
             PyObject* PyIndices = PyList_GetItem(listData, 2);
             E_Int* indices; E_Int nIndices; E_Int nfld;
-            K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
+            K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld);
 
             // XCoordinates des points a interpoler
             PyObject* PyXCoord = PyList_GetItem(listData, 3);
             E_Float* xCoords; E_Int nXCoords; E_Int nfldx;
-            K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx, true);
+            K_NUMPY::getFromNumpyArray(PyXCoord, xCoords, nXCoords, nfldx);
             // YCoordinates des points a interpoler
             PyObject* PyYCoord = PyList_GetItem(listData, 4);
             E_Float* yCoords; E_Int nYCoords; E_Int nfldy;
-            K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy, true);
+            K_NUMPY::getFromNumpyArray(PyYCoord, yCoords, nYCoords, nfldy);
             // ZCoordinates des points a interpoler
             PyObject* PyZCoord = PyList_GetItem(listData, 5);
             E_Float* zCoords; E_Int nZCoords; E_Int nfldz;
-            K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz, true);
+            K_NUMPY::getFromNumpyArray(PyZCoord, zCoords, nZCoords, nfldz);
             
             // Calcul du nombre d'octets nécessaires :
             //  - nom de la zone : type, taille, nom
@@ -254,7 +254,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 // Indices des points a interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 1);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
-                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld);
 
                 // Fields a interpoler
                 PyObject* PyFields = PyList_GetItem(listData, 2);
@@ -339,7 +339,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
                 // Indices des points a interpoler
                 PyObject* PyIndices = PyList_GetItem(listData, 2);
                 E_Int* indices; E_Int nIndices; E_Int nfld;
-                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld, true);
+                K_NUMPY::getFromNumpyArray(PyIndices, indices, nIndices, nfld);
 
                 // Calcul du nombre d'octets necessaires :
                 //  - entier

@@ -47,6 +47,30 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
 }
 
 //==============================================================================
+// Recherche par type d'un seul niveau, retourne un seul noeud.
+// IN: o: objet representant un noeud de pyTree
+// IN: name: le nom du noeud
+// OUT: retourne le nouveau noeud si trouve, sinon retourne NULL
+//==============================================================================
+PyObject* K_PYTREE::getNodeFromType1(PyObject* o, const char* name)
+{
+  PyObject* childrens = PyList_GetItem(o, 2);
+  E_Int n = PyList_Size(childrens);
+  PyObject *l; PyObject *node; char* str=NULL;
+  for (E_Int i = 0; i < n; i++)
+  {
+    l = PyList_GetItem(childrens, i);
+    node = PyList_GetItem(l, 3);
+    if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = (char*)PyUnicode_AsUTF8(node);
+#endif
+    if (K_STRING::cmp(str, name) == 0) { return l; }  
+  }
+  return NULL;
+}
+
+//==============================================================================
 // Recherche par nom d'un seul niveau, retourne une liste de noeuds.
 // IN: o: objet representant un noeud de pyTree
 // IN: type: le type du noeud
@@ -76,7 +100,7 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 // IN: o: noeud du pyTree
 // OUT: retourne le ptr sur la chaine partagee
 //==============================================================================
-char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
+char* K_PYTREE::getNodeName(PyObject* o)
 {
   PyObject* v = PyList_GetItem(o, 0);
   if (PyString_Check(v))
@@ -88,13 +112,19 @@ char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
   return NULL;
 }
 
+//#OBSOLETE
+char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeName(o);
+}
+
 //==============================================================================
 // Retourne le type du noeud
 // Le tableau de char retourne est partage avec python.
 // IN: o: noeud du pyTree
 // OUT: retourne le ptr sur la chaine partagee
 //==============================================================================
-char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
+char* K_PYTREE::getNodeType(PyObject* o)
 {
   PyObject* v = PyList_GetItem(o, 3);
   if (PyString_Check(v))
@@ -104,6 +134,12 @@ char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
   { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
 #endif
   return NULL;
+}
+
+//#OBSOLETE
+char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeType(o);
 }
 
 //==============================================================================
@@ -335,7 +371,7 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
   char* pt = (char*)path;
   PyObject* next = o;
   E_Int c = 0;
-  E_Boolean found;
+  E_Bool found;
 
   while (1)
   {

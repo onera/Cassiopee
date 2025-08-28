@@ -85,8 +85,8 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   // Check inds
   E_Int* inds; E_Int* indsD;
   E_Int size; E_Int nfld;
-  E_Int res2 = K_NUMPY::getFromNumpyArray(indArray, inds, size, nfld, true);
-  res2 &= K_NUMPY::getFromNumpyArray(indArrayD, indsD, size, nfld, true);
+  E_Int res2 = K_NUMPY::getFromNumpyArray(indArray, inds, size, nfld);
+  res2 &= K_NUMPY::getFromNumpyArray(indArrayD, indsD, size, nfld);
   if (res2 == 0)
   {
     RELEASESHAREDU(array, f, cn);

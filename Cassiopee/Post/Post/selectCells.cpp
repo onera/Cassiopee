@@ -723,7 +723,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {
@@ -838,7 +838,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
   else // numpy
   {
-    res2 = K_NUMPY::getFromNumpyArray(tag, f2, true);
+    res2 = K_NUMPY::getFromNumpyArray(tag, f2);
     if (res2 == 0)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -1534,7 +1534,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
           
       if (res == 0)
       {

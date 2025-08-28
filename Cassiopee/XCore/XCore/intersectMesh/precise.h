@@ -50,14 +50,14 @@ struct Expansion {
     E_Float operator[](E_Int idx) const
     {
         assert(idx >= 0);
-        assert(idx < m_terms.size());
+        assert((size_t)idx < m_terms.size());
         return m_terms[idx];
     }
 
     E_Float &operator[](E_Int idx)
     {
         assert(idx >= 0);
-        assert(idx < m_terms.size());
+        assert((size_t)idx < m_terms.size());
         return m_terms[idx];
     }
 

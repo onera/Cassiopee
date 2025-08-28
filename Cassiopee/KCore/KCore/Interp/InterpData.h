@@ -113,11 +113,11 @@ public:
                    E_Float* xl, E_Float* yl, E_Float* zl,
                    E_Int& ic, E_Int& jc, E_Int& kc,
                    E_Float* xt, E_Float* yt, E_Float* zt);
-    E_Boolean coeffInterpHexa(E_Float x, E_Float y, E_Float z,
+    E_Bool coeffInterpHexa(E_Float x, E_Float y, E_Float z,
                               E_Float* xt, E_Float* yt, E_Float* zt,
                               FldArrayF& cf);
 
-    E_Boolean getCellJump(E_Float x, E_Float y, E_Float z,
+    E_Bool getCellJump(E_Float x, E_Float y, E_Float z,
                           E_Float* xt, E_Float* yt, E_Float* zt,
                           E_Int& isomm,
                           E_Float& xi, E_Float& yi, E_Float& zi);
@@ -128,7 +128,7 @@ public:
                           E_Float xs, E_Float ys, E_Float zs,
                           E_Float& xi, E_Float& yi, E_Float& zi);
 
-    E_Boolean getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
+    E_Bool getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                  E_Int isomm,
                                  E_Float xi, E_Float yi, E_Float zi, 
                                  E_Float* xt, E_Float* yt, E_Float* zt,

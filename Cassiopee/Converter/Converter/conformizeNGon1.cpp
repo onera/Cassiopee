@@ -412,7 +412,7 @@ void K_CONVERTER::conformizeNGon(
   E_Int npts = f.getSize();
   E_Int nfld = f.getNfld();
   E_Int ngonType = cn.isNGon();
-  E_Boolean center = false;
+  E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, "x,y,z", npts, nelts, nfaces, "NGON",
                                        sizeFN, sizeEF, ngonType, center, api);
   FldArrayF* f2;

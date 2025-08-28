@@ -1043,7 +1043,7 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
 E_Int __meshEdge(const TopoDS_Edge& E, 
                  E_Int nbPoints, E_Float* ue,
                  K_FLD::FldArrayF& coords,
-                 E_Boolean reverse)
+                 E_Bool reverse)
 {
   E_Float* px = coords.begin(1);
   E_Float* py = coords.begin(2);
@@ -1074,7 +1074,7 @@ E_Int __meshEdge(const TopoDS_Edge& E,
 E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
                        E_Int& nbPoints, K_FLD::FldArrayF& fe, 
                        K_FLD::FldArrayF& coords,
-                       E_Boolean reverse)
+                       E_Bool reverse)
 {
 
   BRepAdaptor_Curve C0(E);
@@ -1334,7 +1334,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     //if (wclosed == BRepCheck_NoError) printf("wire correctly closed\n");
     //else printf("WIRE BADLY closed\n");
     
-    //E_Boolean isOuter = false;
+    //E_Bool isOuter = false;
     //if (W == OW) { printf("is outer wire\n"); isOuter = true; }
     //status = check.CheckOuterBound();
     //if (status == BRepCheck_NoError) printf("is outer (test2)\n");
@@ -1417,7 +1417,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       discreteWire2.push_back(o);
 
 #define REVERSEFACE
-      E_Boolean reversed = false;
+      E_Bool reversed = false;
       if (forientation == TopAbs_FORWARD)
       {
         if (worientation == TopAbs_FORWARD)

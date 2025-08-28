@@ -47,7 +47,7 @@
 // Mesh an edge with [equal distance hmax] of nbPoints
 // ============================================================================
 E_Int __meshEdge1(const TopoDS_Edge& E, 
-                  E_Int& nbPoints, K_FLD::FldArrayF& coords, E_Boolean reverse)
+                  E_Int& nbPoints, K_FLD::FldArrayF& coords, E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
@@ -91,7 +91,7 @@ E_Int __meshEdge1(const TopoDS_Edge& E,
 // Mesh an edge with [Equal distance] of nbPoints by face
 E_Int __meshEdgeByFace1(const TopoDS_Edge& E, const TopoDS_Face& F,
                         E_Int& nbPoints, K_FLD::FldArrayF& coords,
-                        E_Boolean reverse)
+                        E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
@@ -168,7 +168,7 @@ E_Int __meshEdgeByFace1(const TopoDS_Edge& E, const TopoDS_Face& F,
 // ============================================================================
 E_Int __meshEdge2(const TopoDS_Edge& E,  
                   E_Int& nbPoints, K_FLD::FldArrayF& coords, 
-                  E_Boolean reverse)
+                  E_Bool reverse)
 {  
   BRepAdaptor_Curve C0(E);
   Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
@@ -223,7 +223,7 @@ E_Int __meshEdge2(const TopoDS_Edge& E,
 // reg param by face
 E_Int __meshEdgeByFace2(const TopoDS_Edge& E, const TopoDS_Face& F,  
                         E_Int& nbPoints, K_FLD::FldArrayF& coords,
-                        E_Boolean reverse)
+                        E_Bool reverse)
 {  
   BRepAdaptor_Curve C0(E);
   Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
@@ -290,7 +290,7 @@ E_Int __meshEdgeByFace2(const TopoDS_Edge& E, const TopoDS_Face& F,
 // ============================================================================
 E_Int __meshEdge3(const TopoDS_Edge& E,  
                   E_Int ni, E_Float* ue, K_FLD::FldArrayF& coords,
-                  E_Boolean reverse)
+                  E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
@@ -347,7 +347,7 @@ E_Int __meshEdge3(const TopoDS_Edge& E,
 // ============================================================================
 E_Int __meshEdgeByFace3(const TopoDS_Edge& E, const TopoDS_Face& F,  
                         E_Int ni, E_Float* ue, K_FLD::FldArrayF& coords,
-                        E_Boolean reverse)
+                        E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
@@ -412,7 +412,7 @@ E_Int __meshEdgeByFace3(const TopoDS_Edge& E, const TopoDS_Face& F,
 E_Int __meshEdge4(const TopoDS_Edge& E, 
                   E_Float hausd, E_Float hmax,
                   E_Int& nbPoints, K_FLD::FldArrayF& coords,
-                  E_Boolean reverse)
+                  E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
@@ -475,7 +475,7 @@ E_Int __meshEdge4(const TopoDS_Edge& E,
 E_Int __meshEdgeByFace4(const TopoDS_Edge& E, const TopoDS_Face& F, 
                         E_Float hausd,
                         E_Int& nbPoints, K_FLD::FldArrayF& coords,
-                        E_Boolean reverse)
+                        E_Bool reverse)
 {
   BRepAdaptor_Curve C0(E);
   GeomAdaptor_Curve geomAdap(C0.Curve()); // Geometric Interface <=> access to discretizations tool
@@ -899,7 +899,7 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
     if (wclosed == BRepCheck_NoError) printf("wire correctly closed\n");
     else printf("WIRE BADLY closed\n");
     
-    //E_Boolean isOuter = false;
+    //E_Bool isOuter = false;
     //if (W == OW) { printf("is outer wire\n"); isOuter = true; }
     //status = check.CheckOuterBound();
     //if (status == BRepCheck_NoError) printf("is outer (test2)\n");
@@ -976,7 +976,7 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
       discreteWire.push_back(f);
       discreteWire2.push_back(o);
 
-      E_Boolean reversed = false;
+      E_Bool reversed = false;
       if (forientation == TopAbs_FORWARD)
       {
         if (worientation == TopAbs_FORWARD)

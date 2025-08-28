@@ -108,8 +108,6 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   FldArrayF nsurf(nelts,3);
   E_Float* nsurfx = nsurf.begin(1);E_Float* nsurfy = nsurf.begin(2); E_Float* nsurfz = nsurf.begin(3);
   FldArrayF surf(nelts, 1);
-  E_Int nedges = 1;
-  E_Int nnodes = cn->getNfld(); // number of nodes in 1 element
 
   // Compute sign of scalar product nsurf*v of elements and compare with neighbours
   // When sign is different between two neighbours, store matching edge

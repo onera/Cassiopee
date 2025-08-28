@@ -23,14 +23,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void 
-  k6compvolofstructcell_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& indcell, const E_Int& indnode, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zc, E_Float& vol);
-}
 //=============================================================================
 /* Calcul et stocke les coefficients d'interpolation pour les centres des 
    cellules
@@ -72,10 +64,10 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt0;
   vector<char*> eltTypet0;
   vector<PyObject*> objs0, obju0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     coordArrays, res0, structVarString0, unstrVarString0,
     structF0, unstrF0, nit0, njt0, nkt0, cnt0, eltTypet0, objs0, obju0, 
@@ -225,10 +217,10 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
   vector<FldArrayI*> cntc;
   vector<char*> eltTypec;
   vector<PyObject*> objsc, objuc;
-  E_Boolean skipNoCoordc = false;
-  E_Boolean skipStructuredc = false;
-  E_Boolean skipUnstructuredc = true;
-  E_Boolean skipDiffVarsc = true;
+  E_Bool skipNoCoordc = false;
+  E_Bool skipStructuredc = false;
+  E_Bool skipUnstructuredc = true;
+  E_Bool skipDiffVarsc = true;
   isOk = K_ARRAY::getFromArrays(
     interpCellN, resc, structVarStringc, unstrVarStringc,
     structFc, unstrFc, nitc, njtc, nktc, cntc, eltTypec, objsc, objuc, 
@@ -693,8 +685,9 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
         ind0 = indi[1] + indi[3] * ni1 + indi[5] * ni1nj1;
         ind0ext = icv[indg]-1+(jcv[indg]-1)*(ni1+2)+(kcv[indg]-1)*(ni1+2)*(nj1+2);
                
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
-                               xni, yni, zni, vol);
+        K_METRIC::compVolOfStructCell3D(
+          nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+          xni, yni, zni, vol);
         ret = extrapv[indg]; if ( ret == 0 ) vol = vol + 500;
 
         if (vol < volSav)
@@ -788,8 +781,9 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
             E_Float* xni = coords[blocNb]->begin(1);
             E_Float* yni = coords[blocNb]->begin(2);
             E_Float* zni = coords[blocNb]->begin(3);
-            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], 
-                                   ind0, -1, xni, yni, zni, vol);
+            K_METRIC::compVolOfStructCell3D(
+              nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+              xni, yni, zni, vol);
             ret = extrapv[indg]; 
             if ( ret == 0 ) vol = vol + 1000;
 
@@ -885,8 +879,9 @@ void K_CONNECTOR::compAndStoreEXInterpCoefs(
         ind0 = indi[1] + indi[3]*ni1 + indi[5]*ni1nj1;
         ind0ext = ic-1+(jc-1)*(ni1+2)+(kc-1)*(ni1+2)*(nj1+2);
 
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
-                               xni, yni, zni, vol);
+        K_METRIC::compVolOfStructCell3D(
+          nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+          xni, yni, zni, vol);
         if ( ret == 0 ) vol = vol + 1000*test;
 
         if (vol < volSavExtrap)
@@ -1150,8 +1145,9 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
         //interpType = indi[0];
         ind0 = indi[1] + indi[3] * ni1 + indi[5] * ni1nj1;
         ind0ext = icv[indg]-1+(jcv[indg]-1)*(ni1+2)+(kcv[indg]-1)*(ni1+2)*(nj1+2);       
-        k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
-                               xni, yni, zni, vol);
+        K_METRIC::compVolOfStructCell3D(
+          nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+          xni, yni, zni, vol);
         ret = extrapv[indg]; if (ret == 0) vol += 500.;
 
         if (vol < volSavExplicit)
@@ -1241,8 +1237,9 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
             E_Float* xni = coords[blocNb]->begin(1);
             E_Float* yni = coords[blocNb]->begin(2);
             E_Float* zni = coords[blocNb]->begin(3);
-            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
-                                   xni, yni, zni, vol);
+            K_METRIC::compVolOfStructCell3D(
+              nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+              xni, yni, zni, vol);
             ret = extrapv[indg]; if (ret == 0) vol += 1000.;
             if (vol < volSavExtrap)
             {
@@ -1335,8 +1332,9 @@ void K_CONNECTOR::compAndStoreInterpCoefs(
             ind0 = indi[1] + indi[3]*ni1 + indi[5]*ni1nj1;
             ind0ext = ic-1+(jc-1)*(ni1+2)+(kc-1)*(ni1+2)*(nj1+2);
           
-            k6compvolofstructcell_(nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
-                                   xni, yni, zni, vol);
+            K_METRIC::compVolOfStructCell3D(
+              nit[blocNb], njt[blocNb], nkt[blocNb], ind0, -1,
+              xni, yni, zni, vol);
             if (ret == 0) vol = vol + 1000*test;
 
             if (vol < volSavExtrap)

@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::sliceNGonFaces(PyObject* self, PyObject* args)
 
   // Check numpy
   FldArrayI* facePL;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayFPL, facePL, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayFPL, facePL);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -83,7 +83,8 @@ PyObject* K_CONVERTER::sliceNGonFaces(PyObject* self, PyObject* args)
         for (E_Int i = start; i < end; i++)
         {
           fidx = fplp[i]-1;
-          E_Int* face = cn->getFace(fidx, nv, ngon, indPG);
+          //E_Int* face = 
+          cn->getFace(fidx, nv, ngon, indPG);
           tnpts[threadId+1] += nv;
         }
       }

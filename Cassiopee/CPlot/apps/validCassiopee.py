@@ -51,6 +51,11 @@ VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
 # Base used for comparisons. Default is the global base.
 BASE4COMPARE = 'GLOBAL'
 
+# User settings dictionary
+PREFS = {
+    "editor": "emacs"
+}
+
 # Si THREAD est None, les test unitaires ne tournent pas
 # Sinon, THREAD vaut le thread lance
 THREAD = None
@@ -66,6 +71,11 @@ STOP = 0
 
 # WIDGETS dict
 WIDGETS = {}
+
+# Sort test strings
+SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status', 'CPU time relDiff.']
+SORT_BY = 'Name'
+REV_SORT = False
 
 
 #==============================================================================
@@ -476,16 +486,16 @@ def getCFDBaseTests():
     path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH)
     try: reps = os.listdir(path)
     except: reps = []
-    out = []
+    tests = []
     for r in reps: # a terme a supprimer
-        if r == 'NACA': out.append(r) # MB 2D Euler
-        elif r == 'NACA_IBC': out.append(r) # IBC 2D Euler
-        elif r == 'DAUPHIN': out.append(r) # MB 3D Euler
-        elif r == 'FLATPLATE': out.append(r) # MB 3D SA
-        elif r == 'RAE2822': out.append(r) # MB 2D SA
-        elif r == 'RAE2822_IBC': out.append(r) # IBC 2D SA
-        elif r == 'CUBE_IBC': out.append(r) # IBC 3D SA
-    return sorted(out)
+        if r == 'NACA': tests.append(r) # MB 2D Euler
+        elif r == 'NACA_IBC': tests.append(r) # IBC 2D Euler
+        elif r == 'DAUPHIN': tests.append(r) # MB 3D Euler
+        elif r == 'FLATPLATE': tests.append(r) # MB 3D SA
+        elif r == 'RAE2822': tests.append(r) # MB 2D SA
+        elif r == 'RAE2822_IBC': tests.append(r) # IBC 2D SA
+        elif r == 'CUBE_IBC': tests.append(r) # IBC 3D SA
+    return sorted(tests)
 
 #==============================================================================
 # Ecrit un fichier contenant date, CPUtime, coverage
@@ -1094,6 +1104,96 @@ def buildTestList(sessionName=None, modules=[]):
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
 
+#=============================================================================
+# Parse some entries of a test string
+#=============================================================================
+def parseCPUTimeStr(s):
+    try:
+        s = s.strip().replace('m', ':').replace('s', '')
+        minutes, seconds = map(float, s.split(':'))
+        return minutes * 60 + seconds  # total time in seconds
+    except ValueError:  # undefined as in "..."
+        return -1.
+
+def parseCPUTimeRelDiffStr(s1, s2):
+    t1 = parseCPUTimeStr(s1)
+    t2 = parseCPUTimeStr(s2)
+    if t1 <= 0. or t2 <= 0.: return 1e9
+    else: return (t2 - t1)/t2
+
+def parseDateStr(s):
+    try:
+        return time.strptime(s.strip(), "%d/%m/%y %Hh%M")
+    except ValueError:  # undefined as in "..."
+        return time.strptime(f"01/01/1970 00h00")
+
+def parseCoverageStr(s):
+    try:
+        return float(s.strip('%'))
+    except ValueError:  # undefined as in "..."
+        return -1.
+
+#==============================================================================
+# Sort tests
+#==============================================================================
+def splitTestString(test):
+    return [entry.strip() for entry in test.split(":")]
+
+def sortTests(tests):
+    global SORT_BY
+    if SORT_BY not in SORT_CATEGORIES: SORT_BY = 'Name'
+    if SORT_BY == 'Name': return sorted(tests, reverse=REV_SORT)
+    sortIndex = SORT_CATEGORIES.index(SORT_BY) + 1
+    if SORT_BY == 'Coverage':
+        return sorted(
+            tests,
+            key=lambda t: parseCoverageStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
+    elif SORT_BY in ['CPU time', 'Ref. CPU time']:
+        return sorted(
+            tests,
+            key=lambda t: parseCPUTimeStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
+    elif SORT_BY == 'CPU time relDiff.':
+        sortIndex1 = SORT_CATEGORIES.index('CPU time') + 1
+        sortIndex2 = SORT_CATEGORIES.index('Ref. CPU time') + 1
+        return sorted(
+            tests,
+            key=lambda t: parseCPUTimeRelDiffStr(
+                splitTestString(t)[sortIndex1],
+                splitTestString(t)[sortIndex2]),
+            reverse=REV_SORT)
+    elif SORT_BY == 'Date':
+        return sorted(
+            tests,
+            key=lambda t: parseDateStr(splitTestString(t)[sortIndex]),
+            reverse=REV_SORT)
+    return sorted(
+        tests,
+        key=lambda t: splitTestString(t)[sortIndex],
+        reverse=REV_SORT)
+
+def sortTestList(event=None, entry='Name', force=False):
+    global SORT_BY
+    if entry in SORT_CATEGORIES and (force or entry != SORT_BY):
+        SORT_BY = entry
+        tests = Listbox.get(0, 'end')
+        Listbox.delete(0, 'end')
+        for s in sortTests(tests): Listbox.insert('end', s)
+    updateSortLabels()
+
+def updateSortLabels():
+    if not INTERACTIVE: return
+    for i, c in enumerate(SORT_CATEGORIES):
+        if c == SORT_BY: label = f'(*) By {c}'
+        else: label = f'    By {c}'
+        sortTab.entryconfig(i, label=label)
+
+def updateSortingOrderLabel(event=None):
+    global REV_SORT
+    REV_SORT = not REV_SORT
+    sortTestList(event=event, entry=SORT_BY, force=True)
+
 #==============================================================================
 # Filtre la liste des tests avec la chaine de filter
 # Update la listbox
@@ -1190,17 +1290,18 @@ def filterTestList(event=None):
 
     Listbox.delete(0, 'end')
     if filters:
-        for s in sorted(insertedTests): Listbox.insert('end', s)
+        for s in sortTests(insertedTests): Listbox.insert('end', s)
     else:
-        for s in TESTS: Listbox.insert('end', s)
+        for s in sortTests(TESTS): Listbox.insert('end', s)
     Listbox.config(yscrollcommand=Scrollbar.set)
     Scrollbar.config(command=Listbox.yview)
     return True
 
 #==============================================================================
-# Ouvre un editeur sur le test (emacs)
+# Ouvre un editeur sur le test
 #==============================================================================
 def viewTest(event=None):
+    editor = PREFS.get("editor", "emacs")
     selection = Listbox.curselection()
     for s in selection:
         t = Listbox.get(s)
@@ -1217,9 +1318,9 @@ def viewTest(event=None):
             pathl = os.path.join(modulesDir, module, 'test')
         if mySystem == 'mingw' or mySystem == 'windows':
             pathl = pathl.replace('/', '\\')
-            cmd = 'cd '+pathl+' && emacs '+test
+            cmd = f"cd {pathl} && {editor} {test}"
         else:
-            cmd = 'cd '+pathl+'; emacs '+test
+            cmd = f"cd {pathl}; {editor} {test}"
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
 #==============================================================================
@@ -1790,6 +1891,47 @@ def setGUITitleBar(loc='GLOBAL'):
     Master.title(title)
 
 #==============================================================================
+# Load a dict storing user settings for validCassiopee and amend the PREFS dict
+# Located in $HOME/.cassiopee/config_validCassiopee.json
+#==============================================================================
+def loadPrefFile():
+    import json
+    global PREFS
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
+    kdir = os.path.join(homePath, '.cassiopee')
+    kdirExist = os.path.exists(kdir) and os.path.isdir(kdir)
+    try:
+        if not kdirExist: os.makedir(kdir)
+    except: return
+    configFile = os.path.join(kdir, 'config_validCassiopee.json')
+    if os.path.isfile(configFile) and os.access(configFile, os.R_OK):
+        with open(configFile, 'r') as f:
+            localPrefs = json.load(f)
+        for k, v in localPrefs.items(): PREFS[k] = v
+    else:
+        savePrefFile()
+
+#==============================================================================
+# Save user settings to $HOME/.cassiopee/config_validCassiopee.json
+#==============================================================================
+def savePrefFile():
+    import json
+    homePath = os.path.expanduser('~')
+    if homePath is None: homePath = os.getenv('HOME')
+    if homePath is None: homePath = os.getenv('USERPROFILE')
+    if homePath is None: homePath = ''
+    kdir = os.path.join(homePath, '.cassiopee')
+    try: os.makedirs(kdir, exist_ok=True)
+    except OSError as e: return
+    if not os.access(kdir, os.W_OK): return
+    configFile = os.path.join(kdir, 'config_validCassiopee.json')
+    with open(configFile, 'w') as f:
+        json.dump(PREFS, f, indent=4)
+
+#==============================================================================
 # Main
 #==============================================================================
 
@@ -1809,6 +1951,9 @@ if __name__ == '__main__':
         try: import tkFont as Font
         except: import tkinter.font as Font
         from functools import partial
+        # Load user settings
+        loadPrefFile()
+
         # Main window
         Master = TK.Tk()
         setGUITitleBar()
@@ -1829,6 +1974,8 @@ if __name__ == '__main__':
         menu.add_cascade(label='File', menu=fileTab)
         toolsTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='Tools', menu=toolsTab)
+        sortTab = TK.Menu(menu, tearoff=0)
+        menu.add_cascade(label='Sort', menu=sortTab)
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
 
@@ -1860,6 +2007,17 @@ if __name__ == '__main__':
         viewTab.add_separator()
         viewTab.add_command(label='Select all visible tests', command=selectAll,
                             accelerator='Ctrl+A')
+
+        sortTab.add_command(label='(*) By Name', command=lambda: sortTestList(entry="Name"))
+        sortTab.add_command(label='    By CPU time', command=lambda: sortTestList(entry="CPU time"))
+        sortTab.add_command(label='    By Ref. CPU time', command=lambda: sortTestList(entry="Ref. CPU time"))
+        sortTab.add_command(label='    By Date', command=lambda: sortTestList(entry="Date"))
+        sortTab.add_command(label='    By Coverage', command=lambda: sortTestList(entry="Coverage"))
+        sortTab.add_command(label='    By Tag', command=lambda: sortTestList(entry="Tag"))
+        sortTab.add_command(label='    By Status', command=lambda: sortTestList(entry="Status"))
+        sortTab.add_command(label='    By CPU time relDiff.', command=lambda: sortTestList(entry="CPU time relDiff."))
+        sortTab.add_separator()
+        sortTab.add_command(label='Reverse order', command=updateSortingOrderLabel)
 
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)

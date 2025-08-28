@@ -163,7 +163,7 @@ namespace NUGA
 
   };
 
-  namespace CLASSIFY // some "global" functions : they do not need all the template params ofthe classifyer class
+  namespace CLASSIFY // some "global" functions : they do not need all the template params of the classifyer class
   {
     template <typename T1, typename T2>
     static eClassify classify(T1 const& t1, T2 const& t2, bool deep);
@@ -248,9 +248,7 @@ namespace NUGA
     eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
     {
       const double* ae1G = ae1.get_centroid();
-      //E_Int nfronts = front.ncells();
-      //assert (nfronts);
-
+      
       E_Int sign(0);
       NUGA::random rando;
 
@@ -321,14 +319,6 @@ namespace NUGA
           E_Bool overlap;
           bool isx = PGj.intersect<DELAUNAY::Triangulator>(front.crd, ae1G, C, EPSILON, true, lambda, u1, overlap);
 
-          /*{
-            std::ostringstream o;
-            o << "PG_j_" << j;
-            std::vector<E_Int> cont;
-            cont.push_back(j);
-            medith::write(o.str().c_str(), front.crd, front.cnt, &cont, 0);
-          }*/
-
           if (isx && lambda < lambda_min)
           {
             // is G above or under the plane ?
@@ -350,7 +340,9 @@ namespace NUGA
       assert(sign);
       return (sign < 0) ? OUT : IN; //assume outward orientation
     }
+    
 
+    
     template <>
     eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
     {
@@ -393,6 +385,7 @@ namespace NUGA
 
       return OUT;
     }
+    
 
     static eClassify classify(K_SEARCH::BBox3D const& t1, K_SEARCH::BBox3D const& t2)
     {
@@ -403,7 +396,8 @@ namespace NUGA
     static eClassify classify(K_SEARCH::BBox3D const& t1, std::vector<K_SEARCH::BBox3D> const& ts, std::vector<E_Int> const & ids)
     {
       eClassify ret = OUT;
-      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i) {
+      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i) 
+      {
         K_SEARCH::BBox3D bx = ts[ids[i]];
         bx.enlarge(0.01); //hack for 2D : eg. collar double wall can fall out of fuselage box
         ret = classify(t1, bx);
@@ -413,6 +407,7 @@ namespace NUGA
       return ret;
     }
 
+    
     static eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
     {
       DELAUNAY::Triangulator dt;
@@ -447,6 +442,7 @@ namespace NUGA
 
       return OUT;
     }
+    
   }
 
   ///

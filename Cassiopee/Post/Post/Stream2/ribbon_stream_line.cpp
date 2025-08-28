@@ -174,7 +174,10 @@ namespace
                 if ( ind_cell == -1 ) break;  // On n'a pas trouvé de zones correspondantes...
                 continue;
             }
-            E_Int facette_in = -1, facette_out = -1;
+#if defined( DEBUG_VERBOSE )
+            E_Int facette_in = -1;
+#endif
+            E_Int facette_out = -1;
             auto facettes_candidates = zones[ num_blk ].get_faces_of_element( ind_cell, num_blk );
 
 #if defined( DEBUG_VERBOSE )
@@ -211,7 +214,11 @@ namespace
                 std::tie( is_intersecting, is_entering ) = facette.is_intersecting_ray( cur_point, velocity );
                 if ( is_intersecting ) {
                     if ( is_entering )
+                    {
+#if defined( DEBUG_VERBOSE )
                         facette_in = ind_facette;
+#endif
+                    }
                     else
                         facette_out = ind_facette;
                 }

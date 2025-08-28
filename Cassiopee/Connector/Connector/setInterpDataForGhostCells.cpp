@@ -37,11 +37,11 @@ PyObject* K_CONNECTOR::setInterpDataForGC(PyObject* self, PyObject* args)
                     &pyArrayBorderIndices, &listOfDonorIndices,
                     &dim, &loc, &depth, &incrR, &incrD))
   {
-      return NULL;
+    return NULL;
   }
   
   FldArrayI* arrayBorderI;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyArrayBorderIndices, arrayBorderI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyArrayBorderIndices, arrayBorderI);
   if (res == 0) 
   {    
     PyErr_SetString(PyExc_TypeError, 

@@ -49,7 +49,7 @@ E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
   E_Float dist2; E_Float sigma0, sigma1;
   E_Float xp, yp, zp;
   E_Int ind1, ind2, ind3;
-  E_Boolean in;
+  E_Bool in;
   E_Int* cn2p1 = cn2.begin(1);
   E_Int* cn2p2 = cn2.begin(2);
   E_Int nvert = cn2.getNfld();
@@ -125,7 +125,7 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   E_Float dist2; E_Float sigma0, sigma1;
   E_Float xp, yp, zp;
   E_Int ind1, ind2, ind3;
-  E_Boolean in;
+  E_Bool in;
   E_Int* cn2p1 = cn2.begin(1);
   E_Int* cn2p2 = cn2.begin(2);
   E_Int nvert = cn2.getNfld();

@@ -46,10 +46,10 @@ PyObject* K_CONNECTOR::maskXRay(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int res = K_ARRAY::getFromArrays(
     body, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 

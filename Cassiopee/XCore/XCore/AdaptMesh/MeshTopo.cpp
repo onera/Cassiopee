@@ -30,7 +30,7 @@ E_Int Mesh_is_face_aligned_with_vec3(Mesh *M, E_Int fid, E_Float *vec3)
 {
     E_Int pn[4];
     E_Int *face = Mesh_get_face(M, fid);
-    E_Int *frange = Mesh_get_frange(M, fid);
+    //E_Int *frange = Mesh_get_frange(M, fid);
     for (E_Int i = 0; i < M->fstride[fid]; i++) {
         pn[i] = face[2*i];
     }

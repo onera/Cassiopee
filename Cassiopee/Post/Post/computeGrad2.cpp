@@ -77,7 +77,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Nombre de variable dont il faut calculer le gradient
   E_Int nfld = fc->getNfld();
@@ -170,8 +170,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
   if (indices != Py_None && field != Py_None)
   {
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int n = inds->getSize()*inds->getNfld();
     E_Int* pind = inds->begin();
@@ -249,7 +249,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   }
   else
   {
-    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    K_NUMPY::getFromNumpyArray(volc, vols);
     volp = vols->begin();
   }
 
@@ -340,7 +340,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Nombre de variables dont il faut calculer le gradient
   E_Int nfld = fc->getNfld();
@@ -684,8 +684,8 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   if (indices != Py_None && field != Py_None)
   {
     FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -1013,8 +1013,8 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   if (indices != Py_None && field != Py_None)
   {
     FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();

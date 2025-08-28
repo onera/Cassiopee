@@ -40,14 +40,14 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
 
     E_Float *ctag = NULL;
     E_Int size = -1;
-    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size, true);
+    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size);
     if (ret != 1 || size != nc) {
         RAISE("Bad ctag array.");
         return NULL;
     }
 
     E_Float *ptag = NULL;
-    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size, true);
+    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size);
     if (ret != 1 || size != np) 
     {
         RAISE("Bad ptag array.");
@@ -202,7 +202,8 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         for (E_Int fid = 0; fid < nf; fid++) indPG[fid+1] += indPG[fid];
         assert(indPG[nf] == sizeNGon);
 
-        for (const auto &fids : fmap) {
+        for (const auto &fids : fmap) 
+        {
             E_Int ofid = fids.first-1;
             E_Int nfid = fids.second;
             E_Int NP = -1;
@@ -216,9 +217,11 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         E_Int *nface = cn->getNFace();
         indPH[0] = 0;
         nc = 0;
-        for (E_Int cid : clist) {
+        for (E_Int cid : clist) 
+        {
             E_Int NF = -1;
-            E_Int *pf = array.get_cell(cid, NF);
+            //E_Int *pf = 
+            array.get_cell(cid, NF);
             indPH[nc+1] = NF;
             nc++;
         }
@@ -226,7 +229,8 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         assert(indPH[nc] == sizeNFace);
 
         nc = 0;
-        for (E_Int cid : clist) {
+        for (E_Int cid : clist) 
+        {
             E_Int NF = -1;
             E_Int *pf = array.get_cell(cid, NF);
             E_Int *ptr = &nface[indPH[nc]];

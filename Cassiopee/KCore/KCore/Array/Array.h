@@ -268,7 +268,7 @@ namespace K_ARRAY
                      E_Int& ni, E_Int& nj, E_Int& nk,
                      FldArrayI*& c,
                      char*& eltType,
-                     E_Boolean shared=false);
+                     E_Bool shared=false);
   E_Int getFromArray2(PyObject* o,
                       char*& varString,
                       FldArrayF*& f,
@@ -386,11 +386,11 @@ namespace K_ARRAY
                       std::vector<char*>& eltType,
                       std::vector<PyObject*>& objs,
                       std::vector<PyObject*>& obju,
-                      E_Boolean skipDiffVars=false,
-                      E_Boolean skipNoCoord=false,
-                      E_Boolean skipStructured=false,
-                      E_Boolean skipUnstructured=false,
-                      E_Boolean shared=false);
+                      E_Bool skipDiffVars=false,
+                      E_Bool skipNoCoord=false,
+                      E_Bool skipStructured=false,
+                      E_Bool skipUnstructured=false,
+                      E_Bool shared=false);
   /* Extrait les donnees utiles d'une liste d'objets pythons.
    IN: o: liste d'objets pythons correspondant a des arrays
    OUT: res: type de l'array dans arrays (1:struct, 2:unstruct, 0:invalid, -1: skipped). Si l'array est invalide ou skipped, il n'y pas de F, a2,...
@@ -420,11 +420,11 @@ namespace K_ARRAY
                       std::vector<void*>& a3, 
                       std::vector<void*>& a4,
                       std::vector<PyObject*>& obj,
-                      E_Boolean skipDiffVars,
-                      E_Boolean skipNoCoord,
-                      E_Boolean skipStructured,
-                      E_Boolean skipUnstructured,
-                      E_Boolean shared);
+                      E_Bool skipDiffVars,
+                      E_Bool skipNoCoord,
+                      E_Bool skipStructured,
+                      E_Bool skipUnstructured,
+                      E_Bool shared);
 
   /* Retourne uniquement la varString d'un array.
      varString est partage avec python.
@@ -495,7 +495,7 @@ namespace K_ARRAY
   PyObject* buildArray(FldArrayF& f, const char* varString,
                        FldArrayI& cn, E_Int et, 
                        const char* etString=NULL, 
-                       E_Boolean center=false);
+                       E_Bool center=false);
   PyObject* buildArray2(FldArrayF& f, const char* varString, 
                         FldArrayI& cn, const char* eltType, E_Int api=1);
   PyObject* buildArray3(FldArrayF& f, const char* varString, 
@@ -518,31 +518,31 @@ namespace K_ARRAY
   PyObject* buildArray(E_Int nfld, const char* varString,
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
-                       E_Boolean center=false, E_Int sizeConnect=1); 
+                       E_Bool center=false, E_Int sizeConnect=1); 
   PyObject* buildArray2(E_Int nfld, const char* varString,
                        E_Int nvertex, E_Int nelt, 
                        E_Int et, const char* etString, 
-                       E_Boolean center=false, 
+                       E_Bool center=false, 
                        E_Int sizeNGon=1, E_Int sizeNFace=1,
                        E_Int nface=1, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int nvertex, E_Int nelt, E_Int nface, 
                         const char* etString,
                         E_Int sizeNGon=1, E_Int sizeNFace=-1, E_Int ngonType=1,
-                        E_Boolean center=false, E_Int api=1);
+                        E_Bool center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int nvertex, E_Int nelts,
                         const char* etString,
-                        E_Boolean center=false, E_Int api=1);
+                        E_Bool center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
                         E_Int nvertex, std::vector<E_Int>& neltsPerConnect,
                         const char* etString,
-                        E_Boolean center=false, E_Int api=1);
+                        E_Bool center=false, E_Int api=1);
   PyObject* buildArray3(E_Int nfld,
                         const char* varString,
                         E_Int nvertex,
                         FldArrayI& cn, // provides ncells, ...
-                        char* eltType,
+                        const char* eltType,
                         E_Int center=-1, E_Int api=1,
                         E_Bool copyConnect=false);
 
@@ -567,7 +567,7 @@ namespace K_ARRAY
   PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
                        const K_FLD::DynArray<E_Int>& c, E_Int et, 
                        const char* etString=NULL, 
-                       E_Boolean center=false);
+                       E_Bool center=false);
 
   /* Add field in array1 or array2 (in place) 
     IN: a: array

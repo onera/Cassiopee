@@ -4127,7 +4127,7 @@ def setElementConnectivity2(z, array):
       info = z[2][len(z[2])-1]
       i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[0]
       info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-      info[2].append(['ElementConnectivity', gc, [], 'DataArray_t'])
+      info[2].append(['ElementConnectivity', gc.ravel("k"), [], 'DataArray_t'])
       _updateElementRange(z)
   else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
     i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0

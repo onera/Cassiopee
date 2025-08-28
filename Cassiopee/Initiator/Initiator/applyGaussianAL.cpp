@@ -97,8 +97,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     vector<void*> a3; //eltType en NS
     vector<void*> a4;
     vector<PyObject*> objs;
-    E_Boolean skipNoCoord = false; E_Boolean skipStructured = false;
-    E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = false;
+    E_Bool skipNoCoord = false; E_Bool skipStructured = false;
+    E_Bool skipUnstructured = false; E_Bool skipDiffVars = false;
     E_Int ok = K_ARRAY::getFromArrays(arrays, resl, varString, fields, a2, a3, a4, objs,  
                                         skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true); 
     E_Int nzones = objs.size();
@@ -116,7 +116,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     {
         PyObject* pyLoadsForBlade = PyList_GetItem(listOfAllLoads, i);
         FldArrayF* loadsF;
-        E_Int resn = K_NUMPY::getFromNumpyArray(pyLoadsForBlade, loadsF, true);
+        E_Int resn = K_NUMPY::getFromNumpyArray(pyLoadsForBlade, loadsF);
         if (resn == 0)
         {
             RELEASEARRAYS;
@@ -133,7 +133,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     {
         PyObject* pyALPositionsForBlade = PyList_GetItem(listOfALPositions, i);
         FldArrayF* ALPositionsF;
-        E_Int resn = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF, true);
+        E_Int resn = K_NUMPY::getFromNumpyArray(pyALPositionsForBlade, ALPositionsF);
         if (resn == 0)
         {
             RELEASEARRAYS;
@@ -152,7 +152,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             E_Int ind = nosec + nob*NbPoints;
             PyObject* tpl = PyList_GetItem(listOfRotMat2SourceFrame, ind);
             FldArrayF* RotMatLocal;
-            E_Int resn = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal, true);
+            E_Int resn = K_NUMPY::getFromNumpyArray(tpl, RotMatLocal);
             if (resn==0)
             {
                 RELEASEARRAYS;
@@ -170,7 +170,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     // recuperation des epsilons locaux a chq section de pale
     // chaque pale a le meme epsx,epsy,epsz pour une section donnee
     FldArrayF* localEps_X;
-    E_Int rese = K_NUMPY::getFromNumpyArray(pyLocalEpsX, localEps_X, true);
+    E_Int rese = K_NUMPY::getFromNumpyArray(pyLocalEpsX, localEps_X);
     if (rese == 0) 
     {
         RELEASEARRAYS;
@@ -182,7 +182,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     }
 
     FldArrayF* localEps_Y;
-    rese = K_NUMPY::getFromNumpyArray(pyLocalEpsY, localEps_Y, true);
+    rese = K_NUMPY::getFromNumpyArray(pyLocalEpsY, localEps_Y);
     if (rese == 0) 
     {
         RELEASEARRAYS;
@@ -195,7 +195,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     }
   
     FldArrayF* localEps_Z;
-    rese = K_NUMPY::getFromNumpyArray(pyLocalEpsZ, localEps_Z, true);
+    rese = K_NUMPY::getFromNumpyArray(pyLocalEpsZ, localEps_Z);
     if (rese == 0) 
     {
         RELEASEARRAYS;

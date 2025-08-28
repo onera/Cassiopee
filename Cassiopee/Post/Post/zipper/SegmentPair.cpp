@@ -64,7 +64,7 @@ StructBlock* SegmentPair::getBlock2()
 //=============================================================================
 /* Compute the zipper for  the current segment pair */
 //=============================================================================
-E_Boolean SegmentPair::computeZipper(const E_Int nfieldTot,
+E_Bool SegmentPair::computeZipper(const E_Int nfieldTot,
                                      FldArrayF& field, FldArrayI& connect)
 {
   vector<TriangleZ*> triangles;
@@ -571,7 +571,7 @@ void SegmentPair::updateFlagForStrings(vector<SegmentPair*>& segPairs)
   FldArrayI& indArray1 = _origSt1->getIndArray();
   FldArrayI& indArray2 = _origSt2->getIndArray();
 
-  E_Boolean isFound;
+  E_Bool isFound;
   E_Int indArray1Size = indArray1.getSize();
   E_Int indArray2Size = indArray2.getSize();
 
@@ -717,7 +717,7 @@ void SegmentPair::updateFlagForStrings(vector<SegmentPair*>& segPairs)
    pair of segments 
 */
 //=============================================================================
-E_Boolean 
+E_Bool 
 SegmentPair::searchForCorrespondingSegments(E_Int ind1, E_Int ind2, 
                                             vector<SegmentPair*>& segPairs)
 {  

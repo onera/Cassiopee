@@ -62,7 +62,7 @@ extern "C" void k6setallbvaluesatf_(const E_Int& sizeLoc,
 #define SETRAKE                                                         \
   if (_stride == 1)                                                     \
   { for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = _data+i*_sizeLoc; } \
-  else                                                              \
+  else                                                                  \
   { for (E_Int i = 0; i < _nfldLoc; i++) _rake[i] = _data+i; }
 
 namespace K_FLD
@@ -97,7 +97,7 @@ class FldArray
     /** Constructor with number of elements (size) and
         number of field (nfld) */
     explicit FldArray(E_Int size, E_Int nfld=NUMFIELD0,
-                      E_Boolean compact=true, E_Boolean fortranOrdered=true);
+                      E_Bool compact=true, E_Bool fortranOrdered=true);
     /** Copy constructor. We take the size of
         the right hand FldArrayI to build the new FldArray.
         Constructed object has new (duplicated) datas */
@@ -113,8 +113,8 @@ class FldArray
         on data.
         Forcement compact. */
     FldArray(E_Int size, E_Int nfld,
-             const value_type* listofvalues, E_Boolean shared=false,
-             E_Boolean fortranOrdered=true);
+             const value_type* listofvalues, E_Bool shared=false,
+             E_Bool fortranOrdered=true);
     /** Constructor from T**.
         if shared=false, data are copied from listofvalues
         if shared=true, data is just a pointer on listofvalues,
@@ -122,8 +122,8 @@ class FldArray
         on data.
         Forcement non compact. */
     FldArray(E_Int size, E_Int nfld,
-             value_type** listofvalues, E_Boolean shared=false,
-             E_Boolean fortranOrdered=true);
+             value_type** listofvalues, E_Bool shared=false,
+             E_Bool fortranOrdered=true);
     /** Constructor for NGON connectivity (shared, array1). */
     FldArray(E_Int nfaces, E_Int nelts, E_Int sizeNGon, E_Int sizeNFace,
              value_type* ngonCompact);
@@ -133,7 +133,7 @@ class FldArray
              value_type* indPG, value_type* indPH, 
              E_Int sizeNGon, E_Int sizeNFace, value_type* PE=NULL);
     /** Constructor for ME connectivities (shared, array3). */
-    FldArray(std::vector< FldArray<T>* >& list);
+    FldArray(std::vector<FldArray<T>* >& list);
     
     /** Destructor */
     ~FldArray();
@@ -148,9 +148,9 @@ class FldArray
 
     ///+ 3- Operators
     /** Result of = operator has new (duplicated) data. */
-    FldArray& operator=  (const FldArray& rhs);
+    FldArray& operator= (const FldArray& rhs);
     /** Init a already dimensionned array to a value */
-    FldArray& operator=  (T val);
+    FldArray& operator= (T val);
     /** Copy from indice beg the field rhs as a subpart of the
         current array (static interface only). */
     void copyFrom(E_Int beg, const FldArray& rhs);
@@ -182,17 +182,21 @@ class FldArray
     /** Get stride */
     inline E_Int getStride() const { return _stride; }
     /** Return true if array is compact */
-    inline E_Boolean getCompact() const { return _compact; }
+    inline E_Bool getCompact() const { return _compact; }
     /** GetApi (1: compact, 2: rake) */
     inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
+
+    /** Get dimensionality, NGon and ME. */
+    inline E_Int getDim(char* eltType=NULL);
+    /** Get number of elements, NGon and ME. */
+    inline E_Int getNElts();
 
     /** Get/Set NGon */
     inline E_Int isNGon() const { return _ngon; }
     // 1: compact array1 CGNSv3, 2: rake CGNSv3, 3: rake CGNSv4
     void setNGon(E_Int ngon) { _ngon = ngon; };
-    /** Only if  ngon */
+    /** Only if NGon */
     inline E_Int getNFaces();
-    inline E_Int getNElts();
     inline E_Int* getNGon();
     inline E_Int* getNFace();
     inline E_Int* getIndPG();
@@ -250,7 +254,7 @@ class FldArray
      if shared=true, listofvalues is shared
      if shared=false, listofvalues is copied. */
     void malloc(E_Int nsize, E_Int nnfld,
-              const T* listofvalues, E_Boolean shared=false);
+              const T* listofvalues, E_Bool shared=false);
     /** Resize with new array allocation WITH copy. */
     void reAlloc(E_Int nsize, E_Int nnfld=NUMFIELD0);
     /** Resize with new array allocation WITH copy, keeping
@@ -310,18 +314,7 @@ class FldArray
   public:
     ///+ 9- Specific to FldArrayI
     ///- Adds val to all values.
-    void shift (T val);
-
-  public:
-    T& getitems(int i, int j);
-    T& getitem(int i);
-
-    void setitem(int i, T value);
-    void setitems(int i, int j, T value);
-    void setNGonType(int i) {
-      if (i < 1 && i > 3) return;
-      _ngon = i;
-    };
+    void shift(T val);
 
   private:
     // set all elements to val
@@ -347,9 +340,9 @@ class FldArray
     /* The number of allocated fields: when using the static interface, we always have _nfldMax == _nfldLoc */
     E_Int _nfldMax;
     /* data is shared (owned by someone else)? */
-    E_Boolean _shared;
+    E_Bool _shared;
     /* is data compact? */
-    E_Boolean _compact;
+    E_Bool _compact;
     /* stride */
     E_Int _stride;
 
@@ -363,7 +356,7 @@ class FldArray
     E_Int _sizeNFace; // taille de la connectivite NFace (NGON)
 
     /* si multiple element connectivities */
-    std::vector< FldArray<T>* > _BEConnects; 
+    std::vector<FldArray<T>* > _BEConnects; 
 
     /* The data array (deprecated) */
     value_type* _data;
@@ -375,7 +368,7 @@ typedef FldArray<E_Float> FldArrayF;
 typedef FldArray<E_Int> FldArrayI;
 typedef FldArray<short> FldArrayIS;
 typedef FldArray<int> FldArrayI4;
-typedef FldArray<E_Boolean> FldArrayB;
+typedef FldArray<E_Bool> FldArrayB;
 
 //INLINING
 
@@ -494,34 +487,6 @@ const T* FldArray<T>::end(E_Int fld) const
   //return (_data + _sizeMax*(fld-1) + _sizeLoc);
   return _rake[fld-1]+_sizeLoc*_stride;
 }
-//OK============================================================================
-TEMPLATE_T
-inline T& FldArray<T>::getitems(int i, int j)
-{
-  return this->operator()(i,j);
-}
-
-//OK============================================================================
-TEMPLATE_T
-inline T& FldArray<T>::getitem(int i)
-{
-  return this->operator[](i);
-}
-
-//OK============================================================================
-TEMPLATE_T
-void FldArray<T>::setitem(int i, T value)
-{
-  this->operator[](i) = value;
-}
-
-//OK============================================================================
-TEMPLATE_T
-void FldArray<T>::setitems(int i, int j, T value)
-{
-  this->operator()(i,j) = value;
-}
-
 //==============================================================================
 TEMPLATE_T
 E_Int FldArray<T>::getNFaces()
@@ -538,22 +503,67 @@ E_Int FldArray<T>::getNFaces()
 
 //==============================================================================
 TEMPLATE_T
+E_Int FldArray<T>::getDim(char* eltType)
+{
+  E_Int size0;  // number of vertices of the first face
+  E_Int dim = 3;
+  if (_ngon > 0)  // NGon
+  {
+    if (_ngon == 3)  // Array3
+    {
+      E_Int* ngon = _rake[0];
+      E_Int* indPG = _rake[2];
+      E_Int pos0 = indPG[0];
+      size0 = indPG[1] - pos0;
+    }
+    else if (_ngon == 2)  // Array 2
+    {
+      E_Int* ngon = _rake[0];
+      E_Int* indPG = _rake[2];
+      E_Int pos0 = indPG[0];
+      size0 = ngon[pos0];
+    }
+    else // Array1
+    {
+      E_Int* ngon = _rake[0]+2;
+      E_Int* indPG = getIndPG();
+      E_Int pos0 = indPG[0];
+      size0 = ngon[pos0];
+    }
+    if (size0 == 1) dim = 1;
+    else if (size0 == 2) dim = 2;
+  }
+  else  // ME connectivity
+  {
+    assert((eltType != NULL) && "The first eltType must be provided.");
+    if (strcmp(eltType, "NODE") == 0) dim = 0;
+    else if (strcmp(eltType, "BAR") == 0) dim = 1;
+    else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) dim = 2;
+  }
+  return dim;
+}
+
+//==============================================================================
+TEMPLATE_T
 E_Int FldArray<T>::getNElts()
 {
   if (_ngon >= 2) // Array2/3
   {
     return _nelts;
   }
-  else // Array1
+  else //if (_ngon == 1) // Array1
   {
     E_Int sizeNGon = _rake[0][1];
     return _rake[0][sizeNGon+2]; 
   }
-  /*
-  else // suppose a BE connectivity
-  {
-      return _sizeLoc;
-  }*/
+  // else // ME connectivity
+  // {
+  //   if (_nelts > 0) { return _nelts; }
+  //   _nelts = 0;
+  //   for (size_t i = 0; i < _BEConnects.size(); i++)
+  //     _nelts += _BEConnects[i]->getSize();
+  //   return _nelts;
+  // }
 }
 
 //==============================================================================
@@ -785,8 +795,8 @@ FldArray<T>::FldArray()
 //OK-----------------------------------------------------------------------------
 // Constructeur pour des champs (size, nfld) (compact+stride)
 TEMPLATE_T
-FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Boolean compact,
-    E_Boolean fortranOrdered)
+FldArray<T>::FldArray(E_Int size, E_Int nfld, E_Bool compact,
+    E_Bool fortranOrdered)
   : _sizeTot(size*nfld), _sizeLoc(size), _sizeMax(size),
     _nfldLoc(nfld), _nfldMax(nfld), _shared(false), _compact(compact),
     _stride(1), _ngon(0), _nfaces(0), _nelts(0), 
@@ -858,8 +868,8 @@ FldArray<T>::FldArray(const FldArray& rhs, E_Int begin, E_Int end)
 //OK forcement compact---------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int size, E_Int nfld,
-                      const T* listofvalues, E_Boolean shared,
-                      E_Boolean fortranOrdered)
+                      const T* listofvalues, E_Bool shared,
+                      E_Bool fortranOrdered)
  : _sizeTot(size*nfld),
    _sizeLoc(size),
    _sizeMax(size),
@@ -896,8 +906,8 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
 //OK forcement non compact------------------------------------------------------
 TEMPLATE_T
 FldArray<T>::FldArray(E_Int size, E_Int nfld,
-                      T** listofvalues, E_Boolean shared,
-                      E_Boolean fortranOrdered)
+                      T** listofvalues, E_Bool shared,
+                      E_Bool fortranOrdered)
  : _sizeTot(size*nfld),
    _sizeLoc(size),
    _sizeMax(size),
@@ -1325,7 +1335,7 @@ void FldArray<T>::resize(E_Int size, E_Int nfld)
 //-----------------------------------------------------------------------------
 SPECIALISE inline E_Float FldArray<E_Float>::badValue() {return K_CONST::E_BADVALUE_F;}
 SPECIALISE inline E_Int FldArray<E_Int>::badValue() {return K_CONST::E_BADVALUE_I;}
-//SPECIALISE inline E_Boolean FldArray<E_Boolean>::badValue() {return K_CONST::E_BADVALUE_B;}
+//SPECIALISE inline E_Bool FldArray<E_Bool>::badValue() {return K_CONST::E_BADVALUE_B;}
 
 SPECIALISE inline E_Float FldArray<E_Float>::Zero() {return K_CONST::E_ZERO_FLOAT;}
 SPECIALISE inline E_Int FldArray<E_Int>::Zero() {return K_CONST::E_ZERO_INT;}
@@ -1362,7 +1372,7 @@ void FldArray<T>::malloc(E_Int size, E_Int nfld)
 //-----------------------------------------------------------------------------
 TEMPLATE_T
 void FldArray<T>::malloc(E_Int size, E_Int nfld, const T* listofvalues,
-                         E_Boolean shared)
+                         E_Bool shared)
 {
   assert(nfld > 0);
   assert(size >= 0);
@@ -1449,17 +1459,19 @@ void FldArray<T>::reAllocMat(E_Int size, E_Int nfld)
   E_Int nf = K_FUNC::E_min(nfld, _nfldLoc);
 
 #pragma omp parallel default(shared) if (sizeTot > __MIN_SIZE_MEAN__)
-  for (E_Int j = 0; j < nf; j++)
   {
-#pragma omp for
-    for (E_Int i = 0; i < sz; i++)
-      newdata[i+j*size] = _data[i+j*_sizeLoc];
-#pragma omp for
-    for (E_Int i = sz; i < size; i++)
-      newdata[i+j*size] = 0;
+    for (E_Int j = 0; j < nf; j++)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < sz; i++)
+        newdata[i+j*size] = _data[i+j*_sizeLoc];
+      #pragma omp for
+      for (E_Int i = sz; i < size; i++)
+        newdata[i+j*size] = 0;
+    }
+    #pragma omp for
+    for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
   }
-#pragma omp for
-  for (E_Int i = size*nf; i < sizeTot; i++) newdata[i] = 0;
 
   releaseMemory();
   _shared = false;
@@ -1801,7 +1813,7 @@ TEMPLATE_T
 template <typename Vector1, typename Vector2>
 E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
 {
-  E_Int   cols(a._sizeLoc);
+  E_Int cols(a._sizeLoc);
   // Fast returns
   if (cols == 0)   return 0;
 

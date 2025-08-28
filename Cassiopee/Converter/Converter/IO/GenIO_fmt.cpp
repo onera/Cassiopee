@@ -924,7 +924,7 @@ E_Int K_IO::GenIO::readTwoCoordinates(char* buf, FILE* ptrFile, E_Float* pt)
 /* Write triangles into a formatted tecplot file. */
 //=============================================================================
 E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field, 
-                                    FldArrayI& connect, E_Boolean add)
+                                    FldArrayI& connect, E_Bool add)
 {
   assert(connect.getNfld() == 3); // triangles
   E_Int nfld = field.getNfld();
@@ -1031,7 +1031,7 @@ E_Int K_IO::GenIO::tpwriteTriangles(char* file, FldArrayF& field,
 /* Write quads into a formatted tecplot file. */
 //=============================================================================
 E_Int K_IO::GenIO::tpwriteQuads(char* file, FldArrayF& field, 
-                                FldArrayI& connect, E_Boolean add)
+                                FldArrayI& connect, E_Bool add)
 {
   assert(connect.getNfld() == 4); // quads
   E_Int nfld = field.getNfld();

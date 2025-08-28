@@ -53,7 +53,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   if (epsl != Py_None)
   {
     E_Int size, nfld;
-    K_NUMPY::getFromNumpyArray(epsl, epsf, size, nfld, true);
+    K_NUMPY::getFromNumpyArray(epsl, epsf, size, nfld);
   }
 
   // Check array

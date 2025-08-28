@@ -26,7 +26,7 @@
 
 /** Test if edge1 (field1) and edge2 (field2) coming from different
     triangles are matching */
-E_Boolean testIfEdgesAreMatching(E_Float matchTol,
+E_Bool testIfEdgesAreMatching(E_Float matchTol,
                                  FldArrayF& field1, 
                                  FldArrayF& field2);
 
@@ -64,7 +64,7 @@ void eraseDoublePts(E_Int sizeIni, E_Int nfld, FldArrayF& globalTab);
    OUT : xp, yp, zp coordinates of the projection of (x,y,z) on plane (ABC)
    OUT : distProj : distance between (x,y,z) and (xp,yp,zp)
 */
-E_Boolean projectPointOnPlane(E_Float x, E_Float y, E_Float z,
+E_Bool projectPointOnPlane(E_Float x, E_Float y, E_Float z,
                               E_Float x0, E_Float y0, E_Float z0,
                               E_Float x1, E_Float y1, E_Float z1,
                               E_Float x2, E_Float y2, E_Float z2,

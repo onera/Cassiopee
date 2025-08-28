@@ -169,7 +169,7 @@ void K_GENERATOR::cellPlanarityStructured(
 
   E_Int ind, ind1, ind2, ind3, ind4;
   E_Float xp, yp, zp, distLoc;
-  E_Boolean in;
+  E_Bool in;
   E_Float pQ[3];
   E_Float p1[3];
   E_Float p2[3];
@@ -297,7 +297,7 @@ void K_GENERATOR::cellPlanarityUnstructured(
   dist.malloc(cn.getSize());
   E_Int ind, ind1, ind2, ind3, ind4;
   E_Float xp, yp, zp, distLoc;
-  E_Boolean in;
+  E_Bool in;
   E_Float pQ[3];
   E_Float p1[3];
   E_Float p2[3];

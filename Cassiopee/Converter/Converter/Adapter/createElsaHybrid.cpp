@@ -39,7 +39,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // Check numpy NGon
   FldArrayI* cNGon;
-  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -49,7 +49,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
  
   // Check numpy PE (ParentElements)
   FldArrayI* cPE;
-  res = K_NUMPY::getFromNumpyArray(PE, cPE, true);
+  res = K_NUMPY::getFromNumpyArray(PE, cPE);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -59,7 +59,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // Check numpy ICT (InverseCrossTable)
   FldArrayI* cICT;
-  res = K_NUMPY::getFromNumpyArray(ict, cICT, true);
+  res = K_NUMPY::getFromNumpyArray(ict, cICT);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -69,7 +69,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // Check numpy BCCT (BCCrossTable)
   FldArrayI* cBCCT;
-  res = K_NUMPY::getFromNumpyArray(bcct, cBCCT, true);
+  res = K_NUMPY::getFromNumpyArray(bcct, cBCCT);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -79,7 +79,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
 
   // Check numpy INCT (IndexNGONCrossTable)
   FldArrayI* cINCT;
-  res = K_NUMPY::getFromNumpyArray(inct, cINCT, true);
+  res = K_NUMPY::getFromNumpyArray(inct, cINCT);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -91,9 +91,9 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   if (axe2D > 0)
   {
     E_Int np; E_Int nfld;
-    res = K_NUMPY::getFromNumpyArray(ox, x, np, nfld, true);
-    res = K_NUMPY::getFromNumpyArray(oy, y, np, nfld, true);
-    res = K_NUMPY::getFromNumpyArray(oz, z, np, nfld, true);
+    res = K_NUMPY::getFromNumpyArray(ox, x, np, nfld);
+    res = K_NUMPY::getFromNumpyArray(oy, y, np, nfld);
+    res = K_NUMPY::getFromNumpyArray(oz, z, np, nfld);
   }
 
   E_Int nfaces = cICT->getSize();
@@ -104,7 +104,7 @@ PyObject* K_CONVERTER::createElsaHybrid(PyObject* self, PyObject* args)
   FldArrayI* cESO;
   if (ESO != Py_None)
   {
-    res = K_NUMPY::getFromNumpyArray(ESO, cESO, true);
+    res = K_NUMPY::getFromNumpyArray(ESO, cESO);
     if (res == 1) posFaces = (*cESO);
     else K_CONNECT::getPosFacets(ptNGon, 0, nfaces, posFaces);
   }

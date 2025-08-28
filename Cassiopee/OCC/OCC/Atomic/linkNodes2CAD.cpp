@@ -89,7 +89,7 @@ std::vector<E_Int> getFacesVector (PyObject* arrf)
   {
     FldArrayI* inds=NULL;
     E_Int res=0;
-    if (arrf != Py_None) res = K_NUMPY::getFromNumpyArray(arrf, inds, true);
+    if (arrf != Py_None) res = K_NUMPY::getFromNumpyArray(arrf, inds);
 
     std::unique_ptr<FldArrayI> pL(inds); // to avoid to call explicit delete at several places in the code.
   
@@ -353,21 +353,21 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
 
-// faces vector
-  std::vector<E_Int>  Flist = getFacesVector(arrf);
+  // faces vector
+  std::vector<E_Int> Flist = getFacesVector(arrf);
 
-// ncadid array
+  // ncadid array
   E_Int res;
   FldArrayF* CADfi;
-  res = K_ARRAY::getFromArray2(ncad, CADfi); if (res != 1 && res != 2) return NULL;
+  res = K_ARRAY::getFromArray3(ncad, CADfi); if (res != 1 && res != 2) return NULL;
   E_Float* pncad = CADfi->begin(1);
   
-// fcadid array
+  // fcadid array
   FldArrayI* Fid;
-  res = K_NUMPY::getFromNumpyArray(fcad, Fid, true); if (res != 1 && res != 2) return NULL;
+  res = K_NUMPY::getFromNumpyArray(fcad, Fid); if (res != 1 && res != 2) return NULL;
   E_Int* pFid = Fid->begin(1);
 
-// Update fcadid
+  // Update fcadid
   for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
@@ -416,7 +416,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   char* varStringA;  char* eltTypeA;
   FldArrayF* fi; E_Int ni, nj, nk;
   FldArrayI* c;
-  E_Int ret = K_ARRAY::getFromArray2(arr, varStringA, fi, ni, nj, nk, c, eltTypeA);
+  E_Int ret = K_ARRAY::getFromArray3(arr, varStringA, fi, ni, nj, nk, c, eltTypeA);
   if (ret != 1 && ret != 2) return 0;
   
   //E_Float* px = fi->begin(1);
@@ -447,7 +447,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   
 // Array fcadid
   FldArrayF* arr_fcad;
-  res = K_NUMPY::getFromNumpyArray(fcad, arr_fcad, true); if (res != 1 && res != 2) return NULL;
+  res = K_NUMPY::getFromNumpyArray(fcad, arr_fcad); if (res != 1 && res != 2) return NULL;
   E_Float* pfcad = arr_fcad->begin(1);
   
 
@@ -460,26 +460,24 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
     E_Int nb_nodes = ngi.PGs.stride(PGi);
     E_Int* p_nodes = ngi.PGs.get_facets_ptr(PGi);
     
-    
-    
     //printf("i: %3i, PGI: %i, nb_nodes: %i, fcadid: %f  \n", f,PGi, nb_nodes, pfcad[PGi]);
     
-        for (E_Int n = 0; n < nb_nodes; ++n)
-        {
-          E_Int Ni = p_nodes[n]-1;
+    for (E_Int n = 0; n < nb_nodes; ++n)
+    {
+      E_Int Ni = p_nodes[n]-1;
           
-          if (fPoints.count(Ni) == 0)
-          {
-            //E_Float nCADid = pncad[Ni];
-            if (pfcad[PGi] != -1) {
-                pncad[Ni] = pfcad[PGi];
-                fPoints.insert(Ni);
-                }
-            else if (pncad[Ni] > 1e9) pncad[Ni] = -1;
-            //printf("              n: %i,  Ni: %3i,  CADid(NI) before: %3.3e, CADid(NI) now: %2.0f\n",n, Ni, nCADid, pncad[Ni]);
-          } //else printf("              n: %i,  Ni %3i is already updated \n",n, Ni);
+      if (fPoints.count(Ni) == 0)
+      {
+        //E_Float nCADid = pncad[Ni];
+        if (pfcad[PGi] != -1) 
+        {
+          pncad[Ni] = pfcad[PGi];
+          fPoints.insert(Ni);
         }
-    
+        else if (pncad[Ni] > 1e9) pncad[Ni] = -1;
+        //printf("              n: %i,  Ni: %3i,  CADid(NI) before: %3.3e, CADid(NI) now: %2.0f\n",n, Ni, nCADid, pncad[Ni]);
+      } //else printf("              n: %i,  Ni %3i is already updated \n",n, Ni);
+    }
   }
  
   Py_DECREF(Py_None);
@@ -488,9 +486,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-
 //    getNodalParameters
-
 // ============================================================================
 PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
 {
@@ -526,7 +522,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
 // array (mesh)
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
-  char* varString;  char* eltType;
+  char* varString; char* eltType;
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
 
@@ -536,19 +532,17 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngi(cnt);
   
-// faces vector
+  // faces vector
   std::vector<E_Int>  Flist = getFacesVector(arrf);
-    
-    
-    
+      
   E_Int erreur = 0;
-// array with coordinates
+  // array with coordinates
   FldArrayF* fi; E_Int ni, nj, nk;
   FldArrayI* c;
-  E_Int ret = K_ARRAY::getFromArray2(arr, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arr, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2) erreur = 1;
   
-// array fu, fv
+  // array fu, fv
   FldArrayF* fu; FldArrayF* fv;
   FldArrayF* fhx; FldArrayF* fhy; FldArrayF* fhz;
   FldArrayF* CADfi;
@@ -558,22 +552,22 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   ret = K_ARRAY::getFromArray2(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
   ret = K_ARRAY::getFromArray2(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
   ret = K_ARRAY::getFromArray2(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
-// Check there's no erro: 
+  // Check there's no erro: 
   if (erreur == 1 )
   {
     PyErr_SetString(PyExc_TypeError, "parametrizeFace: invalid arrays input.");
     return NULL;
   }
   
-// get poins
+  // get poins
   E_Float* px = fi->begin(1); // fix
   E_Float* py = fi->begin(2);
   E_Float* pz = fi->begin(3);
   E_Int npts = fi->getSize();
-// get u,v
+  // get u,v
   E_Float* pu = fu->begin(1);
   E_Float* pv = fv->begin(1);
-// get other variables
+  // get other variables
   E_Float* pncad = CADfi->begin(1);
   E_Float* phx = fhx->begin(1);
   E_Float* phy = fhy->begin(1);
@@ -582,9 +576,9 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   E_Float* dist = new E_Float [npts];
   for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
   
-// array (nPoints of faces)
+  // array (nPoints of faces)
   std::set<E_Int> fPoints;
-// Unique points of the faces: 
+  // Unique points of the faces: 
   for (size_t f = 0; f < Flist.size(); ++f)
   {
     E_Int PGi = Flist[f];
@@ -594,7 +588,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
     for (E_Int n = 0; n < nb_nodes; ++n) fPoints.insert(p_nodes[n]-1);
   }
   
-// liste des no des faces sur lesquelles on projete
+  // liste des no des faces sur lesquelles on projete
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
   FldArrayI faces;
   
@@ -603,11 +597,11 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nfaces; i++) faces[i] = i+1;
 
   
-// BoundingBoxesTree
+  // BoundingBoxesTree
   Vector_t<K_SEARCH::BBox3D*> boxes(nfaces);
   for (E_Int j=0; j < nfaces; j++)
   {
-	Bnd_Box box;
+	  Bnd_Box box;
     BRepBndLib::Add(surfaces(faces[j]),box);
     gp_Pnt PointMin = box.CornerMin();
     gp_Pnt PointMax = box.CornerMax();
@@ -621,7 +615,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   K_SEARCH::BbTree3D tree(boxes, EPSILON);
   
 
-// Set parameters of surfaces
+  // Set parameters of surfaces
   std::vector<ShapeAnalysis_Surface*> allsas(nfaces);
   for (E_Int j=0; j < nfaces; j++)
   {
@@ -640,7 +634,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   E_Float dx,dy,dz,d;
   
 
-// Get UV for each point
+  // Get UV for each point
   for (auto it = fPoints.begin(); it != fPoints.end(); ++it)
   {
     E_Int index = *it;
@@ -648,73 +642,68 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
 
     // if distance isn't obtained -> get distances
     // else -> go to next point
-    if (phx[index] > 1e9){
+    if (phx[index] > 1e9)
+    {    
+      gp_Pnt PointA;
+      PointA.SetCoord(px[index], py[index], pz[index]);
         
+      // BBtree : candidate faces for point i
+      Vector_t<E_Int> captured_boxes;
+      if (pncad[index] == -1) 
+      {
         gp_Pnt PointA;
         PointA.SetCoord(px[index], py[index], pz[index]);
-        
-    // BBtree : candidate faces for point i
-        Vector_t<E_Int> captured_boxes;
-        if (pncad[index] == -1) 
-        {
-            gp_Pnt PointA;
-            PointA.SetCoord(px[index], py[index], pz[index]);
-            E_Float pA[] = { PointA.X(), PointA.Y(), PointA.Z()};
+        E_Float pA[] = { PointA.X(), PointA.Y(), PointA.Z()};
             
-            tree.getOverlappingBoxes(pA, pA, captured_boxes);
+        tree.getOverlappingBoxes(pA, pA, captured_boxes);
             
-            k_size = (captured_boxes.size() != 0) ? captured_boxes.size() : nfaces;
-        }
-        
-        
-        
+        k_size = (captured_boxes.size() != 0) ? captured_boxes.size() : nfaces;
+      }
+          
       /*Go through:  - nCADid of point if exists.
                      - BBTree faces if exists.
                      - All faces otherwise */
 
-        for (E_Int k = 0; k < k_size; k++)
-        {
-          E_Int j;
+      for (E_Int k = 0; k < k_size; k++)
+      {
+        E_Int j;
           
-          if (pncad[index] != -1 && k_size == 1) 
-            j = pncad[index]-1;
-          else
-            j = (captured_boxes.size() != 0) ? captured_boxes[k] : k;
+        if (pncad[index] != -1 && k_size == 1) 
+          j = pncad[index]-1;
+        else
+          j = (captured_boxes.size() != 0) ? captured_boxes[k] : k;
           
-          
-          gp_Pnt2d UV;
+        gp_Pnt2d UV;
           
         // if point has no values of u,v and nCADid, they are obtained 
-          if(pncad[index] != -1 && k_size == 1 && pu[index] < 1e99)
-              UV.SetCoord(pu[index], pv[index]);
-          else 
-              UV = allsas[j]->ValueOfUV(PointA, 0); 
+        if (pncad[index] != -1 && k_size == 1 && pu[index] < 1e99)
+          UV.SetCoord(pu[index], pv[index]);
+        else 
+          UV = allsas[j]->ValueOfUV(PointA, 0); 
 
 
         // Get distances
-          gp_Pnt PointAeva = allsas[j]->Value(UV);
+        gp_Pnt PointAeva = allsas[j]->Value(UV);
 
-          dx = PointAeva.X() - PointA.X();
-          dy = PointAeva.Y() - PointA.Y();
-          dz = PointAeva.Z() - PointA.Z();
-          d = dx*dx+dy*dy+dz*dz;
-      
+        dx = PointAeva.X() - PointA.X();
+        dy = PointAeva.Y() - PointA.Y();
+        dz = PointAeva.Z() - PointA.Z();
+        d = dx*dx+dy*dy+dz*dz;
         
         // Keep the closest result
-          if (d < dist[index])
-          { 
-            pu[index] = UV.X(); pv[index] = UV.Y();
+        if (d < dist[index])
+        { 
+          pu[index] = UV.X(); pv[index] = UV.Y();
               
-            phx[index] = (abs(dx) <= tol) ? 0 : dx; 
-            phy[index] = (abs(dy) <= tol) ? 0 : dy;
-            phz[index] = (abs(dz) <= tol) ? 0 : dz; 
-            dist[index] = d; pncad[index]=faces[j]; 
-          }
+          phx[index] = (abs(dx) <= tol) ? 0 : dx; 
+          phy[index] = (abs(dy) <= tol) ? 0 : dy;
+          phz[index] = (abs(dz) <= tol) ? 0 : dz; 
+          dist[index] = d; pncad[index]=faces[j]; 
         }
+      }
     }
   }
 
-  
   for (E_Int j=0; j < nfaces; j++) delete allsas[j];
   boxes.clear();
   

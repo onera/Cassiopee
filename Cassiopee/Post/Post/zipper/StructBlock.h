@@ -169,11 +169,11 @@ class StructBlock
     
     /** Write the block in unstructured format, considering iblank.
      add = true, appends the block. */
-    void write(const char* fileName, E_Boolean add=false);
+    void write(const char* fileName, E_Bool add=false);
 
     /** Write indices of points in line shape */
     void writeLine(FldArrayI& indices,
-                   const char* fileName, E_Boolean add=false);
+                   const char* fileName, E_Bool add=false);
     
     /** Make 1D strings of indices of pts identified for stringing */
     void stringing(std::list<FldArrayI*>& strings);
@@ -203,19 +203,19 @@ class StructBlock
  /* Projection du point (x,y,z) sur la frontière dir (i=1...). 
     Retourne false si le projeté n'est pas situé sur cette frontiere, 
     a un epsilon près.*/
-    E_Boolean projectOrtho(E_Float x, E_Float y, E_Float z, E_Int dir);
+    E_Bool projectOrtho(E_Float x, E_Float y, E_Float z, E_Int dir);
                              
     /* Given a pt (x1,y1,z1), says if it belongs to a match/nearmatch/nomatch 
        bnd (WITH cellNF = 1 criterion for matching bnd)*/
-    E_Boolean searchForMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
+    E_Bool searchForMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
                                    StructBlock* blk2);
     /* Given a pt (x1,y1,z1) says if it has a matching pt on blk2 
       WITHOUT cellNF = 1 criterion*/
-    E_Boolean searchForMatchingBnd2(E_Float x1, E_Float y1, E_Float z1,
+    E_Bool searchForMatchingBnd2(E_Float x1, E_Float y1, E_Float z1,
                                     StructBlock* blk2, E_Int& ind2);
     
     /* Test the intersection of bounding boxes of block1 and block2 */
-    E_Boolean testBBIntersection(StructBlock& block1, StructBlock& block2);
+    E_Bool testBBIntersection(StructBlock& block1, StructBlock& block2);
 
     /* Return the bounding box of mesh */
     void getBoundingBox(E_Float& xmax, E_Float& ymax, E_Float& zmax,
@@ -236,7 +236,7 @@ class StructBlock
                                      E_Float& dist);
     
     /* Test if two blocks have a matching border */
-    E_Boolean testMatchingBlks(StructBlock* blk1, StructBlock* blk2);
+    E_Bool testMatchingBlks(StructBlock* blk1, StructBlock* blk2);
     
     /* Eliminate indices that are defined more than once in incidices
        array */
@@ -261,7 +261,7 @@ class StructBlock
     /* Test the Validity of the link between ind1 and ind2 in the direction
        dir. If they are connected by a line that is inside the mesh resulting
        of the blanking then return false*/
-    E_Boolean testValidityOfLink(E_Int i, E_Int j, E_Int k,
+    E_Bool testValidityOfLink(E_Int i, E_Int j, E_Int k,
                                  E_Int dir, E_Int sens);
     
     /* Compute Links for Interior Pts */
@@ -287,7 +287,7 @@ class StructBlock
     /* Given a vector of blks, eliminate double elements  */
     void eliminateDoubleElts(std::vector<StructBlock*>& vectOfBlks);
     /* Given a pt (x1,y1,z1) says if it has a matching pt on blk2 */
-    E_Boolean isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
+    E_Bool isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
                              StructBlock* blk2);
 
     /* Given a direction dir, return the array of indices of pts on the
@@ -302,7 +302,7 @@ class StructBlock
        and a matching block blk2, add the segment [ind11, ind12] in the string
        list. Return false if the segment is not added in the string. 
        out : n : index of next element of the string.*/
-    E_Boolean addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
+    E_Bool addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
                              StructBlock* blk2, E_Int& n);
     
     /* Compute the boundary nodes of the StructBlock, taking into account
@@ -332,7 +332,7 @@ class StructBlock
       E_Float& xmin, E_Float& ymin, E_Float& zmin);
 
     /* Return true if string is a loop (starting point = end point) */
-    E_Boolean isStringALoop(FldArrayI& string);
+    E_Bool isStringALoop(FldArrayI& string);
 
   private:
     /* Structured mesh of nodes */

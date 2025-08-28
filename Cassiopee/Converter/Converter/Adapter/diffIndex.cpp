@@ -38,7 +38,7 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
 
   // Check numpy (indexA)
   FldArrayI* indexA;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayA, indexA, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayA, indexA);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -48,7 +48,7 @@ PyObject* K_CONVERTER::diffIndex(PyObject* self, PyObject* args)
 
   // Check numpy (indexB)
   FldArrayI* indexB;
-  res = K_NUMPY::getFromNumpyArray(arrayB, indexB, true);
+  res = K_NUMPY::getFromNumpyArray(arrayB, indexB);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

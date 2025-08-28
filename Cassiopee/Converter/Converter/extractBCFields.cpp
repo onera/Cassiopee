@@ -65,7 +65,7 @@ PyObject* K_CONVERTER::extractBCFields(PyObject* self, PyObject* args)
   }
   (void)PE;
   FldArrayI* indicesBC;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndices, indicesBC, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndices, indicesBC);
 
   if (res == 0)
   {

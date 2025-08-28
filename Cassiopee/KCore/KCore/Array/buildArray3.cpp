@@ -87,7 +87,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex, E_Int nelt, E_Int nface,
                                const char* etString,
                                E_Int sizeNGon, E_Int sizeNFace, E_Int ngonType,  
-                               E_Boolean center, E_Int api)
+                               E_Bool center, E_Int api)
 {
     npy_intp dim[2];
     PyObject* a; PyObject* ac; PyObject* tpl;
@@ -213,7 +213,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
                                E_Int nelts,
                                const char* etString,
-                               E_Boolean center, E_Int api)
+                               E_Bool center, E_Int api)
 {
     npy_intp dim[2];
     PyObject* a; PyObject* ac; PyObject* tpl;
@@ -296,7 +296,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
                                E_Int nvertex,
                                std::vector<E_Int>& neltsPerConnect,
                                const char* etString,
-                               E_Boolean center, E_Int api)
+                               E_Bool center, E_Int api)
 {
     npy_intp dim[2];
     PyObject* a; PyObject* ac; PyObject* tpl;
@@ -381,7 +381,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
                                const char* varString,
                                E_Int nvertex,
                                FldArrayI& cn,
-                               char* eltType,
+                               const char* eltType,
                                E_Int center, E_Int api,
                                E_Bool copyConnect)
 {
@@ -493,7 +493,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
     E_Int nfaces = cn.getNFaces();
     E_Int sizeNGon = cn.getSizeNGon();
     E_Int sizeNFace = cn.getSizeNFace();
-    E_Boolean center = false;
+    E_Bool center = false;
     if (strchr(eltType, '*') != NULL) center = true;
     
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, nfaces, 
@@ -543,7 +543,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
   else // BE/ME
   {
     E_Int ncon = cn.getNConnect();
-    E_Boolean center = false;
+    E_Bool center = false;
     if (strchr(eltType, '*') != NULL) center = true;
     vector< E_Int > neltsPerConnect(ncon);
     E_Int nelts = 0;

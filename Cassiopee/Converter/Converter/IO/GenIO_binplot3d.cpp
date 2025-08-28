@@ -52,7 +52,7 @@ E_Int K_IO::GenIO::findOpenablePlot3dFiles(
   FILE* ptrFile;
   xyzFile = NULL; qFile = NULL; fFile = NULL;
   char temp[120];
-  E_Boolean used;
+  E_Bool used;
   
   E_Int openable = 0;
   
@@ -761,12 +761,12 @@ E_Int K_IO::GenIO::p3dfread(
   vector<E_Int> nvar;
 
   // Un fichier a deja ete lu
-  E_Boolean xyzdone = false;
+  E_Bool xyzdone = false;
   if (ni.size() != 0)
     xyzdone = true;
 
   // Le cellN a ete lu
-  E_Boolean cellN = false;
+  E_Bool cellN = false;
   if (xyzdone == true)
   {
     E_Int l = strlen(varString);
@@ -1068,7 +1068,7 @@ E_Int K_IO::GenIO::xyzwrite(
   char* file, char* varString, 
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& field, E_Int isize, E_Int rsize, 
-  E_Boolean convertEndian)
+  E_Bool convertEndian)
 {
   FILE* ptrFile;
   E_Int res, resCellN;
@@ -1187,7 +1187,7 @@ E_Int K_IO::GenIO::qwrite(
   char* file, char* varString, 
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& field, E_Int isize, E_Int rsize, 
-  E_Boolean convertEndian)
+  E_Bool convertEndian)
 {
   FILE* ptrFile;
   E_Int res;
@@ -1299,7 +1299,7 @@ E_Int K_IO::GenIO::ffwrite(
   char* file, char* varString, 
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& field, E_Int isize, E_Int rsize, 
-  E_Boolean convertEndian, E_Boolean writeConservative)
+  E_Bool convertEndian, E_Bool writeConservative)
 {
   FILE* ptrFile;
 
@@ -1424,7 +1424,7 @@ E_Int K_IO::GenIO::plot3dwrite(
   vector<E_Int>& ni, vector<E_Int>& nj, vector<E_Int>& nk,
   vector<FldArrayF*>& field,
   vector<char*>& zoneNames, E_Int isize, E_Int rsize, 
-  E_Boolean convertEndian)
+  E_Bool convertEndian)
 {
   // Find writable files
   char* xyzFile = NULL;
@@ -1486,7 +1486,7 @@ E_Int K_IO::GenIO::plot3dwrite(
  
   if (fFile != NULL)
   {
-    E_Boolean writeConservative = true;
+    E_Bool writeConservative = true;
     if (qFile == NULL) writeConservative = false;
     ffwrite(fFile, varString,
             ni, nj, nk, field, isize, rsize, convertEndian, 

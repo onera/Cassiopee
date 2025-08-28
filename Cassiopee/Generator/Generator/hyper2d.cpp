@@ -161,7 +161,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 
     // check forcing : si la distribution est a peu 
     // pres celle de la grille fournie, on ne remaille pas le profil
-    E_Boolean forced = false;
+    E_Bool forced = false;
     if (nid == ni)
     {
         // abscisse curv

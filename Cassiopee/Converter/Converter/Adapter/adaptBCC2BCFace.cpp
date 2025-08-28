@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
 
   // Check numpy (BCFace)
   FldArrayI* BCC;
-  E_Int res = K_NUMPY::getFromNumpyArray(BCCO, BCC, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(BCCO, BCC);
   //E_Int* bcc = BCC->begin();
   //E_Int nint = BCC->getSize();
   if (res == 0)
@@ -47,7 +47,7 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
 
   // Check numpy (cn - connectivite volumique)
   FldArrayI* cn;
-  res = K_NUMPY::getFromNumpyArray(cnO, cn, true);
+  res = K_NUMPY::getFromNumpyArray(cnO, cn);
   if (res == 0)
   {
     RELEASESHAREDN(BCCO, BCC);

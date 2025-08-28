@@ -40,7 +40,7 @@ void K_COMPGEOM::delaunay(E_Float coefa, E_Float coefb, E_Float coefc,
   E_Int indA, indB, indC;
 
   E_Float dmax2;
-  E_Boolean isInCC;
+  E_Bool isInCC;
   FldArrayF norm2; // SQUARED norm of points in field
   // Sort coordinates with respect to their norm
   K_SORT::sortCoordinates(coord, norm2);
@@ -253,9 +253,9 @@ void K_COMPGEOM::insertTriangleEdgesInList(Triangle* oneTriangle,
   E_Int indA, indB, indC;
   oneTriangle->getVertexIndices(indA, indB, indC);
   
-  E_Boolean found1 = false;
-  E_Boolean found2 = false;
-  E_Boolean found3 = false;
+  E_Bool found1 = false;
+  E_Bool found2 = false;
+  E_Bool found3 = false;
 
   list<Edge*>::iterator itr;
   list<Edge*>::iterator itr2;

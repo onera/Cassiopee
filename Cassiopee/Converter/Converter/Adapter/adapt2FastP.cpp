@@ -35,27 +35,27 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
 
   // Check numpy NGon
   FldArrayI* cNGon;
-  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NGon is invalid."); return NULL; }
 
   // Check numpy NFace
   FldArrayI* cNFace;
-  res = K_NUMPY::getFromNumpyArray(NFace, cNFace, true);
+  res = K_NUMPY::getFromNumpyArray(NFace, cNFace);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NFace is invalid."); return NULL; }
 
   // Check numpy PE (ParentElements)
   FldArrayI* cPE;
-  res = K_NUMPY::getFromNumpyArray(PE, cPE, true);
+  res = K_NUMPY::getFromNumpyArray(PE, cPE);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: numpy is invalid."); return NULL; }
 
   // Check numpy  Nb face interne/extern (Ngon)
   FldArrayI* cNGon_intext;
-  res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext, true);
+  res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  NGon IntExt is invalid."); return NULL; }
 
   // Check numpy  Nb elts interne/extern (Nface)
   FldArrayI* cNFace_intext;
-  res = K_NUMPY::getFromNumpyArray(NFace_intext, cNFace_intext, true);
+  res = K_NUMPY::getFromNumpyArray(NFace_intext, cNFace_intext);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NFace IntExt is invalid."); return NULL; }
 
 

@@ -94,7 +94,7 @@ PyObject* K_ARRAY::buildArray(E_Int nfld, const char* varString,
 //=============================================================================
 PyObject* K_ARRAY::buildArray(FldArrayF& field, const char* varString,
                               FldArrayI& c, E_Int et, const char* etString,
-                              E_Boolean center)
+                              E_Bool center)
 {
   npy_intp dim[2];
   PyObject* tpl;
@@ -224,7 +224,7 @@ PyObject* K_ARRAY::buildArray(FldArrayF& field, const char* varString,
 PyObject* K_ARRAY::buildArray(E_Int nfld, const char* varString,
                               E_Int nvertex, E_Int nelt,
                               E_Int et, const char* etString,
-                              E_Boolean center, E_Int sizeConnect)
+                              E_Bool center, E_Int sizeConnect)
 {
   npy_intp dim[2];
   PyObject* a;

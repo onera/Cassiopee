@@ -134,10 +134,10 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs0, obju0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
   E_Int nfld = -1;
   
   E_Int isOk = K_ARRAY::getFromArrays(arrays, resl, structVarString, unstrVarString,
@@ -507,7 +507,7 @@ void K_POST::advanceRibbonLeft(
   FldArrayF fieldR(2, nfld);
 
   // Booleen indiquant si le rattrapage est effectue ou non 
-  E_Boolean caught_up = false;
+  E_Bool caught_up = false;
   
   // initialisation prev_diag
   E_Float prev_diag = 1e6;
@@ -808,7 +808,7 @@ void K_POST::advanceRibbonRight(tracer* t, E_Int npts, E_Int& nt, FldArrayF* fie
   FldArrayF fieldR(2, nfld);
 
   // Booleen indiquant si le rattrapage est effectue ou non 
-  E_Boolean caught_up = false;
+  E_Bool caught_up = false;
     
   // Donnees pour l'appel de la methode computeStreamLineElts
   FldArrayI* cnSurf = NULL;

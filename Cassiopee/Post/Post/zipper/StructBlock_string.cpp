@@ -49,7 +49,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
   list<FldArrayI*>::iterator itr;
   
   // Find strings in inIndices
-  E_Boolean goOn = true;
+  E_Bool goOn = true;
 
   while (goOn)
   {
@@ -81,7 +81,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
   for (itr = strings1.begin(); itr != strings1.end(); itr++)
   {
     E_Int size = (*itr)->getSize();
-    E_Boolean isALoop = isStringALoop(**itr);
+    E_Bool isALoop = isStringALoop(**itr);
     if ( isALoop )
     {
       E_Int t1 = E_Int(size/4);
@@ -141,7 +141,7 @@ void StructBlock::stringing(list<FldArrayI*>& strings)
 //=============================================================================
 /* Tell if the string is a closed string */
 //=============================================================================
-E_Boolean StructBlock::isStringALoop(FldArrayI& string)
+E_Bool StructBlock::isStringALoop(FldArrayI& string)
 {
   E_Int size = string.getSize();
   E_Int ind0 = string[0];
@@ -181,7 +181,7 @@ E_Int StructBlock::chainPoints(FldArrayI& inIndices, FldArrayI& links,
   E_Int n = inIndices.getSize();
 
   // Try to find a starting point
-  E_Boolean startFound = false;
+  E_Bool startFound = false;
   for (E_Int ir = 0; ir < n; ir++)
   {
     if (dejaVu[ir] == false &&
@@ -197,7 +197,7 @@ E_Int StructBlock::chainPoints(FldArrayI& inIndices, FldArrayI& links,
   
   if (startFound == false)
   {
-    E_Boolean alive = false;
+    E_Bool alive = false;
     for (E_Int ir = 0; ir < n; ir++)
     {
       if (dejaVu[ir] == false)
@@ -217,7 +217,7 @@ E_Int StructBlock::chainPoints(FldArrayI& inIndices, FldArrayI& links,
   E_Int c = 0;
   E_Int start = string[c]; c++;
   E_Int l1, l2;
-  E_Boolean goOn = true;
+  E_Bool goOn = true;
   
   while (goOn)
   {
@@ -332,7 +332,7 @@ void StructBlock::eliminateDoublePoints(FldArrayI& indices)
   E_Int c = 0;
   for (E_Int i = 0; i < n; i++)
   {
-    E_Boolean found = false;
+    E_Bool found = false;
     for (E_Int j = 0; j < i; j++)
     {
       if (indices[i] == indices[j])
@@ -682,7 +682,7 @@ void StructBlock::compOverlapBordersForString(E_Int& n)
    If they are connected by a line that is inside the mesh resulting of
    the blanking then return false. */
 //===========================================================================
-E_Boolean StructBlock::testValidityOfLink(E_Int i, E_Int j, E_Int k,
+E_Bool StructBlock::testValidityOfLink(E_Int i, E_Int j, E_Int k,
                                           E_Int dir, E_Int sens)
 {
   E_Int im = _im;
@@ -762,7 +762,7 @@ void StructBlock::compLinksForBndPts(FldArrayI& inIndices, E_Int ir,
   E_Int jm = _jm;
   E_Int ind2, ind3;
 
-  E_Boolean isValid;
+  E_Bool isValid;
   E_Int dir, sens;
   
   E_Int ind = inIndices[ir];
@@ -902,7 +902,7 @@ void StructBlock::compLinksForInteriorPts(FldArrayI& inIndices, E_Int ir,
   E_Int jm = _jm;
   E_Int ind2, ind3;
 
-  E_Boolean isValid;
+  E_Bool isValid;
   E_Int dir; // direction of the line: 1=i, 2=j
   E_Int sens;
   E_Int ind = inIndices[ir];
@@ -1033,8 +1033,8 @@ StructBlock::compMatchingBordersForString( E_Int noBlk, E_Int& n,
         y = _coord(ind, 2);
         z = _coord(ind, 3);
       
-        E_Boolean match = false;
-        E_Boolean validMatch = false;
+        E_Bool match = false;
+        E_Bool validMatch = false;
 
         for (E_Int v = 0; v < vectOfBlksSize; v++)
         {
@@ -1042,7 +1042,7 @@ StructBlock::compMatchingBordersForString( E_Int noBlk, E_Int& n,
           {
             FldArrayIS& iblank2 = vectOfBlks[v]->getIBlankArray();
          
-            E_Boolean test =  
+            E_Bool test =  
               searchForMatchingBnd2(x, y, z, vectOfBlks[v], indv);
 
             if ( test == true )

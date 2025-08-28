@@ -45,7 +45,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
 
   // Check numpy (cn)
   FldArrayI* cn;
-  res = K_NUMPY::getFromNumpyArray(cnO, cn, true);
+  res = K_NUMPY::getFromNumpyArray(cnO, cn);
   if (res == 0)
   {
     RELEASESHAREDN(BCFaceO, BCFace);

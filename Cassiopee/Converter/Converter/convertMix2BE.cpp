@@ -40,7 +40,7 @@ PyObject* K_CONVERTER::convertMix2BE(PyObject* self, PyObject* args)
  
   // Check numpy
   FldArrayI* cMIX;
-  E_Int res = K_NUMPY::getFromNumpyArray(oMIX, cMIX, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(oMIX, cMIX);
 
   if (res == 0)
   {

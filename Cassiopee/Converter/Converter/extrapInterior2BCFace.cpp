@@ -55,7 +55,7 @@ PyObject* K_CONVERTER::extrapInterior2BCFaceStruct(PyObject* self, PyObject* arg
 
   // flow field at BC (Vertex or Faces)
   FldArrayF* fieldInt;
-  K_NUMPY::getFromNumpyArray(dataBC, fieldInt, true);
+  K_NUMPY::getFromNumpyArray(dataBC, fieldInt);
   E_Float* ptrBCField = fieldInt->begin();
 
   E_Int imjm = im*jm;

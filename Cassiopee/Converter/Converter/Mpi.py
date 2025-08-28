@@ -18,6 +18,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
+        def bcastZone(a, root=0, coord=True, variables=[]): return a
         def gather(a, root=0): return a
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a
@@ -65,6 +66,7 @@ else: # try import (may fail - core or hang)
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
+        def bcastZone(a, root=0, coord=True, variables=[]): return a
         def gather(a, root=0): return a
         def Gather(a, root=0): return a
         def gatherZones(a, root=0): return a

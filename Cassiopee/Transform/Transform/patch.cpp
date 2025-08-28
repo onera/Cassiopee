@@ -225,7 +225,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   }
 
   E_Int nbnodes, nf; E_Int* n0;
-  K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf, true);
+  K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf);
   
   if (nbnodes != f1->getSize())
   {  

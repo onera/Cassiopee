@@ -60,7 +60,7 @@ void getFirstWord(char* buf, char* word, E_Int& length)
 
 //========================================================================
 // read POINTS
-void readPoints(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+void readPoints(FILE* ptrFile, E_Bool changeEndian, E_Bool formated,
                 E_Int& npts, float*& bf, double*& bd)
 {
   bf = NULL; bd = NULL;
@@ -124,7 +124,7 @@ void readPoints(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 }
 
 //===========================================================================
-void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int& ncells, E_Int& size, int*& cells)
+void readCells(FILE* ptrFile, E_Bool changeEndian, E_Bool formated, E_Int& ncells, E_Int& size, int*& cells)
 {
   char buf[256]; char buf2[256]; char cellType[256];
   readLine(ptrFile, buf);
@@ -173,7 +173,7 @@ void readCells(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, E_Int&
 }
 
 //===========================================================================
-void readCellTypes(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated, 
+void readCellTypes(FILE* ptrFile, E_Bool changeEndian, E_Bool formated, 
                    E_Int ncells, int*& cellTypes)
 {
   char buf[256];
@@ -226,7 +226,7 @@ void readType(FILE* ptrFile, char* rtype, E_Int& n1, E_Int& n2)
 }
 
 //===========================================================================
-void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+void readPolygons(FILE* ptrFile, E_Bool changeEndian, E_Bool formated,
                   E_Int& ncells, E_Int& size, int*& cells)
 {
   char celltype[256];
@@ -256,7 +256,7 @@ void readPolygons(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 }
 
 //========================================================================
-void readScalar(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+void readScalar(FILE* ptrFile, E_Bool changeEndian, E_Bool formated,
                 E_Int npts, char* varName, float*& fieldf, double*& fieldd)
 { 
   fieldf = NULL; fieldd = NULL;
@@ -308,7 +308,7 @@ void readScalar(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 }
 
 //==========================================================================
-void readVector(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+void readVector(FILE* ptrFile, E_Bool changeEndian, E_Bool formated,
                 E_Int npts, char* varName, float*& fieldf, double*& fieldd)
 { 
   fieldf = NULL; fieldd = NULL;
@@ -355,7 +355,7 @@ void readVector(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
 }
 
 //========================================================================
-void readField(FILE* ptrFile, E_Boolean changeEndian, E_Boolean formated,
+void readField(FILE* ptrFile, E_Bool changeEndian, E_Bool formated,
                E_Int& npts, E_Int& nfields, char* varName, float*& fieldf, double*& fieldd)
 { 
   fieldf = NULL; fieldd = NULL;
@@ -454,8 +454,8 @@ E_Int K_IO::GenIO::binvtkread(
   while (c != '\n') { c = fgetc(ptrFile); buf[i] = c; i++; }
   buf[i-1] = '\0';
   printf("FORMAT: %s\n", buf);
-  E_Boolean formated = true;
-  E_Boolean changeEndian = false;
+  E_Bool formated = true;
+  E_Bool changeEndian = false;
 
   if (strcmp(buf, "BINARY") == 0) { formated = false; changeEndian = true; }
   printf("isformated=%d, changeEndian=%d\n", formated, changeEndian);

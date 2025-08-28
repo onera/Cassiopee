@@ -358,7 +358,7 @@ typedef struct {
   */
   E_Int distanceToTriangle(E_Float* p0, E_Float* p1, E_Float* p2,
                            E_Float* p, E_Int treatment, 
-                           E_Float& dist2, E_Boolean& in, 
+                           E_Float& dist2, E_Bool& in, 
                            E_Float& xp, E_Float& yp, E_Float& zp,
                            E_Float& sigma0, E_Float& sigma1);
   
@@ -378,7 +378,7 @@ typedef struct {
   E_Int distanceToBar(E_Float* pA, E_Float* pB,
                       E_Float* p, E_Int treatment, 
                       E_Float& xp, E_Float& yp, E_Float& zp,
-                      E_Boolean& in, E_Float& dist2);
+                      E_Bool& in, E_Float& dist2);
 
   /* Calcul de l'aire d'un triangle ABC a partir des longueurs a, b et c
      de ses trois cotes (formule de Heron). 

@@ -50,7 +50,7 @@ PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
 
   // Check index
   FldArrayI* inds;
-  E_Int res2 = K_NUMPY::getFromNumpyArray(index, inds, true);
+  E_Int res2 = K_NUMPY::getFromNumpyArray(index, inds);
 
   if (res2 == 0)
   {

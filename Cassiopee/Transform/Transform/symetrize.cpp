@@ -90,7 +90,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
 #pragma omp parallel
     {
         E_Float sigma1, sigma0, dist2;
-        E_Boolean in;
+        E_Bool in;
         E_Float xint, yint, zint;
         E_Float p[3];
         #pragma omp for

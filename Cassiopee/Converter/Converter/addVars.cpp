@@ -341,7 +341,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
       {
         sizevars  = vars.size();
         localj = local[j];
-        E_Boolean exist = false;
+        E_Bool exist = false;
         for (E_Int i = 0; i < sizevars; i++)
         {
           if (K_STRING::cmp(vars[i], localj) == 0){exist = true; break;}

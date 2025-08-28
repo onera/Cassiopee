@@ -1628,7 +1628,7 @@ E_Int K_IO::GenIO::tpwrite(
     FldArrayF& f = *unstructField[cnt];
     FldArrayI& c = *connect[cnt];
     const vector<E_Int>& eltTypeZone = eltType[cnt];
-    E_Boolean isNGon = eltTypeZone[0] == 8;
+    E_Bool isNGon = eltTypeZone[0] == 8;
     E_Int npts = f.getSize();
     E_Int nfld = f.getNfld();
     E_Int packing = 0; // 0: block, 1: point

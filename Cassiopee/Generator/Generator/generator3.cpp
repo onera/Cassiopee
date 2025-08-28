@@ -74,7 +74,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
   FldArrayF snr; FldArrayF snl; FldArrayF snl2;
   E_Int jc, il, i, k, istart, iend;
   E_Float hl;
-  E_Boolean pb;
+  E_Bool pb;
 
   if (res == 1)
   {
@@ -512,7 +512,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
 
     E_Int i, k;
     E_Int istart, iend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     i = 0;
@@ -796,7 +796,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
 
     E_Int i, k;
     E_Int istart, iend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     iend = ni-1 ;
@@ -1060,7 +1060,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     E_Float hl;
     E_Int jl, j, k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Determination de l'indice de modification
     E_Int ic = 0;
@@ -1449,7 +1449,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
     E_Int j,k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     j = 0 ;
@@ -1726,7 +1726,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
 
     E_Int j,k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     jend = nj-1;
@@ -2303,7 +2303,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     {
       while (sigma > 1./delta)
       {
-        E_Boolean cool = true;
+        E_Bool cool = true;
         for (i = 0; i < ni-1; i++)
         {
           E_Float x2 = (*f)(i+1,posx);
@@ -2324,7 +2324,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     {
       while (sigma > 1./delta)
       {
-        E_Boolean cool = true;
+        E_Bool cool = true;
         for (i = 0; i < ni-1; i++)
         {
           E_Float x2 = (*f)(i+1,posx);

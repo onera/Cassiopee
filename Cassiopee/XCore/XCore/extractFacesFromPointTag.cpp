@@ -14,7 +14,7 @@ PyObject *K_XCORE::extractFacesFromPointTag(PyObject *self, PyObject *args)
 
     E_Float *tag = NULL;
     E_Int nfld, size;
-    ret = K_NUMPY::getFromNumpyArray(TAG, tag, size, nfld, true);
+    ret = K_NUMPY::getFromNumpyArray(TAG, tag, size, nfld);
     if (ret != 1 || nfld != 1 || size != karray.npoints()) {
         RAISE("Bad input tag.");
         Karray_free_ngon(karray);
@@ -24,12 +24,15 @@ PyObject *K_XCORE::extractFacesFromPointTag(PyObject *self, PyObject *args)
     // Count the faces to extract
     E_Int nf = 0;
 
-    for (E_Int fid = 0; fid < karray.nfaces(); fid++) {
+    for (E_Int fid = 0; fid < karray.nfaces(); fid++) 
+    {
         E_Int np;
         E_Int *pn = karray.get_face(fid, np);
         E_Int i;
-        for (i = 0; i < np; i++) {
-            if (tag[pn[i]-1] != 1.0) {
+        for (i = 0; i < np; i++) 
+        {
+            if (tag[pn[i]-1] != 1.0) 
+            {
                 break;
             }
         }

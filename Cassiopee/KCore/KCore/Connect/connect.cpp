@@ -162,7 +162,7 @@ E_Int K_CONNECT::detectMatchInterface(E_Int im1, E_Int jm1, E_Int km1,
   E_Float* yt2 = f2.begin(posy2);
   E_Float* zt2 = f2.begin(posz2);
 
-  E_Boolean match;
+  E_Bool match;
   nof1 = -1; nof2 = -1;
   E_Float xpt1, xpt2, ypt1, ypt2, zpt1, zpt2, d;
   E_Int ak, aj, ai;
@@ -423,7 +423,7 @@ E_Int K_CONNECT::detectMatchInterface2(E_Int im1, E_Int jm1, E_Int km1,
   E_Float* yt2 = f2.begin(posy2);
   E_Float* zt2 = f2.begin(posz2);
 
-  E_Boolean match;
+  E_Bool match;
   nof1 = -1; nof2 = -1;
   E_Float xpt1, xpt2, ypt1, ypt2, zpt1, zpt2, d;
   E_Int ak, aj, ai;

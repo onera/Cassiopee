@@ -43,11 +43,11 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
                     &array, &arrayDonor, 
                     &PE, &PEDonor))
   {
-      return NULL;
+    return NULL;
   }
   
   FldArrayI* FLI;
-  E_Int res = K_NUMPY::getFromNumpyArray(FL, FLI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(FL, FLI);
   if (res == 0) 
   {    
     PyErr_SetString(PyExc_TypeError, 
@@ -56,7 +56,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   }
   E_Int* FLp = FLI->begin();
   FldArrayI* FLDonorI;
-  res = K_NUMPY::getFromNumpyArray(FLDonor, FLDonorI, true);
+  res = K_NUMPY::getFromNumpyArray(FLDonor, FLDonorI);
   if (res == 0)
   {    
     RELEASESHAREDN(FL, FLI);
@@ -67,7 +67,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int* FLDonorp = FLDonorI->begin();
 
   FldArrayI* Intext;
-  res = K_NUMPY::getFromNumpyArray(rindElt, Intext, true);
+  res = K_NUMPY::getFromNumpyArray(rindElt, Intext);
   if (res == 0)
   {    
     RELEASESHAREDN(FL, FLI);
@@ -79,7 +79,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int* iptIntExt = Intext->begin();
 
   FldArrayI* IntextD;
-  res = K_NUMPY::getFromNumpyArray(rindEltDonor, IntextD, true);
+  res = K_NUMPY::getFromNumpyArray(rindEltDonor, IntextD);
   if (res == 0)
   {    
     RELEASESHAREDN(FL, FLI);
@@ -128,7 +128,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int* indPHDonor = cd->getIndPH();
 
   FldArrayI* PEI;
-  res = K_NUMPY::getFromNumpyArray(PE, PEI, true);
+  res = K_NUMPY::getFromNumpyArray(PE, PEI);
   if (res == 0) 
   {    
     RELEASESHAREDN(FL, FLI);
@@ -144,7 +144,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
   E_Int* PEp1 = PEI->begin(1);
   E_Int* PEp2 = PEI->begin(2);
   FldArrayI* PEDonorI;
-  res = K_NUMPY::getFromNumpyArray(PEDonor, PEDonorI, true);
+  res = K_NUMPY::getFromNumpyArray(PEDonor, PEDonorI);
   if (res == 0) 
   {    
     RELEASESHAREDN(FL, FLI);

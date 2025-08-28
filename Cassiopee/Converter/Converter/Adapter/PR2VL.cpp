@@ -49,7 +49,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
 
   // Check pointRange numpy
   FldArrayI* PR;
-  E_Int res = K_NUMPY::getFromNumpyArray(PRo, PR, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(PRo, PR);
 
   if (res == 0)
   {
@@ -148,7 +148,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
   {
     // Check numpy (pointRange donor)
     FldArrayI* PRdonor;
-    E_Int res = K_NUMPY::getFromNumpyArray(PRdo, PRdonor, true);
+    E_Int res = K_NUMPY::getFromNumpyArray(PRdo, PRdonor);
 
     if (res == 0)
     {
@@ -159,7 +159,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
     
     // Check numpy (trf)
     FldArrayI* trf;
-    res = K_NUMPY::getFromNumpyArray(trfo, trf, true);
+    res = K_NUMPY::getFromNumpyArray(trfo, trf);
 
     if (res == 0)
     {

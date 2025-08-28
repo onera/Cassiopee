@@ -71,7 +71,7 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDB(res, array, f, cn); 
@@ -183,7 +183,7 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDZ(hook, varString, eltType);
@@ -283,7 +283,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   {
     FldArrayF* oneField;
     tpl = PyList_GetItem(listNumFields, v);
-    E_Int resf = K_NUMPY::getFromNumpyArray(tpl, oneField, true);
+    E_Int resf = K_NUMPY::getFromNumpyArray(tpl, oneField);
     if (resf == 0) { isEmpty[v] = 1; oneField = NULL; } 
     else if (oneField->getSize() == 0) isEmpty[v] = 1;
     else isEmpty[v] = 0;
@@ -294,7 +294,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
   
@@ -389,7 +389,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
   {
     FldArrayI* t;
     PyObject* index = PyList_GetItem(indexList, i);
-    E_Int res2 = K_NUMPY::getFromNumpyArray(index, t, true);
+    E_Int res2 = K_NUMPY::getFromNumpyArray(index, t);
 
     if (res2 == 0)
     {
