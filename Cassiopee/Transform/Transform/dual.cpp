@@ -95,15 +95,18 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   }
   // build array
   RELEASESHAREDU(array, f, cn);
-  PyObject* tpl = NULL;
+  // PyObject* tpl = NULL;
   if (extraPoints == 1)
-  {
-    tpl = K_CONNECT::V_cleanConnectivityNGon(posx, posy, posz, varString, fd, cNGD, 1.e-10);
-  }
-  else
-  {
-    tpl = K_ARRAY::buildArray3(fd, varString, cNGD, eltType, api);
-  }
+    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, fd, cNGD);
+  PyObject* tpl = K_ARRAY::buildArray(fd, varString, cNGD, 8, eltType);
+  // if (extraPoints == 1)
+  // {
+  //   tpl = K_CONNECT::V_cleanConnectivityNGon(posx, posy, posz, varString, fd, cNGD, 1.e-10);
+  // }
+  // else
+  // {
+  //   tpl = K_ARRAY::buildArray3(fd, varString, cNGD, eltType, api);
+  // }
   return tpl;
 }
 //=============================================================================
