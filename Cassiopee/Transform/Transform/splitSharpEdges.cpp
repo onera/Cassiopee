@@ -233,7 +233,6 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     components.push_back(c);
   }
   free(isVisited);
-
   free(mustBeVisited);
 
   // Formation des arrays de sortie + cleanConnectivity
