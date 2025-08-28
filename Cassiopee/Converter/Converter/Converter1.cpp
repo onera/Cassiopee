@@ -495,9 +495,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       if (fieldc[i] != NULL)
       {
         tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
-                                   std::max(im[i]-1,E_Int(1)),
-                                   std::max(jm[i]-1,E_Int(1)),
-                                   std::max(km[i]-1,E_Int(1)), api);
+                                   std::max(im[i]-1, E_Int(1)),
+                                   std::max(jm[i]-1, E_Int(1)),
+                                   std::max(km[i]-1, E_Int(1)), api);
         delete fieldc[i];
       }
       else tpl = PyList_New(0);

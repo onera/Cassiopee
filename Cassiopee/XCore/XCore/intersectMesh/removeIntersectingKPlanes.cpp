@@ -489,7 +489,10 @@ PyObject *handle_slave2(IMesh *M, Karray& sarray, E_Int kmax)
 
         TriangleIntersection TI;
 
-        E_Int hit = M->project_point(px, py, pz, dx, dy, dz, TI, i);
+        #ifndef NDEBUG
+        E_Int hit = 
+        #endif
+        M->project_point(px, py, pz, dx, dy, dz, TI, i);
 
         assert(hit);
 

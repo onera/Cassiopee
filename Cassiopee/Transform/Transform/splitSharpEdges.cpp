@@ -232,7 +232,6 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     c->reAllocMat(curr, nt);
     components.push_back(c);
   }
-
   free(isVisited);
   free(mustBeVisited);
 
@@ -252,6 +251,9 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     delete &fp; delete &cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+    // tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *components[i], eltType, 1.e-10);
+    // PyList_Append(l, tpl); Py_DECREF(tpl);
+    // delete components[i];
   }
   return l;
 }

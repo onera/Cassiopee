@@ -10,7 +10,7 @@ if [ "$CASSIOPEE" = "" ]; then
 fi
 
 # Environment
-ulimit -s unlimited
+[ "$(ulimit -Hs)" = "unlimited" ] && ulimit -s unlimited
 
 # Compilation on different machines:
 
@@ -891,6 +891,9 @@ elif [ "$MAC" = "msys2" ]; then
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 
+else
+    echo 'Error: your machine was not found in Envs.'
+    exit 1
 fi
 
 #-------------------------- Common to all prods --------------------------------

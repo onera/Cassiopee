@@ -186,6 +186,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
       { s = PyArray_DIMS(ac)[1]; nfld = PyArray_DIMS(ac)[0]; }
       else { s = PyArray_DIMS(ac)[0]; nfld = 1; }
       c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true);
+      // c->setNGon(1);
     }
     else if (PyList_Check(tpl) == true) // -- Array2 --
     {
@@ -205,6 +206,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
         { s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; }
         else { s = PyArray_DIMS(ac)[0]; nfld = 1; }
         c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
+        // c->setNGon(2);
       }
       else // suppose NGON
       {

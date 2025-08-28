@@ -925,6 +925,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
     std::vector<E_Int> isTotDegen(4, -1);
     for (E_Int i = 0; i <= 3; i++) isTotDegen[i] = i;
 
+    E_Int eltc[9];
+
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -932,11 +934,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe, true);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe, true);
         if (E.isDegen_ and (E_Int)E.size_ <= isTotDegen[dim])
         {
           indir[elOffset+i] = COLLAPSED; continue;
@@ -958,6 +960,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
   }
   else
   {
+    E_Int eltc[9];
+
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -965,11 +969,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe);
         // Use insert to ensure E is initially mapped to -1 if it doesn't exist
         auto res = eltMap.insert(std::make_pair(E, -1));
         // Check the value associated with E. If it is -1, then first time this

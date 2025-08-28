@@ -1076,7 +1076,7 @@ void K_INTERP::getBestDonor(
 
     E_Float vol = 0.; //volume de la cellule donneuse eventuellement penalise
     E_Float dRef=0.; //distance maximale pour laquelle on compare les volumes
-    E_Float realVol;// volume de la cellule donneuse effectif
+    E_Float realVol=0;// volume de la cellule donneuse effectif
     if (resl[no] == 1) //cas structure
     {
       // dimensions du maillage
