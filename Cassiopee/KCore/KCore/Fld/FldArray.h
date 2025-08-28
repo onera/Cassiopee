@@ -551,19 +551,19 @@ E_Int FldArray<T>::getNElts()
   {
     return _nelts;
   }
-  else if (_ngon == 1) // Array1
+  else //if (_ngon == 1) // Array1
   {
     E_Int sizeNGon = _rake[0][1];
     return _rake[0][sizeNGon+2]; 
   }
-  else // ME connectivity
-  {
-    if (_nelts > 0) { return _nelts; }
-    _nelts = 0;
-    for (size_t i = 0; i < _BEConnects.size(); i++)
-      _nelts += _BEConnects[i]->getSize();
-    return _nelts;
-  }
+  // else // ME connectivity
+  // {
+  //   if (_nelts > 0) { return _nelts; }
+  //   _nelts = 0;
+  //   for (size_t i = 0; i < _BEConnects.size(); i++)
+  //     _nelts += _BEConnects[i]->getSize();
+  //   return _nelts;
+  // }
 }
 
 //==============================================================================
