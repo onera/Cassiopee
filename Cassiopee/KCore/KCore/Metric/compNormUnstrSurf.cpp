@@ -80,7 +80,7 @@ void K_METRIC::compNormUnstructSurf(
     else
     {
       fprintf(stderr, "Error in K_METRIC::compNormUnstructSurf.\n");
-      fprintf(stderr, "Element type can be TRI only.\n");
+      fprintf(stderr, "Element type can be TRI only, not %s.\n", eltTypes[ic]);
       exit(0);
     }
   }
@@ -144,7 +144,7 @@ void K_METRIC::compNormUnstructSurft(
     else
     {
       fprintf(stderr, "Error in K_METRIC::compNormUnstructSurft.\n");
-      fprintf(stderr, "Element type can be TRI only.\n");
+      fprintf(stderr, "Element type can be TRI only, not %s.\n", eltTypes[ic]);
       exit(0);
     }
   }
