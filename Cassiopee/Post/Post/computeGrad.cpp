@@ -190,11 +190,12 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
       E_Float* gradx = f2->begin(1);
       E_Float* grady = f2->begin(2);
       E_Float* gradz = f2->begin(3);
-
+      std::cout << "A" << std::endl;
       computeGradUnstr(
         f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
-        f->begin(posv),
-        gradx, grady, gradz);
+        f->begin(posv), gradx, grady, gradz
+      );
+      std::cout << "Z" << std::endl;
     }
   }
   RELEASESHAREDB(res, array, f, cn);

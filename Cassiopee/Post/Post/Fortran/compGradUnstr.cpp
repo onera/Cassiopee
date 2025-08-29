@@ -40,47 +40,23 @@ E_Int K_POST::computeGradUnstr(
   else if (strcmp(eltTypes[0], "TRI") == 0 or
            strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
 
-  E_Int nelts = 0; // TODO
-  E_Int nedges = 0;
-
   if (dim == 3)
   {
-    K_FLD::FldArrayF fieldf(nelts, nedges);
-    K_FLD::FldArrayF snx(nelts, nedges);
-    K_FLD::FldArrayF sny(nelts, nedges);
-    K_FLD::FldArrayF snz(nelts, nedges);
-    K_FLD::FldArrayF surf(nelts, nedges);
-    K_FLD::FldArrayF vol(nelts);
-    K_FLD::FldArrayF xint(nelts, nedges);
-    K_FLD::FldArrayF yint(nelts, nedges);
-    K_FLD::FldArrayF zint(nelts, nedges);
-    compGradUnstr3D(
-      xt, yt, zt, cn, eltType,
-      field, fieldf.begin(),
-      snx.begin(), sny.begin(), snz.begin(), 
-      surf.begin(), vol.begin(), 
-      xint.begin(), yint.begin(), zint.begin(),
-      gradx, grady, gradz
-    );
+    std::cout << "A1" << std::endl;
+    compGradUnstr3D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz );
+    std::cout << "A9" << std::endl;
   }
   else if (dim == 2)
   {
-    K_FLD::FldArrayF snx(nelts, 1);
-    K_FLD::FldArrayF sny(nelts, 1);
-    K_FLD::FldArrayF snz(nelts, 1);
-    K_FLD::FldArrayF surf(nelts, 1);
-    compGradUnstr2D(
-      xt, yt, zt, cn, eltType,
-      field,
-      snx.begin(), sny.begin(), snz.begin(), surf.begin(),
-      gradx, grady, gradz
-    );
+    std::cout << "B1" << std::endl;
+    compGradUnstr2D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
+    std::cout << "B9" << std::endl;
   }
-  else // dim = 1
+  else  // dim = 1
   {
-    compGradUnstr1D(
-      xt, yt, zt, cn, eltType,
-      field, gradx, grady, gradz);    
+    std::cout << "C1" << std::endl;
+    compGradUnstr1D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
+    std::cout << "C9" << std::endl;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
@@ -164,14 +140,11 @@ void K_POST::compGradUnstr1D(
    IN: cn: connectivite elts-noeuds
    IN: eltType: list of BE element types forming the ME mesh
    IN: field: champ defini aux noeuds auquel on applique grad
-   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
-   OUT: surf: aires des facettes
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
 */
 void K_POST::compGradUnstr2D(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType, const E_Float* field,
-  E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
@@ -193,10 +166,17 @@ void K_POST::compGradUnstr2D(
     }
     nepc[ic+1] = nepc[ic] + nelts;
   }
+
+  // Allocate memory to store facet normals and their areas for all
+  // connectivities
+  E_Int ntotElts = nepc[nc];
+  K_FLD::FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts), surf(ntotElts);
   
   // Compute surface of elements
-  K_METRIC::compUnstructSurf(cn, eltType, xt, yt, zt,
-    snx, sny, snz, surf);
+  K_METRIC::compUnstructSurf(
+    cn, eltType, xt, yt, zt,
+    snx.begin(), sny.begin(), snz.begin(), surf.begin()
+  );
 
   #pragma omp parallel
   {
@@ -339,56 +319,67 @@ void K_POST::compGradUnstr2D(
    IN: cn: connectivite elts-noeuds
    IN: eltType: list of BE element types forming the ME mesh
    IN: field: champ defini aux noeuds auquel on applique grad
-   OUT: fieldf: ieme champ defini aux facettes des elts
-   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
-   OUT: surf: aires des facettes
-   OUT: vol: Volume of the elements
-   OUT: xint, yint, zint: Coordonnees du centre des facettes
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
 */
 void K_POST::compGradUnstr3D(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType, const E_Float* field,
-  E_Float* fieldf,
-  E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol,
-  E_Float* xint, E_Float* yint, E_Float* zint,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
-  // Compute surface and volume of elements
-  K_METRIC::compUnstructMetric(
-    cn, eltType, xt, yt, zt, 
-    xint, yint, zint, snx, sny, snz, surf, vol
-  );
-
-  // Compute field on face centers
-  compUnstrNodes2Faces(cn, eltType, field, fieldf);
-
-  // Compute gradient at element centers
+  std::cout << "AA1" << std::endl;
+  // Pre-compute element and facet offsets
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
-  
-  // Pre-compute element and facet offsets
+
+  E_Int ntotFacets = 0;
+  E_Int ntotElts = 0;
+  std::vector<E_Int> nfpe(nc);  // number of facets per element
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
+
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nfpe;
-
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
-
+    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
+    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
+    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
+    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
+    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
+    else
+    {
+      fprintf(stderr, "Error: in K_POST::compGradUnstr3D.\n");
+      fprintf(stderr, "Unknown type of element.\n");
+      exit(0);
+    }
     nepc[ic+1] = nepc[ic] + nelts;
-    nfpc[ic+1] = nfpc[ic] + nfpe*nelts;
+    nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
+    ntotFacets += nfpe[ic]*nelts;
+    ntotElts += nelts;
   }
-  
+
+  // Allocate memory to store facet normals and their areas for all
+  // connectivities, as well as the volume of the elements and fieldf, the ith
+  // field defined for each facet of the elements
+  K_FLD::FldArrayF fieldf(ntotFacets);
+  K_FLD::FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
+  K_FLD::FldArrayF surf(ntotFacets);
+  K_FLD::FldArrayF vol(ntotElts);
+
+  // Compute facet areas and element volumes
+  K_METRIC::compUnstructMetric(
+    cn, eltType, xt, yt, zt,
+    snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+  );
+
+  // Compute field on face centers
+  std::cout << "AA2" << std::endl;
+  compUnstrNodes2Faces(cn, eltType, field, fieldf.begin());
+
+  // Compute gradient at element centers  
   #pragma omp parallel
   {
     E_Int pos, nelts, nfpe, elOffset, fctOffset;
@@ -425,6 +416,7 @@ void K_POST::compGradUnstr3D(
       }
     }
   }
+  std::cout << "AA9" << std::endl;
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

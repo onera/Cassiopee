@@ -25,7 +25,6 @@
 // IN: cn: nb de noeuds par elemt
 // IN: eltType: list of Basic Element names
 // IN: coordx, coordy, coordz: coordonnees x, y, z des pts de la grille
-// OUT: xint, yint, zint: coordonnees du centre des facettes 
 // OUT: snx, sny, snz: normales aux facettes %x, %y, %z
 // OUT: surf: aires des facettes
 // OUT: vol: volume des cellules
@@ -33,51 +32,53 @@
 void K_METRIC::compUnstructMetric(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
-  E_Float* xint, E_Float* yint, E_Float* zint,
-  E_Float* snx, E_Float* sny, E_Float* snz,
-  E_Float* surf, E_Float* vol
+  E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol
 )
 {
-  // Compute center of facets
-  compUnstructCenterInt(cn, eltType, coordx, coordy, coordz,
-                        xint, yint, zint);
-
-  // Compute facet normals and areas
-  std::cout << "AA2" << std::endl;
-  compUnstructSurf(cn, eltType, coordx, coordy, coordz,
-                   snx, sny, snz, surf);
-
   // Pre-compute element and facet offsets
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  E_Int ntotFacets = 0;
+  std::vector<E_Int> nfpe(nc);  // number of facets per element
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
+
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nfpe;  // number of facets per element
-
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
+    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
+    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
+    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
+    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
+    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
     else
     {
       fprintf(stderr, "Error: in K_METRIC::compUnstructMetric.\n");
       fprintf(stderr, "Unknown type of element.\n");
       exit(0);
     }
-
     nepc[ic+1] = nepc[ic] + nelts;
-    nfpc[ic+1] = nfpc[ic] + nfpe*nelts;  // number of facets per connectivity
+    nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
+    ntotFacets += nfpe[ic]*nelts;
   }
+ 
+  // Compute center of facets
+  K_FLD::FldArrayF xint(ntotFacets), yint(ntotFacets), zint(ntotFacets);
+  std::cout << "AAAA1" << std::endl;
+  compUnstructCenterInt(cn, eltType, coordx, coordy, coordz,
+                        xint.begin(), yint.begin(), zint.begin());
+
+  // Compute facet normals and areas
+  std::cout << "AAAA2" << std::endl;
+  compUnstructSurf(cn, eltType, coordx, coordy, coordz,
+                   snx, sny, snz, surf);
   
   // Compute volume of elements
+  std::cout << "AAAA4" << std::endl;
   #pragma omp parallel
   {
     E_Int pos, nelts, nfpe, elOffset, fctOffset;
@@ -106,4 +107,5 @@ void K_METRIC::compUnstructMetric(
       }
     }
   }
+  std::cout << "AAAA9" << std::endl;
 }

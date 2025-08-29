@@ -35,22 +35,37 @@ void K_POST::compUnstrNodes2Faces(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  // Pre-compute element offset
-  std::vector<E_Int> nepc(nc+1); nepc[0] = 0;;
+  // Pre-compute number of facets per connectivity, nfpc
+  std::vector<E_Int> nfpc(nc+1); nfpc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    nepc[ic+1] = nepc[ic] + nelts;
+    E_Int nfpe = 1;
+    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
+    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
+    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
+    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
+    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
+    else
+    {
+      fprintf(stderr, "Error: in K_POST::compUnstrNodes2Faces.\n");
+      fprintf(stderr, "Unknown type of element.\n");
+      exit(0);
+    }
+    nfpc[ic+1] = nfpc[ic] + nfpe*nelts;
   }
 
+  // Compute field value at the center of each of the element's facet, from
+  // nodal field values
   # pragma omp parallel
   {
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       E_Int nelts = cm.getSize();
-      E_Int elOffset = nepc[ic];
+      E_Int fctOffset = nfpc[ic];  // facet offset
 
       if (strcmp(eltTypes[ic], "TRI") == 0)
       {
@@ -68,7 +83,7 @@ void K_POST::compUnstrNodes2Faces(
           f2 = fieldn[ind2];
           f3 = fieldn[ind3];
 
-          pos = elOffset + i * 3;
+          pos = fctOffset + i * 3;
           fieldf[pos] = K_CONST::ONE_HALF * (f1 + f2);
           fieldf[pos + 1] = K_CONST::ONE_HALF * (f2 + f3);
           fieldf[pos + 2] = K_CONST::ONE_HALF * (f3 + f1);
@@ -92,7 +107,7 @@ void K_POST::compUnstrNodes2Faces(
           f3 = fieldn[ind3];
           f4 = fieldn[ind4];
 
-          pos = elOffset + i * 4;
+          pos = fctOffset + i * 4;
           fieldf[pos] = K_CONST::ONE_HALF * (f1 + f2);
           fieldf[pos + 1] = K_CONST::ONE_HALF * (f2 + f3);
           fieldf[pos + 2] = K_CONST::ONE_HALF * (f3 + f4);
@@ -117,7 +132,7 @@ void K_POST::compUnstrNodes2Faces(
           f3 = fieldn[ind3];
           f4 = fieldn[ind4];
 
-          pos = elOffset + i * 3;
+          pos = fctOffset + i * 3;
           fieldf[pos] = K_CONST::ONE_THIRD * (f1 + f2 + f3);      // A1A2A3
           fieldf[pos + 1] = K_CONST::ONE_THIRD * (f1 + f2 + f4);  // A1A2A4
           fieldf[pos + 2] = K_CONST::ONE_THIRD * (f2 + f3 + f4);  // A2A3A4
@@ -144,7 +159,7 @@ void K_POST::compUnstrNodes2Faces(
           f4 = fieldn[ind4];
           f5 = fieldn[ind5];
 
-          pos = elOffset + i * 5;
+          pos = fctOffset + i * 5;
           fieldf[pos] = K_CONST::ONE_FOURTH * (f1 + f2 + f3 + f4);  // A1A2A3A4
           fieldf[pos + 1] = K_CONST::ONE_THIRD * (f1 + f2 + f5);    // A1A2A5
           fieldf[pos + 2] = K_CONST::ONE_THIRD * (f2 + f3 + f5);    // A2A3A5
@@ -175,7 +190,7 @@ void K_POST::compUnstrNodes2Faces(
           f5 = fieldn[ind5];
           f6 = fieldn[ind6];
 
-          pos = elOffset + i * 5;
+          pos = fctOffset + i * 5;
           fieldf[pos] = K_CONST::ONE_THIRD * (f1 + f2 + f3);            // A1A2A3
           fieldf[pos + 1] = K_CONST::ONE_THIRD * (f4 + f5 + f6);        // A4A5A6
           fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f1 + f2 + f5 + f4);  // 1254
@@ -209,7 +224,7 @@ void K_POST::compUnstrNodes2Faces(
           f7 = fieldn[ind7];
           f8 = fieldn[ind8];
 
-          pos = elOffset + i * 6;
+          pos = fctOffset + i * 6;
           fieldf[pos] = K_CONST::ONE_FOURTH * (f1 + f2 + f3 + f4);      // A1A2A3A4
           fieldf[pos + 1] = K_CONST::ONE_FOURTH * (f5 + f6 + f7 + f8);  // A5A6A7A8
           fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f4 + f1 + f5 + f8);  // 4158

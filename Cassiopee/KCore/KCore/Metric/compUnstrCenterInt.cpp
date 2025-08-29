@@ -31,6 +31,7 @@ void K_METRIC::compUnstructCenterInt(
   E_Float* xint, E_Float* yint, E_Float* zint
 )
 {
+  std::cout << "AAAAA1" << std::endl;
   E_Int fctOffset = 0;
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
@@ -42,6 +43,7 @@ void K_METRIC::compUnstructCenterInt(
     E_Int nelts = cm.getSize();
     E_Int nfpe;  // number of facets per element
     E_Int nfpc;  // number of facets per connectivity
+    std::cout << eltTypes[ic] << std::endl;
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
@@ -221,6 +223,7 @@ void K_METRIC::compUnstructCenterInt(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
+          std::cout << "B" << i << std::endl;
           ind1 = cm(i, 1) - 1;
           ind2 = cm(i, 2) - 1;
           ind3 = cm(i, 3) - 1;
@@ -229,6 +232,7 @@ void K_METRIC::compUnstructCenterInt(
           ind6 = cm(i, 6) - 1;
           ind7 = cm(i, 7) - 1;
           ind8 = cm(i, 8) - 1;
+          std::cout << "C" << std::endl;
 
           x1 = xt[ind1]; x2 = xt[ind2]; x3 = xt[ind3]; x4 = xt[ind4];
           x5 = xt[ind5]; x6 = xt[ind6]; x7 = xt[ind7]; x8 = xt[ind8];
@@ -238,12 +242,18 @@ void K_METRIC::compUnstructCenterInt(
 
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
           z5 = zt[ind5]; z6 = zt[ind6]; z7 = zt[ind7]; z8 = zt[ind8];
+          std::cout << "D" << std::endl;
 
           // facette 1234
           pos = fctOffset + i * nfpe;
+          std::cout << "pos " << pos << std::endl;
+          std::cout << "nfpe " << nfpe << std::endl;
+          std::cout << "fctOffset " << fctOffset << std::endl;
+          std::cout << "res " << K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4) << std::endl;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
+          std::cout << "E" << std::endl;
 
           // facette 5678
           pos = fctOffset + (i + 1) * nfpe;
@@ -274,6 +284,7 @@ void K_METRIC::compUnstructCenterInt(
           xint[pos] = K_CONST::ONE_FOURTH * (x4 + x3 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y4 + y3 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z4 + z3 + z7 + z8);
+          std::cout << "F" << std::endl;
         }
       }
     }
@@ -350,6 +361,7 @@ void K_METRIC::compUnstructCenterInt(
     nfpc = nfpe*nelts;
     fctOffset += nfpc;
   }
+  std::cout << "AAAAA9" << std::endl;
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

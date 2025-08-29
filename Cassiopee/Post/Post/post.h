@@ -454,7 +454,7 @@ namespace K_POST
   
   /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
    retourne le gradient defini aux centres des elts.
-   CAS 1D.
+   CAS 1D, 2D et 3D.
    IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
    IN: cn: connectivite elts-noeuds
    IN: eltType: list of BE element types forming the ME mesh
@@ -466,43 +466,14 @@ namespace K_POST
     FldArrayI& cn, const char* eltType, const E_Float* field,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
-  /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
-   retourne le gradient defini aux centres des elts.
-   CAS 2D.
-   IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
-   IN: cn: connectivite elts-noeuds
-   IN: eltType: list of BE element types forming the ME mesh
-   IN: field: champ defini aux noeuds auquel on applique grad
-   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
-   OUT: surf: aires des facettes
-   OUT: gradx, grady, gradz: gradient de field %x, %y, %z
-  */
   void compGradUnstr2D(
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     FldArrayI& cn, const char* eltType, const E_Float* field,
-    E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
-  /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
-   retourne le gradient defini aux centres des elts.
-   CAS 3D.
-   IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
-   IN: cn: connectivite elts-noeuds
-   IN: eltType: list of BE element types forming the ME mesh
-   IN: field: champ defini aux noeuds auquel on applique grad
-   OUT: fieldf: ieme champ defini aux facettes des elts
-   OUT: snx, sny, snz: normales aux facettes %x, %y, %z
-   OUT: surf: aires des facettes
-   OUT: vol: Volume of the elements
-   OUT: xint, yint, zint: Coordonnees du centre des facettes
-   OUT: gradx, grady, gradz: gradient de field %x, %y, %z
-*/
   void compGradUnstr3D(
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     FldArrayI& cn, const char* eltType, const E_Float* field,
-    E_Float* fieldf,
-    E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol,
-    E_Float* xint, E_Float* yint, E_Float* zint,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
   /* Idem for div */
