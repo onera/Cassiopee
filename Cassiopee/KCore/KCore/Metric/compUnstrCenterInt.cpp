@@ -42,7 +42,6 @@ void K_METRIC::compUnstructCenterInt(
     E_Int nelts = cm.getSize();
     E_Int nfpe;  // number of facets per element
     E_Int nfpc;  // number of facets per connectivity
-    std::cout << eltTypes[ic] << std::endl;
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
