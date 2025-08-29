@@ -42,21 +42,15 @@ E_Int K_POST::computeGradUnstr(
 
   if (dim == 3)
   {
-    std::cout << "A1" << std::endl;
-    compGradUnstr3D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz );
-    std::cout << "A9" << std::endl;
+    compGradUnstr3D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
   }
   else if (dim == 2)
   {
-    std::cout << "B1" << std::endl;
     compGradUnstr2D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
-    std::cout << "B9" << std::endl;
   }
   else  // dim = 1
   {
-    std::cout << "C1" << std::endl;
     compGradUnstr1D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
-    std::cout << "C9" << std::endl;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
@@ -92,7 +86,7 @@ void K_POST::compGradUnstr1D(
     if (strcmp(eltTypes[ic], "BAR") != 0)
     {
       fprintf(stderr, "Error: in K_POST::compGradUnstr1D.\n");
-      fprintf(stderr, "Element type must be BAR.\n");
+      fprintf(stderr, "Element type must be BAR, not %s.\n", eltTypes[ic]);
       exit(0);
     }
     nepc[ic+1] = nepc[ic] + nelts;
@@ -158,10 +152,10 @@ void K_POST::compGradUnstr2D(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    if (strcmp(eltTypes[ic], "TRI") != 0 or strcmp(eltTypes[ic], "QUAD") != 0)
+    if (strcmp(eltTypes[ic], "TRI") != 0 && strcmp(eltTypes[ic], "QUAD") != 0)
     {
       fprintf(stderr, "Error: in K_POST::compGradUnstr2D.\n");
-      fprintf(stderr, "Element type must be TRI or QUAD.\n");
+      fprintf(stderr, "Element type must be TRI or QUAD, not %s.\n", eltTypes[ic]);
       exit(0);
     }
     nepc[ic+1] = nepc[ic] + nelts;
@@ -327,7 +321,6 @@ void K_POST::compGradUnstr3D(
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
-  std::cout << "AA1" << std::endl;
   // Pre-compute element and facet offsets
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
@@ -352,7 +345,7 @@ void K_POST::compGradUnstr3D(
     else
     {
       fprintf(stderr, "Error: in K_POST::compGradUnstr3D.\n");
-      fprintf(stderr, "Unknown type of element.\n");
+      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
     nepc[ic+1] = nepc[ic] + nelts;
@@ -376,20 +369,18 @@ void K_POST::compGradUnstr3D(
   );
 
   // Compute field on face centers
-  std::cout << "AA2" << std::endl;
   compUnstrNodes2Faces(cn, eltType, field, fieldf.begin());
 
   // Compute gradient at element centers  
   #pragma omp parallel
   {
-    E_Int pos, nelts, nfpe, elOffset, fctOffset;
+    E_Int pose, posf, nelts, elOffset, fctOffset;
     E_Float sumx, sumy, sumz, invvol;
     
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       nelts = cm.getSize();
-      nfpe = (nfpc[ic+1] - nfpc[ic])/nelts;  // number of facets per element
       elOffset = nepc[ic];
       fctOffset = nfpc[ic];
 
@@ -399,24 +390,23 @@ void K_POST::compGradUnstr3D(
         sumx = K_CONST::E_ZERO_FLOAT;
         sumy = K_CONST::E_ZERO_FLOAT;
         sumz = K_CONST::E_ZERO_FLOAT;
-        invvol = K_CONST::ONE / K_FUNC::E_max(vol[i], K_CONST::E_MIN_VOL);
+        pose = elOffset + i;
+        invvol = K_CONST::ONE / K_FUNC::E_max(vol[pose], K_CONST::E_MIN_VOL);
 
-        for (E_Int fi = 0; fi < nfpe; fi++)
+        for (E_Int fi = 0; fi < nfpe[ic]; fi++)
         {
-          pos = fctOffset + i * nfpe + fi;
-          sumx += snx[pos] * fieldf[pos];
-          sumy += sny[pos] * fieldf[pos];
-          sumz += snz[pos] * fieldf[pos];
+          posf = fctOffset + i * nfpe[ic] + fi;
+          sumx += snx[posf] * fieldf[posf];
+          sumy += sny[posf] * fieldf[posf];
+          sumz += snz[posf] * fieldf[posf];
         }
-
-        pos = elOffset + i;
-        gradx[pos] = sumx * invvol;
-        grady[pos] = sumy * invvol;
-        gradz[pos] = sumz * invvol;
+        
+        gradx[pose] = sumx * invvol;
+        grady[pose] = sumy * invvol;
+        gradz[pose] = sumz * invvol;
       }
     }
   }
-  std::cout << "AA9" << std::endl;
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

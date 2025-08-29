@@ -24,10 +24,6 @@
 # include "kcore.h"
 # include <vector>
 
-#define FldArrayF FldArrayF
-#define FldArrayI FldArrayI
-#define FldArrayIS FldArrayIS
-
 namespace K_POST
 {
   PyObject* extractPoint(PyObject* self, PyObject* args);
@@ -612,7 +608,7 @@ namespace K_POST
                       FldArrayI& extNodes);
 
 /* Determine si les pts ind1 et ind2 sont a fusionner
-   IN: et: element � fusionner
+   IN: et: element a fusionner
    IN: ind1: pt candidat a la fusion (source)
    IN: ind2: pt candidat a la fusion (destination)
    IN: xt, yt, zt: coordonnees des pts

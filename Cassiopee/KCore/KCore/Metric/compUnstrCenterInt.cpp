@@ -31,7 +31,6 @@ void K_METRIC::compUnstructCenterInt(
   E_Float* xint, E_Float* yint, E_Float* zint
 )
 {
-  std::cout << "AAAAA1" << std::endl;
   E_Int fctOffset = 0;
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
@@ -134,19 +133,19 @@ void K_METRIC::compUnstructCenterInt(
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
 
           // facette 124
-          pos = fctOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z4);
 
           // facette 234
-          pos = fctOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z2 + z3 + z4);
 
           // facette 134
-          pos = fctOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z3 + z4);
@@ -184,25 +183,25 @@ void K_METRIC::compUnstructCenterInt(
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
 
           // facette 125
-          pos = fctOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x5);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y5);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z5);
 
           // facette 235
-          pos = fctOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x2 + x3 + x5);
           yint[pos] = K_CONST::ONE_THIRD * (y2 + y3 + y5);
           zint[pos] = K_CONST::ONE_THIRD * (z2 + z3 + z5);
 
           // facette 345
-          pos = fctOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x5 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y5 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z5 + z3 + z4);
 
           // facette 415
-          pos = fctOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x5 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y5 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z5 + z4);
@@ -223,7 +222,6 @@ void K_METRIC::compUnstructCenterInt(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          std::cout << "B" << i << std::endl;
           ind1 = cm(i, 1) - 1;
           ind2 = cm(i, 2) - 1;
           ind3 = cm(i, 3) - 1;
@@ -232,7 +230,6 @@ void K_METRIC::compUnstructCenterInt(
           ind6 = cm(i, 6) - 1;
           ind7 = cm(i, 7) - 1;
           ind8 = cm(i, 8) - 1;
-          std::cout << "C" << std::endl;
 
           x1 = xt[ind1]; x2 = xt[ind2]; x3 = xt[ind3]; x4 = xt[ind4];
           x5 = xt[ind5]; x6 = xt[ind6]; x7 = xt[ind7]; x8 = xt[ind8];
@@ -242,49 +239,42 @@ void K_METRIC::compUnstructCenterInt(
 
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
           z5 = zt[ind5]; z6 = zt[ind6]; z7 = zt[ind7]; z8 = zt[ind8];
-          std::cout << "D" << std::endl;
 
           // facette 1234
           pos = fctOffset + i * nfpe;
-          std::cout << "pos " << pos << std::endl;
-          std::cout << "nfpe " << nfpe << std::endl;
-          std::cout << "fctOffset " << fctOffset << std::endl;
-          std::cout << "res " << K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4) << std::endl;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
-          std::cout << "E" << std::endl;
 
           // facette 5678
-          pos = fctOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x5 + x6 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y5 + y6 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z5 + z6 + z7 + z8);
 
           // facette 1485
-          pos = fctOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x4 + x8 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y4 + y8 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z4 + z8 + z5);
 
           // facette 2376
-          pos = fctOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x7 + x6);
           yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y7 + y6);
           zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z7 + z6);
 
           // facette 1265
-          pos = fctOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z6 + z5);
 
           // facette 4378
-          pos = fctOffset + (i + 5) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x4 + x3 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y4 + y3 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z4 + z3 + z7 + z8);
-          std::cout << "F" << std::endl;
         }
       }
     }
@@ -325,25 +315,25 @@ void K_METRIC::compUnstructCenterInt(
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
 
           // facette triangle 2 : 456
-          pos = fctOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x4 + x5 + x6);
           yint[pos] = K_CONST::ONE_THIRD * (y4 + y5 + y6);
           zint[pos] = K_CONST::ONE_THIRD * (z4 + z5 + z6);
 
           // troisieme facette quad 1254
-          pos = fctOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x5 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y5 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z5 + z4);
 
           // quatrieme facette quad 2365
-          pos = fctOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z6 + z5);
 
           // cinquieme facette quad 3146
-          pos = fctOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x3 + x1 + x4 + x6);
           yint[pos] = K_CONST::ONE_FOURTH * (y3 + y1 + y4 + y6);
           zint[pos] = K_CONST::ONE_FOURTH * (z3 + z1 + z4 + z6);
@@ -353,7 +343,7 @@ void K_METRIC::compUnstructCenterInt(
     else
     {
       fprintf(stderr, "Error in K_METRIC::compUnstructCenterInt.\n");
-      fprintf(stderr, "Unknown type of element.\n");
+      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
 
@@ -361,7 +351,6 @@ void K_METRIC::compUnstructCenterInt(
     nfpc = nfpe*nelts;
     fctOffset += nfpc;
   }
-  std::cout << "AAAAA9" << std::endl;
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

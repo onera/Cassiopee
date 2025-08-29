@@ -58,7 +58,7 @@ void K_METRIC::compUnstructMetric(
     else
     {
       fprintf(stderr, "Error: in K_METRIC::compUnstructMetric.\n");
-      fprintf(stderr, "Unknown type of element.\n");
+      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
     nepc[ic+1] = nepc[ic] + nelts;
@@ -68,27 +68,23 @@ void K_METRIC::compUnstructMetric(
  
   // Compute center of facets
   K_FLD::FldArrayF xint(ntotFacets), yint(ntotFacets), zint(ntotFacets);
-  std::cout << "AAAA1" << std::endl;
   compUnstructCenterInt(cn, eltType, coordx, coordy, coordz,
                         xint.begin(), yint.begin(), zint.begin());
 
   // Compute facet normals and areas
-  std::cout << "AAAA2" << std::endl;
   compUnstructSurf(cn, eltType, coordx, coordy, coordz,
                    snx, sny, snz, surf);
   
   // Compute volume of elements
-  std::cout << "AAAA4" << std::endl;
   #pragma omp parallel
   {
-    E_Int pos, nelts, nfpe, elOffset, fctOffset;
+    E_Int pos, nelts, elOffset, fctOffset;
     E_Float voli;
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       nelts = cm.getSize();
-      nfpe = (nfpc[ic+1] - nfpc[ic])/nelts;  // number of facets per element
       elOffset = nepc[ic];
       fctOffset = nfpc[ic];
 
@@ -96,16 +92,15 @@ void K_METRIC::compUnstructMetric(
       for (E_Int i = 0; i < nelts; i++)
       {
         voli = K_CONST::E_ZERO_FLOAT;
-        for (E_Int fidx = 0; fidx < nfpe; fidx++)
+        for (E_Int fidx = 0; fidx < nfpe[ic]; fidx++)
         {
-          pos = fctOffset + i * nfpe + fidx;
+          pos = fctOffset + i * nfpe[ic] + fidx;
           voli += xint[pos] * snx[pos]
                 + yint[pos] * sny[pos]
                 + zint[pos] * snz[pos];
         }
-        vol[elOffset+i] = K_CONST::ONE_THIRD * voli;
+        vol[elOffset + i] = K_CONST::ONE_THIRD * voli;
       }
     }
   }
-  std::cout << "AAAA9" << std::endl;
 }

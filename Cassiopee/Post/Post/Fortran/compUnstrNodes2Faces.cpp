@@ -51,7 +51,7 @@ void K_POST::compUnstrNodes2Faces(
     else
     {
       fprintf(stderr, "Error: in K_POST::compUnstrNodes2Faces.\n");
-      fprintf(stderr, "Unknown type of element.\n");
+      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
     nfpc[ic+1] = nfpc[ic] + nfpe*nelts;
@@ -59,7 +59,7 @@ void K_POST::compUnstrNodes2Faces(
 
   // Compute field value at the center of each of the element's facet, from
   // nodal field values
-  # pragma omp parallel
+  #pragma omp parallel
   {
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -72,7 +72,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, pos;
         E_Float f1, f2, f3;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -94,7 +94,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, ind4, pos;
         E_Float f1, f2, f3, f4;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -119,7 +119,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, ind4, pos;
         E_Float f1, f2, f3, f4;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -132,7 +132,7 @@ void K_POST::compUnstrNodes2Faces(
           f3 = fieldn[ind3];
           f4 = fieldn[ind4];
 
-          pos = fctOffset + i * 3;
+          pos = fctOffset + i * 4;
           fieldf[pos] = K_CONST::ONE_THIRD * (f1 + f2 + f3);      // A1A2A3
           fieldf[pos + 1] = K_CONST::ONE_THIRD * (f1 + f2 + f4);  // A1A2A4
           fieldf[pos + 2] = K_CONST::ONE_THIRD * (f2 + f3 + f4);  // A2A3A4
@@ -144,7 +144,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, ind4, ind5, pos;
         E_Float f1, f2, f3, f4, f5;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -173,7 +173,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, ind4, ind5, ind6, pos;
         E_Float f1, f2, f3, f4, f5, f6;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -203,7 +203,7 @@ void K_POST::compUnstrNodes2Faces(
         E_Int ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8, pos;
         E_Float f1, f2, f3, f4, f5, f6, f7, f8;
 
-        # pragma omp for
+        #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
           ind1 = cm(i, 1) - 1;
@@ -232,12 +232,6 @@ void K_POST::compUnstrNodes2Faces(
           fieldf[pos + 4] = K_CONST::ONE_FOURTH * (f1 + f2 + f6 + f5);  // A1A2A6A5
           fieldf[pos + 5] = K_CONST::ONE_FOURTH * (f3 + f4 + f8 + f7);  // A3A4A8A7
         }
-      }
-      else
-      {
-        fprintf(stderr, "Error: in K_POST::compUnstrNodes2Faces.\n");
-        fprintf(stderr, "Unknown type of element.\n");
-        exit(0);
       }
     }
   }
