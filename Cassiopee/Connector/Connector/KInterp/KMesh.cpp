@@ -73,15 +73,6 @@ extern "C"
                           const E_Int& szCartElt,
                           E_Float* cartEltMin, E_Float* cartEltMax );
 
-  void k6compunstrmetric_(const E_Int& npts, const E_Int& nelts, 
-                          const E_Int& nedges, const E_Int& nnodes, 
-                          const E_Int* cn, const E_Float* xt, 
-                          const E_Float* yt, const E_Float* zt, 
-                          const E_Float* xint, const E_Float* yint, const E_Float* zint, 
-                          const E_Float* snx, const E_Float* sny, 
-                          const E_Float* snz, const E_Float* surf, 
-                          const E_Float* vol);
-
   void k6compstructcellcenter_(E_Int& im, E_Int& jm, E_Int& km, 
                                E_Int& nbNode, E_Int& nbcell, 
                                const E_Float* xt, const E_Float* yt, 
@@ -198,9 +189,9 @@ FldArrayF& K_KINTERP::KMesh::getCellCenter()
 //=============================================================================
 FldArrayF& K_KINTERP::KMesh::getCellVol()
 {
-  if ( _cellVol.getSize() != 0) return _cellVol;
+  if (_cellVol.getSize() != 0) return _cellVol;
 
-  if ( _isStruct == true ) //structure
+  if (_isStruct) //structure
   {
     E_Int im1 = _im-1;
     E_Int jm1 = _jm-1;
@@ -212,9 +203,9 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
     E_Int nbInt = nbInti + nbIntj + nbIntk;
  
     _cellVol.malloc(nbCells);
-    FldArrayF surf(nbInt,3);
+    FldArrayF surf(nbInt, 3);
     FldArrayF snorm(nbInt);
-    FldArrayF centerInt(nbInt,3);
+    FldArrayF centerInt(nbInt, 3);
     K_METRIC::compStructMetric(
       _im, _jm, _km,
       nbInti, nbIntj, nbIntk,
@@ -222,28 +213,20 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
       _cellVol.begin(),
       surf.begin(1), surf.begin(2), surf.begin(3), 
       snorm.begin(),
-      centerInt.begin(1), centerInt.begin(1), centerInt.begin(3) );
+      centerInt.begin(1), centerInt.begin(1), centerInt.begin(3)
+    );
   }
   else 
   {
-    E_Int nelts = _cn.getSize();
-    E_Int nedges = 4;  E_Int nnodes = 4;
-
+    FldArrayI& cm = *(_cn.getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 4*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
     _cellVol.malloc(nelts);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(_npts, nelts, nedges, nnodes, _cn.begin(), 
-                       _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), snz.begin(), 
-                       surf.begin(), _cellVol.begin());
+    K_METRIC::compUnstructMetric(
+      _cn, "TETRA", _coord.begin(1), _coord.begin(2), _coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), _cellVol.begin()
+    );
   }
   return _cellVol;
 }
@@ -253,7 +236,7 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
 //=============================================================================
 void K_KINTERP::KMesh::createExtendedCenterMesh(const KMesh& origMesh)
 {  
-  if ( _isStruct == false )
+  if (!_isStruct)
   {
     printf("KMesh: createExtendedCenterMesh: not valid for an unstructured kmesh. Nothing done.\n");
     return;
