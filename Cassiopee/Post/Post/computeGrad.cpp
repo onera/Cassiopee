@@ -194,6 +194,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
         f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
         f->begin(posv), gradx, grady, gradz
       );
+      RELEASESHAREDS(tpl, f2);
     }
   }
   RELEASESHAREDB(res, array, f, cn);
