@@ -65,7 +65,9 @@ void K_METRIC::compUnstructMetric(
     nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
     ntotFacets += nfpe[ic]*nelts;
   }
- 
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
   // Compute center of facets
   K_FLD::FldArrayF xint(ntotFacets), yint(ntotFacets), zint(ntotFacets);
   compUnstructCenterInt(cn, eltType, coordx, coordy, coordz,
