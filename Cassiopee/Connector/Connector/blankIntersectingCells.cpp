@@ -47,15 +47,6 @@ struct trifacette
     E_Float x2, y2, z2;
     E_Float x3, y3, z3;
 };
-extern "C"
-{
-  void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                          E_Int& nnodes, E_Int* cn, 
-                          E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                          E_Float* xint, E_Float* yint, E_Float* zint, 
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, E_Float* vol);
-}
  
 
 //=============================================================================
@@ -1196,31 +1187,26 @@ E_Int K_CONNECTOR::blankInvalidCellsPenta(
   // blanking des cellules de volume negatif
   for (E_Int v = 0; v < nzones; v++)
   {
-    E_Int nelts = cnt[v]->getSize(); E_Int nnodes = cnt[v]->getNfld(); E_Int nedges = 5;
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF vol(nelts);
     E_Int npts = unstrF[v]->getSize();
     FldArrayF coord(npts, 3);
     coord.setOneField(*unstrF[v], posx, 1);
     coord.setOneField(*unstrF[v], posy, 2);
     coord.setOneField(*unstrF[v], posz, 3);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(npts, nelts, nedges, nnodes, cnt[v]->begin(), 
-                       coord.begin(1), coord.begin(2), coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), 
-                       snz.begin(), surf.begin(), vol.begin());
+
+    FldArrayI& cm = *(cnt[v]->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 5*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
+    FldArrayF vol(nelts);
+    K_METRIC::compUnstructMetric(
+      *cnt[v], "PENTA", coord.begin(1), coord.begin(2), coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+    );
+
     E_Float* cellN = unstrFc[v]->begin(posc);
     for (E_Int ind = 0; ind < nelts; ind++)
     {
-      if ( vol[ind] < 0. ) cellN[ind] = 0.;
+      if (vol[ind] < 0.) cellN[ind] = 0.;
     }
   }
   //blanking des cellules dont leur propres facettes s intersectent
@@ -1369,31 +1355,26 @@ E_Int K_CONNECTOR::blankInvalidCellsHexa(
   // blanking des cellules de volume negatif
   for (E_Int v = 0; v < nzones; v++)
   {
-    E_Int nelts = cnt[v]->getSize(); E_Int nnodes = cnt[v]->getNfld(); E_Int nedges = 6;
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF vol(nelts);
     E_Int npts = unstrF[v]->getSize();
     FldArrayF coord(npts, 3);
     coord.setOneField(*unstrF[v], posx, 1);
     coord.setOneField(*unstrF[v], posy, 2);
     coord.setOneField(*unstrF[v], posz, 3);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(npts, nelts, nedges, nnodes, cnt[v]->begin(), 
-                       coord.begin(1), coord.begin(2), coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), 
-                       snz.begin(), surf.begin(), vol.begin());
+
+    FldArrayI& cm = *(cnt[v]->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 6*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
+    FldArrayF vol(nelts);
+    K_METRIC::compUnstructMetric(
+      *cnt[v], "HEXA", coord.begin(1), coord.begin(2), coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+    );
+
     E_Float* cellN = unstrFc[v]->begin(posc);
     for (E_Int ind = 0; ind < nelts; ind++)
     {
-      if ( vol[ind] < 0. ) cellN[ind] = 0.;
+      if (vol[ind] < 0.) cellN[ind] = 0.;
     }
   }
   //blanking des cellules dont leur propres facettes s intersectent
