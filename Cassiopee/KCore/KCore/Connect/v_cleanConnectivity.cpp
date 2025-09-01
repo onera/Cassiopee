@@ -513,9 +513,9 @@ E_Int K_CONNECT::V_identifyDirtyPoints(
             prev = fi;
             fi = locIndir[fi];
           }
-
           stamp++;
         }
+        free(seen);
       }
       else
       {
