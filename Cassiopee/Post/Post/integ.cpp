@@ -487,11 +487,16 @@ E_Int K_POST::integUnstruct1(E_Int center2node,
 {
   E_Float resultBlk = 0.;
   E_Int numberOfVariables = FBlk.getNfld();
-  E_Int nelts = cnBlk.getNElts();
-  FldArrayF surfBlk(nelts);
-  FldArrayF snx(nelts);  // normale a la surface  
-  FldArrayF sny(nelts);
-  FldArrayF snz(nelts);
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+  FldArrayF surfBlk(ntotElts);
+  FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts); // normale a la surface
 
   K_METRIC::compUnstructSurf(
     cnBlk, "TRI",
@@ -507,7 +512,8 @@ E_Int K_POST::integUnstruct1(E_Int center2node,
       K_POST::integUnstructNodeCenter(
         cnBlk,
         ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
-        resultBlk);
+        resultBlk
+      );
       resultat[n-1] += resultBlk;
     }
   }
@@ -519,7 +525,8 @@ E_Int K_POST::integUnstruct1(E_Int center2node,
       K_POST::integUnstruct(
         cnBlk, "TRI",
         ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
-        resultBlk);
+        resultBlk
+      );
       resultat[n-1] += resultBlk;
     }
   }
@@ -538,8 +545,15 @@ E_Int K_POST::integUnstruct11D(E_Int center2node,
 {
   E_Float resultBlk = 0.;
   E_Int numberOfVariables = FBlk.getNfld();
-  E_Int nelts = cnBlk.getNElts();
-  FldArrayF lengthBlk(nelts);
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+  FldArrayF lengthBlk(ntotElts);
   
   K_METRIC::compUnstructSurf1d(
     cnBlk, "BAR",
@@ -555,7 +569,8 @@ E_Int K_POST::integUnstruct11D(E_Int center2node,
       K_POST::integUnstructNodeCenter(
         cnBlk,
         ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
-        resultBlk);
+        resultBlk
+      );
       resultat[n-1] += resultBlk;
     }
   }
@@ -565,9 +580,10 @@ E_Int K_POST::integUnstruct11D(E_Int center2node,
     {
       // Compute integral, coordinates and field have the same size
       K_POST::integUnstruct1d(
-        cnBlk, "TRI",
+        cnBlk, "BAR",
         ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
-        resultBlk);
+        resultBlk
+      );
       resultat[n-1] += resultBlk;
     }
   }
