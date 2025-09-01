@@ -107,6 +107,10 @@ leak:Converter/hook.cpp
 leak:Converter/globalHook.cpp
 leak:Converter/identifySolutions.cpp
 leak:OCC/Atomic/readCAD.cpp
+
+leak:PyObject_Malloc
+leak:PyUnicode_FromKindAndData
+leak:PyImport_ImportModuleLevelObject
 EOF
 
 # Check installation

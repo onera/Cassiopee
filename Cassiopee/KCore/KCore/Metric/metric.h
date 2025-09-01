@@ -256,7 +256,6 @@ namespace K_METRIC
      IN: nnodes: nb de noeuds par elemt
      IN: cn: nb de noeuds par elemt
      IN: coordx, coordy, coordz: coordonnees x, y, z des pts de la grille
-     OUT: xint, yint, zint: coordonnees du centre des facettes 
      OUT: snx, sny, snz: normales aux facettes %x, %y, %z
      OUT: surf: aires des facettes
      OUT: vol: volume des cellules
@@ -264,10 +263,7 @@ namespace K_METRIC
   void compUnstructMetric(
     K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
-    E_Float* xint, E_Float* yint, E_Float* zint,
-    E_Float* snx, E_Float* sny, E_Float* snz,
-    E_Float* surf,
-    E_Float* vol);
+    E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol);
 
   /* Calcul des normales pour un maillage BE.
      Les normales aux surfaces sont orientees vers l'exterieur de l'element.

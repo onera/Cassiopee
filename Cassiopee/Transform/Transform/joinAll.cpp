@@ -328,6 +328,8 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, 
                                  *f, *cno);
     PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+    // PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(
+    //   unstructVarString[0], *f, *cno, newEltType, tol);
     RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
     return tpl2;
   }
@@ -668,21 +670,24 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(unstructVarString[0])+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(unstructVarString[0])+1;
   E_Int posz = K_ARRAY::isCoordinateZPresent(unstructVarString[0])+1;
-  
-  if (posx > 0 && posy > 0 && posz > 0)
-  {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, *f, *cno);
-    //PyObject* tpln3 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
-  }
 
   PyObject* l = PyList_New(0);
-  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
-  PyList_Append(l, tpln2); Py_DECREF(tpln2);
+  if (posx > 0 && posy > 0 && posz > 0)
+  {
+    PyObject* tpln2 = K_CONNECT::V_cleanConnectivity(
+      unstructVarString[0], *f, *cno, newEltType, tol);
+    PyList_Append(l, tpln2); Py_DECREF(tpln2);
+  }
+  else
+  {
+    PyList_Append(l, tpln);
+  }
+
   char newEltTypec[K_ARRAY::VARSTRINGLENGTH];
   K_ARRAY::starVarString(newEltType, newEltTypec);
   PyObject* tplc = K_ARRAY::buildArray3(*fc, unstructVarStringc[0], 
                                         *cno, newEltTypec);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
-  RELEASESHAREDU(tpln, f, cno);
+  RELEASESHAREDU(tpln, f, cno); Py_DECREF(tpln);
   return l;
 }

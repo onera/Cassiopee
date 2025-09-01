@@ -472,20 +472,54 @@ E_Int K_CONNECT::V_identifyDirtyPoints(
       }
       
       // Remove circular references by instructing the pointers to point to
-      // the leaves, and conditionally mark orphan points
+      // the roots
       if (rmOrphanPts)
       {
+        E_Int prev, fi;
+        // seen array used to detect cycles
+        E_Int* seen = (E_Int*) calloc(npts, sizeof(E_Int));
+        E_Int stamp = 1;
+    
         for (size_t i = 0; i < npts; ++i)
         {
           // Skip orphan points
           if (indir[i] == -1) { locIndir[i] = -1; continue; }
+
+          prev = i;
           fi = locIndir[i];
-          while (fi != locIndir[fi]) fi = locIndir[fi];
-          locIndir[i] = fi;
+
+          while (true)
+          {
+            // If orphan node, cut at last valid ancestor prev
+            if (fi == -1 or indir[fi] == -1)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+            // If fi is a valid self-pointer, cut at fi
+            else if (locIndir[fi] == fi)
+            {
+              locIndir[i] = fi;
+              break;
+            }
+            // If fi is revisited in this traversal, break the cycle
+            else if (seen[fi] == stamp)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+
+            seen[fi] = stamp;
+            prev = fi;
+            fi = locIndir[fi];
+          }
+          stamp++;
         }
+        free(seen);
       }
       else
       {
+        // Path compression step from a disjoint set data structure
         for (size_t i = 0; i < npts; ++i)
         {
           fi = locIndir[i];

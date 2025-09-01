@@ -21,7 +21,6 @@
 
 //=============================================================================
 // Calcul des centres des interfaces pour des mailles non structurees.
-// IN: nvpe: nb de facettes par elemt
 // IN: cn: Element-Node connectivity
 // IN: xt, yt, zt: Vertex coordinates
 // OUT: xint, yint, zint: Coordonnees du centre des facettes
@@ -32,7 +31,7 @@ void K_METRIC::compUnstructCenterInt(
   E_Float* xint, E_Float* yint, E_Float* zint
 )
 {
-  E_Int fcOffset = 0;
+  E_Int fctOffset = 0;
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
@@ -66,7 +65,7 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3];
 
-          pos = fcOffset + i;  // fcOffset + i = fcOffset + i * nfpe
+          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
@@ -96,7 +95,7 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3]; y4 = yt[ind4];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
 
-          pos = fcOffset + i;  // fcOffset + i = fcOffset + i * nfpe
+          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
@@ -127,25 +126,25 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
           
           // facette 123
-          pos = fcOffset + i * nfpe;
+          pos = fctOffset + i * nfpe;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
 
           // facette 124
-          pos = fcOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z4);
 
           // facette 234
-          pos = fcOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z2 + z3 + z4);
 
           // facette 134
-          pos = fcOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z3 + z4);
@@ -177,31 +176,31 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4]; z5 = zt[ind5];
 
           // facette 1234 : quad
-          pos = fcOffset + i * nfpe;
+          pos = fctOffset + i * nfpe;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
 
           // facette 125
-          pos = fcOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x5);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y5);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z5);
 
           // facette 235
-          pos = fcOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x2 + x3 + x5);
           yint[pos] = K_CONST::ONE_THIRD * (y2 + y3 + y5);
           zint[pos] = K_CONST::ONE_THIRD * (z2 + z3 + z5);
 
           // facette 345
-          pos = fcOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x5 + x3 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y5 + y3 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z5 + z3 + z4);
 
           // facette 415
-          pos = fcOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x5 + x4);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y5 + y4);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z5 + z4);
@@ -241,37 +240,37 @@ void K_METRIC::compUnstructCenterInt(
           z5 = zt[ind5]; z6 = zt[ind6]; z7 = zt[ind7]; z8 = zt[ind8];
 
           // facette 1234
-          pos = fcOffset + i * nfpe;
+          pos = fctOffset + i * nfpe;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
 
           // facette 5678
-          pos = fcOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x5 + x6 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y5 + y6 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z5 + z6 + z7 + z8);
 
           // facette 1485
-          pos = fcOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x4 + x8 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y4 + y8 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z4 + z8 + z5);
 
           // facette 2376
-          pos = fcOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x7 + x6);
           yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y7 + y6);
           zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z7 + z6);
 
           // facette 1265
-          pos = fcOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z6 + z5);
 
           // facette 4378
-          pos = fcOffset + (i + 5) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x4 + x3 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y4 + y3 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z4 + z3 + z7 + z8);
@@ -309,31 +308,31 @@ void K_METRIC::compUnstructCenterInt(
           z4 = zt[ind4]; z5 = zt[ind5]; z6 = zt[ind6];
 
           // facette triangle 1 : 123
-          pos = fcOffset + i * nfpe;
+          pos = fctOffset + i * nfpe;
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
 
           // facette triangle 2 : 456
-          pos = fcOffset + (i + 1) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_THIRD * (x4 + x5 + x6);
           yint[pos] = K_CONST::ONE_THIRD * (y4 + y5 + y6);
           zint[pos] = K_CONST::ONE_THIRD * (z4 + z5 + z6);
 
           // troisieme facette quad 1254
-          pos = fcOffset + (i + 2) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x5 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y5 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z5 + z4);
 
           // quatrieme facette quad 2365
-          pos = fcOffset + (i + 3) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z6 + z5);
 
           // cinquieme facette quad 3146
-          pos = fcOffset + (i + 4) * nfpe;
+          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x3 + x1 + x4 + x6);
           yint[pos] = K_CONST::ONE_FOURTH * (y3 + y1 + y4 + y6);
           zint[pos] = K_CONST::ONE_FOURTH * (z3 + z1 + z4 + z6);
@@ -343,13 +342,13 @@ void K_METRIC::compUnstructCenterInt(
     else
     {
       fprintf(stderr, "Error in K_METRIC::compUnstructCenterInt.\n");
-      fprintf(stderr, "Unknown type of element.\n");
+      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
 
     // Increment the face offset
     nfpc = nfpe*nelts;
-    fcOffset += nfpc;
+    fctOffset += nfpc;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];

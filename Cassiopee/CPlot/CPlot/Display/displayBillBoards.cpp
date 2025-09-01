@@ -142,10 +142,10 @@ void Data::displayBillBoards(Zone* zonep, E_Int zone)
   //printf("%g %g\n", dref, ptrState->billBoardSize);
 
   // Billboard size
-  E_Int bw = (int)(ptrState->billBoardWidth);
-  E_Int bh = (int)(ptrState->billBoardHeight);
-  E_Int Ni = (int)(ptrState->billBoardNi);
-  E_Int Nj = (int)(ptrState->billBoardNj);
+  E_Int bw = (E_Int)(ptrState->billBoardWidth);
+  E_Int bh = (E_Int)(ptrState->billBoardHeight);
+  E_Int Ni = (E_Int)(ptrState->billBoardNi);
+  E_Int Nj = (E_Int)(ptrState->billBoardNj);
   float rt = (bh*Ni*1./(bw*Nj));
   //printf("Width=%d %d - %g\n",bw,bh,rt);
   //rt = 1.; // DBX
@@ -200,10 +200,12 @@ void Data::displayBillBoards(Zone* zonep, E_Int zone)
   }
 
   E_Int NSplit = 25;
-  double delta = (dmax-dmin)/(NSplit-1.);
+  dmin = dmin-1.e-6;
+  dmax = dmax+1.e-6;
+  double delta;
+  delta = (dmax-dmin)/(NSplit-1.);
   double range, ranged;
   E_Int e1,e2;
-  dmin = dmin-1.e-10;
 
   // Field for iso (if needed)
   E_Int nofield=0; double* f=NULL; float deltai=1.; float fmin=0.;

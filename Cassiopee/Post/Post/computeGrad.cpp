@@ -49,27 +49,6 @@ extern "C"
     const E_Float* field,
     E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-  void k6compunstrgrad_(E_Int& dim, E_Int& npts, E_Int& nelts, 
-                        E_Int& nedges, E_Int& nnodes, 
-                        E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt, 
-                        E_Float* field, E_Float* fieldf, 
-                        E_Float* snx, E_Float* sny, E_Float* snz, 
-                        E_Float* surf, E_Float* vol,
-                        E_Float* xint, E_Float* yint, E_Float* zint,
-                        E_Float* gradx, E_Float* grady, E_Float* gradz );
-
-  void k6compunstrgrad2d_(E_Int& npts, E_Int& nelts, E_Int& nnodes, 
-                          E_Int* cn, E_Float* xt, 
-                          E_Float* yt, E_Float* zt, E_Float* field,
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, 
-                          E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-  void k6compunstrgrad1d_(E_Int& npts, E_Int& nelts, E_Int& nnodes, 
-                          E_Int* cn, E_Float* xt, 
-                          E_Float* yt, E_Float* zt, E_Float* field,
-                          E_Float* gradx, E_Float* grady, E_Float* gradz);
 }
 
 //=============================================================================
@@ -168,36 +147,33 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "computeGrad: gradient can only be computed for 3D NGONs.");
+        delete [] varStringOut;
         RELEASESHAREDB(res,array,f,cn); return NULL;         
       }
       RELEASESHAREDS(tpl, fp);
     }
-    else 
+    else  // ME
     {
-      if (strcmp(eltType, "BAR") != 0 &&
-          strcmp(eltType, "TRI") != 0 &&
-          strcmp(eltType, "QUAD") != 0 &&
-          strcmp(eltType, "TETRA") != 0 &&
-          strcmp(eltType, "HEXA") != 0 &&
-          strcmp(eltType, "PENTA") != 0 )        
-      {
-        PyErr_SetString(PyExc_TypeError,
-                        "computeGrad: not a valid element type.");
-        RELEASESHAREDU(array, f, cn); return NULL;
-      }
+      E_Int nc = cn->getNConnect();
       E_Int npts = f->getSize();
-      tpl = K_ARRAY::buildArray(3, varStringOut, npts, cn->getSize(), -1, eltType, true, 
-                                cn->getSize()*cn->getNfld());
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-      E_Int nelts = cn->getSize();
-      FldArrayF fp(nelts, 3, fnp, true);
+      E_Int api = f->getApi();
+      E_Bool center = true;
+      E_Bool copyConnect = true;
+      if (nc > 1) api = 3;
       
-      computeGradNS(eltType, npts, *cn, 
-                    f->begin(posx), f->begin(posy), f->begin(posz), 
-                    f->begin(posv),
-                    fp.begin(1), fp.begin(2), fp.begin(3));    
+      tpl = K_ARRAY::buildArray3(
+        3, varStringOut, npts, *cn, eltType,
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* gradx = f2->begin(1);
+      E_Float* grady = f2->begin(2);
+      E_Float* gradz = f2->begin(3);
+      computeGradUnstr(
+        f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
+        f->begin(posv), gradx, grady, gradz
+      );
+      RELEASESHAREDS(tpl, f2);
     }
   }
   RELEASESHAREDB(res, array, f, cn);
@@ -278,84 +254,7 @@ E_Int K_POST::computeGradStruct(E_Int ni, E_Int nj, E_Int nk,
   }
   return 1;
 }
-//=============================================================================
-E_Int K_POST::computeGradNS(char* eltType, E_Int npts, FldArrayI& cn, 
-                            E_Float* xt, E_Float* yt, E_Float* zt, 
-                            E_Float* field,
-                            E_Float* gradx, E_Float* grady, E_Float* gradz)
-{
-  E_Int nelts = cn.getSize();
-  E_Int nnodes; //nb de noeuds par elts
-  E_Int nedges; //nb de facettes par elts
-  E_Int dim = 3;
-  if (strcmp(eltType, "BAR") == 0) 
-  {
-    dim = 1;
-    nedges = 1; nnodes = 2;
-  }
-  else if (strcmp(eltType, "TRI") == 0) 
-  {
-    nnodes = 3; nedges = 3;
-    dim = 2;
-  }
-  else if (strcmp(eltType, "QUAD") == 0) 
-  {
-    nnodes = 4; nedges = 4;      
-    dim = 2;
-  }
-  else if (strcmp(eltType, "TETRA") == 0)
-  {
-    nedges = 4; nnodes = 4;
-  }
-  else if (strcmp( eltType, "HEXA") == 0) 
-  {
-    nedges = 6; nnodes = 8;
-  }
-  else if (strcmp(eltType, "PENTA") == 0) 
-  {
-    nedges = 5; nnodes = 6;
-  }
-  else return -1;
 
-  if (dim == 3)
-  {
-    //tmp tabs
-    FldArrayF fieldf(nelts,nedges);
-    FldArrayF snx(nelts,nedges);
-    FldArrayF sny(nelts,nedges);
-    FldArrayF snz(nelts,nedges);
-    FldArrayF surf(nelts,nedges);
-    FldArrayF vol(nelts);
-    FldArrayF xint(nelts, nedges);
-    FldArrayF yint(nelts, nedges);
-    FldArrayF zint(nelts, nedges);
-    k6compunstrgrad_(dim, npts, nelts, nedges, nnodes, cn.begin(),
-                     xt, yt, zt, field, fieldf.begin(),
-                     snx.begin(), sny.begin(), snz.begin(), 
-                     surf.begin(), vol.begin(), 
-                     xint.begin(), yint.begin(), zint.begin(),
-                     gradx, grady, gradz);
-               
-  }
-  else if (dim == 2)
-  {
-    FldArrayF snx(nelts,1);
-    FldArrayF sny(nelts,1);
-    FldArrayF snz(nelts,1);
-    FldArrayF surf(nelts,1);
-    k6compunstrgrad2d_(npts, nelts, nnodes, cn.begin(),
-                       xt, yt, zt, field,
-                       snx.begin(1), sny.begin(1), snz.begin(1),
-                       surf.begin(1),
-                       gradx, grady, gradz);
-  }
-  else //dim = 1
-  {
-    k6compunstrgrad1d_(npts, nelts, nnodes, cn.begin(),
-                       xt, yt, zt, field, gradx, grady, gradz);    
-  }
-  return 1;
-}
 //=============================================================================
 /* A partir de la chaine de variables initiale: (x,y,z,var1,var2,...)
    Cree la chaine (gradxvar1,gradyvar1,gradzvar1, gradxvar2, ....) 
