@@ -105,6 +105,4 @@ void K_METRIC::compUnstructMetric(
       }
     }
   }
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
