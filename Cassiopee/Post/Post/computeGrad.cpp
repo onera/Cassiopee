@@ -49,27 +49,6 @@ extern "C"
     const E_Float* field,
     E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-  void k6compunstrgrad_(E_Int& dim, E_Int& npts, E_Int& nelts, 
-                        E_Int& nedges, E_Int& nnodes, 
-                        E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt, 
-                        E_Float* field, E_Float* fieldf, 
-                        E_Float* snx, E_Float* sny, E_Float* snz, 
-                        E_Float* surf, E_Float* vol,
-                        E_Float* xint, E_Float* yint, E_Float* zint,
-                        E_Float* gradx, E_Float* grady, E_Float* gradz );
-
-  void k6compunstrgrad2d_(E_Int& npts, E_Int& nelts, E_Int& nnodes, 
-                          E_Int* cn, E_Float* xt, 
-                          E_Float* yt, E_Float* zt, E_Float* field,
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, 
-                          E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-  void k6compunstrgrad1d_(E_Int& npts, E_Int& nelts, E_Int& nnodes, 
-                          E_Int* cn, E_Float* xt, 
-                          E_Float* yt, E_Float* zt, E_Float* field,
-                          E_Float* gradx, E_Float* grady, E_Float* gradz);
 }
 
 //=============================================================================
