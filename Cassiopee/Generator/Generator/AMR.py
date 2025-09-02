@@ -54,7 +54,6 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
                     fixedConstraints = []
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
-        if Cmpi.rank == 0: C.convertPyTree2File(tb, "case_coarse.cgns")
 
     BB = G.bbox(tb)
     ni = 150; nj = 150; nk = 150
