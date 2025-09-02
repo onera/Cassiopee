@@ -102,12 +102,13 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
             Internal._renameNode(t, "TurbulentDistance", "TurbulentDistanceForCFDComputation")
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+    test.printMem(">>> Wall distance nodes [end]")
 
     t_wdist_end = time.perf_counter()
     t_blank_start = time.perf_counter()
     # blanking
     test.printMem(">>> Blanking [start]")
-    Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
+    # Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
     C._initVars(t,'cellN',1.)
 
     t = X_IBM.blankByIBCBodies(t, tb2_pre, 'nodes', 3)
