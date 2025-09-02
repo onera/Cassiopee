@@ -31,7 +31,7 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM is not None:
-        # Keep only the real closed tb 
+        # Keep only the real closed tb
         # Remove SYM Base & Zones
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
@@ -48,9 +48,9 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
                 hmax = hausd*1000
                 if Cmpi.rank == 0: print(hausd, hmax, flush=True)
                 # exteriorFaces currently crashes if the surface is closed
-                try: 
+                try:
                     fixedConstraints = P.exteriorFaces(z)
-                except: 
+                except:
                     fixedConstraints = []
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
@@ -170,8 +170,8 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
             snearloc = 2**levelSkel*snears[c]
 
             while snearloc > dfarloc/2: # security so that levelSkel is not too big
-                    snearloc /= 2.
-                    levelSkel -= 1
+                snearloc /= 2.
+                levelSkel -= 1
             snearsList.append(snearloc)
             dfarList.append(dfarloc)
 
@@ -970,11 +970,11 @@ def getSymmetryPlaneInfo__(tb, dim=3):
             if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
         [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(symplane)
         if abs(xmax-xmin) < __TOL__:
-            dir_sym=1; 
+            dir_sym=1;
         elif abs(ymax-ymin) < __TOL__:
-            dir_sym=2; 
+            dir_sym=2;
         elif abs(zmax-zmin) < __TOL__ and dim==3:
-            dir_sym=3; 
+            dir_sym=3;
     return dir_sym
 
 #==================================================================
@@ -1116,6 +1116,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         ##Remove SYM Base & Zones - keep real closed tb
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-    Cmpi.barrier()  
+    Cmpi.barrier()
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
     return o # requirement for X_AMR (one zone per base, one base per proc)
