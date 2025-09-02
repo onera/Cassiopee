@@ -296,7 +296,5 @@ void K_KCORE::testFooKCore()
                     NULL, NULL, NULL,
                     f, f, f, 
                     f, f, f);
-  k6fldcopyfrom_(i, i, i, i, NULL, NULL);
-  k6fldintcopyfrom_(i, i, i, i, NULL, NULL);
 }
 

@@ -37,27 +37,6 @@
 // Triggers or not copy by memcpy instead of setallvaluesf
 #define MEMCOPY
 
-extern "C" void k6fldcopyfrom_(const E_Int& deb,
-                               const E_Int& sizerhs,
-                               const E_Int& sizelhs,
-                               const E_Int& nfld,
-                               const E_Float* rhs,
-                               E_Float* lhs);
-extern "C" void k6fldintcopyfrom_(const E_Int& deb,
-                                  const E_Int& sizerhs,
-                                  const E_Int& sizelhs,
-                                  const E_Int& nfld,
-                                  const E_Int* rhs,
-                                  E_Int* lhs);
-extern "C" void k6setallbvaluesatf_(const E_Int& sizeLoc,
-                                    const E_Int& nfldLoc,
-                                    E_Float* _data,
-                                    const E_Float& val,
-                                    const E_Int& ni,
-                                    const E_Int& nj,
-                                    const E_Int& nk,
-                                    const E_Int& border);
-
 // Set rake for a compact array
 #define SETRAKE                                                         \
   if (_stride == 1)                                                     \
@@ -76,7 +55,7 @@ namespace K_FLD
 
 > Caution: indices for elements go from 0 to size-1
 >          indices for number of fields go from NUMFIELD0 to NUMFIELD0+nfld-1
-
+Add
 */
 // ============================================================================
 TEMPLATE_T class ArrayAccessor; //forward dec for frienship (gcc)
@@ -1110,14 +1089,22 @@ void FldArray<T>::copyFrom(E_Int deb, const FldArray<T>& rhs)
 SPECIALISE inline void FldArray<E_Float>::__cpyFrom(
   const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
   const E_Int& nfld, const E_Float* rhs, E_Float* lhs)
-{k6fldcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);}
+{
+  for (E_Int ifld = 0; ifld < nfld; ifld++)
+    for (E_Int no = 0; no < sizerhs; no++)
+      lhs[no+deb+ifld*sizelhs] = rhs[no+ifld*sizerhs];
+  //k6fldcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);
+}
+
 SPECIALISE inline void FldArray<E_Int>::__cpyFrom(
   const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
   const E_Int& nfld, const E_Int* rhs, E_Int* lhs)
-{k6fldintcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);}
-//SPECIALISE inline void FldArray<short>::__cpyFrom(const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
-//                               const E_Int& nfld, const short* rhs, short* lhs)
-//                               {}
+{
+  for (E_Int ifld = 0; ifld < nfld; ifld++)
+    for (E_Int no = 0; no < sizerhs; no++)
+      lhs[no+deb+ifld*sizelhs] = rhs[no+ifld*sizerhs];
+  //k6fldintcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);
+}
 
 //==============================================================================
 TEMPLATE_T

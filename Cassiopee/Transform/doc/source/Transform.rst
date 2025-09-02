@@ -1295,7 +1295,7 @@ Mesh deformation
 
     .. A1.O0.D0
     
-    Deform a surface mesh a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps
+    Deform a surface mesh a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps.
 
     Exists also as an in-place version (_deformNormals) which modifies a and returns None.
 
