@@ -227,15 +227,16 @@ namespace K_METRIC
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float& surface);
 
-  /* Compute barycenter of tetra cells.
-     IN: cn: Element-Node connectivity
-     IN: xt, yt, zt: Vertex coordinates
-     OUT: bary: Cell centers
-  */
-  void compTetraCellCenter(
+  //============================================================================
+  // Compute cell barycenter for a ME mesh.
+  // IN: cn: Element-Node connectivity
+  // IN: xt, yt, zt: Vertex coordinates
+  // OUT: xb, yb, zb: Barycenter coordinates
+  //============================================================================
+  void compUnstructCellCenter(
     K_FLD::FldArrayI& cn,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* bary);
+    E_Float* xb, E_Float* yb, E_Float* zb);
 
   /* Calcul des centres des interfaces pour des mailles non structurees.
      IN: nedges: nb de facettes par elemt
