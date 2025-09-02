@@ -146,12 +146,14 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
 
   // Boundary fields
   E_Int ret = readGivenKeyword(ptrFile, "BOUNDARYFIELD");
+  if (ret != 1) printf("fmt_foam: cant find BOUNDARYFIELD.\n");
   assert(ret == 1);
   skipLine(ptrFile);
   
   E_Int nbnd = indir.size()-1;
 
-  for (E_Int i = 0; i < nbnd; i++) {
+  for (E_Int i = 0; i < nbnd; i++) 
+  {
     //const char *bcname = BCNames[i];
     E_Int bcsize = indir[i+1] - indir[i];
     E_Int *bcfaces = BCFaces[0]->begin() + indir[i];
@@ -164,6 +166,7 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
     // type
     char type[256];
     ret = readGivenKeyword(ptrFile, "TYPE");
+    if (ret != 1) printf("INFO: foamread: cant find TYPE.\n");
     assert(ret == 1);
     readWord(ptrFile, type);
 
@@ -407,12 +410,14 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
 
   // Boundary fields
   E_Int ret = readGivenKeyword(ptrFile, "BOUNDARYFIELD");
+  if (ret != 1) printf("INFO: foamread: cant find BOUNDARYFIELD.\n");
   assert(ret == 1);
   skipLine(ptrFile);
   
   E_Int nbnd = indir.size()-1;
 
-  for (E_Int i = 0; i < nbnd; i++) {
+  for (E_Int i = 0; i < nbnd; i++) 
+  {
     //const char *bcname = BCNames[i];
     E_Int bcsize = indir[i+1] - indir[i];
     E_Int *bcfaces = BCFaces[0]->begin() + indir[i];
@@ -767,7 +772,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
     printf("Warning: foamread: skipping time directory 0.\n");
     return 0;
   } else {
-    printf("Info: foamread: reading fields from time directory %s\n", dir_name);
+    printf("INFO: foamread: reading fields from time directory %s\n", dir_name);
   }
 
   fullPath[0] = '\0';
@@ -873,7 +878,8 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
 
         size++;
       }
-      if (size == MAX_FIELDS) {
+      if (size == MAX_FIELDS) 
+      {
         printf("Warning: foamread: trying to read more that maximum number of fields (%d). Aborting.\n", MAX_FIELDS);
         exit(1); // must return 
       }
@@ -907,16 +913,18 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
       strcat(path, field_name[fld]);
       E_Int ret = readScalarField(path, *F, idx, owner, BCFaces, BCFields,
         delta, nifaces, indir);
+      if (ret != ncells) printf("INFO: foamread: wrong size for scalar field.\n");
       assert(ret == ncells);
       idx++;
     } else if (field_type[fld] == VECTORFIELD) {
-      printf("Info: foamread: reading vector field %s\n", field_name[fld]);
+      printf("INFO: foamread: reading vector field %s\n", field_name[fld]);
       char path[1028];
       strcpy(path, fullPath);
       strcat(path, "/");
       strcat(path, field_name[fld]);
       E_Int ret = readVectorField(path, *F, idx, owner, BCFaces, BCFields,
         delta, nifaces, indir);
+      if (ret != ncells) printf("INFO: foamread: wrong size for vector field.\n");
       assert(ret == ncells);
       idx += 3;
     } else if (field_type[fld] == TENSORFIELD) {
@@ -926,6 +934,7 @@ E_Int K_IO::GenIO::foamReadFields(char *file,
       strcat(path, "/");
       strcat(path, field_name[fld]);
       E_Int ret = readTensorField(path, *F, idx);
+      if (ret != ncells) printf("INFO: foamread: wrong size for tensor field.\n");
       assert(ret == ncells);
       idx += 9;
     } else {
@@ -951,6 +960,7 @@ E_Int K_IO::GenIO::foamReadPoints(char* file, FldArrayF& f)
 
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  if (ret != 1) printf("INFO: foamread: missing FOAMFILE.\n");
   assert(ret == 1);
   ret = readGivenKeyword(ptrFile, "}");
   assert(ret == 1);
@@ -1004,6 +1014,7 @@ E_Int K_IO::GenIO::foamReadFaces(char* file, E_Int& nfaces, FldArrayI& cn)
 
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  if (ret != 1) printf("INFO: foamread: missing FOAMFILE.\n");
   assert(ret == 1);
   ret = readGivenKeyword(ptrFile, "}");
   assert(ret == 1);
@@ -1072,6 +1083,7 @@ E_Int K_IO::GenIO::foamReadOwner(char* file, FldArrayI& PE)
 
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  if (ret != 1) printf("INFO: foamread: missing FOAMFILE.\n");
   assert(ret == 1);
   ret = readGivenKeyword(ptrFile, "}");
   assert(ret == 1);
@@ -1117,6 +1129,7 @@ E_Int K_IO::GenIO::foamReadNeighbour(char* file, FldArrayI& PE)
 
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  if (ret != 1) printf("INFO: foamread: missing FOAMFILE.\n");
   assert(ret == 1);
   ret = readGivenKeyword(ptrFile, "}");
   assert(ret == 1);
@@ -1177,6 +1190,7 @@ E_Int K_IO::GenIO::foamReadBoundary(char* file,
   }
   E_Int ret;
   ret = readGivenKeyword(ptrFile, "FOAMFILE");
+  if (ret != 1) printf("INFO: foamread: missing FOAMFILE.\n");
   assert(ret == 1);
   ret = readGivenKeyword(ptrFile, "}");
   assert(ret == 1);

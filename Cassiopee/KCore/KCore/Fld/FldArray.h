@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <cmath>
 
-#include "Fld/FldFortranVecP.h"
 #include "Def/DefFunction.h"
 #include "parallel.h"
 
@@ -1063,8 +1062,10 @@ FldArray<T>& FldArray<T>::operator= (const FldArray<T>& rhs)
   return (*this);
 }
 
-SPECIALISE inline void FldArray<E_Float>::__setSubArrValuesAt(E_Float* data, E_Int first, E_Int last, E_Float val) {k6operatoregalf_(data, first, last, val);}
-SPECIALISE inline void FldArray<E_Int>::__setSubArrValuesAt(E_Int* data, E_Int first, E_Int last, E_Int val) {for (E_Int i=first; i<last; ++i)data[i] = val;}
+SPECIALISE inline void FldArray<E_Float>::__setSubArrValuesAt(E_Float* data, E_Int first, E_Int last, E_Float val) 
+{ for (E_Int i=first; i<last; ++i) data[i] = val; }
+SPECIALISE inline void FldArray<E_Int>::__setSubArrValuesAt(E_Int* data, E_Int first, E_Int last, E_Int val) 
+{ for (E_Int i=first; i<last; ++i) data[i] = val; }
 
 //OK---------------------------------------------------------------------------
 TEMPLATE_T
@@ -1083,27 +1084,12 @@ TEMPLATE_T
 void FldArray<T>::copyFrom(E_Int deb, const FldArray<T>& rhs)
 {
   assert( rhs.getNfld() == getNfld() );
-  __cpyFrom(deb, rhs.getSize(), _sizeMax, _nfldLoc, rhs.begin(), _data);
-}
-
-SPECIALISE inline void FldArray<E_Float>::__cpyFrom(
-  const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
-  const E_Int& nfld, const E_Float* rhs, E_Float* lhs)
-{
-  for (E_Int ifld = 0; ifld < nfld; ifld++)
+  E_Int sizerhs = rhs.getSize();
+  E_Int sizelhs = _sizeMax;
+  const T* rhsb = rhs.begin();
+  for (E_Int ifld = 0; ifld < _nfldLoc; ifld++)
     for (E_Int no = 0; no < sizerhs; no++)
-      lhs[no+deb+ifld*sizelhs] = rhs[no+ifld*sizerhs];
-  //k6fldcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);
-}
-
-SPECIALISE inline void FldArray<E_Int>::__cpyFrom(
-  const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
-  const E_Int& nfld, const E_Int* rhs, E_Int* lhs)
-{
-  for (E_Int ifld = 0; ifld < nfld; ifld++)
-    for (E_Int no = 0; no < sizerhs; no++)
-      lhs[no+deb+ifld*sizelhs] = rhs[no+ifld*sizerhs];
-  //k6fldintcopyfrom_(deb, sizerhs, sizelhs, nfld, rhs, lhs);
+      _data[no+deb+ifld*sizelhs] = rhsb[no+ifld*sizerhs];
 }
 
 //==============================================================================
@@ -1213,11 +1199,6 @@ void FldArray<T>::__setAllValues(E_Int size, T* to, const T* from)
   for (E_Int i = 0; i < size; i++) to[i] = from[i];
 }
 
-#ifndef PURE_C
-SPECIALISE inline void FldArray<E_Float>::__setAllValues(E_Int size, E_Float* to, const E_Float* from){k6setallvaluesf_(size, to, from);}
-SPECIALISE inline void FldArray<E_Int>::__setAllValues(E_Int size, E_Int* to, const E_Int* from){k6setallvaluesi_(size, to, from);}
-#endif
-
 // ---------------------------------------------------------------------------
 TEMPLATE_T
 void FldArray<T>::setByField(const FldArray<T>& valuesoffields)
@@ -1259,22 +1240,6 @@ void FldArray<T>::__setAllValuesAt(E_Int size, T* to, T val)
   for (E_Int i = 0; i < size; ++i) to[i] = val;
 }
 
-#ifndef PURE_C
-SPECIALISE inline void FldArray<E_Float>::__setAllValuesAt(E_Int size, E_Float* to, E_Float val) {k6setallvaluesatf_(size, to, val);}
-SPECIALISE inline void FldArray<E_Int>::__setAllValuesAt(E_Int size, E_Int* to, E_Int val) {k6setallvaluesati_(size, to, val);}
-#endif
-
-// ----------------------------------------------------------------------------
-/*
-SPECIALISE
-inline void FldArray<E_Float>::setAllBorderValuesAt(E_Float val,
-                                     E_Int ni, E_Int nj, E_Int nk,
-                                     E_Int border)
-{
-  assert(ni*(nj-1)*(nk-1)+(ni-1)*nj*(nk-1)+(ni-1)*(nj-1)*nk == _sizeLoc);
-  k6setallbvaluesatf_(_sizeMax, _nfldLoc, _data, val, ni, nj, nk, border);
-}
-*/
 // ----------------------------------------------------------------------------
 TEMPLATE_T
 void FldArray<T>::setOneField(const FldArray<T>& fromValArray,
@@ -1322,7 +1287,6 @@ void FldArray<T>::resize(E_Int size, E_Int nfld)
 //-----------------------------------------------------------------------------
 SPECIALISE inline E_Float FldArray<E_Float>::badValue() {return K_CONST::E_BADVALUE_F;}
 SPECIALISE inline E_Int FldArray<E_Int>::badValue() {return K_CONST::E_BADVALUE_I;}
-//SPECIALISE inline E_Bool FldArray<E_Bool>::badValue() {return K_CONST::E_BADVALUE_B;}
 
 SPECIALISE inline E_Float FldArray<E_Float>::Zero() {return K_CONST::E_ZERO_FLOAT;}
 SPECIALISE inline E_Int FldArray<E_Int>::Zero() {return K_CONST::E_ZERO_INT;}
@@ -1513,87 +1477,6 @@ void FldArray<T>::reAllocMatSeq(E_Int size, E_Int nfld)
   //_rake = new T* [nfld];
   SETRAKE;
 }
-//-----------------------------------------------------------------------------
-/*
-SPECIALISE
-inline void FldArray<E_Float>::matMultVec(const FldArray<E_Float>& array)
-{
-  const E_Float* tab = array.begin();
-  k6multmatvecf_(_sizeLoc, _nfldLoc, _data, tab);
-}
-*/
-//-----------------------------------------------------------------------------
-/*
-SPECIALISE
-inline void FldArray<E_Float>::matMult(FldArray<E_Float>& array)
-{
-#ifdef DEBUG
-  E_Int sizeOfarray = array._sizeLoc;
-  E_Int nfldOfarray = array._nfldLoc;
-  assert(sizeOfarray == nfldOfarray);
-  assert(_sizeLoc   == _nfldLoc);
-  assert(_sizeLoc   == sizeOfarray);
-#endif
-
-  E_Int il, ic, lc;
-  E_Float* dataProv = new value_type[_sizeLoc*_nfldLoc];
-  E_Float resProv;
-  for (E_Int l = 0; l < _sizeLoc; l++)
-  for (E_Int c = 1; c <= _nfldLoc; c++)
-  {
-    resProv = 0.;
-    lc = c-1 + l*_nfldLoc;
-    for (E_Int i = 1; i <= _sizeLoc; i++)
-    {
-      ic = (i-1)+l*_sizeLoc;
-      il = c-1 + (i-1)*_sizeLoc;
-      resProv = resProv + _data[ic]*array._data[il];
-    }
-    dataProv[lc] = resProv;
-  }
-
-  for (E_Int l = 0; l < _sizeLoc*_nfldLoc; l++)
-    _data[l] = dataProv[l];
-
-  delete [] dataProv;
-}
-*/
-//-----------------------------------------------------------------------------
-/*
-SPECIALISE
-inline void FldArray<E_Float>::matMultTrans(FldArray<E_Float>& array)
-{
-#ifdef DEBUG
-  E_Int sizeOfarray = array._sizeLoc;
-  E_Int nfldOfarray = array._nfldLoc;
-  assert (sizeOfarray == nfldOfarray);
-  assert (_sizeLoc   == _nfldLoc);
-  assert (_sizeLoc   == sizeOfarray);
-#endif
-
-  E_Int il, ic, lc;
-  E_Float* dataProv = new value_type[_sizeLoc*_nfldLoc];
-  E_Float resProv;
-  for (E_Int l = 0; l < _sizeLoc; l++)
-  for (E_Int c = 1; c <= _nfldLoc; c++)
-  {
-    resProv = 0.;
-    lc = c-1 + l*_nfldLoc;
-    for (E_Int i = 1; i <= _sizeLoc; i++)
-    {
-      ic = (i-1)+l*_sizeLoc;
-      il = i-1 + (c-1)*_sizeLoc;
-      resProv = resProv + _data[ic]*array._data[il];
-    }
-    dataProv[lc] = resProv;
-  }
-
-  for (E_Int l = 0; l < _sizeLoc*_nfldLoc; l++)
-    _data[l] = dataProv[l];
-
-  delete [] dataProv;
-}
-*/
 //OK===========================================================================
 TEMPLATE_T
 void FldArray<T>::setAllValuesAtNull()
