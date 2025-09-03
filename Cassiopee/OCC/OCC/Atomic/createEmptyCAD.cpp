@@ -40,7 +40,7 @@
 */
 
 // ============================================================================
-/* Convert CAD to OpenCascade hook */
+/* Create an empty CAD hook */
 // ============================================================================
 PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
 {

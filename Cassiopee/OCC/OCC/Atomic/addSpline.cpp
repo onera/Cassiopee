@@ -28,17 +28,15 @@
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
+#include "Geom_BSplineCurve.hxx"
 
 //=====================================================================
-// Add a square to CAD hook
+// Add a spline to CAD hook
 //=====================================================================
-PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
+PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
 {
-  PyObject* hook; 
-  E_Float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-  E_Int makeFace;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ TRRR_ I_, &hook, &x1, &y1, &z1, 
-    &x2, &y2, &z2, &x3, &y3, &z3, &x4, &y4, &z4, &makeFace)) return NULL;
+  PyObject* hook; PyObject* opc;
+  if (!PYPARSETUPLE_(args, OO_, &hook, &opc)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -50,20 +48,64 @@ PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
   //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-  /* new square */
-  gp_Pnt p1(x1, y1, z1); // Bottom left
-  gp_Pnt p2(x2, y2, z2); // Bottom right
-  gp_Pnt p3(x3, y3, z3); // Top right
-  gp_Pnt p4(x4, y4, z4); // Top left
+  /* generate knots */
+  K_FLD::FldArrayF* pc;
+  E_Int ret = K_NUMPY::getFromNumpyArray(opc, pc);
+  if (ret == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "addSpline: invalid array.");
+    return NULL;
+  }
+  E_Float* x = pc->begin(1);
+  E_Float* y = pc->begin(1);
+  E_Float* z = pc->begin(1);
+  
+  // incoming code
+  E_Int ncp = pc->getSize();
+  std::vector<gp_Pnt>::const_iterator iter;
 
-  TopoDS_Edge edge1 = BRepBuilderAPI_MakeEdge(p1, p2);
-  TopoDS_Edge edge2 = BRepBuilderAPI_MakeEdge(p2, p3);
-  TopoDS_Edge edge3 = BRepBuilderAPI_MakeEdge(p3, p4);
-  TopoDS_Edge edge4 = BRepBuilderAPI_MakeEdge(p4, p1);
+  // compute total length and copy control points
+  gp_Pnt lastP(x[0], y[0], z[0]);
+  E_Float totalLen = 0.;
+  TColgp_Array1OfPnt cp(1, ncp);
+  for (E_Int i = 1; i <= ncp; i++) 
+  {
+    gp_Pnt p(x[i-1],y[i-1],z[i-1]);
+    E_Float segLen = p.Distance(lastP);
+    totalLen += segLen;
+    cp.SetValue(i, p);
+    lastP = p;
+  }
 
-  TopoDS_Wire wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
-  TopoDS_Face face = BRepBuilderAPI_MakeFace(wire);
+  // compute knots
+  TColStd_Array1OfReal knots(1, ncp);
+  TColStd_Array1OfInteger mults(1, ncp);
+  
+  E_Float lastKnot = 0;
+  lastP.SetCoord(x[0], y[0], z[0]);
+  for (E_Int i = 1; i <= ncp; ++i) 
+  {
+    if (i == 1 || i == ncp) 
+    {
+      mults.SetValue(i, 2);
+    }
+    else 
+    {
+      mults.SetValue(i, 1);
+    }
 
+    E_Float knot = cp.Value(i).Distance(lastP)/totalLen + lastKnot;
+    knots.SetValue(i, knot);
+
+    lastKnot = knot;
+    lastP = cp.Value(i);
+  }
+
+  Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
+
+  TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(spline);
+  
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;
@@ -74,9 +116,9 @@ PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder.Add(compound, F);
   }
-  if (makeFace == 1) builder.Add(compound, face);
-  else builder.Add(compound, wire);
-  
+  builder.Add(compound, edge);
+
+  // export
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
   // Rebuild the hook
@@ -94,9 +136,11 @@ PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
   TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
   packet[2] = se;
-  printf("INFO: after addSquare: Nb edges=%d\n", se->Extent());
-  printf("INFO: after addSquare: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after addSpline: Nb edges=%d\n", se->Extent());
+  printf("INFO: after addSpline: Nb faces=%d\n", sf->Extent());
   
+  RELEASESHAREDN(opc, pc);
+
   Py_INCREF(Py_None);
   return Py_None;
 
