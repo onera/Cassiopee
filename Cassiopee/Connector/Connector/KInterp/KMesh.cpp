@@ -23,7 +23,7 @@
 # include "Def/DefCplusPlusConst.h"
 # include "Def/DefFunction.h"
 # include "Metric/metric.h"
-
+# include "CompGeom/compGeom.h"
 using namespace K_FUNC;
 using namespace std;
 using namespace K_FLD;
@@ -577,8 +577,14 @@ void K_KINTERP::KMesh::createDuplicatedExtendedPeriodMesh(const KMesh& origMesh,
         zt[pos] = zo[pos];
       }
   
-  k6rotatemesh_(dim1, axisPnt.begin(), axisVct.begin(), theta, 
-                coord.begin(1), coord.begin(2), coord.begin(3));
+  //6rotatemesh_(dim1,
+  //		axisPnt.begin(),
+  //		axisVct.begin(),
+  //		theta, 
+  //             coord.begin(1), coord.begin(2), coord.begin(3));
+  K_COMPGEOM::rotateMesh(dim1, theta,
+			 axisPnt.begin(), axisVct.begin(), 
+			 coord.begin(1), coord.begin(2), coord.begin(3));
   
   E_Float* xn = _coord.begin(1);
   E_Float* yn = _coord.begin(2);

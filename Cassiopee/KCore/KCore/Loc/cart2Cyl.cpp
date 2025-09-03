@@ -19,7 +19,8 @@
 
 #include "loc.h"
 #include <math.h>
-
+#include "CompGeom/compGeom.h"
+#include <iostream>
 extern "C"
 {
   void k6rotatemesh2_(const E_Int& npts,
@@ -57,9 +58,18 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
       E_Float* xDR = new E_Float[npts];
       E_Float* yDR = new E_Float[npts];
       E_Float* zDR = new E_Float[npts];
-      k6rotatemesh2_(npts, xt, yt, zt,
-                    X0, Y0, Z0, ex, ey, ez, thetaShift, 
-                    xDR, yDR, zDR);
+      //k6rotatemesh2_(npts,
+      //              xt, yt, zt,
+      //              X0, Y0, Z0,
+      //              ex, ey, ez,
+      //              thetaShift, 
+      //              xDR, yDR, zDR);
+      
+      K_COMPGEOM::rotateMesh2(npts, thetaShift,
+			      X0, Y0, Z0,
+			      ex, ey, ez,
+			      xt, yt, zt,
+			      xDR, yDR, zDR);
       xt = xDR; yt = yDR; zt = zDR; // leak
     }
     // Choix direction suivant axe
