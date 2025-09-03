@@ -9,9 +9,9 @@ from setuptools import Extension
 DEBUG = False
 
 # Toggle to True for compiling all integers in i8
-EDOUBLEINT = False
+EDOUBLEINT = True
 # Toggle to True for compiling global index in i8
-GDOUBLEINT = False
+GDOUBLEINT = True
 
 #==============================================================================
 # Check module import

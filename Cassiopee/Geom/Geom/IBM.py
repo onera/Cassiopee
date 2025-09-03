@@ -141,12 +141,21 @@ def getMinimumCartesianSpacing(t):
 # Creation of a case with a symmetry plane
 #==============================================================================
 def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
-    base = Internal.getNodeFromName(t, bodySymName)
-    _symetrizeBody(base, dir_sym=dir_sym)
-    _addSymPlane(t, snear_sym, dir_sym=dir_sym)
+    import Converter.Mpi as Cmpi
+    if dir_sym not in [1,2,3]:
+        if Cmpi.rank==0: print('The symmetry direction %d is not supported. Must be 1(x), 2(y), or 3(z). Exiting...'%dir_sym, flush=True)
+        exit()
+    base   = Internal.getNodeFromName(t, bodySymName)
+    minval = C.getMinValue(base, ['CoordinateX', 'CoordinateY','CoordinateZ'])
+    minval = minval[dir_sym-1]
+    if dir_sym==1: symPlane=(minval,0,0)
+    elif dir_sym==2: symPlane=(0,minval,0)
+    else: symPlane=(0,0,minval)
+    _symetrizeBody(base, dir_sym=dir_sym, symPlane=symPlane)
+    _addSymPlane(t, snear_sym, dir_sym=dir_sym, midPlane=minval)
     return None
 
-def _symetrizeBody(base, dir_sym=2):
+def _symetrizeBody(base, dir_sym=2, symPlane=(0.,0.,0.)):
     import Transform.PyTree as T
     zones = Internal.getZones(base)
     C._initVars(zones,'centers:cellN',1.)
@@ -157,14 +166,14 @@ def _symetrizeBody(base, dir_sym=2):
     elif dir_sym == 3:
         v1 = (1,0,0); v2=(0,1,0)
 
-    zones_dup = T.symetrize(zones,(0,0,0),v1, v2)
+    zones_dup = T.symetrize(zones,symPlane,v1, v2)
     for z in zones_dup: z[0] += '_sym'
     T._reorder(zones_dup,(-1,2,3))
     C._initVars(zones_dup,'centers:cellN',0.)
     base[2]+= zones_dup
     return None
 
-def _addSymPlane(tb, snear_sym, dir_sym=2):
+def _addSymPlane(tb, snear_sym, dir_sym=2, midPlane=0):
     import Generator.PyTree as G
     snearList=[]; dfarList=[]
     snearFactor=50
@@ -187,11 +196,11 @@ def _addSymPlane(tb, snear_sym, dir_sym=2):
     L = 0.5*(xmax+xmin); eps = 0.2*L
     xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
     xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps
-    if dir_sym==1: coordsym = 'CoordinateX'; xmax=0
-    elif dir_sym==2: coordsym = 'CoordinateY'; ymax=0
-    elif dir_sym==3: coordsym = 'CoordinateZ'; zmax=0
+    if dir_sym==1: coordsym = 'CoordinateX'; xmax=midPlane
+    elif dir_sym==2: coordsym = 'CoordinateY'; ymax=midPlane
+    elif dir_sym==3: coordsym = 'CoordinateZ'; zmax=midPlane
     a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
-    C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
+    C._initVars(a,'{centers:cellN}=({centers:%s}>(%g-1e-8))'%(coordsym,midPlane))
     C._addBase2PyTree(tb,"SYM")
     base = Internal.getNodeFromName(tb,"SYM"); base[2]+=a
     _setSnear(base,snear_sym)
