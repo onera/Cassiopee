@@ -8,12 +8,14 @@ import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import Dist2Walls.PyTree as DTW
+import Geom.PyTree as D
 import Post.PyTree as P
 import Geom.IBM as D_IBM
 import XCore.PyTree as XC
 from . import PyTree as G
 import os
 import numpy
+import math
 
 __TOL__ = 1e-9
 
@@ -26,13 +28,31 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
 
     if Cmpi.rank==0: print('Generating list of offsets...start',flush=True)
 
+    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
+    baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    if baseSYM is not None:
+        # Keep only the real closed tb
+        # Remove SYM Base & Zones
+        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+
     if opt and dim == 3:
         for nob in range(len(tb[2])):
             if Internal.getType(tb[2][nob])=='CGNSBase_t':
                 z = Internal.getZones(tb[2][nob])
                 z = C.convertArray2Tetra(z)
                 z = T.join(z)
-                z = G.mmgs(z, hausd=0.01, fixedConstraints=P.exteriorFaces(tb))
+                bbz = G.bbox(z)
+                # hausd is a length and must be adapted to the dimensions of each case
+                hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
+                hmax = hausd*1000
+                if Cmpi.rank == 0: print(hausd, hmax, flush=True)
+                # exteriorFaces currently crashes if the surface is closed
+                try:
+                    fixedConstraints = P.exteriorFaces(z)
+                except:
+                    fixedConstraints = []
+                z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
 
     BB = G.bbox(tb)
@@ -48,7 +68,8 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
     xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
 
     # CARTRX
-    delta2 = sum(offsetValues)/len(offsetValues)
+    # delta2 = sum(offsetValues)/len(offsetValues)n
+    delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
     xmin_core = BB[0]-delta2
     ymin_core = BB[1]-delta2
     zmin_core = BB[2]-delta2
@@ -56,51 +77,49 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
     ymax_core = BB[4]+delta2
     zmax_core = BB[5]+delta2
 
-    ni_core = 51; nj_core = 51; nk_core = 51
+    if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
+    else: ni_core = 51; nj_core = 51; nk_core = 51
     hi_core = (xmax_core-xmin_core)/(ni_core-1)
     hj_core = (ymax_core-ymin_core)/(nj_core-1)
     hk_core = (zmax_core-zmin_core)/(nk_core-1)
     h_core = min(hi_core, hj_core)
-    if dim==3: h_core = min(h_core, hk_core)
+    if dim == 3: h_core = min(h_core, hk_core)
     if dim == 2:
         zmin = 0; zmax = 0
         zmin_core = 0.; zmax_core = 0.
-        hk = 0.
+        hk_core = 0.
 
-    #
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
-    #
+    # Do not extend the CartCore beyond the symmetry plane (symClose)
+    if dir_sym > 0:
+        if   dir_sym == 1: xmin_core += delta2
+        elif dir_sym == 2: ymin_core += delta2
+        elif dir_sym == 3: zmin_core += delta2
+
+    # smaller and finer Cartesian core, bigger geometric factor
     XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
     XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-    b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.15,1.15,1.15), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
-    #
-    if dir_sym > 0:
-        if dir_sym == 1: coordvar = 'CoordinateX'
-        elif dir_sym == 2: coordvar = 'CoordinateY'
-        elif dir_sym == 3: coordvar = 'CoordinateZ'
-    #
-    #
+    b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
+
     C._initVars(tb,"cellN",1.)
-    #
+
+    import time as ktime
+    Cmpi.barrier()
+    t0 = ktime.time()
     DTW._distance2Walls(b, tb, type='ortho', loc='nodes', signed=0)
+    Cmpi.barrier()
+    if Cmpi.rank == 0: print("Generate list of offsets: dist2wall: %.2fs"%(ktime.time()-t0), flush=True)
+    # if Cmpi.rank == 0: C.convertPyTree2File(b, 'meshForOffset.cgns') # DEBUG ONLY
+
     C._initVars(b,"cellN",1.)
     # merging of symmetrical bodies in the original blanking bodies
     # required for blankCells as a closed set of surfaces
-    #
-    #
     bodies = []
-    bodiesSYM = []
-    baseSYM = Internal.getNodesFromName1(tb,"SYM")
-    if dir_sym > 0:
-        bodiesSYM = Internal.getZones(baseSYM)
-    for baseB in Internal.getBases(tb):
-        if baseB[0] != 'SYM':
-            bodies.append(Internal.getZones(baseB)+bodiesSYM)
-
+    for baseB in Internal.getBases(tb): bodies.append(Internal.getZones(baseB))
     nbodies = len(bodies)
     BM = numpy.ones((1, nbodies), dtype=numpy.int32)
     t = C.newPyTree(["BASE",Internal.getZones(b)])
-    X._blankCells(t, bodies, BM, blankingType='node_in',dim=dim,XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+    X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
     C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
 
     t_offset = C.newPyTree()
@@ -110,30 +129,52 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
         iso = Cmpi.allgatherZones(iso)
         iso = C.convertArray2Tetra(iso)
         iso = T.join(iso)
+        iso = G.close(iso, tol=1.e-6)
+        iso = T.smooth(iso)
         iso[0]='z_offset_%d'%(no_offset)
         C._addBase2PyTree(t_offset, 'OFFSET_%d'%(no_offset))
         t_offset[2][no_offset+1][2]=[iso]
     return t_offset
 
 # Generates an isotropic skeleton mesh to be adapted then by AMR
-def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
-    octreeMode = 0 # 1 : adjust of dfar
+def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octreeMode=0):
     surfaces=[]; dfarList=[]; snearsList=[]
+
     # list of dfars
     bodies = Internal.getZones(tb)
-    for c, z in enumerate(bodies):
-        n = Internal.getNodeFromName2(z, 'dfar')
-        n2 = Internal.getNodeFromName2(z, 'snear')
-        if n is not None:
-            dfarloc = Internal.getValue(n)
-            snearloc = Internal.getValue(n2)
-            if dfarloc > -1:#body snear is only considered if dfar_loc > -1
-                surfaces.append(z)
-                snearloc = 2**levelSkel*snearloc
-                snearsList.append(snearloc)
-                dfarList.append(dfarloc)
+    if not isinstance(dfars, list):
+        dfars = [dfars*1.]*len(bodies)
+        for c, z in enumerate(bodies):
+            n = Internal.getNodeFromName2(z, 'dfar')
+            if n is not None: dfars[c] = Internal.getValue(n)*1.
+    else:
+        if len(bodies) != len(dfars): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
 
-    o = G.octree(tb, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
+    # List of snears
+    if not isinstance(snears, list):
+        snears = [snears*1.]*len(bodies)
+        for c, z in enumerate(bodies):
+            n = Internal.getNodeFromName2(z, 'snear')
+            if n is not None: snears[c] = Internal.getValue(n)*1.
+    else:
+        if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
+
+    for c, z in enumerate(bodies):
+        if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
+            surfaces.append(z)
+            levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
+            levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+
+            dfarloc = dfars[c]
+            snearloc = 2**levelSkel*snears[c]
+
+            while snearloc > dfarloc/2: # security so that levelSkel is not too big
+                snearloc /= 2.
+                levelSkel -= 1
+            snearsList.append(snearloc)
+            dfarList.append(dfarloc)
+
+    o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
 
     #
     # SYMMETRY - select only cells from one side
@@ -150,8 +191,8 @@ def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
     elif dir_sym == 3:
         coordsym = 'CoordinateZ'
         valsym = 0.5*(zmin+zmax)
-    if dir_sym > 0:
-        o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym),strict=0)
+    if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym),strict=0)
+
     # adapt the mesh to get a single refinement level - uniform grid
     refined=True
     G._getVolumeMap(o)
@@ -172,7 +213,7 @@ def generateSkeletonMesh__(tb, dim=3, levelSkel=6):
     o = G.close(o)
     _addPhysicalBCs__(o, tb, dim=dim)
     Internal._adaptNGon32NGon4(o)
-    return o
+    return o, levelSkel
 
 def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
@@ -824,10 +865,11 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     noffsets = len(offset_zones)
     offset_inside = Internal.getZones(tb)
     for i in range(noffsets-1, -1,-1):
-        #XC.AdaptMesh_LoadBalance(hookAM)
+        if Cmpi.rank==0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
         offsetloc = offset_zones[i]
         hx = hmin * 2**i
 
+        adaptPass = 0
         adapting=True
         while adapting:
             o = tagInsideOffset__(o, offset1=offset_inside, offset2=offsetloc, dim=dim, h_target=hx)
@@ -839,17 +881,19 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                 C._rmVars(o,["centers:indicator"])
                 break
             else:
+                if Cmpi.rank==0: print("..........Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
                 f = Internal.getNodeFromName(o, 'indicator')[1]
                 REF = f.astype(dtype=Internal.E_NpyInt)
                 XC.AdaptMesh_AssignRefData(hookAM, REF)
-                #XC.AdaptMesh_LoadBalance(hookAM)
+                if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
                 XC.AdaptMesh_Adapt(hookAM)
                 o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                 o = Internal.getZones(o)[0]
+                if Cmpi.rank==0: print("..........Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
+                adaptPass+=1
+        if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
 
-    #if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
-
-    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
+    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
     owners = XC.AdaptMesh_ExtractOwners(hookAM)
     levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
     halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
@@ -858,7 +902,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
 
     cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
     XC.AdaptMesh_Exit(hookAM)
-    cart_hexa = Internal.getZones(cart_hexa)[0]
+    # cart_hexa = Internal.getZones(cart_hexa)[0]
 
     zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
@@ -920,19 +964,16 @@ def getSymmetryPlaneInfo__(tb, dim=3):
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
     dir_sym = 0
     if baseSYM is not None:
-        zones_sym = Internal.getZones(baseSYM)
-        [xmin_sym,ymin_sym,zmin_sym,xmax_sym,ymax_sym,zmax_sym] = G.bbox(zones_sym)
-
-        zones_non_sym = []
-        for base in Internal.getBases(tb):
-            if base[0] != 'SYM': zones_non_sym += Internal.getZones(base)
-        [xmin_non_sym,ymin_non_sym,zmin_non_sym,xmax_non_sym,ymax_non_sym,zmax_non_sym] = G.bbox(zones_non_sym)
-        if abs(xmax_sym-xmin_non_sym) < __TOL__:
-            dir_sym=1
-        elif abs(ymax_sym-ymin_non_sym) < __TOL__:
-            dir_sym=2
-        elif abs(zmax_sym-zmin_non_sym) < __TOL__ and dim==3:
-            dir_sym=3
+        symplane = []
+        for zsym in Internal.getZones(baseSYM):
+            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
+        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(symplane)
+        if abs(xmax-xmin) < __TOL__:
+            dir_sym=1;
+        elif abs(ymax-ymin) < __TOL__:
+            dir_sym=2;
+        elif abs(zmax-zmin) < __TOL__ and dim==3:
+            dir_sym=3;
     return dir_sym
 
 #==================================================================
@@ -1010,33 +1051,44 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # MAIN FUNCTION
 # opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
-def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False,
-                    opt=False, loadBalancing=False, localDir='.'):
+def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./'):
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
-    #
-    C._initVars(tb,"centers:cellN", 1.)
-    baseSym = Internal.getNodeFromName1(tb,"SYM")
-    if baseSym is not None:
-        C._initVars(baseSym,"centers:cellN", 0.)
+
+    # list of vmins
+    vminsLocal = numpy.ones(levelMax)
+    if not isinstance(vmins,list):
+        vminsLocal[:] = vmins
+    elif len(vmins) < levelMax:
+        vminsLocal[:len(vmins)] = vmins[:]
+        vminsLocal[len(vmins):] = vmins[-1]
+    elif len(vmins) > levelMax:
+        vminsLocal[:] = vmins[:levelMax]
+    else:
+        vminsLocal[:] = vmins[:]
+
+    vmins = list(vminsLocal)
+    vmins = [max(5,v) for v in vmins] # vmin values should not be inferior to a given threshold
+
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
-    o = generateSkeletonMesh__(tb, dim=dim, levelSkel=levelMax)
+    o, newLevelMax = generateSkeletonMesh__(tb, snears=snears, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+    if newLevelMax != levelMax:
+        if Cmpi.rank==0: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
+        while len(vmins) < newLevelMax: vmins.append(vmins[-1]) # if newLevelMax > levelMax
+        vmins = vmins[:newLevelMax] # if newLevelMax < levelMax
+        levelMax = newLevelMax
+
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
-    print(" Minimum spacing = ", hmin, flush=True)
+    if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    Internal._rmNodesByName1(tb, "SYM")
 
     # mandatory save file for loadAndSplit for adaptation
-    if Cmpi.rank==0:
-        C.convertPyTree2File(o, pathSkeleton)
+    if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
-
-    # layers of offsets that are inside the bbox of the domain (dfar_max)
-    dfar_max = 0.
-    for z in Internal.getZones(tb):
-        dfarloc = Internal.getValue(Internal.getNodeFromName(z, "dfar"))
-        dfar_max = max(dfarloc, dfar_max)
 
     bbo = G.bbox(o)
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
@@ -1053,13 +1105,16 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, dim=3, check=False,
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim, opt=opt)
-        if check and Cmpi.rank==0:
-            C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
+        if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
+    baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    if baseSYM is not None:
+        ##Remove SYM Base & Zones - keep real closed tb
+        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+    Cmpi.barrier()
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
-    Cmpi._setProc(o, Cmpi.rank)
-    t = C.newPyTree(['AMR', o])
-    return t
+    return o # requirement for X_AMR (one zone per base, one base per proc)
