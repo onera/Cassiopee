@@ -365,6 +365,226 @@ namespace K_POST
                        FldArrayF& FBlk, FldArrayF& ratioBlk,
                        FldArrayF& resultat);
 
+// ============================================================================
+// Compute surface integral of the moment M (OM^F), coordinates 
+//     and field have the same size
+//     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+//     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
+// ============================================================================
+  void integMomentStruct(const E_Int ni, const E_Int nj,
+    const E_Float cx, const E_Float cy, const E_Float cz,
+    const E_Float* ratio, const E_Float* xt, const E_Float* yt,
+    const E_Float* zt, const E_Float* surf,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float* result);
+
+//=============================================================================
+// Compute linear integral of the moment M (OM^F), coordinates 
+//     and field have the same size
+//     I(AB) = LENGTH(ABCD)*(F(A)+F(B))/2
+// ============================================================================
+  void integMomentStruct1d(const E_Int ni, const E_Float cx, const E_Float cy,
+    const E_Float cz, const E_Float* ratio, const E_Float* xt, const E_Float* yt,
+    const E_Float* zt, const E_Float* length, const E_Float* vx, const E_Float* vy,
+    const E_Float* vz, E_Float* result);
+
+//=============================================================================
+// Compute surface integral of the moment M (OM^F), coordinates 
+//     are defined in nodes and F is defined in center
+//=============================================================================
+  void integMomentStructNodeCenter(const E_Int ni, const E_Int nj,
+    const E_Float cx, const E_Float cy, const E_Float cz,
+    const E_Float* ratio, const E_Float* xt, const E_Float* yt,
+    const E_Float* zt, const E_Float* surf, const E_Float* vx,
+    const E_Float* vy, const E_Float* vz, E_Float* result);
+
+//=============================================================================
+// Compute linear integral of the moment M (OM^F), coordinates 
+//     are defined in nodes and F is defined in center
+//=============================================================================
+  void integMomentStructNodeCenter1d(
+    const E_Int ni, const E_Float cx, const E_Float cy, const E_Float cz,
+    const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* length, const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
+//       and F have the same size
+// ============================================================================
+  void integMomentNormStruct(
+    const E_Int ni, const E_Int nj, const E_Float cx,
+    const E_Float cy, const E_Float cz, const E_Float* ratio, const E_Float* xt,
+    const E_Float* yt, const E_Float* zt, const E_Float* sx, const E_Float* sy,
+    const E_Float* sz, const E_Float* field, E_Float* result);
+  
+//=============================================================================
+// Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
+//     are defined in nodes and F is defined in center
+//=============================================================================
+  void integMomentNormStructNodeCenter(
+    const E_Int ni, const E_Int nj,
+    const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* sx,
+    const E_Float* sy, const E_Float* sz, const E_Float* field, E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the field F.vect(n), coordinates 
+//     and field have the same size
+//     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+//     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
+// ============================================================================
+  void integNormProdStruct(
+    const E_Int ni, const E_Int nj, const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float& result);
+  
+//==============================================================================
+// Compute surface integral of the product vect(F).vect(n), coordinates 
+// are defined in nodes and F is defined in nodes (center-based formulation)
+//==============================================================================
+  void integNormProdStructNodeCenter(
+    const E_Int ni, const E_Int nj, const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float& result);
+
+// ============================================================================
+// Compute surface integral of the field F.vect(n), coordinates 
+//      and field have the same size
+//      I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+//      Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
+//=============================================================================
+  void integNormStruct(
+    const E_Int ni, const E_Int nj, const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* field, E_Float* result);
+
+//=============================================================================
+// Compute surface integral of the field F.vect(n), coordinates 
+//     are defined in nodes and F is defined in center
+//=============================================================================
+  void integNormStructNodeCenter(
+    const E_Int ni, const E_Int nj,
+    const E_Float* ratio, const E_Float* sx, const E_Float* sy,
+    const E_Float* sz, const E_Float* field, E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
+// and F have the same size
+// ============================================================================
+  void integMomentNormUnstruct(
+      FldArrayI& cn, const char* eltType,
+      const E_Float cx, const E_Float cy, const E_Float cz, 
+      const E_Float* ratio,
+      const E_Float* xt, const E_Float* yt, const E_Float* zt,
+      const E_Float* sx, const E_Float* sy, const E_Float* sz, 
+      const E_Float* field, E_Float* result);
+
+// ============================================================================
+// Compute linear integral of the moment.norm (OM^F.n), coordinates 
+// are defined in nodes and F is defined in center, unstructured case
+// ============================================================================
+  void integMomentNormUnstructNodeCenter(
+    FldArrayI& cn, const char* eltType,
+    const E_Float cx, const E_Float cy, const E_Float cz,
+    const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz, 
+    const E_Float* field, E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the field F.vect(n), coordinates 
+// and field have the same size
+// I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C))/3        - TRI
+// I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)F(D))/4  - QUAD
+// Aire(ABCD) = ||AB^AC||/2
+// ============================================================================
+  void integNormUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float *ratio,
+    const E_Float *sx, const E_Float *sy, const E_Float *sz, 
+    const E_Float *field, E_Float *result);
+
+// ============================================================================
+// Compute surface integral of the field F, coordinates are defined
+// in nodes and F is defined in center, unstructured case
+// ============================================================================
+  void integNormUnstructNodeCenter(
+    const E_Int nelts, const E_Float *ratio,
+    const E_Float *nsurfx, const E_Float *nsurfy, const E_Float *nsurfz,
+    const E_Float *field, E_Float *result);
+
+// ============================================================================
+// Compute surface integral of the moment M (OM^F), coordinates 
+// and field have the same size
+// I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
+// Aire(ABCD) = ||AB^AC||/2 + ||DB^DC||/2
+// ============================================================================
+  void integMomentUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz, E_Float* result);
+
+// ============================================================================
+// Compute linear integral of the moment M (OM^ F), coordinates
+// and field have the same size
+// ============================================================================
+  void integMomentUnstruct1d(
+    FldArrayI& cn, const char* eltType,
+    const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* length,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz, E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the moment M (OM^F)
+// coordinates are defined in nodes and F is defined in center (unstructured)
+// ============================================================================
+  void integMomentUnstructNodeCenter(
+    FldArrayI& cn, const char* eltType,
+    const E_Float cx, const E_Float cy, const E_Float cz,
+    const E_Float* ratio, const E_Float* xt, const E_Float* yt,
+    const E_Float* zt, const E_Float* surf,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the moment M (OM^F)
+// coordinates are defined in nodes and F is defined in center (1D case)
+// ============================================================================
+  void integMomentUnstructNodeCenter1d(
+    FldArrayI& cn, const char* eltType,
+    const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float* result);
+
+// ============================================================================
+// Compute surface integral of the field F.vect(n), coordinates 
+//     and field have the same size
+//     I(ABC) = Aire(ABC) * (F(A) + F(B) + F(C)) / 3
+//     Aire(ABC) = ||AB ^ AC|| / 2
+// ============================================================================
+  void integNormProdUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float& result);
+
+// ============================================================================
+// Compute surface integral of the field F, coordinates are defined
+// in nodes and F is defined in center, unstructured case
+// ============================================================================
+  void integNormProdUnstructNodeCenter(
+    const E_Int nbt, const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float& result);
+
+
 // ***************************** COMPUTE FIELDS ***************************** //
 /* Extrait de la chaine vars0 les variables a calculer. Une verification
    est effectuee sur les noms de variables. La chaine varStringOut est

@@ -27,30 +27,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6integnormprodstruct_(const E_Int& ni, const E_Int& nj, E_Float* ratio,
-                              E_Float* sx, E_Float* sy, E_Float* sz, 
-                              E_Float* vx, E_Float* vy, E_Float* vz, 
-                              E_Float& result);
-
-  void k6integnormprodstructnodecenter_(
-    const E_Int& ni, const E_Int& nj, E_Float* ratio,
-    E_Float* sx, E_Float* sy, E_Float* sz, 
-    E_Float* vx, E_Float* vy, E_Float* vz, 
-    E_Float& result);
-
-  void k6integnormprodunstruct_(const E_Int& nbt, const E_Int& size, 
-                                E_Int* cn, E_Float* ratio, 
-                                E_Float* sx, E_Float* sy, E_Float* sz, 
-                                E_Float* vx, E_Float* vy, E_Float* vz, 
-                                E_Float& result);
-
-  void k6integnormprodunsnodecenter_(const E_Int& nbt, E_Float* ratio, 
-                                     E_Float* sx, E_Float* sy, E_Float* sz, 
-                                     E_Float* vx, E_Float* vy, E_Float* vz, 
-                                     E_Float& result);
-}
 //============================================================================
 /* Calcul une integrale du produit scalaire 
    de la solution*normale (vect(F).vect(n)) */
@@ -354,12 +330,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* tpl;
-#ifdef E_DOUBLEREAL
-  tpl = Py_BuildValue("d", resultat);
-#else
-  tpl = Py_BuildValue("f", resultat);
-#endif
+  PyObject* tpl = Py_BuildValue(R_, resultat);
   return tpl;
 }
 
@@ -376,16 +347,13 @@ E_Int K_POST::integ3(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   E_Int NI, NJ;
   E_Float resultBlk = 0.;
   
-  if (nkBlk == 1)
-  { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1)
-  { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1)
-  { NI = njBlk; NJ = nkBlk; }
+  if (nkBlk == 1) { NI = niBlk; NJ = njBlk; }
+  else if (njBlk == 1) { NI = niBlk; NJ = nkBlk; }
+  else if (niBlk == 1) { NI = njBlk; NJ = nkBlk; }
   else return 0;
  
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk((NI-1)*(NJ-1),3);
+  FldArrayF nsurfBlk((NI-1) * (NJ-1), 3);
 
   //E_Int npts = coordBlk.getSize();
   K_METRIC::compNormStructSurf(
@@ -396,21 +364,24 @@ E_Int K_POST::integ3(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   {
     // Compute integral, coordinates defined in node 
     // and field FBlk in center 
-    k6integnormprodstructnodecenter_(NI-1, NJ-1, ratioBlk.begin(), 
-                                     nsurfBlk.begin(1), nsurfBlk.begin(2), 
-                                     nsurfBlk.begin(3), FBlk.begin(1), 
-                                     FBlk.begin(2), FBlk.begin(3),
-                                     resultBlk);
+    integNormProdStructNodeCenter(
+      NI-1, NJ-1, ratioBlk.begin(), 
+      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
+      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      resultBlk
+    );
   }
   else
   {
     // Compute integral, coordinates and field have the same size
-    k6integnormprodstruct_(NI, NJ, ratioBlk.begin(), nsurfBlk.begin(1), 
-                           nsurfBlk.begin(2),  nsurfBlk.begin(3),  
-                           FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-                           resultBlk);
+    integNormProdStruct(
+      NI, NJ, ratioBlk.begin(),
+      nsurfBlk.begin(1), nsurfBlk.begin(2),  nsurfBlk.begin(3),  
+      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      resultBlk
+    );
   }
-  resultat = resultat + resultBlk;   
+  resultat += resultBlk;   
   return 1;
 }
   
@@ -426,33 +397,46 @@ E_Int K_POST::integUnstruct3(E_Int center2node,
 {
   E_Float resultBlk = 0.;
   E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
+
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
   
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk(nbT, 3);
+  FldArrayF nsurfBlk(ntotElts, 3);
   K_METRIC::compNormUnstructSurf(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
+    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3)
+  );
+
   if (center2node == 1)
   {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integnormprodunsnodecenter_(nbT, ratioBlk.begin(), 
-                                  nsurfBlk.begin(1), nsurfBlk.begin(2),
-                                  nsurfBlk.begin(3), FBlk.begin(1),
-                                  FBlk.begin(2), FBlk.begin(3),
-                                  resultBlk);
+    // Compute integral, coordinates defined in node and field FBlk in center 
+    integNormProdUnstructNodeCenter(
+      ntotElts,
+      ratioBlk.begin(), 
+      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
+      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      resultBlk
+    );
   }
   else
   {
     // Compute integral, coordinates and field have the same size
-    k6integnormprodunstruct_(nbT, size, cnBlk.begin(), ratioBlk.begin(), 
-                             nsurfBlk.begin(1), nsurfBlk.begin(2),
-                             nsurfBlk.begin(3), FBlk.begin(1),
-                             FBlk.begin(2), FBlk.begin(3),
-                             resultBlk);
+    integNormProdUnstruct(
+      cnBlk, "TRI",
+      ratioBlk.begin(),
+      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
+      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      resultBlk
+    );
   }
-  resultat = resultat+resultBlk;
+  resultat += resultBlk;
   return 1;
 }
