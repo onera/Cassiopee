@@ -26,8 +26,8 @@ from .QuadratureDG import *
 TOL = 1.e-9
 
 OPT = True # distance aux noeuds uniquement - a valider !!!
-def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
-    sym3D=False; forceAlignment=False; DIRECTORY='./'
+def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, DIRECTORY='./'):
+    sym3D=False; forceAlignment=False; 
 
     t_prep_start = time.perf_counter()
     frontTypeIP = IBM_parameters["integration points"]["front type"]
@@ -205,7 +205,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3):
         print(" Extracting front of the donor points...")
         t_frontdp_start = time.perf_counter()
         if frontTypeDP=="1":
-            frontDP_gath = extractFrontDP(t,frontIP_gath, dim,sym3D,check,DIRECTORY=DIRECTORY)
+            frontDP_gath = extractFrontDP(t,frontIP_gath, dim, sym3D, check, DIRECTORY=DIRECTORY)
         else:
             frontDP_gath = None
 

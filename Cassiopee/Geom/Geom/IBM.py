@@ -142,9 +142,7 @@ def getMinimumCartesianSpacing(t):
 #==============================================================================
 def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
     import Converter.Mpi as Cmpi
-    if dir_sym not in [1,2,3]:
-        if Cmpi.rank==0: print('The symmetry direction %d is not supported. Must be 1(x), 2(y), or 3(z). Exiting...'%dir_sym, flush=True)
-        exit()
+    if dir_sym not in [1,2,3]: raise ValueError('The symmetry direction %d is not supported. Must be 1(x), 2(y), or 3(z). Exiting...'%dir_sym)
     base   = Internal.getNodeFromName(t, bodySymName)
     minval = C.getMinValue(base, ['CoordinateX', 'CoordinateY','CoordinateZ'])
     minval = minval[dir_sym-1]
