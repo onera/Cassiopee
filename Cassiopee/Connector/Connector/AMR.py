@@ -27,7 +27,7 @@ TOL = 1.e-9
 
 OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, DIRECTORY='./'):
-    sym3D=False; forceAlignment=False; 
+    sym3D=False; forceAlignment=False;
 
     t_prep_start = time.perf_counter()
     frontTypeIP = IBM_parameters["integration points"]["front type"]
