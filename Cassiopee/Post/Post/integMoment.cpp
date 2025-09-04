@@ -27,69 +27,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6integmomentstruct_(const E_Int& ni, const E_Int& nj,
-                            const E_Float& cx, const E_Float& cy, 
-                            const E_Float& cz, E_Float* ratio, 
-                            E_Float* xt, E_Float* yt, E_Float* zt, 
-                            E_Float* surf, E_Float* vx, E_Float* vy, 
-                            E_Float* vz, E_Float* result);
-
-  void k6integmomentstruct1d_(const E_Int& ni, const E_Float& cx, 
-                              const E_Float& cy, const E_Float& cz, 
-                              E_Float* ratio, E_Float* xt, E_Float* yt, 
-                              E_Float* zt, E_Float* length, E_Float* vx, 
-                              E_Float* vy, E_Float* vz, E_Float* result);
-
-  void k6integmomentstructnodecenter_(const E_Int& ni, const E_Int& nj,
-                                      const E_Float& cx, const E_Float& cy, 
-                                      const E_Float& cz, E_Float* ratio, 
-                                      E_Float* xt, E_Float* yt, E_Float* zt, 
-                                      E_Float* surf, E_Float* vx, 
-                                      E_Float* vy, E_Float* vz,
-                                      E_Float* result);
-
-  void k6integmomentstructnodecenter1d_(const E_Int& ni, const E_Float& cx, 
-                                        const E_Float& cy, const E_Float& cz,
-                                        E_Float* ratio, E_Float* xt, 
-                                        E_Float* yt, E_Float* zt,
-                                        E_Float* length, E_Float* vx, 
-                                        E_Float* vy, E_Float* vz, 
-                                        E_Float* result);
-  
-  void k6integmomentunstruct_(const E_Int& nbt, const E_Int& size, E_Int* cn,
-                              const E_Float& cx, const E_Float& cy, 
-                              const E_Float& cz, E_Float* ratio, 
-                              E_Float* xt, E_Float* yt, E_Float* zt,
-                              E_Float* surf, E_Float* vx, E_Float* vy, 
-                              E_Float* vz, E_Float* result);
-
-  void k6integmomentunstruct1d_(const E_Int& nbt, const E_Int& size, 
-                                E_Int* cn, const E_Float& cx, 
-                                const E_Float& cy, const E_Float& cz,
-                                E_Float* ratio, E_Float* xt, E_Float* yt, 
-                                E_Float* zt, E_Float* length,
-                                E_Float* vx, E_Float* vy, 
-                                E_Float* vz, E_Float* result);
-
-  void k6integmomentunsnodecenter_(const E_Int& nbt, const E_Int& size, 
-                                   E_Int* cn, const E_Float& cx, 
-                                   const E_Float& cy, const E_Float& cz,
-                                   E_Float* ratio, 
-                                   E_Float* xt, E_Float* yt, E_Float* zt,
-                                   E_Float* surf, E_Float* vx, E_Float* vy, 
-                                   E_Float* vz, E_Float* result);
-
-  void k6integmomentunsnodecenter1d_(const E_Int& nbt, const E_Int& size, 
-                                     E_Int* cn, const E_Float& cx, 
-                                     const E_Float& cy, const E_Float& cz,
-                                     E_Float* ratio, 
-                                     E_Float* xt, E_Float* yt, E_Float* zt,
-                                     E_Float* surf,
-                                     E_Float* vx, E_Float* vy, E_Float* vz,
-                                     E_Float* result);
-}
 //=============================================================================
 /* Calcul une integrale du moment (OM^F) */
 // ============================================================================
@@ -472,20 +409,22 @@ E_Int K_POST::integ4(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   {
     // Compute integral, coordinates defined in node 
     // and field FBlk in center 
-    k6integmomentstructnodecenter_(NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-                                   coordBlk.begin(posx), coordBlk.begin(posy),
-                                   coordBlk.begin(posz), surfBlk.begin(), 
-                                   FBlk.begin(1),FBlk.begin(2),FBlk.begin(3), 
-                                   res.begin());
+    integMomentStructNodeCenter(
+      NI, NJ, cx, cy, cz, ratioBlk.begin(), 
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
+      res.begin()
+    );
   }
   else
   {
     // Compute integral, coordinates and field have the same size
-    k6integmomentstruct_(NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-                         coordBlk.begin(posx), coordBlk.begin(posy),
-                         coordBlk.begin(posz), surfBlk.begin(), 
-                         FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
-                         res.begin());
+    integMomentStruct(
+      NI, NJ, cx, cy, cz, ratioBlk.begin(), 
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
+      res.begin()
+    );
   }
   
   resultat[0] += res[0];
@@ -526,24 +465,23 @@ E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   
   if (center2node == 1)
   {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integmomentstructnodecenter1d_(NI, cx, cy, cz, ratioBlk.begin(), 
-                                     coordBlk.begin(posx), 
-                                     coordBlk.begin(posy), 
-                                     coordBlk.begin(posz), 
-                                     lengthBlk.begin(), FBlk.begin(1), 
-                                     FBlk.begin(2), FBlk.begin(3), 
-                                     res.begin());
+    // Compute integral, coordinates defined in node and field FBlk in center 
+    integMomentStructNodeCenter1d(
+      NI, cx, cy, cz, ratioBlk.begin(), 
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
+      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
+      res.begin()
+    );
   }
   else
   {
     // Compute integral, coordinates and field have the same size
-    k6integmomentstruct1d_(NI, cx, cy, cz, ratioBlk.begin(),
-                           coordBlk.begin(posx), coordBlk.begin(posy),
-                           coordBlk.begin(posz), lengthBlk.begin(),
-                           FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-                           res.begin());
+    integMomentStruct1d(
+      NI, cx, cy, cz, ratioBlk.begin(),
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      res.begin()
+    );
   }
   
   resultat[0] += res[0];
@@ -566,41 +504,51 @@ E_Int K_POST::integUnstruct4(E_Int center2node,
                              FldArrayF& resultat)
 {
   FldArrayF res(3);
-  
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF surfBlk(nbT);
 
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+ 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF snx(nbT); // normale a la surface  
-  FldArrayF sny(nbT);
-  FldArrayF snz(nbT);
+  FldArrayF snx(ntotElts); // normale a la surface  
+  FldArrayF sny(ntotElts);
+  FldArrayF snz(ntotElts);
+  FldArrayF surfBlk(ntotElts);
+
   K_METRIC::compUnstructSurf(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin());
+    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin()
+  );
 
-  switch (center2node)
+  if (center2node == 1)
   {
-    case 1:
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-      k6integmomentunsnodecenter_(nbT, size, cnBlk.begin(), cx, cy, cz, 
-                                  ratioBlk.begin(), coordBlk.begin(posx), 
-                                  coordBlk.begin(posy),coordBlk.begin(posz),
-                                  surfBlk.begin(), FBlk.begin(1), 
-                                  FBlk.begin(2), FBlk.begin(3), res.begin());
-      break;
-
-    default:
-      // Compute integral, coordinates and field have the same size
-      k6integmomentunstruct_(nbT, size, cnBlk.begin(), cx, cy, cz, 
-                             ratioBlk.begin(), coordBlk.begin(posx),
-                             coordBlk.begin(posy), coordBlk.begin(posz),
-                             surfBlk.begin(), FBlk.begin(1), FBlk.begin(2),
-                             FBlk.begin(3), res.begin());
-      break;
+    // Compute integral, coordinates defined in node and field FBlk in center 
+    integMomentUnstructNodeCenter(
+      cnBlk, "TRI",
+      cx, cy, cz, ratioBlk.begin(),
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      res.begin()
+    );
   }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    integMomentUnstruct(
+      cnBlk, "TRI",
+      cx, cy, cz, ratioBlk.begin(),
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      res.begin()
+    );
+  }
+
   resultat[0] += res[0];
   resultat[1] += res[1];
   resultat[2] += res[2];
@@ -620,38 +568,43 @@ E_Int K_POST::integUnstruct41D(E_Int center2node,
 {
   FldArrayF res(3);
   
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF lengthBlk(nbT);
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
+  FldArrayF lengthBlk(ntotElts);
   K_METRIC::compUnstructSurf1d(
     cnBlk, "BAR",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    lengthBlk.begin());
+    lengthBlk.begin()
+  );
 
-  switch (center2node) 
+  if (center2node == 1) 
   { 
-    case 1:
-      // Compute integral, coordinates defined in node 
-      // and field FBlk in center 
-      k6integmomentunsnodecenter1d_(
-        nbT, size, cnBlk.begin(), cx, cy, cz, 
-        ratioBlk.begin(), coordBlk.begin(posx),
-        coordBlk.begin(posy), coordBlk.begin(posz), 
-        lengthBlk.begin(), FBlk.begin(1),
-        FBlk.begin(2), FBlk.begin(3),
-        res.begin());
-      break;
-    default:
-      // Compute integral, coordinates and field have the same size
-      k6integmomentunstruct1d_(
-        nbT, size, cnBlk.begin(), cx, cy, cz, 
-        ratioBlk.begin(), coordBlk.begin(posx),
-        coordBlk.begin(posy), coordBlk.begin(posz), 
-        lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2),
-        FBlk.begin(3), res.begin());
-      break;
+    // Compute integral, coordinates defined in node and field FBlk in center 
+    integMomentUnstructNodeCenter1d(
+      cnBlk, "BAR",
+      cx, cy, cz, ratioBlk.begin(),
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
+      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      res.begin()
+    );
+  }
+  else
+  {
+    integMomentUnstruct1d(
+      cnBlk, "BAR",
+      cx, cy, cz, ratioBlk.begin(),
+      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
+      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
+      res.begin()
+    );
   }
 
   resultat[0] += res[0];

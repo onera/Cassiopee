@@ -25,36 +25,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6integmomentnormstruct_(const E_Int& ni, const E_Int& nj,
-                                const E_Float& cx, const E_Float& cy, 
-                                const E_Float& cz,
-                                E_Float* ratio, E_Float* xt, E_Float* yt,
-                                E_Float* zt, 
-                                E_Float* sx, E_Float* sy, E_Float* sz,
-                                E_Float* field, E_Float* result);
-
-  void k6integmomentnormstructnodecenter_(
-    const E_Int& ni, const E_Int& nj,
-    const E_Float& cx, const E_Float& cy, const E_Float& cz,
-    E_Float* ratio, E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float* sx, E_Float* sy, E_Float* sz, E_Float* F, 
-    E_Float* result);
-
-  void k6integmomentnormunstruct_(
-    const E_Int& nbt, const E_Int& size, 
-    E_Int* cn, const E_Float& cx, const E_Float& cy, const E_Float& cz,
-    E_Float* ratio, E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float* sx, E_Float* sy, E_Float* sz, E_Float* field, 
-    E_Float* result);
-      
-  void k6integmomentnormunsnodecenter_(
-    const E_Int& nbt, const E_Int& size, E_Int* cn,
-    const E_Float& cx, const E_Float& cy, const E_Float& cz,
-    E_Float* ratio, E_Float* xt, E_Float* yt, E_Float* zt, 
-    E_Float* sx, E_Float* sy, E_Float* sz, E_Float* F, E_Float* result);
-}
 //=============================================================================
 /* Calcule une integrale du moment d'une force fois 
    la normale (OM^F.vect(n)) */
@@ -362,31 +332,17 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
   E_Float* res2 = resultat.begin(2);
   E_Float* res3 = resultat.begin(3);
 
-#ifdef E_DOUBLEREAL
   for (E_Int i = 0; i < nFld; i++)
   {
     in = PyList_New(0);
-    tpl = Py_BuildValue("d", res1[i]);
+    tpl = Py_BuildValue(R_, res1[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("d", res2[i]);
+    tpl = Py_BuildValue(R_, res2[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("d", res3[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    PyList_Append(l, in); Py_DECREF(in);
-  }
-#else
-  for (E_Int i = 0; i < nFld; i++)
-  {
-    in = PyList_New(0);
-    tpl = Py_BuildValue("f", res1[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("f", res2[i]);
-    PyList_Append(in, tpl); Py_DECREF(tpl);
-    tpl = Py_BuildValue("f", res3[i]);
+    tpl = Py_BuildValue(R_, res3[i]);
     PyList_Append(in, tpl); Py_DECREF(tpl);
     PyList_Append(l, in); Py_DECREF(in);
   }
-#endif
   return l;
 }
 
@@ -409,59 +365,52 @@ E_Int K_POST::integ5(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   E_Float* resultat2 = resultat.begin(2);
   E_Float* resultat3 = resultat.begin(3);
 
-  if (nkBlk == 1)
-  { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1)
-  { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1)
-  { NI = njBlk; NJ = nkBlk; }
+  if (nkBlk == 1) { NI = niBlk; NJ = njBlk; }
+  else if (njBlk == 1) { NI = niBlk; NJ = nkBlk; }
+  else if (niBlk == 1) { NI = njBlk; NJ = nkBlk; }
   else return 0;
  
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  //E_Int npts = coordBlk.getSize();
-  E_Int ncells =(NI-1)*(NJ-1); 
-  FldArrayF nsurfBlk(ncells,3);  
+  E_Int ncells = (NI-1) * (NJ-1); 
+  FldArrayF nsurfBlk(ncells, 3);  
 
   K_METRIC::compNormStructSurf(
     NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
     nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
 
-  switch (center2node) 
+  if (center2node == 1) 
   { 
-    case 1:
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {  
-        // Compute integral, coordinates defined in node 
-        // and field FBlk in center 
-        k6integmomentnormstructnodecenter_(
-          NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-          coordBlk.begin(posx), coordBlk.begin(posy),coordBlk.begin(posz),
-          nsurfBlk.begin(1),nsurfBlk.begin(2), nsurfBlk.begin(3),   
-          FBlk.begin(), resultBlk.begin());
-        
-        resultat1[n-1] += resultBlk[0];   
-        resultat2[n-1] += resultBlk[1];
-        resultat3[n-1] += resultBlk[2];
-      }
-      break;
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {  
+      // Compute integral, coordinates defined in node and field FBlk in center 
+      integMomentNormStructNodeCenter(
+        NI, NJ, cx, cy, cz, ratioBlk.begin(), 
+        coordBlk.begin(posx), coordBlk.begin(posy),coordBlk.begin(posz),
+        nsurfBlk.begin(1),nsurfBlk.begin(2), nsurfBlk.begin(3),   
+        FBlk.begin(), resultBlk.begin()
+      );
+      
+      resultat1[n-1] += resultBlk[0];   
+      resultat2[n-1] += resultBlk[1];
+      resultat3[n-1] += resultBlk[2];
+    }
+  }
+  else
+  {
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      // Compute integral, coordinates and field have the same size
+      integMomentNormStruct(
+        NI, NJ, cx, cy, cz, ratioBlk.begin(), 
+        coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+        nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3), FBlk.begin(),  
+        resultBlk.begin()
+      );
 
-    default:
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        // Compute integral, coordinates and field have the same size
-        k6integmomentnormstruct_(NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-                                 coordBlk.begin(posx),
-                                 coordBlk.begin(posy), 
-                                 coordBlk.begin(posz),
-                                 nsurfBlk.begin(1), nsurfBlk.begin(2), 
-                                 nsurfBlk.begin(3), FBlk.begin(),  
-                                 resultBlk.begin());
-
-        resultat1[n-1] += resultBlk[0];   
-        resultat2[n-1] += resultBlk[1];
-        resultat3[n-1] += resultBlk[2];
-      }
-      break;
+      resultat1[n-1] += resultBlk[0];   
+      resultat2[n-1] += resultBlk[1];
+      resultat3[n-1] += resultBlk[2];
+    }
   }
   return 1;
 }
@@ -482,56 +431,58 @@ E_Int K_POST::integUnstruct5(E_Int center2node,
   E_Float* res1 = resultat.begin(1);
   E_Float* res2 = resultat.begin(2);
   E_Float* res3 = resultat.begin(3);
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF nsurfBlk(nbT, 3);
+
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+  FldArrayF nsurfBlk(ntotElts, 3);
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
   K_METRIC::compNormUnstructSurf(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
     nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
-  switch (center2node)
+  if (center2node == 1)
   {
-    case 1:
-      // Compute integral, coordinates defined in node 
-      // and field FBlk in center 
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integmomentnormunsnodecenter_(nbT, size, cnBlk.begin(), 
-                                        cx, cy, cz, 
-                                        ratioBlk.begin(), 
-                                        coordBlk.begin(posx),
-                                        coordBlk.begin(posy),
-                                        coordBlk.begin(posz),
-                                        nsurfBlk.begin(1),
-                                        nsurfBlk.begin(2),
-                                        nsurfBlk.begin(3),
-                                        FBlk.begin(), resultBlk.begin());
+    // Compute integral, coordinates defined in node 
+    // and field FBlk in center 
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      integMomentNormUnstructNodeCenter(
+        cnBlk, "TRI",
+        cx, cy, cz, ratioBlk.begin(), 
+        coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+        nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3), FBlk.begin(),
+        resultBlk.begin()
+      );
 
-        res1[n-1] += resultBlk[0];   
-        res2[n-1] += resultBlk[1];
-        res3[n-1] += resultBlk[2];
-      }
-      break;
-    default:
+      res1[n-1] += resultBlk[0];   
+      res2[n-1] += resultBlk[1];
+      res3[n-1] += resultBlk[2];
+    }
+  }
+  else
+  {
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
       // Compute integral, coordinates and field have the same size
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integmomentnormunstruct_(nbT, size, cnBlk.begin(), cx, cy, cz, 
-                                   ratioBlk.begin(), 
-                                   coordBlk.begin(posx),
-                                   coordBlk.begin(posy), 
-                                   coordBlk.begin(posz), 
-                                   nsurfBlk.begin(1), nsurfBlk.begin(2),
-                                   nsurfBlk.begin(3), FBlk.begin(), 
-                                   resultBlk.begin());
-      
-        res1[n-1] += resultBlk[0];   
-        res2[n-1] += resultBlk[1];
-        res3[n-1] += resultBlk[2];        
-      }
-      break;
+      integMomentNormUnstruct(
+        cnBlk, "TRI",
+        cx, cy, cz, ratioBlk.begin(), 
+        coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
+        nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3), FBlk.begin(), 
+        resultBlk.begin()
+      );
+    
+      res1[n-1] += resultBlk[0];   
+      res2[n-1] += resultBlk[1];
+      res3[n-1] += resultBlk[2];        
+    }
   }
   return 1;
 }

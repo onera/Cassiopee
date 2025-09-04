@@ -27,16 +27,6 @@ using namespace K_FLD;
 
 extern "C"
 {
-  void k6integnormstructnodecenter_(const E_Int& ni, const E_Int& nj,
-                                    E_Float* ratio, E_Float* sx,
-                                    E_Float* sy, E_Float* sz,
-                                    E_Float* F, E_Float* result);
-
-  void k6integnormstruct_(const E_Int& ni, const E_Int& nj,
-                          E_Float* ratio, E_Float* nsurfx,
-                          E_Float* nsurfy, E_Float* nsurfz,
-                          E_Float* F, E_Float* result);
-
   void k6integnormunstruct_(const E_Int& nbt, const E_Int& size,
                             E_Int* cn, E_Float* ratio, E_Float* nsurfx,
                             E_Float* nsurfy, E_Float* nsurfz,
@@ -389,43 +379,44 @@ E_Int K_POST::integ2(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   else return 0;
 
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int ncells =(NI-1)*(NJ-1);
-  //E_Int npts = coordBlk.getSize();
-  FldArrayF nsurf(ncells,3);
+  E_Int ncells = (NI - 1) * (NJ - 1);
+  FldArrayF nsurf(ncells, 3);
   K_METRIC::compNormStructSurf(
     NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3)
+  );
 
-  switch (center2node)
+  if (center2node == 1)
   {
-    case 1:
-      // Compute integral, coordinates defined in node
-      // and field FBlk in center
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integnormstructnodecenter_(NI-1, NJ-1, ratioBlk.begin(),
-                                     nsurf.begin(1), nsurf.begin(2),
-                                     nsurf.begin(3), FBlk.begin(n),
-                                     resultBlk.begin());
+    // Compute integral, coordinates defined in node and field FBlk in center
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      integNormStructNodeCenter(
+        NI-1, NJ-1, ratioBlk.begin(),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), FBlk.begin(n),
+        resultBlk.begin()
+      );
 
-        resultat1[n-1] += resultBlk[0];
-        resultat2[n-1] += resultBlk[1];
-        resultat3[n-1] += resultBlk[2];
-      }
-      break;
-    default:
-      // Compute integral, coordinates and field have the same size
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integnormstruct_(NI, NJ, ratioBlk.begin(), nsurf.begin(1),
-                           nsurf.begin(2), nsurf.begin(3),
-                           FBlk.begin(n), resultBlk.begin());
+      resultat1[n-1] += resultBlk[0];
+      resultat2[n-1] += resultBlk[1];
+      resultat3[n-1] += resultBlk[2];
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      integNormStruct(
+        NI, NJ, ratioBlk.begin(),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), FBlk.begin(n),
+        resultBlk.begin()
+      );
 
-        resultat1[n-1] += resultBlk[0];
-        resultat2[n-1] += resultBlk[1];
-        resultat3[n-1] += resultBlk[2];
-      }
-      break;
+      resultat1[n-1] += resultBlk[0];
+      resultat2[n-1] += resultBlk[1];
+      resultat3[n-1] += resultBlk[2];
+    }
   }
   return 1;
 }
@@ -460,38 +451,40 @@ E_Int K_POST::integUnstruct2(E_Int center2node,
   K_METRIC::compNormUnstructSurf(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    nsurfBlk1, nsurfBlk2, nsurfBlk3);
+    nsurfBlk1, nsurfBlk2, nsurfBlk3
+  );
 
-  switch (center2node)
+  if (center2node == 1)
   {
-    case 1:
-      for (E_Int n = 1; n <= nvars; n++)
-      {
-        // Compute integral, coordinates defined in node
-        // and field FBlk in center
-        k6integnormunsnodecenter_(nbT, ratioBlk.begin(),
-                                  nsurfBlk1, nsurfBlk2, nsurfBlk3,
-                                  FBlk.begin(n), resultBlk.begin());
+    for (E_Int n = 1; n <= nvars; n++)
+    {
+      // Compute integral, coordinates defined in node and field FBlk in center
+      k6integnormunsnodecenter_(
+        nbT, ratioBlk.begin(),
+        nsurfBlk1, nsurfBlk2, nsurfBlk3, FBlk.begin(n),
+        resultBlk.begin()
+      );
 
-        res1[n-1] = res1[n-1] + resultBlk[0];
-        res2[n-1] = res2[n-1] + resultBlk[1];
-        res3[n-1] = res3[n-1] + resultBlk[2];
-      }
-      break;
+      res1[n-1] += resultBlk[0];
+      res2[n-1] += resultBlk[1];
+      res3[n-1] += resultBlk[2];
+    }
+  }
+  else
+  {
+    for (E_Int n = 1; n <= nvars; n++)
+    {
+      // Compute integral, coordinates and field have the same size
+      k6integnormunstruct_(
+        nbT, size, cnBlk.begin(), ratioBlk.begin(),
+        nsurfBlk1, nsurfBlk2, nsurfBlk3,
+        FBlk.begin(n), resultBlk.begin()
+      );
 
-    default:
-      for (E_Int n = 1; n <= nvars; n++)
-      {
-        // Compute integral, coordinates and field have the same size
-        k6integnormunstruct_(nbT, size, cnBlk.begin(), ratioBlk.begin(),
-                             nsurfBlk1, nsurfBlk2, nsurfBlk3,
-                             FBlk.begin(n), resultBlk.begin());
-
-        res1[n-1] = res1[n-1] + resultBlk[0];
-        res2[n-1] = res2[n-1] + resultBlk[1];
-        res3[n-1] = res3[n-1] + resultBlk[2];
-      }
-      break;
+      res1[n-1] += resultBlk[0];
+      res2[n-1] += resultBlk[1];
+      res3[n-1] += resultBlk[2];
+    }
   }
   return 1;
 }
