@@ -87,6 +87,7 @@ namespace K_OCC
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
   PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* loft(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);
   PyObject* scale(PyObject* self, PyObject* args);

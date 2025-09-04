@@ -29,14 +29,15 @@
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "Geom_BSplineCurve.hxx"
+#include "GeomAPI_PointsToBSpline.hxx"
 
 //=====================================================================
 // Add a spline to CAD hook
 //=====================================================================
 PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* opc;
-  if (!PYPARSETUPLE_(args, OO_, &hook, &opc)) return NULL;
+  PyObject* hook; PyObject* opc; E_Int method = 0;
+  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &opc, &method)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -58,54 +59,78 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Float* x = pc->begin(1);
-  E_Float* y = pc->begin(1);
-  E_Float* z = pc->begin(1);
+  E_Float* y = pc->begin(2);
+  E_Float* z = pc->begin(3);
   
-  // incoming code
+  // incoming numpy
   E_Int ncp = pc->getSize();
-  std::vector<gp_Pnt>::const_iterator iter;
 
-  // compute total length and copy control points
-  gp_Pnt lastP(x[0], y[0], z[0]);
-  E_Float totalLen = 0.;
-  TColgp_Array1OfPnt cp(1, ncp);
-  for (E_Int i = 1; i <= ncp; i++) 
-  {
-    gp_Pnt p(x[i-1],y[i-1],z[i-1]);
-    E_Float segLen = p.Distance(lastP);
-    totalLen += segLen;
-    cp.SetValue(i, p);
-    lastP = p;
-  }
+  for (E_Int i = 0; i < ncp; i++) printf("%d : %g %g %g\n", i, x[i], y[i], z[i]);
 
-  // compute knots
-  TColStd_Array1OfReal knots(1, ncp);
-  TColStd_Array1OfInteger mults(1, ncp);
-  
-  E_Float lastKnot = 0;
-  lastP.SetCoord(x[0], y[0], z[0]);
-  for (E_Int i = 1; i <= ncp; ++i) 
+  TopoDS_Edge edge;
+
+  if (method == 0) // linear
   {
-    if (i == 1 || i == ncp) 
+    // compute total length and copy control points
+    std::vector<gp_Pnt>::const_iterator iter;
+    gp_Pnt lastP(x[0], y[0], z[0]);
+    E_Float totalLen = 0.;
+    TColgp_Array1OfPnt cp(1, ncp);
+    for (E_Int i = 1; i <= ncp; i++) 
     {
-      mults.SetValue(i, 2);
-    }
-    else 
-    {
-      mults.SetValue(i, 1);
+      gp_Pnt p(x[i-1],y[i-1],z[i-1]);
+      E_Float segLen = p.Distance(lastP);
+      totalLen += segLen;
+      cp.SetValue(i, p);
+      lastP = p;
     }
 
-    E_Float knot = cp.Value(i).Distance(lastP)/totalLen + lastKnot;
-    knots.SetValue(i, knot);
+    // compute knots
+    TColStd_Array1OfReal knots(1, ncp);
+    TColStd_Array1OfInteger mults(1, ncp);
+  
+    E_Float lastKnot = 0.;
+    lastP.SetCoord(x[0], y[0], z[0]);
+    for (E_Int i = 1; i <= ncp; ++i) 
+    {
+      if (i == 1 || i == ncp) mults.SetValue(i, 2);
+      else mults.SetValue(i, 1);
 
-    lastKnot = knot;
-    lastP = cp.Value(i);
+      E_Float knot = cp.Value(i).Distance(lastP)/totalLen + lastKnot;
+      knots.SetValue(i, knot);
+
+      lastKnot = knot;
+      lastP = cp.Value(i);
+    }
+    Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
+    edge = BRepBuilderAPI_MakeEdge(spline);
+  }
+  else if (method == 1) // approx
+  {
+
+    TColgp_Array1OfPnt pointsArray(1, static_cast<Standard_Integer>(ncp));
+    for (E_Int i = 1; i <= ncp; i++) 
+    {
+      gp_Pnt p(x[i-1],y[i-1],z[i-1]);
+      pointsArray.SetValue(i, p);
+    }
+
+    Handle(Geom_BSplineCurve) hcurve = GeomAPI_PointsToBSpline(
+        pointsArray, 
+        Geom_BSplineCurve::MaxDegree() - 6, 
+        Geom_BSplineCurve::MaxDegree(), 
+        GeomAbs_C2, 
+        Precision::Confusion()).Curve();
+
+    // This one works around a bug in OpenCascade if a curve is closed and
+    // periodic. After calling this method, the curve is still closed but
+    // no longer periodic, which leads to errors when creating the 3d-lofts
+    // from the curves.
+    hcurve->SetNotPeriodic();
+    edge = BRepBuilderAPI_MakeEdge(hcurve);
   }
 
-  Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
 
-  TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(spline);
-  
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;

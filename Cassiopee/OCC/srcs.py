@@ -73,6 +73,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/fillHole.cpp',
         'OCC/Atomic/addFillet.cpp',
         'OCC/Atomic/mergeFaces.cpp',
+        'OCC/Atomic/loft.cpp',
 
         'OCC/Atomic/translate.cpp',
         'OCC/Atomic/scale.cpp',
