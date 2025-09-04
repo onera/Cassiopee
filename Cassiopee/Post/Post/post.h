@@ -434,11 +434,11 @@ namespace K_POST
 //     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-void integNormProdStruct(
-  const E_Int ni, const E_Int nj, const E_Float* ratio,
-  const E_Float* sx, const E_Float* sy, const E_Float* sz,
-  const E_Float* vx, const E_Float* vy, const E_Float* vz,
-  E_Float& result);
+  void integNormProdStruct(
+    const E_Int ni, const E_Int nj, const E_Float* ratio,
+    const E_Float* sx, const E_Float* sy, const E_Float* sz,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float& result);
   
 //==============================================================================
 // Compute surface integral of the product vect(F).vect(n), coordinates 
@@ -512,8 +512,7 @@ void integNormProdStruct(
 // in nodes and F is defined in center, unstructured case
 // ============================================================================
   void integNormUnstructNodeCenter(
-    FldArrayI& cn,
-    const E_Float *ratio,
+    const E_Int nelts, const E_Float *ratio,
     const E_Float *nsurfx, const E_Float *nsurfy, const E_Float *nsurfz,
     const E_Float *field, E_Float *result);
 

@@ -23,7 +23,7 @@
 // Compute surface integral of the product vect(F).vect(n), coordinates
 // are defined in nodes and F is defined in center
 //==============================================================================
-void integNormProdStruct(
+void K_POST::integNormProdStruct(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
@@ -70,7 +70,7 @@ void integNormProdStruct(
 // Compute surface integral of the product vect(F).vect(n), coordinates 
 // are defined in nodes and F is defined in nodes (center-based formulation)
 //==============================================================================
-void integNormProdStructNodeCenter(
+void K_POST::integNormProdStructNodeCenter(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,

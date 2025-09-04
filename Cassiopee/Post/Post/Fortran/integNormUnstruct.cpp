@@ -108,29 +108,22 @@ void K_POST::integNormUnstruct(
 // in nodes and F is defined in center, unstructured case
 // ============================================================================
 void K_POST::integNormUnstructNodeCenter(
-  FldArrayI& cn,
-  const E_Float *ratio,
+  const E_Int nelts, const E_Float *ratio,
   const E_Float *nsurfx, const E_Float *nsurfy, const E_Float *nsurfz,
   const E_Float *field, E_Float *result
 )
 {
-  E_Int nc = cn.getNConnect();
+  E_Float f;
   E_Float res1 = 0.0;
   E_Float res2 = 0.0;
   E_Float res3 = 0.0;
 
-  for (E_Int ic = 0; ic < nc; ic++)
+  for (E_Int i = 0; i < nelts; i++)
   {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    E_Float f;
-    for (E_Int i = 0; i < nelts; i++)
-    {
-      f = ratio[i] * field[i];
-      res1 += nsurfx[i] * f;
-      res2 += nsurfy[i] * f;
-      res3 += nsurfz[i] * f;
-    }
+    f = ratio[i] * field[i];
+    res1 += nsurfx[i] * f;
+    res2 += nsurfy[i] * f;
+    res3 += nsurfz[i] * f;
   }
 
   result[0] = res1;
