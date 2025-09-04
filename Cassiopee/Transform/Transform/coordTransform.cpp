@@ -33,11 +33,6 @@ extern "C"
                     const E_Float& alpha,
                     E_Float* xo, E_Float* yo, E_Float* zo);
   
-  void k6deformpoint_(const E_Int& size,
-                      const E_Float* dx, const E_Float* dy, const E_Float* dz,
-                      const E_Float& amort,
-                      const E_Int& ni, const E_Int& nj, const E_Int& nk,
-                      E_Float* x, E_Float* y, E_Float* z);
 }
 
 // ============================================================================
