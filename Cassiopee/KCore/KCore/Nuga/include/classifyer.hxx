@@ -39,7 +39,7 @@
 namespace NUGA
 {
   enum eXPolicy { COLLISION, XCELLN_VAL, XCELLN_OUT, MESH };
-  enum eClassify { AMBIGUOUS = -1, IN/*IN_2*/ = 0, IN_1=1, X = 2, OUT = 3, UPPER_COL = 4 };
+  enum eClassify { AMBIGUOUS=-1, IN/*IN_2*/=0, IN_1=1, X=2, OUT=3, UPPER_COL=4 };
 
   template <eXPolicy POLICY, typename zmesh_t> // implemented for COLLISION policy. Second template arg is only there for XCELLN_OUT/MESH modes
   struct data_trait
@@ -89,7 +89,8 @@ namespace NUGA
   template <typename zmesh_t>
   struct data_trait<XCELLN_OUT, zmesh_t> : public data_trait<XCELLN_VAL, zmesh_t>
   {
-    struct outdata_t {
+    struct outdata_t 
+    {
       zmesh_t mesh;
       bool full_out;
       outdata_t() :mesh(), full_out(false) {};
@@ -100,7 +101,6 @@ namespace NUGA
         full_out = d.full_out;
         return *this;
       }
-
     };
   };
 
@@ -342,7 +342,6 @@ namespace NUGA
     }
     
 
-    
     template <>
     eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
     {
@@ -353,10 +352,10 @@ namespace NUGA
       assert(ae2.m_oriented != 0);
       
       // 1 in 2 ?
-      const double* G1 = ae1.get_centroid();
+      const E_Float* G1 = ae1.get_centroid();
       DELAUNAY::Triangulator dt;
       ae2.triangulate(dt, ae2.m_crd);
-      double omega = 0.;
+      E_Float omega = 0.;
       for (E_Int i = 0; i < ae2.nb_tris(); ++i)
       {
         E_Int T[3];
@@ -369,7 +368,7 @@ namespace NUGA
       if (omega < 1.e-13) return IN;
 
       // 2 in 1 ?
-      const double* G2 = ae2.get_centroid();
+      const E_Float* G2 = ae2.get_centroid();
       ae1.triangulate(dt, ae1.m_crd);
       omega = 0.;
       E_Int T[3];
@@ -432,7 +431,7 @@ namespace NUGA
       is_in = false;
       for (E_Int k = 0; k < ae2_2D.m_crd.cols(); ++k)
       {
-        const double * P = ae2_2D.m_crd.col(k);
+        const E_Float* P = ae2_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
         ae1_2D.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, ae1_2D.m_crd, P, is_in, ABSTOL);
         if (!is_in) break;
@@ -456,7 +455,7 @@ namespace NUGA
    std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
   {
 #ifdef CLASSIFYER_DBG
-    static int znb = 0;
+    static E_Int znb = 0;
     std::cout << "PREP_build_structures_and_reduce_to_zone : __build_mask_bits : " << znb << std::endl;
 #endif
 
@@ -470,7 +469,8 @@ namespace NUGA
     __build_mask_bits2(z_mesh, -0.1, NUGA::ISO_MAX, 2.*NUGA::PI*15./360, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits, WP, WNP);
 
 #ifdef CLASSIFYER_DBG
-    for (size_t m = 0; m < mask_bits.size(); ++m) {
+    for (size_t m = 0; m < mask_bits.size(); ++m) 
+    {
       std::ostringstream o;
       o << "mask_init_z_" << znb << "_m_" << m;
       if (mask_bits[m] != nullptr) medith::write(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
@@ -606,7 +606,6 @@ namespace NUGA
     {
       K_SEARCH::BBox3D zbx;
       z_mesh.bbox(zbx);
-      //std::cout << "xcellnv testing" << std::endl;
       eClassify loc = NUGA::CLASSIFY::classify(zbx, _comp_boxes, _z_priorities);
 
       if (loc == IN)
@@ -1136,7 +1135,7 @@ namespace NUGA
   	// 2. incremental coloring, starting from UPPER_COL
     
     // 2.1 : current field with only IN cells and new Xs (-X)
-    std::vector<double> cur_xcelln(z_xcelln.size(), OUT);
+    std::vector<E_Float> cur_xcelln(z_xcelln.size(), OUT);
 
     for (size_t i=0; i < z_xcelln.size(); ++i)
     {
@@ -1199,10 +1198,10 @@ namespace NUGA
       {
         if (cur_xcelln[i] != XCOL) continue;
 
-        int nneighs = neighborz->stride(i);
+        E_Int nneighs = neighborz->stride(i);
         const E_Int* pneighs = neighborz->begin(i);
 
-        for (int j = 0; (j < nneighs); ++j)
+        for (E_Int j = 0; (j < nneighs); ++j)
         {
           if (pneighs[j] == IDX_NONE) continue;
 
@@ -1245,7 +1244,7 @@ namespace NUGA
           medith::write("subj", aen);
 #endif
 
-        // autonomous cutter front
+          // autonomous cutter front
           bound_mesh_t acut_front(mask_bit, cands, 1);
 
           // b. classify pneigh[j] with that molecule

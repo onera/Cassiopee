@@ -137,10 +137,8 @@ class MeshTool
     template <typename cnt_t>
     static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& pos, const cnt_t& cnt, K_FLD::FloatArray& L);
 
-#ifndef NUGALIB
     template <typename arr_t, typename cnt_t>
     static void computeIncidentEdgesSqrLengths(const K_FLD::ArrayAccessor<arr_t>& acrd, const cnt_t& cnt, K_FLD::FloatArray& L);
-#endif
 
     /// compute mimimal nodal distance bases on faces
     template <typename arr_t, typename cnt_t>
@@ -360,7 +358,6 @@ void MeshTool::computeNodalDistance2<K_FLD::FloatArray,ngon_unit>
 }
 
 
-#ifndef NUGALIB
 /*template <> inline
 void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::FldArrayF, ngon_unit>
 (
@@ -466,8 +463,6 @@ void MeshTool::computeNodalDistance2<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,ngon
   }  
 
 }
-
-#endif
 
 } // End namespace NUGA
 

@@ -49,7 +49,6 @@ namespace K_FLD
   public:
     /// Constuctors
 
-#ifndef NUGALIB
     explicit ArrayAccessor(const array_type& arr, size_type posx, size_type posy, size_type posz=-1, E_Int shift=0):_arr(&arr), _shift(shift)
     {
       _stride = (posz == -1) ? 2 : 3;
@@ -57,7 +56,6 @@ namespace K_FLD
       _posX[0] = posx-NUMFIELD0; _posX[1] = posy-NUMFIELD0;
       if (_stride == 3) _posX[2] = posz-NUMFIELD0;
     }
-#endif
     
     explicit ArrayAccessor(const array_type& arr, E_Int shift = 0):_arr(&arr), _stride(arr.getNfld()), _shift(shift)
     {
@@ -92,9 +90,7 @@ namespace K_FLD
     inline E_Int shift() const { return _shift;}
     
     ///
-#ifndef NUGALIB
     inline E_Int posX(E_Int i) const { return _posX[i]+NUMFIELD0;}
-#endif
 
     /// Returns the j-th entry's pointer to the i-th field.
     inline value_type* getValPtr(const E_Int& j, const E_Int& i) const
@@ -262,7 +258,6 @@ namespace K_FLD
     size_type         _stride;
   };
   
-#ifndef NUGALIB
   inline std::ostream & operator<<(std::ostream& out, const FldArrayF& arr){
 
     out << "####################################" << std::endl;
@@ -294,7 +289,6 @@ namespace K_FLD
     out << "####################################" << std::endl;
     return out;
   }
-#endif
 }
 
 #endif

@@ -38,7 +38,6 @@ namespace K_FLD
 
   public:
     /// Constuctor
-#ifndef NUGALIB
     explicit ArrayWriter(array_type& arr, size_type posx, size_type posy, size_type posz = -1, E_Int shift = 0):_arr(arr)
     {
       _stride = (posz == -1) ? 2 : 3;
@@ -46,7 +45,6 @@ namespace K_FLD
       _posX[0] = posx-NUMFIELD0;  _posX[1] = posy-NUMFIELD0;
       if (_stride == 3)_posX[2] = posz-NUMFIELD0;
     }
-#endif
     
     explicit ArrayWriter(array_type& arr, E_Int shift = 0):_arr(&arr), _stride(arr.getNfld())
     {
@@ -68,13 +66,11 @@ namespace K_FLD
     inline ArrayType& array() const {return *_arr;}
 
     /// Returns the i-th field of the j-th entry.
-#ifndef NUGALIB
     inline value_type& getVal(E_Int j, E_Int i) {return *(_arr.begin(_posX[i]+NUMFIELD0) + j);}
 
     /// Returns the j-th entry.
     inline void getEntry(const E_Int& j, value_type* entry) const
     {for (E_Int k = 0; k < _stride; ++k)entry[k] =*(_arr.begin(_posX[k]+NUMFIELD0) + j);}
-#endif
     
   private:
     ArrayWriter();

@@ -25,8 +25,8 @@
 //=============================================================================
 void Data::displayUSolidHOZone(UnstructZone *zonep, E_Int zone, E_Int zonet)
 {
-  E_Int i, n1, n2, n3, n4, n5, n6, n7, n8;
-  E_Int ret1, ret2, ret3, ret4, f;
+  E_Int i, n1, n2, n3, n4;
+  E_Int ret1, ret2, ret3, ret4;
 
   // Style
   float color1[ 3 ];

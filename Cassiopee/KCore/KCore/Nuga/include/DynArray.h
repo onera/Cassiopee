@@ -22,9 +22,7 @@
 #define _KCORE_DYNARRAY_H_
 #include <iterator>
 #include "Nuga/include/defs.h"
-#ifndef NUGALIB
 #include "Fld/FldArray.h"
-#endif
 #include "Nuga/include/allocator.hxx"
 
 #include <assert.h>
@@ -102,7 +100,6 @@ Design
       _calloc = arr._calloc;
     }
 
-#ifndef NUGALIB
     /// Constructor by type conversion (for FldArrays).
     inline explicit DynArray(const FldArray<T>& i, value_type shift = value_type(0.));
     inline explicit DynArray(const FldArray<T>& i, E_Int posx, E_Int posy, E_Int posz=-1);
@@ -110,7 +107,6 @@ Design
     /// Converts the DynArray to a FldArray.
     inline void convert(FldArray<T>& i, value_type shift = value_type(0.)) const ;
     inline void convert(DynArray<T>& out, T shift) const {out = *this;/*fixme : dum to convert to itself*/}
-#endif
 
     // Extracts a given field
     inline void extract_field(size_type i, std::vector<T>& f);
@@ -404,7 +400,6 @@ Design
   }
 
   /** Conversion specialization */
-#ifndef NUGALIB
   ///FldArray --> DynArray
   template <typename T> inline
     DynArray<T>::DynArray(const FldArray<T>& a, T shift)
@@ -416,7 +411,6 @@ Design
   void
   DynArray<T>::convert(FldArray<T>& out, T shift) const
   {__exportFldArray(out, shift);}
-#endif
 
   template <typename T> inline
   void
@@ -1188,7 +1182,6 @@ DynArray<T>::pushBack(const self_type& a){
       _cols = _colsMax = cols;
   }
   
-#ifndef NUGALIB
   ///FldArrayF --> FloatArray
   template <> inline
     DynArray<E_Float>::DynArray(const FldArray<E_Float>& a, E_Int posx, E_Int posy, E_Int posz)
@@ -1203,7 +1196,6 @@ DynArray<T>::pushBack(const self_type& a){
     
     __importFldArray(a, p, npos);
   }
-#endif
 
   template <typename T>
   template <typename FldArrayType>

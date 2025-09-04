@@ -1214,7 +1214,6 @@ struct ngon_t
   }
   
   /// Change the node indice to reference the same when duplicated exist (FldArrayF)
-#ifndef NUGALIB
   void join_phs(const K_FLD::FldArrayF& coord, E_Int px, E_Int py, E_Int pz, E_Float tolerance = EPSILON, bool do_omp=false)
   {
     if (PGs.size() == 0)
@@ -1280,7 +1279,6 @@ struct ngon_t
       PGs.change_indices(nids);
     return nb_merges;
   }*/
-#endif
   /*   
   ///
   E_Int unique_nodes_ph(E_Int PHi, Vector_t<E_Int>& indices, bool zerobased=false) const
@@ -4147,7 +4145,6 @@ build_F2E(const ngon_unit& neighbors, K_FLD::IntArray& F2E) const
   }
 }
 
-#ifndef NUGALIB
 // non-oriented F2E is formatted as cassiopee : non-interleaved, 0 for none, start index at 1
 void
 build_noF2E(K_FLD::FldArrayI& F2E) const
@@ -4178,7 +4175,6 @@ build_noF2E(K_FLD::FldArrayI& F2E) const
     }
   }
 }
-#endif
 
 void
 build_noF2E(K_FLD::IntArray& F2E) const
