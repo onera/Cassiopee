@@ -26,8 +26,7 @@ using namespace K_CONST;
 using namespace K_SEARCH;
 
 //=============================================================================
-PyObject* K_GEOM::volumeFromCrossSections(PyObject* self,
-                                          PyObject* args )
+PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   PyObject* contour1; PyObject* contour2;

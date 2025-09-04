@@ -318,13 +318,10 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     delete [] ptr;
 
     if (nntot == 0) fout->reAllocMat(0, nfld);
-    else 
-    {
-      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
-        K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
-                                     *fout, *acn);
-    }
-    tpl = K_ARRAY::buildArray(*fout, varString, *acn, elt, eltType);
+    else if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
+      tpl = K_CONNECT::V_cleanConnectivity(
+        varString, *fout, *acn, eltType, 1.e-10);
+    else tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType);
     delete acn; delete fout;
     if (res == 1) delete[] eltType;
   }

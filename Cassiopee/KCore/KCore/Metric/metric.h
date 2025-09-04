@@ -227,15 +227,16 @@ namespace K_METRIC
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float& surface);
 
-  /* Compute barycenter of tetra cells.
-     IN: cn: Element-Node connectivity
-     IN: xt, yt, zt: Vertex coordinates
-     OUT: bary: Cell centers
-  */
-  void compTetraCellCenter(
+  //============================================================================
+  // Compute cell barycenter for a ME mesh.
+  // IN: cn: Element-Node connectivity
+  // IN: xt, yt, zt: Vertex coordinates
+  // OUT: xb, yb, zb: Barycenter coordinates
+  //============================================================================
+  void compUnstructCellCenter(
     K_FLD::FldArrayI& cn,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* bary);
+    E_Float* xb, E_Float* yb, E_Float* zb);
 
   /* Calcul des centres des interfaces pour des mailles non structurees.
      IN: nedges: nb de facettes par elemt
@@ -325,15 +326,18 @@ namespace K_METRIC
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float& vol);
 
-  /* Compute barycenter of tetra cells.
-     IN: ind1, ind2, ind3, ind4: Sommets du tetraedre
-     IN: xt, yt, zt: Vertex coordinates
-     OUT: vol: Cell volume
-  */
-  void compVolOfTetraCell(
-    const E_Int ind1, const E_Int ind2, const E_Int ind3, const E_Int ind4,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float& vol);
+  //============================================================================
+  // Calcul du volume des elements pour un maillage Multi-Elements.
+  // IN: cn: Element-Node connectivity
+  // IN: eltType: Element names
+  // IN: xint, yint, zint: coordonnees du centre des facettes
+  // IN: snx, sny, snz: normales aux facettes %x, %y, %z
+  // OUT: vol: volume des cellules
+  //============================================================================
+  void compUnstructVol(
+    K_FLD::FldArrayI& cn, const char* eltType,
+    const E_Float* xint, const E_Float* yint, const E_Float* zint,
+    const E_Float* snx, const E_Float* sny, const E_Float* snz, E_Float* vol);
 
   // Compute cell volumes for NGons
   void compute_face_center_and_area(E_Int id, E_Int stride, E_Int *pn,

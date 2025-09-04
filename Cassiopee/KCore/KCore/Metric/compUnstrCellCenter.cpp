@@ -20,40 +20,50 @@
 
 
 //=============================================================================
-// Compute barycenter of tetra cells.
+// Compute cell barycenter for a ME mesh.
 // IN: cn: Element-Node connectivity
 // IN: xt, yt, zt: Vertex coordinates
-// OUT: bary: Cell centers
+// OUT: xb, yb, zb: Barycenter coordinates
 //=============================================================================
-void K_METRIC::compTetraCellCenter(
+void K_METRIC::compUnstructCellCenter(
   K_FLD::FldArrayI& cn,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* bary
+  E_Float* xb, E_Float* yb, E_Float* zb
 )
 {
-  K_FLD::FldArrayI& cm = *(cn.getConnect(0));
-  E_Int nelts = cm.getSize();
-  
+  // Pre-compute the number of element per connectivity (gives the offsets)
+  E_Int nc = cn.getNConnect();
+  std::vector<E_Int> nepc(nc+1);
+  nepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic+1] = nepc[ic] + nelts;
+  }
+
   #pragma omp parallel
   {
-    E_Int et, ind1, ind2, ind3, ind4;
+    E_Int ind, pos, nelts, nvpe;
 
-    #pragma omp for
-    for (et = 0; et < nelts; et++)
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      ind1 = cm(et, 1) - 1;
-      ind2 = cm(et, 2) - 1;
-      ind3 = cm(et, 3) - 1;
-      ind4 = cm(et, 4) - 1;
-
-      bary[3*et+0] = K_CONST::ONE_FOURTH * (
-        xt[ind1] + xt[ind2] + xt[ind3] + xt[ind4]);
-
-      bary[3*et+1] = K_CONST::ONE_FOURTH * (
-        yt[ind1] + yt[ind2] + yt[ind3] + yt[ind4]);
-
-      bary[3*et+2] = K_CONST::ONE_FOURTH * (
-        zt[ind1] + zt[ind2] + zt[ind3] + zt[ind4]);
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+  
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        pos = nepc[ic] + i;
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          ind = cm(i, j) - 1;
+          xb[pos] += xt[ind] / nvpe;
+          yb[pos] += yt[ind] / nvpe;
+          zb[pos] += zt[ind] / nvpe;
+        }
+      }
     }
   }
 }

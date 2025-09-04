@@ -20,27 +20,23 @@
 # include "Array/Array.h"
 
 //=============================================================================
-// Calcul du volume de toutes les cellules et des surfaces des interfaces
-// CAS NON STRUCTURE
-// IN: cn: nb de noeuds par elemt
-// IN: eltType: list of Basic Element names
-// IN: coordx, coordy, coordz: coordonnees x, y, z des pts de la grille
-// OUT: snx, sny, snz: normales aux facettes %x, %y, %z
-// OUT: surf: aires des facettes
+// Calcul du volume des elements pour un maillage Multi-Elements.
+// IN: cn: Element-Node connectivity
+// IN: eltType: Element names
+// IN: xint, yint, zint: coordonnees du centre des facettes
+// IN: snx, sny, snz: normales aux facettes %x, %y, %z
 // OUT: vol: volume des cellules
 //=============================================================================
-void K_METRIC::compUnstructMetric(
+void K_METRIC::compUnstructVol(
   K_FLD::FldArrayI& cn, const char* eltType,
-  const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
-  E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol
+  const E_Float* xint, const E_Float* yint, const E_Float* zint,
+  const E_Float* snx, const E_Float* sny, const E_Float* snz, E_Float* vol
 )
 {
-  // Pre-compute element and facet offsets
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  E_Int ntotFacets = 0;
   std::vector<E_Int> nfpe(nc);  // number of facets per element
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
@@ -57,27 +53,40 @@ void K_METRIC::compUnstructMetric(
     else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
     else
     {
-      fprintf(stderr, "Error: in K_METRIC::compUnstructMetric.\n");
+      fprintf(stderr, "Error: in K_METRIC::compUnstructVol.\n");
       fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
-      exit(0);
     }
     nepc[ic+1] = nepc[ic] + nelts;
-    nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
-    ntotFacets += nfpe[ic]*nelts;
+    nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 
-  // Compute center of facets
-  K_FLD::FldArrayF xint(ntotFacets), yint(ntotFacets), zint(ntotFacets);
-  compUnstructCenterInt(cn, eltType, coordx, coordy, coordz,
-                        xint.begin(), yint.begin(), zint.begin());
+  #pragma omp parallel
+  {
+    E_Int pos, nelts, elOffset, fctOffset;
+    E_Float voli;
 
-  // Compute facet normals and areas
-  compUnstructSurf(cn, eltType, coordx, coordy, coordz,
-                   snx, sny, snz, surf);
-  
-  // Compute volume of elements
-  compUnstructVol(cn, eltType, xint.begin(), yint.begin(), zint.begin(),
-                  snx, sny, snz, vol);
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      elOffset = nepc[ic];
+      fctOffset = nfpc[ic];
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        voli = K_CONST::E_ZERO_FLOAT;
+        for (E_Int fidx = 0; fidx < nfpe[ic]; fidx++)
+        {
+          pos = fctOffset + i * nfpe[ic] + fidx;
+          voli += xint[pos] * snx[pos]
+                + yint[pos] * sny[pos]
+                + zint[pos] * snz[pos];
+        }
+        vol[elOffset + i] = K_CONST::ONE_THIRD * voli;
+      }
+    }
+  }
 }

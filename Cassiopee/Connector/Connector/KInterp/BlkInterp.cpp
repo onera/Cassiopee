@@ -568,8 +568,8 @@ E_Float K_KINTERP::selectBestUnstructuredInterpolationCell(
       }
       
       isvalid = 0;
-      if (nature == 1 && K_FUNC::fEqual(val,K_CONST::ONE,geomCutOff) == true) isvalid = 1;
-      else if (nature == 0 && K_FUNC::fEqualZero(val,geomCutOff) == false) isvalid = 1;
+      if (nature == 1 && K_FUNC::fEqual(val,K_CONST::ONE,geomCutOff)) isvalid = 1;
+      else if (nature == 0 && !K_FUNC::fEqualZero(val,geomCutOff)) isvalid = 1;
       if (isvalid == 1)
       {        
         k6compvoloftetracell_(npts, cnloc(noei,1)-1, cnloc(noei,2)-1, cnloc(noei,3)-1, cnloc(noei,4)-1, 
