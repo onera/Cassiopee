@@ -1,7 +1,6 @@
 # - tkHats -
 """Close surfaces with hat."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot

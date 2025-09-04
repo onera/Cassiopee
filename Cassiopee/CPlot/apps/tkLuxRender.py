@@ -1,7 +1,6 @@
 # - tkLuxRender -
 """Interface with LuxRender ray tracer."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.Internal as Internal
 import Converter.PyTree as C

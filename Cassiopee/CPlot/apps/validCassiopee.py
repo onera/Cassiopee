@@ -1581,8 +1581,7 @@ def getThreads():
 # Exporte les resultats de la valid dans un fichier texte
 #==============================================================================
 def export2Text():
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     ret = tkFileDialog.asksaveasfilename()
     if ret == '' or ret is None or ret == (): # user cancel
         return
@@ -1945,11 +1944,9 @@ if __name__ == '__main__':
 
     if INTERACTIVE:
         # --- Use GUI ---
-        try: import Tkinter as TK
-        except: import tkinter as TK
+        import tkinter as TK
         import CPlot.Tk as CTK
-        try: import tkFont as Font
-        except: import tkinter.font as Font
+        import tkinter.font as Font
         from functools import partial
         # Load user settings
         loadPrefFile()

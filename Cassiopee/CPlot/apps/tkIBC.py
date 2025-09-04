@@ -1,8 +1,6 @@
 # - IBC app -
 """Interface to set IBCs."""
-
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Geom.PyTree as D

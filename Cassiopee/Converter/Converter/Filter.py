@@ -484,12 +484,7 @@ def getBCVariables(a, fileName, znp, cont=None, format=None):
                 if k[3] == 'DataArray_t': zvars.add(k[0])
     return list(zvars)
 
-# Load un bboxTree
-#def bboxTree(fileName):
-#    # Load only bboxes
-#    return None
-
-# Load only zones that match a bbox
+# Load only zones that match a given bbox
 def isInBBox(a, fileName, format, bbox, znp):
     """Load zones that lie in bbox."""
     xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
@@ -527,6 +522,7 @@ def isInBBox(a, fileName, format, bbox, znp):
 #==========================================================
 # a: must be a tree or a zone list coherent with znp
 # znp: is the full path from top
+#==========================================================
 def writeZones(a, fileName, znp, format=None):
     """Write Zones in file."""
     if isinstance(znp, list): znps = znp
@@ -664,7 +660,7 @@ class Handle:
     def getVariables(self, a=None, cont=None):
         """Return the variable names contained in file."""
         if a is not None: p = self.getZonePaths(a)
-        else: p = [self.znp[0]] # only first zone
+        else: p = self.znp # all zone vars
         vars = getVariables(self.fileName, p, cont, self.format)
         self.fileVars = vars
         return vars

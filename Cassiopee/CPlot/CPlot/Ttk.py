@@ -1,13 +1,10 @@
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 try: import Tk as CTK
 except: from . import Tk as CTK
 
 ttk = None
 try: import tkinter.ttk as ttk
-except:
-    try: import ttk
-    except: ttk = None
+except: ttk = None
 #Uncomment that for a pure Tk interface
 #ttk = None
 

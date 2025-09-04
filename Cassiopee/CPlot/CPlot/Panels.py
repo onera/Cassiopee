@@ -1,7 +1,6 @@
 """Panels for tkCassiopee."""
 
-try: import tkinter as TK
-except ImportError: import Tkinter as TK
+import tkinter as TK
 try: import Tk as CTK
 except ImportError: from . import Tk as CTK
 import Converter
@@ -739,8 +738,7 @@ def writeBlog(event=None):
     #docData['docWindow'].destroy()
 
 def openDocFile(event=None):
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     initFile = docData['docWidget'].get("1.0", TK.END)
     initFile = ''
     file = tkFileDialog.asksaveasfilename(
@@ -1011,8 +1009,7 @@ def reselect(i):
 
 def setColorVar(l):
     if l == 'Custom>':
-        try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser
+        import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -1066,8 +1063,7 @@ def setColor(event=None):
     nzs = CPlot.getSelectedZones()
     color = VARS[1].get()
     if color == 'Custom>':
-        try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser
+        import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         color = ret[1]
     VARS[1].set(color)
@@ -1376,8 +1372,7 @@ def openRenderPanel():
 # Load panel: panel for partial load of files
 #====================================================================================
 def openLoadFileDialog(event=None):
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     files = tkFileDialog.askopenfilenames(
         filetypes=[('CGNS files', '*.cgns'), ('CGNS files', '*.adf'), ('CGNS files', '*.hdf'), ('CGNS/ADF files', '*.adf'), ('CGNS/HDF files', '*.hdf'), ('All files', '*.*')], initialfile=CTK.FILE, multiple=0)
     if files == '' or files is None or files == (): # user cancel
@@ -1400,8 +1395,6 @@ def ripTag(wname):
 
 # Get the number of the element in list equal to e or et
 def getNumber(l, e, et):
-    #e = e.encode('utf-8')
-    #et = et.encode('utf-8')
     for i, li in enumerate(l):
         if li == e: return i
         if li == et: return i
@@ -1416,7 +1409,6 @@ def updateLoadPanel():
 
     # VARS
     lb = WIDGETS['LBVARS']
-    #values = lb.get(0, lb.size())
     lb.delete(0, TK.END)
     for i, value in enumerate(vars):
         lb.insert(i, value)
@@ -1424,7 +1416,6 @@ def updateLoadPanel():
 
     # ZONES
     lb = WIDGETS['LBZONES']
-    #values = lb.get(0, lb.size())
     lb.delete(0, TK.END)
     for i, value in enumerate(znp):
         lb.insert(i, value)

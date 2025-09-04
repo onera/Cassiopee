@@ -1,7 +1,6 @@
 # - tkIJK -
 """Show only sub-indices of structured grids."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Transform.PyTree as T

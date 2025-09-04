@@ -1,7 +1,6 @@
 # - tkView -
 """Set the view in plotter."""
-try: import tkinter as TK
-except ImportError: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -172,8 +171,7 @@ def updateVarNameList3_2(event=None):
 #==============================================================================
 # set starting color for bi/tri-color colormaps
 def setC1Color(event=None):
-    try: import tkColorChooser
-    except: import tkinter.colorchooser as tkColorChooser
+    import tkinter.colorchooser as tkColorChooser
     ret = tkColorChooser.askcolor()
     color = ret[1]
     if color is not None and len(color) == 7:
@@ -184,8 +182,7 @@ def setC1Color(event=None):
 #==============================================================================
 # set ending color for bi/tri-color colormaps
 def setC2Color(event=None):
-    try: import tkColorChooser
-    except: import tkinter.colorchooser as tkColorChooser
+    import tkinter.colorchooser as tkColorChooser
     ret = tkColorChooser.askcolor()
     color = ret[1]
     if color is not None and len(color) == 7:
@@ -196,8 +193,7 @@ def setC2Color(event=None):
 #==============================================================================
 # set mid color for tri-color colormaps
 def setC3Color(event=None):
-    try: import tkColorChooser
-    except: import tkinter.colorchooser as tkColorChooser
+    import tkinter.colorchooser as tkColorChooser
     ret = tkColorChooser.askcolor()
     color = ret[1]
     if color is not None and len(color) == 7:

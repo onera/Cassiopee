@@ -1,7 +1,6 @@
 # - tkCells -
 """Cell mesh manipulations."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Post.PyTree as P
