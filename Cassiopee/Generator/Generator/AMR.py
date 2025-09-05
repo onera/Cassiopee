@@ -876,7 +876,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             indicMax = C.getMaxValue(o,"centers:indicator")
             indicMax = Cmpi.allgather(indicMax)
             indicMax = max(indicMax)
-            if indicMax<1. or i==0:
+            if indicMax<1. or (i==0 and adaptPass>0):
                 adapting=False
                 C._rmVars(o,["centers:indicator"])
                 break
