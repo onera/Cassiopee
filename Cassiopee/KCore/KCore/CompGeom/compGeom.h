@@ -867,6 +867,16 @@ typedef struct {
                       E_Int im, E_Int jm, E_Int km, 
                       K_FLD::FldArrayI* cn, char* eltType,
                       E_Int dim, E_Int type, E_Float* out);
+
+  void rotateMesh(const E_Int dim, const E_Float teta,
+		  const E_Float* center, const E_Float* axis,
+		  E_Float* x0, E_Float* y0, E_Float* z0);
+  
+  void rotateMesh2(const E_Int npts, const E_Float teta,
+		   const E_Float xc, const E_Float yc, const E_Float zc,
+		   const E_Float nx, const E_Float ny, const E_Float nz,
+		   const E_Float* x,const E_Float* y, const E_Float* z,
+		   E_Float* x0, E_Float* y0, E_Float* z0);
 }
 
 #endif
