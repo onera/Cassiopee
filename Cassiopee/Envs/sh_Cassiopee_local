@@ -800,10 +800,11 @@ elif [ "$MAC" = "sator_coda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
-    export MODULEPATH=/stck/rhea/coda_modules:$MODULEPATH
+    export MODULEPATH=/tmp_user/sator/rhea/coda_modules:$MODULEPATH
     CASSIOPEESAVE=$CASSIOPEE
     ELSAPRODSAVE=$ELSAPROD
     module purge
+    module load emacs
     module load fssuite/2025.02.0-gnu1210
     export CASSIOPEE=$CASSIOPEESAVE
     export ELSAPROD=$ELSAPRODSAVE
