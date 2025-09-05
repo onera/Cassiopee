@@ -20,17 +20,6 @@
 #include "loc.h"
 #include <math.h>
 #include "CompGeom/compGeom.h"
-#include <iostream>
-extern "C"
-{
-  void k6rotatemesh2_(const E_Int& npts,
-                     const E_Float* x, const E_Float* y, const E_Float* z,
-                     const E_Float& xc, const E_Float& yc, const E_Float& zc,
-                     const E_Float& nx, const E_Float& ny, const E_Float& nz,
-                     const E_Float& teta,
-                     E_Float* xo, E_Float* yo, E_Float* zo);
-}
-
 //=============================================================================
 // Conversion repere Cartesien -> repere cylindrique
 // Suivant les axes canoniques
@@ -58,12 +47,6 @@ E_Int K_LOC::cart2Cyl(E_Int npts,
       E_Float* xDR = new E_Float[npts];
       E_Float* yDR = new E_Float[npts];
       E_Float* zDR = new E_Float[npts];
-      //k6rotatemesh2_(npts,
-      //              xt, yt, zt,
-      //              X0, Y0, Z0,
-      //              ex, ey, ez,
-      //              thetaShift, 
-      //              xDR, yDR, zDR);
       
       K_COMPGEOM::rotateMesh2(npts, thetaShift,
 			      X0, Y0, Z0,

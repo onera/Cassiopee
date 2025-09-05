@@ -2,9 +2,6 @@
 # include <stdio.h>
 # include "CompGeom/compGeom.h"
 
-typedef int E_Int;
-typedef double E_Float;
-
 // ============================================================================
 // Make a rotation of a mesh 
 // ============================================================================
@@ -49,7 +46,7 @@ void K_COMPGEOM::rotateMesh(const E_Int dim, const E_Float teta,
   e3 = -unz*stetas2;
   a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
 
-  for (ind = 0; ind < dim; ind++)
+  for (E_Int ind = 0; ind < dim; ind++)
   {
     rx = x0[ind] - center[0];
     ry = y0[ind] - center[1];
@@ -113,7 +110,7 @@ void K_COMPGEOM::rotateMesh2(const E_Int npts, const E_Float teta,
   e3 = -unz*sinteta5;
   a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
 
-  for (ind = 0; ind < npts; ind++)
+  for (E_Int ind = 0; ind < npts; ind++)
   {
     rx = x[ind] - xc;
     ry = y[ind] - yc;

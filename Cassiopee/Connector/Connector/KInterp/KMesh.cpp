@@ -29,11 +29,7 @@ using namespace std;
 using namespace K_FLD;
 
 extern "C"
-{
-  void k6rotatemesh_(const E_Int& dim, const E_Float* center,
-                     const E_Float* axis, const E_Float& teta,
-                     E_Float* x, E_Float* y, E_Float* z);
-  
+{  
   void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km,
                    const E_Float* x, const E_Float* y, const E_Float* z,
                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
@@ -577,11 +573,6 @@ void K_KINTERP::KMesh::createDuplicatedExtendedPeriodMesh(const KMesh& origMesh,
         zt[pos] = zo[pos];
       }
   
-  //6rotatemesh_(dim1,
-  //		axisPnt.begin(),
-  //		axisVct.begin(),
-  //		theta, 
-  //             coord.begin(1), coord.begin(2), coord.begin(3));
   K_COMPGEOM::rotateMesh(dim1, theta,
 			 axisPnt.begin(), axisVct.begin(), 
 			 coord.begin(1), coord.begin(2), coord.begin(3));
