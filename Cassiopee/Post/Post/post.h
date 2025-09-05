@@ -584,6 +584,65 @@ namespace K_POST
     const E_Float* vx, const E_Float* vy, const E_Float* vz,
     E_Float& result);
 
+// ============================================================================
+// Etant donnes n champs definis aux noeuds d une grille 3D, 
+// calcul des champs aux centres des interfaces de la grille  
+// fint = 0.25*(fa+fb+fc+fd)
+// ============================================================================
+  void compIntField(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Int nfld, const E_Float* f,
+    E_Float* fint);
+
+// ============================================================================
+// Compute the values of the vector (f1,f2,f3) at interfaces
+// ============================================================================
+  void compIntFieldv(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* f1, const E_Float* f2, const E_Float* f3,
+    E_Float* fint1, E_Float* fint2, E_Float* fint3);
+
+// ============================================================================
+//  Calcul du rotationnel moyen d'un champ u sur une grille
+//  IN: ni,nj,nk: dimensions du maillage en noeuds
+//  IN: nbcell: nbre de cellules
+//  IN: xt,yt,zt: coordonnees de la grille
+//  IN: u: vecteur dont le rotationnel est a calculer
+//  OUT: rotu: rotationnel de u aux centres des cellules
+// ============================================================================
+  void compStructCurlt(
+    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz,
+    E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
+    E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz, E_Float* vol,
+    E_Float* uintx, E_Float* uinty, E_Float* uintz);
+
+// ============================================================================
+// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille surfacique
+// Retourne le rotationnel defini aux centres des cellules
+// ============================================================================
+  void compStructCurl2dt(
+    const E_Int ni, const E_Int nj, const E_Int nbcell,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotux, E_Float* rotuy, E_Float* rotuz);
+
+// ============================================================================
+// Calcul du rotationnel moyen d un champ (u,v,w) sur une cellule
+// attention cette routine est uniquement 3d
+// IN: ind: indice du premier sommet de la cellule
+// IN: ni,nj,nk: dimensions du maillage en noeuds
+// IN: velo: vecteur dont le rotationnel est a calculer. Defini sur le maillage
+// OUT: rotu,rotv,rotw: rotationnel moyen de (u,v,w) sur la cellule
+// ============================================================================
+  void compMeanCurlOfStructCell(
+    const E_Int ind, const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* velox, const E_Float* veloy, const E_Float* veloz,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    E_Float& rotu, E_Float& rotv, E_Float& rotw);
+
 
 // ***************************** COMPUTE FIELDS ***************************** //
 /* Extrait de la chaine vars0 les variables a calculer. Une verification

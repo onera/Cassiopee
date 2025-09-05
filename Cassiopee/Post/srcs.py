@@ -22,6 +22,9 @@ cpp_srcs = ["Post/coarsen.cpp",
             "Post/exteriorEltsStructured.cpp",
             "Post/frontFaces.cpp",
 
+            "Post/Fortran/compCurlStruct.cpp",
+            "Post/Fortran/compInterfaceField.cpp",
+
             "Post/Fortran/integStruct.cpp",
             "Post/Fortran/integUnstruct.cpp",
             "Post/Fortran/integNormStruct.cpp",

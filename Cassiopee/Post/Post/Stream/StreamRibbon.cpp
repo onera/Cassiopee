@@ -30,12 +30,6 @@ using namespace K_FUNC;
 
 extern "C"
 {  
-  void k6compmeancurlofstructcell_(
-    const E_Int& ind0, const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* u, const E_Float* v, const E_Float* w, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float& rotu, E_Float& rotv, E_Float& rotw);
-  
   void  k6compmeancurloftetracell_(
     const E_Int& npts, const E_Int& ind1, const E_Int& ind2, 
     const E_Int& ind3, const E_Int& ind4, 
@@ -1227,21 +1221,21 @@ short K_POST::getThetaRKCoef(
 
     /* Determination de f4(xp)=(rotv.v/normv)/2 */
     // 1-calcul de la vorticite    
-    k6compmeancurlofstructcell_(
+    compMeanCurlOfStructCell(
       ind, ni, nj, nk, velo->begin(1), velo->begin(2), velo->begin(3), 
       field->begin(posx), field->begin(posy), field->begin(posz),
       rotvx, rotvy, rotvz);
     
     // 2-calcul de v/normv
-    E_Float normu = sqrt(up*up+vp*vp+wp*wp);
-    if ( fEqualZero(normu) == true ) return 0;
+    E_Float normu = sqrt(up*up + vp*vp + wp*wp);
+    if (fEqualZero(normu)) return 0;
     normu = 1./normu;
     E_Float sx = up*normu;
     E_Float sy = vp*normu; 
     E_Float sz = wp*normu;
     
     // 3-Calcul du coeff de runge kutta pour theta
-    kcoef = rotvx*sx+rotvy*sy+rotvz*sz;
+    kcoef = rotvx*sx + rotvy*sy + rotvz*sz;
     return 1;
   }
   else // non structure
@@ -1264,17 +1258,17 @@ short K_POST::getThetaRKCoef(
     E_Int posy = posyu[noblk0];
     E_Int posz = poszu[noblk0];
     E_Int noet = indi[0];
-    E_Int indA = cnEV(noet,1)-1;
-    E_Int indB = cnEV(noet,2)-1;
-    E_Int indC = cnEV(noet,3)-1;
-    E_Int indD = cnEV(noet,4)-1;
+    E_Int indA = cnEV(noet, 1) - 1;
+    E_Int indB = cnEV(noet, 2) - 1;
+    E_Int indC = cnEV(noet, 3) - 1;
+    E_Int indD = cnEV(noet, 4) - 1;
     k6compmeancurloftetracell_( field->getSize(), indA, indB, indC, indD, 
                                 velo->begin(1), velo->begin(2), velo->begin(3), 
                                 field->begin(posx), field->begin(posy), field->begin(posz),
                                 rotvx, rotvy, rotvz);
     // 2-calcul de v/normv
     E_Float normu = sqrt(up*up+vp*vp+wp*wp);
-    if ( fEqualZero(normu) == true ) 
+    if (fEqualZero(normu)) 
       return 0;
     normu = 1./normu;
     E_Float sx = up*normu;
