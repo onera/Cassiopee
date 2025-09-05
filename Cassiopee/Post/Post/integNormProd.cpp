@@ -396,7 +396,7 @@ E_Int K_POST::integUnstruct3(E_Int center2node,
                              E_Float& resultat)
 {
   E_Float resultBlk = 0.;
-  E_Int size = coordBlk.getSize();
+  /*E_Int size = coordBlk.getSize();*/
 
   E_Int ntotElts = 0;
   E_Int nc = cnBlk.getNConnect();

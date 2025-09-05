@@ -68,7 +68,7 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
   { imin = p[0]; imax = p[2]; jmin = p[1]; jmax = p[3]; }
   else if (nf == 6)
   { imin = p[0]; imax = p[3]; jmin = p[1]; jmax = p[4]; kmin = p[2]; kmax = p[5]; }
-  else
+  else 
   {
     RELEASESHAREDN(PRo, PR);
     PyErr_SetString(PyExc_TypeError, 
@@ -171,13 +171,13 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
     // Extract imin2,imax2,...
     nf = PRdonor->getSize() * PRdonor->getNfld();
     p = PRdonor->begin();
-    E_Int imin2=1, imax2=1, jmin2=1, jmax2=1, kmin2=1, kmax2=1;
+    E_Int imin2=1, /*imax2=1,*/ jmin2=1, /*jmax2=1,*/ kmin2=1; /*kmax2=1;*/
     if (nf == 2)
-    { imin2 = p[0]; imax2 = p[1]; }
+    { imin2 = p[0]; /*imax2 = p[1];*/ }
     else if (nf == 4)
-    { imin2 = p[0]; imax2 = p[2]; jmin2 = p[1]; jmax2 = p[3]; }
+    { imin2 = p[0]; /*imax2 = p[2];*/ jmin2 = p[1]; /*jmax2 = p[3];*/ }
     else if (nf == 6)
-    { imin2 = p[0]; imax2 = p[3]; jmin2 = p[1]; jmax2 = p[4]; kmin2 = p[2]; kmax2 = p[5]; }
+    { imin2 = p[0]; /*imax2 = p[3];*/ jmin2 = p[1]; /*jmax2 = p[4];*/ kmin2 = p[2]; /*kmax2 = p[5];*/ }
     else
     {
       RELEASESHAREDN(PRdo, PRdonor);
@@ -185,12 +185,10 @@ PyObject* K_CONVERTER::PR2VL(PyObject* self, PyObject* args)
                       "PR2VL: pointRangeDonor is invalid.");
       return NULL;
     }
-    /*
-    if (imax2 < imin2) { t = imax2; imax2 = imin2; imin2 = t; }
-    if (jmax2 < jmin2) { t = jmax2; jmax2 = jmin2; jmin2 = t; }
-    if (kmax2 < kmin2) { t = kmax2; kmax2 = kmin2; kmin2 = t; }
-    */
-    
+    // revert point range if not right order
+    //if (imax2 < imin2) { t = imax2; imax2 = imin2; imin2 = t; }
+    //if (jmax2 < jmin2) { t = jmax2; jmax2 = jmin2; jmin2 = t; }
+    //if (kmax2 < kmin2) { t = kmax2; kmax2 = kmin2; kmin2 = t; }    
 
     // shift matrix
     E_Int* trfp = trf->begin();
