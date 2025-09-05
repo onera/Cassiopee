@@ -22,35 +22,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C" 
-{
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                       const E_Int& nfld, E_Float* fieldnode, 
-                       E_Float* fieldcenter);
-
-  void k6compstructgrad_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& nbcell, const E_Int& nbint, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    const E_Float* field,
-    E_Float* gradx, E_Float* grady, E_Float* gradz,
-    E_Float* surf, E_Float* snorm, E_Float* centerInt,
-    E_Float* vol, E_Float* fieldint);
-
-  void k6compstructgrad1d_(
-    const E_Int& ni, const E_Int& nbcell, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    const E_Float* field,
-    E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-  void k6compstructgrad2d_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nbcell, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* field,
-    E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
-    E_Float* gradx, E_Float* grady, E_Float* gradz);
-}
-
 //=============================================================================
 /* Calcul du gradient d un ensemble de champs definis en noeuds. 
    Le gradient est fourni aux centres des cellules */
@@ -184,10 +155,12 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
 //=============================================================================
 /* gradx, grady, gradz must be allocated before */
 //=============================================================================
-E_Int K_POST::computeGradStruct(E_Int ni, E_Int nj, E_Int nk, 
-                                E_Float* xt, E_Float* yt, E_Float* zt, 
-                                E_Float* field,
-                                E_Float* gradx, E_Float* grady, E_Float* gradz)
+E_Int K_POST::computeGradStruct(
+  E_Int ni, E_Int nj, E_Int nk, 
+  E_Float* xt, E_Float* yt, E_Float* zt, 
+  E_Float* field,
+  E_Float* gradx, E_Float* grady, E_Float* gradz
+)
 {
   E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1;
   E_Int dim = 3;
@@ -220,15 +193,16 @@ E_Int K_POST::computeGradStruct(E_Int ni, E_Int nj, E_Int nk,
       nk = 2;
     }
   }
-  ni1 = K_FUNC::E_max(1,ni-1);
-  nj1 = K_FUNC::E_max(1,nj-1);
-  nk1 = K_FUNC::E_max(1,nk-1);    
+
+  ni1 = K_FUNC::E_max(1, ni-1);
+  nj1 = K_FUNC::E_max(1, nj-1);
+  nk1 = K_FUNC::E_max(1, nk-1);    
   E_Int ncells = ni1*nj1*nk1;
-  E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
+
   // Construction des tableaux locaux
   if (dim == 1)
   {
-    k6compstructgrad1d_(ni, ni1, xt, yt, zt, field, gradx, grady, gradz);
+    compStructGrad1d(ni, xt, yt, zt, field, gradx, grady, gradz);
   }
   else if (dim == 2)
   {
@@ -236,21 +210,27 @@ E_Int K_POST::computeGradStruct(E_Int ni, E_Int nj, E_Int nk,
     FldArrayF nxt(ncells);
     FldArrayF nyt(ncells);
     FldArrayF nzt(ncells);
-    k6compstructgrad2d_(ni, nj, ni1*nj1, xt, yt, zt, field, 
-                        surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(), 
-                        gradx, grady, gradz);
+    compStructGrad2d(
+      ni, nj, xt, yt, zt, field, 
+      surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(), 
+      gradx, grady, gradz
+    );
   }
-  else //3d
+  else // 3d
   {
+    E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
     FldArrayF surf(nint, 3);
     FldArrayF snorm(nint);
     FldArrayF centerInt(nint, 3);
     FldArrayF vol(ncells);
     FldArrayF fieldint(nint);
-    k6compstructgrad_(ni, nj, nk, ncells, nint, 
-                      xt, yt, zt, field, gradx, grady, gradz,
-                      surf.begin(), snorm.begin(), centerInt.begin(), 
-                      vol.begin(), fieldint.begin());
+    compStructGrad(
+      ni, nj, nk, ncells, 
+      xt, yt, zt, field, gradx, grady, gradz,
+      surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
+      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3), 
+      vol.begin(), fieldint.begin()
+    );
   }
   return 1;
 }
@@ -270,7 +250,7 @@ void K_POST::computeGradVarsString(char* varString, char*& varStringOut)
   for (E_Int v = 0; v < varsSize; v++)
   {
     E_Int vsize = strlen(vars[v]);
-    sizeVarStringOut+=vsize+6;//gradxvarString,
+    sizeVarStringOut += vsize + 6;//gradxvarString,
   }
   varStringOut = new char [3*sizeVarStringOut];
 
@@ -302,15 +282,11 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
                               E_Float* fp, FldArrayI& cn,
                               E_Float* gradx, E_Float* grady, E_Float* gradz)
 {
-  // Acces non universel sur le ptrs
-  E_Int* ngon = cn.getNGon();
-  E_Int* nface = cn.getNFace();
-  E_Int* indPG = cn.getIndPG();
-  E_Int* indPH = cn.getIndPH();
-  // Acces universel nbres d'elements et de faces
-  E_Int nelts = cn.getNElts();
-  E_Int nfaces = cn.getNFaces();
-  E_Int ierr = 0; // error index
+  // Donnees liees a la connectivite
+  E_Int nfaces = cn.getNFaces(); // nombre total de faces
+  E_Int nelts = cn.getNElts();  // nombre total d elements
+  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
+  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
 
   // calcul de la metrique
   E_Float* sxp = new E_Float [3*nfaces];
@@ -322,84 +298,84 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
   delete cFE;
   E_Float* volp = new E_Float [nelts];
-  K_METRIC::compNGonVol(xt, yt, zt, cn, volp); 
+  K_METRIC::compNGonVol(xt, yt, zt, cn, volp);
+
   // Connectivite Element/Noeuds
-  vector< vector<E_Int> > cnEV(nelts);
+  vector<vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
+
   // Tableau de la dimension des elements
   FldArrayI dimElt(nelts); 
   K_CONNECT::getDimElts(cn, dimElt);
+  if (dimElt[0] < 3)
+  {
+    printf("computeGrad: not valid for " SF_D_ "D NGONs\n", dimElt[0]);
+    delete [] volp;
+    delete [] sxp; 
+    delete [] syp;
+    delete [] szp;
+    delete [] snp;
+    return 1;
+  }
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     E_Float fpmeanface, invvol;
-    E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
+    E_Int ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
     E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
     E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
     E_Float sens, sx, sy, sz;
 
     // parcours des elements
-#pragma omp for
+    #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     { 
-      // An error occurred - skip the rest of the calculations
-      if (ierr == 1) continue;
+      invvol = 1./volp[et];
+      gradx[et] = 0.; grady[et] = 0.; gradz[et] = 0.;
       
-      dim = dimElt[et]; // dimension de l'element
-      if (dim == 3) 
+      // calcul du barycentre be (xbe, ybe, zbe) de l'element
+      const vector<E_Int>& vertices = cnEV[et]; // sommets associes a l'element et
+      nbNodes = vertices.size();
+      xbe = 0.; ybe = 0.; zbe = 0.;
+      for (E_Int n = 0; n < nbNodes; n++)
       {
-        invvol = 1./volp[et];
-        gradx[et] = 0.; grady[et] = 0.; gradz[et] = 0.;
-        
-        // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        const vector<E_Int>& vertices = cnEV[et]; // sommets associes a l'element et
-        nbNodes = vertices.size();
-        xbe = 0.; ybe = 0.; zbe = 0.;
-        for (E_Int n = 0; n < nbNodes; n++)
-        {
-          ind = vertices[n]-1;
-          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
-        }
-        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
+        ind = vertices[n]-1;
+        xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+      }
+      xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
 
-        // Acces universel element et
-        E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
-        // parcours des faces de l element et
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          // Acces universel face noface
-          noface = elt[fa]-1;
-          E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
-          //valeur moyenne de fp pour la face
-          fpmeanface = 0.;
-          // calcul du barycentre bf (xbf, ybf, zbf) de la face
-          xbf = 0.; ybf = 0.; zbf = 0.;
-          for (E_Int n = 0; n < nbNodesPerFace; n++)
-          {
-            indnode = face[n]-1; // indice du point n
-            xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
-            fpmeanface += fp[indnode];
-          }
-          xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;            
-          fpmeanface = fpmeanface/nbNodesPerFace;           
-          // bilan
-          // verification du sens de la normale. Celle-ci doit etre exterieure
-          sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
-          sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
-          if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
-          gradx[et] += fpmeanface*sx;
-          grady[et] += fpmeanface*sy;
-          gradz[et] += fpmeanface*sz;
-        }
-        gradx[et] *= invvol;
-        grady[et] *= invvol;
-        gradz[et] *= invvol;
-      }
-      else
+      // Acces universel element et
+      E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
+      // parcours des faces de l element et
+      for (E_Int fa = 0; fa < nbFaces; fa++)
       {
-        printf("computeGrad: not valid for " SF_D_ "D NGONs\n", dim);
-        ierr = 1;
+        // Acces universel face noface
+        noface = elt[fa]-1;
+        E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
+        //valeur moyenne de fp pour la face
+        fpmeanface = 0.;
+        // calcul du barycentre bf (xbf, ybf, zbf) de la face
+        xbf = 0.; ybf = 0.; zbf = 0.;
+        for (E_Int n = 0; n < nbNodesPerFace; n++)
+        {
+          indnode = face[n]-1; // indice du point n
+          xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
+          fpmeanface += fp[indnode];
+        }
+        xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;            
+        fpmeanface = fpmeanface/nbNodesPerFace;           
+        // bilan
+        // verification du sens de la normale. Celle-ci doit etre exterieure
+        sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
+        sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
+        if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
+        gradx[et] += fpmeanface * sx;
+        grady[et] += fpmeanface * sy;
+        gradz[et] += fpmeanface * sz;
       }
+      gradx[et] *= invvol;
+      grady[et] *= invvol;
+      gradz[et] *= invvol;
     }
   }
   delete [] volp;
@@ -407,5 +383,5 @@ E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   delete [] syp;
   delete [] szp;
   delete [] snp;
-  return ierr;
+  return 0;
 }

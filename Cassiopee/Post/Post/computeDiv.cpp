@@ -24,26 +24,6 @@ using namespace std;
 
 extern "C"
 {
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk,
-                       const E_Int& nfld, E_Float* fieldnode,
-                       E_Float* fieldcenter);
-
-  void k6compstructdiv_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Int& nbcell, const E_Int& nbint,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-    E_Float* div,
-    E_Float* surf, E_Float* snorm, E_Float* centerInt,
-    E_Float* vol, E_Float* fldintX, E_Float* fldintY, E_Float* fldintZ);
-
-  void k6compstructdiv2d_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nbcell,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-    E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
-    E_Float* div);
-
   void k6compunstrdiv_(E_Int& dim, E_Int& npts, E_Int& nelts,
                        E_Int& nedges, E_Int& nnodes,
                        E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt,
@@ -146,7 +126,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv: no field to compute.");
-    RELEASESHAREDB(res,array, f, cn); return NULL;
+    RELEASESHAREDB(res, array, f, cn); return NULL;
   }
 
   if (strncmp(vars[0], vars[1], strlen(vars[0])-1) != 0 ||
@@ -180,22 +160,24 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   PyObject* tpl = NULL;
   if (res == 1)
   {
-    E_Int ni1 = K_FUNC::E_max(1,ni-1);
-    E_Int nj1 = K_FUNC::E_max(1,nj-1);
-    E_Int nk1 = K_FUNC::E_max(1,nk-1);
+    E_Int ni1 = K_FUNC::E_max(1, ni-1);
+    E_Int nj1 = K_FUNC::E_max(1, nj-1);
+    E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
     tpl = K_ARRAY::buildArray(1, varStringOut, ni1, nj1, nk1);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fp(ncells, 1, fnp, true); fp.setAllValuesAtNull();
-    E_Int err = computeDivStruct(ni, nj, nk,
-                                 f->begin(posx), f->begin(posy), f->begin(posz),
-                                 f->begin(posu), f->begin(posv), f->begin(posw),
-                                 fp.begin());
-    if (err == -1)
+    E_Int ierr = computeDivStruct(
+      ni, nj, nk,
+      f->begin(posx), f->begin(posy), f->begin(posz),
+      f->begin(posu), f->begin(posv), f->begin(posw),
+      fp.begin()
+    );
+    if (ierr == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeDiv: Not valid for 1D.");
-      RELEASESHAREDB(res,array,f,cn); return NULL;
+      RELEASESHAREDB(res, array, f, cn); return NULL;
     }
   }
   else if (res == 2)
@@ -203,24 +185,24 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       E_Int npts = f->getSize();
-      E_Int* cnp = cn->begin();
-      //E_Int nfaces = cnp[0]; // nombre total de faces
-      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
+      E_Int nelts = cn->getNElts();  // nombre total d elements
+      // E_Int nfaces = cn->getNFaces();  // nombre total de faces
       E_Int csize = cn->getSize();
       tpl = K_ARRAY::buildArray(1, varStringOut, npts, nelts, -1, eltType, true, csize);
       E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
       FldArrayF fp(nelts, 1, fnp, true);
       E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
       FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
-      E_Int err = computeDivNGon(f->begin(posx), f->begin(posy), f->begin(posz),
-                                 f->begin(posu), f->begin(posv), f->begin(posw), *cn,
-                                 fp.begin());
-      if (err == 1)
+      E_Int ierr = computeDivNGon(
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw), *cn,
+        fp.begin()
+      );
+      if (ierr == 1)
       {
         PyErr_SetString(PyExc_TypeError,
                         "computeDiv: divergence can only be computed for 3D NGONs.");
-        RELEASESHAREDB(res,array,f,cn); return NULL;
+        RELEASESHAREDB(res, array, f, cn); return NULL;
       }
     }
     else
@@ -257,10 +239,12 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
 //=============================================================================
 /* div must be allocated before */
 //=============================================================================
-E_Int K_POST::computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
-                               E_Float* xt, E_Float* yt, E_Float* zt,
-                               E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                               E_Float* div)
+E_Int K_POST::computeDivStruct(
+  E_Int ni, E_Int nj, E_Int nk,
+  E_Float* xt, E_Float* yt, E_Float* zt,
+  E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
+  E_Float* div
+)
 {
   if ((ni == 1 && nj == 1) || (ni == 1 && nk == 1) || (nj == 1 && nk == 1))
     return -1;
@@ -278,11 +262,12 @@ E_Int K_POST::computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
   {
     nk = 2; dim = 2;
   }
-  E_Int ni1 = K_FUNC::E_max(1,ni-1);
-  E_Int nj1 = K_FUNC::E_max(1,nj-1);
-  E_Int nk1 = K_FUNC::E_max(1,nk-1);
+
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
   E_Int ncells = ni1*nj1*nk1;
-  E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
+  
   // Construction des tableaux locaux
   if (dim == 2)
   {
@@ -290,12 +275,15 @@ E_Int K_POST::computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
     FldArrayF nxt(ncells);
     FldArrayF nyt(ncells);
     FldArrayF nzt(ncells);
-    k6compstructdiv2d_(ni, nj, ni1*nj1, xt, yt, zt, fieldX, fieldY, fieldZ,
-                       surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(),
-                       div);
+    compStructDiv2d(
+      ni, nj, xt, yt, zt, fieldX, fieldY, fieldZ,
+      surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(),
+      div
+    );
   }
-  else //3d
+  else // 3d
   {
+    E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
     FldArrayF surf(nint, 3);
     FldArrayF snorm(nint);
     FldArrayF centerInt(nint, 3);
@@ -303,11 +291,13 @@ E_Int K_POST::computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
     FldArrayF fieldintX(nint);
     FldArrayF fieldintY(nint);
     FldArrayF fieldintZ(nint);
-    k6compstructdiv_(ni, nj, nk, ncells, nint,
-                     xt, yt, zt, fieldX, fieldY, fieldZ, div,
-                     surf.begin(), snorm.begin(), centerInt.begin(),
-                     vol.begin(),
-                     fieldintX.begin(), fieldintY.begin(), fieldintZ.begin());
+    compStructDiv(
+      ni, nj, nk, ncells,
+      xt, yt, zt, fieldX, fieldY, fieldZ, div,
+      surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
+      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3),
+      vol.begin(), fieldintX.begin(), fieldintY.begin(), fieldintZ.begin()
+    );
   }
   return 1;
 }
@@ -381,22 +371,24 @@ E_Int K_POST::computeDivNS(char* eltType, E_Int npts, FldArrayI& cn,
 }
 
 //==============================================================================
-E_Int K_POST::computeDivNGon(E_Float* xt, E_Float* yt, E_Float* zt,
-                             E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
-                             E_Float* div)
+E_Int K_POST::computeDivNGon(
+  E_Float* xt, E_Float* yt, E_Float* zt,
+  E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
+  E_Float* div
+)
 {
-  E_Int* cnp = cn.begin();
   // Donnees liees a la connectivite
-  E_Int nfaces = cnp[0]; // nombre total de faces
-  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-  E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
+  E_Int nfaces = cn.getNFaces(); // nombre total de faces
+  E_Int nelts = cn.getNElts();  // nombre total d elements
+  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
+  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
 
   // calcul de la metrique
   E_Float* sxp = new E_Float [3*nfaces];
   E_Float* syp = new E_Float [3*nfaces];
   E_Float* szp = new E_Float [3*nfaces];
   E_Float* snp = new E_Float [nfaces];
+
   FldArrayI* cFE = new FldArrayI();
   K_CONNECT::connectNG2FE(cn, *cFE);
   K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
@@ -407,101 +399,79 @@ E_Int K_POST::computeDivNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   vector< vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
 
-  // sommets associes a l'element
-  vector<E_Int> vertices;
-
-  FldArrayI posFace(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cn, posFace);
-
-  E_Float fpxmeanface, fpymeanface, fpzmeanface, invvol;
-  E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace, pos;
-  E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
-  E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
-  E_Float sens, sx, sy, sz;
   FldArrayI dimElt(nelts); // tableau de la dimension des elements
   K_CONNECT::getDimElts(cn, dimElt);
-  // parcours des elements
-  for (E_Int et = 0; et < nelts; et++)
+  if (dimElt[0] < 3)
   {
-    dim = dimElt[et]; // dimension de l'element
-    switch (dim)
+    printf("computeDiv: not valid for " SF_D_ "D NGONs\n", dimElt[0]);
+    delete [] volp;
+    delete [] sxp;
+    delete [] syp;
+    delete [] szp;
+    delete [] snp;
+    return 1;
+  }
+
+  #pragma omp parallel
+  {
+    E_Int ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
+    E_Float fpxmeanface, fpymeanface, fpzmeanface, invvol;
+    E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
+    E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
+    E_Float sens, sx, sy, sz;
+    vector<E_Int> vertices; // sommets associes a l'element
+
+    // parcours des elements
+    #pragma omp for
+    for (E_Int et = 0; et < nelts; et++)
     {
-      case 1: // NGon 1D
-        printf("computeDiv: not valid for 1D NGONs\n");
-        delete [] volp;
-        delete [] sxp;
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+      invvol = 1./volp[et];
+      div[et] = 0.;
 
-      case 2: // NGon 2D
-        printf("computeDiv: not valid for 2D NGONs\n");
-        delete [] volp;
-        delete [] sxp;
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+      // calcul du barycentre be (xbe, ybe, zbe) de l'element
+      vertices = cnEV[et];
+      nbNodes = vertices.size();
+      xbe = 0.; ybe = 0.; zbe = 0.;
+      for (E_Int n = 0; n < nbNodes; n++)
+      {
+        ind = vertices[n]-1;
+        xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+      }
+      xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
 
-      case 3:
-        invvol = 1./volp[et];
-        div[et] = 0.;
-
-        // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        vertices = cnEV[et];
-        nbNodes = vertices.size();
-        xbe = 0.; ybe = 0.; zbe = 0.;
-        for (E_Int n = 0; n < nbNodes; n++)
+      // parcours des faces de l element et
+      E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
+      for (E_Int fa = 0; fa < nbFaces; fa++)
+      {
+        noface = elt[fa]-1;
+        E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
+        // valeur moyenne de fpx,fpy,fpz pour la face
+        fpxmeanface = 0.; fpymeanface = 0.; fpzmeanface = 0.;
+        // calcul du barycentre bf (xbf, ybf, zbf) de la face
+        xbf = 0.; ybf = 0.; zbf = 0.;
+        for (E_Int n = 0; n < nbNodesPerFace; n++)
         {
-          ind = vertices[n]-1;
-          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+          indnode = face[n]-1;
+          xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
+          fpxmeanface += fpx[indnode];
+          fpymeanface += fpy[indnode];
+          fpzmeanface += fpz[indnode];
         }
-        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
-
-        // parcours des faces de l element et
-        nbFaces = cEFp[0];
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          noface = cEFp[fa+1]-1;
-          pos = posFace[noface];
-          nbNodesPerFace = cnp[pos]; pos++;
-          //valeur moyenne de fpx,fpy,fpz pour la face
-          fpxmeanface = 0.; fpymeanface = 0.; fpzmeanface = 0.;
-          // calcul du barycentre bf (xbf, ybf, zbf) de la face
-          xbf = 0.; ybf = 0.; zbf = 0.;
-          for (E_Int n = 0; n < nbNodesPerFace; n++)
-          {
-            indnode = cnp[pos+n]-1;
-            xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
-            fpxmeanface += fpx[indnode];
-            fpymeanface += fpy[indnode];
-            fpzmeanface += fpz[indnode];
-          }
-          xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;
-          fpxmeanface /= nbNodesPerFace;
-          fpymeanface /= nbNodesPerFace;
-          fpzmeanface /= nbNodesPerFace;
-          // bilan
-          // verification du sens de la normale. Celle-ci doit etre exterieure
-          sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
-          sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
-          if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
-          div[et] += fpxmeanface*sx + fpymeanface*sy + fpzmeanface*sz;
-        }
-        cEFp += nbFaces+1;
-        div[et] *= invvol;
-        break;
-
-      default:
-        delete [] volp;
-        delete [] sxp;
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+        xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;
+        fpxmeanface /= nbNodesPerFace;
+        fpymeanface /= nbNodesPerFace;
+        fpzmeanface /= nbNodesPerFace;
+        // bilan
+        // verification du sens de la normale. Celle-ci doit etre exterieure
+        sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
+        sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
+        if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
+        div[et] += fpxmeanface*sx + fpymeanface*sy + fpzmeanface*sz;
+      }
+      div[et] *= invvol;
     }
   }
+
   delete [] volp;
   delete [] sxp;
   delete [] syp;

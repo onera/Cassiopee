@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
-#include <math.h>
 
 // ============================================================================
 //  Calcul du rotationnel moyen d'un champ u sur une grille
@@ -65,10 +64,7 @@ void K_POST::compStructCurlt(
     centerIntx, centerInty, centerIntz
   );
 
-  compIntFieldv(
-    ni, nj, nk, ux, uy, uz,
-    uintx, uinty, uintz
-  );
+  compIntFieldv(ni, nj, nk, ux, uy, uz, uintx, uinty, uintz);
 
   #pragma omp parallel
   {
@@ -167,15 +163,16 @@ void K_POST::compStructCurl2dt(
   K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf);
   K_METRIC::compNormStructSurf(ni, nj, xt, yt, zt, nxt, nyt, nzt);
 
-  E_Int indA, indB, indC, indD, indcell;
-  E_Float nx, ny, nz, nn;
-  E_Float vinv;
-  E_Float curlx, curly, curlz;
-  E_Float xAB, yAB, zAB, xBC, yBC, zBC, xCD, yCD, zCD, xDA, yDA, zDA;
-  E_Float n1x, n1y, n1z, vx, vy, vz;
-
-  for (E_Int j = 0; j < nj1; j++)
+  #pragma omp parallel
   {
+    E_Int indA, indB, indC, indD, indcell;
+    E_Float nx, ny, nz, nn;
+    E_Float vinv, curlx, curly, curlz;
+    E_Float xAB, yAB, zAB, xBC, yBC, zBC, xCD, yCD, zCD, xDA, yDA, zDA;
+    E_Float n1x, n1y, n1z, vx, vy, vz;
+
+    #pragma omp for collapse(2)
+    for (E_Int j = 0; j < nj1; j++)
     for (E_Int i = 0; i < ni1; i++)
     {
       indA = i + j * ni;

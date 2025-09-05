@@ -24,10 +24,6 @@ using namespace std;
 
 extern "C"
 {
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                       const E_Int& nfld, E_Float* fieldnode, 
-                       E_Float* fieldcenter);
-
   void k6compunstrcurl_(E_Int& dim,E_Int& npts,E_Int& nelts,E_Int& nedges, 
                         E_Int& nnodes,E_Int* cn,E_Float* xt,E_Float* yt,
                         E_Float* zt,E_Float* snx,E_Float* sny,E_Float* snz,
@@ -388,7 +384,6 @@ E_Int K_POST::computeCurlNGon(
 
   FldArrayI dimElt(nelts); // tableau de la dimension des elements
   K_CONNECT::getDimElts(cn, dimElt);
-
   if (dimElt[0] < 3)
   {
     printf("computeCurl: not valid for " SF_D_ "D NGONs\n", dimElt[0]);

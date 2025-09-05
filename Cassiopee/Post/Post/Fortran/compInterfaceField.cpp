@@ -58,7 +58,7 @@ void K_POST::compIntField(
 
   #pragma omp parallel
   {
-    E_Int li, lj, lk, l1, l2, l3, l4;
+    E_Int li, l1, l2, l3, l4;
     
     // Interfaces en i
     #pragma omp for collapse(3)

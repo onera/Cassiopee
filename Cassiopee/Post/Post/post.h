@@ -603,6 +603,81 @@ namespace K_POST
     E_Float* fint1, E_Float* fint2, E_Float* fint3);
 
 // ============================================================================
+// Calcul de la divergence d'un champ defini aux noeuds d une grille structuree
+// retourne la divergence defini aux centres des cellules
+// ============================================================================
+  void compStructDiv(
+    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div, E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
+    E_Float* centerIntx, E_Float* centerIntz, E_Float* centerInty, E_Float* vol,
+    E_Float* fldintX, E_Float* fldintY, E_Float* fldintZ);
+
+// ============================================================================
+// Calcul de la divergence d'un champ defini aux noeuds d une grille surfacique
+// structuree
+// retourne la divergence defini aux centres des cellules
+// IN
+// ni, nj : dimensions de la grille aux noeuds
+// nbcell : nb de cellules
+// xt, yt, zt : coordonnees des noeuds de la grille
+// fieldX, fieldY, fieldZ : champ defini aux noeuds auquel on applique div
+// surf : surface des cellules 2d
+// nxt, nyt, nzt : normale aux cellules
+// OUT
+// div : divergence du champ vectoriel
+// ============================================================================
+  void compStructDiv2d(
+    const E_Int ni, const E_Int nj,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
+    E_Float* div);
+
+// ============================================================================
+// Calcul du gradient d'un champ defini aux noeuds d une grille structuree
+// retourne le gradient defini aux centres des cellules
+// ============================================================================
+  void compStructGrad(
+    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz,
+    E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
+    E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz,
+    E_Float* vol, E_Float* fieldint);
+
+// ============================================================================
+// Calcul du gradient d'un champ defini aux noeuds d'une grille surfacique
+// structuree 
+// retourne le gradient defini aux centres des cellules
+// ============================================================================
+  void compStructGrad2d(
+    const E_Int ni, const E_Int nj,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field, E_Float* surf,
+    E_Float* nxt, E_Float* nyt, E_Float* nzt,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+// ============================================================================
+// Calcul du gradient d'un champ defini aux noeuds d une grille surfacique
+// structuree 
+// retourne le gradient defini aux centres des cellules
+// IN
+// ni: dimensions de la grille aux noeuds
+// nbcell: nb de cellules
+// xt, yt, zt: coordonnees des noeuds de la grille
+// field: champ defini aux noeuds auquel on applique grad
+// OUT
+// gradx, grady, gradz: gradient de field aux centres des cellules
+// ============================================================================
+  void compStructGrad1d(
+    const E_Int ni, const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+// ============================================================================
 //  Calcul du rotationnel moyen d'un champ u sur une grille
 //  IN: ni,nj,nk: dimensions du maillage en noeuds
 //  IN: nbcell: nbre de cellules
