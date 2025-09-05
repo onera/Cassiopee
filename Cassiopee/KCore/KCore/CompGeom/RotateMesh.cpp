@@ -15,7 +15,6 @@ void K_COMPGEOM::rotateMesh(const E_Int dim, const E_Float teta,
 			    E_Float* x0, E_Float* y0, E_Float* z0)
 {
   // LOCAL
-  E_Int ind;
   E_Float unx, uny, unz;
   E_Float norm;
   E_Float px, py, pz;
@@ -79,7 +78,6 @@ void K_COMPGEOM::rotateMesh2(const E_Int npts, const E_Float teta,
 			     E_Float* x0, E_Float* y0, E_Float* z0)
 {
   // LOCAL
-  E_Int ind;
   E_Float unx, uny, unz;
   E_Float norm;
   E_Float px, py, pz;
