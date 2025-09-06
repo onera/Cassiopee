@@ -24,25 +24,6 @@ using namespace std;
 
 extern "C"
 {
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                       const E_Int& nfld, E_Float* fieldnode, 
-                       E_Float* fieldcenter);
-
-  void k6compstructcurlt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& ncells, const E_Int& nint, 
-    E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float* ux, E_Float* uy, E_Float* uz, 
-    E_Float* rotx, E_Float* roty, E_Float* rotz,
-    E_Float* surf, E_Float* snorm, E_Float* centerInt, 
-    E_Float* vol, E_Float* uintx, E_Float* uinty, E_Float* uintz);
-
-  void k6compstructcurl2dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,  
-    const E_Float* ux, const E_Float* uy, const E_Float* uz,
-    E_Float* rotx, E_Float* roty, E_Float* rotz);
-
   void k6compunstrcurl_(E_Int& dim,E_Int& npts,E_Int& nelts,E_Int& nedges, 
                         E_Int& nnodes,E_Int* cn,E_Float* xt,E_Float* yt,
                         E_Float* zt,E_Float* snx,E_Float* sny,E_Float* snz,
@@ -155,11 +136,11 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   strcpy(varStringOut, "rotx,roty,rotz"); 
   if (res == 1)
   {
-    E_Int ni1 = K_FUNC::E_max(1,ni-1);
-    E_Int nj1 = K_FUNC::E_max(1,nj-1);
-    E_Int nk1 = K_FUNC::E_max(1,nk-1);
+    E_Int ni1 = K_FUNC::E_max(1, ni-1);
+    E_Int nj1 = K_FUNC::E_max(1, nj-1);
+    E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray(3, varStringOut, ni1, nj1, nk1);   
+    tpl = K_ARRAY::buildArray(3, varStringOut, ni1, nj1, nk1);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fp(ncells, 3, fnp, true); 
     computeCurlStruct(ni, nj, nk, 
@@ -169,6 +150,33 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   }
   else // non structure
   {
+    // if (strcmp(eltType, "NGON") == 0)
+    // {
+    //   E_Int api = f->getApi();
+    //   E_Int npts = f->getSize();
+    //   E_Int sizeFN = cn->getSizeNGon(); //  taille de la connectivite Face/Noeuds
+    //   E_Int nelts = cn->getNElts(); // nombre total d elements
+    //   E_Int nfaces = cn->getNFaces();
+    //   tpl = K_ARRAY::buildArray3(3, varStringOut, npts, nelts, nfaces,
+    //                              eltType, true, api);
+    //   FldArrayF* fnp; FldArrayI* cnnp;
+    //   K_ARRAY::getFromArray3(tpl, fnp, cnnp);
+    //   FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
+    //   E_Int ierr = computeCurlNGon(
+    //     f->begin(posx), f->begin(posy), f->begin(posz),
+    //     f->begin(posu), f->begin(posv), f->begin(posw), *cn, 
+    //     fp.begin(1), fp.begin(2), fp.begin(3)
+    //   );
+    //   RELEASESHAREDU(array, f, cn);
+
+    //   if (ierr == 1)
+    //   {
+    //     PyErr_SetString(PyExc_TypeError, 
+    //                     "computeCurl: curl can only be computed for 3D NGONs.");
+    //     RELEASESHAREDB(res, array, f, cn); return NULL;         
+    //   }      
+    // }
+    
     if (strcmp(eltType,"NGON") == 0)
     {
       E_Int npts = f->getSize();
@@ -248,29 +256,34 @@ E_Int K_POST::computeCurlStruct(E_Int ni, E_Int nj, E_Int nk,
   {
     nk = 2; dim = 2;
   }
+
   // Calcul du rotationnel aux centres
-  E_Int ni1 = K_FUNC::E_max(1,ni-1);
-  E_Int nj1 = K_FUNC::E_max(1,nj-1);
-  E_Int nk1 = K_FUNC::E_max(1,nk-1);
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
   E_Int ncells = ni1*nj1*nk1;
   E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
   
   FldArrayF surf(nint, 3);
   FldArrayF snorm(nint);
-  FldArrayF centerInt(nint,3);
+  FldArrayF centerInt(nint, 3);
   FldArrayF vol(ncells);
-  FldArrayF uint(nint,3);
-  if (dim == 2) 
-    k6compstructcurl2dt_(ni, nj, ncells, 
-                         xt, yt, zt, ux, uy, uz,
-                         rotx, roty, rotz);
+  FldArrayF uint(nint, 3);
+  if (dim == 2)
+  {
+    compStructCurl2dt(ni, nj, ncells, 
+                      xt, yt, zt, ux, uy, uz,
+                      rotx, roty, rotz);
+  }
   else
-    k6compstructcurlt_(ni, nj, nk, ncells, nint, 
-                       xt, yt, zt, ux, uy, uz,
-                       rotx, roty, rotz,
-                       surf.begin(), snorm.begin(),
-                       centerInt.begin(), vol.begin(), 
-                       uint.begin(1), uint.begin(2), uint.begin(3)); 
+  {
+    compStructCurlt(ni, nj, nk, ncells,
+                    xt, yt, zt, ux, uy, uz,
+                    rotx, roty, rotz,
+                    surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
+                    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3),
+                    vol.begin(), uint.begin(1), uint.begin(2), uint.begin(3));
+  }
   return 1;
 }
 //=============================================================================
@@ -280,9 +293,9 @@ E_Int K_POST::computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn,
                             E_Float* rotx, E_Float* roty, E_Float* rotz)
 {
   E_Int nelts = cn.getSize();
-  E_Int nnodes=0; //nb de noeuds par elts
-  E_Int nedges=0; //nb de facettes par elts
-  E_Int dim = 3; 
+  E_Int nnodes = 0; //nb de noeuds par elts
+  E_Int nedges = 0; //nb de facettes par elts
+  E_Int dim = 3;
   if (strcmp(eltType, "TRI") == 0) 
   {
     nnodes = 3; nedges = 3; dim = 2;
@@ -342,16 +355,17 @@ E_Int K_POST::computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn,
   return 1;
 }
 //==============================================================================
-E_Int K_POST::computeCurlNGon(E_Float* xt, E_Float* yt, E_Float* zt, 
-                              E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
-                              E_Float* curlx, E_Float* curly, E_Float* curlz)
+E_Int K_POST::computeCurlNGon(
+  E_Float* xt, E_Float* yt, E_Float* zt, 
+  E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
+  E_Float* curlx, E_Float* curly, E_Float* curlz
+)
 {
-  E_Int* cnp = cn.begin();
   // Donnees liees a la connectivite
-  E_Int nfaces = cnp[0]; // nombre total de faces
-  E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-  E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-  E_Int* cEFp = cnp+4+sizeFN;// debut connectivite Elmt/Faces
+  E_Int nfaces = cn.getNFaces(); // nombre total de faces
+  E_Int nelts = cn.getNElts();  // nombre total d elements
+  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
+  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
 
   // calcul de la metrique
   E_Float* sxp = new E_Float [3*nfaces];
@@ -365,110 +379,87 @@ E_Int K_POST::computeCurlNGon(E_Float* xt, E_Float* yt, E_Float* zt,
   E_Float* volp = new E_Float [nelts];
   K_METRIC::compNGonVol(xt, yt, zt, cn, volp); 
   // Connectivite Element/Noeuds
-  vector< vector<E_Int> > cnEV(nelts);
+  vector<vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
 
-  // sommets associes a l'element
-  vector<E_Int> vertices;
-
-  FldArrayI posFace(nfaces); // tableau de position des faces dans la connectivite
-  K_CONNECT::getPosFaces(cn, posFace);
-
-  E_Float fxpmeanface, fypmeanface, fzpmeanface, invvol;
-  E_Int dim, ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace, pos;
-  E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
-  E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
-  E_Float  sens, sx, sy, sz;
   FldArrayI dimElt(nelts); // tableau de la dimension des elements
   K_CONNECT::getDimElts(cn, dimElt);
+  if (dimElt[0] < 3)
+  {
+    printf("computeCurl: not valid for " SF_D_ "D NGONs\n", dimElt[0]);
+    delete [] volp;
+    delete [] sxp; 
+    delete [] syp;
+    delete [] szp;
+    delete [] snp;
+    return 1;
+  }
 
-  // parcours des elements
-  for (E_Int et = 0; et < nelts; et++)
-  { 
-    dim = dimElt[et]; // dimension de l'element
-    switch (dim) 
-    {
-      case 1: // NGon 1D
-        printf("computCurl: not valid for 1D NGONs\n");
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;     
+  #pragma omp parallel
+  {
+    E_Int ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
+    E_Float fxpmeanface, fypmeanface, fzpmeanface, invvol;
+    E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
+    E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
+    E_Float sens, sx, sy, sz;
+    vector<E_Int> vertices; // sommets associes a l'element
 
-      case 2: // NGon 2D
-        printf("computeCurl: not valid for 2D NGONs\n");
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+    // parcours des elements
+    #pragma omp for
+    for (E_Int et = 0; et < nelts; et++)
+    { 
+      invvol = -1./volp[et];
+      curlx[et] = 0.; curly[et] = 0.; curlz[et] = 0.;
+      
+      // calcul du barycentre be (xbe, ybe, zbe) de l'element
+      vertices = cnEV[et];
+      nbNodes = vertices.size();
+      xbe = 0.; ybe = 0.; zbe = 0.;
+      for (E_Int n = 0; n < nbNodes; n++)
+      {
+        ind = vertices[n]-1;
+        xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+      }
+      xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
 
-      case 3:
-        invvol = -1./volp[et];
-        curlx[et] = 0.; curly[et] = 0.; curlz[et] = 0.;
-        
-        // calcul du barycentre be (xbe, ybe, zbe) de l'element
-        vertices = cnEV[et];
-        nbNodes = vertices.size();
-        xbe = 0.; ybe = 0.; zbe = 0.;
-        for (E_Int n = 0; n < nbNodes; n++)
+      // parcours des faces de l element et
+      E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
+      for (E_Int fa = 0; fa < nbFaces; fa++)
+      {
+        noface = elt[fa]-1;
+        E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
+        // valeur moyenne de fp pour la face
+        fxpmeanface = 0.; fypmeanface = 0.; fzpmeanface = 0.;
+        // calcul du barycentre bf (xbf, ybf, zbf) de la face
+        xbf = 0.; ybf = 0.; zbf = 0.;
+        for (E_Int n = 0; n < nbNodesPerFace; n++)
         {
-          ind = vertices[n]-1;
-          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+          indnode = face[n]-1;
+          xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
+          fxpmeanface += fxp[indnode];
+          fypmeanface += fyp[indnode];
+          fzpmeanface += fzp[indnode];
         }
-        xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
+        xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;            
+        fxpmeanface = fxpmeanface/nbNodesPerFace;           
+        fypmeanface = fypmeanface/nbNodesPerFace;           
+        fzpmeanface = fzpmeanface/nbNodesPerFace;           
 
-        // parcours des faces de l element et
-        nbFaces = cEFp[0]; 
-        for (E_Int fa = 0; fa < nbFaces; fa++)
-        {
-          noface = cEFp[fa+1]-1;
-          pos = posFace[noface];
-          nbNodesPerFace = cnp[pos]; pos++;
-          //valeur moyenne de fp pour la face
-          fxpmeanface = 0.;fypmeanface = 0.;fzpmeanface = 0.;
-          // calcul du barycentre bf (xbf, ybf, zbf) de la face
-          xbf = 0.; ybf = 0.; zbf = 0.;
-          for (E_Int n = 0; n < nbNodesPerFace; n++)
-          {
-            indnode = cnp[pos+n]-1;
-            xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
-            fxpmeanface += fxp[indnode];
-            fypmeanface += fyp[indnode];
-            fzpmeanface += fzp[indnode];
-          }
-          xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;            
-          fxpmeanface = fxpmeanface/nbNodesPerFace;           
-          fypmeanface = fypmeanface/nbNodesPerFace;           
-          fzpmeanface = fzpmeanface/nbNodesPerFace;           
-
-          // bilan
-          // verification du sens de la normale. Celle-ci doit etre exterieure
-          sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
-          sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
-          if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
-          curlx[et] += fypmeanface*sz - fzpmeanface*sy;
-          curly[et] += fzpmeanface*sx - fxpmeanface*sz;
-          curlz[et] += fxpmeanface*sy - fypmeanface*sx;
-        }
-        cEFp += nbFaces+1;
-        curlx[et] *= invvol;
-        curly[et] *= invvol;
-        curlz[et] *= invvol;
-        break;
-        
-      default: 
-        delete [] volp;
-        delete [] sxp; 
-        delete [] syp;
-        delete [] szp;
-        delete [] snp;
-        return 1;
+        // bilan
+        // verification du sens de la normale. Celle-ci doit etre exterieure
+        sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
+        sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
+        if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
+        curlx[et] += fypmeanface*sz - fzpmeanface*sy;
+        curly[et] += fzpmeanface*sx - fxpmeanface*sz;
+        curlz[et] += fxpmeanface*sy - fypmeanface*sx;
+      }
+      curlx[et] *= invvol;
+      curly[et] *= invvol;
+      curlz[et] *= invvol;
     }
   }
+
   delete [] volp;
   delete [] sxp; 
   delete [] syp;
