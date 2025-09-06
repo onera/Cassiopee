@@ -22,23 +22,18 @@
 // Calcul de la divergence d'un champ defini aux noeuds d une grille structuree
 // retourne la divergence defini aux centres des cellules
 // ============================================================================
-void K_POST::compStructDiv(
-  const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+void K_POST::compDivStruct3D(
+  const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* div, E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-  E_Float* centerIntx, E_Float* centerIntz, E_Float* centerInty, E_Float* vol,
-  E_Float* fldintX, E_Float* fldintY, E_Float* fldintZ
+  E_Float* div
 )
 {
-  E_Int ni1nj, ninj1, ni1nj1;
-  E_Int inti, intj, intij, intk;
-
-  // constantes
   E_Int nfld = 1;
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
-  E_Int nk1 = nk - 1;
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
 
   E_Int inci = 1;
   E_Int incj = 1;
@@ -48,26 +43,33 @@ void K_POST::compStructDiv(
   else if (nj == 2) { incj = 0; }
   else if (nk == 2) { inck = 0; }
 
-  ni1nj = ni1 * nj;
-  ninj1 = ni * nj1;
-  ni1nj1 = ni1 * nj1;
+  E_Int ni1nj = ni1 * nj;
+  E_Int ninj1 = ni * nj1;
+  E_Int ni1nj1 = ni1 * nj1;
 
-  inti = ninj1 * nk1;
-  intj = ni1nj * nk1;
-  intk = ni1nj1 * nk;
-  intij = inti + intj;
+  E_Int inti = ninj1 * nk1;
+  E_Int intj = ni1nj * nk1;
+  E_Int intk = ni1nj1 * nk;
+  E_Int intij = inti + intj;
+  E_Int nint = inti + intj + intk;
+
+  FldArrayF surfx(nint), surfy(nint), surfz(nint);
+  FldArrayF snorm(nint);
+  FldArrayF centerInt(nint, 3);
+  FldArrayF fldintX(nint), fldintY(nint), fldintZ(nint);
+  FldArrayF vol(ncells);
 
   // attention: surf n est pas oriente: tjs positif
   K_METRIC::compStructMetric(
     ni, nj, nk, inti, intj, intk,
     xt, yt, zt,
-    vol, surfx, surfy, surfz, snorm,
-    centerIntx, centerInty, centerIntz
+    vol.begin(), surfx.begin(), surfy.begin(), surfz.begin(), snorm.begin(),
+    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3)
   );
 
-  compIntField(ni, nj, nk, nfld, fieldX, fldintX);
-  compIntField(ni, nj, nk, nfld, fieldY, fldintY);
-  compIntField(ni, nj, nk, nfld, fieldZ, fldintZ);
+  compIntField(ni, nj, nk, nfld, fieldX, fldintX.begin());
+  compIntField(ni, nj, nk, nfld, fieldY, fldintY.begin());
+  compIntField(ni, nj, nk, nfld, fieldZ, fldintZ.begin());
 
   #pragma omp parallel
   {
@@ -79,7 +81,7 @@ void K_POST::compStructDiv(
     E_Float vinv, gradxx, gradyy, gradzz;
     
     #pragma omp for
-    for (E_Int indcell = 0; indcell < nbcell; indcell++)
+    for (E_Int indcell = 0; indcell < ncells; indcell++)
     {
       k = indcell / ni1nj1;
       j = (indcell - k * ni1nj1) / ni1;
@@ -137,8 +139,7 @@ void K_POST::compStructDiv(
 // structuree
 // retourne la divergence defini aux centres des cellules
 // IN
-// ni, nj : dimensions de la grille aux noeuds
-// nbcell : nb de cellules
+// ni, nj, nk : dimensions de la grille aux noeuds
 // xt, yt, zt : coordonnees des noeuds de la grille
 // fieldX, fieldY, fieldZ : champ defini aux noeuds auquel on applique div
 // surf : surface des cellules 2d
@@ -146,26 +147,37 @@ void K_POST::compStructDiv(
 // OUT
 // div : divergence du champ vectoriel
 // ============================================================================
-void K_POST::compStructDiv2d(
-  const E_Int ni, const E_Int nj,
+void K_POST::compDivStruct2D(
+  const E_Int ini, const E_Int inj, const E_Int ink,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
   E_Float* div
 )
 {
-  // Constantes
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
+  E_Int ni = ini;
+  E_Int nj = inj;
+  E_Int nk = ink;
+  if (ni == 1) { ni = nj; nj = nk; nk = 2; }
+  else if (nj == 1) { nj = nk; nk = 2; }
+  else if (nk == 1) { nk = 2; }
 
-  // calcul de la surface totale des cellules
-  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf);
-  K_METRIC::compNormStructSurf(ni, nj, xt, yt, zt, nxt, nyt, nzt);
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
+
+  // Calcul de la surface totale des cellules
+  FldArrayF surf(ncells), nxt(ncells), nyt(ncells), nzt(ncells);
+  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf.begin());
+  K_METRIC::compNormStructSurf(
+    ni, nj,
+    xt, yt, zt,
+    nxt.begin(), nyt.begin(), nzt.begin()
+  );
 
   #pragma omp parallel
   {
-    E_Int indcell;
-    E_Int indA, indB, indC, indD;
+    E_Int indA, indB, indC, indD, indcell;
     E_Float xAB, yAB, zAB, xBC, yBC, zBC, xCD, yCD, zCD, xDA, yDA, zDA;
     E_Float nx, n1x, n2x, n3x, n4x;
     E_Float ny, n1y, n2y, n3y, n4y;
@@ -190,7 +202,7 @@ void K_POST::compStructDiv2d(
       ny = nyt[indcell];
       nz = nzt[indcell];
 
-      nn = sqrt(nx*nx + ny*ny + nz*nz);
+      nn = sqrt(nx * nx + ny * ny + nz * nz);
       vinv = 2.0 * surf[indcell] * nn;
       vinv = K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
 

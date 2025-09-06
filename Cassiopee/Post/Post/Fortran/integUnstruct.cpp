@@ -84,7 +84,7 @@ void K_POST::integUnstruct(
 // Compute linear integral of field F, unstructured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-void K_POST::integUnstruct1d(
+void K_POST::integUnstruct1D(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* ratio, const E_Float* length, const E_Float* field,
   E_Float& result

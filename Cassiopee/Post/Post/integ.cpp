@@ -452,7 +452,7 @@ E_Int K_POST::integ11D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
     {
       // Compute integral, coordinates defined in node 
       // and field FBlk in center 
-      K_POST::integStructNodeCenter1d(
+      K_POST::integStructNodeCenter1D(
         NI-1,
         ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
         resultBlk);
@@ -464,7 +464,7 @@ E_Int K_POST::integ11D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
     // Compute integral, coordinates and field have the same size
     for (E_Int n = 1 ; n <= numberOfVariables ; n++)
     {
-      K_POST::integStruct1d(
+      K_POST::integStruct1D(
         NI,
         ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
         resultBlk);
@@ -579,7 +579,7 @@ E_Int K_POST::integUnstruct11D(E_Int center2node,
     for (E_Int n = 1 ; n <= numberOfVariables ; n++)    
     {
       // Compute integral, coordinates and field have the same size
-      K_POST::integUnstruct1d(
+      K_POST::integUnstruct1D(
         cnBlk, "BAR",
         ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
         resultBlk

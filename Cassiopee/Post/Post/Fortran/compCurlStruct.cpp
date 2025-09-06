@@ -21,32 +21,22 @@
 // ============================================================================
 //  Calcul du rotationnel moyen d'un champ u sur une grille
 //  IN: ni,nj,nk: dimensions du maillage en noeuds
-//  IN: nbcell: nbre de cellules
+//  IN: ncells: nbre de cellules
 //  IN: xt,yt,zt: coordonnees de la grille
 //  IN: u: vecteur dont le rotationnel est a calculer
 //  OUT: rotu: rotationnel de u aux centres des cellules
 // ============================================================================
-void K_POST::compStructCurlt(
-  const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+void K_POST::compCurlStruct3D(
+  const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* ux, const E_Float* uy, const E_Float* uz,
-  E_Float* rotx, E_Float* roty, E_Float* rotz,
-  E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-  E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz, E_Float* vol,
-  E_Float* uintx, E_Float* uinty, E_Float* uintz
+  E_Float* rotx, E_Float* roty, E_Float* rotz
 )
 {
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
-  E_Int nk1 = nk - 1;
-  E_Int ni1nj = ni1 * nj;
-  E_Int ninj1 = ni * nj1;
-  E_Int ni1nj1 = ni1 * nj1;
-
-  E_Int inti = ninj1 * nk1;
-  E_Int intj = ni1nj * nk1;
-  E_Int intk = ni1nj1 * nk;
-  E_Int intij = inti + intj;
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
 
   E_Int inci = 1;
   E_Int incj = 1;
@@ -55,16 +45,36 @@ void K_POST::compStructCurlt(
   if (ni == 2) { inci = 0; }
   else if (nj == 2) { incj = 0; }
   else if (nk == 2) { inck = 0; }
+  
+  E_Int ni1nj = ni1 * nj;
+  E_Int ninj1 = ni * nj1;
+  E_Int ni1nj1 = ni1 * nj1;
+
+  E_Int inti = ninj1 * nk1;
+  E_Int intj = ni1nj * nk1;
+  E_Int intk = ni1nj1 * nk;
+  E_Int intij = inti + intj;
+  E_Int nint = inti + intj + intk;
+
+  FldArrayF surfx(nint), surfy(nint), surfz(nint);
+  FldArrayF snorm(nint);
+  FldArrayF centerInt(nint, 3);
+  FldArrayF uintx(nint), uinty(nint), uintz(nint);
+  FldArrayF vol(ncells);
 
   // Attention : surf n est pas oriente : tjs positif
   K_METRIC::compStructMetric(
     ni, nj, nk, inti, intj, intk,
     xt, yt, zt,
-    vol, surfx, surfy, surfz, snorm,
-    centerIntx, centerInty, centerIntz
+    vol.begin(), surfx.begin(), surfy.begin(), surfz.begin(), snorm.begin(),
+    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3)
   );
 
-  compIntFieldv(ni, nj, nk, ux, uy, uz, uintx, uinty, uintz);
+  compIntFieldV(
+    ni, nj, nk,
+    ux, uy, uz,
+    uintx.begin(), uinty.begin(), uintz.begin()
+  );
 
   #pragma omp parallel
   {
@@ -77,7 +87,7 @@ void K_POST::compStructCurlt(
     E_Float vinv;
 
     #pragma omp for
-    for (E_Int indcell = 0; indcell < nbcell; indcell++)
+    for (E_Int indcell = 0; indcell < ncells; indcell++)
     {
       k = indcell / ni1nj1;
       j = (indcell - k * ni1nj1) / ni1;
@@ -145,23 +155,33 @@ void K_POST::compStructCurlt(
 // Calcul du rotationnel d'un vecteur defini aux noeuds d une grille surfacique
 // Retourne le rotationnel defini aux centres des cellules
 // ============================================================================
-void K_POST::compStructCurl2dt(
-  const E_Int ni, const E_Int nj, const E_Int nbcell,
+void K_POST::compCurlStruct2D(
+  const E_Int ini, const E_Int inj, const E_Int ink,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* ux, const E_Float* uy, const E_Float* uz,
   E_Float* rotux, E_Float* rotuy, E_Float* rotuz
 )
 {
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
+  E_Int ni = ini;
+  E_Int nj = inj;
+  E_Int nk = ink;
+  if (ni == 1) { ni = nj; nj = nk; nk = 2; }
+  else if (nj == 1) { nj = nk; nk = 2; }
+  else if (nk == 1) { nk = 2; }
 
-  E_Float* surf = (E_Float*) malloc(nbcell * sizeof(E_Float));
-  E_Float* nxt  = (E_Float*) malloc(nbcell * sizeof(E_Float));
-  E_Float* nyt  = (E_Float*) malloc(nbcell * sizeof(E_Float));
-  E_Float* nzt  = (E_Float*) malloc(nbcell * sizeof(E_Float));
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
 
-  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf);
-  K_METRIC::compNormStructSurf(ni, nj, xt, yt, zt, nxt, nyt, nzt);
+  // Calcul de la surface totale des cellules
+  FldArrayF surf(ncells), nxt(ncells), nyt(ncells), nzt(ncells);
+  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf.begin());
+  K_METRIC::compNormStructSurf(
+    ni, nj,
+    xt, yt, zt,
+    nxt.begin(), nyt.begin(), nzt.begin()
+  );
 
   #pragma omp parallel
   {
@@ -202,9 +222,9 @@ void K_POST::compStructCurl2dt(
       yDA = yt[indA] - yt[indD];
       zDA = zt[indA] - zt[indD];
 
-      curlx = 0.0;
-      curly = 0.0;
-      curlz = 0.0;
+      curlx = K_CONST::E_ZERO_FLOAT;
+      curly = K_CONST::E_ZERO_FLOAT;
+      curlz = K_CONST::E_ZERO_FLOAT;
 
       n1x = yAB * nz - zAB * ny;
       n1y = zAB * nx - xAB * nz;
@@ -214,9 +234,9 @@ void K_POST::compStructCurl2dt(
       vy = uy[indA] + uy[indB];
       vz = uz[indA] + uz[indB];
 
-      curlx = curlx + vy * n1z - vz * n1y;
-      curly = curly + vz * n1x - vx * n1z;
-      curlz = curlz + vx * n1y - vy * n1x;
+      curlx += vy * n1z - vz * n1y;
+      curly += vz * n1x - vx * n1z;
+      curlz += vx * n1y - vy * n1x;
 
       n1x = yBC * nz - zBC * ny;
       n1y = zBC * nx - xBC * nz;
@@ -226,9 +246,9 @@ void K_POST::compStructCurl2dt(
       vy = uy[indC] + uy[indB];
       vz = uz[indC] + uz[indB];
 
-      curlx = curlx + vy * n1z - vz * n1y;
-      curly = curly + vz * n1x - vx * n1z;
-      curlz = curlz + vx * n1y - vy * n1x;
+      curlx += vy * n1z - vz * n1y;
+      curly += vz * n1x - vx * n1z;
+      curlz += vx * n1y - vy * n1x;
 
       n1x = yCD * nz - zCD * ny;
       n1y = zCD * nx - xCD * nz;
@@ -238,9 +258,9 @@ void K_POST::compStructCurl2dt(
       vy = uy[indC] + uy[indD];
       vz = uz[indC] + uz[indD];
 
-      curlx = curlx + vy * n1z - vz * n1y;
-      curly = curly + vz * n1x - vx * n1z;
-      curlz = curlz + vx * n1y - vy * n1x;
+      curlx += vy * n1z - vz * n1y;
+      curly += vz * n1x - vx * n1z;
+      curlz += vx * n1y - vy * n1x;
 
       n1x = yDA * nz - zDA * ny;
       n1y = zDA * nx - xDA * nz;
@@ -259,11 +279,6 @@ void K_POST::compStructCurl2dt(
       rotuz[indcell] = vinv * curlz;
     }
   }
-
-  free(surf);
-  free(nxt);
-  free(nyt);
-  free(nzt);
 }
 
 // ============================================================================

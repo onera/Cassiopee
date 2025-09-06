@@ -22,26 +22,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6compunstrcurl_(E_Int& dim,E_Int& npts,E_Int& nelts,E_Int& nedges, 
-                        E_Int& nnodes,E_Int* cn,E_Float* xt,E_Float* yt,
-                        E_Float* zt,E_Float* snx,E_Float* sny,E_Float* snz,
-                        E_Float* surf, E_Float* vol, 
-                        E_Float* uintx, E_Float* uinty, E_Float* uintz, 
-                        E_Float* ux, E_Float* uy, E_Float* uz, 
-                        E_Float* xint, E_Float* yint, E_Float* zint, 
-                        E_Float* rotx, E_Float* roty, E_Float* rotz);
-  
-  void k6compunstrcurl2d_(E_Int& npts, E_Int& nelts, E_Int&nedges, 
-                          E_Int& nnodes, E_Int* cn, E_Float* xt,
-                          E_Float* yt, E_Float* zt, 
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, E_Float* vol,
-                          E_Float* ux, E_Float* uy, E_Float* uz, 
-                          E_Float* rotx, E_Float* roty, E_Float* rotz);
-}
-
 //=============================================================================
 /* Calcul du rotationnel d'un champ defini par un vecteur (u,v,w) en noeuds. 
    Le rotationnel est fourni aux centres des cellules */
@@ -65,7 +45,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
                     "computeCurl: 3 variables must be defined to extract the curl.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vars0); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
     if (PyString_Check(tpl0))
@@ -177,7 +157,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
     //   }      
     // }
     
-    if (strcmp(eltType,"NGON") == 0)
+    if (strcmp(eltType, "NGON") == 0)
     {
       E_Int npts = f->getSize();
       E_Int* cnp = cn->begin();
@@ -199,13 +179,13 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "computeCurl: curl can only be computed for 3D NGONs.");
-        RELEASESHAREDB(res,array,f,cn); return NULL;         
+        RELEASESHAREDB(res, array, f, cn); return NULL;         
       }      
     }
     else if (strcmp(eltType, "TRI") == 0 ||
              strcmp(eltType, "QUAD")  == 0 ||
              strcmp(eltType, "TETRA") == 0 ||
-             strcmp( eltType, "HEXA") == 0 ||
+             strcmp(eltType, "HEXA") == 0 ||
              strcmp(eltType, "PENTA") == 0) 
     {
       E_Int npts = f->getSize();
@@ -217,16 +197,18 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
       FldArrayF fp(nelts, 3, fnp, true);
       
       // calcul du rotationnel aux centres des elements
-      computeCurlNS(eltType, npts, *cn, 
-                    f->begin(posx), f->begin(posy), f->begin(posz),
-                    f->begin(posu), f->begin(posv), f->begin(posw),
-                    fp.begin(1), fp.begin(2), fp.begin(3));              
+      computeCurlUnstruct(
+        *cn, eltType,
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw),
+        fp.begin(1), fp.begin(2), fp.begin(3)
+      );              
     }
     else
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeCurl: not a valid element type.");
-      RELEASESHAREDU(array,f, cn); return NULL;
+      RELEASESHAREDU(array, f, cn); return NULL;
     }    
   }
   
@@ -235,129 +217,56 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   return tpl;
 }
 //==============================================================================
-E_Int K_POST::computeCurlStruct(E_Int ni, E_Int nj, E_Int nk, 
-                                E_Float* xt, E_Float* yt, E_Float* zt,
-                                E_Float* ux, E_Float* uy, E_Float* uz,
-                                E_Float* rotx, E_Float* roty, E_Float* rotz)
+E_Int K_POST::computeCurlStruct(
+  const E_Int ni, const E_Int nj, const E_Int nk, 
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
+)
 {
-  if ((ni == 1 && nj == 1) || (ni == 1 && nk == 1) || (nj == 1 && nk == 1))
-    return -1;
-     
-  E_Int dim = 3;
-  if (ni == 1)
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) return -1;
+  if (ni == 1 || nj == 1 || nk == 1)
   {
-    ni = nj; nj = nk; nk = 2; dim = 2;
-  }
-  else if (nj == 1)
-  {
-    nj = nk; nk = 2; dim = 2;
-  }
-  else if (nk == 1)
-  {
-    nk = 2; dim = 2;
-  }
-
-  // Calcul du rotationnel aux centres
-  E_Int ni1 = K_FUNC::E_max(1, ni-1);
-  E_Int nj1 = K_FUNC::E_max(1, nj-1);
-  E_Int nk1 = K_FUNC::E_max(1, nk-1);
-  E_Int ncells = ni1*nj1*nk1;
-  E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
-  
-  FldArrayF surf(nint, 3);
-  FldArrayF snorm(nint);
-  FldArrayF centerInt(nint, 3);
-  FldArrayF vol(ncells);
-  FldArrayF uint(nint, 3);
-  if (dim == 2)
-  {
-    compStructCurl2dt(ni, nj, ncells, 
-                      xt, yt, zt, ux, uy, uz,
-                      rotx, roty, rotz);
+    compCurlStruct2D(ni, nj, nk, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
   }
   else
   {
-    compStructCurlt(ni, nj, nk, ncells,
-                    xt, yt, zt, ux, uy, uz,
-                    rotx, roty, rotz,
-                    surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
-                    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3),
-                    vol.begin(), uint.begin(1), uint.begin(2), uint.begin(3));
+    compCurlStruct3D(ni, nj, nk, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
   }
   return 1;
 }
 //=============================================================================
-E_Int K_POST::computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn, 
-                            E_Float* xt, E_Float* yt, E_Float* zt,
-                            E_Float* ux, E_Float* uy, E_Float* uz,
-                            E_Float* rotx, E_Float* roty, E_Float* rotz)
+E_Int K_POST::computeCurlUnstruct(
+  FldArrayI& cn, const char* eltType,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
+)
 {
-  E_Int nelts = cn.getSize();
-  E_Int nnodes = 0; //nb de noeuds par elts
-  E_Int nedges = 0; //nb de facettes par elts
+  // Get ME mesh dimensionality from the first element type
   E_Int dim = 3;
-  if (strcmp(eltType, "TRI") == 0) 
-  {
-    nnodes = 3; nedges = 3; dim = 2;
-  }
-  else if (strcmp(eltType, "QUAD") == 0) 
-  {
-    nnodes = 4; nedges = 4; dim = 2;
-  }
-  else if (strcmp(eltType, "TETRA") == 0)
-  {
-    nedges = 4; nnodes = 4;
-  }
-  else if (strcmp( eltType, "HEXA") == 0) 
-  {
-    nedges = 6; nnodes = 8;
-  }
-  else if (strcmp(eltType, "PENTA") == 0) 
-  {
-    nedges = 5; nnodes = 6;
-  }
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 or
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 
   if (dim == 2)
   {
-    FldArrayF snx(nelts,1);
-    FldArrayF sny(nelts,1);
-    FldArrayF snz(nelts,1);
-    FldArrayF surf(nelts,1);
-    FldArrayF vol(nelts);
-    k6compunstrcurl2d_(npts, nelts, nedges, nnodes, cn.begin(),
-                       xt, yt, zt, 
-                       snx.begin(), sny.begin(), snz.begin(), 
-                       surf.begin(), vol.begin(),
-                       ux, uy, uz, rotx, roty, rotz);
+    compCurlUnstruct2D(cn, eltType, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
   }
-  else //dim = 3
+  else if (dim == 3)
   {
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF vol(nelts);
-    FldArrayF uintx(nelts, nedges);
-    FldArrayF uinty(nelts, nedges);
-    FldArrayF uintz(nelts, nedges);
-    FldArrayF xint(nelts, nedges);
-    FldArrayF yint(nelts, nedges);
-    FldArrayF zint(nelts, nedges);
-    k6compunstrcurl_(dim, npts, nelts, 
-                     nedges, nnodes, cn.begin(),  
-                     xt, yt, zt, 
-                     snx.begin(), sny.begin(), snz.begin(), 
-                     surf.begin(), vol.begin(),
-                     uintx.begin(), uinty.begin(), uintz.begin(), 
-                     ux, uy, uz, xint.begin(), yint.begin(), zint.begin(), 
-                     rotx, roty, rotz);
+    compCurlUnstruct3D(cn, eltType, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
   }
+  else return -1;
   return 1;
 }
 //==============================================================================
 E_Int K_POST::computeCurlNGon(
-  E_Float* xt, E_Float* yt, E_Float* zt, 
-  E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt, 
+  const E_Float* fxp, const E_Float* fyp, const E_Float* fzp, FldArrayI& cn,
   E_Float* curlx, E_Float* curly, E_Float* curlz
 )
 {

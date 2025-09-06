@@ -124,10 +124,12 @@ void K_POST::integMomentStruct(const E_Int ni, const E_Int nj,
 //     and field have the same size
 //     I(AB) = LENGTH(ABCD)*(F(A)+F(B))/2
 // ============================================================================
-void K_POST::integMomentStruct1d(const E_Int ni, const E_Float cx, const E_Float cy,
+void K_POST::integMomentStruct1D(
+  const E_Int ni, const E_Float cx, const E_Float cy,
   const E_Float cz, const E_Float* ratio, const E_Float* xt, const E_Float* yt,
   const E_Float* zt, const E_Float* length, const E_Float* vx, const E_Float* vy,
-  const E_Float* vz, E_Float* result)
+  const E_Float* vz, E_Float* result
+)
 {
   E_Int ind1, ind2, ind;
   E_Float f1x, f2x;
@@ -252,7 +254,7 @@ void K_POST::integMomentStructNodeCenter(const E_Int ni, const E_Int nj,
 // Compute linear integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-void K_POST::integMomentStructNodeCenter1d(
+void K_POST::integMomentStructNodeCenter1D(
   const E_Int ni, const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* length, const E_Float* vx, const E_Float* vy, const E_Float* vz,

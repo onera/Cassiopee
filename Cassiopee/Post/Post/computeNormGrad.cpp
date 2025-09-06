@@ -127,7 +127,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
     FldArrayF fp(nelts, 1, fnp, true);
     E_Float* fyp = new E_Float[nelts]; E_Float* fzp = new E_Float[nelts];
 
-    computeGradUnstr(
+    computeGradUnstruct(
       f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
       f->begin(posv), fp.begin(1), fyp, fzp);    
 

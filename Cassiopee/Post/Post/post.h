@@ -61,14 +61,14 @@ namespace K_POST
   PyObject* computeGrad2NGon(PyObject* self,PyObject* args);
   PyObject* computeGrad2Struct(PyObject* self,PyObject* args);
   PyObject* computeGradLSQ(PyObject *self, PyObject *args);
-  PyObject* computeNormGrad(PyObject* self,PyObject* args);
-  PyObject* computeDiv(PyObject* self,PyObject* args);
-  PyObject* computeDiv2NGon(PyObject* self,PyObject* args);
-  PyObject* computeDiv2Struct(PyObject* self,PyObject* args);
-  PyObject* computeCurl(PyObject* self,PyObject* args);
-  PyObject* computeNormCurl(PyObject* self,PyObject* args);
-  PyObject* computeDiff(PyObject* self,PyObject* args);
-  PyObject* perlinNoise(PyObject* self,PyObject* args);
+  PyObject* computeNormGrad(PyObject* self, PyObject* args);
+  PyObject* computeDiv(PyObject* self, PyObject* args);
+  PyObject* computeDiv2NGon(PyObject* self, PyObject* args);
+  PyObject* computeDiv2Struct(PyObject* self, PyObject* args);
+  PyObject* computeCurl(PyObject* self, PyObject* args);
+  PyObject* computeNormCurl(PyObject* self, PyObject* args);
+  PyObject* computeDiff(PyObject* self, PyObject* args);
+  PyObject* perlinNoise(PyObject* self, PyObject* args);
   PyObject* compStreamLine(PyObject* self, PyObject* args);
   PyObject* comp_stream_line(PyObject* self, PyObject* args);
   PyObject* compStreamRibbon(PyObject* self, PyObject* args);
@@ -100,7 +100,7 @@ namespace K_POST
 // Compute linear integral of field F, structured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-  void integStruct1d(
+  void integStruct1D(
     const E_Int ni,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
@@ -113,10 +113,11 @@ namespace K_POST
     const E_Int ni1, const E_Int nj1,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
+
 // ============================================================================
 // Compute linear integral of field F, node/center case, 1D
 // ============================================================================
-  void integStructNodeCenter1d(
+  void integStructNodeCenter1D(
     const E_Int ni,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
@@ -132,14 +133,16 @@ namespace K_POST
     FldArrayI& cn, const char* eltType,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
+
 // ============================================================================
 // Compute linear integral of field F, unstructured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-  void integUnstruct1d(
+  void integUnstruct1D(
     FldArrayI& cn, const char* eltType,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
+
 // ============================================================================
 // Compute surface integral of field F, coordinates in nodes,
 // field defined in centers, unstructured case
@@ -188,7 +191,7 @@ namespace K_POST
   center2node : 0 if coord and F have the same size
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct1(E_Int center2node,
                        E_Int posx, E_Int posy, E_Int posz,
                        FldArrayI& cn,
@@ -206,13 +209,13 @@ namespace K_POST
   center2node: 0 if coord and F have the same size
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct11D(E_Int center2node,
                          E_Int posx, E_Int posy, E_Int posz,
                          FldArrayI& cn, FldArrayF& coord,
                          FldArrayF& F, FldArrayF& ratio,
                          FldArrayF& resultat);
-/**
+/*
    Compute the surface integral of field F * normal vect(n)
    ni*nj*nk: dimension of coordinate array (coord)
    ratio: to have the better value in overlap mesh case
@@ -235,14 +238,14 @@ namespace K_POST
   center2node: 0 if coord and F have the same size
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number*3
-**/
+*/
   E_Int integUnstruct2(E_Int center2node,
                        E_Int posx, E_Int posy, E_Int posz,
                        FldArrayI& cnBlk, FldArrayF& coordBlk,
                        FldArrayF& FBlk, FldArrayF& ratioBlk,
                        FldArrayF& resultat);
 
-/**
+/*
    Compute the surface integral of scalar product field
    vect(F) * normal vect(n)
    ni*nj*nk: dimension of coordinate array (coord)
@@ -267,13 +270,13 @@ namespace K_POST
    center2node: 0 if coord and F have the same size
    1 if coord is in nodes and F in centers
    resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct3(E_Int center2node,
                        E_Int posx, E_Int posy, E_Int posz,
                        FldArrayI& cnBlk, FldArrayF& coordBlk,
                        FldArrayF& FBlk, FldArrayF& ratioBlk,
                        E_Float& resultat);
-/**
+/*
    Compute the surface integral of moment (OM^F)
    ni*nj*nk: dimension of coordinate array (coord)
    ratio: to have the better value in overlap mesh case
@@ -288,7 +291,7 @@ namespace K_POST
                E_Float cx, E_Float cy, E_Float cz,
                FldArrayF& coord, FldArrayF& F,
                FldArrayF& ratio, FldArrayF& resultat);
-/**
+/*
    Compute the linear integral of moment (OM^F)
    ni*nj*nk: dimension of coordinate array (coord)
    ratio: to have the better value in overlap mesh case
@@ -311,7 +314,7 @@ namespace K_POST
    center2node : 0 if coord and F have the same size
    1 if coord is in nodes and F in centers
    resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct4(E_Int center2node,
                        E_Int posx, E_Int posy, E_Int posz,
                        E_Float cx, E_Float cy, E_Float cz,
@@ -326,14 +329,14 @@ namespace K_POST
    center2node: 0 if coord and F have the same size
    1 if coord is in nodes and F in centers
    resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct41D(E_Int center2node,
                          E_Int posx, E_Int posy, E_Int posz,
                          E_Float cx, E_Float cy, E_Float cz,
                          FldArrayI& cnBlk, FldArrayF& coordBlk,
                          FldArrayF& FBlk, FldArrayF& ratioBlk,
                          FldArrayF& resultat);
-/**
+/*
    Compute the surface integral of moment (OM^F.vect(n))
    ni*nj*nk: dimension of coordinate array (coord)
    ratio: to have the better value in overlap mesh case
@@ -357,7 +360,7 @@ namespace K_POST
    center2node: 0 if coord and F have the same size
    1 if coord is in nodes and F in centers
    resultat: integration result, same size as F variable number
-**/
+*/
   E_Int integUnstruct5(E_Int center2node,
                        E_Int posx, E_Int posy, E_Int posz,
                        E_Float cx, E_Float cy, E_Float cz,
@@ -371,7 +374,8 @@ namespace K_POST
 //     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-  void integMomentStruct(const E_Int ni, const E_Int nj,
+  void integMomentStruct(
+    const E_Int ni, const E_Int nj,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
     const E_Float* zt, const E_Float* surf,
@@ -383,16 +387,20 @@ namespace K_POST
 //     and field have the same size
 //     I(AB) = LENGTH(ABCD)*(F(A)+F(B))/2
 // ============================================================================
-  void integMomentStruct1d(const E_Int ni, const E_Float cx, const E_Float cy,
-    const E_Float cz, const E_Float* ratio, const E_Float* xt, const E_Float* yt,
-    const E_Float* zt, const E_Float* length, const E_Float* vx, const E_Float* vy,
-    const E_Float* vz, E_Float* result);
+  void integMomentStruct1D(
+    const E_Int ni, const E_Float cx, const E_Float cy,
+    const E_Float cz, const E_Float* ratio,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* length,
+    const E_Float* vx, const E_Float* vy, const E_Float* vz,
+    E_Float* result);
 
 //=============================================================================
 // Compute surface integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integMomentStructNodeCenter(const E_Int ni, const E_Int nj,
+  void integMomentStructNodeCenter(
+    const E_Int ni, const E_Int nj,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
     const E_Float* zt, const E_Float* surf, const E_Float* vx,
@@ -402,7 +410,7 @@ namespace K_POST
 // Compute linear integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integMomentStructNodeCenter1d(
+  void integMomentStructNodeCenter1D(
     const E_Int ni, const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
     const E_Float* length, const E_Float* vx, const E_Float* vy, const E_Float* vz,
@@ -532,7 +540,7 @@ namespace K_POST
 // Compute linear integral of the moment M (OM^ F), coordinates
 // and field have the same size
 // ============================================================================
-  void integMomentUnstruct1d(
+  void integMomentUnstruct1D(
     FldArrayI& cn, const char* eltType,
     const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* length,
@@ -554,7 +562,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F)
 // coordinates are defined in nodes and F is defined in center (1D case)
 // ============================================================================
-  void integMomentUnstructNodeCenter1d(
+  void integMomentUnstructNodeCenter1D(
     FldArrayI& cn, const char* eltType,
     const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
@@ -597,126 +605,10 @@ namespace K_POST
 // ============================================================================
 // Compute the values of the vector (f1,f2,f3) at interfaces
 // ============================================================================
-  void compIntFieldv(
+  void compIntFieldV(
     const E_Int ni, const E_Int nj, const E_Int nk,
     const E_Float* f1, const E_Float* f2, const E_Float* f3,
     E_Float* fint1, E_Float* fint2, E_Float* fint3);
-
-// ============================================================================
-// Calcul de la divergence d'un champ defini aux noeuds d une grille structuree
-// retourne la divergence defini aux centres des cellules
-// ============================================================================
-  void compStructDiv(
-    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-    E_Float* div, E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-    E_Float* centerIntx, E_Float* centerIntz, E_Float* centerInty, E_Float* vol,
-    E_Float* fldintX, E_Float* fldintY, E_Float* fldintZ);
-
-// ============================================================================
-// Calcul de la divergence d'un champ defini aux noeuds d une grille surfacique
-// structuree
-// retourne la divergence defini aux centres des cellules
-// IN
-// ni, nj : dimensions de la grille aux noeuds
-// nbcell : nb de cellules
-// xt, yt, zt : coordonnees des noeuds de la grille
-// fieldX, fieldY, fieldZ : champ defini aux noeuds auquel on applique div
-// surf : surface des cellules 2d
-// nxt, nyt, nzt : normale aux cellules
-// OUT
-// div : divergence du champ vectoriel
-// ============================================================================
-  void compStructDiv2d(
-    const E_Int ni, const E_Int nj,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-    E_Float* surf, E_Float* nxt, E_Float* nyt, E_Float* nzt,
-    E_Float* div);
-
-// ============================================================================
-// Calcul du gradient d'un champ defini aux noeuds d une grille structuree
-// retourne le gradient defini aux centres des cellules
-// ============================================================================
-  void compStructGrad(
-    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* field,
-    E_Float* gradx, E_Float* grady, E_Float* gradz,
-    E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-    E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz,
-    E_Float* vol, E_Float* fieldint);
-
-// ============================================================================
-// Calcul du gradient d'un champ defini aux noeuds d'une grille surfacique
-// structuree 
-// retourne le gradient defini aux centres des cellules
-// ============================================================================
-  void compStructGrad2d(
-    const E_Int ni, const E_Int nj,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* field, E_Float* surf,
-    E_Float* nxt, E_Float* nyt, E_Float* nzt,
-    E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-// ============================================================================
-// Calcul du gradient d'un champ defini aux noeuds d une grille surfacique
-// structuree 
-// retourne le gradient defini aux centres des cellules
-// IN
-// ni: dimensions de la grille aux noeuds
-// nbcell: nb de cellules
-// xt, yt, zt: coordonnees des noeuds de la grille
-// field: champ defini aux noeuds auquel on applique grad
-// OUT
-// gradx, grady, gradz: gradient de field aux centres des cellules
-// ============================================================================
-  void compStructGrad1d(
-    const E_Int ni, const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* field,
-    E_Float* gradx, E_Float* grady, E_Float* gradz);
-
-// ============================================================================
-//  Calcul du rotationnel moyen d'un champ u sur une grille
-//  IN: ni,nj,nk: dimensions du maillage en noeuds
-//  IN: nbcell: nbre de cellules
-//  IN: xt,yt,zt: coordonnees de la grille
-//  IN: u: vecteur dont le rotationnel est a calculer
-//  OUT: rotu: rotationnel de u aux centres des cellules
-// ============================================================================
-  void compStructCurlt(
-    const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* ux, const E_Float* uy, const E_Float* uz,
-    E_Float* rotx, E_Float* roty, E_Float* rotz,
-    E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-    E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz, E_Float* vol,
-    E_Float* uintx, E_Float* uinty, E_Float* uintz);
-
-// ============================================================================
-// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille surfacique
-// Retourne le rotationnel defini aux centres des cellules
-// ============================================================================
-  void compStructCurl2dt(
-    const E_Int ni, const E_Int nj, const E_Int nbcell,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    const E_Float* ux, const E_Float* uy, const E_Float* uz,
-    E_Float* rotux, E_Float* rotuy, E_Float* rotuz);
-
-// ============================================================================
-// Calcul du rotationnel moyen d un champ (u,v,w) sur une cellule
-// attention cette routine est uniquement 3d
-// IN: ind: indice du premier sommet de la cellule
-// IN: ni,nj,nk: dimensions du maillage en noeuds
-// IN: velo: vecteur dont le rotationnel est a calculer. Defini sur le maillage
-// OUT: rotu,rotv,rotw: rotationnel moyen de (u,v,w) sur la cellule
-// ============================================================================
-  void compMeanCurlOfStructCell(
-    const E_Int ind, const E_Int ni, const E_Int nj, const E_Int nk,
-    const E_Float* velox, const E_Float* veloy, const E_Float* veloz,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float& rotu, E_Float& rotv, E_Float& rotw);
 
 
 // ***************************** COMPUTE FIELDS ***************************** //
@@ -768,7 +660,7 @@ namespace K_POST
  * en association de la fonction computeVariables2
  * Retourne 0 si erreur.*/
   E_Int computeCompVars2(const FldArrayF& f,  const E_Int posnew,
-          	               char* varnew,  const E_Int posro,
+                         char* varnew,  const E_Int posro,
                          const E_Int posu,    const E_Int posv,
                          const E_Int posw,    const E_Int post,
                          const E_Float gamma, const E_Float rgp,
@@ -853,57 +745,170 @@ namespace K_POST
   void computeDivVarsString(char* varString, char*& varStringOut);
 
   /* gradx, grady, gradz must be allocated previously */
-  E_Int computeGradStruct(E_Int ni, E_Int nj, E_Int nk,
-                          E_Float* xt, E_Float* yt, E_Float* zt, E_Float* field,
-                          E_Float* gradx, E_Float* grady, E_Float* gradz);
-  E_Int computeGradUnstr(const E_Float* xt, const E_Float* yt, const E_Float* zt,
-                         FldArrayI& cn, const char* eltType,
-                         E_Float* field,
-                         E_Float* gradx, E_Float* grady, E_Float* gradz);
-  E_Int computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt,
-                        E_Float* fp, FldArrayI& cn,
-                        E_Float* gradx, E_Float* grady, E_Float* gradz);
+  E_Int computeGradStruct(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+  E_Int computeGradUnstruct(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    FldArrayI& cn, const char* eltType,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+  E_Int computeGradNGon(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fp, FldArrayI& cn,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
   E_Int compute_gradients_ngon(
     FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
     E_Int *owner, E_Int *neigh, E_Float *centers,
     const std::vector<E_Float *> &flds, std::vector<E_Float *> &Gs);
   
+// ============================================================================
+// Calcul de la divergence d'un champ defini aux noeuds d une grille surfacique
+// structuree
+// retourne la divergence defini aux centres des cellules
+// IN
+// ni, nj, nk : dimensions de la grille aux noeuds
+// xt, yt, zt : coordonnees des noeuds de la grille
+// fieldX, fieldY, fieldZ : champ defini aux noeuds auquel on applique div
+// OUT
+// div : divergence du champ vectoriel
+// ============================================================================
+  void compDivStruct2D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+  void compDivStruct3D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+// ============================================================================
+// Calcul de la divergence d'un champ défini aux noeuds d'une grille non structuree
+// Retourne la divergence définie aux centres des éléments
+// ============================================================================
+  void compDivUnstruct2D(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+  void compDivUnstruct3D(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+// ============================================================================
+// Calcul du gradient d'un champ defini aux noeuds d une grille structuree
+// retourne le gradient defini aux centres des cellules
+// IN
+// ni: dimensions de la grille aux noeuds
+// nbcell: nb de cellules
+// xt, yt, zt: coordonnees des noeuds de la grille
+// field: champ defini aux noeuds auquel on applique grad
+// OUT
+// gradx, grady, gradz: gradient de field aux centres des cellules
+// ============================================================================
+  void compGradStruct1D(
+    const E_Int ni,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+    
+  void compGradStruct2D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+    
+  void compGradStruct3D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* field,
+    E_Float* gradx, E_Float* grady, E_Float* gradz);
+
+// ============================================================================
+// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille surfacique
+// Retourne le rotationnel defini aux centres des cellules
+//  IN: ni,nj,nk: dimensions du maillage en noeuds
+//  IN: xt,yt,zt: coordonnees de la grille
+//  IN: u: vecteur dont le rotationnel est a calculer
+//  OUT: rotu: rotationnel de u aux centres des cellules
+// ============================================================================
+  void compCurlStruct2D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotux, E_Float* rotuy, E_Float* rotuz);
+  
+    void compCurlStruct3D(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz);
+
+// ============================================================================
+// Calcul du rotationnel moyen d un champ (u,v,w) sur une cellule
+// attention cette routine est uniquement 3d
+// IN: ind: indice du premier sommet de la cellule
+// IN: ni,nj,nk: dimensions du maillage en noeuds
+// IN: velo: vecteur dont le rotationnel est a calculer. Defini sur le maillage
+// OUT: rotu,rotv,rotw: rotationnel moyen de (u,v,w) sur la cellule
+// ============================================================================
+  void compMeanCurlOfStructCell(
+    const E_Int ind, const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* velox, const E_Float* veloy, const E_Float* veloz,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    E_Float& rotu, E_Float& rotv, E_Float& rotw);
+
   /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
    retourne le gradient defini aux centres des elts.
-   CAS 1D, 2D et 3D.
    IN: xt, yt, zt: coordonnees x, y, z des pts de la grille
    IN: cn: connectivite elts-noeuds
    IN: eltType: list of BE element types forming the ME mesh
    IN: field: champ defini aux noeuds auquel on applique grad
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
   */
-  void compGradUnstr1D(
+  void compGradUnstruct1D(
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     FldArrayI& cn, const char* eltType, const E_Float* field,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
-  void compGradUnstr2D(
+  void compGradUnstruct2D(
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     FldArrayI& cn, const char* eltType, const E_Float* field,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
-  void compGradUnstr3D(
+  void compGradUnstruct3D(
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     FldArrayI& cn, const char* eltType, const E_Float* field,
     E_Float* gradx, E_Float* grady, E_Float* gradz);
 
-  /* Idem for div */
-  E_Int computeDivStruct(E_Int ni, E_Int nj, E_Int nk,
-                         E_Float* xt, E_Float* yt, E_Float* zt,
-                         E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                         E_Float* div);
-  E_Int computeDivNS(char* eltType, E_Int npts, FldArrayI& cn,
-                     E_Float* xt, E_Float* yt, E_Float* zt,
-                     E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                     E_Float* div);
-  E_Int computeDivNGon(E_Float* xt, E_Float* yt, E_Float* zt,
-                       E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
-                       E_Float* div);
+  /* Div */
+  E_Int computeDivStruct(
+    E_Int ni, E_Int nj, E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+  E_Int computeDivUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+    E_Float* div);
+
+  E_Int computeDivNGon(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fpx, const E_Float* fpy, const E_Float* fpz, FldArrayI& cn,
+    E_Float* div);
 
   PyObject* computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
                                  const char* varStringOut, E_Float* cellNp,
@@ -934,19 +939,41 @@ namespace K_POST
                                 PyObject* indices, PyObject* fieldX,
                                 PyObject* fieldY, PyObject* fieldZ);
 
-  /* Idem for curl */
-  E_Int computeCurlStruct(E_Int ni, E_Int nj, E_Int nk,
-                          E_Float* xt, E_Float* yt, E_Float* zt,
-                          E_Float* ux, E_Float* uy, E_Float* uz,
-                          E_Float* rotx, E_Float* roty, E_Float* rotz);
+  /* Curl */
+  E_Int computeCurlStruct(
+    const E_Int ni, const E_Int nj, const E_Int nk,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz);
 
-  E_Int computeCurlNS(char* eltType, E_Int npts, FldArrayI& cn,
-                      E_Float* xt, E_Float* yt, E_Float* zt,
-                      E_Float* ux, E_Float* uy, E_Float* uz,
-                      E_Float* rotx, E_Float* roty, E_Float* rotz);
-  E_Int computeCurlNGon(E_Float* xt, E_Float* yt, E_Float* zt, 
-                        E_Float* fxp, E_Float* fyp, E_Float* fzp, FldArrayI& cn,
-                        E_Float* curlx, E_Float* curly, E_Float* curlz);
+  E_Int computeCurlUnstruct(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz);
+
+  E_Int computeCurlNGon(
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* fxp, const E_Float* fyp, const E_Float* fzp, FldArrayI& cn,
+    E_Float* curlx, E_Float* curly, E_Float* curlz);
+
+// ============================================================================
+// Calcul du rotationnel d'un vecteur défini aux noeuds d'une grille 
+// non structurée
+// retourne le rotationnel défini aux centres des éléments
+// ============================================================================
+  void compCurlUnstruct2D(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz);
+    
+  void compCurlUnstruct3D(
+    FldArrayI& cn, const char* eltType,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    E_Float* rotx, E_Float* roty, E_Float* rotz);
+
 
 // ******************************* NODE2CENTER ****************************** //
   /* Convertit les noeuds en centres pour les array structures */
@@ -1033,8 +1060,7 @@ namespace K_POST
                             PyObject* Indices);
   short buildFaceInfo(E_Int et, FldArrayI& cn, FldArrayI& face);
   short buildFaceInfo2(FldArrayI& cn, FldArrayI& face);
-  short testCommonFaces(FldArrayI& face1, FldArrayI& face2,
-                        FldArrayIS& tag1);
+  short testCommonFaces(FldArrayI& face1, FldArrayI& face2, FldArrayIS& tag1);
 /*
    Corps de la fonction de fusion des elements en fonction de la taille
    des cellules recouvrantes

@@ -121,7 +121,7 @@ void K_POST::integMomentUnstruct(
 // Compute linear integral of the moment M (OM^ F), coordinates
 // and field have the same size
 // ============================================================================
-void K_POST::integMomentUnstruct1d(
+void K_POST::integMomentUnstruct1D(
   FldArrayI& cn, const char* eltType,
   const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
   const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* length,
@@ -259,7 +259,7 @@ void K_POST::integMomentUnstructNodeCenter(
 // Compute surface integral of the moment M (OM^F)
 // coordinates are defined in nodes and F is defined in center (1D case)
 // ============================================================================
-void K_POST::integMomentUnstructNodeCenter1d(
+void K_POST::integMomentUnstructNodeCenter1D(
   FldArrayI& cn, const char* eltType,
   const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
   const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,

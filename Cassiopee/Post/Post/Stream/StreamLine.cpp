@@ -67,7 +67,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                     "streamLine: vector must be defined by 3 components.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vectorNames); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
     if (PyString_Check(tpl0))

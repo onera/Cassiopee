@@ -126,7 +126,7 @@ void K_POST::compIntField(
 // ============================================================================
 // Compute the values of the vector (f1,f2,f3) at interfaces
 // ============================================================================
-void K_POST::compIntFieldv(
+void K_POST::compIntFieldV(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* f1, const E_Float* f2, const E_Float* f3,
   E_Float* fint1, E_Float* fint2, E_Float* fint3

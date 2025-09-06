@@ -17,17 +17,21 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
+// #include <math.h>
+// #include <stdio.h>
+// #include <stdlib.h>
 
 // ============================================================================
-// Calcul de la divergence d'un champ défini aux noeuds d'une grille non structuree
-// Retourne la divergence définie aux centres des éléments
+// Calcul du rotationnel d'un vecteur défini aux noeuds d'une grille 
+// non structurée
+// retourne le rotationnel défini aux centres des éléments
 // CAS 3D
 // ============================================================================
-void K_POST::compDivUnstruct3D(
+void K_POST::compCurlUnstruct3D(
   FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* div
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
 )
 {
   E_Int nc = cn.getNConnect();
@@ -62,26 +66,29 @@ void K_POST::compDivUnstruct3D(
     ntotElts += nelts;
   }
   
-  // Calcul de la surface + volume des elts
+  // Allocation of temp fields
   FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets), surf(ntotFacets);
-  FldArrayF fieldfx(ntotFacets), fieldfy(ntotFacets), fieldfz(ntotFacets);
+  FldArrayF uintx(ntotFacets), uinty(ntotFacets), uintz(ntotFacets);
   FldArrayF vol(ntotElts);
+    
+  // Calcul de la surface + volume des elts
   K_METRIC::compUnstructMetric(
     cn, eltType,
     xt, yt, zt,
     snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
   );
 
-  // Calcul des champs aux centres des facettes
-  compUnstrNodes2Faces(cn, eltType, fieldX, fieldfx.begin());
-  compUnstrNodes2Faces(cn, eltType, fieldY, fieldfy.begin());
-  compUnstrNodes2Faces(cn, eltType, fieldZ, fieldfz.begin());
+  // Calcul des composantes du vecteur aux centres des facettes 
+  compUnstrNodes2Faces(cn, eltType, ux, uintx.begin());
+  compUnstrNodes2Faces(cn, eltType, uy, uinty.begin());
+  compUnstrNodes2Faces(cn, eltType, uz, uintz.begin());
 
-  // Calcul de la divergence au centre des elts
+  // Calcul du rotationnel au centre des elts
   #pragma omp parallel
   {
     E_Int pose, posf, tposf, nelts, elOffset, fctOffset;
-    E_Float invvol, gradxx, gradyy, gradzz;
+    E_Float curlx, curly, curlz, vinv;
+    E_Float sxi, syi, szi;
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -93,82 +100,82 @@ void K_POST::compDivUnstruct3D(
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
-        gradxx = K_CONST::E_ZERO_FLOAT;
-        gradyy = K_CONST::E_ZERO_FLOAT;
-        gradzz = K_CONST::E_ZERO_FLOAT;
+        pose = elOffset + i;
+        
+        curlx = K_CONST::E_ZERO_FLOAT;
+        curly = K_CONST::E_ZERO_FLOAT;
+        curlz = K_CONST::E_ZERO_FLOAT;
         pose = elOffset + i;
         tposf = fctOffset + i * nfpe[ic];
+
+        vinv = -K_CONST::ONE / K_FUNC::E_max(vol[pose], K_CONST::E_MIN_VOL);
 
         for (E_Int fi = 0; fi < nfpe[ic]; fi++)
         {
           posf = tposf + fi;
-          gradxx += snx[posf] * fieldfx[posf];
-          gradyy += sny[posf] * fieldfy[posf];
-          gradzz += snz[posf] * fieldfz[posf];
-        }
+          sxi = snx[posf];
+          syi = sny[posf];
+          szi = snz[posf];
 
-        invvol = K_CONST::ONE / K_FUNC::E_max(vol[pose], K_CONST::E_MIN_VOL);
-        div[pose] = (gradxx + gradyy + gradzz) * invvol;
+          curlx += uinty[posf] * szi - uintz[posf] * syi;
+          curly += uintz[posf] * sxi - uintx[posf] * szi;
+          curlz += uintx[posf] * syi - uinty[posf] * sxi;
+        }
+        
+        rotx[pose] = vinv * curlx;
+        roty[pose] = vinv * curly;
+        rotz[pose] = vinv * curlz;
       }
     }
   }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 // ============================================================================
-// Calcul de la divergence d'un champ défini aux noeuds d'une grille non structuree
-// retourne la divergence définie aux centres des éléments
-// CAS 2D
+// Calcul du rotationnel d un vecteur defini aux noeuds d une grille surfacique
+// non structuree 
+// retourne le rotationnel du vecteur defini aux centres des cellules
 // ============================================================================
-void K_POST::compDivUnstruct2D(
+void K_POST::compCurlUnstruct2D(
   FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* div
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
 )
 {
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  // Pre-compute element offsets
+  // Pre-compute element and facet offsets
+  E_Int ntotElts = 0;
   std::vector<E_Int> nepc(nc+1); nepc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    if (strcmp(eltTypes[ic], "TRI") != 0 && strcmp(eltTypes[ic], "QUAD") != 0)
-    {
-      fprintf(stderr, "Error: in K_POST::compDivUnstruct2D.\n");
-      fprintf(stderr, "Element type must be TRI or QUAD, not %s.\n", eltTypes[ic]);
-      exit(0);
-    }
     nepc[ic+1] = nepc[ic] + nelts;
+    ntotElts += nelts;
   }
-
-  // Allocate memory to store facet normals and their areas for all
-  // connectivities
-  E_Int ntotElts = nepc[nc];
-  K_FLD::FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts), surf(ntotElts);
   
-  // Compute surface of elements
+  // Calcul de la surface des elts
+  FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts), surf(ntotElts);
   K_METRIC::compUnstructSurf(
-    cn, eltType, xt, yt, zt,
+    cn, eltType,
+    xt, yt, zt,
     snx.begin(), sny.begin(), snz.begin(), surf.begin()
   );
 
   #pragma omp parallel
   {
     E_Int indA, indB, indC, indD, pos;
-    E_Float nn, vinv;
-    E_Float xAB, yAB, zAB, xBC, yBC, zBC, xCD, yCD, zCD, xDA, yDA, zDA;
+    E_Float curlx, curly, curlz, vinv;
+    E_Float vx, vy, vz;
+    E_Float nx, ny, nz, nn, n1x, n1y, n1z;
+    E_Float xAB, yAB, zAB, xBC, yBC, zBC;
+    E_Float xCD, yCD, zCD, xDA, yDA, zDA;
     E_Float xCA, yCA, zCA;
-    E_Float nx, n1x, n2x, n3x, n4x;
-    E_Float ny, n1y, n2y, n3y, n4y;
-    E_Float nz, n1z, n2z, n3z, n4z;
-    E_Float fxAB, fxBC, fxCD, fxDA, fxCA;
-    E_Float fyAB, fyBC, fyCD, fyDA, fyCA;
-    E_Float fzAB, fzBC, fzCD, fzDA, fzCA;
-    E_Float gradxx, gradyy, gradzz;
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -181,17 +188,19 @@ void K_POST::compDivUnstruct2D(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          indA = cm(i, 1) - 1;
-          indB = cm(i, 2) - 1;
-          indC = cm(i, 3) - 1;
           pos = elOffset + i;
-
+          
           nx = snx[pos];
           ny = sny[pos];
           nz = snz[pos];
           nn = sqrt(nx * nx + ny * ny + nz * nz);
+
           vinv = 2.0 * surf[pos] * nn;
-          vinv = K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
+          vinv = -K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
+
+          indA = cm(i, 1) - 1;
+          indB = cm(i, 2) - 1;
+          indC = cm(i, 3) - 1;
 
           xAB = xt[indB] - xt[indA];
           yAB = yt[indB] - yt[indA];
@@ -205,35 +214,49 @@ void K_POST::compDivUnstruct2D(
           yCA = yt[indA] - yt[indC];
           zCA = zt[indA] - zt[indC];
 
+          curlx = K_CONST::E_ZERO_FLOAT;
+          curly = K_CONST::E_ZERO_FLOAT;
+          curlz = K_CONST::E_ZERO_FLOAT;
+
           n1x = yAB * nz - zAB * ny;
           n1y = zAB * nx - xAB * nz;
           n1z = xAB * ny - yAB * nx;
 
-          n2x = yBC * nz - zBC * ny;
-          n2y = zBC * nx - xBC * nz;
-          n2z = xBC * ny - yBC * nx;
+          vx = ux[indA] + ux[indB];
+          vy = uy[indA] + uy[indB];
+          vz = uz[indA] + uz[indB];
 
-          n3x = yCA * nz - zCA * ny;
-          n3y = zCA * nx - xCA * nz;
-          n3z = xCA * ny - yCA * nx;
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
 
-          fxAB = fieldX[indA] + fieldX[indB];
-          fxBC = fieldX[indB] + fieldX[indC];
-          fxCA = fieldX[indC] + fieldX[indA];
+          n1x = yBC * nz - zBC * ny;
+          n1y = zBC * nx - xBC * nz;
+          n1z = xBC * ny - yBC * nx;
 
-          fyAB = fieldY[indA] + fieldY[indB];
-          fyBC = fieldY[indB] + fieldY[indC];
-          fyCA = fieldY[indC] + fieldY[indA];
+          vx = ux[indC] + ux[indB];
+          vy = uy[indC] + uy[indB];
+          vz = uz[indC] + uz[indB];
 
-          fzAB = fieldZ[indA] + fieldZ[indB];
-          fzBC = fieldZ[indB] + fieldZ[indC];
-          fzCA = fieldZ[indC] + fieldZ[indA];
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
 
-          gradxx = fxAB * n1x + fxBC * n2x + fxCA * n3x;
-          gradyy = fyAB * n1y + fyBC * n2y + fyCA * n3y;
-          gradzz = fzAB * n1z + fzBC * n2z + fzCA * n3z;
+          n1x = yCA * nz - zCA * ny;
+          n1y = zCA * nx - xCA * nz;
+          n1z = xCA * ny - yCA * nx;
 
-          div[pos] = vinv * (gradxx + gradyy + gradzz);
+          vx = ux[indC] + ux[indA];
+          vy = uy[indC] + uy[indA];
+          vz = uz[indC] + uz[indA];
+
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
+
+          rotx[pos] = vinv * curlx;
+          roty[pos] = vinv * curly;
+          rotz[pos] = vinv * curlz;
         }
       }
       else // QUAD
@@ -241,19 +264,20 @@ void K_POST::compDivUnstruct2D(
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
+          pos = elOffset + i;
+          
           indA = cm(i, 1) - 1;
           indB = cm(i, 2) - 1;
           indC = cm(i, 3) - 1;
           indD = cm(i, 4) - 1;
-          pos = elOffset + i;
 
           nx = snx[pos];
           ny = sny[pos];
           nz = snz[pos];
-
           nn = sqrt(nx * nx + ny * ny + nz * nz);
+
           vinv = 2.0 * surf[pos] * nn;
-          vinv = K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
+          vinv = -K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
 
           xAB = xt[indB] - xt[indA];
           yAB = yt[indB] - yt[indA];
@@ -271,46 +295,65 @@ void K_POST::compDivUnstruct2D(
           yDA = yt[indA] - yt[indD];
           zDA = zt[indA] - zt[indD];
 
+          curlx = K_CONST::E_ZERO_FLOAT;
+          curly = K_CONST::E_ZERO_FLOAT;
+          curlz = K_CONST::E_ZERO_FLOAT;
+
           n1x = yAB * nz - zAB * ny;
           n1y = zAB * nx - xAB * nz;
           n1z = xAB * ny - yAB * nx;
 
-          n2x = yBC * nz - zBC * ny;
-          n2y = zBC * nx - xBC * nz;
-          n2z = xBC * ny - yBC * nx;
+          vx = ux[indA] + ux[indB];
+          vy = uy[indA] + uy[indB];
+          vz = uz[indA] + uz[indB];
 
-          n3x = yCD * nz - zCD * ny;
-          n3y = zCD * nx - xCD * nz;
-          n3z = xCD * ny - yCD * nx;
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
 
-          n4x = yDA * nz - zDA * ny;
-          n4y = zDA * nx - xDA * nz;
-          n4z = xDA * ny - yDA * nx;
+          n1x = yBC * nz - zBC * ny;
+          n1y = zBC * nx - xBC * nz;
+          n1z = xBC * ny - yBC * nx;
 
-          fxAB = fieldX[indA] + fieldX[indB];
-          fxBC = fieldX[indB] + fieldX[indC];
-          fxCD = fieldX[indC] + fieldX[indD];
-          fxDA = fieldX[indD] + fieldX[indA];
+          vx = ux[indC] + ux[indB];
+          vy = uy[indC] + uy[indB];
+          vz = uz[indC] + uz[indB];
 
-          fyAB = fieldY[indA] + fieldY[indB];
-          fyBC = fieldY[indB] + fieldY[indC];
-          fyCD = fieldY[indC] + fieldY[indD];
-          fyDA = fieldY[indD] + fieldY[indA];
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
 
-          fzAB = fieldZ[indA] + fieldZ[indB];
-          fzBC = fieldZ[indB] + fieldZ[indC];
-          fzCD = fieldZ[indC] + fieldZ[indD];
-          fzDA = fieldZ[indD] + fieldZ[indA];
+          n1x = yCD * nz - zCD * ny;
+          n1y = zCD * nx - xCD * nz;
+          n1z = xCD * ny - yCD * nx;
 
-          gradxx = fxAB * n1x + fxBC * n2x + fxCD * n3x + fxDA * n4x;
-          gradyy = fyAB * n1y + fyBC * n2y + fyCD * n3y + fyDA * n4y;
-          gradzz = fzAB * n1z + fzBC * n2z + fzCD * n3z + fzDA * n4z;
+          vx = ux[indC] + ux[indD];
+          vy = uy[indC] + uy[indD];
+          vz = uz[indC] + uz[indD];
 
-          div[pos] = vinv * (gradxx + gradyy + gradzz);
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
+
+          n1x = yDA * nz - zDA * ny;
+          n1y = zDA * nx - xDA * nz;
+          n1z = xDA * ny - yDA * nx;
+
+          vx = ux[indD] + ux[indA];
+          vy = uy[indD] + uy[indA];
+          vz = uz[indD] + uz[indA];
+
+          curlx += vy * n1z - vz * n1y;
+          curly += vz * n1x - vx * n1z;
+          curlz += vx * n1y - vy * n1x;
+
+          rotx[pos] = vinv * curlx;
+          roty[pos] = vinv * curly;
+          rotz[pos] = vinv * curlz;
         }
       }
     }
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic]; 
 }

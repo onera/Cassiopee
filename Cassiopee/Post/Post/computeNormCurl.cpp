@@ -45,7 +45,7 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
                     "computeNormCurl: 3 variables must be defined to extract the curl.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vars0); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
     if (PyString_Check(tpl0))
@@ -156,10 +156,12 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
     E_Float* rotyp = new E_Float[nelts]; E_Float* rotzp = new E_Float[nelts];
   
     // calcul du rotationnel aux centres des elements
-    computeCurlNS(eltType, npts, *cn, 
-                  f->begin(posx), f->begin(posy), f->begin(posz),
-                  f->begin(posu), f->begin(posv), f->begin(posw),
-                  rotnp, rotyp, rotzp);
+    computeCurlUnstruct(
+      *cn, eltType,
+      f->begin(posx), f->begin(posy), f->begin(posz),
+      f->begin(posu), f->begin(posv), f->begin(posw),
+      rotnp, rotyp, rotzp
+    );
                             
     // stockage de la norme
 #pragma omp parallel for shared(rotnp, nelts) if (nelts > 50)

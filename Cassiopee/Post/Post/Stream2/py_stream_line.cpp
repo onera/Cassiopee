@@ -85,12 +85,12 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
                         "streamLine: three variable inside a liste must be defined as component of the streamline vector.");
         return NULL;
     }
-    E_Int sizeOfVector = PyList_Size(vectorNames);
+    Py_ssize_t sizeOfVector = PyList_Size(vectorNames);
     if (sizeOfVector != 3) {
         PyErr_SetString(PyExc_TypeError, "streamLine: vector must be defined by 3 components.");
         return NULL;
     }
-    for (E_Int i = 0; i < PyList_Size(vectorNames); i++) {
+    for (Py_ssize_t i = 0; i < sizeOfVector; i++) {
         PyObject* tpl0 = PyList_GetItem(vectorNames, i);
         if (PyString_Check(tpl0)) {
             char* str = PyString_AsString(tpl0);
