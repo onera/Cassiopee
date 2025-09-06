@@ -273,7 +273,6 @@ void K_METRIC::compTetraSurf(
     surfny[pos] = K_CONST::ONE_HALF * surfy;
     surfnz[pos] = K_CONST::ONE_HALF * surfz;
     surface[pos] = K_CONST::ONE_HALF * surf;
-    std::cout << "elt " << i << " = " << surface[pos] << std::endl;
   }
 }
 
