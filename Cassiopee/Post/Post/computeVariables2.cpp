@@ -96,7 +96,7 @@ PyObject* K_POST::computeVariables2(PyObject* self, PyObject* args)
   vector<char*> vars;
   if (PyList_Check(vars0) != 0)
   {
-    for (int i = 0; i < PyList_Size(vars0); i++)
+    for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
     {
       PyObject* tpl0 = PyList_GetItem(vars0, i);
       if (PyString_Check(tpl0))

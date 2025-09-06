@@ -466,7 +466,7 @@ E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   if (center2node == 1)
   {
     // Compute integral, coordinates defined in node and field FBlk in center 
-    integMomentStructNodeCenter1d(
+    integMomentStructNodeCenter1D(
       NI, cx, cy, cz, ratioBlk.begin(), 
       coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
       lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
@@ -476,7 +476,7 @@ E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   else
   {
     // Compute integral, coordinates and field have the same size
-    integMomentStruct1d(
+    integMomentStruct1D(
       NI, cx, cy, cz, ratioBlk.begin(),
       coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
       lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
@@ -588,7 +588,7 @@ E_Int K_POST::integUnstruct41D(E_Int center2node,
   if (center2node == 1) 
   { 
     // Compute integral, coordinates defined in node and field FBlk in center 
-    integMomentUnstructNodeCenter1d(
+    integMomentUnstructNodeCenter1D(
       cnBlk, "BAR",
       cx, cy, cz, ratioBlk.begin(),
       coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
@@ -598,7 +598,7 @@ E_Int K_POST::integUnstruct41D(E_Int center2node,
   }
   else
   {
-    integMomentUnstruct1d(
+    integMomentUnstruct1D(
       cnBlk, "BAR",
       cx, cy, cz, ratioBlk.begin(),
       coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 

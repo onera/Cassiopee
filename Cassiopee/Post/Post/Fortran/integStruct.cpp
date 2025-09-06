@@ -58,7 +58,7 @@ void K_POST::integStruct(
 // Compute linear integral of field F, structured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-void K_POST::integStruct1d(
+void K_POST::integStruct1D(
   const E_Int ni,
   const E_Float* ratio, const E_Float* length, const E_Float* field,
   E_Float& result
@@ -105,7 +105,7 @@ void K_POST::integStructNodeCenter(
 // ============================================================================
 // Compute linear integral of field F, node/center case, 1D
 // ============================================================================
-void K_POST::integStructNodeCenter1d(
+void K_POST::integStructNodeCenter1D(
   const E_Int ni,
   const E_Float* ratio, const E_Float* length, const E_Float* field,
   E_Float& result

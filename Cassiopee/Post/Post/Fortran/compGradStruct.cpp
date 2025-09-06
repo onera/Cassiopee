@@ -22,20 +22,18 @@
 // Calcul du gradient d'un champ defini aux noeuds d une grille structuree
 // retourne le gradient defini aux centres des cellules
 // ============================================================================
-void K_POST::compStructGrad(
-  const E_Int ni, const E_Int nj, const E_Int nk, const E_Int nbcell,
+void K_POST::compGradStruct3D(
+  const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* field,
-  E_Float* gradx, E_Float* grady, E_Float* gradz,
-  E_Float* surfx, E_Float* surfy, E_Float* surfz, E_Float* snorm,
-  E_Float* centerIntx, E_Float* centerInty, E_Float* centerIntz,
-  E_Float* vol, E_Float* fieldint
+  E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
   E_Int nfld = 1;
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
-  E_Int nk1 = nk - 1;
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
 
   E_Int inci = 1;
   E_Int incj = 1;
@@ -44,7 +42,7 @@ void K_POST::compStructGrad(
   if (ni == 2) { inci = 0; }
   else if (nj == 2) { incj = 0; }
   else if (nk == 2) { inck = 0; }
-
+  
   E_Int ni1nj = ni1 * nj;
   E_Int ninj1 = ni * nj1;
   E_Int ni1nj1 = ni1 * nj1;
@@ -53,14 +51,22 @@ void K_POST::compStructGrad(
   E_Int intj = ni1nj * nk1;
   E_Int intk = ni1nj1 * nk;
   E_Int intij = inti + intj;
+  E_Int nint = inti + intj + intk;
+
+  FldArrayF surfx(nint), surfy(nint), surfz(nint);
+  FldArrayF snorm(nint);
+  FldArrayF centerInt(nint, 3);
+  FldArrayF fieldint(nint);
+  FldArrayF vol(ncells);
 
   K_METRIC::compStructMetric(
     ni, nj, nk, inti, intj, intk,
-    xt, yt, zt, vol, surfx, surfy, surfz, snorm,
-    centerIntx, centerInty, centerIntz
+    xt, yt, zt,
+    vol.begin(), surfx.begin(), surfy.begin(), surfz.begin(), snorm.begin(),
+    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3)
   );
 
-  compIntField(ni, nj, nk, nfld, field, fieldint);
+  compIntField(ni, nj, nk, nfld, field, fieldint.begin());
 
   #pragma omp parallel
   {
@@ -72,7 +78,7 @@ void K_POST::compStructGrad(
     E_Float vinv;
 
     #pragma omp for
-    for (E_Int indcell = 0; indcell < nbcell; indcell++)
+    for (E_Int indcell = 0; indcell < ncells; indcell++)
     {
       k = indcell / ni1nj1;
       j = (indcell - k*ni1nj1) / ni1;
@@ -128,21 +134,33 @@ void K_POST::compStructGrad(
 // structuree 
 // retourne le gradient defini aux centres des cellules
 // ============================================================================
-void K_POST::compStructGrad2d(
-  const E_Int ni, const E_Int nj,
+void K_POST::compGradStruct2D(
+  const E_Int ini, const E_Int inj, const E_Int ink,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* field, E_Float* surf,
-  E_Float* nxt, E_Float* nyt, E_Float* nzt,
+  const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
-  // Constantes
-  E_Int ni1 = ni - 1;
-  E_Int nj1 = nj - 1;
+  E_Int ni = ini;
+  E_Int nj = inj;
+  E_Int nk = ink;
+  if (ni == 1) { ni = nj; nj = nk; nk = 2; }
+  else if (nj == 1) { nj = nk; nk = 2; }
+  else if (nk == 1) { nk = 2; }
+
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
+  E_Int nj1 = K_FUNC::E_max(1, nj-1);
+  E_Int nk1 = K_FUNC::E_max(1, nk-1);
+  E_Int ncells = ni1 * nj1 * nk1;
 
   // Calcul de la surface totale des cellules
-  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf);
-  K_METRIC::compNormStructSurf(ni, nj, xt, yt, zt, nxt, nyt, nzt);
+  FldArrayF surf(ncells), nxt(ncells), nyt(ncells), nzt(ncells);
+  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf.begin());
+  K_METRIC::compNormStructSurf(
+    ni, nj,
+    xt, yt, zt,
+    nxt.begin(), nyt.begin(), nzt.begin()
+  );
 
   #pragma omp parallel
   {
@@ -169,7 +187,7 @@ void K_POST::compStructGrad2d(
       ny = nyt[indcell];
       nz = nzt[indcell];
 
-      nn = sqrt(nx*nx + ny*ny + nz*nz);
+      nn = sqrt(nx * nx + ny * ny + nz * nz);
       vinv = 2.0 * surf[indcell] * nn;
       vinv = K_CONST::ONE / K_FUNC::E_max(vinv, K_CONST::E_MIN_VOL);
 
@@ -223,20 +241,19 @@ void K_POST::compStructGrad2d(
 // retourne le gradient defini aux centres des cellules
 // IN
 // ni: dimensions de la grille aux noeuds
-// nbcell: nb de cellules
+// ncells: nb de cellules
 // xt, yt, zt: coordonnees des noeuds de la grille
 // field: champ defini aux noeuds auquel on applique grad
 // OUT
 // gradx, grady, gradz: gradient de field aux centres des cellules
 // ============================================================================
-void K_POST::compStructGrad1d(
+void K_POST::compGradStruct1D(
   const E_Int ni, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
-  // Constantes
-  E_Int ni1 = ni - 1;
+  E_Int ni1 = K_FUNC::E_max(1, ni-1);
   E_Float eps = 1.e-12;
 
   E_Int indA, indB;

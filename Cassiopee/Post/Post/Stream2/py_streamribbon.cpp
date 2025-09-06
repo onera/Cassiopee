@@ -89,7 +89,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
         PyErr_SetString(PyExc_TypeError, "streamRibbon: vector must be defined by 3 components.");
         return NULL;
     }
-    for (int i = 0; i < PyList_Size(vectorNames); i++) {
+    for (Py_ssize_t i = 0; i < PyList_Size(vectorNames); i++) {
         PyObject* tpl0 = PyList_GetItem(vectorNames, i);
         if (PyString_Check(tpl0)) {
             char* str = PyString_AsString(tpl0);

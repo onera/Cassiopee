@@ -25,10 +25,10 @@
    retourne le gradient defini aux centres des elts.
    Cas 1D, 2D et 3D.
 */
-E_Int K_POST::computeGradUnstr(
+E_Int K_POST::computeGradUnstruct(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType,
-  E_Float* field,
+  const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
@@ -42,15 +42,15 @@ E_Int K_POST::computeGradUnstr(
 
   if (dim == 3)
   {
-    compGradUnstr3D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
+    compGradUnstruct3D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
   }
   else if (dim == 2)
   {
-    compGradUnstr2D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
+    compGradUnstruct2D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
   }
   else  // dim = 1
   {
-    compGradUnstr1D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
+    compGradUnstruct1D(xt, yt, zt, cn, eltType, field, gradx, grady, gradz);
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
@@ -66,7 +66,7 @@ E_Int K_POST::computeGradUnstr(
    IN: field: champ defini aux noeuds auquel on applique grad
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
 */
-void K_POST::compGradUnstr1D(
+void K_POST::compGradUnstruct1D(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType, const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
@@ -85,7 +85,7 @@ void K_POST::compGradUnstr1D(
     E_Int nelts = cm.getSize();
     if (strcmp(eltTypes[ic], "BAR") != 0)
     {
-      fprintf(stderr, "Error: in K_POST::compGradUnstr1D.\n");
+      fprintf(stderr, "Error: in K_POST::compGradUnstruct1D.\n");
       fprintf(stderr, "Element type must be BAR, not %s.\n", eltTypes[ic]);
       exit(0);
     }
@@ -136,7 +136,7 @@ void K_POST::compGradUnstr1D(
    IN: field: champ defini aux noeuds auquel on applique grad
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
 */
-void K_POST::compGradUnstr2D(
+void K_POST::compGradUnstruct2D(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType, const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
@@ -154,7 +154,7 @@ void K_POST::compGradUnstr2D(
     E_Int nelts = cm.getSize();
     if (strcmp(eltTypes[ic], "TRI") != 0 && strcmp(eltTypes[ic], "QUAD") != 0)
     {
-      fprintf(stderr, "Error: in K_POST::compGradUnstr2D.\n");
+      fprintf(stderr, "Error: in K_POST::compGradUnstruct2D.\n");
       fprintf(stderr, "Element type must be TRI or QUAD, not %s.\n", eltTypes[ic]);
       exit(0);
     }
@@ -315,7 +315,7 @@ void K_POST::compGradUnstr2D(
    IN: field: champ defini aux noeuds auquel on applique grad
    OUT: gradx, grady, gradz: gradient de field %x, %y, %z
 */
-void K_POST::compGradUnstr3D(
+void K_POST::compGradUnstruct3D(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   K_FLD::FldArrayI& cn, const char* eltType, const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
@@ -344,7 +344,7 @@ void K_POST::compGradUnstr3D(
     else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
     else
     {
-      fprintf(stderr, "Error: in K_POST::compGradUnstr3D.\n");
+      fprintf(stderr, "Error: in K_POST::compGradUnstruct3D.\n");
       fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
@@ -357,10 +357,10 @@ void K_POST::compGradUnstr3D(
   // Allocate memory to store facet normals and their areas for all
   // connectivities, as well as the volume of the elements and fieldf, the ith
   // field defined for each facet of the elements
-  K_FLD::FldArrayF fieldf(ntotFacets);
-  K_FLD::FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
-  K_FLD::FldArrayF surf(ntotFacets);
-  K_FLD::FldArrayF vol(ntotElts);
+  FldArrayF fieldf(ntotFacets);
+  FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
+  FldArrayF surf(ntotFacets);
+  FldArrayF vol(ntotElts);
 
   // Compute facet areas and element volumes
   K_METRIC::compUnstructMetric(
@@ -374,7 +374,7 @@ void K_POST::compGradUnstr3D(
   // Compute gradient at element centers  
   #pragma omp parallel
   {
-    E_Int pose, posf, nelts, elOffset, fctOffset;
+    E_Int pose, posf, tposf, nelts, elOffset, fctOffset;
     E_Float sumx, sumy, sumz, invvol;
     
     for (E_Int ic = 0; ic < nc; ic++)
@@ -391,11 +391,12 @@ void K_POST::compGradUnstr3D(
         sumy = K_CONST::E_ZERO_FLOAT;
         sumz = K_CONST::E_ZERO_FLOAT;
         pose = elOffset + i;
+        tposf = fctOffset + i * nfpe[ic];
         invvol = K_CONST::ONE / K_FUNC::E_max(vol[pose], K_CONST::E_MIN_VOL);
 
         for (E_Int fi = 0; fi < nfpe[ic]; fi++)
         {
-          posf = fctOffset + i * nfpe[ic] + fi;
+          posf = tposf + fi;
           sumx += snx[posf] * fieldf[posf];
           sumy += sny[posf] * fieldf[posf];
           sumz += snz[posf] * fieldf[posf];

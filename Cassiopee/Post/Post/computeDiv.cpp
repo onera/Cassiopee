@@ -22,25 +22,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6compunstrdiv_(E_Int& dim, E_Int& npts, E_Int& nelts,
-                       E_Int& nedges, E_Int& nnodes,
-                       E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt,
-                       E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                       E_Float* fieldfX, E_Float* fieldfY, E_Float* fieldfZ,
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surf, E_Float* vol,
-                       E_Float* xint, E_Float* yint, E_Float* zint,
-                       E_Float* div);
-
-  void k6compunstrdiv2d_(E_Int& npts, E_Int& nelts, E_Int& nnodes,
-                         E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt,
-                         E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                         E_Float* snx, E_Float* sny, E_Float* snz,
-                         E_Float* surf, E_Float* div);
-}
-
 //=============================================================================
 /* Compute the divergence of a set of vector fields given at mesh nodes.
    The divergence is given on cell centers. */
@@ -64,7 +45,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
                     "computeDiv: 3 variables must be defined to extract the div.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vars0); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
     if (PyString_Check(tpl0))
@@ -134,7 +115,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv: invalid names for vector component fields.");
-    RELEASESHAREDB(res,array,f,cn); return NULL;
+    RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   char* sv0 = vars[0]; char* sv1 = vars[1]; char* sv2 = vars[2];
   char s0 = sv0[strlen(sv0)-1];
@@ -144,7 +125,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv: error with the order of given scalar fields.");
-    RELEASESHAREDB(res,array,f,cn); return NULL;
+    RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   char* varStringOut = new char [strlen(vars[0])+3]; // +3 for "div", -1 for trailing 'X'
   strcpy(varStringOut, "div");
@@ -215,7 +196,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError,
                         "computeDiv: not a valid element type.");
-        RELEASESHAREDU(array,f,cn); return NULL;
+        RELEASESHAREDU(array, f, cn); return NULL;
       }
       E_Int npts = f->getSize();
       tpl = K_ARRAY::buildArray(1, varStringOut, npts, cn->getSize(), -1, eltType, true,
@@ -225,13 +206,15 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
       E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
       E_Int nelts = cn->getSize();
       FldArrayF fp(nelts, 1, fnp, true);
-      computeDivNS(eltType, npts, *cn,
-                   f->begin(posx), f->begin(posy), f->begin(posz),
-                   f->begin(posu), f->begin(posv), f->begin(posw),
-                   fp.begin());
+      computeDivUnstruct(
+        *cn, eltType,
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw),
+        fp.begin()
+      );
     }
   }
-  RELEASESHAREDB(res,array,f,cn);
+  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   return tpl;
 }
@@ -240,140 +223,57 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
 /* div must be allocated before */
 //=============================================================================
 E_Int K_POST::computeDivStruct(
-  E_Int ni, E_Int nj, E_Int nk,
-  E_Float* xt, E_Float* yt, E_Float* zt,
-  E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
+  const E_Int ni, const E_Int nj, const E_Int nk,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
   E_Float* div
 )
 {
-  if ((ni == 1 && nj == 1) || (ni == 1 && nk == 1) || (nj == 1 && nk == 1))
-    return -1;
-
-  E_Int dim = 3;
-  if (ni == 1)
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) return -1;
+  if (ni == 1 || nj == 1 || nk == 1)
   {
-    ni = nj; nj = nk; nk = 2; dim = 2;
+    compDivStruct2D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
   }
-  else if (nj == 1)
+  else
   {
-    nj = nk; nk = 2; dim = 2;
-  }
-  else if (nk == 1)
-  {
-    nk = 2; dim = 2;
-  }
-
-  E_Int ni1 = K_FUNC::E_max(1, ni-1);
-  E_Int nj1 = K_FUNC::E_max(1, nj-1);
-  E_Int nk1 = K_FUNC::E_max(1, nk-1);
-  E_Int ncells = ni1*nj1*nk1;
-  
-  // Construction des tableaux locaux
-  if (dim == 2)
-  {
-    FldArrayF surf(ncells);
-    FldArrayF nxt(ncells);
-    FldArrayF nyt(ncells);
-    FldArrayF nzt(ncells);
-    compStructDiv2d(
-      ni, nj, xt, yt, zt, fieldX, fieldY, fieldZ,
-      surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(),
-      div
-    );
-  }
-  else // 3d
-  {
-    E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
-    FldArrayF surf(nint, 3);
-    FldArrayF snorm(nint);
-    FldArrayF centerInt(nint, 3);
-    FldArrayF vol(ncells);
-    FldArrayF fieldintX(nint);
-    FldArrayF fieldintY(nint);
-    FldArrayF fieldintZ(nint);
-    compStructDiv(
-      ni, nj, nk, ncells,
-      xt, yt, zt, fieldX, fieldY, fieldZ, div,
-      surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
-      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3),
-      vol.begin(), fieldintX.begin(), fieldintY.begin(), fieldintZ.begin()
-    );
+    compDivStruct3D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
   }
   return 1;
 }
+
 //=============================================================================
-E_Int K_POST::computeDivNS(char* eltType, E_Int npts, FldArrayI& cn,
-                           E_Float* xt, E_Float* yt, E_Float* zt,
-                           E_Float* fieldX, E_Float* fieldY, E_Float* fieldZ,
-                           E_Float* div)
+E_Int K_POST::computeDivUnstruct(
+  FldArrayI& cn, const char* eltType,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+  E_Float* div
+)
 {
-  E_Int nelts = cn.getSize();
-  E_Int nnodes; //nb de noeuds par elts
-  E_Int nedges; //nb de facettes par elts
+  // Get ME mesh dimensionality from the first element type
   E_Int dim = 3;
-  if (strcmp(eltType, "TRI") == 0)
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 or
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  if (dim == 2)
   {
-    nnodes = 3; nedges = 3; dim = 2;
+    compDivUnstruct2D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
   }
-  else if (strcmp(eltType, "QUAD") == 0)
+  else if (dim == 3)
   {
-    nnodes = 4; nedges = 4; dim = 2;
-  }
-  else if (strcmp(eltType, "TETRA") == 0)
-  {
-    nedges = 4; nnodes = 4;
-  }
-  else if (strcmp( eltType, "HEXA") == 0)
-  {
-    nedges = 6; nnodes = 8;
-  }
-  else if (strcmp(eltType, "PENTA") == 0)
-  {
-    nedges = 5; nnodes = 6;
+    compDivUnstruct3D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
   }
   else return -1;
-
-  if (dim == 3)
-  {
-    //tmp tabs
-    FldArrayF fieldfx(nelts,nedges);
-    FldArrayF fieldfy(nelts,nedges);
-    FldArrayF fieldfz(nelts,nedges);
-    FldArrayF snx(nelts,nedges);
-    FldArrayF sny(nelts,nedges);
-    FldArrayF snz(nelts,nedges);
-    FldArrayF surf(nelts,nedges);
-    FldArrayF vol(nelts);
-    FldArrayF xint(nelts, nedges);
-    FldArrayF yint(nelts, nedges);
-    FldArrayF zint(nelts, nedges);
-    k6compunstrdiv_(dim, npts, nelts, nedges, nnodes, cn.begin(),
-                    xt, yt, zt, fieldX, fieldY, fieldZ,
-                    fieldfx.begin(), fieldfy.begin(), fieldfz.begin(),
-                    snx.begin(), sny.begin(), snz.begin(),
-                    surf.begin(), vol.begin(),
-                    xint.begin(), yint.begin(), zint.begin(),
-                    div);
-  }
-  else // dim == 2
-  {
-    FldArrayF snx(nelts,1);
-    FldArrayF sny(nelts,1);
-    FldArrayF snz(nelts,1);
-    FldArrayF surf(nelts,1);
-    k6compunstrdiv2d_(npts, nelts, nnodes, cn.begin(),
-                      xt, yt, zt, fieldX, fieldY, fieldZ,
-                      snx.begin(1), sny.begin(1), snz.begin(1),
-                      surf.begin(1),
-                      div);
-  }
   return 1;
 }
 
 //==============================================================================
 E_Int K_POST::computeDivNGon(
-  E_Float* xt, E_Float* yt, E_Float* zt,
-  E_Float* fpx, E_Float* fpy, E_Float* fpz, FldArrayI& cn,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* fpx, const E_Float* fpy, const E_Float* fpz, FldArrayI& cn,
   E_Float* div
 )
 {

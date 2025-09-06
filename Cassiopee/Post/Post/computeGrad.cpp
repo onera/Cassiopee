@@ -26,7 +26,7 @@ using namespace std;
 /* Calcul du gradient d un ensemble de champs definis en noeuds. 
    Le gradient est fourni aux centres des cellules */
 //=============================================================================
-PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
+PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* varname;
   if (!PYPARSETUPLE_(args, OO_, &array, &varname)) return NULL;
@@ -140,7 +140,7 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
       E_Float* gradx = f2->begin(1);
       E_Float* grady = f2->begin(2);
       E_Float* gradz = f2->begin(3);
-      computeGradUnstr(
+      computeGradUnstruct(
         f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
         f->begin(posv), gradx, grady, gradz
       );
@@ -156,81 +156,25 @@ PyObject* K_POST::computeGrad(PyObject* self,PyObject* args)
 /* gradx, grady, gradz must be allocated before */
 //=============================================================================
 E_Int K_POST::computeGradStruct(
-  E_Int ni, E_Int nj, E_Int nk, 
-  E_Float* xt, E_Float* yt, E_Float* zt, 
-  E_Float* field,
+  const E_Int ni, const E_Int nj, const E_Int nk, 
+  const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* field,
   E_Float* gradx, E_Float* grady, E_Float* gradz
 )
 {
-  E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1;
-  E_Int dim = 3;
-  if (ni1*nj1*nk1 == 0)
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)  // 1D
   {
-    if ((ni1*nj1 == 0) && (ni1*nk1 == 0) && (nj1*nk1 == 0))
-    {
-      if ((ni == 1) && (nj == 1))
-      {
-        ni = nk;
-      }
-      else if ((ni == 1) && (nk == 1))
-      {
-        ni = nj;
-      }
-      dim = 1;
-      nj = 2; nk = 2;
-    }
-    else
-    {
-      dim = 2;
-      if (ni == 1)
-      {
-        ni = nj; nj = nk;
-      }
-      else if (nj == 1)
-      {
-        nj = nk;
-      }
-      nk = 2;
-    }
+    E_Int tni = ni;
+    if (nj != 1) tni = nj;
+    else if (nk != 1) tni = nk;
+    compGradStruct1D(tni, xt, yt, zt, field, gradx, grady, gradz);
   }
-
-  ni1 = K_FUNC::E_max(1, ni-1);
-  nj1 = K_FUNC::E_max(1, nj-1);
-  nk1 = K_FUNC::E_max(1, nk-1);    
-  E_Int ncells = ni1*nj1*nk1;
-
-  // Construction des tableaux locaux
-  if (dim == 1)
+  else if (ni == 1 || nj == 1 || nk == 1)  // 2D
   {
-    compStructGrad1d(ni, xt, yt, zt, field, gradx, grady, gradz);
+    compGradStruct2D(ni, nj, nk, xt, yt, zt, field, gradx, grady, gradz);
   }
-  else if (dim == 2)
+  else  // 3D
   {
-    FldArrayF surf(ncells);
-    FldArrayF nxt(ncells);
-    FldArrayF nyt(ncells);
-    FldArrayF nzt(ncells);
-    compStructGrad2d(
-      ni, nj, xt, yt, zt, field, 
-      surf.begin(), nxt.begin(), nyt.begin(), nzt.begin(), 
-      gradx, grady, gradz
-    );
-  }
-  else // 3d
-  {
-    E_Int nint = ni*nj1*nk1 + ni1*nj*nk1 + ni1*nj1*nk;
-    FldArrayF surf(nint, 3);
-    FldArrayF snorm(nint);
-    FldArrayF centerInt(nint, 3);
-    FldArrayF vol(ncells);
-    FldArrayF fieldint(nint);
-    compStructGrad(
-      ni, nj, nk, ncells, 
-      xt, yt, zt, field, gradx, grady, gradz,
-      surf.begin(1), surf.begin(2), surf.begin(3), snorm.begin(),
-      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3), 
-      vol.begin(), fieldint.begin()
-    );
+    compGradStruct3D(ni, nj, nk, xt, yt, zt, field, gradx, grady, gradz);
   }
   return 1;
 }
@@ -278,9 +222,11 @@ void K_POST::computeGradVarsString(char* varString, char*& varStringOut)
 }
 
 //==============================================================================
-E_Int K_POST::computeGradNGon(E_Float* xt, E_Float* yt, E_Float* zt, 
-                              E_Float* fp, FldArrayI& cn,
-                              E_Float* gradx, E_Float* grady, E_Float* gradz)
+E_Int K_POST::computeGradNGon(
+  const E_Float* xt, const E_Float* yt, const E_Float* zt, 
+  const E_Float* fp, FldArrayI& cn,
+  E_Float* gradx, E_Float* grady, E_Float* gradz
+)
 {
   // Donnees liees a la connectivite
   E_Int nfaces = cn.getNFaces(); // nombre total de faces
