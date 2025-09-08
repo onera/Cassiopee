@@ -31,7 +31,7 @@ using namespace std;
 PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
 {
   PyObject *octree;
-  if (!PyArg_ParseTuple(args, "O", &octree)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &octree)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

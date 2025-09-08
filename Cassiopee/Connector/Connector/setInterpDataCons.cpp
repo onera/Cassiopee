@@ -59,9 +59,9 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
-  if ( resr == -1)
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
+  if (resr == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setInterpDataCons: 1st arg is not valid.");
@@ -76,7 +76,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   }    
   else//check NGON
   {
-    if(K_STRING::cmp(eltTyper,"NGON")!=0)
+    if (K_STRING::cmp(eltTyper,"NGON") != 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setInterpDataCons: 1st arg must be NGON.");

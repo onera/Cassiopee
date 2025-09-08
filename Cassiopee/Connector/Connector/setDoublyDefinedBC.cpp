@@ -64,8 +64,8 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   FldArrayI* cn0;
   char* varString;
   char* eltType0;
-  E_Int res = K_ARRAY::getFromArray(a1, varString, f, im, jm, km, 
-                                    cn0, eltType0, true); 
+  E_Int res = K_ARRAY::getFromArray3(a1, varString, f, im, jm, km, 
+                                     cn0, eltType0); 
   if (res != 1) 
   {
     RELEASESHAREDB(res, a1, f, cn0);
@@ -91,8 +91,8 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc;
   char* varStringc;
-  res = K_ARRAY::getFromArray(celln1, varStringc, fc, imc, jmc, kmc, 
-                              cn0, eltType0, true); 
+  res = K_ARRAY::getFromArray3(celln1, varStringc, fc, imc, jmc, kmc, 
+                               cn0, eltType0); 
   if (res != 1) 
   {
     RELEASESHAREDS(a1, f); RELEASESHAREDB(res, celln1, fc, cn0);

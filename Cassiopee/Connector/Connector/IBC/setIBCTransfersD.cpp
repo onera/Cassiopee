@@ -60,8 +60,8 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
-                                     imd, jmd, kmd, cnd, eltTypeD, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd,
+                                      imd, jmd, kmd, cnd, eltTypeD);
   E_Int* ptrcnd = NULL;
   E_Int cndSize = 0;
   E_Int cnNfldD = 0;

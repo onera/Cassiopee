@@ -40,7 +40,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   if (res == 1)
   { 

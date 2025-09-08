@@ -43,8 +43,8 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   K_FLD::FldArrayF* f;
   char* varString; char* eltType;
   K_FLD::FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   E_Int dim = 3;
   if (res != 2) 
   {

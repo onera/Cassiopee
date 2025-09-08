@@ -132,8 +132,8 @@ PyObject* K_GENERATOR::snapFront(PyObject* self, PyObject* args)
   FldArrayI* cn2;
   char* varString2;
   char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(surface, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(surface, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)

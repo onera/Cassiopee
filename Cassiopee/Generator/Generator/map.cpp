@@ -59,10 +59,10 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
   char* varStringd; char* eltTyped;
 
   // Extraction des infos sur le maillage
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   // Extraction des infos sur la distribution
-  E_Int resd = K_ARRAY::getFromArray(arrayd, varStringd, fd,
-                                     nid, njd, nkd, cnd, eltTyped, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayd, varStringd, fd,
+                                      nid, njd, nkd, cnd, eltTyped);
 
   if (res == 1 && resd == 1)
   {

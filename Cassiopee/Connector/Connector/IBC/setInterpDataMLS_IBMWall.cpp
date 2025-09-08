@@ -52,8 +52,8 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr,
-                                      imr, jmr, kmr, cnr, eltTyper, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr,
+                                      imr, jmr, kmr, cnr, eltTyper);
   if (resr != 2)
   {
     if (resr == 1) RELEASESHAREDS(arrayR, fr);

@@ -55,7 +55,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int supp, suppl, suppr; // supressed points, left, right
   E_Int add;                // added points
-  E_Float eh, ehr;           // enforce length
+  E_Float eh, ehr;          // enforce length
   E_Float x0;
   E_Int verbose;
 

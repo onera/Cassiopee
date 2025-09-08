@@ -18,8 +18,8 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                               cn, eltType);
 
   /* More info on arrays in KCore/Array/Array.h */
   

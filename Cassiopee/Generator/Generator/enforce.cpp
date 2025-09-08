@@ -46,11 +46,11 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int supp; E_Int add;
   char* name;
-  E_Float eh;             // enforce length
+  E_Float eh; // enforce length
   E_Float P0;
   
   if (!PYPARSETUPLE_(args, O_ S_ RR_ II_,
-                    &array, &name, &P0, &eh, &supp, &add)) return NULL;
+                     &array, &name, &P0, &eh, &supp, &add)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;

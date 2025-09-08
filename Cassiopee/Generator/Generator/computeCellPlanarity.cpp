@@ -42,7 +42,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
 
   // Extraction des infos sur le maillage
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   // Check data
   if (res == -1)
@@ -55,7 +55,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
   {
     if (ni != 1 && nj != 1 && nk != 1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "computeCellPlanarity: array must be a surface array.");
       return NULL;
@@ -65,8 +65,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
   {
     if (strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0)
     {
-      delete f; 
-      delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "computeCellPlanarity: array must be a surface array.");
       return NULL;
@@ -79,8 +78,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
 
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
-    if (res == 2) delete cn;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "computeCellPlanarity: coordinates must be present in array.");
     return NULL;
@@ -97,7 +95,8 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
                             *dist, ni1, nj1, nk1);
     PyObject* tpl = K_ARRAY::buildArray(*dist, "dist", 
                                         ni1, nj1, nk1);
-    delete dist; delete f;
+    delete dist; 
+    RELEASESHAREDS(array, f);
     return tpl;
   }
   else
@@ -107,7 +106,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
     (*connect) = (*cn);
 
     if (strcmp(eltType, "TRI") == 0)
-    {      
+    {
       dist->malloc(cn->getSize());
       dist->setAllValuesAtNull(); // les triangles sont forcement planaires
     }
@@ -121,7 +120,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
     PyObject* tpl = K_ARRAY::buildArray(*dist, "dist",
                                         *connect, -1, eltType, true);
     delete dist; delete connect;
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
 }

@@ -607,11 +607,9 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
   E_Int ni, nj, nk, nid, njd, nkd;
   FldArrayF* f;
   FldArrayF* fd;
-  char* varString;  
-  char* eltType;
+  char* varString; char* eltType;
   FldArrayI* cn;
-  char* varStringd;
-  char* eltTyped;
+  char* varStringd; char* eltTyped;
   FldArrayI* cnd;
   FldArrayF coord1, s, dx, dy, dz;
   FldArrayF coord;

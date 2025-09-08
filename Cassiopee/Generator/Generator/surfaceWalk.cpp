@@ -184,7 +184,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   char* varString;
   char* eltType;
   FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayc, varString, coords, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayc, varString, coords, ni, nj, nk, cn, eltType);
   E_Int err = 0;
   if ( res != 1 ){ PyErr_SetString(PyExc_TypeError, "straightenVector: 1st array must be structured."); err = 1;}
   if ( ni == 1 || nj > 1 || nk > 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 1st arg must be a 1D-array."); err = 1;}
@@ -202,7 +202,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   FldArrayF* vectp;
   FldArrayI* cnv;
   char* varStringv;
-  E_Int resv = K_ARRAY::getFromArray(arrayv, varStringv,  vectp, niv, njv, nkv, cnv, eltType, true);
+  E_Int resv = K_ARRAY::getFromArray3(arrayv, varStringv,  vectp, niv, njv, nkv, cnv, eltType);
   if ( resv != 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 2nd array must be structured."); err = 1;}
   if ( niv == 1 || njv > 1 || nkv > 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 2nd arg must be a 1D-array."); err = 1;}
   if ( niv != ni ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 1st and 2nd args must be of same size."); err = 1;}

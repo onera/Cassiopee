@@ -53,8 +53,8 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   FldArrayI* cn1;
   char* varString1;
   char* eltType;
-  E_Int res = K_ARRAY::getFromArray(coordArray1, varString1, f1,
-                                    im1, jm1, km1, cn1, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(coordArray1, varString1, f1,
+                                     im1, jm1, km1, cn1, eltType);
   if (res != 1)
   {
     RELEASESHAREDB(res, coordArray1, f1, cn1);
@@ -83,8 +83,8 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   E_Int imc1, jmc1, kmc1;
   FldArrayF* fc1; FldArrayI* cnc1;
   char* varStringc1;
-  res = K_ARRAY::getFromArray(centerArray1, varStringc1,fc1,
-                              imc1, jmc1, kmc1, cnc1, eltType, true);
+  res = K_ARRAY::getFromArray3(centerArray1, varStringc1,fc1,
+                               imc1, jmc1, kmc1, cnc1, eltType);
   if (res != 1)
   {
     RELEASESHAREDB(res, centerArray1, fc1, cnc1);
@@ -122,8 +122,8 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  res = K_ARRAY::getFromArray(coordArray2, varString2, f2,
-                              im2, jm2, km2, cn2, eltType2, true);
+  res = K_ARRAY::getFromArray3(coordArray2, varString2, f2,
+                               im2, jm2, km2, cn2, eltType2);
   if (res != 1)
   {
     RELEASESHAREDS(coordArray1, f1); RELEASESHAREDS(centerArray1, fc1);
@@ -159,8 +159,8 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   E_Int imc2, jmc2, kmc2;
   FldArrayF* fc2; FldArrayI* cnc2;
   char* varStringc2;
-  res = K_ARRAY::getFromArray(centerArray2, varStringc2, fc2,
-                              imc2, jmc2, kmc2, cnc2, eltType, true);
+  res = K_ARRAY::getFromArray3(centerArray2, varStringc2, fc2,
+                               imc2, jmc2, kmc2, cnc2, eltType);
   if (res != 1)
   {
     RELEASESHAREDS(coordArray1, f1); RELEASESHAREDS(centerArray1, fc1);

@@ -2853,8 +2853,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringR; char* eltTypeR;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringR, fr,
-                                     imr, jmr, kmr, cnr, eltTypeR, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringR, fr,
+                                      imr, jmr, kmr, cnr, eltTypeR);
   if (resr != 2 && resr != 1)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -2867,8 +2867,8 @@ PyObject* K_CONNECTOR::setIBCTransfers(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
-                                     imd, jmd, kmd, cnd, eltTypeD, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd,
+                                      imd, jmd, kmd, cnd, eltTypeD);
   E_Int* ptrcnd = NULL;
   E_Int cndSize = 0; E_Int cnNfldD = 0;
   if (resd != 2 && resd != 1)

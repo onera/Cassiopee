@@ -123,8 +123,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
 
   // Verif des coordonnees dans la zone a interpoler
   E_Int posxr = K_ARRAY::isCoordinateXPresent(varStringr);
@@ -657,8 +657,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
 
   // Verif des coordonnees dans la zone a interpoler
   E_Int posxr = K_ARRAY::isCoordinateXPresent(varStringr);

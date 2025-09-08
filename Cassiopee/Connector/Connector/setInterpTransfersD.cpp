@@ -39,7 +39,7 @@ PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args )
   FldArrayI* cnd;
   char* varStringD;
   char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray( arrayD, varStringD, fd, imd, jmd, kmd, cnd, eltTypeD, true );
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd, imd, jmd, kmd, cnd, eltTypeD);
   if (resd != 2 && resd != 1) 
   {
     PyErr_SetString( PyExc_TypeError, "setInterpTransfersD: 1st arg is not a valid array." );
