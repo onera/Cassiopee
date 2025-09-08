@@ -367,7 +367,7 @@ namespace K_ARRAY
      
      Retourne -1 si pb
      Si shared=true, tous les tableaux retournes partagent la memoire
-     avec les tableaux numpy. Tous les array de o ont une reference
+     avec les tableaux numpy. Tous les arrays de o ont une reference
      incrementee.
      C'est la responsabilite de l'appelant de liberer la memoire de structF,
      unstructF et c. Dans le cas shared=true, il faut utiliser la macro

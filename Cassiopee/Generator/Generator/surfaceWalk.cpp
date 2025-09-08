@@ -240,7 +240,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   K_ARRAY::getFromArrays(
     constraintsa, resl, structVarString, unstrVarString,
     constraints, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   
   // Redressage des normales
   PyObject* tpl2 = K_ARRAY::buildArray(3, varStringv, ni, 1, 1);
@@ -249,6 +249,8 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   straightenVector(ni, coords->begin(posx), coords->begin(posy), coords->begin(posz), 
                    loop, niter, constrainedPts, constraints, vect, toldist);
   RELEASESHAREDB(resv, arrayv, vectp, cnv); RELEASESHAREDB(res, arrayc, coords, cn); 
+  for (size_t v = 0; v < objst.size(); v++) RELEASESHAREDS(objst[v], constraints[v]);
+
   return tpl2;
 }
 //=============================================================================

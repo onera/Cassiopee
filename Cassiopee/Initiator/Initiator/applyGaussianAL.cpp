@@ -100,7 +100,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     E_Bool skipNoCoord = false; E_Bool skipStructured = false;
     E_Bool skipUnstructured = false; E_Bool skipDiffVars = false;
     E_Int ok = K_ARRAY::getFromArrays(arrays, resl, varString, fields, a2, a3, a4, objs,  
-                                        skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true); 
+                                      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true); 
     E_Int nzones = objs.size();
     if (ok == -1 || nzones == 0)
     {

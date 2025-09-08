@@ -49,7 +49,7 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, res, structVarString, unstrVarString,
     fields, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
   E_Int nzones = fields.size();
   E_Int nfld = 0;
@@ -58,7 +58,7 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   {
     PyErr_SetString(PyExc_TypeError,
                     "TFI: invalid list of arrays.");
-    for (E_Int v = 0; v < nzones; v++) delete fields[v];
+    for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
     return NULL;
   }
   // verification que les arrays sont bien 1D
@@ -68,15 +68,14 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
     E_Int ni = nit[v]; E_Int nj = njt[v]; E_Int nk = nkt[v];
     if ( ni < 2 || nj != 1 || nk != 1 )
     {
-       for (E_Int v2 = 0; v2 < nzones; v2++)
-         delete fields[v2];
+      for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
       PyErr_SetString(PyExc_TypeError,
                       "TFI: one array is invalid: must be i-varying only.");
       return NULL;
     }
     if (ni != ni0) 
     {
-      for (E_Int v2 = 0; v2 < nzones; v2++) delete fields[v2];
+      for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
       PyErr_SetString(PyExc_TypeError,
                       "TFI: all arrays must have the same size.");
       return NULL;
@@ -174,7 +173,8 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
     et++;
     off1 = off2;
   }
-  delete Fimin; delete Fjmin; delete Fdiag;
+  for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
+
   return tpl;
 }
 

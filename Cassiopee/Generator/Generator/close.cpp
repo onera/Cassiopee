@@ -169,7 +169,7 @@ void K_GENERATOR::closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
   if (nk > 1) sizemax = 2*(njnk + nink + ninj);
   else sizemax = 2*(ni + nj);
 
-  // Creation du kdtree et des tableaux d indirection
+  // Creation du kdtree et des tableaux d'indirection
   FldArrayI indirI(sizemax);
   FldArrayF ftemp(sizemax,3);
   E_Float* xp = ftemp.begin(1);

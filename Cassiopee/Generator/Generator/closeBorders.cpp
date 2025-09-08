@@ -54,19 +54,15 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, res, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
   E_Int size;
   if (isOk == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "closeBorders: invalid list of arrays.");
-    size = structF.size();
-    for (E_Int v = 0; v < size; v++) delete structF[v];
-    size = unstrF.size();
-    for (E_Int v = 0; v < size; v++) delete unstrF[v];
-    size = cnt.size();
-    for (E_Int v = 0; v < size; v++) delete cnt[v];
+    for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objs[v], structF[v]);
+    for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
     return NULL;
   }
   
@@ -117,18 +113,18 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     isOk = K_ARRAY::getFromArrays(
       arraysEF, rese, structVarStringe, unstrVarStringe,
       structEF, unstrEF, nie, nje, nke, cne, eltTypeE, objse, objue, 
-      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
     if (isOk == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "closeBorders: invalid list of arrays for exterior faces.");
-      for (size_t v = 0; v < structF.size(); v++) delete structF[v];
-      for (size_t v = 0; v < unstrF.size(); v++) delete unstrF[v];
-      for (size_t v = 0; v < cnt.size(); v++) delete cnt[v];
-      for (size_t v = 0; v < structEF.size(); v++) delete structEF[v];    
-      for (size_t v = 0; v < unstrEF.size(); v++) delete unstrEF[v];
-      for (size_t v = 0; v < cne.size(); v++) delete cne[v];
+
+      for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objs[v], structF[v]);
+      for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
+  
+      for (size_t v = 0; v < structEF.size(); v++) RELEASESHAREDS(objse[v], structEF[v]);
+      for (size_t v = 0; v < unstrEF.size(); v++) RELEASESHAREDU(objue[v], unstrEF[v], cne[v]);
 
       return NULL;
     }
@@ -150,12 +146,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
       }
       closeAllUnstructuredMeshes(unstrF, cnt, posxu, posyu, poszu, 
                                  unstrEF, cne, posxe, posye, posze, 
-                                 eps);
-
-      //cleaning
-      for (size_t v = 0; v < structEF.size(); v++) delete structEF[v];    
-      for (size_t v = 0; v < unstrEF.size(); v++) delete unstrEF[v];
-      for (size_t v = 0; v < cne.size(); v++) delete cne[v]; 
+                                 eps);      
     }
   }// unstructured
 
@@ -166,7 +157,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
   {
     FldArrayF& f0 = *structF[v];
     tpl = K_ARRAY::buildArray(f0, structVarString[v], nit[v], njt[v], nkt[v]);
-    delete structF[v];
+    RELEASESHAREDS(objs[v], structF[v]);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
@@ -175,7 +166,7 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     FldArrayF& f0 = *unstrF[v];
     tpl = K_ARRAY::buildArray(f0, unstrVarString[v], *cnt[v], -1, eltType[v],
                               false);
-    delete unstrF[v]; delete cnt[v];
+    RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }

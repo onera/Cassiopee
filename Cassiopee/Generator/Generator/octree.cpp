@@ -123,11 +123,10 @@ PyObject* octree(PyObject* self, PyObject* args)
   E_Bool skipStructured = true;
   E_Bool skipUnstructured = false;
   E_Bool skipDiffVars = true;
-  E_Bool shared = true;
   E_Int res = K_ARRAY::getFromArrays(
     stlArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, shared);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (res == -1) 
   {
     PyErr_SetString(PyExc_TypeError, 

@@ -821,8 +821,7 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
     if isinstance(array[0], list):
         out = []
         for a in array:
-
-            if len(a)==5: # merge intra-borders (C-type meshes)
+            if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
                 outl = generator.closeMeshLegacy(a, tol, suppressDegeneratedNGons)

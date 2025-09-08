@@ -144,8 +144,7 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   res = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, 
-    skipUnstructured, true);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int ns = structF.size();
   if (res == -1)
   {

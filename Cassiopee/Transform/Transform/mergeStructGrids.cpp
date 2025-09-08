@@ -160,7 +160,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, rest, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (isOk == -1) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -191,10 +191,10 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     arraysc, resc, structVarStringc, unstrVarStringc,
     structFc, unstrFc, nitc, njtc, nktc, cntc, eltTypec, 
     objstc, objutc,
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (isOk == -1)
   {
-    for (E_Int v1 = 0; v1 < nzones; v1++) delete structF[v1];
+    for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
     PyErr_SetString(PyExc_TypeError, 
                     "merge: arrays defining fields at centers are not valid.");
     return NULL;
@@ -208,8 +208,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     // check number of zones
     if (nzonesc != nzones)
     {
-      for (E_Int v1 = 0; v1< nzones; v1++) delete structF[v1];
-      for (E_Int v1 = 0; v1< nzonesc; v1++) delete structFc[v1]; 
+      for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
+      for (E_Int v1 = 0; v1 < nzonesc; v1++) RELEASESHAREDS(objstc[v1], structFc[v1]);
+
       PyErr_SetString(PyExc_TypeError, 
                       "merge: number of arrays at nodes and centers must be equal.");
       return NULL;
@@ -221,7 +222,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
           njtc[v] != K_FUNC::E_max(1,njt[v]-1) ||
           nktc[v] != K_FUNC::E_max(1,nkt[v]-1))
       {
-        for (E_Int v1 = 0; v1 < nzones; v1++) {delete structF[v1];delete structFc[v1];}
+        for (E_Int v1 = 0; v1< nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
+        for (E_Int v1 = 0; v1< nzones; v1++) RELEASESHAREDS(objstc[v1], structFc[v1]);
+  
         PyErr_SetString(PyExc_TypeError, 
                         "merge: inconsistent dimensions between arrays at nodes and centers.");
         return NULL;
@@ -246,7 +249,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError, 
                       "merge: coordinates are not located at same position.");
-      for (E_Int v1 = 0; v1 < nzones; v1++) delete structF[v1];
+      for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
       return NULL;
     }
   }
