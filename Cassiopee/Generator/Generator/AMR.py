@@ -191,7 +191,7 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
     elif dir_sym == 3:
         coordsym = 'CoordinateZ'
         valsym = 0.5*(zmin+zmax)
-    if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym),strict=0)
+    if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym-__TOL__),strict=1)
 
     # adapt the mesh to get a single refinement level - uniform grid
     refined=True
@@ -876,7 +876,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             indicMax = C.getMaxValue(o,"centers:indicator")
             indicMax = Cmpi.allgather(indicMax)
             indicMax = max(indicMax)
-            if indicMax<1.:
+            if indicMax<1. or (i==0 and adaptPass>0):
                 adapting=False
                 C._rmVars(o,["centers:indicator"])
                 break
@@ -1084,7 +1084,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
-    Internal._rmNodesByName1(tb, "SYM")
+    # Internal._rmNodesByName1(tb, "SYM")
 
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
