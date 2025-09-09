@@ -21,15 +21,6 @@
 # include "CompGeom/compGeom.h"
 
 using namespace K_FLD;
-extern "C"
-{
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-}
 
 //===========================================================================
 /* nurbs a partir des points de controle */
@@ -331,10 +322,10 @@ void K_COMPGEOM::regularNurbs(E_Int n, E_Int ordern, E_Int N, E_Float density,
 #pragma omp parallel for default(shared) if (npts > __MIN_SIZE_MEAN__)
   for (E_Int i = 0; i < npts; i++) fdx[i] = delta*i;
 
-  k6onedmap_(npts0, coordx0, coordy0, coordz0,
-             npts, fd.begin(1),
-             coordx, coordy, coordz,
-             sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+  K_COMPGEOM::onedmap(npts0, coordx0, coordy0, coordz0,
+		      npts, fd.begin(1),
+		      coordx, coordy, coordz,
+		      sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
 }
 
 //=============================================================================
@@ -451,10 +442,10 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
 
   for (E_Int j = 0; j < nptsj0; j++)
   {
-    k6onedmap_(nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
-               nptsi, fd.begin(1),
-               coordx1+j*nptsi, coordy1+j*nptsi, coordz1+j*nptsi,
-               sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+    K_COMPGEOM::onedmap(nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
+			nptsi, fd.begin(1),
+			coordx1+j*nptsi, coordy1+j*nptsi, coordz1+j*nptsi,
+			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
   }
 
   // Remaille en j
@@ -508,10 +499,10 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
     { t0x[j] = coordx1[i+j*nptsi];
       t0y[j] = coordy1[i+j*nptsi];
       t0z[j] = coordz1[i+j*nptsi]; }
-    k6onedmap_(nptsj0, t0x, t0y, t0z,
-               nptsj, fd.begin(1),
-               tx, ty, tz,
-               sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+    K_COMPGEOM::onedmap(nptsj0, t0x, t0y, t0z,
+			nptsj, fd.begin(1),
+			tx, ty, tz,
+			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
     for (E_Int j = 0; j < nptsj; j++) 
     { coordx[i+j*nptsi] = tx[j]; 
       coordy[i+j*nptsi] = ty[j]; 
