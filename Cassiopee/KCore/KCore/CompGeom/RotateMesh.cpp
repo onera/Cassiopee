@@ -17,10 +17,8 @@ void K_COMPGEOM::rotateMesh(const E_Int dim, const E_Float teta,
   // LOCAL
   E_Float unx, uny, unz;
   E_Float norm;
-  E_Float px, py, pz;
-  E_Float rx, ry, rz;
   E_Float e0, e1, e2, e3;
-  E_Float a1, a2, steta, stetas2;
+  E_Float a1, steta, stetas2;
 
   // nx,ny,nz must be unit vector
   norm = axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2];
@@ -44,21 +42,27 @@ void K_COMPGEOM::rotateMesh(const E_Int dim, const E_Float teta,
   e2 = -uny*stetas2;
   e3 = -unz*stetas2;
   a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
-
-  for (E_Int ind = 0; ind < dim; ind++)
+#pragma omp parallel default(shared)
   {
-    rx = x0[ind] - center[0];
-    ry = y0[ind] - center[1];
-    rz = z0[ind] - center[2];
+    E_Float rx, ry, rz;
+    E_Float a2;
+    E_Float px, py, pz;
+#pragma omp for 
+    for (E_Int ind = 0; ind < dim; ind++)
+      {
+	rx = x0[ind] - center[0];
+	ry = y0[ind] - center[1];
+	rz = z0[ind] - center[2];
 
-    a2 = e1*rx + e2*ry + e3*rz;
-    px = a1*rx + 2*e1*a2 - (ry*unz - rz*uny)*steta;
-    py = a1*ry + 2*e2*a2 - (rz*unx - rx*unz)*steta;
-    pz = a1*rz + 2*e3*a2 - (rx*uny - ry*unx)*steta;
+	a2 = e1*rx + e2*ry + e3*rz;
+	px = a1*rx + 2*e1*a2 - (ry*unz - rz*uny)*steta;
+	py = a1*ry + 2*e2*a2 - (rz*unx - rx*unz)*steta;
+	pz = a1*rz + 2*e3*a2 - (rx*uny - ry*unx)*steta;
 
-    x0[ind] = center[0] + px;
-    y0[ind] = center[1] + py;
-    z0[ind] = center[2] + pz;
+	x0[ind] = center[0] + px;
+	y0[ind] = center[1] + py;
+	z0[ind] = center[2] + pz;
+      }
   }
 }
 
@@ -80,10 +84,8 @@ void K_COMPGEOM::rotateMesh2(const E_Int npts, const E_Float teta,
   // LOCAL
   E_Float unx, uny, unz;
   E_Float norm;
-  E_Float px, py, pz;
-  E_Float rx, ry, rz;
   E_Float e0, e1, e2, e3;
-  E_Float a1, a2, sinteta, sinteta5;
+  E_Float a1, sinteta, sinteta5;
 
   // nx,ny,nz must be unit vector
   norm = nx*nx + ny*ny + nz*nz;
@@ -107,20 +109,27 @@ void K_COMPGEOM::rotateMesh2(const E_Int npts, const E_Float teta,
   e2 = -uny*sinteta5;
   e3 = -unz*sinteta5;
   a1 = e0*e0 - e1*e1 - e2*e2 - e3*e3;
-
-  for (E_Int ind = 0; ind < npts; ind++)
+  
+#pragma omp parallel default(shared)
   {
-    rx = x[ind] - xc;
-    ry = y[ind] - yc;
-    rz = z[ind] - zc;
-
-    a2 = e1*rx + e2*ry + e3*rz;
-    px = a1*rx + 2*e1*a2 - (ry*unz - rz*uny)*sinteta;
-    py = a1*ry + 2*e2*a2 - (rz*unx - rx*unz)*sinteta;
-    pz = a1*rz + 2*e3*a2 - (rx*uny - ry*unx)*sinteta;
-
-    x0[ind] = xc + px;
-    y0[ind] = yc + py;
-    z0[ind] = zc + pz;
+    E_Float rx, ry, rz;
+    E_Float a2;
+    E_Float px, py, pz;
+#pragma omp for 
+    for (E_Int ind = 0; ind < npts; ind++)
+      {
+	rx = x[ind] - xc;
+	ry = y[ind] - yc;
+	rz = z[ind] - zc;
+	  
+	a2 = e1*rx + e2*ry + e3*rz;
+	px = a1*rx + 2*e1*a2 - (ry*unz - rz*uny)*sinteta;
+	py = a1*ry + 2*e2*a2 - (rz*unx - rx*unz)*sinteta;
+	pz = a1*rz + 2*e3*a2 - (rx*uny - ry*unx)*sinteta;
+	  
+	x0[ind] = xc + px;
+	y0[ind] = yc + py;
+	z0[ind] = zc + pz;
+      }
   }
 }
