@@ -94,7 +94,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
 
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType; E_Int ni,nj,nk;
-  E_Int res1 = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, c, eltType);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, c, eltType);
   if (res1 == 0 || res1 == 1 || strcmp(eltType, "NGON") != 0)
   {    
     RELEASESHAREDN(FL, FLI);
@@ -111,7 +111,7 @@ PyObject* K_CONNECTOR::setInterpDataForGCNGon(PyObject* self, PyObject* args)
 
   K_FLD::FldArrayF* fd; K_FLD::FldArrayI* cd;
   char* varStringd; char* eltTyped; E_Int nid,njd,nkd;
-  E_Int res2 = K_ARRAY::getFromArray2(arrayDonor, varStringd, fd, nid, njd, nkd, cd, eltTyped);
+  E_Int res2 = K_ARRAY::getFromArray3(arrayDonor, varStringd, fd, nid, njd, nkd, cd, eltTyped);
   if (res2 == 0 || res2 == 1 || strcmp(eltTyped, "NGON") != 0)
   {    
     RELEASESHAREDN(FL, FLI);

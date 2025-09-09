@@ -54,10 +54,8 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
 {
 
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
-                                    cn1, eltType);
+  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk, cn1, eltType);
 
-     
   bool err = (res !=2);
   err &= (strcmp(eltType, "NGON") != 0);
 

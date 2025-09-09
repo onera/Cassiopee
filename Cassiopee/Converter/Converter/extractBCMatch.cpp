@@ -155,7 +155,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varStringTmp;
-  K_ARRAY::getFromArray2(pyFldD, varStringTmp, fldD, ni2, nj2, nk2, cn2, eltType);
+  K_ARRAY::getFromArray3(pyFldD, varStringTmp, fldD, ni2, nj2, nk2, cn2, eltType);
 
   // Extrapolation
   // ~~~~~~~~~~~~~
@@ -210,8 +210,8 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   // ===========
   FldArrayF* FCenter; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(fields, varString, FCenter, niD, njD, nkD, 
-                                    cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(fields, varString, FCenter, niD, njD, nkD, 
+                                     cn, eltType); 
 
   if (res != 1)
   {
@@ -277,7 +277,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   FldArrayF*  fBC; 
   FldArrayI* cnBC;
   E_Int ni2, nj2, nk2;
-  K_ARRAY::getFromArray2(pyFldD, varString, fBC, ni2, nj2, nk2, cnBC, eltType);
+  K_ARRAY::getFromArray3(pyFldD, varString, fBC, ni2, nj2, nk2, cnBC, eltType);
   
   // Cas 2D
   // ======
@@ -1060,8 +1060,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   FldArrayF* fldD;
   FldArrayI* cn2;
   char* varStringOut;
-  E_Int res2 = K_ARRAY::getFromArray2(pyFldD, varStringOut, fldD, ni2, nj2, nk2, 
-                                    cn2, eltType); 
+  E_Int res2 = K_ARRAY::getFromArray3(pyFldD, varStringOut, fldD, ni2, nj2, nk2, 
+                                      cn2, eltType); 
 
   if (res2 != 1)
   {
@@ -1138,7 +1138,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   FldArrayF* fld;
   FldArrayI* cn3;
   char* varStringTmp;
-  K_ARRAY::getFromArray2(pyFld, varStringTmp, fld, ni2, nj2, nk2, cn3, eltType);
+  K_ARRAY::getFromArray3(pyFld, varStringTmp, fld, ni2, nj2, nk2, cn3, eltType);
 
 
   // Build 0.5(fldD+fldR) array on boundary faces
@@ -1184,8 +1184,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   E_Int ni, nj, nk ;
   FldArrayF* fieldsR; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(pyFieldsR, varString, fieldsR, ni, nj, nk, 
-                                    cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(pyFieldsR, varString, fieldsR, ni, nj, nk, 
+                                     cn, eltType); 
 
   if (res != 1)
   {
@@ -1198,8 +1198,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   // ==================================
   E_Int ni2, nj2, nk2 ;
   FldArrayF* fldD;
-  E_Int res2 = K_ARRAY::getFromArray2(pyFldD, varString, fldD, ni2, nj2, nk2, 
-                                    cn, eltType); 
+  E_Int res2 = K_ARRAY::getFromArray3(pyFldD, varString, fldD, ni2, nj2, nk2, 
+                                      cn, eltType); 
 
   // printf("ni2 : %d, nj2 : %d, nk2 : %d \n", ni2, nj2, nk2);
 
@@ -1256,8 +1256,8 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   E_Int nn;
   PyObject* pyFld = K_ARRAY::buildArray2(nfld,varString,nind,1,1,2); 
   // printf("nfld : %d, nind : %d \n",nfld,nind);
-  FldArrayF* fld ;
-  K_ARRAY::getFromArray2(pyFld, varString, fld, nind, nn, nn, cn, eltType);
+  FldArrayF* fld;
+  K_ARRAY::getFromArray3(pyFld, varString, fld, nind, nn, nn, cn, eltType);
 
 
   // Build 0.5(fldD+fldR) array on boundary faces

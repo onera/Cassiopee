@@ -146,8 +146,9 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
       }
       closeAllUnstructuredMeshes(unstrF, cnt, posxu, posyu, poszu, 
                                  unstrEF, cne, posxe, posye, posze, 
-                                 eps);      
+                                 eps);
     }
+    for (size_t v = 0; v < unstrEF.size(); v++) RELEASESHAREDU(objue[v], unstrEF[v], cne[v]);
   }// unstructured
 
   PyObject* l = PyList_New(0);
@@ -345,7 +346,7 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     E_Int nPts = unstructF[nov]->getSize();
     E_Float* xt = unstructF[nov]->begin(posxt[nov]);
     E_Float* yt = unstructF[nov]->begin(posyt[nov]);
-    E_Float* zt = unstructF[nov]->begin(poszt[nov]); 
+    E_Float* zt = unstructF[nov]->begin(poszt[nov]);
 
     for (E_Int ind = 0; ind < nPts; ind++)
     {

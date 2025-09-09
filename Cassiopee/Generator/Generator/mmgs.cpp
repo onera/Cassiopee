@@ -57,7 +57,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -336,7 +336,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   // Allocate array2
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", npo, nto, -1, "TRI", false, 0, 0, 0, f->getApi());
   FldArrayF* fo; FldArrayI* co;
-  K_ARRAY::getFromArray2(o, fo, co);
+  K_ARRAY::getFromArray3(o, fo, co);
   E_Float* fox = fo->begin(1);
   E_Float* foy = fo->begin(2);
   E_Float* foz = fo->begin(3);

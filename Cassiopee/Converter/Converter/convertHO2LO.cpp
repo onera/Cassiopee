@@ -36,7 +36,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray2(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString, 
                                f, ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2)
@@ -77,7 +77,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     o = K_ARRAY::buildArray2(nfld, varString, nvertex, nelts, -1, outEltType, false, 0, 0, 0, api);
 
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
 
     // Ne pas utiliser (*fo) = (*f); peut reallouer 
     fo->copy(*f, 1, nfld); // copie les champs est ok
@@ -92,7 +92,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*2;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "BAR", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);       
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -108,7 +108,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*4;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -135,7 +135,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*6;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -170,7 +170,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*8;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -214,7 +214,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*N;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -266,7 +266,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*N;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -391,7 +391,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*N;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "HEXA", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -476,7 +476,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*N;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "PENTA", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -545,7 +545,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
       E_Int neltsF = nelts*N;
       o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
       FldArrayF* fo; FldArrayI* co;
-      K_ARRAY::getFromArray2(o, fo, co);
+      K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {

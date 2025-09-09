@@ -50,7 +50,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   // Get from array
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* ci; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(arrayUV, varString, fi, ni, nj, nk, ci, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arrayUV, varString, fi, ni, nj, nk, ci, eltType);
   if (ret != 2)
   {
     PyErr_SetString(PyExc_TypeError, "trimesh: invalid array.");

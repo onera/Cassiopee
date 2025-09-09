@@ -56,7 +56,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
                                      im, jm, km, cn, eltType);
   
   // Check
-  if (res == 2)
+  if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError, "TTM: array is invalid.");
     return NULL;

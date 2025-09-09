@@ -363,8 +363,8 @@ PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
   FldArrayF* FCenter; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int niB, njB, nkB; // dim zone donneuse (zone B) 
-  E_Int res = K_ARRAY::getFromArray2(py_fields, varString, FCenter, niB, njB, nkB, 
-                                    cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(py_fields, varString, FCenter, niB, njB, nkB, 
+                                     cn, eltType); 
 
   if (res != 1)
   {
@@ -386,7 +386,7 @@ PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
   FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varStringTmp;
-  res = K_ARRAY::getFromArray2(py_fldA, varStringTmp, fldA, ni2, nj2, nk2, cn2, eltType);
+  res = K_ARRAY::getFromArray3(py_fldA, varStringTmp, fldA, ni2, nj2, nk2, cn2, eltType);
 
   if (res != 1)
   {

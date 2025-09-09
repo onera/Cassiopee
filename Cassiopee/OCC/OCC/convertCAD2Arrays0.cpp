@@ -207,7 +207,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
   // buildArray
   PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);
   FldArrayF* f; FldArrayI* c;
-  K_ARRAY::getFromArray2(o, f, c);
+  K_ARRAY::getFromArray3(o, f, c);
   E_Float* fx = f->begin(1);
   E_Float* fy = f->begin(2);
   E_Float* fz = f->begin(3);

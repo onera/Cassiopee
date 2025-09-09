@@ -44,7 +44,7 @@ using namespace K_FLD;
 //           varString
 // Dans tous les cas sauf NGON: c'est la connectivite elt-noeuds 
 // dimensionnee (elt, nbre de noeuds par elements)
-// Dans le cas NGON: c est la connectivite Face-noeuds, suivi de la 
+// Dans le cas NGON: c'est la connectivite Face-noeuds, suivi de la 
 // connectivite elt-faces + 4 entiers indiquant les tailles
 //
 // return -1: given object is not a list.

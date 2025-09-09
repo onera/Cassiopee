@@ -320,7 +320,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   
   K_FLD::FldArrayF* f2; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
-  K_ARRAY::getFromArray2(tpl, varString, f2, ni, nj, nk, c, eltType);
+  K_ARRAY::getFromArray3(tpl, varString, f2, ni, nj, nk, c, eltType);
 
   E_Int nij = ni*nj;
   E_Int nijk = ni*nj*nk;

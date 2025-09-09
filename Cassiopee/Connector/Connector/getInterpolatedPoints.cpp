@@ -1241,7 +1241,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString,
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
                                      field, im, jm, km, cn, eltType);
   if (res != 1)
   {
@@ -1382,7 +1382,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(centersArray, varString,
+  E_Int res = K_ARRAY::getFromArray3(centersArray, varString,
                                      field, im, jm, km, cn, eltType);
   if (res != 1)
   {

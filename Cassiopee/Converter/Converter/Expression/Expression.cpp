@@ -131,12 +131,15 @@ namespace {
         // en parametre, nfld = 1 et npts = 1. res = 0
         E_Int     res, npts, nfld;
         PyObject *parray;
-        if (nb_args_vars > 0) {
+        if (nb_args_vars > 0) 
+        {
             parray = PyTuple_GetItem(args, 0);
-            res    = K_ARRAY::getFromArray2(parray, varString, f, ni, nj, nk, cn, eltType);
+            res    = K_ARRAY::getFromArray3(parray, varString, f, ni, nj, nk, cn, eltType);
             npts   = f->getSize();
             nfld   = f->getNfld();
-        } else {
+        } 
+        else 
+        {
             assert((nb_dict_vars > 0) && "Logical error : if args is void, dicts would be not void !");
             PyObject *values = PyDict_Values(kwds);
             parray           = PyList_GetItem(values, 0);
@@ -187,7 +190,7 @@ namespace {
             char *varString2;
             char *eltType2;
             arrays[iargs].res =
-                K_ARRAY::getFromArray2(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
+                K_ARRAY::getFromArray3(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
             E_Int npts2 = arrays[iargs].f->getSize();
             // Verification de la coherence des tableaux avec le tableau resultat :
             if (arrays[iargs].res != res) {
@@ -362,17 +365,15 @@ namespace {
         // =====================================================================
         // ==                   PARCOURTS DES ARGUMENTS                       ==
         // =====================================================================
-        E_Int      ni, nj, nk;
-        FldArrayF *f;
-        FldArrayI *cn;
-        char *     varString;
-        char *     eltType;
+        E_Int ni, nj, nk;
+        FldArrayF *f; FldArrayI *cn;
+        char* varString; char* eltType;
         // On va prendre le premier argument de args  comme modele
         // d'array Et on verifie sa validite en tant que tableau cassiopee.
-        E_Int     res, npts, nfld;
+        E_Int res, npts, nfld;
         PyObject *parray = PyTuple_GetItem(args, 0);
         assert(parray != nullptr);
-        res  = K_ARRAY::getFromArray2(parray, varString, f, ni, nj, nk, cn, eltType);
+        res  = K_ARRAY::getFromArray3(parray, varString, f, ni, nj, nk, cn, eltType);
         npts = f->getSize();
         nfld = f->getNfld();
         if ((res < 1) || (res > 2)) {
@@ -421,7 +422,7 @@ namespace {
             char *varString2;
             char *eltType2;
             arrays[iargs].res =
-                K_ARRAY::getFromArray2(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
+                K_ARRAY::getFromArray3(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
             must_release = must_release and (arrays[iargs].f->begin() != f->begin());
             E_Int npts2 = arrays[iargs].f->getSize();
             // Verification de la coherence des tableaux avec le tableau resultat :
@@ -522,7 +523,7 @@ namespace {
             // On va prendre le premier argument de args  comme modele
             // d'array Et on verifie sa validite en tant que tableau cassiopee.
             K_ARRAY::addFieldInArray(parray,(char*)outName);
-            res2  = K_ARRAY::getFromArray2(parray, varString, f, ni, nj, nk, cn, eltType);
+            res2  = K_ARRAY::getFromArray3(parray, varString, f, ni, nj, nk, cn, eltType);
             posvar = K_ARRAY::isNamePresent((char*)outName, varString);
         }
         assert(posvar >=0);
@@ -600,16 +601,18 @@ namespace {
 
         PyObject *parray = PyTuple_GetItem(args, 0);
         assert(parray != nullptr);
-        res  = K_ARRAY::getFromArray2(parray, varString, f, ni, nj, nk, cn, eltType);
+        res  = K_ARRAY::getFromArray3(parray, varString, f, ni, nj, nk, cn, eltType);
         npts = f->getSize();
         nfld = f->getNfld();
-        if ((res < 1) || (res > 2)) {
+        if ((res < 1) || (res > 2)) 
+        {
             std::string s_error = std::string(varString) +
                                   " is not valid. Wrong kind of array : " + std::to_string(res) + " doesn't exist !";
             PyErr_SetString(PyExc_ValueError, s_error.c_str());
             return NULL;
         }
-        if (nfld <= 0 || npts <= 0) {
+        if (nfld <= 0 || npts <= 0) 
+        {
             std::string s_error = std::string(varString) +
                                   " : No field defined in array => nfld = " + std::to_string(nfld) +
                                   " and npts = " + std::to_string(npts);
@@ -628,10 +631,11 @@ namespace {
             char *varString2;
             char *eltType2;
             arrays[iargs].res =
-                K_ARRAY::getFromArray2(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
+                K_ARRAY::getFromArray3(array2, varString2, arrays[iargs].f, ni2, nj2, nk2, arrays[iargs].cn, eltType2);
             E_Int npts2 = arrays[iargs].f->getSize();
             // Verification de la coherence des tableaux avec le tableau resultat :
-            if (arrays[iargs].res != res) {
+            if (arrays[iargs].res != res) 
+            {
                 std::string s_error = std::string("Incompatible kind of array with result array : result array is a") +
                                       (res == 1 ? " structured array" : "n unstructured array") + " and " +
                                       std::string(varString2) + " is a" +
@@ -643,7 +647,8 @@ namespace {
                 return NULL;
             }
             // Le nombre de champs peut etre different mais pas la taille de chaque champs !
-            if (npts2 != npts) {
+            if (npts2 != npts) 
+            {
                 std::string s_error = std::string("Incompatible dimension with result array : result array has ") +
                                       std::to_string(npts) + " elements and " + std::string(varString2) + " has" +
                                       std::to_string(npts2) + " elements.";
