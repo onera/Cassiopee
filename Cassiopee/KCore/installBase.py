@@ -5,6 +5,11 @@
 # additionalIncludePaths, additionalLibs, additionalLibPaths].
 # Paths are list of strings. useOMP, static, useCuda are booleans.
 # Others are strings.
+try:
+    from installUserBase import installDict as installUserDict
+except:
+    installUserDict = {}
+
 installDict = {
     ###############################################################################
     'DESKTOP...': [ 'Windows ubuntu',
@@ -1346,5 +1351,7 @@ installDict = {
                [], # additionalLibPaths
                False, # useCuda
                [] # NvccAdditionalOptions
-               ]
+               ],
+    ###############################################################################
+    **installUserDict
 }
