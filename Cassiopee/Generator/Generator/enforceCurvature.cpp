@@ -43,10 +43,10 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
   FldArrayF coord; 
   vector<E_Int> posc; vector<E_Int> posd;
   
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringc, fc, im, jm, km,
-                                     cnc, eltTypec); 
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd, imd, jmd, kmd,
-                                     cnd, eltTyped);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringc, fc, im, jm, km,
+                                      cnc, eltTypec); 
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd, imd, jmd, kmd,
+                                      cnd, eltTyped);
   
   FldArrayF s, cm, xd, xrk, crk;
   E_Int posxc, posyc, poszc;
@@ -63,7 +63,8 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     if (posxc == -1 || posyc == -1 || poszc == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete fc; delete fd;
+      RELEASESHAREDS(arrayC, fc);
+      RELEASESHAREDS(arrayD, fd);
       PyErr_SetString(PyExc_TypeError,
                       "enforceCurvature: coordinates not found.");
       return NULL;
@@ -264,17 +265,17 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
       delete out;
     }
 
-    delete fc;
     // Build array
     PyObject* tpl = K_ARRAY::buildArray(*fd, varStringd, N, jmd, kmd);
-    delete fd; 
+    RELEASESHAREDS(arrayC, fc);
+    RELEASESHAREDS(arrayD, fd);
     return tpl;
   }
   else if (resc == 2 || resd == 2)
   {
-    delete fc; delete fd;
-    if (resc == 2) delete fc;
-    if (resd == 2) delete fd;
+    RELEASESHAREDB(resc, arrayC, fc, cnc);
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
+      
     PyErr_SetString(PyExc_TypeError,
                     "enforceCurvature: not used for unstructured arrays.");
     return NULL;

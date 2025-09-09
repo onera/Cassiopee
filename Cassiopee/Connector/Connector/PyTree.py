@@ -1733,7 +1733,7 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN
     if ghost is None:
         a = Internal.addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
         a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-        a = Internal.rmGhostCells(a,a,abs(depth), adaptBCs=0, modified=[varcelln])
+        a = Internal.rmGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
     return a
 
 def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
@@ -1746,7 +1746,7 @@ def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         else: # passage ghost cells
             cellN = C.getField(varcelln, z)[0]
             if cellN != []:# cellN existe
-                cellN = Connector.setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
+                cellN = Connector.setHoleInterpolatedPoints(cellN, depth=depth, dir=dir, cellNName=cellNName)
                 C.setFields([cellN], z, loc, False)
     return a
 

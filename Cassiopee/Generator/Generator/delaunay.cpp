@@ -37,8 +37,8 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
   K_FLD::FldArrayF* f;
   char* varString; char* eltType;
   K_FLD::FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 1 && res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -50,7 +50,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
   {
     if (ni != 1 && nj != 1 && nk != 1)
     {
-      delete f; 
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "delaunay: array must define a plane.");
       return NULL;
@@ -63,7 +63,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
         strcmp(eltType, "NODE") != 0 &&
         strcmp(eltType, "BAR") != 0)
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "delaunay: array must define a plane.");
       return NULL;
@@ -75,8 +75,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; 
-    if (res == 2) delete cn;
+    RELEASESHAREDB(res, array, f, cn);      
     PyErr_SetString(PyExc_TypeError,
                     "delaunay: can't find coordinates in array.");
     return NULL;
@@ -87,8 +86,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
 
   if (sizeIni < 3) 
   {
-    delete f;
-    if (res == 2) delete cn;
+    RELEASESHAREDB(res, array, f, cn);      
     PyErr_SetString(PyExc_TypeError,
                     "delaunay: at least 3 points must be defined.");
     return NULL; 
@@ -100,8 +98,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
                                      coefa, coefb, coefc, coefd);
   if (isok == 0) // pas de plan
   { 
-    delete f; 
-    if (res == 2) delete cn;
+    RELEASESHAREDB(res, array, f, cn);      
     PyErr_SetString(PyExc_TypeError,
                     "delaunay: input array must be planar.");
     return NULL;
@@ -129,8 +126,8 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
   K_COMPGEOM::delaunay(coefa, coefb, coefc, coefd, coord, *cn2, keepBB);
   PyObject* tpl = K_ARRAY::buildArray(coord, varString, *cn2, -1, "TRI", 
                                       false);
-  delete &coord; delete cn2; delete f; 
-  if (res == 2) delete cn;
+  delete &coord; delete cn2; 
+  RELEASESHAREDB(res, array, f, cn);      
   return tpl;
 }
 //===========================================================================

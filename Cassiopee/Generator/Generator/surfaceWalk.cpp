@@ -34,7 +34,7 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* coords; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayc, varString, coords, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayc, varString, coords, ni, nj, nk, cn, eltType);
   E_Int err = 0;
   if (res != 1){ PyErr_SetString(PyExc_TypeError, "computeEta: 1st array must be structured."); err = 1;}
   if (ni == 1 || nj > 1 || nk > 1) { PyErr_SetString(PyExc_TypeError, "computeEta: 1st arg must be a 1D-array."); err = 1;}
@@ -52,7 +52,7 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
   E_Int nin, njn, nkn;
   FldArrayF* surf; FldArrayI* cnn;
   char* varStringn; char* eltTypen;
-  E_Int resn = K_ARRAY::getFromArray(arrayn, varStringn, surf, nin, njn, nkn, cnn, eltTypen, true);
+  E_Int resn = K_ARRAY::getFromArray3(arrayn, varStringn, surf, nin, njn, nkn, cnn, eltTypen);
   if (resn != 1){ PyErr_SetString(PyExc_TypeError, "computeEta: 2nd array must be structured."); err = 1;}
   if (nin == 1 || njn > 1 || nkn > 1) { PyErr_SetString(PyExc_TypeError, "computeEta: 2nd arg must be a 1D-array."); err = 1;}
   if (nin != ni) { PyErr_SetString(PyExc_TypeError, "computeEta: 1st and 2nd args must be of same size."); err = 1;}

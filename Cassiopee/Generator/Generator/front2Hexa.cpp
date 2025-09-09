@@ -48,12 +48,11 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(a1, varString1, f1, ni1, nj1, nk1, 
-                                     cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(a1, varString1, f1, ni1, nj1, nk1, 
+                                      cn1, eltType1);
   if (res1 != 2 || strcmp(eltType1, "QUAD") != 0) 
   {
-    if (res1 == 1) delete f1;
-    if (res1 == 2) {delete f1; delete cn1;}
+    RELEASESHAREDB(res1, a1, f1, cn1);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: a1 must be a QUAD.");
     return NULL;
@@ -62,12 +61,11 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int ni2, nj2, nk2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(a2, varString2, f2, ni2, nj2, nk2, cn2, eltType2);
+  E_Int res2 = K_ARRAY::getFromArray3(a2, varString2, f2, ni2, nj2, nk2, cn2, eltType2);
   if (res2 != 2 || strcmp(eltType2, "QUAD") != 0) 
   {
-    delete f1; delete cn1;
-    if (res2 == 1) delete f2; 
-    if (res2 == 2) {delete f2; delete cn2;}
+    RELEASESHAREDB(res1, a1, f1, cn1);
+    RELEASESHAREDB(res2, a2, f2, cn2);    
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: a2 must be a QUAD.");
     return NULL;
@@ -76,19 +74,23 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int nid, njd, nkd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(distrib, varStringd, fd, nid, njd, nkd, 
-                                     cnd, eltTyped);
+  E_Int resd = K_ARRAY::getFromArray3(distrib, varStringd, fd, nid, njd, nkd, 
+                                      cnd, eltTyped);
   if (resd != 1) 
   {
     delete f1; delete cn1; delete f2; delete cn2;
-    delete fd; if (res2 == 2)  delete cnd;
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDB(res2, distrib, fd, cnd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: distrib must be structured.");
     return NULL;
   }
   if (nid < 2 || njd != 1 || nkd != 1) 
   {
-    delete f1; delete cn1; delete f2; delete cn2; delete fd; 
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDS(distrib, fd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: distrib must be an i-array.");
     return NULL;
@@ -97,7 +99,9 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int npts1 = f1->getSize(); E_Int nelts1 = cn1->getSize();
   if (f2->getSize() != npts1 || cn2->getSize() != nelts1) 
   {
-    delete f1; delete cn1; delete f2; delete cn2; delete fd;
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDS(distrib, fd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: a1 and a2 must be of same size.");
     return NULL;    
@@ -107,7 +111,9 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
   if (posx1 == -1 || posy1 == -1 || posz1 == -1)
   {
-     delete f1; delete cn1; delete f2; delete cn2; delete fd;
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDS(distrib, fd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: coords must be present in a1.");
     return NULL;       
@@ -117,7 +123,9 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
-     delete f1; delete cn1; delete f2; delete cn2; delete fd;
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDS(distrib, fd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: coords must be present in a2.");
     return NULL;
@@ -127,7 +135,9 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd);
   if (posxd == -1 || posyd == -1 || poszd == -1)
   {
-    delete f1; delete cn1; delete f2; delete cn2; delete fd;
+    RELEASESHAREDU(a1, f1, cn1);
+    RELEASESHAREDU(a2, f2, cn2);
+    RELEASESHAREDS(distrib, fd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Hexa: coords must be present in distrib.");
     return NULL;       
@@ -223,7 +233,9 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
     c8[et] = c8[etp] + npts1;
   }
 
-  delete f1; delete cn1; delete f2; delete cn2; delete fd;
+  RELEASESHAREDU(a1, f1, cn1);
+  RELEASESHAREDU(a2, f2, cn2);
+  RELEASESHAREDS(distrib, fd);
   PyObject* tpl = K_ARRAY::buildArray(*f, "x,y,z", *cn,  -1, 
                                       "HEXA", false);
   delete f; delete cn;

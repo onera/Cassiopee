@@ -47,8 +47,8 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   E_Int dim = 3;
   if (res != 2) 
   {
