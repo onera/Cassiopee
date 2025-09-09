@@ -18,7 +18,6 @@
 */
 # include "geom.h"
 # include <vector>
-# include <iostream>
 using namespace K_FLD;
 using namespace std;
 
@@ -113,7 +112,6 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz); 
 
-  std::cout << "im=" << im << "|| jm=" << jm << std::endl;
   if (im != 1)
   {
     if (jm == 1)

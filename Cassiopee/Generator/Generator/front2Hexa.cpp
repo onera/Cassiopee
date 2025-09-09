@@ -21,15 +21,7 @@
 # include "CompGeom/compGeom.h"
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-}
+
 //=============================================================================
 /* Generates an hexa mesh starting from a1 the surface quad, a2 the external 
    quad, h the height of the mesh, hext the height of the mesh at external
@@ -193,10 +185,6 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
 			nk, dtb.begin(),
 			lineMap.begin(1), lineMap.begin(2), lineMap.begin(3),
 			s.begin(), dtbx.begin(), dtby.begin(), dtbz.begin());
-    //k6onedmap_(line.getSize(), line.begin(1), line.begin(2), line.begin(3), 
-    //           nk, dtb.begin(), 
-    //           lineMap.begin(1), lineMap.begin(2), lineMap.begin(3),
-    //           s.begin(), dtbx.begin(), dtby.begin(), dtbz.begin());
 
     for (E_Int k = 0; k < nk; k++)
     {

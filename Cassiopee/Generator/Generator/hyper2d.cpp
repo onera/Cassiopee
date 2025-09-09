@@ -32,13 +32,7 @@ using namespace K_FLD;
 // ============================================================================
 extern "C"
 {
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-  
+ 
   void k6hyper2d_(const E_Int& ni, const E_Int& nj,
                   const E_Float* distrib,
                   const E_Float* xi, const E_Float* yi, const E_Float* zi,
@@ -200,10 +194,6 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     {
         s.malloc(ni);
         dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-        //k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-        //           nid, fd->begin(posxd),
-        //           coord1.begin(1), coord1.begin(2), coord1.begin(3),
-        //           s.begin(), dx.begin(), dy.begin(), dz.begin());
 	K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
 			    nid, fd->begin(posxd),
 			    coord1.begin(1), coord1.begin(2), coord1.begin(3),
@@ -380,10 +370,6 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     coord1.malloc(nid, 3);
     s.malloc(ni);
     dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-    //k6onedmap_( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
-    //            nid, fd->begin(posxd),
-    //            coord1.begin(1), coord1.begin(2), coord1.begin(3),
-    //            s.begin(), dx.begin(), dy.begin(), dz.begin());
     K_COMPGEOM::onedmap( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
 			 nid, fd->begin(posxd),
 			 coord1.begin(1), coord1.begin(2), coord1.begin(3),
@@ -535,10 +521,6 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
     dy.malloc(ni);
     dz.malloc(ni);
     
-    //k6onedmap_( ni, f->begin(posx), f->begin(posy), f->begin(posz),
-    //            nid, fd->begin(posxd),
-    //            coord1.begin(1), coord1.begin(2), coord1.begin(3),
-    //            s.begin(), dx.begin(), dy.begin(), dz.begin());
     K_COMPGEOM::onedmap( ni, f->begin(posx), f->begin(posy), f->begin(posz),
                 nid, fd->begin(posxd),
                 coord1.begin(1), coord1.begin(2), coord1.begin(3),
@@ -682,10 +664,6 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
     dy.malloc(ni);
     dz.malloc(ni);
 
-    //k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-    //           nid, fd->begin(posxd),
-    //           coord1.begin(1), coord1.begin(2), coord1.begin(3),
-    //           s.begin(), dx.begin(), dy.begin(), dz.begin());
     K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
 			nid, fd->begin(posxd),
 			coord1.begin(1), coord1.begin(2), coord1.begin(3),
