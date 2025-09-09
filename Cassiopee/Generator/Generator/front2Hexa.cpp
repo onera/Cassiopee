@@ -18,7 +18,7 @@
 */
 
 # include "generator.h"
-
+# include "CompGeom/compGeom.h"
 using namespace K_FLD;
 
 extern "C"
@@ -188,10 +188,15 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
     line(0,1) = xs; line(0,2) = ys; line(0,3) = zs;
     line(1,1) = xe2; line(1,2) = ye2; line(1,3) = ze2;          
     // map dtb on line
-    k6onedmap_(line.getSize(), line.begin(1), line.begin(2), line.begin(3), 
-               nk, dtb.begin(), 
-               lineMap.begin(1), lineMap.begin(2), lineMap.begin(3),
-               s.begin(), dtbx.begin(), dtby.begin(), dtbz.begin());
+    K_COMPGEOM::onedmap(line.getSize(),
+			line.begin(1), line.begin(2), line.begin(3),
+			nk, dtb.begin(),
+			lineMap.begin(1), lineMap.begin(2), lineMap.begin(3),
+			s.begin(), dtbx.begin(), dtby.begin(), dtbz.begin());
+    //k6onedmap_(line.getSize(), line.begin(1), line.begin(2), line.begin(3), 
+    //           nk, dtb.begin(), 
+    //           lineMap.begin(1), lineMap.begin(2), lineMap.begin(3),
+    //           s.begin(), dtbx.begin(), dtby.begin(), dtbz.begin());
 
     for (E_Int k = 0; k < nk; k++)
     {

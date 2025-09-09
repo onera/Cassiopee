@@ -877,6 +877,63 @@ typedef struct {
 		   const E_Float nx, const E_Float ny, const E_Float nz,
 		   const E_Float* x,const E_Float* y, const E_Float* z,
 		   E_Float* x0, E_Float* y0, E_Float* z0);
+
+  // Map a 1D distribution over a profile
+  void onedmap(const E_Int ni,
+	       const E_Float* x, const E_Float* y, const E_Float* z,
+	       const E_Int no, const E_Float* d,
+	       E_Float* xo, E_Float* yo, E_Float* zo,
+	       E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Map a 1D distribution over a profile with bar connectivity
+  void onedmapbar(const E_Int npts,
+		  const E_Float* x, const E_Float* y, const E_Float* z,
+		  const E_Int no, const E_Float* d,
+		  const E_Int net, const E_Int* cn1, const E_Int* cn2,
+		  const E_Int neto, E_Int* cn1o, E_Int* cn2o,
+		  E_Float* xo, E_Float* yo, E_Float* zo,
+		  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Compute the slope for a 1D line
+  void slope(E_Float small, E_Float big, E_Int m,
+	     const E_Float* x0, const E_Float* y0, const E_Float* z0,
+	     E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Compute the slope for a 1D bar with connectivity
+  void slopebar(E_Float small, E_Float big, E_Int npts,
+		const E_Float* x0, const E_Float* y0, const E_Float* z0,
+		E_Int net, const E_Int* cn1, const E_Int* cn2,
+		E_Float* dx, E_Float* dy, E_Float* dz);  
+
+  // Compute the parametrization for a line
+  void paramFunc(E_Float* stota, E_Float small, E_Int m,
+		 const E_Float* x0, const E_Float* y0, const E_Float* z0,
+		 const E_Float* dx, const E_Float* dy, const E_Float* dz,
+		 E_Float* s0);
+
+  // Compute the parametrization for a bar (with connectivity)
+  void paramFuncBar(E_Float* stota, E_Float small, E_Int npts,
+		    const E_Float* x0, const E_Float* y0, const E_Float* z0,
+		    E_Int net, const E_Int* cn1, const E_Int* cn2,
+		    const E_Float* dx, const E_Float* dy, const E_Float* dz,
+		    E_Float* s0);
+
+  // Interpolate a 1D distribution over a profile
+  void interp(E_Int ni, E_Int no, E_Float stota,
+	      const E_Float* x, const E_Float* y, const E_Float* z,
+	      const E_Float* s, const E_Float* dx, const E_Float* dy, const E_Float* dz,
+	      E_Float* xo, E_Float* yo, E_Float* zo, const E_Float* d);
+
+  // Interpolate a 1D distribution over a profile with bar connectivity
+  void interpbar( E_Int npts, E_Int no, E_Float stota, E_Int net, const E_Int* cn1, const E_Int* cn2,
+		 const E_Float* x, const E_Float* y, const E_Float* z, const E_Float* s,
+		 const E_Float* dx, const E_Float* dy, const E_Float* dz,
+		 E_Int neto, E_Int* cn1o, E_Int* cn2o,
+		 E_Float* xo, E_Float* yo, E_Float* zo, const E_Float* d);
+
+
+
+
 }
 
 #endif
