@@ -19,7 +19,6 @@
 
 # include "CompGeom/compGeom.h"
 # include "parallel.h"
-# include <iostream>
 using namespace K_FLD;
 
 //===========================================================================
@@ -350,7 +349,6 @@ void K_COMPGEOM::regularSpline(E_Int n, E_Int ordern, E_Int N, E_Float density,
 {
   // approx de la longueur de la spline par la longueur des pts de controle
   E_Float len = 0.;
-  std::cout << "regularSpline" << std::endl;
 #pragma omp parallel default(shared) if (n > __MIN_SIZE_MEAN__)
   {
   E_Int i1;
