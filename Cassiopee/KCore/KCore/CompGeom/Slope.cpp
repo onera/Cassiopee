@@ -21,7 +21,6 @@
 
 # include <math.h>
 # include <stdio.h>
-# include <iostream>
 # include "CompGeom/compGeom.h"
 
 void K_COMPGEOM::slope(E_Float small, E_Float big, E_Int m,
