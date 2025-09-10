@@ -918,7 +918,7 @@ typedef struct {
 		  const E_Float* x, const E_Float* y, const E_Float* z,
 		  const E_Int no, const E_Float* d,
 		  const E_Int net, const E_Int* cn1, const E_Int* cn2,
-		!  const E_Int neto, E_Int* cn1o, E_Int* cn2o,
+		  const E_Int neto, E_Int* cn1o, E_Int* cn2o,
 		  E_Float* xo, E_Float* yo, E_Float* zo,
 		  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
 

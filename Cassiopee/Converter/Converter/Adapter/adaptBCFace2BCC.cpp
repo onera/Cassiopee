@@ -55,18 +55,17 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
   }
   E_Int* cnp = cn->begin();
   
-  //printf("eltType %s\n", eltType);
   E_Int face[6][4];
-  E_Int nfaces = 0; E_Int nof = 0; E_Int type = 0;
-  E_Int np = 0;
+  E_Int nfaces = 0; /*E_Int nof = 0;*/ E_Int type = 0;
+  /*E_Int np = 0;*/
   if (strcmp(eltType, "BAR") == 0)
   { 
-    nfaces = 2; nof = 1; type = 0; np = 2;
+    nfaces = 2; /*nof = 1;*/ type = 0; /*np = 2;*/
     face[0][0] = 1; face[1][0] = 2;
   }
   else if (strcmp(eltType, "QUAD") == 0) 
   {
-    nfaces = 4; nof = 2; type = 1; np = 4;
+    nfaces = 4; /*nof = 2;*/ type = 1; /*np = 4;*/
     face[0][0] = 1; face[0][1] = 2;
     face[1][0] = 2; face[1][1] = 3;
     face[2][0] = 3; face[2][1] = 4;
@@ -74,14 +73,14 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
   }
   else if (strcmp(eltType, "TRI") == 0) 
   {
-    nfaces = 3; nof = 2; type = 1; np = 3;
+    nfaces = 3; /*nof = 2;*/ type = 1; /*np = 3;*/
     face[0][0] = 1; face[0][1] = 2;
     face[1][0] = 2; face[1][1] = 3;
     face[2][0] = 3; face[2][1] = 1;
   }
   else if (strcmp(eltType, "HEXA") == 0) 
   {
-    nfaces = 6; nof = 4; type = 3; np = 8;
+    nfaces = 6; /*nof = 4;*/ type = 3; /*np = 8;*/
     face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; face[0][3] = 2;
     face[1][0] = 1; face[1][1] = 2; face[1][2] = 6; face[1][3] = 5;
     face[2][0] = 2; face[2][1] = 3; face[2][2] = 7; face[2][3] = 6;
@@ -91,7 +90,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
   }
   else if (strcmp(eltType, "TETRA") == 0) 
   {
-    nfaces = 4; nof = 3; type = 2; np = 4;
+    nfaces = 4; /*nof = 3;*/ type = 2; /*np = 4;*/
     face[0][0] = 1; face[0][1] = 3; face[0][2] = 2;
     face[1][0] = 1; face[1][1] = 2; face[1][2] = 4;
     face[2][0] = 2; face[2][1] = 3; face[2][2] = 4;
@@ -99,7 +98,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
   }
   else if (strcmp(eltType, "PYRA") == 0) 
   {
-    nfaces = 5; nof = 3;  np = 5;
+    nfaces = 5; /*nof = 3; np = 5;*/
     type = -1; // In this case, we must output 2 connectivities
     face[0][0] = 1; face[0][1] = 4; face[0][2] = 3; // T
     face[1][0] = 3; face[1][1] = 2; face[1][2] = 1; // T
@@ -109,7 +108,7 @@ PyObject* K_CONVERTER::adaptBCFace2BCC(PyObject* self, PyObject* args)
   }
   else if (strcmp(eltType, "PENTA") == 0) 
   {
-    nfaces = 5; nof = 4; np = 6;
+    nfaces = 5; /*nof = 4; np = 6;*/
     type = -2; // In this case, we must output 2 connectivities
     face[0][0] = 1; face[0][1] = 2; face[0][2] = 5; face[0][3] = 4; // Q
     face[1][0] = 2; face[1][1] = 3; face[1][2] = 6; face[1][3] = 5; // Q
