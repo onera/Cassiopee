@@ -19,6 +19,7 @@
 
 #include "occ.h"
 #include "TopoDS.hxx"
+#include "TopoDS_Edge.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
@@ -27,69 +28,52 @@
 
 // ============================================================================
 /* Merge two CAD hooks in a single hook 
-   Caller must dealloc input hooks */
+   Caller must eventually dealloc input hooks */
 // ============================================================================
 PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
 {
-  PyObject* hook1; PyObject* hook2;
-  if (!PYPARSETUPLE_(args, OO_, &hook1, &hook2)) return NULL;
-
-  void** packet1 = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet1 = (void**) PyCObject_AsVoidPtr(hook1);
-#else
-  packet1 = (void**) PyCapsule_GetPointer(hook1, NULL);
-#endif
-  //TopoDS_Shape* shp1 = (TopoDS_Shape*) packet1[0];
-  TopTools_IndexedMapOfShape& surfaces1 = *(TopTools_IndexedMapOfShape*)packet1[1];
-
-  void** packet2 = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet2 = (void**) PyCObject_AsVoidPtr(hook2);
-#else
-  packet2 = (void**) PyCapsule_GetPointer(hook2, NULL);
-#endif
-  //TopoDS_Shape* shp2 = (TopoDS_Shape*) packet2[0];
-  TopTools_IndexedMapOfShape& surfaces2 = *(TopTools_IndexedMapOfShape*)packet2[1];
+  PyObject* listHooks;
+  if (!PYPARSETUPLE_(args, O_, &listHooks)) return NULL;
 
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;
   builder.MakeCompound(compound);
-    
-  for (E_Int i = 1; i <= surfaces1.Extent(); i++)
-  {
-    TopoDS_Face F = TopoDS::Face(surfaces1(i));
-    builder.Add(compound, F);
-  }
 
-  for (E_Int i = 1; i <= surfaces2.Extent(); i++)
+  E_Int size = PyList_Size(listHooks);
+  for (E_Int i = 0; i < size; i++)
   {
-    TopoDS_Face F = TopoDS::Face(surfaces2(i));
-    builder.Add(compound, F);
+    PyObject* hook = PyList_GetItem(listHooks, i);
+    GETPACKET;
+    GETMAPSURFACES;
+    GETMAPEDGES;
+    
+    for (E_Int i = 1; i <= surfaces.Extent(); i++)
+    {
+      TopoDS_Face F = TopoDS::Face(surfaces(i));
+      builder.Add(compound, F);
+    }
+    for (E_Int i = 1; i <= edges.Extent(); i++)
+    {
+      TopoDS_Edge E = TopoDS::Edge(edges(i));
+      builder.Add(compound, E);
+    }
   }
-  
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
 
-  // capsule 
-  PyObject* hook;
-  E_Int sizePacket = 6;
-  void** packet = new void* [sizePacket];
+  // capsule
+  CREATEHOOK;
   packet[0] = newshp;
 
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-
-  // Extract edges
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
+  SETMAPEDGES;
+  SETMAPSURFACES;
   printf("INFO: after merge: Nb edges=%d\n", se->Extent());
   printf("INFO: after merge: Nb faces=%d\n", sf->Extent());
   
   // copy filenames
+  PyObject* hook2 = PyList_GetItem(listHooks, 0);
+  void** packet2 = (void**) PyCapsule_GetPointer(hook2, NULL);  
+
   char* fileName = (char*)packet2[3];
   E_Int l = strlen(fileName);
   char* fileNameC = new char [l+1];
@@ -102,12 +86,6 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
   packet[4] = fileFmtC;
   TDocStd_Document* doc = (TDocStd_Document*)packet2[5]; // todo: must merge document
   packet[5] = doc;
-
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  hook = PyCObject_FromVoidPtr(packet, NULL);
-#else
-  hook = PyCapsule_New(packet, NULL, NULL);
-#endif
 
   return hook;
 } 

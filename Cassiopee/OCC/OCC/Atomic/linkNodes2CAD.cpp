@@ -18,13 +18,13 @@
 */
 
 #include "occ.h"
-#include <TopoDS_Face.hxx>
-#include <GeomAPI_ProjectPointOnSurf.hxx>
-#include <BRep_Tool.hxx>
-#include <TopTools_IndexedMapOfShape.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopoDS.hxx>
-#include <StdFail_NotDone.hxx>
+#include "TopoDS_Face.hxx"
+#include "GeomAPI_ProjectPointOnSurf.hxx"
+#include "BRep_Tool.hxx"
+#include "TopTools_IndexedMapOfShape.hxx"
+#include "TopExp_Explorer.hxx"
+#include "TopoDS.hxx"
+#include "StdFail_NotDone.hxx"
 
 #include "OCCSurface.h"
 
@@ -37,14 +37,14 @@
 #include <iostream>
 //#include <memory>
 
-#include <Bnd_Box.hxx>
-#include <BRepBndLib.hxx>
+#include "Bnd_Box.hxx"
+#include "BRepBndLib.hxx"
 
 #include <chrono>
 
-#include <gp_Pnt2d.hxx>
-#include <ShapeAnalysis_Surface.hxx>
-#include <BRepTools.hxx>
+#include "gp_Pnt2d.hxx"
+#include "ShapeAnalysis_Surface.hxx"
+#include "BRepTools.hxx"
 
 using namespace std;
 using namespace K_FLD;
@@ -62,7 +62,7 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
   if (err)
   {
     std::stringstream o;
-    o << "input error : " << eltType << " is an invalid array, must be a NGON array." ;
+    o << "input error: " << eltType << " is an invalid array, must be a NGON array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
     return 1;
   }

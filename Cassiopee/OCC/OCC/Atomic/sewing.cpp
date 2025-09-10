@@ -46,17 +46,11 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   PyObject* hook; PyObject* listFaces; E_Float tol;
   if (!PYPARSETUPLE_(args, OO_ R_, &hook, &listFaces, &tol)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
+  GETSHAPE;
 
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
 
-  TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
   const Standard_Real tolerance = tol;
   BRepBuilderAPI_Sewing sewer(tolerance);
   
@@ -67,7 +61,7 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
     // top shape
     TopoDS_Shape shc;
     printf("Info: sewing top shape.\n");
-    sewer.Add(*shp);
+    sewer.Add(*shape);
     sewer.Perform();
     shc = sewer.SewedShape();
     newshp = new TopoDS_Shape(shc);
@@ -131,21 +125,9 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
   }
 
   // export
-  delete shp;
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-
-  // Extract edges
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
+  delete shape;
+  SETSHAPE(newshp);
+  
   printf("INFO: after sewing: Nb edges=%d\n", se->Extent());
   printf("INFO: after sewing: Nb faces=%d\n", sf->Extent());
 
