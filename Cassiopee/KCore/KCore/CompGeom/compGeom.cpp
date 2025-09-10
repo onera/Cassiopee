@@ -17,9 +17,10 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-# include "CompGeom/compGeom.h"
-# include <vector>
-# include <math.h>
+#include "Array/Array.h"
+#include "CompGeom/compGeom.h"
+#include <vector>
+#include <math.h>
 
 using namespace K_FLD;
 using namespace std;
@@ -363,33 +364,54 @@ void K_COMPGEOM::boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
 }
 //======================================================================
 /* Bounding box de toutes les cellules d'une grille non structuree
-   IN: connect: connectivite de la grille
+   IN: cn: connectivite de la grille
    IN: coord: coordonnees de la grille
    OUT: bbox(nelts, 6): xmin, ymin, zmin, xmax, ymax, zmax
    bbox est alloue ici. */
 //======================================================================
-void K_COMPGEOM::boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
+void K_COMPGEOM::boundingBoxOfUnstrCells(K_FLD::FldArrayI& cn,
                                          E_Float* xt, E_Float* yt, E_Float* zt,
                                          K_FLD::FldArrayF& bbox)
 {
-  E_Int nelts = connect.getSize();
-  if (bbox.getSize() == 0) bbox.malloc(nelts, 6);
+  E_Int nc = cn.getNConnect();
+  E_Int ntotElts = 0;
+  std::vector<E_Int> nepc(nc+1);
+  nepc[0] = 0;
 
-  #pragma omp parallel default(shared)
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
-    #pragma omp for
-    for (E_Int et = 0; et < nelts; et++)
-    {
-      boundingBoxOfUnstrCell(et, connect, xt, yt, zt,
-                             xmax, ymax, zmax, xmin, ymin, zmin);
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic+1] = nepc[ic] + nelts;
+    ntotElts += nelts;
+  }
 
-      bbox(et,1) = xmin;
-      bbox(et,2) = ymin;
-      bbox(et,3) = zmin;
-      bbox(et,4) = xmax;
-      bbox(et,5) = ymax;
-      bbox(et,6) = zmax;
+  if (bbox.getSize() == 0) bbox.malloc(ntotElts, 6);
+
+  #pragma omp parallel
+  {
+    E_Int nelts, elOffset;
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      elOffset = nepc[ic];
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        boundingBoxOfUnstrCell(i, cm, xt, yt, zt,
+                              xmax, ymax, zmax, xmin, ymin, zmin);
+
+        bbox(i+elOffset,1) = xmin;
+        bbox(i+elOffset,2) = ymin;
+        bbox(i+elOffset,3) = zmin;
+        bbox(i+elOffset,4) = xmax;
+        bbox(i+elOffset,5) = ymax;
+        bbox(i+elOffset,6) = zmax;
+      }
     }
   }
 }
