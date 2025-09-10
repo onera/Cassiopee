@@ -55,7 +55,7 @@ class Scalar:
         # Id pour unicite
         #self.id = getName("Id")
         self.id = name
-        
+
         # symbol sympy
         self.s = sympy.Symbol(self.id)
         # instantiated value
@@ -68,7 +68,7 @@ class Scalar:
     # return value
     def v(self):
         return self.v
-    
+
     # print content
     def print(self, shift=0):
         print(" "*shift, "id", self.id)
@@ -94,18 +94,18 @@ Vec1 = Scalar # alias
 #============================================================
 class Vec2:
     """Define a parametric vector of two components"""
-    def __init__(self, T, name=None):        
+    def __init__(self, T, name=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("vec2")
         # parameters
         self.x = Scalar(T[0], name="x")
         self.y = Scalar(T[1], name="y")
-        
+
     # return value
     def v(self):
         return (self.x.v, self.y.v)
-    
+
     # print content
     def print(self, shift=0):
         print(" "*shift, "x")
@@ -206,7 +206,7 @@ class Entity:
         print(self.P[0].v(), self.P[1].v())
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
-            OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())         
+            OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -264,7 +264,7 @@ class Sketch():
     def writeCAD(self, fileName, format="fmt_step"):
         OCC.occ.writeCAD(self.hook, fileName, format)
 
-#============================================================    
+#============================================================
 class Eq:
     """Equation"""
     def __init__(self, expr1, expr2=None):
@@ -272,7 +272,7 @@ class Eq:
         #self.expr = expr1
         #DRIVER.registerEquation(self.expr)
         # references sur l'equation sympy
-        self.s = sympy.Eq(expr1, expr2)  
+        self.s = sympy.Eq(expr1, expr2)
         DRIVER.registerEquation(self)
 
     def analyse(self):
@@ -307,7 +307,7 @@ class Driver:
         self.scalars[s.id] = s # id -> scalar
         self.scalars2[s.s] = s # symbol -> scalar
         #self.scalars[s.name] = s
-    
+
     def registerPoint(self, p):
         self.points[p.name] = p
 
@@ -334,10 +334,10 @@ class Driver:
         # update from parameters
         for k in self.edges: self.edges[k].update()
         for k in self.sketches: self.sketches[k].update()
-    
+
     def solve2(self):
         # solve all equations and all parameters
-        
+
         # get free vars
         vars = []
         for s in self.scalars:
@@ -370,16 +370,16 @@ class Driver:
         # who is free at the end?
         freevars = vars[:]
         for s in solution:
-            if solution[s].is_Float: 
+            if solution[s].is_Float:
                 print('fixed', s, 'to', solution[s])
                 self.scalars2[s].v = solution[s]
                 if self.scalars2[s].check(): print('=> valid')
                 else: print('=> invalid')
             freevars.remove(s)
         print('free vars=', freevars)
-        
+
         return solution, freevars
-        
+
         # equations sympy
         # symbol sympi
         # faire des subs pour les symboles figes
@@ -398,7 +398,7 @@ class Driver:
             for c, f in enumerate(freevars):
                 print("set ",f," to ", freevalues[c])
                 soli[k] = soli[k].subs(f, freevalues[c])
-                
+
         print(soli)
         for s in soli:
             if soli[s].is_Float:
@@ -409,6 +409,5 @@ class Driver:
 
 
 #============================================================
-# Global 
+# Global
 DRIVER=Driver()
-
