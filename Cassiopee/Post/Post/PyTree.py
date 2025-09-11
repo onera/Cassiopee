@@ -689,8 +689,8 @@ def exteriorEltsStructured(t, depth=1):
 
 def _exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid."""
-    C._TZA2(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
-    C._TZA2(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
+    C._TZA3(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
     return None
 
 def computeVariables(t, varList,

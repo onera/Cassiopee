@@ -156,7 +156,7 @@ def _perturbate(a, radius, dim=3):
 
 def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
-    return C.TZA2(t, 'nodes', 'nodes', False, Transform.smoothField, eps, niter, type, varNames)
+    return C.TZA3(t, 'nodes', 'nodes', False, Transform.smoothField, eps, niter, type, varNames)
 
 def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
@@ -167,8 +167,8 @@ def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
             if s[0] == 'centers': varCenters.append(s[1])
             else: varNodes.append(s[0])
         else: varNodes.append(v)
-    if varNodes != []: C.__TZA2(t, 'nodes', Transform._smoothField, eps, niter, type, varNodes)
-    if varCenters != []: C.__TZA2(t, 'centers', Transform._smoothField, eps, niter, type, varCenters)
+    if varNodes != []: C.__TZA3(t, 'nodes', Transform._smoothField, eps, niter, type, varNodes)
+    if varCenters != []: C.__TZA3(t, 'centers', Transform._smoothField, eps, niter, type, varCenters)
     return None
 
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
@@ -2045,11 +2045,11 @@ def _projectRay(t1, t2, Pt): # t1 is modified
 
 def alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    return C.TZA2(t, 'nodes', 'nodes', False, Transform.alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
+    return C.TZA3(t, 'nodes', 'nodes', False, Transform.alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 def _alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    C.__TZA2(t, 'nodes', Transform._alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
+    C.__TZA3(t, 'nodes', Transform._alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 # Split au milieu
 def _splitSize__(z, N, multigrid, dirs, t, stack):

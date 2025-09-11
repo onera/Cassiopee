@@ -1470,7 +1470,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
 
     indicesExtrap = numpy.array([], dtype=Internal.E_NpyInt)
     indicesOrphan = numpy.array([], dtype=Internal.E_NpyInt)
-    vols =  numpy.array([],numpy.float64)
+    vols =  numpy.array([], numpy.float64)
     EXdir = numpy.array([], dtype=Internal.E_NpyInt)
     prefix = 'ID_'
     for zp in Internal.getZones(aR):
@@ -1493,7 +1493,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
             # PE
             PE = Internal.getNodeFromName2(zp, 'ParentElements')[1]
             #
-            for gcn in Internal.getNodesFromType2(zp,"GridConnectivity_t"):
+            for gcn in Internal.getNodesFromType2(zp,'GridConnectivity_t'):
                 ctype = Internal.getNodeFromType1(gcn,'GridConnectivityType_t')
                 if Internal.getValue(ctype)=='Abutting1to1':
                     FL = Internal.getNodeFromName1(gcn, 'PointList')[1]

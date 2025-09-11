@@ -1618,7 +1618,7 @@ class IBM(Common):
                 tb2 = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
                 self.tbsave = tb2
 
-                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
+                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers', model=self.model)
 
                 if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
@@ -1636,7 +1636,7 @@ class IBM(Common):
 
                     if tbFilamentnoWMM:
                         tbFilamentnoWMM = C.newPyTree(['BasenoWMM', tbFilamentnoWMM])
-                        self.tbsave   = Internal.merge([self.tbsave,tbFilamentnoWMM])
+                        self.tbsave = Internal.merge([self.tbsave,tbFilamentnoWMM])
                         C._initVars(t,'{centers:TurbulentDistance}=1e06')
                         dist2wallNearBody__(t, tbFilamentnoWMM, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                         C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
