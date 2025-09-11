@@ -1201,8 +1201,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     nbPoints = N;
     __getUniform(E, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1213,8 +1213,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
             externalEdge == Py_None ) // pure hmax
   {
     __getParamHmax(E, hmax, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1223,8 +1223,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   else if (hmax < 0 && hausd > 0 && externalEdge == Py_None) // pure hausd
   {
     __getParamHausd(E, hausd, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1234,8 +1234,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     // courbure uniquement sur edge
     __getParamHminHmaxHausdE4(E, hmin, hmax, hausd, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1245,8 +1245,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     // courbure sur le max des faces
     __getParamHminHmaxHausdF5(E, hmin, hmax, hausd, nbPoints, ue, shape);    
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1270,8 +1270,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     }
     E_Float* uext = fe->begin(pos+1);
     __getParamExt(E, ni, uext, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", ni, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, ni, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1411,8 +1411,8 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       //else if (eorientation == TopAbs_EXTERNAL) printf("edge orientation=external\n");
 
       // create array
-      PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
-      FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+      PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
+      FldArrayF* f; K_ARRAY::getFromArray3(o, f);
       discreteWire.push_back(f);
       discreteWire2.push_back(o);
 

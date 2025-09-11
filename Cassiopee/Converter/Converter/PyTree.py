@@ -7281,30 +7281,30 @@ def nearestElements(hook, a):
 # Create global index
 def createGlobalIndex(a, start=0):
     """Create the global index field."""
-    return TZA2(a, 'nodes', 'nodes', Converter.createGlobalIndex, start)
+    return TZA3(a, 'nodes', 'nodes', Converter.createGlobalIndex, start)
 
 def _createGlobalIndex(a, start=0):
     """Create the global index field."""
     _initVars(a, 'globalIndex', 0)
-    return __TZA2(a, 'nodes', Converter._createGlobalIndex, start)
+    return __TZA3(a, 'nodes', Converter._createGlobalIndex, start)
 
 # Recover field from global index
 def recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
-    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
-    return TZA2(a, 'nodes', 'nodes', Converter.recoverGlobalIndex, fb)
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=3)[0]
+    return TZA3(a, 'nodes', 'nodes', Converter.recoverGlobalIndex, fb)
 
 def _recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
     variables = getVarNames(b)[0]
     _addVars(a, variables)
-    fx = getFields(Internal.__GridCoordinates__, b, api=2)[0]
-    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
+    fx = getFields(Internal.__GridCoordinates__, b, api=3)[0]
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=3)[0]
     if fx != [] and fb != []:
         fb[0] = fb[0]+','+fx[0]
         fb[1] = fb[1]+fx[1]
     elif fb == []: fb = fx
-    return __TZA2(a, 'nodes', Converter._recoverGlobalIndex, fb)
+    return __TZA3(a, 'nodes', Converter._recoverGlobalIndex, fb)
 
 #==============================================================================
 # Construction de la structure de recherche BBTree

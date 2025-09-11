@@ -21,27 +21,9 @@
 
 # include "generator.h"
 # include <vector>
-
+# include "CompGeom/compGeom.h"
 using namespace std; 
 using namespace K_FLD;
-
-extern "C"
-{
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-  
-  void k6onedmapbar_(const E_Int& ni, const E_Float* xt, const E_Float* yt,
-                     const E_Float* zt, const E_Int& nid, 
-                     const E_Float* fd,
-                     const E_Int& net, const E_Int* cn1, const E_Int* cn2, 
-                     E_Int& neto, E_Int* cn1o, E_Int* cn2o,               
-                     E_Float* xo, E_Float* yo, E_Float* zo,
-                     E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-}
 
 //=============================================================================
 // Map a 1D-distribution on a curve
@@ -95,10 +77,10 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
     PyObject* tpl = K_ARRAY::buildArray(3, "x,y,z", nid, 1, 1);
     E_Float* coord1 = K_ARRAY::getFieldPtr(tpl);
 
-    k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-               nid, fd->begin(posxd),
-               coord1, coord1+nid, coord1+2*nid,
-               s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+    			nid, fd->begin(posxd),
+    			coord1, coord1+nid, coord1+2*nid,
+    			s.begin(), dx.begin(), dy.begin(), dz.begin());
     s.malloc(0); dx.malloc(0); dy.malloc(0); dz.malloc(0);
     RELEASESHAREDB(res, array, f, cn);
     RELEASESHAREDB(resd, arrayd, fd, cnd);
@@ -146,12 +128,11 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
     E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
     FldArrayI cnout(net, 2, cnnp, true); 
 
-    k6onedmapbar_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-                  nid, fd->begin(posxd), net0, cn1, cn2, 
-                  net, cnout.begin(1), cnout.begin(2),
-                  coord1, coord1+nid, coord1+2*nid,
-                  s.begin(), dx.begin(), dy.begin(), dz.begin());
-
+    K_COMPGEOM::onedmapbar(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+    			   nid, fd->begin(posxd), net0, cn1, cn2, 
+    			   net, cnout.begin(1), cnout.begin(2),
+    			   coord1, coord1+nid, coord1+2*nid,
+    			   s.begin(), dx.begin(), dy.begin(), dz.begin());
     s.malloc(0); dx.malloc(0); dy.malloc(0); dz.malloc(0);
 
     if (inds == inde) { cnout(net-1,2)=1; }

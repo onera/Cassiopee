@@ -90,7 +90,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
   //printf("size %d %d %d\n", in+addi, jn+addj, kn+addk);
 
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray2(nfld, varString, in+addi, jn+addj, kn+addk);
+  tpl = K_ARRAY::buildArray3(nfld, varString, in+addi, jn+addj, kn+addk);
   E_Float* subzonep = K_ARRAY::getFieldPtr(tpl);
   FldArrayF subzone((in+addi)*(jn+addj)*(kn+addk), nfld, subzonep, true);
   E_Int ind, ind2;

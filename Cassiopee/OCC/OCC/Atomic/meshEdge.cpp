@@ -630,8 +630,8 @@ PyObject* K_OCC::meshGlobalEdges1(PyObject* self, PyObject* args)
     __getNbPts1(E, hmax, nbPoints);
   
     // create array
-    PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     __meshEdge1(E, nbPoints, *f, false);
@@ -663,8 +663,8 @@ PyObject* K_OCC::meshGlobalEdges2(PyObject* self, PyObject* args)
     const TopoDS_Edge& E = TopoDS::Edge(edges(i));
     
     // create array
-    PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     __meshEdge1(E, nbPoints, *f, false);
@@ -703,8 +703,8 @@ PyObject* K_OCC::meshGlobalEdges3(PyObject* self, PyObject* args)
     E_Float* ue = fe->begin(4);
 
     // create array
-    PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", ni, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     __meshEdge3(E, ni, ue, *f, false);
@@ -740,8 +740,8 @@ PyObject* K_OCC::meshGlobalEdges4(PyObject* self, PyObject* args)
     __getNbPts2(E, hausd, nbPoints);
     
     // create array
-    PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     __meshEdge4(E, hausd, -1., nbPoints, *f, false);
@@ -783,8 +783,8 @@ PyObject* K_OCC::meshEdgesByFace(PyObject* self, PyObject* args)
     else if (hmax > 0) __getNbPts1(E, hmax, nbPoints);
     
     // create array
-    PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     if (hausd > 0) __meshEdgeByFace4(E, F, hausd, nbPoints, *f, false);
@@ -842,8 +842,8 @@ PyObject* K_OCC::meshEdgesByFace2(PyObject* self, PyObject* args)
     E_Float* ue = fe->begin(4); 
 
     // create array
-    PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", ni, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
 
     // fill array
     __meshEdgeByFace3(E, F, ni, ue, *f, false);
@@ -971,8 +971,8 @@ PyObject* K_OCC::meshEdgesByFace3(PyObject* self, PyObject* args)
       }
 
       // create array
-      PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
-      FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+      PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
+      FldArrayF* f; K_ARRAY::getFromArray3(o, f);
       discreteWire.push_back(f);
       discreteWire2.push_back(o);
 

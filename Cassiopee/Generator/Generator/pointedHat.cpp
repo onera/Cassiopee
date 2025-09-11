@@ -37,7 +37,7 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
   E_Int res = 
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
-  if (res == 2)
+  if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
         "pointedHat: invalid array.");

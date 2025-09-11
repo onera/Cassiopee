@@ -1244,9 +1244,9 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
 
 # cellN modifications
 def _modCellN1(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN1, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN1, cellNName)
 def _modCellN2(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN2, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN2, cellNName)
 
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates

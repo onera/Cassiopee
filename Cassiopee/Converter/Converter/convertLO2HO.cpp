@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray2(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString, 
                                f, ni, nj, nk, cn, eltType);
 
   if (res != 1 && res != 2)
@@ -130,18 +130,18 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     E_Int neltsHO = nelts;
     if (order == 2 )
     {
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_3", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "BAR_3", false, api);
     }
     else if (order == 3)
     {
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_4", false, 0, 0, 0, api);      
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "BAR_4", false, api);      
     }
     else // order == 4
     {
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "BAR_5", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "BAR_5", false, api);
     }
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1, p2;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -207,13 +207,13 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     E_Int nvertexHO = nvertex + (order-1)*nedges;
     E_Int neltsHO = nelts;
     if (order == 2)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_6", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TRI_6", false, api);
     else if (order == 3)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_9", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TRI_9", false, api);
     else // order == 4
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_12", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TRI_12", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1, p2,ind,n4,n5,n6;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -313,14 +313,14 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     E_Int nvertexHO = nvertex + (order-1)*nedges;
     E_Int neltsHO = nelts;
     if (order == 2)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_8", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_8", false, api);
     else if (order == 3)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_12", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_12", false, api);
     else // order == 4
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_P4_16", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_P4_16", false, api);
 
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,ind,n5,n6,n7,n8;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -434,12 +434,12 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     E_Int nvertexHO = nvertex + (order-1)*nedges + (order == 3 ? 1 : 3) * nelts;
     E_Int neltsHO = nelts;
     if (order == 3)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_10", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TRI_10", false, api);
     else // order == 4
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TRI_15", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TRI_15", false, api);
 
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,ind,n4,n5,n6;//,n7,n8;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -559,14 +559,14 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
     E_Int nvertexHO = nvertex + (order-1)*nedges + (order-1)*(order-1)*nelts;
     E_Int neltsHO = nelts;
     if (order == 2)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_9", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_9", false, api);
     else if (order == 3)
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_16", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_16", false, api);
     else // order == 4
-      o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "QUAD_25", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "QUAD_25", false, api);
 
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,ind,n5,n6,n7,n8;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -712,9 +712,9 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 
     E_Int nvertexHO = nvertex + nedges;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "TETRA_10", false, 0, 0, 0, api);
+    o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "TETRA_10", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,ind,n5,n6,n7,n8,n9,n10;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -785,9 +785,9 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 
     E_Int nvertexHO = nvertex + nedges;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "HEXA_20", false, 0, 0, 0, api);
+    o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "HEXA_20", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,ind,n9,n10,n11,n12,n13,n14,n15,n16,n17,n18,n19,n20;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -889,9 +889,9 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 
     E_Int nvertexHO = nvertex + nedges + nfaces + nelts;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "HEXA_27", false, 0, 0, 0, api);
+    o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "HEXA_27", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,p3,p4,ind,n9,n10,n11,n12,n13,n14,n15,n16,n17,n18,n19,n20,n21,n22,n23,n24,n25,n26;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -1029,9 +1029,9 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 
     E_Int nvertexHO = nvertex + nedges + nfaces;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "PENTA_18", false, 0, 0, 0, api);
+    o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "PENTA_18", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,p3,p4,ind,n7,n8,n9,n10,n11,n12,n13,n14,n15,n16,n17,n18;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)
@@ -1143,9 +1143,9 @@ PyObject* K_CONVERTER::convertLO2HO(PyObject* self, PyObject* args)
 
     E_Int nvertexHO = nvertex + nedges + nfaces;
     E_Int neltsHO = nelts;
-    o = K_ARRAY::buildArray2(nfld, varString, nvertexHO, neltsHO, -1, "PYRA_14", false, 0, 0, 0, api);
+    o = K_ARRAY::buildArray3(nfld, varString, nvertexHO, neltsHO, "PYRA_14", false, api);
     FldArrayF* fo; FldArrayI* co;
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int p1,p2,p3,p4,ind,n6,n7,n8,n9,n10,n11,n12,n13,n14;
     // Fields
     for (E_Int n = 1; n <= nfld; n++)

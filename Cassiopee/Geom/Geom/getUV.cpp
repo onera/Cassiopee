@@ -497,12 +497,12 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   //=========================
   PyObject* o;
   if (exportFields)
-    o = K_ARRAY::buildArray2(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, -1, eltType, 0, 1, 1, api);
+    o = K_ARRAY::buildArray3(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, eltType, false, api);
   else 
-    o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nvertexOut, nelts, -1, eltType, 0, 1, 1, api);
+    o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nvertexOut, nelts, eltType, false, api);
 
   FldArrayF* fo; FldArrayI* cno; 
-  K_ARRAY::getFromArray2(o, fo, cno);
+  K_ARRAY::getFromArray3(o, fo, cno);
   E_Float* puo = fo->begin(4);
   E_Float* pvo = fo->begin(5);
   E_Float* pxo = fo->begin(1);
@@ -741,8 +741,8 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     E_Int width = atlas->width;
     E_Int height = atlas->height;
     uint8_t *imageData = &outputTrisImage[i * imageDataSize];
-    PyObject* o = K_ARRAY::buildArray2(6, "x,y,z,r,g,b", width,height,1, api);
-    FldArrayF* fo; K_ARRAY::getFromArray2(o, fo);
+    PyObject* o = K_ARRAY::buildArray3(6, "x,y,z,r,g,b", width, height, 1, api);
+    FldArrayF* fo; K_ARRAY::getFromArray3(o, fo);
     E_Float* pr = fo->begin(4);
     E_Float* pg = fo->begin(5);
     E_Float* pb = fo->begin(6);
@@ -768,8 +768,8 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     E_Int width = atlas->width;
     E_Int height = atlas->height;
     uint8_t *imageData = &outputBumpImage[i * imageDataSize];
-    PyObject* o = K_ARRAY::buildArray2(6, "x,y,z,r,g,b", width,height,1, api);
-    FldArrayF* fo; K_ARRAY::getFromArray2(o, fo);
+    PyObject* o = K_ARRAY::buildArray3(6, "x,y,z,r,g,b", width, height, 1, api);
+    FldArrayF* fo; K_ARRAY::getFromArray3(o, fo);
     E_Float* pr = fo->begin(4);
     E_Float* pg = fo->begin(5);
     E_Float* pb = fo->begin(6);

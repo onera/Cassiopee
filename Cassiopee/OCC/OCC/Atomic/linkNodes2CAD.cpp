@@ -18,13 +18,13 @@
 */
 
 #include "occ.h"
-#include <TopoDS_Face.hxx>
-#include <GeomAPI_ProjectPointOnSurf.hxx>
-#include <BRep_Tool.hxx>
-#include <TopTools_IndexedMapOfShape.hxx>
-#include <TopExp_Explorer.hxx>
-#include <TopoDS.hxx>
-#include <StdFail_NotDone.hxx>
+#include "TopoDS_Face.hxx"
+#include "GeomAPI_ProjectPointOnSurf.hxx"
+#include "BRep_Tool.hxx"
+#include "TopTools_IndexedMapOfShape.hxx"
+#include "TopExp_Explorer.hxx"
+#include "TopoDS.hxx"
+#include "StdFail_NotDone.hxx"
 
 #include "OCCSurface.h"
 
@@ -37,14 +37,14 @@
 #include <iostream>
 //#include <memory>
 
-#include <Bnd_Box.hxx>
-#include <BRepBndLib.hxx>
+#include "Bnd_Box.hxx"
+#include "BRepBndLib.hxx"
 
 #include <chrono>
 
-#include <gp_Pnt2d.hxx>
-#include <ShapeAnalysis_Surface.hxx>
-#include <BRepTools.hxx>
+#include "gp_Pnt2d.hxx"
+#include "ShapeAnalysis_Surface.hxx"
+#include "BRepTools.hxx"
 
 using namespace std;
 using namespace K_FLD;
@@ -54,17 +54,15 @@ E_Int check_is_NGON(PyObject* arr, K_FLD::FloatArray*& f1, K_FLD::IntArray*& cn1
 {
 
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk,
-                                    cn1, eltType);
+  E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk, cn1, eltType);
 
-     
   bool err = (res !=2);
   err &= (strcmp(eltType, "NGON") != 0);
 
   if (err)
   {
     std::stringstream o;
-    o << "input error : " << eltType << " is an invalid array, must be a NGON array." ;
+    o << "input error: " << eltType << " is an invalid array, must be a NGON array." ;
     PyErr_SetString(PyExc_TypeError, o.str().c_str());
     return 1;
   }
@@ -160,16 +158,16 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
 // array with coordinates
   FldArrayF* fi; E_Int ni, nj, nk;
   FldArrayI* c;
-  E_Int ret = K_ARRAY::getFromArray2(arr, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arr, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2) erreur = 1;
 
 // array hx, hy, hz, ncad
   FldArrayF* fhx; FldArrayF* fhy; FldArrayF* fhz;
   FldArrayF* CADfi;
-  ret = K_ARRAY::getFromArray2(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
   
   if (erreur == 1 )
   {
@@ -442,7 +440,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   E_Int res;
 // Array ncadid
   FldArrayF* arr_ncad;
-  res = K_ARRAY::getFromArray2(ncad, arr_ncad); if (res != 1 && res != 2) return NULL;
+  res = K_ARRAY::getFromArray3(ncad, arr_ncad); if (res != 1 && res != 2) return NULL;
   E_Float* pncad = arr_ncad->begin(1);
   
 // Array fcadid
@@ -546,12 +544,12 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   FldArrayF* fu; FldArrayF* fv;
   FldArrayF* fhx; FldArrayF* fhy; FldArrayF* fhz;
   FldArrayF* CADfi;
-  ret = K_ARRAY::getFromArray2(arrayU, fu); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(arrayV, fv); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(arrayU, fu); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(arrayV, fv); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
   // Check there's no erro: 
   if (erreur == 1 )
   {

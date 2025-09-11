@@ -40,15 +40,9 @@ PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ TRRR_ I_, &hook, &x1, &y1, &z1, 
     &x2, &y2, &z2, &x3, &y3, &z3, &x4, &y4, &z4, &makeFace)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  GETSHAPE;
+  GETMAPSURFACES;
+  GETMAPEDGES;
 
   /* new square */
   gp_Pnt p1(x1, y1, z1); // Bottom left
@@ -74,30 +68,23 @@ PyObject* K_OCC::addSquare(PyObject* self, PyObject* args)
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder.Add(compound, F);
   }
+  for (E_Int i = 1; i <= edges.Extent(); i++)
+  {
+    TopoDS_Edge E = TopoDS::Edge(edges(i));
+    builder.Add(compound, E);
+  }
+  // Add the square face or wire
   if (makeFace == 1) builder.Add(compound, face);
   else builder.Add(compound, wire);
   
+  delete shape;
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
-  // Rebuild the hook
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
+  SETSHAPE(newshp);
 
-  // Extract edges
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
   printf("INFO: after addSquare: Nb edges=%d\n", se->Extent());
   printf("INFO: after addSquare: Nb faces=%d\n", sf->Extent());
   
   Py_INCREF(Py_None);
   return Py_None;
-
 }

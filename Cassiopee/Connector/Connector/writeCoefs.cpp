@@ -508,7 +508,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     E_Int im, jm, km;
     FldArrayF* cellNF; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(pyArrayValue, varString, 
+    E_Int res = K_ARRAY::getFromArray3(pyArrayValue, varString, 
                                        cellNF, im, jm, km, cn, eltType); 
     if ( res != 1 )
     {

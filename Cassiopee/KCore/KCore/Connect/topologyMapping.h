@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "kcore.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -129,7 +130,8 @@ struct TopologyOpt
   {
     size_ = 0; isDegen_ = false;
     n_ = n; assert(n_ <= nmaxitems);
-    for (std::size_t i = 0; i < n_; i++) p_[i] = p[i];
+    //for (std::size_t i = 0; i < n; i++) p_[i] = p[i];
+    memcpy(p_, p, n_*sizeof(E_Int));
     std::sort(p_, p_ + n_);
     if (search4Degen) countUnique();
   }

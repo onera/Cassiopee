@@ -20,6 +20,7 @@
 #define _OCC_OCC_H_
 
 #include "kcore.h"
+#include "packet.h"
 
 namespace K_OCC
 {

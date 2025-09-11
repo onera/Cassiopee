@@ -39,15 +39,9 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   PyObject* hook; PyObject* opc; E_Int method = 0;
   if (!PYPARSETUPLE_(args, OO_ I_, &hook, &opc, &method)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  GETSHAPE;
+  GETMAPSURFACES;
+  GETMAPEDGES;
 
   /* generate knots */
   K_FLD::FldArrayF* pc;
@@ -130,7 +124,6 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     edge = BRepBuilderAPI_MakeEdge(hcurve);
   }
 
-
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;
@@ -141,26 +134,19 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder.Add(compound, F);
   }
+  for (E_Int i = 1; i <= edges.Extent(); i++)
+  {
+    TopoDS_Edge E = TopoDS::Edge(edges(i));
+    builder.Add(compound, E);
+  }
   builder.Add(compound, edge);
 
   // export
+  delete shape;
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
-  // Rebuild the hook
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
+  SETSHAPE(newshp);
 
-  // Extract edges
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
   printf("INFO: after addSpline: Nb edges=%d\n", se->Extent());
   printf("INFO: after addSpline: Nb faces=%d\n", sf->Extent());
   
@@ -168,5 +154,4 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
 
   Py_INCREF(Py_None);
   return Py_None;
-
 }

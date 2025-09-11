@@ -20,6 +20,7 @@
 // Hyperbolic mesh generators
 
 # include "generator.h"
+# include "CompGeom/compGeom.h"
 # include <vector>
 
 using namespace std;
@@ -31,13 +32,7 @@ using namespace K_FLD;
 // ============================================================================
 extern "C"
 {
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-  
+ 
   void k6hyper2d_(const E_Int& ni, const E_Int& nj,
                   const E_Float* distrib,
                   const E_Float* xi, const E_Float* yi, const E_Float* zi,
@@ -118,11 +113,10 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 
   // Extraction des infos sur le maillage
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   // Extraction des infos sur la distribution
   E_Int resd = 
-    K_ARRAY::getFromArray(arrayd, varStringd, fd, 
-                          nid, njd, nkd, cnd, eltTyped);
+    K_ARRAY::getFromArray3(arrayd, varStringd, fd, nid, njd, nkd, cnd, eltTyped);
  
   if (res == 1 && resd == 1)
   {
@@ -131,7 +125,8 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
       K_ARRAY::getPosition(varString, varStringd, pos, posd, varString0);
     if (res0 == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d: common variables list is empty.");
       return NULL;
@@ -151,7 +146,8 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d: coordinates not found.");
       return NULL;
@@ -199,10 +195,10 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     {
         s.malloc(ni);
         dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-        k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-                   nid, fd->begin(posxd),
-                   coord1.begin(1), coord1.begin(2), coord1.begin(3),
-                   s.begin(), dx.begin(), dy.begin(), dz.begin());
+	K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+			    nid, fd->begin(posxd),
+			    coord1.begin(1), coord1.begin(2), coord1.begin(3),
+			    s.begin(), dx.begin(), dy.begin(), dz.begin());
     }
     else
     {
@@ -252,7 +248,8 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                eta_start, eta_end, beta);
     
     // Array Creation 
-    delete f; delete fd;
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
       K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
     delete [] varString0;
@@ -260,10 +257,8 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
   }
   else if (res == 2 || resd == 2)
   {
-    delete f; delete fd;
-    if (res == 2) delete cn;
-    if (resd == 2) delete cnd;
-
+    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDB(resd, arrayd, fd, cnd);
     PyErr_SetString(PyExc_TypeError,
                     "hyper2d: not used for unstructured arrays.");
     return NULL;
@@ -281,18 +276,11 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
 {
-  PyObject* array;
-  PyObject* arrayd;
+  PyObject* array; PyObject* arrayd;
   char* meshType;
   E_Float alpha;
- 
-#ifdef E_DOUBLEREAL
-  if ( !PyArg_ParseTuple(args, "OOsd", &array, &arrayd,
-                         &meshType, &alpha ) )
-#else
-    if ( !PyArg_ParseTuple(args, "OOsf", &array, &arrayd,
-                           &meshType, &alpha ) )
-#endif
+  if ( !PYPARSETUPLE_(args, OO_ S_ R_, &array, &arrayd,
+                      &meshType, &alpha ) )
   {
     return NULL;
   }
@@ -312,12 +300,10 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
 
   // Check array
   E_Int ni, nj, nk, nid, njd, nkd;
-  FldArrayF* f;
-  FldArrayF* fd;
+  FldArrayF* f; FldArrayF* fd;
   char* eltType;
   FldArrayI* cn;
-  char* varStringd;
-  char* varString;
+  char* varStringd; char* varString;
   char* eltTyped;
   FldArrayI* cnd;
   FldArrayF coord1, s, dx, dy, dz;
@@ -330,11 +316,11 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
   
   //extraction des infos sur le maillage
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   //extraction des infos sur la distribution
   E_Int resd = 
-    K_ARRAY::getFromArray(arrayd, varStringd, fd, 
-                          nid, njd, nkd, cnd, eltTyped);
+    K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
+                           nid, njd, nkd, cnd, eltTyped);
  
   if (res == 1 && resd == 1)
   {
@@ -343,7 +329,8 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
       K_ARRAY::getPosition(varString, varStringd, pos, posd, varString0);
     if (res0 == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d2: common variables list is empty.");
       return NULL;
@@ -363,7 +350,8 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d2: coordinates not found.");
       return NULL;
@@ -375,10 +363,10 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     coord1.malloc(nid, 3);
     s.malloc(ni);
     dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-    k6onedmap_( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
-                nid, fd->begin(posxd),
-                coord1.begin(1), coord1.begin(2), coord1.begin(3),
-                s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmap( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
+			 nid, fd->begin(posxd),
+			 coord1.begin(1), coord1.begin(2), coord1.begin(3),
+			 s.begin(), dx.begin(), dy.begin(), dz.begin());
     
     // Generate the mesh using hyperbolic grid generator
     coord.malloc((nid+1)*(njd+1), 3);
@@ -401,7 +389,8 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     
     coord.reAllocMat(nid*njd, 3);
     // Array Creation 
-    delete f; delete fd;
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
       K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
     delete [] varString0;
@@ -409,10 +398,8 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
   }
   else if (res == 2 || resd == 2)
   {
-    delete f; delete fd;
-    if (res == 2) delete cn;
-    if (resd == 2) delete cnd;
-
+    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDB(resd, arrayd, fd, cnd);
     PyErr_SetString(PyExc_TypeError,
                     "hyper2d2: not used for unstructured arrays.");
     return NULL;
@@ -435,13 +422,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
   char* meshType;
   E_Float alpha1, alpha2;
 
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OOsdd", &array, &arrayd,
-                        &meshType, &alpha1, &alpha2))
-#else
-    if (!PyArg_ParseTuple(args, "OOsff",  &array, &arrayd,
-                          &meshType, &alpha1, &alpha2))
-#endif
+  if (!PYPARSETUPLE_(args, OO_ S_ II_, &array, &arrayd,
+                     &meshType, &alpha1, &alpha2))
   {
     return NULL;
   }
@@ -478,11 +460,11 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
     
   //extraction des infos sur le maillage
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   //extraction des infos sur la distribution
   E_Int resd = 
-    K_ARRAY::getFromArray(arrayd, varStringd, fd, 
-                          nid, njd, nkd, cnd, eltTyped);
+    K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
+                           nid, njd, nkd, cnd, eltTyped);
  
   if ( res == 1 && resd == 1)
   {
@@ -491,7 +473,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
       K_ARRAY::getPosition(varString, varStringd, pos, posd, varString0);
     if (res0 == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d3: common variables list is empty.");
       return NULL;
@@ -511,7 +494,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d3: coordinates not found.");
       return NULL;
@@ -526,7 +510,7 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
     dy.malloc(ni);
     dz.malloc(ni);
     
-    k6onedmap_( ni, f->begin(posx), f->begin(posy), f->begin(posz),
+    K_COMPGEOM::onedmap( ni, f->begin(posx), f->begin(posy), f->begin(posz),
                 nid, fd->begin(posxd),
                 coord1.begin(1), coord1.begin(2), coord1.begin(3),
                 s.begin(), dx.begin(), dy.begin(), dz.begin());
@@ -553,7 +537,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
 
     coord.reAllocMat(nid*njd, 3);
     // Array Creation 
-    delete f; delete fd;
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
       K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
     delete [] varString0;
@@ -561,10 +546,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
   }
   else if (res == 2 || resd == 2)
   {
-    delete f; delete fd;
-    if (res == 2) delete cn;
-    if (resd == 2) delete cnd;
-
+    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDB(resd, arrayd, fd, cnd);
     PyErr_SetString(PyExc_TypeError,
                     "hyper2d3: not used for unstructured arrays.");
     return NULL;
@@ -586,7 +569,7 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
   PyObject* array;
   PyObject* arrayd;
   char* meshType;
-  if (!PyArg_ParseTuple(args, "OOs",&array, &arrayd, &meshType))
+  if (!PYPARSETUPLE_(args, OO_ S_, &array, &arrayd, &meshType))
   {
     return NULL;
   }
@@ -621,11 +604,11 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
 
   //extraction des infos sur le maillage
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   //extraction des infos sur la distribution
   E_Int resd = 
-    K_ARRAY::getFromArray(arrayd, varStringd, fd, 
-                          nid, njd, nkd, cnd, eltTyped);
+    K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
+                           nid, njd, nkd, cnd, eltTyped);
  
   if ( res == 1 && resd == 1)
   {
@@ -634,7 +617,8 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
       K_ARRAY::getPosition(varString, varStringd, pos, posd, varString0);
     if (res0 == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d4: common variables list is empty.");
       return NULL;
@@ -654,7 +638,8 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
     if (posx == -1 || posy == -1 || posz == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete f; delete fd;
+      RELEASESHAREDS(array, f);
+      RELEASESHAREDS(arrayd, fd);
       PyErr_SetString(PyExc_TypeError,
                       "hyper2d4: coordinates not found.");
       return NULL;
@@ -669,10 +654,10 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
     dy.malloc(ni);
     dz.malloc(ni);
 
-    k6onedmap_(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-               nid, fd->begin(posxd),
-               coord1.begin(1), coord1.begin(2), coord1.begin(3),
-               s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+			nid, fd->begin(posxd),
+			coord1.begin(1), coord1.begin(2), coord1.begin(3),
+			s.begin(), dx.begin(), dy.begin(), dz.begin());
   
     // Generate the mesh using hyperbolic grid generator
     coord.malloc((nid+1)*(njd+1), 3);
@@ -694,8 +679,9 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
                 RHS.begin(), Z.begin(), ZA.begin(), vol.begin());
    
     coord.reAllocMat(nid*njd, 3);
-  // Array Creation 
-    delete f; delete fd;
+    // Array Creation 
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
       K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
     delete [] varString0;
@@ -703,10 +689,8 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
   }
   else if (res == 2 || resd == 2)
   {
-    delete f; delete fd;
-    if (res == 2) delete cn;
-    if (resd == 2) delete cnd;
-
+    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDB(resd, arrayd, fd, cnd);
     PyErr_SetString(PyExc_TypeError,
                     "hyper2d4: not used for unstructured arrays.");
     return NULL;

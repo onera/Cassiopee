@@ -339,7 +339,9 @@ def createBBoxTree(t, method='AABB', weighting=0, tol=0., keepOldNodes=True):
                 if keepOldNodes:
                     # Clean up (zoneSubRegion)
                     Internal._rmNodesFromType(zbb, 'ZoneSubRegion_t')
-                else: C._extractVars(zbb, None, keepOldNodes=False)
+                else:
+                    C._extractVars(zbb, None, keepOldNodes=False)
+                    _setProc(zbb, getProc(z)) # keep proc
                 zb.append(zbb)
 
     # Echanges des zones locales de bounding box

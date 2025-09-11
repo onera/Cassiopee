@@ -65,26 +65,26 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   const TopoDS_Face& F = TopoDS::Face(surfaces(faceNo));
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* ci; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(arrayUV, varString, fi, ni, nj, nk, ci, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arrayUV, varString, fi, ni, nj, nk, ci, eltType);
   E_Float* pu = fi->begin(1);
   E_Float* pv = fi->begin(2);
   PyObject* o = NULL;
   E_Int nfld = 3;
   if (nfld == 3)
   {
-    if (ret == 1) o = K_ARRAY::buildArray2(nfld, "x,y,z", ni, nj, nk, 1);
-    else o = K_ARRAY::buildArray2(nfld, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
+    if (ret == 1) o = K_ARRAY::buildArray3(nfld, "x,y,z", ni, nj, nk, 1);
+    else o = K_ARRAY::buildArray3(nfld, "x,y,z", fi->getSize(), ci->getSize(), eltType);
   }
   else if (nfld == 5)
   {
-    if (ret == 1) o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", ni, nj, nk, 1);
-    else o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", fi->getSize(), ci->getSize(), -1, eltType);
+    if (ret == 1) o = K_ARRAY::buildArray3(nfld, "x,y,z,u,v", ni, nj, nk, 1);
+    else o = K_ARRAY::buildArray3(nfld, "x,y,z,u,v", fi->getSize(), ci->getSize(), eltType);
   }
   FldArrayF* fo; FldArrayI* co;
-  if (ret == 1) K_ARRAY::getFromArray2(o, fo);
+  if (ret == 1) K_ARRAY::getFromArray3(o, fo);
   else 
   {
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int* pci = ci->begin(); E_Int* pco = co->begin();
     for (E_Int i = 0; i < ci->getSize()*ci->getNfld(); i++) pco[i]  = pci[i];
   }

@@ -70,7 +70,6 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
    IN: nfld: number of fields
    IN: varString: variable string
    IN: nvertex: number of vertex
-
    IN: nelt: number total of elements
    IN: etString: NGON ou NGON*
    IN: center: set to true if field is localised in the centers of
