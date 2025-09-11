@@ -158,16 +158,16 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
 // array with coordinates
   FldArrayF* fi; E_Int ni, nj, nk;
   FldArrayI* c;
-  E_Int ret = K_ARRAY::getFromArray2(arr, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arr, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2) erreur = 1;
 
 // array hx, hy, hz, ncad
   FldArrayF* fhx; FldArrayF* fhy; FldArrayF* fhz;
   FldArrayF* CADfi;
-  ret = K_ARRAY::getFromArray2(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
   
   if (erreur == 1 )
   {
@@ -440,7 +440,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
   E_Int res;
 // Array ncadid
   FldArrayF* arr_ncad;
-  res = K_ARRAY::getFromArray2(ncad, arr_ncad); if (res != 1 && res != 2) return NULL;
+  res = K_ARRAY::getFromArray3(ncad, arr_ncad); if (res != 1 && res != 2) return NULL;
   E_Float* pncad = arr_ncad->begin(1);
   
 // Array fcadid
@@ -544,12 +544,12 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   FldArrayF* fu; FldArrayF* fv;
   FldArrayF* fhx; FldArrayF* fhy; FldArrayF* fhz;
   FldArrayF* CADfi;
-  ret = K_ARRAY::getFromArray2(arrayU, fu); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(arrayV, fv); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
-  ret = K_ARRAY::getFromArray2(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(arrayU, fu); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(arrayV, fv); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhx, fhx); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhy, fhy); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(dhz, fhz); if (ret != 1 && ret != 2) erreur = 1;
+  ret = K_ARRAY::getFromArray3(ncad, CADfi); if (ret != 1 && ret != 2) erreur = 1;
   // Check there's no erro: 
   if (erreur == 1 )
   {

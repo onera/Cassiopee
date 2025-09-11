@@ -1077,12 +1077,12 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 
     if (extBnd > 0) 
     {
-      if ( ext1[v] == 0 && extBnd>0) ext1[v]=extBnd;
-      if ( ext2[v] == 0 && extBnd>0) ext2[v]=extBnd;
-      if ( ext3[v] == 0 && extBnd>0) ext3[v]=extBnd;
-      if ( ext4[v] == 0 && extBnd>0) ext4[v]=extBnd;
-      if ( ext5[v] == 0 && extBnd>0) ext5[v]=extBnd;
-      if ( ext6[v] == 0 && extBnd>0) ext6[v]=extBnd;
+      if (ext1[v] == 0 && extBnd>0) ext1[v]=extBnd;
+      if (ext2[v] == 0 && extBnd>0) ext2[v]=extBnd;
+      if (ext3[v] == 0 && extBnd>0) ext3[v]=extBnd;
+      if (ext4[v] == 0 && extBnd>0) ext4[v]=extBnd;
+      if (ext5[v] == 0 && extBnd>0) ext5[v]=extBnd;
+      if (ext6[v] == 0 && extBnd>0) ext6[v]=extBnd;
     }
 
     E_Float xxor = xp[0]-ext1[v]*dh;
@@ -1092,7 +1092,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     E_Int nio = ni+ext1[v]+ext2[v]; E_Int njo = nj+ext3[v]+ext4[v]; E_Int nko = nk+ext5[v]+ext6[v];
     E_Int npts = nio*njo*nko;
     E_Int api = 1;//api 2 plante
-    PyObject* tpl = K_ARRAY::buildArray2(nfldo, structVarString[v], nio, njo, nko, api); 
+    PyObject* tpl = K_ARRAY::buildArray3(nfldo, structVarString[v], nio, njo, nko, api); 
     E_Float* fptr = K_ARRAY::getFieldPtr(tpl);
     FldArrayF newcoords(npts,nfldo, fptr, true);
     E_Float* xn = newcoords.begin(1);

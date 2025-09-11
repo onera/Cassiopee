@@ -64,7 +64,7 @@ PyObject* K_POST::exteriorEltsStructured(PyObject* self, PyObject* args)
   E_Int nis = std::min(2*depth+2, ni);
   E_Int njs = std::min(2*depth+2, nj);
   E_Int nks = std::min(2*depth+2, nk);
-  PyObject* o = K_ARRAY::buildArray2(nfld, varString, nis, njs, nks, api);
+  PyObject* o = K_ARRAY::buildArray3(nfld, varString, nis, njs, nks, api);
   FldArrayF* fo; K_ARRAY::getFromArray3(o, fo);
   
   E_Int nij = ni*nj;

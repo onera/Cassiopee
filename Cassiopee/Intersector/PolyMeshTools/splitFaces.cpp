@@ -380,10 +380,9 @@ PyObject* K_INTERSECTOR::computeTNCFields(PyObject* self, PyObject* args)
   
   // Champ interpole zone A (output)
   // ===============================
-  PyObject *py_fldA = K_ARRAY::buildArray2(nfld,varString,nint,1,1,2);
+  PyObject *py_fldA = K_ARRAY::buildArray3(nfld, varString, nint, 1, 1, 2);
 
-  FldArrayF* fldA; 
-  FldArrayI* cn2;
+  FldArrayF* fldA; FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varStringTmp;
   res = K_ARRAY::getFromArray3(py_fldA, varStringTmp, fldA, ni2, nj2, nk2, cn2, eltType);

@@ -334,7 +334,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   int* ridge = new int [nao+1];
 
   // Allocate array2
-  PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", npo, nto, -1, "TRI", false, 0, 0, 0, f->getApi());
+  PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", npo, nto, "TRI", false, f->getApi());
   FldArrayF* fo; FldArrayI* co;
   K_ARRAY::getFromArray3(o, fo, co);
   E_Float* fox = fo->begin(1);

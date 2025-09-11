@@ -73,8 +73,8 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     char outEltType[128]; E_Int d;
     K_ARRAY::eltString2TypeId(eltType, outEltType, d, d, d);
 
-    // directement buildArray2
-    o = K_ARRAY::buildArray2(nfld, varString, nvertex, nelts, -1, outEltType, false, 0, 0, 0, api);
+    // directement buildArray3
+    o = K_ARRAY::buildArray3(nfld, varString, nvertex, nelts, outEltType, false, api);
 
     FldArrayF* fo; FldArrayI* co;
     K_ARRAY::getFromArray3(o, fo, co);
@@ -90,7 +90,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     if (K_STRING::cmp(eltType, 5, "BAR_3") == 0)
     {
       E_Int neltsF = nelts*2;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "BAR", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "BAR", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);       
@@ -106,7 +106,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     else if (K_STRING::cmp(eltType, 5, "TRI_6") == 0)
     {
       E_Int neltsF = nelts*4;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TRI", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -133,7 +133,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     else if (K_STRING::cmp(eltType, 6, "QUAD_8") == 0)
     {
       E_Int neltsF = nelts*6;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TRI", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -168,7 +168,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     else if (K_STRING::cmp(eltType, 6, "QUAD_9") == 0)
     {
       E_Int neltsF = nelts*8;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TRI", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TRI", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -212,7 +212,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     {
       E_Int N = 8;
       E_Int neltsF = nelts*N;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TETRA", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -264,7 +264,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     {
       E_Int N = 22;
       E_Int neltsF = nelts*N;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TETRA", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -389,7 +389,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     {
       E_Int N = 8;
       E_Int neltsF = nelts*N;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "HEXA", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "HEXA", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -474,7 +474,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     {
       E_Int N = 8;
       E_Int neltsF = nelts*N;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "PENTA", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "PENTA", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);
@@ -543,7 +543,7 @@ PyObject* K_CONVERTER::convertHO2LO(PyObject* self, PyObject* args)
     {
       E_Int N = 16;
       E_Int neltsF = nelts*N;
-      o = K_ARRAY::buildArray2(nfld, varString, nvertex, neltsF, -1, "TETRA", false, 0, 0, 0, api);
+      o = K_ARRAY::buildArray3(nfld, varString, nvertex, neltsF, "TETRA", false, api);
       FldArrayF* fo; FldArrayI* co;
       K_ARRAY::getFromArray3(o, fo, co);
       fo->copy(*f, 1, nfld);

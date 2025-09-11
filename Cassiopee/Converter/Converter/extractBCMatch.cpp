@@ -147,12 +147,11 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
   // ~~~~~~~~~~~~~~~~~~
   int nfld = PyList_Size(pyVariables);
   int nint = ind->getSize();
-  PyObject* pyFldD = K_ARRAY::buildArray2(nfld,varStringOut,nint,1,1,2); 
+  PyObject* pyFldD = K_ARRAY::buildArray3(nfld,varStringOut,nint,1,1,2); 
 
   delete [] varStringOut;
 
-  FldArrayF*  fldD; 
-  FldArrayI* cn2;
+  FldArrayF* fldD; FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varStringTmp;
   K_ARRAY::getFromArray3(pyFldD, varStringTmp, fldD, ni2, nj2, nk2, cn2, eltType);
@@ -272,7 +271,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 
   // 2. tableau des champs 
   // ~~~~~~~~~~~~~~~~~~~~~
-  PyObject* pyFldD = K_ARRAY::buildArray2(nfld,varString,nint,1,1,2); 
+  PyObject* pyFldD = K_ARRAY::buildArray3(nfld, varString, nint, 1, 1, 2); 
 
   FldArrayF*  fBC; 
   FldArrayI* cnBC;
@@ -1133,10 +1132,9 @@ PyObject* K_CONVERTER::buildBCMatchFieldNG(PyObject* self, PyObject* args )
   // ~~~~~~~~~~~~~~~~~~
   E_Int nfld = fldD->getNfld();
   E_Int nind = indR->getSize();
-  PyObject* pyFld = K_ARRAY::buildArray2(nfld, varStringOut, nind, 1,1,2); 
+  PyObject* pyFld = K_ARRAY::buildArray3(nfld, varStringOut, nind, 1,1,2); 
 
-  FldArrayF* fld;
-  FldArrayI* cn3;
+  FldArrayF* fld; FldArrayI* cn3;
   char* varStringTmp;
   K_ARRAY::getFromArray3(pyFld, varStringTmp, fld, ni2, nj2, nk2, cn3, eltType);
 
@@ -1254,7 +1252,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   // Create output array 
   // ===================
   E_Int nn;
-  PyObject* pyFld = K_ARRAY::buildArray2(nfld,varString,nind,1,1,2); 
+  PyObject* pyFld = K_ARRAY::buildArray3(nfld,varString,nind,1,1,2); 
   // printf("nfld : %d, nind : %d \n",nfld,nind);
   FldArrayF* fld;
   K_ARRAY::getFromArray3(pyFld, varString, fld, nind, nn, nn, cn, eltType);

@@ -205,7 +205,7 @@ PyObject* K_OCC::convertCAD2Arrays0(PyObject* self, PyObject* args)
   printf("INFO: total number of triangles: " SF_D_ "\n", nbTris);
   
   // buildArray
-  PyObject* o = K_ARRAY::buildArray2(3, "x,y,z", nbNodes, nbTris, -1, "TRI", false, 0, 0, 0, 1);
+  PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", nbNodes, nbTris, "TRI", false, 1);
   FldArrayF* f; FldArrayI* c;
   K_ARRAY::getFromArray3(o, f, c);
   E_Float* fx = f->begin(1);

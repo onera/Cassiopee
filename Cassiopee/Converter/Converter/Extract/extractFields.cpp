@@ -65,7 +65,7 @@ PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
   E_Int* indp = inds->begin();
   
   // Cree un array, avec les memes champs mais structure a plat
-  PyObject* o = K_ARRAY::buildArray2(nfld, varString, npts,1,1, api);
+  PyObject* o = K_ARRAY::buildArray3(nfld, varString, npts,1,1, api);
   FldArrayF* fo; K_ARRAY::getFromArray3(o, fo);
   
  #pragma omp parallel default(shared)

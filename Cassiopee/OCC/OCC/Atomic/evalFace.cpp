@@ -72,13 +72,13 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   E_Int nfld = 3;
   if (nfld == 3)
   {
-    if (ret == 1) o = K_ARRAY::buildArray2(nfld, "x,y,z", ni, nj, nk, 1);
-    else o = K_ARRAY::buildArray2(nfld, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
+    if (ret == 1) o = K_ARRAY::buildArray3(nfld, "x,y,z", ni, nj, nk, 1);
+    else o = K_ARRAY::buildArray3(nfld, "x,y,z", fi->getSize(), ci->getSize(), eltType);
   }
   else if (nfld == 5)
   {
-    if (ret == 1) o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", ni, nj, nk, 1);
-    else o = K_ARRAY::buildArray2(nfld, "x,y,z,u,v", fi->getSize(), ci->getSize(), -1, eltType);
+    if (ret == 1) o = K_ARRAY::buildArray3(nfld, "x,y,z,u,v", ni, nj, nk, 1);
+    else o = K_ARRAY::buildArray3(nfld, "x,y,z,u,v", fi->getSize(), ci->getSize(), eltType);
   }
   FldArrayF* fo; FldArrayI* co;
   if (ret == 1) K_ARRAY::getFromArray3(o, fo);

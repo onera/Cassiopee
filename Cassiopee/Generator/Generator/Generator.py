@@ -2452,7 +2452,7 @@ def quad2Pyra(array, hratio=1.):
     Usage: quad2Pyra(array, hratio)"""
     return generator.quad2Pyra(array, hratio)
 
-def getMeshFieldInfo___(array, field, critValue, verbose):
+def getMeshFieldInfo__(array, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
     fmax  = -1.

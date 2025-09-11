@@ -1411,7 +1411,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       //else if (eorientation == TopAbs_EXTERNAL) printf("edge orientation=external\n");
 
       // create array
-      PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
+      PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
       FldArrayF* f; K_ARRAY::getFromArray3(o, f);
       discreteWire.push_back(f);
       discreteWire2.push_back(o);

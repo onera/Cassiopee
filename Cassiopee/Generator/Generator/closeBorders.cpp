@@ -91,10 +91,28 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     poszu.push_back(posz+1);
   }
 
+  // output
+  PyObject* out = PyList_New(0);
+  PyObject* tpl;
+
   // Structure
   if (structF.size() > 0)
-    closeAllStructuredMeshes(structF, nit, njt, nkt, posxs, posys, poszs, eps);
-  
+  {
+    std::vector<FldArrayF*> cstructF;
+    for (size_t v = 0; v < structF.size(); v++)
+    {
+      tpl = K_ARRAY::buildArray3(*structF[v], structVarString[v], nit[v], njt[v], nkt[v]);
+      RELEASESHAREDS(objs[v], structF[v]);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
+      cstructF.push_back(f2);
+      PyList_Append(out, tpl);
+      Py_DECREF(tpl);
+    }
+    closeAllStructuredMeshes(cstructF, nit, njt, nkt, posxs, posys, poszs, eps);
+    for (size_t v = 0; v < cstructF.size(); v++) RELEASESHAREDS(PyList_GetItem(out,v), cstructF[v]);
+  }
+
   // Non structure
   if (unstrF.size() > 0)
   { 
@@ -144,22 +162,34 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
         posye.push_back(posy+1);
         posze.push_back(posz+1);
       }
-      closeAllUnstructuredMeshes(unstrF, cnt, posxu, posyu, poszu, 
+      std::vector<FldArrayF*> cunstrF; std::vector<FldArrayI*> ccnt;
+      for (size_t v = 0; v < unstrF.size(); v++)
+      {
+        tpl = K_ARRAY::buildArray3(*unstrF[v], unstrVarString[v], *cnt[v], eltType[v]);
+        RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
+        FldArrayF* f2; FldArrayI* cn2;
+        K_ARRAY::getFromArray3(tpl, f2, cn2);
+        cunstrF.push_back(f2); ccnt.push_back(cn2);
+        PyList_Append(out, tpl);
+        Py_DECREF(tpl);
+      }
+      closeAllUnstructuredMeshes(cunstrF, ccnt, posxu, posyu, poszu, 
                                  unstrEF, cne, posxe, posye, posze, 
                                  eps);
+      for (size_t v = 0; v < cunstrF.size(); v++) RELEASESHAREDU(PyList_GetItem(out,v), cunstrF[v], ccnt[v]);
     }
     for (size_t v = 0; v < unstrEF.size(); v++) RELEASESHAREDU(objue[v], unstrEF[v], cne[v]);
   }// unstructured
 
-  PyObject* l = PyList_New(0);
+  /*
+  PyObject* out = PyList_New(0);
   PyObject* tpl;
-  size = structF.size();
-  for (E_Int v = 0; v < size; v++)
+  for (size_t v = 0; v < structF.size(); v++)
   {
     FldArrayF& f0 = *structF[v];
     tpl = K_ARRAY::buildArray(f0, structVarString[v], nit[v], njt[v], nkt[v]);
     RELEASESHAREDS(objs[v], structF[v]);
-    PyList_Append(l, tpl);
+    PyList_Append(out, tpl);
     Py_DECREF(tpl);
   }
   for (size_t v = 0; v < unstrF.size(); v++)
@@ -168,11 +198,11 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     tpl = K_ARRAY::buildArray(f0, unstrVarString[v], *cnt[v], -1, eltType[v],
                               false);
     RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
-    PyList_Append(l, tpl);
+    PyList_Append(out, tpl);
     Py_DECREF(tpl);
   }
-  
-  return l;
+  */
+  return out;
 }
 
 //=============================================================================
@@ -209,7 +239,7 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     E_Float* xt = exteriorFacesF[noz]->begin(posxe[noz]);
     E_Float* yt = exteriorFacesF[noz]->begin(posye[noz]);
     E_Float* zt = exteriorFacesF[noz]->begin(posze[noz]);   
-    E_Int nptsExt =  exteriorFacesF[noz]->getSize();
+    E_Int nptsExt = exteriorFacesF[noz]->getSize();
 
     for (E_Int ind = 0; ind < nptsExt; ind++)
     {

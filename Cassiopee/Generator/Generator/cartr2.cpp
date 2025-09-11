@@ -316,7 +316,7 @@ PyObject* K_GENERATOR::cartr2(PyObject* self, PyObject* args)
   E_Int i, j, k, ind;
   // Create cartesian mesh
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, api);
+  tpl = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, api);
   
   K_FLD::FldArrayF* f2; K_FLD::FldArrayI* c;
   char* varString; char* eltType;

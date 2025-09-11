@@ -68,8 +68,8 @@ PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
   E_Int ret = K_ARRAY::getFromArray3(arrayU, varString, fi, ni, nj, nk, ci, eltType);
   E_Float* pu = fi->begin(1);
   PyObject* o;
-  if (ret == 1) o = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, 1);
-  else o = K_ARRAY::buildArray2(3, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
+  if (ret == 1) o = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, 1);
+  else o = K_ARRAY::buildArray3(3, "x,y,z", fi->getSize(), ci->getSize(), eltType);
   FldArrayF* fo; FldArrayI* co;
   if (ret == 1) K_ARRAY::getFromArray3(o, fo);
   else
