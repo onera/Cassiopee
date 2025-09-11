@@ -90,15 +90,21 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
   {
     E_Int ni1 = K_FUNC::E_max(1,ni-1);
     E_Int nj1 = K_FUNC::E_max(1,nj-1);
-    E_Int nk1 = K_FUNC::E_max(1,nk-1);    
+    E_Int nk1 = K_FUNC::E_max(1,nk-1);
     E_Int ncells = ni1*nj1*nk1;
     tpl = K_ARRAY::buildArray3(3, varStringOut, ni1, nj1, nk1);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fp(ncells, 3, fnp, true); 
+    char* varString2; FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, varString2, f2);
+    E_Float* gradx = f2->begin(1);
+    E_Float* grady = f2->begin(2);
+    E_Float* gradz = f2->begin(3);
+
     computeGradStruct(ni, nj, nk, 
                       f->begin(posx), f->begin(posy), f->begin(posz), 
                       f->begin(posv),
-                      fp.begin(1), fp.begin(2), fp.begin(3));      
+                      gradx, grady, gradz);
+                      
+    RELEASESHAREDS(tpl, f2);
   }
   else if (res == 2) 
   {
@@ -106,22 +112,34 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
     {
       // Build unstructured NGON array from existing connectivity & empty fields
       E_Int nelts = cn->getNElts();
-      FldArrayF* fp = new FldArrayF(nelts, 3, true); fp->setAllValuesAtNull();
-      tpl = K_ARRAY::buildArray3(*fp, varStringOut, *cn, "NGON");
-      delete fp; K_ARRAY::getFromArray3(tpl, fp);
+      E_Int npts = f->getSize();
+      E_Bool center = true;
+      E_Bool copyConnect = true;
+      E_Int api = f->getApi();
+
+      tpl = K_ARRAY::buildArray3(
+        3, varStringOut, npts, *cn, "NGON",
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2); f2->setAllValuesAtNull();
+
+      E_Float* gradx = f2->begin(1);
+      E_Float* grady = f2->begin(2);
+      E_Float* gradz = f2->begin(3);
       
       E_Int err = computeGradNGon(
         f->begin(posx), f->begin(posy), f->begin(posz), 
         f->begin(posv), *cn, 
-        fp->begin(1), fp->begin(2), fp->begin(3));
+        gradx, grady, gradz);
       if (err == 1)
       {
         PyErr_SetString(PyExc_TypeError, 
                         "computeGrad: gradient can only be computed for 3D NGONs.");
         delete [] varStringOut;
+        RELEASESHAREDS(tpl, f2);
         RELEASESHAREDB(res,array,f,cn); return NULL;         
       }
-      RELEASESHAREDS(tpl, fp);
+      RELEASESHAREDS(tpl, f2);
     }
     else  // ME
     {

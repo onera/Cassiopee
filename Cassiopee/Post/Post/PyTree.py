@@ -1436,7 +1436,7 @@ def computeGrad(t, var):
             tp = C.center2Node(tp, var)
         gradVar = v[1]
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     if posv == -1: C._rmVars(tp, gradVar)
     centers = Post.computeGrad(nodes, gradVar)
     C.setFields(centers, tp, 'centers')
@@ -1630,7 +1630,7 @@ def computeNormGrad(t, var):
             posv = C.isNamePresent(tp, v[1])
             tp = C.center2Node(tp, var)
             gradVar = v[1]
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     if posv == -1: C._rmVars(tp, gradVar)
     centers = Post.computeNormGrad(nodes, gradVar)
     C.setFields(centers, tp, 'centers')
