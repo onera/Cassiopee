@@ -211,7 +211,7 @@ def _computeGrad2(t, var, withCellN=True):
                 if oppNode not in export: export[oppNode] = [n]
                 else: export[oppNode] += [n]
         elif dim[0] == 'Structured':
-            fields = C.getField(vare, z, api=2)
+            fields = C.getField(vare, z, api=3)
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
             for gc in GCs:
@@ -255,7 +255,7 @@ def _computeGrad2(t, var, withCellN=True):
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
             elif dim[0] == 'Structured':
-                fields = C.getAllFields(z, 'centers', api=2)
+                fields = C.getAllFields(z, 'centers', api=3)
                 fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
             else:
                 raise(TypeError, "computeGrad2: invalid grid type.")

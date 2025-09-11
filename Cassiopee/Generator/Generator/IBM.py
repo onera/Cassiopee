@@ -628,7 +628,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
     if ext == -1: return zones
 
     if ext > 0:
-        coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones,api=3)
         coords,rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
@@ -884,7 +884,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     else: extBnd = ext-1 # nb de ghost cells = ext-1
     if ext > 0:
         zones = Internal.getZones(t)
-        coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
         coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):

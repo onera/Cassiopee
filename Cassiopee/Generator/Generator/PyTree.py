@@ -98,7 +98,7 @@ def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=
     and the extension dfar of the mesh.
     Usage: octree(surfaces, snearList, dfarList, dfar, balancing, levelMax, ratio)"""
     surfaces = C.convertArray2Tetra(surfaces)
-    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces, api=2)
+    stlArrays = C.getFields(Internal.__GridCoordinates__, surfaces, api=3)
     #stlArrays = Converter.convertArray2Tetra(stlArrays)
     a = Generator.octree(stlArrays, snearList, dfarList, dfar, balancing, levelMax, ratio, octant, dfarDir, octreeMode)
     return C.convertArrays2ZoneNode('octree', [a])
@@ -263,7 +263,7 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     cartzones = None
     # Extension des grilles
     #if ext > 0:
-    #    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    #    coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
     #    coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
     #    C.setFields(coords, zones, 'nodes')
 

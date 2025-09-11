@@ -29,9 +29,9 @@ using namespace std;
 PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
 {
   PyObject* array; PyObject* vars0;
-  if (!PyArg_ParseTuple(args, "OO", &array, &vars0)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vars0)) return NULL;
 
-  //extract variables constituting components of the vector whose div is calculated
+  // extract variables constituting components of the vector whose div is calculated
   vector<char*> vars;
   if (PyList_Check(vars0) == 0)
   {
@@ -39,13 +39,14 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
                     "computeDiv: a list of 3 variables for div computation must be defined.");
     return NULL;
   }
-  if (PyList_Size(vars0) != 3)
+  Py_ssize_t nvars = PyList_Size(vars0);
+  if (nvars != 3)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv: 3 variables must be defined to extract the div.");
     return NULL;
   }
-  for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
+  for (Py_ssize_t i = 0; i < nvars; i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
     if (PyString_Check(tpl0))
@@ -71,7 +72,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int ni, nj, nk;// number of points of array
+  E_Int ni, nj, nk; // number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
@@ -99,7 +100,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv: coordinates not found in array.");
-    RELEASESHAREDB(res,array,f,cn); return NULL;
+    RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
   E_Int nfld = f->getNfld();
@@ -145,7 +146,7 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray(1, varStringOut, ni1, nj1, nk1);
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF fp(ncells, 1, fnp, true); fp.setAllValuesAtNull();
     E_Int ierr = computeDivStruct(

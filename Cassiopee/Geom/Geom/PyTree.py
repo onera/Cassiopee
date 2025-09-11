@@ -473,7 +473,7 @@ def _smooth(a, eps, niter):
 def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     """Return uv of surface and atlas."""
     b = Internal.getZones(a)[0] # only first zone for now
-    array = C.getFields('nodes', b, api=2)[0]
+    array = C.getFields('nodes', b, api=3)[0]
     ret = Geom.getUV(array, normalDeviationWeight, texResolution, fields)
     z0 = C.convertArrays2ZoneNode(b[0], [ret[0]])
     z1 = C.convertArrays2ZoneNode('colorAtlas', [ret[1]])

@@ -1434,7 +1434,7 @@ def getField(name, t, api=1):
 # IN: containerName: GridCoordinates, FlowSolution, FlowSolution#Centers (conteneur)
 # ou liste de conteneurs homogenes en localisation
 # IN: vars: optionel, liste des variables a recuperer (sans centers: car deja specifie dans container)
-# IN: api=1, sortie array (avec copie), api=2, sortie array2 sans copie, api=3, sortie array3 sans copie
+# IN: api=1, sortie array (avec copie), api=3, sortie array2 sans copie, api=3, sortie array3 sans copie
 # OUT: arrays: solution (un par zone)
 # OUT: peut contenir des arrays vides ([])
 # Attention: il faut envoyer que des containeurs homogenes en localisation
@@ -3340,9 +3340,9 @@ def getArgMin(t, var):
         var = v[1]
         if v[0] == 'centers': centers = True
     if centers:
-        A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+        A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
     else:
-        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
     return Converter.getArgMin(A, var)
 
 # -- getArgMax (only on nodes or centers separately)
@@ -3355,9 +3355,9 @@ def getArgMax(t, var):
         var = v[1]
         if v[0] == 'centers': centers = True
     if centers:
-        A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+        A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
     else:
-        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
     return Converter.getArgMax(A, var)
 
 # -- getMinValue
@@ -3413,7 +3413,7 @@ def getMeanValue(t, var):
 def getMeanRangeValue(t, var, rmin, rmax):
     """Get the mean value of variable defined by var in the sorted range between rmin and rmax.
     Usage: getMeanRangeValue(t, var, rmin, rmax)"""
-    A = getField(var, t, api=2)
+    A = getField(var, t, api=3)
     v = var.split(':')
     if len(v) > 1: var = v[1]
     return Converter.getMeanRangeValue(A, var, rmin, rmax)
@@ -7162,7 +7162,7 @@ def createHook(a, function='None'):
 
 def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     """Create a hook for a cylindrical adt."""
-    fields = getFields(Internal.__GridCoordinates__, a, api=2)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     return Converter.createHookAdtCyl(fields, center, axis, depth, thetaShift)
 
 # -- createGlobalHook

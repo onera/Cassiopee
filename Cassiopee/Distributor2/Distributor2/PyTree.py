@@ -121,7 +121,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
         else: nbPts.append(C.getNPts(z))
 
         #if useCom == 'overlap' or useCom == 'bbox':
-        #    a = C.getFields(Internal.__GridCoordinates__, z, api=2)
+        #    a = C.getFields(Internal.__GridCoordinates__, z, api=3)
         #    if a == [[]]: # no coord present in z
         #        print('Warning: no coordinates found. You shouldnt use useCom=overlap or bbox with skeleton tree.')
         #        useCom = 'match'
