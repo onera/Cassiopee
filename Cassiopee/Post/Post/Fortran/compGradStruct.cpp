@@ -18,9 +18,36 @@
 */
 # include "post.h"
 
-// ============================================================================
+//=============================================================================
 // Calcul du gradient d'un champ defini aux noeuds d une grille structuree
 // retourne le gradient defini aux centres des cellules
+//=============================================================================
+E_Int K_POST::computeGradStruct(
+  const E_Int ni, const E_Int nj, const E_Int nk, 
+  const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* field,
+  E_Float* gradx, E_Float* grady, E_Float* gradz
+)
+{
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)  // 1D
+  {
+    E_Int tni = ni;
+    if (nj != 1) tni = nj;
+    else if (nk != 1) tni = nk;
+    compGradStruct1D(tni, xt, yt, zt, field, gradx, grady, gradz);
+  }
+  else if (ni == 1 || nj == 1 || nk == 1)  // 2D
+  {
+    compGradStruct2D(ni, nj, nk, xt, yt, zt, field, gradx, grady, gradz);
+  }
+  else  // 3D
+  {
+    compGradStruct3D(ni, nj, nk, xt, yt, zt, field, gradx, grady, gradz);
+  }
+  return 1;
+}
+
+// ============================================================================
+// Cas 3D
 // ============================================================================
 void K_POST::compGradStruct3D(
   const E_Int ni, const E_Int nj, const E_Int nk,
@@ -130,9 +157,7 @@ void K_POST::compGradStruct3D(
 }
 
 // ============================================================================
-// Calcul du gradient d'un champ defini aux noeuds d'une grille surfacique
-// structuree 
-// retourne le gradient defini aux centres des cellules
+// Cas 2D
 // ============================================================================
 void K_POST::compGradStruct2D(
   const E_Int ini, const E_Int inj, const E_Int ink,
@@ -236,16 +261,7 @@ void K_POST::compGradStruct2D(
 }
 
 // ============================================================================
-// Calcul du gradient d'un champ defini aux noeuds d une grille surfacique
-// structuree 
-// retourne le gradient defini aux centres des cellules
-// IN
-// ni: dimensions de la grille aux noeuds
-// ncells: nb de cellules
-// xt, yt, zt: coordonnees des noeuds de la grille
-// field: champ defini aux noeuds auquel on applique grad
-// OUT
-// gradx, grady, gradz: gradient de field aux centres des cellules
+// Cas 1D
 // ============================================================================
 void K_POST::compGradStruct1D(
   const E_Int ni, const E_Float* xt, const E_Float* yt, const E_Float* zt,

@@ -21,6 +21,29 @@
 // ============================================================================
 // Calcul de la divergence d'un champ defini aux noeuds d une grille structuree
 // retourne la divergence defini aux centres des cellules
+// div must be allocated before
+//=============================================================================
+E_Int K_POST::computeDivStruct(
+  const E_Int ni, const E_Int nj, const E_Int nk,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+  E_Float* div
+)
+{
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) return -1;
+  if (ni == 1 || nj == 1 || nk == 1)
+  {
+    compDivStruct2D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
+  }
+  else
+  {
+    compDivStruct3D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
+  }
+  return 1;
+}
+
+// ============================================================================
+// Cas 3D
 // ============================================================================
 void K_POST::compDivStruct3D(
   const E_Int ni, const E_Int nj, const E_Int nk,
@@ -135,17 +158,7 @@ void K_POST::compDivStruct3D(
 }
 
 // ============================================================================
-// Calcul de la divergence d'un champ defini aux noeuds d une grille surfacique
-// structuree
-// retourne la divergence defini aux centres des cellules
-// IN
-// ni, nj, nk : dimensions de la grille aux noeuds
-// xt, yt, zt : coordonnees des noeuds de la grille
-// fieldX, fieldY, fieldZ : champ defini aux noeuds auquel on applique div
-// surf : surface des cellules 2d
-// nxt, nyt, nzt : normale aux cellules
-// OUT
-// div : divergence du champ vectoriel
+// Cas 2D
 // ============================================================================
 void K_POST::compDivStruct2D(
   const E_Int ini, const E_Int inj, const E_Int ink,

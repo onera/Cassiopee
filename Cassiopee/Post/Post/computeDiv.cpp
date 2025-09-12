@@ -19,20 +19,17 @@
 # include <string.h>
 # include "post.h"
 
-using namespace K_FLD;
-using namespace std;
-
 //=============================================================================
 /* Compute the divergence of a set of vector fields given at mesh nodes.
    The divergence is given on cell centers. */
 //=============================================================================
-PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
+PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars0;
   if (!PYPARSETUPLE_(args, OO_, &array, &vars0)) return NULL;
 
   // extract variables constituting components of the vector whose div is calculated
-  vector<char*> vars;
+  std::vector<char*> vars;
   if (PyList_Check(vars0) == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -145,238 +142,69 @@ PyObject* K_POST::computeDiv(PyObject* self,PyObject* args)
     E_Int ni1 = K_FUNC::E_max(1, ni-1);
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
-    E_Int ncells = ni1*nj1*nk1;
     tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fp(ncells, 1, fnp, true); fp.setAllValuesAtNull();
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
     E_Int ierr = computeDivStruct(
       ni, nj, nk,
       f->begin(posx), f->begin(posy), f->begin(posz),
       f->begin(posu), f->begin(posv), f->begin(posw),
-      fp.begin()
+      f2->begin()
     );
     if (ierr == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "computeDiv: Not valid for 1D.");
+      delete [] varStringOut;
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
   }
   else if (res == 2)
   {
+    E_Int npts = f->getSize();
+    E_Int api = f->getApi();
+    E_Bool center = true;
+    E_Bool copyConnect = true;
+
     if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int npts = f->getSize();
-      E_Int nelts = cn->getNElts();  // nombre total d elements
-      // E_Int nfaces = cn->getNFaces();  // nombre total de faces
-      E_Int csize = cn->getSize();
-      tpl = K_ARRAY::buildArray(1, varStringOut, npts, nelts, -1, eltType, true, csize);
-      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fp(nelts, 1, fnp, true);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, "NGON",
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
       E_Int ierr = computeDivNGon(
         f->begin(posx), f->begin(posy), f->begin(posz),
         f->begin(posu), f->begin(posv), f->begin(posw), *cn,
-        fp.begin()
+        f2->begin()
       );
       if (ierr == 1)
       {
         PyErr_SetString(PyExc_TypeError,
                         "computeDiv: divergence can only be computed for 3D NGONs.");
+        delete [] varStringOut;
+        RELEASESHAREDS(tpl, f2);
         RELEASESHAREDB(res, array, f, cn); return NULL;
       }
     }
-    else
+    else  // ME
     {
-      if (strcmp(eltType, "TRI") != 0 &&
-          strcmp(eltType, "QUAD") != 0 &&
-          strcmp(eltType, "TETRA") != 0 &&
-          strcmp(eltType, "HEXA") != 0 &&
-          strcmp(eltType, "PENTA") != 0 )
-      {
-        PyErr_SetString(PyExc_TypeError,
-                        "computeDiv: not a valid element type.");
-        RELEASESHAREDU(array, f, cn); return NULL;
-      }
-      E_Int npts = f->getSize();
-      tpl = K_ARRAY::buildArray(1, varStringOut, npts, cn->getSize(), -1, eltType, true,
-                                cn->getSize()*cn->getNfld());
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-      E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-      E_Int nelts = cn->getSize();
-      FldArrayF fp(nelts, 1, fnp, true);
+      E_Int nc = cn->getNConnect();
+      if (nc > 1) api = 3;
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, eltType,
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
       computeDivUnstruct(
         *cn, eltType,
         f->begin(posx), f->begin(posy), f->begin(posz),
         f->begin(posu), f->begin(posv), f->begin(posw),
-        fp.begin()
+        f2->begin()
       );
     }
   }
   RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
   return tpl;
-}
-
-//=============================================================================
-/* div must be allocated before */
-//=============================================================================
-E_Int K_POST::computeDivStruct(
-  const E_Int ni, const E_Int nj, const E_Int nk,
-  const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* div
-)
-{
-  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) return -1;
-  if (ni == 1 || nj == 1 || nk == 1)
-  {
-    compDivStruct2D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
-  }
-  else
-  {
-    compDivStruct3D(ni, nj, nk, xt, yt, zt, fieldX, fieldY, fieldZ, div);
-  }
-  return 1;
-}
-
-//=============================================================================
-E_Int K_POST::computeDivUnstruct(
-  FldArrayI& cn, const char* eltType,
-  const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
-  E_Float* div
-)
-{
-  // Get ME mesh dimensionality from the first element type
-  E_Int dim = 3;
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
-  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 or
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-
-  if (dim == 2)
-  {
-    compDivUnstruct2D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
-  }
-  else if (dim == 3)
-  {
-    compDivUnstruct3D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
-  }
-  else return -1;
-  return 1;
-}
-
-//==============================================================================
-E_Int K_POST::computeDivNGon(
-  const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  const E_Float* fpx, const E_Float* fpy, const E_Float* fpz, FldArrayI& cn,
-  E_Float* div
-)
-{
-  // Donnees liees a la connectivite
-  E_Int nfaces = cn.getNFaces(); // nombre total de faces
-  E_Int nelts = cn.getNElts();  // nombre total d elements
-  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
-  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
-
-  // calcul de la metrique
-  E_Float* sxp = new E_Float [3*nfaces];
-  E_Float* syp = new E_Float [3*nfaces];
-  E_Float* szp = new E_Float [3*nfaces];
-  E_Float* snp = new E_Float [nfaces];
-
-  FldArrayI* cFE = new FldArrayI();
-  K_CONNECT::connectNG2FE(cn, *cFE);
-  K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
-  delete cFE;
-  E_Float* volp = new E_Float [nelts];
-  K_METRIC::compNGonVol(xt, yt, zt, cn, volp);
-  // Connectivite Element/Noeuds
-  vector< vector<E_Int> > cnEV(nelts);
-  K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol
-
-  FldArrayI dimElt(nelts); // tableau de la dimension des elements
-  K_CONNECT::getDimElts(cn, dimElt);
-  if (dimElt[0] < 3)
-  {
-    printf("computeDiv: not valid for " SF_D_ "D NGONs\n", dimElt[0]);
-    delete [] volp;
-    delete [] sxp;
-    delete [] syp;
-    delete [] szp;
-    delete [] snp;
-    return 1;
-  }
-
-  #pragma omp parallel
-  {
-    E_Int ind, noface, indnode, nbFaces, nbNodes, nbNodesPerFace;
-    E_Float fpxmeanface, fpymeanface, fpzmeanface, invvol;
-    E_Float xbe, ybe, zbe; // coordonnees du barycentre d un element
-    E_Float xbf, ybf, zbf; // coordonnees du barycentre d une face
-    E_Float sens, sx, sy, sz;
-    vector<E_Int> vertices; // sommets associes a l'element
-
-    // parcours des elements
-    #pragma omp for
-    for (E_Int et = 0; et < nelts; et++)
-    {
-      invvol = 1./volp[et];
-      div[et] = 0.;
-
-      // calcul du barycentre be (xbe, ybe, zbe) de l'element
-      vertices = cnEV[et];
-      nbNodes = vertices.size();
-      xbe = 0.; ybe = 0.; zbe = 0.;
-      for (E_Int n = 0; n < nbNodes; n++)
-      {
-        ind = vertices[n]-1;
-        xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
-      }
-      xbe = xbe/nbNodes; ybe = ybe/nbNodes; zbe = zbe/nbNodes;
-
-      // parcours des faces de l element et
-      E_Int* elt = cn.getElt(et, nbFaces, nface, indPH);
-      for (E_Int fa = 0; fa < nbFaces; fa++)
-      {
-        noface = elt[fa]-1;
-        E_Int* face = cn.getFace(noface, nbNodesPerFace, ngon, indPG);
-        // valeur moyenne de fpx,fpy,fpz pour la face
-        fpxmeanface = 0.; fpymeanface = 0.; fpzmeanface = 0.;
-        // calcul du barycentre bf (xbf, ybf, zbf) de la face
-        xbf = 0.; ybf = 0.; zbf = 0.;
-        for (E_Int n = 0; n < nbNodesPerFace; n++)
-        {
-          indnode = face[n]-1;
-          xbf += xt[indnode]; ybf += yt[indnode]; zbf += zt[indnode];
-          fpxmeanface += fpx[indnode];
-          fpymeanface += fpy[indnode];
-          fpzmeanface += fpz[indnode];
-        }
-        xbf = xbf/nbNodesPerFace; ybf = ybf/nbNodesPerFace; zbf = zbf/nbNodesPerFace;
-        fpxmeanface /= nbNodesPerFace;
-        fpymeanface /= nbNodesPerFace;
-        fpzmeanface /= nbNodesPerFace;
-        // bilan
-        // verification du sens de la normale. Celle-ci doit etre exterieure
-        sx = sxp[noface]; sy = syp[noface]; sz = szp[noface];
-        sens = (xbe-xbf)*sx + (ybe-ybf)*sy + (zbe-zbf)*sz;
-        if (sens > 0.) {sx=-sx; sy=-sy; sz=-sz;}
-        div[et] += fpxmeanface*sx + fpymeanface*sy + fpzmeanface*sz;
-      }
-      div[et] *= invvol;
-    }
-  }
-
-  delete [] volp;
-  delete [] sxp;
-  delete [] syp;
-  delete [] szp;
-  delete [] snp;
-  return 0;
 }

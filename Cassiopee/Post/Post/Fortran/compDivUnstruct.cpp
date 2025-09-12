@@ -19,8 +19,39 @@
 # include "post.h"
 
 // ============================================================================
-// Calcul de la divergence d'un champ défini aux noeuds d'une grille non structuree
-// Retourne la divergence définie aux centres des éléments
+// Calcul de la divergence d'un champ defini aux noeuds d'une grille
+// non-structuree
+// Retourne la divergence definie aux centres des elements
+// ============================================================================
+E_Int K_POST::computeDivUnstruct(
+  FldArrayI& cn, const char* eltType,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* fieldX, const E_Float* fieldY, const E_Float* fieldZ,
+  E_Float* div
+)
+{
+  // Get ME mesh dimensionality from the first element type
+  E_Int dim = 3;
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 or
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  if (dim == 2)
+  {
+    compDivUnstruct2D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
+  }
+  else if (dim == 3)
+  {
+    compDivUnstruct3D(cn, eltType, xt, yt, zt, fieldX, fieldY, fieldZ, div);
+  }
+  else return -1;
+  return 1;
+}
+
+// ============================================================================
 // CAS 3D
 // ============================================================================
 void K_POST::compDivUnstruct3D(
@@ -117,8 +148,6 @@ void K_POST::compDivUnstruct3D(
 }
 
 // ============================================================================
-// Calcul de la divergence d'un champ défini aux noeuds d'une grille non structuree
-// retourne la divergence définie aux centres des éléments
 // CAS 2D
 // ============================================================================
 void K_POST::compDivUnstruct2D(
