@@ -480,11 +480,7 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float grading, maxh;
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "Odd", &array, &maxh, &grading)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off", &array, &maxh, &grading)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_, &array, &maxh, &grading)) return NULL;
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
@@ -631,11 +627,7 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float grading, maxh;
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "Odd", &array, &maxh, &grading)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off", &array, &maxh, &grading)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_, &array, &maxh, &grading)) return NULL;
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;

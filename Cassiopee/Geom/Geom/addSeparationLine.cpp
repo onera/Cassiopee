@@ -33,8 +33,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
   E_Float d, x, y, z, x2, y2, z2;
   E_Int i, ind;
   PyObject* array1; PyObject* array2;
-
-  if (!PyArg_ParseTuple(args, "OO", &array1, &array2)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array1, &array2)) return NULL;
 
   // Check array
   E_Int im,im2,jm,jm2,km,km2;

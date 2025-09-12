@@ -65,7 +65,7 @@ E_Int findShellBottomVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vecto
 PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;

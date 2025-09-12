@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::extrapWithCellN(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* cellNObject;
-  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  if (!PYPARSETUPLE_(args, OO_, &array, &cellNObject))
   {
     return NULL;
   }

@@ -201,7 +201,7 @@
 PyObject* K_XCORE::zoltan1(PyObject* self, PyObject* args)
 {
   //PyObject* array;
-  //if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  //if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   return NULL;
 }

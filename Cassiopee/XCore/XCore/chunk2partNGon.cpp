@@ -126,7 +126,8 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
 PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 {
   PyObject *array;
-  if (!PyArg_ParseTuple(args, "O", &array)) {
+  if (!PYPARSETUPLE_(args, O_, &array)) 
+  {
     return NULL;
   }
 

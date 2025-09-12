@@ -50,7 +50,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   PyObject *donorArrays;// domaines d interpolation
   PyObject *numpyIndicesR;
   PyObject *listOfNumpyIndicesD;   
-  if (!PyArg_ParseTuple(args, "OOOO", &receiverArray, &donorArrays, &numpyIndicesR, &listOfNumpyIndicesD)) 
+  if (!PYPARSETUPLE_(args, OOOO_, &receiverArray, &donorArrays, &numpyIndicesR, &listOfNumpyIndicesD)) 
     return NULL;
 
   /*--------------------------------------------------*/

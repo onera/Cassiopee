@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
 {
   PyObject* BCCO, *cnO;
   char* eltType;
-  if (!PyArg_ParseTuple(args, "OOs", &BCCO, &cnO, &eltType)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ S_, &BCCO, &cnO, &eltType)) return NULL;
 
   // Check numpy (BCFace)
   FldArrayI* BCC;

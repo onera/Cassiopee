@@ -1664,7 +1664,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   PyObject* zone;
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   char* cellNName;
-  if (!PyArg_ParseTuple(args, "Ossss", &zone, &cellNName, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+  if (!PYPARSETUPLE_(args, O_ SSSS_, &zone, &cellNName, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPointsZ: wrong arguments.");
@@ -1798,7 +1798,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPoints: wrong arguments.");

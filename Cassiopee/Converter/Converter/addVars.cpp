@@ -33,7 +33,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* additional;
-  if (!PyArg_ParseTuple(args, "OO", &array, &additional)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &additional)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl;
@@ -254,7 +254,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
-  if (!PyArg_ParseTuple(args, "O", &arrays)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arrays)) return NULL;
 
   // Check array
   if (PyList_Check(arrays) == 0)

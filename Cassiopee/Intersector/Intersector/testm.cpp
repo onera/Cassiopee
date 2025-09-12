@@ -16,7 +16,7 @@ PyObject* K_INTERSECTOR::testmain(PyObject* self, PyObject* args)
 {
   PyObject *arr;
 
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

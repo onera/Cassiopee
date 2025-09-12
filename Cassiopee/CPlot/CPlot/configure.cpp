@@ -37,7 +37,8 @@ PyObject* K_CPLOT::configure(PyObject* self, PyObject* args)
 {
   int useRender;
   if (!PyArg_ParseTuple(args, "i", &useRender)) return NULL;
-  switch(useRender) {
+  switch(useRender) 
+  {
   case 0:
     Data::_renderID = Data::Direct;
     break;

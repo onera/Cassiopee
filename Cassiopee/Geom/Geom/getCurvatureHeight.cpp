@@ -33,14 +33,12 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
                                      PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
-  FldArrayF* f;
-  FldArrayI* cn;
-  char* varString;
-  char* eltType;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
                                      im, jm, km, cn, eltType);
   if ( res != 1 && res != 2 ) 
@@ -51,7 +49,7 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if ( posx == -1 || posy == -1 || posz == -1)
+  if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureHeight: array must contain coordinates.");

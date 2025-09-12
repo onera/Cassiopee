@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
 {
   PyObject* arrayD; PyObject* arrayC;
   E_Float power;
-  if (!PyArg_ParseTuple(args, "OOd", &arrayD, &arrayC, &power)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &arrayD, &arrayC, &power)) return NULL;
   
   // Check array
   E_Int im, jm, km, imd, jmd, kmd;

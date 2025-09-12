@@ -30,8 +30,7 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
   //        list of indices for all exterior faces
   PyObject* AllTags;
   PyObject* OriginalExteriorFaceIndices;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &AllTags, &OriginalExteriorFaceIndices))
+  if (!PYPARSETUPLE_(args, OO_, &AllTags, &OriginalExteriorFaceIndices))
   {
     return NULL;
   }

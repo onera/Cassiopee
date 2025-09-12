@@ -28,7 +28,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
 { 
   PyObject* blkArrays; PyObject* ibArrays;
   
-  if (!PyArg_ParseTuple(args, "OO", &blkArrays, &ibArrays)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &blkArrays, &ibArrays)) return NULL;
   
   printf("Warning: usurp: this function is not available in this distribution (no f90 on this platform).\n"); 
   

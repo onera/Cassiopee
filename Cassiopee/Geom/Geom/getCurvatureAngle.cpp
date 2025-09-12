@@ -34,7 +34,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float dirVect[3];
   dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;

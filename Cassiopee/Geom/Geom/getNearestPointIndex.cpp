@@ -32,7 +32,7 @@ using namespace K_SEARCH;
 PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
 {
   PyObject* array, *listPts;
-  if ( !PyArg_ParseTuple(args, "OO", &array, &listPts) ) return NULL;
+  if ( !PYPARSETUPLE_(args, OO_, &array, &listPts) ) return NULL;
 
   // Recuperation de la liste des points
   E_Int npts = PyList_Size(listPts);

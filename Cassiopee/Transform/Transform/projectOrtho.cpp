@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_TRANSFORM::projectOrtho(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO", &arrays, &array2))
+  if (!PYPARSETUPLE_(args, OO_, &arrays, &array2))
   {
     return NULL;
   }

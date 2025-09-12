@@ -475,14 +475,13 @@ PyObject* K_INTERSECTOR::extractNthCell(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* XXX */
+/* extractBiggestCell */
 //=============================================================================
 PyObject* K_INTERSECTOR::extractBiggestCell(PyObject* self, PyObject* args)
 {
 
   PyObject *arr;
-
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -785,8 +784,7 @@ PyObject* K_INTERSECTOR::detectOverConnectedFaces(PyObject* self, PyObject* args
 {
 
   PyObject *arr;
-
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -996,8 +994,7 @@ PyObject* K_INTERSECTOR::extractNthFace(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::checkCellsClosure(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1029,8 +1026,7 @@ PyObject* K_INTERSECTOR::checkCellsClosure(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 {
   PyObject *arr, *PE;
-
-  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &PE)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -1145,8 +1141,7 @@ PyObject* K_INTERSECTOR::checkCellsFlux(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::checkAngularExtrema(PyObject* self, PyObject* args)
 {
   PyObject *arr, *PE;
-
-  if (!PyArg_ParseTuple(args, "OO", &arr, &PE)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &PE)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

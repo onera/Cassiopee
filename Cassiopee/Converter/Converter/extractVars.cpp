@@ -33,7 +33,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars; PyObject* tpl;
-  if (!PyArg_ParseTuple(args, "OO", &array, &vars)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vars)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl;

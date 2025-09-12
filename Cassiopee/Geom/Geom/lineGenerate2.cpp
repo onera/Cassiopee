@@ -32,7 +32,7 @@ using namespace K_FLD;
 PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* dCurves;
-  if (!PyArg_ParseTuple(args, "OO", &array, &dCurves)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &dCurves)) return NULL;
   
   // Driving curves
   vector<E_Int> res;

@@ -33,7 +33,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
 {
   PyObject* array;  
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
 #if ARRAYCODE == 1
 /* array1 only code */

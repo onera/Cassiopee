@@ -187,9 +187,8 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   PyObject* nodesIndices;
-  
-  if (!PyArg_ParseTuple(args, "OOO",
-                        &array1, &array2, &nodesIndices))
+  if (!PYPARSETUPLE_(args, OOO_,
+                      &array1, &array2, &nodesIndices))
   {
     return NULL;
   }

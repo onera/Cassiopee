@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
   E_Float eps = 1.e-12;
   PyObject* arrayc;
   PyObject* arrayd;  
-  if (!PyArg_ParseTuple(args, "OO", &arrayc, &arrayd)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrayc, &arrayd)) return NULL;
   
   // check array defining the contours
   E_Int imc, jmc, kmc;

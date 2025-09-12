@@ -31,7 +31,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* listOfInterfaces;
-  if (!PyArg_ParseTuple(args,"OO", &array, &listOfInterfaces)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &listOfInterfaces)) return NULL;
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
@@ -216,7 +216,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
 PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
 {
   PyObject *arrayN, *arrayC, *listOfInterfaces;
-  if (!PyArg_ParseTuple(args,"OOO", &arrayN, &arrayC, &listOfInterfaces)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &arrayN, &arrayC, &listOfInterfaces)) return NULL;
 
   FldArrayI intIndices;
   E_Int ok = K_ARRAY::getFromList(listOfInterfaces, intIndices);

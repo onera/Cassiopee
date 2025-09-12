@@ -29,7 +29,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   PyObject *pyIndExtrap;
   PyObject *pyArrayTypes;
   PyObject *pyArrayCoefs;
-  if (!PyArg_ParseTuple(args, "OOOO",
+  if (!PYPARSETUPLE_(args, OOO_ O_,
                         &pyIndRcv, &pyIndExtrap, &pyArrayTypes, &pyArrayCoefs))
   {
     return NULL;

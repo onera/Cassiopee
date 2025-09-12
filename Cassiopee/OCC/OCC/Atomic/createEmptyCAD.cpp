@@ -45,7 +45,7 @@
 PyObject* K_OCC::createEmptyCAD(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
-  if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
+  if (!PYPARSETUPLE_(args, SS_, &fileName, &fileFmt)) return NULL;
 
   TopoDS_Shape* shp = new TopoDS_Shape(); // empty shape
   //TopoDS_Shape* shp = new TopoDS_Compound(); // empty shape

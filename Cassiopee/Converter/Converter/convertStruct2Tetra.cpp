@@ -32,7 +32,7 @@ using namespace std;
 PyObject* K_CONVERTER::convertStruct2Tetra(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   PyObject* tpl = NULL; // array de sortie en noeuds

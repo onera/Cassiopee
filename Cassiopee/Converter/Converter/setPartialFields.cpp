@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   PyObject* array;
   PyObject* arrayF;// array 1D contenant les champs a inserer
   PyObject* listIndicesO;
-  if (!PyArg_ParseTuple(args, "OOO", &array, &arrayF, &listIndicesO))
+  if (!PYPARSETUPLE_(args, OOO_, &array, &arrayF, &listIndicesO))
     return NULL;
 
   // Check array

@@ -29,7 +29,7 @@ using namespace K_CONST;
 PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 {
   PyObject* octree; PyObject* listOfVmin;
-  if (!PyArg_ParseTuple(args, "OO", &octree, &listOfVmin)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &octree, &listOfVmin)) return NULL;
   if (PyList_Check(listOfVmin) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

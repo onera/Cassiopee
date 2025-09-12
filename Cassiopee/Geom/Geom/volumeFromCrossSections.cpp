@@ -31,17 +31,15 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   PyObject* array1; PyObject* array2;
   PyObject* contour1; PyObject* contour2;
 
-  if (!PyArg_ParseTuple(args, "OOOO", &array1, &array2, 
-                        &contour1, &contour2)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_, &array1, &array2, 
+                      &contour1, &contour2)) return NULL;
 
   // Extraction des 2 contours
   E_Int imc1, jmc1, kmc1;
-  FldArrayF* fc1;
-  FldArrayI* cnpoly1;
+  FldArrayF* fc1; FldArrayI* cnpoly1;
   char* varStringc1; char* eltTypec1;
   E_Int imc2, jmc2, kmc2;
-  FldArrayF* fc2;
-  FldArrayI* cnpoly2;
+  FldArrayF* fc2; FldArrayI* cnpoly2;
   char* varStringc2; char* eltTypec2;
   E_Int resc1 = 
     K_ARRAY::getFromArray3(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 

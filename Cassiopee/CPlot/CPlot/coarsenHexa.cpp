@@ -236,10 +236,9 @@ graph *coarsen_graph(graph *G)
 PyObject* K_CPLOT::coarsenHexa(PyObject *self, PyObject *args)
 {
   PyObject *array;
-
-  if (!PyArg_ParseTuple(args, "O", &array)) 
+  if (!PYPARSETUPLE_(args, O_, &array)) 
   {
-    PyErr_SetString(PyExc_TypeError, "Coarsen_NGON: couldn't read mesh.");
+    PyErr_SetString(PyExc_TypeError, "CoarsenHexa: couldn't read mesh.");
     return NULL;
   }
 
@@ -253,13 +252,13 @@ PyObject* K_CPLOT::coarsenHexa(PyObject *self, PyObject *args)
   E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true);
 
   if (res != 1 && res != 2) {
-    PyErr_SetString(PyExc_TypeError, "Coarsen_NGON: invalid array.");
+    PyErr_SetString(PyExc_TypeError, "CoarsenHexa: invalid array.");
     exit(1);
   }
 
   if (res == 1 || strcmp(eltType, "NGON")) {
     RELEASESHAREDB(res, array, f, cn);
-    PyErr_SetString(PyExc_TypeError, "Coarsen_NGON: works only for NGON meshes.");
+    PyErr_SetString(PyExc_TypeError, "CoarsenHexa: works only for NGON meshes.");
     exit(1);
   }
 

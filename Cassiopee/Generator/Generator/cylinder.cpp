@@ -111,17 +111,10 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
   E_Float tetas, tetae, R1, R2, H;
   PyObject* arrayR; PyObject* arrayT; PyObject* arrayZ;
 
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "(ddd)dddddOOO", 
-                        &xo, &yo, &zo, &R1, &R2, &tetas, &tetae, 
-                        &H, 
-                        &arrayR, &arrayT, &arrayZ))   
-#else
-    if (!PyArg_ParseTuple(args, "(fff)fffffOOO",
-                          &xo, &yo, &zo, &R1, &R2, &tetas, &tetae, 
-                          &H, 
-                          &arrayR, &arrayT, &arrayZ))   
-#endif
+  if (!PYPARSETUPLE_(args, TRRR_ RRR_ RR_ OOO_, 
+                      &xo, &yo, &zo, &R1, &R2, &tetas, 
+                      &tetae, &H, 
+                      &arrayR, &arrayT, &arrayZ))   
   {
     PyErr_SetString(PyExc_TypeError, 
                     "cylinder2: wrong arguments.");

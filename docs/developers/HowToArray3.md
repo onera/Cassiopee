@@ -13,7 +13,7 @@ Arrays can be:
 Use getFromArray3 to pass from python object to FldArrays:
   
     PyObject* o;
-    if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+    if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
     E_Int ni, nj, nk;
     K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
     char* varString; char* eltType;

@@ -395,7 +395,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   PyObject *XYZ, *CHUNKS;
 
-  if (!PyArg_ParseTuple(args, "OO", &XYZ, &CHUNKS)) {
+  if (!PYPARSETUPLE_(args, OO_, &XYZ, &CHUNKS)) 
+  {
     PyErr_SetString(PyExc_ValueError, "chunk2partElt(): bad input");
     return NULL;
   }

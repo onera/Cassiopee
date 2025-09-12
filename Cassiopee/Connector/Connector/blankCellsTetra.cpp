@@ -190,7 +190,7 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
 
   // recupere le hook
   void** packet = NULL;
@@ -229,7 +229,7 @@ PyObject* K_CONNECTOR::deleteTetraMask(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::deleteTriMask(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
 
   // recupere le hook
   void** packet = NULL;

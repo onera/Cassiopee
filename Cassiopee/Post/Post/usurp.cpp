@@ -40,7 +40,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
 { 
   PyObject* blkArrays;
   PyObject* ibArrays;
-  if (!PyArg_ParseTuple(args, "OO",  &blkArrays, &ibArrays)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_,  &blkArrays, &ibArrays)) return NULL;
   
   // Check every arrays  
   if (PyList_Check(blkArrays) == 0)

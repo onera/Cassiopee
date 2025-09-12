@@ -4,7 +4,7 @@
 PyObject* K_TEMPLATE::numpyExample(PyObject* self, PyObject* args)
 {
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
 
   /* More info in KCore/Numpy/Numpy.h */
   E_Float* f; E_Int size; E_Int nfld;
@@ -25,7 +25,7 @@ extern "C"
 PyObject* K_TEMPLATE::numpyExample2(PyObject* self, PyObject* args)
 {
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
 
   /* More info in KCore/Numpy/Numpy.h */
   E_Float* f; E_Int size; E_Int nfld;

@@ -27,7 +27,8 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
+  
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;

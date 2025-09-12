@@ -30,7 +30,7 @@ PyObject* K_CONNECTOR::_getEmptyBCInfoNGON(PyObject* self, PyObject* args)
   PyObject* ExteriorFaceIndices;
   PyObject* ExteriorDefinedFaceIndices;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-  if (!PyArg_ParseTuple(args, "OOOsss",
+  if (!PYPARSETUPLE_(args, OOO_ SSS_,
                         &ExteriorFacesZone, &ExteriorFaceIndices, 
                         &ExteriorDefinedFaceIndices, &GridCoordinates, 
                         &FlowSolutionNodes, &FlowSolutionCenters))

@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
 {
   PyObject* arrays;
-  if (!PyArg_ParseTuple(args, "O", &arrays)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arrays)) return NULL;
 
   vector<E_Int> res;
   vector<char*> structVarString; vector<char*> unstructVarString;

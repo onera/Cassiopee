@@ -22,7 +22,8 @@
 PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
 {
   PyObject *arr, *pe, *flds, *comm_list;
-  if (!PyArg_ParseTuple(args, "OOOO", &arr, &pe, &flds, &comm_list)) {
+  if (!PYPARSETUPLE_(args, OOOO_, &arr, &pe, &flds, &comm_list)) 
+  {
     PyErr_SetString(PyExc_ValueError, "Bad input.");
     return NULL;
   }

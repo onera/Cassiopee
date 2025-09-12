@@ -67,7 +67,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 {
   PyObject *arr, *py_dict_transfo_to_list;
 
-  if (!PyArg_ParseTuple(args, "OO", &arr, &py_dict_transfo_to_list)) return nullptr;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &py_dict_transfo_to_list)) return nullptr;
 
   // 1. Get mesh and check is NGON
   K_FLD::FloatArray* f(0);

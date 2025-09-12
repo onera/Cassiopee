@@ -31,7 +31,7 @@ using namespace K_FLD;
 PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayLine;
-  if (!PyArg_ParseTuple(args, "OO", &array, &arrayLine)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayLine)) return NULL;
   
   // Check array
   E_Int im1, jm1, km1, im2, jm2, km2;

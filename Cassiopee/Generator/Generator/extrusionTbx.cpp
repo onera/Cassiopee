@@ -31,7 +31,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
 {
   E_Float tolps = 0.1;
   PyObject *array, *normales; 
-  if (!PyArg_ParseTuple(args, "OO", &array, &normales)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &normales)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
   E_Int im, jm, km;
@@ -204,7 +204,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   PyObject *array, *normales;
   E_Int kappaType;
   E_Float kappaL, kappaP;
-  if (!PyArg_ParseTuple(args, "OOldd", &array, &normales, &kappaType, &kappaL, &kappaP)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_ RR_, &array, &normales, &kappaType, &kappaL, &kappaP)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
   E_Int im, jm, km;

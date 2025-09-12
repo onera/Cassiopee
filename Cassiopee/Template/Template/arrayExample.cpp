@@ -11,7 +11,7 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
 {
   // Recupere le pointeur sur l'objet python
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Recupere les pointeurs sur les tableaux contenus dans l'array
   E_Int ni, nj, nk;

@@ -25,7 +25,7 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
 {
   E_Float eps = 1.e-10;
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl;

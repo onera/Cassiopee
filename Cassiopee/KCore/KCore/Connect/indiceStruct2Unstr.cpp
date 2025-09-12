@@ -40,8 +40,8 @@ PyObject* K_KCORE::indiceStruct2Unstr(PyObject* self, PyObject* args)
   IMPORTNUMPY;
   PyObject *arrayOfStructIndices, *structArray, *unstrArray;
   E_Float eps;
-  if (!PyArg_ParseTuple(args, "OOOd", &structArray, &unstrArray, 
-                        &arrayOfStructIndices, &eps)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ R_, &structArray, &unstrArray, 
+                      &arrayOfStructIndices, &eps)) return NULL;
 
   // Maillage structure
   FldArrayF* f1; FldArrayI* cn1;
@@ -154,7 +154,7 @@ PyObject* K_KCORE::indiceStruct2Unstr2(PyObject* self, PyObject* args)
 {
   PyObject *structArrays, *unstrArray;
   E_Float eps;
-  if (!PyArg_ParseTuple(args, "OOd", &structArrays, &unstrArray, &eps)) 
+  if (!PYPARSETUPLE_(args, OO_ R_, &structArrays, &unstrArray, &eps)) 
     return NULL;
 
   // Maillages structures

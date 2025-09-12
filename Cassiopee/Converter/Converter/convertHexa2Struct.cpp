@@ -100,7 +100,7 @@ E_Int numeroteI(E_Float* P1, E_Float* P2, E_Int ind,
 PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

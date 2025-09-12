@@ -31,7 +31,7 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* curvesList;
-  if ( !PyArg_ParseTuple(args, "OO", &array, &curvesList) )
+  if ( !PYPARSETUPLE_(args, OO_, &array, &curvesList) )
   {
     return NULL;
   }

@@ -139,7 +139,7 @@ PyObject* K_GENERATOR::blankSelf(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* cellNObject;
-  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  if (!PYPARSETUPLE_(args, OO_, &array, &cellNObject))
   {
     return NULL;
   }
@@ -275,7 +275,7 @@ PyObject* K_GENERATOR::blankFirst(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* cellNObject;
-  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  if (!PYPARSETUPLE_(args, OO_, &array, &cellNObject))
   {
     return NULL;
   }
@@ -369,7 +369,7 @@ PyObject* K_GENERATOR::blankExt(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* cellNObject;
-  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  if (!PYPARSETUPLE_(args, OO_, &array, &cellNObject))
   {
     return NULL;
   }
@@ -484,7 +484,7 @@ PyObject* K_GENERATOR::blankPrev(PyObject* self, PyObject* args)
   PyObject* cellNObject;
   PyObject* arrayPrev;
   PyObject* cellNObjectPrev;
-  if (!PyArg_ParseTuple(args, "OOOO", &array, &cellNObject, &arrayPrev, &cellNObjectPrev))
+  if (!PYPARSETUPLE_(args, OOOO_, &array, &cellNObject, &arrayPrev, &cellNObjectPrev))
   {
     return NULL;
   }

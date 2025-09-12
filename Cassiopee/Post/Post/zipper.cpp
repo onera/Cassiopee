@@ -35,7 +35,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
 { 
   PyObject* listFields;
   PyObject* options;
-  if (!PyArg_ParseTuple(args, "OO", &listFields, &options))
+  if (!PYPARSETUPLE_(args, OO_, &listFields, &options))
   {
     return NULL;
   }

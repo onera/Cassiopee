@@ -33,14 +33,12 @@ PyObject*
 K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check arrays
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-
-  // Extraction des infos sur le maillage
   E_Int res = 
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 

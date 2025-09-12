@@ -309,7 +309,7 @@ PyObject* K_INTERSECTOR::adaptCells_mpi(PyObject* self, PyObject* args)
   PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
   PyObject *py_zonerank(nullptr), *py_rid_to_zones(nullptr), *mpi4pyCom(nullptr);
 
-  if (!PyArg_ParseTuple(args, "OOOOOO", &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_zonerank, &py_rid_to_zones, &mpi4pyCom)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OO_, &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_zonerank, &py_rid_to_zones, &mpi4pyCom)) return NULL;
   //std::cout << "adaptCells : after parse tuple" << std::endl;
 
   void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);

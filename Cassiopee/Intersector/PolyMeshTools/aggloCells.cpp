@@ -200,8 +200,7 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr, *py_pgs;
-
-  if (!PyArg_ParseTuple(args, "OO", &arr, &py_pgs)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &py_pgs)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

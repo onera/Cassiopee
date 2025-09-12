@@ -29,16 +29,14 @@ using namespace K_FLD;
 PyObject* K_CONNECTOR::setInterpTransfersD( PyObject* self, PyObject* args ) 
 {
   PyObject *arrayD, *pyIndDonor, *pyArrayTypes, *pyArrayCoefs;
-  if ( !PyArg_ParseTuple( args, "OOOO", &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs ) ) { return NULL; }
+  if ( !PYPARSETUPLE_(args, OOOO_, &arrayD, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs) ) { return NULL; }
 
   /*---------------------------------------------*/
   /* Extraction des infos sur le domaine donneur */
   /*---------------------------------------------*/
   E_Int imd, jmd, kmd, imdjmd;
-  FldArrayF* fd;
-  FldArrayI* cnd;
-  char* varStringD;
-  char* eltTypeD;
+  FldArrayF* fd; FldArrayI* cnd;
+  char* varStringD; char* eltTypeD;
   E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd, imd, jmd, kmd, cnd, eltTypeD);
   if (resd != 2 && resd != 1) 
   {
@@ -1268,7 +1266,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   vector< PyArrayObject* > hook;
 
   // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
-  E_Int   kmd, cnNfldD, nvars, ndimdxD, meshtype, nvars_grad;
+  E_Int   kmd, cnNfldD=1, nvars, ndimdxD, meshtype, nvars_grad;
   //E_Float* iptroD;
 
   if     ( vartype <= 3 &&  vartype >= 1) nvars =5;

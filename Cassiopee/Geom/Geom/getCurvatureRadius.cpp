@@ -31,7 +31,7 @@ using namespace std;
 PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;

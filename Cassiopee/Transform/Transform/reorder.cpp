@@ -29,7 +29,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
 {
   E_Int oi=1, oj=1, ok=1;
   PyObject* array; PyObject* order;
-  if (!PyArg_ParseTuple(args, "OO", &array, &order))
+  if (!PYPARSETUPLE_(args, OO_, &array, &order))
   {
     return NULL;
   }

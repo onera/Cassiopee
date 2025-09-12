@@ -28,8 +28,8 @@ using namespace K_FUNC;
 PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
 {
   PyObject *coordArray, *cellNArray; // domaine a interpoler
-  if (!PyArg_ParseTuple(args, "OO",
-                        &coordArray, &cellNArray))
+  if (!PYPARSETUPLE_(args, OO_,
+                      &coordArray, &cellNArray))
   {
       return NULL;
   }

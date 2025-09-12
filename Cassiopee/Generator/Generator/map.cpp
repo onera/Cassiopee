@@ -31,7 +31,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
 {
   PyObject* array; PyObject* arrayd;
-  if (!PyArg_ParseTuple(args, "OO", &array, &arrayd)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayd)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, nid, njd, nkd;

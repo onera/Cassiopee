@@ -33,7 +33,7 @@ using namespace std;
 PyObject* K_CONVERTER::convertArray2TetraBary(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -329,7 +329,7 @@ PyObject* K_CONVERTER::convertArray2TetraBary(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertArray2TetraBaryBoth(PyObject* self, PyObject* args)
 {
   PyObject *array, *arrayc;
-  if (!PyArg_ParseTuple(args, "OO", &array, &arrayc)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayc)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;

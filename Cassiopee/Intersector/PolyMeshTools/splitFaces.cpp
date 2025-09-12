@@ -44,8 +44,7 @@ using ngon_type = ngon_t<K_FLD::IntArray>;
 PyObject* K_INTERSECTOR::updatePointLists(PyObject* self, PyObject* args)
 {
   PyObject *py_oids, *py_ptLists;
-
-  if (!PyArg_ParseTuple(args, "OO", &py_oids, &py_ptLists)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &py_oids, &py_ptLists)) return NULL;
 
   E_Int nb_bcs = PyList_Size(py_ptLists);
 
@@ -664,8 +663,7 @@ PyObject* K_INTERSECTOR::superMesh(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::replaceFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr{nullptr}, *arr_soup{nullptr}, *py_vfoid{nullptr};
-
-  if (!PyArg_ParseTuple(args, "OOO", &arr, &arr_soup, &py_vfoid)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &arr, &arr_soup, &py_vfoid)) return NULL;
 
   K_FLD::FloatArray* f1(0);
   K_FLD::IntArray* cn1(0);

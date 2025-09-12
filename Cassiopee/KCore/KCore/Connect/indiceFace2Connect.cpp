@@ -33,7 +33,7 @@ using namespace std;
 PyObject* K_KCORE::indiceFace2Connect(PyObject* self, PyObject* args)
 {
   PyObject  *array, *listFaces;
-  if (!PyArg_ParseTuple(args, "OO", &array, &listFaces))  return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &listFaces))  return NULL;
   
   // Check array
   E_Int im, jm, km;

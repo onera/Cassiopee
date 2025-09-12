@@ -12,7 +12,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
 {
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone;
-  if (!PyArg_ParseTuple(args, "Osss", &zone, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SSS_, &zone, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
   
   E_Int ni, nj, nk, cnSize, cnNfld;
   char* varString; char* eltType;
@@ -94,7 +94,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
 PyObject* K_TEMPLATE::pyTreeExample1(PyObject* self, PyObject* args)
 {
   PyObject* t;
-  if (!PyArg_ParseTuple(args, "O", &t)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &t)) return NULL;
 
   /* Exemple de parcours d'arbre en C */
   vector<PyArrayObject*> hook;

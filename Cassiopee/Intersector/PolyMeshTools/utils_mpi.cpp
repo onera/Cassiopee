@@ -45,16 +45,14 @@ PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
   PyObject *py_arrs(nullptr);
   PyObject *py_zids(nullptr), *py_zid_to_rid_to_list(nullptr), *py_zonerank(nullptr);
   PyObject *py_rid_to_zones(nullptr), *mpi4pyCom(nullptr);
+  if (!PYPARSETUPLE_(args, OOOO_ OO_, &py_arrs, &py_zids, &py_zid_to_rid_to_list, &py_zonerank, &py_rid_to_zones, &mpi4pyCom)) return NULL;
 
-  if (!PyArg_ParseTuple(args, "OOOOOO", &py_arrs, &py_zids, &py_zid_to_rid_to_list, &py_zonerank, &py_rid_to_zones, &mpi4pyCom)) return NULL;
-
-  
   void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
   MPI_Comm COM = *((MPI_Comm*) pt_comm);
 
   // 1. GET MESHES 
 
-  int nb_meshes{0};
+  E_Int nb_meshes{0};
   if (PyList_Check(py_arrs))
     nb_meshes = PyList_Size(py_arrs);
 
@@ -71,11 +69,11 @@ PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
 
   using ngon_type = ngon_t<K_FLD::IntArray>;
   
-  for (int m = 0; m < nb_meshes; ++m)
+  for (E_Int m = 0; m < nb_meshes; ++m)
   {
     PyObject* arr = PyList_GetItem(py_arrs, m);
     // Check array
-    int err = check_is_NGON(arr, f[m], cn[m], varString, eltType);
+    E_Int err = check_is_NGON(arr, f[m], cn[m], varString, eltType);
     if (err) return nullptr;
     
     // conversion to the generic mesh interface
@@ -88,10 +86,10 @@ PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
   // 2. GET ZIDS 
   std::vector<int> zids(nb_meshes);
   assert (nb_meshes == PyList_Size(py_zids));
-  for (int m = 0; m < nb_meshes; ++m)
+  for (E_Int m = 0; m < nb_meshes; ++m)
   {
     PyObject* pyz = PyList_GetItem(py_zids, m);
-    int zid = (int) PyInt_AsLong(pyz);
+    E_Int zid = (int) PyInt_AsLong(pyz);
     zids[m]=zid;
   }
 
@@ -110,7 +108,7 @@ PyObject* K_INTERSECTOR::closeCells_mpi(PyObject* self, PyObject* args)
       PyObject* key = PyInt_FromLong ((long) r);
       PyObject* py_rank = PyDict_GetItem(py_zonerank,key);
       assert (py_rank);
-      int rank = (int) PyInt_AsLong(py_rank);
+      E_Int rank = (int) PyInt_AsLong(py_rank);
       //std::cout << "key/item : " << r << "/" << my_val <<std::endl;//<< *item << std::endl;
       zonerank.push_back(rank);
     }

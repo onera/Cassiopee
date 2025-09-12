@@ -29,7 +29,7 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vect;
 
-  if (!PyArg_ParseTuple(args, "OO", &array, &vect)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vect)) return NULL;
 
   // Check arrays
   E_Int ni, nj, nk, niv, njv, nkv;

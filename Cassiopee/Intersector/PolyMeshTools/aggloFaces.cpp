@@ -90,7 +90,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::simplifyFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  if (!PyArg_ParseTuple(args, "O", &arr)) return nullptr;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return nullptr;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

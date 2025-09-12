@@ -191,7 +191,8 @@ PyObject *
 py_ngon_indices_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
-    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {
+    if (!PYPARSETUPLE_(args, O_, &cpr_arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackIndices(array or list of compressed arrays");
         return NULL;
     }

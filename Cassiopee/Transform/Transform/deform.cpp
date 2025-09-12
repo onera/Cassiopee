@@ -29,8 +29,7 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::deform(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vectorNames;
-
-  if (!PyArg_ParseTuple(args, "OO", &array, &vectorNames))
+  if (!PYPARSETUPLE_(args, OO_, &array, &vectorNames))
       return NULL;
 
   if (PyList_Check(vectorNames) == 0) 
