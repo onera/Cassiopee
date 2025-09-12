@@ -239,8 +239,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<vector<E_Int> > pos1, pos2;
   char** varString = new char* [field1.size()];
   char** varStringl = new char* [field1.size()];
-  for (size_t i = 0; i < field1.size(); i++) varString[i] = new char [K_ARRAY::VARSTRINGLENGTH];
-  for (size_t i = 0; i < field1.size(); i++) varStringl[i] = new char [K_ARRAY::VARSTRINGLENGTH];
+  for (size_t i = 0; i < field1.size(); i++)
+    varString[i] = new char [K_ARRAY::VARSTRINGLENGTH];
+  for (size_t i = 0; i < field1.size(); i++)
+    varStringl[i] = new char [K_ARRAY::VARSTRINGLENGTH];
   
   for (size_t i = 0; i < field1.size(); i++)
   {
@@ -287,6 +289,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "diffArrays: no common variables found all arrays.");
+    for (size_t i = 0; i < field1.size(); i++) delete [] varString[i];
+    delete [] varString;
+    for (size_t i = 0; i < field1.size(); i++) delete [] varStringl[i];
+    delete [] varStringl;
     return NULL;
   }
   
@@ -316,14 +322,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     K_ARRAY::getFromArray3(tpl, f2); 
     errors.push_back(f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
-    //RELEASESHAREDS(tpl, f2); // to fix
   }
 
   for (size_t i = 0; i < field1.size(); i++)
   {
     FldArrayF& f1 = *field1[i];
-    //E_Int n1 = f1.getSize();
-    //FldArrayF error(n1, pos1.size(), errors[i], true);
     FldArrayF& error = *(errors[i]);
     error.setAllValuesAt(1.e6);
     E_Bool found = false;
@@ -736,16 +739,15 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
 
 //=============================================================================
 E_Bool K_CONVERTER::searchField2(FldArrayF& f1,
-                                    FldArrayF& error,
-                                    vector<FldArrayF*>& field2,
-                                    vector<E_Int>& pos1,
-                                    vector<E_Int>& pos2,
-                                    E_Int posx1, E_Int posy1, E_Int posz1,
-                                    E_Int posx2, E_Int posy2, E_Int posz2,
-                                    E_Bool coordPresent)
+                                 FldArrayF& error,
+                                 vector<FldArrayF*>& field2,
+                                 vector<E_Int>& pos1, vector<E_Int>& pos2,
+                                 E_Int posx1, E_Int posy1, E_Int posz1,
+                                 E_Int posx2, E_Int posy2, E_Int posz2,
+                                 E_Bool coordPresent)
 {
   const E_Float EPS = 1.e-12;
-  int sizefield2 = field2.size();
+  E_Int sizefield2 = field2.size();
   E_Int sizepos1 = pos1.size();
 
   // Check for invalid values in f1
@@ -788,8 +790,8 @@ E_Bool K_CONVERTER::searchField2(FldArrayF& f1,
     }
   }
 
-  // PRe requisite
-  for (int i2 = 0; i2 < sizefield2; i2++)
+  // Pre-requisite
+  for (E_Int i2 = 0; i2 < sizefield2; i2++)
   {
     FldArrayF& f2 = *field2[i2];
     E_Int n2 = f2.getSize();

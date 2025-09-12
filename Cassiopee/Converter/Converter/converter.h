@@ -235,13 +235,12 @@ namespace K_CONVERTER
                         E_Int* indir);
   // Method for diffArrays
   E_Bool searchField2(K_FLD::FldArrayF& f1,
-                         K_FLD::FldArrayF& error,
-                         std::vector<K_FLD::FldArrayF*>& field2,
-                         std::vector<E_Int>& pos1,
-                         std::vector<E_Int>& pos2,
-                         E_Int posx1, E_Int posy1, E_Int posz1,
-                         E_Int posx2, E_Int posy2, E_Int posz2,
-                         E_Bool coordPresent);
+                      K_FLD::FldArrayF& error,
+                      std::vector<K_FLD::FldArrayF*>& field2,
+                      std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
+                      E_Int posx1, E_Int posy1, E_Int posz1,
+                      E_Int posx2, E_Int posy2, E_Int posz2,
+                      E_Bool coordPresent);
 
   /* Functions for detectEmptyBC */
   void detectEmptyBCrec(std::vector<E_Int*>& win,
