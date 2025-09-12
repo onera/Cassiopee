@@ -47,7 +47,7 @@ using namespace std;
 //=============================================================================
 E_Int K_CONNECT::getPosFaces(FldArrayI& cn, FldArrayI& posFaces)
 {
-  if (cn.isNGon() == 2) // array2
+  if (cn.getNGonType() == 2) // array2
     return getPosFacets(cn.getNGon(), 0, cn.getNFaces(), posFaces);
   else // array1
     return getPosFacets(cn.begin(), BEGINFACESARR+2, cn[BEGINFACESARR], posFaces);
@@ -74,7 +74,7 @@ E_Int K_CONNECT::getIndex(const E_Int* data, E_Int facetsStart,
 //=============================================================================
 E_Int K_CONNECT::getPosElts(FldArrayI& cn, FldArrayI& posElts)
 {
-  if (cn.isNGon() == 2) // array2
+  if (cn.getNGonType() == 2) // array2
     return getPosFacets(cn.getNFace(), 0, cn.getNElts(), posElts);
   else // array1
     return getPosFacets(cn.begin(), BEGINELTSARR+2, cn[BEGINELTSARR], posElts);

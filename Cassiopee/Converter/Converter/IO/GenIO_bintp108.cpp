@@ -2470,7 +2470,7 @@ E_Int K_IO::GenIO::tecwrite108(
         // num faces
         ib = c->getNFaces(); fwrite(&ib, si, 1, ptrFile);
         // numFacesNodes
-        E_Int isNGon = c->isNGon();
+        E_Int isNGon = c->getNGonType();
         E_Int size = c->getSizeNGon();
         if (isNGon != 3) size -= c->getNFaces();
         ib = size; fwrite(&ib, si, 1, ptrFile);
@@ -2615,7 +2615,7 @@ E_Int K_IO::GenIO::tecwrite108(
       E_Int* ngon = c.getNGon();
       E_Int* indPG = c.getIndPG();
       E_Int numFaces = c.getNFaces();
-      E_Int isNGon = c.isNGon();
+      E_Int isNGon = c.getNGonType();
       E_Int size = c.getSizeNGon();
       if (isNGon == 3) size += numFaces;
       E_Int nf; c.getFace(0, nf, ngon, indPG);
@@ -2661,7 +2661,7 @@ E_Int K_IO::GenIO::tecwrite108(
       E_Int* ngon = c.getNGon();
       E_Int* indPG = c.getIndPG();
       E_Int numFaces = c.getNFaces();
-      E_Int isNGon = c.isNGon();
+      E_Int isNGon = c.getNGonType();
       E_Int size = c.getSizeNGon();
       if (isNGon == 3) size += numFaces;
       E_Int nf; c.getFace(0, nf, ngon, indPG);

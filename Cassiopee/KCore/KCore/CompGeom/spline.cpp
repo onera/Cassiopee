@@ -51,7 +51,7 @@ void K_COMPGEOM::spline(E_Int im, E_Int ordern, E_Int N,
     E_Float dy12 = delta * (yt[1]-yt[0]);
     E_Float dz12 = delta * (zt[1]-zt[0]);
     
-#pragma omp parallel default(shared) if (N > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (N > __MIN_SIZE_MEAN__)
     {
 #pragma omp for
       for (E_Int i = 0; i < N; i++)
@@ -76,7 +76,7 @@ void K_COMPGEOM::spline(E_Int im, E_Int ordern, E_Int N,
 
     E_Float pas = x[m]/(Nbpoints-1);
 
-#pragma omp parallel default(shared) if (Nbpoints > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (Nbpoints > __MIN_SIZE_MEAN__)
     {
       E_Float tmp1;
       E_Float tmp2;
@@ -146,7 +146,7 @@ void K_COMPGEOM::spline2D(E_Int im, E_Int jm, E_Int ordern,
   E_Float* PF2 = PF.begin(2);
   E_Float* PF3 = PF.begin(3);
 
-#pragma omp parallel default(shared) if (N > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (N > __MIN_SIZE_MEAN__)
   {
   E_Int ind, i, j;
 
@@ -349,7 +349,7 @@ void K_COMPGEOM::regularSpline(E_Int n, E_Int ordern, E_Int N, E_Float density,
 {
   // approx de la longueur de la spline par la longueur des pts de controle
   E_Float len = 0.;
-#pragma omp parallel default(shared) if (n > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (n > __MIN_SIZE_MEAN__)
   {
   E_Int i1;
   E_Float dx, dy, dz;
@@ -376,7 +376,7 @@ void K_COMPGEOM::regularSpline(E_Int n, E_Int ordern, E_Int N, E_Float density,
 
   // vraie longueur de la spline
   len = 0.;
-#pragma omp parallel default(shared) if (npts0 > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (npts0 > __MIN_SIZE_MEAN__)
   {
     E_Int i1;
     E_Float dx, dy, dz;
@@ -406,13 +406,15 @@ void K_COMPGEOM::regularSpline(E_Int n, E_Int ordern, E_Int N, E_Float density,
   FldArrayF fd(npts);
   E_Float* fdx = fd.begin(1);
   E_Float delta = 1./(npts-1.);
-#pragma omp parallel for default(shared) if (npts > __MIN_SIZE_MEAN__)
+#pragma omp parallel for if (npts > __MIN_SIZE_MEAN__)
   for (E_Int i = 0; i < npts; i++) fdx[i] = delta*i;
 
-  K_COMPGEOM::onedmap(npts0, coordx0, coordy0, coordz0,
-		      npts, fd.begin(1),
-		      coordx, coordy, coordz,
-		      sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+  K_COMPGEOM::onedmap(
+    npts0, coordx0, coordy0, coordz0,
+    npts, fdx,
+    coordx, coordy, coordz,
+    sp.begin(), dxp.begin(), dyp.begin(), dzp.begin()
+  );
 }
 
 //=============================================================================
@@ -437,7 +439,7 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   E_Float leni = 0.;
   E_Float lenj = 0.;
 
-#pragma omp parallel default(shared) if (m*n > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (m*n > __MIN_SIZE_MEAN__)
   {
     E_Int ind, ind1, j1;
     E_Float len=0.;
@@ -494,8 +496,9 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
 
   // Remaille suivant i
   // vraie longueur de la spline suivant i
+  E_Float eps = 1e-12;
   E_Float len = 0.;
-#pragma omp parallel default(shared) if (nptsi0 > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (nptsi0 > __MIN_SIZE_MEAN__)
   {
     E_Float dx, dy, dz;
     E_Int ind, ind0;    
@@ -510,7 +513,7 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
     }
   }
 
-  if (density > 0) nptsi = E_Int(len*density)+1;
+  if (density > 0) nptsi = E_Int(len*density + eps) + 1;
   else nptsi = N;
 
   FldArrayF sp(nptsi0);
@@ -520,7 +523,7 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   FldArrayF fd(nptsi);
   E_Float* fdx = fd.begin(1);
   E_Float delta = 1./(nptsi-1.);
-#pragma omp parallel for default(shared) if (nptsi > __MIN_SIZE_MEAN__)
+#pragma omp parallel for if (nptsi > __MIN_SIZE_MEAN__)
   for (E_Int i = 0; i < nptsi; i++) fdx[i] = delta*i;
   FldArrayF coord1(nptsi*nptsj0, 3); coord1.setAllValuesAtNull();
   E_Float* coordx1 = coord1.begin(1);
@@ -529,8 +532,9 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
 
   for (E_Int j = 0; j < nptsj0; j++)
   {
-    K_COMPGEOM::onedmap(nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
-			nptsi, fd.begin(1),
+    K_COMPGEOM::onedmap(
+      nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
+			nptsi, fdx,
 			coordx1+j*nptsi, coordy1+j*nptsi, coordz1+j*nptsi,
 			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
   }
@@ -538,7 +542,7 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   // Remaille en j
   // vraie longueur de la spline suivant j
   len = 0.;
-#pragma omp parallel default(shared) if (nptsj0 > __MIN_SIZE_MEAN__)
+#pragma omp parallel if (nptsj0 > __MIN_SIZE_MEAN__)
   {
     E_Float dx, dy, dz;
     E_Int ind, ind0;
@@ -563,7 +567,7 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   fd.malloc(nptsj);
   fdx = fd.begin(1);
   delta = 1./(nptsj-1.);
-#pragma omp parallel for default(shared) if (nptsj > __MIN_SIZE_MEAN__)
+#pragma omp parallel for if (nptsj > __MIN_SIZE_MEAN__)
   for (E_Int j = 0; j < nptsj; j++) fdx[j] = delta*j;
   coord.malloc(nptsi*nptsj, 3); coord.setAllValuesAtNull();
 
@@ -583,17 +587,23 @@ void K_COMPGEOM::regularSpline2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   for (E_Int i = 0; i < nptsi; i++)
   {
     for (E_Int j = 0; j < nptsj0; j++) 
-    { t0x[j] = coordx1[i+j*nptsi];
+    {
+      t0x[j] = coordx1[i+j*nptsi];
       t0y[j] = coordy1[i+j*nptsi];
-      t0z[j] = coordz1[i+j*nptsi]; }
-    K_COMPGEOM::onedmap(nptsj0, t0x, t0y, t0z,
-			nptsj, fd.begin(1),
+      t0z[j] = coordz1[i+j*nptsi];
+    }
+    K_COMPGEOM::onedmap(
+      nptsj0, t0x, t0y, t0z,
+			nptsj, fdx,
 			tx, ty, tz,
-			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin()
+    );
     for (E_Int j = 0; j < nptsj; j++) 
-    { coordx[i+j*nptsi] = tx[j]; 
+    {
+      coordx[i+j*nptsi] = tx[j]; 
       coordy[i+j*nptsi] = ty[j]; 
-      coordz[i+j*nptsi] = tz[j]; }
+      coordz[i+j*nptsi] = tz[j];
+    }
   }
   niout = nptsi; njout = nptsj;
 }

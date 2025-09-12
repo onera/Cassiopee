@@ -398,7 +398,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
   }
   if (strcmp(eltType2, "NGON") == 0 || strcmp(eltType2, "NGON*") == 0)
   {
-    E_Int ngonType = cn.isNGon();
+    E_Int ngonType = cn.getNGonType();
     E_Int nelts = cn.getNElts();
     E_Int nfaces = cn.getNFaces();
     E_Int sizeNGon = cn.getSizeNGon();
@@ -487,7 +487,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f,
   if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
   {
     E_Int dim;
-    E_Int ngonType = cn.isNGon();
+    E_Int ngonType = cn.getNGonType();
     E_Int nelts = cn.getNElts();
     E_Int nfaces = cn.getNFaces();
     E_Int sizeNGon = cn.getSizeNGon();

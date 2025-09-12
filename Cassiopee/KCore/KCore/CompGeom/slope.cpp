@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-// Compute the slope
-
 # include <math.h>
 # include <stdio.h>
 # include "CompGeom/compGeom.h"
 
-void K_COMPGEOM::slope(E_Float small, E_Float big, E_Int m,
-		       const E_Float* x0, const E_Float* y0, const E_Float* z0,
-		       E_Float* dx, E_Float* dy, E_Float* dz)
+// Compute the slope
+void K_COMPGEOM::slope(
+  const E_Int m,
+  const E_Float* x0, const E_Float* y0, const E_Float* z0,
+  E_Float* dx, E_Float* dy, E_Float* dz
+)
 {
   // 2 pts case
   if (m == 2)
@@ -110,10 +110,12 @@ void K_COMPGEOM::slope(E_Float small, E_Float big, E_Int m,
 }
 
 //=============================================================================
-void K_COMPGEOM::slopebar(E_Float small, E_Float big, E_Int npts,
-			  const E_Float* x0, const E_Float* y0, const E_Float* z0,
-			  E_Int net, const E_Int* cn1, const E_Int* cn2,
-			  E_Float* dx, E_Float* dy, E_Float* dz)
+void K_COMPGEOM::slopebar(
+  const E_Int npts, const E_Int net,
+  const E_Int* cn1, const E_Int* cn2,
+  const E_Float* x0, const E_Float* y0, const E_Float* z0,
+  E_Float* dx, E_Float* dy, E_Float* dz
+)
 {
   if (net == 1)
   {

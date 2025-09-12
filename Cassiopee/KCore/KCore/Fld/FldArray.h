@@ -162,7 +162,7 @@ class FldArray
     /** Return true if array is compact */
     inline E_Bool getCompact() const { return _compact; }
     /** GetApi (1: compact, 2: rake) */
-    inline E_Int getApi() { if (_compact == false) return 2; else return 1; }
+    inline E_Int getApi() { if (_compact == false) return 3; else return 1; }
 
     /** Get dimensionality, NGon and ME. */
     inline E_Int getDim(char* eltType=NULL);
@@ -170,7 +170,8 @@ class FldArray
     inline E_Int getNElts();
 
     /** Get/Set NGon */
-    inline E_Int isNGon() const { return _ngon; }
+    inline E_Int getNGonType() const { return _ngon; }
+    inline E_Bool isNGon() const { return _ngon > 0; }
     // 1: compact array1 CGNSv3, 2: rake CGNSv3, 3: rake CGNSv4
     void setNGon(E_Int ngon) { _ngon = ngon; };
     /** Only if NGon */
@@ -232,7 +233,7 @@ class FldArray
      if shared=true, listofvalues is shared
      if shared=false, listofvalues is copied. */
     void malloc(E_Int nsize, E_Int nnfld,
-              const T* listofvalues, E_Bool shared=false);
+                const T* listofvalues, E_Bool shared=false);
     /** Resize with new array allocation WITH copy. */
     void reAlloc(E_Int nsize, E_Int nnfld=NUMFIELD0);
     /** Resize with new array allocation WITH copy, keeping
@@ -247,8 +248,10 @@ class FldArray
     void resize(E_Int nsize, E_Int nnfld=NUMFIELD0);
     /** Set the pointer to actual data. The given data pointer is not copied,
         it is used as is shared with the proprietary object. */
-    static FldArray<T>* setMemoryCompactZone(value_type* data, E_Int size, E_Int nfld=NUMFIELD0);
-    static FldArray<T>* setMemoryNonCompactZone(value_type** data, E_Int size, E_Int nfld=NUMFIELD0);
+    static FldArray<T>* setMemoryCompactZone(value_type* data,
+                                             E_Int size, E_Int nfld=NUMFIELD0);
+    static FldArray<T>* setMemoryNonCompactZone(value_type** data,
+                                                E_Int size, E_Int nfld=NUMFIELD0);
     // DYNAMIC INTERFACE (only for shared=false, compact=true)
     void reserve(E_Int nfld, E_Int size);
     void resize(E_Int nfld, E_Int size, const T& val);
