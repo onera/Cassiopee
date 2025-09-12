@@ -855,9 +855,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
     }
   }
 
-  // ME: api = 3 only
   E_Int api = f1.getApi();
-  if (nc > 1) api = 3;
 
   K_ARRAY::extractVars(eltType, eltTypes);
   vector<E_Int> nelts(nc, 0);

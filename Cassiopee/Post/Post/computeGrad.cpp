@@ -138,7 +138,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
     else  // ME
     {
       E_Int nc = cn->getNConnect();
-      if (nc > 1) api = 3;
       tpl = K_ARRAY::buildArray3(
         3, varStringOut, npts, *cn, eltType,
         center, api, copyConnect);
