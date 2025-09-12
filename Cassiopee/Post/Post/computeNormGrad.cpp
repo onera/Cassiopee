@@ -24,20 +24,20 @@ using namespace std;
 
 //=============================================================================
 /* Calcul de la norme du gradient d'un ensemble de champs definis en noeuds. 
-   La norme du gradient est fourni aux centres des cellules */
+   La norme du gradient est fournie aux centres des cellules */
 //=============================================================================
 PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
 {
-  PyObject* array;
-  PyObject* varname;
-  if (!PyArg_ParseTuple(args, "OO", &array, &varname)) return NULL;
+  PyObject* array; PyObject* varname;
+  if (!PyArg_ParseTuple(args, OO_, &array, &varname)) return NULL;
   
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;// number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, 
+                                     eltType);
 
   if (res != 1 && res != 2)
   {
@@ -82,62 +82,117 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
                     "computeNormGrad: no field to compute.");
     RELEASESHAREDB(res,array, f, cn); return NULL;
   }
-  PyObject* tpl;
+  PyObject* tpl = NULL;
   E_Int sizeVarStringOut=strlen(var)+5;//grad var
   char* varStringOut = new char[sizeVarStringOut];
   strcpy(varStringOut, "grad"); strcat(varStringOut,var);
+
   if (res == 1)
   {
     E_Int ni1 = K_FUNC::E_max(1,ni-1);
     E_Int nj1 = K_FUNC::E_max(1,nj-1);
-    E_Int nk1 = K_FUNC::E_max(1,nk-1);    
+    E_Int nk1 = K_FUNC::E_max(1,nk-1);
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray(1, varStringOut, ni1, nj1, nk1);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    E_Float* fyp = new E_Float[ncells]; E_Float* fzp = new E_Float[ncells];
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
+    char* varString2; FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, varString2, f2);
+    E_Float* fnp = f2->begin(1);
+    E_Float* fyp = new E_Float[ncells];
+    E_Float* fzp = new E_Float[ncells];
+
     computeGradStruct(ni, nj, nk, 
                       f->begin(posx), f->begin(posy), f->begin(posz), 
                       f->begin(posv),
                       fnp, fyp, fzp);
+
     // stockage de la norme
-#pragma omp parallel for shared(fnp, ncells) if (ncells > 50)
+    #pragma omp parallel for shared(fnp, ncells) if (ncells > 50)
     for (E_Int i = 0; i < ncells; i++) fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
 
     delete [] fyp; delete [] fzp;
+    RELEASESHAREDS(tpl, f2);
   }
   else // non structure 
   {
-    if (strcmp(eltType, "BAR")!= 0 &&
-        strcmp(eltType, "TRI")!= 0 &&
-        strcmp(eltType, "QUAD")!= 0 &&
-        strcmp(eltType, "TETRA")!= 0 &&
-        strcmp(eltType, "HEXA")!= 0 &&
-        strcmp(eltType, "PENTA")!= 0 )        
+    if (strcmp(eltType, "NGON") == 0)
     {
-      PyErr_SetString(PyExc_TypeError,
-                      "computeNormGrad: not a valid element type.");
-      RELEASESHAREDU(array,f, cn); return NULL;
+      // Build unstructured NGON array from existing connectivity & empty fields
+      E_Int nelts = cn->getNElts();
+      E_Int npts = f->getSize();
+      E_Bool center = true;
+      E_Bool copyConnect = true;
+      E_Int api = f->getApi();
+
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, "NGON",
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2); f2->setAllValuesAtNull();
+
+      E_Float* fnp = f2->begin(1);
+      E_Float* fyp = new E_Float[nelts];
+      E_Float* fzp = new E_Float[nelts];
+      
+      E_Int err = computeGradNGon(
+        f->begin(posx), f->begin(posy), f->begin(posz), 
+        f->begin(posv), *cn, 
+        fnp, fyp, fzp);
+
+      if (err == 1)
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "computeGrad: gradient can only be computed for 3D NGONs.");
+        delete [] varStringOut;
+        delete [] fyp; delete [] fzp;
+        RELEASESHAREDS(tpl, f2);
+        RELEASESHAREDB(res,array,f,cn); return NULL;         
+      }
+
+      // stockage de la norme
+      #pragma omp parallel for shared(fnp, nelts) if (nelts > 50)
+      for (E_Int i = 0; i < nelts; i++) fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
+
+      delete [] fyp; delete [] fzp;
+      RELEASESHAREDS(tpl, f2);
     }
-    E_Int npts = f->getSize();
-    tpl = K_ARRAY::buildArray(1, varStringOut, npts, cn->getSize(), -1, eltType, true, cn->getSize()*cn->getNfld());
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    E_Int nelts = cn->getSize();
-    FldArrayF fp(nelts, 1, fnp, true);
-    E_Float* fyp = new E_Float[nelts]; E_Float* fzp = new E_Float[nelts];
+    else  // ME
+    {
+      E_Int nc = cn->getNConnect();
+      E_Int npts = f->getSize();
+      E_Int api = f->getApi();
+      E_Bool center = true;
+      E_Bool copyConnect = true;
+      if (nc > 1) api = 3;
+      E_Int ntotElts = 0;
 
-    computeGradUnstruct(
-      f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
-      f->begin(posv), fp.begin(1), fyp, fzp);    
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        E_Int nelts = cm.getSize();
+        ntotElts += nelts;
+      }
+      
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, eltType,
+        center, api, copyConnect);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* fnp = f2->begin(1);
+      E_Float* fyp = new E_Float[ntotElts];
+      E_Float* fzp = new E_Float[ntotElts];
 
-    // stockage de la norme
-#pragma omp parallel for shared(fnp, nelts) if (nelts > 50)
-    for (E_Int i = 0; i < nelts; i++) fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
+      computeGradUnstruct(
+        f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
+        f->begin(posv), fnp, fyp, fzp);
 
-    delete [] fyp; delete [] fzp;
+      // stockage de la norme
+      #pragma omp parallel for shared(fnp, ntotElts) if (ntotElts > 50)
+      for (E_Int i = 0; i < ntotElts; i++) fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
+
+      delete [] fyp; delete [] fzp;
+      RELEASESHAREDS(tpl, f2);
+    }
   }
-  
   RELEASESHAREDB(res,array,f,cn);
   delete [] varStringOut;
   return tpl;
