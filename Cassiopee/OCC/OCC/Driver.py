@@ -216,7 +216,7 @@ class Entity:
         elif self.type == "spline2":
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
-            for c, p in enumerate(self.P): n[:,c] = p.v() 
+            for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC.occ.addSpline(self.hook, n, 1)
         elif self.type == "circle":
             OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v(), 0)
@@ -333,7 +333,7 @@ class Driver:
         self.surfaces = {} # shapes
         self.equationCount = 0
         self.equations = {} # equations
-        
+
         # updated by solve
         self.solution = None # solution of system in sympy symbols
         self.vars = None # all model vars in sympy symbols
@@ -342,7 +342,7 @@ class Driver:
     def registerScalar(self, s):
         self.scalars[s.id] = s # id -> scalar
         self.scalars2[s.s] = s # symbol -> scalar
-        
+
     def registerPoint(self, p):
         self.points[p.name] = p
 
@@ -412,12 +412,12 @@ class Driver:
                 else: print('=> invalid')
             freevars.remove(s)
         print('free vars=', freevars)
-        
+
         self.solution = solution
         self.vars = vars
         self.freevars = freevars
         return solution, freevars
-        
+
     def instantiate(self, freevalues):
 
         for c, f in enumerate(self.freevars):

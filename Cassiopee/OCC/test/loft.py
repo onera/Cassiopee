@@ -9,7 +9,7 @@ for i in range(N):
     OCC.occ.addCircle(hook, (0,0,0), (0,0,1), 1., False)
     OCC._rotate(hook, (20,0,0), (0,1,0), i/N*90.)
     out.append(hook)
-    
+
 hook = OCC.occ.mergeCAD(out)
 OCC.occ.loft(hook, [i for i in range(1,N)], [])
 
