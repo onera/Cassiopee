@@ -35,7 +35,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
                                                   PyObject* args)
 {
   PyObject *centers, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &centers, &bodiesC)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &centers, &bodiesC)) return NULL;
   
   if (PyList_Check(centers) == 0)
   {

@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars0;
-  if (!PyArg_ParseTuple(args, "OO", &array, &vars0)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vars0)) return NULL;
   
   //extraction des variables constituant le vecteur dont le rot est calcule
   vector<char*> vars;

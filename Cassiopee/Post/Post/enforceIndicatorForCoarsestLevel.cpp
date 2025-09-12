@@ -27,7 +27,7 @@ PyObject* K_POST::enforceIndicatorForCoarsestLevel(PyObject* self,
                                                    PyObject* args)
 {
   PyObject *indicator, *octree;
-  if (!PyArg_ParseTuple(args, "OO", &indicator, &octree)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &indicator, &octree)) return NULL;
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;

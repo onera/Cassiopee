@@ -36,7 +36,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   PyObject* coordArrays;
   PyObject* FArrays;
   PyObject* ratioArrays;
-  if (!PyArg_ParseTuple(args, "OOO", &coordArrays, &FArrays, &ratioArrays))
+  if (!PYPARSETUPLE_(args, OOO_, &coordArrays, &FArrays, &ratioArrays))
   {
     return NULL;
   }

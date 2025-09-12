@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 {
   PyObject *octree, *zones, *fieldA; 
-  if (!PyArg_ParseTuple(args, "OOO", &octree, &zones, &fieldA)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &octree, &zones, &fieldA)) return NULL;
 
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;

@@ -36,7 +36,7 @@ PyObject* K_POST::frontFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* tagArray;
-  if (!PyArg_ParseTuple(args, "OO", &array, &tagArray)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &tagArray)) return NULL;
   
   // Extraction array
   char* varString; char* eltType;

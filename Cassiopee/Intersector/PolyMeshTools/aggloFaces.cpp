@@ -162,7 +162,7 @@ PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::collapseUncomputableFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

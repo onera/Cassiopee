@@ -116,8 +116,7 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
   PyObject *arr, *arrf;
   PyObject* hook;
   PyObject* dhx; PyObject* dhy; PyObject* dhz; PyObject* ncad; 
-
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &arr, &arrf, &hook, &dhx, &dhy, &dhz, &ncad)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_, &arr, &arrf, &hook, &dhx, &dhy, &dhz, &ncad)) return NULL;
 
   void** packet = NULL;
   #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -332,7 +331,7 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
 {
   PyObject *arr, *arrf;
   PyObject* ncad; PyObject* fcad;
-  if (!PyArg_ParseTuple(args, "OOOO", &arr, &arrf, &ncad, &fcad)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_, &arr, &arrf, &ncad, &fcad)) return NULL;
   
 // Get first component of each input list 
   arr = PyList_GetItem(arr, 0);
@@ -404,7 +403,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
 {
   PyObject *arr, *arrf;
   PyObject* ncad; PyObject* fcad;
-  if (!PyArg_ParseTuple(args, "OOOO", &arr, &arrf, &ncad, &fcad)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_, &arr, &arrf, &ncad, &fcad)) return NULL;
 
 // Get first component of each input list 
   arr = PyList_GetItem(arr, 0);

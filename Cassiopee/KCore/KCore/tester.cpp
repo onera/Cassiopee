@@ -85,7 +85,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 
 #if TEST1 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Float* t = new E_Float[1]; t[0] = 12.;
   PyObject* p = K_PYTREE::createChild(o, "coucou", "DataArray_t", t, 1, 1);
   delete [] t;
@@ -94,14 +94,14 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 
 #if TEST2 == 1
   PyObject* o; char* path;
-  if (!PyArg_ParseTuple(args, "Os", &o, &path)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &o, &path)) return NULL;
   PyObject* p = K_PYTREE::getNodeFromPath(o, path);
   return p;
 #endif
 
 #if TEST3 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
@@ -117,7 +117,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 
 #if TEST4 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;

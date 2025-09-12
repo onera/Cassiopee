@@ -38,7 +38,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //struct timespec beg, end;
   //clock_gettime(CLOCK_REALTIME, &beg);
   int algo = 0;
-  if (!PyArg_ParseTuple(args, "O|i", &array,&algo)) return NULL;
+  if (!PyArg_ParseTuple(args, "O|i", &array, &algo)) return NULL;
   
   // Check array
   E_Int nil, njl, nkl;

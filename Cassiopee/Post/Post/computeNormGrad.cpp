@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* varname;
-  if (!PyArg_ParseTuple(args, OO_, &array, &varname)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &varname)) return NULL;
   
   // Check array
   char* varString; char* eltType;

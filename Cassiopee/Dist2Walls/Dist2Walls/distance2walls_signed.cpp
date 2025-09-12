@@ -30,7 +30,7 @@ using namespace K_SEARCH;
 PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
 {
   PyObject *blks, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &blks, &bodiesC)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &blks, &bodiesC)) return NULL;
   if (PyList_Check(blks) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

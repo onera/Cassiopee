@@ -287,9 +287,9 @@ void __deleteHM(const void* hmesh_ptrs)
 PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook))
+  if (!PYPARSETUPLE_(args, O_, &hook))
   {
-      return NULL;
+    return NULL;
   }
 
   // recupere le hook
@@ -478,9 +478,9 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
 {
   PyObject *hook{nullptr}, *pyfieldN{nullptr}, *py_bcptlists{nullptr};
 
-  if (!PyArg_ParseTuple(args, "OOO", &hook, &pyfieldN, &py_bcptlists))
+  if (!PYPARSETUPLE_(args, OOO_, &hook, &pyfieldN, &py_bcptlists))
   {
-      return NULL;
+    return NULL;
   }
 
   FloatArray* fi; E_Int ni, nj, nk;
@@ -803,9 +803,9 @@ void __deleteSensor(E_Int sensor_type, const void* sensor_ptrs)
 PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
 {
   PyObject* hook_sensor;
-  if (!PyArg_ParseTuple(args, "O", &hook_sensor))
+  if (!PYPARSETUPLE_(args, O_, &hook_sensor))
   {
-      return NULL;
+    return NULL;
   }
 
   // recupere le hook
@@ -965,7 +965,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 {
 
   PyObject* hook_sensor{ nullptr }, *dataSensor(nullptr);
-  if (!PyArg_ParseTuple(args, "OO", &hook_sensor, &dataSensor))
+  if (!PYPARSETUPLE_(args, OO_, &hook_sensor, &dataSensor))
     return nullptr;
   if (dataSensor == Py_None) // nothing to do
     return Py_None;
@@ -1335,13 +1335,10 @@ const char* varString, PyObject *out)
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 {
-  //std::cout << "adaptCells : begin" << std::endl;
   PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
   PyObject *py_rid_to_zones(nullptr);
+  if (!PYPARSETUPLE_(args, OOOO_, &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_rid_to_zones)) return NULL;
   
-  if (!PyArg_ParseTuple(args, "OOOO", &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_rid_to_zones)) return NULL;
-  //std::cout << "adaptCells : after parse tuple" << std::endl;
-
   // 1. GET MESHES AND SENSORS
 
   int nb_meshes{1};

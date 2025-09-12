@@ -33,7 +33,7 @@ using namespace K_FLD;
 PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;

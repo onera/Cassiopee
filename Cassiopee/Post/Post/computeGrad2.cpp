@@ -31,8 +31,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   PyObject* array; PyObject* arrayc;
   PyObject* volc; PyObject* cellNc;
   PyObject* indices; PyObject* field;
-  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc, &volc, &cellNc,
-                        &indices, &field)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OO_, &array, &arrayc, &volc, &cellNc,
+                      &indices, &field)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -290,8 +290,8 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
   PyObject* indices; PyObject* field; PyObject* cellNc;
-  if (!PyArg_ParseTuple(args, "OOOOO", &array, &arrayc, &cellNc,
-                        &indices, &field)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ O_, &array, &arrayc, &cellNc,
+                      &indices, &field)) return NULL;
 
   // Check array
   char* varString; char* eltType;

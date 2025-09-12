@@ -32,7 +32,7 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   // surf: maillage a deraffiner (x,y,z+sol)
   // indic: indicateur de deraffinement: vaut 0 ou 1
   PyObject* surf; PyObject* aindic;
-  if (!PyArg_ParseTuple(args, "OO", &surf, &aindic)) return NULL;  
+  if (!PYPARSETUPLE_(args, OO_, &surf, &aindic)) return NULL;  
 
   /*-----------------------------------------------*/
   /* Extraction des donnees du maillage surfacique */ 

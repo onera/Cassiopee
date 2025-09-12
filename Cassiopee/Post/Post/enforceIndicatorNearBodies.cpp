@@ -40,7 +40,7 @@ extern "C"
 PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
 {
   PyObject *indicator, *octree, *bodies; 
-  if (!PyArg_ParseTuple(args, "OOO", &indicator, &octree, &bodies)) 
+  if (!PYPARSETUPLE_(args, OOO_, &indicator, &octree, &bodies)) 
     return NULL;
   
   if (PyList_Size(bodies) == 0)

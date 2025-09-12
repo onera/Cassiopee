@@ -30,8 +30,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   PyObject* array; PyObject* arrayc;
   PyObject* volc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOOOO", &array, &arrayc, &volc, &cellNc,
-                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_, &array, &arrayc, &volc, &cellNc,
+                      &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -324,8 +324,8 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &array, &arrayc, &cellNc,
-                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_, &array, &arrayc, &cellNc,
+                      &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
