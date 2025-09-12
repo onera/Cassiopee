@@ -137,7 +137,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
       }
     }
     // copie de la connectivite
-    if (sizeNGon > 0 && cn->isNGon() == 2) // NGon pour Array2
+    if (sizeNGon > 0 && cn->getNGonType() == 2) // NGon pour Array2
     { 
       E_Int* ngon = cn->getNGon();
       E_Int* nface = cn->getNFace();
@@ -242,7 +242,7 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0 || strcmp(eltType, "NGON*") == 0)
     {
       E_Int dim; 
-      E_Int ngonType = cn->isNGon();
+      E_Int ngonType = cn->getNGonType();
       E_Int nelts = cn->getNElts();
       E_Int nfaces = cn->getNFaces();
       E_Int sizeNGon = cn->getSizeNGon();

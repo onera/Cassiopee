@@ -35,7 +35,7 @@ void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
 {
   E_Int nvert = blankedCells.getSize();
   std::vector< std::vector<E_Int> > cVN(nvert);
-  E_Int isNGon = connect.isNGon();
+  E_Int isNGon = connect.getNGonType();
   if (isNGon==0)
     K_CONNECT::connectEV2VNbrs(connect, cVN);
   else 

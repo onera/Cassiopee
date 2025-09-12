@@ -575,7 +575,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     E_Int nelts = cn->getNElts();
     E_Int size1 = cn->getSizeNGon();
     E_Int size2 = cn->getSizeNFace();
-    if (cn->isNGon() == 3)
+    if (cn->getNGonType() == 3)
     {
       size1 += nfaces; size2 += nelts;
     }

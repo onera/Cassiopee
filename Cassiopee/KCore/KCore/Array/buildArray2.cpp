@@ -245,7 +245,7 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString,
   E_Int sizeNFace = 0;
   E_Int nface = 0;
 
-  if (cn.isNGon()) // NGon Fld
+  if (cn.getNGonType()) // NGon Fld
   {
     sizeNGon = cn.getSizeNGon();
     sizeNFace = cn.getSizeNFace();

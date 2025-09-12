@@ -152,7 +152,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   if (ret == 2 && K_STRING::cmp(eltType, 4, "NGON") == 0)
   {
     // Acces universel sur NGON
-    E_Int isNGon = c->isNGon();
+    E_Int isNGon = c->getNGonType();
     // isNGon=1: NGON, NFACE CGNSv3 array1 compact
     // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
     // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4
