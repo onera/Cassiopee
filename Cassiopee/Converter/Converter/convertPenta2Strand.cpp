@@ -92,7 +92,7 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
     }
   }
 
-  E_Int api = f->getApi(); if (api == 2) api = 3;
+  E_Int api = f->getApi();
 
   // the strand grid is a TRI array with extra vertices
   FldArrayI& cm = *(cnl->getConnect(0));

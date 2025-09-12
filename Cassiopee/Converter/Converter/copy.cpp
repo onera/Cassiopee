@@ -214,7 +214,6 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   E_Int api = f->getApi();
-  if (api == 2) api = 3;
   E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
 
   if (res == 1)

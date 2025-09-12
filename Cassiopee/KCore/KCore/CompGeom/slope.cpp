@@ -83,7 +83,6 @@ void K_COMPGEOM::slope(
   dx[m1] = cxp * denp;
   dy[m1] = cyp * denp;
   dz[m1] = czp * denp;
-  
 
   // other points
   for (E_Int k = 1; k < m-1; k++)

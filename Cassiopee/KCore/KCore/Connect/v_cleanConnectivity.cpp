@@ -95,7 +95,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
   E_Bool array23 = false;
   if (api == 2 || api == 3) array23 = true;
-  if (api == 2) api = 3;
   E_Int shift = 1; if (api == 3) shift = 0;
 
   // Get dimensionality

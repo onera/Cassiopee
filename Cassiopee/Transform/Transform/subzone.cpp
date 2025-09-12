@@ -78,7 +78,6 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
     
     // Construit l'array resultat
     //E_Int api = f->getApi();
-    //if (api == 2) api=3;
     PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF subzone0(injn*kn, nfld, fnp, true);
@@ -667,7 +666,6 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   E_Int n = eltList.getSize();
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
-  if (api == 2) api = 3;
   
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
@@ -964,7 +962,6 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
 
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
   E_Int nfldc = fc->getNfld();
-  if (api == 2) api = 3;
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
