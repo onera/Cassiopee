@@ -340,7 +340,7 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     Usage: mergeCart(t, sizeMax, tol)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    A = C.getAllFields(t, 'nodes', api=2)
+    A = C.getAllFields(t, 'nodes', api=3)
     A = Transform.mergeCart(A, sizeMax, tol)
     for noz in range(len(A)):
         A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])

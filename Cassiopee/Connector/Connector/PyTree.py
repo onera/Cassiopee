@@ -1048,10 +1048,10 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=3) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=2)
-            else: cellN = C.getField(cellNName, b, api=2)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=3)
+            else: cellN = C.getField(cellNName, b, api=3)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
@@ -1552,7 +1552,7 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetF
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+varc; shift = 0
     else: shift = 1
-    cellN = C.getField(varc, z, api=2)[0]
+    cellN = C.getField(varc, z, api=3)[0]
     ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
 
     overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -1759,7 +1759,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
-            cellN = C.getField(varcelln, z, api=2)[0]
+            cellN = C.getField(varcelln, z, api=3)[0]
             if cellN != []:
                 Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
     return None

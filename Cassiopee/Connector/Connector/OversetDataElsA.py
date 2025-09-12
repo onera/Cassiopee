@@ -299,7 +299,7 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
             zc = Converter.node2Center(zn)
             cellN = C.getField('centers:cellN',z)[0] # celln aux centres des cellules
             if writeInFile == 1:
-                listCellN[ZonesId[z[0]]]=C.getField('centers:cellN',z, api=2)[0]#cellN[1]
+                listCellN[ZonesId[z[0]]]=C.getField('centers:cellN',z, api=3)[0]#cellN[1]
             zc = Converter.addVars([zc,cellN]); del cellN
             firstWallCenters1 = []
             if double_wall == 1: firstWallCenters1 = firstWallCenters[nob][noz]

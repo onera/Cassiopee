@@ -80,7 +80,7 @@ def _addCellN__(t, loc='centers', cellNName='cellN'):
 #=============================================================================
 def getIntersectingDomainsAABB(t, tol=1.e-10):
     """Return the intersection list of a list of bounding boxes."""
-    m = C.getFields(Internal.__GridCoordinates__, t, api=2)
+    m = C.getFields(Internal.__GridCoordinates__, t, api=3)
     ret = Connector.getIntersectingDomainsAABB(m, tol)
     dic = {}
     zoneNames = C.getZoneNames(t, False)
@@ -1489,7 +1489,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
 
         if rind != -1: # rind indices exist : ghost cell data to be computed
             # Array2
-            a1 = C.getFields('GridCoordinates', zp, api=2)[0]
+            a1 = C.getFields('GridCoordinates', zp, api=3)[0]
             # PE
             PE = Internal.getNodeFromName2(zp, 'ParentElements')[1]
             #
@@ -1517,7 +1517,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                             RotationAngle[1][1]=-RotationAngle[1][1]
                             RotationAngle[1][2]=-RotationAngle[1][2]
 
-                    a2 = C.getFields('GridCoordinates', zdonor, api=2)[0]
+                    a2 = C.getFields('GridCoordinates', zdonor, api=3)[0]
 
                     # PE donor
                     PEd = Internal.getNodeFromName2(zdonor, 'ParentElements')[1]

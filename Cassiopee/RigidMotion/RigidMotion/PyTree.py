@@ -553,13 +553,13 @@ def evalPosition___(a, time, F):
     """Move the mesh with defined motion to time t. Return an array with
     moved mesh coordinates.
     Usage: evalPosition(a, time, F)"""
-    return C.TZGC2(a, 'nodes', False, RigidMotion.evalPosition, time, F)
+    return C.TZGC3(a, 'nodes', False, RigidMotion.evalPosition, time, F)
 
 def _evalPosition___(a, time, F):
     """Move the mesh with defined motion to time t. Return an array with
     moved mesh coordinates.
     Usage: evalPosition(a, time, F)"""
-    return C.__TZGC2(a, 'nodes', False, RigidMotion._evalPosition, time, F)
+    return C.__TZGC3(a, 'nodes', False, RigidMotion._evalPosition, time, F)
 
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t

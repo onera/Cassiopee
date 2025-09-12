@@ -1578,7 +1578,7 @@ class IBM(Common):
         test.printMem(">>> cart grids --> rectilinear grids [end]")
 
         zones  = Internal.getZones(t)
-        coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
 
         #C.convertPyTree2File(zones,'verifOctree.cgns')
         #print("extension LOCAL=", ext_local, 'optimized=',self.input_var.optimized )
