@@ -60,5 +60,5 @@ void K_COMPGEOM::onedmapbar(
 
   // Projection
   interpbar(npts, no, stota, s, d, x, y, z, dx, dy, dz,
-            xo, yo, zo, net, cn1o, cn2o);
+            xo, yo, zo, neto, cn1o, cn2o);
 }
