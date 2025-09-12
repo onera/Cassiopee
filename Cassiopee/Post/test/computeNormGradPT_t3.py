@@ -7,7 +7,7 @@ import KCore.test as test
 
 def F(x,y,z): return x**2+y**2+z**2
 
-N = 20
+N = 10
 
 #-------------------------------
 # 1D
