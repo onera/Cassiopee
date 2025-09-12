@@ -1,6 +1,7 @@
 # Parametric CAD driver
 import OCC
 import sympy
+import numpy
 import re
 
 #============================================================
@@ -207,6 +208,20 @@ class Entity:
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
             OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
+        elif self.type == "spline1":
+            s = len(self.P)
+            n = numpy.zeros((3,s), dtype=numpy.float64)
+            for c, p in enumerate(self.P): n[:,c] = p.v()
+            OCC.occ.addSpline(self.hook, n, 0)
+        elif self.type == "spline2":
+            s = len(self.P)
+            n = numpy.zeros((3,s), dtype=numpy.float64)
+            for c, p in enumerate(self.P): n[:,c] = p.v() 
+            OCC.occ.addSpline(self.hook, n, 1)
+        elif self.type == "circle":
+            OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v(), 0)
+        elif self.type == "arc":
+            OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[1].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -225,8 +240,25 @@ class Entity:
         return 1
 
 #============================================================
+# line
 def Line(P1, P2, name=None):
     return Entity([P1, P2], type="line", name=name)
+
+# spline with control points
+def Spline1(CPs, name=None):
+    return Entity(CPs, type="spline1", name=name)
+
+# approximation spline
+def Spline2(Ps, name=None):
+    return Entity(Ps, type="spline2", name=name)
+
+# circle
+def Circle(C, R, name=None):
+    return Entity([C, R], type="circle", name=name)
+
+# arc
+def Arc(P1, P2, P3, name=None):
+    return Entity([P1, P2, P3], type="arc", name=name)
 
 #============================================================
 class Sketch():
@@ -237,6 +269,7 @@ class Sketch():
         # entities
         self.edges = listEdges
         self.hook = None
+        self.update()
         # register
         DRIVER.registerSketch(self)
 
@@ -268,9 +301,6 @@ class Sketch():
 class Eq:
     """Equation"""
     def __init__(self, expr1, expr2=None):
-        # equation string
-        #self.expr = expr1
-        #DRIVER.registerEquation(self.expr)
         # references sur l'equation sympy
         self.s = sympy.Eq(expr1, expr2)
         DRIVER.registerEquation(self)
@@ -292,8 +322,9 @@ class Eq:
 
 #============================================================
 class Driver:
-    """Driver"""
+    """Driver is Model"""
     def __init__(self):
+        # updated when creating scalar, points, entities
         self.scalars = {} # id -> scalar
         self.scalars2 = {} # symbol -> scalar
         self.points = {} # points
@@ -302,12 +333,16 @@ class Driver:
         self.surfaces = {} # shapes
         self.equationCount = 0
         self.equations = {} # equations
+        
+        # updated by solve
+        self.solution = None # solution of system in sympy symbols
+        self.vars = None # all model vars in sympy symbols
+        self.freevars = None # all model free vars in sympy symbols
 
     def registerScalar(self, s):
         self.scalars[s.id] = s # id -> scalar
         self.scalars2[s.s] = s # symbol -> scalar
-        #self.scalars[s.name] = s
-
+        
     def registerPoint(self, p):
         self.points[p.name] = p
 
@@ -377,25 +412,21 @@ class Driver:
                 else: print('=> invalid')
             freevars.remove(s)
         print('free vars=', freevars)
-
+        
+        self.solution = solution
+        self.vars = vars
+        self.freevars = freevars
         return solution, freevars
+        
+    def instantiate(self, freevalues):
 
-        # equations sympy
-        # symbol sympi
-        # faire des subs pour les symboles figes
-        # faire solve
-        # faire setvalue dans les scalars
-        # refaire perform
-
-    def instantiate(self, solution, freevars, freevalues):
-        print("================")
-        for c, f in enumerate(freevars):
+        for c, f in enumerate(self.freevars):
             self.scalars2[f].v = freevalues[c]
             print('fixed', f, 'to', freevalues[c])
 
-        soli = solution.copy()
+        soli = self.solution.copy()
         for k in soli:
-            for c, f in enumerate(freevars):
+            for c, f in enumerate(self.freevars):
                 print("set ",f," to ", freevalues[c])
                 soli[k] = soli[k].subs(f, freevalues[c])
 
@@ -406,7 +437,8 @@ class Driver:
                 self.scalars2[s].v = soli[s]
                 if self.scalars2[s].check(): print('=> valid')
                 else: print('=> invalid')
-
+        # update geometry
+        self.update()
 
 #============================================================
 # Global

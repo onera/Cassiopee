@@ -43,7 +43,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   GETMAPSURFACES;
   GETMAPEDGES;
 
-  /* generate knots */
+  /* get control points (method0) or through points (method1) */
   K_FLD::FldArrayF* pc;
   E_Int ret = K_NUMPY::getFromNumpyArray(opc, pc);
   if (ret == 0)
@@ -58,7 +58,6 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   
   // incoming numpy
   E_Int ncp = pc->getSize();
-
   for (E_Int i = 0; i < ncp; i++) printf("%d : %g %g %g\n", i, x[i], y[i], z[i]);
 
   TopoDS_Edge edge;
@@ -99,9 +98,8 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
     edge = BRepBuilderAPI_MakeEdge(spline);
   }
-  else if (method == 1) // approx
+  else if (method == 1) // approximation
   {
-
     TColgp_Array1OfPnt pointsArray(1, static_cast<Standard_Integer>(ncp));
     for (E_Int i = 1; i <= ncp; i++) 
     {

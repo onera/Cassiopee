@@ -16,11 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// loft a list of edges
+// revolve a list of edges
 
 #include "occ.h"
-#include "ShapeFix_Shape.hxx"
-#include "ShapeFix_Wireframe.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRep_Builder.hxx"
 #include "TopExp.hxx"
@@ -28,56 +26,49 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "ShapeBuild_ReShape.hxx"
 #include "TopoDS.hxx"
-#include "BRepAlgoAPI_Cut.hxx"
-#include "BRepOffsetAPI_ThruSections.hxx"
+#include <gp_Pnt.hxx>
+#include <gp_Dir.hxx>
+#include <gp_Ax1.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
 
 //=====================================================================
-// Loft
+// Revolve
 //=====================================================================
-PyObject* K_OCC::loft(PyObject* self, PyObject* args)
+PyObject* K_OCC::revolve(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* listProfiles; PyObject* listGuides; 
-  if (!PYPARSETUPLE_(args, OOO_ , &hook, &listProfiles, &listGuides)) return NULL;
+  PyObject* hook; PyObject* listEdges;
+  E_Float cx, cy, cz;
+  E_Float ax, ay, az; 
+  E_Float angle; 
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ TRRR_ R_, &hook, &listEdges, 
+    &cx, &cy, &cz, &ax, &ay, &az, &angle)) return NULL;
 
   GETSHAPE;
 
   //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
   TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
 
-  BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*preserveOrientation=*/1);
-  loftBuilder.SetContinuity(GeomAbs_C2);
-  //loftBuilder.SetSmoothing(True);
+  gp_Pnt center(cx, cy, cz);
+  gp_Ax1 axis(center, gp_Dir(ax, ay, az));
+  
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
 
-  // Get Profiles and add to builder
-  E_Int nprofiles = PyList_Size(listProfiles);
-  for (E_Int i = 0; i < nprofiles; i++)
+  E_Int nedges = PyList_Size(listEdges);
+  for (E_Int i = 0; i < nedges; i++)
   {
-    PyObject* noO = PyList_GetItem(listProfiles, i);
+    PyObject* noO = PyList_GetItem(listEdges, i);
     E_Int no = PyInt_AsLong(noO);
     const TopoDS_Edge& E = TopoDS::Edge(edges(no));
-    TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
-    loftBuilder.AddWire(W);
+    builder.Add(compound, E);
   }
-  loftBuilder.Build();
-  TopoDS_Shape loftedSurface = loftBuilder.Shape();
 
-  // Get guides
-  //loftBuilder.AddGuide(guideEdge1);
-  //loftBuilder.AddGuide(guideEdge2);
+  TopoDS_Shape revolvedSurface = BRepPrimAPI_MakeRevol(compound, axis);
 
-  // tigl
-  //GeomFill_FillingStyle style = GeomFill_CoonsC2Style;
-  //style = GeomFill_StretchStyle;
-  //SurfMaker.Perform(_myTolerance, _mySameKnotTolerance, style, Standard_True);
-  //_result = SurfMaker.Patches();
-
-  // gordon surface
-
+  // rebuild
+  TopoDS_Shape* newshp = new TopoDS_Shape(revolvedSurface);
   
-  // rebuild    
-  TopoDS_Shape* newshp = new TopoDS_Shape(loftedSurface);
-  
-  // Rebuild the hook
   delete shape;
   SETSHAPE(newshp);
 
