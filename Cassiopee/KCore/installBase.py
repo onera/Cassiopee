@@ -6,9 +6,13 @@
 # Paths are list of strings. useOMP, static, useCuda are booleans.
 # Others are strings.
 try:
-    from installUserBase import installDict as installUserDict
-except:
-    installUserDict = {}
+    from installBaseUser import installDict as installDictUser
+except ImportError:
+    try:
+        from . import installBaseUser
+        installDictUser = installBaseUser.installDict
+    except:
+        installDictUser = {}
 
 installDict = {
     ###############################################################################
@@ -1353,5 +1357,5 @@ installDict = {
                [] # NvccAdditionalOptions
                ],
     ###############################################################################
-    **installUserDict
+    **installDictUser
 }
