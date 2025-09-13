@@ -137,13 +137,13 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
   *pt = '\0';
 
   PyObject* tpl = NULL;
+  FldArrayF* f2;
   if (res == 1)
   {
     E_Int ni1 = K_FUNC::E_max(1, ni-1);
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
     tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
-    FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, f2);
     E_Int ierr = computeDivStruct(
       ni, nj, nk,
@@ -156,6 +156,7 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError,
                       "computeDiv: Not valid for 1D.");
       delete [] varStringOut;
+      RELEASESHAREDS(tpl, f2);
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
   }
@@ -204,7 +205,8 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
       );
     }
   }
-  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }
