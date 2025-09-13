@@ -80,6 +80,7 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   PyObject* tpl = NULL;
+  FldArrayF* f2;
   char* varStringOut;
   computeGradVarsString(var, varStringOut);
 
@@ -89,7 +90,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
     tpl = K_ARRAY::buildArray3(3, varStringOut, ni1, nj1, nk1);
-    FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* gradx = f2->begin(1);
     E_Float* grady = f2->begin(2);
@@ -99,8 +99,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
                       f->begin(posx), f->begin(posy), f->begin(posz), 
                       f->begin(posv),
                       gradx, grady, gradz);
-                      
-    RELEASESHAREDS(tpl, f2);
   }
   else if (res == 2) 
   {
@@ -114,8 +112,8 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
       // Build unstructured NGON array from existing connectivity & empty fields
       tpl = K_ARRAY::buildArray3(
         3, varStringOut, npts, *cn, "NGON",
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
       E_Float* gradx = f2->begin(1);
       E_Float* grady = f2->begin(2);
@@ -133,7 +131,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
         RELEASESHAREDS(tpl, f2);
         RELEASESHAREDB(res, array, f, cn); return NULL;         
       }
-      RELEASESHAREDS(tpl, f2);
     }
     else  // ME
     {
@@ -142,7 +139,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
       tpl = K_ARRAY::buildArray3(
         3, varStringOut, npts, *cn, eltType,
         center, api, copyConnect);
-      FldArrayF* f2;
       K_ARRAY::getFromArray3(tpl, f2);
       E_Float* gradx = f2->begin(1);
       E_Float* grady = f2->begin(2);
@@ -151,11 +147,11 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
         f->begin(posx), f->begin(posy), f->begin(posz), *cn, eltType,
         f->begin(posv), gradx, grady, gradz
       );
-      RELEASESHAREDS(tpl, f2);
     }
   }
-  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }
 

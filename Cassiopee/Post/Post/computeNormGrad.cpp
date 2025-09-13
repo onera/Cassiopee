@@ -81,6 +81,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   PyObject* tpl = NULL;
+  FldArrayF* f2;
   E_Int sizeVarStringOut = strlen(var) + 5; // grad var
   char* varStringOut = new char[sizeVarStringOut];
   strcpy(varStringOut, "grad"); strcat(varStringOut,var);
@@ -92,7 +93,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
     tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
-    FldArrayF* f2;
+    
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* fnp = f2->begin(1);
     E_Float* fyp = new E_Float[ncells];
@@ -109,7 +110,6 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
       fnp[i] = sqrt(fnp[i]*fnp[i] + fyp[i]*fyp[i] + fzp[i]*fzp[i]);
 
     delete [] fyp; delete [] fzp;
-    RELEASESHAREDS(tpl, f2);
   }
   else // non structure 
   {
@@ -125,8 +125,8 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
 
       tpl = K_ARRAY::buildArray3(
         1, varStringOut, npts, *cn, "NGON",
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
 
       E_Float* fnp = f2->begin(1);
@@ -154,7 +154,6 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
         fnp[i] = sqrt(fnp[i]*fnp[i] + fyp[i]*fyp[i] + fzp[i]*fzp[i]);
 
       delete [] fyp; delete [] fzp;
-      RELEASESHAREDS(tpl, f2);
     }
     else  // ME
     {
@@ -170,8 +169,8 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
       
       tpl = K_ARRAY::buildArray3(
         1, varStringOut, npts, *cn, eltType,
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
       E_Float* fnp = f2->begin(1);
       E_Float* fyp = new E_Float[ntotElts];
@@ -184,13 +183,13 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
       // stockage de la norme
       #pragma omp parallel for if (ntotElts > __MIN_SIZE_MEAN__)
       for (E_Int i = 0; i < ntotElts; i++)
-        fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
+        fnp[i] = sqrt(fnp[i]*fnp[i] + fyp[i]*fyp[i] + fzp[i]*fzp[i]);
 
       delete [] fyp; delete [] fzp;
-      RELEASESHAREDS(tpl, f2);
     }
   }
-  RELEASESHAREDB(res, array, f, cn);
   delete [] varStringOut;
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }
