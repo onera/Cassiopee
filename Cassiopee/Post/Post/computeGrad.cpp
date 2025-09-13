@@ -112,8 +112,8 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
       // Build unstructured NGON array from existing connectivity & empty fields
       tpl = K_ARRAY::buildArray3(
         3, varStringOut, npts, *cn, "NGON",
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
       E_Float* gradx = f2->begin(1);
       E_Float* grady = f2->begin(2);

@@ -171,8 +171,8 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
     {
       tpl = K_ARRAY::buildArray3(
         1, varStringOut, npts, *cn, "NGON",
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
       E_Int ierr = computeDivNGon(
         f->begin(posx), f->begin(posy), f->begin(posz),
@@ -194,8 +194,8 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
       if (nc > 1) api = 3;
       tpl = K_ARRAY::buildArray3(
         1, varStringOut, npts, *cn, eltType,
-        center, api, copyConnect);
-      FldArrayF* f2;
+        center, api, copyConnect
+      );
       K_ARRAY::getFromArray3(tpl, f2);
       computeDivUnstruct(
         *cn, eltType,
