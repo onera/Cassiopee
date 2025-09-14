@@ -106,24 +106,23 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
     if isPreProjectOrtho:
         print("Project Cloud Solution::performing pre orthogonal projection")
         import Transform.PyTree as T
-        cloud = T.projectOrtho(cloud, surf);
-
+        cloud = T.projectOrtho(cloud, surf)
 
     fc = C.getAllFields(cloud, 'nodes')[0]
     zones = Internal.getZones(surf)
-    for noz in range(len(zones)):
-        interpData = Internal.getNodeFromName(zones[noz], 'POST_MLS')
+    for noz, z in enumerate(zones):
+        interpData = Internal.getNodeFromName(z, 'POST_MLS')
         if interpData is not None:
             offset = Internal.getNodeFromName(interpData, 'offset')[1]
             interpDonor = Internal.getNodeFromName(interpData, 'interpDonor')[1]
             interpCoef = Internal.getNodeFromName(interpData, 'interpCoef')[1]
-            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes')[0]
             res = Post.projectCloudSolutionWithInterpData(fc, fs, offset, interpDonor, interpCoef, dim=dim)
-            C.setFields([res], zones[noz], 'nodes')
+            C.setFields([res], z, 'nodes')
         else:
-            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes')[0]
             res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm, old=old)
-            C.setFields([res], zones[noz], 'nodes')
+            C.setFields([res], z, 'nodes')
     return None
 
 def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
@@ -150,9 +149,9 @@ def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
         interpCoef = numpy.concatenate(interpCoef)
 
         children = []
-        children.append(Internal.createNode('offset' , 'DataArray_t', offset))
-        children.append(Internal.createNode('interpDonor' , 'DataArray_t', interpDonor))
-        children.append(Internal.createNode('interpCoef' , 'DataArray_t', interpCoef))
+        children.append(Internal.createNode('offset', 'DataArray_t', offset))
+        children.append(Internal.createNode('interpDonor', 'DataArray_t', interpDonor))
+        children.append(Internal.createNode('interpCoef', 'DataArray_t', interpCoef))
         Internal._createChild(zones[noz], 'POST_MLS', 'UserDefinedData_t', value=None, children=children)
 
     return None
@@ -173,10 +172,11 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
 
     # we sort structured then unstructured
     orderedZones=[]
-    for i,z in enumerate(Internal.getZones(extractionMesh)):
-        if Internal.getZoneType(z)==1: orderedZones.append(i)
-    for i,z in enumerate(Internal.getZones(extractionMesh)):
-        if Internal.getZoneType(z)==2: orderedZones.append(i)
+    zones = Internal.getZones(extractionMesh)
+    for i, z in enumerate(zones):
+        if Internal.getZoneType(z) == 1: orderedZones.append(i)
+    for i, z in enumerate(zones):
+        if Internal.getZoneType(z) == 2: orderedZones.append(i)
 
     if mode == 'robust':
         tc = C.center2Node(t, Internal.__FlowSolutionCenters__)
@@ -856,11 +856,11 @@ def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
         else: varnamesn.append(var)
 
     if varnamesn != []:
-        C.__TZC2(t, 'nodes', False,
+        C.__TZC3(t, 'nodes', False,
                  Post._computeVariables2, varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     if varnamesc != []:
-        C.__TZC2(t, 'centers', False,
+        C.__TZC3(t, 'centers', False,
                  Post._computeVariables2, varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     return None

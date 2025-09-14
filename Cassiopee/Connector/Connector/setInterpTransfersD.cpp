@@ -1269,8 +1269,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   E_Int   kmd, cnNfldD=1, nvars, ndimdxD, meshtype, nvars_grad;
   //E_Float* iptroD;
 
-  if     ( vartype <= 3 &&  vartype >= 1) nvars =5;
-  else if( vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
+  if      (vartype <= 3 &&  vartype >= 1) nvars =5;
+  else if (vartype == 4 ) nvars =27;    // on majore pour la LBM, car nvar sert uniquememnt a dimensionner taille vector
   else                    nvars =6;
 
   if (vartype == 22 || vartype == 23 || vartype == 24)

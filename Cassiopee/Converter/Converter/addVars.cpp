@@ -90,7 +90,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
     E_Int fSize = f->getSize();
     // Building array here
     if (res == 1) 
-      tpl = K_ARRAY::buildArray(sizet, fstring, nil, njl, nkl);
+      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, f->getApi());
     else
     {
       E_Int csize = cn->getSize()*cn->getNfld();
@@ -211,7 +211,7 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
     E_Int fSize = f->getSize();
     // Building array here
     if (res == 1) 
-      tpl = K_ARRAY::buildArray(sizet, fstring, nil, njl, nkl);
+      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, f->getApi());
     else
     {
       E_Int csize = cn->getSize()*cn->getNfld();

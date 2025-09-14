@@ -30,14 +30,15 @@ PyObject* py_indices_compress(PyObject* self, PyObject* args)
     if (!PYPARSETUPLE_(args, O_, &arrays)) 
     {
         PyErr_SetString(PyExc_SyntaxError,
-                        "Wrong syntax. Right syntax : packIndices((n,array) or list of (n,array)s");
+                        "Wrong syntax. Right syntax: packIndices((n,array) or list of (n,array)s");
         return NULL;
     }
     bool is_list = false;
     std::vector<PyArrayObject *> np_arrays;
     std::vector<long> nb_verts_per_elt_arr;
     std::vector<bool> is_c_order;
-    if (PyList_Check(arrays)) {
+    if (PyList_Check(arrays)) 
+    {
         is_list = true;
         np_arrays.reserve(PyList_Size(arrays));
         nb_verts_per_elt_arr.reserve(PyList_Size(arrays));

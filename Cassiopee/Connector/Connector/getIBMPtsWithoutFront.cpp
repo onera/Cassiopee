@@ -215,8 +215,8 @@ PyObject* K_CONNECTOR::getIBMPtsWithoutFront(PyObject* self, PyObject* args)
 
     E_Int nvarOut = 3;
     char varStringOut[K_ARRAY::VARSTRINGLENGTH]; 
-    strcpy(varStringOut,"CoordinateX,CoordinateY,CoordinateZ");
-    char eltTypeOut[8]; strcpy(eltTypeOut,"NODE");
+    strcpy(varStringOut, "CoordinateX,CoordinateY,CoordinateZ");
+    char eltTypeOut[8]; strcpy(eltTypeOut, "NODE");
     FldArrayI cnl(0);
     E_Int nelts = 0;
     vector<E_Float*> xit; vector<E_Float*> yit; vector<E_Float*> zit;

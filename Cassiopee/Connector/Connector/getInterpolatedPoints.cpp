@@ -1141,7 +1141,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       }
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl = K_ARRAY::buildArray(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1154,7 +1154,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
     // WARNING: NGON is array1 type here !!! 
-    if ( K_STRING::cmp(eltType,"NGON")==0) cn->setNGon(1);
+    if (K_STRING::cmp(eltType,"NGON")==0) cn->setNGon(1);
  
     searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)
@@ -1163,7 +1163,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============

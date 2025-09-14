@@ -45,7 +45,7 @@ PyObject* K_CONVERTER::center2ExtCenter(PyObject* self, PyObject* args )
   }
   E_Int nfld = FCenter->getNfld();
   E_Int nie = ni+2; E_Int nje = nj+2; E_Int nke = nk+2;
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, nie, nje, nke);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nie, nje, nke, FCenter->getApi());
   E_Float* fep = K_ARRAY::getFieldPtr(tpl);
   FldArrayF FExtCenter(nie*nje*nke, nfld, fep, true);
   E_Int ret = K_LOC::center2ExtCenterStruct(ni, nj, nk, *FCenter, nie, nje, nke, FExtCenter);

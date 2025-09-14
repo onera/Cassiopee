@@ -490,21 +490,21 @@ E_Int FldArray<T>::getDim(char* eltType)
   E_Int dim = 3;
   if (_ngon > 0)  // NGon
   {
-    if (_ngon == 3)  // Array3
+    if (_ngon == 3)  // Array3/NGonv4
     {
       E_Int* ngon = _rake[0];
       E_Int* indPG = _rake[2];
       E_Int pos0 = indPG[0];
       size0 = indPG[1] - pos0;
     }
-    else if (_ngon == 2)  // Array 2
+    else if (_ngon == 2)  // Array3/NGonv3
     {
       E_Int* ngon = _rake[0];
       E_Int* indPG = _rake[2];
       E_Int pos0 = indPG[0];
       size0 = ngon[pos0];
     }
-    else // Array1
+    else // Array1/NGONv3
     {
       E_Int* ngon = _rake[0]+2;
       E_Int* indPG = getIndPG();
@@ -674,7 +674,7 @@ E_Int FldArray<T>::getSizeNFace()
 TEMPLATE_T
 E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
 {
-  if (_ngon == 3) // Array3
+  if (_ngon == 3) // Array3/NGonv4
   {
     E_Int* ngon = _rake[0];
     E_Int* indPG = _rake[2];
@@ -682,7 +682,7 @@ E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
     size = indPG[no+1]-pos;
     return ngon+pos;
   }
-  else if (_ngon == 2) // Array 2
+  else if (_ngon == 2) // Array3/NGonv3
   {
     E_Int* ngon = _rake[0];
     E_Int* indPG = _rake[2];
@@ -690,7 +690,7 @@ E_Int* FldArray<T>::getFace(E_Int no, E_Int& size)
     size = ngon[pos];
     return ngon+pos+1;
   }
-  else // Array1
+  else // Array1/NGonv3
   {
     E_Int* ngon = getNGon();
     E_Int* indPG = getIndPG();
@@ -704,12 +704,12 @@ TEMPLATE_T
 E_Int* FldArray<T>::getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG)
 {
   E_Int pos = indPG[no];
-  if (_ngon == 3) // Array3
+  if (_ngon == 3) // Array3/NGonv4
   {
     size = indPG[no+1]-pos;
     return ngon+pos;
   }
-  else // Array 1 or 2
+  else // Array1/3/NGONv3
   {
     size = ngon[pos];
     return ngon+pos+1;
@@ -720,7 +720,7 @@ E_Int* FldArray<T>::getFace(E_Int no, E_Int& size, E_Int* ngon, E_Int* indPG)
 TEMPLATE_T
 E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
 {
-  if (_ngon == 3) // Array3
+  if (_ngon == 3) // Array3/NGonv4
   {
     E_Int* nface = _rake[1];
     E_Int* indPH = _rake[3];
@@ -728,7 +728,7 @@ E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
     size = indPH[no+1]-pos;
     return nface+pos;
   }
-  else if (_ngon == 2) // Array 2
+  else if (_ngon == 2) // Array3/NGonv3
   {
     E_Int* nface = _rake[1];
     E_Int* indPH = _rake[3];
@@ -736,7 +736,7 @@ E_Int* FldArray<T>::getElt(E_Int no, E_Int& size)
     size = nface[pos];
     return nface+pos+1;
   }
-  else // Array1
+  else // Array1/NGonv3
   {
     E_Int* nface = getNFace();
     E_Int* indPH = getIndPH();
@@ -750,12 +750,12 @@ TEMPLATE_T
 E_Int* FldArray<T>::getElt(E_Int no, E_Int& size, E_Int* nface, E_Int* indPH)
 {
   E_Int pos = indPH[no];
-  if (_ngon == 3) // Array3
+  if (_ngon == 3) // Array3/NGonv4
   {
     size = indPH[no+1]-pos;
     return nface+pos;
   }
-  else // Array 1 or 2
+  else // Array1/3/NGonv3
   {
     size = nface[pos];
     return nface+pos+1;
