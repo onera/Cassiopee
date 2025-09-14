@@ -95,7 +95,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
   E_Bool array23 = false;
   if (api == 2 || api == 3) array23 = true;
-  if (api == 2) api = 3;
   E_Int shift = 1; if (api == 3) shift = 0;
 
   // Get dimensionality
@@ -720,7 +719,6 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Int nc = cn.getNConnect();
   E_Int vidx;
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
-  if (nc > 1) api = 3; // force array3 for ME
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 

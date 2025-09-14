@@ -103,7 +103,7 @@ void K_TRANSFORM::breakNGonElements(
   vector<FldArrayF*>& fields, vector<E_Int>& eltType, char* varString)
 { 
   E_Int nfld = field.getNfld();
-  E_Int api = field.getApi(); if (api == 2) api = 3;
+  E_Int api = field.getApi();
   E_Int shift = 1; if (api == 3) shift = 0;
   
   E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();

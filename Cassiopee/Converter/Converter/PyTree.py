@@ -1402,9 +1402,9 @@ def getField(name, t, api=1):
                     info2 = i[2]
                     for j in info2:
                         if j[0] == name and j[3] == 'DataArray_t':
-                            if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
-                            elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
-                            elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
+                            if api == 1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
+                            elif api == 2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
+                            elif api == 3: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
                             else: raise ValueError('getField: unknow api.')
                             a = r[1]
                             if a is not None: break
@@ -1415,9 +1415,9 @@ def getField(name, t, api=1):
                     info2 = i[2]
                     for j in info2:
                         if j[0] == name and j[3] == 'DataArray_t':
-                            if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
-                            elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
-                            elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
+                            if api == 1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
+                            elif api == 2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
+                            elif api == 3: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
                             else: raise ValueError('getField: unknow api.')
                             a = r[1]
                             if a is not None: break

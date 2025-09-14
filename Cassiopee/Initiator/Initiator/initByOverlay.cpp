@@ -125,8 +125,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
                       "overlayField: the two meshes are different.");
       return NULL;
     }
-    E_Int apif = f1->getApi();
-    if (apif == 2) apif = 3;
+    E_Int api = f1->getApi();
 
     E_Float ro1, ro2, u1, u2, v1, v2, w1, w2, roe1, roe2, p1, p2;
     E_Float ro, p, u, v, w;
@@ -204,11 +203,11 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
     PyObject* tpl;
     if (res1 == 1)
     {
-      tpl = K_ARRAY::buildArray3(cfdField, varString, im2, jm2, km2, apif);
+      tpl = K_ARRAY::buildArray3(cfdField, varString, im2, jm2, km2, api);
     }
     else
     {
-      tpl = K_ARRAY::buildArray3(cfdField, varString, *cn2, eltType2, apif);
+      tpl = K_ARRAY::buildArray3(cfdField, varString, *cn2, eltType2, api);
     }
     RELEASESHAREDB(res1, array1, f1, cn1);
     RELEASESHAREDB(res2, array2, f2, cn2);

@@ -158,7 +158,6 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
     else  // ME
     {
       E_Int nc = cn->getNConnect();
-      if (nc > 1) api = 3;
       E_Int ntotElts = 0;
       for (E_Int ic = 0; ic < nc; ic++)
       {

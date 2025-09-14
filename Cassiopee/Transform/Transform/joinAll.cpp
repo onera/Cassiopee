@@ -146,8 +146,6 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     E_Int len = strlen(newEltType);
     newEltType[len-1] = '\0';
     
-    // ME: api = 3 only
-    if (nc > 1) api = 3;
     if (nc == 2 && dimRef == 3)
     {
       // HEXA & TETRA cannot be joined in a conformal mesh, skipping the last
@@ -486,9 +484,6 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     // Remove trailing comma in newEltType
     E_Int len = strlen(newEltType);
     newEltType[len-1] = '\0';
-    
-    // ME: api = 3 only
-    if (nc > 1) api = 3;
 
     vector<char*> newEltTypes;
     K_ARRAY::extractVars(newEltType, newEltTypes);
