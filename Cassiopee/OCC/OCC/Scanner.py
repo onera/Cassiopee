@@ -20,7 +20,7 @@ def getSlice(t, zval):
 def scan(t, axis, nz):
 
     hook = OCC.occ.createEmptyCAD("empty.step", "fmt_step")
-    
+
     # rotate t to get axis in z
     T._rotate(t, axis, (0,0,1))
 
