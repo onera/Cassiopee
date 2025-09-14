@@ -30,6 +30,9 @@
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "Geom_BSplineCurve.hxx"
 #include "GeomAPI_PointsToBSpline.hxx"
+#include "TColStd_HArray1OfBoolean.hxx"
+#include "TColgp_Array1OfVec.hxx"
+#include "GeomAPI_Interpolate.hxx"
 
 //=====================================================================
 // Add a spline to CAD hook
@@ -58,11 +61,11 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   
   // incoming numpy
   E_Int ncp = pc->getSize();
-  for (E_Int i = 0; i < ncp; i++) printf("%d : %g %g %g\n", i, x[i], y[i], z[i]);
+  //for (E_Int i = 0; i < ncp; i++) printf("%d : %g %g %g\n", i, x[i], y[i], z[i]);
 
   TopoDS_Edge edge;
 
-  if (method == 0) // linear
+  if (method == 0) // linear knots
   {
     // compute total length and copy control points
     std::vector<gp_Pnt>::const_iterator iter;
@@ -98,7 +101,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
     edge = BRepBuilderAPI_MakeEdge(spline);
   }
-  else if (method == 1) // approximation
+  else if (method == 1) // approximation through points
   {
     TColgp_Array1OfPnt pointsArray(1, static_cast<Standard_Integer>(ncp));
     for (E_Int i = 1; i <= ncp; i++) 
@@ -107,10 +110,10 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
       pointsArray.SetValue(i, p);
     }
 
-    Handle(Geom_BSplineCurve) hcurve = GeomAPI_PointsToBSpline(
+    Handle(Geom_BSplineCurve) spline = GeomAPI_PointsToBSpline(
         pointsArray, 
-        Geom_BSplineCurve::MaxDegree() - 6, 
-        Geom_BSplineCurve::MaxDegree(), 
+        Geom_BSplineCurve::MaxDegree() - 6,
+        Geom_BSplineCurve::MaxDegree(),
         GeomAbs_C2, 
         Precision::Confusion()).Curve();
 
@@ -118,8 +121,56 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     // periodic. After calling this method, the curve is still closed but
     // no longer periodic, which leads to errors when creating the 3d-lofts
     // from the curves.
-    hcurve->SetNotPeriodic();
-    edge = BRepBuilderAPI_MakeEdge(hcurve);
+    spline->SetNotPeriodic();
+    edge = BRepBuilderAPI_MakeEdge(spline);
+
+    // Get control points
+    /*
+    TColgp_Array1OfPnt poles = spline->Poles();
+    for (Standard_Integer i = poles.Lower(); i <= poles.Upper(); ++i) 
+    {
+      gp_Pnt pt = poles.Value(i);
+      std::cout << "Control Point " << i << ": " << pt.X() << ", " << pt.Y() << ", " << pt.Z() << std::endl;
+    }*/
+
+    // Get knots
+    /*
+    TColStd_Array1OfReal knots = spline->Knots();
+    for (Standard_Integer i = knots.Lower(); i <= knots.Upper(); ++i) 
+    {
+      std::cout << "Knot " << i << ": " << knots.Value(i) << std::endl;
+    }*/
+
+    // Get multiplicities
+    /*
+    TColStd_Array1OfInteger mults = spline->Multiplicities();
+    for (Standard_Integer i = mults.Lower(); i <= mults.Upper(); ++i) 
+    {
+      std::cout << "Multiplicity " << i << ": " << mults.Value(i) << std::endl;
+    }*/
+  }
+  else if (method == 3)
+  {
+    // a terminer: modele pour imposer les points et les tangentes
+    Handle(TColgp_HArray1OfPnt) points = new TColgp_HArray1OfPnt(1, 3);
+    points->SetValue(1, gp_Pnt(0, 0, 0));      // Fixed point
+    points->SetValue(2, gp_Pnt(5, 5, 0));      // Tangency constraint
+    points->SetValue(3, gp_Pnt(10, 0, 0));     // Free point
+
+    TColgp_Array1OfVec tangents(1, 3);
+    tangents.SetValue(1, gp_Vec(1, 0, 0));     // Tangent at fixed point
+    tangents.SetValue(2, gp_Vec(0, 1, 0));     // Tangent at middle point
+    tangents.SetValue(3, gp_Vec(0, 0, 0));     // No constraint
+
+    Handle(TColStd_HArray1OfBoolean) tangentFlags = new TColStd_HArray1OfBoolean(1, 3);
+    tangentFlags->SetValue(1, Standard_True);  // Enforce tangent
+    tangentFlags->SetValue(2, Standard_True);  // Enforce tangent
+    tangentFlags->SetValue(3, Standard_False); // No constraint
+
+    GeomAPI_Interpolate interpolator(points, Standard_False, 1e-6);
+    interpolator.Load(tangents, tangentFlags, Standard_True);
+    interpolator.Perform();
+    Handle(Geom_BSplineCurve) constrainedSpline = interpolator.Curve();
   }
 
   // Rebuild a single compound

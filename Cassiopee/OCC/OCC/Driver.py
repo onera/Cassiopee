@@ -204,16 +204,15 @@ class Entity:
         OCC.occ.freeHook(self.hook)
 
     def update(self):
-        print(self.P[0].v(), self.P[1].v())
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
             OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
-        elif self.type == "spline1":
+        elif self.type == "spline1": # control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC.occ.addSpline(self.hook, n, 0)
-        elif self.type == "spline2":
+        elif self.type == "spline2": # approximation
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
@@ -221,7 +220,7 @@ class Entity:
         elif self.type == "circle":
             OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v(), 0)
         elif self.type == "arc":
-            OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[1].v())
+            OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
