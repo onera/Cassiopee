@@ -85,6 +85,11 @@ fi
 
 
 # ----------------------------- Prods ------------------------------------------
+if [ -f "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user" ]; then
+    . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
+fi
+
+if [ -z $ELSAPROD ]; then
 if [ "$MAC" = "ld_eos8" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
     export ELSAPROD=eos8_r8
@@ -899,10 +904,7 @@ elif [ "$MAC" = "msys2" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-
-elif [ -f "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user" ]; then
-#----------------------------- user prods --------------------------------------
-    . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
+fi
 fi
 
 if [ -z $ELSAPROD ]; then
