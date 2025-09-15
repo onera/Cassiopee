@@ -370,8 +370,7 @@ if NUGA:
 #==============================================================================
 # Fichiers fortrans
 #==============================================================================
-for_srcs = ['KCore/CompGeom/RotateMeshF.for',
-            'KCore/CompGeom/CompBBoxOfCellF.for',
+for_srcs = ['KCore/CompGeom/CompBBoxOfCellF.for',
             'KCore/CompGeom/CompBoundingBox2F.for',
             'KCore/CompGeom/CompBoundingBoxUnstr2F.for',
             'KCore/CompGeom/CompBoundingBoxUnstrF.for',
