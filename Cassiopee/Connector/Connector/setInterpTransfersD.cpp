@@ -347,7 +347,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
   vector< PyArrayObject* > hook;
 
-  E_Int   kmd, cnNfldD, nvars, meshtype, nvars_Pnt2;
+  E_Int kmd, cnNfldD, nvars, meshtype;
 
   /* varType determines the variables to transfer
      varType :
@@ -422,6 +422,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
 
   FldArrayI* dtloc;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pydtloc, dtloc);
+  if (res_donor == 0) return NULL;
   E_Int* iptdtloc = dtloc->begin();
 
   //------------------------------------/
@@ -1323,15 +1324,17 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   // Extraction tableau int et real     /
   //------------------------------------/
   FldArrayI* param_int;
-  E_Int      res_donor     = K_NUMPY::getFromNumpyArray( pyParam_int, param_int );
-  E_Int*     ipt_param_int = param_int->begin( );
+  E_Int res_donor = K_NUMPY::getFromNumpyArray( pyParam_int, param_int );
+  if (res_donor == 0) return NULL;
+  E_Int* ipt_param_int = param_int->begin( );
   FldArrayF* param_real;
-  res_donor               = K_NUMPY::getFromNumpyArray( pyParam_real, param_real );
+  res_donor = K_NUMPY::getFromNumpyArray( pyParam_real, param_real );
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin( );
 
   // On recupere le nom de la 1ere variable a recuperer
-  PyObject* tpl0    = PyList_GetItem( pyVariables, 0 );
-  char*     varname = NULL;
+  PyObject* tpl0 = PyList_GetItem( pyVariables, 0 );
+  char* varname = NULL;
   if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
   else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0);
@@ -1522,7 +1525,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
     if ( ibcTypeMax <= 1 ) size = 0;             // tableau inutile : SP ; voir avec Ivan
 
     FldArrayF tmp( size * 17 * threadmax_sdm );
-    E_Float*  ipt_tmp = tmp.begin();
+    //E_Float*  ipt_tmp = tmp.begin();
 
     // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
     FldArrayI rcvPtsI( nbRcvPts_mx );

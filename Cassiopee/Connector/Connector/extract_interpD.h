@@ -3,12 +3,14 @@
   /*-------------------------------------*/
   FldArrayI* donorPtsI;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pyIndDonor, donorPtsI);
+  if (res_donor == 0) return NULL;
   E_Int* donorPts = donorPtsI->begin();
   /*----------------------*/
   /* Extraction des types */
   /*----------------------*/
   FldArrayI* typesI;
   E_Int res_type = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI);
+  if (res_type == 0) return NULL;
   E_Int* types = typesI->begin();
   E_Int nbRcvPts = typesI->getSize(); // taille du numpy = nb de pts a interpoler
   /*-----------------------*/
@@ -16,3 +18,5 @@
   /*-----------------------*/
   FldArrayF* donorCoefsF;
   E_Int res_coef = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF);
+  if (res_coef == 0) return NULL;
+  
