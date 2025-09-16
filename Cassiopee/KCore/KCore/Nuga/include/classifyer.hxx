@@ -166,10 +166,10 @@ namespace NUGA
   namespace CLASSIFY // some "global" functions : they do not need all the template params of the classifyer class
   {
     template <typename T1, typename T2>
-    static eClassify classify(T1 const& t1, T2 const& t2, bool deep);
+    static inline eClassify classify(T1 const& t1, T2 const& t2, bool deep);
 
     template <>
-    eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front, bool deep)
+    inline eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front, bool deep)
     {
       const double* norm = ae1.get_normal();
       const double* pt = ae1.get_centroid();
@@ -245,7 +245,7 @@ namespace NUGA
     }
 
     template <>
-    eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
+    inline eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
     {
       const double* ae1G = ae1.get_centroid();
       
@@ -343,7 +343,7 @@ namespace NUGA
     
 
     template <>
-    eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
+    inline eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
     {
       // WARNING : assume ae1 and ae2 are closed surface (polyhedra)
       // WARNING : assume no collision situation => 3 posibilities : 1 in 2, 2 in 1 or separated
@@ -407,7 +407,7 @@ namespace NUGA
     }
 
     
-    static eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
+    static inline eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
     {
       DELAUNAY::Triangulator dt;
 
