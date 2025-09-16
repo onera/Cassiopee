@@ -48,7 +48,7 @@ test.testT(z,4)
 #-------------------------------
 
 # NGONv3
-z = G.cartNGon((0,0,0), (1./(N-1),1./(N-1),1./(N-1)), (N,N,N), api=3)
+z = G.cartNGon((0,0,0), (1./(N-1),1./(N-1),1./(N-1)), (N,N,N), api=1)
 z = C.initVars(z, 'Density', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 z = P.computeGrad(z, 'Density')
 test.testT(z,5)
