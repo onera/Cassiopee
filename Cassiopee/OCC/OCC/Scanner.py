@@ -22,7 +22,7 @@ def getSliceZ(t, zval, axis):
     iso = T.join(iso)
     isos = T.splitConnexity(iso)
     isos = C.convertBAR2Struct(isos)
-    for c, iso in enumerate(isos):    
+    for c, iso in enumerate(isos):
         if not checkOrder(iso, axis):
             isos[c] = T.reorder(iso, (-1,2,3))
     return isos
