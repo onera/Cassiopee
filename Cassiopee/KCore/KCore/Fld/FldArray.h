@@ -360,7 +360,7 @@ TEMPLATE_T
 inline T FldArray<T>::operator[] (E_Int l) const
 {
   assert (_rake != NULL);
-  assert(_ngon == 0);
+  assert (_ngon == 0);
   assert (l >= 0);
   assert (l < _sizeMax*_nfldLoc);
   E_Int n = E_Int(l/_sizeLoc);
@@ -383,7 +383,7 @@ inline T& FldArray<T>::operator[] (E_Int l)
 TEMPLATE_T
 inline T FldArray<T>::operator()(E_Int l, E_Int fld) const
 {
-  assert (_rake  !=  NULL);
+  assert (_rake != NULL);
   assert (l >= 0);
   assert (l < _sizeLoc);
   assert (fld >= NUMFIELD0);
