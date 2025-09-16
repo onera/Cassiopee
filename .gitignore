@@ -12,6 +12,8 @@ Cassiopee/XCore/merge.l
 Cassiopee/Modeler/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
+Cassiopee/KCore/installBaseUser.py
+Cassiopee/Envs/sh_Cassiopee_user
 Cassiopee/KCore/doc/source/*.rst
 Cassiopee/CPlot/apps/Output
 ValidData*

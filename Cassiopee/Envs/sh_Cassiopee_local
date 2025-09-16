@@ -16,29 +16,37 @@ fi
 
 # Detect machine (shortest first)
 KC=$(uname -n)
-if echo "$KC" | grep -q 'n'; then export MAC="sator_cas"; fi
-if echo "$KC" | grep -q 'ld'; then export MAC="ld"; fi
-if echo "$KC" | grep -q 'f0'; then export MAC="juno"; fi
-if echo "$KC" | grep -q 'n0'; then export MAC="juno"; fi
-if echo "$KC" | grep -q 'b0'; then export MAC="juno"; fi
-if echo "$KC" | grep -q 'v0'; then export MAC="juno"; fi
-if echo "$KC" | grep -q 'fv-az'; then export MAC="azure"; fi
-if echo "$KC" | grep -q 'clausius'; then export MAC="ld"; fi
-if echo "$KC" | grep -q 'ubuntu'; then export MAC="ubuntu"; fi
-if echo "$KC" | grep -q 'visio'; then export MAC="visio"; fi
-if echo "$KC" | grep -q 'austri'; then export MAC="austri"; fi
-if echo "$KC" | grep -q 'celeste'; then export MAC="visio"; fi
-if echo "$KC" | grep -q 'visung'; then export MAC="visung"; fi
-if echo "$KC" | grep -q 'giulia'; then export MAC="giulia"; fi
-if echo "$KC" | grep -q 'sator'; then export MAC="sator_cas"; fi
-if echo "$KC" | grep -q 'spiro'; then export MAC="spiro_el8"; fi
-if echo "$KC" | grep -q 'cobalt'; then export MAC="cobalt"; fi
-if echo "$KC" | grep -q 'irene'; then export MAC="irene"; fi
-if echo "$KC" | grep -q 'jean-zay'; then export MAC="jean-zay"; fi
-if echo "$KC" | grep -q 'node6.cluster'; then export MAC="macosx"; fi
-if echo "$KC" | grep -q 'topaze'; then export MAC="topaze"; fi
-if echo "$KC" | grep -q 'atlas'; then export MAC="atlas"; fi
-if echo "$KC" | grep -q 'WDAAA161Z'; then export MAC="WDAAA161Z"; fi
+for pattern in \
+  "n:sator_cas" \
+  "ld:ld" \
+  "f0:juno" \
+  "n0:juno" \
+  "b0:juno" \
+  "v0:juno" \
+  "fv-az:azure" \
+  "clausius:ld" \
+  "ubuntu:ubuntu" \
+  "visio:visio" \
+  "austri:austri" \
+  "celeste:visio" \
+  "visung:visung" \
+  "giulia:giulia" \
+  "sator:sator_cas" \
+  "spiro:spiro_el8" \
+  "cobalt:cobalt" \
+  "irene:irene" \
+  "jean-zay:jean-zay" \
+  "node6.cluster:macosx" \
+  "topaze:topaze" \
+  "atlas:atlas" \
+  "WDAAA161Z:WDAAA161Z"
+do
+  key=${pattern%%:*}; val=${pattern#*:}
+  if echo "$KC" | grep -q "$key"; then
+    export MAC="$val"
+    break
+  fi
+done
 
 # Detect MAC environement from MACHINE
 EXT=""
@@ -77,6 +85,11 @@ fi
 
 
 # ----------------------------- Prods ------------------------------------------
+if [ -f "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user" ]; then
+    . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
+fi
+
+if [ -z $ELSAPROD ]; then
 if [ "$MAC" = "ld_eos8" ]; then
 #------------------------------- ld centos 8 + python 3 -----------------------------------
     export ELSAPROD=eos8_r8
@@ -891,10 +904,12 @@ elif [ "$MAC" = "msys2" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
+fi
+fi
 
-else
+if [ -z $ELSAPROD ]; then
     echo 'Error: your machine was not found in Envs.'
-    exit 1
+    return 1
 fi
 
 #-------------------------- Common to all prods --------------------------------

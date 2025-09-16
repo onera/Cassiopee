@@ -518,7 +518,7 @@ def writeSetupCfg():
 
 #==============================================================================
 # Retourne le compilo c, c++ et ses options tels que definis dans distutils
-# ou dans config.py (installBase.py)
+# ou dans config.py (installBase.py ou installBaseUser.py)
 #==============================================================================
 def getDistUtilsCompilers():
     vars = sysconfig.get_config_vars('CC', 'CXX', 'OPT',

@@ -2,7 +2,7 @@
 #
 # Installation du module KCore
 #
-# 1. Modifier le fichier KCore/installBase.py
+# 1. Modifier le fichier KCore/installBaseUser.py
 # 2. Pour l'installation standard (dans $CASSIOPEE/Dist/bin/$ELSAPROD/),
 # taper  : ./install
 #    Pour une installation dans un repertoire <rep>, taper : ./install <rep>

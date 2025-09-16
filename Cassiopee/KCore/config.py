@@ -41,7 +41,7 @@ if key == '':
             key = i; break
 
 if key == '': # not found in install base
-    print("Warning: %s was not found in KCore/installBase.py."%host)
+    print("Warning: neither %s nor %s were found in KCore/installBase.py."%(prod, host))
     print("Warning: using default compilers and options.")
     print("Warning: to change that, add a block in KCore/installBase.py.")
     key = 'default'
