@@ -29,7 +29,7 @@
 void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 {
   E_Int i, n1, n2, n3, n4;
-  float r, g, b, offb=0.;
+  float r, /*g, b,*/ offb=0.;
   double blend;
   E_Int ret1, ret2, ret3, ret4, ff=0;
 

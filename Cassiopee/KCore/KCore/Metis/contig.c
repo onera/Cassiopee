@@ -335,7 +335,7 @@ idx_t FindSepInducedComponents(ctrl_t *ctrl, graph_t *graph, idx_t *cptr,
 /*************************************************************************/
 void EliminateComponents(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, ii, j, jj, k, me, nparts, nvtxs, ncon, ncmps, 
+  idx_t i, ii, j, jj, me, nparts, nvtxs, ncon, ncmps, 
         ncand, target;
   idx_t *xadj, *adjncy, *vwgt, *adjwgt, *where, *pwgts;
   idx_t *cptr, *cind, *cpvec, *pcptr, *pcind, *cwhere;
@@ -531,7 +531,7 @@ void EliminateComponents(ctrl_t *ctrl, graph_t *graph)
 void MoveGroupContigForCut(ctrl_t *ctrl, graph_t *graph, idx_t to, idx_t gid, 
          idx_t *ptr, idx_t *ind)
 {
-  idx_t i, ii, iii, j, jj, k, l, nvtxs, nbnd, from, me;
+  idx_t i, ii, iii, j, k, nvtxs, nbnd, from, me;
   idx_t *xadj, *adjncy, *adjwgt, *where, *bndptr, *bndind;
   ckrinfo_t *myrinfo;
   cnbr_t *mynbrs;
@@ -602,7 +602,7 @@ void MoveGroupContigForVol(ctrl_t *ctrl, graph_t *graph, idx_t to, idx_t gid,
          idx_t *ptr, idx_t *ind, idx_t *vmarker, idx_t *pmarker, 
          idx_t *modind)
 {
-  idx_t i, ii, iii, j, jj, k, l, nvtxs, from, me, other, xgain;
+  idx_t i, ii, iii, j, k, l, nvtxs, from, other, xgain;
   idx_t *xadj, *vsize, *adjncy, *where;
   vkrinfo_t *myrinfo, *orinfo;
   vnbr_t *mynbrs, *onbrs;
