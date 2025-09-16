@@ -566,7 +566,7 @@ namespace K_ARRAY
      OUT: PyObject cree. */
   PyObject* buildArray(const K_FLD::DynArray<E_Float>& field, const char* varString,
                        const K_FLD::DynArray<E_Int>& c, E_Int et, 
-                       const char* etString=NULL, 
+                       const char* etString=NULL,
                        E_Bool center=false);
 
   /* Add field in array1 or array2 (in place) 

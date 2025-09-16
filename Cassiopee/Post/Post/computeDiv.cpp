@@ -190,7 +190,7 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
     }
     else  // ME
     {
-      E_Int nc = cn->getNConnect();
+      //E_Int nc = cn->getNConnect();
       tpl = K_ARRAY::buildArray3(
         1, varStringOut, npts, *cn, eltType,
         center, api, copyConnect

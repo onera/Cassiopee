@@ -954,8 +954,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int bcType  = E_Int(bctype);  // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
-  E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
+  //E_Int bcType  = E_Int(bctype);  // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
+  //E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
 
   // E_Float alpha = 1.;
   E_Float cvgam = cv*(gamma-1.);
@@ -968,12 +968,16 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
 
   FldArrayF* pressF;
   E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
+  if (okP == 0) return NULL;
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
   E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  if (okGxP == 0) return NULL;
   E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  if (okGyP == 0) return NULL;
   E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
+  if (okGzP == 0) return NULL;
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -983,7 +987,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
   char* eltTypeD=NULL; char* varStringD=NULL;
   char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
 
-  if (compact==0)
+  if (compact == 0)
   {
     E_Int cnSizeD;
     vector<E_Int> locsD;

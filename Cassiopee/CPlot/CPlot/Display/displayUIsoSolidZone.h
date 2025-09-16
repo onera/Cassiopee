@@ -178,7 +178,6 @@
   glVertex3d(x[n], y[n], z[n]);
  #endif
 
-  double r2, r3, r4, a;
   E_Int blank;
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
@@ -186,8 +185,11 @@
   deltai = 1./deltai;
 
   // Colormap
+#ifndef __SHADERS__
   void (*getrgb)(Data* data, double, float*, float*, float*);
   getrgb = _pref.colorMap->f;
+  double r2, r3, r4, a;
+  #endif
 
   double* f = zonep->f[nofield];
 

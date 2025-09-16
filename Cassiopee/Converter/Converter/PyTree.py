@@ -1079,8 +1079,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         return t
 
     if format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
+        import pickle
         print('Reading %s (bin_pickle)...'%fileName, end='')
         try:
             file = open(fileName, 'rb')
@@ -1239,8 +1238,7 @@ def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
         tp, ntype = Internal.node2PyTree(t)
         Converter.converter.convertPyTree2FileFsdm(tp, fileName, format)
     elif format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
+        import pickle
         file = open(fileName, 'wb')
         print('Writing '+fileName+'...', end='')
         pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
