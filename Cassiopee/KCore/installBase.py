@@ -602,20 +602,20 @@ installDict = {
               ],
     ###############################################################################
     'sator_coda2': [ 'Cluster de calcul Sator Saphire (Onera)',
-                 'gfortran', # f77compiler
-                 'gfortran', # f90compiler
-                 'gcc', # Cppcompiler
-                 ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 [], # additionalIncludePaths
-                 [], # additionalLibs
-                 [], # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    
+                     'gfortran', # f77compiler
+                     'gfortran', # f90compiler
+                     'gcc', # Cppcompiler
+                     ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
+                     [], # f77AdditionalOptions
+                     True, # useOMP
+                     False, # static
+                     [], # additionalIncludePaths
+                     [], # additionalLibs
+                     [], # additionalLibPaths
+                     False, # useCuda
+                     [] # NvccAdditionalOptions
+                     ],
+
     ###############################################################################
     'sator': [ 'Cluster de calcul Sator Broadwell (Onera)',
                'ifort', # f77compiler
@@ -886,7 +886,7 @@ installDict = {
                [], # additionalLibPaths
                False, # useCuda
                [] # NvccAdditionalOptions
-               ],    
+               ],
     ###############################################################################
     **installDictUser
 }
