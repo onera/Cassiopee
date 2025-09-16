@@ -123,6 +123,7 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
         f->begin(posx), f->begin(posy), f->begin(posz), 
         f->begin(posv), *cn, 
         gradx, grady, gradz);
+
       if (ierr == 1)
       {
         PyErr_SetString(PyExc_TypeError, 
@@ -134,7 +135,6 @@ PyObject* K_POST::computeGrad(PyObject* self, PyObject* args)
     }
     else  // ME
     {
-      //E_Int nc = cn->getNConnect();
       tpl = K_ARRAY::buildArray3(
         3, varStringOut, npts, *cn, eltType,
         center, api, copyConnect);

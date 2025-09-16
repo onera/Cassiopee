@@ -26,6 +26,7 @@ cpp_srcs = [
     "Post/Fortran/compInterfaceField.cpp",
     "Post/Fortran/compCurlStruct.cpp",
     "Post/Fortran/compCurlUnstruct.cpp",
+    "Post/Fortran/compCurlNGon.cpp",
     "Post/Fortran/compDivStruct.cpp",
     "Post/Fortran/compDivUnstruct.cpp",
     "Post/Fortran/compDivNGon.cpp",
