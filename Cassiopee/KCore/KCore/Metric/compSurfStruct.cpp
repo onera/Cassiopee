@@ -26,7 +26,7 @@
 // IN: xt, yt, zt: Vertex coordinates
 // OUT: surface: Mesh area
 //=============================================================================
-void K_METRIC::compStructSurft(
+void K_METRIC::compSurfStruct2D(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surface
@@ -103,12 +103,12 @@ void K_METRIC::compStructSurft(
         surf1y = l1z * l2x - l1x * l2z;
         surf1z = l1x * l2y - l1y * l2x;
         surface1 = sqrt(surf1x * surf1x + surf1y * surf1y + surf1z * surf1z);
-        l3x = xt[ind4]-xt[ind3];
-        l3y = yt[ind4]-yt[ind3];
-        l3z = zt[ind4]-zt[ind3];
-        l4x = xt[ind4]-xt[ind2];
-        l4y = yt[ind4]-yt[ind2];
-        l4z = zt[ind4]-zt[ind2];
+        l3x = xt[ind4] - xt[ind3];
+        l3y = yt[ind4] - yt[ind3];
+        l3z = zt[ind4] - zt[ind3];
+        l4x = xt[ind4] - xt[ind2];
+        l4y = yt[ind4] - yt[ind2];
+        l4z = zt[ind4] - zt[ind2];
         surf2x = l3y * l4z - l3z * l4y;
         surf2y = l3z * l4x - l3x * l4z;
         surf2z = l3x * l4y - l3y * l4x;
@@ -156,7 +156,7 @@ void K_METRIC::compStructSurft(
   }
   else
   {
-    fprintf(stderr, "In compStructSurft: 2D field is required.\n");
+    fprintf(stderr, "In compSurfStruct: 2D field is required.\n");
     exit(0);
   }
 }
@@ -168,7 +168,7 @@ void K_METRIC::compStructSurft(
 // IN: xt, yt, zt: Vertex coordinates
 // OUT: length: Longueur entre chaque sommet
 //=============================================================================
-void K_METRIC::compStructSurf1dt(
+void K_METRIC::compSurfStruct1D(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* length
@@ -219,7 +219,7 @@ void K_METRIC::compStructSurf1dt(
   }
   else
   {
-    fprintf(stderr, "In compStructSurf1dt: 1D field is required.\n");
+    fprintf(stderr, "In compSurfStruct1D: 1D field is required.\n");
     exit(0);
   }
 }

@@ -24,7 +24,7 @@
 // Les normales aux surfaces sont orientees vers l'exterieur de l'element.
 // IN: xt, yt, zt: pointeurs sur les coordonnees du maillage
 //=============================================================================
-void K_METRIC::compUnstructSurf(
+void K_METRIC::compSurfUnstruct(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface

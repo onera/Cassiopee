@@ -119,7 +119,7 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
         K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
         E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
         FldArrayF nsurf(nelts,3, nsurfp, true);
-        E_Int err = K_METRIC::compNGonSurf(
+        E_Int err = K_METRIC::compSurfNGon(
           f->begin(posx), f->begin(posy), f->begin(posz), *cn,
           nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
 
@@ -159,7 +159,7 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
         E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
         FldArrayF nsurf(nelts, 3, nsurfp, true);
         FldArrayF surf(nelts, 1);
-        K_METRIC::compUnstructSurf(
+        K_METRIC::compSurfUnstruct(
           *cn, eltType,
           f->begin(posx), f->begin(posy), f->begin(posz),
           nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), surf.begin());

@@ -341,7 +341,7 @@ void compute_volumes(K_FLD::FldArrayI &cn, E_Float *x, E_Float *y, E_Float *z,
 // Assumes unsigned faces
 // Returns 0 if ok
 // Returns 2 if some cells are not closed
-E_Int K_METRIC::compute_volumes_ngon(E_Float *x, E_Float *y, E_Float *z,
+E_Int K_METRIC::compVolNGonImad(E_Float *x, E_Float *y, E_Float *z,
   K_FLD::FldArrayI &cn, E_Float *vols)
 {
   E_Int ncells = cn.getNElts();

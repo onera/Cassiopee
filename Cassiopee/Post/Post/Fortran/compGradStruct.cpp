@@ -86,7 +86,7 @@ void K_POST::compGradStruct3D(
   FldArrayF fieldint(nint);
   FldArrayF vol(ncells);
 
-  K_METRIC::compStructMetric(
+  K_METRIC::compMetricStruct(
     ni, nj, nk, inti, intj, intk,
     xt, yt, zt,
     vol.begin(), surfx.begin(), surfy.begin(), surfz.begin(), snorm.begin(),
@@ -180,7 +180,7 @@ void K_POST::compGradStruct2D(
 
   // Calcul de la surface totale des cellules
   FldArrayF surf(ncells), nxt(ncells), nyt(ncells), nzt(ncells);
-  K_METRIC::compStructSurft(ni, nj, 1, xt, yt, zt, surf.begin());
+  K_METRIC::compSurfStruct2D(ni, nj, 1, xt, yt, zt, surf.begin());
   K_METRIC::compNormStructSurf(
     ni, nj,
     xt, yt, zt,
