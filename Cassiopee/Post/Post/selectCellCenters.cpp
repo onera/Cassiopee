@@ -85,12 +85,12 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   }
 
   E_Float oneEps = 1.-1.e-10;
-  /*E_Int elt = -1;*/
   E_Float* tagp = tag->begin();
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   if (res == 1) // Create connectivity cnp (HEXA or QUAD)
   {
@@ -130,7 +130,6 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
 
-      /*elt = 1;*/ // BAR
       if (nj1 == 1 && nk1 == 1)
       {
         for (E_Int i = 0; i < ni1; i++)
@@ -171,7 +170,6 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
       E_Int* cn4 = cn.begin(4);
-      /*elt = 3;*/ //QUAD
       if (nk1 == 1)
       {
         for (E_Int j = 0; j < nj1; j++)
@@ -220,7 +218,6 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     { 
       nelts = ncells;
       cn.malloc(nelts,8);
-      /*elt = 7;*/ // HEXA
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
@@ -321,7 +318,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     else if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       tpl = K_CONNECT::V_cleanConnectivity(
         varString, *fout, *acn, eltType, 1.e-10);
-    else tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType);
+    else tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType, api);
     delete acn; delete fout;
     if (res == 1) delete[] eltType;
   }
@@ -491,6 +488,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
 
+    cout->setNGon(cnp->getNGonType());
     tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
     delete cout; delete fout;     
   }
@@ -577,7 +575,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   }
 
   E_Float oneEps = 1.-1.e-10;
-  E_Int elt = -1;
   E_Float* tagp = tag->begin();
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
@@ -622,7 +619,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
 
-      elt = 1; // BAR
       if (nj1 == 1 && nk1 == 1)
       {
         for (E_Int i = 0; i < ni1; i++)
@@ -663,7 +659,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
       E_Int* cn4 = cn.begin(4);
-      elt = 3; //QUAD
       if (nk1 == 1)
       {
         for (E_Int j = 0; j < nj1; j++)
@@ -712,7 +707,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     { 
       nelts = ncells;
       cn.malloc(nelts,8);
-      elt = 7; // HEXA
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
@@ -749,6 +743,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0); 
   PyObject* tpl;
   PyObject* tplc;
+  E_Int api = fC->getApi();
 
   if (strcmp(eltType, "NGON") != 0) // tous les elements sauf NGON
   {
@@ -850,8 +845,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
                                      *fout, *acn);
     }
     
-    tpl  = K_ARRAY::buildArray(*fout,  varString,  *acn, elt, eltType);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltType);
+    tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType, api);
+    tplc = K_ARRAY::buildArray3(*foutC, varStringC, *acn, eltType, api);
     delete acn; delete fout; delete foutC;
     if (res == 1) delete[] eltType;
   }
@@ -862,7 +857,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     FldArrayF& fcenter  = *foutC; 
     FldArrayF& fcenter0 = *fC; 
     
-    E_Int nfldC        = fC->getNfld(); // nombre de champs en centres 
+    E_Int nfldC = fC->getNfld(); // nombre de champs en centres 
     E_Int* cnpp = cnp->begin();
     E_Int sizeFN = cnpp[1];            // taille de l'ancienne connectivite Face/Noeuds
     E_Int nbElements = cnpp[sizeFN+2]; // nombre d'elts de l'ancienne connectivite
@@ -1041,15 +1036,16 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       
     }
 
-    tpl  = K_ARRAY::buildArray(*fout,  varString,  *cout, 8);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
+    cout->setNGon(1);
+    tpl  = K_ARRAY::buildArray3(*fout,  varString, *cout, eltType, api);
+    tplc = K_ARRAY::buildArray3(*foutC, varStringC, *cout, eltType, api);
     delete cout; delete fout; delete foutC; 
   }
 
-  PyList_Append(l,tpl) ; Py_DECREF(tpl);
-  PyList_Append(l,tplc); Py_DECREF(tplc);
+  PyList_Append(l, tpl); Py_DECREF(tpl);
+  PyList_Append(l, tplc); Py_DECREF(tplc);
   
-  RELEASESHAREDB(res,  arrayNodes,   f,  cnp);
+  RELEASESHAREDB(res, arrayNodes, f, cnp);
   RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
   
   return l;
