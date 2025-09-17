@@ -1716,11 +1716,11 @@ E_Int K_TRANSFORM::checkNegativeVolumeCells(
   FldArrayF centerInt(nint, 3);
 
   if (dim == 2)
-    K_METRIC::compStructSurft(
+    K_METRIC::compSurfStruct2D(
       im, jm, km,
       coords.begin(1), coords.begin(2), coords.begin(3), vol.begin());
   else 
-    K_METRIC::compStructMetric(
+    K_METRIC::compMetricStruct(
       im, jm, km, ninti, nintj, nintk, 
       coords.begin(1), coords.begin(2), coords.begin(3), 
       vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 

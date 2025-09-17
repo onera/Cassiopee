@@ -97,7 +97,7 @@ void K_POST::compDivUnstruct3D(
   FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets), surf(ntotFacets);
   FldArrayF fieldfx(ntotFacets), fieldfy(ntotFacets), fieldfz(ntotFacets);
   FldArrayF vol(ntotElts);
-  K_METRIC::compUnstructMetric(
+  K_METRIC::compMetricUnstruct(
     cn, eltType,
     xt, yt, zt,
     snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
@@ -182,7 +182,7 @@ void K_POST::compDivUnstruct2D(
   K_FLD::FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts), surf(ntotElts);
   
   // Compute surface of elements
-  K_METRIC::compUnstructSurf(
+  K_METRIC::compSurfUnstruct(
     cn, eltType, xt, yt, zt,
     snx.begin(), sny.begin(), snz.begin(), surf.begin()
   );

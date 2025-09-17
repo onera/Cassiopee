@@ -34,7 +34,7 @@ using namespace std;
 // des elements (deja alloue)
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
-E_Int K_METRIC::compNGonVol(
+E_Int K_METRIC::compVolNGon(
   const E_Float* xt, const E_Float* yt, const E_Float* zt, 
   FldArrayI& cn, E_Float* volp
 )

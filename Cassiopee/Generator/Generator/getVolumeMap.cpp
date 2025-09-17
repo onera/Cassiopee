@@ -26,20 +26,10 @@ using namespace K_CONST;
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                          E_Int& nnodes, E_Int* cn, 
-                          E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                          E_Float* xint, E_Float* yint, E_Float* zint, 
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, E_Float* vol);
-}
 // ============================================================================
 /* Return volume map */
 // ============================================================================
-PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
-                                           PyObject* args )
+PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int method;
@@ -52,8 +42,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
   char* varString; char* eltType;
   E_Int posx, posy, posz;
   E_Int res;
-  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, 
-                               eltType);
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   PyObject* tpl = NULL;
   
@@ -76,6 +65,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
 
+    E_Int api = f->getApi();
     E_Int npts = f->getSize();
 
     if (res == 1) // cas structure
@@ -100,141 +90,154 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh( PyObject* self,
       E_Int nintk = im1*jm1*km;
       E_Int nint =  ninti + nintj + nintk;
 
-      tpl = K_ARRAY::buildArray(1, "vol", im1, jm1, km1);
-      E_Float* volap = K_ARRAY::getFieldPtr(tpl);
+      tpl = K_ARRAY::buildArray3(1, "vol", im1, jm1, km1);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* volap = f2->begin(1);
 
       // calcul du volume
       if (dim == 1)
-        K_METRIC::compStructSurf1dt(im, jm, km, xt, yt, zt, volap);
+        K_METRIC::compSurfStruct1D(im, jm, km, xt, yt, zt, volap);
       else if (dim == 2)
-        K_METRIC::compStructSurft(im, jm, km, xt, yt, zt, volap);
+        K_METRIC::compSurfStruct2D(im, jm, km, xt, yt, zt, volap);
       else
       {
         FldArrayF surf(nint,3);
         FldArrayF snorm(nint);
         FldArrayF centerInt(nint, 3);
-        K_METRIC::compStructMetric(
+        K_METRIC::compMetricStruct(
           im, jm, km, ninti, nintj, nintk,
           xt, yt, zt,
           volap, surf.begin(1), surf.begin(2), surf.begin(3), 
           snorm.begin(), 
           centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
       }
+      RELEASESHAREDS(tpl, f2);
       RELEASESHAREDS(array, f);
     }
-    else if (res == 2) // cas non structure
+    else if (res == 2) // cas non-structure
     {
-      if (strcmp(eltType, "NGON") != 0) // Elements basiques
+      // Build array contenant le volume des elements au centre des elements
+      tpl = K_ARRAY::buildArray3(1, "vol", npts, *cn, eltType, true, api, true);
+      FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* vol = f2->begin(1); // pointeur sur le tableau de volumes
+
+      if (strcmp(eltType, "NGON") == 0) // Elements NGON
       { 
-        E_Int nelts = cn->getSize(); // nb d elements ns
-        E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-        E_Int nedges; // nb de facettes par element
-        // recherche du nb de facettes par element
-        if (strcmp(eltType, "BAR") == 0) nedges = 0; 
-        else if (strcmp(eltType, "TRI") == 0) nedges = 1; 
-        else if (strcmp(eltType, "QUAD") == 0 ) nedges = 1;
-        else if (strcmp(eltType, "TETRA") == 0) nedges = 4;
-        else if (strcmp(eltType, "HEXA") == 0) nedges = 6;
-        else if (strcmp(eltType, "PENTA") == 0) nedges = 5;
-        else if (strcmp(eltType, "PYRA") == 0) nedges = 5;
-        else 
+        E_Int ierr = 0;
+        if (method == 0)
+          ierr = K_METRIC::compVolNGon(xt, yt, zt, *cn, vol);
+        else if (method == 1)
+          ierr = K_METRIC::compVolNGonImad(xt, yt, zt, *cn, vol);
+        else
         {
-          PyErr_SetString(PyExc_TypeError,
-                          "getVolumeMap: unknown type of element.");
-          RELEASESHAREDU(array, f, cn); return NULL;
+          PyErr_SetString(PyExc_ValueError,
+                          "getVolumeMap: wrong method (should be 0 or 1).");
+          RELEASESHAREDS(tpl, f2);
+          RELEASESHAREDU(array, f, cn);
+          return NULL;
         }
 
-        // Build array
-        tpl = K_ARRAY::buildArray(1, "vol",
-                                  f->getSize(), nelts, -1, eltType, true);
-        E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        FldArrayI cnn(nelts, cn->getNfld(), cnnp, true); cnn = *cn;
-
-        if (nedges == 0) // BAR element
+        if (ierr == 1)
         {
+          PyErr_SetString(PyExc_ValueError,
+                          "getVolumeMap: dimension of element unknown.");
+          RELEASESHAREDS(tpl, f2);
+          RELEASESHAREDU(array, f, cn);
+          return NULL;
+        }
+      }
+      else // ME
+      {
+        E_Int nc = cn->getNConnect();
+        std::vector<char*> eltTypes;
+        K_ARRAY::extractVars(eltType, eltTypes);
+
+        // Get ME mesh dimensionality from the first element type
+        E_Int dim = 3;
+        if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+        else if (strcmp(eltTypes[0], "TRI") == 0 or
+                 strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+        
+        if (dim == 1)
+        {
+          K_FLD::FldArrayI& cm = *(cn->getConnect(0)); // TODO
+          E_Int nelts = cm.getSize();
           E_Int* cn1 = cn->begin(1);
           E_Int* cn2 = cn->begin(2);
           E_Int ind1, ind2;
           E_Float dx, dy, dz;
           for (E_Int i = 0; i < nelts; i++)
           {
-            ind1 = cn1[i]-1; 
-            ind2 = cn2[i]-1;
-            dx = xt[ind2]-xt[ind1];
-            dy = yt[ind2]-yt[ind1];
-            dz = zt[ind2]-zt[ind1];
-            fieldp[i] = sqrt(dx*dx + dy*dy + dz*dz);
+            ind1 = cn1[i] - 1; 
+            ind2 = cn2[i] - 1;
+            dx = xt[ind2] - xt[ind1];
+            dy = yt[ind2] - yt[ind1];
+            dz = zt[ind2] - zt[ind1];
+            vol[i] = sqrt(dx*dx + dy*dy + dz*dz);
           }
         }
-        else
+        else if (dim == 2)
         {
-          FldArrayF snx(nelts, nedges);
-          FldArrayF sny(nelts, nedges);
-          FldArrayF snz(nelts, nedges);
-          FldArrayF surf(nelts, nedges);
-          FldArrayF vol(nelts);
-          //tableau local au fortran
-          FldArrayF xint(nelts,nedges);
-          FldArrayF yint(nelts,nedges);
-          FldArrayF zint(nelts,nedges);
-          //
-          k6compunstrmetric_(npts, nelts, nedges, nnodes, cn->begin(), 
-                             xt, yt, zt, 
-                             xint.begin(), yint.begin(), zint.begin(),
-                             snx.begin(), sny.begin(), 
-                             snz.begin(), surf.begin(), vol.begin());
-
-          if (nedges == 1) // surfacique
+          // Compute total number of elements
+          E_Int ntotElts = 0;
+          for (E_Int ic = 0; ic < nc; ic++)
           {
-            E_Float* surfp = surf.begin(1);
-            for (E_Int i = 0; i < nelts; i++) fieldp[i] = surfp[i];
+            K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+            E_Int nelts = cm.getSize();
+            ntotElts += nelts;
           }
-          else // elements volumique
-          {
-            E_Float* volp = vol.begin();
-            for (E_Int i = 0; i < nelts; i++) fieldp[i] = volp[i];
-          }
-        }
-        RELEASESHAREDU(array, f, cn);
-      }
-      else // Elements NGON
-      {
-        E_Int* cnp = cn->begin(); // pointeur sur la connectivite NGon
-        E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-        E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
 
-        // Build array contenant le volume des elements
-        tpl = K_ARRAY::buildArray(1, "vol",
-                                  npts, nelts,
-                                  -1, eltType, true, cn->getSize());
-        E_Float* volp = K_ARRAY::getFieldPtr(tpl); // pointeur sur le tableau de volumes
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
-        
-        // compute array vol which store volume at element centers
-        E_Int err;
-        if (method == 0)
-          err = K_METRIC::compNGonVol(xt,yt,zt,*cn,volp);
-        else if (method == 1)
-          err = K_METRIC::compute_volumes_ngon(xt, yt, zt, *cn, volp);
-        else {
-          PyErr_SetString(PyExc_ValueError,
-                          "getVolumeMap: wrong method (should be 0 or 1).");
-          RELEASESHAREDU(array, f, cn);
-          return NULL;
+          // Allocate memory to store facet normals and their areas for all
+          // connectivities
+          FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts);
+          
+          // Compute surface of elements
+          K_METRIC::compSurfUnstruct(
+            *cn, eltType, xt, yt, zt,
+            snx.begin(), sny.begin(), snz.begin(), vol
+          );
         }
-
-        // sortie si une erreur a ete trouvee
-        if (err == 1)
+        else if (dim == 3)
         {
-          PyErr_SetString(PyExc_ValueError,
-                          "getVolumeMap: dimension of element unknown.");
-          RELEASESHAREDU(array, f, cn);
-          return NULL;
+          // Compute total number of facets
+          E_Int nfpe;
+          E_Int ntotFacets = 0;
+          for (E_Int ic = 0; ic < nc; ic++)
+          {
+            K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+            E_Int nelts = cm.getSize();
+            if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
+            else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
+            else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
+            else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
+            else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
+            else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
+            else
+            {
+              PyErr_SetString(PyExc_ValueError,
+                              "getVolumeMap: Unknown type of element.");
+              RELEASESHAREDS(tpl, f2);
+              RELEASESHAREDU(array, f, cn);
+              return NULL;
+            }
+            ntotFacets += nfpe*nelts;
+          }
+          
+          FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
+          FldArrayF surf(ntotFacets);
+          K_METRIC::compMetricUnstruct(
+            *cn, eltType,
+            xt, yt, zt,
+            snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol
+          );
         }
-        RELEASESHAREDU(array, f, cn);
+
+        for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       }
+      
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
     }
   }
   else

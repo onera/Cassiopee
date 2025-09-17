@@ -29,7 +29,7 @@
 // OUT: surf: aires des facettes
 // OUT: vol: volume des cellules
 //=============================================================================
-void K_METRIC::compUnstructMetric(
+void K_METRIC::compMetricUnstruct(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* coordx, const E_Float* coordy, const E_Float* coordz,
   E_Float* snx, E_Float* sny, E_Float* snz, E_Float* surf, E_Float* vol
@@ -57,7 +57,7 @@ void K_METRIC::compUnstructMetric(
     else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
     else
     {
-      fprintf(stderr, "Error: in K_METRIC::compUnstructMetric.\n");
+      fprintf(stderr, "Error: in K_METRIC::compMetricUnstruct.\n");
       fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
       exit(0);
     }
@@ -74,7 +74,7 @@ void K_METRIC::compUnstructMetric(
                         xint.begin(), yint.begin(), zint.begin());
 
   // Compute facet normals and areas
-  compUnstructSurf(cn, eltType, coordx, coordy, coordz,
+  compSurfUnstruct(cn, eltType, coordx, coordy, coordz,
                    snx, sny, snz, surf);
   
   // Compute volume of elements

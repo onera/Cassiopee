@@ -30,7 +30,7 @@
 // OUT: snorm: Norm of the surface vectors
 // OUT: cix, ciy, ciz: Interface centers
 //=============================================================================
-void K_METRIC::compStructMetric(
+void K_METRIC::compMetricStruct(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Int nbInti, const E_Int nbIntj, const E_Int nbIntk,
   const E_Float* x, const E_Float* y, const E_Float* z,
