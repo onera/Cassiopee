@@ -136,7 +136,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
     vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld); vector<E_Float> ptC1(nfld);
 
     // Compute surface vector of triangles
-    K_METRIC::compUnstructSurf(
+    K_METRIC::compSurfUnstruct(
       *cn, "TRI", fp[posx], fp[posy], fp[posz], 
       nsurfx, nsurfy, nsurfz, surf.begin());
 
@@ -200,7 +200,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
     vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
 
     // Compute surface vector of triangles
-    K_METRIC::compUnstructSurf(*cn, "TRI", fp[posx], fp[posy], fp[posz], 
+    K_METRIC::compSurfUnstruct(*cn, "TRI", fp[posx], fp[posy], fp[posz], 
                                nsurfx, nsurfy, nsurfz, surf.begin());
 
     // Loop on all elements

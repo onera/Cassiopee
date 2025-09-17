@@ -202,7 +202,7 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
     FldArrayF surf(nbInt, 3);
     FldArrayF snorm(nbInt);
     FldArrayF centerInt(nbInt, 3);
-    K_METRIC::compStructMetric(
+    K_METRIC::compMetricStruct(
       _im, _jm, _km,
       nbInti, nbIntj, nbIntk,
       _coord.begin(1), _coord.begin(2), _coord.begin(3), 
@@ -219,7 +219,7 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
     E_Int nfacets = 4*nelts;
     FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
     _cellVol.malloc(nelts);
-    K_METRIC::compUnstructMetric(
+    K_METRIC::compMetricUnstruct(
       _cn, "TETRA", _coord.begin(1), _coord.begin(2), _coord.begin(3),
       snx.begin(), sny.begin(), snz.begin(), surf.begin(), _cellVol.begin()
     );

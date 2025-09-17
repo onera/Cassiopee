@@ -256,7 +256,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Float* volp = vol.begin(1);
   if (volc == Py_None)
   { 
-    K_METRIC::compNGonVol(f->begin(posx), f->begin(posy),
+    K_METRIC::compVolNGon(f->begin(posx), f->begin(posy),
                           f->begin(posz), *cn, volp);
   }
   else
@@ -816,7 +816,7 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Float* snp = surfnorm.begin();
   FldArrayF vol(ncells); E_Float* volp = vol.begin();
 
-  K_METRIC::compStructMetric(
+  K_METRIC::compMetricStruct(
     ni, nj, nk, nbIntI, nbIntJ, nbIntK,
     xt, yt, zt,
     volp, sxp, syp, szp, snp,

@@ -1198,7 +1198,7 @@ E_Int K_CONNECTOR::blankInvalidCellsPenta(
     E_Int nfacets = 5*nelts;
     FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
     FldArrayF vol(nelts);
-    K_METRIC::compUnstructMetric(
+    K_METRIC::compMetricUnstruct(
       *cnt[v], "PENTA", coord.begin(1), coord.begin(2), coord.begin(3),
       snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
     );
@@ -1366,7 +1366,7 @@ E_Int K_CONNECTOR::blankInvalidCellsHexa(
     E_Int nfacets = 6*nelts;
     FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
     FldArrayF vol(nelts);
-    K_METRIC::compUnstructMetric(
+    K_METRIC::compMetricUnstruct(
       *cnt[v], "HEXA", coord.begin(1), coord.begin(2), coord.begin(3),
       snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
     );
@@ -1524,7 +1524,7 @@ E_Int K_CONNECTOR::blankInvalidCellsStruct(
     coord.setOneField(*structF[v], posx, 1);
     coord.setOneField(*structF[v], posy, 2);
     coord.setOneField(*structF[v], posz, 3);
-    K_METRIC::compStructMetric(
+    K_METRIC::compMetricStruct(
       ni, nj, nk, ninti, nintj, nintk,
       coord.begin(1), coord.begin(2), coord.begin(3), 
       vol.begin(), 

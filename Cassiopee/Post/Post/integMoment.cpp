@@ -400,7 +400,7 @@ E_Int K_POST::integ4(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   FldArrayF surfBlk(ncells);
   
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  K_METRIC::compStructSurft(
+  K_METRIC::compSurfStruct2D(
     NI, NJ, 1,
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
     surfBlk.begin());
@@ -458,7 +458,7 @@ E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   
   FldArrayF lengthBlk(NI-1);
   // Compute surface of each "block" i cell, with coordinates coordBlk
-  K_METRIC::compStructSurf1dt(
+  K_METRIC::compSurfStruct1D(
     NI, NJ, NK,
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
     lengthBlk.begin());
@@ -520,7 +520,7 @@ E_Int K_POST::integUnstruct4(E_Int center2node,
   FldArrayF snz(ntotElts);
   FldArrayF surfBlk(ntotElts);
 
-  K_METRIC::compUnstructSurf(
+  K_METRIC::compSurfUnstruct(
     cnBlk, "TRI",
     coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
     snx.begin(), sny.begin(), snz.begin(), surfBlk.begin()
