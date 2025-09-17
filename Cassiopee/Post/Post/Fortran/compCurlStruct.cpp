@@ -18,13 +18,36 @@
 */
 # include "post.h"
 
+//==============================================================================
+// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille structuree
+// Retourne le rotationnel defini aux centres des cellules
+// IN: ni,nj,nk: dimensions du maillage en noeuds
+// IN: ncells: nbre de cellules
+// IN: xt,yt,zt: coordonnees de la grille
+// IN: ux, uy, uz: vecteur dont le rotationnel est a calculer
+// OUT: rotx, roty, rotz: rotationnel aux centres des cellules
+//==============================================================================
+E_Int K_POST::computeCurlStruct(
+  const E_Int ni, const E_Int nj, const E_Int nk, 
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
+)
+{
+  if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1) return -1;
+  if (ni == 1 || nj == 1 || nk == 1)
+  {
+    compCurlStruct2D(ni, nj, nk, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
+  }
+  else
+  {
+    compCurlStruct3D(ni, nj, nk, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
+  }
+  return 1;
+}
+
 // ============================================================================
-//  Calcul du rotationnel moyen d'un champ u sur une grille
-//  IN: ni,nj,nk: dimensions du maillage en noeuds
-//  IN: ncells: nbre de cellules
-//  IN: xt,yt,zt: coordonnees de la grille
-//  IN: u: vecteur dont le rotationnel est a calculer
-//  OUT: rotu: rotationnel de u aux centres des cellules
+//  Cas 3D
 // ============================================================================
 void K_POST::compCurlStruct3D(
   const E_Int ni, const E_Int nj, const E_Int nk,
@@ -152,8 +175,7 @@ void K_POST::compCurlStruct3D(
 }
 
 // ============================================================================
-// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille surfacique
-// Retourne le rotationnel defini aux centres des cellules
+// Cas 2D
 // ============================================================================
 void K_POST::compCurlStruct2D(
   const E_Int ini, const E_Int inj, const E_Int ink,

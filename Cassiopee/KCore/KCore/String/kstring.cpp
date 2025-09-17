@@ -40,6 +40,16 @@ E_Int K_STRING::cmp(char* s1, E_Int s, const char* s2)
   CMPI;
 }
 
+E_Int K_STRING::cmp(const char* s1, E_Int s, const char* s2)
+{
+  CMPI;
+}
+
+E_Int K_STRING::cmp(const char* s1, E_Int s, char* s2)
+{
+  CMPI;
+}
+
 //==============================================================================
 // strcmp mais plus rapide
 // IN: s1: chaine (null terminated)

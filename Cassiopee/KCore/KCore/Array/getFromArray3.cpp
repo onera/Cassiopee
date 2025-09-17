@@ -210,7 +210,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
       { s = PyArray_DIMS(ac)[1]; nfld = PyArray_DIMS(ac)[0]; }
       else { s = PyArray_DIMS(ac)[0]; nfld = 1; }
       c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true);
-      // c->setNGon(1);
+      if (K_STRING::cmp(eltType, 4, "NGON") == 0) c->setNGon(1);
     }
     else if (PyList_Check(tpl) == true) // -- Array2 or Array3 --
     {
@@ -289,18 +289,18 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
           E_Int s, nfld;
           if (PyArray_NDIM(ac) == 2)
           { 
-              // on suppose que c'est deja correctement dimensionne
-              s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
+            // on suppose que c'est deja correctement dimensionne
+            s = PyArray_DIMS(ac)[0]; nfld = PyArray_DIMS(ac)[1]; 
           }
           else 
           { 
-              // il faut trouver la dimension correcte
-              s = PyArray_DIMS(ac)[0]; nfld = 1;
-              E_Int nvpe, loc, typeId;
-              char eltTypeOut[12];
-              K_ARRAY::eltString2TypeId(eltType, eltTypeOut, nvpe, loc, typeId);
-              nfld = nvpe;
-              s = s / nvpe;
+            // il faut trouver la dimension correcte
+            s = PyArray_DIMS(ac)[0]; nfld = 1;
+            E_Int nvpe, loc, typeId;
+            char eltTypeOut[12];
+            K_ARRAY::eltString2TypeId(eltType, eltTypeOut, nvpe, loc, typeId);
+            nfld = nvpe;
+            s = s / nvpe;
           }
           c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true, false);
         }

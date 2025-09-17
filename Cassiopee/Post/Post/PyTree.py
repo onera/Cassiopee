@@ -2031,7 +2031,7 @@ def computeCurl(t, vector):
                 curlVar = v[1]
         curlVector.append(curlVar)
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
 
@@ -2057,7 +2057,7 @@ def computeNormCurl(t, vector):
                 curlVar = v[1]
         curlVector.append(curlVar)
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
     centers = Post.computeNormCurl(nodes, curlVector)

@@ -17,15 +17,41 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
-// #include <math.h>
-// #include <stdio.h>
-// #include <stdlib.h>
+
+//==============================================================================
+// Calcul du rotationnel d'un vecteur defini aux noeuds d une grille non structuree
+// Retourne le rotationnel defini aux centres des cellules
+//==============================================================================
+E_Int K_POST::computeCurlUnstruct(
+  FldArrayI& cn, const char* eltType,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  E_Float* rotx, E_Float* roty, E_Float* rotz
+)
+{
+  // Get ME mesh dimensionality from the first element type
+  E_Int dim = 3;
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 or
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  if (dim == 2)
+  {
+    compCurlUnstruct2D(cn, eltType, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
+  }
+  else if (dim == 3)
+  {
+    compCurlUnstruct3D(cn, eltType, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
+  }
+  else return -1;
+  return 1;
+}
 
 // ============================================================================
-// Calcul du rotationnel d'un vecteur défini aux noeuds d'une grille 
-// non structurée
-// retourne le rotationnel défini aux centres des éléments
-// CAS 3D
+//  Cas 3D
 // ============================================================================
 void K_POST::compCurlUnstruct3D(
   FldArrayI& cn, const char* eltType,
@@ -133,9 +159,7 @@ void K_POST::compCurlUnstruct3D(
 }
 
 // ============================================================================
-// Calcul du rotationnel d un vecteur defini aux noeuds d une grille surfacique
-// non structuree 
-// retourne le rotationnel du vecteur defini aux centres des cellules
+//  Cas 2D
 // ============================================================================
 void K_POST::compCurlUnstruct2D(
   FldArrayI& cn, const char* eltType,

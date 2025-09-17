@@ -19,8 +19,6 @@
 // loft a list of edges
 
 #include "occ.h"
-#include "ShapeFix_Shape.hxx"
-#include "ShapeFix_Wireframe.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRep_Builder.hxx"
 #include "TopExp.hxx"
@@ -30,6 +28,7 @@
 #include "TopoDS.hxx"
 #include "BRepAlgoAPI_Cut.hxx"
 #include "BRepOffsetAPI_ThruSections.hxx"
+#include "GeomFill_BSplineCurves.hxx"
 
 //=====================================================================
 // Loft
@@ -40,43 +39,69 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOO_ , &hook, &listProfiles, &listGuides)) return NULL;
 
   GETSHAPE;
+  GETMAPEDGES;
 
-  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-
-  BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*preserveOrientation=*/1);
-  loftBuilder.SetContinuity(GeomAbs_C2);
-  //loftBuilder.SetSmoothing(True);
-
-  // Get Profiles and add to builder
   E_Int nprofiles = PyList_Size(listProfiles);
-  for (E_Int i = 0; i < nprofiles; i++)
-  {
-    PyObject* noO = PyList_GetItem(listProfiles, i);
-    E_Int no = PyInt_AsLong(noO);
-    const TopoDS_Edge& E = TopoDS::Edge(edges(no));
-    TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
-    loftBuilder.AddWire(W);
+  E_Int nguides = PyList_Size(listGuides);
+  TopoDS_Shape* newshp = NULL;
+
+  if (nguides == 0)
+  { 
+    // Use opencascade BRepOffsetAPI_ThruSections
+    BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*preserveOrientation=*/1);
+    loftBuilder.SetContinuity(GeomAbs_C2);
+    //loftBuilder.SetSmoothing(True);
+
+    // Get Profiles and add to builder
+    for (E_Int i = 0; i < nprofiles; i++)
+    {
+      PyObject* noO = PyList_GetItem(listProfiles, i);
+      E_Int no = PyInt_AsLong(noO);
+      const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+      TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
+      loftBuilder.AddWire(W);
+    }
+    loftBuilder.Build();
+    TopoDS_Shape loftedSurface = loftBuilder.Shape();
+    newshp = new TopoDS_Shape(loftedSurface);
   }
-  loftBuilder.Build();
-  TopoDS_Shape loftedSurface = loftBuilder.Shape();
+  else
+  {
+    // Assume you have a TopoDS_Edge called 'edge'
+    Standard_Real firstParam, lastParam;
 
-  // Get guides
-  //loftBuilder.AddGuide(guideEdge1);
-  //loftBuilder.AddGuide(guideEdge2);
+    std::vector< Handle(Geom_BSplineCurve) > curves;
+    /*
+    for (E_Int i = 0; i < nprofiles; i++)
+    {
+      PyObject* noO = PyList_GetItem(listProfiles, i);
+      E_Int no = PyInt_AsLong(noO);
+      const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+      Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
+      Handle(Geom_BSplineCurve) bsplineCurve = Handle(Geom_BSplineCurve)::DownCast(baseCurve);
+      if (!bsplineCurve.IsNull())
+      {
+        curves.push_back(bsplineCurve);
+      }
+      size_t size = curves.size();
+      if (size == 2)
+      {
+        GeomFill_BSplineCurves filler(curves[0], curves[1], GeomFill_CoonsStyle);
+        Handle(Geom_BSplineSurface) surface = filler.Surface();
+      }
+      else if (size == 3)
+      {
+        GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], GeomFill_CoonsStyle);
+        Handle(Geom_BSplineSurface) surface = filler.Surface();
+      }
+      else if (size == 4)
+      {
+        GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], curves[3], GeomFill_CoonsStyle);
+        Handle(Geom_BSplineSurface) surface = filler.Surface();
+      }
+    }*/
+  }
 
-  // tigl
-  //GeomFill_FillingStyle style = GeomFill_CoonsC2Style;
-  //style = GeomFill_StretchStyle;
-  //SurfMaker.Perform(_myTolerance, _mySameKnotTolerance, style, Standard_True);
-  //_result = SurfMaker.Patches();
-
-  // gordon surface
-
-  
-  // rebuild    
-  TopoDS_Shape* newshp = new TopoDS_Shape(loftedSurface);
-  
   // Rebuild the hook
   delete shape;
   SETSHAPE(newshp);

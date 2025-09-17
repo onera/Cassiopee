@@ -80,6 +80,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
                     "computeNormGrad: no field to compute.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
+  
   PyObject* tpl = NULL;
   FldArrayF* f2;
   E_Int sizeVarStringOut = strlen(var) + 5; // grad var
