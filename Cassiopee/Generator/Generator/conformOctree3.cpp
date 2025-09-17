@@ -73,7 +73,8 @@ PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(posz);
 
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
-  E_Int npts = f->getSize(); 
+  E_Int npts = f->getSize();
+  E_Int api = f->getApi();
 
   FldArrayF dht(nelts);
   FldArrayI levels(nelts);
@@ -162,7 +163,7 @@ PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
   RELEASESHAREDU(octree, f, cn);
   K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *fo, *cno);
 
-  PyObject* tpl = K_ARRAY::buildArray(*fo, varString, *cno, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*fo, varString, *cno, eltType, api);
   delete fo; delete cno;
   return tpl;
 }

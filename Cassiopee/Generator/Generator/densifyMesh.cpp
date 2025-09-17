@@ -125,8 +125,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
     
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*newf, varString, 
-                                        len, 1, 1);
+    PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, len, 1, 1);
     delete newf;
     return tpl;  
   }
@@ -155,6 +154,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       E_Float* y = f->begin(posy);
       E_Float* z = f->begin(posz);
       E_Int nfld = f->getNfld();
+      E_Int api = f->getApi();
 
 // Size of coordinates and new connectivity array
 // ----------------------------------------------
@@ -239,8 +239,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       
       // Build array
       RELEASESHAREDU(array, f, cn);
-      PyObject* tpl = K_ARRAY::buildArray(*newf, varString, 
-                                          *newcn, 1, NULL, false);
+      PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, *newcn, "BAR", api);
       delete newf; delete newcn;
       return tpl;
     }

@@ -89,6 +89,7 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   }
   
   E_Int npts1 = f1->getSize(); E_Int nelts1 = cn1->getSize();
+  E_Int api = f1->getApi();
   if (f2->getSize() != npts1 || cn2->getSize() != nelts1) 
   {
     RELEASESHAREDU(a1, f1, cn1);
@@ -229,8 +230,7 @@ PyObject* K_GENERATOR::front2Hexa(PyObject* self, PyObject* args)
   RELEASESHAREDU(a1, f1, cn1);
   RELEASESHAREDU(a2, f2, cn2);
   RELEASESHAREDS(distrib, fd);
-  PyObject* tpl = K_ARRAY::buildArray(*f, "x,y,z", *cn,  -1, 
-                                      "HEXA", false);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, "x,y,z", *cn, "HEXA", api);
   delete f; delete cn;
   return tpl;
 }

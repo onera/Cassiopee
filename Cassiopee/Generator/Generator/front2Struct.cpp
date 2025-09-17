@@ -403,7 +403,7 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
           fz[ind] = Fz + gamma*(Cz-Fz);
         }
     }
-    tpl = K_ARRAY::buildArray(*f, "x,y,z", Vmin, Vmin, Nk);
+    tpl = K_ARRAY::buildArray3(*f, "x,y,z", Vmin, Vmin, Nk);
     delete f;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);
@@ -535,7 +535,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
         fz[ind] = Cz; ind++;
       }
     
-    tpl = K_ARRAY::buildArray(*fl, "x,y,z", Vmin, Vmin, 1);
+    tpl = K_ARRAY::buildArray3(*fl, "x,y,z", Vmin, Vmin, 1);
     delete fl;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);

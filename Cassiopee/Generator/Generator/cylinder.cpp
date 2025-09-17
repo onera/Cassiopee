@@ -96,8 +96,7 @@ PyObject* K_GENERATOR::cylinderMesh(PyObject* self, PyObject* args)
       }  
   }
   // Build array
-  PyObject* tpl = K_ARRAY::buildArray(*coord, "x,y,z", 
-                                      ni, nj, nk);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
   delete coord;
   return tpl;
 }
@@ -214,7 +213,7 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
     RELEASESHAREDS(arrayZ, fZ);
 
     // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
     delete coord;
     return tpl;
   }
@@ -345,8 +344,7 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
     RELEASESHAREDS(arrayT, ft);  
 
     // Build array
-    PyObject* tpl =
-      K_ARRAY::buildArray(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
     delete coord;
     return tpl;
   }

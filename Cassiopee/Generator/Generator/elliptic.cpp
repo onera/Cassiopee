@@ -122,7 +122,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
  
   // build array
   RELEASESHAREDS(array, f);  
-  PyObject* tpl = K_ARRAY::buildArray(*coord, varString, ni, nj, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString, ni, nj, 1);
   delete coord;
   return tpl;
 }

@@ -149,6 +149,7 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   }
   
   // Calcul des centres des elements
+  E_Int api = f->getApi();
   FldArrayF& fp = *f;
   FldArrayI& cnp = *cn;
   FldArrayF centers(cnp.getSize(), 3);
@@ -200,7 +201,7 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
 
   // sortie
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*f, varString, connectp, -1, eltType);
+  tpl = K_ARRAY::buildArray3(*f, varString, connectp, eltType, api);
   
   //for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
   for (E_Int i = 0; i < ncurves; i++) delete curves[i];

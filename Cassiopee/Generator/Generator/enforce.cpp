@@ -68,8 +68,7 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
                               *out, niout, njout, nkout);
     RELEASESHAREDS(array, f);
     if (ret != 0) return NULL;
-    PyObject* tpl = K_ARRAY::buildArray(*out, "x,y,z", 
-                                        niout, njout, nkout);
+    PyObject* tpl = K_ARRAY::buildArray3(*out, "x,y,z", niout, njout, nkout);
     delete  out;
     return tpl;
   }
