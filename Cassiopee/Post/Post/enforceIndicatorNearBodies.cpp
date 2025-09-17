@@ -126,7 +126,7 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
                                skipStructured, skipUnstructured, true);
   if (res == -1)
   {
-    for (unsigned int nos = 0; nos < unstrF.size(); nos++)
+    for (size_t nos = 0; nos < unstrF.size(); nos++)
       RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]); 
     RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn); 
     PyErr_SetString(PyExc_TypeError, 
@@ -134,21 +134,22 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int nzones = unstrF.size();
+  E_Int api = f->getApi();
 
   for (E_Int i = 0; i < nzones; i++)
   {
-    if (strcmp(eltTypet[i],"TRI") == 0 && dim != 3) 
+    if (strcmp(eltTypet[i], "TRI") == 0 && dim != 3) 
     {
-      for (unsigned int nos = 0; nos < unstrF.size(); nos++)
+      for (size_t nos = 0; nos < unstrF.size(); nos++)
         RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]); 
       RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn); 
       PyErr_SetString(PyExc_TypeError, 
                       "enforceIndicatorNearBodies: 3rd arg must be a list of TRI zones.");
       return NULL;
     }
-    else if (strcmp(eltTypet[i],"BAR") == 0 && dim != 2)  
+    else if (strcmp(eltTypet[i], "BAR") == 0 && dim != 2)  
     {
-      for (unsigned int nos = 0; nos < unstrF.size(); nos++)
+      for (size_t nos = 0; nos < unstrF.size(); nos++)
         RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]); 
       RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn); 
       PyErr_SetString(PyExc_TypeError, 
@@ -157,7 +158,7 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
     }
     else if (strcmp(eltTypet[i],"BAR") != 0 && strcmp(eltTypet[i],"TRI") != 0)
     {
-      for (unsigned int nos = 0; nos < unstrF.size(); nos++)
+      for (size_t nos = 0; nos < unstrF.size(); nos++)
         RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]);
       RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn); 
       PyErr_SetString(PyExc_TypeError, 
@@ -201,17 +202,19 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
                      f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
                      xmaxloc, ymaxloc, zmaxloc, xminloc, yminloc, zminloc);
    
-    xmin = K_FUNC::E_min(xminloc,xmin); xmax = K_FUNC::E_max(xmaxloc,xmax);
-    ymin = K_FUNC::E_min(yminloc,ymin); ymax = K_FUNC::E_max(ymaxloc,ymax);
+    xmin = K_FUNC::E_min(xminloc, xmin); xmax = K_FUNC::E_max(xmaxloc, xmax);
+    ymin = K_FUNC::E_min(yminloc, ymin); ymax = K_FUNC::E_max(ymaxloc, ymax);
     if (dim == 2) { zmin = 0.; zmax = 0.; }
     else 
-    {zmin = K_FUNC::E_min(zminloc,zmin); zmax = K_FUNC::E_max(zmaxloc,zmax);}
+    {
+      zmin = K_FUNC::E_min(zminloc, zmin); zmax = K_FUNC::E_max(zmaxloc, zmax);
+    }
     
     // Creation de la bboxtree
     nelts2 = cn2.getSize();
     vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
     FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
-    K_COMPGEOM::boundingBoxOfUnstrCells(cn2, f2.begin(posx2), f2.begin(posy2),f2.begin(posz2),bbox);
+    K_COMPGEOM::boundingBoxOfUnstrCells(cn2, f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),bbox);
     E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
     E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
     E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
@@ -225,14 +228,14 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
     bboxtrees[v] = new K_SEARCH::BbTree3D(boxes);
     vectOfBBoxes.push_back(boxes);
   }
-  for (unsigned int nos = 0; nos < unstrF.size(); nos++)
+  for (size_t nos = 0; nos < unstrF.size(); nos++)
     RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]); 
   E_Float* indict = fi->begin(posi);
 
   vector<E_Int> indicesBB; E_Int nelts = cn->getSize();
-  FldArrayF bboxo(nelts,6);// xmin, ymin, zmin, xmax, ymax, zmax de l octree
+  FldArrayF bboxo(nelts, 6); // xmin, ymin, zmin, xmax, ymax, zmax de l octree
   K_COMPGEOM::boundingBoxOfUnstrCells(*cn, f->begin(posx), f->begin(posy),
-                                      f->begin(posz),bboxo);
+                                      f->begin(posz), bboxo);
   RELEASESHAREDU(octree, f, cn);
  
   E_Float* xmino = bboxo.begin(1); E_Float* xmaxo = bboxo.begin(4);
@@ -261,10 +264,9 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
   //buildArray
   PyObject* tpl;
   if (resi == 1) 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, nii, nji, nki);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, nii, nji, nki);
   else 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, 
-                              false);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, *cni, eltTypei, api);
   RELEASESHAREDB(resi, indicator, fi, cni);
   return tpl;
 }

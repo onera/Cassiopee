@@ -317,13 +317,14 @@ PyObject* K_POST::computeDiff(PyObject* self, PyObject* args)
       }      
     }
     RELEASESHAREDB(res, array, f, cn);
-    PyObject* tpl = K_ARRAY::buildArray(*diff, var, ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*diff, var, ni, nj, nk);
     delete diff;
     return tpl;
   } // fin structure
   else // non structure
   {
     E_Int ok = 0; 
+    E_Int api = f->getApi();
     FldArrayF* diff;
     // centres ou noeuds ?
     if (strcmp(eltType,"BAR") == 0 || strcmp(eltType,"TRI") == 0 || 
@@ -348,7 +349,7 @@ PyObject* K_POST::computeDiff(PyObject* self, PyObject* args)
     *cn2 = *cn; //copy
 
     RELEASESHAREDU(array, f, cn);
-    PyObject* tpl = K_ARRAY::buildArray(*diff, var, *cn2, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*diff, var, *cn2, eltType, api);
     delete diff; delete cn2;
     return tpl;
   }

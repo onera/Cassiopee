@@ -507,6 +507,7 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
   else if (strcmp(eltType, "BAR") == 0) strcpy(elttypeout, "NODE");
 	
   E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
@@ -537,8 +538,8 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
       return NULL;
     }
     
-    PyObject* tpl = K_ARRAY::buildArray(*fnodes, varString, 
-                                        *connect, -1, "NODE");
+    PyObject* tpl = K_ARRAY::buildArray3(*fnodes, varString, 
+                                         *connect, "NODE", api);
     delete fnodes; delete connect;
     if (indices != Py_None)
     { 

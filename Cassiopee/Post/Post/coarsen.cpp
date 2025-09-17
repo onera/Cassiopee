@@ -126,6 +126,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int api = f->getApi();
   FldArrayIS indic(nelts);
   short* indicp = indic.begin();
   E_Float* findicp = findic->begin(); 
@@ -136,7 +137,7 @@ PyObject* K_POST::coarsen(PyObject* self, PyObject* args)
   mergeElements(*cn, *f, posxu ,posyu, poszu, argqual, indic, eps);
 
   /* retour */ 
-  PyObject* t = K_ARRAY::buildArray(*f, varString0, *cn, -1, "TRI");
+  PyObject* t = K_ARRAY::buildArray3(*f, varString0, *cn, "TRI", api);
   RELEASESHAREDU(surf, f, cn);
     
   return t;

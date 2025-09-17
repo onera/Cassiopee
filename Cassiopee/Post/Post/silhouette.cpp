@@ -81,6 +81,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   // get Element-Element neighbours connectivity
   vector< vector<E_Int> > cEEN(nelts);
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   K_CONNECT::connectEV2EENbrs(eltType, npts, *cn, cEEN); 
 
   // prodscal: scalar product
@@ -288,7 +289,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   }
 
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*fnew, varString, *cnnew, -1, "BAR");
+  tpl = K_ARRAY::buildArray3(*fnew, varString, *cnnew, "BAR", api);
   delete fnew; delete cnnew;
   return tpl;
 }

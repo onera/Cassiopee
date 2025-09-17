@@ -241,6 +241,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
     }
   }
 
+  E_Int api = f->getApi();
   FldArrayF* fnew = new FldArrayF(f->getSize(), nvarout);
 
   // calcul des variables composees
@@ -264,16 +265,14 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
 
   if (res == 1)
   {
-    PyObject* tpl = K_ARRAY::buildArray(*fnew, varStringOut, 
-                                        ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, ni, nj, nk);
     delete fnew; 
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else
   {
-    PyObject* tpl = K_ARRAY::buildArray(*fnew, varStringOut, 
-                                        *c, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, *c, eltType, api);
     delete fnew; 
     RELEASESHAREDU(array, f, c);
     return tpl;

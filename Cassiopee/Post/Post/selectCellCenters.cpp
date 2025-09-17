@@ -260,6 +260,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     FldArrayI& cn = *acn;
     E_Int nt = cnp->getNfld();
     E_Int ne = cnp->getSize();
+    E_Int api = f->getApi();
 
     E_Int nthreads = __NUMTHREADS__;
     E_Int net = ne/nthreads+1;
@@ -489,7 +490,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
 
     cout->setNGon(cnp->getNGonType());
-    tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
+    tpl = K_ARRAY::buildArray3(*fout, varString, *cout, "NGON", api);
     delete cout; delete fout;     
   }
 

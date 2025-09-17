@@ -102,6 +102,8 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
     fieldA, resl, structVarString2, unstrVarString2,
     structF2, unstrF2, nit2, njt2, nkt2, cnt2, eltTypet2, objst2, objut2, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  
+  E_Int api = f->getApi();
   E_Int nzones2 = structF2.size();
   if (nzones2 != nzones) 
   {
@@ -297,7 +299,7 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 
   vector<char*> vars;
   K_ARRAY::extractVars(structVarString2[0], vars); 
-  PyObject* tpl = K_ARRAY::buildArray(*field, vars[0], *cn, -1, eltType, true);
+  PyObject* tpl = K_ARRAY::buildArray3(*field, vars[0], *cn, eltType, api);
   
   for (E_Int v = 0; v < nzones; v++) delete boxes[v];
   delete field;  RELEASESHAREDB(res, octree, f, cn); 

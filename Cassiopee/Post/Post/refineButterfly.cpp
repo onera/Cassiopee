@@ -83,14 +83,14 @@ PyObject* K_POST::refineButterfly(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
+  E_Int api = f->getApi();
   FldArrayF* fo; FldArrayI* cno;
   refineButterfly(*f, *cn, w, fo, cno);
 
   E_Float tolc = 1.e-12;
-  K_CONNECT::cleanConnectivity(posx, posy, posz, tolc,
-   "TRI", *fo, *cno);
+  K_CONNECT::cleanConnectivity(posx, posy, posz, tolc, "TRI", *fo, *cno);
 
-  PyObject* t = K_ARRAY::buildArray(*fo, varString, *cno, -1, "TRI");
+  PyObject* t = K_ARRAY::buildArray3(*fo, varString, *cno, "TRI", api);
   delete fo; delete cno;
   return t;
 }

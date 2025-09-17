@@ -277,11 +277,13 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   vector<char*> eltTypes;
   vector<K_INTERP::InterpData*> unstrInterpDatas;
 
+  E_Int api = -1;
 
   // seuls sont pris en compte les champs ayant les variables du vecteur
   // ts les arrays traites doivent avoir le meme nb de champs
   if (structSize > 0) 
   {
+    api = structF[0]->getApi();
     E_Int found = extractVectorFromStructArrays(signe, nis1, njs1, nks1,
                                                 posxs1, posys1, poszs1, poscs1,
                                                 structVarStrings1, structF1, 
@@ -315,6 +317,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
   // extract des variables du vecteur sur les maillages non structures 
   if (unstrSize > 0) 
   {
+    if (api == -1) api = unstrF[0]->getApi();
     E_Int found = extractVectorFromUnstrArrays(signe, posxu2, posyu2, poszu2, poscu2,
                                                unstrVarString2, unstrF2, cnt2,
                                                eltType2, unstrInterpDatas2,
@@ -342,6 +345,8 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
       return NULL;
     }
   }
+
+  if (api == -1) api = 1;
 
   // Petit nettoyage intermediaire
   nis1.clear(); njs1.clear(); nks1.clear();
@@ -395,7 +400,7 @@ PyObject* K_POST::compStreamSurf(PyObject* self, PyObject* args)
     delete unstrVector[v];
 
   // Build array
-  PyObject* tpl = K_ARRAY::buildArray(*field, varStringOut, *cn , -1 , "TRI");
+  PyObject* tpl = K_ARRAY::buildArray3(*field, varStringOut, *cn , "TRI", api);
   delete [] varStringOut; delete field; delete cn;
   
   for (size_t i = 0; i < front.size(); i++) { delete front[i]; }
