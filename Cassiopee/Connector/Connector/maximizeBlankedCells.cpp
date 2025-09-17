@@ -58,10 +58,9 @@ PyObject* K_CONNECTOR::maximizeBlankedCells(PyObject* self, PyObject* args)
   E_Float* cellnp = f->begin(poscelln+1);
   
   E_Int c = 1;
-  while (c != 0) c = getRidOfInterpPoints(cellnp, 
-                                          im, jm, km, depth, dir);
+  while (c != 0) c = getRidOfInterpPoints(cellnp, im, jm, km, depth, dir);
 
-  PyObject* tpl =  K_ARRAY::buildArray(*f, varString, im, jm, km);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km);
   RELEASESHAREDS(array, f);
   return tpl;
 }

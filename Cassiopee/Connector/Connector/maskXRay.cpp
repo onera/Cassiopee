@@ -88,6 +88,7 @@ PyObject* K_CONNECTOR::maskXRay(PyObject* self, PyObject* args)
   }
   
   // verification des coordonnees
+  E_Int api = -1;
   E_Int posxi, posyi, poszi;
   vector<E_Int> posxb; vector<E_Int> posyb; vector<E_Int> poszb;
   for (E_Int i = 0; i < nzones; i++)
@@ -105,7 +106,10 @@ PyObject* K_CONNECTOR::maskXRay(PyObject* self, PyObject* args)
     }
     posxi++; posyi++; poszi++;
     posxb.push_back(posxi); posyb.push_back(posyi); poszb.push_back(poszi);
+    if (api == -1) api = unstrF[0]->getApi();
   }
+
+  if (api == -1) api = 1;
 
   E_Int dim1 = 1000; E_Int dim2 = 1000; 
   E_Int elevationDir = 3;
@@ -132,7 +136,7 @@ PyObject* K_CONNECTOR::maskXRay(PyObject* self, PyObject* args)
   
   compXRayMaskInfo(elevationDir, planes, *coord);
 
-  PyObject* tpl = K_ARRAY::buildArray(*coord, varString, *connect, 0);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString, *connect, "NODE", api);
   delete coord; delete connect;
   for (list<XRayPlane*>::iterator itr = planes.begin(); 
        itr != planes.end(); itr++)

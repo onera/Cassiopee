@@ -299,8 +299,8 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   
   for (E_Int i = 0; i < nzone; i++)
   {
-    tpl = K_ARRAY::buildArray(*vectOfFields[i], varString,
-                             nis[i], njs[i], nks[i]);
+    tpl = K_ARRAY::buildArray3(*vectOfFields[i], varString,
+                               nis[i], njs[i], nks[i]);
     RELEASESHAREDS(PyList_GetItem(listBlks, i), vectOfFields[i]);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

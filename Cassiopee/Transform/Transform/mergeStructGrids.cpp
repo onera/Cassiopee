@@ -509,7 +509,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     {
       nio = (*itr)->_ni; njo = (*itr)->_nj; nko = (*itr)->_nk;
       FldArrayF* field = (*itr)->_field;
-      PyObject* tpl = K_ARRAY::buildArray(*field, structVarString[0], nio, njo, nko);
+      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko);
       delete field;
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
@@ -558,12 +558,12 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     {
       nio = (*itr)->_ni; njo = (*itr)->_nj; nko = (*itr)->_nk;
       FldArrayF* field = (*itr)->_field;
-      PyObject* tpl = K_ARRAY::buildArray(*field, structVarString[0], nio, njo, nko);
+      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko);
       PyList_Append(lnodes, tpl); Py_DECREF(tpl);
       delete field;
       nioc = K_FUNC::E_max(1,nio-1); njoc = K_FUNC::E_max(1,njo-1); nkoc = K_FUNC::E_max(1,nko-1);
       FldArrayF* fieldc = (*itr)->_fieldc;
-      PyObject* tplc = K_ARRAY::buildArray(*fieldc, structVarStringc[0], nioc, njoc, nkoc);
+      PyObject* tplc = K_ARRAY::buildArray3(*fieldc, structVarStringc[0], nioc, njoc, nkoc);
       PyList_Append(lcenters, tplc); Py_DECREF(tplc);
       delete fieldc;
     }

@@ -76,7 +76,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *f, *cn);
 
   //determination des vertices de split
-  E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
+  E_Int npts = f->getSize(); E_Int nfld = f->getNfld(); E_Int api = f->getApi();
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
   vector<E_Int> splitVertices;
@@ -89,7 +89,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 
   if (splitVertices.size() == 0) 
   {
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
     delete f; delete cn;
     return tpl;
   }
@@ -163,7 +163,8 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nbars; ++i)
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *fields[i], *cnt[i]);
-    tpl = K_ARRAY::buildArray(*fields[i], varString, *cnt[i], -1, "BAR");
+    E_Int api = fields[i]->getApi();
+    tpl = K_ARRAY::buildArray3(*fields[i], varString, *cnt[i], "BAR", api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int i = 0; i < nbars; i++)

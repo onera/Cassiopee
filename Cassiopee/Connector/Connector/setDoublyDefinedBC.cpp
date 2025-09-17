@@ -285,7 +285,7 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
     return NULL;
   }
   // build output array
-  PyObject* tpl = K_ARRAY::buildArray(*cellnout, varStringc, imc, jmc, kmc);
+  PyObject* tpl = K_ARRAY::buildArray3(*cellnout, varStringc, imc, jmc, kmc);
   delete cellnout;
   RELEASESHAREDS(a1, f); RELEASESHAREDS(celln1, fc);      
   for (E_Int is = 0; is < nsc; is++)

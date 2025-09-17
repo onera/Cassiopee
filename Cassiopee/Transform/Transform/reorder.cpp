@@ -73,6 +73,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -116,7 +117,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
       }
       if (cnp[2] == 1) // la face a 1 seul sommet
       {
-        tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+        tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }

@@ -193,7 +193,8 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
     PyObject* l = PyList_New(0); 
     for (E_Int v = 0; v < nzones; v++)
     {
-      PyObject* tpl = K_ARRAY::buildArray(*structFc[v], structVarStringc[v],nict[v],njct[v],nkct[v]);
+      PyObject* tpl = K_ARRAY::buildArray3(*structFc[v], structVarStringc[v],
+                                           nict[v], njct[v], nkct[v]);
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
     for (E_Int is = 0; is < ns; is++)
@@ -297,7 +298,9 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
       PyObject* l = PyList_New(0); 
       for (E_Int v = 0; v < nzones; v++)
       {
-        PyObject* tpl = K_ARRAY::buildArray(*unstrFc[v], unstrVarStringc[v], *cnct[v], -1, eltTypect[v]);
+        E_Int api = unstrFc[v]->getApi();
+        PyObject* tpl = K_ARRAY::buildArray3(*unstrFc[v], unstrVarStringc[v],
+                                             *cnct[v], eltTypect[v], api);
         PyList_Append(l, tpl); Py_DECREF(tpl);
       }
       for (E_Int is = 0; is < nu; is++)

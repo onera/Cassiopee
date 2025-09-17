@@ -169,8 +169,8 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   PyObject* tpl;    
   for (E_Int nos = 0; nos < ns; nos++)
   {
-    tpl = K_ARRAY::buildArray(*structFields[nos], structVarString[nos],
-                              nit[nos], njt[nos], nkt[nos]);
+    tpl = K_ARRAY::buildArray3(*structFields[nos], structVarString[nos],
+                               nit[nos], njt[nos], nkt[nos]);
     delete structFields[nos];
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
