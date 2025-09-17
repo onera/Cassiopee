@@ -14,31 +14,31 @@ fi
 
 # Compilation on different machines:
 
-# Detect machine by uname (shortest first)
+# Detect machine by uname (longest first)
 KC=$(uname -n)
 for pattern in \
-  "n:sator_cas" \
-  "ld:ld" \
-  "f0:juno" \
-  "n0:juno" \
-  "b0:juno" \
-  "v0:juno" \
-  "fv-az:azure" \
-  "clausius:ld" \
-  "ubuntu:ubuntu" \
-  "visio:visio" \
-  "celeste:visio" \
-  "visung:visung" \
-  "giulia:giulia" \
-  "sator:sator_cas" \
-  "spiro:spiro_el8" \
-  "cobalt:cobalt" \
-  "irene:irene" \
-  "jean-zay:jean-zay" \
-  "node6.cluster:macosx" \
-  "topaze:topaze" \
+  "WDAAA161Z:WDAAA161Z" \
   "atlas:atlas" \
-  "WDAAA161Z:WDAAA161Z"
+  "topaze:topaze" \
+  "node6.cluster:macosx" \
+  "jean-zay:jean-zay" \
+  "irene:irene" \
+  "cobalt:cobalt" \
+  "spiro:spiro_el8" \
+  "sator:sator_cas" \
+  "giulia:giulia" \
+  "visung:visung" \
+  "celeste:visio" \
+  "visio:visio" \
+  "ubuntu:ubuntu" \
+  "clausius:ld" \
+  "fv-az:azure" \
+  "v0:juno" \
+  "b0:juno" \
+  "n0:juno" \
+  "f0:juno" \
+  "ld:ld" \
+  "n:sator_cas"
 do
   key=${pattern%%:*}; val=${pattern#*:}
   if echo "$KC" | grep -q "$key"; then
