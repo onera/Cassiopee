@@ -318,10 +318,10 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   }
   
   for (size_t i = 0; i < objs.size(); i++) RELEASESHAREDS(objs[i], structF[i]);
-  for (size_t i = 0; i < obju.size(); i++) RELEASESHAREDU(obju[i], unstructF[i], c[i]);
+  for (size_t i = 0; i < obju.size(); i++)
+    RELEASESHAREDU(obju[i], unstructF[i], c[i]);
   RELEASESHAREDS(array, f1);
-  PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
-                                      im3, jm3, km3);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3);
 
   delete coord;
   return tpl; 

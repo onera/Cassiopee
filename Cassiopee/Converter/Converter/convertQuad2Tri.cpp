@@ -80,6 +80,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
   E_Int ne = cn->getSize();
 
   // TRI de sortie
+  E_Int api = f->getApi();
   E_Int nt = 2*ne;
   FldArrayI ct(nt, 3);
   E_Int ntr = 0; // nbre reel de triangles
@@ -569,7 +570,7 @@ PyObject* K_CONVERTER::convertQuad2Tri(PyObject* self, PyObject* args)
     printf("iteration " SF_D_ "=================\n",n);
     //K_TRANSFORM::flipEdges(ct, f->getSize(), x, y, z,indic);
   }
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, ct, 2, NULL);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ct, "TRI", api);
   RELEASESHAREDU(pArray, f, cn);
   return tpl;
 }

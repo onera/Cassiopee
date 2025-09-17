@@ -728,8 +728,8 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < sizeerrors; i++)
   {
-    tpl = K_ARRAY::buildArray(*errors[i], varString, 
-                              imsm[i], jmsm[i], kmsm[i]);
+    tpl = K_ARRAY::buildArray3(*errors[i], varString, 
+                               imsm[i], jmsm[i], kmsm[i]);
     delete errors[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

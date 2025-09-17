@@ -71,6 +71,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
     }
   }
 
+  E_Int api = FCenter->getApi();
+
   if (res == 1)
   {
     E_Int nin, njn, nkn;
@@ -174,7 +176,7 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
     
       for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
       cEV.clear();
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;
@@ -221,7 +223,7 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
                         "center2Node: unstructured array must be eltType*.");
         RELEASESHAREDU(array, FCenter, c); return NULL;
       }
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;
