@@ -708,8 +708,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder2(PyObject* sel
   vector<PyArrayObject*> hook;
 
   E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
-  E_Float* iptroD=NULL;
-
+  
   # include "extract_interpD.h"
 
   FldArrayF* pressF;

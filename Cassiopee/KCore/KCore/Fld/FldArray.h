@@ -360,7 +360,7 @@ TEMPLATE_T
 inline T FldArray<T>::operator[] (E_Int l) const
 {
   assert (_rake != NULL);
-  assert (_ngon == 0);
+  assert (_ngon == 2 || ngon == 3);
   assert (l >= 0);
   assert (l < _sizeMax*_nfldLoc);
   E_Int n = E_Int(l/_sizeLoc);
@@ -374,7 +374,6 @@ inline T& FldArray<T>::operator[] (E_Int l)
   assert (_rake != NULL);
   assert (l >= 0);
   assert (l < _sizeMax*_nfldLoc);
-  //return _data[l];
   E_Int n = E_Int(l/_sizeLoc);
   return _rake[n][(l-n*_sizeLoc)*_stride];
 }
@@ -388,7 +387,6 @@ inline T FldArray<T>::operator()(E_Int l, E_Int fld) const
   assert (l < _sizeLoc);
   assert (fld >= NUMFIELD0);
   assert (fld <= _nfldLoc);
-  //return (_data[(fld-NUMFIELD0)*_sizeMax + l]);
   return _rake[fld-NUMFIELD0][l*_stride];
 }
 
@@ -401,7 +399,6 @@ inline T& FldArray<T>::operator()(E_Int l, E_Int fld)
   assert (l < _sizeLoc);
   assert (fld >= NUMFIELD0);
   assert (fld <= _nfldLoc);
-  //return (_data[(fld-NUMFIELD0)*_sizeMax + l]);
   return _rake[fld-NUMFIELD0][l*_stride];
 }
 
@@ -414,7 +411,6 @@ T* FldArray<T>::begin(E_Int fld)
   // either we ask for a existing field in a non-empty array 
   // OR the array is empty and we ask only for the first field i.e ask for &rake[0] 
   assert ( (_nfldLoc && (fld <= _nfldLoc)) || (_nfldLoc == 0 && fld == NUMFIELD0) );
-  //return (_data+((fld-NUMFIELD0)*_sizeMax));
   return _rake[fld-NUMFIELD0];
 }
 
@@ -425,7 +421,6 @@ const T* FldArray<T>::begin(E_Int fld) const
 {
   assert (fld >= NUMFIELD0);
   assert (fld <= _nfldLoc);
-  //return (_data+((fld-NUMFIELD0)*_sizeMax));
   return _rake[fld-NUMFIELD0];
 }
 
@@ -434,7 +429,6 @@ TEMPLATE_T
 inline
 T* FldArray<T>::end()
 {
-  //return (_data + _sizeMax*(_nfldLoc-1) + _sizeLoc);
   return _rake[_nfldLoc-1]+_sizeLoc*_stride;
 }
 
@@ -443,7 +437,6 @@ TEMPLATE_T
 inline
 const T* FldArray<T>::end() const
 {
-  //return (_data + _sizeMax*(_nfldLoc-1) + _sizeLoc);
   return _rake[_nfldLoc-1]+_sizeLoc*_stride;
 }
 
@@ -454,7 +447,6 @@ T* FldArray<T>::end(E_Int fld)
 {
   assert (fld >= NUMFIELD0);
   assert (fld <= _nfldLoc);
-  //return (_data + _sizeMax*(fld-1) + _sizeLoc);
   return _rake[fld-1]+_sizeLoc*_stride;
 }
 
@@ -465,7 +457,6 @@ const T* FldArray<T>::end(E_Int fld) const
 {
   assert (fld >= NUMFIELD0);
   assert (fld <= _nfldLoc);
-  //return (_data + _sizeMax*(fld-1) + _sizeLoc);
   return _rake[fld-1]+_sizeLoc*_stride;
 }
 //==============================================================================
@@ -879,7 +870,6 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
   }
   else
   { // shared
-    //_rake = new T* [nfld];
     _data = (T*)listofvalues; SETRAKE;
   }
 }
@@ -913,7 +903,6 @@ FldArray<T>::FldArray(E_Int size, E_Int nfld,
   }
   else
   { // shared
-    //_rake = new T* [nfld];
     for (E_Int i = 0; i < nfld; i++)
       _rake[i] = listofvalues[i];
   }
@@ -1025,9 +1014,9 @@ void FldArray<T>::sqrt()
   {
     for (E_Int n = 0; n < _nfldLoc; n++)
     {
-        T* pt = _rake[n];
-        #pragma omp for
-        for (E_Int i = 0; i < _sizeLoc; i++) pt[i*_stride] = std::sqrt(pt[i*_stride]);
+      T* pt = _rake[n];
+      #pragma omp for
+      for (E_Int i = 0; i < _sizeLoc; i++) pt[i*_stride] = std::sqrt(pt[i*_stride]);
     }
   }
 }
@@ -1181,7 +1170,6 @@ void FldArray<T>::releaseMemory(void)
   for (E_Int i = 0; i < _nfldMax; i++) _rake[i] = NULL;
   _sizeTot = _sizeMax = _sizeLoc = _nfldMax = _nfldLoc = 0;
   if (_ngon == 1) { delete [] _rake[2]; delete [] _rake[3]; }
-  //delete [] _rake; _rake = NULL;
   for (size_t i = 0; i < _BEConnects.size(); i++) delete _BEConnects[i];
 }
 
@@ -1318,7 +1306,6 @@ void FldArray<T>::malloc(E_Int size, E_Int nfld)
   }
   else
   {
-    //if (nfld > _nfldMax) { delete [] _rake; _rake = new T* [nfld]; }
     SETRAKE;
   }
 }
@@ -1385,7 +1372,6 @@ void FldArray<T>::reAlloc(E_Int size, E_Int nfld)
   _sizeMax = _sizeLoc = size;
   _nfldMax = _nfldLoc = nfld;
   _data = newdata;
-  //_rake = new T* [nfld];
   SETRAKE;
 }
 
@@ -1434,7 +1420,6 @@ void FldArray<T>::reAllocMat(E_Int size, E_Int nfld)
   _sizeMax = _sizeLoc = size;
   _nfldMax = _nfldLoc = nfld;
   _data = newdata;
-  //_rake = new T* [nfld];
   SETRAKE;
 }
 //-----------------------------------------------------------------------------
@@ -1477,7 +1462,6 @@ void FldArray<T>::reAllocMatSeq(E_Int size, E_Int nfld)
   _sizeMax = _sizeLoc = size;
   _nfldMax = _nfldLoc = nfld;
   _data = newdata;
-  //_rake = new T* [nfld];
   SETRAKE;
 }
 //OK===========================================================================
@@ -1532,7 +1516,6 @@ void FldArray<T>::reserve(E_Int nfld, E_Int size)
   _nfldLoc = nf;
   _nfldMax = nfld;
   _data    = newdata;
-  //_rake = new T* [nfld];
   SETRAKE;
 }
 
@@ -1581,7 +1564,6 @@ void FldArray<T>::resize(E_Int nfld, E_Int size, const T& val)
     _sizeTot = sizeTot;
     _sizeMax = size;
     _nfldMax = nfld;
-    //_rake = new T* [nfld];
   }
   else
   {

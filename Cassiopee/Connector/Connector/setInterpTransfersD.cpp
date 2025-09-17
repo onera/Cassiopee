@@ -781,8 +781,8 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
         {
           E_Int shift_rac = ech + 4 + timelevel * 2 + irac; 
 
-          E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
-          E_Int irac_auto= irac-irac_deb;
+          //E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
+          E_Int irac_auto = irac-irac_deb;
 
           //printf("verif %d %d irac/nrac= %d %d  past_int=%d , pastType= %d \n", autorisation_transferts[pass_inst][irac_auto] , impli_local[NoD], irac, irac_fin, pass_inst, ipass_typ );
 
@@ -967,7 +967,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
             noi     = shiftDonor;  // compteur sur le tableau d indices donneur
             indCoef = ( pt_deb - ideb ) * sizecoefs + shiftCoef;
 
-            E_Int NoR = ipt_param_int[shift_rac + nrac*11]; 
+            //E_Int NoR = ipt_param_int[shift_rac + nrac*11]; 
       
             if (isWireModel==1)
             {
@@ -1103,7 +1103,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD(PyObject* self, PyObject* args)
         E_Int nbRcvPts  = ipt_param_int[shift_rac + nrac*10];
 
         E_Int nbRcvPts_loc = nbRcvPts;
-        E_Int NoD          = ipt_param_int[ shift_rac + nrac*5 ];
+        //E_Int NoD          = ipt_param_int[ shift_rac + nrac*5 ];
 
         E_Int ibcType = ipt_param_int[shift_rac + nrac*3];
         E_Int ibc = 1; 
@@ -1267,7 +1267,7 @@ PyObject* K_CONNECTOR::__setInterpTransfersD4GradP(PyObject* self, PyObject* arg
   vector< PyArrayObject* > hook;
 
   // E_Int kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
-  E_Int   kmd, cnNfldD=1, nvars, ndimdxD, meshtype, nvars_grad;
+  E_Int   kmd, cnNfldD=1, nvars, meshtype, nvars_grad;
   //E_Float* iptroD;
 
   if      (vartype <= 3 &&  vartype >= 1) nvars =5;
