@@ -44,7 +44,7 @@ E_Int K_POST::computeGradNGon(
   K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
   delete cFE;
   E_Float* volp = new E_Float [nelts];
-  K_METRIC::compNGonVol(xt, yt, zt, cn, volp);
+  K_METRIC::compVolNGon(xt, yt, zt, cn, volp);
 
   // Connectivite Element/Noeuds
   std::vector<std::vector<E_Int> > cnEV(nelts);

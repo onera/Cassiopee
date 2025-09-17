@@ -47,7 +47,7 @@ E_Int K_POST::computeCurlNGon(
   K_METRIC::compNGonFacesSurf(xt, yt, zt, cn, sxp, syp, szp, snp, cFE);
   delete cFE;
   E_Float* volp = new E_Float [nelts];
-  K_METRIC::compNGonVol(xt, yt, zt, cn, volp); 
+  K_METRIC::compVolNGon(xt, yt, zt, cn, volp); 
   // Connectivite Element/Noeuds
   vector<vector<E_Int> > cnEV(nelts);
   K_CONNECT::connectNG2EV(cn, cnEV); //deja calculee dans NGONVol

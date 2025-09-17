@@ -32,7 +32,7 @@ using namespace std;
 // OUT: sxp, syp, szp: surface orientee calculee aux centres des elements
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
-E_Int K_METRIC::compNGonSurf(
+E_Int K_METRIC::compSurfNGon(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   FldArrayI& cn,
   E_Float* sxp, E_Float* syp, E_Float* szp)

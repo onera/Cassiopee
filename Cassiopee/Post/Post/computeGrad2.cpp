@@ -244,7 +244,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   { 
     vol.malloc(nelts);
     volp = vol.begin(1);  
-    K_METRIC::compNGonVol(f->begin(posx), f->begin(posy),
+    K_METRIC::compVolNGon(f->begin(posx), f->begin(posy),
   			  f->begin(posz), *cn, volp);
   }
   else
@@ -721,7 +721,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Float* snp = surfnorm.begin();
   FldArrayF vol(ncells); E_Float* volp = vol.begin();
 
-  K_METRIC::compStructMetric(
+  K_METRIC::compMetricStruct(
     ni, nj, nk, nbIntI, nbIntJ, nbIntK,
     xt, yt, zt,
     volp, sxp, syp, szp, snp,
