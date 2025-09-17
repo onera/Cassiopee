@@ -849,7 +849,7 @@ namespace K_POST
     const E_Float* ux, const E_Float* uy, const E_Float* uz,
     E_Float* rotux, E_Float* rotuy, E_Float* rotuz);
   
-    void compCurlStruct3D(
+  void compCurlStruct3D(
     const E_Int ni, const E_Int nj, const E_Int nk,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     const E_Float* ux, const E_Float* uy, const E_Float* uz,
