@@ -87,9 +87,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     t_prep_end = time.perf_counter()
     t_wdist_start = time.perf_counter()
     # Distance to IBCs (all IBCs)
-    test.printMem(">>> Wall distance nodes [start]")
     varnames = C.getVarNames(t,loc="nodes")[0]
     if "TurbulentDistance" not in varnames:
+        test.printMem(">>> Wall distance nodes [start]")
         if different_front_flag == True: #True is default
             tb_WD = getBodiesForWallDistanceComputation(tb2)
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
@@ -97,12 +97,16 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         else: #False
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+        test.printMem(">>> Wall distance nodes [end]")
     else:
         if different_front_flag == False: #True is default
+            test.printMem(">>> Wall distance nodes [start]")
             Internal._renameNode(t, "TurbulentDistance", "TurbulentDistanceForCFDComputation")
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
-    test.printMem(">>> Wall distance nodes [end]")
+            test.printMem(">>> Wall distance nodes [end]")
+        else:
+            test.printMem(">>> Wall distance nodes : skipped - dist2wall is in input PyTree ")
 
     t_wdist_end = time.perf_counter()
     t_blank_start = time.perf_counter()
@@ -925,5 +929,45 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
     for i in range(N_IP_per_cell):
         walldistance_dataset=Internal.newFlowSolution('FlisWallDistance'+str(list_suffix_datasets[i]),parent=zones[0],gridLocation="CellCenter")
         Internal.newDataArray('TurbulentDistance',value=walldistance_volume_ip[i::N_IP_per_cell],parent=walldistance_dataset)
+
+    return None
+
+
+
+def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=False, opt=False, octreeMode=1,
+                  snears=0.01, dfars=10, loadBalancing=False, conformal=False, OutputAMRMesh=False, localDir='./'):
+    import time
+    from FSCGNSConverter.FSCGNSConverter import FSCGNSConverter
+
+    startTime = time.perf_counter_ns()
+    if Cmpi.rank==0: print('AMR Mesh Generation...start',flush=True)
+    t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
+                                  toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
+                                  snears=0.01, dfars=10, loadBalancing=False)
+    if Cmpi.rank==0: print('AMR Mesh Generation...end',flush=True)
+    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
+    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Generation: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+
+    startTime   = time.perf_counter_ns()
+    if Cmpi.rank==0: print('AMR Mesh Dist2Wal...start',flush=True)
+    if dim==2: T._addkplane(tb)
+    DTW._distance2Walls(t_AMR, tb, type='ortho', signed=0, dim=dim, loc='centers')
+    DTW._distance2Walls(t_AMR, tb, type='ortho', signed=0, dim=dim, loc='nodes')
+    if Cmpi.rank==0: print('AMR Mesh Dist2Wall...end',flush=True)
+    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
+    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Dist2Wall: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    
+    if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
+    startTime   = time.perf_counter_ns()
+    if Cmpi.rank==0: print('AMR prepare IBM...start',flush=True)
+    t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir)
+    if Cmpi.rank==0: print('AMR prepare IBM...end',flush=True)
+    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
+    if Cmpi.rank==0: print('Elapsed Time: AMR prepare IBM: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    Cmpi.convertPyTree2File(t_AMR, localDir+'tIBM.cgns')
+
+    convObj = FSCGNSConverter(meshName=localDir+'tIBM.cgns', dimPb=dim, conformal=conformal, IBMParameters=IBM_parameters)
+    convObj.convert()
+    convObj.export(filename=localDir+'tIBM.h5')
 
     return None
