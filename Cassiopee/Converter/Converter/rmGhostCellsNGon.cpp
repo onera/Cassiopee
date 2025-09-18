@@ -56,6 +56,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int api = f->getApi();
   FldArrayI cFE; K_CONNECT::connectNG2FE(*cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
@@ -145,7 +146,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonNodes(PyObject* self, PyObject* args)
   // Sortie  
   K_CONNECT::cleanUnreferencedFacesNGon(*cout);
 
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cout, 8, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cout, eltType, api);
   RELEASESHAREDU(arrayN, f, cn); 
   delete cout;
   return tpl;
@@ -186,6 +187,8 @@ PyObject* K_CONVERTER::rmGhostCellsNGonCenters(PyObject* self, PyObject* args)
                     "rmGhostCells: array must be NGON*.");
     RELEASESHAREDU(arrayC,fc,cn); return NULL;
   }
+
+  E_Int api = fc->getApi();
   FldArrayI cFE; K_CONNECT::connectNG2FE(*cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
@@ -286,7 +289,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonCenters(PyObject* self, PyObject* args)
 
   // Sortie  
   K_CONNECT::cleanUnreferencedFacesNGon(*cout);
-  PyObject* tpl = K_ARRAY::buildArray(*fcout, varStringC, *cout, 8, "NGON", true);
+  PyObject* tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cout, "NGON", api);
   RELEASESHAREDU(arrayC, fc, cn);
   delete fcout; delete cout;
   return tpl;
@@ -426,6 +429,7 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
 
   // Les points ajoutes sont des points crees a la fin par addGhostCells
   // si on a conserve l ordre de addGhostCells, pas besoin de remodifier la connectivite Faces/Noeuds
+  E_Int api = fc->getApi();
   E_Int nfld = fc->getNfld();
   FldArrayF* fcout = new FldArrayF(nint,nfld);
   for (E_Int eq = 1; eq <= nfld; eq++)
@@ -452,10 +456,10 @@ PyObject* K_CONVERTER::rmGhostCellsNGonBoth(PyObject* self, PyObject* args)
   K_CONNECT::cleanUnreferencedFacesNGon(*cout); 
 
   PyObject* l = PyList_New(0);
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cout, 8, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cout, eltType, api);
   PyList_Append(l, tpl); Py_DECREF(tpl);
   //array en centres
-  tpl = K_ARRAY::buildArray(*fcout, varStringC, *cout, 8, "NGON", true);
+  tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cout, "NGON", api);
   PyList_Append(l, tpl); Py_DECREF(tpl);  delete fcout; delete cout;
 
   RELEASESHAREDU(arrayN, f, cn); RELEASESHAREDU(arrayC, fc, cnc);

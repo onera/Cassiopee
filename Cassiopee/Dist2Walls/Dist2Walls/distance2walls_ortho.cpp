@@ -89,6 +89,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
 
+  E_Int api = -1;
   E_Int nsn = structFn.size(); E_Int nun = unstrFn.size();
   E_Int posx=-1, posy=-1, posz=-1;
   vector<E_Int> ncellss; vector<E_Int> ncellsu;
@@ -158,6 +159,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     o = PyList_GetItem(bodiesC, i);
     res = K_ARRAY::getFromArray3(o, varStringl, fl, 
                                  nil, njl, nkl, cnl, eltTypel);
+    if (api == -1) api = fl->getApi();
     if (res == 1)
     {
       structVarString.push_back(varStringl);
@@ -175,6 +177,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
 
+  if (api == -1) api = 1;
   E_Int nwalls = unstrF.size();
 
   if (nwalls == 0)
@@ -247,8 +250,8 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   PyObject* tpl;    
   for (E_Int nos = 0; nos < nsn; nos++)
   {
-    tpl = K_ARRAY::buildArray(*distances[nos], "TurbulentDistance", 
-                              nitn[nos], njtn[nos], nktn[nos]);
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
+                               nitn[nos], njtn[nos], nktn[nos]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
     RELEASESHAREDS(objsn[nos], structFn[nos]);
@@ -256,8 +259,8 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int nou = 0; nou < nun; nou++)
   {
     K_FLD::FldArrayI* cnout = new K_FLD::FldArrayI(*cntn[nou]);
-    tpl = K_ARRAY::buildArray(*distancesu[nou], "TurbulentDistance", *cnout,
-                              -1, eltTypen[nou]);
+    tpl = K_ARRAY::buildArray3(*distancesu[nou], "TurbulentDistance", *cnout,
+                               eltTypen[nou], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     RELEASESHAREDU(objun[nou], unstrFn[nou],cntn[nou]);
     delete distancesu[nou]; delete cnout;

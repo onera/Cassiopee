@@ -77,6 +77,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       }
     
     E_Int sizef = f->getSize();
+    E_Int api = f->getApi();
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
@@ -88,7 +89,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       FldArrayF& angle = *an;
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngle(im, xt, yt, zt, dirVect, angle);
-      tpl = K_ARRAY::buildArray(*an, "angle", im, jm, km);
+      tpl = K_ARRAY::buildArray3(*an, "angle", im, jm, km);
       delete an;
     }
     else if (res == 2 && strcmp(eltType, "BAR") == 0)
@@ -97,7 +98,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       FldArrayF& angle = *an;
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngleForBar(sizef, xt, yt, zt, *cn, dirVect, angle);
-      tpl = K_ARRAY::buildArray(*an, "angle", *cn, -1, eltType);
+      tpl = K_ARRAY::buildArray3(*an, "angle", *cn, eltType, api);
       delete an; delete cn;
     }
     else if (res == 2 && strcmp(eltType, "TRI") == 0)
@@ -109,7 +110,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
                                                        xt, yt, zt, *cn, angle);
       if (ret == 1)
       {
-        tpl = K_ARRAY::buildArray(*an, "angle1,angle2,angle3", *cn, -1, eltType);
+        tpl = K_ARRAY::buildArray3(*an, "angle1,angle2,angle3", *cn, eltType, api);
         delete an; delete cn;
       }
     }

@@ -102,6 +102,7 @@ PyObject* K_POST::frontFacesUnstructured(char* varString, FldArrayF& f,
   E_Int nelts = cn.getSize(); // nombre d'elements
   E_Int nvpe = cn.getNfld(); // nbre de noeuds par elements
   E_Int nfld = f.getNfld(); // nbre de champs dans f
+  E_Int api = f.getApi();
 
   E_Int nfaces = 0; // nb de faces par element
   E_Int nvertex = 0; // nb de sommets par face
@@ -199,8 +200,8 @@ PyObject* K_POST::frontFacesUnstructured(char* varString, FldArrayF& f,
     K_CONNECT::cleanConnectivity(posx, posy, posz, 
                                  1.e-12, eltTypeOut, 
                                  *faces, *connect);
-  PyObject* tpl = K_ARRAY::buildArray(*faces, varString, 
-                                      *connect, -1, eltTypeOut);
+  PyObject* tpl = K_ARRAY::buildArray3(*faces, varString, 
+                                       *connect, eltTypeOut, api);
   delete faces; delete connect;
   return tpl;
 }

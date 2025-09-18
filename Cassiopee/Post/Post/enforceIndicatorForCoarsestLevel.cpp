@@ -86,6 +86,7 @@ PyObject* K_POST::enforceIndicatorForCoarsestLevel(PyObject* self,
     return indicator;
   }
   /*-----------FIN DES VERIFS ------------------*/
+  E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* indict = fi->begin(posi);
   E_Int nelts = cn->getSize();
@@ -109,10 +110,9 @@ PyObject* K_POST::enforceIndicatorForCoarsestLevel(PyObject* self,
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/
   PyObject* tpl;
   if (resi == 1) 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, nii, nji, nki);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, nii, nji, nki);
   else 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, 
-                              false);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, *cni, eltTypei, api);
   RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn);
   return tpl;
 }

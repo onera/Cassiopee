@@ -73,6 +73,8 @@ PyObject* K_CONVERTER::center2Node2(PyObject* self, PyObject* args)
     }
   }
 
+  E_Int api = FCenter->getApi();
+
   if (res == 1)
   {
     E_Int nin, njn, nkn;
@@ -110,8 +112,7 @@ PyObject* K_CONVERTER::center2Node2(PyObject* self, PyObject* args)
     }
     else
     { nin = ni+1; njn = nj+1; nkn = nk+1; }
-    PyObject*tpl = K_ARRAY::buildArray(nfld, varString, 
-                                       nin, njn, nkn);
+    PyObject*tpl = K_ARRAY::buildArray3(nfld, varString, nin, njn, nkn);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF FNode(nin*njn*nkn, nfld, fnp, true);
     ret = K_LOC::center2nodeStruct2(*FCenter, ni, nj, nk, cellN, mod, 
@@ -176,7 +177,7 @@ PyObject* K_CONVERTER::center2Node2(PyObject* self, PyObject* args)
     
       for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
       cEV.clear();
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;
@@ -223,7 +224,7 @@ PyObject* K_CONVERTER::center2Node2(PyObject* self, PyObject* args)
                         "center2Node: unstructured array must be eltType*.");
         RELEASESHAREDU(array, FCenter, c); return NULL;
       }
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;

@@ -81,6 +81,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
 
+  E_Int api = -1;
   E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
   E_Int posx=-1, posy=-1, posz=-1; 
   vector<E_Int> ncellss; vector<E_Int> ncellsu; 
@@ -137,11 +138,13 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   vector<char*> eltTypeb;
   vector<PyObject*> objs, obju;  
   nz = PyList_Size(bodiesC);
+
   for (E_Int i = 0; i < nz; i++)
   {
     o = PyList_GetItem(bodiesC, i);
     res = K_ARRAY::getFromArray3(o, varStringl, fl, 
                                  nil, njl, nkl, cnl, eltTypel);
+    if (api == -1) api = fl->getApi();
     if (res == 1)
     {
       structVarString.push_back(varStringl);
@@ -159,7 +162,9 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
 
+  if (api == -1) api = 1;
   E_Int nwalls = unstrF.size();
+
   if (nwalls == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -221,8 +226,8 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   PyObject* tpl;    
   for (E_Int nos = 0; nos < ns0; nos++)
   {
-    tpl = K_ARRAY::buildArray(*distances[nos], "TurbulentDistance", 
-                              nit0[nos], njt0[nos], nkt0[nos]);
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
+                               nit0[nos], njt0[nos], nkt0[nos]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
     RELEASESHAREDS(objst[nos], structF0[nos]);
@@ -230,8 +235,8 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   for (E_Int nou = 0; nou < nu0; nou++)
   {
     K_FLD::FldArrayI* cnout = new K_FLD::FldArrayI(*cnt0[nou]);
-    tpl = K_ARRAY::buildArray(*distancesu[nou], "TurbulentDistance", *cnout,
-                              -1, eltType0[nou]);
+    tpl = K_ARRAY::buildArray3(*distancesu[nou], "TurbulentDistance", *cnout,
+                               eltType0[nou], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     RELEASESHAREDU(objut[nou], unstrF0[nou],cnt0[nou]);
     delete distancesu[nou]; delete cnout;

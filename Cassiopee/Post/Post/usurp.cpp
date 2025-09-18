@@ -348,8 +348,8 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < nzone; i++)
   {
-    tpl = K_ARRAY::buildArray(*vectOfRatios[i], "ratio",
-                              nis[i], njs[i], nks[i]);
+    tpl = K_ARRAY::buildArray3(*vectOfRatios[i], "ratio",
+                               nis[i], njs[i], nks[i]);
     delete vectOfRatios[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

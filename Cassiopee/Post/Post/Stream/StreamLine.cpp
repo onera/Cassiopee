@@ -390,7 +390,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                     "streamLine: cannot create a line.");
     return NULL;
   }
-  PyObject* tpl = K_ARRAY::buildArray(*streamPts, varStringOut, npts, 1, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(*streamPts, varStringOut, npts, 1, 1);
   
   delete [] varStringOut;
   

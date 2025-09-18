@@ -450,7 +450,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     }
 
     RELEASESHAREDS(array, f);  
-    PyObject* tpl = K_ARRAY::buildArray(*an, varString, np, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*an, varString, np, nj, nk);
     delete an;
     return tpl;
   }
@@ -2294,7 +2294,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
     if (E_abs(epsilon) < 1.e-12) // nothing to do
     {
-      PyObject* tpl = K_ARRAY::buildArray(*f, varString, ni, nj, nk);
+      PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk);
       RELEASESHAREDS(array, f);
       return tpl;
     }

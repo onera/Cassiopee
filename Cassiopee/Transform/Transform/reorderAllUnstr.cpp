@@ -152,8 +152,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
     }
 
     tpl = K_ARRAY::buildArray(*crds[i], varString, *cnts[i], -1, is_quad[i] ? "QUAD" : "TRI");
-    delete crds[i];
-    delete cnts[i];
+    delete crds[i]; delete cnts[i];
     if (is_quad[i]) delete tri_cnts[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

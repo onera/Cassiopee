@@ -70,6 +70,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
     }
   }
   
+  E_Int api = f->getApi();
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -91,8 +92,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
                             *f,
                             posx, posy, posz,
                             *dist, ni1, nj1, nk1);
-    PyObject* tpl = K_ARRAY::buildArray(*dist, "dist", 
-                                        ni1, nj1, nk1);
+    PyObject* tpl = K_ARRAY::buildArray3(*dist, "dist", ni1, nj1, nk1);
     delete dist; 
     RELEASESHAREDS(array, f);
     return tpl;
@@ -115,8 +115,7 @@ K_GENERATOR::computeCellPlanarity( PyObject* self, PyObject* args )
                                 posx, posy, posz,
                                 *dist);
     }
-    PyObject* tpl = K_ARRAY::buildArray(*dist, "dist",
-                                        *connect, -1, eltType, true);
+    PyObject* tpl = K_ARRAY::buildArray3(*dist, "dist", *connect, eltType, api);
     delete dist; delete connect;
     RELEASESHAREDU(array, f, cn);
     return tpl;

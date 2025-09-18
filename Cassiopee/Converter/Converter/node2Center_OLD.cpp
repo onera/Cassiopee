@@ -98,6 +98,7 @@ PyObject* K_CONVERTER::node2Center_OLD(PyObject* self, PyObject* args)
     E_Int ncells;
     FldArrayF* FCenter;
     E_Int nfld = FNode->getNfld();
+    E_Int api = FNode->getApi();
     if (strcmp(eltType, "NGON") == 0) 
     {
       E_Int* cnp = c->begin();
@@ -126,8 +127,7 @@ PyObject* K_CONVERTER::node2Center_OLD(PyObject* self, PyObject* args)
       delete FCenter; RELEASESHAREDU(array, FNode, c); 
       return NULL;
     }
-    tpl = K_ARRAY::buildArray(*FCenter, varString, *c, -1, 
-                              eltType, true);
+    tpl = K_ARRAY::buildArray3(*FCenter, varString, *c, eltType, api);
     delete FCenter; RELEASESHAREDU(array, FNode, c);
     return tpl;
   }

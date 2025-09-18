@@ -82,6 +82,7 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
   E_Int node1, node2;
   E_Int nb = f->getSize(); // nbre de noeuds
   E_Int nfld = f->getNfld();// nb de champs
+  E_Int api = f->getApi();
   FldArrayI& cn = *cnp;
   E_Int ne = cn.getSize(); // nbre d'elements
   E_Int nt = cn.getNfld(); // taille des elements
@@ -174,7 +175,7 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
 
   // Build array
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, "BAR");
+  tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, "BAR", api);
   delete fnodes; delete connect;
   RELEASESHAREDB(res, array, f, cnp);
 

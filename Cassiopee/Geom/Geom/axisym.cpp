@@ -246,6 +246,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
 
   E_Int npts0 = f0->getSize();
   E_Int nfld0 = f0->getNfld();
+  E_Int api = f0->getApi();
   E_Float* xt0 = f0->begin(posx);
   E_Float* yt0 = f0->begin(posy);
   E_Float* zt0 = f0->begin(posz);
@@ -334,7 +335,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   {
     RELEASESHAREDS(array, f0);
     if (useR != 0) RELEASESHAREDB(useR, arrayR, fR, cnR);
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString0, ni0, nj0, nteta);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString0, ni0, nj0, nteta);
     delete f;
     return tpl;
   }
@@ -389,7 +390,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
 
     RELEASESHAREDU(array, f0, cn0);
     if (useR != 0) RELEASESHAREDB(useR, arrayR, fR, cnR);
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString0, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString0, *cn, eltType, api);
     delete f; delete cn;
     return tpl;
   }

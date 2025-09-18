@@ -97,7 +97,7 @@ PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(posz);
   E_Float* indict = fi->begin(posi);
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
-  E_Int npts = f->getSize(); 
+  E_Int npts = f->getSize(); E_Int api = f->getApi();
   FldArrayF* fo = new FldArrayF(npts, 3);
   FldArrayI* cno = new FldArrayI(nelts, nvert);
   FldArrayF* indicout = new FldArrayF(nelts,1); indicout->setAllValuesAtNull();
@@ -203,14 +203,14 @@ PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
   // Sortie
   RELEASESHAREDU(octree, f, cn);  RELEASESHAREDB(resi, indica, fi, cni);
   PyObject* l = PyList_New(0); 
-  PyObject* tpl = K_ARRAY::buildArray(*fo, "x,y,z", *cno, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*fo, "x,y,z", *cno, eltType, api);
   delete fo;
   PyList_Append(l, tpl); Py_DECREF(tpl);
   char eltType2[8];
   if (strcmp(eltType, "QUAD")  == 0) strcpy(eltType2, "QUAD*");
   else strcpy(eltType2, "HEXA*");
-  PyObject* tpl2 = K_ARRAY::buildArray(*indicout, "indicator", *cno, 
-                                       -1, eltType2);
+  PyObject* tpl2 = K_ARRAY::buildArray3(*indicout, "indicator", *cno, 
+                                        eltType2, api);
   delete cno; delete indicout;
   PyList_Append(l, tpl2); Py_DECREF(tpl2);
   return l;

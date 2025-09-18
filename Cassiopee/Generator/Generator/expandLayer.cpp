@@ -95,7 +95,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
     return indicator;
   }
   /*-----------FIN DES VERIFS ------------------*/
-  E_Int nelts = cn->getSize(); E_Int npts = f->getSize();
+  E_Int nelts = cn->getSize();
+  E_Int npts = f->getSize(); E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
@@ -423,9 +424,9 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/
   PyObject* tpl;
   if (resi == 1) 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, nii, nji, nki);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, nii, nji, nki);
   else 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, false);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, *cni, eltTypei, api);
   RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn);
   return tpl;
 }

@@ -266,7 +266,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     }
 
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*fd, varStringd, N, jmd, kmd);
+    PyObject* tpl = K_ARRAY::buildArray3(*fd, varStringd, N, jmd, kmd);
     RELEASESHAREDS(arrayC, fc);
     RELEASESHAREDS(arrayD, fd);
     return tpl;

@@ -97,6 +97,7 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   E_Float* zn = field->begin(posz);
 
   /* Determination des pts interpoles */
+  E_Int api = field1->getApi();
   E_Int ncells = field1->getSize();
   E_Float* cellNp = field1->begin(posc);
   FldArrayI interpolatedCellArray(ncells);
@@ -246,9 +247,9 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   RELEASESHAREDS(coordArray, field);
   RELEASESHAREDS(cellNArray, field1); 
   FldArrayI* cnl = new FldArrayI(0);
-  PyObject* tpl = K_ARRAY::buildArray(*coordEX, 
+  PyObject* tpl = K_ARRAY::buildArray3(*coordEX, 
                                       "x,y,z,indcell1,indcell2,nodemin,EXdir", 
-                                      *cnl, -1, "NODE", false);
+                                      *cnl, "NODE", api);
   delete coordEX; delete cnl;
   return tpl;
 }

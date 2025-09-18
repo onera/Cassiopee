@@ -1110,7 +1110,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   E_Float* cellNp = field->begin(posc);
   /* Fin des verifs */
   E_Int npts = field->getSize();
-
+  E_Int api = field->getApi();
 
   // =================================================
   // ============= VERSION DEV OPTIMISEE =============
@@ -1141,7 +1141,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       }
     }
 
-    PyObject* tpl = K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl = K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1154,7 +1154,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
     // WARNING: NGON is array1 type here !!! 
-    if (K_STRING::cmp(eltType,"NGON")==0) cn->setNGon(1);
+    if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGon(1);
  
     searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)
@@ -1163,7 +1163,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl = K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
@@ -1189,7 +1189,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1207,7 +1207,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
 
@@ -1552,6 +1552,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   E_Float* cellNp = field->begin(posc);
   /* Fin des verifs */
   E_Int ncells = field->getSize();
+  E_Int api = field->getApi();
 
   // =================================================
   // ============= VERSION DEV OPTIMISEE =============
@@ -1582,7 +1583,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       }
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1604,7 +1605,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
@@ -1631,7 +1632,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1646,7 +1647,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION ORIGINALE =============
@@ -1828,6 +1829,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   /*fin verifs*/
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   char varStringOut[K_ARRAY::VARSTRINGLENGTH]; varStringOut[0] = '\0';
   E_Int nfldOut = nfld+1;
   strcpy(varStringOut,varString); strcat(varStringOut,",indcell");
@@ -1848,8 +1850,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
 
   RELEASESHAREDB(res, array, f, cn);
   FldArrayI* cnl = new FldArrayI(0);
-  PyObject* tpl = K_ARRAY::buildArray(*fout, varStringOut, *cnl, -1,
-                                      "NODE", false);
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varStringOut, *cnl, "NODE", api);
   delete fout; delete cnl;
   return tpl;
 }
