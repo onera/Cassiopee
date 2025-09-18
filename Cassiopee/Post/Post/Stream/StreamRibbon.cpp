@@ -30,12 +30,6 @@ using namespace K_FUNC;
 
 extern "C"
 {  
-  void k6compmeancurlofstructcell_(
-    const E_Int& ind0, const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* u, const E_Float* v, const E_Float* w, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float& rotu, E_Float& rotv, E_Float& rotw);
-  
   void  k6compmeancurloftetracell_(
     const E_Int& npts, const E_Int& ind1, const E_Int& ind2, 
     const E_Int& ind3, const E_Int& ind4, 
@@ -83,7 +77,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
                     "streamRibbon: vector must be defined by 3 components.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vectorNames); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
     if (PyString_Check(tpl0))
@@ -117,10 +111,10 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs0, obju0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int nfld = -1;
   E_Int isOk = K_ARRAY::getFromArrays(arrays, resl, structVarString, unstrVarString,
                                       structF, unstrF, nit0, njt0, nkt0, 
@@ -275,10 +269,12 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   vector<char*> eltTypes;
   vector<K_INTERP::InterpData*> unstrInterpDatas;  
 
+  E_Int api = -1;
   // seuls sont pris en compte les fields ayant les variables du vecteur
   // ts les arrays traites doivent avoir le meme nb de champs
   if (structSize > 0) 
   {
+    api = structF[0]->getApi();
     E_Int found = extractVectorFromStructArrays(signe, nis1, njs1, nks1,
                                                 posxs1, posys1, poszs1, poscs1,
                                                 structVarStrings1, structF1, 
@@ -312,6 +308,7 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   //extract des variables du vecteur sur les maillages non structures 
   if (unstrSize > 0) 
   {
+    if (api == -1) api = unstrF[0]->getApi();
     E_Int found = extractVectorFromUnstrArrays(signe, posxu2, posyu2, poszu2, poscu2,
                                                unstrVarString2, unstrF2, cnt2,
                                                eltType2, unstrInterpDatas2,
@@ -340,6 +337,8 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
       return NULL;
     }
   }
+
+  if (api == -1) api = 1;
   
   // Petit nettoyage intermediaire
   nis1.clear(); njs1.clear(); nks1.clear();
@@ -387,8 +386,8 @@ PyObject* K_POST::compStreamRibbon(PyObject* self, PyObject* args)
   FldArrayF* streamPts = new FldArrayF(npts, nfld);
   FldArrayI* cn = new FldArrayI(npts-2,3);
   buildConnectivity(streamPts1, streamPts2, *streamPts, *cn);
-  // Construction de l'array non structure de sortie 
-  PyObject* tpl = K_ARRAY::buildArray(*streamPts, varStringOut, *cn, 2);
+  // Construction de l'array non structure de sortie
+  PyObject* tpl = K_ARRAY::buildArray3(*streamPts, varStringOut, *cn, "TRI", api);
   
   //nettoyage...
   delete streamPts; delete cn;
@@ -1227,21 +1226,21 @@ short K_POST::getThetaRKCoef(
 
     /* Determination de f4(xp)=(rotv.v/normv)/2 */
     // 1-calcul de la vorticite    
-    k6compmeancurlofstructcell_(
+    compMeanCurlOfStructCell(
       ind, ni, nj, nk, velo->begin(1), velo->begin(2), velo->begin(3), 
       field->begin(posx), field->begin(posy), field->begin(posz),
       rotvx, rotvy, rotvz);
     
     // 2-calcul de v/normv
-    E_Float normu = sqrt(up*up+vp*vp+wp*wp);
-    if ( fEqualZero(normu) == true ) return 0;
+    E_Float normu = sqrt(up*up + vp*vp + wp*wp);
+    if (fEqualZero(normu)) return 0;
     normu = 1./normu;
     E_Float sx = up*normu;
     E_Float sy = vp*normu; 
     E_Float sz = wp*normu;
     
     // 3-Calcul du coeff de runge kutta pour theta
-    kcoef = rotvx*sx+rotvy*sy+rotvz*sz;
+    kcoef = rotvx*sx + rotvy*sy + rotvz*sz;
     return 1;
   }
   else // non structure
@@ -1264,17 +1263,17 @@ short K_POST::getThetaRKCoef(
     E_Int posy = posyu[noblk0];
     E_Int posz = poszu[noblk0];
     E_Int noet = indi[0];
-    E_Int indA = cnEV(noet,1)-1;
-    E_Int indB = cnEV(noet,2)-1;
-    E_Int indC = cnEV(noet,3)-1;
-    E_Int indD = cnEV(noet,4)-1;
+    E_Int indA = cnEV(noet, 1) - 1;
+    E_Int indB = cnEV(noet, 2) - 1;
+    E_Int indC = cnEV(noet, 3) - 1;
+    E_Int indD = cnEV(noet, 4) - 1;
     k6compmeancurloftetracell_( field->getSize(), indA, indB, indC, indD, 
                                 velo->begin(1), velo->begin(2), velo->begin(3), 
                                 field->begin(posx), field->begin(posy), field->begin(posz),
                                 rotvx, rotvy, rotvz);
     // 2-calcul de v/normv
     E_Float normu = sqrt(up*up+vp*vp+wp*wp);
-    if ( fEqualZero(normu) == true ) 
+    if (fEqualZero(normu)) 
       return 0;
     normu = 1./normu;
     E_Float sx = up*normu;

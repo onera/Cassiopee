@@ -39,20 +39,28 @@ namespace K_NUMPY
   /* Extrait les donnees d'un numpy array
      IN: o: numpy array
      OUT: f: FldArray alloue et rempli.
-     Si shared=true, le tableau pointe sur le numpy et la reference sur
-     o est incrementee
-     Si shared=false, le tableau est une copie du numpy.
+     Le tableau pointe sur le numpy et la reference sur
+     o est incrementee.
+     For FldArray, use RELEASESHAREDN to deallocate.
+     For E_Int/E_Float, use Py_DECREF to deallocate.
      Retourne 0 (FAIL), 1 (SUCCESS) */
-  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Boolean shared);
-  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Boolean shared);
-  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Boolean shared);
-  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Boolean shared);
-  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Boolean shared);
-  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Boolean shared);
+  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f);
+  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f);
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld);
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size);
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld); 
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size);
+
+  E_Int getFromNumpyArray(PyObject* o, FldArrayI*& f, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, FldArrayF*& f, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Bool shared); //#OBSOLETE
+  //E_Int getFromNumpyArray(PyObject* o, E_Int*& f, E_Int& size, E_Bool shared); //#OBSOLETE
+  E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Int& nfld, E_Bool shared); //#OBSOLETE 
+  //E_Int getFromNumpyArray(PyObject* o, E_Float*& f, E_Int& size, E_Bool shared); //#OBSOLETE
 
   // identical to getFromNumpy but return a flat array in case of (1,nb) arrays
-  E_Int getFromPointList(PyObject* o, FldArrayI*& f, E_Boolean shared=false);
-  E_Int getFromPointList(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld, E_Boolean shared=false);
+  E_Int getFromPointList(PyObject* o, FldArrayI*& f);
+  E_Int getFromPointList(PyObject* o, E_Int*& f, E_Int& size, E_Int& nfld);
 
   /* Construit un numpy array a partir d'un FldArray (copie) 
      IN: field: fld array 
@@ -65,8 +73,7 @@ namespace K_NUMPY
   
   /* Construit un numpy array vide.
      Si type=0 (E_Float), si type=1 (E_Int) */
-  PyObject* buildNumpyArray(E_Int size, E_Int nfld, E_Int type, 
-                            E_Int fortran=0);
+  PyObject* buildNumpyArray(E_Int size, E_Int nfld, E_Int type, E_Int fortran=0);
 
   /* Recupere le ptr sur le numpy */
   E_Float* getNumpyPtrF(PyObject* o);

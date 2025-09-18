@@ -41,8 +41,8 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   
   PyObject* tpl = NULL;
   if (res == 1)
@@ -507,6 +507,7 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
   else if (strcmp(eltType, "BAR") == 0) strcpy(elttypeout, "NODE");
 	
   E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
@@ -537,8 +538,8 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
       return NULL;
     }
     
-    PyObject* tpl = K_ARRAY::buildArray(*fnodes, varString, 
-                                        *connect, -1, "NODE");
+    PyObject* tpl = K_ARRAY::buildArray3(*fnodes, varString, 
+                                         *connect, "NODE", api);
     delete fnodes; delete connect;
     if (indices != Py_None)
     { 
@@ -889,7 +890,7 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   E_Int ngonType = 1; // CGNSv3 compact array1
   if (api == 2) ngonType = 2; // CGNSv3, array2
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  E_Boolean center = false;
+  E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nfacesExt,
                                        nedgesExt, "NGON", sizeFN2, sizeEF2,
                                        ngonType, center, api);
@@ -1074,7 +1075,7 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   E_Int ngonType = 1; // CGNSv3 compact array1
   if (api == 2) ngonType = 2; // CGNSv3, array2
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  E_Boolean center = false;
+  E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nedgesExt,
                                        nptsExt, "NGON", sizeFN2, sizeEF2,
                                        ngonType, center, api);

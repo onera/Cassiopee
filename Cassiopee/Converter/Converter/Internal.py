@@ -2618,28 +2618,38 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     import sys
     sys.stdout.write(rep)
 
-# Mesure de la taille de a en octets
 def getSizeOf__(a, s):
-  s += len(a[0])
-  s += len(a[3])
-  r = a[1]
-  if r is not None:
-    if isinstance(r, numpy.ndarray):
-      if r.dtype == numpy.int32: s += r.size*4
-      elif r.dtype == numpy.float32: s += r.size*4
-      else: s += r.size*8
-  for i in a[2]:
-    s = getSizeOf__(i, s)
+  if isinstance(a, numpy.ndarray):
+    if a.dtype == numpy.int32: s += a.size*4
+    elif a.dtype == numpy.float32: s += a.size*4
+    else: s += a.size*8
+  elif isinstance(a, list):
+    for i in a:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, dict):
+    for i in a:
+      s = getSizeOf__(a[i], s)
+  elif isStdNode(a) == -1:
+    s += len(a[0])
+    s += len(a[3])
+    r = a[1]
+    if r is not None:
+      if isinstance(r, numpy.ndarray):
+        if r.dtype == numpy.int32: s += r.size*4
+        elif r.dtype == numpy.float32: s += r.size*4
+        else: s += r.size*8
+    for i in a[2]:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, str):
+    s += len(a)
   return s
 
+# Get the size of a pytree node in octets
+# Work also on numpys, list of numpys, dict of numpys
 def getSizeOf(a):
   """Return the size of a in octets."""
   s = 0
-  if isStdNode(a) == 0:
-    for i in a:
-      sl = 0
-      s += getSizeOf__(i, sl)
-  else: s = getSizeOf__(a, s)
+  s = getSizeOf__(a, s)
   return s
 
 #==============================================================================
@@ -4115,9 +4125,9 @@ def setElementConnectivity2(z, array):
       else: cname = 'GridElements%d'%nc
       z[2].append([cname, i, [], 'Elements_t'])
       info = z[2][len(z[2])-1]
-      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[1]
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[0]
       info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-      info[2].append(['ElementConnectivity', gc, [], 'DataArray_t'])
+      info[2].append(['ElementConnectivity', gc.ravel("k"), [], 'DataArray_t'])
       _updateElementRange(z)
   else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
     i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0
@@ -5437,13 +5447,18 @@ def getBCDataSets(z, bcNode):
 # si la grille est structuree, retourne un indicage de faces
 # IN: z: zone node
 # IN: bcNode: BC node
+# IN: donor: if True, get PointListDonor or PointRangeDonor
 # OUT: facelist node
 #==============================================================================
-def getBCFaceNode(z, bcNode):
+def getBCFaceNode(z, bcNode, donor=False):
   dims = getZoneDim(z)
-  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, 'PointList')
+  if donor: name = 'PointListDonor'
+  else: name = 'PointList'
+  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, name)
 
-  r = getNodeFromName1(bcNode, 'PointRange') # structure maintenant
+  if donor: name = 'PointRangeDonor'
+  else: name = 'PointRange'
+  r = getNodeFromName1(bcNode, name) # structure maintenant
   ni = dims[1]; nj = dims[2]; nk = dims[3]
   wins = range2Window(r[1])
   listIndices = converter.range2PointList(wins[0], wins[1], wins[2], wins[3], wins[4], wins[5],

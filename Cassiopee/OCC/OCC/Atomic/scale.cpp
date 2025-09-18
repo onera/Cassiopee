@@ -37,32 +37,25 @@ PyObject* K_OCC::scale(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_ TRRR_ O_, &hook, &factor, 
     &x0, &y0, &z0, &listFaces)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  GETSHAPE;
+  GETMAPSURFACES;
 
   // idem scale
   gp_Trsf myTrsf;
   myTrsf.SetScale(gp_Pnt(x0, y0, z0), factor);
   
-  E_Int nfaces = PyList_Size(listFaces);
-
   TopoDS_Shape* newshp = new TopoDS_Shape();
 
-  if (nfaces == 0) // on all shape
+  if (listFaces == Py_None) // on all shape
   {
-    BRepBuilderAPI_Transform myTransform(*shp, myTrsf);
+    BRepBuilderAPI_Transform myTransform(*shape, myTrsf);
     TopoDS_Shape tShape = myTransform.Shape();
     *newshp = tShape;
   }
   else
   {
+    E_Int nfaces = PyList_Size(listFaces);
+
     // Build a compound
     BRep_Builder builder;
     TopoDS_Compound shc;
@@ -106,20 +99,8 @@ PyObject* K_OCC::scale(PyObject* self, PyObject* args)
   }
 
   // Rebuild the hook
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-
-  // Extract edges
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
+  delete shape;
+  SETSHAPE(newshp);
 
   Py_INCREF(Py_None);
   return Py_None;

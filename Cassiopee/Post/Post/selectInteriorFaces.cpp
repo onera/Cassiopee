@@ -36,17 +36,16 @@ using namespace K_FUNC;
 PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int strict;
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &array, &strict))
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &strict))
   {
-      return NULL;
+    return NULL;
   }
   // Extract array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int res;
   E_Int ni, nj, nk;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cnp, eltType);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cnp, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -67,8 +66,7 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
   }
   else
   {
-    delete f;
-    if (res == 2) delete cnp;
+    RELEASESHAREDB(res, array, f, cnp);
     PyErr_SetString(PyExc_TypeError,
                     "selectInteriorFaces: only for TRI and QUAD.");
     return NULL;
@@ -84,6 +82,7 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
   E_Int node1, node2;
   E_Int nb = f->getSize(); // nbre de noeuds
   E_Int nfld = f->getNfld();// nb de champs
+  E_Int api = f->getApi();
   FldArrayI& cn = *cnp;
   E_Int ne = cn.getSize(); // nbre d'elements
   E_Int nt = cn.getNfld(); // taille des elements
@@ -176,8 +175,9 @@ PyObject* K_POST::selectInteriorFaces(PyObject* self, PyObject* args)
 
   // Build array
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*fnodes, varString, *connect, -1, "BAR");
-  delete f; delete fnodes; delete connect;
-  if (res == 2) delete cnp;
+  tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, "BAR", api);
+  delete fnodes; delete connect;
+  RELEASESHAREDB(res, array, f, cnp);
+
   return tpl;
 }

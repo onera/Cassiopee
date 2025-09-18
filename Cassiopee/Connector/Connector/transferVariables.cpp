@@ -98,7 +98,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   /* Extraction des infos sur les points a interpoler */
   /*--------------------------------------------------*/
   FldArrayF* coordX;
-  E_Int resn = K_NUMPY::getFromNumpyArray(interpPtsCoordX, coordX, true);
+  E_Int resn = K_NUMPY::getFromNumpyArray(interpPtsCoordX, coordX);
   if (resn == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -106,7 +106,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   FldArrayF* coordY;
-  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordY, coordY, true);  
+  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordY, coordY);  
   if (resn == 0)
   {
     RELEASESHAREDN(interpPtsCoordX, coordX);
@@ -115,7 +115,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   FldArrayF* coordZ;
-  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordZ, coordZ, true);  
+  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordZ, coordZ);  
   if (resn == 0)
   {
     RELEASESHAREDN(interpPtsCoordX, coordX);

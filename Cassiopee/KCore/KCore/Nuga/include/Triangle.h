@@ -154,10 +154,8 @@ namespace K_MESH
       bary_coord[2] = Sinv * K_MESH::Triangle::surface(P, P0, P1, DIM);
     }
 
-#ifndef NUGALIB
     static void normal(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal);
     static void isoG(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G);
-#endif
 
     static double trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
     static double oriented_trihedral_angle(const E_Float* P, const E_Float* P0, const E_Float* P1, const E_Float* P2);
@@ -2010,7 +2008,6 @@ namespace K_MESH
     NUGA::normalize<3>(normal);
   }
   
-#ifndef NUGALIB
   inline
   void K_MESH::Triangle::normal
   (const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* normal)
@@ -2028,7 +2025,6 @@ namespace K_MESH
     NUGA::crossProduct<3>(U, V, normal);
     NUGA::normalize<3>(normal);
   }
-#endif
   
   //=============================================================================
   template <> inline 
@@ -2066,7 +2062,6 @@ namespace K_MESH
       G[i]=(P0[i]+P1[i]+P2[i])/3.;
   }
   
-#ifndef NUGALIB
   inline void K_MESH::Triangle::isoG
   (const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& coord, const E_Int* pN, E_Float* G)
   {
@@ -2080,7 +2075,6 @@ namespace K_MESH
     for (size_t i = 0; i < 3; ++i)
       G[i]=(X[i][*pN]+X[i][*(pN+1)]+X[i][*(pN+2)])/3.;
   }
-#endif
 
   inline void K_MESH::Triangle::isoG(const E_Float* P0, const E_Float* P1, const E_Float* P2, E_Float* G)
   {

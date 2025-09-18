@@ -1,7 +1,6 @@
 # - tkVariables -
 """Variable manager."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -235,8 +234,7 @@ def node2CenterVar():
 
 #==============================================================================
 def chooseImportFile(event=None):
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     init = VARS[4].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -274,9 +272,8 @@ def importFile(event=None):
 
     # Essaie de trouver une methode adaptee
     method = 1 # match by geom
-    import sets
-    zoneNames = sets.Set(C.getZoneNames(CTK.t, prefixByBase=False))
-    zoneNames1 = sets.Set(C.getZoneNames(t1, prefixByBase=False))
+    zoneNames = set(C.getZoneNames(CTK.t, prefixByBase=False))
+    zoneNames1 = set(C.getZoneNames(t1, prefixByBase=False))
     inter = zoneNames & zoneNames1
     linter = len(inter)*1.
     comp = min(len(zoneNames), len(zoneNames1))*1.

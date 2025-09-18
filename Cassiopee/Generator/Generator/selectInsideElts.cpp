@@ -31,30 +31,29 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* curvesList;
-  if ( !PyArg_ParseTuple(args, "OO", &array, &curvesList ) )
+  if ( !PYPARSETUPLE_(args, OO_, &array, &curvesList) )
   {
     return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
-  FldArrayF* f;
-  char* varString;
-  char* eltType;
-  FldArrayI* cn;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 2)
   {
-    if ( res == 1) {delete f;}
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: array must be a TRI-array.");
+    
+    RELEASESHAREDS(array, f);
     return NULL;
   }
   if (strcmp(eltType, "TRI") != 0)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: array must be a TRI-array.");
     return NULL;
@@ -67,7 +66,7 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
     PyErr_SetString(
       PyExc_TypeError,
       "selectInsideElts: array must contain variables (x,y,z).");
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     return NULL;
   }
   posx++; posy++; posz++;
@@ -77,6 +76,7 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "selectInsideElts: second argument must be a list.");
+    RELEASESHAREDU(array, f, cn);
     return NULL;
   }
 
@@ -86,50 +86,36 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
   vector<char*> unstrVarString;
   vector<FldArrayF*> structF;
   vector<FldArrayF*> unstrF;
-  vector<E_Int> nit;
-  vector<E_Int> njt; 
-  vector<E_Int> nkt;
-  vector<FldArrayI*> cnt;
-  vector<char*> eltTypet;
+  vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
+  vector<FldArrayI*> cnt; vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     curvesList, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut,
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   
   if (isOk == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: invalid list of arrays.");
-    for (size_t i = 0; i < structF.size(); i++) delete structF[i];
-    for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
-    for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
-    for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
-    for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
-    for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
-    for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
-    for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
-    delete f; delete cn;
+    for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+    for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);
+    RELEASESHAREDU(array, f, cn);
     return NULL;
   }
   if (structF.size() > 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "selectInsideElts: arrays must be unstructured.");
-    for (size_t i = 0; i < structF.size(); i++) delete structF[i];
-    for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
-    for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
-    for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
-    for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
-    for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
-    for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
-    for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
-    delete f; delete cn;
+
+    for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+    for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);            
+    RELEASESHAREDU(array, f, cn);
     return NULL;
   }
   for (size_t i = 0; i < eltTypet.size(); i++)
@@ -138,15 +124,10 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "selectInsideElts: arrays must be BAR-arrays.");
-      for (size_t i = 0; i < structF.size(); i++) delete structF[i];
-      for (size_t i = 0; i < unstrF.size(); i++) delete unstrF[i];
-      for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
-      for (size_t i = 0; i < structVarString.size(); i++) delete[] structVarString[i];
-      for (size_t i = 0; i < unstrVarString.size(); i++) delete[] unstrVarString[i];
-      for (size_t i = 0; i < eltTypet.size(); i++) delete[] eltTypet[i];
-      for (size_t i = 0; i < objst.size(); i++) Py_DECREF(objst[i]);
-      for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
-      delete f; delete cn;
+
+      for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+      for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);                        
+      RELEASESHAREDU(array, f, cn);
       return NULL;
     }
   }
@@ -167,10 +148,8 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
     curves.push_back(t);
   }
   
-  // liberation de la memoire
-  for (E_Int i = 0; i < ncurves; i++) delete unstrF[i];
-
   // Calcul des centres des elements
+  E_Int api = f->getApi();
   FldArrayF& fp = *f;
   FldArrayI& cnp = *cn;
   FldArrayF centers(cnp.getSize(), 3);
@@ -222,12 +201,15 @@ PyObject* K_GENERATOR::selectInsideElts(PyObject* self, PyObject* args)
 
   // sortie
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*f, varString, connectp, -1, eltType);
+  tpl = K_ARRAY::buildArray3(*f, varString, connectp, eltType, api);
   
-  for (size_t i = 0; i < cnt.size(); i++) delete cnt[i];
   //for (size_t i = 0; i < objut.size(); i++) Py_DECREF(objut[i]);
   for (E_Int i = 0; i < ncurves; i++) delete curves[i];
-  delete f; delete cn; delete connect;
+  delete connect;
+
+  RELEASESHAREDU(array, f, cn);
+  for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+  for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);            
   
   return tpl;
 }

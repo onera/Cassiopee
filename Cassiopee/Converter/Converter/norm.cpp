@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
 {
   PyObject* array;
   char* varName;
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -117,7 +117,7 @@ PyObject* K_CONVERTER::normL2(PyObject* self, PyObject* args)
 {
   PyObject* array;
   char* varName;
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   // Check array
   E_Int im, jm, km;

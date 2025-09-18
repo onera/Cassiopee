@@ -24,7 +24,7 @@
 PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // input strand array is stored as a TRI array
   E_Int nil, njl, nkl, res;
@@ -55,7 +55,7 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
   E_Int npts = f->getSize(); // np * nk
   E_Int nfld = f->getNfld(); // nbre de champs
 
-  E_Int api = f->getApi(); if (api == 2) api = 3;
+  E_Int api = f->getApi();
   
   // Get TRI connectivity
   FldArrayI& cm = *(cnl->getConnect(0));

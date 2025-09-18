@@ -29,17 +29,16 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 {
   PyObject*  array;
   E_Float eps;
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &eps))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &eps))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res == 1)
   {
@@ -57,7 +56,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   
   if (strcmp(eltType, "BAR") != 0)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitTBranches: must be used on a BAR-array.");
     return NULL;
@@ -68,7 +67,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); 
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitTBranches: cannot find coordinates in array.");
     return NULL;
@@ -77,7 +76,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *f, *cn);
 
   //determination des vertices de split
-  E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
+  E_Int npts = f->getSize(); E_Int nfld = f->getNfld(); E_Int api = f->getApi();
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
   vector<E_Int> splitVertices;
@@ -90,7 +89,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 
   if (splitVertices.size() == 0) 
   {
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
     delete f; delete cn;
     return tpl;
   }
@@ -163,12 +162,13 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < nbars; ++i)
   {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR",*fields[i],*cnt[i]);
-    tpl = K_ARRAY::buildArray(*fields[i], varString, *cnt[i], -1, "BAR");
+    K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *fields[i], *cnt[i]);
+    E_Int api = fields[i]->getApi();
+    tpl = K_ARRAY::buildArray3(*fields[i], varString, *cnt[i], "BAR", api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int i = 0; i < nbars; i++)
   {delete fields[i]; delete cnt[i];}
-  delete f; delete cn;
+  RELEASESHAREDU(array, f, cn);  
   return l;
 }

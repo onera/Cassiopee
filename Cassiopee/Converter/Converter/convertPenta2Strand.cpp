@@ -65,7 +65,7 @@ E_Int findShellBottomVertex(E_Int vertex, FldArrayI& cm, std::vector< std::vecto
 PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   E_Int nil, njl, nkl, res;
   FldArrayF* f; FldArrayI* cnl;
@@ -92,7 +92,7 @@ PyObject* K_CONVERTER::convertPenta2Strand(PyObject* self, PyObject* args)
     }
   }
 
-  E_Int api = f->getApi(); if (api == 2) api = 3;
+  E_Int api = f->getApi();
 
   // the strand grid is a TRI array with extra vertices
   FldArrayI& cm = *(cnl->getConnect(0));

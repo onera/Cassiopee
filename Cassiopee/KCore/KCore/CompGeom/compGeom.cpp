@@ -17,31 +17,13 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-# include "CompGeom/compGeom.h"
-# include <vector>
-# include <math.h>
+#include "Array/Array.h"
+#include "CompGeom/compGeom.h"
+#include <vector>
+#include <math.h>
 
 using namespace K_FLD;
 using namespace std;
-
-extern "C"
-{
-  void k6boundboxofstructcell_(
-    E_Int* ind, const E_Int& ni, 
-    const E_Float* x, const E_Float* y, const E_Float* z,
-    E_Float& xmin, E_Float& xmax, E_Float& ymin,
-    E_Float& ymax, E_Float& zmin, E_Float& zmax);
-
-  void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km,
-                   const E_Float* x, const E_Float* y, const E_Float* z,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin );
-
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 //===========================================================================
 /* Calcul de l'aire d un triangle ABC a partir des longueurs de ses 3 cotes
@@ -52,6 +34,7 @@ E_Float K_COMPGEOM::compTriangleArea(E_Float a, E_Float b, E_Float c)
   E_Float ps2 = (a+b+c)*0.5;
   return sqrt(ps2*(ps2-a)*(ps2-b)*(ps2-c));
 }
+
 //===========================================================================
 /* Calcul de la bounding box d'une grille structuree ou non structuree. 
    k6boundboxunstr calcule la bounding box a partir de tous les pts et 
@@ -61,8 +44,65 @@ void K_COMPGEOM::boundingBox(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
                              E_Float& xmin, E_Float& ymin, E_Float& zmin,
                              E_Float& xmax, E_Float& ymax, E_Float& zmax)
 {
-  k6boundboxunstr_(npts, xt, yt, zt, xmax, ymax, zmax, xmin, ymin, zmin);
+
+  xmin =  K_CONST::E_MAX_FLOAT;
+  ymin =  K_CONST::E_MAX_FLOAT;
+  zmin =  K_CONST::E_MAX_FLOAT;
+  xmax = -K_CONST::E_MAX_FLOAT;
+  ymax = -K_CONST::E_MAX_FLOAT;
+  zmax = -K_CONST::E_MAX_FLOAT;
+
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* xminl = new E_Float [nthreads];
+  E_Float* yminl = new E_Float [nthreads];
+  E_Float* zminl = new E_Float [nthreads];
+  E_Float* xmaxl = new E_Float [nthreads];
+  E_Float* ymaxl = new E_Float [nthreads];
+  E_Float* zmaxl = new E_Float [nthreads];
+
+  #pragma omp parallel
+  {
+    E_Int ithread = __CURRENT_THREAD__;
+
+    xminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    yminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    zminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    xmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+    ymaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+    zmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+
+    #pragma omp for
+    for (E_Int ind = 0; ind < npts; ind++)
+    {
+      xminl[ithread] = K_FUNC::E_min(xminl[ithread],xt[ind]);
+      yminl[ithread] = K_FUNC::E_min(yminl[ithread],yt[ind]);
+      zminl[ithread] = K_FUNC::E_min(zminl[ithread],zt[ind]);
+      xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread],xt[ind]);
+      ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread],yt[ind]);
+      zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread],zt[ind]);
+    }
+  }
+
+  //final reduction
+  for (E_Int ithread = 0; ithread < nthreads; ithread++) 
+  {
+    xmax = K_FUNC::E_max(xmaxl[ithread], xmax);
+    ymax = K_FUNC::E_max(ymaxl[ithread], ymax);
+    zmax = K_FUNC::E_max(zmaxl[ithread], zmax);
+    xmin = K_FUNC::E_min(xminl[ithread], xmin);
+    ymin = K_FUNC::E_min(yminl[ithread], ymin);
+    zmin = K_FUNC::E_min(zminl[ithread], zmin);
+  }
+
+  //clean
+  delete [] xminl;
+  delete [] xmaxl;
+  delete [] yminl;
+  delete [] ymaxl;
+  delete [] zminl;
+  delete [] zmaxl;
 }
+
 //===========================================================================
 /* Calcul de la bounding box d'une grille structuree ou non structuree. 
    k6boundboxunstr calcule la bounding box a partir de tous les pts et 
@@ -74,11 +114,17 @@ void K_COMPGEOM::boundingBox(E_Int posx, E_Int posy, E_Int posz,
                              E_Float& xmin, E_Float& ymin, E_Float& zmin,
                              E_Float& xmax, E_Float& ymax, E_Float& zmax)
 {
-  E_Int size = field.getSize();
-  k6boundboxunstr_( 
-    size, field.begin(posx), field.begin(posy), field.begin(posz),
-    xmax, ymax, zmax, xmin, ymin, zmin);
+
+  E_Int npts = field.getSize();
+  E_Float* xt = field.begin(posx);
+  E_Float* yt = field.begin(posy);
+  E_Float* zt = field.begin(posz);
+
+  boundingBox(npts, xt, yt, zt,
+    xmin, ymin, zmin,
+    xmax, ymax, zmax);
 }
+
 //=============================================================================
 // Calcul de la bounding box d'un array structure
 //=============================================================================
@@ -88,10 +134,143 @@ void K_COMPGEOM::boundingBox(E_Int im, E_Int jm, E_Int km,
                              E_Float& xmin, E_Float& ymin, E_Float& zmin,
                              E_Float& xmax, E_Float& ymax, E_Float& zmax)
 {
-  k6boundbox_(im, jm, km, 
-              field.begin(posx), field.begin(posy), field.begin(posz),
-              xmax, ymax, zmax, xmin, ymin, zmin );
+
+  E_Int im1 = K_FUNC::E_max(1, im-1);
+  E_Int jm1 = K_FUNC::E_max(1, jm-1);
+  E_Int km1 = K_FUNC::E_max(1, km-1);
+  E_Int im1jm1 = im1*jm1;
+  
+  E_Float* x = field.begin(posx);
+  E_Float* y = field.begin(posy);
+  E_Float* z = field.begin(posz);
+
+  xmin =  K_CONST::E_MAX_FLOAT;
+  ymin =  K_CONST::E_MAX_FLOAT;
+  zmin =  K_CONST::E_MAX_FLOAT;
+  xmax = -K_CONST::E_MAX_FLOAT;
+  ymax = -K_CONST::E_MAX_FLOAT;
+  zmax = -K_CONST::E_MAX_FLOAT;
+
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* xminl = new E_Float [nthreads];
+  E_Float* yminl = new E_Float [nthreads];
+  E_Float* zminl = new E_Float [nthreads];
+  E_Float* xmaxl = new E_Float [nthreads];
+  E_Float* ymaxl = new E_Float [nthreads];
+  E_Float* zmaxl = new E_Float [nthreads];
+
+  #pragma omp parallel
+  {
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Int i, j, k;
+    E_Int ind;
+
+    xminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    yminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    zminl[ithread] =  K_CONST::E_MAX_FLOAT;
+    xmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+    ymaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+    zmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
+
+    //faces imin & imax
+    #pragma omp for
+    for (E_Int k = 0; k < km1; k++)
+    {
+      for (E_Int j = 0; j < jm1; j++)
+      {
+        // imin --------------------------------------------------
+        i = 0;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+
+        // imax --------------------------------------------------
+        i = im1-1;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+      }
+    }
+
+    //faces jmin & jmax
+    #pragma omp for
+    for (E_Int k = 0; k < km1; k++)
+    {
+      for (E_Int i = 0; i < im1; i++)
+      {
+        // jmin --------------------------------------------------
+        j = 0;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+
+        // jmax --------------------------------------------------
+        j = jm1-1;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+      }
+    }
+
+    //faces kmin & kmax
+    #pragma omp for
+    for (E_Int j = 0; j < jm1; j++)
+    {
+      for (E_Int i = 0; i < im1; i++)
+      {
+        // kmin --------------------------------------------------
+        k = 0;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+
+        // kmax --------------------------------------------------
+        k = km1-1;
+        ind = i+j*im1+k*im1jm1;
+
+        boundingBoxOfStructCell(ind, im, jm, km,
+          x, y, z,
+          xminl[ithread], yminl[ithread], zminl[ithread],
+          xmaxl[ithread], ymaxl[ithread], zmaxl[ithread]);
+      }
+    }
+  }
+
+  //final reduction
+  for (E_Int ithread = 0; ithread < nthreads; ithread++) 
+  {
+    xmax = K_FUNC::E_max(xmaxl[ithread], xmax);
+    ymax = K_FUNC::E_max(ymaxl[ithread], ymax);
+    zmax = K_FUNC::E_max(zmaxl[ithread], zmax);
+    xmin = K_FUNC::E_min(xminl[ithread], xmin);
+    ymin = K_FUNC::E_min(yminl[ithread], ymin);
+    zmin = K_FUNC::E_min(zminl[ithread], zmin);
+  }
+
+  //clean
+  delete [] xminl;
+  delete [] xmaxl;
+  delete [] yminl;
+  delete [] ymaxl;
+  delete [] zminl;
+  delete [] zmaxl;
 }
+
 //===========================================================================
 /* Calcul de la bounding box d'un ensemble de grilles structurees et/ou 
    non structurees.
@@ -120,10 +299,10 @@ void K_COMPGEOM::globalBoundingBox(
     E_Int posx = posxt[i]; 
     E_Int posy = posyt[i];
     E_Int posz = poszt[i];
-
-    k6boundboxunstr_( 
-      size, field->begin(posx), field->begin(posy), field->begin(posz),
-      xmaxl, ymaxl, zmaxl, xminl, yminl, zminl);
+    
+    boundingBox(size, field->begin(posx), field->begin(posy), field->begin(posz),
+      xminl, yminl, zminl,
+      xmaxl, ymaxl, zmaxl);
 
     xmin = K_FUNC::E_min(xmin, xminl);
     ymin = K_FUNC::E_min(ymin, yminl);
@@ -133,6 +312,7 @@ void K_COMPGEOM::globalBoundingBox(
     zmax = K_FUNC::E_max(zmax, zmaxl);
   }
 }
+
 //==========================================================================
 /* Bounding box de toutes les cellules d'une grille structuree
    IN: im, jm, km: dimensions de l'array definissant la grille
@@ -144,120 +324,230 @@ void K_COMPGEOM::boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
                                           K_FLD::FldArrayF& coord,
                                           K_FLD::FldArrayF& bbox)
 {
-  
-  E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+
   E_Int im1 = K_FUNC::E_max(1, im-1);
   E_Int jm1 = K_FUNC::E_max(1, jm-1);
   E_Int km1 = K_FUNC::E_max(1, km-1);
-  E_Int imjm = im*jm;
-  E_Int im1jm1 = im1*jm1;
 
-  FldArrayI indtab(8);
-  if (bbox.getSize() == 0) bbox.malloc(im1jm1*km1, 6);
+  if (bbox.getSize() == 0) bbox.malloc(im1*jm1*km1, 6);
   
-  E_Int stepi = 1;
-  E_Int stepj = im;
-  E_Int stepk = im*jm;
-  if (im == 1) stepi = 0;
-  if (jm == 1) stepj = 0;
-  if (km == 1) stepk = 0;
-  
-  E_Int indcell;
-  for (E_Int k = 0; k < km1; k++)
-    for (E_Int j = 0; j < jm1; j++)
-      for (E_Int i = 0; i < im1; i++)
-      {
-        indcell = i + j * im1 + k * im1jm1;
-        indtab[0] = i+j*im+k*imjm;
-        indtab[1] = indtab[0] + stepi;
-        indtab[2] = indtab[0] + stepj;
-        indtab[3] = indtab[2] + stepi;
-        indtab[4] = indtab[0] + stepk;
-        indtab[5] = indtab[1] + stepk;
-        indtab[6] = indtab[2] + stepk;
-        indtab[7] = indtab[3] + stepk;
+  E_Float* x = coord.begin(1);
+  E_Float* y = coord.begin(2);
+  E_Float* z = coord.begin(3);
 
-        k6boundboxofstructcell_( 
-          indtab.begin(), coord.getSize(),
-          coord.begin(1), coord.begin(2), coord.begin(3), 
-          xmin, xmax, ymin, ymax, zmin, zmax);
-        bbox(indcell,1) = xmin;
-        bbox(indcell,2) = ymin;
-        bbox(indcell,3) = zmin;
-        bbox(indcell,4) = xmax;
-        bbox(indcell,5) = ymax;
-        bbox(indcell,6) = zmax;
-      }
+  #pragma omp parallel
+  {
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+    #pragma omp for
+    for (E_Int ind = 0; ind < im1*jm1*km1; ind++)
+    {
+      xmin =  K_CONST::E_MAX_FLOAT;
+      ymin =  K_CONST::E_MAX_FLOAT;
+      zmin =  K_CONST::E_MAX_FLOAT;
+      xmax = -K_CONST::E_MAX_FLOAT;
+      ymax = -K_CONST::E_MAX_FLOAT;
+      zmax = -K_CONST::E_MAX_FLOAT;
+
+      boundingBoxOfStructCell(ind, im, jm, km,
+        x, y, z,
+        xmin, ymin, zmin,
+        xmax, ymax, zmax);
+
+      bbox(ind,1) = xmin;
+      bbox(ind,2) = ymin;
+      bbox(ind,3) = zmin;
+      bbox(ind,4) = xmax;
+      bbox(ind,5) = ymax;
+      bbox(ind,6) = zmax;
+    }
+  }
 }
 //======================================================================
 /* Bounding box de toutes les cellules d'une grille non structuree
+   IN: cn: connectivite de la grille
+   IN: coord: coordonnees de la grille
+   OUT: bbox(nelts, 6): xmin, ymin, zmin, xmax, ymax, zmax
+   bbox est alloue ici. */
+//======================================================================
+void K_COMPGEOM::boundingBoxOfUnstrCells(K_FLD::FldArrayI& cn,
+                                         E_Float* xt, E_Float* yt, E_Float* zt,
+                                         K_FLD::FldArrayF& bbox)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int ntotElts = 0;
+  std::vector<E_Int> nepc(nc+1);
+  nepc[0] = 0;
+
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic+1] = nepc[ic] + nelts;
+    ntotElts += nelts;
+  }
+
+  if (bbox.getSize() == 0) bbox.malloc(ntotElts, 6);
+
+  #pragma omp parallel
+  {
+    E_Int nelts, elOffset;
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      elOffset = nepc[ic];
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        boundingBoxOfUnstrCell(i, cm, xt, yt, zt,
+                              xmax, ymax, zmax, xmin, ymin, zmin);
+
+        bbox(i+elOffset,1) = xmin;
+        bbox(i+elOffset,2) = ymin;
+        bbox(i+elOffset,3) = zmin;
+        bbox(i+elOffset,4) = xmax;
+        bbox(i+elOffset,5) = ymax;
+        bbox(i+elOffset,6) = zmax;
+      }
+    }
+  }
+}
+
+//======================================================================
+/* Bounding box de toutes les cellules d'une grille NGon
    IN: connect: connectivite de la grille
    IN: coord: coordonnees de la grille
    OUT: bbox(nelts, 6): xmin, ymin, zmin, xmax, ymax, zmax
    bbox est alloue ici. */
 //======================================================================
-void K_COMPGEOM::boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
-                                         E_Float* xt, E_Float* yt, E_Float* zt,
-                                         K_FLD::FldArrayF& bbox)
+void K_COMPGEOM::boundingBoxOfNGonCells(K_FLD::FldArrayI& connect,
+  E_Float* xt, E_Float* yt, E_Float* zt,
+  K_FLD::FldArrayF& bbox)
 {
-  E_Int nelts = connect.getSize();
+  E_Int nelts = connect.getNElts();
   if (bbox.getSize() == 0) bbox.malloc(nelts, 6);
-  E_Float* bbox1 = bbox.begin(1);
-  E_Float* bbox2 = bbox.begin(2);
-  E_Float* bbox3 = bbox.begin(3);
-  E_Float* bbox4 = bbox.begin(4);
-  E_Float* bbox5 = bbox.begin(5);
-  E_Float* bbox6 = bbox.begin(6);
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
-    E_Float xmin, ymin, zmin, xmax, ymax,zmax;
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
     #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
-      boundingBoxOfUnstrCell(et, connect, xt, yt, zt,
-                             xmax, ymax, zmax, xmin, ymin, zmin);
-      bbox1[et] = xmin; bbox2[et] = ymin; bbox3[et] = zmin;
-      bbox4[et] = xmax; bbox5[et] = ymax;  bbox6[et] = zmax;
+      boundingBoxOfNGonCell(et, connect, xt, yt, zt,
+      xmax, ymax, zmax, xmin, ymin, zmin);
+
+      bbox(et,1) = xmin;
+      bbox(et,2) = ymin;
+      bbox(et,3) = zmin;
+      bbox(et,4) = xmax;
+      bbox(et,5) = ymax;
+      bbox(et,6) = zmax;
     }
   }
 }
-//=============================================================================
-/* Find the bounding box of a cell of a structured array - issu de KMesh */
-//=============================================================================
-void K_COMPGEOM::boundingBoxOfCell(E_Int im, E_Int jm, E_Int km, E_Int ind,
-                                   FldArrayF& coord,
-                                   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                                   E_Float& xmin, E_Float& ymin, E_Float& zmin) 
-{
-  E_Int imjm = im*jm;
-  E_Int k = ind/imjm;
-  E_Int j = (ind - k * imjm) / im;
-  E_Int i = ind - j * im + k * imjm;
 
-  E_Int alpha = 1;
-  E_Int beta  = 1;
-  E_Int gamma = 1;          
-  if (i == im-1) alpha = -1;
-  if (j == jm-1) beta = -1;
-  if (k == km-1) gamma = -1;
-  if (im == 1) alpha = 0;
-  if (jm == 1) beta = 0;
-  if (km == 1) gamma = 0;
+//=============================================================================
+/* Calcul de la bounding box d'une cellule structuree */
+//=============================================================================
+void K_COMPGEOM::boundingBoxOfStructCell(E_Int ind, E_Int im, E_Int jm, E_Int km,
+  E_Float* x, E_Float* y, E_Float* z,
+  E_Float& xmin, E_Float& ymin, E_Float& zmin,
+  E_Float& xmax, E_Float& ymax, E_Float& zmax) 
+{
+
+  E_Int im1 = K_FUNC::E_max(1, im-1);
+  E_Int jm1 = K_FUNC::E_max(1, jm-1);
+  //E_Int km1 = K_FUNC::E_max(1, km-1);
+  E_Int imjm = im*jm;
+  E_Int im1jm1 = im1*jm1;
   
-  E_Int indtab[8];
-  indtab[0] = ind;
-  indtab[1] = (i+alpha) + j*im + k*imjm;
-  indtab[2] = (i+alpha) + (j+beta)*im + k*imjm;
-  indtab[3] = i + (j+beta)*im + k*imjm;
-  indtab[4] = i + j*im + (k+gamma)*imjm;
-  indtab[5] = (i+alpha) + j*im + (k+gamma)*imjm;
-  indtab[6] = (i+alpha) + (j+beta)*im + (k+gamma)*imjm;  
-  indtab[7] = i + (j+beta)*im + (k+gamma)*imjm;
-  
-  k6boundboxofstructcell_(indtab, coord.getSize(), 
-                          coord.begin(1), coord.begin(2), coord.begin(3), 
-                          xmin, xmax, ymin, ymax, zmin, zmax);
+  E_Int stepi = 1;
+  E_Int stepj = im;
+  E_Int stepk = imjm;
+  if (im == 1) stepi = 0;
+  if (jm == 1) stepj = 0;
+  if (km == 1) stepk = 0;  
+
+  E_Int k = ind / im1jm1;
+  E_Int j = (ind - k*im1jm1) / im1;
+  E_Int i = ind - j*im1 - k*im1jm1;
+
+  E_Int ind0 = i + j*im + k*imjm;
+  E_Int ind1 = ind0 + stepi;
+  E_Int ind2 = ind0 + stepj;
+  E_Int ind3 = ind2 + stepi;
+  E_Int ind4 = ind0 + stepk;
+  E_Int ind5 = ind1 + stepk;
+  E_Int ind6 = ind2 + stepk;
+  E_Int ind7 = ind3 + stepk;
+
+  // vertex (i,j,k)
+  xmin = K_FUNC::E_min(xmin, x[ind0]);
+  xmax = K_FUNC::E_max(xmax, x[ind0]);
+  ymin = K_FUNC::E_min(ymin, y[ind0]);
+  ymax = K_FUNC::E_max(ymax, y[ind0]);
+  zmin = K_FUNC::E_min(zmin, z[ind0]);
+  zmax = K_FUNC::E_max(zmax, z[ind0]);
+
+  // vertex (i+1,j,k)
+  xmin = K_FUNC::E_min(xmin, x[ind1]);
+  xmax = K_FUNC::E_max(xmax, x[ind1]);
+  ymin = K_FUNC::E_min(ymin, y[ind1]);
+  ymax = K_FUNC::E_max(ymax, y[ind1]);
+  zmin = K_FUNC::E_min(zmin, z[ind1]);
+  zmax = K_FUNC::E_max(zmax, z[ind1]);
+
+  // vertex (i+1,j+1,k)
+  xmin = K_FUNC::E_min(xmin, x[ind2]);
+  xmax = K_FUNC::E_max(xmax, x[ind2]);
+  ymin = K_FUNC::E_min(ymin, y[ind2]);
+  ymax = K_FUNC::E_max(ymax, y[ind2]);
+  zmin = K_FUNC::E_min(zmin, z[ind2]);
+  zmax = K_FUNC::E_max(zmax, z[ind2]);
+
+  // vertex (i,j+1,k)
+  xmin = K_FUNC::E_min(xmin, x[ind3]);
+  xmax = K_FUNC::E_max(xmax, x[ind3]);
+  ymin = K_FUNC::E_min(ymin, y[ind3]);
+  ymax = K_FUNC::E_max(ymax, y[ind3]);
+  zmin = K_FUNC::E_min(zmin, z[ind3]);
+  zmax = K_FUNC::E_max(zmax, z[ind3]);
+
+  // vertex (i,j,k+1)
+  xmin = K_FUNC::E_min(xmin, x[ind4]);
+  xmax = K_FUNC::E_max(xmax, x[ind4]);
+  ymin = K_FUNC::E_min(ymin, y[ind4]);
+  ymax = K_FUNC::E_max(ymax, y[ind4]);
+  zmin = K_FUNC::E_min(zmin, z[ind4]);
+  zmax = K_FUNC::E_max(zmax, z[ind4]);
+
+  // vertex (i+1,j,k+1)
+  xmin = K_FUNC::E_min(xmin, x[ind5]);
+  xmax = K_FUNC::E_max(xmax, x[ind5]);
+  ymin = K_FUNC::E_min(ymin, y[ind5]);
+  ymax = K_FUNC::E_max(ymax, y[ind5]);
+  zmin = K_FUNC::E_min(zmin, z[ind5]);
+  zmax = K_FUNC::E_max(zmax, z[ind5]);
+
+  // vertex (i+1,j+1,k+1)
+  xmin = K_FUNC::E_min(xmin, x[ind6]);
+  xmax = K_FUNC::E_max(xmax, x[ind6]);
+  ymin = K_FUNC::E_min(ymin, y[ind6]);
+  ymax = K_FUNC::E_max(ymax, y[ind6]);
+  zmin = K_FUNC::E_min(zmin, z[ind6]);
+  zmax = K_FUNC::E_max(zmax, z[ind6]);
+
+  // vertex (i,j+1,k+1)
+  xmin = K_FUNC::E_min(xmin, x[ind7]);
+  xmax = K_FUNC::E_max(xmax, x[ind7]);
+  ymin = K_FUNC::E_min(ymin, y[ind7]);
+  ymax = K_FUNC::E_max(ymax, y[ind7]);
+  zmin = K_FUNC::E_min(zmin, z[ind7]);
+  zmax = K_FUNC::E_max(zmax, z[ind7]);
+
 }
 
 //=============================================================================
@@ -290,6 +580,50 @@ void K_COMPGEOM::boundingBoxOfUnstrCell(
     zmax = K_FUNC::E_max(zmax,zt[ind]);
   }
 }
+
+//=============================================================================
+/* Calcul de la bounding box d'une cellule NGon */
+//=============================================================================
+void K_COMPGEOM::boundingBoxOfNGonCell(
+  E_Int noet, FldArrayI& connect, 
+  E_Float* xt, E_Float* yt, E_Float* zt,
+  E_Float& xmax, E_Float& ymax, E_Float& zmax, 
+  E_Float& xmin, E_Float& ymin, E_Float& zmin) 
+{
+
+  xmin = K_CONST::E_MAX_FLOAT;
+  ymin = K_CONST::E_MAX_FLOAT;
+  zmin = K_CONST::E_MAX_FLOAT;
+  xmax = -K_CONST::E_MAX_FLOAT;
+  ymax = -K_CONST::E_MAX_FLOAT;
+  zmax = -K_CONST::E_MAX_FLOAT;
+
+  E_Int* ngon = connect.getNGon();
+  E_Int* nface = connect.getNFace();
+  E_Int* indPG = connect.getIndPG(); 
+  E_Int* indPH = connect.getIndPH();
+
+  E_Int sizeElt;
+  E_Int sizeFace;
+  E_Int ind;
+
+  E_Int* elt = connect.getElt(noet, sizeElt, nface, indPH);
+  for (E_Int i = 0; i < sizeElt; i++)
+  {
+    E_Int* face = connect.getFace(elt[i]-1, sizeFace, ngon, indPG);
+    for (E_Int j = 0; j < sizeFace; j++)
+    {
+      ind = face[j]-1;
+      xmin = K_FUNC::E_min(xmin,xt[ind]);
+      ymin = K_FUNC::E_min(ymin,yt[ind]);
+      zmin = K_FUNC::E_min(zmin,zt[ind]);
+      xmax = K_FUNC::E_max(xmax,xt[ind]);
+      ymax = K_FUNC::E_max(ymax,yt[ind]);
+      zmax = K_FUNC::E_max(zmax,zt[ind]);
+    }
+  }
+}
+
 //=============================================================================
 // Intersection de bbox de 2 grilles structurees
 // retourne 1 si les bounding boxes s intersectent, 0 sinon
@@ -311,14 +645,14 @@ K_COMPGEOM::compBoundingBoxIntersection(E_Int ni1, E_Int nj1, E_Int nk1,
                                         E_Float tol)
 {
   // bbox1 ds repere absolu
-  k6boundbox_(ni1, nj1, nk1, 
-              f1.begin(posx1), f1.begin(posy1), f1.begin(posz1), 
-              xmax1, ymax1, zmax1, xmin1, ymin1, zmin1 );
+  boundingBox(ni1, nj1, nk1,
+    posx1, posy1, posz1, f1,
+    xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
   
   //bbox2 ds repere absolu
-  k6boundbox_(ni2, nj2, nk2, 
-              f2.begin(posx2), f2.begin(posy2), f2.begin(posz2), 
-              xmax2, ymax2, zmax2, xmin2, ymin2, zmin2 );
+  boundingBox(ni2, nj2, nk2,
+    posx2, posy2, posz2, f2,
+    xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
 
   if ( xmin1  <=  xmax2+tol && xmax1  >=  xmin2-tol &&
        ymin1  <=  ymax2+tol && ymax1  >=  ymin2-tol &&
@@ -409,7 +743,7 @@ K_COMPGEOM::compCEBBIntersection(E_Int ni1, E_Int nj1, E_Int nk1,
   
   FldArrayF cartEltArray1;
   FldArrayF cartEltArray2;
-  E_Boolean isDegenerated = true;
+  E_Bool isDegenerated = true;
 
   for (E_Int dir1 = 1; dir1 <= 3; dir1++)
   {

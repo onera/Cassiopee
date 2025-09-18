@@ -24,6 +24,7 @@
 
 # include "GenIO.h"
 # include "Array/Array.h"
+# include "Metric/metric.h"
 # include "String/kstring.h"
 # include <vector>
 # include "Def/DefFunction.h"
@@ -31,13 +32,6 @@
 
 using namespace K_FLD;
 using namespace std;
-
-extern "C"
-{
-  void k6normunstructsurf_(E_Int& nbt, E_Int& sizecoord, E_Int* cn, 
-                           E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                           E_Float* nsurf);
-}
 
 //=============================================================================
 /* povread */
@@ -274,12 +268,15 @@ E_Int K_IO::GenIO::povwrite(
     E_Int ne = connect[zone]->getSize();
     FldArrayI& c = *connect[zone];
     FldArrayF normals(ne, 3);
-    k6normunstructsurf_(ne, nv, c.begin(), 
-                        f.begin(posx), f.begin(posy), f.begin(posz),
-                        normals.begin());
     E_Float* npx = normals.begin(1);
     E_Float* npy = normals.begin(2);
     E_Float* npz = normals.begin(3);
+
+    K_METRIC::compNormUnstructSurf(
+      c, "TRI",
+      f.begin(posx), f.begin(posy), f.begin(posz),
+      npx, npy, npz);
+
     for (E_Int i = 0; i <  ne; i++)
     {
       nx = npx[i]; ny = npy[i]; nz = npz[i];
@@ -289,7 +286,7 @@ E_Int K_IO::GenIO::povwrite(
       npz[i] = nz * nt;
     }
     
-    vector< vector<E_Int> > cVE(nv);
+    vector<vector<E_Int> > cVE(nv);
     K_CONNECT::connectEV2VE(c, cVE);
     FldArrayF n(nv, 3);
     E_Float* n1 = n.begin(1);

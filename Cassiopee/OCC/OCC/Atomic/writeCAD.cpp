@@ -38,26 +38,19 @@ PyObject* K_OCC::writeCAD(PyObject* self, PyObject* args)
   char* fileName; char* fileFmt;
   if (!PYPARSETUPLE_(args, O_ SS_, &hook, &fileName, &fileFmt)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
+  GETSHAPE;
   printf("write: %s %s\n", fileName, fileFmt);
 
   if (strcmp(fileFmt, "fmt_iges") == 0)
   {
     IGESControl_Writer writer;
-    writer.AddShape(*shp);
+    writer.AddShape(*shape);
     writer.Write(fileName);
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
     STEPControl_Writer writer;
-    writer.Transfer(*shp, STEPControl_AsIs);
+    writer.Transfer(*shape, STEPControl_AsIs);
     writer.Write(fileName);
   }  
 

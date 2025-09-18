@@ -151,6 +151,7 @@ static PyMethodDef Pyconverter [] =
   {"adaptShiftedPE2PE", K_CONVERTER::adaptShiftedPE2PE, METH_VARARGS},
   {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
   {"unsignNGonFaces", K_CONVERTER::unsignNGonFaces, METH_VARARGS},
+  {"sliceNGonFaces", K_CONVERTER::sliceNGonFaces, METH_VARARGS},
   {"makeParentElements", K_CONVERTER::makeParentElements, METH_VARARGS},
   {"adaptSurfaceNGon", K_CONVERTER::adaptSurfaceNGon, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},

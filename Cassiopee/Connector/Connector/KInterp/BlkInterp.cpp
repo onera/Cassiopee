@@ -24,6 +24,7 @@
 
 # include "BlkInterp.h"
 # include "Fld/FldArray.h"
+# include "Metric/metric.h"
 # include "String/kstring.h"
 # include "Connect/connect.h"
 
@@ -34,10 +35,6 @@ using namespace K_ARRAY;
 
 extern "C"
 {
-  void k6compvolofstructcell_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                              const E_Int& indcell, const E_Int& indnode,
-                              const E_Float* x, const E_Float* y, const E_Float* z, 
-                              E_Float& vol);
   void k6compvoloftetracell_(const E_Int& npts, 
                              const E_Int& ind1, const E_Int& ind2, 
                              const E_Int& ind3, const E_Int& ind4,
@@ -485,8 +482,10 @@ E_Float K_KINTERP::selectBestStructuredInterpolationCell(
       {
         E_Int indnode = tmpIndi[1]+tmpIndi[order+1]*ni+tmpIndi[order*2+1]*ninj;
         // calcul de cellvol
-        k6compvolofstructcell_(ni, nj, nk, -1, indnode, oneField.begin(posx0),
-                               oneField.begin(posy0), oneField.begin(posz0),vol);
+        K_METRIC::compVolOfStructCell3D(
+          ni, nj, nk, -1, indnode,
+          oneField.begin(posx0), oneField.begin(posy0), oneField.begin(posz0),
+          vol);
         if (penalty == 1 && extrapB == 1 ) vol += 1.e3;
         if ( vol < best ) 
         {
@@ -569,8 +568,8 @@ E_Float K_KINTERP::selectBestUnstructuredInterpolationCell(
       }
       
       isvalid = 0;
-      if (nature == 1 && K_FUNC::fEqual(val,K_CONST::ONE,geomCutOff) == true) isvalid = 1;
-      else if (nature == 0 && K_FUNC::fEqualZero(val,geomCutOff) == false) isvalid = 1;
+      if (nature == 1 && K_FUNC::fEqual(val,K_CONST::ONE,geomCutOff)) isvalid = 1;
+      else if (nature == 0 && !K_FUNC::fEqualZero(val,geomCutOff)) isvalid = 1;
       if (isvalid == 1)
       {        
         k6compvoloftetracell_(npts, cnloc(noei,1)-1, cnloc(noei,2)-1, cnloc(noei,3)-1, cnloc(noei,4)-1, 
@@ -652,10 +651,10 @@ E_Float K_KINTERP::selectBestStructuredExtrapolationCell(
       order = tmpIndi[0];
       indnode = tmpIndi[1] + tmpIndi[order+1]*ni + tmpIndi[order*2+1]*ninj;
       // calcul de cellvol
-      k6compvolofstructcell_(ni, nj, nk, -1, indnode, 
-                             oneField.begin(posx0),
-                             oneField.begin(posy0),
-                             oneField.begin(posz0), vol);
+      K_METRIC::compVolOfStructCell3D(
+        ni, nj, nk, -1, indnode, 
+        oneField.begin(posx0), oneField.begin(posy0), oneField.begin(posz0),
+        vol);
       
       if (vol < best) 
       {

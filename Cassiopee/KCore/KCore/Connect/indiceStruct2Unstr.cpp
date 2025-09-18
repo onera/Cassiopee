@@ -40,15 +40,15 @@ PyObject* K_KCORE::indiceStruct2Unstr(PyObject* self, PyObject* args)
   IMPORTNUMPY;
   PyObject *arrayOfStructIndices, *structArray, *unstrArray;
   E_Float eps;
-  if (!PyArg_ParseTuple(args, "OOOd", &structArray, &unstrArray, 
-                        &arrayOfStructIndices, &eps)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ R_, &structArray, &unstrArray, 
+                      &arrayOfStructIndices, &eps)) return NULL;
 
   // Maillage structure
   FldArrayF* f1; FldArrayI* cn1;
   E_Int ni1, nj1, nk1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(structArray, varString1, 
-                                     f1, ni1, nj1, nk1, cn1, eltType1, true);
+  E_Int res1 = K_ARRAY::getFromArray3(structArray, varString1, 
+                                      f1, ni1, nj1, nk1, cn1, eltType1);
   if (res1 != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -71,8 +71,8 @@ PyObject* K_KCORE::indiceStruct2Unstr(PyObject* self, PyObject* args)
   FldArrayF* f2; FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(unstrArray, varString2, 
-                                     f2, ni2, nj2, nk2, cn2, eltType2, true);
+  E_Int res2 = K_ARRAY::getFromArray3(unstrArray, varString2, 
+                                      f2, ni2, nj2, nk2, cn2, eltType2);
   if (res2 != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -94,7 +94,7 @@ PyObject* K_KCORE::indiceStruct2Unstr(PyObject* self, PyObject* args)
   // Indices des points du maillage structure a traiter
   E_Int nind, nf; E_Int* indices;
   E_Int ret = K_NUMPY::getFromNumpyArray(arrayOfStructIndices, indices, 
-                                         nind, nf, true);
+                                         nind, nf);
 
   if (ret == 0)
   {
@@ -154,7 +154,7 @@ PyObject* K_KCORE::indiceStruct2Unstr2(PyObject* self, PyObject* args)
 {
   PyObject *structArrays, *unstrArray;
   E_Float eps;
-  if (!PyArg_ParseTuple(args, "OOd", &structArrays, &unstrArray, &eps)) 
+  if (!PYPARSETUPLE_(args, OO_ R_, &structArrays, &unstrArray, &eps)) 
     return NULL;
 
   // Maillages structures
@@ -173,8 +173,8 @@ PyObject* K_KCORE::indiceStruct2Unstr2(PyObject* self, PyObject* args)
   FldArrayF* f2; FldArrayI* cn2;
   E_Int ni2, nj2, nk2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(unstrArray, varString2, 
-                                     f2, ni2, nj2, nk2, cn2, eltType2, true);
+  E_Int res2 = K_ARRAY::getFromArray3(unstrArray, varString2, 
+                                      f2, ni2, nj2, nk2, cn2, eltType2);
   if (res2 != 2)
   {
     PyErr_SetString(PyExc_TypeError,

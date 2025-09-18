@@ -683,9 +683,8 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
     }
   }
 
-  // ME: api = 3 only
+  // ME
   E_Int api = f1.getApi();
-  if (nc > 1) api = 3;
   
   K_ARRAY::extractVars(eltType, eltTypes);
   vector<E_Int> nelts(nc, 0);
@@ -766,8 +765,7 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
   // Clean connectivity
   if (posx > 0 && posy > 0 && posz > 0)
   {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
-    PyObject* tpl2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, tol);
     RELEASESHAREDU(tpl, f, cn); Py_DECREF(tpl);
     return tpl2;
   }
@@ -884,8 +882,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
 
   if (posx > 0 && posy > 0 && posz > 0)
   {
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
-    PyObject* tpl2 = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
+    PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, "NGON", tol);
     RELEASESHAREDU(tpl, f, cn); Py_DECREF(tpl);
     return tpl2;
   }

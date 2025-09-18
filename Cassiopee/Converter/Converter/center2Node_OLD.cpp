@@ -46,8 +46,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
   FldArrayI* c; FldArrayF* FCenter;
   char* eltType; char* varString;
   E_Int res; 
-  res = K_ARRAY::getFromArray(array, varString, FCenter, 
-                              ni, nj, nk, c, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, FCenter, 
+                               ni, nj, nk, c, eltType);
   if (res != 1 && res != 2) return NULL;
 
   /* Essaie de trouver la variables cellN. Les traitements sont un peu
@@ -70,6 +70,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
       else if (nature < -0.2) { mod = 3; break; }
     }
   }
+
+  E_Int api = FCenter->getApi();
 
   if (res == 1)
   {
@@ -120,8 +122,8 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
     {
       //PyObject* indR = PyList_GetItem(BCFields, 0);
       //PyObject* fields = PyList_GetItem(BCFields, 1);
-      //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
-      //                                  ni, nj, nk, c, eltType, true);
+      //E_Int res = K_ARRAY::getFromArray3(fields, varString, FCenter, 
+      //                                   ni, nj, nk, c, eltType);
       //center2NodeStructBorder(FNode, nin, njn, nkn);
       //RELEASESHAREDB(res, fields, );
     }
@@ -174,7 +176,7 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
     
       for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
       cEV.clear();
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;
@@ -221,7 +223,7 @@ PyObject* K_CONVERTER::center2Node_OLD(PyObject* self, PyObject* args)
                         "center2Node: unstructured array must be eltType*.");
         RELEASESHAREDU(array, FCenter, c); return NULL;
       }
-      PyObject* tpl = K_ARRAY::buildArray(*FNode, varString, *c, -1, eltType);
+      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType, api);
       delete FNode;
       RELEASESHAREDU(array, FCenter, c);
       if (ret == 0) return NULL;

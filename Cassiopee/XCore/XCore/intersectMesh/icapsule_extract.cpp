@@ -21,12 +21,14 @@
 PyObject *K_XCORE::icapsule_extract_master(PyObject *self, PyObject *args)
 {
     PyObject *ICAPSULE;
-    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) {
+    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) 
+    {
         RAISE("Bad input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) {
+    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE"))
+    {
         RAISE("Bad ICapsule hook.");
         return NULL;
     }
@@ -42,7 +44,7 @@ PyObject *K_XCORE::icapsule_extract_master(PyObject *self, PyObject *args)
 
     // Extract cell tags
     npy_intp dims[2];
-    assert(M.ctag.size() == M.nc);
+    assert(M.ctag.size() == (size_t)M.nc);
     dims[0] = (npy_intp)M.nc;
     dims[1] = 1;
     PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
@@ -57,12 +59,14 @@ PyObject *K_XCORE::icapsule_extract_slaves(PyObject *self, PyObject *args)
 {
     PyObject *ICAPSULE;
 
-    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) {
+    if (!PYPARSETUPLE_(args, O_, &ICAPSULE)) 
+    {
         RAISE("Bad input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) {
+    if (!PyCapsule_IsValid(ICAPSULE, "ICAPSULE")) 
+    {
         RAISE("Bad ICapsule hook.");
         return NULL;
     }
@@ -81,7 +85,7 @@ PyObject *K_XCORE::icapsule_extract_slaves(PyObject *self, PyObject *args)
         Py_DECREF(sarray);
 
         npy_intp dims[2];
-        assert(S.ctag.size() == S.nc);
+        assert(S.ctag.size() == (size_t)S.nc);
         dims[0] = (npy_intp)S.nc;
         dims[1] = 1;
         PyArrayObject *arr = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);

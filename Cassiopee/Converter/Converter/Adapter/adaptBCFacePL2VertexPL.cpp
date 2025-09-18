@@ -35,7 +35,7 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL(PyObject* self, PyObject* args)
 
   // Check numpy (face point list)
   FldArrayI* facePL;
-  E_Int res = K_NUMPY::getFromPointList(arrayFPL, facePL, true);
+  E_Int res = K_NUMPY::getFromPointList(arrayFPL, facePL);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -70,7 +70,6 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL(PyObject* self, PyObject* args)
       //tpl = adaptBCFacePL2VertexPL_ME(cn, facePL);
       PyErr_SetString(PyExc_TypeError,
                       "adaptBCFacePL2VertexPL: not implemented yet for ME arrays.");
-      return NULL;
     }
 
     RELEASESHAREDN(arrayFPL, facePL);

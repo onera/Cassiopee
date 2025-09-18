@@ -28,7 +28,7 @@
 
 // Return True if two edges are identical
 // Identification based on extreme coordinates only
-E_Boolean areEdgeIdentical(const TopoDS_Edge& E1, const TopoDS_Edge& E2)
+E_Bool areEdgeIdentical(const TopoDS_Edge& E1, const TopoDS_Edge& E2)
 {
   BRepAdaptor_Curve C1(E1);
   GeomAdaptor_Curve geomAdap1(C1.Curve());
@@ -99,7 +99,7 @@ PyObject* K_OCC::areEdgeIdentical(PyObject* self, PyObject* args)
   const TopoDS_Edge& E1 = TopoDS::Edge(edges(edgeNo1));
   const TopoDS_Edge& E2 = TopoDS::Edge(edges(edgeNo2));
   
-  E_Boolean ret = areEdgeIdentical(E1, E2);
+  E_Bool ret = areEdgeIdentical(E1, E2);
 
   if (ret == true) return Py_BuildValue("%d", 1);
   else return Py_BuildValue("%d", 0);

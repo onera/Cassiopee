@@ -47,22 +47,6 @@ struct trifacette
     E_Float x2, y2, z2;
     E_Float x3, y3, z3;
 };
-extern "C"
-{
-  void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj, 
-    const E_Int& nintk, E_Float* x, E_Float* y, E_Float* z, 
-    E_Float* vol, E_Float* surf, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-  void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                          E_Int& nnodes, E_Int* cn, 
-                          E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                          E_Float* xint, E_Float* yint, E_Float* zint, 
-                          E_Float* snx, E_Float* sny, E_Float* snz, 
-                          E_Float* surf, E_Float* vol);
-}
  
 
 //=============================================================================
@@ -102,9 +86,9 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  E_Boolean skipNoCoord = true; E_Boolean skipDiffVars = true;
-  E_Boolean skipStructured = false; E_Boolean skipUnstructured = false;
-  E_Boolean skipNoCoordc = false;
+  E_Bool skipNoCoord = true; E_Bool skipDiffVars = true;
+  E_Bool skipStructured = false; E_Bool skipUnstructured = false;
+  E_Bool skipNoCoordc = false;
   // Extract infos from arrays
   vector<E_Int> resl;
   vector<char*> structVarString; vector<char*> unstrVarString;
@@ -209,7 +193,8 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
     PyObject* l = PyList_New(0); 
     for (E_Int v = 0; v < nzones; v++)
     {
-      PyObject* tpl = K_ARRAY::buildArray(*structFc[v], structVarStringc[v],nict[v],njct[v],nkct[v]);
+      PyObject* tpl = K_ARRAY::buildArray3(*structFc[v], structVarStringc[v],
+                                           nict[v], njct[v], nkct[v]);
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
     for (E_Int is = 0; is < ns; is++)
@@ -313,7 +298,9 @@ PyObject* K_CONNECTOR::blankIntersectingCells(PyObject* self, PyObject* args)
       PyObject* l = PyList_New(0); 
       for (E_Int v = 0; v < nzones; v++)
       {
-        PyObject* tpl = K_ARRAY::buildArray(*unstrFc[v], unstrVarStringc[v], *cnct[v], -1, eltTypect[v]);
+        E_Int api = unstrFc[v]->getApi();
+        PyObject* tpl = K_ARRAY::buildArray3(*unstrFc[v], unstrVarStringc[v],
+                                             *cnct[v], eltTypect[v], api);
         PyList_Append(l, tpl); Py_DECREF(tpl);
       }
       for (E_Int is = 0; is < nu; is++)
@@ -1203,31 +1190,26 @@ E_Int K_CONNECTOR::blankInvalidCellsPenta(
   // blanking des cellules de volume negatif
   for (E_Int v = 0; v < nzones; v++)
   {
-    E_Int nelts = cnt[v]->getSize(); E_Int nnodes = cnt[v]->getNfld(); E_Int nedges = 5;
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF vol(nelts);
     E_Int npts = unstrF[v]->getSize();
     FldArrayF coord(npts, 3);
     coord.setOneField(*unstrF[v], posx, 1);
     coord.setOneField(*unstrF[v], posy, 2);
     coord.setOneField(*unstrF[v], posz, 3);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(npts, nelts, nedges, nnodes, cnt[v]->begin(), 
-                       coord.begin(1), coord.begin(2), coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), 
-                       snz.begin(), surf.begin(), vol.begin());
+
+    FldArrayI& cm = *(cnt[v]->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 5*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
+    FldArrayF vol(nelts);
+    K_METRIC::compMetricUnstruct(
+      *cnt[v], "PENTA", coord.begin(1), coord.begin(2), coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+    );
+
     E_Float* cellN = unstrFc[v]->begin(posc);
     for (E_Int ind = 0; ind < nelts; ind++)
     {
-      if ( vol[ind] < 0. ) cellN[ind] = 0.;
+      if (vol[ind] < 0.) cellN[ind] = 0.;
     }
   }
   //blanking des cellules dont leur propres facettes s intersectent
@@ -1376,31 +1358,26 @@ E_Int K_CONNECTOR::blankInvalidCellsHexa(
   // blanking des cellules de volume negatif
   for (E_Int v = 0; v < nzones; v++)
   {
-    E_Int nelts = cnt[v]->getSize(); E_Int nnodes = cnt[v]->getNfld(); E_Int nedges = 6;
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF vol(nelts);
     E_Int npts = unstrF[v]->getSize();
     FldArrayF coord(npts, 3);
     coord.setOneField(*unstrF[v], posx, 1);
     coord.setOneField(*unstrF[v], posy, 2);
     coord.setOneField(*unstrF[v], posz, 3);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(npts, nelts, nedges, nnodes, cnt[v]->begin(), 
-                       coord.begin(1), coord.begin(2), coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), 
-                       snz.begin(), surf.begin(), vol.begin());
+
+    FldArrayI& cm = *(cnt[v]->getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 6*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
+    FldArrayF vol(nelts);
+    K_METRIC::compMetricUnstruct(
+      *cnt[v], "HEXA", coord.begin(1), coord.begin(2), coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+    );
+
     E_Float* cellN = unstrFc[v]->begin(posc);
     for (E_Int ind = 0; ind < nelts; ind++)
     {
-      if ( vol[ind] < 0. ) cellN[ind] = 0.;
+      if (vol[ind] < 0.) cellN[ind] = 0.;
     }
   }
   //blanking des cellules dont leur propres facettes s intersectent
@@ -1550,8 +1527,8 @@ E_Int K_CONNECTOR::blankInvalidCellsStruct(
     coord.setOneField(*structF[v], posx, 1);
     coord.setOneField(*structF[v], posy, 2);
     coord.setOneField(*structF[v], posz, 3);
-    k6compstructmetric_(
-      ni, nj, nk, ncells, nint, ninti, nintj, nintk,
+    K_METRIC::compMetricStruct(
+      ni, nj, nk, ninti, nintj, nintk,
       coord.begin(1), coord.begin(2), coord.begin(3), 
       vol.begin(), 
       surf.begin(1), surf.begin(2), surf.begin(3), 

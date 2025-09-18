@@ -100,7 +100,7 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
     char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
     K_ARRAY::starVarString(eltType, eltType2);
     E_Int ncells = 0;
-    E_Boolean compact = false;
+    E_Bool compact = false;
     if (api == 1) compact = true;
     if (strcmp(eltType, "NGON") == 0)
     {

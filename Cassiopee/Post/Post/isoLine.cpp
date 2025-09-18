@@ -33,10 +33,9 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   // value: valeur de l'iso
   PyObject* surf;
   char* field; E_Float value;
-  if (!PYPARSETUPLE_(args, O_ S_ R_,
-                    &surf, &field, &value))
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &surf, &field, &value))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -47,8 +46,8 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayI* cn = NULL;
   E_Int res = 
-    K_ARRAY::getFromArray(surf, varString0, f, nil, njl, nkl, 
-                          cn, eltType0, true);
+    K_ARRAY::getFromArray3(surf, varString0, f, nil, njl, nkl, 
+                           cn, eltType0);
 
   if (res != 1 && res != 2)
   {

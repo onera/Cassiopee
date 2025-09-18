@@ -29,7 +29,7 @@ using namespace std;
 PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars0;
-  if (!PyArg_ParseTuple(args, "OO", &array, &vars0)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vars0)) return NULL;
   
   //extraction des variables constituant le vecteur dont le rot est calcule
   vector<char*> vars;
@@ -45,7 +45,7 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
                     "computeNormCurl: 3 variables must be defined to extract the curl.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vars0); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vars0, i);
     if (PyString_Check(tpl0))
@@ -72,8 +72,8 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;// number of points of array
   E_Int posx = -1; E_Int posy = -1; E_Int posz = -1;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+  
   if (res != 1 && res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -110,63 +110,117 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
 
-  PyObject* tpl;
+  PyObject* tpl = NULL;
+  FldArrayF* f2;
   char* varStringOut = new char[4];
   strcpy(varStringOut,"rot"); 
   
   // calcul du rotationnel 
   if (res == 1)
   {
-    E_Int ni1 = K_FUNC::E_max(1,ni-1);
-    E_Int nj1 = K_FUNC::E_max(1,nj-1);
-    E_Int nk1 = K_FUNC::E_max(1,nk-1);
+    E_Int ni1 = K_FUNC::E_max(1, ni-1);
+    E_Int nj1 = K_FUNC::E_max(1, nj-1);
+    E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray(1, varStringOut, ni1, nj1, nk1);   
-    E_Float* rotnp = K_ARRAY::getFieldPtr(tpl);
-    E_Float* rotyp = new E_Float[ncells]; E_Float* rotzp = new E_Float[ncells];
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
+    
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* fnp = f2->begin(1);
+    E_Float* fyp = new E_Float[ncells];
+    E_Float* fzp = new E_Float[ncells];
+    
     computeCurlStruct(ni, nj, nk, 
                       f->begin(posx), f->begin(posy), f->begin(posz),
                       f->begin(posu), f->begin(posv), f->begin(posw),
-                      rotnp, rotyp, rotzp);
+                      fnp, fyp, fzp);
              
     // stockage de la norme
-#pragma omp parallel for shared(rotnp, ncells) if (ncells > 50)
-    for (E_Int i = 0; i < ncells; i++) rotnp[i] = sqrt(rotnp[i]*rotnp[i]+rotyp[i]*rotyp[i]+rotzp[i]*rotzp[i]);
-    delete [] rotyp; delete [] rotzp;
+    #pragma omp parallel for if (ncells > __MIN_SIZE_MEAN__)
+    for (E_Int i = 0; i < ncells; i++) 
+      fnp[i] = sqrt(fnp[i]*fnp[i]+fyp[i]*fyp[i]+fzp[i]*fzp[i]);
+
+    delete [] fyp; delete [] fzp;
   }
   else // non structure 
   {
-    if (strcmp(eltType, "TRI")   != 0 &&
-        strcmp(eltType, "QUAD")  != 0 &&
-        strcmp(eltType, "TETRA") != 0 &&
-        strcmp( eltType, "HEXA") != 0 &&
-        strcmp(eltType, "PENTA") != 0 ) 
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "computeNormCurl: not a valid element type.");
-      RELEASESHAREDU(array,f, cn); return NULL;
-    }
-    
     E_Int npts = f->getSize();
-    tpl = K_ARRAY::buildArray(1, varStringOut, npts, cn->getSize(), -1, eltType, true, cn->getSize()*cn->getNfld());
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-    E_Float* rotnp = K_ARRAY::getFieldPtr(tpl);
-    E_Int nelts = cn->getSize();
-    E_Float* rotyp = new E_Float[nelts]; E_Float* rotzp = new E_Float[nelts];
-  
-    // calcul du rotationnel aux centres des elements
-    computeCurlNS(eltType, npts, *cn, 
-                  f->begin(posx), f->begin(posy), f->begin(posz),
-                  f->begin(posu), f->begin(posv), f->begin(posw),
-                  rotnp, rotyp, rotzp);
-                            
-    // stockage de la norme
-#pragma omp parallel for shared(rotnp, nelts) if (nelts > 50)
-    for (E_Int i = 0; i < nelts; i++) rotnp[i] = sqrt(rotnp[i]*rotnp[i]+rotyp[i]*rotyp[i]+rotzp[i]*rotzp[i]);
-    delete [] rotyp; delete [] rotzp;
-  } 
+    E_Int api = f->getApi();
+    E_Bool center = true;
+    E_Bool copyConnect = true;
+
+    if (strcmp(eltType, "NGON") == 0)
+    {
+      // Build unstructured NGON array from existing connectivity & empty fields
+      E_Int nelts = cn->getNElts();
+
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, "NGON",
+        center, api, copyConnect
+      );
+      K_ARRAY::getFromArray3(tpl, f2);
+
+      E_Float* fnp = f2->begin(1);
+      E_Float* fyp = new E_Float[nelts];
+      E_Float* fzp = new E_Float[nelts];
+      
+      E_Int ierr = computeCurlNGon(
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw), *cn, 
+        fnp, fyp, fzp);
+
+      if (ierr == 1)
+      {
+        PyErr_SetString(PyExc_TypeError, 
+                        "computeNormCurl: curl can only be computed for 3D NGONs.");
+        delete [] varStringOut;
+        delete [] fyp; delete [] fzp;
+        RELEASESHAREDS(tpl, f2);
+        RELEASESHAREDB(res, array, f, cn); return NULL;         
+      }
+
+      // stockage de la norme
+      #pragma omp parallel for if (nelts > __MIN_SIZE_MEAN__)
+      for (E_Int i = 0; i < nelts; i++)
+        fnp[i] = sqrt(fnp[i]*fnp[i] + fyp[i]*fyp[i] + fzp[i]*fzp[i]);
+
+      delete [] fyp; delete [] fzp;
+    }
+    else  // ME
+    {
+      E_Int nc = cn->getNConnect();
+      E_Int ntotElts = 0;
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        E_Int nelts = cm.getSize();
+        ntotElts += nelts;
+      }
+      
+      tpl = K_ARRAY::buildArray3(
+        1, varStringOut, npts, *cn, eltType,
+        center, api, copyConnect
+      );
+      K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* fnp = f2->begin(1);
+      E_Float* fyp = new E_Float[ntotElts];
+      E_Float* fzp = new E_Float[ntotElts];
+
+      computeCurlUnstruct(
+        *cn, eltType,
+        f->begin(posx), f->begin(posy), f->begin(posz),
+        f->begin(posu), f->begin(posv), f->begin(posw),
+        fnp, fyp, fzp);
+
+      // stockage de la norme
+      #pragma omp parallel for if (ntotElts > __MIN_SIZE_MEAN__)
+      for (E_Int i = 0; i < ntotElts; i++)
+        fnp[i] = sqrt(fnp[i]*fnp[i] + fyp[i]*fyp[i] + fzp[i]*fzp[i]);
+
+      delete [] fyp; delete [] fzp;
+    }
+  }
   delete [] varStringOut;
-  RELEASESHAREDB(res,array,f,cn);
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

@@ -529,27 +529,31 @@ E_Int Mesh_redistribute(Mesh *M, E_Int *cmap)
     E_Float *py = sy;
     E_Float *pz = sz;
 
-    for (E_Int i = 0; i < M->npc; i++) {
+    for (E_Int i = 0; i < M->npc; i++) 
+    {
         E_Int *pf = &sfids[sfdist[i]];
 
-        E_Int *ptr = &sfaces[sdist[i]];
+        //E_Int *ptr = &sfaces[sdist[i]];
 
         pts.clear();
         pts[-1] = -1;
         E_Int count = 0;
 
-        for (E_Int j = 0; j < sfcount[i]; j++) {
+        for (E_Int j = 0; j < sfcount[i]; j++) 
+        {
             E_Int gfid = pf[j];
             E_Int lfid = M->g2lf.at(gfid);
 
             E_Int *face = Mesh_get_face(M, lfid);
 
-            for (E_Int k = 0; k < 8; k++) {
+            for (E_Int k = 0; k < 8; k++) 
+            {
                 E_Int lp = face[k];
 
                 auto it = pts.find(lp);
 
-                if (it == pts.end()) {
+                if (it == pts.end()) 
+                {
                     *px++ = M->X[lp];
                     *py++ = M->Y[lp];
                     *pz++ = M->Z[lp];

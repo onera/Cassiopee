@@ -6,9 +6,6 @@ import Converter.Internal as Internal
 
 from . import OversetData as XOD
 
-try: range = xrange
-except: pass
-
 ibm_lbm_variables_1 ='Q_'
 ibm_lbm_variables_2 ='Qstar_'
 ibm_lbm_variables_3 ='Qneq_'

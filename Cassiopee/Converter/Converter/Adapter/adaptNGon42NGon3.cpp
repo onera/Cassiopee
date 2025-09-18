@@ -26,22 +26,23 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
 {
   PyObject* arrayConnect; PyObject* arrayOffset;
-  E_Boolean absFace = true;
+  E_Bool absFace = true;
   if (!PYPARSETUPLE_(args, OO_ B_, 
                      &arrayConnect, &arrayOffset, &absFace)) return NULL;
 
   // Check numpy (connect)
   FldArrayI* connect;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayConnect, connect, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayConnect, connect);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "adaptNGon42NGon3: connect numpy is invalid.");
     return NULL;
   }
+
   // Check numpy (Offset)
   FldArrayI* offset;
-  res = K_NUMPY::getFromNumpyArray(arrayOffset, offset, true);
+  res = K_NUMPY::getFromNumpyArray(arrayOffset, offset);
   if (res == 0)
   {
     RELEASESHAREDN(arrayConnect, connect);
@@ -49,7 +50,7 @@ PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
                     "adaptNGon42NGon3: offset numpy is invalid.");
     return NULL;
   }
-  
+
   // nbre d'element dans la connectivite
   E_Int ne = offset->getSize()-1;
   // taille de la connectivite de sortie contenant le no + les indices pour chaque element
@@ -62,7 +63,7 @@ PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
   // remplissage
   E_Int* c = connect->begin();
   E_Int* o = offset->begin();
-#pragma omp parallel
+  #pragma omp parallel
   {
     E_Int d, d1, d2;
     if (absFace)
@@ -89,7 +90,7 @@ PyObject* K_CONVERTER::adaptNGon42NGon3(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < d; j++) co[d2+j+1] = c[d1+j];
       }
     }
-  }
+  }  
 
   // Create index array from offset
   #pragma omp simd

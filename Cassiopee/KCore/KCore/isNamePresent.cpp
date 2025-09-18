@@ -24,7 +24,7 @@
 PyObject* K_KCORE::isNamePresent(PyObject* self, PyObject* args)
 {
   PyObject* array; char* varName;
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   char* varString;
   E_Int res = K_ARRAY::getVarStringFromArray(array, varString);
@@ -46,7 +46,7 @@ PyObject* K_KCORE::isNamePresent(PyObject* self, PyObject* args)
 PyObject* K_KCORE::isCoordinateXPresent(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
     PyErr_SetString(PyExc_TypeError,
                     "isCoordinateXPresent: wrong arguments.");
@@ -73,7 +73,7 @@ PyObject* K_KCORE::isCoordinateXPresent(PyObject* self, PyObject* args)
 PyObject* K_KCORE::isCoordinateYPresent(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
     PyErr_SetString(PyExc_TypeError,
                     "isCoordinateYPresent: wrong arguments.");
@@ -100,7 +100,7 @@ PyObject* K_KCORE::isCoordinateYPresent(PyObject* self, PyObject* args)
 PyObject* K_KCORE::isCoordinateZPresent(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
     PyErr_SetString(PyExc_TypeError,
                     "isCoordinateZPresent: wrong arguments.");

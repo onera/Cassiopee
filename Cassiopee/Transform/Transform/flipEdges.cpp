@@ -36,8 +36,8 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(o, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(o, varString,
+                                     f, ni, nj, nk, cn, eltType);
   // Test non structure ?
   if (res != 2)
   {
@@ -74,6 +74,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
   FldArrayI ct = *cn;
+  E_Int api = f->getApi();
 
   for (E_Int i = 0; i < nit; i++)
   {
@@ -81,7 +82,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
     flipEdges(ct, f->getSize(), x,y,z, indic, mode);
   }
 
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, ct, 2, NULL);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ct, "TRI", api);
   RELEASESHAREDU(o, f, cn);
   return tpl;
 }
@@ -114,7 +115,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
   E_Float ptD[3], dir2[3], dir3[3], dir4[3];
   E_Float inverse1=0, inverse2, rad1, rad2, rad3, rad4, ndirl;
   E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
-  E_Int tA, tB, tC, tD;
+  E_Int /*tA,*/ tB, tC /*tD*/;
   E_Int maillesEcrasees = 0;
   E_Int maillesInversees = 0;
 
@@ -212,11 +213,11 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
 
       if (indic != NULL)
       { 
-        tA = floor(indic[indA]+0.5); tB = floor(indic[indB]+0.5); 
-        tC = floor(indic[indC]+0.5); tD = floor(indic[indD]+0.5);
+        /*tA = floor(indic[indA]+0.5);*/ tB = floor(indic[indB]+0.5); 
+        tC = floor(indic[indC]+0.5); /*tD = floor(indic[indD]+0.5);*/
         //printf("" SF_D4_ "\n", tA, tB, tC, tD);
       }
-      else {tA = 0; tB = 0; tC = 0; tD = 0;}
+      else {/*tA = 0;*/ tB = 0; tC = 0; /*tD = 0;*/}
       if (tB == 1 && tC == 1 && ndir1 > 1.e-12) // no swap
       {
         goto next;

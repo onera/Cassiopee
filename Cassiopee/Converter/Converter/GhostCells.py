@@ -1,13 +1,10 @@
 # - ghostcells -
 # Un module d'ajout/suppression de cellules fictives dans les arbres python
-try: range = xrange
-except: pass
-
 from . import Internal
 from . import Converter
 from . import converter
-import numpy
 from . import PyTree
+import numpy
 import math
 # global definition: coordinates name
 coordinate = ['CoordinateX', 'CoordinateY', 'CoordinateZ']

@@ -115,19 +115,22 @@ void
 SurfaceMesher<SurfaceType>::__mapToSurface
 (const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D)
 {
-  E_Float      pt[3];
-  size_type    COLS = pos2D.cols(), col0 = pos3D.cols();
+  E_Float pt[3];
+  size_type COLS = pos2D.cols(), col0 = pos3D.cols();
 
   //pos3D.clear();
 
-  pos3D.resize(3, COLS);
+  E_Int nfld = 3;
+  pos3D.resize(nfld, COLS);
 
-  for (size_type c = col0; c < COLS; ++c)
+  for (size_type c = col0; c < COLS; c++)
   {
     surface.point(pos2D(0,c), pos2D(1,c), pt);
     pos3D(0,c) = pt[0];
     pos3D(1,c) = pt[1];
     pos3D(2,c) = pt[2];
+    //pos3D(3,c) = pos2D(0,c);
+    //pos3D(4,c) = pos2D(1,c);
   }
 }
 

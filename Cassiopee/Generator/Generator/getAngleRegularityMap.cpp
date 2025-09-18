@@ -51,7 +51,7 @@ inline E_Float computeAngle(E_Float x1,E_Float y1,E_Float z1,E_Float x2,E_Float 
 PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -59,8 +59,8 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int posx, posy, posz;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, 
+                               eltType);
 
   if (res != 1 && res != 2)
   {

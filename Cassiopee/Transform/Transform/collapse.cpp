@@ -29,18 +29,15 @@ using namespace K_FLD;
 PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    f, im, jm, km, cn, eltType); 
-  if (res != 2) 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+                                     f, im, jm, km, cn, eltType); 
+  if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "collapse: array must be unstructured.");
@@ -59,7 +56,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
    
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "collapse: can't find coordinates in array.");
     return NULL;
@@ -69,6 +66,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
   E_Int nelts = cn->getSize();
+  E_Int api = f->getApi();
   
   // Construction de la BAR ou TRI
   FldArrayI* cn2 = new FldArrayI();
@@ -81,30 +79,30 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
     // elimination des elements degeneres dans la connectivite TRI
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int ind1 = (*cn)(et,1)-1;
-      E_Int ind2 = (*cn)(et,2)-1; 
-      E_Int ind3 = (*cn)(et,3)-1;   
-      E_Float dx = xt[ind1]-xt[ind2];
-      E_Float dy = yt[ind1]-yt[ind2];
-      E_Float dz = zt[ind1]-zt[ind2];
+      E_Int ind1 = (*cn)(et,1) - 1;
+      E_Int ind2 = (*cn)(et,2) - 1; 
+      E_Int ind3 = (*cn)(et,3) - 1;   
+      E_Float dx = xt[ind1] - xt[ind2];
+      E_Float dy = yt[ind1] - yt[ind2];
+      E_Float dz = zt[ind1] - zt[ind2];
       E_Float dist = dx*dx + dy*dy + dz*dz;
       if (dist <= eps*eps) // doublon
       {
         (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind3+1; 
         goto nexttri;
       }
-      dx = xt[ind1]-xt[ind3];
-      dy = yt[ind1]-yt[ind3];
-      dz = zt[ind1]-zt[ind3];
+      dx = xt[ind1] - xt[ind3];
+      dy = yt[ind1] - yt[ind3];
+      dz = zt[ind1] - zt[ind3];
       dist = dx*dx + dy*dy + dz*dz;
       if (dist <= eps*eps) // doublon
       {
         (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind2+1; 
         goto nexttri;
       }
-      dx = xt[ind3]-xt[ind2];
-      dy = yt[ind3]-yt[ind2];
-      dz = zt[ind3]-zt[ind2];
+      dx = xt[ind3] - xt[ind2];
+      dy = yt[ind3] - yt[ind2];
+      dz = zt[ind3] - zt[ind2];
       dist = dx*dx + dy*dy + dz*dz;
       if ( dist <= eps*eps ) // doublon
       {
@@ -119,8 +117,9 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
   }
 
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType2, *f, *cn2);
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn2, -1, eltType2);
-  delete f; delete cn; delete cn2;
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn2, eltType2, api);
+  RELEASESHAREDU(array, f, cn);
+  delete cn2;
   return tpl;
 }
 
@@ -140,7 +139,7 @@ K_TRANSFORM::collapseMinVertexInTriangle(FldArrayI& cn,
   E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2); E_Int* cn3 = cn.begin(3);
   E_Float p1[3], p2[3], p3[3];
   E_Float xp, yp, zp;
-  E_Boolean in;
+  E_Bool in;
   E_Float h1, h2, h3, d12, d13, d23, h, d;
   E_Int ind1, ind2;
 

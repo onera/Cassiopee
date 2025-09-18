@@ -134,8 +134,8 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* c;
   E_Int res; 
   E_Int ni, nj, nk; // number of points of array
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, c, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, c, eltType);
+  
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -148,7 +148,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
   vector<char*> vars;
   if (PyList_Check(vars0) != 0)
   {
-    for (int i = 0; i < PyList_Size(vars0); i++)
+    for (Py_ssize_t i = 0; i < PyList_Size(vars0); i++)
     {
       PyObject* tpl0 = PyList_GetItem(vars0, i);
       if (PyString_Check(tpl0))
@@ -241,6 +241,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
     }
   }
 
+  E_Int api = f->getApi();
   FldArrayF* fnew = new FldArrayF(f->getSize(), nvarout);
 
   // calcul des variables composees
@@ -264,16 +265,14 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
 
   if (res == 1)
   {
-    PyObject* tpl = K_ARRAY::buildArray(*fnew, varStringOut, 
-                                        ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, ni, nj, nk);
     delete fnew; 
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else
   {
-    PyObject* tpl = K_ARRAY::buildArray(*fnew, varStringOut, 
-                                        *c, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, *c, eltType, api);
     delete fnew; 
     RELEASESHAREDU(array, f, c);
     return tpl;

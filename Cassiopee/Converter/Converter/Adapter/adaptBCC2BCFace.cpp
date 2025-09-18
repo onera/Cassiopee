@@ -31,11 +31,11 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
 {
   PyObject* BCCO, *cnO;
   char* eltType;
-  if (!PyArg_ParseTuple(args, "OOs", &BCCO, &cnO, &eltType)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ S_, &BCCO, &cnO, &eltType)) return NULL;
 
   // Check numpy (BCFace)
   FldArrayI* BCC;
-  E_Int res = K_NUMPY::getFromNumpyArray(BCCO, BCC, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(BCCO, BCC);
   //E_Int* bcc = BCC->begin();
   //E_Int nint = BCC->getSize();
   if (res == 0)
@@ -47,7 +47,7 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
 
   // Check numpy (cn - connectivite volumique)
   FldArrayI* cn;
-  res = K_NUMPY::getFromNumpyArray(cnO, cn, true);
+  res = K_NUMPY::getFromNumpyArray(cnO, cn);
   if (res == 0)
   {
     RELEASESHAREDN(BCCO, BCC);
@@ -55,9 +55,9 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
                     "adaptBCC2BCFace: cn is invalid.");
     return NULL;
   }
-  //E_Int* cnp = cn->begin();
+  //E_Int* cnp = cn->begin(); 
   
-  printf("eltType %s\n", eltType);
+  /*
   E_Int face[6][4];
   E_Int nfaces = 0; E_Int nof = 0; E_Int type = 0;
   E_Int np = 0;
@@ -119,8 +119,10 @@ PyObject* K_CONVERTER::adaptBCC2BCFace(PyObject* self, PyObject* args)
     face[3][0] = 1; face[3][1] = 3; face[3][2] = 2; // T
     face[4][0] = 4; face[4][1] = 5; face[4][2] = 6; // T
   }
-
+  */
+ 
   /* ... */
+  printf("Error: adaptBCC2BCFace: not implemented.\n");
 
   RELEASESHAREDN(BCCO, BCC);
   RELEASESHAREDN(cnO, cn);

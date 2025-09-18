@@ -1,6 +1,5 @@
 # - tkRenderSet -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -20,8 +19,7 @@ MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
 # Appele quand une couleur est selectionnee (optionMenu)
 def setColorVar(l):
     if l == 'Custom>':
-        try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser
+        import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
     VARS[1].set(l)
@@ -31,8 +29,7 @@ def setColorVar(l):
 def setColorVar2(event=None):
     l = VARS[1].get()
     if l == 'Custom>':
-        try: import tkinter.colorchooser as tkColorChooser
-        except: import tkColorChooser
+        import tkinter.colorchooser as tkColorChooser
         ret = tkColorChooser.askcolor()
         l = ret[1]
         VARS[1].set(l)

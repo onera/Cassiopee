@@ -138,7 +138,7 @@ void K_INTERP::InterpData::coordHexa(E_Int ind, E_Int ni, E_Int nj, E_Int nk,
    one center of a face. Uses a "jump" technique to find quickly the most 
    probable tetrahedron */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                                 FldArrayF& cf)
   {
@@ -299,7 +299,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
   {
     /* Transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     
     cfp[0] = cf0;
     cfp[1] = cf0;
@@ -358,7 +358,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* Transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
           
           for (i = 0; i < 4; i++)
@@ -380,7 +380,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
 //=============================================================================
 /* Test if the cell contains the point to interpolate */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::getCellJump(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::getCellJump(E_Float x, E_Float y, E_Float z,
                                             E_Float* xt, E_Float* yt, E_Float* zt,
                                             E_Int& isomm,
                                             E_Float& xi, E_Float& yi, E_Float& zi)
@@ -493,7 +493,7 @@ void K_INTERP::InterpData::coeffInterpTetra(E_Float x, E_Float y, E_Float z,
   Taken from FLU3M.
 */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                                    E_Int isomm,
                                                    E_Float xi, E_Float yi, E_Float zi, 
                                                    E_Float* xt, E_Float* yt, E_Float* zt,
@@ -618,7 +618,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
     /* transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
       
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     for (i = 0; i < 8; i++) cfp[i] = cf0;
     
     for (i = 0; i < 4; i++)
@@ -664,7 +664,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
 
           for (i = 0; i < 4; i++)
@@ -759,7 +759,7 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
   E_Float sum, sum2;
   E_Float report, cellN0;
   E_Float val = 1.;
-  E_Boolean valid = false;
+  E_Bool valid = false;
   xp = xt[14]; yp = yt[14]; zp = zt[14];
 
   // test les 24 tetraedres a la recherche d'un tetraedre
@@ -785,7 +785,7 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
         coeffInterpTetra(x, y, z, xp, yp, zp, xq, yq, zq,
                          xr, yr, zr, xs, ys, zs, xi, yi, zi);       
         /* transforming to hexahedra coefficients */ 
-        cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+        cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
         for (E_Int i = 0; i < 8; i++) cfp[i] = cf0;
         
         for (E_Int i = 0; i < 4; i++)

@@ -129,7 +129,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
     E_Int ind1, ind2, ind3, ind4, ind5, ind6;
     E_Int i, j, k, c;
 
-#pragma omp for
+#pragma omp for nowait
     for (E_Int ind = 0; ind < nijk; ind++)
     {
       k = ind/nij;
@@ -346,7 +346,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
           }
 
       // Connectivite EF
-#pragma omp for nowait
+#pragma omp for
       for (E_Int k = 0; k < nk1; k++)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
@@ -373,7 +373,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
     {
 #pragma omp for nowait
       for (E_Int i = 0; i < nfaces; i++) indPG[i] = (pow(2,dim0-1)+shift)*i;
-#pragma omp for nowait
+#pragma omp for
       for (E_Int i = 0; i < ncells; i++) indPH[i] = (2*dim0+shift)*i;  
     }
   }

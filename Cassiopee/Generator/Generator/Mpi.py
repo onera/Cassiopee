@@ -8,21 +8,6 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import numpy
 
-def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False,
-              splitInfos=None):
-
-    if splitInfos is None:
-        print("Warning: no input provided to adapt the parts of the mesh. They will be adapted independently.", flush=True)
-    a = Internal.getZones(a)[0]
-    dimZ = Internal.getZoneDim(a)
-    eltType=dimZ[3]
-    if eltType != 'NGON':
-        print("adaptMesh: input mesh must be NGON v4. No adaptation performed.", flush=True)
-        return a
-
-    return G.adaptMesh__(a, indicator=indicator, hook=hook, dim=dim,
-                         conformize=conformize, splitInfos=splitInfos)
-
 def bbox(t):
     """Return the bounding box of a pytree."""
     bb = PyTree.bbox(t)
@@ -64,14 +49,10 @@ def _getAngleRegularityMap(t, addGC=False):
     return None
 
 #========================================================
-# Mesh quality informations
+# check mesh
 #========================================================
 def getMeshFieldInfo__(m, field, critValue, verbose):
-    fmin  = 1.e32
-    fsum  = 0
-    fmax  = -1.
-    fcrit = 0
-    size  = 0
+    fmin  = 1.e32; fsum  = 0; fmax  = -1.; fcrit = 0; size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
     dictInfo = {}
@@ -148,3 +129,21 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
             'amin':amin,'amax':amax,'amean':amean,'acrit':acrit,
             'omin':omin,'omax':omax,'omean':omean,'ocrit':ocrit}
+
+#=============================================================================================
+# mesh adaptation
+#=============================================================================================
+def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False,
+              splitInfos=None):
+
+    if splitInfos is None:
+        print("Warning: no input provided to adapt the parts of the mesh. They will be adapted independently.", flush=True)
+    a = Internal.getZones(a)[0]
+    dimZ = Internal.getZoneDim(a)
+    eltType=dimZ[3]
+    if eltType != 'NGON':
+        print("adaptMesh: input mesh must be NGON v4. No adaptation performed.", flush=True)
+        return a
+
+    return G.adaptMesh__(a, indicator=indicator, hook=hook, dim=dim,
+                         conformize=conformize, splitInfos=splitInfos)

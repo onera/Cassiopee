@@ -200,8 +200,7 @@ PyObject* K_INTERSECTOR::agglomerateNonStarCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr, *py_pgs;
-
-  if (!PyArg_ParseTuple(args, "OO", &arr, &py_pgs)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &py_pgs)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -216,7 +215,7 @@ PyObject* K_INTERSECTOR::agglomerateCellsWithSpecifiedFaces(PyObject* self, PyOb
   E_Int* pgsList=NULL;
   E_Int size=0, nfld=1;
   if (py_pgs != Py_None)
-    K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld, 1);
+    K_NUMPY::getFromNumpyArray(py_pgs, pgsList, size, nfld);
 
   typedef ngon_t<K_FLD::IntArray> ngon_type;
   ngon_type ngio(cnt);

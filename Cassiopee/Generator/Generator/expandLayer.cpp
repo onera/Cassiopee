@@ -42,8 +42,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -72,8 +72,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   E_Int nii, nji, nki;
   FldArrayF* fi; FldArrayI* cni;
   char* varStringi; char* eltTypei;
-  E_Int resi = K_ARRAY::getFromArray(indicator, varStringi, fi, nii, nji, nki, 
-                                     cni, eltTypei, true);
+  E_Int resi = K_ARRAY::getFromArray3(indicator, varStringi, fi, nii, nji, nki, 
+                                      cni, eltTypei);
   if (resi != 1 && resi != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -95,7 +95,8 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
     return indicator;
   }
   /*-----------FIN DES VERIFS ------------------*/
-  E_Int nelts = cn->getSize(); E_Int npts = f->getSize();
+  E_Int nelts = cn->getSize();
+  E_Int npts = f->getSize(); E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
@@ -140,7 +141,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
 
   // detection des elements de niveau l 
   E_Float eps = 1.e-10; E_Float dhl = pow(2.,level) * dhmin;
-  E_Boolean voisinBlanked;
+  E_Bool voisinBlanked;
   E_Int etv; E_Float dhet; E_Float dhetv;
   E_Float dhleps = dhl + eps;
 
@@ -215,7 +216,7 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
       if (K_FUNC::E_abs(cellNp[et]) < eps) // masque
       {
         // voisine non masquee?
-        E_Boolean voisinNonBlanked = false;
+        E_Bool voisinNonBlanked = false;
         E_Float voisinStep = K_CONST::E_MAX_FLOAT;
         vector<E_Int>& voisins = cEEN[et];
         for (size_t nov = 0; nov < voisins.size(); nov++)
@@ -423,9 +424,9 @@ PyObject* K_GENERATOR::modifyIndicToExpandLayer(PyObject* self, PyObject* args)
   /*-----------CONSTRUCTION ARRAY DE SORTIE ------------------*/
   PyObject* tpl;
   if (resi == 1) 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, nii, nji, nki);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, nii, nji, nki);
   else 
-    tpl = K_ARRAY::buildArray(*fi, varStringi, *cni, -1, eltTypei, false);
+    tpl = K_ARRAY::buildArray3(*fi, varStringi, *cni, eltTypei, api);
   RELEASESHAREDB(resi, indicator, fi, cni); RELEASESHAREDU(octree, f, cn);
   return tpl;
 }

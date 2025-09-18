@@ -84,7 +84,7 @@ E_Int K_IO::GenIO::bingmshread(
   //printf("data size %s\n", buf);
   /* one for endianess */
   fread(&ti, sizeInt, 1, ptrFile);
-  E_Boolean changeEndian = true;
+  E_Bool changeEndian = true;
   if (ti == 1) changeEndian = false; // TO DO
   fread(buf, sizeChar, 16, ptrFile); /* \n + $endMeshFormat */
   buf[16] = '\0';
@@ -160,7 +160,7 @@ E_Int K_IO::GenIO::bingmshread(
   //       nBAR, nTRI, nQUAD, nTETRA, nHEXA, nNODE);
 
   /* Allocations */
-  E_Boolean fo = true;
+  E_Bool fo = true;
 #include "GenIO_gmsh4.h"
   
   /* Lecture reelle des elements par type */

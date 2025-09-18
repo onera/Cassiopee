@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Generator: mesh generation module &#8212; Generator 4.0 documentation</title>
+    <title>Generator: mesh generation module &#8212; Generator 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Generator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Generator 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Generator: mesh generation module</a></li> 
       </ul>
     </div>  
@@ -177,6 +177,20 @@ containing grid information (coordinates must be defined).</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.PyTree.cartRx3" title="Generator.PyTree.cartRx3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.PyTree.cartRx3</span></code></a></p></td>
 <td><p>Create a set of regular and geometric cartesian grids with double steps.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Hierarchical mesh adaptation</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.PyTree.adaptMesh" title="Generator.PyTree.adaptMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.PyTree.adaptMesh</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.PyTree.createHook4AdaptMesh" title="Generator.PyTree.createHook4AdaptMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.PyTree.createHook4AdaptMesh</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.PyTree.freeHook4AdaptMesh" title="Generator.PyTree.freeHook4AdaptMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.PyTree.freeHook4AdaptMesh</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -2367,6 +2381,122 @@ When used in parallel, the set of grids is distributed.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx3</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="o">-</span><span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">))</span>
 
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="hierarchical-mesh-adaptation">
+<h3>Hierarchical mesh adaptation</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Generator.PyTree.adaptMesh">
+<span class="sig-prename descclassname"><span class="pre">Generator.PyTree.</span></span><span class="sig-name descname"><span class="pre">adaptMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'indicator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitInfos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Hierarchical mesh adaptation of a conformal mesh defined by an HEXA or a NGON (6 faces) zone according to a refinement indicator.
+The zone a can be distributed in MPI, in that case splitInfos must be provided.
+splitInfos is a dictionary of comms between partitions, global indices of cells and faces.
+They can be extracted from Converter.Filter2.loadAndSplit, e.g.:
+a, res = Filter2.loadAndSplit(&#8216;mesh.cgns&#8217;)
+splitInfos[&#8220;graph&#8221;]=res[1]
+splitInfos[&#8220;cellGlobalIndex&#8221;]=res[5]
+splitInfos[&#8220;faceGlobalIndex&#8221;]=res[6]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>zone</em>) &#8211; zone to adapt</p></li>
+<li><p><strong>indicator</strong> (<em>string</em>) &#8211; name of the refinement indicator, located at cell centers</p></li>
+<li><p><strong>dim</strong> (<em>integer</em><em> (</em><em>2</em><em> or </em><em>3</em><em>)</em>) &#8211; dimension of the problem</p></li>
+<li><p><strong>hook</strong> (<em>pointer</em><em> or </em><em>None</em>) &#8211; hook of the hierarchical data structure</p></li>
+<li><p><strong>conformize</strong> (<em>Boolean</em>) &#8211; if True, a NGON conformal mesh is returned</p></li>
+<li><p><strong>splitInfos</strong> (<em>dictionary</em>) &#8211; dictionary of infos for parallel mode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>adapted mesh (NGON or HEXA)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Generator/adaptMeshPT.py">Hierarchical mesh adaptation of an HEXA mesh (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - adaptMesh (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="c1"># HEXA but no adaptation in the 3rd direction (2D adaptation)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;nref&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;{centers:indicator}=({centers:CoordinateX})&gt;0.5&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">adaptMesh</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="s2">&quot;indicator&quot;</span><span class="p">,</span> <span class="n">hook</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">conformize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Generator.PyTree.createHook4AdaptMesh">
+<span class="sig-prename descclassname"><span class="pre">Generator.PyTree.</span></span><span class="sig-name descname"><span class="pre">createHook4AdaptMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splitInfos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Create the hierarchical data structure from an initial conformal mesh (structured, HEXA or NGON).
+splitInfos is required in parallel MPI mode (see adaptMesh doc).
+In the in-place version, a is modified to a NGON v3 conformal mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>zone</em>) &#8211; zone to adapt</p></li>
+<li><p><strong>dim</strong> (<em>integer</em><em> (</em><em>2</em><em> or </em><em>3</em><em>)</em>) &#8211; dimension of the problem</p></li>
+<li><p><strong>splitInfos</strong> (<em>dictionary</em>) &#8211; dictionary of infos for parallel mode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Initial data structure for hierarchical mesh adaptation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pointer on the C data structure</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Generator/createHook4AdaptMeshPTPT.py">Initial data structure for hierarchical mesh adaptation of an HEXA mesh (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - createHook4AdaptMesh (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+
+<span class="c1"># Returns the hook on the tree structure</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;nref&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">hooka</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">_createHook4AdaptMesh</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">splitInfos</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1">#G.freeHook4AdaptMesh(hooka)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Generator.PyTree.freeHook4AdaptMesh">
+<span class="sig-prename descclassname"><span class="pre">Generator.PyTree.</span></span><span class="sig-name descname"><span class="pre">freeHook4AdaptMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Release the memory of the hierarchical data structure.
+:param hook:
+:type  a: hierarchical mesh adaptation data structure
+:return: None</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Generator/freeHook4AdaptMeshPT.py">Delete the C data structure for hierarchical mesh adaptation</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - freeHook4AdaptMesh (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+
+<span class="c1"># Returns the hook on the tree structure</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartHexa</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_fillEmptyBCWith</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;nref&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">hooka</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">_createHook4AdaptMesh</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">splitInfos</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">G</span><span class="o">.</span><span class="n">freeHook4AdaptMesh</span><span class="p">(</span><span class="n">hooka</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -5094,7 +5224,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Generator 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Generator 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Generator: mesh generation module</a></li> 
       </ul>
     </div>

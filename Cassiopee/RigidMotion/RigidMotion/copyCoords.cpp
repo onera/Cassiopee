@@ -28,18 +28,17 @@ PyObject* K_RIGIDMOTION::copyCoords(PyObject* self, PyObject* args)
 {
     PyObject *xin, *yin, *zin;
     PyObject *xout, *yout, *zout;
-    
-    if (!PyArg_ParseTuple(args, "OOOOOO", &xin, &yin, &zin, &xout, &yout, &zout)) return NULL;
+    if (!PYPARSETUPLE_(args, OOOO_ OO_, &xin, &yin, &zin, &xout, &yout, &zout)) return NULL;
     
     E_Int size;
     E_Float *xi, *yi, *zi;
-    K_NUMPY::getFromNumpyArray(xin, xi, size, true);
-    K_NUMPY::getFromNumpyArray(yin, yi, size, true);
-    K_NUMPY::getFromNumpyArray(zin, zi, size, true);
+    K_NUMPY::getFromNumpyArray(xin, xi, size);
+    K_NUMPY::getFromNumpyArray(yin, yi, size);
+    K_NUMPY::getFromNumpyArray(zin, zi, size);
     E_Float *xo, *yo, *zo;
-    K_NUMPY::getFromNumpyArray(xout, xo, size, true);
-    K_NUMPY::getFromNumpyArray(yout, yo, size, true);
-    K_NUMPY::getFromNumpyArray(zout, zo, size, true);
+    K_NUMPY::getFromNumpyArray(xout, xo, size);
+    K_NUMPY::getFromNumpyArray(yout, yo, size);
+    K_NUMPY::getFromNumpyArray(zout, zo, size);
 
 #pragma omp parallel
     {

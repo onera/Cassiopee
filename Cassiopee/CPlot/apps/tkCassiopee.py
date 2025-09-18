@@ -61,8 +61,7 @@ PERSOAPPS = []
 # Add a personal app to pref file
 #==============================================================================
 def addPersonalApp():
-    try: import tkinter.filedialog as tkFileDialog
-    except: import tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
     a = os.access(file, os.F_OK)
     if not a: return

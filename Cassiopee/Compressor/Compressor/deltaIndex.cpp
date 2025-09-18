@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
  
-# include "compressor.h"
+#include "compressor.h"
 
 using namespace K_FLD;
 
@@ -30,8 +30,8 @@ PyObject* K_COMPRESSOR::deltaIndex(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   PyObject* del1; PyObject* del2;
-  if (!PyArg_ParseTuple(args, "OOOO", &array1, &array2,
-                        &del1, &del2)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_ O_, &array1, &array2,
+                     &del1, &del2)) return NULL;
 
   // Array d'indexes a comparer
   FldArrayI index;

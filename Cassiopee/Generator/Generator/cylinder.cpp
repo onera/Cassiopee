@@ -96,8 +96,7 @@ PyObject* K_GENERATOR::cylinderMesh(PyObject* self, PyObject* args)
       }  
   }
   // Build array
-  PyObject* tpl = K_ARRAY::buildArray(*coord, "x,y,z", 
-                                      ni, nj, nk);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
   delete coord;
   return tpl;
 }
@@ -111,17 +110,10 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
   E_Float tetas, tetae, R1, R2, H;
   PyObject* arrayR; PyObject* arrayT; PyObject* arrayZ;
 
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "(ddd)dddddOOO", 
-                        &xo, &yo, &zo, &R1, &R2, &tetas, &tetae, 
-                        &H, 
-                        &arrayR, &arrayT, &arrayZ))   
-#else
-    if (!PyArg_ParseTuple(args, "(fff)fffffOOO",
-                          &xo, &yo, &zo, &R1, &R2, &tetas, &tetae, 
-                          &H, 
-                          &arrayR, &arrayT, &arrayZ))   
-#endif
+  if (!PYPARSETUPLE_(args, TRRR_ RRR_ RR_ OOO_, 
+                      &xo, &yo, &zo, &R1, &R2, &tetas, 
+                      &tetae, &H, 
+                      &arrayR, &arrayT, &arrayZ))   
   {
     PyErr_SetString(PyExc_TypeError, 
                     "cylinder2: wrong arguments.");
@@ -143,12 +135,12 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
   char* varStringR; char* varStringT; char* varStringZ;
   char* eltTypeR; char* eltTypeT; char* eltTypeZ;
   
-  E_Int resR = K_ARRAY::getFromArray(arrayR, varStringR, fR, niR, njR, nkR, 
-                                     cnR, eltTypeR); 
-  E_Int resT = K_ARRAY::getFromArray(arrayT, varStringT, fT, niT, njT, nkT, 
-                                     cnT, eltTypeT);
-  E_Int resZ = K_ARRAY::getFromArray(arrayZ, varStringZ, fZ, niZ, njZ, nkZ, 
-                                     cnZ, eltTypeZ);
+  E_Int resR = K_ARRAY::getFromArray3(arrayR, varStringR, fR, niR, njR, nkR, 
+                                      cnR, eltTypeR); 
+  E_Int resT = K_ARRAY::getFromArray3(arrayT, varStringT, fT, niT, njT, nkT, 
+                                      cnT, eltTypeT);
+  E_Int resZ = K_ARRAY::getFromArray3(arrayZ, varStringZ, fZ, niZ, njZ, nkZ, 
+                                      cnZ, eltTypeZ);
   
   if (resR == 1 && resT == 1 && resZ == 1)
   {
@@ -164,7 +156,9 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
 
     if (posxr == -1 || posxt == -1 || posxz == -1)
     {
-      delete fR; delete fT; delete fZ;
+      RELEASESHAREDS(arrayR, fR);
+      RELEASESHAREDS(arrayT, fT);
+      RELEASESHAREDS(arrayZ, fZ);
       PyErr_SetString(PyExc_TypeError,
                       "cylinder2: can't find coordinates in array.");
       return NULL;
@@ -173,7 +167,9 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
 
     if (nj == 1 || ni == 1)
     {
-      delete fR; delete fT; delete fZ;
+      RELEASESHAREDS(arrayR, fR);
+      RELEASESHAREDS(arrayT, fT);
+      RELEASESHAREDS(arrayZ, fZ);
       PyErr_SetString(PyExc_TypeError, 
                       "cylinder2: creation of cylinder with ni = 1 or nj = 1 is impossible.");
       return NULL;
@@ -212,10 +208,12 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
           zt[ind] = zo + H * dz(k,posxz);
         }
     }
-    delete fR; delete fT; delete fZ;
+    RELEASESHAREDS(arrayR, fR);
+    RELEASESHAREDS(arrayT, fT);
+    RELEASESHAREDS(arrayZ, fZ);
 
     // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
     delete coord;
     return tpl;
   }
@@ -225,6 +223,10 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
     if (resR == 2) delete cnR;
     if (resT == 2) delete cnT;
     if (resZ == 2) delete cnZ;
+    RELEASESHAREDB(resR, arrayR, fR, cnR);
+    RELEASESHAREDB(resT, arrayT, fT, cnT);
+    RELEASESHAREDB(resZ, arrayZ, fZ, cnZ);
+
     PyErr_SetString(PyExc_TypeError,
                     "cylinder2: cannot be used with unstructured arrays.");
     return NULL;
@@ -262,11 +264,11 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
   char* varStringt; char* eltTypet;
 
   E_Int resxz = 
-    K_ARRAY::getFromArray(arrayXZ, varStringxz, fxz, im1, jm1, km1, 
-                          cnxz, eltTypexz); 
+    K_ARRAY::getFromArray3(arrayXZ, varStringxz, fxz, im1, jm1, km1, 
+                           cnxz, eltTypexz);
   E_Int rest = 
-    K_ARRAY::getFromArray(arrayT, varStringt, ft, im2, jm2, km2, 
-                          cnt, eltTypet);
+    K_ARRAY::getFromArray3(arrayT, varStringt, ft, im2, jm2, km2, 
+                           cnt, eltTypet);
 
   if (resxz == 1 && rest == 1)
   {
@@ -275,7 +277,8 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
     E_Int post = K_ARRAY::isCoordinateXPresent(varStringt); 
     if (posx == -1 || posz == -1 || post == -1)
     {
-      delete fxz; delete ft;
+      RELEASESHAREDS(arrayXZ, fxz);
+      RELEASESHAREDS(arrayT, ft);
       PyErr_SetString(PyExc_TypeError,
                       "cylinder3: can't find coordinates in array.");
       return NULL;
@@ -337,11 +340,11 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
           zt[ind] = dzp[indp];
         }
     }
-    delete fxz; delete ft;
+    RELEASESHAREDS(arrayXZ, fxz);
+    RELEASESHAREDS(arrayT, ft);  
 
     // Build array
-    PyObject* tpl =
-      K_ARRAY::buildArray(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
     delete coord;
     return tpl;
   }
@@ -350,6 +353,9 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
     delete fxz; delete ft;
     if (resxz == 2) delete cnxz; 
     if (rest == 2) delete cnt;
+    RELEASESHAREDB(resxz, arrayXZ, fxz, cnxz);
+    RELEASESHAREDB(rest, arrayT, ft, cnt);
+      
     PyErr_SetString(PyExc_TypeError,
                     "cylinder3: can not be used on unstructured arrays.");
     return NULL;

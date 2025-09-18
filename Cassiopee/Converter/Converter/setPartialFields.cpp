@@ -31,15 +31,15 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   PyObject* array;
   PyObject* arrayF;// array 1D contenant les champs a inserer
   PyObject* listIndicesO;
-  if (!PyArg_ParseTuple(args, "OOO", &array, &arrayF, &listIndicesO))
+  if (!PYPARSETUPLE_(args, OOO_, &array, &arrayF, &listIndicesO))
     return NULL;
 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -51,8 +51,8 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* fl; FldArrayI* cnl;
   char* varStringl; char* eltTypel;
-  E_Int resl = K_ARRAY::getFromArray(arrayF, varStringl, fl, nil, njl, nkl, 
-                                     cnl, eltTypel, true);
+  E_Int resl = K_ARRAY::getFromArray3(arrayF, varStringl, fl, nil, njl, nkl, 
+                                      cnl, eltTypel);
   if (resl != 1 && resl != 2) 
   {
     RELEASESHAREDB(res,array,f,cn);
@@ -71,7 +71,7 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDB(res, array, f, cn); 
@@ -163,8 +163,8 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* fl; FldArrayI* cnl;
   char* varStringl; char* eltTypel;
-  E_Int resl = K_ARRAY::getFromArray(arrayF, varStringl, fl, nil, njl, nkl, 
-                                     cnl, eltTypel, true);
+  E_Int resl = K_ARRAY::getFromArray3(arrayF, varStringl, fl, nil, njl, nkl, 
+                                      cnl, eltTypel);
   if (resl != 1 && resl != 2) 
   {
     RELEASESHAREDZ(hook, varString, eltType);
@@ -183,7 +183,7 @@ PyObject* K_CONVERTER::setPartialFieldsPT(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDZ(hook, varString, eltType);
@@ -283,7 +283,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   {
     FldArrayF* oneField;
     tpl = PyList_GetItem(listNumFields, v);
-    E_Int resf = K_NUMPY::getFromNumpyArray(tpl, oneField, true);
+    E_Int resf = K_NUMPY::getFromNumpyArray(tpl, oneField);
     if (resf == 0) { isEmpty[v] = 1; oneField = NULL; } 
     else if (oneField->getSize() == 0) isEmpty[v] = 1;
     else isEmpty[v] = 0;
@@ -294,7 +294,7 @@ PyObject* K_CONVERTER::_setPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
   
@@ -366,7 +366,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -389,7 +389,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
   {
     FldArrayI* t;
     PyObject* index = PyList_GetItem(indexList, i);
-    E_Int res2 = K_NUMPY::getFromNumpyArray(index, t, true);
+    E_Int res2 = K_NUMPY::getFromNumpyArray(index, t);
 
     if (res2 == 0)
     {
@@ -418,7 +418,7 @@ PyObject* K_CONVERTER::_setPartialFieldsAverage(PyObject* self, PyObject* args)
     E_Int ni2, nj2, nk2; 
     FldArrayF* f2; FldArrayI* cn2;
     char* varString2; char* eltType2;
-    E_Int res2 = K_ARRAY::getFromArray2(v, varString2, f2, ni2, nj2, nk2, 
+    E_Int res2 = K_ARRAY::getFromArray3(v, varString2, f2, ni2, nj2, nk2, 
                                         cn2, eltType2);
     if (res2 != 1 && res2 != 2)
     {

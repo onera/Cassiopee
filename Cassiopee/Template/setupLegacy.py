@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-from distutils.core import setup, Extension
-import os, sys
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
+import os
 
 #=============================================================================
 # Template requires:
@@ -27,7 +27,7 @@ from KCore.config import *
 #if f77compiler == "None":
 #    print("Error: a fortran 77 compiler is required for compiling Fast.")
 #args = Dist.getForArgs(); opt = ''
-#for c in xrange(len(args)):
+#for c in range(len(args)):
 #    opt += 'FOPT'+str(c)+'='+args[c]+' '
 #os.system("make -e FC="+f77compiler+" WDIR=Template/Fortran "+opt)
 prod = os.getenv("ELSAPROD")
@@ -58,7 +58,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Template",
-    version="2.0",
+    version="4.1",
     description="Template module.",
     author="You",
     package_dir={"":"."},

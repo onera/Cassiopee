@@ -2,9 +2,6 @@
 from . import Connector
 __version__ = Connector.__version__
 
-try: range = xrange
-except: pass
-
 try:
     import Geom
     import Geom.PyTree as D

@@ -35,7 +35,7 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
 { 
   PyObject* listFields;
   PyObject* options;
-  if (!PyArg_ParseTuple(args, "OO", &listFields, &options))
+  if (!PYPARSETUPLE_(args, OO_, &listFields, &options))
   {
     return NULL;
   }
@@ -72,10 +72,10 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true; 
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listFields, resl, structVarString, unstrVarString,
@@ -83,9 +83,12 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzones = structF.size();
   
-  E_Int nfld = 0;
-  if ( nzones != 0 ) 
+  E_Int nfld = 0; E_Int api = 1;
+  if ( nzones != 0 )
+  {
     nfld = structF[0]->getNfld();
+    api = structF[0]->getApi();
+  }
 
   if ( isOk == -1 || nfld < 3)
   {
@@ -232,8 +235,8 @@ PyObject* K_POST::zipperF(PyObject* self, PyObject* args)
   }
 
   // Build array of unstructured field
-  PyObject* tpl2 = K_ARRAY::buildArray(*fieldG, varString,
-                                       *unsConnectENG, -1, "TRI");
+  PyObject* tpl2 = K_ARRAY::buildArray3(*fieldG, varString,
+                                        *unsConnectENG, "TRI", api);
   delete fieldG; delete unsConnectENG;
   return tpl2;
 }

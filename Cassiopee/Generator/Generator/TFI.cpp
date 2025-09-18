@@ -30,7 +30,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::TFIMesh(PyObject* self, PyObject* args)
 {
   PyObject* arrays; 
-  if (!PyArg_ParseTuple(args, "O", &arrays)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arrays)) return NULL;
   
   if (PyList_Check(arrays) == 0)
   {

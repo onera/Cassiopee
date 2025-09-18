@@ -150,7 +150,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   if (api == 1) ngonType = 1; // CGNSv3 compact array1
   else if (api == 3) ngonType = 3; // force CGNSv4, array3
   else if (api == 2) ngonType = 2; // CGNSv3, array2
-  E_Boolean center = false;
+  E_Bool center = false;
 
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, ntotelts,
                                        ntotfaces, "NGON", sizeFN, sizeEF,

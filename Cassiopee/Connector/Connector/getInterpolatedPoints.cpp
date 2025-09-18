@@ -29,13 +29,18 @@ using namespace std;
    IN/OUT: cellN: -1, point masque, 0, point interpole, 1, point normal.*/
 //=============================================================================
 void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
-  E_Int depth,  FldArrayI& cnEV,
+  E_Int depth,  FldArrayI& connect,
   FldArrayI& blankedCells,
   FldArrayI& cellN)
 {
   E_Int nvert = blankedCells.getSize();
   std::vector< std::vector<E_Int> > cVN(nvert);
-  K_CONNECT::connectEV2VNbrs(cnEV, cVN);
+  E_Int isNGon = connect.getNGonType();
+  if (isNGon==0)
+    K_CONNECT::connectEV2VNbrs(connect, cVN);
+  else 
+    K_CONNECT::connectNG2VNbrs(connect, cVN);
+
   E_Int nvoisins;
 
   for (E_Int ind = 0; ind < nvert; ind++)
@@ -1070,7 +1075,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray(array, varString,
-                                     field, im, jm, km, cn, eltType);
+                                    field, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1105,7 +1110,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   E_Float* cellNp = field->begin(posc);
   /* Fin des verifs */
   E_Int npts = field->getSize();
-
+  E_Int api = field->getApi();
 
   // =================================================
   // ============= VERSION DEV OPTIMISEE =============
@@ -1136,7 +1141,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       }
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl = K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1148,12 +1153,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
       else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
-    if ( K_STRING::cmp(eltType,"NGON")==0)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "getOversetHolesInterpNodes: not implemented for NGON zones.");
-      delete field; delete cn; return NULL;
-    }
+    // WARNING: NGON is array1 type here !!! 
+    if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGon(1);
+ 
     searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)
     {
@@ -1161,7 +1163,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
@@ -1187,7 +1189,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1205,7 +1207,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
 
@@ -1239,7 +1241,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString,
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
                                      field, im, jm, km, cn, eltType);
   if (res != 1)
   {
@@ -1380,7 +1382,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(centersArray, varString,
+  E_Int res = K_ARRAY::getFromArray3(centersArray, varString,
                                      field, im, jm, km, cn, eltType);
   if (res != 1)
   {
@@ -1550,6 +1552,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   E_Float* cellNp = field->begin(posc);
   /* Fin des verifs */
   E_Int ncells = field->getSize();
+  E_Int api = field->getApi();
 
   // =================================================
   // ============= VERSION DEV OPTIMISEE =============
@@ -1580,7 +1583,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       }
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1602,7 +1605,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
@@ -1629,7 +1632,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, im, jm, km);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
     delete field; return tpl;
   }
   else
@@ -1644,7 +1647,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray(*field, varString, *cn, -1, eltType);
+    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
     delete field; delete cn; return tpl;
   }
   // ============= FIN VERSION ORIGINALE =============
@@ -1662,7 +1665,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
   PyObject* zone;
   char *GridCoordinates, *FlowSolutionNodes, *FlowSolutionCenters;
   char* cellNName;
-  if (!PyArg_ParseTuple(args, "Ossss", &zone, &cellNName, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
+  if (!PYPARSETUPLE_(args, O_ SSSS_, &zone, &cellNName, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPointsZ: wrong arguments.");
@@ -1796,7 +1799,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
 PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
     PyErr_SetString(PyExc_TypeError,
                     "getInterpolatedPoints: wrong arguments.");
@@ -1826,6 +1829,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   /*fin verifs*/
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   char varStringOut[K_ARRAY::VARSTRINGLENGTH]; varStringOut[0] = '\0';
   E_Int nfldOut = nfld+1;
   strcpy(varStringOut,varString); strcat(varStringOut,",indcell");
@@ -1846,8 +1850,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
 
   RELEASESHAREDB(res, array, f, cn);
   FldArrayI* cnl = new FldArrayI(0);
-  PyObject* tpl = K_ARRAY::buildArray(*fout, varStringOut, *cnl, -1,
-                                      "NODE", false);
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varStringOut, *cnl, "NODE", api);
   delete fout; delete cnl;
   return tpl;
 }

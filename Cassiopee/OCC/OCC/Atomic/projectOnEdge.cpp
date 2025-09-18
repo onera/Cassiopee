@@ -50,7 +50,7 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
   FldArrayI* c; FldArrayF* fi;
   E_Int ni, nj, nk;
   char* varString; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(array, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2)
   {
     PyErr_SetString(PyExc_TypeError,

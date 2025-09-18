@@ -34,7 +34,7 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* coords; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayc, varString, coords, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayc, varString, coords, ni, nj, nk, cn, eltType);
   E_Int err = 0;
   if (res != 1){ PyErr_SetString(PyExc_TypeError, "computeEta: 1st array must be structured."); err = 1;}
   if (ni == 1 || nj > 1 || nk > 1) { PyErr_SetString(PyExc_TypeError, "computeEta: 1st arg must be a 1D-array."); err = 1;}
@@ -52,7 +52,7 @@ PyObject* K_GENERATOR::computeEta(PyObject* self, PyObject* args)
   E_Int nin, njn, nkn;
   FldArrayF* surf; FldArrayI* cnn;
   char* varStringn; char* eltTypen;
-  E_Int resn = K_ARRAY::getFromArray(arrayn, varStringn, surf, nin, njn, nkn, cnn, eltTypen, true);
+  E_Int resn = K_ARRAY::getFromArray3(arrayn, varStringn, surf, nin, njn, nkn, cnn, eltTypen);
   if (resn != 1){ PyErr_SetString(PyExc_TypeError, "computeEta: 2nd array must be structured."); err = 1;}
   if (nin == 1 || njn > 1 || nkn > 1) { PyErr_SetString(PyExc_TypeError, "computeEta: 2nd arg must be a 1D-array."); err = 1;}
   if (nin != ni) { PyErr_SetString(PyExc_TypeError, "computeEta: 1st and 2nd args must be of same size."); err = 1;}
@@ -184,7 +184,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   char* varString;
   char* eltType;
   FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayc, varString, coords, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayc, varString, coords, ni, nj, nk, cn, eltType);
   E_Int err = 0;
   if ( res != 1 ){ PyErr_SetString(PyExc_TypeError, "straightenVector: 1st array must be structured."); err = 1;}
   if ( ni == 1 || nj > 1 || nk > 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 1st arg must be a 1D-array."); err = 1;}
@@ -202,7 +202,7 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   FldArrayF* vectp;
   FldArrayI* cnv;
   char* varStringv;
-  E_Int resv = K_ARRAY::getFromArray(arrayv, varStringv,  vectp, niv, njv, nkv, cnv, eltType, true);
+  E_Int resv = K_ARRAY::getFromArray3(arrayv, varStringv,  vectp, niv, njv, nkv, cnv, eltType);
   if ( resv != 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 2nd array must be structured."); err = 1;}
   if ( niv == 1 || njv > 1 || nkv > 1 ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 2nd arg must be a 1D-array."); err = 1;}
   if ( niv != ni ) { PyErr_SetString(PyExc_TypeError, "straightenVector: 1st and 2nd args must be of same size."); err = 1;}
@@ -233,14 +233,14 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   K_ARRAY::getFromArrays(
     constraintsa, resl, structVarString, unstrVarString,
     constraints, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   
   // Redressage des normales
   PyObject* tpl2 = K_ARRAY::buildArray(3, varStringv, ni, 1, 1);
@@ -249,6 +249,8 @@ PyObject* K_GENERATOR::straightenVector(PyObject* self, PyObject* args)
   straightenVector(ni, coords->begin(posx), coords->begin(posy), coords->begin(posz), 
                    loop, niter, constrainedPts, constraints, vect, toldist);
   RELEASESHAREDB(resv, arrayv, vectp, cnv); RELEASESHAREDB(res, arrayc, coords, cn); 
+  for (size_t v = 0; v < objst.size(); v++) RELEASESHAREDS(objst[v], constraints[v]);
+
   return tpl2;
 }
 //=============================================================================

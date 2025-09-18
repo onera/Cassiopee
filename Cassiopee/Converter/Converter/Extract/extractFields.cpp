@@ -39,7 +39,7 @@ PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -50,7 +50,7 @@ PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
 
   // Check index
   FldArrayI* inds;
-  E_Int res2 = K_NUMPY::getFromNumpyArray(index, inds, true);
+  E_Int res2 = K_NUMPY::getFromNumpyArray(index, inds);
 
   if (res2 == 0)
   {
@@ -65,8 +65,8 @@ PyObject* K_CONVERTER::extractFields(PyObject* self, PyObject* args)
   E_Int* indp = inds->begin();
   
   // Cree un array, avec les memes champs mais structure a plat
-  PyObject* o = K_ARRAY::buildArray2(nfld, varString, npts,1,1, api);
-  FldArrayF* fo; K_ARRAY::getFromArray2(o, fo);
+  PyObject* o = K_ARRAY::buildArray3(nfld, varString, npts,1,1, api);
+  FldArrayF* fo; K_ARRAY::getFromArray3(o, fo);
   
  #pragma omp parallel default(shared)
   {

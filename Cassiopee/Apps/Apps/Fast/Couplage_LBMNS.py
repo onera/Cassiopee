@@ -1,17 +1,10 @@
-#Class for coupled FastLBM - FastS simulations
-import Generator.PyTree as G
+# Class for coupled FastLBM - FastS simulations
 import Converter.PyTree as C
 import Converter.Internal as Internal
-import Fast.PyTree as Fast
-import FastLBM.PyTree as FastLBM
-import FastS.PyTree as FastS
 import Connector.PyTree as X
 import Transform.PyTree as T
 from Apps.Fast.Common import Common
 import numpy
-
-try: range = xrange
-except: pass
 
 #===============================================================================
 #   Multiblock prepare

@@ -1,8 +1,6 @@
-from __future__ import print_function
-try: range = xrange
-except: pass
-
+# Converter PyTree interface
 from . import Converter
+from . import converter
 from . import Internal
 import KCore
 import numpy, fnmatch, re, os.path
@@ -1081,8 +1079,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         return t
 
     if format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
+        import pickle
         print('Reading %s (bin_pickle)...'%fileName, end='')
         try:
             file = open(fileName, 'rb')
@@ -1241,8 +1238,7 @@ def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
         tp, ntype = Internal.node2PyTree(t)
         Converter.converter.convertPyTree2FileFsdm(tp, fileName, format)
     elif format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
+        import pickle
         file = open(fileName, 'wb')
         print('Writing '+fileName+'...', end='')
         pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
@@ -1404,9 +1400,9 @@ def getField(name, t, api=1):
                     info2 = i[2]
                     for j in info2:
                         if j[0] == name and j[3] == 'DataArray_t':
-                            if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
-                            elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
-                            elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
+                            if api == 1: r = Internal.convertDataNode2Array(j, dim, connects, 0)
+                            elif api == 2: r = Internal.convertDataNode2Array2(j, dim, connects, 0)
+                            elif api == 3: r = Internal.convertDataNode2Array3(j, dim, connects, 0)
                             else: raise ValueError('getField: unknow api.')
                             a = r[1]
                             if a is not None: break
@@ -1417,9 +1413,9 @@ def getField(name, t, api=1):
                     info2 = i[2]
                     for j in info2:
                         if j[0] == name and j[3] == 'DataArray_t':
-                            if api==1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
-                            elif api==2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
-                            elif api==3: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
+                            if api == 1: r = Internal.convertDataNode2Array(j, dim, connects, 1)
+                            elif api == 2: r = Internal.convertDataNode2Array2(j, dim, connects, 1)
+                            elif api == 3: r = Internal.convertDataNode2Array3(j, dim, connects, 1)
                             else: raise ValueError('getField: unknow api.')
                             a = r[1]
                             if a is not None: break
@@ -1914,9 +1910,9 @@ def _TZGCX(api, t, locout, writeDim, F, *args):
 def _TZGC1(t, locout, writeDim, F, *args):
     return _TZGCX(1, t, locout, writeDim, F, *args)
 def _TZGC2(t, locout, writeDim, F, *args):
-    return _TZGCX(2, t, F, locout, writeDim, F, *args)
+    return _TZGCX(2, t, locout, writeDim, F, *args)
 def _TZGC3(t, locout, writeDim, F, *args):
-    return _TZGCX(3, t, F, locout, writeDim, F, *args)
+    return _TZGCX(3, t, locout, writeDim, F, *args)
 
 def TZGCX(api, t, locout, writeDim, F, *args):
     tp = Internal.copyRef(t)
@@ -3342,9 +3338,9 @@ def getArgMin(t, var):
         var = v[1]
         if v[0] == 'centers': centers = True
     if centers:
-        A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+        A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
     else:
-        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
     return Converter.getArgMin(A, var)
 
 # -- getArgMax (only on nodes or centers separately)
@@ -3357,9 +3353,9 @@ def getArgMax(t, var):
         var = v[1]
         if v[0] == 'centers': centers = True
     if centers:
-        A = getFields([Internal.__FlowSolutionCenters__], t, api=2)
+        A = getFields([Internal.__FlowSolutionCenters__], t, api=3)
     else:
-        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=2)
+        A = getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], t, api=3)
     return Converter.getArgMax(A, var)
 
 # -- getMinValue
@@ -3415,7 +3411,7 @@ def getMeanValue(t, var):
 def getMeanRangeValue(t, var, rmin, rmax):
     """Get the mean value of variable defined by var in the sorted range between rmin and rmax.
     Usage: getMeanRangeValue(t, var, rmin, rmax)"""
-    A = getField(var, t, api=2)
+    A = getField(var, t, api=3)
     v = var.split(':')
     if len(v) > 1: var = v[1]
     return Converter.getMeanRangeValue(A, var, rmin, rmax)
@@ -5554,8 +5550,8 @@ def computeBCMatchField(z, allMatch, variables=None):
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
-    # Traitement pour maillage struture
-    # =================================
+    # Traitement pour maillage structure
+    # ==================================
     if zoneType == 1: # Structured mesh
         # Tableau des champs a extraire
         for var in varList:
@@ -7164,7 +7160,7 @@ def createHook(a, function='None'):
 
 def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     """Create a hook for a cylindrical adt."""
-    fields = getFields(Internal.__GridCoordinates__, a, api=2)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     return Converter.createHookAdtCyl(fields, center, axis, depth, thetaShift)
 
 # -- createGlobalHook
@@ -7283,30 +7279,81 @@ def nearestElements(hook, a):
 # Create global index
 def createGlobalIndex(a, start=0):
     """Create the global index field."""
-    return TZA2(a, 'nodes', 'nodes', Converter.createGlobalIndex, start)
+    return TZA3(a, 'nodes', 'nodes', Converter.createGlobalIndex, start)
 
 def _createGlobalIndex(a, start=0):
     """Create the global index field."""
     _initVars(a, 'globalIndex', 0)
-    return __TZA2(a, 'nodes', Converter._createGlobalIndex, start)
+    return __TZA3(a, 'nodes', Converter._createGlobalIndex, start)
 
 # Recover field from global index
 def recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
-    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
-    return TZA2(a, 'nodes', 'nodes', Converter.recoverGlobalIndex, fb)
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=3)[0]
+    return TZA3(a, 'nodes', 'nodes', Converter.recoverGlobalIndex, fb)
 
 def _recoverGlobalIndex(a, b):
     """Recover fields of b in a following the global index field."""
     variables = getVarNames(b)[0]
     _addVars(a, variables)
-    fx = getFields(Internal.__GridCoordinates__, b, api=2)[0]
-    fb = getFields(Internal.__FlowSolutionNodes__, b, api=2)[0]
+    fx = getFields(Internal.__GridCoordinates__, b, api=3)[0]
+    fb = getFields(Internal.__FlowSolutionNodes__, b, api=3)[0]
     if fx != [] and fb != []:
         fb[0] = fb[0]+','+fx[0]
         fb[1] = fb[1]+fx[1]
     elif fb == []: fb = fx
-    return __TZA2(a, 'nodes', Converter._recoverGlobalIndex, fb)
+    return __TZA3(a, 'nodes', Converter._recoverGlobalIndex, fb)
+
+#==============================================================================
+# Construction de la structure de recherche BBTree
+#==============================================================================
+def createBBTree(t):
+    """Create BBtree."""
+    zones = Internal.getZones(t)
+    minBBoxes = []; maxBBoxes = []
+    for z in zones:
+        # BBox de la zone
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
+        maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
+
+    return converter.createBBTree(minBBoxes, maxBBoxes)
+
+#==============================================================================
+# Recherche des intersections entre une bbox de zone et un arbre de BBox
+# IN: Bbox d'une zone + arbre de recherche de BBox
+# OUT: tableau de taille de nombre des BBox avec True or False
+#==============================================================================
+def intersect(zone, BBTree):
+    """Check intersection using BBTree."""
+    gc = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
+    xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+    yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+    zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+    minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
+    maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
+    return converter.intersect(minBBox, maxBBox, BBTree)
+
+def intersect2(t, BBTree):
+    """Check intersection using BBTree."""
+    zones = Internal.getZones(t)
+    inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
+    for c, z in enumerate(zones):
+        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
+        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
+        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
+        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
+        inBB[6*c  ] = xCoords[0,0,0]
+        inBB[6*c+1] = yCoords[0,0,0]
+        inBB[6*c+2] = zCoords[0,0,0]
+        inBB[6*c+3] = xCoords[1,0,0]
+        inBB[6*c+4] = yCoords[0,1,0]
+        inBB[6*c+5] = zCoords[0,0,1]
+
+    return converter.intersect2(inBB, BBTree)
 
 #==============================================================================
 # -- Connectivity management --
@@ -7623,6 +7670,27 @@ def _mergeConnectivities(z, boundary=0, shared=False):
             Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t',
                                        value=newc)
     return None
+
+# -- sliceNGonFaces
+def sliceNGonFaces(z, indices=None):
+    """Slice an NGON connectivity using a list of face indices. Return two numpy
+    arrays: an array of face vertices and an array of face offsets."""
+    if indices is None:
+        return [], []
+    elif isinstance(indices, list):
+        indices = numpy.array(indices, dtype=Internal.E_NpyInt)
+
+    faceVertices = []; faceOffset = []
+    zdim = Internal.getZoneDim(z)
+    if zdim[0] != 'Unstructured': return [], []
+
+    elts = Internal.getNodesFromType1(z, 'Elements_t')
+    for elt in elts:
+        val = Internal.getValue(elt)[0]
+        if val in [22, 23]:  # NGon zone
+            array = getFields('coords', z, api=3)[0]
+            return Converter.converter.sliceNGonFaces(array, indices)
+    return faceVertices, faceOffset
 
 #============================================
 # Soit z une sous zone de zt

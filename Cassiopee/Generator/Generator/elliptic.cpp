@@ -52,14 +52,19 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int posx, posy, posz;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    im, jm, km, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     im, jm, km, cn, eltType);
   
   // Check
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError, "TTM: array is invalid.");
+    return NULL;
+  }
+
   if (res != 1)
   {
-    delete f;
-    if (res == 2) delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "TTM: array must structured.");
     return NULL;
@@ -67,7 +72,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   if (km != 1)
   {
     printf("Warning: TTM: applied only on k=1 zones.\n"); 
-    delete f;
+    RELEASESHAREDS(array, f);
     return array;
   }
   posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -75,7 +80,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "TTM: can't find coordinates in array.");
     return NULL;    
@@ -116,8 +121,8 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   }
  
   // build array
-  delete f;
-  PyObject* tpl = K_ARRAY::buildArray(*coord, varString, ni, nj, 1);
+  RELEASESHAREDS(array, f);  
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString, ni, nj, 1);
   delete coord;
   return tpl;
 }

@@ -38,8 +38,7 @@ PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
 {
   PyObject *arr;
   //E_Float vmin(0.), vratio(1000.);
-
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -48,8 +47,8 @@ PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return NULL;
     
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
   
   //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;

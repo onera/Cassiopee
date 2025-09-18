@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::extrapWithCellN(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* cellNObject;
-  if (!PyArg_ParseTuple(args, "OO", &array, &cellNObject))
+  if (!PYPARSETUPLE_(args, OO_, &array, &cellNObject))
   {
     return NULL;
   }
@@ -41,7 +41,7 @@ PyObject* K_GENERATOR::extrapWithCellN(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 2 || strcmp(eltType, "NGON") == 0) 
   {
@@ -55,7 +55,7 @@ PyObject* K_GENERATOR::extrapWithCellN(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray2(cellNObject, varString1, f1, ni1, nj1, nk1, 
+  E_Int res1 = K_ARRAY::getFromArray3(cellNObject, varString1, f1, ni1, nj1, nk1, 
                                       cn1, eltType1);
   
   E_Int posCellN = K_ARRAY::isCellNatureField1Present(varString1);

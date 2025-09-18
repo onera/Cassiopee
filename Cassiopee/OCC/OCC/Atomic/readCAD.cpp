@@ -54,7 +54,7 @@
 PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
-  if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
+  if (!PYPARSETUPLE_(args, SS_, &fileName, &fileFmt)) return NULL;
 
   FILE* ptrFile = fopen(fileName, "r");
   if (ptrFile == NULL)

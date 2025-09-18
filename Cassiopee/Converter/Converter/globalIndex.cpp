@@ -37,7 +37,7 @@ PyObject* K_CONVERTER::createGlobalIndex(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -88,7 +88,7 @@ PyObject* K_CONVERTER::recoverGlobalIndex(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, ni, nj, nk, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                      cn, eltType);
   if (res != 1 && res != 2)
   {
@@ -117,7 +117,7 @@ PyObject* K_CONVERTER::recoverGlobalIndex(PyObject* self, PyObject* args)
   E_Int nio, njo, nko;
   FldArrayF* fo; FldArrayI* cno;
   char* varStringo; char* eltTypeo;
-  E_Int reso = K_ARRAY::getFromArray2(arrayo, varStringo, fo, nio, njo, nko, 
+  E_Int reso = K_ARRAY::getFromArray3(arrayo, varStringo, fo, nio, njo, nko, 
                                       cno, eltTypeo);
   if (reso != 1 && reso != 2)
   {

@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 # Copy a CASSIOPEE distribution into a destination path with a new prod. name
 
 # Print help message
@@ -19,14 +19,14 @@ while [[ "$1" != "" ]]; do
       ;;
     -d)
       shift
-      DEST_PROD_PATH="${1#*=}"
+      DEST_PROD_PATH="$1"
       ;;
     --module=*)
       MODULE="${1#*=}"
       ;;
     -m)
       shift
-      MODULE="${1#*=}"
+      MODULE="$1"
       ;;
     --new-prod-name=*)
       NEW_ELSAPROD="${1#*=}"
@@ -71,7 +71,21 @@ fi
 # Setting vars
 CWD=$(pwd)
 CASSIOPEE=${CASSIOPEE%/}
-mkdir -p $DEST_PROD_PATH
+
+# The destination path may be located on another machine in which case
+# - DEST_PROD_PATH is the actual path on the other machine stripped of the user
+#   and machine names
+# - TMP_DEST_PROD_PATH is a temporary path located in the CWD
+# - BK_DEST_PROD_PATH is a backup containing the user and machine names
+if [[ "$DEST_PROD_PATH" == *"@"* ]]; then
+  TMP_DEST_PROD_PATH="$CWD/tmp_$NEW_ELSAPROD"
+  BK_DEST_PROD_PATH=$DEST_PROD_PATH
+  DEST_PROD_PATH="${DEST_PROD_PATH#*:}"
+else
+  TMP_DEST_PROD_PATH=$DEST_PROD_PATH
+  BK_DEST_PROD_PATH=$DEST_PROD_PATH
+fi
+
 DEST_CAS_PATH=$(dirname $(dirname $(dirname $DEST_PROD_PATH)))
 
 # Get the path to the site-packages folder
@@ -107,8 +121,9 @@ if [ $MODULE = "all" ]; then
   # Copy all modules to their destination
   cd "$CASSIOPEE/Dist/bin/$ELSAPROD"
   tar --exclude='all.tar' -cvf all.tar .
-  mv all.tar $DEST_PROD_PATH
-  cd $DEST_PROD_PATH
+  mkdir -p $TMP_DEST_PROD_PATH
+  mv all.tar $TMP_DEST_PROD_PATH
+  cd $TMP_DEST_PROD_PATH
   tar -xvf all.tar
   rm all.tar
   if [ -L lib64 ]; then
@@ -119,7 +134,7 @@ if [ $MODULE = "all" ]; then
   fi
 
   # Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name)
-  cd "$DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
+  cd "$TMP_DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
   cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH/KCore/installPath.py" .
   s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
   s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
@@ -134,16 +149,28 @@ if [ $MODULE = "all" ]; then
   fi
   cat installPath.py
 
+  # Copy temporary folder to the other machine
+  if [[ "$BK_DEST_PROD_PATH" == *"@"* ]]; then
+    scp -r $TMP_DEST_PROD_PATH $BK_DEST_PROD_PATH
+    rm -r $TMP_DEST_PROD_PATH
+  fi
+
   # Copy environment files
-  cp "$CASSIOPEE"/Dist/env_* "$DEST_PROD_PATH"/../..
-  cp "$CASSIOPEE"/Dist/sh_* "$DEST_PROD_PATH"/../..
+  if [[ "$BK_DEST_PROD_PATH" == *"@"* ]]; then
+    scp "$CASSIOPEE"/Dist/env_* "$BK_DEST_PROD_PATH"/../..
+    scp "$CASSIOPEE"/Dist/sh_* "$BK_DEST_PROD_PATH"/../..
+  else
+    cp "$CASSIOPEE"/Dist/env_* "$DEST_PROD_PATH"/../..
+    cp "$CASSIOPEE"/Dist/sh_* "$DEST_PROD_PATH"/../..
+  fi
   cd $CWD
 else
   # Copy a single module to its destination
   cd "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH"
   tar cvf $MODULE.tar $MODULE
-  mv $MODULE.tar $DEST_PROD_PATH
-  cd $DEST_PROD_PATH
+  mkdir -p $TMP_DEST_PROD_PATH
+  mv $MODULE.tar $TMP_DEST_PROD_PATH
+  cd $TMP_DEST_PROD_PATH
   mkdir -p $SITE_PACKAGES_PATH
   if [ -L lib64 ]; then
     rm lib64

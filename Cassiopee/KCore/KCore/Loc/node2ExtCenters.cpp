@@ -205,7 +205,7 @@ E_Int K_LOC::node2ExtCenterStruct(E_Int imo, E_Int jmo, E_Int kmo,
           pos2e = pos2-1-imjmo;
           pos2f = pos2-1-imo-imjmo;
           pos2g = pos2-imo-imjmo;
-          fe[pos] = K_CONST::ONE_EIGHT*(fn[pos2] + fn[pos2a]+
+          fe[pos] = K_CONST::ONE_EIGHTH*(fn[pos2] + fn[pos2a]+
                                         fn[pos2b] + fn[pos2c]+
                                         fn[pos2d] + fn[pos2e]+
                                         fn[pos2f] + fn[pos2g]);

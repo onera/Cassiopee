@@ -31,7 +31,7 @@ using namespace K_FLD;
    probable tetrahedra.
    Taken from FLU3M. */
 //=============================================================================
-E_Boolean
+E_Bool
 K_KINTERP::BlkInterpData::coeffInterpHexa(
   E_Float x, E_Float y, E_Float z,
   E_Float* xt, E_Float* yt, E_Float* zt,
@@ -214,7 +214,7 @@ K_KINTERP::BlkInterpData::coeffInterpHexa(
   {
     /* Transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     
     cf[0] = cf0;
     cf[1] = cf0;
@@ -279,7 +279,7 @@ K_KINTERP::BlkInterpData::coeffInterpHexa(
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* Transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cf[i] = cf0;
           
           for (i = 0; i < 4; i++)
@@ -305,7 +305,7 @@ K_KINTERP::BlkInterpData::coeffInterpHexa(
    probable tetrahedra.
    For use with vectorized version */
 //=============================================================================
-E_Boolean K_KINTERP::BlkInterpData::
+E_Bool K_KINTERP::BlkInterpData::
 coeffInterpHexav(E_Int index, E_Int index2,
                  E_Float x, E_Float y, E_Float z,
                  FldArrayF& xtv, FldArrayF& ytv, FldArrayF& ztv,
@@ -522,7 +522,7 @@ coeffInterpHexav(E_Int index, E_Int index2,
     /* hexahedra interpolation coefficients */
     xis4 = xi*K_CONST::ONE_FOURTH;
     indqm = (indq-8)*4;
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     for (i = 0; i < 8; i++) cfv(index2,i+1) = cf0;
     
     for (i = 0; i < 4; i++)
@@ -587,7 +587,7 @@ coeffInterpHexav(E_Int index, E_Int index2,
           indqm = (indq-8)*4;
           xis4 = xi*K_CONST::ONE_FOURTH;
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i=0; i<8; i++) cfv(index2,i+1) = cf0;
           
           for (i=0; i<4; i++)
@@ -609,7 +609,7 @@ coeffInterpHexav(E_Int index, E_Int index2,
 //=============================================================================
 /* Test if the cell contains the point to interpolate */
 //=============================================================================
-E_Boolean K_KINTERP::BlkInterpData::
+E_Bool K_KINTERP::BlkInterpData::
 getCellJump(E_Float x, E_Float y, E_Float z,
             E_Float* xt, E_Float* yt, E_Float* zt,
             E_Int& isomm,
@@ -676,7 +676,7 @@ getCellJump(E_Float x, E_Float y, E_Float z,
   Taken from FLU3M.
 */
 //=============================================================================
-E_Boolean K_KINTERP::BlkInterpData::
+E_Bool K_KINTERP::BlkInterpData::
 getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
                    E_Int isomm,
                    E_Float xi, E_Float yi, E_Float zi, 
@@ -817,7 +817,7 @@ getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
     /* transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
       
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     for (i = 0; i < 8; i++) cf[i] = cf0;
     
     for (i = 0; i < 4; i++)
@@ -869,7 +869,7 @@ getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cf[i] = cf0;
 
           for (i = 0; i < 4; i++)
@@ -903,7 +903,7 @@ coeffInterpHexav(const E_Int istart, const E_Int nbI,
 {
   E_Int index, index2;
   E_Float x, y, z;
-  E_Boolean flg;
+  E_Bool flg;
   E_Float xi, yi, zi;
   E_Float xp, yp, zp;
   E_Float xr, yr, zr;
@@ -1129,7 +1129,7 @@ coeffInterpHexav(const E_Int istart, const E_Int nbI,
         /* hexahedra interpolation coefficients */
         xis4 = xi*K_CONST::ONE_FOURTH;
         indqm = (indq-8)*4;
-        cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+        cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
         for (i = 0; i < 8; i++) cfv(index2,i+1) = cf0;
         
         for (i = 0; i < 4; i++)
@@ -1195,7 +1195,7 @@ coeffInterpHexav(const E_Int istart, const E_Int nbI,
               indqm = (indq-8)*4;
               xis4 = xi*K_CONST::ONE_FOURTH;
               /* transforming to hexahedra coefficients */ 
-              cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+              cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
               for (i=0; i<8; i++) cfv(index2,i+1) = cf0;
               
               for (i=0; i<4; i++)

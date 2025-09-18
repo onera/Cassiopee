@@ -33,14 +33,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
   PyObject* array2;
   E_Float MInf;
 
-#ifdef E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "OOd", &array1, &array2, &MInf))
-#else
-    if (!PyArg_ParseTuple(args, "OOf", &array1, &array2, &MInf))
-#endif
-    {
-      return NULL;
-    }
+  if (!PYPARSETUPLE_(args, OO_ R_, &array1, &array2, &MInf)) return NULL;
 
   // Check array
   E_Int im1, jm1, km1, im2, jm2, km2;
@@ -49,10 +42,10 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
   
-  E_Int res1 = K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1); 
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
-                                     cn2, eltType2);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+                                      cn1, eltType1); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+                                      cn2, eltType2);
 
   E_Int res0;
   E_Int posr1, posru1, posrv1, posrw1, posre1;
@@ -63,22 +56,23 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
 
   if ((res1 == 1 && res2 == 1) || (res1 == 2 && res2 == 2))
   {
-    // check if there are at least 5 variables in cfd Field
+    // check if there are at least 5 variables in cfd field
     if (f1->getNfld() < 8 || f2->getNfld() < 8)
     {
-      delete f1; delete f2;
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       PyErr_SetString(
         PyExc_ValueError,
         "overlayField: number of variables is too small.");
       return NULL;
     }
     char varString[K_ARRAY::VARSTRINGLENGTH];
-    res0 = 
-      K_ARRAY::getPosition(varString1, varString2, pos1,  pos2, varString);
+    res0 = K_ARRAY::getPosition(varString1, varString2, pos1,  pos2, varString);
     strcpy(varString, "x,y,z,ro,rou,rov,row,roE");
     if (res0 == -1)
     {
-      delete f1; delete f2;
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       PyErr_SetString(PyExc_ValueError,
                       "overlayField: no common variables.");
       return NULL;
@@ -95,10 +89,10 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
     posrw1 = K_ARRAY::isMomentumZPresent(varString1);
     posre1 = K_ARRAY::isEnergyStagnationDensityPresent(varString1);
 
-    if (posr1 == -1 || posru1 == -1 || posrv1 == -1 || posrw1 == -1 || 
-        posre1 == -1)
+    if (posr1 == -1 || posru1 == -1 || posrv1 == -1 || posrw1 == -1 || posre1 == -1)
     {
-      delete f1; delete f2;
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       PyErr_SetString(PyExc_ValueError,
                       "overlayField: conservative variables not found in array1");
       return NULL;
@@ -111,10 +105,10 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
     posrw2 = K_ARRAY::isMomentumZPresent(varString2);
     posre2 = K_ARRAY::isEnergyStagnationDensityPresent(varString2);
 
-    if ( posr2 == -1 || posru2 == -1 || posrv2 == -1 || posrw2 == -1 || 
-         posre2 == -1)
+    if (posr2 == -1 || posru2 == -1 || posrv2 == -1 || posrw2 == -1 || posre2 == -1)
     {
-      delete f1; delete f2;
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       PyErr_SetString(PyExc_ValueError,
                       "overlayField: conservative variables not found in array2.");
       return NULL;
@@ -125,12 +119,14 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
 
     if (f1->getSize() != f2->getSize())
     {
-      delete f1; delete f2;
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       PyErr_SetString(PyExc_ValueError,
                       "overlayField: the two meshes are different.");
       return NULL;
     }
-    
+    E_Int api = f1->getApi();
+
     E_Float ro1, ro2, u1, u2, v1, v2, w1, w2, roe1, roe2, p1, p2;
     E_Float ro, p, u, v, w;
     E_Float roinf, pinf, uinf;
@@ -200,31 +196,27 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
       rout[i] = ro*u;
       rovt[i] = ro*v;
       rowt[i] = ro*w;
-      roet[i] =  p*invgam1  + 0.5 * ro * ( u*u + v*v + w*w );
+      roet[i] = p*invgam1  + 0.5 * ro * ( u*u + v*v + w*w );
     }
 
     // build array
-    delete f1; delete f2;
-    FldArrayF* an = new FldArrayF(cfdField);
     PyObject* tpl;
     if (res1 == 1)
     {
-      tpl = K_ARRAY::buildArray(*an, varString, im2, jm2, km2);
-      delete an;
+      tpl = K_ARRAY::buildArray3(cfdField, varString, im2, jm2, km2, api);
     }
     else
     {
-      delete cn1;
-      tpl = K_ARRAY::buildArray(*an, varString, *cn2, -1, eltType2);
-      delete an; delete cn2;
+      tpl = K_ARRAY::buildArray3(cfdField, varString, *cn2, eltType2, api);
     }
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);
     return tpl;
   }
   else if (res1 == 2 || res2 == 2)
   {
-    delete f1; delete f2; 
-    if ( res1 == 2) delete cn1; 
-    if ( res2 == 2) delete cn2;
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "overlayField: not used for unstructured arrays.");
     return NULL;

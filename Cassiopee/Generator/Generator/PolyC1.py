@@ -13,9 +13,6 @@ __version__ = G.__version__
 
 from Converter.Internal import E_NpyInt
 
-try: range = xrange
-except: pass
-
 #=============================================================================
 # PolyC1Mesher pour les i-arrays
 #=============================================================================
@@ -68,8 +65,6 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         xpts[c,1] = faces[1][0][1]
         ypts[c,1] = faces[1][1][1]
         zpts[c,1] = faces[1][2][1]
-    #for c in xrange(ne):
-    #    print 'courbe ',c,' x0=',xpts[c,0],' ->',xpts[c,1]
 
     # No des courbes voisines
     for c in range(ne):
@@ -109,9 +104,6 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
                 nghbind[d,1] = curves[c][2]
             d += 1
 
-    #for c in xrange(ne):
-    #    print 'courbe ',c,' voisin0=',nghb[c,0],', voisin1=',nghb[c,1]
-
     # Courbe unique
     unique = T.join(curves)
 
@@ -137,19 +129,12 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
                 distx = coord[0,ind] - x
                 disty = coord[1,ind] - y
                 distz = coord[2,ind] - z
-                if (distx*distx+disty*disty+distz*distz < eps):
+                if distx*distx+disty*disty+distz*distz < eps:
                     cpts[i,j] = curvature[1][0,ind]
                     surfxpts[i,j] = nunique[1][0,ind]
                     surfypts[i,j] = nunique[1][1,ind]
                     surfzpts[i,j] = nunique[1][2,ind]
                     break
-
-    #for c in range(ne):
-    #    print 'courbe %d: angle0=%f, angle1=%f'%(c, cpts[c,0], cpts[c,1])
-
-    #for c in xrange(ne):
-    #    print 'courbe ',c,' n0=',surfxpts[c,0],surfypts[c,0],surfzpts[c,0],\
-    #          ', n1=',surfxpts[c,1],surfypts[c,1],surfzpts[c,1]
 
     # Calcul de l'extension
     # ext=1 ; extension chimere
@@ -196,10 +181,10 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
         rp = r[1]
         rmin = 1.e8
         for x in range(r[2]):
-            if (rp[0,x] <= 0 and -rp[0,x] < rmin):
+            if rp[0,x] <= 0 and -rp[0,x] < rmin:
                 rmin = -rp[0,x]
 
-        if ( h > rmin ):
+        if h > rmin:
             h = float(0.99 * rmin)
             print("Warning: height changed to", h, "...")
             print("...because curvature radius in segment", n, "is", rmin)
@@ -305,7 +290,7 @@ def findNeighbourIndex(polyLine, index, e):
     for i in range(ne):
         ind1 = c[0,i]
         ind2 = c[1,i]
-        if (i != e-1):
+        if i != e-1:
             if (ind1 == index): return ind2
             if (ind2 == index): return ind1
     return -1
@@ -889,11 +874,11 @@ def buildBC(m, walls,  ext1, ext2, extension):
     wrange = [i1,i2,1,1,1,m[4]]
     wl.append(wrange)
 
-    if (ext2 == 0):
+    if ext2 == 0:
         wrange = [1,1,1,m[3],1,m[4]]
         wl.append(wrange)
 
-    if (ext1 == 0):
+    if ext1 == 0:
         wrange = [m[2],m[2],1,m[3],1,m[4]]
         wl.append(wrange)
 

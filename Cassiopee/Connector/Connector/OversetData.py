@@ -80,7 +80,7 @@ def _addCellN__(t, loc='centers', cellNName='cellN'):
 #=============================================================================
 def getIntersectingDomainsAABB(t, tol=1.e-10):
     """Return the intersection list of a list of bounding boxes."""
-    m = C.getFields(Internal.__GridCoordinates__, t, api=2)
+    m = C.getFields(Internal.__GridCoordinates__, t, api=3)
     ret = Connector.getIntersectingDomainsAABB(m, tol)
     dic = {}
     zoneNames = C.getZoneNames(t, False)
@@ -1470,7 +1470,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
 
     indicesExtrap = numpy.array([], dtype=Internal.E_NpyInt)
     indicesOrphan = numpy.array([], dtype=Internal.E_NpyInt)
-    vols =  numpy.array([],numpy.float64)
+    vols =  numpy.array([], numpy.float64)
     EXdir = numpy.array([], dtype=Internal.E_NpyInt)
     prefix = 'ID_'
     for zp in Internal.getZones(aR):
@@ -1489,11 +1489,11 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
 
         if rind != -1: # rind indices exist : ghost cell data to be computed
             # Array2
-            a1 = C.getFields('GridCoordinates', zp, api=2)[0]
+            a1 = C.getFields('GridCoordinates', zp, api=3)[0]
             # PE
             PE = Internal.getNodeFromName2(zp, 'ParentElements')[1]
             #
-            for gcn in Internal.getNodesFromType2(zp,"GridConnectivity_t"):
+            for gcn in Internal.getNodesFromType2(zp,'GridConnectivity_t'):
                 ctype = Internal.getNodeFromType1(gcn,'GridConnectivityType_t')
                 if Internal.getValue(ctype)=='Abutting1to1':
                     FL = Internal.getNodeFromName1(gcn, 'PointList')[1]
@@ -1517,7 +1517,7 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                             RotationAngle[1][1]=-RotationAngle[1][1]
                             RotationAngle[1][2]=-RotationAngle[1][2]
 
-                    a2 = C.getFields('GridCoordinates', zdonor, api=2)[0]
+                    a2 = C.getFields('GridCoordinates', zdonor, api=3)[0]
 
                     # PE donor
                     PEd = Internal.getNodeFromName2(zdonor, 'ParentElements')[1]

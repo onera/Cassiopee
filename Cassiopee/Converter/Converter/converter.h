@@ -158,6 +158,7 @@ namespace K_CONVERTER
   PyObject* adaptNFace2Index(PyObject* self, PyObject* args);
   PyObject* signNGonFaces(PyObject* self, PyObject* args);
   PyObject* unsignNGonFaces(PyObject* self, PyObject* args);
+  PyObject* sliceNGonFaces(PyObject* self, PyObject* args);
   PyObject* makeParentElements(PyObject* self, PyObject* args);
   PyObject* adaptSurfaceNGon(PyObject* self, PyObject* args);
   PyObject* adaptBCFace2BCC(PyObject* self, PyObject* args);
@@ -233,14 +234,13 @@ namespace K_CONVERTER
   void buildSortedPrism(E_Int elt, K_FLD::FldArrayI& cn, E_Int& diag,
                         E_Int* indir);
   // Method for diffArrays
-  E_Boolean searchField2(K_FLD::FldArrayF& f1,
-                         K_FLD::FldArrayF& error,
-                         std::vector<K_FLD::FldArrayF*>& field2,
-                         std::vector<E_Int>& pos1,
-                         std::vector<E_Int>& pos2,
-                         E_Int posx1, E_Int posy1, E_Int posz1,
-                         E_Int posx2, E_Int posy2, E_Int posz2,
-                         E_Boolean coordPresent);
+  E_Bool searchField2(K_FLD::FldArrayF& f1,
+                      K_FLD::FldArrayF& error,
+                      std::vector<K_FLD::FldArrayF*>& field2,
+                      std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
+                      E_Int posx1, E_Int posy1, E_Int posz1,
+                      E_Int posx2, E_Int posy2, E_Int posz2,
+                      E_Bool coordPresent);
 
   /* Functions for detectEmptyBC */
   void detectEmptyBCrec(std::vector<E_Int*>& win,

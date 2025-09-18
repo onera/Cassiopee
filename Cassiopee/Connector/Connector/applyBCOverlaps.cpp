@@ -33,8 +33,8 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
   char* cellNName; 
   if (!PYPARSETUPLE_(args, O_ TIII_ TIII_ III_ S_,
-                    &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
-                    &depth, &loc, &cellNInterpValue, &cellNName))
+                     &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
+                     &depth, &loc, &cellNInterpValue, &cellNName))
     return NULL;
   
   E_Int shift = 0;
@@ -43,7 +43,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
   if (res != 1) 
   {    
@@ -147,8 +147,8 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType); 
   if (res != 2) 
   {    
     PyErr_SetString(PyExc_TypeError, 
@@ -168,7 +168,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   
   // Get list of face indices defined as a numpy array
   FldArrayI* indicesF;
-  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF, true);
+  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF);
   if (ret != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -207,9 +207,9 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
     ptr += 2;
 
     FldArrayI tag(nelts); tag.setAllValuesAtNull();
-    tpl = K_ARRAY::buildArray(nfldout, varString,
-                              npts, nelts, -1,
-                              "NGON", false, csize);
+    tpl = K_ARRAY::buildArray3(nfldout, varString,
+                               npts, nelts, -1,
+                               "NGON", false, csize);
     E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
     out = *f;
@@ -268,9 +268,9 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
     nelts = f->getSize(); // nombre total d elements
     nfldout = f->getNfld();
     dummy = nelts;
-    tpl = K_ARRAY::buildArray(nfldout, varString,
-                              dummy, nelts, -1,
-                              "NGON", true, csize);
+    tpl = K_ARRAY::buildArray3(nfldout, varString,
+                               dummy, nelts, -1,
+                               "NGON", true, csize);
     E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
     out = *f;

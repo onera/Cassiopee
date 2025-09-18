@@ -3,9 +3,6 @@
 from . import Generator as G
 __version__ = G.__version__
 
-try: range = xrange
-except: pass
-
 #=============================================================================
 # PolyLineMesher pour les i-arrays ou les BAR-arrays
 #=============================================================================

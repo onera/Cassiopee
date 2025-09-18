@@ -46,15 +46,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 {
   PyObject* array; PyObject* deltas;
   E_Float beta;
-  if (!PYPARSETUPLE_(args, OO_ R_,
-                     &array, &deltas, &beta))
+  if (!PYPARSETUPLE_(args, OO_ R_, &array, &deltas, &beta))
     return NULL;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   if (res == -1)
   {
@@ -82,10 +81,10 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   vector<FldArrayI*> cnts;
   vector<char*> eltTypes;
   vector<PyObject*> objsts, objuts;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     deltas, resls, structVarStrings, unstrVarStrings,
     structFs, unstrFs, nits, njts, nkts, cnts, eltTypes, objsts, objuts, 

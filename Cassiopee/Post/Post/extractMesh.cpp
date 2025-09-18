@@ -61,10 +61,10 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   vector<E_Int> nit0; vector<E_Int> njt0; vector<E_Int> nkt0;
   vector<FldArrayI*> cnt0; vector<char*> eltType0;
   vector<PyObject*> objst0, objut0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, res0, structVarString0, unstrVarString0,
     structF0, unstrF0, nit0, njt0, nkt0, cnt0, eltType0, objst0, objut0, 

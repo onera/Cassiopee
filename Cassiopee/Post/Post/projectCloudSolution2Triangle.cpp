@@ -37,9 +37,9 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
   E_Int dimPb, ibm, old;
   PyObject *arrayR, *arrayD;
   if (!PYPARSETUPLE_(args, OO_ III_,
-		     &arrayD, &arrayR, &dimPb, &ibm, &old))
+		                 &arrayD, &arrayR, &dimPb, &ibm, &old))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -48,8 +48,8 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr,
-                                     imr, jmr, kmr, cnr, eltTyper, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr,
+                                      imr, jmr, kmr, cnr, eltTyper);
   if (resr != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -72,8 +72,8 @@ PyObject* K_POST::projectCloudSolution2Triangle(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                                     imd, jmd, kmd, cnd, eltTyped, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd,
+                                      imd, jmd, kmd, cnd, eltTyped);
   if (resd != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -436,8 +436,8 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr,
-                                     imr, jmr, kmr, cnr, eltTyper, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr,
+                                      imr, jmr, kmr, cnr, eltTyper);
   if (resr != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -460,8 +460,8 @@ PyObject* K_POST::prepareProjectCloudSolution2Triangle(PyObject* self, PyObject*
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                                     imd, jmd, kmd, cnd, eltTyped, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd,
+                                      imd, jmd, kmd, cnd, eltTyped);
   if (resd != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -832,20 +832,20 @@ PyObject* K_POST::projectCloudSolution2TriangleWithInterpData(PyObject* self, Py
       return NULL;
   }
 
-	/*-----------------------------------------------*/
+  /*-----------------------------------------------*/
   /* Extraction des donnees d interpolation        */
   /*-----------------------------------------------*/
-	FldArrayI* offsetI;
-	K_NUMPY::getFromNumpyArray(pyOffset, offsetI, true);
-  E_Int* offset  = offsetI->begin();
+  FldArrayI* offsetI;
+  K_NUMPY::getFromNumpyArray(pyOffset, offsetI);
+  E_Int* offset = offsetI->begin();
 
 	FldArrayI* interpDonorI;
-  K_NUMPY::getFromNumpyArray(pyInterpDonor, interpDonorI, true);
-  E_Int* interpDonor  = interpDonorI->begin();
+  K_NUMPY::getFromNumpyArray(pyInterpDonor, interpDonorI);
+  E_Int* interpDonor = interpDonorI->begin();
 
 	FldArrayF* interpCoefF;
-  K_NUMPY::getFromNumpyArray(pyInterpCoef, interpCoefF, true);
-  E_Float* interpCoef  = interpCoefF->begin();
+  K_NUMPY::getFromNumpyArray(pyInterpCoef, interpCoefF);
+  E_Float* interpCoef = interpCoefF->begin();
 
   /*-----------------------------------------------*/
   /* Extraction des infos sur le domaine recepteur */
@@ -853,8 +853,8 @@ PyObject* K_POST::projectCloudSolution2TriangleWithInterpData(PyObject* self, Py
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr,
-                                     imr, jmr, kmr, cnr, eltTyper, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr,
+                                      imr, jmr, kmr, cnr, eltTyper);
   if (resr != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -877,8 +877,8 @@ PyObject* K_POST::projectCloudSolution2TriangleWithInterpData(PyObject* self, Py
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd,
-                                     imd, jmd, kmd, cnd, eltTyped, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd,
+                                      imd, jmd, kmd, cnd, eltTyped);
   if (resd != 2)
   {
     PyErr_SetString(PyExc_TypeError,

@@ -37,10 +37,9 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   E_Float dirVect[3];
   dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
 
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &alphaRef))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &alphaRef))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
@@ -48,7 +47,7 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res == 1)
   {
@@ -150,6 +149,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
   vector< vector<E_Int> > cEEN(cn->getSize());
   K_CONNECT::connectEV2EENbrs(eltType, f->getSize(), *cn, cEEN);
   
+  E_Int api = f->getApi();
   E_Int nt = cn->getNfld();
   E_Int ne = cn->getSize(); // nbre d'elements
   E_Int nev = 0; // nbre d'elements deja visites
@@ -233,7 +233,6 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     c->reAllocMat(curr, nt);
     components.push_back(c);
   }
-
   free(isVisited);
   free(mustBeVisited);
 
@@ -249,10 +248,13 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     FldArrayI& cnp = *components[i];
     K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
                                  fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, eltType);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, eltType, api);
     delete &fp; delete &cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+    // tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *components[i], eltType, 1.e-10);
+    // PyList_Append(l, tpl); Py_DECREF(tpl);
+    // delete components[i];
   }
   return l;
 }
@@ -268,6 +270,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
 
+  E_Int api = f->getApi();
   E_Int* ptr = cn->begin();
   E_Int sf = ptr[1];
   E_Int ne = ptr[2+sf]; // nbre d'elements
@@ -446,7 +449,8 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
     if (dim == 1) // il semble que dans ce cas, il faut l'appeler 2 fois
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                        fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, "NGON");
+    cnp.setNGon(1);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, "NGON", api);
     delete &fp; delete components[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -474,7 +478,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res != 2)
   {
@@ -498,7 +502,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   }
 
   FldArrayI* indexI;
-  res = K_NUMPY::getFromNumpyArray(arrayI, indexI, true);
+  res = K_NUMPY::getFromNumpyArray(arrayI, indexI);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

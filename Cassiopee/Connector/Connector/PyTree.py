@@ -11,6 +11,7 @@ from .OversetData import setInterpTransfers, _setInterpTransfers, __setInterpTra
     getCEBBIntersectingDomains, cellN2OversetHoles, extractChimeraInfo, getOversetInfo, setIBCData, transferFields, setInterpData2, _setInterpData2
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
 from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
+from .AMR import prepareAMRData
 
 __version__ = Connector.__version__
 try:
@@ -1047,10 +1048,10 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=3) # api=1 a cause de node2Center en center_in dans le Connector.py
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=2)
-            else: cellN = C.getField(cellNName, b, api=2)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=3)
+            else: cellN = C.getField(cellNName, b, api=3)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
@@ -1243,9 +1244,9 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
 
 # cellN modifications
 def _modCellN1(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN1, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN1, cellNName)
 def _modCellN2(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN2, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN2, cellNName)
 
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates
@@ -1551,7 +1552,7 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetF
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+varc; shift = 0
     else: shift = 1
-    cellN = C.getField(varc, z, api=2)[0]
+    cellN = C.getField(varc, z, api=3)[0]
     ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
 
     overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -1732,7 +1733,7 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN
     if ghost is None:
         a = Internal.addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
         a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-        a = Internal.rmGhostCells(a,a,abs(depth), adaptBCs=0, modified=[varcelln])
+        a = Internal.rmGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
     return a
 
 def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
@@ -1745,7 +1746,7 @@ def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         else: # passage ghost cells
             cellN = C.getField(varcelln, z)[0]
             if cellN != []:# cellN existe
-                cellN = Connector.setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
+                cellN = Connector.setHoleInterpolatedPoints(cellN, depth=depth, dir=dir, cellNName=cellNName)
                 C.setFields([cellN], z, loc, False)
     return a
 
@@ -1758,7 +1759,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
-            cellN = C.getField(varcelln, z, api=2)[0]
+            cellN = C.getField(varcelln, z, api=3)[0]
             if cellN != []:
                 Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
     return None

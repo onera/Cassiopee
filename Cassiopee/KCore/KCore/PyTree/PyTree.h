@@ -82,6 +82,11 @@ namespace K_PYTREE
      IN: name: le nom du noeud
      OUT: retourne le noeud trouve, sinon retourne NULL. */
   PyObject* getNodeFromName1(PyObject* o, const char* name);
+  /* Recherche par type d'un seul niveau, retourne un seul noeud.
+     IN: o: objet representant un noeud de pyTree
+     IN: name: le nom du noeud
+     OUT: retourne le noeud trouve, sinon retourne NULL. */
+  PyObject* getNodeFromType1(PyObject* o, const char* name);
   /* Recherche par type d'un seul niveau, retourne un vecteur de noeuds.
      IN: o: objet representant un noeud de pyTree
      IN: type: le type du noeud
@@ -96,10 +101,16 @@ namespace K_PYTREE
   PyObject* getNodeFromPath(PyObject* o, const char* path);
 
   /* Retourne le nom d'un noeud (partage avec python) */
-  char* getNodeName(PyObject* o, std::vector<PyArrayObject*>& hook);
+  char* getNodeName(PyObject* o);
+  
+  /* Retourne le nom d'un noeud (partage avec python) */
+  char* getNodeName(PyObject* o, std::vector<PyArrayObject*>& hook);  //#OBSOLETE
 
   /* Retourne le type d'un noeud (partage avec python) */
-  char* getNodeType(PyObject* o, std::vector<PyArrayObject*>& hook);
+  char* getNodeType(PyObject* o);
+  
+  /* Retourne le type d'un noeud (partage avec python) */
+  char* getNodeType(PyObject* o, std::vector<PyArrayObject*>& hook);  //#OBSOLETE
 
   /* Recupere la chaine de char si le noeud o contient une string 
      ou un numpy char. Le tableau de char retourne est partage avec python.
@@ -147,9 +158,10 @@ namespace K_PYTREE
 
   /* Retourne le nombre d'éléments d'une zone d'un pyTree
      IN: zone
-     OUT: number of points
+     OUT: zoneType (1,2), nvertex, ncells
   */
-  E_Int getNumberOfPointsOfZone(PyObject* o, std::vector<PyArrayObject*>& hook);
+  E_Int getZoneDim(PyObject* o, E_Int& zoneType, E_Int& nvertex, E_Int& ncells,
+   std::vector<PyArrayObject*>& hook);
 
   /* Ajoute un noeud a o
      IN: o: objet representant un noeud de pyTree

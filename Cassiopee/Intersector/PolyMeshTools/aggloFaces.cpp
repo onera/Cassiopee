@@ -30,7 +30,6 @@
 using namespace std;
 using namespace NUGA;
 
-
 //=============================================================================
 /* Agglomerate superfuous faces (overdefined polyhedra) */
 //=============================================================================
@@ -56,7 +55,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
   {
     skipPGids = new std::vector<E_Int>;
     E_Int *ptL, size, nfld;
-    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld, true/* shared*/);
+    K_NUMPY::getFromNumpyArray(py_skipids, ptL, size, nfld);
     skipPGids->insert(skipPGids->end(), ptL, ptL + size);
   }
     
@@ -91,7 +90,7 @@ PyObject* K_INTERSECTOR::simplifyCells(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::simplifyFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  if (!PyArg_ParseTuple(args, "O", &arr)) return nullptr;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return nullptr;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);
@@ -163,7 +162,7 @@ PyObject* K_INTERSECTOR::simplifySurf(PyObject* self, PyObject* args)
 PyObject* K_INTERSECTOR::collapseUncomputableFaces(PyObject* self, PyObject* args)
 {
   PyObject *arr;
-  if (!PyArg_ParseTuple(args, "O", &arr)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &arr)) return NULL;
 
   K_FLD::FloatArray* f(0);
   K_FLD::IntArray* cn(0);

@@ -5,6 +5,15 @@
 # additionalIncludePaths, additionalLibs, additionalLibPaths].
 # Paths are list of strings. useOMP, static, useCuda are booleans.
 # Others are strings.
+try:
+    from installBaseUser import installDict as installDictUser
+except ImportError:
+    try:
+        from . import installBaseUser
+        installDictUser = installBaseUser.installDict
+    except:
+        installDictUser = {}
+
 installDict = {
     ###############################################################################
     'DESKTOP...': [ 'Windows ubuntu',
@@ -21,21 +30,6 @@ installDict = {
                     False, # useCuda
                     [] # NvccAdditionalOptions
                     ],
-    ###############################################################################
-    'WDSNA81OZ': [ 'Machine de production win32 (Onera)',
-                   'gfortran', # f77compiler
-                   'gfortran', # f90compiler
-                   'gcc', # Cppcompiler
-                   [], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   ['c:/MinGW/include'], # additionalIncludePaths
-                   ['gfortran', 'gomp', 'pthread'], # additionalLibs
-                   ['c:/MinGW/lib', 'c:/Python27/libs', 'c:/MinGW/bin'], # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
     ###############################################################################
     'WDAAA728Z': [ 'Windows win64+msys2 (XJ-Onera)',
                    'gfortran', # f77compiler
@@ -202,36 +196,6 @@ installDict = {
                     [] # NvccAdditionalOptions
                     ],
     ###############################################################################
-    'santafe': [ 'MacOSX - santafe (Onera)',
-                 'ifort', # f77compiler
-                 'ifort', # f90compiler
-                 'icc', # Cppcompiler
-                 [], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 ['/usr/X11/include' ], # additionalIncludePaths
-                 ['python2.7', 'ifcore'], # additionalLibs
-                 ['/usr/X11/lib', '/System/Library/Frameworks/OpenGL.framework/Libraries/'], # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    ###############################################################################
-    'daapuv': [ 'Machine DAAP (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                [], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ['/usr/local/hdf5-1.8.7/include'], # additionalIncludePaths
-                [], # additionalLibs
-                ['/usr/local/hdf5-1.8.7/lib'],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
-    ###############################################################################
     'celeste': [ 'Grosse machine de post-traitement (Onera)',
                  'ifort', # f77compiler
                  'ifort', # f90compiler
@@ -246,21 +210,6 @@ installDict = {
                  False, # useCuda
                  [] # NvccAdditionalOptions
                  ],
-    ###############################################################################
-    'oneroa142': [ 'Machine dev (Onera)',
-                   '/opt/intel/fc/9.1.036/bin/ifort', # f77compiler
-                   '/opt/intel/fc/9.1.036/bin/ifort', # f90compiler
-                   'icc', # Cppcompiler
-                   [], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
     ###############################################################################
     'linux64': [ 'Production linux64 (generic)',
                  'gfortran', # f77compiler
@@ -367,97 +316,6 @@ installDict = {
                [] # NvccAdditionalOptions
                ],
     ###############################################################################
-    'tiamat': [ 'Machine de dev elsA (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                ['-DCACHELINE=16','-DNB_SOCKET=1','-DCORE_PER_SOCK=6'], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ['/home/benoit/x86_64t/include'], # additionalIncludePaths
-                [], # additionalLibs
-                ['/home/benoit/x86_64t'],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
-    ###############################################################################
-    'austri.onera': [ 'Cluster dev austri (Onera)',
-                      'ifort', # f77compiler
-                      'ifort', # f90compiler
-                      'icc', # Cppcompiler
-                      ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                      [], # f77AdditionalOptions
-                      True, # useOMP
-                      False, # static
-                      ['/home/benoit/aus/include'], # additionalIncludePaths
-                      [], # additionalLibs
-                      ['/home/benoit/aus/lib'],  # additionalLibPaths
-                      False, # useCuda
-                      [] # NvccAdditionalOptions
-                      ],
-    ###############################################################################
-    'rosetta-ws': [ 'Machine rosetta (Safran)',
-                    'ifort', # f77compiler
-                    'ifort', # f90compiler
-                    'icc', # Cppcompiler
-                    ['-DCACHELINE=16'], # CppAdditionalOptions
-                    [], # f77AdditionalOptions
-                    True, # useOMP
-                    False, # static
-                    ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
-                    [], # additionalLibs
-                    ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
-                    False, # useCuda
-                    [] # NvccAdditionalOptions
-                    ],
-    ###############################################################################
-    'rosetta-compute': [ 'Machine rosetta-calcul (Safran)',
-                         'ifort', # f77compiler
-                         'ifort', # f90compiler
-                         'icc', # Cppcompiler
-                         ['-DCACHELINE=32'], # CppAdditionalOptions
-                         [], # f77AdditionalOptions
-                         True, # useOMP
-                         False, # static
-                         ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include'], # additionalIncludePaths
-                         [], # additionalLibs
-                         ['/softs/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/lib'],  # additionalLibPaths
-                         False, # useCuda
-                         [] # NvccAdditionalOptions
-                         ],
-    ###############################################################################
-    'westri': [ 'Machine westri-KNL (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                ['-DCACHELINE=64','-DNB_SOCKET=1','-DCORE_PER_SOCK=64','-g','-DSIMD=MIC'], # CppAdditionalOptions
-                ['-g'], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ['/usr/local/hdf5-1.8.8-intel-16/include','/home/benoit/aus/include','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/include64/','/stck/nalferez/intel/parallel_studio_xe_2018/vtune_amplifier_2018/include/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/include/intel64'], # additionalIncludePaths
-                [], # additionalLibs
-                ['/home/benoit/aus/lib','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/linux/mpi/lib64/','/stck/nalferez/intel/parallel_studio_xe_2018/compilers_and_libraries_2018/lib64/','/usr/local/hdf5-1.8.8-intel-16/lib/','/stck/nalferez/intel/parallel_studio_xe_2018/advisor_2018/lib64'],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
-    ###############################################################################
-    'giulia': [ 'Machine dev elsA-ASO (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                [], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ["/tmp_opt/lib/hdf5-1.8.8-intel-16-impi/include",
-                    "/usr/local/intel/studio/2016/compilers_and_libraries_2016.0.109/linux/mpi/include64"], # additionalIncludePaths
-                [], # additionalLibs
-                [],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
-    ###############################################################################
     'mangrove': [ 'Machine avec acces GPU (Onera)',
                   'ifort', # f77compiler
                   'ifort', # f90compiler
@@ -488,36 +346,6 @@ installDict = {
                 [] # NvccAdditionalOptions
                 ],
     ###############################################################################
-    'cc-wdsna': [ 'Portable sous redhat (Onera)',
-                  'gfortran', # f77compiler
-                  'gfortran', # f90compiler
-                  'gcc', # Cppcompiler
-                  [], # CppAdditionalOptions
-                  [], # f77AdditionalOptions
-                  True, # useOMP
-                  False, # static
-                  [], # additionalIncludePaths
-                  [], # additionalLibs
-                  [], # additionalLibPaths
-                  False, # useCuda
-                  [] # NvccAdditionalOptions
-                  ],
-    ###############################################################################
-    'cephee': [ 'Cluster de dev Cassiopee (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                [], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                ['/home/tools/local/x86_64a/include'], # additionalIncludePaths
-                [], # additionalLibs
-                ['/home/tools/local/x86_64a/lib'],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
-    ###############################################################################
     'btmclx2': [ 'Cluster Turbomeca (Safran)',
                  'gfortran', # f77compiler
                  'gfortran', # f90compiler
@@ -529,36 +357,6 @@ installDict = {
                  [], # additionalIncludePaths
                  [], # additionalLibs
                  ['/usr/lib/gcc/x86_64-redhat-linux/4.1.2'],  # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    ###############################################################################
-    'WDSNAXXX': [ '??',
-                  'gfortran', # f77compiler
-                  'gfortran', # f90compiler
-                  'gcc', # Cppcompiler
-                  [], # CppAdditionalOptions
-                  [], # f77AdditionalOptions
-                  True, # useOMP
-                  False, # static
-                  [], # additionalIncludePaths
-                  [], # additionalLibs
-                  [], # additionalLibPaths
-                  False, # useCuda
-                  [] # NvccAdditionalOptions
-                  ],
-    ###############################################################################
-    'eos_pgi': [ 'Machine eos avec PGI',
-                 'pgf90', # f77compiler
-                 'pgf90', # f90compiler
-                 'pgcc', # Cppcompiler
-                 [], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 [], # additionalIncludePaths
-                 ["pgf90","pgf902","pgc","pgmath","pgf90_rpm1","rt","pgf90rtl","pgftnrtl"], # additionalLibs
-                 ["/d/juvigny/Logiciels/linux86-64/2018/lib"],  # additionalLibPaths
                  False, # useCuda
                  [] # NvccAdditionalOptions
                  ],
@@ -622,21 +420,6 @@ installDict = {
                False, # useCuda
                [] # NvccAdditionalOptions
                ],
-    ###############################################################################
-    'WDSNA917Z': [ 'Machine de production win64 (Onera)',
-                   'x86_64-w64-mingw32-gfortran', # f77compiler
-                   'x86_64-w64-mingw32-gfortran', # f90compiler
-                   'x86_64-w64-mingw32-gcc', # Cppcompiler
-                   [], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   True, # static
-                   ['c:/TDM-GCC-64/include'], # additionalIncludePaths
-                   ['gfortran', 'gomp', 'quadmath'], # additionalLibs
-                   ['c:/TDM-GCC-64/lib', 'c:/Python2.7/libs'],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
     ###############################################################################
     'fulvio': [ 'Machine post gfx legacy (Onera)',
                 'ifort', # f77compiler
@@ -818,49 +601,21 @@ installDict = {
               [] # NvccAdditionalOptions
               ],
     ###############################################################################
-    'laura': [ 'Machine de dev acou (Onera)',
-               'ifort', # f77compiler
-               'ifort', # f90compiler
-               'icc', # Cppcompiler
-               [], # CppAdditionalOptions
-               [], # f77AdditionalOptions
-               True, # useOMP
-               False, # static
-               ['/usr/local/hdf5/1.8.7/include'], # additionalIncludePaths
-               [], # additionalLibs
-               ['/usr/local/lib64', '/usr/local/hdf5/1.8.7/lib','/tmp_opt/Python/2.7.3/icc-mpt/lib'],  # additionalLibPaths
-               False, # useCuda
-               [] # NvccAdditionalOptions
-               ],
-    ###############################################################################
-    'service': [ 'Cluster de calcul Stelvio (Onera)',
-                 'ifort', # f77compiler
-                 'ifort', # f90compiler
-                 'icc', # Cppcompiler
-                 ["-axAVX,SSE4.2"], # CppAdditionalOptions
-                 ["-axAVX,SSE4.2"], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 [], # additionalIncludePaths
-                 [], # additionalLibs
-                 [], # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    'r.i.n.': [ 'Cluster Stelvio-batch node (Onera)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                ["-axAVX,SSE4.2"], # CppAdditionalOptions
-                ["-axAVX,SSE4.2"], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                [], # additionalIncludePaths
-                [], # additionalLibs
-                [], # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
+    'sator_coda2': [ 'Cluster de calcul Sator Saphire (Onera)',
+                     'gfortran', # f77compiler
+                     'gfortran', # f90compiler
+                     'gcc', # Cppcompiler
+                     ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=48','-DSIMD=AVX2P512'], # CppAdditionalOptions
+                     [], # f77AdditionalOptions
+                     True, # useOMP
+                     False, # static
+                     [], # additionalIncludePaths
+                     [], # additionalLibs
+                     [], # additionalLibPaths
+                     False, # useCuda
+                     [] # NvccAdditionalOptions
+                     ],
+
     ###############################################################################
     'sator': [ 'Cluster de calcul Sator Broadwell (Onera)',
                'ifort', # f77compiler
@@ -952,81 +707,6 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
-    'spiro_sky': [ 'Machine dev Spiro (proc skylake)',
-                   'ifort', # f77compiler
-                   'ifort', # f90compiler
-                   'icc', # Cppcompiler
-                   ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=22','-DSIMD=AVX512'], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
-    'spiro_amd': [ 'Machine dev Spiro (proc amd)',
-                   'ifort', # f77compiler
-                   'ifort', # f90compiler
-                   'icc', # Cppcompiler
-                   ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=32','-DSIMD=AVX2'],
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
-    'spiro_arm': [ 'Machine dev Spiro (proc arm)',
-                   'gfortran', # f77compiler
-                   'gfortran', # f90compiler
-                   'gcc', # Cppcompiler
-                   ['-DCACHELINE=32'], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [],  # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
-    'spiro_acda': [ 'Machine dev Spiro (proc brwl)',
-                    'ifort', # f77compiler
-                    'ifort', # f90compiler
-                    'icc', # Cppcompiler
-                    ['-DCACHELINE=32'], # CppAdditionalOptions
-                    [], # f77AdditionalOptions
-                    True, # useOMP
-                    False, # static
-                    [], # additionalIncludePaths
-                    [], # additionalLibs
-                    [],  # additionalLibPaths
-                    False, # useCuda
-                    [] # NvccAdditionalOptions
-                    ],
-    ###############################################################################
-    'spiro_coda': [ 'Machine dev Spiro centos8 (Onera) (env. coda)',
-                    'gfortran', # f77compiler
-                    'gfortran', # f90compiler
-                    'gcc', # Cppcompiler
-                    ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                    [], # f77AdditionalOptions
-                    True, # useOMP
-                    False, # static
-                    [], # additionalIncludePaths
-                    [], # additionalLibs
-                    [],  # additionalLibPaths
-                    False, # useCuda
-                    [] # NvccAdditionalOptions
-                    ],
-    ###############################################################################
     'spiro_el8': [ 'Machine dev Spiro centos8 (Onera)',
                    'ifort', # f77compiler
                    'ifort', # f90compiler
@@ -1039,51 +719,6 @@ installDict = {
                    [], # additionalLibs
                    [],  # additionalLibPaths
                    False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
-    'spiro_intel': [ 'Machine dev Spiro centos8 (Onera)',
-                     'ifort', # f77compiler
-                     'ifort', # f90compiler
-                     'icc', # Cppcompiler
-                     ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                     [], # f77AdditionalOptions
-                     True, # useOMP
-                     False, # static
-                     [], # additionalIncludePaths
-                     [], # additionalLibs
-                     [],  # additionalLibPaths
-                     False, # useCuda
-                     [] # NvccAdditionalOptions
-                     ],
-    ###############################################################################
-    'spiro_gcc': [ 'Machine dev Spiro centos8 (Onera)',
-                   'gfortran', # f77compiler
-                   'gfortran', # f90compiler
-                   'gcc', # Cppcompiler
-                   ['-DCACHELINE=64','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [], # additionalLibPaths
-                   False, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
-    'spiro_gpu': [ 'K80 onera',
-                   'nvfortran', # f77compiler
-                   'nvfortran', # f90compiler
-                   'nvc', # Cppcompiler
-                   [], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [], # additionalLibPaths
-                   True, # useCuda
                    [] # NvccAdditionalOptions
                    ],
     ###############################################################################
@@ -1147,52 +782,6 @@ installDict = {
               [] # NvccAdditionalOptions
               ],
     ###############################################################################
-    'pc_imad': [ 'pc imad local',
-                 'gfortran', # f77compiler
-                 'gfortran', # f90compiler
-                 'gcc', # Cppcompiler
-                 #[],
-                 ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 [], # additionalIncludePaths
-                 [], # additionalLibs
-                 [], # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    ###############################################################################
-    'spiro_socle6': [ 'Machine dev Spiro centos8 - socle6 (Onera)',
-                      'ifort', # f77compiler
-                      'ifort', # f90compiler
-                      'icc', # Cppcompiler
-                      ['-DCACHELINE=32','-DNB_SOCKET=2','-DCORE_PER_SOCK=12','-DSIMD=AVX2'], # CppAdditionalOptions
-                      [], # f77AdditionalOptions
-                      True, # useOMP
-                      False, # static
-                      [], # additionalIncludePaths
-                      [], # additionalLibs
-                      [], # additionalLibPaths
-                      False, # useCuda
-                      [] # NvccAdditionalOptions
-                      ],
-    ###############################################################################
-    'spiro_pgi': [ 'Machine dev Spiro + compilos pgi (Onera)',
-                   'nvfortran', # f77compiler
-                   'nvfortran', # f90compiler
-                   'nvc', # Cppcompiler
-                   [], # CppAdditionalOptions
-                   [], # f77AdditionalOptions
-                   True, # useOMP
-                   False, # static
-                   [], # additionalIncludePaths
-                   [], # additionalLibs
-                   [], # additionalLibPaths
-                   True, # useCuda
-                   [] # NvccAdditionalOptions
-                   ],
-    ###############################################################################
     'spiro': [ 'Machine dev Spiro (Onera)',
                'ifort', # f77compiler
                'ifort', # f90compiler
@@ -1253,21 +842,6 @@ installDict = {
                False, # useCuda
                [] # NvccAdditionalOptions
                ],
-    ##############################################################################
-    'madmax64': [ 'Cluster madmax DTIS (Onera)',
-                  'ifort', # f77compiler
-                  'ifort', # f90compiler
-                  'icc', # Cppcompiler
-                  [], # CppAdditionalOptions
-                  [], # f77AdditionalOptions
-                  True, # useOMP
-                  False, # static
-                  [], # additionalIncludePaths
-                  [], # additionalLibs
-                  ['/usr/local/intel/cluster_studio/2012_0_032/lib/intel64'], # additionalLibPaths
-                  False, # useCuda
-                  [] # NvccAdditionalOptions
-                  ],
     ###############################################################################
     'localhost.localdomain': [ 'Unknown',
                                'gfortran', # f77compiler
@@ -1299,25 +873,6 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
-    'stelvio_impi15': [ 'Cluster Stelvio Full intel (Onera)',
-                        'ifort', # f77compiler
-                        'ifort', # f90compiler
-                        'icc', # Cppcompiler
-                        [], # CppAdditionalOptions
-                        [], # f77AdditionalOptions
-                        True, # useOMP
-                        False, # static
-                        ['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/include',
-                            # '/tmp_opt/lib/hdf5/1.8.17/15/impi/include',
-                            '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/include'], # additionalIncludePaths
-                        ['mpi'], # additionalLibs
-                        ['/tmp_opt/lib/hdf5-1.8.8-intel-15-impi/lib',
-                            '/tmp_opt/lib/hdf5/1.8.17/15/impi/lib',
-                            '/tmp_opt/intel/studio/2015/impi/5.0.3.048/intel64/lib'],  # additionalLibPaths
-                        False, # useCuda
-                        [] # NvccAdditionalOptions
-                        ],
-    ###############################################################################
     'dumbo': [ 'Grosse machine de post-traitement (Onera)',
                'ifort', # f77compiler
                'ifort', # f90compiler
@@ -1333,18 +888,5 @@ installDict = {
                [] # NvccAdditionalOptions
                ],
     ###############################################################################
-    'xdaap': [ 'Xdaap (Onera)',
-               'ifort', # f77compiler
-               'ifort', # f90compiler
-               'icc', # Cppcompiler
-               [], # CppAdditionalOptions
-               [], # f77AdditionalOptions
-               True, # useOMP
-               False, # static
-               [], # additionalIncludePaths
-               [], # additionalLibs
-               [], # additionalLibPaths
-               False, # useCuda
-               [] # NvccAdditionalOptions
-               ]
+    **installDictUser
 }

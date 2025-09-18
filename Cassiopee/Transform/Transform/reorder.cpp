@@ -29,10 +29,9 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
 {
   E_Int oi=1, oj=1, ok=1;
   PyObject* array; PyObject* order;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &array, &order))
+  if (!PYPARSETUPLE_(args, OO_, &array, &order))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check tuple
@@ -70,11 +69,11 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType,
-                          true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
   
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -118,7 +117,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
       }
       if (cnp[2] == 1) // la face a 1 seul sommet
       {
-        tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+        tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }

@@ -32,14 +32,14 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
   E_Float eps = 1.e-12;
   PyObject* arrayc;
   PyObject* arrayd;  
-  if (!PyArg_ParseTuple(args, "OO", &arrayc, &arrayd)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrayc, &arrayd)) return NULL;
   
   // check array defining the contours
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayc, varStringc, fc, imc, jmc, kmc,
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayc, varStringc, fc, imc, jmc, kmc,
+                                      cnc, eltTypec);
   if (resc == 2)
   {
     if (strcmp(eltTypec, "BAR") != 0) 
@@ -60,10 +60,9 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
   // check triangulation array 
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
-  char* varStringd;
-  char* eltTyped;
-  E_Int resd =  K_ARRAY::getFromArray( arrayd, varStringd, fd, imd, jmd, kmd,
-                                       cnd, eltTyped, true);
+  char* varStringd; char* eltTyped;
+  E_Int resd =  K_ARRAY::getFromArray3(arrayd, varStringd, fd, imd, jmd, kmd,
+                                       cnd, eltTyped);
   if (resd == 2)
   {
     if ( strcmp(eltTyped, "TRI") != 0 ) 

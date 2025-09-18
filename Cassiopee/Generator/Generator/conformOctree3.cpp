@@ -31,14 +31,14 @@ using namespace std;
 PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
 {
   PyObject *octree;
-  if (!PyArg_ParseTuple(args, "O", &octree)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &octree)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, cn, 
+                                     eltType);
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(octree, f); 
@@ -73,7 +73,8 @@ PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(posz);
 
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
-  E_Int npts = f->getSize(); 
+  E_Int npts = f->getSize();
+  E_Int api = f->getApi();
 
   FldArrayF dht(nelts);
   FldArrayI levels(nelts);
@@ -162,7 +163,7 @@ PyObject* K_GENERATOR::conformOctree3(PyObject* self, PyObject* args)
   RELEASESHAREDU(octree, f, cn);
   K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *fo, *cno);
 
-  PyObject* tpl = K_ARRAY::buildArray(*fo, varString, *cno, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*fo, varString, *cno, eltType, api);
   delete fo; delete cno;
   return tpl;
 }

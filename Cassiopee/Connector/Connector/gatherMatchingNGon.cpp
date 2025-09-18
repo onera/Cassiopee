@@ -30,10 +30,9 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
   //        list of indices for all exterior faces
   PyObject* AllTags;
   PyObject* OriginalExteriorFaceIndices;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &AllTags, &OriginalExteriorFaceIndices))
+  if (!PYPARSETUPLE_(args, OO_, &AllTags, &OriginalExteriorFaceIndices))
   {
-      return NULL;
+    return NULL;
   }
 
   /* Extract info on tag1 and tag2 */
@@ -83,7 +82,7 @@ PyObject* K_CONNECTOR::gatherMatchingNGon(PyObject* self, PyObject* args)
     {
       PyObject* tpl = PyList_GetItem(OriginalExteriorFaceIndices, i);
       FldArrayI* indicesFacesL;
-      K_NUMPY::getFromNumpyArray(tpl, indicesFacesL, true);
+      K_NUMPY::getFromNumpyArray(tpl, indicesFacesL);
       vectOfOrigIndicesFaces.push_back(indicesFacesL);
       vectOfIndicesObjects.push_back(tpl);
     }

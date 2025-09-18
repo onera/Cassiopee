@@ -218,7 +218,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       pyRcvIndices.push_back(intArray);
 
       FldArrayI* indArrayI;
-      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI);
       if ( ok == 1)
       {
         E_Int* indArray = indArrayI->begin();
@@ -274,7 +274,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       PyObject* intArray = PyList_GetItem(pyListValues, v);
       pyDnrIndices.push_back(intArray);
       FldArrayI* indArrayI;
-      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI);
       if ( ok == 1)
       {
         E_Int* indArray = indArrayI->begin();
@@ -337,7 +337,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
         PyObject* intArray = PyList_GetItem(pyListValues, v);
         pyEXIndir.push_back(intArray);
         FldArrayI* indArrayI;
-        E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+        E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI);
         if ( ok == 1)
         {
           E_Int* indArray = indArrayI->begin();
@@ -400,7 +400,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       PyObject* pyArrayValue = PyList_GetItem(pyListValues, v);
       pyDnrCoefs.push_back(pyArrayValue);
       FldArrayF* dnrCoefs;
-      E_Int ok = K_NUMPY::getFromNumpyArray(pyArrayValue, dnrCoefs, true);
+      E_Int ok = K_NUMPY::getFromNumpyArray(pyArrayValue, dnrCoefs);
       if (ok == 1)
       {
         FldDnrCoefs.push_back(dnrCoefs);
@@ -459,7 +459,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       PyObject* intArray = PyList_GetItem(pyListValues, v);
       pyTypes.push_back(intArray);
       FldArrayI* indArrayI;
-      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI, true);
+      E_Int ok = K_NUMPY::getFromNumpyArray(intArray, indArrayI);
       if ( ok == 1)
       {
         FldTypes.push_back(indArrayI);
@@ -508,7 +508,7 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
     E_Int im, jm, km;
     FldArrayF* cellNF; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray2(pyArrayValue, varString, 
+    E_Int res = K_ARRAY::getFromArray3(pyArrayValue, varString, 
                                        cellNF, im, jm, km, cn, eltType); 
     if ( res != 1 )
     {

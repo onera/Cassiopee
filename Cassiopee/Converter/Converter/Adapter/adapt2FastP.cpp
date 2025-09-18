@@ -35,27 +35,27 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
 
   // Check numpy NGon
   FldArrayI* cNGon;
-  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(NGon, cNGon);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NGon is invalid."); return NULL; }
 
   // Check numpy NFace
   FldArrayI* cNFace;
-  res = K_NUMPY::getFromNumpyArray(NFace, cNFace, true);
+  res = K_NUMPY::getFromNumpyArray(NFace, cNFace);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NFace is invalid."); return NULL; }
 
   // Check numpy PE (ParentElements)
   FldArrayI* cPE;
-  res = K_NUMPY::getFromNumpyArray(PE, cPE, true);
+  res = K_NUMPY::getFromNumpyArray(PE, cPE);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: numpy is invalid."); return NULL; }
 
   // Check numpy  Nb face interne/extern (Ngon)
   FldArrayI* cNGon_intext;
-  res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext, true);
+  res = K_NUMPY::getFromNumpyArray(NGon_intext, cNGon_intext);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP:  NGon IntExt is invalid."); return NULL; }
 
   // Check numpy  Nb elts interne/extern (Nface)
   FldArrayI* cNFace_intext;
-  res = K_NUMPY::getFromNumpyArray(NFace_intext, cNFace_intext, true);
+  res = K_NUMPY::getFromNumpyArray(NFace_intext, cNFace_intext);
   if (res == 0) { PyErr_SetString(PyExc_TypeError, "adapt2FastP: NFace IntExt is invalid."); return NULL; }
 
 
@@ -76,7 +76,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_bc,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true);
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist);
     ipt_ptlist_bc[i]   = Ptlist->begin();
     size_ptlist_bc[i]  = Ptlist->getSize();
     //printf(" fen bc= %d %d %d \n", size_ptlist_bc[i], Ptlist->getSize(),  i);
@@ -85,18 +85,18 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_rac,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
-    ipt_ptlist_rac[i]          = Ptlist->begin();
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist); 
+    ipt_ptlist_rac[i] = Ptlist->begin();
 
-    size_ptlist_rac[i]= Ptlist->getSize();
+    size_ptlist_rac[i] = Ptlist->getSize();
      //printf(" fen rac= %d %d \n",  size_ptlist_rac[i], i);
   }
   for (E_Int i = 0; i < NbPtlist_rac; i++)
   {
     PyObject* ptlistArray  = PyList_GetItem(Ptlist_racD,i); 
     FldArrayI* Ptlist;
-    K_NUMPY::getFromPointList(ptlistArray, Ptlist, true); 
-    ipt_ptlist_racD[i]         = Ptlist->begin();
+    K_NUMPY::getFromPointList(ptlistArray, Ptlist); 
+    ipt_ptlist_racD[i] = Ptlist->begin();
 
     size_ptlist_racD[i]= Ptlist->getSize();
     // printf(" fen racD= %d %d \n", size_ptlist_racD[i], i);
@@ -257,7 +257,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_bc[i]; j++)
     {
-      E_Int face          = ipt_ptlist_bc[i][j];
+      E_Int face = ipt_ptlist_bc[i][j];
       ipt_ptlist_bc[i][j] = nn[face-1]+1;
       //printf(" pt rac= %d %d %d %d\n", nn[face-1]+1, face, j,i);
     }
@@ -267,7 +267,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_rac[i]; j++)
     {
-      E_Int face          = ipt_ptlist_rac[i][j];
+      E_Int face = ipt_ptlist_rac[i][j];
       ipt_ptlist_rac[i][j] = nn[face-1]+1;
     }
   }
@@ -276,7 +276,7 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   {
     for (E_Int j = 0; j < size_ptlist_racD[i]; j++)
     {
-      E_Int face          = ipt_ptlist_racD[i][j];
+      E_Int face = ipt_ptlist_racD[i][j];
       ipt_ptlist_racD[i][j] = nn[face-1]+1;
     }
   }

@@ -7,5 +7,10 @@ hook = OCC.readCAD("cube.step", "fmt_step")
 m = OCC.meshAll(hook, hmin=1., hmax=1.)
 # varying h between hmin and hmax with deflection hausd
 m = OCC.meshAll(hook, hmin=1., hmax=5., hausd=1.)
+# get components in final mesh
+cs = OCC.getComponents(m)
+# check if components are watertight
+for c in cs:
+    ret = OCC.isWatertight(c)
+    print("Component watertight: ", ret)
 C.convertPyTree2File(m, 'out.cgns')
-

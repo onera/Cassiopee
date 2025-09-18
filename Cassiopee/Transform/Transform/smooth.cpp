@@ -41,14 +41,14 @@ PyObject* K_TRANSFORM::smooth(PyObject* self, PyObject* args)
                     &fixedConstraint, &projConstraint, &delta,
                     &xR, &yR, &zR, &radius))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int im1, jm1, km1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 =  K_ARRAY::getFromArray(array, varString1, 
-                                      f1, im1, jm1, km1, cn1, eltType1, true);
+  E_Int res1 =  K_ARRAY::getFromArray3(array, varString1, 
+                                       f1, im1, jm1, km1, cn1, eltType1);
 
   if (res1 != 2)
   {
@@ -81,8 +81,8 @@ PyObject* K_TRANSFORM::smooth(PyObject* self, PyObject* args)
   E_Int res2 = 0;
   if (fixedConstraintOn == 1)
   {
-    res2 = K_ARRAY::getFromArray(fixedConstraint, varString2, 
-                                 f2, im2, jm2, km2, cn2, eltType2, true);
+    res2 = K_ARRAY::getFromArray3(fixedConstraint, varString2, 
+                                  f2, im2, jm2, km2, cn2, eltType2);
     
   }
   if (fixedConstraintOn == 1 && res2 != 2)
@@ -122,8 +122,8 @@ PyObject* K_TRANSFORM::smooth(PyObject* self, PyObject* args)
   E_Int res3 = 0;
   if (projConstraintOn == 1)
   {
-    res3 = K_ARRAY::getFromArray(projConstraint, varString3, 
-                                 f3, im3, jm3, km3, cn3, eltType3, true);
+    res3 = K_ARRAY::getFromArray3(projConstraint, varString3, 
+                                  f3, im3, jm3, km3, cn3, eltType3);
   }
   if (projConstraintOn == 1 && res3 != 2)
   {
@@ -503,7 +503,7 @@ void  K_TRANSFORM::umbrella(FldArrayF& coord, FldArrayF& coordo,
           dz = projz[ind]-cz[ind];
           E_Float distP = sqrt(dx*dx + dy*dy + dz*dz);
           distP = K_FUNC::E_max(distP, 1.e-10);
-          //E_Boolean edge = false;
+          //E_Bool edge = false;
 
           /* Cherche le rayon le plus proche de la direction de proj */
           E_Float v1x = dx/distP; E_Float v1y = dy/distP; E_Float v1z = dz/distP;

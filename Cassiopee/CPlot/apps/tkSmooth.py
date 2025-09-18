@@ -1,6 +1,5 @@
 # - mesh smoother -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -341,7 +340,7 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
     if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
@@ -354,7 +353,7 @@ if (__name__ == "__main__"):
     # Main window
     (win, menu, file, tools) = CTK.minimal('tkSmooth '+C.__version__)
 
-    createApp(win); activateApp()
+    createApp(win); showApp()
 
     # - Main loop -
     win.mainloop()

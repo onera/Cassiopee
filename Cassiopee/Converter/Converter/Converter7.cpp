@@ -31,7 +31,7 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
 {
   PyObject* array;
   char* varName;
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -113,7 +113,7 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
 {
   PyObject* array;
   char* varName;  
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -195,7 +195,7 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::getMeanValue(PyObject* self, PyObject* args)
 {
   PyObject* array; char* varName;
-  if (!PyArg_ParseTuple(args, "Os", &array, &varName)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
 
   // Check array
   E_Int im, jm, km;

@@ -39,7 +39,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
 		                 &arrayNodes, &arrayCenters, &tag, &strict, &PE,
                      &cleanConnectivity))
   {
-      return NULL;
+    return NULL;
   }
   // Extract array
   char* varString; char* eltType;
@@ -308,6 +308,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   // Selection
   PyObject* tpl;
   PyObject* tplc;
+  E_Int api = f->getApi();
   if (isNGon != 0 && isNode != 0) // tous les elements sauf NGON et NODE
   {
     E_Int nfld = f->getNfld();
@@ -448,10 +449,12 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
       if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     }
-    tpl  = K_ARRAY::buildArray(*an,    varString,  *acn, elt, eltType);
+    tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
     tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltTypeC);
+    //tpl = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api); // TODO
+    //tplc = K_ARRAY::buildArray3(*foutC, varStringC, *acn, eltTypeC, api); // TODO
     
-    delete foutC ; 
+    delete foutC; 
     delete an; delete acn;
     if (res == 1) delete[] eltType;
   }
@@ -497,8 +500,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     RELEASESHAREDB(res2, tag, f2, cnp2);
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
-    tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
-    tplc = tpl ;
+    tpl = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
+    tplc = tpl;
     delete an; delete acn;
   }
   else // elements NGON
@@ -723,7 +726,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {
@@ -790,8 +793,9 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
     
-    tpl  = K_ARRAY::buildArray(*fout,   varString, *cout, 8);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
+    cout->setNGon(1);
+    tpl = K_ARRAY::buildArray3(*fout, varString, *cout, eltType, api);
+    tplc = K_ARRAY::buildArray3(*foutC, varStringC, *cout, eltType, api);
     
     delete fout; delete foutC; delete cout;
   }
@@ -799,8 +803,8 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   RELEASESHAREDB(res, arrayNodes, f, cnp);
   RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
   
-  PyList_Append(l,tpl) ; Py_DECREF(tpl);
-  PyList_Append(l,tplc); Py_DECREF(tplc);
+  PyList_Append(l, tpl) ; Py_DECREF(tpl);
+  PyList_Append(l, tplc); Py_DECREF(tplc);
 
   return l;  
 }
@@ -838,7 +842,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
   else // numpy
   {
-    res2 = K_NUMPY::getFromNumpyArray(tag, f2, true);
+    res2 = K_NUMPY::getFromNumpyArray(tag, f2);
     if (res2 == 0)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -916,8 +920,8 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int ni, nj, nk;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cnp, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cnp, eltType);
   
   if (res != 1 && res != 2)
   {
@@ -931,8 +935,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   FldArrayF* f2; FldArrayI* cnp2;
   E_Int ni2, nj2, nk2;
   E_Int res2 = 
-    K_ARRAY::getFromArray(tag, varString2, f2, ni2, nj2, nk2, cnp2, eltType2, 
-                          true);
+    K_ARRAY::getFromArray3(tag, varString2, f2, ni2, nj2, nk2, cnp2, eltType2);
 
   if (res2 != 1 && res2 != 2)
   {
@@ -978,7 +981,6 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   }
 
   E_Float oneEps = 1.-1.e-10;
-  E_Int elt = -1;
   E_Int vertex;
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
@@ -1013,7 +1015,6 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
         E_Int* cn1 = cn.begin(1);
         E_Int* cn2 = cn.begin(2);
         E_Int ind1, ind2;
-        elt = 1; //BAR
         if (nk1 == 1 && nj1 == 1)
         {
           for (E_Int i = 0; i < ni1; i++)
@@ -1048,7 +1049,6 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       {
         nelts = ncells;
         cn.malloc(nelts, 4);
-        elt = 3; // QUAD
         E_Int* cn1 = cn.begin(1);
         E_Int* cn2 = cn.begin(2);
         E_Int* cn3 = cn.begin(3);
@@ -1119,7 +1119,6 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       { 
         nelts = ncells;
         cn.malloc(nelts,8);
-        elt = 7; //HEXA
         E_Int* cn1 = cn.begin(1);
         E_Int* cn2 = cn.begin(2);
         E_Int* cn3 = cn.begin(3);
@@ -1157,6 +1156,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   }
 
   PyObject* l = PyList_New(0);
+  E_Int api = f->getApi();
   
   // Infos sur le type d'element
   E_Int isNGon = 1; E_Int isNode = 1;
@@ -1282,7 +1282,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
     }
-    tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
+    tpl = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
     delete an; delete acn;
     if (res == 1) delete[] eltType;
   }
@@ -1328,7 +1328,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     RELEASESHAREDB(res2, tag, f2, cnp2);
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
-    tpl = K_ARRAY::buildArray(*an, varString, *acn, elt, eltType);
+    tpl = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
     delete an; delete acn;
   }
   else // elements NGON
@@ -1454,14 +1454,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
             {
               cn2p[0] = nbfaces; size2 +=1;
               for (E_Int n = 1; n <= nbfaces; n++)
-	      {
-		cn2p[n] = cnEFp[n];
-		keep_pg[cnEFp[n]-1] = +1;
-	      }
+              {
+                cn2p[n] = cnEFp[n];
+                keep_pg[cnEFp[n]-1] = +1;
+              }
               size2 += nbfaces; cn2p += nbfaces+1; next++;
 	      
-	      new_ph_ids[i] = ii;	
-	      ii++;
+              new_ph_ids[i] = ii;	
+              ii++;
             }
             cnEFp += nbfaces+1; 
           } 
@@ -1535,14 +1535,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
           
       if (res == 0)
       {
-	RELEASESHAREDN(PE, cFE);
-	PyErr_SetString(PyExc_TypeError, 
-			"selectCells: PE numpy is invalid.");
-	return NULL;
+        RELEASESHAREDN(PE, cFE);
+        PyErr_SetString(PyExc_TypeError, 
+                        "selectCells: PE numpy is invalid.");
+        return NULL;
       }
             
       ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
@@ -1602,7 +1602,8 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     // close
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
-    tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
+    cout->setNGon(1);
+    tpl = K_ARRAY::buildArray3(*fout, varString, *cout, eltType, api);
     delete fout; delete cout;
   }
   RELEASESHAREDB(res, array, f, cnp);

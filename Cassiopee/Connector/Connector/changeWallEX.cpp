@@ -51,9 +51,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int imEX, jmEX, kmEX;
   FldArrayF* fEX; FldArrayI* cnEX;
   char* varStringEX; char* eltTypeEX;
-  E_Int res = K_ARRAY::getFromArray(arrayEX, varStringEX, 
-                                    fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX, 
-                                    true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayEX, varStringEX, 
+                                     fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX); 
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(arrayEX, fEX);
@@ -93,8 +92,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(arrayNodes, varString, f, im, jm, km, cn, 
-                              eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, 
+                               eltType); 
   if (res != 1) 
   {
     if (res == 2) RELEASESHAREDU(arrayNodes,f,cn);
@@ -121,8 +120,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayF* fc;
   FldArrayI* cnc;
   char* varStringc;
-  res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, imc, jmc, kmc, 
-                              cnc, eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, 
+                               cnc, eltType); 
   if (res != 1) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX); 
@@ -162,8 +161,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayI* cn1;
   char* varString1;
   char* eltType1;
-  res = K_ARRAY::getFromArray(firstWallCenters, varString1, f1, 
-                              im1, jm1, km1, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(firstWallCenters, varString1, f1, 
+                               im1, jm1, km1, cn1, eltType1); 
   if ( res != 2 ) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX);
@@ -213,10 +212,10 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     projectSurfArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -343,7 +342,7 @@ void K_CONNECTOR::changeWallEX(
   E_Int noet, ind1, ind2, indil, indt1, indt2, indt3;
   E_Int nob, nov1, nov2, nov3;
   E_Int nbB, dir1, dir2, dir3, dir, indA;
-  E_Boolean isProjected;
+  E_Bool isProjected;
   E_Float xA, yA, zA, xaEX, yaEX, zaEX, xbEX, ybEX, zbEX, dAP2;
   E_Float dxa, dya, dza, hmax1, hmax2, hmax, distnew;
   vector<E_Int> indicesElts; vector<E_Int> candidates;

@@ -29,7 +29,7 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vect;
 
-  if (!PyArg_ParseTuple(args, "OO", &array, &vect)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vect)) return NULL;
 
   // Check arrays
   E_Int ni, nj, nk, niv, njv, nkv;
@@ -40,8 +40,8 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
   FldArrayI* cnv;
   
   // Extraction des infos sur le maillage
-  E_Int res =  K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                     cn, eltType, true);
+  E_Int res =  K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                      cn, eltType);
 
   // Check data
   if (res == -1)
@@ -51,8 +51,8 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
     return NULL;
   }
   // Extraction des infos sur le vecteur
-  E_Int resv = K_ARRAY::getFromArray(vect, varStringv, fv, niv, njv, nkv, 
-                                     cnv, eltTypev, true);
+  E_Int resv = K_ARRAY::getFromArray3(vect, varStringv, fv, niv, njv, nkv, 
+                                      cnv, eltTypev);
   if (resv == -1)
   {
     RELEASESHAREDB(res, array, f,cn);
@@ -65,7 +65,7 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
     if (strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0 
         && strcmp(eltType, "BAR") != 0)
     {
-      RELEASESHAREDU(array, f, cn);  RELEASESHAREDB(resv, vect, fv, cnv);
+      RELEASESHAREDU(array, f, cn); RELEASESHAREDB(resv, vect, fv, cnv);
       PyErr_SetString(PyExc_TypeError,
                       "grow: array must be a surface array.");
       return NULL;

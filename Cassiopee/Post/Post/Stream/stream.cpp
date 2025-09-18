@@ -29,11 +29,6 @@ using namespace std;
 
 extern "C"
 {
-  void k6compmeanlengthofstructcell_(const E_Int& ni, const E_Int& nj, 
-                                     const E_Int& nk, const E_Int& indA,
-                                     const E_Float* xt, const E_Float* yt,
-                                     const E_Float* zt, E_Float& meanl);
-  
   void k6compmeanlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
                                    E_Int& indC, E_Int& indD, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
@@ -84,9 +79,10 @@ void K_POST::compInitialStep(
     E_Int posy = posys[noblk0];
     E_Int posz = poszs[noblk0];
     // Longueur de reference de la cellule d'interpolation
-    k6compmeanlengthofstructcell_(ni, nj, nk, ind0, field->begin(posx),
-                                  field->begin(posy), field->begin(posz), 
-                                  l0);
+    K_METRIC::compMeanLengthOfStructCell(
+      ni, nj, nk, ind0,
+      field->begin(posx), field->begin(posy), field->begin(posz), 
+      l0);
     u0 = vx[ind0]*vx[ind0] + vy[ind0]*vy[ind0] + vz[ind0]*vz[ind0]; 
   }
   else

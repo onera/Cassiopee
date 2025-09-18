@@ -39,8 +39,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(arrayN,f);
@@ -71,6 +71,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   E_Int etg, etd, nvertp;
   E_Int nfacesExt, nfacesAdd, neltsAdd, sizeOut, sizefout;
   E_Int dimNGON = 3;
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
   E_Int nptsAdd = 0;
@@ -133,8 +134,9 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   }
   else addGhostCellsNGon3D(depth, *f, *cn, neltsAdd, sizeFN2, sizeEF2, facesExt, fout, cnout);
 
-  // Sortie  
-  PyObject* tpl = K_ARRAY::buildArray(*fout, varString, *cnout, 8, eltType);
+  // Sortie
+  cnout->setNGon(cn->getNGonType());
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, *cnout, eltType, api);
   delete cnout; delete fout;
   RELEASESHAREDU(arrayN, f, cn);
   return tpl;
@@ -159,8 +161,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cnc, eltTypec);
   if (resc != 2)
   {
     if (resc == 1) RELEASESHAREDS(arrayC,fc);
@@ -168,7 +170,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
                     "addGhostCellsNGon: array is invalid.");
     return NULL;
   }
-  if (strcmp(eltTypec,"NGON*") != 0) 
+  if (strcmp(eltTypec, "NGON*") != 0) 
   {
     
     PyErr_SetString(PyExc_TypeError,
@@ -202,6 +204,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
     return NULL;
   }
   PyObject* tpl;
+  E_Int api = fc->getApi();
   E_Int nfldc = fc->getNfld();
   E_Int nelts = fc->getSize();
   E_Int* ptr = cNGp+2;
@@ -266,7 +269,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
       }
     }
     // array en noeuds
-    tpl = K_ARRAY::buildArray(*fcout, varStringC, *cnout, -1, "NGON", true);
+    tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cnout, "NGON", api);
     delete cnout; delete fcout;    
   }
   else // dimNGON = 2 
@@ -332,7 +335,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonCenters(PyObject* self, PyObject* args)
       *fcout = *fc;//copie
     }
     // array en centres
-    tpl = K_ARRAY::buildArray(*fcout, varStringC, *cnout, -1, "NGON", true);
+    tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cnout, "NGON", api);
     delete cnout; delete fcout;
   }
 
@@ -359,18 +362,18 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(arrayN, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2)
   {
-    if (res == 1) RELEASESHAREDS(arrayN,f);
+    if (res == 1) RELEASESHAREDS(arrayN, f);
     PyErr_SetString(PyExc_TypeError, 
                     "addGhostCells: array is invalid.");
     return NULL;
   }
   if (strcmp(eltType, "NGON") != 0 ) 
   {
-    RELEASESHAREDU(arrayN,f,cn);
+    RELEASESHAREDU(arrayN, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "addGhostCells: array must be NGON.");
     return NULL;
@@ -379,8 +382,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   char* varStringC; char* eltTypec;
   FldArrayF* fc; FldArrayI* cnc;
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringC, fc, nic, njc, nkc, 
-                                     cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringC, fc, nic, njc, nkc, 
+                                      cnc, eltTypec);
   if (resc != 2)
   {
     if (resc == 1) RELEASESHAREDS(arrayC, fc);
@@ -390,8 +393,8 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
   }
   if (strcmp(eltTypec, "NGON*") != 0 ) 
   {
-    RELEASESHAREDU(arrayN,f,cn);
-    RELEASESHAREDU(arrayC,fc,cnc);
+    RELEASESHAREDU(arrayN, f, cn);
+    RELEASESHAREDU(arrayC, fc, cnc);
     PyErr_SetString(PyExc_TypeError,
                     "addGhostCells: array must be NGON*.");
     return NULL;
@@ -423,6 +426,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
   E_Int nfldc = fc->getNfld();
@@ -489,10 +493,10 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
       }
     }
     // array en noeuds
-    PyObject* tpl = K_ARRAY::buildArray(*fout, varString, *cnout, 8, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, *cnout, eltType, api);
     PyList_Append(l, tpl); Py_DECREF(tpl); delete fout;
     // array en centres
-    tpl = K_ARRAY::buildArray(*fcout, varStringC, *cnout, -1, eltType, true);
+    tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cnout, eltType, api);
     PyList_Append(l, tpl); Py_DECREF(tpl); delete cnout; delete fcout;    
   }
   else // dimNGON = 2 
@@ -563,10 +567,10 @@ PyObject* K_CONVERTER::addGhostCellsNGonBoth(PyObject* self, PyObject* args)
     }
 
     // array en noeuds
-    PyObject* tpl = K_ARRAY::buildArray(*fout, varString, *cnout, 8, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, *cnout, eltType, api);
     PyList_Append(l, tpl); Py_DECREF(tpl); delete fout;
     //array en centres
-    tpl = K_ARRAY::buildArray(*fcout, varStringC, *cnout, -1, eltType, true);
+    tpl = K_ARRAY::buildArray3(*fcout, varStringC, *cnout, eltType, api);
     PyList_Append(l, tpl); Py_DECREF(tpl); delete cnout; delete fcout;
   }
 

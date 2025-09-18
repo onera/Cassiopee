@@ -43,7 +43,7 @@ PyObject *K_XCORE::triangulate_skin(PyObject *self, PyObject *args)
         for (E_Int i = 0; i < nbcs; i++) {
             PyObject *PTLIST = PyList_GetItem(PTLISTS, i);
             Py_BC bc;
-            E_Int ret = K_NUMPY::getFromNumpyArray(PTLIST, bc.ptr, bc.size, true);
+            E_Int ret = K_NUMPY::getFromNumpyArray(PTLIST, bc.ptr, bc.size);
             Py_DECREF(PTLIST);
             if (ret != 1) {
                 RAISE("Couldn't extract pointlists.");

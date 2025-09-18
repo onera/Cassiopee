@@ -1,7 +1,6 @@
 # - tkBlocks -
 """Block operations in a pyTree."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Transform.PyTree as T
@@ -403,7 +402,7 @@ def convert2ME():
         CPlot.delete(dels)
         CTK.add(CTK.t, nob0, -1, a)
         CTK.TXT.insert('START', 'Selection merged in ME zone.\n')
-    except:
+    except Exception as e:
         Panels.displayErrors([0,str(e)], header='Error: convert2ME')
         CTK.TXT.insert('START', 'MergeConnectivity failed.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error')

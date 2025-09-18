@@ -49,7 +49,8 @@ E_Int Karray_parse_ngon(PyObject *pyobject, Karray &karray)
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
 
-    if (posx == -1 || posy == -1 || posz == -1) {
+    if (posx == -1 || posy == -1 || posz == -1) 
+    {
         Karray_free_ngon(karray);
         merr("Coordinates not found.");
         return 1;
@@ -82,12 +83,14 @@ E_Int Karray_parse_structured(PyObject *pyobject, Karray &karray)
     ret = K_ARRAY::getFromArray3(pyobject, varString, karray.f, karray.ni,
         karray.nj, karray.nk, karray.cn, eltType);
 
-    if (ret <= 0) {
+    if (ret <= 0) 
+    {
         merr("Bad input array");
         return 1;
     }
 
-    if (ret != 1) {
+    if (ret != 1) 
+    {
         merr("Mesh should be structured.");
         RELEASESHAREDB(ret, pyobject, karray.f, karray.cn);
         return 1;
@@ -97,7 +100,8 @@ E_Int Karray_parse_structured(PyObject *pyobject, Karray &karray)
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
 
-    if (posx == -1 || posy == -1 || posz == -1) {
+    if (posx == -1 || posy == -1 || posz == -1) 
+    {
         merr("Coordinates not found");
         Karray_free_structured(karray);
         return 1;

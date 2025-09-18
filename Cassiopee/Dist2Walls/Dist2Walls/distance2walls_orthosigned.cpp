@@ -35,49 +35,58 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
                                                   PyObject* args)
 {
   PyObject *centers, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &centers, &bodiesC)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &centers, &bodiesC)) return NULL;
   
   if (PyList_Check(centers) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "distance2WallsOrtho: 1st argument must be a list.");
+                    "dist2Walls: 1st argument must be a list.");
     return NULL;
   }
   if (PyList_Check(bodiesC) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
-                    "distance2Walls: 2nd argument must be a list.");
+                    "dist2Walls: 2nd argument must be a list.");
     return NULL;
   }
 
   // Maillage en noeuds
   // les coordonnees doivent etre en premier
   vector<PyObject*> objsn, objun;
-  vector<E_Int> resn;
   vector<char*> structVarStringn; vector<char*> unstrVarStringn;
   vector<FldArrayF*> structFn; vector<FldArrayF*> unstrFn;
   vector<E_Int> nitn; vector<E_Int> njtn; vector<E_Int> nktn;
   vector<FldArrayI*> cntn;
   vector<char*> eltTypen;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-  E_Int isOk = K_ARRAY::getFromArrays(
-    centers, resn, structVarStringn, unstrVarStringn,
-    structFn, unstrFn, nitn, njtn, nktn, cntn, eltTypen, objsn, objun, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-  E_Int nsn = structFn.size(); E_Int nun = unstrFn.size();
-  if (isOk == -1)
+  char* varStringl; char* eltTypel;
+  E_Int nil, njl, nkl;
+  FldArrayF* fl; FldArrayI* cnl;
+  PyObject* o; E_Int res;
+  E_Int nz = PyList_Size(centers);
+  for (E_Int i = 0; i < nz; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "distance2WallsOrtho: invalid list of mesh arrays.");
-    for (E_Int nos = 0; nos < nsn; nos++)
-      RELEASESHAREDS(objsn[nos], structFn[nos]);
-    for (E_Int nos = 0; nos < nun; nos++)
-      RELEASESHAREDU(objun[nos], unstrFn[nos], cntn[nos]);
-    return NULL;
+    o = PyList_GetItem(centers, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (res == 1)
+    {
+      structVarStringn.push_back(varStringl);
+      structFn.push_back(fl);
+      nitn.push_back(nil); njtn.push_back(njl), nktn.push_back(nkl);
+      objsn.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarStringn.push_back(varStringl);
+      unstrFn.push_back(fl);
+      eltTypen.push_back(eltTypel); cntn.push_back(cnl);
+      objun.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
+
+  E_Int api = -1;
+  E_Int nsn = structFn.size(); E_Int nun = unstrFn.size();
   E_Int posx=-1, posy=-1, posz=-1;
   vector<E_Int> ncellss; vector<E_Int> ncellsu;
   // Verification de posxi, posyi, poszi dans listFields: vars 1,2,3 imposees
@@ -93,7 +102,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
     if (posxi != posx || posyi != posy || poszi != posz) 
     {
       PyErr_SetString(PyExc_TypeError,
-                      "distance2WallsOrtho: coordinates must be located at same position for all zones.");
+                      "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < nsn; nos++)
         RELEASESHAREDS(objsn[nos], structFn[nos]);
       for (E_Int nos = 0; nos < nun; nos++)
@@ -115,7 +124,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
     if (posxi != posx || posyi != posy || poszi != posz) 
     {
       PyErr_SetString( PyExc_TypeError,
-        "distance2WallsOrtho: coordinates must be located at same position for all zones.");
+        "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < nsn; nos++)
         RELEASESHAREDS(objsn[nos], structFn[nos]);
       for (E_Int nos = 0; nos < nun; nos++)
@@ -132,14 +141,32 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
   vector<FldArrayI*> cnt;
   vector<char*> eltTypeb;
   vector<PyObject*> objs, obju;
-  skipNoCoord = true;
-  skipStructured = true;
-  skipUnstructured = false; 
-  skipDiffVars = true;
-  K_ARRAY::getFromArrays(
-    bodiesC, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltTypeb, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  
+  nz = PyList_Size(bodiesC);
+  for (E_Int i = 0; i < nz; i++)
+  {
+    o = PyList_GetItem(bodiesC, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (api == -1) api = fl->getApi();
+    if (res == 1)
+    {
+      structVarString.push_back(varStringl);
+      structF.push_back(fl);
+      nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
+      objs.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarString.push_back(varStringl);
+      unstrF.push_back(fl);
+      eltTypeb.push_back(eltTypel); cnt.push_back(cnl);
+      obju.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
+  }
+  
+  if (api == -1) api = 1;
   E_Int nwalls = unstrF.size();
 
   if (nwalls == 0)
@@ -231,8 +258,8 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
   PyObject* tpl;    
   for (E_Int nos = 0; nos < nsn; nos++)
   {
-    tpl = K_ARRAY::buildArray(*distances[nos], "TurbulentDistance", 
-                              nitn[nos], njtn[nos], nktn[nos]);
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
+                               nitn[nos], njtn[nos], nktn[nos]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
     RELEASESHAREDS(objsn[nos], structFn[nos]);
@@ -240,8 +267,8 @@ PyObject* K_DIST2WALLS::distance2WallsOrthoSigned(PyObject* self,
   for (E_Int nou = 0; nou < nun; nou++)
   {
     K_FLD::FldArrayI* cnout = new K_FLD::FldArrayI(*cntn[nou]);
-    tpl = K_ARRAY::buildArray(*distancesu[nou], "TurbulentDistance", *cnout,
-                              -1, eltTypen[nou]);
+    tpl = K_ARRAY::buildArray3(*distancesu[nou], "TurbulentDistance", *cnout,
+                               eltTypen[nou], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     RELEASESHAREDU(objun[nou], unstrFn[nou], cntn[nou]);
     delete distancesu[nou]; delete cnout;

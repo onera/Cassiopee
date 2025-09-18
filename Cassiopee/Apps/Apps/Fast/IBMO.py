@@ -528,7 +528,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
-    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
     coords, rinds = Generator.extendCartGrids(coords, ext=DEPTH+1, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):

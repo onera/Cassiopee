@@ -25,6 +25,14 @@ pacman -S mingw64/mingw-w64-x86_64-msmpi
 pacman -S mingw-w64-x86_64-python-mpi4py
 ```
 
+<!-- For optional tigl:
+```shell
+pacman -S mingw64/mingw-w64-x86_64-libxml2
+pacman -S mingw-w64-x86_64-python-libxstl
+pacman -S mingw64/mingw-w64-x86_64-boost
+pacman -S mingw64/mingw-w64-x86_64-sympy
+``` -->
+
 and export system paths (if not already done):
 ```shell
 export PATH=/mingw64/bin:$PATH
@@ -33,7 +41,7 @@ export LD_LIBRARY_PATH=/mingw64/lib:$LD_LIBRARY_PATH
 
 ## Install Cassiopee
 ```shell
-export CASSIOPEE=/d/johndo/Cassiopee
+export CASSIOPEE=<your_path>/Cassiopee
 export MACHINE=msys2
     
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8

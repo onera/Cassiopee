@@ -27,14 +27,14 @@ using namespace std;
 PyObject* K_GENERATOR::adaptOctree(PyObject* self, PyObject* args)
 {
   PyObject *octree, *indica;
-  if (!PyArg_ParseTuple(args, "OO", &octree, &indica)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &octree, &indica)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, cn, 
+                                     eltType);
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(octree, f); 
@@ -65,8 +65,8 @@ PyObject* K_GENERATOR::adaptOctree(PyObject* self, PyObject* args)
   E_Int nii, nji, nki;
   FldArrayF* fi; FldArrayI* cni;
   char* varStringi; char* eltTypei;
-  E_Int resi = K_ARRAY::getFromArray(indica, varStringi, fi, 
-                                     nii, nji, nki, cni, eltTypei, true);
+  E_Int resi = K_ARRAY::getFromArray3(indica, varStringi, fi, 
+                                      nii, nji, nki, cni, eltTypei);
   if (resi != 1 && resi != 2) 
   {
     RELEASESHAREDU(octree, f, cn); 
@@ -94,7 +94,7 @@ PyObject* K_GENERATOR::adaptOctree(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(posz);
   E_Float* indict = fi->begin(posi);
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
-  E_Int npts = f->getSize(); 
+  E_Int npts = f->getSize(); E_Int api = f->getApi();
   FldArrayF* fo = new FldArrayF(npts, 3);
   E_Float* fox = fo->begin(1); E_Float* foy = fo->begin(2); 
   E_Float* foz = fo->begin(3); 
@@ -243,14 +243,14 @@ PyObject* K_GENERATOR::adaptOctree(PyObject* self, PyObject* args)
   // Sortie
   RELEASESHAREDU(octree, f, cn); RELEASESHAREDB(resi, indica, fi, cni);
   PyObject* l = PyList_New(0); 
-  PyObject* tpl = K_ARRAY::buildArray(*fo, "x,y,z", *cno, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*fo, "x,y,z", *cno, eltType, api);
   delete fo;
   PyList_Append(l, tpl); Py_DECREF(tpl);
   char eltType2[8];
   if (strcmp(eltType, "QUAD")  == 0) strcpy(eltType2, "QUAD*");
   else strcpy(eltType2, "HEXA*");
-  PyObject* tpl2 = K_ARRAY::buildArray(*indicout, "indicator", *cno, 
-                                       -1, eltType2);
+  PyObject* tpl2 = K_ARRAY::buildArray3(*indicout, "indicator", *cno, 
+                                        eltType2, api);
   delete cno; delete indicout;
   PyList_Append(l, tpl2); Py_DECREF(tpl2);
   return l;

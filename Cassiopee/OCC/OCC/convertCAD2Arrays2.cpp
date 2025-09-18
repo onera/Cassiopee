@@ -106,9 +106,7 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
 
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par
   // zone lue dans l'ordre (zones structurees, non structurees)
-  E_Int znsize = zoneNames.size();
-  for (E_Int i = 0; i < znsize; i++) delete [] zoneNames[i];
-
+  for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
   delete [] varString;
 
   return l;

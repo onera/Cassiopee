@@ -78,7 +78,6 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
     
     // Construit l'array resultat
     //E_Int api = f->getApi();
-    //if (api == 2) api=3;
     PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF subzone0(injn*kn, nfld, fnp, true);
@@ -667,7 +666,6 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   E_Int n = eltList.getSize();
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
-  if (api == 2) api = 3;
   
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
@@ -964,7 +962,6 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
 
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
   E_Int nfldc = fc->getNfld();
-  if (api == 2) api = 3;
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
@@ -1340,7 +1337,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
-    E_Boolean center = false;
+    E_Bool center = false;
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
                                          nfaces2, "NGON", sizeFN2, sizeEF2,
                                          ngonType, center, api);
@@ -1503,7 +1500,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
 
     // Build new BE connectivity
     E_Int nelts2 = faceMap.size();
-    E_Boolean center = false;
+    E_Bool center = false;
     char eltTypeFaces[10];
     if (dim == 1) strcpy(eltTypeFaces, "NODE");
     else if (dim == 2) strcpy(eltTypeFaces, "BAR");
@@ -1687,7 +1684,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
-    E_Boolean center = false;
+    E_Bool center = false;
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
                                          nfaces2, "NGON", sizeFN2, sizeEF2,
                                          ngonType, center, api);
@@ -1905,7 +1902,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
 
     // Build new BE connectivity
     E_Int nelts2 = faceMap.size();
-    E_Boolean center = false;
+    E_Bool center = false;
     char eltTypeFaces[10];
     if (dim == 1) strcpy(eltTypeFaces, "NODE");
     else if (dim == 2) strcpy(eltTypeFaces, "BAR");

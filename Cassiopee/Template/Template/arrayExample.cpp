@@ -11,15 +11,15 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
 {
   // Recupere le pointeur sur l'objet python
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Recupere les pointeurs sur les tableaux contenus dans l'array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                               cn, eltType);
 
   /* More info on arrays in KCore/Array/Array.h */
   

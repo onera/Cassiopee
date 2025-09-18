@@ -41,7 +41,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
   FldArrayF* newf;
   char* varString; char* eltType;
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   E_Int len, posx, posy, posz, ni;
   E_Float l, fn;
@@ -55,7 +55,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
     posz = K_ARRAY::isCoordinateZPresent( varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "densify: can't find coordinates in array.");
       return NULL;    
@@ -123,10 +123,9 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       newfp[ni] = fp[npts-1];
     }
     
-    delete f;
+    RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*newf, varString, 
-                                        len, 1, 1);
+    PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, len, 1, 1);
     delete newf;
     return tpl;  
   }
@@ -139,7 +138,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       posz = K_ARRAY::isCoordinateZPresent(varString);
       if (posx == -1 || posy == -1 || posz == -1)
       {
-        delete f; delete cn;
+        RELEASESHAREDU(array, f, cn);
         PyErr_SetString(PyExc_TypeError,
                         "densify: coordinates not found in array.");
         return NULL;
@@ -155,6 +154,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       E_Float* y = f->begin(posy);
       E_Float* z = f->begin(posz);
       E_Int nfld = f->getNfld();
+      E_Int api = f->getApi();
 
 // Size of coordinates and new connectivity array
 // ----------------------------------------------
@@ -238,15 +238,14 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
       }
       
       // Build array
-      delete f; delete cn;
-      PyObject* tpl = K_ARRAY::buildArray(*newf, varString, 
-                                          *newcn, 1, NULL, false);
+      RELEASESHAREDU(array, f, cn);
+      PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, *newcn, "BAR", api);
       delete newf; delete newcn;
       return tpl;
     }
     else
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "densify: not a valid type of elements.");
       return NULL;
@@ -254,7 +253,6 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
   }
   else
   {
-    delete f; delete cn;
     PyErr_SetString(PyExc_TypeError,
                     "densify: invalid array.");
     return NULL;

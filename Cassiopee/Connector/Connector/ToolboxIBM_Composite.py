@@ -12,9 +12,6 @@ try:
 except:
     raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
-try: range = xrange
-except: pass
-
 varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 TOLDIST = 1.e-14
 SHIFTF = 1.e-10

@@ -59,7 +59,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
                             E_Int& ni, E_Int& nj, E_Int& nk,
                             FldArrayI*& c,
                             char*& eltType,
-                            E_Boolean shared)
+                            E_Bool shared)
 {
   PyObject* tpl;
   PyArrayObject* a; PyArrayObject* ac;
@@ -226,6 +226,8 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
       Py_DECREF(a); Py_DECREF(ac);
       return -7;
     }
+
+    // if (K_STRING::cmp(eltType, "NGON") == 0 || K_STRING::cmp(eltType, "NGON*") == 0) c->setNGon(1);
     Py_DECREF(a); Py_DECREF(ac);
     return 2;
   }

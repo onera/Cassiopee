@@ -39,7 +39,7 @@
 namespace NUGA
 {
   enum eXPolicy { COLLISION, XCELLN_VAL, XCELLN_OUT, MESH };
-  enum eClassify { AMBIGUOUS = -1, IN/*IN_2*/ = 0, IN_1=1, X = 2, OUT = 3, UPPER_COL = 4 };
+  enum eClassify { AMBIGUOUS=-1, IN/*IN_2*/=0, IN_1=1, X=2, OUT=3, UPPER_COL=4 };
 
   template <eXPolicy POLICY, typename zmesh_t> // implemented for COLLISION policy. Second template arg is only there for XCELLN_OUT/MESH modes
   struct data_trait
@@ -89,7 +89,8 @@ namespace NUGA
   template <typename zmesh_t>
   struct data_trait<XCELLN_OUT, zmesh_t> : public data_trait<XCELLN_VAL, zmesh_t>
   {
-    struct outdata_t {
+    struct outdata_t 
+    {
       zmesh_t mesh;
       bool full_out;
       outdata_t() :mesh(), full_out(false) {};
@@ -100,7 +101,6 @@ namespace NUGA
         full_out = d.full_out;
         return *this;
       }
-
     };
   };
 
@@ -163,13 +163,13 @@ namespace NUGA
 
   };
 
-  namespace CLASSIFY // some "global" functions : they do not need all the template params ofthe classifyer class
+  namespace CLASSIFY // some "global" functions : they do not need all the template params of the classifyer class
   {
     template <typename T1, typename T2>
-    static eClassify classify(T1 const& t1, T2 const& t2, bool deep);
+    static inline eClassify classify(T1 const& t1, T2 const& t2, bool deep);
 
     template <>
-    eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front, bool deep)
+    inline eClassify classify(NUGA::aPolygon const& ae1, edge_mesh_t const& front, bool deep)
     {
       const double* norm = ae1.get_normal();
       const double* pt = ae1.get_centroid();
@@ -245,12 +245,10 @@ namespace NUGA
     }
 
     template <>
-    eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
+    inline eClassify classify(NUGA::aPolyhedron<0> const& ae1, pg_smesh_t const& front, bool deep)
     {
       const double* ae1G = ae1.get_centroid();
-      //E_Int nfronts = front.ncells();
-      //assert (nfronts);
-
+      
       E_Int sign(0);
       NUGA::random rando;
 
@@ -321,14 +319,6 @@ namespace NUGA
           E_Bool overlap;
           bool isx = PGj.intersect<DELAUNAY::Triangulator>(front.crd, ae1G, C, EPSILON, true, lambda, u1, overlap);
 
-          /*{
-            std::ostringstream o;
-            o << "PG_j_" << j;
-            std::vector<E_Int> cont;
-            cont.push_back(j);
-            medith::write(o.str().c_str(), front.crd, front.cnt, &cont, 0);
-          }*/
-
           if (isx && lambda < lambda_min)
           {
             // is G above or under the plane ?
@@ -350,9 +340,10 @@ namespace NUGA
       assert(sign);
       return (sign < 0) ? OUT : IN; //assume outward orientation
     }
+    
 
     template <>
-    eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
+    inline eClassify classify(NUGA::aPolyhedron<0> const& ae1, NUGA::aPolyhedron<0> const& ae2, bool deep)
     {
       // WARNING : assume ae1 and ae2 are closed surface (polyhedra)
       // WARNING : assume no collision situation => 3 posibilities : 1 in 2, 2 in 1 or separated
@@ -361,10 +352,10 @@ namespace NUGA
       assert(ae2.m_oriented != 0);
       
       // 1 in 2 ?
-      const double* G1 = ae1.get_centroid();
+      const E_Float* G1 = ae1.get_centroid();
       DELAUNAY::Triangulator dt;
       ae2.triangulate(dt, ae2.m_crd);
-      double omega = 0.;
+      E_Float omega = 0.;
       for (E_Int i = 0; i < ae2.nb_tris(); ++i)
       {
         E_Int T[3];
@@ -377,7 +368,7 @@ namespace NUGA
       if (omega < 1.e-13) return IN;
 
       // 2 in 1 ?
-      const double* G2 = ae2.get_centroid();
+      const E_Float* G2 = ae2.get_centroid();
       ae1.triangulate(dt, ae1.m_crd);
       omega = 0.;
       E_Int T[3];
@@ -393,6 +384,7 @@ namespace NUGA
 
       return OUT;
     }
+    
 
     static eClassify classify(K_SEARCH::BBox3D const& t1, K_SEARCH::BBox3D const& t2)
     {
@@ -403,7 +395,8 @@ namespace NUGA
     static eClassify classify(K_SEARCH::BBox3D const& t1, std::vector<K_SEARCH::BBox3D> const& ts, std::vector<E_Int> const & ids)
     {
       eClassify ret = OUT;
-      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i) {
+      for (size_t i = 0; i < ids.size() && (ret == OUT); ++i) 
+      {
         K_SEARCH::BBox3D bx = ts[ids[i]];
         bx.enlarge(0.01); //hack for 2D : eg. collar double wall can fall out of fuselage box
         ret = classify(t1, bx);
@@ -413,7 +406,8 @@ namespace NUGA
       return ret;
     }
 
-    static eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
+    
+    static inline eClassify classify2D(NUGA::aPolygon & ae1_2D, NUGA::aPolygon& ae2_2D, double ABSTOL)
     {
       DELAUNAY::Triangulator dt;
 
@@ -437,7 +431,7 @@ namespace NUGA
       is_in = false;
       for (E_Int k = 0; k < ae2_2D.m_crd.cols(); ++k)
       {
-        const double * P = ae2_2D.m_crd.col(k);
+        const E_Float* P = ae2_2D.m_crd.col(k);
         // if P is in ae1, ae0 is a piece of ae1
         ae1_2D.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, ae1_2D.m_crd, P, is_in, ABSTOL);
         if (!is_in) break;
@@ -447,6 +441,7 @@ namespace NUGA
 
       return OUT;
     }
+    
   }
 
   ///
@@ -460,7 +455,7 @@ namespace NUGA
    std::vector< bound_mesh_t*> & mask_bits, bound_mesh_t& WP, bound_mesh_t& WNP)
   {
 #ifdef CLASSIFYER_DBG
-    static int znb = 0;
+    static E_Int znb = 0;
     std::cout << "PREP_build_structures_and_reduce_to_zone : __build_mask_bits : " << znb << std::endl;
 #endif
 
@@ -474,7 +469,8 @@ namespace NUGA
     __build_mask_bits2(z_mesh, -0.1, NUGA::ISO_MAX, 2.*NUGA::PI*15./360, mask_crds, mask_cnts, mask_wall_ids, z_priorities, rank_wnp, mask_bits, WP, WNP);
 
 #ifdef CLASSIFYER_DBG
-    for (size_t m = 0; m < mask_bits.size(); ++m) {
+    for (size_t m = 0; m < mask_bits.size(); ++m) 
+    {
       std::ostringstream o;
       o << "mask_init_z_" << znb << "_m_" << m;
       if (mask_bits[m] != nullptr) medith::write(o.str().c_str(), mask_bits[m]->crd, mask_bits[m]->cnt);
@@ -610,7 +606,6 @@ namespace NUGA
     {
       K_SEARCH::BBox3D zbx;
       z_mesh.bbox(zbx);
-      //std::cout << "xcellnv testing" << std::endl;
       eClassify loc = NUGA::CLASSIFY::classify(zbx, _comp_boxes, _z_priorities);
 
       if (loc == IN)
@@ -1140,7 +1135,7 @@ namespace NUGA
   	// 2. incremental coloring, starting from UPPER_COL
     
     // 2.1 : current field with only IN cells and new Xs (-X)
-    std::vector<double> cur_xcelln(z_xcelln.size(), OUT);
+    std::vector<E_Float> cur_xcelln(z_xcelln.size(), OUT);
 
     for (size_t i=0; i < z_xcelln.size(); ++i)
     {
@@ -1203,10 +1198,10 @@ namespace NUGA
       {
         if (cur_xcelln[i] != XCOL) continue;
 
-        int nneighs = neighborz->stride(i);
+        E_Int nneighs = neighborz->stride(i);
         const E_Int* pneighs = neighborz->begin(i);
 
-        for (int j = 0; (j < nneighs); ++j)
+        for (E_Int j = 0; (j < nneighs); ++j)
         {
           if (pneighs[j] == IDX_NONE) continue;
 
@@ -1249,7 +1244,7 @@ namespace NUGA
           medith::write("subj", aen);
 #endif
 
-        // autonomous cutter front
+          // autonomous cutter front
           bound_mesh_t acut_front(mask_bit, cands, 1);
 
           // b. classify pneigh[j] with that molecule

@@ -600,7 +600,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar47(E_Int* rcvPts     , E_Int& nbRcvPt
 
   E_Int nvars      = vectOfRcvFields.size();
   E_Int ii,jj;
-  // variables for flow varialbes
+  // variables for flow variables
   E_Float* qin;
   E_Float* qin2;
   E_Float* qout;

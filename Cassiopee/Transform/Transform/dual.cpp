@@ -30,8 +30,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int extraPoints; // 0: pas de pts en plus des centres, 1: points en plus sur les faces externes
-  if (!PYPARSETUPLE_(args, O_ I_,
-                    &array, &extraPoints))
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &extraPoints))
   {
       return NULL;
   }
@@ -39,8 +38,8 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType);
 
   if (res != 2)
   {
@@ -70,9 +69,11 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   FldArrayF fd;
   FldArrayI cNGD;
   E_Int nvpf0;
+  E_Int api = f->getApi();
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
   cn->getFace(0, nvpf0, ngon, indPG);
+  cNGD.setNGon(1);
   if (nvpf0 == 1) dualNGON1D(*f, *cn, extraPoints, fd, cNGD);
   else if (nvpf0 == 2) dualNGON2D(*f, *cn, extraPoints, fd, cNGD);
   else if (nvpf0 > 2)
@@ -94,9 +95,16 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   }
   // build array
   RELEASESHAREDU(array, f, cn);
+  PyObject* tpl = NULL;
   if (extraPoints == 1)
-    K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, fd, cNGD);
-  PyObject* tpl = K_ARRAY::buildArray(fd, varString, cNGD, 8, eltType);
+  {
+    tpl = K_CONNECT::V_cleanConnectivityNGon(posx, posy, posz, varString,
+                                             fd, cNGD, 1.e-10);
+  }
+  else
+  {
+    tpl = K_ARRAY::buildArray3(fd, varString, cNGD, eltType, api);
+  }
   return tpl;
 }
 //=============================================================================
@@ -496,6 +504,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   E_Int sizeFN0 = sizeFNp; E_Int sizeEF0 = sizeEFp;
   sizeFNp += cFNp2.getSize(); sizeEFp += cEFp2.getSize();
   FldArrayI cNGon(4+sizeFNp+sizeEFp);
+  cNGon.setNGon(1);
   cNGon[0] = nfacesp; cNGon[1] = sizeFNp;
   cNGon[2+sizeFNp] = neltsp; cNGon[3+sizeFNp] = sizeEFp;
   E_Int* ptrFN0 = cNGp+2;
@@ -810,6 +819,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
 
   for (E_Int i = 0; i < sizeEF2; i++)
   { ptr1[0] = ptrEF2[i]; ptr1++;}
+  cNGD.setNGon(1);
   
   return nfacesExt;
 }

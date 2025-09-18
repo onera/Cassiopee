@@ -44,11 +44,11 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
   char* eltType1; char* eltType2;
   vector<E_Int> pos1; vector<E_Int> pos2;
   E_Int res1 = 
-    K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-                          cn1, eltType1); 
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+                           cn1, eltType1); 
   E_Int res2 = 
-    K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
-                          cn2, eltType2);
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+                           cn2, eltType2);
   E_Int ind, ind2;
 
   if (res1 == 1 && res2 == 1)
@@ -59,7 +59,8 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
 
     if (res0 == -1)
     {
-      delete f1; delete f2;      
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: one array is empty.");
       return NULL;      
@@ -72,28 +73,32 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
 
     if (im1 > im2 || jm1 > jm2 || km1 > km2) 
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: patched element dimensions must be smaller than the element on which it is applied.");
       return NULL;
     }
     if (ii < 1 || ii > im2)
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: position is not in mesh.");
       return NULL;
     }
     if (jj < 1 || jj > jm2)
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: position is not in mesh.");
       return NULL;
     }
     if (kk < 1 || kk > km2)
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: position is not in mesh.");
       return NULL;
@@ -102,7 +107,8 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
     {
       if (ii + im1 > im2+1)
       {
-        delete f1; delete f2;
+        RELEASESHAREDS(array1, f1);
+        RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: i index is too big.");
         return NULL;      
@@ -112,7 +118,8 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
     {    
       if (jj + jm1 > jm2+1)
       {
-        delete f1; delete f2;
+        RELEASESHAREDS(array1, f1);
+        RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: j index is too big.");
         return NULL;      
@@ -122,7 +129,8 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
     {
       if (kk + km1 > km2+1)
       {
-        delete f1; delete f2;
+        RELEASESHAREDS(array1, f1);
+        RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: k index is too big.");
         return NULL;      
@@ -146,18 +154,18 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
             fp2[n][ind] = fp1[n][ind2];
         }
   
-    delete f1;
     // Build array 
-    PyObject* tpl = K_ARRAY::buildArray(*f2, varString, 
-                                        im2, jm2, km2);
-    delete [] varString; delete f2;
+    PyObject* tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2);
+    delete [] varString;
+    RELEASESHAREDS(array1, f1);
+    RELEASESHAREDS(array2, f2);
+      
     return tpl;
   }
   else if (res1 == 2 || res2 == 2) 
   {
-    delete f1; delete f2;
-    if (res1 == 2) delete cn1;
-    if (res2 == 2) delete cn2;
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);      
     PyErr_SetString(PyExc_TypeError,
                     "patch: can not be used on an unstructured array.");
     return NULL;
@@ -178,11 +186,10 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   PyObject* nodesIndices;
-  
-  if (!PyArg_ParseTuple(args, "OOO",
-                        &array1, &array2, &nodesIndices))
+  if (!PYPARSETUPLE_(args, OOO_,
+                      &array1, &array2, &nodesIndices))
   {
-      return NULL;
+    return NULL;
   }
   
   // Check array
@@ -196,11 +203,11 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   char* eltType1; // type d'elements de array1
   char* eltType2; // type d'elements de array2
   E_Int res1 = 
-    K_ARRAY::getFromArray(array1, varString1, f1, im1, jm1, km1, 
-                          cn1, eltType1);
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+                           cn1, eltType1);
   E_Int res2 = 
-    K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2, 
-                          cn2, eltType2);
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+                           cn2, eltType2);
 
   if (res1 != 1 && res1 != 2)
   {
@@ -216,7 +223,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   }
 
   E_Int nbnodes, nf; E_Int* n0;
-  K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf, true);
+  K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf);
   
   if (nbnodes != f1->getSize())
   {  
@@ -245,6 +252,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   }
 
   E_Int nfld = pos1.size();
+  E_Int api = f2->getApi();
 
   vector<E_Float*> fp1(nfld);
   // pointeur sur les champs de array1
@@ -268,18 +276,17 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   if (res2 == 1)
   {
-    tpl = K_ARRAY::buildArray(*f2, varString, im2, jm2, km2);
+    tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2);
   }
   else if (res2 == 2)
   {
-    tpl = K_ARRAY::buildArray(*f2, varString, *cn2, -1, eltType2);
+    tpl = K_ARRAY::buildArray3(*f2, varString, *cn2, eltType2, api);
   }
 
   Py_DECREF(nodesIndices);
-  delete f1; delete f2;
-  if (res1 == 2) delete cn1;
-  if (res2 == 2) delete cn2;
-
+  RELEASESHAREDB(res1, array1, f1, cn1);
+  RELEASESHAREDB(res2, array2, f2, cn2);
+      
   delete [] varString; 
   return tpl;
 }

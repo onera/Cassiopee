@@ -33,8 +33,8 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cnl, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cnl, eltType);
 
   if (res != 2)
   {
@@ -57,11 +57,12 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
   }
 
   // nouveau code
+  E_Int api = f->getApi();
   FldArrayI* cn;
   conformizeNGon(*f, posx, posy, posz, *cnl, tol, cn);
   
   // Construction de l'array de sortie
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, 8, "NGON");
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, "NGON", api);
   delete cn;
   RELEASESHAREDU(array, f, cnl); 
 

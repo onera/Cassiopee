@@ -194,10 +194,10 @@ void CString::searchForMatchingStrings( vector<CString*>& strings,
  
   E_Int ind = findFirstNonDejaVu();
 
-  E_Boolean found;
+  E_Bool found;
   E_Int is1, ie1, js1, je1;
   E_Int is2, ie2, js2, je2;
-  E_Boolean isSelected1, isSelected2;
+  E_Bool isSelected1, isSelected2;
 
   while ( ind != -1 )
   { 
@@ -297,10 +297,10 @@ void CString::searchForMatchingStrings( vector<CString*>& strings,
  
 //   E_Int ind = findFirstNonDejaVu();
 
-//   E_Boolean found;
+//   E_Bool found;
 //   E_Int is1, ie1, js1, je1;
 //   E_Int is2, ie2, js2, je2;
-//   E_Boolean isSelected1, isSelected2;
+//   E_Bool isSelected1, isSelected2;
   
 //   while ( ind != -1 )
 //   { 
@@ -408,7 +408,7 @@ void CString::matchStrings(CString* s1, CString* s2,
                            E_Int& istart1, E_Int& iend1,
                            E_Int& istart2, E_Int& iend2)
 {
-  E_Boolean found;
+  E_Bool found;
   E_Int i2;
   CString* str;
 
@@ -439,7 +439,7 @@ void CString::matchStrings(CString* s1, CString* s2,
       {
         is1 = i1;
         is2 = i2;
-        E_Boolean isOK = compMatching( s1, s2, strings,
+        E_Bool isOK = compMatching( s1, s2, strings,
                                        is1, is2, ie1, ie2);
         
         if (isOK == true )
@@ -468,12 +468,12 @@ void CString::matchStrings(CString* s1, CString* s2,
    strings. 
 */
 //=============================================================================
-E_Boolean CString::compMatching(CString* s1, CString* s2,
+E_Bool CString::compMatching(CString* s1, CString* s2,
                                 vector<CString*>& strings,
                                 E_Int& istart1, E_Int& istart2,
                                 E_Int& iend1, E_Int& iend2) 
 {
-  E_Boolean match = false;
+  E_Bool match = false;
   FldArrayIS& dejaVu1 = s1->getDejaVu();
   FldArrayI& ind1 = s1->getIndArray();
 
@@ -481,7 +481,7 @@ E_Boolean CString::compMatching(CString* s1, CString* s2,
   CString* str;  
   iend1 = -1;
   iend2 = -1;
-  E_Boolean found;
+  E_Bool found;
 
   for ( E_Int i1 = istart1+1; i1 < ind1.getSize(); i1++ )
   {
@@ -515,7 +515,7 @@ E_Boolean CString::compMatching(CString* s1, CString* s2,
    This routine can fail, if no point is available in all the strings :false
 */
 //=============================================================================
-E_Boolean CString::nearestPoint(E_Int ifirst1, vector<CString*>& strings,
+E_Bool CString::nearestPoint(E_Int ifirst1, vector<CString*>& strings,
                                 E_Int& ifirst2, CString*& stringOut)
 {
   E_Float dmin = E_MAX_FLOAT;
@@ -528,7 +528,7 @@ E_Boolean CString::nearestPoint(E_Int ifirst1, vector<CString*>& strings,
   E_Float x1 = coord(ind, 1);
   E_Float y1 = coord(ind, 2);
   E_Float z1 = coord(ind, 3); 
-  E_Boolean found = false;
+  E_Bool found = false;
   E_Int stringsSize =strings.size();
   for ( E_Int str = 0; str < stringsSize; str++)
   {
@@ -1020,7 +1020,7 @@ void CString::storeMatchingStringsInfo(vector<CString*>& strings,
 //=======================================================================
 /* Test if selected segments are overlapping */
 //=======================================================================
-E_Boolean CString::areSegmentsOverlapping(E_Int is, E_Int ie,
+E_Bool CString::areSegmentsOverlapping(E_Int is, E_Int ie,
                                           E_Int js, E_Int je)
 {
   E_Int imin, imax;
@@ -1052,7 +1052,7 @@ void CString::compRemainingSegments(list<FldArrayI*>& remainingSeg)
   E_Int cnt = 0;
   FldArrayI pointsForPockets(size);
   FldArrayI flag(size);
-  E_Boolean isCut;
+  E_Bool isCut;
   E_Int isize;
   E_Int size1 = 0;
   E_Int size2 = 0;
@@ -1083,7 +1083,7 @@ void CString::compRemainingSegments(list<FldArrayI*>& remainingSeg)
   FldArrayI links(cnt, 4); // overdimensionned, we never know
   _blk->compLinks(pointsForPockets, links);
  
-  E_Boolean goOn = true;
+  E_Bool goOn = true;
 
   while (goOn == true)
   {

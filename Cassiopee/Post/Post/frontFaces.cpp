@@ -36,15 +36,15 @@ PyObject* K_POST::frontFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* tagArray;
-  if (!PyArg_ParseTuple(args, "OO", &array, &tagArray)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &tagArray)) return NULL;
   
   // Extraction array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                               cn, eltType);
 
   PyObject* tpl = NULL;
   if (res == 2)
@@ -54,8 +54,8 @@ PyObject* K_POST::frontFaces(PyObject* self, PyObject* args)
     FldArrayF* tag; FldArrayI* cnt;
     E_Int nit, njt, nkt;
     E_Int rest;
-    rest = K_ARRAY::getFromArray(tagArray, varStringt, tag, nit, njt, nkt, 
-                                 cnt, eltTypet, true);
+    rest = K_ARRAY::getFromArray3(tagArray, varStringt, tag, nit, njt, nkt, 
+                                  cnt, eltTypet);
     if (rest != 1 && rest != 2)
     {
       RELEASESHAREDU(array, f, cn); 
@@ -102,6 +102,7 @@ PyObject* K_POST::frontFacesUnstructured(char* varString, FldArrayF& f,
   E_Int nelts = cn.getSize(); // nombre d'elements
   E_Int nvpe = cn.getNfld(); // nbre de noeuds par elements
   E_Int nfld = f.getNfld(); // nbre de champs dans f
+  E_Int api = f.getApi();
 
   E_Int nfaces = 0; // nb de faces par element
   E_Int nvertex = 0; // nb de sommets par face
@@ -199,8 +200,8 @@ PyObject* K_POST::frontFacesUnstructured(char* varString, FldArrayF& f,
     K_CONNECT::cleanConnectivity(posx, posy, posz, 
                                  1.e-12, eltTypeOut, 
                                  *faces, *connect);
-  PyObject* tpl = K_ARRAY::buildArray(*faces, varString, 
-                                      *connect, -1, eltTypeOut);
+  PyObject* tpl = K_ARRAY::buildArray3(*faces, varString, 
+                                       *connect, eltTypeOut, api);
   delete faces; delete connect;
   return tpl;
 }

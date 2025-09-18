@@ -8928,7 +8928,7 @@ function return:           - a pointer to the desired substring.
 char   *ADFI_strtok(
 	        char *string,
 		char **string_pos,
-		char *token )
+		const char *token )
 {
   char	*tmp_ptr ;
   char	*sub_string ;

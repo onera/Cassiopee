@@ -33,7 +33,8 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   char* varString; char* eltType;
   ret = K_ARRAY::getFromArray3(ARR, varString, f, ni, nj, nk, cn, eltType);
 
-  if (ret <= 0) {
+  if (ret <= 0) 
+  {
     PyErr_SetString(PyExc_TypeError, "Bad mesh.");
     return NULL;
   }
@@ -64,18 +65,18 @@ PyObject *K_GENERATOR::getCellCenters(PyObject *self, PyObject *args)
   E_Int nfaces = cn->getNFaces();
   E_Float *fc, *fa;
   E_Int size, nfld;
-  ret = K_NUMPY::getFromNumpyArray(FC, fc, size, nfld, true);
+  ret = K_NUMPY::getFromNumpyArray(FC, fc, size, nfld);
   assert(ret == 1 && size == nfaces*3 && nfld == 1);
-  ret = K_NUMPY::getFromNumpyArray(FA, fa, size, nfld, true);
+  ret = K_NUMPY::getFromNumpyArray(FA, fa, size, nfld);
   assert(ret == 1 && size == nfaces*3 && nfld == 1);
 
   // Parent elements
   E_Int *owner, *neigh;
   if (OWN != Py_None && NEI != Py_None)
   {
-    ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld, true);
+    ret = K_NUMPY::getFromNumpyArray(OWN, owner, size, nfld);
     assert(ret == 1 && size == nfaces && nfld == 1);
-    ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld, true);
+    ret = K_NUMPY::getFromNumpyArray(NEI, neigh, size, nfld);
     assert(ret == 1 && size == nfaces && nfld == 1);
   }
   else if (OWN == Py_None && NEI == Py_None)

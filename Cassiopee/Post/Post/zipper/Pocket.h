@@ -42,11 +42,11 @@ class Pocket
     ~Pocket();
     
     /** Write the pocket contours and store it in file fileName*/
-    void writeLine( char* fileName, E_Boolean add);  
+    void writeLine( char* fileName, E_Bool add);  
     
     /** Close pocket by building triangles. 
         Return true if triangles are created*/
-    E_Boolean closePocket( FldArrayF& field, FldArrayI& connect);
+    E_Bool closePocket( FldArrayF& field, FldArrayI& connect);
 
   private :
     /* Close pocket when a set of points are aligned*/
@@ -55,11 +55,11 @@ class Pocket
                              std::vector<TriangleZ*>& triangles);
     /* Check if a set of points are aligned. If true, then return field1 
        the list of aligned points, and field2 opposite points */
-    E_Boolean checkIfPtsAreAligned(FldArrayF& field1, 
+    E_Bool checkIfPtsAreAligned(FldArrayF& field1, 
                                    FldArrayF& field2);
 
     /* Computes triangles  starting from istart */
-    E_Boolean computeTriangulation(std::vector<TriangleZ*>& triangles);
+    E_Bool computeTriangulation(std::vector<TriangleZ*>& triangles);
     
     /* Compute the connectivity of triangles */
     void compConnectivity(std::vector<TriangleZ*>& triangles,
@@ -67,7 +67,7 @@ class Pocket
                           FldArrayI& connect);
     
     /* Compute triangulation for the quad PiPi+1PjPj+1 of the pocket */
-    E_Boolean compDelaunay(E_Int& iA, E_Int& iB,
+    E_Bool compDelaunay(E_Int& iA, E_Int& iB,
                            E_Int& iC, E_Int& iD,
                            FldArrayF& field1, FldArrayF& field2,
                            std::vector<TriangleZ*>& triangles);
@@ -81,7 +81,7 @@ class Pocket
        diagType = 1 : (AC)
        diagType = 2 : (BD)
        Return true if the normals of triangles are in the same direction */
-    E_Boolean checkTriangles( E_Int diagType,
+    E_Bool checkTriangles( E_Int diagType,
                               FldArrayF& fieldA, 
                               FldArrayF& fieldB,
                               FldArrayF& fieldC, 

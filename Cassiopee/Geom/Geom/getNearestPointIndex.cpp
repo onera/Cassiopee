@@ -32,7 +32,7 @@ using namespace K_SEARCH;
 PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
 {
   PyObject* array, *listPts;
-  if ( !PyArg_ParseTuple(args, "OO", &array, &listPts) ) return NULL;
+  if ( !PYPARSETUPLE_(args, OO_, &array, &listPts) ) return NULL;
 
   // Recuperation de la liste des points
   E_Int npts = PyList_Size(listPts);
@@ -60,8 +60,8 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     ni, nj, nk, cn, eltType);
   if (res != 1 && res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, "getNearestPointIndex: invalid array.");

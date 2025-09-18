@@ -23,9 +23,15 @@
 # define __int64 long long
 #endif
 # include "mpi.h"
-# include "mpi4py/mpi4py.h"
 #else
 #define MPI_Comm void
+#endif
+
+#ifdef _MPI4PY
+# include "mpi4py/mpi4py.h"
+#define GETPYMPICOMM (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi)
+#else
+#define GETPYMPICOMM NULL
 #endif
 
 // to be suppressed in next release
@@ -783,7 +789,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4C(hid_t node, hid_t tid,
   H5Tclose(yid); H5Dclose(did);
 
   int* ptr2 = (int*)::malloc(sizem*sizeof(int));
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   int64_t val;
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
@@ -1386,7 +1392,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
     MPI_Info info   = MPI_INFO_NULL;
     H5Pset_fapl_mpio(fapl, comm, info);
@@ -2594,7 +2600,7 @@ hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* i
   // check int size in array
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   for (int64_t i = 0; i < size; i++)
   {
     if (data[i] > maxInt) { exceed = true; break; }

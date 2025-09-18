@@ -79,30 +79,29 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   //f.setAllValuesAt(2.);
   PyObject* a = K_NUMPY::buildNumpyArray(f, 1);
   K_FLD::FldArrayF* out;
-  K_NUMPY::getFromNumpyArray(a , out, true);
+  K_NUMPY::getFromNumpyArray(a , out);
   return a;
 #endif
 
 #if TEST1 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Float* t = new E_Float[1]; t[0] = 12.;
-  PyObject* p = K_PYTREE::createChild(o, "coucou", "DataArray_t", 
-                                      t, 1, 1);
+  PyObject* p = K_PYTREE::createChild(o, "coucou", "DataArray_t", t, 1, 1);
   delete [] t;
   return p;
 #endif
 
 #if TEST2 == 1
   PyObject* o; char* path;
-  if (!PyArg_ParseTuple(args, "Os", &o, &path)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &o, &path)) return NULL;
   PyObject* p = K_PYTREE::getNodeFromPath(o, path);
   return p;
 #endif
 
 #if TEST3 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
@@ -118,7 +117,7 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
 
 #if TEST4 == 1
   PyObject* o;
-  if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
   char* varString; char* eltType;
@@ -141,19 +140,19 @@ PyObject* K_KCORE::tester(PyObject* self, PyObject* args)
   fr(1, 1) = +0.05;
 
   // Interrogation de l'api de field
-  // si apif=1, c'est un array1
-  // si apif=2, c'est un array2 ou un array3
+  // si api=1, c'est un array1
+  // si api=3, c'est un array2 ou un array3
   // la distinction entre array2 et 3 est que le 3 peut stocker du ME
   // et en cas de NGON peut stocker un NGONv4
   // pour savoir si le NGON est un NGONv4, il faut regarder c->isNGON
   // si isngon=1 (array1 compact CGNSv3), isngon=2 (rake CGNSv3), isgon=3 (rake CGNSv4)
-  E_Int apif = f->getApi();
-  printf("api Fld C de field=" SF_D_ "\n", apif);
+  E_Int api = f->getApi();
+  printf("api Fld C de field=" SF_D_ "\n", api);
 
   if (ret == 2 && K_STRING::cmp(eltType, 4, "NGON") == 0)
   {
     // Acces universel sur NGON
-    E_Int isNGon = c->isNGon();
+    E_Int isNGon = c->getNGonType();
     // isNGon=1: NGON, NFACE CGNSv3 array1 compact
     // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
     // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4

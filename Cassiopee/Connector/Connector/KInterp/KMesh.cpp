@@ -22,17 +22,14 @@
 # include "KMesh.h"
 # include "Def/DefCplusPlusConst.h"
 # include "Def/DefFunction.h"
-
+# include "Metric/metric.h"
+# include "CompGeom/compGeom.h"
 using namespace K_FUNC;
 using namespace std;
 using namespace K_FLD;
 
 extern "C"
-{
-  void k6rotatemesh_(const E_Int& dim, const E_Float* center,
-                     const E_Float* axis, const E_Float& teta,
-                     E_Float* x, E_Float* y, E_Float* z);
-  
+{  
   void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km,
                    const E_Float* x, const E_Float* y, const E_Float* z,
                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
@@ -71,25 +68,6 @@ extern "C"
                           const E_Float* nodeMax,
                           const E_Int& szCartElt,
                           E_Float* cartEltMin, E_Float* cartEltMax );
-
-  void k6compstructmetric_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& nbCells, const E_Int& nbInt,
-    const E_Int& nbInti, const E_Int& nbIntj, 
-    const E_Int& nbIntk, 
-    const E_Float* x, const E_Float* y, const E_Float* z,  
-    E_Float* vol,
-    E_Float* surfx, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz); 
-
-  void k6compunstrmetric_(const E_Int& npts, const E_Int& nelts, 
-                          const E_Int& nedges, const E_Int& nnodes, 
-                          const E_Int* cn, const E_Float* xt, 
-                          const E_Float* yt, const E_Float* zt, 
-                          const E_Float* xint, const E_Float* yint, const E_Float* zint, 
-                          const E_Float* snx, const E_Float* sny, 
-                          const E_Float* snz, const E_Float* surf, 
-                          const E_Float* vol);
 
   void k6compstructcellcenter_(E_Int& im, E_Int& jm, E_Int& km, 
                                E_Int& nbNode, E_Int& nbcell, 
@@ -207,9 +185,9 @@ FldArrayF& K_KINTERP::KMesh::getCellCenter()
 //=============================================================================
 FldArrayF& K_KINTERP::KMesh::getCellVol()
 {
-  if ( _cellVol.getSize() != 0) return _cellVol;
+  if (_cellVol.getSize() != 0) return _cellVol;
 
-  if ( _isStruct == true ) //structure
+  if (_isStruct) //structure
   {
     E_Int im1 = _im-1;
     E_Int jm1 = _jm-1;
@@ -221,38 +199,30 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
     E_Int nbInt = nbInti + nbIntj + nbIntk;
  
     _cellVol.malloc(nbCells);
-    FldArrayF surf(nbInt,3);
+    FldArrayF surf(nbInt, 3);
     FldArrayF snorm(nbInt);
-    FldArrayF centerInt(nbInt,3);
-    k6compstructmetric_(
-      _im, _jm, _km, nbCells, nbInt,
+    FldArrayF centerInt(nbInt, 3);
+    K_METRIC::compMetricStruct(
+      _im, _jm, _km,
       nbInti, nbIntj, nbIntk,
       _coord.begin(1), _coord.begin(2), _coord.begin(3), 
       _cellVol.begin(),
       surf.begin(1), surf.begin(2), surf.begin(3), 
       snorm.begin(),
-      centerInt.begin(1), centerInt.begin(1), centerInt.begin(3) );
+      centerInt.begin(1), centerInt.begin(1), centerInt.begin(3)
+    );
   }
   else 
   {
-    E_Int nelts = _cn.getSize();
-    E_Int nedges = 4;  E_Int nnodes = 4;
-
+    FldArrayI& cm = *(_cn.getConnect(0));
+    E_Int nelts = cm.getSize();
+    E_Int nfacets = 4*nelts;
+    FldArrayF snx(nfacets), sny(nfacets), snz(nfacets), surf(nfacets);
     _cellVol.malloc(nelts);
-    FldArrayF surf(nelts, nedges);
-    FldArrayF snx(nelts, nedges);
-    FldArrayF sny(nelts, nedges);
-    FldArrayF snz(nelts, nedges);
-    //tableau local au fortran
-    FldArrayF xint(nelts,nedges);
-    FldArrayF yint(nelts,nedges);
-    FldArrayF zint(nelts,nedges);
-    //
-    k6compunstrmetric_(_npts, nelts, nedges, nnodes, _cn.begin(), 
-                       _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                       xint.begin(), yint.begin(), zint.begin(),
-                       snx.begin(), sny.begin(), snz.begin(), 
-                       surf.begin(), _cellVol.begin());
+    K_METRIC::compMetricUnstruct(
+      _cn, "TETRA", _coord.begin(1), _coord.begin(2), _coord.begin(3),
+      snx.begin(), sny.begin(), snz.begin(), surf.begin(), _cellVol.begin()
+    );
   }
   return _cellVol;
 }
@@ -262,7 +232,7 @@ FldArrayF& K_KINTERP::KMesh::getCellVol()
 //=============================================================================
 void K_KINTERP::KMesh::createExtendedCenterMesh(const KMesh& origMesh)
 {  
-  if ( _isStruct == false )
+  if (!_isStruct)
   {
     printf("KMesh: createExtendedCenterMesh: not valid for an unstructured kmesh. Nothing done.\n");
     return;
@@ -546,13 +516,13 @@ void K_KINTERP::KMesh::createExtendedCenterMesh(const KMesh& origMesh)
         pos2f = pos2d - imojmo;
         pos2g = pos2b - imojmo;
         xt[pos] =
-          K_CONST::ONE_EIGHT*(xo[pos2]  + xo[pos2a] + xo[pos2b] + xo[pos2c] +
+          K_CONST::ONE_EIGHTH*(xo[pos2]  + xo[pos2a] + xo[pos2b] + xo[pos2c] +
                               xo[pos2d]  + xo[pos2e] + xo[pos2f] + xo[pos2g] );
         yt[pos] =
-          K_CONST::ONE_EIGHT*(yo[pos2]  + yo[pos2a] + yo[pos2b] + yo[pos2c] +
+          K_CONST::ONE_EIGHTH*(yo[pos2]  + yo[pos2a] + yo[pos2b] + yo[pos2c] +
                               yo[pos2d] + yo[pos2e] + yo[pos2f] + yo[pos2g] );
         zt[pos] =
-          K_CONST::ONE_EIGHT*(zo[pos2]  + zo[pos2a] + zo[pos2b] + zo[pos2c] +
+          K_CONST::ONE_EIGHTH*(zo[pos2]  + zo[pos2a] + zo[pos2b] + zo[pos2c] +
                               zo[pos2d] + zo[pos2e] + zo[pos2f] + zo[pos2g] );
       }
 }
@@ -603,8 +573,9 @@ void K_KINTERP::KMesh::createDuplicatedExtendedPeriodMesh(const KMesh& origMesh,
         zt[pos] = zo[pos];
       }
   
-  k6rotatemesh_(dim1, axisPnt.begin(), axisVct.begin(), theta, 
-                coord.begin(1), coord.begin(2), coord.begin(3));
+  K_COMPGEOM::rotateMesh(dim1, theta,
+			 axisPnt.begin(), axisVct.begin(), 
+			 coord.begin(1), coord.begin(2), coord.begin(3));
   
   E_Float* xn = _coord.begin(1);
   E_Float* yn = _coord.begin(2);

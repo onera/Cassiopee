@@ -1,5 +1,5 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
 
 #=============================================================================
@@ -57,8 +57,10 @@ if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS += ['-D_MPI']
+
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
+    ADDITIONALCPPFLAGS += ['-D_MPI4PY']
 
 if hdf:
     for l in hdflibs: libraries.append(l)

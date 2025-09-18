@@ -107,7 +107,7 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString,
 PyObject* K_ARRAY::buildArray2(E_Int nfld, const char* varString,
                                E_Int nvertex, E_Int nelt,
                                E_Int et, const char* etString,
-                               E_Boolean center, E_Int sizeNGon, 
+                               E_Bool center, E_Int sizeNGon, 
                                E_Int sizeNFace, E_Int nface, E_Int api)
 {
   npy_intp dim[2];
@@ -245,7 +245,7 @@ PyObject* K_ARRAY::buildArray2(FldArrayF& f, const char* varString,
   E_Int sizeNFace = 0;
   E_Int nface = 0;
 
-  if (cn.isNGon()) // NGon Fld
+  if (cn.getNGonType()) // NGon Fld
   {
     sizeNGon = cn.getSizeNGon();
     sizeNFace = cn.getSizeNFace();

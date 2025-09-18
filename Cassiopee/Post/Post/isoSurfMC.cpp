@@ -595,10 +595,9 @@ PyObject* K_POST::isoSurfMC(PyObject* self, PyObject* args)
   PyObject* grid;
   char* field;
   E_Float value;
-  if (!PYPARSETUPLE_(args, O_ S_ R_,
-                    &grid, &field, &value))
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &grid, &field, &value))
   {
-      return NULL;
+    return NULL;
   }
 
   /*----------------------------------------------*/
@@ -609,8 +608,8 @@ PyObject* K_POST::isoSurfMC(PyObject* self, PyObject* args)
   FldArrayI* cn = NULL;
   char* eltType0; char* varString0;
   E_Int res = 
-    K_ARRAY::getFromArray(grid, varString0, f, nil, njl, nkl, 
-                          cn, eltType0, true);
+    K_ARRAY::getFromArray3(grid, varString0, f, nil, njl, nkl, 
+                           cn, eltType0);
 
   if (res != 1 && res != 2)
   {

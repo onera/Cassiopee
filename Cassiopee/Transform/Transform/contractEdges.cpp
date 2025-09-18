@@ -37,8 +37,8 @@ PyObject* K_TRANSFORM::contractEdges(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(o, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(o, varString,
+                                     f, ni, nj, nk, cn, eltType);
   // Test non structure ?
   if (res != 2)
   {
@@ -71,10 +71,11 @@ PyObject* K_TRANSFORM::contractEdges(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
   FldArrayI ct = *cn;
+  E_Int api = f->getApi();
 
   contractEdges(ct, f->getSize(), x,y,z, mode);
 
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, ct, 2, NULL);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ct, "TRI", api);
   RELEASESHAREDU(o, f, cn);
   return tpl;
 }

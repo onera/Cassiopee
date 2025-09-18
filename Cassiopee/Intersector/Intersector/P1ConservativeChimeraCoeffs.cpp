@@ -34,7 +34,7 @@ PyObject* K_INTERSECTOR::P1ConservativeInterpolation(PyObject* self, PyObject* a
 {
   PyObject *meshD, *meshR, *fldD;
   
-  if (!PyArg_ParseTuple(args, "OOO", &meshR, &meshD, &fldD)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &meshR, &meshD, &fldD)) return NULL;
   
   using crd_t = K_FLD::FloatArray;
   using cnt_t = K_FLD::IntArray;
@@ -133,7 +133,7 @@ PyObject* K_INTERSECTOR::P1ConservativeChimeraCoeffs(PyObject* self, PyObject* a
   crd_t *fldR(0), *fldD(0), *fCelln(0);
   cnt_t *cnR(0), *cnD(0), *cCelln(0);
   
-  if (!PyArg_ParseTuple(args, "OOO", &meshR, &cellNR, &meshD)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &meshR, &cellNR, &meshD)) return NULL;
     
   /////////////////////////////////////////////////////////////////////////
   // Extraction des donnees

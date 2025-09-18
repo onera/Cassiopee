@@ -55,8 +55,8 @@ class SegmentPair
     /** Computes zipper for the pair of segment.
         out : field : coordinates of triangles 
         out : connect : connectivity
-        E_Boolean = true if the zipping is done */
-    E_Boolean computeZipper(const E_Int nfieldTot,
+        E_Bool = true if the zipping is done */
+    E_Bool computeZipper(const E_Int nfieldTot,
                             FldArrayF& field,
                             FldArrayI& connect);
 
@@ -112,7 +112,7 @@ class SegmentPair
        another segment pair
        False: if extremities of the current segment matches with extremities of
        segments that come from 2 different pairs or if not found*/
-    E_Boolean searchForCorrespondingSegments(
+    E_Bool searchForCorrespondingSegments(
       E_Int ind1, E_Int ind2, 
       std::vector<SegmentPair*>& segPairs);
   private:

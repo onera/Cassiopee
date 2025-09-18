@@ -32,7 +32,7 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   // surf: maillage a deraffiner (x,y,z+sol)
   // indic: indicateur de deraffinement: vaut 0 ou 1
   PyObject* surf; PyObject* aindic;
-  if (!PyArg_ParseTuple(args, "OO", &surf, &aindic)) return NULL;  
+  if (!PYPARSETUPLE_(args, OO_, &surf, &aindic)) return NULL;  
 
   /*-----------------------------------------------*/
   /* Extraction des donnees du maillage surfacique */ 
@@ -41,7 +41,7 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res = 
-    K_ARRAY::getFromArray(surf, varString0, f, nil, njl, nkl, cn, eltType0);
+    K_ARRAY::getFromArray3(surf, varString0, f, nil, njl, nkl, cn, eltType0);
 
   if (res != 1 && res != 2)
   {
@@ -51,8 +51,7 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   }
   if (res != 2 || strcmp(eltType0, "TRI") != 0)
   {
-    if (res == 1) delete f;
-    if (res == 2) { delete f; delete cn; }
+    RELEASESHAREDB(res, surf, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "refine: input array must be TRI.");
     return NULL;
@@ -67,7 +66,7 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "refine: coordinates not found in array.");
-    delete f; delete cn;
+    RELEASESHAREDU(surf, f, cn);
     return NULL;
   }
   posxu++; posyu++; poszu++;
@@ -78,14 +77,15 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   char* varString1; char* eltType1;
   FldArrayF* findic; FldArrayI* cn1;
   E_Int ni1, nj1, nk1;
-  E_Int res1 = K_ARRAY::getFromArray(aindic, varString1, findic, 
-                                     ni1, nj1, nk1, cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(aindic, varString1, findic, 
+                                      ni1, nj1, nk1, cn1, eltType1);
   E_Int ne = cn->getSize();
   if (res1 == 1)
   {
     if (ni1*nj1*nk1 != ne)
     {
-      delete f; delete cn; delete findic;
+      RELEASESHAREDU(surf, f, cn);
+      RELEASESHAREDS(aindic, findic);
       PyErr_SetString(
         PyExc_TypeError,
         "refine: dimension of refinement indicator array must be equal to the number of elements.");
@@ -96,23 +96,24 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
   {
     if ( findic->getSize() != ne )
     {
-      delete f; delete cn; delete findic; delete cn1;
+      RELEASESHAREDU(surf, f, cn);
+      RELEASESHAREDU(aindic, findic, cn1);
       PyErr_SetString(
         PyExc_TypeError,
         "refine: dimension of refinement indicator array must be equal to the number of elements.");
       return NULL;
     }
-    delete cn1;
   }
   else
   {
-    delete f; delete cn;
+    RELEASESHAREDU(surf, f, cn); 
     PyErr_SetString(PyExc_TypeError,
                     "refine: refinement indicator array is invalid.");
     return NULL;
   }
   
   // Passage a un indic en noeuds
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   E_Int n1, n2, n3;
   FldArrayIS indic(npts); indic.setAllValuesAtNull();
@@ -127,16 +128,16 @@ PyObject* K_POST::refine(PyObject* self, PyObject* args)
       indic[n1] = 1; indic[n2] = 1; indic[n3] = 1;
     }
   }
-  delete findic;
-
   refineElements(*f, *cn, indic);
 
   E_Float tolc = 1.e-12; 
-  K_CONNECT::cleanConnectivity(posxu, posyu, poszu, tolc, 
-                               "TRI", *f, *cn);
+  K_CONNECT::cleanConnectivity(posxu, posyu, poszu, tolc, "TRI", *f, *cn);
 
-  PyObject* t = K_ARRAY::buildArray(*f, varString0, *cn, -1, "TRI");
-  delete f; delete cn;
+  PyObject* t = K_ARRAY::buildArray3(*f, varString0, *cn, "TRI", api);
+
+  RELEASESHAREDB(res1, aindic, findic, cn1);
+  RELEASESHAREDU(surf, f, cn);
+      
   return t;
 }
 

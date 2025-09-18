@@ -61,23 +61,22 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   FldArrayF* fw; FldArrayI* cnw;
   char* varStringw; char* eltTypew;
-
-  E_Int res = K_ARRAY::getFromArray(Array, varString, f, im, jm, km, 
-                                    cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km, 
+                                     cn, eltType);
   if (res != 1)
   {
-    if (res == 2 ) { delete f; delete cn; }
+    if (res == 2 ) { RELEASESHAREDU(Array, f, cn); }
     PyErr_SetString(PyExc_TypeError,
                     "nurbs: (control points) input array not valid.");
     return NULL;
   }
 
-  E_Int resw = K_ARRAY::getFromArray(ArrayW, varStringw, fw, imw, jmw, kmw, 
-                                     cnw, eltTypew);
+  E_Int resw = K_ARRAY::getFromArray3(ArrayW, varStringw, fw, imw, jmw, kmw, 
+                                      cnw, eltTypew);
   if (resw != 1)
   {
-    delete f;
-    if (resw == 2) { delete fw; delete cnw; }
+    RELEASESHAREDS(Array, f);
+    if (resw == 2) { RELEASESHAREDU(ArrayW, fw, cnw); }
     PyErr_SetString(PyExc_TypeError,
                     "nurbs: (weights) input array not valid.");
     return NULL;
@@ -89,7 +88,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_TypeError,
                     "nurbs : coordinates not found in control points array.");
     return NULL;
@@ -98,7 +97,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   if (im < 2) 
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);    
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: minimum 2 control points required.");
     return NULL;
@@ -106,7 +105,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   if (im != imw || jm != jmw || km != kmw)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: number of control points differ from number of weights points.");
     return NULL;
@@ -114,7 +113,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   if (im < ordern)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: number of control points must be greater than order.");
     return NULL;
@@ -122,7 +121,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   
   if (jm > 1 && jm < orderm) // ij-array 
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: number of control points must be greater than order.");
     return NULL;
@@ -130,7 +129,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   
   if (km > 1)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: array must have one or two dimensions.");
     return NULL;
@@ -138,7 +137,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   if (N < im || M < jm)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: N and M must be greater than the number of control points.");
     return NULL;
@@ -150,7 +149,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   {
     if (fw[0][i] < 0)
     {
-      delete f; delete fw;
+      RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
       PyErr_SetString(PyExc_ValueError,
                       "nurbs: all the weight must be positive.");
       return NULL;
@@ -161,7 +160,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   
   if (test == taille)
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: at least one weight must be greater than 0.");
     return NULL;
@@ -179,7 +178,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
     { 
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularNurbs(im, ordern, N, density, xt, yt, zt, W, PF);
-      delete f; delete fw;
+      RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
       PyObject* tpl = K_ARRAY::buildArray(PF, "x,y,z", PF.getSize(), 1, 1);
       return tpl;
     }
@@ -189,14 +188,14 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
       E_Int niout, njout;
       K_COMPGEOM::regularNurbs2D(im, jm, ordern, N, orderm, M, 
                                  density, xt, yt, zt, W, PF, niout, njout);
-      delete f; delete fw;
+      RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
       PyObject* tpl = K_ARRAY::buildArray(PF, "x,y,z", niout, njout, 1);
       return tpl;
     }
   }
   else
   {
-    delete f; delete fw;
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_TypeError,
                     "nurbs: control points array must be 1D, 2D.");
     return NULL;

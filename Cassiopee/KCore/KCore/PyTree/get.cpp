@@ -47,6 +47,30 @@ PyObject* K_PYTREE::getNodeFromName1(PyObject* o, const char* name)
 }
 
 //==============================================================================
+// Recherche par type d'un seul niveau, retourne un seul noeud.
+// IN: o: objet representant un noeud de pyTree
+// IN: name: le nom du noeud
+// OUT: retourne le nouveau noeud si trouve, sinon retourne NULL
+//==============================================================================
+PyObject* K_PYTREE::getNodeFromType1(PyObject* o, const char* name)
+{
+  PyObject* childrens = PyList_GetItem(o, 2);
+  E_Int n = PyList_Size(childrens);
+  PyObject *l; PyObject *node; char* str=NULL;
+  for (E_Int i = 0; i < n; i++)
+  {
+    l = PyList_GetItem(childrens, i);
+    node = PyList_GetItem(l, 3);
+    if (PyString_Check(node)) str = PyString_AsString(node);
+#if PY_VERSION_HEX >= 0x03000000
+    else if (PyUnicode_Check(node)) str = (char*)PyUnicode_AsUTF8(node);
+#endif
+    if (K_STRING::cmp(str, name) == 0) { return l; }  
+  }
+  return NULL;
+}
+
+//==============================================================================
 // Recherche par nom d'un seul niveau, retourne une liste de noeuds.
 // IN: o: objet representant un noeud de pyTree
 // IN: type: le type du noeud
@@ -76,7 +100,7 @@ void K_PYTREE::getNodesFromType1(PyObject* o, const char* type,
 // IN: o: noeud du pyTree
 // OUT: retourne le ptr sur la chaine partagee
 //==============================================================================
-char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
+char* K_PYTREE::getNodeName(PyObject* o)
 {
   PyObject* v = PyList_GetItem(o, 0);
   if (PyString_Check(v))
@@ -88,13 +112,19 @@ char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
   return NULL;
 }
 
+//#OBSOLETE
+char* K_PYTREE::getNodeName(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeName(o);
+}
+
 //==============================================================================
 // Retourne le type du noeud
 // Le tableau de char retourne est partage avec python.
 // IN: o: noeud du pyTree
 // OUT: retourne le ptr sur la chaine partagee
 //==============================================================================
-char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
+char* K_PYTREE::getNodeType(PyObject* o)
 {
   PyObject* v = PyList_GetItem(o, 3);
   if (PyString_Check(v))
@@ -104,6 +134,12 @@ char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
   { char* r = (char*)PyUnicode_AsUTF8(v); return r; }
 #endif
   return NULL;
+}
+
+//#OBSOLETE
+char* K_PYTREE::getNodeType(PyObject* o, vector<PyArrayObject*>& hook)
+{
+  return getNodeType(o);
 }
 
 //==============================================================================
@@ -261,36 +297,54 @@ E_Float K_PYTREE::getValueF(PyObject* o)
 }
 
 //==============================================================================
-// Retourne le nombre d'éléments d'une zone d'un pyTree
+// Retourne le nombre de vertex, de cellules d'une zone d'un pyTree
 // IN: zone
-// OUT: number of points
+// OUT: zoneType (1: structure, 2: non structure), number of vertices, 
+// number of cells
 //==============================================================================
-E_Int K_PYTREE::getNumberOfPointsOfZone(PyObject* o, vector<PyArrayObject*>& hook)
+E_Int K_PYTREE::getZoneDim(PyObject* o, 
+  E_Int& zoneType, E_Int& nvertex, E_Int& ncells, vector<PyArrayObject*>& hook)
 {
   PyObject* t;
+  zoneType = 1; nvertex = 0; ncells = 0;
   // get type
   t = getNodeFromName1(o, "ZoneType");
-  if (t == NULL) return 0;
+  if (t == NULL) return 1;
   E_Int s;
   char* type = getValueS(t, s, hook);
-  E_Int isStructured = false;
-  if (K_STRING::cmp(type, s, "Structured") == 0) isStructured = true;
+  zoneType = 2;
+  if (K_STRING::cmp(type, s, "Structured") == 0) zoneType = 1;
   // get dims
-  E_Int s0, s1, numberOfPoints;
+  E_Int s0, s1;
   E_Int* d = getValueAI(o, s0, s1, hook);
   E_Int ni=0; E_Int nj=0; E_Int nk=0;
-  if (isStructured) // structured
+  if (zoneType == 1) // structured
   {
-    if (s0 == 1) { ni = d[0]; nj = 1; nk = 1; }
-    else if (s0 == 2) { ni = d[0]; nj = d[1]; nk = 1; }
-    else { ni = d[0]; nj = d[1]; nk = d[2]; }
-    numberOfPoints = ni*nj*nk;
+    if (s0 == 1) 
+    { 
+      ni = d[0];
+      nvertex = ni;
+      ncells = std::max(ni-1,E_Int(0));
+    }
+    else if (s0 == 2) 
+    { 
+      ni = d[0]; nj = d[1];
+      nvertex = ni*nj;
+      ncells = std::max((ni-1)*(nj-1),E_Int(0));
+    }
+    else 
+    { 
+      ni = d[0]; nj = d[1]; nk = d[2];
+      nvertex = ni*nj*nk;
+      ncells = std::max((ni-1)*(nj-1)*(nk-1),E_Int(0));
+    }
   }
   else // unstructured
   {
-    numberOfPoints = d[0];
+    nvertex = d[0];
+    ncells = d[1];
   }
-  return numberOfPoints;
+  return 0;
 }
 
 //==============================================================================
@@ -317,7 +371,7 @@ PyObject* K_PYTREE::getNodeFromPath(PyObject* o, const char* path)
   char* pt = (char*)path;
   PyObject* next = o;
   E_Int c = 0;
-  E_Boolean found;
+  E_Bool found;
 
   while (1)
   {

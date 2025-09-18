@@ -855,9 +855,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
     }
   }
 
-  // ME: api = 3 only
   E_Int api = f1.getApi();
-  if (nc > 1) api = 3;
 
   K_ARRAY::extractVars(eltType, eltTypes);
   vector<E_Int> nelts(nc, 0);
@@ -897,7 +895,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
   K_ARRAY::getFromArray3(tpln, f, cn);
 
   // Nouveaux champs aux centres (la connectivite sera identique a cn)
-  E_Boolean compact = false;
+  E_Bool compact = false;
   if (api == 1) compact = true;
   FldArrayF* fc = new FldArrayF(neltstot, nfldc, compact);
 
@@ -1016,7 +1014,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
   K_ARRAY::getFromArray3(tpln, f, cn);
 
   // Nouveaux champs aux centres (la connectivite sera identique a cn)
-  E_Boolean compact = false;
+  E_Bool compact = false;
   if (api == 1) compact = true;
   FldArrayF* fc = new FldArrayF(nelts, nfldc, compact);
 

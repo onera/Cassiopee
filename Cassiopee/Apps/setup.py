@@ -1,5 +1,5 @@
-from distutils.core import setup
-#from setuptools import setup
+#from distutils.core import setup
+from setuptools import setup
 import os
 import KCore.Dist as Dist
 

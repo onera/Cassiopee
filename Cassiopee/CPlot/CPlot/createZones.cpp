@@ -157,7 +157,7 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
       nall = referenceNfield;
       for (E_Int p = 0; p < varsSize; p++)
       {
-        E_Boolean found = false; 
+        E_Bool found = false; 
         for (E_Int n = 0; n < referenceNfield; n++)
         {
           if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
@@ -422,7 +422,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
       nall = referenceNfield;
       for (E_Int p = 0; p < varsSize; p++)
       {
-        E_Boolean found = false; 
+        E_Bool found = false; 
         for (E_Int n = 0; n < referenceNfield; n++)
         {
           if (K_STRING::cmp(vars[p], referenceVarNames[n]) == 0)
@@ -575,7 +575,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     E_Int nelts = cn->getNElts();
     E_Int size1 = cn->getSizeNGon();
     E_Int size2 = cn->getSizeNFace();
-    if (cn->isNGon() == 3)
+    if (cn->getNGonType() == 3)
     {
       size1 += nfaces; size2 += nelts;
     }

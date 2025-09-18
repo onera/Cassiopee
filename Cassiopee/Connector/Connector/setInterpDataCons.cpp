@@ -30,7 +30,7 @@ using namespace K_FLD;
   RELEASESHAREDB(resr, receiverArray, fr, cnr);                         \
   RELEASESHAREDN(numpyIndicesR, IndicesR);                              \
   for (E_Int no = 0; no < nDnrZones; no++)                              \
-  { RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);    \
+  { RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);  \
     PyObject* tpld = PyList_GetItem(listOfNumpyIndicesD, no);           \
     RELEASESHAREDN(tpld, listOfIndicesD[no]);  } 
 
@@ -50,7 +50,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   PyObject *donorArrays;// domaines d interpolation
   PyObject *numpyIndicesR;
   PyObject *listOfNumpyIndicesD;   
-  if (!PyArg_ParseTuple(args, "OOOO", &receiverArray, &donorArrays, &numpyIndicesR, &listOfNumpyIndicesD)) 
+  if (!PYPARSETUPLE_(args, OOOO_, &receiverArray, &donorArrays, &numpyIndicesR, &listOfNumpyIndicesD)) 
     return NULL;
 
   /*--------------------------------------------------*/
@@ -59,9 +59,9 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
-  if ( resr == -1)
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
+  if (resr == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setInterpDataCons: 1st arg is not valid.");
@@ -76,7 +76,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   }    
   else//check NGON
   {
-    if(K_STRING::cmp(eltTyper,"NGON")!=0)
+    if (K_STRING::cmp(eltTyper,"NGON") != 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setInterpDataCons: 1st arg must be NGON.");
@@ -98,8 +98,8 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
 
   // Extraction of indirection tab for receptor zone 
   FldArrayI* IndicesR;// structured indices corresponding to NGON indices of the receptor zone
-  E_Int resi = K_NUMPY::getFromNumpyArray(numpyIndicesR, IndicesR, true);
-  if ( resi == 0)
+  E_Int resi = K_NUMPY::getFromNumpyArray(numpyIndicesR, IndicesR);
+  if (resi == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "setInterpDataCons: 2nd arg must be a numpy of integers.");
@@ -121,8 +121,8 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   {  
     FldArrayI* IndicesD;
     PyObject* tpli = PyList_GetItem(listOfNumpyIndicesD, no);
-    resi = K_NUMPY::getFromNumpyArray(tpli, IndicesD, true);
-    if ( resi == 0)
+    resi = K_NUMPY::getFromNumpyArray(tpli, IndicesD);
+    if (resi == 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "setInterpDataCons: 2nd arg must be a numpy of integers.");
@@ -148,8 +148,8 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true;  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(donorArrays, resl, varString, fields, a2, a3, a4, objs,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nDnrZones = objs.size();

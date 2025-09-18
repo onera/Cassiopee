@@ -64,8 +64,8 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   FldArrayI* cn0;
   char* varString;
   char* eltType0;
-  E_Int res = K_ARRAY::getFromArray(a1, varString, f, im, jm, km, 
-                                    cn0, eltType0, true); 
+  E_Int res = K_ARRAY::getFromArray3(a1, varString, f, im, jm, km, 
+                                     cn0, eltType0); 
   if (res != 1) 
   {
     RELEASESHAREDB(res, a1, f, cn0);
@@ -91,8 +91,8 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc;
   char* varStringc;
-  res = K_ARRAY::getFromArray(celln1, varStringc, fc, imc, jmc, kmc, 
-                              cn0, eltType0, true); 
+  res = K_ARRAY::getFromArray3(celln1, varStringc, fc, imc, jmc, kmc, 
+                               cn0, eltType0); 
   if (res != 1) 
   {
     RELEASESHAREDS(a1, f); RELEASESHAREDB(res, celln1, fc, cn0);
@@ -137,15 +137,14 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   vector<K_FLD::FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   res = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, 
-    skipUnstructured, true);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int ns = structF.size();
   if (res == -1)
   {
@@ -286,7 +285,7 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
     return NULL;
   }
   // build output array
-  PyObject* tpl = K_ARRAY::buildArray(*cellnout, varStringc, imc, jmc, kmc);
+  PyObject* tpl = K_ARRAY::buildArray3(*cellnout, varStringc, imc, jmc, kmc);
   delete cellnout;
   RELEASESHAREDS(a1, f); RELEASESHAREDS(celln1, fc);      
   for (E_Int is = 0; is < nsc; is++)

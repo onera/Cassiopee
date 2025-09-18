@@ -114,7 +114,7 @@ class CString
        strings : in : vector of strings
        ifirst2 : out: number of pt in the ind array nearest of ind of stringOut
        stringOut : out : string containing the nearest point */
-    E_Boolean nearestPoint(E_Int ifirst1, std::vector<CString*>& strings,
+    E_Bool nearestPoint(E_Int ifirst1, std::vector<CString*>& strings,
                            E_Int& ifirst2, CString*& stringOut);
 
     /* Reset the deja Vu field to 0 */
@@ -126,13 +126,13 @@ class CString
                    CString* str2, E_Int is2, E_Int ie2);
 
     /* Find the matching pieces of s1 and s2 */
-    E_Boolean compMatching(CString* s1, CString* s2, 
+    E_Bool compMatching(CString* s1, CString* s2, 
                            std::vector<CString*>& strings,
                            E_Int& istart1, E_Int& istart2,
                            E_Int& iend1, E_Int& iend2);
     
     /* Test if selected segments are overlapping */
-    E_Boolean areSegmentsOverlapping(E_Int is, E_Int ie,
+    E_Bool areSegmentsOverlapping(E_Int is, E_Int ie,
                                      E_Int js, E_Int je);
 
     /* Select the most relevant segment : closest segments extremities */

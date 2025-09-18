@@ -25,58 +25,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                       E_Int& nnodes, E_Int* cn, 
-                       E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surface);
-
-  void k6unstructsurf1d_(E_Int& npts, E_Int& nelts, 
-                         E_Int& nnodes, E_Int* cn, 
-                         E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                         E_Float* length);
-
-  void k6integstruct_(const E_Int& ni, const E_Int& nj, 
-                      E_Float* ratio, E_Float* surf, 
-                      E_Float* F, E_Float& result);
-
-  void k6integstruct1d_(const E_Int& ni, E_Float* ratio, E_Float* length, 
-                        E_Float* F, E_Float& result);
-
-  void k6integstructnodecenter_(const E_Int& ni, const E_Int& nj, 
-                                E_Float* ratio, E_Float* surf, 
-                                E_Float* F, E_Float& result);
-
-  void k6integunstruct_(const E_Int& nbt, const E_Int& size, 
-                        E_Int* cn, E_Float* ratio, E_Float* surf, 
-                        E_Float* F, E_Float& result);
-  
-  void k6integunstruct1d_(const E_Int& nbt, const E_Int& size, 
-                          E_Int* cn, E_Float* ratio, E_Float* length, 
-                          E_Float* F, E_Float& result);
-
-  void k6integstructnodecenter1d_(const E_Int& ni, E_Float* ratio, 
-                                  E_Float* length, E_Float* F, 
-                                  E_Float& result);
-
-  void k6integunsnodecenter_(const E_Int& nbt, 
-                             E_Float* ratio, E_Float* surf, 
-                             E_Float* F, E_Float& result);
-}
-
 //=============================================================================
 /* Calcul de l'integrale de la solution */
 // ============================================================================
@@ -86,7 +34,7 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   PyObject* FArrays;
   PyObject* ratioArrays;
   
-  if (!PyArg_ParseTuple(args, "OOO",  &coordArrays, &FArrays, &ratioArrays))
+  if (!PYPARSETUPLE_(args, OOO_,  &coordArrays, &FArrays, &ratioArrays))
     return NULL;
 
   // verification des listes
@@ -135,7 +83,6 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     }
   }
 
-  //
   PyObject* coordObj;
   PyObject* FObj;
   PyObject* ratioObj;
@@ -146,9 +93,9 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   E_Int nFld = -1;
   char varString0[K_ARRAY::VARSTRINGLENGTH];
   E_Int sizef = 0;
-  E_Int center2node = 2; // set to 1 if coord is in nodes and F in centers
-                         // set to 0 if coord and F have the same size
-  E_Int case1D;      // set to 1 if linear integration
+  E_Int center2node = 2;  // set to 1 if coord is in nodes and F in centers
+                          // set to 0 if coord and F have the same size
+  E_Int case1D;           // set to 1 if linear integration
   
   char* eltTypec; FldArrayI* cnc;
   char* eltTypef; FldArrayI* cnf;
@@ -160,11 +107,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   FldArrayF resultat;
   E_Int res = -1;
   
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays, i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, fc, 
-                                 nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, fc, 
+                                  nic, njc, nkc, cnc, eltTypec); 
     if (resc != 1 && resc != 2)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -178,19 +125,19 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     {
       printf("Warning: integ: coordinates not found in array %d.", i+1);
       printf(" Array skipped...\n");
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next; 
     }
     posx++; posy++; posz++;
 
     FObj = PyList_GetItem(FArrays, i);
-    resf = K_ARRAY::getFromArray(FObj, varStringf, ff, 
-                                 nif, njf, nkf, cnf, eltTypef); 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, 
+                                  nif, njf, nkf, cnf, eltTypef); 
 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
+      RELEASESHAREDS(FObj, ff);
       PyErr_SetString(PyExc_TypeError, 
                       "integ: field is not a valid array.");
       return NULL;
@@ -209,8 +156,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       {
         printf("Warning: integ: array %d doesn t have a valid number of variables.", i+1); 
         printf("Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
 
@@ -220,8 +167,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       {
         printf("Warning: integ: variables are in a different order than first array.");
         printf(" Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -234,8 +181,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       if (nic > 1 && njc > 1 && nkc > 1) 
       {
         printf("Warning: integ: 3D arrays not valid. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       // 1D ou 2D ?
@@ -264,7 +211,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         {
           printf("Warning: integ: coord and field arrays do not represent the same zone.");
           printf(" Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDB(resc, coordObj, fc, cnc);
+          RELEASESHAREDB(resf, FObj, ff, cnf);
           goto next;
         }
       }
@@ -278,11 +226,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(ratioObj, varStringr, ratio, 
-                                     nir, njr, nkr, cnr, eltTyper); 
+        resr = K_ARRAY::getFromArray3(ratioObj, varStringr, ratio, 
+                                      nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if (resr == 2) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -305,12 +253,18 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     
       if (res == 0) 
       {
-        delete ff; delete fc; delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);
         PyErr_SetString(PyExc_ValueError,
                         "integ: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete ratio; 
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     }
     else if (resc == 2 && resf == 2) // Cas non structure
     {
@@ -322,8 +276,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         center2node = 1;
       else
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
                         "integ: only TRI or BAR unstructured arrays are possible.");
         return NULL;
@@ -340,12 +294,12 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
 
         if (resr != 2)
         {
-          if (resr == 1) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -363,14 +317,18 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         
       if (res == 0)
       {
-        delete ff; delete fc; delete cnf; delete cnc; 
-        delete ratio; if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
         PyErr_SetString(PyExc_ValueError,
                         "integ: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
     }
     else 
     {
@@ -390,19 +348,11 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
   PyObject* tpl;
   PyObject* l = PyList_New(0);
   
-#ifdef E_DOUBLEREAL
   for (E_Int i = 0; i < nFld; i++)
   {
-    tpl = Py_BuildValue("d", resultat[i]);
+    tpl = Py_BuildValue(R_, resultat[i]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-#else
-  for (E_Int i = 0; i < nFld; i++)
-  {
-    tpl = Py_BuildValue("f", resultat[i]);
-    PyList_Append(l, tpl); Py_DECREF(tpl);
-  }
-#endif  
   return l;
 }
 
@@ -426,33 +376,39 @@ E_Int K_POST::integ1(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
   // Compute surface of each "block" i cell, with coordinates coordBlk
   E_Int ncells = (NI-1)*(NJ-1);
   FldArrayF surfBlk(ncells);
-  k6structsurft_(NI, NJ, 1, ncells, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), surfBlk.begin());
+
+  K_METRIC::compSurfStruct2D(
+    NI, NJ, 1,
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    surfBlk.begin());
   
-  switch (center2node) 
+  if (center2node == 1) 
   {
-    case 1:
-      // Compute integral, coordinates defined in node 
-      // and field FBlk in center 
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {      
-        k6integstructnodecenter_(NI-1, NJ-1, ratioBlk.begin(), surfBlk.begin(),
-                                 FBlk.begin(n), resultBlk);
-       
-        resultat[n-1] += resultBlk;
-      }
-      break;
+    // Compute integral, coordinates defined in node 
+    // and field FBlk in center 
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {      
+      K_POST::integStructNodeCenter(
+        NI-1, NJ-1,
+        ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
+        resultBlk);
       
-    default:
-      // Compute integral, coordinates and field have the same size
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integstruct_(NI, NJ, ratioBlk.begin(), surfBlk.begin(), 
-                       FBlk.begin(n), resultBlk);
-       
-        resultat[n-1] += resultBlk;
-      }
-      break;
-  }   
+      resultat[n-1] += resultBlk;
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      K_POST::integStruct(
+        NI, NJ,
+        ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
+        resultBlk);
+      
+      resultat[n-1] += resultBlk;
+    }
+  } 
   return 1;
 }
 
@@ -482,31 +438,38 @@ E_Int K_POST::integ11D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
     NI = njBlk; NJ = niBlk; NK = nkBlk;
   }
   else return 0;
+
   // Compute surface of each "block" i cell, with coordinates coordBlk
   FldArrayF lengthBlk(NI-1);
-  k6structsurf1dt_(NI, NJ, NK, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), lengthBlk.begin());
+  K_METRIC::compSurfStruct1D(
+    NI, NJ, NK,
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    lengthBlk.begin());
  
-  switch (center2node)
+  if (center2node == 1)
   {
-    case 1 :
-      for (E_Int n = 1 ; n <= numberOfVariables ; n++)
-      {
-        // Compute integral, coordinates defined in node 
-        // and field FBlk in center 
-        k6integstructnodecenter1d_(NI-1, ratioBlk.begin(), lengthBlk.begin(), 
-                                   FBlk.begin(n), resultBlk);
-        resultat[n-1] = resultat[n-1]+resultBlk;
-      }
-      break;
-    default:
-      // Compute integral, coordinates and field have the same size
-      for (E_Int n = 1 ; n <= numberOfVariables ; n++)
-      {
-        k6integstruct1d_(NI, ratioBlk.begin(), lengthBlk.begin(), 
-                         FBlk.begin(n), resultBlk);
-        resultat[n-1] = resultat[n-1]+resultBlk;
-      }
-      break;
+    for (E_Int n = 1 ; n <= numberOfVariables ; n++)
+    {
+      // Compute integral, coordinates defined in node 
+      // and field FBlk in center 
+      K_POST::integStructNodeCenter1D(
+        NI-1,
+        ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
+        resultBlk);
+      resultat[n-1] += resultBlk;
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1 ; n <= numberOfVariables ; n++)
+    {
+      K_POST::integStruct1D(
+        NI,
+        ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
+        resultBlk);
+      resultat[n-1] += resultBlk;
+    }
   }   
   return 1;
 }
@@ -524,45 +487,49 @@ E_Int K_POST::integUnstruct1(E_Int center2node,
 {
   E_Float resultBlk = 0.;
   E_Int numberOfVariables = FBlk.getNfld();
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF surfBlk(nbT);
-  E_Int nnodes = 3;
-  E_Int nedges = 1;
-  FldArrayF snx(nbT); // normale a la surface  
-  FldArrayF sny(nbT);
-  FldArrayF snz(nbT);
-  k6unstructsurf_(size, nbT, nedges, nnodes, cnBlk.begin(),
-                  coordBlk.begin(posx), coordBlk.begin(posy), 
-                  coordBlk.begin(posz),
-                  snx.begin(), sny.begin(), snz.begin(), 
-                  surfBlk.begin());
-
-  switch (center2node) 
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    case 1:
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        // Compute integral, coordinates defined in node 
-        // and field FBlk in center 
-        k6integunsnodecenter_(nbT, ratioBlk.begin(),
-                              surfBlk.begin(), 
-                              FBlk.begin(n), resultBlk);
-        resultat[n-1] = resultat[n-1] + resultBlk;
-      }
-      break;
-    default:
-      // Compute integral, coordinates and field have the same size
-      for (E_Int n = 1; n <= numberOfVariables; n++)
-      {
-        k6integunstruct_(nbT, size, cnBlk.begin(), ratioBlk.begin(), 
-                         surfBlk.begin(), 
-                         FBlk.begin(n), resultBlk);
-        
-        resultat[n-1] = resultat[n-1] + resultBlk;
-      }   
-      break;
-  }   
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+  FldArrayF surfBlk(ntotElts);
+  FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts); // normale a la surface
+
+  K_METRIC::compSurfUnstruct(
+    cnBlk, "TRI",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin());
+
+  if (center2node == 1) 
+  {
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      // Compute integral, coordinates defined in node 
+      // and field FBlk in center 
+      K_POST::integUnstructNodeCenter(
+        cnBlk,
+        ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
+        resultBlk
+      );
+      resultat[n-1] += resultBlk;
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      K_POST::integUnstruct(
+        cnBlk, "TRI",
+        ratioBlk.begin(), surfBlk.begin(), FBlk.begin(n),
+        resultBlk
+      );
+      resultat[n-1] += resultBlk;
+    }
+  }
   return 1;
 }
 //=============================================================================
@@ -578,39 +545,47 @@ E_Int K_POST::integUnstruct11D(E_Int center2node,
 {
   E_Float resultBlk = 0.;
   E_Int numberOfVariables = FBlk.getNfld();
-  E_Int nbT = cnBlk.getSize();
-  E_Int size = coordBlk.getSize();
-  FldArrayF lengthBlk(nbT);
-  
-  E_Int nnodes = 2;
-  nnodes = 2;
-  k6unstructsurf1d_(size, nbT, nnodes, cnBlk.begin(),
-                    coordBlk.begin(posx), coordBlk.begin(posy), 
-                    coordBlk.begin(posz), lengthBlk.begin());
-
-  switch (center2node) 
+  E_Int ntotElts = 0;
+  E_Int nc = cnBlk.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    case 1:
-      for (E_Int n = 1 ; n <= numberOfVariables ; n++)
-      {
-        // Compute integral, coordinates defined in node 
-        // and field FBlk in center 
-        k6integunsnodecenter_(nbT, ratioBlk.begin(),
-                              lengthBlk.begin(), 
-                              FBlk.begin(n), resultBlk);
-        resultat[n-1] = resultat[n-1] + resultBlk;
-      }
-      break;
-    default :
-      for (E_Int n = 1 ; n <= numberOfVariables ; n++)    
-      {
-        // Compute integral, coordinates and field have the same size
-        k6integunstruct1d_(nbT, size, cnBlk.begin(), ratioBlk.begin(), 
-                           lengthBlk.begin(), 
-                           FBlk.begin(n), resultBlk);
-        resultat[n-1] = resultat[n-1] + resultBlk;
-      }   
-      break;
+    FldArrayI& cm = *(cnBlk.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+  FldArrayF lengthBlk(ntotElts);
+  
+  K_METRIC::compUnstructSurf1d(
+    cnBlk, "BAR",
+    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
+    lengthBlk.begin());
+
+  if (center2node == 1) 
+  {
+    for (E_Int n = 1 ; n <= numberOfVariables ; n++)
+    {
+      // Compute integral, coordinates defined in node 
+      // and field FBlk in center 
+      K_POST::integUnstructNodeCenter(
+        cnBlk,
+        ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
+        resultBlk
+      );
+      resultat[n-1] += resultBlk;
+    }
+  }
+  else
+  {
+    for (E_Int n = 1 ; n <= numberOfVariables ; n++)    
+    {
+      // Compute integral, coordinates and field have the same size
+      K_POST::integUnstruct1D(
+        cnBlk, "BAR",
+        ratioBlk.begin(), lengthBlk.begin(), FBlk.begin(n),
+        resultBlk
+      );
+      resultat[n-1] += resultBlk;
+    }
   }
   return 1;
 }
@@ -622,8 +597,9 @@ PyObject* K_POST::integ2(PyObject* self, PyObject* args)
 {
   PyObject* zone; char* varName;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-  if (!PyArg_ParseTuple(args, "Ossss", &zone, &varName, &GridCoordinates, 
-                        &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SSSS_,
+                     &zone, &varName, &GridCoordinates, 
+                     &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
 
   E_Int ni, nj, nk, cnSize, cnNfld;
   char* varString; char* eltType;
@@ -654,9 +630,12 @@ PyObject* K_POST::integ2(PyObject* self, PyObject* args)
   E_Float* v = fields[posVol];
   
   E_Int n;
-  if (res == 1) n = max(ni-1,E_Int(1))*max(nj-1,E_Int(1))*max(nk-1,E_Int(1));
+  E_Int one = K_CONST::ONE;
+  if (res == 1)
+  {
+    n = K_FUNC::E_max(ni-1, one) * K_FUNC::E_max(nj-1, one) * K_FUNC::E_max(nk-1, one);
+  }
   else n = nj;
-  //printf("%d\n", n);
 
   E_Float ret = 0.;
   if (posRatio == -1)
@@ -672,5 +651,5 @@ PyObject* K_POST::integ2(PyObject* self, PyObject* args)
   }
   RELEASESHAREDZ(hook, varString, eltType);
 
-  return Py_BuildValue("d", ret);
+  return Py_BuildValue(R_, ret);
 }

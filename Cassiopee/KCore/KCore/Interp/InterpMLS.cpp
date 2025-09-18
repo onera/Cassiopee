@@ -27,12 +27,7 @@ using namespace K_ARRAY;
 
 extern "C"
 {
-  void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk,
-                              E_Int& indcell, E_Int& indnode, E_Float* x,
-                              E_Float* y, E_Float* z,
-                              E_Float& vol);
-
-   void k6compsurfofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk,
+  void k6compsurfofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk,
                                 E_Int& indcell, E_Float* x,
                                 E_Float* y, E_Float* z,
                                 E_Float& surface);
@@ -1059,7 +1054,7 @@ void K_INTERP::getBestDonor(
   vector<E_Int> blkCandidates;
   vector<E_Float> volCandidates;
   E_Int pen;
-  E_Int inddummy=-1;// a laisser absolument a -1 pour k6compvolofstructcell
+  E_Int inddummy = -1;  // a laisser absolument a -1 pour K_METRIC::compVolOfStructCell3D
 
 
   for (E_Int no = 0; no < nDnrZones; no++)
@@ -1076,12 +1071,12 @@ void K_INTERP::getBestDonor(
     E_Int* corres = vectOfCorres[no]->begin();
     indDnr = vectOfKdTrees[no]->getClosest(pt, dDnr);
     indDnr = corres[indDnr];
-    temp = indDnr;   // la fonction k6compminlengthofcell modifie l'indice de la cellule...
-    //(pas k6compvolofstructcell)
+    temp = indDnr;   // la fonction K_METRIC::compMeanLengthOfStructCell modifie l'indice de la cellule...
+    //(pas K_METRIC::compVolOfStructCell3D)
 
     E_Float vol = 0.; //volume de la cellule donneuse eventuellement penalise
     E_Float dRef=0.; //distance maximale pour laquelle on compare les volumes
-    E_Float realVol;// volume de la cellule donneuse effectif
+    E_Float realVol=0;// volume de la cellule donneuse effectif
     if (resl[no] == 1) //cas structure
     {
       // dimensions du maillage
@@ -1090,11 +1085,13 @@ void K_INTERP::getBestDonor(
       E_Int nk = *(E_Int*)a4[no];
       // Calcul du volume de la cellule donneuse
       if ((ni==1)||(nj==1)||(nk==1))   // 2D
-        k6compsurfofstructcell_(ni, nj, nk, temp,
-                                xtDnr, ytDnr, ztDnr, vol);
+        K_METRIC::compSurfOfStructCell(
+          ni, nj, nk, temp,
+          xtDnr, ytDnr, ztDnr, vol);
       else if ((ni>1)&&(nj>1)&&(nk>1)) //3D
-        k6compvolofstructcell_(ni, nj, nk, inddummy, temp,
-                               xtDnr, ytDnr, ztDnr, vol);
+        K_METRIC::compVolOfStructCell3D(
+          ni, nj, nk, inddummy, temp,
+          xtDnr, ytDnr, ztDnr, vol);
       realVol = vol;
       // On penalise la cellule si elle a des voisins de cellN != 1 et si elle est sur le bord
       if (penalty == 1)
@@ -1118,7 +1115,7 @@ void K_INTERP::getBestDonor(
       for (size_t i = 0; i < ENbrs.size(); i++)
       {
         E_Float volElt = 0.; 
-        K_METRIC::CompNGonVolOfElement(
+        K_METRIC::compNGonVolOfElement(
           xtDnr, ytDnr, ztDnr, cNG,
           ENbrs[i], vectOfcEV[no], vectOfPosElt[no],
           vectOfPosFace[no], vectOfDimElt[no],

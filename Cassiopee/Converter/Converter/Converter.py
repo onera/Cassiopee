@@ -6,9 +6,6 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 #
 # Python Interface for conversion between array / file / CGNS
 #
-try: range = xrange
-except: pass
-
 import numpy
 import os.path
 try: from . import converter

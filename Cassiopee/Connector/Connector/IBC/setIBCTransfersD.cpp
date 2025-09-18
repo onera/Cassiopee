@@ -60,10 +60,10 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
-                                     imd, jmd, kmd, cnd, eltTypeD, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd,
+                                      imd, jmd, kmd, cnd, eltTypeD);
   E_Int* ptrcnd = NULL;
-  E_Int cndSize = 0;
+  //E_Int cndSize = 0;
   E_Int cnNfldD = 0;
   if (resd != 2 && resd != 1)
   {
@@ -82,7 +82,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
       return NULL;
     }
     ptrcnd  = cnd->begin();
-    cndSize = cnd->getSize();
+    //cndSize = cnd->getSize();
     cnNfldD = cnd->getNfld();
   }
   E_Int nvars;
@@ -207,11 +207,10 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Float** vectOfDnrFields = DnrFields;
 
   for (E_Int eq = 0; eq < nvars; eq++)
-   {
+  {
     vectOfRcvFields[eq] = fieldROut.begin(eq+1);
     vectOfDnrFields[eq] = fd->begin(eq+1);
-   }
-
+  }
 
   // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
   FldArrayI rcvPtsI(nbRcvPts); E_Int*  rcvPts = rcvPtsI.begin();
@@ -223,59 +222,55 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
 ////
 # include "commonInterpTransfers_direct.h"
 
-    E_Int threadmax_sdm  = __NUMTHREADS__;
+  E_Int threadmax_sdm  = __NUMTHREADS__;
 
-    E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
-          size = size + size % 8;                  // on rajoute du bas pour alignememnt 64bits
+  E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
+  size = size + size % 8;                  // on rajoute du bas pour alignememnt 64bits
 
-    FldArrayF  tmp(size*17*threadmax_sdm);
-    E_Float* ipt_tmp=  tmp.begin();
+  FldArrayF  tmp(size*17*threadmax_sdm);
+  E_Float* ipt_tmp=  tmp.begin();
 
-    E_Float param_real[30]; 
-    param_real[ GAMMA] = gamma;
-    param_real[ CVINF] = cv;
-    param_real[ XMUL0] = muS;
-    param_real[ CS] = Cs;
-    param_real[ TEMP0] = Ts;
-    param_real[ PRANDT] = 0.71;
-
+  E_Float param_real[30]; 
+  param_real[ GAMMA] = gamma;
+  param_real[ CVINF] = cv;
+  param_real[ XMUL0] = muS;
+  param_real[ CS] = Cs;
+  param_real[ TEMP0] = Ts;
+  param_real[ PRANDT] = 0.71;
 
 #pragma omp parallel default(shared)
- {
-
-
+{
   #pragma omp for
   for (E_Int noind = 0; noind < nbRcvPts; noind++) rcvPts[noind] = noind;
 
    //indice loop pour paralelisation omp
-   E_Int ideb, ifin;
+  E_Int ideb, ifin;
 #ifdef _OPENMP
-   E_Int  ithread           = omp_get_thread_num()+1;
-   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+  E_Int  ithread           = omp_get_thread_num()+1;
+  E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
 #else
-   E_Int ithread = 1;
-   E_Int Nbre_thread_actif = 1;
+  E_Int ithread = 1;
+  E_Int Nbre_thread_actif = 1;
 #endif
-   // Calcul du nombre de champs a traiter par chaque thread
-   E_Int chunk = nbRcvPts/Nbre_thread_actif;
-   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
-   // pts traitees par thread
-   if (ithread <= r)
-        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
-   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+  // Calcul du nombre de champs a traiter par chaque thread
+  E_Int chunk = nbRcvPts/Nbre_thread_actif;
+  E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+  // pts traitees par thread
+  if (ithread <= r)
+  { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+  else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
-   if (varType == 2 ||varType == 21) 
+  if (varType == 2 ||varType == 21) 
       setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-			                          xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+                                xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
                                 density, ipt_tmp, size, nvars,
                                 param_real, 
                                 vectOfDnrFields, vectOfRcvFields);
-    else 
-    {
-      printf("setIBCTransfersD: varType must be 2 or 21. \n");
-    }
-
- }//fin omp
+  else 
+  {
+    printf("setIBCTransfersD: varType must be 2 or 21. \n");
+  }
+}//fin omp
 
   delete [] RcvFields;  delete [] DnrFields;
   // sortie
@@ -330,63 +325,63 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   //codage general (lent ;-) )
   if (compact==0)
   {
-     /*---------------------------------------------*/
-     /* Extraction des infos sur le domaine donneur */
-     /*---------------------------------------------*/
-     E_Int cnSizeD;
-     vector<E_Int> locsD;
-     vector<E_Int*> cnd;
-     E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
-                                        fieldsD, locsD, imd, jmd, kmd,
-                                        cnd, cnSizeD, cnNfldD,
-                                        eltTypeD, hook,
-                                        GridCoordinates,
-                                        FlowSolutionNodes, FlowSolutionCenters);
-     if (cnd.size() > 0) ptrcnd = cnd[0];
-     meshtype = resd; // 1: structure, 2: non structure
+    /*---------------------------------------------*/
+    /* Extraction des infos sur le domaine donneur */
+    /*---------------------------------------------*/
+    E_Int cnSizeD;
+    vector<E_Int> locsD;
+    vector<E_Int*> cnd;
+    E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                       fieldsD, locsD, imd, jmd, kmd,
+                                       cnd, cnSizeD, cnNfldD,
+                                       eltTypeD, hook,
+                                       GridCoordinates,
+                                       FlowSolutionNodes, FlowSolutionCenters);
+    if (cnd.size() > 0) ptrcnd = cnd[0];
+    meshtype = resd; // 1: structure, 2: non structure
 
-     // Extrait les positions des variables a transferer
-     E_Int posvd;
-     varStringOut[0] = '\0';
+    // Extrait les positions des variables a transferer
+    E_Int posvd;
+    varStringOut[0] = '\0';
 
-     if (PyList_Check(pyVariables) != 0)
+    if (PyList_Check(pyVariables) != 0)
+    {
+      E_Int nvariables = PyList_Size(pyVariables);
+      if (nvariables > 0)
       {
-       int nvariables = PyList_Size(pyVariables);
-       if (nvariables > 0)
-       {
-         for (int i = 0; i < nvariables; i++)
-         {
-           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-           if (PyString_Check(tpl0))
-           {
-             char* varname = PyString_AsString(tpl0);
-             posvd = K_ARRAY::isNamePresent(varname, varStringD);
-             if (posvd != -1)
-             {
-               posvarsD.push_back(posvd);
-               if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
-               else {strcat(varStringOut,","); strcat(varStringOut,varname);}
-             }
-           }
+        for (int i = 0; i < nvariables; i++)
+        {
+          PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+          if (PyString_Check(tpl0))
+          {
+            char* varname = PyString_AsString(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            if (posvd != -1)
+            {
+              posvarsD.push_back(posvd);
+              if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
+              else {strcat(varStringOut,","); strcat(varStringOut,varname);}
+            }
+          }
 #if PY_VERSION_HEX >= 0x03000000
-           else if (PyUnicode_Check(tpl0))
-           {
-              const char* varname = PyUnicode_AsUTF8(tpl0);
-              posvd = K_ARRAY::isNamePresent(varname, varStringD);
-              if (posvd != -1)
-              {
-                 posvarsD.push_back(posvd);
-                if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
-                else {strcat(varStringOut,","); strcat(varStringOut,varname);}
-              }
-           }
+          else if (PyUnicode_Check(tpl0))
+          {
+            const char* varname = PyUnicode_AsUTF8(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            if (posvd != -1)
+            {
+              posvarsD.push_back(posvd);
+              if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
+              else {strcat(varStringOut,","); strcat(varStringOut,varname);}
+            }
+          }
 #endif
-           else
-             PyErr_Warn(PyExc_Warning, "_setIBCTransfersD: variable must be a string. Skipped.");
-         }
-       }
+          else
+            PyErr_Warn(PyExc_Warning, "_setIBCTransfersD: variable must be a string. Skipped.");
+        }
       }
-     nvars = posvarsD.size();
+    }
+    nvars = posvarsD.size();
   }
   else // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
   {
@@ -411,82 +406,82 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
   if (compact==0)
   {
     for (E_Int eq = 0; eq < nvars; eq++)
-      {
-       vectOfRcvFields[eq] = fieldROut.begin(eq+1);
-       vectOfDnrFields[eq] = fieldsD[ posvarsD[eq] ];
-      }
+    {
+      vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+      vectOfDnrFields[eq] = fieldsD[ posvarsD[eq] ];
+    }
   }
   else
   {
     for (E_Int eq = 0; eq < nvars; eq++)
-      {
-       vectOfRcvFields[eq] = fieldROut.begin(eq+1);
-       vectOfDnrFields[eq] = iptroD + eq*ndimdxD;
-      }
+    {
+      vectOfRcvFields[eq] = fieldROut.begin(eq+1);
+      vectOfDnrFields[eq] = iptroD + eq*ndimdxD;
+    }
   }
 
-////
-////
-//  Interpolation parallele
-////
-////
+  ////
+  ////
+  //  Interpolation parallele
+  ////
+  ////
 
-     // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
-     FldArrayI rcvPtsI(nbRcvPts); E_Int* rcvPts = rcvPtsI.begin();
-#    include "commonInterpTransfers_direct.h"
+  // tableau temporaire pour utiliser la routine commune setIBCTransfersCommon
+  FldArrayI rcvPtsI(nbRcvPts); E_Int* rcvPts = rcvPtsI.begin();
+# include "commonInterpTransfers_direct.h"
 
-    E_Int threadmax_sdm  = __NUMTHREADS__;
+  E_Int threadmax_sdm  = __NUMTHREADS__;
 
-    E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
-          size = size + size % 8;            // on rajoute du bas pour alignememnt 64bits
-    if (bctype <= 1) size = 0;               // tableau inutile
+  E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
+  size = size + size % 8;            // on rajoute du bas pour alignememnt 64bits
+  if (bctype <= 1) size = 0;               // tableau inutile
 
-    FldArrayF  tmp(size*18*threadmax_sdm);
-    E_Float* ipt_tmp = tmp.begin();
+  FldArrayF  tmp(size*18*threadmax_sdm);
+  E_Float* ipt_tmp = tmp.begin();
 
-    E_Float param_real[30]; 
-    param_real[ GAMMA] = gamma;
-    param_real[ CVINF] = cv;
-    param_real[ XMUL0] = muS;
-    param_real[ CS] = Cs;
-    param_real[ TEMP0] = Ts;
-    param_real[ PRANDT] = 0.71;
+  E_Float param_real[30]; 
+  param_real[ GAMMA] = gamma;
+  param_real[ CVINF] = cv;
+  param_real[ XMUL0] = muS;
+  param_real[ CS] = Cs;
+  param_real[ TEMP0] = Ts;
+  param_real[ PRANDT] = 0.71;
 
 #pragma omp parallel default(shared)
-  {
+{
 
 //     #pragma omp barrier
 // barriere inutile car synchro implicit a la prochaine loop parallel
   #pragma omp for
   for (E_Int noind = 0; noind < nbRcvPts; noind++) rcvPts[noind] = noind;
 
-   //indice loop pour paralelisation omp
-   E_Int ideb, ifin;
+  //indice loop pour paralelisation omp
+  E_Int ideb, ifin;
 #ifdef _OPENMP
-   E_Int  ithread           = omp_get_thread_num()+1;
-   E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
+  E_Int  ithread = omp_get_thread_num()+1;
+  E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
 #else
-   E_Int ithread = 1;
-   E_Int Nbre_thread_actif = 1;
+  E_Int ithread = 1;
+  E_Int Nbre_thread_actif = 1;
 #endif
-   // Calcul du nombre de champs a traiter par chaque thread
-   E_Int chunk = nbRcvPts/Nbre_thread_actif;
-   E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
-   // pts traitees par thread
-   if (ithread <= r)
-        { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
-   else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
+  // Calcul du nombre de champs a traiter par chaque thread
+  E_Int chunk = nbRcvPts/Nbre_thread_actif;
+  E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
+  // pts traitees par thread
+  if (ithread <= r)
+  { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+  else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
   if (varType == 2 || varType == 21) 
      setIBCTransfersCommonVar2(bcType, rcvPts, nbRcvPts, ideb, ifin, ithread,
-			      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
+            xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI, 
             density, 
             ipt_tmp, size, nvars,
             param_real,
             vectOfDnrFields, vectOfRcvFields);
   else { printf("_setIBCTransfersD: varType must be 2 or 21 \n");}
 
-  } // Fin zone // omp
+} // Fin zone // omp
 
   // sortie
   delete [] varStringOut;
@@ -519,19 +514,23 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder1(PyObject* sel
 
   vector<PyArrayObject*> hook;
 
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
-  E_Float* iptroD=NULL;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype;
+  //E_Float* iptroD=NULL;
 
   # include "extract_interpD.h"
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
+  if (okP == 0) return NULL;
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  if (okGxP == 0) return NULL;
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  if (okGyP == 0) return NULL;
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
+  if (okGzP == 0) return NULL;
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -559,10 +558,10 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder1(PyObject* sel
 
   if (PyList_Check(pyVariables) != 0)
   {
-    int nvariables = PyList_Size(pyVariables);
+    E_Int nvariables = PyList_Size(pyVariables);
     if (nvariables > 0)
     {
-      for (int i = 0; i < nvariables; i++)
+      for (E_Int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
         if (PyString_Check(tpl0))
@@ -583,7 +582,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder1(PyObject* sel
           posvd = K_ARRAY::isNamePresent(varname, varStringD);
           if (posvd != -1)
           {
-              posvarsD.push_back(posvd);
+            posvarsD.push_back(posvd);
             if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
             else {strcat(varStringOut,","); strcat(varStringOut,varname);}
           }
@@ -708,43 +707,55 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder2(PyObject* sel
 
   vector<PyArrayObject*> hook;
 
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
-  E_Float* iptroD=NULL;
-
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype;
+  
   # include "extract_interpD.h"
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
+  if (okP == 0) return NULL;
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  if (okGxP == 0) return NULL;
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  if (okGyP == 0) return NULL;
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
+  if (okGzP == 0) return NULL;
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
 
   FldArrayF* gradxxPressF; FldArrayF* gradxyPressF; FldArrayF* gradxzPressF;
-  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP , gradxxPressF , true);
-  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP , gradxyPressF , true);
-  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP , gradxzPressF , true);
+  E_Int okGxxP = K_NUMPY::getFromNumpyArray(pyArrayGradxxP, gradxxPressF);
+  if (okGxxP == 0) return NULL;
+  E_Int okGxyP = K_NUMPY::getFromNumpyArray(pyArrayGradxyP, gradxyPressF);
+  if (okGxyP == 0) return NULL;
+  E_Int okGxzP = K_NUMPY::getFromNumpyArray(pyArrayGradxzP, gradxzPressF);
+  if (okGxzP == 0) return NULL;
   E_Float* gradxxP = gradxxPressF->begin();
   E_Float* gradxyP = gradxyPressF->begin();
   E_Float* gradxzP = gradxzPressF->begin();
 
   FldArrayF* gradyxPressF; FldArrayF* gradyyPressF; FldArrayF* gradyzPressF;
-  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP , gradyxPressF , true);
-  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP , gradyyPressF , true);
-  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP , gradyzPressF , true);
+  E_Int okGyxP = K_NUMPY::getFromNumpyArray(pyArrayGradyxP, gradyxPressF);
+  if (okGyxP == 0) return NULL;
+  E_Int okGyyP = K_NUMPY::getFromNumpyArray(pyArrayGradyyP, gradyyPressF);
+  if (okGyyP == 0) return NULL;
+  E_Int okGyzP = K_NUMPY::getFromNumpyArray(pyArrayGradyzP, gradyzPressF);
+  if (okGyzP == 0) return NULL;
   E_Float* gradyxP = gradyxPressF->begin();
   E_Float* gradyyP = gradyyPressF->begin();
   E_Float* gradyzP = gradyzPressF->begin();
 
   FldArrayF* gradzxPressF; FldArrayF* gradzyPressF; FldArrayF* gradzzPressF;
-  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP , gradzxPressF , true);
-  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP , gradzyPressF , true);
-  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP , gradzzPressF , true);
+  E_Int okGzxP = K_NUMPY::getFromNumpyArray(pyArrayGradzxP, gradzxPressF);
+  if (okGzxP == 0) return NULL;
+  E_Int okGzyP = K_NUMPY::getFromNumpyArray(pyArrayGradzyP, gradzyPressF);
+  if (okGzyP == 0) return NULL;
+  E_Int okGzzP = K_NUMPY::getFromNumpyArray(pyArrayGradzzP, gradzzPressF);
+  if (okGzzP == 0) return NULL;
   E_Float* gradzxP = gradzxPressF->begin();
   E_Float* gradzyP = gradzyPressF->begin();
   E_Float* gradzzP = gradzzPressF->begin();
@@ -772,10 +783,10 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder2(PyObject* sel
 
   if (PyList_Check(pyVariables) != 0)
   {
-    int nvariables = PyList_Size(pyVariables);
+    E_Int nvariables = PyList_Size(pyVariables);
     if (nvariables > 0)
     {
-      for (int i = 0; i < nvariables; i++)
+      for (E_Int i = 0; i < nvariables; i++)
       {
         PyObject* tpl0 = PyList_GetItem(pyVariables, i);
         if (PyString_Check(tpl0))
@@ -942,8 +953,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int bcType  = E_Int(bctype);  // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
-  E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
+  //E_Int bcType  = E_Int(bctype);  // 0: wallslip; 1: noslip; 2: log law of wall; 3: Musker law of wall
+  //E_Int varType = E_Int(vartype); // 1:conservatives, 2:(ro,u,v,w,t), 3:(ro,u,v,w,p)
 
   // E_Float alpha = 1.;
   E_Float cvgam = cv*(gamma-1.);
@@ -955,13 +966,17 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
   # include "extract_interpD.h"
 
   FldArrayF* pressF;
-  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF, true);
+  E_Int okP = K_NUMPY::getFromNumpyArray( pyArrayPressure, pressF);
+  if (okP == 0) return NULL;
   E_Float* pressure = pressF->begin();
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
-  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP , gradxPressF , true);
-  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP , gradyPressF , true);
-  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP , gradzPressF , true);
+  E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
+  if (okGxP == 0) return NULL;
+  E_Int okGyP = K_NUMPY::getFromNumpyArray(pyArrayGradyP, gradyPressF);
+  if (okGyP == 0) return NULL;
+  E_Int okGzP = K_NUMPY::getFromNumpyArray(pyArrayGradzP, gradzPressF);
+  if (okGzP == 0) return NULL;
   E_Float* gradxP = gradxPressF->begin();
   E_Float* gradyP = gradyPressF->begin();
   E_Float* gradzP = gradzPressF->begin();
@@ -971,7 +986,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
   char* eltTypeD=NULL; char* varStringD=NULL;
   char* varStringOut = new char[K_ARRAY::VARSTRINGLENGTH];
 
-  if (compact==0)
+  if (compact == 0)
   {
     E_Int cnSizeD;
     vector<E_Int> locsD;
@@ -991,10 +1006,10 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
 
     if (PyList_Check(pyVariables) != 0)
     {
-      int nvariables = PyList_Size(pyVariables);
+      E_Int nvariables = PyList_Size(pyVariables);
       if (nvariables > 0)
       {
-        for (int i = 0; i < nvariables; i++)
+        for (E_Int i = 0; i < nvariables; i++)
         {
           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
           if (PyString_Check(tpl0))
@@ -1015,7 +1030,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
             posvd = K_ARRAY::isNamePresent(varname, varStringD);
             if (posvd != -1)
             {
-                posvarsD.push_back(posvd);
+              posvarsD.push_back(posvd);
               if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
               else {strcat(varStringOut,","); strcat(varStringOut,varname);}
             }
@@ -1067,8 +1082,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersD4GradP(PyObject* self, PyObject* args)
   size = size + size % 8;                  // on rajoute du bas pour alignememnt 64bits
   if (bctype <= 1) size = 0;               // tableau inutile
 
-  FldArrayF  tmp(size*18*threadmax_sdm);
-  E_Float* ipt_tmp = tmp.begin();
+  FldArrayF tmp(size*18*threadmax_sdm);
+  //E_Float* ipt_tmp = tmp.begin();
 
   #pragma omp parallel default(shared)
   {

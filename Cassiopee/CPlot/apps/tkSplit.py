@@ -1,6 +1,5 @@
 # - fonctions de bloc split -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -150,7 +149,7 @@ def merge():
                     else: zoneNames[s[0]] = [n]
                 else: zoneNames['__Pool__'] += [n]
             else: zoneNames['__Pool__'] += [n]
-        # Reconstitue les listes de zone
+        # Reconstitue les listes de zones
         out = []
         for k in zoneNames:
             l = []

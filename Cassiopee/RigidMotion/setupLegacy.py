@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
-from distutils.core import setup, Extension
 
 #=============================================================================
 # RigidMotion requires:

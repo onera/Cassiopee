@@ -1,5 +1,5 @@
-from distutils.core import setup, Extension
-#from setuptools import setup
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
 
 #=============================================================================
@@ -51,11 +51,12 @@ if OCCPresent:
 libOCC = Dist.getOCCModules()
 if OCCPresent and Dist.getSystem()[0] == 'mingw':
     libOCC = [i+".dll" for i in libOCC]
-libraries += libOCC + libOCC
+if OCCPresent: libraries += libOCC + libOCC
 
 import srcs
 if srcs.TIXI: libraries += ["curl", "xml2", "xslt"]
 if srcs.TIGL: libraries += ["boost_system", "boost_filesystem", "boost_date_time"]
+#if srcs.TIGL: libraries += ["boost_filesystem-mt", "boost_date_time-mt"]
 
 # Extensions ==================================================================
 listExtensions = []

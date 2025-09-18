@@ -30,13 +30,13 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float dirVect[3];
   dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL; 
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL; 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     ni, nj, nk, cn, eltType);
  
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);

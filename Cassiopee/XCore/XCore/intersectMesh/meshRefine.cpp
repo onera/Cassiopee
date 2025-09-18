@@ -105,6 +105,7 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
         assert(hit);
         assert(M.patch.find(TI.face) != M.patch.end());
 
+        if (hit == 0) printf("Point not projected\n");
         printf("Spid: %f %f %f -> Proj: %f %f %f (t = %f)\n",
             S.X[spid], S.Y[spid], S.Z[spid], TI.x, TI.y, TI.z, TI.t);
         

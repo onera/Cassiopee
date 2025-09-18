@@ -26,7 +26,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     PyObject *COMM, *CGIDS, *FGIDS;
 
     if (!PYPARSETUPLE_(args, OOO_ OOO_, &ARRAY, &MODE2D, &BCS, &COMM,
-                       &CGIDS, &FGIDS)) {
+                       &CGIDS, &FGIDS)) 
+    {
         RAISE("Bad input.");
         return NULL;
     }
@@ -46,26 +47,33 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     E_Int nc = karray.ncells();
     E_Int nf = karray.nfaces();
 
-    if (CGIDS != Py_None) {
-        ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld, true);
-        if (ret != 1 || size != nc || nfld != 1) {
+    if (CGIDS != Py_None)
+    {
+        ret = K_NUMPY::getFromNumpyArray(CGIDS, cgids, size, nfld);
+        if (ret != 1 || size != nc || nfld != 1) 
+        {
             RAISE("Bad cell global ids.");
             Karray_free_ngon(karray);
             return NULL;
         }
-    } else {
+    } 
+    else 
+    {
         cgids = IntArray(nc);
         for (E_Int i = 0; i < nc; i++) cgids[i] = i;
     }
 
-    if (FGIDS != Py_None) {
-        ret = K_NUMPY::getFromNumpyArray(FGIDS, fgids, size, nfld, true);
-        if (ret != 1 || size != nf || nfld != 1) {
+    if (FGIDS != Py_None) 
+    {
+        ret = K_NUMPY::getFromNumpyArray(FGIDS, fgids, size, nfld);
+        if (ret != 1 || size != nf || nfld != 1)
+        {
             RAISE("Bad face global ids.");
             Karray_free_ngon(karray);
             return NULL;
         }
-    } else {
+    } else 
+    {
         fgids = IntArray(nf);
         for (E_Int i = 0; i < nf; i++) fgids[i] = i+1;
     }
@@ -94,7 +102,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->nbp = PyList_Size(BCS);
     M->bps = (BPatch *)XCALLOC(M->nbp, sizeof(BPatch));
 
-    for (E_Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) 
+    {
         PyObject *PATCH = PyList_GetItem(BCS, i);
 
         // TODO(Imad): error instead of assert
@@ -102,12 +111,12 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
         // TODO(Imad): error check
         E_Int *ptr = NULL;
-        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 0), ptr,
-            M->bps[i].nf, true);
+        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 0), ptr, M->bps[i].nf);
         
         M->bps[i].pf = IntArray(M->bps[i].nf);
         for (E_Int j = 0; j < M->bps[i].nf; j++) M->bps[i].pf[j] = ptr[j];
-        
+        Py_DECREF(PyList_GetItem(PATCH, 0));
+
         M->bps[i].gid = PyLong_AsLong(PyList_GetItem(PATCH, 1));
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -128,17 +137,20 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         BPatch *P = &M->bps[i];
 
         // Make faces zero-based
-        for (E_Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) 
+        {
             assert(P->pf[j] > 0 && P->pf[j] <= M->nf);
             P->pf[j]--;
         }
     }
 
     // Face to bpatch map
-    for (E_Int i = 0; i < M->nbp; i++) {
+    for (E_Int i = 0; i < M->nbp; i++) 
+    {
         BPatch *P = &M->bps[i];
 
-        for (E_Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) 
+        {
             E_Int lfid = P->pf[j];
             M->face_to_bpatch[lfid] = i;
         }
@@ -150,7 +162,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->npp = PyList_Size(COMM);
     M->pps = (PPatch *)XCALLOC(M->npp, sizeof(PPatch));
 
-    for (E_Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) 
+    {
         PyObject *PATCH = PyList_GetItem(COMM, i);
 
         // TODO(Imad): error instead of assert
@@ -161,22 +174,23 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
 
         // TODO(Imad): error check
         E_Int *ptr = NULL;
-        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 1),
-            ptr, M->pps[i].nf, true);
+        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 1), ptr, M->pps[i].nf);
         
         M->pps[i].pf = IntArray(M->pps[i].nf);
         memcpy(M->pps[i].pf, ptr, M->pps[i].nf * sizeof(E_Int));
-        
+        Py_DECREF(PyList_GetItem(PATCH, 1));
+
         // TODO(Imad): error check
         ptr = NULL;
-        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 2),
-            ptr, M->pps[i].nf, true);
+        K_NUMPY::getFromNumpyArray(PyList_GetItem(PATCH, 2), ptr, M->pps[i].nf);
 
         M->pps[i].pn = IntArray(M->pps[i].nf);
         memcpy(M->pps[i].pn, ptr, M->pps[i].nf * sizeof(E_Int));
+        Py_DECREF(PyList_GetItem(PATCH, 2));
 
         // Zero-based
-        for (E_Int j = 0; j < M->pps[i].nf; j++) {
+        for (E_Int j = 0; j < M->pps[i].nf; j++) 
+        {
             M->pps[i].pf[j]--;
         }
 
@@ -186,10 +200,12 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     }
 
     // Face to ppatch map
-    for (E_Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) 
+    {
         PPatch *P = &M->pps[i];
 
-        for (E_Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) 
+        {
             E_Int lfid = P->pf[j];
             M->face_to_ppatch[lfid] = i;
         }
@@ -204,9 +220,15 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->clevel = IntArray(M->nc);
 
     // Prepare cells for 2D
-    if (MODE2D != Py_None) {
-        K_NUMPY::getFromNumpyArray(MODE2D, M->mode_2D, size, nfld, false);
-        if (size != 3 || nfld != 1) {
+    if (MODE2D != Py_None)
+    {
+        E_Float* ptr = NULL;
+        K_NUMPY::getFromNumpyArray(MODE2D, ptr, size, nfld);
+        M->mode_2D = FloatArray(size*nfld);
+        memcpy(M->mode_2D, ptr, size * nfld * sizeof(E_Float));
+        Py_DECREF(MODE2D);
+        if (size != 3 || nfld != 1) 
+        {
             RAISE("Bad 2D direction array.");
             Karray_free_ngon(karray);
             Mesh_free(M);
@@ -214,7 +236,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
         }
 
         ret = Mesh_set_cells_for_2D(M);
-        if (ret != 0) {
+        if (ret != 0) 
+        {
             RAISE("Failed to set cells for 2D.");
             Karray_free_ngon(karray);
             Mesh_free(M);
@@ -225,7 +248,8 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     // Set orientation
     ret = Mesh_set_orientation(M);
 
-    if (ret != 0) {
+    if (ret != 0) 
+    {
         RAISE("Failed to orient the mesh.");
         Karray_free_ngon(karray);
         Mesh_free(M);
@@ -233,7 +257,6 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     }
 
     // Reorder cells, useful?
-
 
     M->fparent = IntArray(M->nf);
     for (E_Int i = 0; i < M->nf; i++) M->fparent[i] = i;
@@ -248,8 +271,12 @@ PyObject *K_XCORE::AdaptMesh_Init(PyObject *self, PyObject *args)
     M->ptag = IntArray(M->np);
 
     // Clean-up
-
     Karray_free_ngon(karray);
+
+    if (CGIDS != Py_None) { Py_DECREF(CGIDS); }
+    else XFREE(cgids);
+    if (FGIDS != Py_None) { Py_DECREF(FGIDS); }
+    else XFREE(fgids);
 
     // TODO(Imad): Python2
     PyObject *hook = PyCapsule_New((void *)M, "AdaptMesh", NULL);

@@ -260,7 +260,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
     if (py_zwall_ids != Py_None)
     {
       E_Int nfld, sz, *data;
-      E_Int ok =  K_NUMPY::getFromNumpyArray(py_zwall_ids, data, sz, nfld, 1/*shared*/);
+      E_Int ok =  K_NUMPY::getFromNumpyArray(py_zwall_ids, data, sz, nfld);
       if (ok == 0) continue;
 
       zone_wall_ids[i].insert(zone_wall_ids[i].end(), data, data+sz);
@@ -281,7 +281,7 @@ PyObject* K_INTERSECTOR::XcellN(PyObject* self, PyObject* args)
 #ifdef DEBUG_XCELLN
       E_Int ok =  
 #endif
-      K_NUMPY::getFromNumpyArray(py_wall_ids, data, sz, nfld, 1/*shared*/);
+      K_NUMPY::getFromNumpyArray(py_wall_ids, data, sz, nfld);
 
       mask_wall_ids[i].insert(mask_wall_ids[i].end(), data, data+sz);
 

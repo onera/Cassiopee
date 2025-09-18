@@ -1,7 +1,6 @@
 # - tkTransform -
 """Basic transformations of mesh."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -128,10 +127,9 @@ def rotate(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.rotate(CTK.CADHOOK, X, axe, angle, faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh all only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -196,10 +194,9 @@ def translate(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.translate(CTK.CADHOOK, (v[0], v[1], v[2]), faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -210,7 +207,6 @@ def translate(event=None):
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
             CTK.display(CTK.t)
-
 
     CTK.TXT.insert('START', 'Zones have been translated.\n')
     CTK.TKTREE.updateApp()
@@ -337,10 +333,9 @@ def scale(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.scale(CTK.CADHOOK, v[0], X, faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -351,7 +346,6 @@ def scale(event=None):
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
             CTK.display(CTK.t)
-
 
     CTK.TXT.insert('START', 'Zones have been scaled.\n')
     CTK.TKTREE.updateApp()

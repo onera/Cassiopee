@@ -30,14 +30,14 @@ using namespace K_FLD;
 PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 {
   PyObject *octree, *zones, *fieldA; 
-  if (!PyArg_ParseTuple(args, "OOO", &octree, &zones, &fieldA)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &octree, &zones, &fieldA)) return NULL;
 
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -68,10 +68,10 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   K_ARRAY::getFromArrays(
     zones, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -102,6 +102,8 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
     fieldA, resl, structVarString2, unstrVarString2,
     structF2, unstrF2, nit2, njt2, nkt2, cnt2, eltTypet2, objst2, objut2, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  
+  E_Int api = f->getApi();
   E_Int nzones2 = structF2.size();
   if (nzones2 != nzones) 
   {
@@ -297,7 +299,7 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 
   vector<char*> vars;
   K_ARRAY::extractVars(structVarString2[0], vars); 
-  PyObject* tpl = K_ARRAY::buildArray(*field, vars[0], *cn, -1, eltType, true);
+  PyObject* tpl = K_ARRAY::buildArray3(*field, vars[0], *cn, eltType, api);
   
   for (E_Int v = 0; v < nzones; v++) delete boxes[v];
   delete field;  RELEASESHAREDB(res, octree, f, cn); 

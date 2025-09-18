@@ -228,7 +228,7 @@ void geom3(E_Float u0, E_Float u1, E_Float h0, E_Float h1, E_Int& N, E_Float*& u
   }
   //for (E_Int i = 1; i < N; i++) ue[i] = ue[i-1] + h0*pow(r, i-1);  
   //ue[N-1] = u1; // force
-  for (E_Int i = 0; i < N; i++) printf("%d %f\n", i, ue[i]);
+  //for (E_Int i = 0; i < N; i++) printf("%zu %f\n", i, ue[i]);
   printf("h0/r=%f real=%f\n", h0/r, ue[1]-ue[0]);
   printf("h1/r=%f real=%f\n", h1/r, ue[N-1]-ue[N-2]);
 }
@@ -1043,7 +1043,7 @@ E_Int __getParamExt(const TopoDS_Edge& E, E_Int nbPoints, E_Float* uext, E_Float
 E_Int __meshEdge(const TopoDS_Edge& E, 
                  E_Int nbPoints, E_Float* ue,
                  K_FLD::FldArrayF& coords,
-                 E_Boolean reverse)
+                 E_Bool reverse)
 {
   E_Float* px = coords.begin(1);
   E_Float* py = coords.begin(2);
@@ -1074,7 +1074,7 @@ E_Int __meshEdge(const TopoDS_Edge& E,
 E_Int __meshEdgeByFace(const TopoDS_Edge& E, const TopoDS_Face& F,
                        E_Int& nbPoints, K_FLD::FldArrayF& fe, 
                        K_FLD::FldArrayF& coords,
-                       E_Boolean reverse)
+                       E_Bool reverse)
 {
 
   BRepAdaptor_Curve C0(E);
@@ -1201,8 +1201,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     nbPoints = N;
     __getUniform(E, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1213,8 +1213,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
             externalEdge == Py_None ) // pure hmax
   {
     __getParamHmax(E, hmax, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1223,8 +1223,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   else if (hmax < 0 && hausd > 0 && externalEdge == Py_None) // pure hausd
   {
     __getParamHausd(E, hausd, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1234,8 +1234,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     // courbure uniquement sur edge
     __getParamHminHmaxHausdE4(E, hmin, hmax, hausd, nbPoints, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1245,8 +1245,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
   {
     // courbure sur le max des faces
     __getParamHminHmaxHausdF5(E, hmin, hmax, hausd, nbPoints, ue, shape);    
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", nbPoints, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", nbPoints, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, nbPoints, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1270,8 +1270,8 @@ PyObject* K_OCC::meshOneEdge(PyObject* self, PyObject* args)
     }
     E_Float* uext = fe->begin(pos+1);
     __getParamExt(E, ni, uext, ue);
-    PyObject* o = K_ARRAY::buildArray2(4, "x,y,z,u", ni, 1, 1, 1);
-    FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+    PyObject* o = K_ARRAY::buildArray3(4, "x,y,z,u", ni, 1, 1, 1);
+    FldArrayF* f; K_ARRAY::getFromArray3(o, f);
     __meshEdge(E, ni, ue, *f, false);
     delete [] ue;
     RELEASESHAREDS(o, f);
@@ -1334,7 +1334,7 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
     //if (wclosed == BRepCheck_NoError) printf("wire correctly closed\n");
     //else printf("WIRE BADLY closed\n");
     
-    //E_Boolean isOuter = false;
+    //E_Bool isOuter = false;
     //if (W == OW) { printf("is outer wire\n"); isOuter = true; }
     //status = check.CheckOuterBound();
     //if (status == BRepCheck_NoError) printf("is outer (test2)\n");
@@ -1411,13 +1411,13 @@ PyObject* K_OCC::meshEdgesOfFace(PyObject* self, PyObject* args)
       //else if (eorientation == TopAbs_EXTERNAL) printf("edge orientation=external\n");
 
       // create array
-      PyObject* o = K_ARRAY::buildArray2(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
-      FldArrayF* f; K_ARRAY::getFromArray2(o, f);
+      PyObject* o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nbPoints, 1, 1, 1);
+      FldArrayF* f; K_ARRAY::getFromArray3(o, f);
       discreteWire.push_back(f);
       discreteWire2.push_back(o);
 
 #define REVERSEFACE
-      E_Boolean reversed = false;
+      E_Bool reversed = false;
       if (forientation == TopAbs_FORWARD)
       {
         if (worientation == TopAbs_FORWARD)

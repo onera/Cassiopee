@@ -1,9 +1,9 @@
 # Functions used in *Cassiopee* modules setup.py
-import os, sys, platform, glob, subprocess
-from distutils import sysconfig
-from distutils.core import Extension
-#from setuptools import sysconfig
-#from setuptools import Extension
+import os, sys, platform, glob, subprocess, shutil
+#from distutils import sysconfig
+#from distutils.core import Extension
+from setuptools._distutils import sysconfig
+from setuptools import Extension
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 DEBUG = False
@@ -153,7 +153,6 @@ def checkAll(summary=True):
 #==============================================================================
 def checkPython():
     pythonVersion = sysconfig.get_python_version()
-    #vars = sysconfig.get_config_vars()
 
     pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
@@ -256,6 +255,7 @@ def getInstallPath(prefix, type=0):
 # Functions returning the names of the remote repo & branch and the commit hash
 #==============================================================================
 def getGitOrigin(cassiopeeIncDir):
+    if not shutil.which("git"): return "unknown"
     mySystem = getSystem()[0]
     if mySystem == 'mingw' or mySystem == 'Windows':
         lpath = cassiopeeIncDir.replace('/', '\\')
@@ -269,6 +269,7 @@ def getGitOrigin(cassiopeeIncDir):
     except: return "unknown"
 
 def getGitBranch(cassiopeeIncDir):
+    if not shutil.which("git"): return "unknown"
     mySystem = getSystem()[0]
     if mySystem == 'mingw' or mySystem == 'Windows':
         lpath = cassiopeeIncDir.replace('/', '\\')
@@ -282,6 +283,7 @@ def getGitBranch(cassiopeeIncDir):
     except: return "unknown"
 
 def getGitHash(cassiopeeIncDir):
+    if not shutil.which("git"): return "unknown"
     mySystem = getSystem()[0]
     if mySystem == 'mingw' or mySystem == 'Windows':
         lpath = cassiopeeIncDir.replace('/', '\\')
@@ -516,7 +518,7 @@ def writeSetupCfg():
 
 #==============================================================================
 # Retourne le compilo c, c++ et ses options tels que definis dans distutils
-# ou dans config.py (installBase.py)
+# ou dans config.py (installBase.py ou installBaseUser.py)
 #==============================================================================
 def getDistUtilsCompilers():
     vars = sysconfig.get_config_vars('CC', 'CXX', 'OPT',
@@ -2323,6 +2325,12 @@ def checkCppLibs(additionalLibs=[], additionalLibPaths=[], Cppcompiler=None,
         #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['chkpwrap', 'chkp']; paths += [l]
+
+        l = checkLibFile__('libirc.so*', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libirc.a', additionalLibPaths)
+        if l is not None:
+            libs += ['irc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)

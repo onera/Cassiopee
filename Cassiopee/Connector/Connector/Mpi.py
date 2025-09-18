@@ -31,10 +31,10 @@ def optimizeOverlap(t, double_wall=0, priorities=[], graph=None,
     return tl
 
 #==============================================================================
-# connectMatch
+# connectMatch structure
 #==============================================================================
 def connectMatch(a, tol=1.e-6, dim=3):
-    """Find matching boundaries."""
+    """Find matching boundaries in structured grids."""
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2)
 
@@ -50,8 +50,10 @@ def connectMatch(a, tol=1.e-6, dim=3):
     return a
 
 #==============================================================================
+# connectNearMatch structure
+#==============================================================================
 def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
-    """Find boundaries that matches with a given ratio."""
+    """Find boundaries that matches with a given ratio for structured grids."""
     if not isinstance(ratio, list):
         iratio = ratio
     else:
@@ -76,8 +78,7 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
                     fratio = 1.
                     for i in nmratio: fratio *= i
 
-                    if fratio == 1.:
-                        Internal._rmNodesByName(z, n[0])
+                    if fratio == 1.: Internal._rmNodesByName(z, n[0])
 
     # Suppression des XZones et correction des matchs
     Cmpi._rmBXZones(a)
@@ -88,13 +89,13 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
     return a
 
 #==============================================================================
-# connectMatchPeriodic
+# connectMatchPeriodic structure
 #==============================================================================
 def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
                          rotationAngle=[0.,0.,0.],
                          translation=[0.,0.,0.], tol=1.e-6, dim=3,
                          unitAngle=None):
-    """Find periodic matching boundaries."""
+    """Find periodic matching boundaries for structured grids."""
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=2, allB=True)
 
@@ -110,7 +111,7 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
     return a
 
 #==============================================================================
-# parallel NGON connectMatch for one zone
+# connect match NGON for only one zone per process
 #==============================================================================
 def _connectMatchNGon(z, tol=1.e-6):
     """Connect one ngon zone."""
@@ -118,7 +119,7 @@ def _connectMatchNGon(z, tol=1.e-6):
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
 
-    print(Cmpi.rank, 'has ', z[0])
+    #print(Cmpi.rank, 'has ', z[0])
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -155,23 +156,9 @@ def _connectMatchNGon(z, tol=1.e-6):
     for trip in range(Cmpi.size-1):
 
         data = [zu, indicesE]
-        print(Cmpi.rank, "start trip", zu[0], flush=True)
-
-        # pass undefined faces zu to neighbour
-        reqs = []
-        if Cmpi.rank < Cmpi.size-1: s = Cmpi.isend(data, dest=Cmpi.rank+1)
-        else: s = Cmpi.isend(data, 0)
-        reqs.append(s)
-        print(Cmpi.rank, "send done", reqs, flush=True)
-        Cmpi.barrier()
-
-        # get the neighbour faces
-        if Cmpi.rank > 0: data = Cmpi.recv(source=Cmpi.rank-1)
-        else: data = Cmpi.recv(source=Cmpi.size-1)
-        Cmpi.requestWaitall(reqs)
-
+        data = Cmpi.passNext(data)
         (zu, indicesE) = data
-        print(Cmpi.rank, "receive done", zu[0], flush=True)
+        #print(Cmpi.rank, "receive done", zu[0], flush=True)
 
         # identify faces and build matches
         ids = C.identifyElements(hook, zu, tol)
@@ -179,8 +166,10 @@ def _connectMatchNGon(z, tol=1.e-6):
         # get the indices of ids where ids is not -1
         # since they correspond to indices in zu
         ids2 = numpy.copy(ids)
+        #if Cmpi.rank == 0: print(ids2.ravel('k'))
         ids2[:] += 1
         ids2 = numpy.argwhere(ids2)
+        #if Cmpi.rank == 0: print(ids2.ravel('k'))
 
         # keep non -1 indices
         ids = ids[ids[:]>=0]
@@ -190,9 +179,10 @@ def _connectMatchNGon(z, tol=1.e-6):
             id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
             id2[:] = indicesF[ids[:]-1]
             #id1 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-            id1 = indicesE[ids2[:]-2]
-            #print(Cmpi.rank, id2.shape)
-            #print(Cmpi.rank, id1.shape)
+            #id1[:] = indicesE[ids2[:]]
+            id1 = indicesE[ids2[:]]
+            #print(Cmpi.rank, 'source', id2.shape, id2.ravel('k'))
+            #print(Cmpi.rank, 'donor', id1.shape, id1.ravel('k'))
             C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
 
     C.freeHook(hook)
@@ -214,7 +204,7 @@ def giveName2Window(p, zname, zopp):
 
     return pos
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#==============================================================================
 def mergeWindows(t):
     # Merge grid connectivities created after addBXZones
     zones = Internal.getZones(t)
@@ -223,19 +213,19 @@ def mergeWindows(t):
         if xz is None:
             # Construction du dictionnaire des matchs
             dico = {}
-            gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+            gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
             for g in gcs:
                 nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
 
-                for n in Internal.getNodesFromType1(g,'GridConnectivity_t'):
-                    gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
-                    if Internal.getValue(gctype)=='Abutting': nodes.append(n)
+                for n in Internal.getNodesFromType1(g, 'GridConnectivity_t'):
+                    gctype = Internal.getNodeFromType(n, 'GridConnectivityType_t')
+                    if Internal.getValue(gctype) == 'Abutting': nodes.append(n)
 
                 for n in nodes:
-                    pr    = Internal.getNodeFromName1(n, 'PointRange')
-                    p     = Internal.range2Window(pr[1])
-                    zopp  = Internal.getValue(n)
-                    pos   = giveName2Window(p, z[0],zopp)
+                    pr = Internal.getNodeFromName1(n, 'PointRange')
+                    p = Internal.range2Window(pr[1])
+                    zopp = Internal.getValue(n)
+                    pos = giveName2Window(p, z[0], zopp)
 
                     if pos not in dico.keys(): dico[pos] = [n[0]]
                     else: dico[pos].append(n[0])
@@ -244,49 +234,48 @@ def mergeWindows(t):
             for match in dico.keys():
                 if len(dico[match]) > 1:
                     sumSurf = 0
-                    pglob   = [None]*6
+                    pglob = [None]*6
                     for name in dico[match]:
-                        node    = Internal.getNodeFromName(z,name)
-                        pr      = Internal.getNodeFromName1(node, 'PointRange')
-                        p       = Internal.range2Window(pr[1])
-                        surf    = max(1, p[1]-p[0])*max(1, p[3]-p[2])*max(1, p[5]-p[4])
+                        node = Internal.getNodeFromName(z,name)
+                        pr = Internal.getNodeFromName1(node, 'PointRange')
+                        p = Internal.range2Window(pr[1])
+                        surf = max(1, p[1]-p[0])*max(1, p[3]-p[2])*max(1, p[5]-p[4])
                         sumSurf = sumSurf + surf
 
                         if pglob[0] is None:
-                            pglob[0] = p[0] ; pglob[1] = p[1]
-                            pglob[2] = p[2] ; pglob[3] = p[3]
-                            pglob[4] = p[4] ; pglob[5] = p[5]
+                            pglob[0] = p[0]; pglob[1] = p[1]
+                            pglob[2] = p[2]; pglob[3] = p[3]
+                            pglob[4] = p[4]; pglob[5] = p[5]
                         else:
-                            if pglob[0] > p[0] : pglob[0] = p[0]
-                            if pglob[1] < p[1] : pglob[1] = p[1]
-                            if pglob[2] > p[2] : pglob[2] = p[2]
-                            if pglob[3] < p[3] : pglob[3] = p[3]
-                            if pglob[4] > p[4] : pglob[4] = p[4]
-                            if pglob[5] < p[5] : pglob[5] = p[5]
+                            if pglob[0] > p[0]: pglob[0] = p[0]
+                            if pglob[1] < p[1]: pglob[1] = p[1]
+                            if pglob[2] > p[2]: pglob[2] = p[2]
+                            if pglob[3] < p[3]: pglob[3] = p[3]
+                            if pglob[4] > p[4]: pglob[4] = p[4]
+                            if pglob[5] < p[5]: pglob[5] = p[5]
 
                     surfMatch = max(1,(pglob[1]-pglob[0]))*max(1,(pglob[3]-pglob[2]))*max(1,(pglob[5]-pglob[4]))
 
                     # Fusion des matchs
                     if surfMatch == sumSurf:
                         # Fenetre du match donneur
-                        pglobD   = [None]*6
+                        pglobD = [None]*6
                         for name in dico[match]:
-                            node    = Internal.getNodeFromName(z, name)
-                            prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
-                            pd      = Internal.range2Window(prd[1])
-                            #print(" name = %s, p = "%(name),p, prd)
+                            node = Internal.getNodeFromName(z, name)
+                            prd = Internal.getNodeFromName2(node, 'PointRangeDonor')
+                            pd = Internal.range2Window(prd[1])
 
                             if pglobD[0] is None:
-                                pglobD[0] = pd[0] ; pglobD[1] = pd[1]
-                                pglobD[2] = pd[2] ; pglobD[3] = pd[3]
-                                pglobD[4] = pd[4] ; pglobD[5] = pd[5]
+                                pglobD[0] = pd[0]; pglobD[1] = pd[1]
+                                pglobD[2] = pd[2]; pglobD[3] = pd[3]
+                                pglobD[4] = pd[4]; pglobD[5] = pd[5]
                             else:
-                                if pglobD[0] > pd[0] : pglobD[0] = pd[0]
-                                if pglobD[1] < pd[1] : pglobD[1] = pd[1]
-                                if pglobD[2] > pd[2] : pglobD[2] = pd[2]
-                                if pglobD[3] < pd[3] : pglobD[3] = pd[3]
-                                if pglobD[4] > pd[4] : pglobD[4] = pd[4]
-                                if pglobD[5] < pd[5] : pglobD[5] = pd[5]
+                                if pglobD[0] > pd[0]: pglobD[0] = pd[0]
+                                if pglobD[1] < pd[1]: pglobD[1] = pd[1]
+                                if pglobD[2] > pd[2]: pglobD[2] = pd[2]
+                                if pglobD[3] < pd[3]: pglobD[3] = pd[3]
+                                if pglobD[4] > pd[4]: pglobD[4] = pd[4]
+                                if pglobD[5] < pd[5]: pglobD[5] = pd[5]
 
                         # Modif du 1er match et suppression des autres
                         first = True
@@ -294,18 +283,18 @@ def mergeWindows(t):
                             if first:
                                 first = False
                                 modifMatch = dico[match][0]
-                                node    = Internal.getNodeFromName(z, modifMatch)
-                                pr      = Internal.getNodeFromName1(node, 'PointRange')
-                                prd     = Internal.getNodeFromName2(node, 'PointRangeDonor')
-                                pglob   = Internal.window2Range(pglob)
-                                pglobD  = Internal.window2Range(pglobD)
-                                Internal.setValue(pr,  pglob)
+                                node = Internal.getNodeFromName(z, modifMatch)
+                                pr = Internal.getNodeFromName1(node, 'PointRange')
+                                prd = Internal.getNodeFromName2(node, 'PointRangeDonor')
+                                pglob = Internal.window2Range(pglob)
+                                pglobD = Internal.window2Range(pglobD)
+                                Internal.setValue(pr, pglob)
                                 Internal.setValue(prd, pglobD)
                             else:
                                 Internal._rmNodesByName(z, name)
 
                     else:
-                        print("Warning: mergeWindows: in zone ",z[0], " fail to merge matches: ", dico[match])
+                        print("Warning: mergeWindows: in zone ", z[0], " fail to merge matches: ", dico[match])
 
     return t
 
@@ -359,26 +348,21 @@ def _setInterpTransfers(aR, aD, variables=[], cellNVariable='',
             proc = procDict[rcvName]
             if proc == Cmpi.rank:
                 field = n[1]
-                #print('direct', Cmpi.rank, rcvName)
                 if field != []:
                     listIndices = n[2]
                     z = Internal.getNodeFromName2(aR, rcvName)
                     C._setPartialFields(z, [field], [listIndices], loc=n[3])
             else:
                 rcvNode = procDict[rcvName]
-                #print(Cmpi.rank, 'envoie a ',rcvNode)
                 if rcvNode not in datas: datas[rcvNode] = [n]
                 else: datas[rcvNode] += [n]
-                #print datas
     # Envoie des numpys suivant le graph
     rcvDatas = Cmpi.sendRecv(datas, graph)
 
     # Remise des champs interpoles dans l'arbre receveur
     for i in rcvDatas:
-        #print(Cmpi.rank, 'recoit de',i, '->', len(rcvDatas[i]))
         for n in rcvDatas[i]:
             rcvName = n[0]
-            #print('reception', Cmpi.rank, rcvName)
             field = n[1]
             if field != []:
                 listIndices = n[2]
@@ -448,8 +432,8 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     ## 1:: YES: wire model treatment
     ## 0:: NO : wire model treatment
     ##-1:: NO : wire model treatment BUT a treatment on locks for IBC for ___setInterpTransfers
-    isWireModel_intv2 = max(isWireModel_int,0)
-    isSetPartialFieldsCheck = max(abs(isWireModel_int),0)
+    isWireModel_intv2 = max(isWireModel_int, 0)
+    isSetPartialFieldsCheck = max(abs(isWireModel_int), 0)
 
     ##for moving IBMs
     isIbmMoving_int  = 0
@@ -462,7 +446,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
     # Calcul des solutions interpolees par arbre donneur
     # On envoie aussi les indices receveurs pour l'instant
     datas = {}
-    nbcomIBC    = param_int[2]
+    nbcomIBC = param_int[2]
     shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
 
     for comm_P2P in range(1,param_int[1]+1):
@@ -470,7 +454,7 @@ def __setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, type
         dest   = param_int[pt_ech]
 
         no_transfert = comm_P2P
-        if dest == Cmpi.rank: #transfert intra_processus
+        if dest == Cmpi.rank: # transfert intra_processus
             connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, it_target, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
                                             isWireModel_intv2)
@@ -543,7 +527,7 @@ def __setInterpTransfers4GradP(zones, zonesD, vars, param_int, param_real, type_
     # On envoie aussi les indices receveurs pour l'instant
     datas = {}
     datasGradP = {}
-    nbcomIBC    = param_int[2]
+    nbcomIBC = param_int[2]
     shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
 
     for comm_P2P in range(1,param_int[1]+1):
@@ -689,12 +673,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     # 3. interpolation locale
     #Cmpi.trace("3. transfer2")
     for z in listOfLocalData:
-        zname   = z[0]
-        znamed  = z[1]
-        indicesI= z[2]
-        XI      = z[3]
-        YI      = z[4]
-        ZI      = z[5]
+        (zname, znamed, indicesI, XI, YI, ZI) = z
         nobc = dictOfNobOfDnrZones[znamed]
         nozc = dictOfNozOfDnrZones[znamed]
         zdnr = tc[2][nobc][2][nozc]
@@ -742,10 +721,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     transferedDatas={}
     for i in interpDatas:
         for n in interpDatas[i]:
-            zdnrname = n[1]
-            zrcvname = n[0]
-            indicesR = n[2]
-            XI = n[3]; YI = n[4]; ZI = n[5]
+            (zrcvname, zdnrname, indicesR, XI, YI, ZI) = n
             nobc = dictOfNobOfDnrZones[zdnrname]
             nozc = dictOfNozOfDnrZones[zdnrname]
             zdnr = tc[2][nobc][2][nozc]
@@ -1072,16 +1048,16 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
     # On envoie aussi les indices receveurs pour l'instant
     datas = {}
     datasGradP = {}
-    nbcomIBC    = param_int[2]
+    nbcomIBC = param_int[2]
     shift_graph = nbcomIBC + param_int[3+nbcomIBC] + 3
 
     for comm_P2P in range(1,param_int[1]+1):
         pt_ech = param_int[comm_P2P + shift_graph]
-        dest   = param_int[pt_ech]
+        dest = param_int[pt_ech]
 
         no_transfert = comm_P2P
         if dest == Cmpi.rank: #transfert intra_processus
-            isWireModel_int=2
+            isWireModel_int = 2
             connector.___setInterpTransfers(zones, zonesD, vars, dtloc, param_int, param_real, nitrun, varType,
                                             type_transfert, no_transfert, nstep, nitmax, rk, exploc, num_passage,
                                             isWireModel_int)
@@ -1136,13 +1112,13 @@ def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_
                         sname = s[0].split('_')[1]
                         znameD = s[0].split('_')[-1]
                         if sname == '140' and znameD == zname:
-                            ListRcv   = Internal.getNodeFromName1(s, 'PointListDonor')[1]
-                            dens_wm    = Internal.getNodeFromName1(s, 'Density_WM')[1]
-                            velx_wm    = Internal.getNodeFromName1(s, 'VelocityX_WM')[1]
-                            vely_wm    = Internal.getNodeFromName1(s, 'VelocityY_WM')[1]
-                            velz_wm    = Internal.getNodeFromName1(s, 'VelocityZ_WM')[1]
-                            temp_wm    = Internal.getNodeFromName1(s, 'Temperature_WM')[1]
-                            sanu_wm    = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')[1]
+                            ListRcv  = Internal.getNodeFromName1(s, 'PointListDonor')[1]
+                            dens_wm  = Internal.getNodeFromName1(s, 'Density_WM')[1]
+                            velx_wm  = Internal.getNodeFromName1(s, 'VelocityX_WM')[1]
+                            vely_wm  = Internal.getNodeFromName1(s, 'VelocityY_WM')[1]
+                            velz_wm  = Internal.getNodeFromName1(s, 'VelocityZ_WM')[1]
+                            temp_wm  = Internal.getNodeFromName1(s, 'Temperature_WM')[1]
+                            sanu_wm  = Internal.getNodeFromName1(s, 'TurbulentSANuTilde_WM')[1]
                             connector._WM_setVal2tc(dens_wm_new, velx_wm_new, vely_wm_new, velz_wm_new, temp_wm_new, sanu_wm_new,
                                                     dens_wm    , velx_wm    , vely_wm    , velz_wm    , temp_wm    , sanu_wm    )
     return None

@@ -35,7 +35,7 @@ using namespace ExtendedArithmetics;
 PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -502,8 +502,8 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord=true; E_Boolean skipStructured=false;
-  E_Boolean skipUnstructured=false; E_Boolean skipDiffVars=true;
+  E_Bool skipNoCoord=true; E_Bool skipStructured=false;
+  E_Bool skipUnstructured=false; E_Bool skipDiffVars=true;
   E_Int isOk = K_ARRAY::getFromArrays(listFields, resl, varString, fields, 
                                       a2, a3, a4, objs, skipDiffVars, skipNoCoord, 
                                       skipStructured, skipUnstructured, true);
@@ -650,7 +650,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -725,7 +725,7 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -1001,7 +1001,7 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::freeHook(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
   
   // recupere le hook
   void** packet = NULL;

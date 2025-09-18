@@ -36,7 +36,7 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_, &array, &tol) && 
       !PYPARSETUPLE_(args, O_, &array))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check arrays
@@ -45,8 +45,8 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int is, ic;
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    f, im, jm, km, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+                                     f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -55,14 +55,14 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "splitCurvatureAngle: can't find coordinates in array.");
       return NULL;        
     }
     if (im < 2 || jm != 1 || km != 1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "splitCurvatureAngle: structured array must be an i-array.");
       return NULL;         
@@ -90,13 +90,13 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
       ic++;
     }
     
-    delete f;
+    RELEASESHAREDS(array, f);  
     PyObject* tpl = Py_BuildValue("l", long(is));
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);  
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureAngle: not for unstructured arrays.");
     return NULL;   

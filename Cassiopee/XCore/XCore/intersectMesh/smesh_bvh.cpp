@@ -46,10 +46,12 @@ void Smesh::update_node_bounds(E_Int node_idx)
     BVH_node &node = bvh_nodes[node_idx];
     node.box.xmin = node.box.ymin = node.box.zmin = EFLOATMAX;
     node.box.xmax = node.box.ymax = node.box.zmax = EFLOATMIN;
-    for (E_Int first = node.first_tri_idx, i = 0; i < node.tri_count; i++) {
+    for (E_Int first = node.first_tri_idx, i = 0; i < node.tri_count; i++) 
+    {
         E_Int leaf_tri_idx = tri_idx[first + i];
         const auto &pn = F[leaf_tri_idx];
-        for (E_Int p : pn) {
+        for (E_Int p : pn) 
+        {
             node.box.xmin = std::min(node.box.xmin, X[p]);
             node.box.ymin = std::min(node.box.ymin, Y[p]);
             node.box.zmin = std::min(node.box.zmin, Z[p]);
@@ -72,15 +74,18 @@ void Smesh::BVH_subdivide(E_Int node_idx)
     // Determine split axis and position
     int axis;
     E_Float split_pos;
-    if (node.box.dx > node.box.dy && node.box.dx > node.box.dz) {
+    if (node.box.dx > node.box.dy && node.box.dx > node.box.dz) 
+    {
         axis = 0;
         split_pos = node.box.xmin + node.box.dx*0.5;
     }
-    else if (node.box.dy > node.box.dz) {
+    else if (node.box.dy > node.box.dz) 
+    {
         axis = 1;
         split_pos = node.box.ymin + node.box.dy*0.5;
     }
-    else {
+    else 
+    {
         axis = 2;
         split_pos = node.box.zmin + node.box.dz*0.5;
     }
@@ -88,7 +93,8 @@ void Smesh::BVH_subdivide(E_Int node_idx)
     // In-place partition
     E_Int i = node.first_tri_idx;
     E_Int j = i + node.tri_count - 1;
-    while (i <= j) {
+    while (i <= j) 
+    {
         const E_Float *fc = &fcenters[3*tri_idx[i]];
         if (fc[axis] < split_pos)
             i++;
@@ -117,7 +123,7 @@ void Smesh::BVH_subdivide(E_Int node_idx)
     BVH_subdivide(right_child_idx);
 }
 
-void Smesh::make_BVH(const std::set<E_Int> &fids)
+void Smesh::make_BVH(const std::set<E_Int>& fids)
 {
     bvh_nodes.clear();
     size_t NF = fids.size();
@@ -139,7 +145,7 @@ void Smesh::make_BVH(const std::set<E_Int> &fids)
 
 static
 bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
-    E_Float dx, E_Float dy, E_Float dz, const AABB &box)
+    E_Float dx, E_Float dy, E_Float dz, const AABB& box)
 {
     E_Float tmin = 0;
     E_Float tmax = EFLOATMAX;
@@ -149,13 +155,15 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
     E_Float boxMin[3] = { box.xmin, box.ymin, box.zmin };
     E_Float boxMax[3] = { box.xmax, box.ymax, box.zmax };
 
-    for (int i = 0; i < 3; i++) {
+    for (E_Int i = 0; i < 3; i++) 
+    {
         E_Float o = origin[i];
         E_Float d = direction[i];
         E_Float bmin = boxMin[i];
         E_Float bmax = boxMax[i];
 
-        if (d != 0) {
+        if (d != 0) 
+        {
             E_Float t1 = (bmin - o) / d;
             E_Float t2 = (bmax - o) / d;
 
@@ -165,7 +173,9 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
             tmax = (t2 < tmax) ? t2 : tmax;
 
             if (tmin > tmax) return false;  // No intersection
-        } else {
+        } 
+        else 
+        {
             if (o < bmin || o > bmax) return false;  // Parallel and outside slab
         }
     }
@@ -175,20 +185,24 @@ bool ray_intersect_AABB(E_Float ox, E_Float oy, E_Float oz,
 
 void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
     E_Float dx, E_Float dy, E_Float dz, E_Int node_idx,
-    std::vector<PointLoc> &plocs) const
-{
-    const BVH_node &node = bvh_nodes[node_idx];
+    std::vector<PointLoc>& plocs) const
+
+    {
+    E_Float u, v, w, t, x, y, z;
+    const BVH_node& node = bvh_nodes[node_idx];
     if (!ray_intersect_AABB(ox, oy, oz, dx, dy, dz, node.box)) return;
-    if (node.is_leaf()) {
-        for (E_Int i = 0; i < node.tri_count; i++) {
+    if (node.is_leaf())
+    {
+        for (E_Int i = 0; i < node.tri_count; i++) 
+        {
             E_Int tri = tri_idx[node.first_tri_idx+i];
             const auto &pn = Fc[tri];
             const E_Float *fc = &fcenters[3*tri];
 
-            for (size_t j = 0; j < pn.size(); j++) {
+            for (size_t j = 0; j < pn.size(); j++) 
+            {
                 E_Int p = pn[j];
                 E_Int q = pn[(j+1)%pn.size()];
-                E_Float u, v, w, t, x, y, z;
 
                 bool hit = MollerTrumboreAnyDir(
                     ox, oy, oz, dx, dy, dz,
@@ -198,7 +212,8 @@ void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
                     u, v, w, t, x, y, z
                 );
                 
-                if (hit) {
+                if (hit) 
+                {
                     PointLoc ploc;
                     ploc.fid = tri;
                     ploc.sub = j;
@@ -211,7 +226,8 @@ void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
                     ploc.z = z;
 
                     // on p
-                    if      (Sign(1-u, NEAR_VERTEX_TOL) == 0) {
+                    if (Sign(1-u, NEAR_VERTEX_TOL) == 0) 
+                    {
                         ploc.v_idx = j;
                         ploc.bcrd[0] = 1, ploc.bcrd[1] = 0, ploc.bcrd[2] = 0;
                         ploc.x = X[p];
@@ -219,7 +235,8 @@ void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
                         ploc.z = Z[p];
                     }
                     // on q
-                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) {
+                    else if (Sign(1-v, NEAR_VERTEX_TOL) == 0) 
+                    {
                         ploc.v_idx = (j+1)%pn.size();
                         ploc.bcrd[0] = 0, ploc.bcrd[1] = 1, ploc.bcrd[2] = 0;
                         ploc.x = X[q];
@@ -227,7 +244,8 @@ void Smesh::ray_intersect_BVH(E_Float ox, E_Float oy, E_Float oz,
                         ploc.z = Z[q];
                     }
                     // on edge {p, q}
-                    else if (Sign(w, NEAR_EDGE_TOL) == 0) {
+                    else if (Sign(w, NEAR_EDGE_TOL) == 0) 
+                    {
                         ploc.e_idx = j;
                         ploc.bcrd[0] = u, ploc.bcrd[1] = 1-u, ploc.bcrd[2] = 0;
                         ploc.x = u*X[p] + (1-u)*X[q];

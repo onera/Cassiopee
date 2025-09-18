@@ -41,8 +41,7 @@ PyObject* K_GENERATOR::balanceOctree(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, cn, eltType);
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(octree, f); 
@@ -57,6 +56,8 @@ PyObject* K_GENERATOR::balanceOctree(PyObject* self, PyObject* args)
                     "balanceOctree: the octree must be HEXA or QUAD.");
     return NULL;
   }
+
+  E_Int api = f->getApi();
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -73,7 +74,7 @@ PyObject* K_GENERATOR::balanceOctree(PyObject* self, PyObject* args)
   else checkBalancing3(*cn, *f);
 
 
-  PyObject* tpl = K_ARRAY::buildArray(*f, "x,y,z", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, "x,y,z", *cn, eltType, api);
   RELEASESHAREDU(octree, f, cn); 
   return tpl;
 }

@@ -23,14 +23,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-}
-
 // ============================================================================
 /* Projete un surface array1 sur un surface array2 (TRI).
    La normale est lissee si le projete n'est pas regulier. */
@@ -38,10 +30,9 @@ extern "C"
 PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &arrays, &array2))
+  if (!PYPARSETUPLE_(args, OO_, &arrays, &array2))
   {
-      return NULL;
+    return NULL;
   }
 
   // Extract infos from arrays
@@ -54,10 +45,10 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
@@ -95,8 +86,8 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -224,12 +215,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
       nz[i] = z[i]-zo[i];
     }
     E_Int im = nit[nos]; E_Int jm = njt[nos]; E_Int km = nkt[nos];
-    E_Int im1 = im-1; E_Int jm1 = jm-1; E_Int km1 = km-1;
-    if (im == 1) im1 = 1;
-    if (jm == 1) jm1 = 1;
-    if (km == 1) km1 = 1;
-    k6structsurft_(im, jm, km, im1*jm1*km1,
-                   x, y, z, q);
+    K_METRIC::compSurfStruct2D(im, jm, km, x, y, z, q);
     no++;
   }
   for (E_Int nou = 0; nou < nu; nou++)

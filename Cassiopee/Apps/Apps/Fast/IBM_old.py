@@ -32,14 +32,6 @@ import Connector.IBM as X_IBM
 import Generator.IBM as G_IBM
 import Generator.IBMmodelHeight as G_IBM_Height
 
-import timeit
-import getpass
-import socket
-import os
-
-
-try: range = xrange
-except: pass
 from mpi4py import MPI
 COMM_WORLD = MPI.COMM_WORLD
 KCOMM = COMM_WORLD
@@ -366,7 +358,7 @@ def generateCartesian(tb, dimPb=3, snears=0.01, dfar=10., dfarList=[], tbox=None
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
-    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
     coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):

@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-import FastS.ToolboxChimera as TBX
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Generator.PyTree as G
@@ -510,7 +509,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             zz   = Internal.getNodeFromName(z, "CoordinateZ")[1]
             yy   = Internal.getNodeFromName(z, "CoordinateY")[1]
 
-            r       = numpy.sqrt( zz**2+yy**2)
+            r    = numpy.sqrt( zz**2+yy**2)
 
             perio_loc = perio
             if c==1: period_loc= perio*1.5
@@ -781,6 +780,7 @@ def _modifcellNSymmetryPlan(t, depth=2,dim=3):
 # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
 #================================================================================
 def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, blankingBodies=None, extrusion=None, interpDataType=1, order=2, verbose=2, filter_zone=None):
+    import FastS.ToolboxChimera as TBX
     overlap = '14'
     InterpOrder = order
     Nproc =Cmpi.size
@@ -863,7 +863,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
         walls = C.extractBCOfType(t_curvi, 'BCWall')
         wall_gather = Cmpi.allgather(walls)
         #print(" apr wall gather: rank=", rank, flush=True)
-        if rank==0: C.convertPyTree2File(walls,'wall.cgns')
+        if rank == 0: C.convertPyTree2File(walls, 'wall.cgns')
         Cmpi.barrier()
         walls = []
         for i in wall_gather: walls += i
@@ -1105,8 +1105,6 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
                 C._tagWithFamily(bc, 'WALL_{}_DYNAMIC'.format(n))
 
     #C.convertPyTree2File(t_curvi, 'CHECK/t_test3_'+str(rank)+'.cgns')
-
-
 
     if Nproc==1:
         tBB2 = G.BB(t_curvi)
@@ -1580,7 +1578,7 @@ class IBM(Common):
         test.printMem(">>> cart grids --> rectilinear grids [end]")
 
         zones  = Internal.getZones(t)
-        coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
 
         #C.convertPyTree2File(zones,'verifOctree.cgns')
         #print("extension LOCAL=", ext_local, 'optimized=',self.input_var.optimized )
@@ -1620,7 +1618,7 @@ class IBM(Common):
                 tb2 = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
                 self.tbsave = tb2
 
-                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
+                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers', model=self.model)
 
                 if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
@@ -1638,7 +1636,7 @@ class IBM(Common):
 
                     if tbFilamentnoWMM:
                         tbFilamentnoWMM = C.newPyTree(['BasenoWMM', tbFilamentnoWMM])
-                        self.tbsave   = Internal.merge([self.tbsave,tbFilamentnoWMM])
+                        self.tbsave = Internal.merge([self.tbsave,tbFilamentnoWMM])
                         C._initVars(t,'{centers:TurbulentDistance}=1e06')
                         dist2wallNearBody__(t, tbFilamentnoWMM, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                         C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')

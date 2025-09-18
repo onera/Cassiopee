@@ -248,7 +248,7 @@ List of functions
     Converter.Internal.adaptNGon42NGon3
     Converter.Internal.adaptNFace2PE
     Converter.Internal.adaptPE2NFace
-    Converter.adaptSurfaceNGon
+    Converter.Internal.adaptSurfaceNGon
     Converter.Internal.adaptBCFacePL2VertexPL
     Converter.Internal.adaptBCVertexPL2FacePL
     
@@ -1325,9 +1325,10 @@ Check nodes
 .. py:function:: Converter.Internal.getSizeOf(node) 
 
     Return the size of input node and attached nodes in octets.
+    Works also on numpy, list of numpys, dict of numpys.
 
-    :param node:  input node
-    :type  node:  pyTree node of list of pyTree nodes
+    :param node: input node
+    :type  node: pyTree node of list of pyTree nodes
     :return: size of node in octets
     :rtype: int
 
@@ -3261,7 +3262,7 @@ Adapt NGON meshes
 
     * `Creates face PointList arrays (pyTree) <Examples/Converter/adaptBCVertexPL2FacePLPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLLPT.py
+    .. literalinclude:: ../build/Examples/Converter/adaptBCVertexPL2FacePLPT.py
     
 -----------------------------------------------------------------------------------
 

@@ -30,19 +30,19 @@ PyObject* K_CONNECTOR::_getEmptyBCInfoNGON(PyObject* self, PyObject* args)
   PyObject* ExteriorFaceIndices;
   PyObject* ExteriorDefinedFaceIndices;
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-  if (!PyArg_ParseTuple(args, "OOOsss",
+  if (!PYPARSETUPLE_(args, OOO_ SSS_,
                         &ExteriorFacesZone, &ExteriorFaceIndices, 
                         &ExteriorDefinedFaceIndices, &GridCoordinates, 
                         &FlowSolutionNodes, &FlowSolutionCenters))
   {
-      return NULL;
+    return NULL;
   }
   // Recup du numpy des faces externes
   FldArrayI* exteriorFaceIndices;
-  K_NUMPY::getFromNumpyArray(ExteriorFaceIndices, exteriorFaceIndices, true);
+  K_NUMPY::getFromNumpyArray(ExteriorFaceIndices, exteriorFaceIndices);
   // numpy des faces externes definies
   FldArrayI* exteriorDefinedFaceIndices;
-  K_NUMPY::getFromNumpyArray(ExteriorDefinedFaceIndices, exteriorDefinedFaceIndices, true);
+  K_NUMPY::getFromNumpyArray(ExteriorDefinedFaceIndices, exteriorDefinedFaceIndices);
       
   vector<PyArrayObject*> hook;
   E_Int im, jm, km, cnSize, cnNfld;

@@ -46,18 +46,18 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int supp; E_Int add;
   char* name;
-  E_Float eh;             // enforce length
+  E_Float eh; // enforce length
   E_Float P0;
   
   if (!PYPARSETUPLE_(args, O_ S_ RR_ II_,
-                    &array, &name, &P0, &eh, &supp, &add)) return NULL;
+                     &array, &name, &P0, &eh, &supp, &add)) return NULL;
  
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   if (res == 1)
   {
@@ -66,16 +66,15 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
     E_Int ret = enforceCommon(name, varString, ni, nj, nk, 
                               *f, P0, eh, supp, add, 
                               *out, niout, njout, nkout);
-    delete f;
+    RELEASESHAREDS(array, f);
     if (ret != 0) return NULL;
-    PyObject* tpl = K_ARRAY::buildArray(*out, "x,y,z", 
-                                        niout, njout, nkout);
+    PyObject* tpl = K_ARRAY::buildArray3(*out, "x,y,z", niout, njout, nkout);
     delete  out;
     return tpl;
   }
   if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);    
     PyErr_SetString(PyExc_TypeError, 
                     "enforce: not for unstructured arrays.");
     return NULL;

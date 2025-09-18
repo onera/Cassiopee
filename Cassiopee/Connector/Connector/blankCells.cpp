@@ -459,7 +459,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(coordArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -504,7 +504,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(cellNArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -555,8 +555,8 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(bodyArrays, i);
-    E_Int ret = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl,
-                                      cn, eltType, true);
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                                       cn, eltType);
     if (ret != 2)
     {
       RELEASEDATA1; RELEASEDATA2; RELEASEDATA3;
@@ -730,10 +730,10 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     coordArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju,
@@ -1146,8 +1146,8 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       E_Float* cellnp = cellnout->begin();
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
-      tpl = K_ARRAY::buildArray(*cellnout, cellNName,
-                                nitc[is], njtc[is], nktc[is]);
+      tpl = K_ARRAY::buildArray3(*cellnout, cellNName,
+                                 nitc[is], njtc[is], nktc[is]);
       delete cellns[is];
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
@@ -1179,11 +1179,11 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       E_Int* fp = cellnu[iu]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
       E_Float* cellnp = cellnout->begin();
+      E_Int api = cellnout->getApi();
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       FldArrayI* cnout = new K_FLD::FldArrayI(*cntc[iu]);
-      tpl = K_ARRAY::buildArray(*cellnout, cellNName, *cnout, -1, eltTypec[0],
-                                false);
+      tpl = K_ARRAY::buildArray3(*cellnout, cellNName, *cnout, eltTypec[0], api);
       delete cellnu[iu];
       delete cnout;
       PyList_Append(l, tpl); Py_DECREF(tpl);

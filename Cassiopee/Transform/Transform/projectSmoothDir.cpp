@@ -32,11 +32,10 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   PyObject* array2;
   E_Float nx, ny, nz;
   E_Int oriented;
-
   if (!PYPARSETUPLE_(args, OO_ TRRR_ I_,
                     &arrays, &array2, &nx, &ny, &nz, &oriented))
   {
-      return NULL;
+    return NULL;
   }
   // Extract infos from arrays
   vector<E_Int> resl;
@@ -45,10 +44,10 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
@@ -86,8 +85,8 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -170,8 +169,8 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   PyObject* tpl;    
   for (E_Int nos = 0; nos < ns; nos++)
   {
-    tpl = K_ARRAY::buildArray(*structFields[nos], structVarString[nos],
-                              nit[nos], njt[nos], nkt[nos]);
+    tpl = K_ARRAY::buildArray3(*structFields[nos], structVarString[nos],
+                               nit[nos], njt[nos], nkt[nos]);
     delete structFields[nos];
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }

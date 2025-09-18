@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-from distutils.core import setup, Extension
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import os
 
 #=============================================================================
@@ -63,7 +63,7 @@ if mpi:
     ADDITIONALCPPFLAGS += ['-D_MPI']
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
-if hdf: libraries.append(hdflib)
+if hdf: libraries += hdflibs
 if png: libraries.append('png')
 if mpi: libraries += mpiLibs
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)

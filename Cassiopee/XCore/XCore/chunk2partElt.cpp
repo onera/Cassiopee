@@ -395,7 +395,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   PyObject *XYZ, *CHUNKS;
 
-  if (!PyArg_ParseTuple(args, "OO", &XYZ, &CHUNKS)) {
+  if (!PYPARSETUPLE_(args, OO_, &XYZ, &CHUNKS)) 
+  {
     PyErr_SetString(PyExc_ValueError, "chunk2partElt(): bad input");
     return NULL;
   }
@@ -406,13 +407,13 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   E_Int npoints, nfld;
 
   Xi = PyList_GetItem(XYZ, 0);
-  K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld);
 
   Yi = PyList_GetItem(XYZ, 1);
-  K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld);
 
   Zi = PyList_GetItem(XYZ, 2);
-  K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld);
 
   // chunks
   E_Int nchunks = PyList_Size(CHUNKS);
@@ -443,7 +444,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
     PyObject *CN = PyList_GetItem(o, 2);
     E_Int cnsize, nfld;
-    K_NUMPY::getFromNumpyArray(CN, cns[i], cnsize, nfld, true);
+    K_NUMPY::getFromNumpyArray(CN, cns[i], cnsize, nfld);
     csize[i] = cnsize / strides[i];
     local_cdist[i+1] = csize[i];
     ncells += local_cdist[i+1];

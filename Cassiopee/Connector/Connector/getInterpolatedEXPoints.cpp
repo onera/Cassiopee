@@ -28,8 +28,8 @@ using namespace K_FUNC;
 PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
 {
   PyObject *coordArray, *cellNArray; // domaine a interpoler
-  if (!PyArg_ParseTuple(args, "OO",
-                        &coordArray, &cellNArray))
+  if (!PYPARSETUPLE_(args, OO_,
+                      &coordArray, &cellNArray))
   {
       return NULL;
   }
@@ -40,8 +40,8 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(coordArray, varString, field, 
-                                    im, jm, km, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(coordArray, varString, field, 
+                                     im, jm, km, cn, eltType);
   if (res != 1)
   {
     if (res == 2) RELEASESHAREDU(coordArray, field,cn);
@@ -63,8 +63,8 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* field1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  res = K_ARRAY::getFromArray(cellNArray, varString1, field1, 
-                              imc, jmc, kmc, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(cellNArray, varString1, field1, 
+                               imc, jmc, kmc, cn1, eltType1); 
   if (res != 1)
   {
     RELEASESHAREDS(coordArray, field);
@@ -97,6 +97,7 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   E_Float* zn = field->begin(posz);
 
   /* Determination des pts interpoles */
+  E_Int api = field1->getApi();
   E_Int ncells = field1->getSize();
   E_Float* cellNp = field1->begin(posc);
   FldArrayI interpolatedCellArray(ncells);
@@ -246,9 +247,9 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   RELEASESHAREDS(coordArray, field);
   RELEASESHAREDS(cellNArray, field1); 
   FldArrayI* cnl = new FldArrayI(0);
-  PyObject* tpl = K_ARRAY::buildArray(*coordEX, 
+  PyObject* tpl = K_ARRAY::buildArray3(*coordEX, 
                                       "x,y,z,indcell1,indcell2,nodemin,EXdir", 
-                                      *cnl, -1, "NODE", false);
+                                      *cnl, "NODE", api);
   delete coordEX; delete cnl;
   return tpl;
 }

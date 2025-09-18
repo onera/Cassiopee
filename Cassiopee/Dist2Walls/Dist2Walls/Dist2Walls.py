@@ -6,9 +6,6 @@ except ImportError: raise ImportError("Dist2Walls: requires Converter modules.")
 __version__ = '4.1'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
-try: range = xrange
-except: pass
-
 # Types de solver pour Eikonal
 fmm=0; fim=1; fim_old=2 # Temporaire
 

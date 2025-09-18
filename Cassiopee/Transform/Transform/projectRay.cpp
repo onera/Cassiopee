@@ -33,7 +33,7 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ TRRR_,
                     &arrays, &array2, &Px, &Py, &Pz))
   {
-      return NULL;
+    return NULL;
   }
   
   // Extract infos from arrays
@@ -43,10 +43,10 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
@@ -84,8 +84,8 @@ PyObject* K_TRANSFORM::projectRay(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, 
-                                     im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, 
+                                      im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)

@@ -18,9 +18,6 @@
 */
 
 #include "occ.h"
-// IGES/STEP
-#include "IGESControl_Writer.hxx" 
-#include "STEPControl_Writer.hxx"
 
 #include "TColStd_HSequenceOfTransient.hxx"
 #include "TopoDS.hxx"

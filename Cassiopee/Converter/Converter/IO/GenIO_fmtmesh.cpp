@@ -94,13 +94,13 @@ E_Int K_IO::GenIO::meshread(
   E_Int st;
   res = readWord(ptrFile, buf);
 
-  E_Boolean foundEdge = false;
-  E_Boolean foundTri = false;
-  E_Boolean foundQuad = false;
-  E_Boolean foundTetra = false;
-  E_Boolean foundHexa = false;
-  E_Boolean foundPenta = false;
-  E_Boolean foundPyra = false;
+  E_Bool foundEdge = false;
+  E_Bool foundTri = false;
+  E_Bool foundQuad = false;
+  E_Bool foundTetra = false;
+  E_Bool foundHexa = false;
+  E_Bool foundPenta = false;
+  E_Bool foundPyra = false;
 
   while (strcmp(buf, "End") != 0 && res >= 1)
   { 
@@ -360,7 +360,7 @@ E_Int K_IO::GenIO::meshread(
 
   const E_Int ncmax = 8;
   vector<FldArrayI*> tmpConnect;
-  vector<E_Boolean> topoFound(ncmax, false);
+  vector<E_Bool> topoFound(ncmax, false);
   
   eltType.clear();
   if (api == 3) eltType.resize(1);

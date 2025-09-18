@@ -67,7 +67,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
 {
   PyObject *arr, *py_dict_transfo_to_list;
 
-  if (!PyArg_ParseTuple(args, "OO", &arr, &py_dict_transfo_to_list)) return nullptr;
+  if (!PYPARSETUPLE_(args, OO_, &arr, &py_dict_transfo_to_list)) return nullptr;
 
   // 1. Get mesh and check is NGON
   K_FLD::FloatArray* f(0);
@@ -287,9 +287,9 @@ void __deleteHM(const void* hmesh_ptrs)
 PyObject* K_INTERSECTOR::deleteHMesh(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook))
+  if (!PYPARSETUPLE_(args, O_, &hook))
   {
-      return NULL;
+    return NULL;
   }
 
   // recupere le hook
@@ -478,9 +478,9 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
 {
   PyObject *hook{nullptr}, *pyfieldN{nullptr}, *py_bcptlists{nullptr};
 
-  if (!PyArg_ParseTuple(args, "OOO", &hook, &pyfieldN, &py_bcptlists))
+  if (!PYPARSETUPLE_(args, OOO_, &hook, &pyfieldN, &py_bcptlists))
   {
-      return NULL;
+    return NULL;
   }
 
   FloatArray* fi; E_Int ni, nj, nk;
@@ -503,7 +503,7 @@ PyObject* K_INTERSECTOR::interpolateHMeshNodalField(PyObject* self, PyObject* ar
     {
       PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld, true/* shared*/);
+      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);
@@ -803,9 +803,9 @@ void __deleteSensor(E_Int sensor_type, const void* sensor_ptrs)
 PyObject* K_INTERSECTOR::deleteSensor(PyObject* self, PyObject* args)
 {
   PyObject* hook_sensor;
-  if (!PyArg_ParseTuple(args, "O", &hook_sensor))
+  if (!PYPARSETUPLE_(args, O_, &hook_sensor))
   {
-      return NULL;
+    return NULL;
   }
 
   // recupere le hook
@@ -965,7 +965,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
 {
 
   PyObject* hook_sensor{ nullptr }, *dataSensor(nullptr);
-  if (!PyArg_ParseTuple(args, "OO", &hook_sensor, &dataSensor))
+  if (!PYPARSETUPLE_(args, OO_, &hook_sensor, &dataSensor))
     return nullptr;
   if (dataSensor == Py_None) // nothing to do
     return Py_None;
@@ -990,22 +990,22 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
       E_Int size = -1, nfld = -1;
 
       PyObject *py_mxx = PyList_GetItem(dataSensor, 0);
-      K_NUMPY::getFromNumpyArray(py_mxx, mxx, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxx, mxx, size, nfld);
       
       PyObject *py_mxy = PyList_GetItem(dataSensor, 1);
-      K_NUMPY::getFromNumpyArray(py_mxy, mxy, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxy, mxy, size, nfld);
       
       PyObject *py_mxz = PyList_GetItem(dataSensor, 2);
-      K_NUMPY::getFromNumpyArray(py_mxz, mxz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mxz, mxz, size, nfld);
       
       PyObject *py_myy = PyList_GetItem(dataSensor, 3);
-      K_NUMPY::getFromNumpyArray(py_myy, myy, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_myy, myy, size, nfld);
       
       PyObject *py_myz = PyList_GetItem(dataSensor, 4);
-      K_NUMPY::getFromNumpyArray(py_myz, myz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_myz, myz, size, nfld);
       
       PyObject *py_mzz = PyList_GetItem(dataSensor, 5);
-      K_NUMPY::getFromNumpyArray(py_mzz, mzz, size, nfld, true /*shared*/);
+      K_NUMPY::getFromNumpyArray(py_mzz, mzz, size, nfld);
 
       // remplir fS
       fS.resize(6, nfld);
@@ -1029,7 +1029,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   else // assuming numpy for nodal/cell
   {
      E_Int *nodv, size, nfld;
-     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld, true/* shared*/);
+     /*E_Int res2 = */K_NUMPY::getFromNumpyArray(dataSensor, nodv, size, nfld);
      sens_data.resize(size);  
      for (E_Int i=0; i < size; ++i)
      {
@@ -1335,13 +1335,10 @@ const char* varString, PyObject *out)
 //=============================================================================
 PyObject* K_INTERSECTOR::adaptCells(PyObject* self, PyObject* args)
 {
-  //std::cout << "adaptCells : begin" << std::endl;
   PyObject *hook_hmeshes(nullptr), *hook_sensors(nullptr), *py_zone_to_rid_to_list_owned(nullptr);
   PyObject *py_rid_to_zones(nullptr);
+  if (!PYPARSETUPLE_(args, OOOO_, &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_rid_to_zones)) return NULL;
   
-  if (!PyArg_ParseTuple(args, "OOOO", &hook_hmeshes, &hook_sensors, &py_zone_to_rid_to_list_owned, &py_rid_to_zones)) return NULL;
-  //std::cout << "adaptCells : after parse tuple" << std::endl;
-
   // 1. GET MESHES AND SENSORS
 
   int nb_meshes{1};
@@ -1758,7 +1755,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
     {
       PyObject * pyBCptList = PyList_GetItem(py_bcptlists, i);
       E_Int *ptL, size, nfld;
-      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld, true/* shared*/);
+      /*E_Int res2 = */K_NUMPY::getFromPointList(pyBCptList, ptL, size, nfld);
       //std::cout << "res2/size/nfld : " << res2 << "/" << size << "/" << nfld << std::endl;
 
       std::vector<E_Int> vPtL(ptL, ptL+size);
@@ -1871,7 +1868,7 @@ PyObject* K_INTERSECTOR::conformizeHMesh(PyObject* self, PyObject* args)
       PyObject* fieldFi = PyList_GetItem(pyfieldsF, j);
 
       FldArrayF* Fid;
-      K_NUMPY::getFromNumpyArray(fieldFi, Fid, true);
+      K_NUMPY::getFromNumpyArray(fieldFi, Fid);
       pFid[j] = Fid->begin(1);
       fieldsF[j].resize(Fid->getSize());
     }

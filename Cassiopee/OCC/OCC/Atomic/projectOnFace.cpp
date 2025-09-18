@@ -33,7 +33,9 @@
 #include "Bnd_Box.hxx"
 #include "BRepBndLib.hxx"
 
-// Project coords on CAD face
+//===========================================================================
+// Project coords on a CAD face
+//===========================================================================
 void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
 {
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
@@ -82,7 +84,7 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   // array a projeter
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* c; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(array, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -140,13 +142,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 
     for (E_Int j = 0; j < nfaces; j++)
     {
-        const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
-        Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+      const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
+      Handle(Geom_Surface) face = BRep_Tool::Surface(F);
         
 #if PROJMETHOD == 0
-        GeomAPI_ProjectPointOnSurf o;
+      GeomAPI_ProjectPointOnSurf o;
 #else
-        BRepExtrema_DistShapeShape tool;
+      BRepExtrema_DistShapeShape tool;
 #endif
 
 #pragma omp for

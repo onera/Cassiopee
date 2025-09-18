@@ -1,8 +1,5 @@
 """Collar grid generation module. Extension of Generator.
 """
-try: range = xrange
-except: pass
-
 from . import Generator as G
 __version__ = G.__version__
 

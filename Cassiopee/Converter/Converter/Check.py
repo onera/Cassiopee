@@ -395,7 +395,7 @@ def _correctNameLength(t):
 
 #==============================================================================
 # Verifie que les noms des noeuds de type donne sont bien uniques
-# Opitmise pour Base, Zone, BC et GC
+# Optimise pour Base, Zone, BC et GC
 #==============================================================================
 def checkUniqueNames(t, ntype):
     nameServer = {}
@@ -1112,6 +1112,7 @@ def _correctCGNSType(t):
 # si une zone a NGON+PE et pas de NFace
 # si il y a des connectivites multiples
 # ou une zone a NGON+PE et pas de NFace
+# les vertex referenes existent.
 #==============================================================================
 def checkElementNodes(t):
     errors = []
@@ -1120,36 +1121,48 @@ def checkElementNodes(t):
         zones = Internal.getZones(b)
         for z in zones:
             connects = Internal.getElementNodes(z)
-            iBE = -1; iBEMultiple = -1; iNGon = -1; iNFace = -1; i = 0
+            iBEs = []; iNGons = []; iNFaces = []; i = 0
             for c in connects:
                 ctype = c[1][0]
-                if ctype == 22: iNGon = i
-                elif ctype == 23: iNFace = i
-                else:
-                    if iBE == -1: iBE = i # first
-                    else: iBEMultiple = 1
+                if ctype == 22: iNGons.append(i)
+                elif ctype == 23: iNFaces.append(i)
+                else: iBEs.append(i)
                 i += 1
 
-            if iBE != -1:
+            if len(iNGons) > 1:
+                print("Warning: CheckPyTree: multiple NGON connectivity for zone %s. Please merge NGON connectivities."%z[0])
+            if len(iNFaces) > 1:
+                print("Warning: CheckPyTree: multiple NFACE connectivity for zone %s. Please merge NFACE connectivities."%z[0])
+            if len(iNGons) == 1 and len(iNFaces) == 0:
+                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
+
+            #if len(BE) > 1:
+            #    errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
+
+            for iBE in iBEs: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
-                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
                         errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
-            if iNFace != -1: # NFace exist
-                c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
-                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
+
+            #for iNFace in iNFaces: # check positive faces
+            #    c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
+            #    if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+            #    else:
+            #        minv = numpy.min(c[1])
+            #        if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
+
+            for iNGon in iNGons: # check existing vertices
+                c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
+                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
-                    minv = numpy.min(c[1])
-                    if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
-            if iNGon != -1 and iNFace != -1: pass
-            elif iNGon != -1 and iNFace == -1:
-                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
-            elif iBEMultiple == 1:
-                pass
-                #errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
+                    minv = numpy.min(c[1]); maxv = numpy.max(c[1])
+                    npts = C.getNPts(z)
+                    if minv < 1 or maxv > npts:
+                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
     return errors
 
 #==============================================================================

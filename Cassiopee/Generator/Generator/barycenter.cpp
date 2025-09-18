@@ -27,7 +27,7 @@ PyObject* K_GENERATOR::barycenter(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* weight;
-  if (!PyArg_ParseTuple(args, "OO", &array, &weight)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &weight)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;

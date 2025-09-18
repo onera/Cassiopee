@@ -95,7 +95,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
   E_Bool array23 = false;
   if (api == 2 || api == 3) array23 = true;
-  if (api == 2) api = 3;
   E_Int shift = 1; if (api == 3) shift = 0;
 
   // Get dimensionality
@@ -329,7 +328,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
-    E_Boolean center = false;
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                nuniqueFaces, "NGON", sizeFN2, sizeEF2,
                                ngonType, center, api);
@@ -472,20 +471,54 @@ E_Int K_CONNECT::V_identifyDirtyPoints(
       }
       
       // Remove circular references by instructing the pointers to point to
-      // the leaves, and conditionally mark orphan points
+      // the roots
       if (rmOrphanPts)
       {
+        E_Int prev, fi;
+        // seen array used to detect cycles
+        E_Int* seen = (E_Int*) calloc(npts, sizeof(E_Int));
+        E_Int stamp = 1;
+    
         for (size_t i = 0; i < npts; ++i)
         {
           // Skip orphan points
           if (indir[i] == -1) { locIndir[i] = -1; continue; }
+
+          prev = i;
           fi = locIndir[i];
-          while (fi != locIndir[fi]) fi = locIndir[fi];
-          locIndir[i] = fi;
+
+          while (true)
+          {
+            // If orphan node, cut at last valid ancestor prev
+            if (fi == -1 or indir[fi] == -1)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+            // If fi is a valid self-pointer, cut at fi
+            else if (locIndir[fi] == fi)
+            {
+              locIndir[i] = fi;
+              break;
+            }
+            // If fi is revisited in this traversal, break the cycle
+            else if (seen[fi] == stamp)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+
+            seen[fi] = stamp;
+            prev = fi;
+            fi = locIndir[fi];
+          }
+          stamp++;
         }
+        free(seen);
       }
       else
       {
+        // Path compression step from a disjoint set data structure
         for (size_t i = 0; i < npts; ++i)
         {
           fi = locIndir[i];
@@ -851,7 +884,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   // --- 4. Create resized connectivity ---
   if (rmOverlappingPts || rmDirtyElts)
   {  
-    E_Boolean center = false;
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                eltType, center, api);
     FldArrayF* f2; FldArrayI* cn2;
@@ -924,6 +957,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
     std::vector<E_Int> isTotDegen(4, -1);
     for (E_Int i = 0; i <= 3; i++) isTotDegen[i] = i;
 
+    E_Int eltc[9];
+
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -931,11 +966,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe, true);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe, true);
         if (E.isDegen_ and (E_Int)E.size_ <= isTotDegen[dim])
         {
           indir[elOffset+i] = COLLAPSED; continue;
@@ -957,6 +992,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
   }
   else
   {
+    E_Int eltc[9];
+
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -964,11 +1001,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe);
         // Use insert to ensure E is initially mapped to -1 if it doesn't exist
         auto res = eltMap.insert(std::make_pair(E, -1));
         // Check the value associated with E. If it is -1, then first time this

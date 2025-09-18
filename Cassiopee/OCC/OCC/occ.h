@@ -20,6 +20,7 @@
 #define _OCC_OCC_H_
 
 #include "kcore.h"
+#include "packet.h"
 
 namespace K_OCC
 {
@@ -41,9 +42,13 @@ namespace K_OCC
 
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
-  PyObject* addSquare(PyObject* self, PyObject* args);
   PyObject* addCylinder(PyObject* self, PyObject* args);
   PyObject* addBox(PyObject* self, PyObject* args);
+  PyObject* addSquare(PyObject* self, PyObject* args);
+  PyObject* addLine(PyObject* self, PyObject* args);
+  PyObject* addCircle(PyObject* self, PyObject* args);
+  PyObject* addSpline(PyObject* self, PyObject* args);
+  PyObject* addArc(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
@@ -84,6 +89,8 @@ namespace K_OCC
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
   PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* loft(PyObject* self, PyObject* args);
+  PyObject* revolve(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);
   PyObject* scale(PyObject* self, PyObject* args);

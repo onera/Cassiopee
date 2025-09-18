@@ -1,6 +1,7 @@
-import os
-from distutils.core import setup, Extension
+#from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import KCore.config
+import os
 
 #=============================================================================
 # CPlot requires:

@@ -1,4 +1,4 @@
-#     include "IBC/commonLaws1.h"
+# include "IBC/commonLaws1.h"
 
 twall  = text + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext*uext);               // Temperature a la paroi
 rowall = pext/twall*cvgaminv;                                               // Densite a la paroi
@@ -12,10 +12,12 @@ wtinf = 0.;
 
 m_thwaites = acos(utinf*ut/uext + vtinf*vt/uext + wtinf*wt/uext);
 
-if (yPW[noind+ideb] >= 0 &&  vt/uext < vtinf){
+if (yPW[noind+ideb] >= 0 &&  vt/uext < vtinf)
+{
   m_thwaites = -m_thwaites;
 }
-else if (yPW[noind+ideb] <= 0 &&  vt/uext > vtinf){
+else if (yPW[noind+ideb] <= 0 &&  vt/uext > vtinf)
+{
   m_thwaites = -m_thwaites;
 }
 
@@ -23,14 +25,17 @@ m_thwaites = m_thwaites/(M_PI - m_thwaites);
 
 lambda_thwaites = 0.45*m_thwaites/(5.*m_thwaites+1);
 
-if (lambda_thwaites >= 0.){
+if (lambda_thwaites >= 0.)
+{
   t_thwaites = 0.22 + 1.57*lambda_thwaites - 1.8*lambda_thwaites*lambda_thwaites;
 }
-else{
+else
+{
   t_thwaites = 0.22 + 1.402*lambda_thwaites - 0.018*lambda_thwaites/(0.107+lambda_thwaites);
 }
 
-if (m_thwaites > 0.){
+if (m_thwaites > 0.)
+{
   a_thwaites = lambda_thwaites/36.;
   b_thwaites = 2.*lambda_thwaites/3. - pow(b_thwaites,2);
   c_thwaites = 4.*lambda_thwaites;
@@ -40,7 +45,8 @@ if (m_thwaites > 0.){
   utau_vec[noind]   = sqrt(sqrt(pow(uext,3)*muwall*(5*m_thwaites+1)/(xPW[noind+ideb]*rowall*0.45))*t_thwaites);
   utau0             = sqrt(sqrt(pow(uext,3)*muwall*(5*m_thwaites+1)/(xPW[noind+ideb]*rowall*0.45))*t_thwaites);
 }
-else{
+else
+{
   lambda_thwaites = 0.;
   utau_vec[noind]   = sqrt(sqrt(pow(uext,3)*muwall/(xPW[noind+ideb]*rowall))*0.343);
   utau0             = sqrt(sqrt(pow(uext,3)*muwall/(xPW[noind+ideb]*rowall))*0.343);

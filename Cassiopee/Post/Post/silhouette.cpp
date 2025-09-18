@@ -23,15 +23,6 @@ using namespace std;
 using namespace K_FLD;
 using namespace K_FUNC;
 
-extern "C"
-{
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, 
-                       E_Int& nedges, E_Int& nnodes, 
-                       E_Int* cn, E_Float* xt, E_Float* yt, E_Float* zt, 
-                       E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz, 
-                       E_Float* surf);
-}
-
 //=============================================================================
 /* Detect shape edges on a surface defined by a TRI */
 //=============================================================================
@@ -40,10 +31,9 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   PyObject* array;
   E_Float vx, vy, vz;
 
-  if (!PYPARSETUPLE_(args, O_ TRRR_,
-                    &array, &vx, &vy, &vz))
+  if (!PYPARSETUPLE_(args, O_ TRRR_, &array, &vx, &vy, &vz))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -52,8 +42,8 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* eltType; char* varString;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+                                     cn, eltType);
   // check array contains TRI
   if (res != 2)
   {
@@ -91,6 +81,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   // get Element-Element neighbours connectivity
   vector< vector<E_Int> > cEEN(nelts);
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   K_CONNECT::connectEV2EENbrs(eltType, npts, *cn, cEEN); 
 
   // prodscal: scalar product
@@ -118,8 +109,6 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   FldArrayF nsurf(nelts,3);
   E_Float* nsurfx = nsurf.begin(1);E_Float* nsurfy = nsurf.begin(2); E_Float* nsurfz = nsurf.begin(3);
   FldArrayF surf(nelts, 1);
-  E_Int nedges = 1;
-  E_Int nnodes = cn->getNfld(); // number of nodes in 1 element
 
   // Compute sign of scalar product nsurf*v of elements and compare with neighbours
   // When sign is different between two neighbours, store matching edge
@@ -148,9 +137,9 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
     vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld); vector<E_Float> ptC1(nfld);
 
     // Compute surface vector of triangles
-    k6unstructsurf_(
-      npts, nelts, nedges, nnodes, cn->begin(), fp[posx], fp[posy], fp[posz], 
-      nsurfx, nsurfy, nsurfz,surf.begin());
+    K_METRIC::compSurfUnstruct(
+      *cn, "TRI", fp[posx], fp[posy], fp[posz], 
+      nsurfx, nsurfy, nsurfz, surf.begin());
 
     // Loop on all elements
     for (E_Int elt1 = 0; elt1 < nelts; elt1++)
@@ -203,21 +192,28 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   }
   else if (type == 4) // QUAD 
   {
-    E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3); E_Int* cn4 = cn->begin(4);
+    E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2);
+    E_Int* cn3 = cn->begin(3); E_Int* cn4 = cn->begin(4);
     // indAi,indBi,indCi,indDi: indices of a QUAD element i
     E_Int indA1, indB1, indC1, indD1, indA2, indB2, indC2, indD2;
     // ptA1,ptB1,ptC1,ptD1: pointers on f for points A1,B1,C1,D1
-    vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld); vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
+    vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld);
+    vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
 
     // Compute surface vector of triangles
-    k6unstructsurf_(npts, nelts, nedges, nnodes, cn->begin(), fp[posx], fp[posy], fp[posz], 
-                    nsurfx, nsurfy, nsurfz,surf.begin());
+    K_METRIC::compSurfUnstruct(*cn, "TRI", fp[posx], fp[posy], fp[posz], 
+                               nsurfx, nsurfy, nsurfz, surf.begin());
 
     // Loop on all elements
     for (E_Int elt1 = 0; elt1 < nelts; elt1++)
     {
-      indA1 = cn1[elt1]-1; indB1 = cn2[elt1]-1; indC1 = cn3[elt1]-1; indD1 = cn4[elt1]-1;
-      for (E_Int p=0;p<nfld;p++){ptA1[p] = fp[p][indA1]; ptB1[p] = fp[p][indB1]; ptC1[p] = fp[p][indC1]; ptD1[p] = fp[p][indD1];}
+      indA1 = cn1[elt1]-1; indB1 = cn2[elt1]-1;
+      indC1 = cn3[elt1]-1; indD1 = cn4[elt1]-1;
+      for (E_Int p=0;p<nfld;p++)
+      {
+        ptA1[p] = fp[p][indA1]; ptB1[p] = fp[p][indB1];
+        ptC1[p] = fp[p][indC1]; ptD1[p] = fp[p][indD1];
+      }
       // sign of scalar product for element elt1
       prodsign1=0;
       prodscal = nsurfx[elt1]*vx + nsurfy[elt1]*vy + nsurfz[elt1]*vz;
@@ -293,8 +289,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
   }
 
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(*fnew, varString, *cnnew, -1, "BAR");
+  tpl = K_ARRAY::buildArray3(*fnew, varString, *cnnew, "BAR", api);
   delete fnew; delete cnnew;
   return tpl;
-
 }

@@ -21,18 +21,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-    void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj,
-    const E_Int& nintk,
-    E_Float* x, E_Float* y, E_Float* z,
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-}
-
 //=============================================================================
 /* Compute the divergence of a set of vector fields given in cell centers
    The divergence is given on cell centers. */
@@ -42,8 +30,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   PyObject* array; PyObject* arrayc;
   PyObject* volc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOOOO", &array, &arrayc, &volc, &cellNc,
-                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OOOO_, &array, &arrayc, &volc, &cellNc,
+                      &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -89,7 +77,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Number of vector fields whose divergence to compute (three components for each)
   E_Int nfld = fc->getNfld(); // total number of scalar fields
@@ -214,10 +202,10 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   if (indices != Py_None && fieldX != Py_None && fieldY != Py_None
                                               && fieldZ != Py_None)
   {
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pind = inds->begin();
@@ -268,13 +256,13 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Float* volp = vol.begin(1);
   if (volc == Py_None)
   { 
-    K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+    K_METRIC::compVolNGon(f->begin(posx), f->begin(posy),
                           f->begin(posz), *cn, volp);
   }
   else
   {
     FldArrayF* vols=NULL; 
-    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    K_NUMPY::getFromNumpyArray(volc, vols);
     volp = vols->begin();
     RELEASESHAREDN(volc, vols);
   }
@@ -336,8 +324,8 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc; PyObject* cellNc;
   PyObject* indices; PyObject* fieldX; PyObject* fieldY; PyObject* fieldZ;
-  if (!PyArg_ParseTuple(args, "OOOOOOO", &array, &arrayc, &cellNc,
-                        &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OOO_, &array, &arrayc, &cellNc,
+                      &indices, &fieldX, &fieldY, &fieldZ)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -385,7 +373,7 @@ PyObject* K_POST::computeDiv2Struct(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Number of vector fields whose divergence to compute (dimPb components for each)
   E_Int nfld = fc->getNfld(); // total number of scalar fields
@@ -781,10 +769,10 @@ PyObject* K_POST::computeDiv2Struct3D(
   {
     FldArrayI* inds = NULL; FldArrayF* bfieldX = NULL;
     FldArrayF* bfieldY = NULL; FldArrayF* bfieldZ = NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -828,10 +816,11 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Float* snp = surfnorm.begin();
   FldArrayF vol(ncells); E_Float* volp = vol.begin();
 
-  k6compstructmetric_(ni, nj, nk, ncells, nbIntTot, nbIntI, nbIntJ, nbIntK,
-                      xt, yt, zt,
-                      volp, sxp, syp, szp, snp,
-                      centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
+  K_METRIC::compMetricStruct(
+    ni, nj, nk, nbIntI, nbIntJ, nbIntK,
+    xt, yt, zt,
+    volp, sxp, syp, szp, snp,
+    centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
   centerInt.malloc(0); surfnorm.malloc(0);
 
   // divergence
@@ -1109,10 +1098,10 @@ PyObject* K_POST::computeDiv2Struct2D(
   {
     FldArrayI* inds = NULL; FldArrayF* bfieldX = NULL;
     FldArrayF* bfieldY = NULL; FldArrayF* bfieldZ = NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    if (ixyz != 2) K_NUMPY::getFromNumpyArray(fieldX, bfieldX, true);
-    if (ixyz != 1) K_NUMPY::getFromNumpyArray(fieldY, bfieldY, true);
-    if (ixyz != 0) K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    if (ixyz != 2) K_NUMPY::getFromNumpyArray(fieldX, bfieldX);
+    if (ixyz != 1) K_NUMPY::getFromNumpyArray(fieldY, bfieldY);
+    if (ixyz != 0) K_NUMPY::getFromNumpyArray(fieldZ, bfieldZ);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -1188,7 +1177,7 @@ PyObject* K_POST::computeDiv2Struct2D(
       #pragma omp for
       for (E_Int indcell = 0; indcell < ncells; indcell++)
       {
-        voli = K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, indcell, -1);
+        K_METRIC::compVolOfStructCell2D(ni, nj, indcell, -1, xt, yt, zt, voli);
         voli = 1./K_FUNC::E_max(voli, K_CONST::E_MIN_VOL);
         gpdv[indcell] *= voli;
       }

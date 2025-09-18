@@ -22,21 +22,21 @@ using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
-/* Conversion d un array en centres en centres étendus 
+/* Conversion d un array en centres en centres ï¿½tendus 
    Extrapolation des centres sur les faces externes
-   Attention : si les coordonnees sont fournies, sont aussi extrapolées ! */
+   Attention : si les coordonnees sont fournies, sont aussi extrapolï¿½es ! */
 //=============================================================================
 PyObject* K_CONVERTER::center2ExtCenter(PyObject* self, PyObject* args )
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* FCenter; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, FCenter, ni, nj, nk, 
-                                    cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, FCenter, ni, nj, nk, 
+                                     cn, eltType); 
   if (res != 1)
   {
     PyErr_SetString(PyExc_TypeError, "center2ExtCenter: array must be structured."); 
@@ -45,7 +45,7 @@ PyObject* K_CONVERTER::center2ExtCenter(PyObject* self, PyObject* args )
   }
   E_Int nfld = FCenter->getNfld();
   E_Int nie = ni+2; E_Int nje = nj+2; E_Int nke = nk+2;
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, nie, nje, nke);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nie, nje, nke, FCenter->getApi());
   E_Float* fep = K_ARRAY::getFieldPtr(tpl);
   FldArrayF FExtCenter(nie*nje*nke, nfld, fep, true);
   E_Int ret = K_LOC::center2ExtCenterStruct(ni, nj, nk, *FCenter, nie, nje, nke, FExtCenter);

@@ -65,16 +65,16 @@ PyObject* K_OCC::evalEdge(PyObject* self, PyObject* args)
   const TopoDS_Edge& E = TopoDS::Edge(edges(edgeNo));
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* ci; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(arrayU, varString, fi, ni, nj, nk, ci, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(arrayU, varString, fi, ni, nj, nk, ci, eltType);
   E_Float* pu = fi->begin(1);
   PyObject* o;
-  if (ret == 1) o = K_ARRAY::buildArray2(3, "x,y,z", ni, nj, nk, 1);
-  else o = K_ARRAY::buildArray2(3, "x,y,z", fi->getSize(), ci->getSize(), -1, eltType);
+  if (ret == 1) o = K_ARRAY::buildArray3(3, "x,y,z", ni, nj, nk, 1);
+  else o = K_ARRAY::buildArray3(3, "x,y,z", fi->getSize(), ci->getSize(), eltType);
   FldArrayF* fo; FldArrayI* co;
-  if (ret == 1) K_ARRAY::getFromArray2(o, fo);
+  if (ret == 1) K_ARRAY::getFromArray3(o, fo);
   else
   {
-    K_ARRAY::getFromArray2(o, fo, co);
+    K_ARRAY::getFromArray3(o, fo, co);
     E_Int* pci = ci->begin(); E_Int* pco = co->begin();
     for (E_Int i = 0; i < ci->getSize()*ci->getNfld(); i++) pco[i]  = pci[i];
   }

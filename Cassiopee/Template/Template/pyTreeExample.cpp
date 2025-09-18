@@ -12,7 +12,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
 {
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone;
-  if (!PyArg_ParseTuple(args, "Osss", &zone, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ SSS_, &zone, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
   
   E_Int ni, nj, nk, cnSize, cnNfld;
   char* varString; char* eltType;
@@ -94,7 +94,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
 PyObject* K_TEMPLATE::pyTreeExample1(PyObject* self, PyObject* args)
 {
   PyObject* t;
-  if (!PyArg_ParseTuple(args, "O", &t)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &t)) return NULL;
 
   /* Exemple de parcours d'arbre en C */
   vector<PyArrayObject*> hook;
@@ -103,21 +103,21 @@ PyObject* K_TEMPLATE::pyTreeExample1(PyObject* self, PyObject* args)
   vector<PyObject*> bases;
   K_PYTREE::getNodesFromType1(t, "CGNSBase_t", bases);
 
-  for (unsigned int i = 0; i < bases.size(); i++)
+  for (size_t i = 0; i < bases.size(); i++)
   {
-    char* baseName = K_PYTREE::getNodeName(bases[i], hook);
+    char* baseName = K_PYTREE::getNodeName(bases[i]);
     printf("Detected bases: %s\n", baseName);
   }
 
   /* Recupere les noeuds zones pour chaque base */
-  for (unsigned int i = 0; i < bases.size(); i++)
+  for (size_t i = 0; i < bases.size(); i++)
   {
     vector<PyObject*> zones;
     PyObject* base = bases[i];
     K_PYTREE::getNodesFromType1(base, "Zone_t", zones);
-    for (unsigned int j = 0; i < zones.size(); j++)
+    for (size_t j = 0; i < zones.size(); j++)
     {
-      char* zoneName = K_PYTREE::getNodeName(zones[j], hook);
+      char* zoneName = K_PYTREE::getNodeName(zones[j];
       printf("Detected zones: %s\n", zoneName);
 
       // Recuperation du noeud GridCoordinates

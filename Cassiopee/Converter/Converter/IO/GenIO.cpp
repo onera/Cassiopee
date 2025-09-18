@@ -129,7 +129,7 @@ E_Int K_IO::GenIO::v3dCheckEndian(char* file)
 }
 
 //=============================================================================
-E_Boolean K_IO::GenIO::getConvertEndian()
+E_Bool K_IO::GenIO::getConvertEndian()
 {
   return _convertEndian;
 }

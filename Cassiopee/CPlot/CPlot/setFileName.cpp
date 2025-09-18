@@ -29,7 +29,7 @@
 PyObject* K_CPLOT::setFileName(PyObject* self, PyObject* args)
 {
   char* fileName;
-  if (!PyArg_ParseTuple(args, "s", &fileName)) return NULL;
+  if (!PYPARSETUPLE_(args, S_, &fileName)) return NULL;
 
   // Recuperation du container de donnees
   Data* d = Data::getInstance();

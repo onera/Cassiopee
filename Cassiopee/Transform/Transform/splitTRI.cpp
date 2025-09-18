@@ -32,10 +32,10 @@ using namespace std;
 PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
 {
   PyObject *array, *polyLineList;
-  if (!PyArg_ParseTuple(args, "OO",
+  if (!PYPARSETUPLE_(args, OO_,
                         &array, &polyLineList))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array

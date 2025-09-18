@@ -24,16 +24,16 @@
 
 namespace K_COMPRESSOR
 {
-PyObject *
-py_ngon_indices_compress(PyObject* self, PyObject* args)
+PyObject* py_ngon_indices_compress(PyObject* self, PyObject* args)
 {
     PyObject *arrays, *indices = nullptr;
-    if (!PyArg_ParseTuple(args, "O|O", &arrays, &indices)) {
+    if (!PyArg_ParseTuple(args, "O|O", &arrays, &indices)) 
+    {
         PyErr_SetString(PyExc_SyntaxError,
                         "Wrong syntax. Right syntax : packIndices((n,array) or list of (n,array)s");
         return NULL;
     }
-    bool  is_list = false;
+    bool is_list = false;
     std::vector<PyArrayObject *> np_beg_indices;
     std::vector<PyArrayObject *> np_indices;
     if (PyList_Check(arrays)) {
@@ -191,7 +191,8 @@ PyObject *
 py_ngon_indices_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
-    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {
+    if (!PYPARSETUPLE_(args, O_, &cpr_arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackIndices(array or list of compressed arrays");
         return NULL;
     }

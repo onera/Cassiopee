@@ -123,8 +123,8 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     {
       //PyObject* indR = PyList_GetItem(BCFields, 0);
       //PyObject* fields = PyList_GetItem(BCFields, 1);
-      //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
-      //                                  ni, nj, nk, c, eltType, true);
+      //E_Int res = K_ARRAY::getFromArray3(fields, varString, FCenter, 
+      //                                   ni, nj, nk, c, eltType);
       //center2NodeStructBorder(FNode, nin, njn, nkn);
       //RELEASESHAREDB(res, fields, );
     }
@@ -143,7 +143,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     }
       
     E_Int nb = 0;
-    E_Boolean compact = false;
+    E_Bool compact = false;
     if (api == 1) compact = true;
 
     if (K_STRING::cmp(eltType, "NGON*") == 0)

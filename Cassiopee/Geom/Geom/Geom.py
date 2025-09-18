@@ -9,9 +9,6 @@ import KCore.Vector as Vector
 
 from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2, smooth, mapCurvature, enforceh3D
 
-try: range = xrange
-except: pass
-
 # - Basic entities -
 def point(P):
     """Create a point. 

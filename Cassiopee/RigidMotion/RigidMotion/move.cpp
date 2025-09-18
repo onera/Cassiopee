@@ -45,7 +45,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
   if (res < 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -122,7 +122,7 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   for (int i = 0; i < size; i++)
   {
     PyObject* tpl = PyList_GetItem(pyCoordsN,i);
-    K_NUMPY::getFromNumpyArray(tpl, coords[i], true);
+    K_NUMPY::getFromNumpyArray(tpl, coords[i]);
     l[i]=tpl;
   }
   E_Float* xt = coords[0]->begin();
@@ -194,10 +194,10 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   for (int i = 0; i < size; i++)
   {
     PyObject* tpl = PyList_GetItem(pyCoordsN,i);
-    K_NUMPY::getFromNumpyArray(tpl, coords[i], true);
+    K_NUMPY::getFromNumpyArray(tpl, coords[i]);
     l[i] = tpl;
     tpl = PyList_GetItem(pySeN, i);
-    K_NUMPY::getFromNumpyArray(tpl, se[i], true);
+    K_NUMPY::getFromNumpyArray(tpl, se[i]);
     l2[i] = tpl;
   }
 

@@ -10,9 +10,6 @@ try:
 except ImportError:
     importOK = False
 
-try: range = xrange
-except: pass
-
 def checkImport():
     if not importOK:
         raise ImportError("mapEdge requires Converter, Generator, Transform.")

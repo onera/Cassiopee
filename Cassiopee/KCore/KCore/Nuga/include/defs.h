@@ -31,8 +31,6 @@
 #define SIGN(a) ((a < -ZERO_M) ? -1 : ((a > ZERO_M) ? 1 : 0))  
 
 // types
-#ifndef NUGALIB
-
 #include "Def/DefTypes.h"
 #include "Def/DefCplusPlusConst.h"
 
@@ -51,25 +49,5 @@ static const E_Float PI   = K_CONST::E_PI;
 static const E_Float PI_2 = K_CONST::E_PI_2;
 static const E_Float PI_4 = K_CONST::E_PI_4;
 }
-
-#else
-
-#define IDX_NONE     2147483647
-using E_Float = double;
-using E_Int   = int;
-using E_Bool  = int;
-
-#include <limits>
-namespace NUGA
-{
-  static const E_Float FLOAT_MAX = std::numeric_limits<E_Float>::max();
-  static const E_Float SQRT3     = 1.73205080756887729353;
-
-  static const E_Float PI        = 3.14159265358979323846;
-  static const E_Float PI_2      = 1.57079632679489661923;
-  static const E_Float PI_4      = 0.78539816339744830962;
-}
-
-#endif
 
 #endif

@@ -65,7 +65,7 @@ PyObject* K_CONVERTER::magnitude(PyObject* self, PyObject* args)
   char* commonVariable = new char [varStringL];
   commonVariable[0] = '\0';
   char* start = new char [varStringL];
-  E_Boolean common = false;
+  E_Bool common = false;
 
   for (E_Int v  = 0 ; v < PyList_Size(varsO); v++)
   {

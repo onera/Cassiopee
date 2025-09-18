@@ -63,8 +63,8 @@ PyObject* K_GENERATOR::connectPatchGrid(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(array1, varString1, f1, 
-                                     ni1, nj1, nk1, cn1, eltType1, true); 
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, 
+                                      ni1, nj1, nk1, cn1, eltType1); 
   if (res1 != 1)
   {
     RELEASESHAREDB(res1, array1, f1, cn1);
@@ -87,8 +87,8 @@ PyObject* K_GENERATOR::connectPatchGrid(PyObject* self, PyObject* args)
   E_Int ni2, nj2, nk2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, f2, 
-                                     ni2, nj2, nk2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, 
+                                      ni2, nj2, nk2, cn2, eltType2); 
   if (res2 != 1)
   {
     RELEASESHAREDS(array1, f1);

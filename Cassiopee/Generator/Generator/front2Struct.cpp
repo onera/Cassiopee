@@ -115,12 +115,13 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(front, varString1, 
-                                     f1, ni1, nj1, nk1, cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(front, varString1, 
+                                      f1, ni1, nj1, nk1, cn1, eltType1);
+  
+  
   if (res1 != 2 || strcmp(eltType1, "QUAD") != 0 ) 
   {
-    if ( res1 == 1 ) delete f1;
-    if ( res1 == 2 ) {delete f1; delete cn1;}
+    RELEASESHAREDB(res1, front, f1, cn1);      
     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: surface must be a QUAD array.");
     return NULL;
@@ -130,7 +131,7 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   E_Int posz1 = K_ARRAY::isCoordinateZPresent(varString1);
   if ( posx1 == -1 || posy1 == -1 || posz1 == -1 )
   {
-    delete f1; delete cn1;
+    RELEASESHAREDU(front, f1, cn1);  
     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: coords must be present in front.");
     return NULL;
@@ -142,13 +143,12 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   char* varString2;
   char* eltType2;
   FldArrayI* cn2;
-  E_Int res2 = K_ARRAY::getFromArray(surface, varString2, 
-                                     f2, ni2, nj2, nk2, cn2, eltType2);
+  E_Int res2 = K_ARRAY::getFromArray3(surface, varString2, 
+                                      f2, ni2, nj2, nk2, cn2, eltType2);
   if ( res2 != 2 || strcmp(eltType2, "TRI") != 0 ) 
   {
-    delete f1; delete cn1;
-    if ( res2 == 1 ) delete f2;
-    if ( res2 == 2 ) {delete f2; delete cn2;}
+    RELEASESHAREDU(front, f1, cn1);
+    RELEASESHAREDB(res2, surface, f2, cn2);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: surface must be a TRI array.");
     return NULL;
@@ -170,19 +170,23 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   char* varStringd;
   char* eltTyped;
   FldArrayI* cnd;
-  E_Int resd = K_ARRAY::getFromArray(distrib, varStringd, 
-                                     fd, nid, njd, nkd, cnd, eltTyped);
+  E_Int resd = K_ARRAY::getFromArray3(distrib, varStringd, 
+                                      fd, nid, njd, nkd, cnd, eltTyped);
   if ( resd != 1 )
   {
     delete f1; delete cn1; delete f2; delete cn2;
-    delete fd; if ( res2 == 2 )  delete cnd;
+    RELEASESHAREDU(front, f1, cn1);
+    RELEASESHAREDU(surface, f2, cn2);
+    RELEASESHAREDB(resd, distrib, fd, cnd);
     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: distrib must be a structured array.");
     return NULL;
   }
   if ( nid < 2 || njd != 1 || nkd != 1) 
   {
-    delete f1; delete cn1; delete f2; delete cn2; delete fd;
+    RELEASESHAREDU(front, f1, cn1);
+    RELEASESHAREDU(surface, f2, cn2);
+    RELEASESHAREDS(distrib, fd);    
     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: distrib must be an i-array.");
     return NULL;
@@ -192,8 +196,10 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   E_Int poszd = K_ARRAY::isCoordinateZPresent(varStringd);
   if ( posxd == -1 || posyd == -1 || poszd == -1 )
   {
-     delete f1; delete cn1; delete f2; delete cn2; delete fd;
-    PyErr_SetString(PyExc_TypeError, 
+    RELEASESHAREDU(front, f1, cn1);
+    RELEASESHAREDU(surface, f2, cn2);
+    RELEASESHAREDS(distrib, fd);    
+     PyErr_SetString(PyExc_TypeError, 
                     "front2Struct: coords must be present in distrib.");
     return NULL;
   }
@@ -397,7 +403,7 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
           fz[ind] = Fz + gamma*(Cz-Fz);
         }
     }
-    tpl = K_ARRAY::buildArray(*f, "x,y,z", Vmin, Vmin, Nk);
+    tpl = K_ARRAY::buildArray3(*f, "x,y,z", Vmin, Vmin, Nk);
     delete f;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);
@@ -413,7 +419,9 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   for (E_Int v = 0; v < boxesSize; v++) delete boxes[v];
 
   // Sortie
-  delete f1; delete cn1; delete f2; delete cn2; delete fd;  
+  RELEASESHAREDU(front, f1, cn1);
+  RELEASESHAREDU(surface, f2, cn2);
+  RELEASESHAREDS(distrib, fd);
   return meshes;
 }
 
@@ -527,7 +535,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
         fz[ind] = Cz; ind++;
       }
     
-    tpl = K_ARRAY::buildArray(*fl, "x,y,z", Vmin, Vmin, 1);
+    tpl = K_ARRAY::buildArray3(*fl, "x,y,z", Vmin, Vmin, 1);
     delete fl;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);

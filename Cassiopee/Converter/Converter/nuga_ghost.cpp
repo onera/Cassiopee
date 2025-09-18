@@ -241,7 +241,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       
     if (oo != Py_None)
     {
-      ok = K_NUMPY::getFromNumpyArray(oo, f2es[i], c, r, true/*shared*/);
+      ok = K_NUMPY::getFromNumpyArray(oo, f2es[i], c, r);
       buildit = !ok;
     }
 
@@ -278,7 +278,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
     E_Int r, c, *donIds;
 
-    ok = K_NUMPY::getFromNumpyArray(pyo_j_donIds, donIds, c, r, true/*shared*/);
+    ok = K_NUMPY::getFromNumpyArray(pyo_j_donIds, donIds, c, r);
     if (!ok)
     {
     	std::cout << "ERROR: could not get donnor ids" << std::endl; 
@@ -286,7 +286,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
     }
      
     E_Int *ptL_sz;
-    ok = K_NUMPY::getFromPointList(pyo_j_ptLs_sz, ptL_sz, c, r, true/*shared*/);
+    ok = K_NUMPY::getFromPointList(pyo_j_ptLs_sz, ptL_sz, c, r);
     if (!ok) 
     {
     	std::cout << "ERROR: could not get point list sizes" << std::endl; 
@@ -316,7 +316,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
       {
         PyObject* pyo_j_ptL = PyList_GetItem(pyo_j_ptLs, j);	
         E_Int c,r;
-        ok = K_NUMPY::getFromPointList(pyo_j_ptL, ptL, c, r, true/*shared*/);
+        ok = K_NUMPY::getFromPointList(pyo_j_ptL, ptL, c, r);
         
         if (!ok) 
         {
@@ -332,7 +332,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
         PyObject* pyo_ptL_D = PyList_GetItem(pyo_j_ptLs_D, j);	
         
         E_Int c,r;
-        ok = K_NUMPY::getFromPointList(pyo_ptL_D, ptL_D, c, r, true/*shared*/);
+        ok = K_NUMPY::getFromPointList(pyo_ptL_D, ptL_D, c, r);
         
         if (!ok)
         {
@@ -359,7 +359,7 @@ PyObject* K_CONVERTER::addGhostCellsNG(PyObject* self, PyObject* args)
 
       E_Int nb_ids,r;
       E_Int *ptL(nullptr);    
-      ok = K_NUMPY::getFromPointList(pyo_bc_ptL, ptL, nb_ids, r, true/*shared*/);
+      ok = K_NUMPY::getFromPointList(pyo_bc_ptL, ptL, nb_ids, r);
       if (!ok)
       {
         std::cout << "ERROR: could not get current point list" << std::endl; 

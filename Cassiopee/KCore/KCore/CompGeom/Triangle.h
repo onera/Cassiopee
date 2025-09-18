@@ -42,7 +42,7 @@ class Triangle
     E_Float getDistMaxOfCC();
 
     /* Return true if point of index ind in coord array is in circum circle */
-    E_Boolean isPointInCircumCircle(E_Int ind, K_FLD::FldArrayF& coord,
+    E_Bool isPointInCircumCircle(E_Int ind, K_FLD::FldArrayF& coord,
                                     E_Float tol=1.e-14);
 
   private:

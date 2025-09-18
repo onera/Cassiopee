@@ -859,7 +859,6 @@ E_Float Polygon::surface<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, cons
   return ::sqrt(NUGA::sqrNorm<3>(ndS));
 }
 
-#ifndef NUGALIB
 template <> inline 
 E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,2>(const K_FLD::ArrayAccessor<K_FLD::FldArrayF>& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)
 {
@@ -874,7 +873,6 @@ E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,2>(const K_FLD::
   }
   return s;
 }
-#endif
 
 template <> inline 
 E_Float Polygon::surface<K_FLD::ArrayAccessor<K_FLD::FloatArray>,2>(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& acrd, const E_Int* nodes, E_Int nb_nodes, E_Int index_start)

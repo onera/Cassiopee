@@ -36,14 +36,14 @@ class KdTree {
 
   public: /** Typedefs */
 
-    typedef           KdTree                            self_type;
-    typedef           K_FLD::ArrayAccessor<ArrayType>   coord_access_type;
-    typedef           E_Int                             size_type;
-    typedef           E_Float                           value_type;
-    typedef           K_FLD::IntArray                   tree_array_type;
-    typedef           const value_type*                 const_coord_iterator;
-    typedef           tree_array_type::iterator         tree_iterator;
-    typedef           tree_array_type::const_iterator   const_tree_iterator;
+    typedef KdTree                            self_type;
+    typedef K_FLD::ArrayAccessor<ArrayType>   coord_access_type;
+    typedef E_Int                             size_type;
+    typedef E_Float                           value_type;
+    typedef K_FLD::IntArray                   tree_array_type;
+    typedef const value_type*                 const_coord_iterator;
+    typedef tree_array_type::iterator         tree_iterator;
+    typedef tree_array_type::const_iterator   const_tree_iterator;
 
   public: /** Constructors and Destructor */
 

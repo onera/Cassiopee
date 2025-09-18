@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::adaptNGon2Index(PyObject* self, PyObject* args)
 
   // Check numpy (NGon)
   FldArrayI* cNGon;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayNG, cNGon, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayNG, cNGon);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

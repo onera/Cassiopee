@@ -50,12 +50,14 @@ if netcdf:
     libraryDirs.append(netcdfLibDir)
     includeDirs.append(netcdfIncDir)
 ADDITIONALCPPFLAGS = []
-if mpi and mpi4py:
+if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS += ['-D_MPI']
+
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
+    ADDITIONALCPPFLAGS += ['-D_MPI4PY']
 
 if hdf: 
     libraries.append(hdflibs)
@@ -64,7 +66,7 @@ if netcdf:
     libraries.append(netcdflibs)
     ADDITIONALCPPFLAGS += ['-D_NETCDF']
 if mpi: libraries += mpiLibs
-    
+
 (ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)

@@ -24,20 +24,21 @@
 
 namespace K_COMPRESSOR
 {
-PyObject *
-py_indices_compress(PyObject* self, PyObject* args)
+PyObject* py_indices_compress(PyObject* self, PyObject* args)
 {
     PyObject *arrays;
-    if (!PyArg_ParseTuple(args, "O", &arrays)) {
+    if (!PYPARSETUPLE_(args, O_, &arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError,
-                        "Wrong syntax. Right syntax : packIndices((n,array) or list of (n,array)s");
+                        "Wrong syntax. Right syntax: packIndices((n,array) or list of (n,array)s");
         return NULL;
     }
     bool is_list = false;
     std::vector<PyArrayObject *> np_arrays;
     std::vector<long> nb_verts_per_elt_arr;
     std::vector<bool> is_c_order;
-    if (PyList_Check(arrays)) {
+    if (PyList_Check(arrays)) 
+    {
         is_list = true;
         np_arrays.reserve(PyList_Size(arrays));
         nb_verts_per_elt_arr.reserve(PyList_Size(arrays));
@@ -174,7 +175,8 @@ py_indices_compress(PyObject* self, PyObject* args)
 PyObject* py_indices_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
-    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) {
+    if (!PYPARSETUPLE_(args, O_, &cpr_arrays)) 
+    {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax: unpackIndices(array or list of compressed arrays");
         return NULL;
     }

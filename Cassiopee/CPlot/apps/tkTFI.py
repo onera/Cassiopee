@@ -1,7 +1,6 @@
 # - tkTFI -
 """Transfinite interpolation mesher."""
-try: import tkinter as TK
-except ImportError: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -14,9 +13,6 @@ import Generator.TFIs as TFIs
 import Transform.PyTree as T
 import Converter
 import Generator
-
-try: range = xrange
-except: pass
 
 # local widgets list
 WIDGETS = {}; VARS = []

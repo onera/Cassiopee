@@ -49,8 +49,8 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringR; char* eltTypeR;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringR, fr,
-                                     imr, jmr, kmr, cnr, eltTypeR, true);
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringR, fr,
+                                      imr, jmr, kmr, cnr, eltTypeR);
   if (resr != 2 && resr != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -63,8 +63,8 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd, imdjmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringD; char* eltTypeD;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringD, fd,
-                                     imd, jmd, kmd, cnd, eltTypeD, true);
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd,
+                                      imd, jmd, kmd, cnd, eltTypeD);
   if (resd != 2 && resd != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -145,7 +145,7 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
       if (poscr != 0)
         posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), poscr), posvarsR.end());
     }
-    }
+  }
   else
   {
     RELEASESHAREDB(resr, arrayR, fr, cnr);
@@ -160,7 +160,7 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res_rcv = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res_rcv = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   nbRcvPts      = rcvPtsI->getSize();
   E_Int* rcvPts = rcvPtsI->begin();
 
@@ -172,11 +172,11 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
     if (res_type  != 0) { RELEASESHAREDN(pyArrayTypes, typesI     );}
     if (res_coef  != 0) { RELEASESHAREDN(pyArrayCoefs, donorCoefsF);}
     if (res_rcv   != 0) { RELEASESHAREDN(pyIndRcv    , rcvPtsI    );}
-    PyErr_SetString(PyExc_TypeError,"setInterpTransfers: 4th to 6th arg must be a numpy of integers. 7th arg a numpy floats ");
+    PyErr_SetString(PyExc_TypeError, "setInterpTransfers: 4th to 6th arg must be a numpy of integers. 7th arg a numpy floats ");
     return NULL;
   }
 
-  // Extraction de l angle de rotation
+  // Extraction de l'angle de rotation
   E_Int dirR = 0; E_Float theta = 0.;
   if (K_FUNC::E_abs(AngleX) > 0.) {dirR = 1; theta=AngleX;}
   else if (K_FUNC::E_abs(AngleY) > 0.){dirR=2; theta=AngleY;}
@@ -292,13 +292,13 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   E_Int* rcvPts = rcvPtsI->begin();
   nbRcvPts = rcvPtsI->getSize();
 
   vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
   vector<E_Int> posvarsD; vector<E_Int> posvarsR;
-  E_Int* ptrcnd;
+  E_Int* ptrcnd=NULL;
   char* eltTypeR; char* eltTypeD;
 
   // codage general (lent ;-) )
@@ -474,7 +474,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   {
     // les variables a transferer sont compactees: on recupere uniquement la premiere et la taille
 #include "getfromzonecompact.h"
-    if( vartype <= 3 &&  vartype >= 1) nvars =5;
+    if (vartype <= 3 &&  vartype >= 1) nvars =5;
     else                               nvars =6;
 
     vector<E_Float*> vectOfRcvFields(nvars);
@@ -505,6 +505,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   Py_INCREF(Py_None);
   return Py_None;
 }
+
 //=============================================================================
 // Idem: in place + from zone + tc compact au niveau zone donneuse
 //=============================================================================
@@ -534,7 +535,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   E_Int flagIbc = E_Int(flagibc);
   E_Int ibcType =  E_Int(bctype);
   vector<PyArrayObject*> hook;
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
+  E_Int imdjmd, imd=1, jmd=1, kmd=1, cnNfldD, nvars, ndimdxR, ndimdxD, meshtype;
   E_Float* iptroD; E_Float* iptroR;
 
   E_Int nidom = PyList_Size(zonesR);
@@ -560,10 +561,12 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   /* Extraction tableau int et real      */
   /*-------------------------------------*/
   FldArrayI* param_int;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   E_Int nracID = ipt_param_int[0];
@@ -576,7 +579,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
 
   vector<E_Float*> fieldsR;vector<E_Float*> fieldsD;
   vector<E_Int> posvarsD; vector<E_Int> posvarsR;
-  E_Int* ptrcnd;
+  E_Int* ptrcnd=NULL;
   //char* eltTypeR; char* eltTypeD;
 
 
@@ -587,13 +590,13 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   if( vartype <= 3 &&  vartype >= 1) nvars =5;
   else                               nvars =6;
 
-  for  (E_Int irac=0; irac< nrac; irac++)
+  for  (E_Int irac=0; irac < nrac; irac++)
   { 
     E_Int pos_rac   = ipt_param_int[ shift_rac +irac];
     E_Int no_zR     = ipt_param_int[ pos_rac   +  6 ];
     //printf("pos_rac %d %d %d %d \n", pos_rac, no_zR, shift_rac+irac, irac);
     PyObject* zoneR = PyList_GetItem(zonesR, no_zR); // domaine i
-#     include "getfromzoneRcompact.h"
+#   include "getfromzoneRcompact.h"
     ipt_ndimdxR[irac] = ndimdxR;
     ipt_roR[irac]     = iptroR;
   }
@@ -604,7 +607,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   E_Float** vectOfRcvFields = RcvFields;
   E_Float** vectOfDnrFields = DnrFields;
 
-  for  (E_Int irac=0; irac< nrac; irac++)
+  for (E_Int irac=0; irac< nrac; irac++)
   {
     for (E_Int eq = 0; eq < nvars; eq++)
     {
@@ -621,7 +624,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
     E_Int max_thread = min(nvars , E_Int(__NUMTHREADS__));
 
 # pragma omp parallel default(shared) num_threads(max_thread)
-    {
+  {
 #ifdef _OPENMP
     E_Int  ithread           = omp_get_thread_num()+1;
     E_Int  Nbre_thread_actif = omp_get_num_threads(); // nombre de thread actif dans cette zone
@@ -665,7 +668,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
       // adressage indirect pour indR
       //
       indR = rcvPts[noind];
-#      include "commonInterpTransfers.h"
+#     include "commonInterpTransfers.h"
       ptrCoefs += sizecoefs;
     }
     }// omp
@@ -680,7 +683,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
 
       E_Int* rcvPts  = ipt_param_int +  pos + 7 +   nbRcvPts;// donor et receveur inverser car storage donor
 
-      pos         = ipt_param_int[ shift_rac + nractot + irac];
+      pos = ipt_param_int[ shift_rac + nractot + irac];
       E_Float* ptrCoefs = ipt_param_real + pos;
 
       E_Int size = (nbRcvPts/threadmax_sdm)+1; // on prend du gras pour gerer le residus
@@ -771,9 +774,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   {
     return NULL;
   }
-  E_Int rank     = -100;
-  E_Int it_target=  E_Int(It_target);
-  /* varType :
+  E_Int it_target = E_Int(It_target);
+  /* vartype :
      1  : conservatives,
      11 : conservatives + ronutildeSA
      2  : (ro,u,v,w,t)
@@ -786,8 +788,6 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
      ---------------------------------------------
      5  : (ro,u,v,w,t) + (Sxx,...) Couplage NS LBM
      51 : Couplage NS LBM improved ( a coder ) */
-
-  E_Int varType = E_Int(vartype);
 
   //gestion nombre de pass pour ID et/ou IBC
   E_Int TypeTransfert = E_Int(type_transfert);
@@ -854,16 +854,19 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   vector<PyArrayObject*> hook;
 
   FldArrayI* dtloc;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pydtloc, dtloc, true);
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pydtloc, dtloc);
+  if (res_donor == 0) return NULL;
   E_Int* iptdtloc = dtloc->begin();
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   /*------------------------------------------------*/
@@ -941,7 +944,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
   }
   E_Int maxlevel      =  iptdtloc[ 9];  //transfert sur les zones qui recupere leur valeur interpolees en LBM
   E_Int it_cycl_lbm   =  iptdtloc[10];
-  E_Int level_it      =  iptdtloc[13+it_cycl_lbm];
+  //E_Int level_it      =  iptdtloc[13+it_cycl_lbm];
   E_Int max_it        = pow(2, maxlevel-1);
 
   E_Int level_next_it =  maxlevel;
@@ -1005,21 +1008,21 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
         else if (levelD < levelR && num_passage == 1)
         {
           if (nstep%cyclD==1 || nstep%cyclD==cyclD/4 || nstep%cyclD== cyclD/2-1 || nstep%cyclD== cyclD/2+1 || nstep%cyclD== cyclD/2+cyclD/4 || nstep%cyclD== cyclD-1)
-            { autorisation_transferts[pass_inst][irac_auto]=1; }
+          { autorisation_transferts[pass_inst][irac_auto]=1; }
           else {continue;}
         }
         // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse
         else if (levelD == levelR && num_passage == 1)
         {
           if (nstep%cyclD==cyclD/2-1 || (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==0) || nstep%cyclD==cyclD-1)
-            { autorisation_transferts[pass_inst][irac_auto]=1; }
+          { autorisation_transferts[pass_inst][irac_auto]=1; }
           else {continue;}
         }
         // Le pas de temps de la zone donneuse est egal a celui de la zone receveuse (cas du deuxieme passage)
         else if (levelD == levelR && num_passage == 2)
         {
           if (nstep%cyclD==cyclD/2 && (nstep/cyclD)%2==1)
-            { autorisation_transferts[pass_inst][irac_auto]=1; }
+          { autorisation_transferts[pass_inst][irac_auto]=1; }
           else {continue;}
         }
         else {continue;}
@@ -1027,13 +1030,13 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
       // Sinon, on autorise les transferts  si la zone donneuse a ete modifiee a l'iteration nstep
       else 
       {
-        E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5     ];
+        E_Int NoD =  ipt_param_int[ shift_rac + nrac*5     ];
         if (impli_local[NoD]==1) autorisation_transferts[pass_inst][irac_auto]=1;
         //autorisation_transferts[pass_inst][irac_auto]=1;
       }
         
     }
-    }
+  }
 
 
   E_Int size = (nbRcvPts_mx/threadmax_sdm)+1; // on prend du gras pour gerer le residus
@@ -1051,7 +1054,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 # pragma omp parallel default(shared)
   {
       
-    E_Float gamma, cv, muS, Cs, Ts, Pr;
+    //E_Float gamma, cv, muS, Cs, Ts, Pr;
 
 #ifdef _OPENMP
     E_Int  ithread           = omp_get_thread_num()+1;
@@ -1132,82 +1135,82 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             }
             else
             {
-                        /*--------------------------------------------------------------------*/
-                        /*                GESTION DES TRANSFERTS EN CENTER                    */
-                        /* 2 cas: - si pas de couplage NSLBM, transferts habituels,           */
-                        /*        - si couplage NSLBM, raccords a adapter                     */
-                        /*--------------------------------------------------------------------*/
-                        if (nvars_loc == 5 || nvars_loc == 6) // Transferts NS classiques ou LBM -> NS
-                        {
-                         for (E_Int eq = 0; eq < nvars_loc; eq++)
-                         {
-                           vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
-                           vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
-                         }
-                        }
-                        else if (nvars_loc == 24 || nvars_loc == 32) // Transferts LBM classiques
-                        {
-                          // On commence par copier les 5 variables macros
-                          for (E_Int eq = 0; eq < 5; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                          // Puis on copie les fonctions de distribution
-                          for (E_Int eq = 5; eq < nvars_loc; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_qR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_qD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                        }
-                        else if (nvars_loc == 11 ) // //Transfert NS -> LBM    
-                        {
-                          // On commence par copier les 5 variables macros
-                          for (E_Int eq = 0; eq < 5; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                          // Puis on copie les gradients
-                          for (E_Int eq = 5; eq < nvars_loc; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_SR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_SD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                        }
-                        else if (nvars_loc == 36 || nvars_loc == 44) // //Transfert LBM  overset   
-                        {
-                          // On commence par copier les 5 variables macros
-                          for (E_Int eq = 0; eq < 5; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                          // Puis on copie les gradients
-                          for (E_Int eq = 5; eq < 11; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_SR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_SD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                          for (E_Int eq =11; eq < 17; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_psiGR[ NoR] + (eq-11)*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_psiGD[ NoD] + (eq-11)*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                          for (E_Int eq =17; eq < nvars_loc; eq++)
-                          {
-                            vectOfRcvFields[eq] = ipt_qR[ NoR] + (eq-17)*ipt_param_intR[ NoR][ NDIMDX ];
-                            vectOfDnrFields[eq] = ipt_qD[ NoD] + (eq-17)*ipt_param_intR[ NoD][ NDIMDX ];
-                          }
-                        }
-                        if (isWireModel>0)
-                        {
-                          for (E_Int eq = nvars_loc; eq < nvars_loc+nvars_Pnt2; eq++){
-                          vectOfRcvFields[eq] = ipt_roR_Pnt2[ NoR] + (eq-nvars_loc)*ipt_param_intR[ NoR ][ NDIMDX ];
-                        }
-                     }
-
-                      imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
+              /*--------------------------------------------------------------------*/
+              /*                GESTION DES TRANSFERTS EN CENTER                    */
+              /* 2 cas: - si pas de couplage NSLBM, transferts habituels,           */
+              /*        - si couplage NSLBM, raccords a adapter                     */
+              /*--------------------------------------------------------------------*/
+              if (nvars_loc == 5 || nvars_loc == 6) // Transferts NS classiques ou LBM -> NS
+              {
+                for (E_Int eq = 0; eq < nvars_loc; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+              }
+              else if (nvars_loc == 24 || nvars_loc == 32) // Transferts LBM classiques
+              {
+                // On commence par copier les 5 variables macros
+                for (E_Int eq = 0; eq < 5; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+                // Puis on copie les fonctions de distribution
+                for (E_Int eq = 5; eq < nvars_loc; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_qR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_qD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+              }
+              else if (nvars_loc == 11 ) // //Transfert NS -> LBM    
+              {
+                // On commence par copier les 5 variables macros
+                for (E_Int eq = 0; eq < 5; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+                // Puis on copie les gradients
+                for (E_Int eq = 5; eq < nvars_loc; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_SR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_SD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+              }
+              else if (nvars_loc == 36 || nvars_loc == 44) // //Transfert LBM  overset   
+              {
+                // On commence par copier les 5 variables macros
+                for (E_Int eq = 0; eq < 5; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_roR[ NoR] + eq*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_roD[ NoD] + eq*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+                // Puis on copie les gradients
+                for (E_Int eq = 5; eq < 11; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_SR[ NoR] + (eq-5)*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_SD[ NoD] + (eq-5)*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+                for (E_Int eq =11; eq < 17; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_psiGR[ NoR] + (eq-11)*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_psiGD[ NoD] + (eq-11)*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+                for (E_Int eq =17; eq < nvars_loc; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_qR[ NoR] + (eq-17)*ipt_param_intR[ NoR][ NDIMDX ];
+                  vectOfDnrFields[eq] = ipt_qD[ NoD] + (eq-17)*ipt_param_intR[ NoD][ NDIMDX ];
+                }
+              }
+              if (isWireModel>0)
+              {
+                for (E_Int eq = nvars_loc; eq < nvars_loc+nvars_Pnt2; eq++)
+                {
+                  vectOfRcvFields[eq] = ipt_roR_Pnt2[ NoR] + (eq-nvars_loc)*ipt_param_intR[ NoR ][ NDIMDX ];
+                }
+              }
+              imd= ipt_param_intR[ NoD ][ NIJK ]; jmd= ipt_param_intR[ NoD ][ NIJK+1];
             }
 
             imdjmd = imd*jmd;
@@ -1261,7 +1264,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
               //Si type 0, calcul sequentiel
               if  ( type == 0 )
-              { if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
+              { 
+                if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
                 else             { pt_deb = ideb; pt_fin = ideb;}
               }
 
@@ -1330,16 +1334,15 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
             if (rotation == 1 and isWireModel!=2)
             {
               E_Float* angle = ptrCoefs + nbInterpD;
-#          include "includeTransfers_rotation.h"
+#             include "includeTransfers_rotation.h"
             }
             
-
             // ibc
             if (ibc == 1)
             {
-                if (isWireModel ==0)
-                {
-                  setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
+              if (isWireModel ==0)
+              {
+                setIBCTransfersCommonVar2(ibcType, rcvPts, nbRcvPts, pt_deb, pt_fin, ithread,
                                   xPC, xPC+nbRcvPts, xPC+nbRcvPts*2,
                                   xPW, xPW+nbRcvPts, xPW+nbRcvPts*2,
                                   xPI, xPI+nbRcvPts, xPI+nbRcvPts*2,
@@ -1348,40 +1351,40 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
                                   ipt_param_realR[ NoR ],
                                   vectOfDnrFields, vectOfRcvFields);
 
-                  // Si calcul LBM => reconstruction a l'equilibre des Qs
-                  if (solver_R==4)
-                   {
-#                   include "includeTransfers_LBM_feq.h"
-                   }
-                }
-                else if(isWireModel==2)
+                // Si calcul LBM => reconstruction a l'equilibre des Qs
+                if (solver_R==4)
                 {
-                  if (ibcType==140) // placing values in the tc
+#                  include "includeTransfers_LBM_feq.h"
+                }
+              }
+              else if(isWireModel==2)
+              {
+                if (ibcType==140) // placing values in the tc
+                {
+                  for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++)
                   {
-                    for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++)
-                    {
-                      E_Int indR = rcvPts[noind+pt_deb];
-                      (densPtr+nbRcvPts*5 )[noind+pt_deb] = vectOfRcvFields[nvars  ][indR];
-                      (densPtr+nbRcvPts*6 )[noind+pt_deb] = vectOfRcvFields[nvars+1][indR];
-                      (densPtr+nbRcvPts*7 )[noind+pt_deb] = vectOfRcvFields[nvars+2][indR];
-                      (densPtr+nbRcvPts*8)[noind+pt_deb]  = vectOfRcvFields[nvars+3][indR];
-                      (densPtr+nbRcvPts*9)[noind+pt_deb]  = vectOfRcvFields[nvars+4][indR];
-                      if (nvars==6){ (densPtr+nbRcvPts*10)[noind+pt_deb] = vectOfRcvFields[nvars+5][indR]; }					  
-                    }
+                    E_Int indR = rcvPts[noind+pt_deb];
+                    (densPtr+nbRcvPts*5 )[noind+pt_deb] = vectOfRcvFields[nvars  ][indR];
+                    (densPtr+nbRcvPts*6 )[noind+pt_deb] = vectOfRcvFields[nvars+1][indR];
+                    (densPtr+nbRcvPts*7 )[noind+pt_deb] = vectOfRcvFields[nvars+2][indR];
+                    (densPtr+nbRcvPts*8)[noind+pt_deb]  = vectOfRcvFields[nvars+3][indR];
+                    (densPtr+nbRcvPts*9)[noind+pt_deb]  = vectOfRcvFields[nvars+4][indR];
+                    if (nvars==6){ (densPtr+nbRcvPts*10)[noind+pt_deb] = vectOfRcvFields[nvars+5][indR]; }					  
                   }
                 }
-              }//ibc
+              }
+            }//ibc
             
             ideb       =  ideb + ntype[ 1 + ndtyp];
             shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
             shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
-              }// type
+          }// type
 #pragma omp barrier
-          }// autorisation transfert
-          }//irac
-      }//pass_inst
+        }// autorisation transfert
+      }//irac
+    }//pass_inst
 #pragma omp barrier
-      }//ipass
+  }//ipass
   }// omp
 
 
@@ -1426,7 +1429,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 
   E_Float alpha = 0.;
 
-  /* varType :
+  /* vartype :
      1  : conservatives,
      11 : conservatives + ronutildeSA
      2  : (ro,u,v,w,t)
@@ -1435,8 +1438,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
      3  : (ro,u,v,w,p)
      31 : (ro,u,v,w,p) + ronutildeSA
      4  : (Q1,..., QN)   LBM  */
-  E_Int varType = E_Int(vartype);
-
+  
   //gestion nombre de pass pour ID et/ou IBC
   E_Int TypeTransfert = E_Int(type_transfert);
   E_Int pass_deb, pass_fin;
@@ -1506,10 +1508,12 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   //On recupere le nom de la 1ere variable a recuperer
@@ -1526,7 +1530,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
     PyObject* zoneD = PyList_GetItem(zonesD, nd);
     // #    include "getfromzoneDcompact_all.h"
     //*************************************
-#    include "getfromzoneDcompact_allGradP.h"
+#   include "getfromzoneDcompact_allGradP.h"
     //*************************************
   }
 
@@ -1536,7 +1540,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
     PyObject* zoneR = PyList_GetItem(zonesR, nd);
     // #     include "getfromzoneRcompact_all.h"
     //*************************************
-#    include "getfromzoneRcompact_allGradP.h"
+#   include "getfromzoneRcompact_allGradP.h"
     //*************************************
   }
 
@@ -1627,7 +1631,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
       else { autorisation_transferts[pass_inst][irac_auto]=1; }
 
     }
-    }
+  }
 
 
   E_Int size = (nbRcvPts_mx/threadmax_sdm)+1; // on prend du gras pour gerer le residus
@@ -1635,8 +1639,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
   if (r != 0) size  = size + 8 - r;           // on rajoute du bas pour alignememnt 64bits
   if (ibcTypeMax <=1 ) size = 0;              // tableau inutile : SP voir avec Ivan
 
-  FldArrayF  tmp(size*17*threadmax_sdm);
-  E_Float* ipt_tmp = tmp.begin();
+  //FldArrayF tmp(size*17*threadmax_sdm);
+  //E_Float* ipt_tmp = tmp.begin();
 
   //# pragma omp parallel default(shared)  num_threads(1)
 # pragma omp parallel default(shared)
@@ -1666,13 +1670,13 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 
     for (E_Int ipass_typ=pass_deb; ipass_typ< pass_fin; ipass_typ++)
     {
-    //1ere pass_inst: les raccords fixes
-    //2eme pass_inst: les raccords instationnaires
-    for (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
+      //1ere pass_inst: les raccords fixes
+      //2eme pass_inst: les raccords instationnaires
+      for (E_Int pass_inst=pass_inst_deb; pass_inst< pass_inst_fin; pass_inst++)
       {
         //printf("pass_inst = %d, level= %d \n",  pass_inst, nrac_inst_level );
         E_Int irac_deb= 0; E_Int irac_fin= nrac_steady;
-        if(pass_inst == 1)
+        if (pass_inst == 1)
         {
           irac_deb = ipt_param_int[ ech + 4 + it_target             ];
           irac_fin = ipt_param_int[ ech + 4 + it_target + timelevel ];
@@ -1680,11 +1684,10 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 
         for  (E_Int irac=irac_deb; irac< irac_fin; irac++)
         {
+          E_Int irac_auto= irac-irac_deb;
 
-        E_Int irac_auto= irac-irac_deb;
-
-        if (autorisation_transferts[pass_inst][irac_auto]==1)
-        {
+          if (autorisation_transferts[pass_inst][irac_auto]==1)
+          {
 
             E_Int shift_rac =  ech + 4 + timelevel*2 + irac;
 
@@ -1693,7 +1696,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
             E_Int ibcType =  ipt_param_int[shift_rac+nrac*3];
             E_Int ibc = 1;
             if (ibcType < 0) ibc = 0;
-            if(1-ibc != ipass_typ)  continue;
+            if(1-ibc != ipass_typ) continue;
 
             E_Int NoD      =  ipt_param_int[ shift_rac + nrac*5  ];
             E_Int loc      =  ipt_param_int[ shift_rac + nrac*9  ]; 
@@ -1728,8 +1731,8 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
                 vectOfGradRcvFields[eq] = ipt_gradR[ NoR] + eq*ipt_param_intR[ NoR ][ NDIMDX ];
                 vectOfGradDnrFields[eq] = ipt_gradD[ NoD] + eq*ipt_param_intR[ NoD ][ NDIMDX ];
               }
-            //*************************************
-              }
+              //*************************************
+            }
 
             imdjmd = imd*jmd;
 
@@ -1771,102 +1774,100 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 
             for (E_Int ndtyp = 0; ndtyp < ntype[0]; ndtyp++)
             {
-            type      = types[ifin];
+              type      = types[ifin];
 
-            SIZECF(type, meshtype, sizecoefs);
-            ifin =  ifin + ntype[ 1 + ndtyp];
+              SIZECF(type, meshtype, sizecoefs);
+              ifin =  ifin + ntype[ 1 + ndtyp];
 
-            /*
-            // *      New school: meilleur equilibrage, mais gestion looop dynamique rame...
-            // *
-            E_Int size_bc =  ifin-ideb;
-            E_Int size_min=   16;
-            //E_Int chunk = size_bc/Nbre_thread_actif;
-            //if     (chunk < size_min && size_bc >= size_min) { chunk = size_min;}
-            //else if(chunk < size_min && size_bc <  size_min) { chunk = size_bc ;}
-            E_Int chunk = size_min;
-            if(size_bc <  size_min) { chunk = size_bc ;}
+              /*
+              // *      New school: meilleur equilibrage, mais gestion looop dynamique rame...
+              // *
+              E_Int size_bc =  ifin-ideb;
+              E_Int size_min=   16;
+              //E_Int chunk = size_bc/Nbre_thread_actif;
+              //if     (chunk < size_min && size_bc >= size_min) { chunk = size_min;}
+              //else if(chunk < size_min && size_bc <  size_min) { chunk = size_bc ;}
+              E_Int chunk = size_min;
+              if(size_bc <  size_min) { chunk = size_bc ;}
 
-            if      ( type == 0 ||  chunk <= 0) { Nbchunk = 1;                }
-            else if ( chunk > 0)                { Nbchunk = size_bc/chunk;}
+              if      ( type == 0 ||  chunk <= 0) { Nbchunk = 1;                }
+              else if ( chunk > 0)                { Nbchunk = size_bc/chunk;}
 
-            chunk = size_bc/Nbchunk;
+              chunk = size_bc/Nbchunk;
 
-            E_Int r = size_bc - chunk*Nbchunk;
+              E_Int r = size_bc - chunk*Nbchunk;
 
-            #pragma omp for nowait schedule(dynamic,1)
-            for (E_Int nd = 0; nd < Nbchunk; nd++)
-            {
-            */
-            E_Int pt_deb, pt_fin;
+              #pragma omp for nowait schedule(dynamic,1)
+              for (E_Int nd = 0; nd < Nbchunk; nd++)
+              {
+              */
+              E_Int pt_deb, pt_fin;
 
-            /// oldschool
-            // Calcul du nombre de champs a traiter par chaque thread
-            E_Int size_bc =  ifin-ideb;
-            E_Int chunk   =  size_bc/Nbre_thread_actif;
-            E_Int r       =  size_bc - chunk*Nbre_thread_actif;
-            // pts traitees par thread
-            if (ithread <= r)
+              /// oldschool
+              // Calcul du nombre de champs a traiter par chaque thread
+              E_Int size_bc =  ifin-ideb;
+              E_Int chunk   =  size_bc/Nbre_thread_actif;
+              E_Int r       =  size_bc - chunk*Nbre_thread_actif;
+              // pts traitees par thread
+              if (ithread <= r)
               { pt_deb = ideb + (ithread-1)*(chunk+1);           pt_fin = pt_deb + (chunk+1); }
-            else { pt_deb = ideb + (chunk+1)*r+(ithread-r-1)*chunk; pt_fin = pt_deb + chunk; }
+              else { pt_deb = ideb + (chunk+1)*r+(ithread-r-1)*chunk; pt_fin = pt_deb + chunk; }
 
-            //Si type 0, calcul sequentiel
-            if      ( type == 0 )
-              { if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
+              //Si type 0, calcul sequentiel
+              if      ( type == 0 )
+              { 
+                if (ithread ==1 ){ pt_deb = ideb; pt_fin = ifin;}
                 else             { pt_deb = ideb; pt_fin = ideb;}
               }
 
-            /// newschool suite
-            //        if (nd  <  r) { pt_deb = ideb + nd*(chunk+1)               ; pt_fin = pt_deb + (chunk+1); }
-            //        else          { pt_deb = ideb +    (chunk+1)*r+(nd-r)*chunk; pt_fin = pt_deb +  chunk;    }
-
-            //printf(" irac= %d, NoR= %d, nvar=  %d, NoD= %d, Rans=  %d, rot= %d, fin= %d, type= %d, ithread= %d \n", irac, NoR, nvars_loc, NoD, pass_inst ,rotation, pt_fin , type,  ithread );
-            //if(ithread <=8 && NoD==83 )  printf(" shift %d  %d %d %d  %d %d %d  %d \n", irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin  , type, ithread );
-            //if(ithread <=8 && NoR==114 )  printf(" new   %d  %d %d %d  %d %d %d  %d \n", irac, NoR,NoD, ntype[ 1 + ndtyp],pt_deb,pt_fin  , type, ithread );
+              /// newschool suite
+              //        if (nd  <  r) { pt_deb = ideb + nd*(chunk+1)               ; pt_fin = pt_deb + (chunk+1); }
+              //        else          { pt_deb = ideb +    (chunk+1)*r+(nd-r)*chunk; pt_fin = pt_deb +  chunk;    }
 
 
-            noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
-            indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-                        E_Int shiftv =0;
-            if (vartype != 24){
-              if     (nvars_loc==5)
-                {
-#           include "commonInterpTransfers_reorder_5eq.h"
-                }
-              else if(nvars_loc==6)
-                {
-#           include "commonInterpTransfers_reorder_6eq.h"
-                }
-              else if(nvars_loc==19)
-                {
-#           include "commonInterpTransfers_reorder_19eq.h"
-                }
-              else
-                {
-#           include "commonInterpTransfers_reorder_neq.h"
-                }
-              //*************************************
               noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
               indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-#           include "commonInterpTransfers_reorder_6eq_gradP.h"
-              //*************************************
-            }
+              E_Int shiftv =0;
+              if (vartype != 24)
+              {
+                if (nvars_loc==5)
+                {
+#                 include "commonInterpTransfers_reorder_5eq.h"
+                }
+                else if(nvars_loc==6)
+                {
+#                 include "commonInterpTransfers_reorder_6eq.h"
+                }
+                else if(nvars_loc==19)
+                {
+#                 include "commonInterpTransfers_reorder_19eq.h"
+                }
+                else
+                {
+#                 include "commonInterpTransfers_reorder_neq.h"
+                }
+                //*************************************
+                noi       = shiftDonor;                             // compteur sur le tableau d indices donneur
+                indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
+#               include "commonInterpTransfers_reorder_6eq_gradP.h"
+                //*************************************
+              }
 
-
-            // Prise en compte de la periodicite par rotation
-            if (rotation == 1)
+              // Prise en compte de la periodicite par rotation
+              if (rotation == 1)
               {
                 E_Float* angle = ptrCoefs + nbInterpD;
-#          include "includeTransfers_rotation.h"
+#               include "includeTransfers_rotation.h"
               }
-            // ibc
-            if (ibc == 1)
+              // ibc
+              if (ibc == 1)
               {
                 //E_Int nvars = vectOfDnrFields.size();
 
                 alpha    = ipt_param_realR[ NoR ][ ALPHAGRADP ];
 
-                if (vartype == 23){
+                if (vartype == 23)
+                {
                   alpha = 1.;
                 }
 
@@ -1881,30 +1882,27 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
                 {
                   E_Float cvgam = cv*(gamma-1.);
 
-                for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++)
-                {
-                  E_Int indR = rcvPts[noind+pt_deb];
+                  for (E_Int noind = 0; noind < pt_fin-pt_deb; noind++)
+                  {
+                    E_Int indR = rcvPts[noind+pt_deb];
 
-                  (densPtr+nbRcvPts*7)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[0][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[3][indR])*cvgam)/alpha + (densPtr+nbRcvPts*7)[noind+pt_deb]*(alpha-1.)/alpha;
-                  (densPtr+nbRcvPts*8)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[1][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[4][indR])*cvgam)/alpha + (densPtr+nbRcvPts*8)[noind+pt_deb]*(alpha-1.)/alpha;
-                  (densPtr+nbRcvPts*9)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[5][indR])*cvgam)/alpha + (densPtr+nbRcvPts*9)[noind+pt_deb]*(alpha-1.)/alpha;
+                    (densPtr+nbRcvPts*7)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[0][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[3][indR])*cvgam)/alpha + (densPtr+nbRcvPts*7)[noind+pt_deb]*(alpha-1.)/alpha;
+                    (densPtr+nbRcvPts*8)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[1][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[4][indR])*cvgam)/alpha + (densPtr+nbRcvPts*8)[noind+pt_deb]*(alpha-1.)/alpha;
+                    (densPtr+nbRcvPts*9)[noind+pt_deb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[5][indR])*cvgam)/alpha + (densPtr+nbRcvPts*9)[noind+pt_deb]*(alpha-1.)/alpha;
 
+                  }
                 }
-                }
-              }//ibc
-            //*
-            //        } //chunk
-            //*/
+              } //ibc
 
-            ideb       =  ideb + ntype[ 1 + ndtyp];
-            shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
-            shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
-              }// type
+              ideb       =  ideb + ntype[ 1 + ndtyp];
+              shiftCoef  = shiftCoef  +  ntype[1+ndtyp]*sizecoefs; //shift coef   entre 2 types successif
+              shiftDonor = shiftDonor +  ntype[1+ndtyp];           //shift donor entre 2 types successif
+            }// type
           }// autorisation transfert
-          }//irac
+        }//irac
       }//pass_inst
 #pragma omp barrier
-      }//ipass
+    }//ipass
   }// omp
 
 

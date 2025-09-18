@@ -37,7 +37,7 @@ class BoundingBox{
 
 public:
   /// Constructors
-  BoundingBox(const E_Float *mB, const E_Float* MB)
+  BoundingBox(const E_Float* mB, const E_Float* MB)
   {for (E_Int i = 0; i < DIM; ++i){minB[i] = *(mB++); maxB[i] = *(MB++);}}
 
   ///
@@ -176,7 +176,7 @@ public:
   }
   
   template<typename ng_t>
-  void convert2NG(K_FLD::FloatArray&crd, ng_t& ng)
+  void convert2NG(K_FLD::FloatArray& crd, ng_t& ng)
   {
     ng.clear();
     crd.clear();
@@ -427,10 +427,10 @@ class BbTree {
 
   public: /** Typedefs */
 
-    typedef           BbTree                                self_type;
-    typedef           NUGA::size_type                       size_type;
-    typedef           K_FLD::IntArray                       tree_array_type;
-    typedef           BBoxType                              box_type;
+    typedef BbTree                  self_type;
+    typedef NUGA::size_type         size_type;
+    typedef K_FLD::IntArray         tree_array_type;
+    typedef BBoxType                box_type;
    
 
 #define BBTREE_ROWS 2 // the first row contains the node id, the second(third) contains the left(right) child column id.

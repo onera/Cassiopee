@@ -19,8 +19,8 @@ namespace K_POST
         return onesixth*triple_product(e14, e23, e24);
     }
 
-    double compute_volume_pyramid   ( const point3d &p1, const point3d &p2, const point3d &p3,
-                                      const point3d &p4, const point3d &p5)
+    double compute_volume_pyramid( const point3d &p1, const point3d &p2, const point3d &p3,
+                                  const point3d &p4, const point3d &p5)
     {
         constexpr const double onetwelth = 1./12.;
         // V(P) = (1/12){[E₁₂;E₁₃;E₁₅]+[E₁₂+E₁₃;E₁₄;E₁₅]+[E₂₃;E₂₄;E₂₅]}

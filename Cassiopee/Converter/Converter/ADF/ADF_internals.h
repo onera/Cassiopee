@@ -18,7 +18,7 @@ File:   ADF_internals.h
 #include <ctype.h> /* needed for toupper */
 
 #define NEW_ID_MAPPING
-#define NEW_DISK_POINTER
+#define NEW_DISK_POINTER 
 
 /***********************************************************************
     Defines
@@ -669,7 +669,7 @@ extern  void    ADFI_string_2_C_string(
 extern  char    *ADFI_strtok(
 	    char *string,
 	    char **string_pos,
-	    char *token ) ;
+	    const char *token ) ;
 
 extern  void    ADFI_unsigned_int_2_ASCII_Hex(
             const unsigned int number,

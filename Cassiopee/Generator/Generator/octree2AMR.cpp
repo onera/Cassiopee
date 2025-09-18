@@ -43,8 +43,8 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   K_FLD::FldArrayF* f;
   char* varString; char* eltType;
   K_FLD::FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   E_Int dim = 3;
   if (res != 2) 
   {
@@ -242,7 +242,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   E_Int nzones = vectOfCartGrids.size();
   for (E_Int v = 0; v < nzones; v++)
   {
-    PyObject* tpl = K_ARRAY::buildArray(*vectOfCartGrids[v], "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*vectOfCartGrids[v], "x,y,z", ni, nj, nk);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   // nettoyage

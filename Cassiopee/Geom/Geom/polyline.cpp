@@ -28,7 +28,7 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
   PyObject* listPts;
 
   /* 1: verifications */
-  if (!PyArg_ParseTuple(args, "O", &listPts)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &listPts)) return NULL;
 
   // verifie que l'objet est une liste de tuples
   if (PyList_Check(listPts) == 0)

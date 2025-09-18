@@ -78,8 +78,8 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objsD;
-  E_Boolean skipNoCoord = false; E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true; E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = false; E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true; E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(fArrays, resD, varStringD, fieldsD, a2, a3, a4, objsD,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzonesD = objsD.size();
@@ -97,7 +97,7 @@ PyObject* K_CONVERTER::filterPartialFields(PyObject* self, PyObject* args)
   /* Extraction des indices des pts a modifier */
   /*-------------------------------------------*/
   FldArrayI* listIndices;
-  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices, true);
+  E_Int resi = K_NUMPY::getFromNumpyArray(listIndicesO, listIndices);
   if (resi == 0)
   {
     RELEASESHAREDZ(hook, varStringZ, eltTypeZ);

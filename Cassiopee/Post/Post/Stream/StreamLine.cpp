@@ -40,11 +40,10 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int nStreamPtsMax;
   E_Float signe;
-
   if (!PYPARSETUPLE_(args, OO_ TRRR_ O_ R_ I_,
                     &arrays, &surfArray, &x0, &y0, &z0, &vectorNames, &signe, &nStreamPtsMax))
   {
-      return NULL;
+    return NULL;
   }
   // Check every array in arrays
   if (PyList_Check(arrays) == 0)
@@ -68,7 +67,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                     "streamLine: vector must be defined by 3 components.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vectorNames); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
     if (PyString_Check(tpl0))
@@ -99,10 +98,10 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
   E_Int nfld = -1;
   E_Int isOk = K_ARRAY::getFromArrays(arrays, resl, 
                                       structVarString, unstrVarString,
@@ -154,8 +153,8 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   E_Int ress = -1000;
   if ((PyList_Check(surfArray) != 0) && (PyList_Size(surfArray) != 0))
   {
-    ress = K_ARRAY::getFromArray(surfArray, varStringSurf, f, 
-                                 imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf, true); 
+    ress = K_ARRAY::getFromArray3(surfArray, varStringSurf, f, 
+                                  imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf); 
     
     E_Int nfldSurf = K_ARRAY::getNumberOfVariables(varStringSurf);
     if (ress == -1 || nfldSurf == -1)
@@ -391,7 +390,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                     "streamLine: cannot create a line.");
     return NULL;
   }
-  PyObject* tpl = K_ARRAY::buildArray(*streamPts, varStringOut, npts, 1, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(*streamPts, varStringOut, npts, 1, 1);
   
   delete [] varStringOut;
   

@@ -407,8 +407,8 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
               r0.begin(), rotMat.begin(), x0.begin(),
               s0.begin(), omega.begin());
 
-  vector<PyArrayObject*> hook;
-  //char* zoneName = K_PYTREE::getNodeName(zone, hook);
+  //vector<PyArrayObject*> hook;
+  //char* zoneName = K_PYTREE::getNodeName(zone);
   // printf(" MATRICE RMZ : \n");
   // for (E_Int no = 0; no < 3; no++)
   //   printf(" %f %f %f \n", rotMat(no,1), rotMat(no,2), rotMat(no,3));
@@ -417,7 +417,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   // printf(" %g %g %g \n", r0[0], r0[1], r0[2]);
   // printf(" Zone %s : psi=%f, pitch=%f, flap=%f, lag=%f\n", zoneName,
   //        psideg, tetdeg, betdeg, deldeg); 
-  RELEASEHOOK(hook);
+  //RELEASEHOOK(hook);
   
   // move zone
   E_Float* xt = fields[posx];
@@ -448,11 +448,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   //check grid velocity numpys
   E_Int size; E_Int nfld;
   E_Float* sx;
-  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(sxo, sx, size, nfld);
   E_Float* sy;
-  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(syo, sy, size, nfld);
   E_Float* sz;
-  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld, true);
+  K_NUMPY::getFromNumpyArray(szo, sz, size, nfld);
   size = size*nfld;
 
   E_Float s01 = s0[0]; E_Float s02 = s0[1]; E_Float s03 = s0[2];

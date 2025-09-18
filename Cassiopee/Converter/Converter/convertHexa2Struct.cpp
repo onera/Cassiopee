@@ -100,14 +100,14 @@ E_Int numeroteI(E_Float* P1, E_Float* P2, E_Int ind,
 PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res > 2) return NULL;
   if (res == 1) { RELEASESHAREDS(array, f); return array; }
   

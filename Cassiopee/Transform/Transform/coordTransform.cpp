@@ -33,11 +33,6 @@ extern "C"
                     const E_Float& alpha,
                     E_Float* xo, E_Float* yo, E_Float* zo);
   
-  void k6deformpoint_(const E_Int& size,
-                      const E_Float* dx, const E_Float* dy, const E_Float* dz,
-                      const E_Float& amort,
-                      const E_Int& ni, const E_Int& nj, const E_Int& nk,
-                      E_Float* x, E_Float* y, E_Float* z);
 }
 
 // ============================================================================
@@ -105,7 +100,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   E_Float* xp = f->begin(posx);
   E_Float* yp = f->begin(posy);
   E_Float* zp = f->begin(posz);
-  E_Boolean in;
+  E_Bool in;
 
   // Contraction
 #pragma omp parallel default(shared)
@@ -155,8 +150,8 @@ PyObject* K_TRANSFORM::deformPoint(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, 
-                                    f, im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+                                     f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
