@@ -11,7 +11,7 @@ from .OversetData import setInterpTransfers, _setInterpTransfers, __setInterpTra
     getCEBBIntersectingDomains, cellN2OversetHoles, extractChimeraInfo, getOversetInfo, setIBCData, transferFields, setInterpData2, _setInterpData2
 from .OversetDataElsA import _chimeraInfo, setInterpolations, chimeraInfo, chimeraTransfer
 from .compactTransfers import ___setInterpTransfers, miseAPlatDonorTree__
-#from .AMR import prepareAMRData # needed to avoid circular import
+#from .AMR import prepareAMRData # needed to avoid circular import & does not follow approach used for IBM
 
 __version__ = Connector.__version__
 try:
