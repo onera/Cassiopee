@@ -172,11 +172,11 @@ PyObject* K_CONNECTOR::setInterpTransfers(PyObject* self, PyObject* args)
     if (res_type  != 0) { RELEASESHAREDN(pyArrayTypes, typesI     );}
     if (res_coef  != 0) { RELEASESHAREDN(pyArrayCoefs, donorCoefsF);}
     if (res_rcv   != 0) { RELEASESHAREDN(pyIndRcv    , rcvPtsI    );}
-    PyErr_SetString(PyExc_TypeError,"setInterpTransfers: 4th to 6th arg must be a numpy of integers. 7th arg a numpy floats ");
+    PyErr_SetString(PyExc_TypeError, "setInterpTransfers: 4th to 6th arg must be a numpy of integers. 7th arg a numpy floats ");
     return NULL;
   }
 
-  // Extraction de l angle de rotation
+  // Extraction de l'angle de rotation
   E_Int dirR = 0; E_Float theta = 0.;
   if (K_FUNC::E_abs(AngleX) > 0.) {dirR = 1; theta=AngleX;}
   else if (K_FUNC::E_abs(AngleY) > 0.){dirR=2; theta=AngleY;}
@@ -562,9 +562,11 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
   /*-------------------------------------*/
   FldArrayI* param_int;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   E_Int nracID = ipt_param_int[0];
@@ -853,15 +855,18 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 
   FldArrayI* dtloc;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pydtloc, dtloc);
+  if (res_donor == 0) return NULL;
   E_Int* iptdtloc = dtloc->begin();
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   /*------------------------------------------------*/
@@ -1504,9 +1509,11 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
   /*-------------------------------------*/
   FldArrayI* param_int;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
+  if (res_donor == 0) return NULL;
   E_Float* ipt_param_real = param_real->begin();
 
   //On recupere le nom de la 1ere variable a recuperer

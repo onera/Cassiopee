@@ -41,7 +41,7 @@ export LD_LIBRARY_PATH=/mingw64/lib:$LD_LIBRARY_PATH
 
 ## Install Cassiopee
 ```shell
-export CASSIOPEE=/d/johndo/Cassiopee
+export CASSIOPEE=<your_path>/Cassiopee
 export MACHINE=msys2
     
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8

@@ -63,7 +63,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
   E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringD, fd,
                                       imd, jmd, kmd, cnd, eltTypeD);
   E_Int* ptrcnd = NULL;
-  E_Int cndSize = 0;
+  //E_Int cndSize = 0;
   E_Int cnNfldD = 0;
   if (resd != 2 && resd != 1)
   {
@@ -82,7 +82,7 @@ PyObject* K_CONNECTOR::setIBCTransfersD(PyObject* self, PyObject* args)
       return NULL;
     }
     ptrcnd  = cnd->begin();
-    cndSize = cnd->getSize();
+    //cndSize = cnd->getSize();
     cnNfldD = cnd->getNfld();
   }
   E_Int nvars;
@@ -514,8 +514,8 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder1(PyObject* sel
 
   vector<PyArrayObject*> hook;
 
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
-  E_Float* iptroD=NULL;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype;
+  //E_Float* iptroD=NULL;
 
   # include "extract_interpD.h"
 
@@ -707,7 +707,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersDForPressureGradientsOrder2(PyObject* sel
 
   vector<PyArrayObject*> hook;
 
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype, ndimdxD=1;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars, meshtype;
   
   # include "extract_interpD.h"
 
