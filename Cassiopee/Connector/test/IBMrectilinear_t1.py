@@ -53,9 +53,9 @@ C.convertPyTree2File(tbOneOver, LOCAL+'/tbOneOver.cgns')
 
 ##ADD DIRECTION OF ONE OVER IN TB RECTILINEAR REGION
 FileNameOneOver = LOCAL+'/tbOneOver.cgns'
-listOneOver     = [[2,1,1]]
-X_IBM._addOneOverLocally(FileNameOneOver, listOneOver)
+listOneOver     = [[2,1,1,0]]
 tbOneOver = C.convertFile2PyTree(FileNameOneOver)
+D_IBM._addOneOverLocally(tbOneOver, listOneOver)
 
 ##IBM PREP
 t,tc=X_IBM.prepareIBMData(tb         , None      , None     , tbox=tbOneOver,
