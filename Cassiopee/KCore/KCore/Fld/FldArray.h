@@ -372,6 +372,7 @@ TEMPLATE_T
 inline T& FldArray<T>::operator[] (E_Int l)
 {
   assert (_rake != NULL);
+  assert (_ngon == 0 || _ngon == 1);
   assert (l >= 0);
   assert (l < _sizeMax*_nfldLoc);
   E_Int n = E_Int(l/_sizeLoc);
