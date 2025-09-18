@@ -935,10 +935,13 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
 
 
 def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=False, opt=False, octreeMode=1,
-                  snears=0.01, dfars=10, loadBalancing=False, conformal=False, OutputAMRMesh=False, localDir='./'):
+                  snears=0.01, dfars=10, loadBalancing=False, conformal=False, OutputAMRMesh=False,
+                  localDir='./', fileName='tIBM.cgns'):
+    """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
+    Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
+                  snears, dfars, loadBalancing, conformal, OutputAMRMesh,
+                  localDir= fileName)"""
     import time
-    from FSCGNSConverter.FSCGNSConverter import FSCGNSConverter
-
     startTime = time.perf_counter_ns()
     if Cmpi.rank==0: print('AMR Mesh Generation...start',flush=True)
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
@@ -950,9 +953,10 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
 
     startTime   = time.perf_counter_ns()
     if Cmpi.rank==0: print('AMR Mesh Dist2Wal...start',flush=True)
-    if dim==2: T._addkplane(tb)
-    DTW._distance2Walls(t_AMR, tb, type='ortho', signed=0, dim=dim, loc='centers')
-    DTW._distance2Walls(t_AMR, tb, type='ortho', signed=0, dim=dim, loc='nodes')
+    if dim==2: tb2=T.addkplane(tb)
+    DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+    DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
+    del tb2
     if Cmpi.rank==0: print('AMR Mesh Dist2Wall...end',flush=True)
     endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
     if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Dist2Wall: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
@@ -964,10 +968,6 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     if Cmpi.rank==0: print('AMR prepare IBM...end',flush=True)
     endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
     if Cmpi.rank==0: print('Elapsed Time: AMR prepare IBM: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
-    Cmpi.convertPyTree2File(t_AMR, localDir+'tIBM.cgns')
-
-    convObj = FSCGNSConverter(meshName=localDir+'tIBM.cgns', dimPb=dim, conformal=conformal, IBMParameters=IBM_parameters)
-    convObj.convert()
-    convObj.export(filename=localDir+'tIBM.h5')
+    Cmpi.convertPyTree2File(t_AMR, localDir+fileName)
 
     return None
