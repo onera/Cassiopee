@@ -602,10 +602,10 @@ namespace K_CONNECTOR
                                          E_Int dir,
                                          K_FLD::FldArrayI& blankedCells,
                                          K_FLD::FldArrayI& cellN);
-    void searchMaskInterpolatedCellsStruct_opt( E_Int imc, E_Int jmc, E_Int kmc, E_Int depth,
-                                                E_Int dir,
-                                                E_Float* cellN,
-                                                E_Float* cellN_tmp);
+  void searchMaskInterpolatedCellsStructOpt(E_Int imc, E_Int jmc, E_Int kmc, E_Int depth,
+                                            E_Int dir,
+                                            E_Float* cellN,
+                                            E_Float* cellN_tmp);
 
   /* Functions used for gatherMatching functions */
   void compIncrement(E_Int indwA1, E_Int imw1, E_Float* oppositeWins, E_Float* oppositePts,

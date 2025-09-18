@@ -59,9 +59,10 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
   if (nelts != npts-1) ni = ni+1; // BAR = loop
   FldArrayF* fout = new FldArrayF(ni, nfld);
   K_CONNECT::orderBAR2Struct(posx, posy, posz, *f, cm, *fout);
+  E_Int api = f->getApi();
   delete f; delete cn;
   ni = fout->getSize();
-  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, ni, nj, nk);
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, ni, nj, nk, api);
   delete fout; 
   return tpl;
 }

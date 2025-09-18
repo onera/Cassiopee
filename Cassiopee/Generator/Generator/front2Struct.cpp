@@ -437,12 +437,11 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res1 = K_ARRAY::getFromArray(mesh, varString, 
-                                     f, ni, nj, nk, cn, eltType);
+  E_Int res1 = K_ARRAY::getFromArray3(mesh, varString, 
+                                      f, ni, nj, nk, cn, eltType);
   if (res1 != 2 || strcmp(eltType, "QUAD") != 0) 
   {
-    if (res1 == 1) delete f;
-    if (res1 == 2) {delete f; delete cn;}
+    RELEASESHAREDB(res1, mesh, f, cn);
     PyErr_SetString(PyExc_TypeError, 
                     "fillWithStruct: mesh must be a QUAD array.");
     return NULL;
@@ -452,7 +451,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if ( posx == -1 || posy == -1 || posz == -1 )
   {
-    delete f; delete cn;
+    RELEASESHAREDU(mesh, f, cn);
     PyErr_SetString(PyExc_TypeError, 
                     "fillWithStruct: coords must be present in mesh.");
     return NULL;
@@ -546,7 +545,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
          concaveQuads, nQuads);
 
   // Sortie
-  delete f; delete cn; 
+  RELEASESHAREDU(mesh, f, cn);  
   return meshes;
 }
 

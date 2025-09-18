@@ -305,15 +305,15 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<FldArrayF*> errors;
   for (size_t i = 0; i < field1.size(); i++)
   {
+    E_Int api = field1[i]->getApi();
     if (ni1[i] != -1)
     {
       tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], 
-                                 ni1[i], nj1[i], nk1[i]);
+                                 ni1[i], nj1[i], nk1[i], api);
     }
     else
     {
       E_Int npts = field1[i]->getSize();
-      E_Int api = field1[i]->getApi();
       tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], npts,
                                  *cn1[i], elt1[i], 0, api, true);
       
@@ -687,7 +687,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     }
   }
   /* Checking solid points */
-  if ( poscelln != 0) // chimera
+  if (poscelln != 0) // chimera
   {
     for (E_Int v = 0; v < sizeerrors; v++)
     {
@@ -719,20 +719,22 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   {
     RELEASESHAREDS(PyList_GetItem(arrays2, i), fieldsr[i]);
   }
-  for (size_t i = 0; i < fieldsm.size(); i++)
-  {
-    RELEASESHAREDS(PyList_GetItem(arrays3, i), fieldsm[i]);
-  }
 
   /* Sauvegarde de errors sous forme de liste python */
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < sizeerrors; i++)
   {
+    E_Int api = fieldsm[i]->getApi();
     tpl = K_ARRAY::buildArray3(*errors[i], varString, 
-                               imsm[i], jmsm[i], kmsm[i]);
+                               imsm[i], jmsm[i], kmsm[i], api);
     delete errors[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+  }
+
+  for (size_t i = 0; i < fieldsm.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays3, i), fieldsm[i]);
   }
   return l;
 }

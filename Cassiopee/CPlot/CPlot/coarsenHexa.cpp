@@ -249,9 +249,10 @@ PyObject* K_CPLOT::coarsenHexa(PyObject *self, PyObject *args)
   E_Int posx, posy, posz;
   posx = posy = posz = -1;
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
-  if (res != 1 && res != 2) {
+  if (res != 1 && res != 2) 
+  {
     PyErr_SetString(PyExc_TypeError, "CoarsenHexa: invalid array.");
     exit(1);
   }

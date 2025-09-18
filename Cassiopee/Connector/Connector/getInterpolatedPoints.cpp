@@ -36,9 +36,9 @@ void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
   E_Int nvert = blankedCells.getSize();
   std::vector< std::vector<E_Int> > cVN(nvert);
   E_Int isNGon = connect.getNGonType();
-  if (isNGon==0)
+  if (isNGon == 0)
     K_CONNECT::connectEV2VNbrs(connect, cVN);
-  else 
+  else
     K_CONNECT::connectNG2VNbrs(connect, cVN);
 
   E_Int nvoisins;
@@ -332,7 +332,6 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
           indices[7] = i  +  jp1*imc + km1imjmc;
           indices[8] = ip1 + jp1*imc + km1imjmc;
 
-
           indices[9]  = im1 + jm1*imc + kimjmc;
           indices[10] = i   + jm1*imc + kimjmc;
           indices[11] = ip1 + jm1*imc + kimjmc;
@@ -368,8 +367,8 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct(E_Int imc, E_Int jmc, E_Int 
 }
 
 //=============================================================================
-void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_Int kmc, E_Int depth, E_Int dir,
-                                                        E_Float* cellN, E_Float* cellN_tmp)
+void K_CONNECTOR::searchMaskInterpolatedCellsStructOpt(E_Int imc, E_Int jmc, E_Int kmc, E_Int depth, E_Int dir,
+                                                       E_Float* cellN, E_Float* cellN_tmp)
 {
   E_Int imjmc = imc*jmc;
   E_Int imjmkmc = imjmc*kmc;
@@ -726,7 +725,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       else 
       {
         nindices = 0;
-        printf("WARNING: searchMaskInterpolatedCellsStruct_opt: bad choice of depth for dir=2.\n");
+        printf("WARNING: searchMaskInterpolatedCellsStructOpt: bad choice of depth for dir=2.\n");
       }
 
       #pragma omp parallel
@@ -747,7 +746,8 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             i = ind-k*imjmc-j*imc;
 
             compteur  = 0;
-            if (depth==2) { // Stencil de taille 2
+            if (depth==2) 
+            { // Stencil de taille 2
               // premiere couche du stencil
               kk = k-2; if ((kk<0)||(kk>kmc-1)) {kk=k;}
               ii = i ; jj = j ;
@@ -802,7 +802,8 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
               l = ii + jj*imc + kk*imjmc;
               indices[compteur] = l; compteur++;
             } // fin depth = 2
-            else if (depth==3) { // stencil de taille 3
+            else if (depth==3) 
+            { // stencil de taille 3
               // premiere couche du stencil
               kk = k-3; if ((kk<0)||(kk>kmc-1)) {kk=k;}
               ii = i ; jj = j ;
@@ -919,7 +920,7 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
             } // fin du stencil de taille 3
             else 
             {
-              printf("WARNING: searchMaskInterpolatedCellsStruct_opt: bad choice of depth for dir=2.\n");
+              printf("WARNING: searchMaskInterpolatedCellsStructOpt: bad choice of depth for dir=2.\n");
             }
 
             // Changement du cellN en fonction du stencil
@@ -938,16 +939,16 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
     // Nombre d'indices en fonction de la profondeur
     if (kmc == 1)
     {
-        nindices = pow(2*depth+1, 2) - 2*depth*(depth+1);
+      nindices = pow(2*depth+1, 2) - 2*depth*(depth+1);
     }
     else
     {
-        nindices = 0;
-        for (E_Int id=0; id < depth; id++)
-        { 
-            nindices += pow(2*id+1, 2) - 2*id*(id+1);   
-        }
-        nindices = 2*nindices + pow(2*depth+1, 2) - 2*depth*(depth+1);
+      nindices = 0;
+      for (E_Int id=0; id < depth; id++)
+      { 
+        nindices += pow(2*id+1, 2) - 2*id*(id+1);   
+      }
+      nindices = 2*nindices + pow(2*depth+1, 2) - 2*depth*(depth+1);
     }
     
     #pragma omp parallel
@@ -967,82 +968,82 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStruct_opt(E_Int imc, E_Int jmc, E_
       #pragma omp for schedule(guided)
       for (E_Int ind = 0; ind < imjmkmc; ind++)
       {
-          // Skip rest of the loop if cellN different from 1
-          if (not K_FUNC::fEqual(cellN[ind], 1.)) continue;
+        // Skip rest of the loop if cellN different from 1
+        if (not K_FUNC::fEqual(cellN[ind], 1.)) continue;
           
-          // Indices de la maille
-          if (kmc != 1) k = ind/imjmc;
-          j = (ind - k*imjmc)/imc;
-          i = ind -k*imjmc - j*imc;
+        // Indices de la maille
+        if (kmc != 1) k = ind/imjmc;
+        j = (ind - k*imjmc)/imc;
+        i = ind -k*imjmc - j*imc;
           
-          compteur = 0;
-          // Loop over half of all vertical layers and use the symmetry for
-          // the negative half
-          for (E_Int kd=0; kd<numKLayers; kd++)
-          {
-              E_Int dLyr = depth - abs(kd);
-              E_Int kkm = K_FUNC::E_max(0, k-kd);
-              E_Int kkp = K_FUNC::E_min(kmc-1, k+kd);
+        compteur = 0;
+        // Loop over half of all vertical layers and use the symmetry for
+        // the negative half
+        for (E_Int kd=0; kd<numKLayers; kd++)
+        {
+          E_Int dLyr = depth - abs(kd);
+          E_Int kkm = K_FUNC::E_max(0, k-kd);
+          E_Int kkp = K_FUNC::E_min(kmc-1, k+kd);
               
-              for (E_Int id=0; id<=dLyr; id++)
-              {
-                  E_Int iim = K_FUNC::E_max(0, i - id);
-                  E_Int iip = K_FUNC::E_min(imc-1, i + id);
-                  
-                  for (E_Int jd=0; jd<=dLyr-id; jd++)
-                  {
-                      E_Int jjm = K_FUNC::E_max(0, j - jd);
-                      E_Int jjp = K_FUNC::E_min(jmc-1, j + jd);
-                      
-                      indices[compteur] = iim + jjm*imc + kkm*imjmc; compteur++;
-                      
-                      if (kd != 0)
-                      {
-                          indices[compteur] = iim + jjm*imc + kkp*imjmc; compteur++;
-                      }
-                      
-                      if (jd != 0)
-                      {
-                          indices[compteur] = iim + jjp*imc + kkm*imjmc; compteur++;
-                          
-                          if (kd != 0)
-                          {
-                              indices[compteur] = iim + jjp*imc + kkp*imjmc; compteur++;
-                          }
-                      }
-
-                      if (id == 0) continue;
-                      
-                      indices[compteur] = iip + jjm*imc + kkm*imjmc; compteur++;
-                      
-                      if (kd != 0)
-                      {
-                          indices[compteur] = iip + jjm*imc + kkp*imjmc; compteur++;
-                      }
-                      
-                      if (jd != 0)
-                      {
-                          indices[compteur] = iip + jjp*imc + kkm*imjmc; compteur++;
-                          
-                          if (kd != 0)
-                          {
-                              indices[compteur] = iip + jjp*imc + kkp*imjmc; compteur++;
-                          }
-                      }
-                  }
-              }
-          }
-          
-          // Changement du cellN en fonction du stencil
-          for (E_Int noi = 0; noi < nindices; noi++)
+          for (E_Int id=0; id<=dLyr; id++)
           {
-              ind2 = indices[noi];
-              if (K_FUNC::fEqualZero(cellN[ind2]))
+            E_Int iim = K_FUNC::E_max(0, i - id);
+            E_Int iip = K_FUNC::E_min(imc-1, i + id);
+                  
+            for (E_Int jd=0; jd<=dLyr-id; jd++)
+            {
+              E_Int jjm = K_FUNC::E_max(0, j - jd);
+              E_Int jjp = K_FUNC::E_min(jmc-1, j + jd);
+                      
+              indices[compteur] = iim + jjm*imc + kkm*imjmc; compteur++;
+                      
+              if (kd != 0)
               {
-                  cellN_tmp[ind] = 2.; 
-                  break;
+                indices[compteur] = iim + jjm*imc + kkp*imjmc; compteur++;
               }
+                      
+              if (jd != 0)
+              {
+                indices[compteur] = iim + jjp*imc + kkm*imjmc; compteur++;
+                          
+                if (kd != 0)
+                {
+                  indices[compteur] = iim + jjp*imc + kkp*imjmc; compteur++;
+                }
+              }
+
+              if (id == 0) continue;
+                      
+              indices[compteur] = iip + jjm*imc + kkm*imjmc; compteur++;
+                      
+              if (kd != 0)
+              {
+                indices[compteur] = iip + jjm*imc + kkp*imjmc; compteur++;
+              }
+                      
+              if (jd != 0)
+              {
+                indices[compteur] = iip + jjp*imc + kkm*imjmc; compteur++;
+                          
+                if (kd != 0)
+                {
+                  indices[compteur] = iip + jjp*imc + kkp*imjmc; compteur++;
+                }
+              }
+            }
           }
+        }
+          
+        // Changement du cellN en fonction du stencil
+        for (E_Int noi = 0; noi < nindices; noi++)
+        {
+          ind2 = indices[noi];
+          if (K_FUNC::fEqualZero(cellN[ind2]))
+          {
+            cellN_tmp[ind] = 2.; 
+            break;
+          }
+        }
       }
     }
   }
@@ -1060,7 +1061,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   char* cellNName;
   if (!PYPARSETUPLE_(args, O_ II_ S_, &array, &depth, &dir, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
   if (dir < 0 || dir > 3)
   {
@@ -1074,8 +1075,11 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
+  //E_Int res = K_ARRAY::getFromArray3(array, varString,
+  //                                   field, im, jm, km, cn, eltType);
   E_Int res = K_ARRAY::getFromArray(array, varString,
                                     field, im, jm, km, cn, eltType);
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1083,12 +1087,12 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     return NULL;
   }
 
-  if (dir==2 && depth>3 && km>1)
+  if (dir == 2 && depth>3 && km>1)
   {
     printf("WARNING: getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
     dir = 1;
   }
-  if (dir==2 && depth == 1)
+  if (dir == 2 && depth == 1)
   {
     printf("WARNING: getOversetHolesInterpNodes: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
     dir = 1;
@@ -1103,7 +1107,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   {
     PyErr_SetString(PyExc_TypeError,
                     "getOversetHolesInterpNodes: array must contain cellN variable.");
-    delete field; if (res == 2) delete cn; return NULL;
+    delete field; if (res == 2) delete cn;
+    //RELEASESHAREDB(res, array, field, cn);
+    return NULL;
   }
   posc++;
 
@@ -1124,25 +1130,27 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     # pragma omp parallel
     {
       #pragma omp for
-      for (E_Int ind=0; ind<npts; ind++)
+      for (E_Int ind = 0; ind < npts; ind++)
       {
         cellN_tmp[ind] = cellNp[ind];
       }
     }
 
-    searchMaskInterpolatedCellsStruct_opt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
+    searchMaskInterpolatedCellsStructOpt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
 
     # pragma omp parallel
     {
       #pragma omp for
-      for (E_Int ind=0; ind<npts; ind++)
+      for (E_Int ind = 0; ind < npts; ind++)
       {
         cellNp[ind] = cellNp_tmp[ind];
       }
     }
 
     PyObject* tpl = K_ARRAY::buildArray3(*field, varString, im, jm, km);
-    delete field; return tpl;
+    delete field;
+    //RELEASESHAREDS(array, field);
+    return tpl;
   }
   else
   {
@@ -1150,8 +1158,8 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     FldArrayI cellNatFld(npts); cellNatFld.setAllValuesAt(1);
     for (E_Int ind = 0; ind < npts; ind++)
     {
-      if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-      else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+      if (cellNp[ind] == 2.) { blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+      else if (cellNp[ind] == 0.) { blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
     // WARNING: NGON is array1 type here !!! 
     if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGon(1);
@@ -1164,7 +1172,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     }
 
     PyObject* tpl = K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
-    delete field; delete cn; return tpl;
+    //RELEASESHAREDU(array, field, cn);
+    delete field; delete cn;
+    return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
   // =====================================================
@@ -1208,7 +1218,8 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     }
 
     PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
-    delete field; delete cn; return tpl;
+    RELEASESHAREDB(res, array, field, cn);
+    return tpl;
   }
 
   #endif
@@ -1227,7 +1238,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   char* cellNName;
   if (!PYPARSETUPLE_(args, O_ II_ S_, &array, &depth, &dir, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
   if (dir != 0 && dir != 1 && dir != 2)
   {
@@ -1262,13 +1273,12 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
     printf("WARNING: _getOversetHolesInterpNodes: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
-  if (dir==2 && depth == 1)
+  if (dir == 2 && depth == 1)
   {
     printf("WARNING: _getOversetHolesInterpNodes: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
   
-
   E_Int posc;
   if (strcmp(cellNName, "cellN") == 0)
     posc = K_ARRAY::isCellNatureField2Present(varString);
@@ -1285,7 +1295,6 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   E_Float* cellNp = field->begin(posc);
   /* Fin des verifs */
   E_Int npts = field->getSize();
-
 
   // =================================================
   // ============= VERSION DEV OPTIMISEE =============
@@ -1304,7 +1313,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
     }
   }
 
-  searchMaskInterpolatedCellsStruct_opt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
+  searchMaskInterpolatedCellsStructOpt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
 
   # pragma omp parallel
   {
@@ -1348,7 +1357,6 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
   #endif
   // ============= FIN VERSION ORIGINALE =============
   // =================================================
-
 
   RELEASESHAREDS(array, field);
   Py_INCREF(Py_None);
@@ -1441,7 +1449,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
     }
   }
 
-  searchMaskInterpolatedCellsStruct_opt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
+  searchMaskInterpolatedCellsStructOpt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
 
   # pragma omp parallel
   {
@@ -1500,15 +1508,15 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   E_Int depth; E_Int dir;
   char* cellNName;
   if (!PYPARSETUPLE_(args, O_ II_ S_,
-                    &centersArray, &depth, &dir, &cellNName))
+                     &centersArray, &depth, &dir, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
 
   if (dir != 0 && dir != 1 && dir != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpNodes: dir must be 0, 1 or 2.");
+                    "getOversetHolesInterpCellCenters: dir must be 0, 1 or 2.");
     return NULL;
   }
   /*--------------------------------------------------*/
@@ -1517,26 +1525,28 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   E_Int im, jm, km;
   FldArrayF* field; FldArrayI* cn;
   char* varString; char* eltType;
+  //E_Int res = K_ARRAY::getFromArray3(centersArray, varString,
+  //                                   field, im, jm, km, cn, eltType);
   E_Int res = K_ARRAY::getFromArray(centersArray, varString,
                                     field, im, jm, km, cn, eltType);
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOversetHolesInterpCellCenters:  first argument is not recognized");
+                    "getOversetHolesInterpCellCenters: first argument is not recognized");
     return NULL;
   }
 
-  if (dir==2 && depth>3 && km>1)
+  if (dir == 2 && depth>3 && km>1)
   {
     printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
-  if (dir==2 && depth == 1)
+  if (dir == 2 && depth == 1)
   {
     printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
     dir=1;
   }
-
 
   E_Int posc;
   if (strcmp(cellNName, "cellN") == 0)
@@ -1546,7 +1556,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   {
     PyErr_SetString(PyExc_TypeError,
                     "getOversetHolesInterpCellCenters: array must contain cellN variable.");
-    delete field; if ( res == 2) delete cn; return NULL;
+    //RELEASESHAREDB(res, centersArray, field, cn);
+    delete field; if (res == 2) delete cn;
+    return NULL;
   }
   posc++;
   E_Float* cellNp = field->begin(posc);
@@ -1572,7 +1584,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       }
     }
 
-    searchMaskInterpolatedCellsStruct_opt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
+    searchMaskInterpolatedCellsStructOpt(im, jm, km, depth, dir, cellNp, cellNp_tmp);
 
     # pragma omp parallel
     {
@@ -1583,8 +1595,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       }
     }
 
-    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
-    delete field; return tpl;
+    PyObject* tpl = K_ARRAY::buildArray3(*field, varString, im, jm, km);
+    //RELEASESHAREDS(centersArray, field);
+    delete field;
+    return tpl;
   }
   else
   {
@@ -1606,7 +1620,9 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     }
 
     PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
-    delete field; delete cn; return tpl;
+    //RELEASESHAREDU(centersArray, field, cn);
+    delete field; delete cn;
+    return tpl;
   }
   // ============= FIN VERSION DEV OPTIMISEE =============
   // =====================================================
@@ -1633,7 +1649,8 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     }
 
     PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
-    delete field; return tpl;
+    delete field; 
+    return tpl;
   }
   else
   {
@@ -1648,7 +1665,8 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     }
 
     PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
-    delete field; delete cn; return tpl;
+    delete field; delete cn; 
+    return tpl;
   }
   // ============= FIN VERSION ORIGINALE =============
   // =================================================
@@ -1809,7 +1827,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     RELEASESHAREDB(res, array, f, cn);

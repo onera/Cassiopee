@@ -18,8 +18,6 @@
 */
 # include "connector.h"
 
-using namespace std;
-using namespace K_FLD;
 //=============================================================================
 /* Met le cellN a 2 pour les points situes sur une frontiere overlap sur depth
    rangees. Peut etre localise en centres ou en noeuds. array doit deja
@@ -82,7 +80,6 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
       RELEASESHAREDS(array, f); return NULL;
     }
   }
-  //E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
   
   if (imin == imax)
   {
@@ -140,7 +137,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
                     &array, &faceList, &depth, &loc, 
                     &cellNInterpValue, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
@@ -157,7 +154,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   }
   
   // verif cellN 
-  E_Int posc = K_ARRAY::isNamePresent(cellNName,varString);
+  E_Int posc = K_ARRAY::isNamePresent(cellNName, varString);
   if (posc == -1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -179,12 +176,12 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   E_Float interpolatedValue = cellNInterpValue;
   
   PyObject* tpl;
-  E_Int csize, nfldout, npts, nelts, sizeFN, nov1, dummy;
+  E_Int npts, nelts, sizeFN, nov1;
   E_Int nvoisins, nvertexV, neltsV, etv;
   E_Int* ptr;
   FldArrayI cFE;
   E_Int nfacesBC = indicesF->getSize()*indicesF->getNfld();
-  vector<E_Int> voisins; vector<E_Int> voisinsL;  
+  std::vector<E_Int> voisins; std::vector<E_Int> voisinsL;  
  
   if (strcmp(eltType, "NGON") != 0 && strcmp(eltType, "NGON*") != 0)
   {
@@ -197,8 +194,6 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   E_Int* indicesFp = indicesF->begin();
   if (loc == 0) // loc='nodes'
   {
-    csize = cn->getSize()*cn->getNfld();
-    nfldout = f->getNfld();
     npts = f->getSize();
       
     ptr = cn->begin();
@@ -207,18 +202,16 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
     ptr += 2;
 
     FldArrayI tag(nelts); tag.setAllValuesAtNull();
-    tpl = K_ARRAY::buildArray3(nfldout, varString,
-                               npts, nelts, -1,
-                               "NGON", false, csize);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
-    out = *f;
+    E_Int api = f->getApi();
+    tpl = K_ARRAY::buildArray3(*f, varString,
+                               *cn, "NGON", api);
+    FldArrayF* out;
+    K_ARRAY::getFromArray3(tpl, out);
+    E_Float* cellNp = out->begin(posc);
 
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), csize);
-    E_Float* cellNp = out.begin(posc);
     FldArrayI posFaces;
     K_CONNECT::getPosFaces(*cn, posFaces);
+
     ptr = cn->begin();
     // identify vertices in tagged face 
     for (E_Int nof = 0; nof < nfacesBC; nof++)
@@ -232,12 +225,12 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
         voisins.push_back(nov1-1);
       }
     }
-    unique(voisins.begin(), voisins.end());
+    //std::unique(voisins.begin(), voisins.end()); 
 
     // depth voisinage
     if (depth > 1)
     {        
-      vector< vector<E_Int> > cVN(npts);
+      std::vector< std::vector<E_Int> > cVN(npts);
       K_CONNECT::connectNG2VNbrs(*cn, cVN);
       for (E_Int d = 1; d < depth; d++)
       {
@@ -247,7 +240,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
           E_Int vertex = voisins[no];
 
           //parcours de ses voisins
-          vector<E_Int> vertexN = cVN[vertex];
+          std::vector<E_Int> vertexN = cVN[vertex];
           nvertexV = vertexN.size();
           for (E_Int novv = 0; novv < nvertexV; novv++)
           {
@@ -256,7 +249,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
             voisinsL.push_back(nov1);
           }
         }
-        unique(voisinsL.begin(), voisinsL.end());
+        //std::unique(voisinsL.begin(), voisinsL.end());
         voisins.clear(); voisins = voisinsL; voisinsL.clear();
       }
     }
@@ -264,21 +257,16 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   else 
   {
     K_CONNECT::connectNG2FE(*cn, cFE);
-    csize = cn->getSize()*cn->getNfld();
-    nelts = f->getSize(); // nombre total d elements
-    nfldout = f->getNfld();
-    dummy = nelts;
-    tpl = K_ARRAY::buildArray3(nfldout, varString,
-                               dummy, nelts, -1,
-                               "NGON", true, csize);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
-    out = *f;
+    nelts = f->getSize(); // nombre total d'elements
+        
+    E_Int api = f->getApi();
+    tpl = K_ARRAY::buildArray3(*f, varString,
+                               *cn, "NGON", api);
+    
+    FldArrayF* out;
+    K_ARRAY::getFromArray3(tpl, out);
+    E_Float* cellNp = out->begin(posc);
 
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), csize);
-    E_Float* cellNp = out.begin(posc);
-      
     E_Int* cFE1 = cFE.begin(1);
     E_Int* cFE2 = cFE.begin(2);
       
@@ -299,11 +287,12 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
         voisins.push_back(e2-1);
       }
     }
-    unique(voisins.begin(), voisins.end());
+    //std::unique(voisins.begin(), voisins.end());
+    
     // depth elements
     if (depth > 1)
     {
-      vector< vector<E_Int> > cEEN(nelts);
+      std::vector< std::vector<E_Int> > cEEN(nelts);
       K_CONNECT::connectFE2EENbrs(cFE,cEEN);
       for (E_Int d = 1; d < depth; d++)
       {
@@ -311,7 +300,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
         for (E_Int noe = 0; noe < nvoisins; noe++)
         {
           E_Int et = voisins[noe];
-          vector<E_Int>& eltsV = cEEN[et]; // demarrent a 0
+          std::vector<E_Int>& eltsV = cEEN[et]; // demarrent a 0
           neltsV = eltsV.size();
           for (E_Int vv = 0; vv < neltsV; vv++)
           {
@@ -320,7 +309,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
             voisinsL.push_back(etv);
           }
         }
-        unique(voisinsL.begin(), voisinsL.end());
+        //std::unique(voisinsL.begin(), voisinsL.end());
         voisins.clear(); voisins = voisinsL; voisinsL.clear();
       }
     }     

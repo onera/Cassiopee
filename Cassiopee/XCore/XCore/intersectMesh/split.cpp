@@ -164,12 +164,12 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         PyObject *arr = K_ARRAY::buildArray3(3, varString, np, nc, nf, "NGON",
             sizeNGon, sizeNFace, 3, false, 3);
         
-        printf("np: %d\n", np);
-        printf("nf: %d\n", nf);
-        printf("nc: %d\n", nc);
+        //printf("np: %d\n", np);
+        //printf("nf: %d\n", nf);
+        //printf("nc: %d\n", nc);
     
-        K_FLD::FldArrayF *f;
-        K_FLD::FldArrayI *cn;
+        K_FLD::FldArrayF* f;
+        K_FLD::FldArrayI* cn;
         K_ARRAY::getFromArray3(arr, f, cn);
 
         // Points
