@@ -960,7 +960,7 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     if Cmpi.rank==0: print('AMR Mesh Dist2Wall...end',flush=True)
     endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
     if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Dist2Wall: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
-    
+
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
     startTime   = time.perf_counter_ns()
     if Cmpi.rank==0: print('AMR prepare IBM...start',flush=True)
