@@ -71,6 +71,7 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   E_Int etg, etd, nvertp;
   E_Int nfacesExt, nfacesAdd, neltsAdd, sizeOut, sizefout;
   E_Int dimNGON = 3;
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
   E_Int nptsAdd = 0;
@@ -133,8 +134,9 @@ PyObject* K_CONVERTER::addGhostCellsNGonNodes(PyObject* self, PyObject* args)
   }
   else addGhostCellsNGon3D(depth, *f, *cn, neltsAdd, sizeFN2, sizeEF2, facesExt, fout, cnout);
 
-  // Sortie  
-  PyObject* tpl = K_ARRAY::buildArray(*fout, varString, *cnout, 8, eltType);
+  // Sortie
+  cnout->setNGon(cn->getNGonType());
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, *cnout, eltType, api);
   delete cnout; delete fout;
   RELEASESHAREDU(arrayN, f, cn);
   return tpl;

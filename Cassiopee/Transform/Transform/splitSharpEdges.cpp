@@ -149,6 +149,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
   vector< vector<E_Int> > cEEN(cn->getSize());
   K_CONNECT::connectEV2EENbrs(eltType, f->getSize(), *cn, cEEN);
   
+  E_Int api = f->getApi();
   E_Int nt = cn->getNfld();
   E_Int ne = cn->getSize(); // nbre d'elements
   E_Int nev = 0; // nbre d'elements deja visites
@@ -247,7 +248,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
     FldArrayI& cnp = *components[i];
     K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
                                  fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, eltType);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, eltType, api);
     delete &fp; delete &cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -269,6 +270,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
 
+  E_Int api = f->getApi();
   E_Int* ptr = cn->begin();
   E_Int sf = ptr[1];
   E_Int ne = ptr[2+sf]; // nbre d'elements
@@ -447,7 +449,8 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
     if (dim == 1) // il semble que dans ce cas, il faut l'appeler 2 fois
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                        fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, "NGON");
+    cnp.setNGon(1);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, "NGON", api);
     delete &fp; delete components[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

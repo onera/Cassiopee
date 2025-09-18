@@ -384,7 +384,7 @@ E_Int K_IO::GenIO::tecread(
         if (nfldCenters > 0) fc = new FldArrayF(nelts, nfldCenters);
         else fc = NULL;
         c = new FldArrayI(1); // ne peut pas etre dimensionne
-        // c->setNGon(1);
+        c->setNGon(1);
         unstructField.push_back(f);
         centerUnstructField.push_back(fc);
         connectivity.push_back(c);

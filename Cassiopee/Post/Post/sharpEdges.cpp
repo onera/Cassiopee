@@ -75,9 +75,10 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   E_Int nelts = cn->getSize();
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
+  E_Int api = f->getApi();
   // pointers on field f
   vector<E_Float*> fp(nfld);
-  for (E_Int p=0;p<nfld;p++) fp[p] = f->begin(p+1);
+  for (E_Int p = 0; p < nfld; p++) fp[p] = f->begin(p+1);
   // coordonnees
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
@@ -87,11 +88,15 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   FldArrayF* fe = new FldArrayF(npts,nfld);
   vector<E_Float*> fep(nfld);
   for (E_Int p = 0; p < nfld; p++) fep[p] = fe->begin(p+1);
+
   E_Int indA1, indB1, indC1, indD1, indA2, indB2, indC2, indD2;
-  vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld); vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
-  vector<E_Float> ptA2(nfld); vector<E_Float> ptB2(nfld); vector<E_Float> ptC2(nfld); vector<E_Float> ptD2(nfld);
+  vector<E_Float> ptA1(nfld); vector<E_Float> ptB1(nfld);
+  vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
+  vector<E_Float> ptA2(nfld); vector<E_Float> ptB2(nfld);
+  vector<E_Float> ptC2(nfld); vector<E_Float> ptD2(nfld);
   vector< vector<E_Int> > cEEN(nelts);
   K_CONNECT::connectEV2EENbrs(eltType0, npts, *cn, cEEN); 
+
   E_Float alphamin = 180.-alpref; E_Float alphamax = 180.+alpref;
   E_Int nop = 0; E_Int noe = 0;
   E_Int found1 = 0; E_Int found2 = 1;
@@ -136,7 +141,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                       "sharpEdges: sharp edges set is empty.");
       tpl = NULL;
     }
-    else tpl = K_ARRAY::buildArray(*fe, varString0, *cne, -1, "NODE");
+    else tpl = K_ARRAY::buildArray3(*fe, varString0, *cne, "NODE", api);
     delete fe; delete cne;
     return tpl;
   }
@@ -201,7 +206,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                       "sharpEdges: sharp edges set is empty.");
       tpl = NULL;
     }
-    else tpl = K_ARRAY::buildArray(*fe, varString0, *cne, -1, "BAR");
+    else tpl = K_ARRAY::buildArray3(*fe, varString0, *cne, "BAR", api);
     delete fe; delete cne;
     return tpl;
   }
@@ -270,7 +275,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                       "sharpEdges: sharp edges set is empty.");
       tpl = NULL;
     }
-    else tpl = K_ARRAY::buildArray(*fe, varString0, *cne, -1, "BAR");
+    else tpl = K_ARRAY::buildArray3(*fe, varString0, *cne, "BAR", api);
     delete fe; delete cne;
     return tpl;  
   }
@@ -296,6 +301,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
     E_Int* dimEltsp = dimElts.begin();
     // taille du champ f
     E_Int nfld = f->getNfld();
+    E_Int api = f->getApi();
     // pointeur sur le champ f
     vector<E_Float*> fp(nfld);
     for (E_Int p = 0; p < nfld; p++) fp[p] = f->begin(p+1);
@@ -342,7 +348,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       // estimation surevaluee des dimensions pour allouer les nouvelles connectivites newcnFN et newcnEF
       for (E_Int elt1 = 0; elt1 < nelts; elt1++)
       {
-        for (unsigned int ev = 0; ev < cEEN[elt1].size(); ev++)
+        for (size_t ev = 0; ev < cEEN[elt1].size(); ev++)
         {
           sizeco1 += 1;
         }
@@ -392,7 +398,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
                         "sharpEdges: sharp edges set is empty.");
         tpl = NULL;
       }
-      else tpl = K_ARRAY::buildArray(*fe, varString0, *cne, -1, "NODE");
+      else tpl = K_ARRAY::buildArray3(*fe, varString0, *cne, "NODE", api);
       delete fe; delete cne;
     }
     else // dim == 3
@@ -440,7 +446,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
           pts1.push_back(pt);
         }
         // parcours des elements voisins
-        for (unsigned int ev = 0; ev < cEEN[elt1].size(); ev++)
+        for (size_t ev = 0; ev < cEEN[elt1].size(); ev++)
         {
           // elt2 voisin
           E_Int elt2 = cEEN[elt1][ev];
@@ -552,11 +558,11 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
               } // fin boucle sur les faces fa1
             } // fin test angle alpha
           }      
-          for (unsigned int k = 0; k < pts2.size(); k++) delete [] pts2[k];
+          for (size_t k = 0; k < pts2.size(); k++) delete [] pts2[k];
           pts2.clear();
         } // fin boucle elt2
         ptrEF += nbfaces1+1;
-        for (unsigned int k = 0; k < pts1.size(); k++) delete [] pts1[k];
+        for (size_t k = 0; k < pts1.size(); k++) delete [] pts1[k];
         pts1.clear();
       } // fin boucle elt1
 
@@ -588,7 +594,8 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       for (E_Int i = 0; i < sizeco2; i++) cnep[i] = newptrEF[i];
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                        *f, *cne);
-      tpl = K_ARRAY::buildArray(*f, varString0, *cne, -1, "NGON");
+      cne->setNGon(1);
+      tpl = K_ARRAY::buildArray3(*f, varString0, *cne, "NGON", api);
       delete fe; delete cne;
       RELEASESHAREDU(array, f, cn);
     }
