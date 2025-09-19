@@ -41,11 +41,6 @@ extern "C"
                          const E_Float* x2, const E_Float* y2, 
                          const E_Float* z2, const E_Float& distmin,
                          E_Int& notvalid, E_Int& isopp);
-
-  void k6boundbox_( const E_Int& im, const E_Int& jm, const E_Int& km, 
-                    const E_Float* x, const E_Float* y, const E_Float* z,
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin );
 }
 
 //=============================================================================
@@ -150,10 +145,11 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
     posyt.push_back(posy);
     poszt.push_back(posz);
    
-    //calcul des bounding boxes
-    k6boundbox_( nis[i], njs[i], nks[i], f->begin(posx), f->begin(posy),
-                 f->begin(posz), bbox(i,4), bbox(i,5), bbox(i,6),
-                 bbox(i,1), bbox(i,2), bbox(i,3) );
+    //calcul des bounding boxes   
+    K_COMPGEOM::boundingBoxStruct(nis[i], njs[i], nks[i],
+                                  f->begin(posx), f->begin(posy), f->begin(posz),
+                                  bbox(i,1), bbox(i,2), bbox(i,3),
+                                  bbox(i,4), bbox(i,5), bbox(i,6));
     
     vectOfFields.push_back(f);
   }//parcours de toutes les zones

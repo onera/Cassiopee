@@ -25,13 +25,6 @@
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
-extern "C"
-{
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 //=============================================================================
 /* Force l'indicateur a 0 pres des corps, si le pas d'espace respecte 
@@ -198,9 +191,9 @@ PyObject* K_POST::enforceIndicatorNearBodies(PyObject* self, PyObject* args)
     FldArrayF& f2 = *unstrF[v]; FldArrayI& cn2 = *cnt[v];
     posx2 = posxt[v]; posy2 = posyt[v]; posz2 = poszt[v];
     // bounding box globale ?
-    k6boundboxunstr_(f2.getSize(), 
-                     f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
-                     xmaxloc, ymaxloc, zmaxloc, xminloc, yminloc, zminloc);
+    K_COMPGEOM::boundingBoxUnstruct(f2.getSize(),
+                                    f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
+                                    xminloc, yminloc, zminloc, xmaxloc, ymaxloc, zmaxloc);
    
     xmin = K_FUNC::E_min(xminloc, xmin); xmax = K_FUNC::E_max(xmaxloc, xmax);
     ymin = K_FUNC::E_min(yminloc, ymin); ymax = K_FUNC::E_max(ymaxloc, ymax);

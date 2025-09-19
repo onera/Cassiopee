@@ -29,22 +29,12 @@ using namespace std;
 using namespace K_FLD;
 
 extern "C"
-{  
-  void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km,
-                   const E_Float* x, const E_Float* y, const E_Float* z,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin );
-  
+{   
   void k6boundbox2_(const E_Int& im, const E_Int& jm, const E_Int& km,
                     const E_Float* x, const E_Float* y, const E_Float* z,
                     const E_Float* m,const E_Float* r0,const E_Float* xc0, 
                     E_Float& xmax, E_Float& ymax, E_Float& zmax, 
                     E_Float& xmin, E_Float& ymin, E_Float& zmin );
-
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
 
   void k6boundboxunstr2_(const E_Int& npts, 
                          const E_Float* x, const E_Float* y, const E_Float* z, 
@@ -593,15 +583,18 @@ void K_KINTERP::KMesh::createDuplicatedExtendedPeriodMesh(const KMesh& origMesh,
 //=============================================================================
 void
 K_KINTERP::KMesh::boundingBox(E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                             E_Float& xmin, E_Float& ymin, E_Float& zmin) const
+                             E_Float& xmin, E_Float& ymin, E_Float& zmin)
 {
   if ( _isStruct == true)
-    k6boundbox_(_im, _jm, _km, _coord.begin(1), _coord.begin(2), 
-                _coord.begin(3), xmax, ymax, zmax, xmin, ymin, zmin);
+    K_COMPGEOM::boundingBoxStruct(_im, _jm, _km, 
+                                  _coord.begin(1), _coord.begin(2), 
+                                  _coord.begin(3),
+                                  xmin, ymin, zmin, xmax, ymax, zmax);
   else 
-    k6boundboxunstr_(_npts, 
-                     _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                     xmax, ymax, zmax, xmin, ymin, zmin);
+    K_COMPGEOM::boundingBoxUnstruct(_npts,
+                                    _coord.begin(1), _coord.begin(2), 
+                                    _coord.begin(3),
+                                    xmin, ymin, zmin, xmax, ymax, zmax);
 }
 
 //=============================================================================

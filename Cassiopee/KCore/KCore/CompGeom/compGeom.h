@@ -623,20 +623,13 @@ typedef struct {
   // Bounding boxes et Cartesian Elements Bounding boxes (CEBB)
   //===========================================================================
   /* Bounding box d'une grille structuree */
-  void boundingBox(E_Int im, E_Int jm, E_Int km, 
-                   E_Int posx, E_Int posy, E_Int posz,
-                   K_FLD::FldArrayF& field,
+  void boundingBoxStruct(E_Int im, E_Int jm, E_Int km, 
+                   E_Float* x, E_Float* y, E_Float* z,
                    E_Float& xmin, E_Float& ymin, E_Float& zmin,
                    E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
-  /* Bounding box d'une grille structuree ou non structuree */ 
-  void boundingBox(E_Int posx, E_Int posy, E_Int posz,
-                   K_FLD::FldArrayF& field,
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax);
-
-  /* Bounding box d'une grille structuree ou non structuree */ 
-  void boundingBox(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
+  /* Bounding box d'une grille non structuree */ 
+  void boundingBoxUnstruct(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
                    E_Float& xmin, E_Float& ymin, E_Float& zmin,
                    E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
@@ -654,7 +647,7 @@ typedef struct {
      bbox est alloue ici.
   */
   void boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
-                                K_FLD::FldArrayF& coord,
+                                E_Float* x, E_Float* y, E_Float* z,
                                 K_FLD::FldArrayF& bbox);
   /* Bounding box de toutes les cellules d'une grille non structuree
      IN: connect: connectivite de la grille
@@ -680,21 +673,21 @@ typedef struct {
   void boundingBoxOfStructCell(E_Int ind, E_Int im, E_Int jm, E_Int km,
     E_Float* x, E_Float* y, E_Float* z,
     E_Float& xmin, E_Float& ymin, E_Float& zmin,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax);
+    E_Float& xmax, E_Float& ymax, E_Float& zmax, E_Int loc);
 
   /* Bounding box d'une cellule issue d'une grille non structuree. */
   void boundingBoxOfUnstrCell(
     E_Int noet, K_FLD::FldArrayI& connect, 
-    E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-    E_Float& xmin, E_Float& ymin, E_Float& zmin);
+    E_Float* xt, E_Float* yt, E_Float* zt, 
+    E_Float& xmin, E_Float& ymin, E_Float& zmin,
+    E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Bounding box d'une cellule issue d'une grille NGon. */
   void boundingBoxOfNGonCell(
     E_Int noet, K_FLD::FldArrayI& connect, 
     E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-    E_Float& xmin, E_Float& ymin, E_Float& zmin);
+    E_Float& xmin, E_Float& ymin, E_Float& zmin,
+    E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Intersection des bounding boxes de 2 grilles structurees
      IN: ni1, nj1, nk1: dimension de la grille1

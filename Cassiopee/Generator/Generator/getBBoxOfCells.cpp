@@ -65,7 +65,10 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
     char* varString2; FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, varString2, f2);
 
-    K_COMPGEOM::boundingBoxOfStructCells(ni, nj, nk, *f, *f2);
+    K_COMPGEOM::boundingBoxOfStructCells(ni, nj, nk,
+                                          f->begin(posx),
+                                          f->begin(posy),
+                                          f->begin(posz), *f2);
     RELEASESHAREDS(array, f);
     RELEASESHAREDS(tpl, f2);
     return tpl;
