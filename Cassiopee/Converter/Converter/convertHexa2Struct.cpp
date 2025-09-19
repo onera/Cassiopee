@@ -159,7 +159,7 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
   vector<E_Int>& voisins = cVN[ind];
 
   E_Int istart = 0; E_Int jstart = 0; E_Int kstart = 0; // indice debut ligne en i
-  printf("Ligne j=" SF_D_ "\n", jstart);
+  //printf("Ligne j=" SF_D_ "\n", jstart);
   next = voisins[0]-1;
   P1[0] = x[next]; P1[1] = y[next]; P1[2] = z[next];
   P2[0] = x[ind]; P2[1] = y[ind]; P2[2] = z[ind];
@@ -175,26 +175,22 @@ PyObject* K_CONVERTER::convertHexa2Struct(PyObject* self, PyObject* args)
   ind2 = ii[istart+jstart*nv+kstart*2*nv];
   P2[0] = x[ind2]; P2[1] = y[ind2]; P2[2] = z[ind2];
   jstart++;
-  printf("Ligne j=" SF_D_ "\n", jstart);
+  //printf("Ligne j=" SF_D_ "\n", jstart);
   ni = numeroteI(P1, P2, next,
                  istart, jstart, kstart, no.begin(), ii.begin(), nv,
                  cVN, x, y, z, 45.);
   
+  //printf("ni=" SF_D_ ", nj=" SF_D_ ", nk=" SF_D_ "\n", ni, nj, nk);  
   
-
-
-  printf("ni=" SF_D_ ", nj=" SF_D_ ", nk=" SF_D_ "\n", ni, nj, nk);  
-  
-
   /* Reconstruit le maillage structure */
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, 
-                                      ni, nj, nk);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(ni*nj*nk, nfld, fnp, true);
-  
+  E_Int api = f->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
+  FldArrayF* fn;
+  K_ARRAY::getFromArray3(tpl, fn);
+
   for (E_Int n = 1; n <= nfld; n++) 
   {
-    fnp = fn.begin(n);
+    E_Float* fnp = fn->begin(n);
     fp = f->begin(n);
     for (E_Int k = 0; k < nk; k++)
       for (E_Int j = 0; j < nj; j++)

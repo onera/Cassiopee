@@ -298,18 +298,22 @@ namespace {
                 //        std::cerr << "Je construis un tableau de dimension " << ni << "x" << nj << "x" << nk <<
                 //        std::endl;
                 result = K_ARRAY::buildArray(1, resultStr, ni, nj, nk);
-            } else {
+            } 
+            else 
+            {
                 // A VERIFIER AVEC CHRISTOPHE
                 E_Int csize = arrays[0].cn->getSize();
-                std::cerr << "Je construis un tableau de dimension " << csize << std::endl;
+                //std::cerr << "Je construis un tableau de dimension " << csize << std::endl;
                 result = K_ARRAY::buildArray(1, resultStr, npts, csize, -1, eltType, false, csize);
             }
             E_Float *fnp;
-            if (res == 1) {
+            if (res == 1) 
+            {
                 fnp = K_ARRAY::getFieldPtr(result);
-            } else {
+            } else 
+            {
                 fnp = K_ARRAY::getFieldPtr(result);
-                E_Int *cnp = K_ARRAY::getConnectPtr(result);
+                E_Int* cnp = K_ARRAY::getConnectPtr(result);
                 E_Int* cnpp = K_ARRAY::getConnectPtr(arrays[0].array);
                 E_Int  size = arrays[0].cn->getSize();
                 E_Int  i;
@@ -368,7 +372,7 @@ namespace {
         E_Int ni, nj, nk;
         FldArrayF *f; FldArrayI *cn;
         char* varString; char* eltType;
-        // On va prendre le premier argument de args  comme modele
+        // On va prendre le premier argument de args comme modele
         // d'array Et on verifie sa validite en tant que tableau cassiopee.
         E_Int res, npts, nfld;
         PyObject *parray = PyTuple_GetItem(args, 0);
