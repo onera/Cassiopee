@@ -371,7 +371,6 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
 
   if (mask->nb_points() == 0 || mask->nb_elts() == 0)
   {
-    //std::cout << "nb points/tets : " << mask->nb_points() << "/" << mask->nb_elts() << std::endl;
     PyErr_SetString(PyExc_ValueError,
 	     "blankCellsTetra: the input mask is empty.");
     return NULL;
@@ -394,7 +393,6 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   {
     E_Int pos = (*cmesh)[1] + 2;
     sz = (*cmesh)[pos];
-    //std::cout << "nb phs : " << sz << std::endl;
   }
 
   if (sz == 0)
@@ -433,10 +431,11 @@ PyObject* K_CONNECTOR::blankCellsTetra(PyObject* self, PyObject* args)
   for (size_t i = 0; i < sz; ++i) cellnout[i] = E_Float(cN[i]);
   
   PyObject* tpl = NULL;
+  E_Int api = fmesh->getApi();
   if (struct_celln)
-    tpl = K_ARRAY::buildArray(cellnout, cellNName, ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(cellnout, cellNName, ni, nj, nk, api);
   else
-    tpl = K_ARRAY::buildArray(cellnout, cellNName, *cC, -1, eltTypeC, false);
+    tpl = K_ARRAY::buildArray3(cellnout, cellNName, *cC, eltTypeC, api);
   
   //RELEASESHAREDB(res, mesh, fmesh, cmesh);
   //RELEASESHAREDB(res2, celln, fC, cC);

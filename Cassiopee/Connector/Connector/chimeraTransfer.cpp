@@ -160,12 +160,13 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), poscr), posvarsR.end());    
   
   /*---------------------------------------------------------------*/
-  /* Application de la formule d interpolation                     */
+  /* Application de la formule d'interpolation                     */
   /*---------------------------------------------------------------*/
-  PyObject* tpl = K_ARRAY::buildArray(fr->getNfld(), varStringr, imr, jmr, kmr);
-  E_Float* ptrFieldOut = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fieldROut(fr->getSize(), fr->getNfld(), ptrFieldOut, true);
-  fieldROut = *fr;
+  E_Int api = fr->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*fr, varStringr, imr, jmr, kmr, api);
+  FldArrayF* fieldROut;
+  K_ARRAY::getFromArray3(tpl, fieldROut);
+
   E_Int nbRcvPts = rcvPtsI->getSize();
   E_Int ncoefs = 8;
   E_Int indR, indD, indDLoc;
@@ -198,7 +199,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
         i = (indD-j*imd-k*imdjmd);
         for (E_Int eq = 0; eq < nfldr0; eq++)
         {
-          E_Float* fieldR = fieldROut.begin(posvarsR[eq]);
+          E_Float* fieldR = fieldROut->begin(posvarsR[eq]);
           E_Float* fieldD = fd->begin(posvarsD[eq]);
           fieldR[indR] = 0.; nocf = 0; sumCf = 0.;
           for (E_Int kk=0; kk<2; kk++)
