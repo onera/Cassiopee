@@ -28,14 +28,14 @@ E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
   if (PyList_Check(o) == false)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
+               "getFromArrayDyn: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
     return -1;
   }
   E_Int size = PyList_Size(o);
   if (size != 4 && size != 5)
   {
     PyErr_Warn(PyExc_Warning, 
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
+               "getFromArrayDyn: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
     return -2;
   }
  
@@ -55,7 +55,7 @@ E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
   else
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
+               "getFromArrayDyn: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
 
@@ -64,7 +64,7 @@ E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
   if (PyArray_Check(tpl) == false)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: second arg in array must be a numpy array.");
+               "getFromArrayDyn: second arg in array must be a numpy array.");
     return -4;
   }
   //a = (PyArrayObject*)PyArray_ContiguousFromObject(tpl, NPY_DOUBLE,
@@ -74,14 +74,14 @@ E_Int __check_array(PyObject* o, PyArrayObject*& a, char*& varString)
   if (a == NULL)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: second arg must be a numpy array.");
+               "getFromArrayDyn: second arg must be a numpy array.");
     return -4;
   }
   
   if (PyArray_NDIM(a) != 2)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: field must have two dimensions.");
+               "getFromArrayDyn: field must have two dimensions.");
     Py_DECREF(a);
     return -4;
   }
@@ -114,7 +114,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     else
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
+                 "getFromArrayDyn: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
       Py_DECREF(a);
       return -7;
     }
@@ -139,7 +139,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
         K_STRING::cmp(eltType, "NGON*") != 0)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");
+                 "getFromArrayDyn: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");
       Py_DECREF(a);
       return -7;
     }
@@ -154,7 +154,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (PyArray_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning, 
-                 "getFromArray: third arg in array must be a numpy array.");
+                 "getFromArrayDyn: third arg in array must be a numpy array.");
       Py_DECREF(a);
       return -6;
     }
@@ -165,7 +165,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (ac == NULL)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: third arg must be a numpy array.");
+                 "getFromArrayDyn: third arg must be a numpy array.");
       Py_DECREF(a);
       return -6;
     }
@@ -173,7 +173,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (PyArray_NDIM(ac) != 2)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: connectivity must have two dimensions.");
+                 "getFromArrayDyn: connectivity must have two dimensions.");
       Py_DECREF(a); Py_DECREF(ac);
       return -4;
     }
@@ -197,7 +197,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: third arg must be an integer.");
+                 "getFromArrayDyn: third arg must be an integer.");
       Py_DECREF(a);
       return -5;
     }
@@ -206,7 +206,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: fourth arg must be an integer.");
+                 "getFromArrayDyn: fourth arg must be an integer.");
       Py_DECREF(a);
       return -5;
     }
@@ -215,7 +215,7 @@ E_Int __get_connectivity(PyObject*o, PyArrayObject*& a,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: fifth arg must be an integer.");
+                 "getFromArrayDyn: fifth arg must be an integer.");
       Py_DECREF(a);
       return -5;
     }
@@ -272,7 +272,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
   if (nfld != nvar)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: number of variables different in varString and field.");
+               "getFromArrayDyn: number of variables different in varString and field.");
     Py_DECREF(a);
     return -4;
   }
@@ -311,7 +311,7 @@ E_Int K_ARRAY::getFromArray(PyObject* o,
   if (nfld != nvar)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: number of variables different in varString and field.");
+               "getFromArrayDyn: number of variables different in varString and field.");
     Py_DECREF(a);
     return -4;
   }
