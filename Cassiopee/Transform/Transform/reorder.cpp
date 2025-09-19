@@ -19,7 +19,6 @@
 
 #include "transform.h"
 
-using namespace std;
 using namespace K_FLD;
 
 // ============================================================================
@@ -71,65 +70,57 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   E_Int res = 
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
   
-  E_Int nfld = f->getNfld();
-  E_Int npts = f->getSize();
   E_Int api = f->getApi();
+  FldArrayF* f2;
 
   if (res == 1)
   {
-    PyObject* tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fout(npts, nfld, foutp, true);
-    K_CONNECT::reorderStructField(im, jm, km, *f, fout, 
+    tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+    K_ARRAY::getFromArray3(tpl, f2);
+    K_CONNECT::reorderStructField(im, jm, km, *f, *f2, 
                                   E_Int(oi), E_Int(oj), E_Int(ok));
-    PyList_SetItem(tpl,2, PyInt_FromLong(im));
-    PyList_SetItem(tpl,3, PyInt_FromLong(jm));
-    PyList_SetItem(tpl,4, PyInt_FromLong(km));
+    PyList_SetItem(tpl, 2, PyInt_FromLong(im));
+    PyList_SetItem(tpl, 3, PyInt_FromLong(jm));
+    PyList_SetItem(tpl, 4, PyInt_FromLong(km));
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else if (res == 2)
   {
-    if (strcmp(eltType, "QUAD") == 0 || strcmp(eltType, "TRI") == 0 ||
-        strcmp(eltType, "QUAD*") == 0 || strcmp(eltType, "TRI*") == 0)
-    {
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varString,
-                                          npts, cn->getSize(),
-                                          -1, eltType);
-      E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fn(npts, nfld, fp, true); fn = *f;
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), cn->getNfld(), cnnp, true); cnn = *cn;
-      K_CONNECT::reorderQuadTriField(fn, cnn, E_Int(oi));
-      RELEASESHAREDU(array, f, cn);
-      return tpl;
-    }
-    else if (strcmp(eltType, "NGON") == 0) 
+    FldArrayI* cn2;
+    if (strncmp(eltType, "NGON", 4) == 0) 
     {
       // check si le NGON est surfacique
-      E_Int* cnp = cn->begin();
+      E_Int dim = cn->getDim();
 
-      if (cnp[2] > 2) // la face a plus de 2 sommets ce n'est pas une arete
+      if (dim == 3)
       {
         PyErr_SetString(PyExc_TypeError,
                         "reorderNGON: NGON array must be a surface.");
-        RELEASESHAREDU(array, f, cn); return NULL;
+        RELEASESHAREDU(array, f, cn);
+        return NULL;
       }
-      if (cnp[2] == 1) // la face a 1 seul sommet
+      else if (dim == 1)
       {
         tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }
       
-      E_Int csize = cn->getSize()*cn->getNfld();
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varString, npts, cn->getSize(),
-                                          -1, eltType, false, csize);
-      E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fn(npts, nfld, fp, true); fn = *f;
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), cn->getNfld(), cnnp, true); cnn = *cn;
-      K_CONNECT::reorderNGON(fn, cnn, E_Int(oi));
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+      K_CONNECT::reorderNGON(*f2, *cn2, E_Int(oi));
+      RELEASESHAREDU(tpl, f2, cn2);
+      RELEASESHAREDU(array, f, cn);
+      return tpl;
+    }
+    else if (strncmp(eltType, "TRI", 3) == 0 || strncmp(eltType, "QUAD", 4) == 0)
+    {
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+      K_CONNECT::reorderQuadTriField(*f2, *cn2, E_Int(oi));
+      RELEASESHAREDU(tpl, f2, cn2);
       RELEASESHAREDU(array, f, cn);
       return tpl;
     }
@@ -137,7 +128,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     {
       RELEASESHAREDB(res, array, f, cn);
       PyErr_SetString(PyExc_TypeError,
-                      "reorder: only for TRI-array or QUAD-array.");
+                      "reorder: only for TRI, QUAD or NGON arrays.");
       return NULL;
     }
   }
