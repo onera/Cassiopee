@@ -16,13 +16,27 @@ import math
 
 __TOL__ = 1e-9
 
+def listSnear(tb,snears):
+    # List of snears
+    bodies = Internal.getZones(tb)
+    if not isinstance(snears, list):
+        snears = [snears*1.]*len(bodies)
+        for c, z in enumerate(bodies):
+            n = Internal.getNodeFromName2(z, 'snear')
+            if n is not None: snears[c] = Internal.getValue(n)*1.
+    else:
+        if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
+
+    numBase = len(Internal.getBases(tb))
+    return snears, numBase
+
 # Generation of the list of offset surfaces starting from tb
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
-def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
+def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False, snears=0.01):
     if offsetValues==[]: return []
-
+    snears, numBase = listSnear(tb, snears)
     if Cmpi.master: print('Generating list of offsets...start',flush=True)
 
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
@@ -52,85 +66,86 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
 
-    BB = G.bbox(tb)
-    ni = 150; nj = 150; nk = 150
-    XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
-
-    offsetValMin = min(offsetValues)
-    offsetValMax = max(offsetValues)
-
-    alpha=1.1
-    delta = alpha*offsetValMax
-    xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
-    xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
-
-    # CARTRX
-    # delta2 = sum(offsetValues)/len(offsetValues)n
-    delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
-    xmin_core = BB[0]-delta2
-    ymin_core = BB[1]-delta2
-    zmin_core = BB[2]-delta2
-    xmax_core = BB[3]+delta2
-    ymax_core = BB[4]+delta2
-    zmax_core = BB[5]+delta2
-
-    if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
-    else: ni_core = 51; nj_core = 51; nk_core = 51
-    hi_core = (xmax_core-xmin_core)/(ni_core-1)
-    hj_core = (ymax_core-ymin_core)/(nj_core-1)
-    hk_core = (zmax_core-zmin_core)/(nk_core-1)
-    h_core = min(hi_core, hj_core)
-    if dim == 3: h_core = min(h_core, hk_core)
-    if dim == 2:
-        zmin = 0; zmax = 0
-        zmin_core = 0.; zmax_core = 0.
-        hk_core = 0.
-
-    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
-    # Do not extend the CartCore beyond the symmetry plane (symClose)
-    if dir_sym > 0:
-        if   dir_sym == 1: xmin_core += delta2
-        elif dir_sym == 2: ymin_core += delta2
-        elif dir_sym == 3: zmin_core += delta2
-
-    # smaller and finer Cartesian core, bigger geometric factor
-    XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
-    XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-    b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
-
-    C._initVars(tb,"cellN",1.)
-
-    import time as ktime
-    Cmpi.barrier()
-    t0 = ktime.time()
-    DTW._distance2Walls(b, tb, type='ortho', loc='nodes', signed=0)
-    Cmpi.barrier()
-    if Cmpi.rank == 0: print("Generate list of offsets: dist2wall: %.2fs"%(ktime.time()-t0), flush=True)
-    # if Cmpi.rank == 0: C.convertPyTree2File(b, 'meshForOffset.cgns') # DEBUG ONLY
-
-    C._initVars(b,"cellN",1.)
-    # merging of symmetrical bodies in the original blanking bodies
-    # required for blankCells as a closed set of surfaces
-    bodies = []
-    for baseB in Internal.getBases(tb): bodies.append(Internal.getZones(baseB))
-    nbodies = len(bodies)
-    BM = numpy.ones((1, nbodies), dtype=numpy.int32)
-    t = C.newPyTree(["BASE",Internal.getZones(b)])
-    X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
-    C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-
     t_offset = C.newPyTree()
-    for no_offset, offsetval in enumerate(offsetValues):
-        if Cmpi.rank==0: print("Offset value: ", offsetval, flush=True)
-        iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
-        iso = Cmpi.allgatherZones(iso)
-        iso = C.convertArray2Tetra(iso)
-        iso = T.join(iso)
-        iso = G.close(iso, tol=1.e-6)
-        iso = T.smooth(iso)
-        iso[0]='z_offset_%d'%(no_offset)
-        C._addBase2PyTree(t_offset, 'OFFSET_%d'%(no_offset))
-        t_offset[2][no_offset+1][2]=[iso]
+    no_offsetGlobal=0
+    for nBase, tbLocal in enumerate(Internal.getBases(tb)):
+        BB = G.bbox(tbLocal)
+        ni = 150; nj = 150; nk = 150
+        XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
+        
+        offsetValMin = min(offsetValues[nBase])
+        offsetValMax = max(offsetValues[nBase])
+        alpha=1.1
+        delta = alpha*offsetValMax
+        xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
+        xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
+        
+        # CARTRX
+        # delta2 = sum(offsetValues)/len(offsetValues)n
+        delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
+        xmin_core = BB[0]-delta2
+        ymin_core = BB[1]-delta2
+        zmin_core = BB[2]-delta2
+        xmax_core = BB[3]+delta2
+        ymax_core = BB[4]+delta2
+        zmax_core = BB[5]+delta2
+        
+        if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
+        else: ni_core = 51; nj_core = 51; nk_core = 51
+        hi_core = (xmax_core-xmin_core)/(ni_core-1)
+        hj_core = (ymax_core-ymin_core)/(nj_core-1)
+        hk_core = (zmax_core-zmin_core)/(nk_core-1)
+        h_core = min(hi_core, hj_core)
+        if dim == 3: h_core = min(h_core, hk_core)
+        if dim == 2:
+            zmin = 0; zmax = 0
+            zmin_core = 0.; zmax_core = 0.
+            hk_core = 0.
+        
+        dir_sym = getSymmetryPlaneInfo__(tbLocal,dim=dim)
+        # Do not extend the CartCore beyond the symmetry plane (symClose)
+        if dir_sym > 0:
+            if   dir_sym == 1: xmin_core += delta2
+            elif dir_sym == 2: ymin_core += delta2
+            elif dir_sym == 3: zmin_core += delta2
+        
+        # smaller and finer Cartesian core, bigger geometric factor
+        XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
+        XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
+        b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
+        
+        C._initVars(tbLocal,"cellN",1.)
+        
+        import time as ktime
+        Cmpi.barrier()
+        t0 = ktime.time()
+        DTW._distance2Walls(b, tbLocal, type='ortho', loc='nodes', signed=0)
+        Cmpi.barrier()
+        if Cmpi.rank == 0: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0],nBase,(ktime.time()-t0)), flush=True)
+        Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        
+        C._initVars(b,"cellN",1.)
+        # merging of symmetrical bodies in the original blanking bodies
+        # required for blankCells as a closed set of surfaces
+        bodies = [tbLocal]; nbodies = 1
+        BM = numpy.ones((1, nbodies), dtype=numpy.int32)
+        t = C.newPyTree(["BASE",Internal.getZones(b)])
+        X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+        C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
+            
+        for no_offset, offsetval in enumerate(offsetValues[nBase]):
+            if Cmpi.rank==0: print("Offset value: ", offsetval, flush=True)
+            iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
+            iso = Cmpi.allgatherZones(iso)
+            iso = C.convertArray2Tetra(iso)
+            iso = T.join(iso)
+            iso = G.close(iso, tol=1.e-6)
+            iso = T.smooth(iso)
+            iso[0]='z_offsetBase%d_%d'%(nBase,no_offset)
+            D_IBM._setSnear(iso,snears[nBase])
+            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase,no_offset))
+            t_offset[2][no_offsetGlobal+1][2]=[iso]
+            no_offsetGlobal+=1
     return t_offset
 
 # Generates an isotropic skeleton mesh to be adapted then by AMR
@@ -872,6 +887,9 @@ def _createBCStandard__(a_hexa, a):
 
 def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False):
     from mpi4py import MPI
+    from itertools import groupby
+
+    numBase = len(Internal.getZones(tb))
     o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
     gcells = res[5]
@@ -881,38 +899,52 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     else: normal2D = numpy.array([0.0,0.0,1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
 
-    offset_zones = Internal.getZones(toffset)
-    noffsets = len(offset_zones)
-    offset_inside = Internal.getZones(tb)
+    offset_zones       = Internal.getZones(toffset)
+    offset_inside      = Internal.getZones(tb)
+    noffsetBase        = []
+    shiftOffsetBase    = []
+    tmpList            = []
+    for offsetloc in offset_zones:
+        baseNumLocal=int(offsetloc[0].split('_')[1][-1])
+        tmpList.append(baseNumLocal)
+        
+    noffsetBase     = [len(list(group)) for _, group in groupby(tmpList)]
+    shiftOffsetBase = [i for i in range(1, len(tmpList)) if tmpList[i] != tmpList[i-1]]
+    shiftOffsetBase.insert(0,0)
+    noffsets = max(noffsetBase)
     for i in range(noffsets-1, -1,-1):
         if Cmpi.rank==0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        offsetloc = offset_zones[i]
-        hx = hmin * 2**i
-
-        adaptPass = 0
-        adapting=True
-        while adapting:
-            o = tagInsideOffset__(o, offset1=offset_inside, offset2=offsetloc, dim=dim, h_target=hx)
-            indicMax = C.getMaxValue(o,"centers:indicator")
-            indicMax = Cmpi.allgather(indicMax)
-            indicMax = max(indicMax)
-            if indicMax<1. or (i==0 and adaptPass>0):
-                adapting=False
-                C._rmVars(o,["centers:indicator"])
-                break
-            else:
-                if Cmpi.rank==0: print("..........Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
-                f = Internal.getNodeFromName(o, 'indicator')[1]
-                REF = f.astype(dtype=Internal.E_NpyInt)
-                XC.AdaptMesh_AssignRefData(hookAM, REF)
-                if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
-                XC.AdaptMesh_Adapt(hookAM)
-                o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
-                o = Internal.getZones(o)[0]
-                if Cmpi.rank==0: print("..........Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
-                adaptPass+=1
-        if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
-
+        for nBase in range(numBase):
+            if Cmpi.rank==0: print("~~~~~~~~~~Base %d AdaptMesh...start"%nBase, flush=True)
+            if i > noffsetBase[nBase]-1: continue
+            offsetloc = offset_zones[i+shiftOffsetBase[nBase]]
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
+            hx = hminLocal * 2**i
+            adaptPass = 0
+            adapting=True
+            while adapting:
+                o = tagInsideOffset__(o, offset1=offset_inside[nBase], offset2=offsetloc, dim=dim, h_target=hx)
+                indicMax = C.getMaxValue(o,"centers:indicator")
+                indicMax = Cmpi.allgather(indicMax)
+                indicMax = max(indicMax)
+                if indicMax<1. or (i==0 and adaptPass>0):
+                    adapting=False
+                    C._rmVars(o,["centers:indicator"])
+                    break
+                else:
+                    if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
+                    f = Internal.getNodeFromName(o, 'indicator')[1]
+                    REF = f.astype(dtype=Internal.E_NpyInt)
+                    XC.AdaptMesh_AssignRefData(hookAM, REF)
+                    if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
+                    XC.AdaptMesh_Adapt(hookAM)
+                    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
+                    o = Internal.getZones(o)[0]
+                    if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
+                    adaptPass+=1
+            if Cmpi.rank==0: print("~~~~~~~~~~Base %d AdaptMesh...end"%nBase, flush=True)
+    if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
+                                   
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
     o = Internal.getZones(o)[0]
     owners = XC.AdaptMesh_ExtractOwners(hookAM)
@@ -1076,21 +1108,27 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
+    snears, numBase = listSnear(tb, snears)    
     # list of vmins
-    vminsLocal = numpy.ones(levelMax)
-    if not isinstance(vmins,list):
-        vminsLocal[:] = vmins
-    elif len(vmins) < levelMax:
-        vminsLocal[:len(vmins)] = vmins[:]
-        vminsLocal[len(vmins):] = vmins[-1]
-    elif len(vmins) > levelMax:
-        vminsLocal[:] = vmins[:levelMax]
-    else:
-        vminsLocal[:] = vmins[:]
+    numSublists = sum(1 for item in vmins if isinstance(item, list))
+    if numSublists<numBase: vmins.append(vmins[0])
+    vminsLocal = numpy.ones((numBase,levelMax))
+    for nBase in range(numBase):
+        if not isinstance(vmins[nBase],list):
+            vminsLocal[nBase][:] = vmins[nBase][:]
+        elif len(vmins[nBase]) < levelMax:
+            vminsLocal[nBase][:len(vmins[nBase])] = vmins[nBase][:]
+            vminsLocal[nBase][len(vmins[nBase]):] = vmins[nBase][-1]
+        elif len(vmins[nBase]) > levelMax:
+            vminsLocal[nBase][:] = vmins[nBase][:levelMax]
+        else:
+            vminsLocal[nBase][:] = vmins[nBase][:]
 
-    vmins = list(vminsLocal)
-    vmins = [max(5,v) for v in vmins] # vmin values should not be inferior to a given threshold
-
+    vmins=[]
+    for nBase in range(numBase):
+        vmins.append(list(vminsLocal[nBase]))
+        vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
+    
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snears, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
@@ -1115,16 +1153,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
     if toffset==None:
-        offsetValues = []
-        offsetprev = 0.
-        for no_adapt in range(len(vmins)):
-            offsetloc = offsetprev + hmin*(2**no_adapt)*vmins[no_adapt]
-            if offsetloc < 0.99*dfarmax:
-                offsetValues.append(offsetloc)
-                offsetprev=offsetloc
+        offsetValues = []       
+        for nBase in range(numBase):
+            offsetprev       = 0.
+            offsetValuesBase = [] 
+            for no_adapt in range(len(vmins[nBase])):
+                hminLocal = snears[nBase]
+                offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
+                if offsetloc < 0.99*dfarmax:
+                    offsetValuesBase.append(offsetloc)
+                    offsetprev=offsetloc
+            offsetValues.append(offsetValuesBase)
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim, opt=opt)
+        toffset = generateListOfOffsets__(tb, offsetValues=offsetValues, dim=dim, opt=opt, snears=snears)
         if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
