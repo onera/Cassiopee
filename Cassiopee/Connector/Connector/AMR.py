@@ -931,5 +931,3 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
         Internal.newDataArray('TurbulentDistance',value=walldistance_volume_ip[i::N_IP_per_cell],parent=walldistance_dataset)
 
     return None
-
-
