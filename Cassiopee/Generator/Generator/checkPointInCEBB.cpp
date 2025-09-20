@@ -68,8 +68,8 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
     // Calcul de la bounding box de l'array
     E_Int found = 0;
     E_Float xmin, ymin, zmin, xmax, ymax, zmax;
-    K_COMPGEOM::boundingBox(im, jm, km, posx, posy, posz, *f,
-                            xmin, ymin,  zmin, xmax, ymax,zmax);
+    K_COMPGEOM::boundingBoxStruct(im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
+                                  xmin, ymin, zmin, xmax, ymax, zmax);
 
     if (x > xmax || y > ymax || z > zmax ||
         x < xmin || y < ymin || z < zmin) goto end;

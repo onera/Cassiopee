@@ -1226,11 +1226,15 @@ void K_CONNECTOR::blankCellsUnstr(
 
   // masquage des domaines a masquer
   E_Int nzones = blankedCoords.size();
+  E_Int npts;
   for (E_Int zone = 0; zone < nzones; zone++)
   {
     // intersection des bbox ?
-    K_COMPGEOM::boundingBox(posxt[zone], posyt[zone], poszt[zone],
-                            *blankedCoords[zone],
+    npts = blankedCoords[zone]->getSize();
+    K_COMPGEOM::boundingBoxUnstruct(npts,
+                            blankedCoords[zone]->begin(posxt[zone]),
+                            blankedCoords[zone]->begin(posyt[zone]),
+                            blankedCoords[zone]->begin(poszt[zone]),
                             xminz, yminz, zminz, xmaxz, ymaxz, zmaxz);
     E_Int intersect =
       K_COMPGEOM::compBoundingBoxIntersection(
@@ -1311,15 +1315,20 @@ void K_CONNECTOR::blankCellsStruct(
   // masquage des domaines a masquer
   E_Int nzones = blankedCoords.size();
   E_Int intersect = 1;
+  E_Int npts;
   for (E_Int zone = 0; zone < nzones; zone++)
   {
     intersect = 1;
     if (isNot == 0) // test intersection des bbox que pour les cas de masques classiques
     {
+      npts = blankedCoords[zone]->getSize();
       // intersection des bbox ?
-      K_COMPGEOM::boundingBox(posxt[zone], posyt[zone], poszt[zone],
-                              *blankedCoords[zone],
+      K_COMPGEOM::boundingBoxUnstruct(npts,
+                              blankedCoords[zone]->begin(posxt[zone]),
+                              blankedCoords[zone]->begin(posyt[zone]),
+                              blankedCoords[zone]->begin(poszt[zone]),
                               xminz, yminz, zminz, xmaxz, ymaxz, zmaxz);
+      
       intersect = K_COMPGEOM::compBoundingBoxIntersection(
         xmin, xmax, ymin, ymax, zmin, zmax,
         xminz, xmaxz, yminz, ymaxz, zminz, zmaxz, 1.e-6);

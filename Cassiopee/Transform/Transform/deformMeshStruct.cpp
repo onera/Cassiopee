@@ -332,7 +332,6 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     FldArrayI indJMAX(im*km); vectOfIndices[3] = indJMAX; 
     FldArrayI indKMIN(im*jm); vectOfIndices[4] = indKMIN; 
     FldArrayI indKMAX(im*jm); vectOfIndices[5] = indKMAX; 
-    printf(" coucou 1\n");
 
     //k=1
     distmaxloc = -K_CONST::E_MAX_FLOAT;

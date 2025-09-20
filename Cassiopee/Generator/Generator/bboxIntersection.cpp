@@ -89,14 +89,16 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   posx2++; posy2++; posz2++;
 
   // bbox de a1
+  E_Int npts1 = f1->getSize();
   E_Float xmin1, ymin1, zmin1, xmax1, ymax1, zmax1;
-  K_COMPGEOM::boundingBox(posx1, posy1, posz1, *f1, 
-                          xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
+  K_COMPGEOM::boundingBoxUnstruct(npts1, f1->begin(posx1), f1->begin(posy1), f1->begin(posz1), 
+                                  xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
 
   // bbox de a2
+  E_Int npts2 = f2->getSize();
   E_Float xmin2, ymin2, zmin2, xmax2, ymax2, zmax2;
-  K_COMPGEOM::boundingBox(posx2, posy2, posz2, *f2, 
-                          xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
+  K_COMPGEOM::boundingBoxUnstruct(npts2, f2->begin(posx2), f2->begin(posy2), f2->begin(posz2), 
+                                  xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
   
   RELEASESHAREDB(res1, array1, f1, cn1); 
   RELEASESHAREDB(res2, array2, f2, cn2); 

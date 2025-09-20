@@ -147,8 +147,12 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
   vector<BBox3DType*> boxes(nzones);// liste des bbox
   for (E_Int v = 0; v < nzones; v++)
   {
-    K_COMPGEOM::boundingBox(nit[v], njt[v], nkt[v], posx, posy, posz, *structF[v], 
-                            bboxes(v,1), bboxes(v,2), bboxes(v,3),bboxes(v,4),bboxes(v,5),bboxes(v,6));
+    K_COMPGEOM::boundingBoxStruct(nit[v], njt[v], nkt[v],
+                                  structF[v]->begin(posx), 
+                                  structF[v]->begin(posy), 
+                                  structF[v]->begin(posz),
+                                  bboxes(v,1), bboxes(v,2), bboxes(v,3),
+                                  bboxes(v,4), bboxes(v,5), bboxes(v,6));
   }
   E_Float* xmin = bboxes.begin(1); E_Float* xmax = bboxes.begin(4);
   E_Float* ymin = bboxes.begin(2); E_Float* ymax = bboxes.begin(5);
