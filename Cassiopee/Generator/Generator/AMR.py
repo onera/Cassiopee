@@ -1103,11 +1103,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
     numTbox = 0
-    tbOrig = tb
+    tbMod = Internal.copyTree(tb)
     if tbox:
         numTbox = len(Internal.getBases(tbox))
-        tbOrig = Internal.copyTree(tb)
-        tb[2]+=Internal.getBases(tbox)
+        tbMod[2]+=Internal.getBases(tbox)
 
         if vminsTbox is None:
             vminsTboxLocal = numpy.ones((numTbox,levelMax))*5
@@ -1117,7 +1116,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             if numSublists<numTbox: vmins.append(numpy.ones(levelMax)*5)
         Cmpi.barrier()
              
-    snears, numBase = listSnear(tb, snears)
+    snears, numBase = listSnear(tbMod, snears)
+    snearsLocal = snears if numTbox==0 else snears[:-numTbox]
+
     # list of vmins
     numSublists = sum(1 for item in vmins if isinstance(item, list))
     if numSublists<numBase-2: vmins.append(vmins[0])
@@ -1141,7 +1142,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
-    o, newLevelMax = generateSkeletonMesh__(tbOrig, snears=snears[:-numTbox], dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+    o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsLocal, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
         if Cmpi.rank==0: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
         while len(vmins) < newLevelMax: vmins.append(vmins[-1]) # if newLevelMax > levelMax
@@ -1176,18 +1177,18 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             offsetValues.append(offsetValuesBase)
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb, snears, offsetValues=offsetValues, dim=dim, opt=opt)
+        toffset = generateListOfOffsets__(tbMod, snears, offsetValues=offsetValues, dim=dim, opt=opt)
         if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    baseSYM = Internal.getNodesFromName1(tbMod,"SYM")
     if baseSYM is not None:
         ##Remove SYM Base & Zones - keep real closed tb
-        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+        tbMod = Internal.rmNodesByNameAndType(tbMod, 'SYM', 'CGNSBase_t')
+        tbMod = Internal.rmNodesByNameAndType(tbMod, '*_sym*', 'Zone_t')
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
+    o = adaptMesh__(pathSkeleton, hmin, tbMod, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)

@@ -81,9 +81,10 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     else:
         tb2 = tb
 
-    tb2_pre = T.join(tb2)
-    tb2_pre = G.close(tb2_pre)
-    tb2_pre = C.newPyTree(["unstr", tb2_pre])
+    tb2_pre = Internal.copyTree(tb2)
+    #tb2_pre = T.join(tb2)
+    #tb2_pre = G.close(tb2_pre)
+    #tb2_pre = C.newPyTree(["unstr", tb2_pre])
     t_prep_end = time.perf_counter()
     t_wdist_start = time.perf_counter()
     # Distance to IBCs (all IBCs)
@@ -114,7 +115,6 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     test.printMem(">>> Blanking [start]")
     # Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
     C._initVars(t,'cellN',1.)
-
     t = X_IBM.blankByIBCBodies(t, tb2_pre, 'nodes', 3)
 
     test.printMem(">>> Blanking [end]")
