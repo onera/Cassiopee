@@ -16,21 +16,6 @@ except ImportError:
 
 installDict = {
     ###############################################################################
-    'DESKTOP...': [ 'Windows ubuntu',
-                    'gfortran', # f77compiler
-                    'gfortran', # f90compiler
-                    'gcc', # Cppcompiler
-                    [], # CppAdditionalOptions
-                    [], # f77AdditionalOptions
-                    True, # useOMP
-                    False, # static
-                    ['/usr/include/mpi', '/usr/include/hdf5/serial'], # additionalIncludePaths
-                    ['gfortran', 'gomp', 'pthread'], # additionalLibs
-                    ['/usr/lib/x86_64-linux-gnu','/usr/lib/x86_64-linux-gnu/hdf5/serial/'], # additionalLibPaths
-                    False, # useCuda
-                    [] # NvccAdditionalOptions
-                    ],
-    ###############################################################################
     'WDAAA728Z': [ 'Windows win64+msys2 (XJ-Onera)',
                    'gfortran', # f77compiler
                    'gfortran', # f90compiler
@@ -135,21 +120,6 @@ installDict = {
                    False, # useCuda
                    [] # NvccAdditionalOptions
                    ],
-    ###############################################################################
-    'caefr0p...': [ 'Cluster GISEH (Airbus)',
-                    'ifort', # f77compiler
-                    'ifort', # f90compiler
-                    'icpc', # Cppcompiler
-                    [], # CppAdditionalOptions
-                    [], # f77AdditionalOptions
-                    True, # useOMP
-                    False, # static
-                    ['/opt/soft/cdtng/tools/portage/1.11/usr/include'], # additionalIncludePaths
-                    ['svml', 'irc', 'ifcore', 'iomp5'], # additionalLibs
-                    ['/opt/soft/cdtng/tools/portage/1.11/composerxe/lib/intel64', '/opt/soft/cdtng/tools/portage/1.11/usr/lib'],  # additionalLibPaths
-                    False, # useCuda
-                    [] # NvccAdditionalOptions
-                    ],
     ###############################################################################
     'AA': [ 'Cluster AA',
             'ifort', # f77compiler
@@ -271,7 +241,7 @@ installDict = {
               [] # NvccAdditionalOptions
               ],
     ###############################################################################
-    'eos...z': [ 'Poste grand calcul eosXXXz (Onera)',
+    'eosz':     [ 'Poste grand calcul eosXXXz (Onera)',
                  'ifort', # f77compiler
                  'ifort', # f90compiler
                  'icc', # Cppcompiler
@@ -286,7 +256,7 @@ installDict = {
                  [] # NvccAdditionalOptions
                  ],
     ###############################################################################
-    'eos...': [ 'Onera-eos (legacy-doit etre apres eosZ)',
+    'eos': [ 'Onera-eos (legacy-doit etre apres eosZ)',
                 'ifort', # f77compiler
                 'ifort', # f90compiler
                 'icc', # Cppcompiler
@@ -301,7 +271,7 @@ installDict = {
                 [] # NvccAdditionalOptions
                 ],
     ###############################################################################
-    'ld...': [ 'Poste grand calcul Onera-ld (Onera)',
+    'ld': [ 'Poste grand calcul Onera-ld (Onera)',
                'gfortran', # f77compiler
                'gfortran', # f90compiler
                'gcc', # Cppcompiler
@@ -858,21 +828,6 @@ installDict = {
                                [] # NvccAdditionalOptions
                                ],
     ###############################################################################
-    'default': [ 'Default',
-                 'gfortran', # f77compiler
-                 'gfortran', # f90compiler
-                 'gcc', # Cppcompiler
-                 [], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 [], # additionalIncludePaths
-                 [], # additionalLibs
-                 [], # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
-    ###############################################################################
     'dumbo': [ 'Grosse machine de post-traitement (Onera)',
                'ifort', # f77compiler
                'ifort', # f90compiler
@@ -887,6 +842,21 @@ installDict = {
                False, # useCuda
                [] # NvccAdditionalOptions
                ],
+    ###############################################################################
+    'default': [ 'Default',
+                 'gfortran', # f77compiler
+                 'gfortran', # f90compiler
+                 'gcc', # Cppcompiler
+                 [], # CppAdditionalOptions
+                 [], # f77AdditionalOptions
+                 True, # useOMP
+                 False, # static
+                 [], # additionalIncludePaths
+                 [], # additionalLibs
+                 [], # additionalLibPaths
+                 False, # useCuda
+                 [] # NvccAdditionalOptions
+                 ],
     ###############################################################################
     **installDictUser
 }

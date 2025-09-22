@@ -1,3 +1,0 @@
-#!/bin/csh
-source $FILE
-$ELSA_EXE $1

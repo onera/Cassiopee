@@ -1072,7 +1072,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
     //1ere pass_typ: IBC
     //2eme pass_typ: transfert
 
-    for  (E_Int ipass_typ=pass_deb; ipass_typ< pass_fin; ipass_typ++)
+    for  (E_Int ipass_typ=pass_deb; ipass_typ < pass_fin; ipass_typ++)
     {
       //1ere pass_inst: les raccords fixes
       //2eme pass_inst: les raccords instationnaires

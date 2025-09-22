@@ -2880,12 +2880,9 @@ def createCudaScanner(env):
     SCons.Tool.SourceFileScanner.add_scanner(['.cu'], CudaScanner)
     return env
 
+# Add underlying common "NVIDIA CUDA compiler" variables that
+# are used by multiple builders.
 def addCommonNvccVariables(env):
-    """
-    Add underlying common "NVIDIA CUDA compiler" variables that
-    are used by multiple builders.
-    """
-
     # "NVCC common command line"
     if not env.has_key('_NVCCCOMCOM'):
         # nvcc needs '-I' prepended before each include path, regardless of platform
