@@ -242,49 +242,49 @@ installDict = {
               ],
     ###############################################################################
     'eosz':     [ 'Poste grand calcul eosXXXz (Onera)',
-                 'ifort', # f77compiler
-                 'ifort', # f90compiler
-                 'icc', # Cppcompiler
-                 [], # CppAdditionalOptions
-                 [], # f77AdditionalOptions
-                 True, # useOMP
-                 False, # static
-                 ['/usr/local/hdf5-gnu-1.8.8/include'], # additionalIncludePaths
-                 [], # additionalLibs
-                 ['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionalLibPaths
-                 False, # useCuda
-                 [] # NvccAdditionalOptions
-                 ],
+                  'ifort', # f77compiler
+                  'ifort', # f90compiler
+                  'icc', # Cppcompiler
+                  [], # CppAdditionalOptions
+                  [], # f77AdditionalOptions
+                  True, # useOMP
+                  False, # static
+                  ['/usr/local/hdf5-gnu-1.8.8/include'], # additionalIncludePaths
+                  [], # additionalLibs
+                  ['/usr/local/hdf5-gnu-1.8.8/lib'],  # additionalLibPaths
+                  False, # useCuda
+                  [] # NvccAdditionalOptions
+                  ],
     ###############################################################################
     'eos': [ 'Onera-eos (legacy-doit etre apres eosZ)',
-                'ifort', # f77compiler
-                'ifort', # f90compiler
-                'icc', # Cppcompiler
-                [], # CppAdditionalOptions
-                [], # f77AdditionalOptions
-                True, # useOMP
-                False, # static
-                [], # additionalIncludePaths
-                [], # additionalLibs
-                [],  # additionalLibPaths
-                False, # useCuda
-                [] # NvccAdditionalOptions
-                ],
+             'ifort', # f77compiler
+             'ifort', # f90compiler
+             'icc', # Cppcompiler
+             [], # CppAdditionalOptions
+             [], # f77AdditionalOptions
+             True, # useOMP
+             False, # static
+             [], # additionalIncludePaths
+             [], # additionalLibs
+             [],  # additionalLibPaths
+             False, # useCuda
+             [] # NvccAdditionalOptions
+             ],
     ###############################################################################
     'ld': [ 'Poste grand calcul Onera-ld (Onera)',
-               'gfortran', # f77compiler
-               'gfortran', # f90compiler
-               'gcc', # Cppcompiler
-               ['-DCACHELINE=64','-DNB_SOCKET=1'], # CppAdditionalOptions
-               [], # f77AdditionalOptions
-               True, # useOMP
-               False, # static
-               [], # additionalIncludePaths
-               [], # additionalLibs
-               [],  # additionalLibPaths
-               False, # useCuda
-               [] # NvccAdditionalOptions
-               ],
+            'gfortran', # f77compiler
+            'gfortran', # f90compiler
+            'gcc', # Cppcompiler
+            ['-DCACHELINE=64','-DNB_SOCKET=1'], # CppAdditionalOptions
+            [], # f77AdditionalOptions
+            True, # useOMP
+            False, # static
+            [], # additionalIncludePaths
+            [], # additionalLibs
+            [],  # additionalLibPaths
+            False, # useCuda
+            [] # NvccAdditionalOptions
+            ],
     ###############################################################################
     'mangrove': [ 'Machine avec acces GPU (Onera)',
                   'ifort', # f77compiler
