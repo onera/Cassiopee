@@ -10,9 +10,8 @@ import Dist2Walls.PyTree as DTW
 import Post.PyTree as P
 import XCore.PyTree as XC
 from . import PyTree as G
-import os
-import numpy
-import math
+import os, numpy, math
+import time as ktime
 
 __TOL__ = 1e-9
 
@@ -27,7 +26,10 @@ def listSnear(tb,snears):
     else:
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
 
-    numBase = len(Internal.getBases(tb))
+    tbTMP = Internal.copyTree(tb)
+    baseSYM = Internal.getNodesFromName1(tbTMP,"SYM")
+    if baseSYM is not None: tbTMP = Internal.rmNodesByNameAndType(tbTMP, 'SYM', 'CGNSBase_t')
+    numBase = len(Internal.getBases(tbTMP))
     return snears, numBase
 
 # Generation of the list of offset surfaces starting from tb
@@ -42,10 +44,14 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
 
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    listShiftBase = []
     if baseSYM is not None:
         # Keep only the real closed tb
         # Remove SYM Base & Zones
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        for b in Internal.getBases(tb):
+            node = Internal.getNodesFromNameAndType(b, '*_sym', 'Zone_t')
+            if node: listShiftBase.append(b[0])
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
 
     if opt and dim == 3:
@@ -80,7 +86,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
         xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
-        
+
         # CARTRX
         # delta2 = sum(offsetValues)/len(offsetValues)n
         delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
@@ -103,9 +109,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
         
-        dir_sym = getSymmetryPlaneInfo__(tbLocal,dim=dim)
         # Do not extend the CartCore beyond the symmetry plane (symClose)
-        if dir_sym > 0:
+        if dir_sym > 0 and tbLocal[0] in listShiftBase:
             if   dir_sym == 1: xmin_core += delta2
             elif dir_sym == 2: ymin_core += delta2
             elif dir_sym == 3: zmin_core += delta2
@@ -117,13 +122,11 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
         
         C._initVars(tbLocal,"cellN",1.)
         
-        import time as ktime
         Cmpi.barrier()
         t0 = ktime.time()
         DTW._distance2Walls(b, tbLocal, type='ortho', loc='nodes', signed=0)
         Cmpi.barrier()
         if Cmpi.rank == 0: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0],nBase,(ktime.time()-t0)), flush=True)
-        Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
         
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
@@ -133,7 +136,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
         t = C.newPyTree(["BASE",Internal.getZones(b)])
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
         C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-            
+        Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
             if Cmpi.rank==0: print("Offset value: ", offsetval, flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
@@ -888,7 +892,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     gcells = res[5]
     gfaces = res[6]
     comm = res[1]
-    if dim==3: normal2D=None
+    if dim == 3: normal2D=None
     else: normal2D = numpy.array([0.0,0.0,1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
 
@@ -898,7 +902,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     shiftOffsetBase    = []
     tmpList            = []
     for offsetloc in offset_zones:
-        baseNumLocal=int(offsetloc[0].split('_')[1][-1])
+        baseNumLocal = int(offsetloc[0].split('_')[1][-1])
         tmpList.append(baseNumLocal)
         
     noffsetBase     = [len(list(group)) for _, group in groupby(tmpList)]
@@ -906,17 +910,17 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     shiftOffsetBase.insert(0,0)
     noffsets = max(noffsetBase)
     for i in range(noffsets-1, -1,-1):
-        if Cmpi.rank==0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
+        if Cmpi.rank == 0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
         for nBase in range(numBase):
-            if Cmpi.rank==0: print("~~~~~~~~~~Base %d AdaptMesh...start"%nBase, flush=True)
+            if Cmpi.rank == 0: print("~~~~~~~~~~Base %d AdaptMesh...start"%nBase, flush=True)
             if i > noffsetBase[nBase]-1: continue
             offsetloc = offset_zones[i+shiftOffsetBase[nBase]]
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
             hx = hminLocal * 2**i
             adaptPass = 0
-            adapting=True
-            isTbox  =False
-            if nBase>=numBase-numTbox: isTbox=True
+            adapting  = True
+            isTbox    = False
+            if nBase >= numBase-numTbox: isTbox = True
             while adapting:
                 o = tagInsideOffset__(o, offset1=offset_inside[nBase], offset2=offsetloc, dim=dim, h_target=hx, isTbox=isTbox)
                 indicMax = C.getMaxValue(o,"centers:indicator")
@@ -927,7 +931,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     C._rmVars(o,["centers:indicator"])
                     break
                 else:
-                    if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
+                    if Cmpi.rank == 0: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
                     f = Internal.getNodeFromName(o, 'indicator')[1]
                     REF = f.astype(dtype=Internal.E_NpyInt)
                     XC.AdaptMesh_AssignRefData(hookAM, REF)
@@ -937,8 +941,8 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = Internal.getZones(o)[0]
                     if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
-            if Cmpi.rank==0: print("~~~~~~~~~~Base %d AdaptMesh...end"%nBase, flush=True)
-    if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
+            if Cmpi.rank == 0: print("~~~~~~~~~~Base %d AdaptMesh...end"%nBase, flush=True)
+    if Cmpi.rank == 0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
                                    
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
     o = Internal.getZones(o)[0]
@@ -1113,16 +1117,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             vminsTbox = vminsTboxLocal.tolist()
         else:
             numSublists = sum(1 for item in vminsTbox if isinstance(item, list))
-            if numSublists<numTbox: vmins.append(numpy.ones(levelMax)*5)
+            if numSublists<numTbox: vminsTbox.append(numpy.ones(levelMax)*5)
         Cmpi.barrier()
              
     snears, numBase = listSnear(tbMod, snears)
     snearsLocal = snears if numTbox==0 else snears[:-numTbox]
 
     # list of vmins
-    numSublists = sum(1 for item in vmins if isinstance(item, list))
-    if numSublists<numBase-2: vmins.append(vmins[0])
+    isDone = False
+    while not isDone:
+        numSublists = sum(1 for item in vmins if isinstance(item, list))
+        if numSublists<numBase-numTbox: vmins.append(vmins[0])
+        else: isDone=True
     if tbox: vmins.extend(vminsTbox)
+    
     vminsLocal = numpy.ones((numBase,levelMax))
     for nBase in range(numBase):
         if not isinstance(vmins[nBase],list):
@@ -1179,7 +1187,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tbMod, snears, offsetValues=offsetValues, dim=dim, opt=opt)
         if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
-    Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
