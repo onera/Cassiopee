@@ -87,14 +87,16 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
-  FldArrayI* param_int;E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  FldArrayI* param_int;
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   
   FldArrayF* param_real;res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
   E_Float* ipt_param_real = param_real->begin();
 
   //On recupere le nom de la 1ere variable a recuperer 
-  PyObject* tpl0= PyList_GetItem(pyVariables, 0); 
+  PyObject* tpl0 = PyList_GetItem(pyVariables, 0); 
   char* varname = NULL;
   if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
@@ -208,8 +210,8 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
     E_Int Nbre_thread_actif = 1;
 #endif
 
-    E_Int indR, type;
-    E_Int indD0, indD, i, j, k, ncfLoc, indCoef, noi, sizecoefs, imd, jmd, imdjmd;
+    E_Int type;
+    E_Int indCoef, noi, sizecoefs, imd, jmd, imdjmd;
 
     E_Float* RcvFields;
     
@@ -229,14 +231,14 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
 	    E_Int NoD       =  ipt_param_int[ shift_rac + nrac*5  ];
 	    E_Int loc       =  ipt_param_int[ shift_rac + nrac*9  ]; //+1 a cause du nrac mpi
 	    E_Int NoR       =  ipt_param_int[ shift_rac + nrac*11 ];
-	    E_Int nvars_loc =  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
+	    //E_Int nvars_loc =  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
 	   
 	    E_Int meshtype = ipt_ndimdxD[NoD + nidomD*6];
-	    E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
-	    E_Int* ptrcnd  = ipt_cnd[    NoD           ];
-	    E_Float* ipt_distQ;
+	    //E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
+	    //E_Int* ptrcnd  = ipt_cnd[    NoD           ];
+	    E_Float* ipt_distQ=NULL;
 	    E_Int* ipt_intrQ=NULL;
-	    E_Int* ipt_cvel;
+	    E_Int* ipt_cvel=NULL;
 	    if (loc == 0)
       {
 	      printf("Error: transferts optimises non code en vextex " SF_D3_ "\n", shift_rac + nrac*9  +1, NoD, NoR ); 
@@ -518,6 +520,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   /*-------------------------------------*/
   FldArrayI* param_int;
   E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
   res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
@@ -720,8 +723,8 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	for  (E_Int irac=irac_deb; irac< irac_fin; irac++){
  	  E_Int irac_auto= irac-irac_deb;
 	  E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac; 
-	  E_Int levelD = ipt_param_int[debut_rac + 25];
-	  E_Int levelR = ipt_param_int[debut_rac + 24];
+	  //E_Int levelD = ipt_param_int[debut_rac + 25];
+	  //E_Int levelR = ipt_param_int[debut_rac + 24];
 	  
  	  if (autorisation_transferts[pass_inst][irac_auto]==1){
 	    //printf("AUTHORIZED :: levelR,levelD=%d %d\n", levelR,levelD);

@@ -52,13 +52,14 @@
 static int fghGetConfig( int attribute )
 {
   int returnValue = 0;
-  int result;  /*  Not checked  */
+  //int result;  /*  Not checked  */
 
   if( fgStructure.CurrentWindow )
-      result = glXGetFBConfigAttrib( fgDisplay.Display,
-                                     *(fgStructure.CurrentWindow->Window.FBConfig),
-                                     attribute,
-                                     &returnValue );
+      //result = 
+      glXGetFBConfigAttrib( fgDisplay.Display,
+                            *(fgStructure.CurrentWindow->Window.FBConfig),
+                            attribute,
+                            &returnValue );
 
   return returnValue;
 }
@@ -878,7 +879,7 @@ int * FGAPIENTRY glutGetModeValues(GLenum eWhat, int * size)
       if (fbconfigArray != NULL)
         {
           int * temp_array;
-          int result;   /*  Returned by glXGetFBConfigAttrib. Not checked.  */
+          //int result;   /*  Returned by glXGetFBConfigAttrib. Not checked.  */
           int previous_value;
           int i;
 
@@ -889,10 +890,11 @@ int * FGAPIENTRY glutGetModeValues(GLenum eWhat, int * size)
             {
               int value;
 
-              result = glXGetFBConfigAttrib(fgDisplay.Display,
-                                            fbconfigArray[i],
-                                            attribute_name,
-                                            &value);
+              //result = 
+              glXGetFBConfigAttrib(fgDisplay.Display,
+                                   fbconfigArray[i],
+                                   attribute_name,
+                                   &value);
               if (value > previous_value)
                 {
                   temp_array[*size] = value;

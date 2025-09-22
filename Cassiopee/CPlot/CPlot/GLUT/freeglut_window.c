@@ -296,7 +296,7 @@ GLXFBConfig* fgChooseFBConfig( int *numcfgs )
 
         if (fbconfigArray != NULL)
         {
-            int result;  /* Returned by glXGetFBConfigAttrib, not checked. */
+            //int result;  /* Returned by glXGetFBConfigAttrib, not checked. */
 
 
             if( wantIndexedMode )
@@ -310,13 +310,13 @@ GLXFBConfig* fgChooseFBConfig( int *numcfgs )
                 int bufferSizeMin, bufferSizeMax;
 
                 /*  Get bufferSizeMin.  */
-                result =
+                //result =
                   glXGetFBConfigAttrib( fgDisplay.Display,
                                         fbconfigArray[0],
                                         GLX_BUFFER_SIZE,
                                         &bufferSizeMin );
                 /*  Get bufferSizeMax.  */
-                result =
+                //result =
                   glXGetFBConfigAttrib( fgDisplay.Display,
                                         fbconfigArray[fbconfigArraySize - 1],
                                         GLX_BUFFER_SIZE,

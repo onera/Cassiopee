@@ -87,9 +87,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     t_prep_end = time.perf_counter()
     t_wdist_start = time.perf_counter()
     # Distance to IBCs (all IBCs)
-    test.printMem(">>> Wall distance nodes [start]")
     varnames = C.getVarNames(t,loc="nodes")[0]
     if "TurbulentDistance" not in varnames:
+        test.printMem(">>> Wall distance nodes [start]")
         if different_front_flag == True: #True is default
             tb_WD = getBodiesForWallDistanceComputation(tb2)
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
@@ -97,12 +97,16 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         else: #False
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+        test.printMem(">>> Wall distance nodes [end]")
     else:
         if different_front_flag == False: #True is default
+            test.printMem(">>> Wall distance nodes [start]")
             Internal._renameNode(t, "TurbulentDistance", "TurbulentDistanceForCFDComputation")
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
-    test.printMem(">>> Wall distance nodes [end]")
+            test.printMem(">>> Wall distance nodes [end]")
+        else:
+            test.printMem(">>> Wall distance nodes : skipped - dist2wall is in input PyTree ")
 
     t_wdist_end = time.perf_counter()
     t_blank_start = time.perf_counter()
