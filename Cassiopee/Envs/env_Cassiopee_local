@@ -13,32 +13,9 @@ endif
 limit stacksize unlimited
 
 # Compilation on different machines:
-
-# Detection machine by uname (shortest first)
-set KC=`uname -n`
-set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_cas"
-set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
-set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'b0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
-set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
-set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
-set MAC0=`echo $KC | grep 'fulvio'`; if ($%MAC0 != 0) set MAC="fulvio"
-set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
-set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
-set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
-set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_cas"
-set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
-set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
-set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean-zay"
-set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
-set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
-
-# Detect MAC environment from MACHINE
 set EXT=""
 if ($?MACHINE != 0) then
+    # Detect MAC environment from MACHINE
     set INTTYPE=""
     set DBGMODE=""
     set BRANCHNAME=""
@@ -65,6 +42,27 @@ if ($?MACHINE != 0) then
     set MAC="$MACHINETMP"
     set EXT="$BRANCHNAME$INTTYPE$DBGMODE"
     unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
+else
+    # Detection machine by uname (shortest first)
+    set KC=`uname -n`
+    set MAC0=`echo $KC | grep 'n'`; if ($%MAC0 != 0) set MAC="sator_cas"
+    set MAC0=`echo $KC | grep 'ld'`; if ($%MAC0 != 0) set MAC="ld"
+    set MAC0=`echo $KC | grep 'f0'`; if ($%MAC0 != 0) set MAC="juno"
+    set MAC0=`echo $KC | grep 'n0'`; if ($%MAC0 != 0) set MAC="juno"
+    set MAC0=`echo $KC | grep 'b0'`; if ($%MAC0 != 0) set MAC="juno"
+    set MAC0=`echo $KC | grep 'v0'`; if ($%MAC0 != 0) set MAC="juno"
+    set MAC0=`echo $KC | grep 'clausius'`; if ($%MAC0 != 0) set MAC="ld"
+    set MAC0=`echo $KC | grep 'ubuntu'`; if ($%MAC0 != 0) set MAC="ubuntu"
+    set MAC0=`echo $KC | grep 'spiro'`; if ($%MAC0 != 0) set MAC="spiro_el8"
+    set MAC0=`echo $KC | grep 'visio'`; if ($%MAC0 != 0) set MAC="visio"
+    set MAC0=`echo $KC | grep 'celeste'`; if ($%MAC0 != 0) set MAC="visio"
+    set MAC0=`echo $KC | grep 'visung'`; if ($%MAC0 != 0) set MAC="visung"
+    set MAC0=`echo $KC | grep 'sator'`; if ($%MAC0 != 0) set MAC="sator_cas"
+    set MAC0=`echo $KC | grep 'cobalt'`; if ($%MAC0 != 0) set MAC="cobalt"
+    set MAC0=`echo $KC | grep 'irene'`; if ($%MAC0 != 0) set MAC="irene"
+    set MAC0=`echo $KC | grep 'jean-zay'`; if ($%MAC0 != 0) set MAC="jean_zay"
+    set MAC0=`echo $KC | grep 'node6.cluster'`; if ($%MAC0 != 0) set MAC="macosx"
+    set MAC0=`echo $KC | grep 'topaze'`; if ($%MAC0 != 0) set MAC="topaze"
 endif
 
 # Check if MAC is empty
@@ -103,7 +101,7 @@ else if ($MAC == "macosx") then
        setenv ELSAPROD macosx
        setenv ELSAPROD "$ELSAPROD$EXT"
        setenv OMP_NUM_THREADS 2
-       set path=($path $CASSIOPEE/Dist/bin/macosx_r8)
+       set path=($path $CASSIOPEE/Dist/bin/macosx)
        setenv LD_LIBRARY_PATHL $CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/lib:/opt/intel/composer_xe_2015/lib
        unsetenv BUNDLE
        setenv MACOSX_DEPLOYMENT_TARGET 10.10
@@ -132,22 +130,9 @@ else if ($MAC == "linux") then
         setenv PRODMODE 1
         setenv PIP_DISABLE_PIP_VERSION_CHECK 1
 
-else if ($MAC == "fulvio") then
-#------------------------------- fulvio ---------------------------------------
-        setenv ELSAPROD flv_r8
-        setenv ELSAPROD "$ELSAPROD$EXT"
-        foreach x (`(echo "" ; module -t list) | & grep intel`)
-            module unload $x
-        end
-        module load gcc/4.8.1
-        module load intel/15.0.6
-        #module load impi/15
-        # Nombre de threads
-        setenv OMP_NUM_THREADS 8
-
 else if ($MAC == "visio") then
 #------------------------------- visio ---------------------------------------
-        setenv ELSAPROD vis_r8
+        setenv ELSAPROD visio
         setenv ELSAPROD "$ELSAPROD$EXT"
         foreach x (`(echo "" ; module -t list) | & grep intel`)
             module unload $x
@@ -162,7 +147,7 @@ else if ($MAC == "visio") then
         
 else if ($MAC == "visio_python2") then
 #------------------------------- visio ---------------------------------------
-        setenv ELSAPROD vis_r8
+        setenv ELSAPROD visio
         setenv ELSAPROD "$ELSAPROD$EXT"
         module load python/2.7.8
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -217,7 +202,7 @@ else if ($MAC == "visung_el8") then
 
 else if ($MAC == "cobalt") then
 #------------------------------- cobalt ---------------------------------------
-        setenv ELSAPROD cob_r8
+        setenv ELSAPROD cobalt
         setenv ELSAPROD "$ELSAPROD$EXT"
         setenv OMP_NUM_THREADS 28
         module purge
@@ -228,9 +213,9 @@ else if ($MAC == "cobalt") then
         module load libosmesa/10.6.5
         module load libpng/1.6.23
 
-else if ($MAC == "tgcc_irene") then
+else if ($MAC == "irene") then
 #------------------------------- irene ---------------------------------------
-        setenv ELSAPROD irene_r8
+        setenv ELSAPROD irene
         setenv ELSAPROD "$ELSAPROD$EXT"
         setenv OMP_NUM_THREADS 24
         module purge
@@ -239,9 +224,9 @@ else if ($MAC == "tgcc_irene") then
         module load python/2.7.14
         module load hdf5/1.8.20
 
-else if ($MAC == "jean-zay") then
+else if ($MAC == "jean_zay") then
 #------------------------------- jean zay ------------------------------------
-        setenv ELSAPROD jz_r8
+        setenv ELSAPROD jean_zay
         setenv ELSAPROD "$ELSAPROD$EXT"
         module load python/3.8.2
         module load gcc/9.1.0-cuda-openacc
@@ -252,7 +237,7 @@ else if ($MAC == "jean-zay") then
        
 else if ($MAC == "topaze") then
 #------------------------------- topaze ccrt proc amd milan --------------------------------------
-        setenv ELSAPROD topaze_r8
+        setenv ELSAPROD topaze
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         foreach x (`(echo "" ; module -t list) | & grep intel`)
@@ -267,9 +252,9 @@ else if ($MAC == "topaze") then
         setenv OMP_NUM_THREADS 64
         setenv PYTHONEXE python3
 
-else if ($MAC == "spiro_el8") then
+else if ($MAC == "spiro") then
 #------------------------------- spiro --------------------------------------
-        setenv ELSAPROD spiro_el8
+        setenv ELSAPROD spiro
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 24
@@ -391,7 +376,7 @@ else if ($MAC == "juno_coda") then
 
 else if ($MAC == "sator_brw") then
 #------------------------------- sator for broadwell ----------------------------------
-        setenv ELSAPROD sat_r8
+        setenv ELSAPROD sator_brw
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
         module load python/3.7.4-intel2120
@@ -406,7 +391,7 @@ else if ($MAC == "sator_brw") then
 
 else if ($MAC == "sator_sky") then
 #------------------------------- sator for skylake ------------------------------------
-        setenv ELSAPROD sat_sky_r8
+        setenv ELSAPROD sator_sky
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
         #module load socle-cfd/5.0-intel2120-impi
@@ -421,7 +406,7 @@ else if ($MAC == "sator_sky") then
 
 else if ($MAC == "sator_cas") then
 #------------------------------- sator for cascade ------------------------------------
-        setenv ELSAPROD sat_cas_r8
+        setenv ELSAPROD sator_cas
         setenv ELSAPROD "$ELSAPROD$EXT"
         module purge
         #module load socle-cfd/5.0-intel2120-impi
@@ -438,7 +423,7 @@ else if ($MAC == "sator_cas") then
 
 else if ($MAC == "sator_sph") then
 #------------------------------- sator for saphire ------------------------------------
-        setenv ELSAPROD sat_sph
+        setenv ELSAPROD sator_sph
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48
@@ -457,7 +442,7 @@ else if ($MAC == "sator_sph") then
 
 else if ($MAC == "sator_gcc") then
 #------------------------------- sator gcc ------------------------------------
-        setenv ELSAPROD sat_gcc
+        setenv ELSAPROD sator_gcc
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48
@@ -476,7 +461,7 @@ else if ($MAC == "sator_gcc") then
 
 else if ($MAC == "sator_coda") then
 #------------------------------- sator coda ------------------------------------
-        setenv ELSAPROD sat_coda
+        setenv ELSAPROD sator_coda
         setenv ELSAPROD "$ELSAPROD$EXT"
         # Number of threads
         setenv OMP_NUM_THREADS 48

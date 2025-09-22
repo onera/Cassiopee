@@ -22,13 +22,12 @@ prod = os.getenv("ELSAPROD")
 try: import KCore.installBase as installBase
 except: import installBase
 
-dict = installBase.installDict
+configDict = installBase.installDict
 key = ''
 # prod est tout d'abord cherche dans le dictionnaire
 if prod is not None:
-    if prod.endswith('_DBG'): prod = prod[:-4]
-    if prod.endswith('_i8'): prod = prod[:-3]
-    if prod in dict: key = prod
+    prod = prod.replace('_i8', '').replace('_DBG', '').split('_b-')[0]
+    if prod in configDict: key = prod
 
 if key == '': # not found in install base
     print("Warning: %s were found in KCore/installBase.py."%(prod))
@@ -36,7 +35,7 @@ if key == '': # not found in install base
     print("Warning: to change that, add a block in KCore/installBase.py.")
     key = 'default'
 
-v = dict[key]
+v = configDict[key]
 description = v[0]
 f77compiler = v[1]
 f90compiler = v[2]
