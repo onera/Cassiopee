@@ -15,6 +15,12 @@ import time as ktime
 
 __TOL__ = 1e-9
 
+def _addItemDict(d, key, value):
+    if key in d:
+        d[key].append(value)
+    else:
+        d[key] = [value]
+    return None
 def listSnear(tb,snears):
     # List of snears
     bodies = Internal.getZones(tb)
@@ -36,7 +42,7 @@ def listSnear(tb,snears):
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
-def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
+def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0):
     if offsetValues==[]: return []
 
     snears, numBase = listSnear(tb, snears)
@@ -53,7 +59,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
             node = Internal.getNodesFromNameAndType(b, '*_sym', 'Zone_t')
             if node: listShiftBase.append(b[0])
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-
+    numBase = len(Internal.getBases(tb))
     if opt and dim == 3:
         for nob in range(len(tb[2])):
             if Internal.getType(tb[2][nob])=='CGNSBase_t':
@@ -137,7 +143,9 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
         C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
-        
+
+        preffixLocal = 'z_offsetBase'
+        if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
             if Cmpi.rank==0: print("Offset value: ", offsetval, flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
@@ -146,8 +154,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False):
             iso = T.join(iso)
             iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
-            iso[0]='z_offsetBase%d_%d'%(nBase,no_offset)
-            D_IBM._setSnear(iso,snears[nBase])
+            iso[0]='%s%d_%d'%(preffixLocal,nBase,no_offset)
+            D_IBM._setSnear(iso,snears[nBase]* 2**no_offset)
             C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase,no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal+=1
@@ -895,32 +903,59 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     if dim == 3: normal2D=None
     else: normal2D = numpy.array([0.0,0.0,1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
-
     offset_zones       = Internal.getZones(toffset)
     offset_inside      = Internal.getZones(tb)
     noffsetBase        = []
-    shiftOffsetBase    = []
-    tmpList            = []
-    for offsetloc in offset_zones:
-        baseNumLocal = int(offsetloc[0].split('_')[1][-1])
-        tmpList.append(baseNumLocal)
-        
-    noffsetBase     = [len(list(group)) for _, group in groupby(tmpList)]
-    shiftOffsetBase = [i for i in range(1, len(tmpList)) if tmpList[i] != tmpList[i-1]]
-    shiftOffsetBase.insert(0,0)
-    noffsets = max(noffsetBase)
+
+    sortDicOffsetIBM = {}
+    for i in offset_zones:
+        if 'Tbox' in i[0]: continue
+        hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
+        _addItemDict(sortDicOffsetIBM,hminLocal,i[0])
+
+    sortDicOffsetTbox = {}
+    for i in offset_zones:
+        if 'Tbox' not in i[0]: continue
+        hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
+        _addItemDict(sortDicOffsetTbox,hminLocal,i[0])
+
+    newOffsetsIBM=[]
+    for snearLocal in sortDicOffsetIBM:
+        for countLocal, tt in enumerate(sortDicOffsetIBM[snearLocal]):
+            if countLocal==0:tmpOffset=Internal.getNodeFromName(offset_zones, tt)
+            else:
+                snear     = Internal.getValue(Internal.getNodeFromName2(Internal.getNodeFromName(offset_zones, tt), 'snear'))
+                tmpOffset = T.join(Internal.getNodeFromName(offset_zones, tt), tmpOffset)
+                D_IBM._setSnear(tmpOffset,snear)
+        newOffsetsIBM.append(tmpOffset)
+
+    newOffsetsTbox=[]
+    for snearLocal in sortDicOffsetTbox:
+        for countLocal, tt in enumerate(sortDicOffsetTbox[snearLocal]):
+            if countLocal==0:tmpOffset=Internal.getNodeFromName(offset_zones, tt)
+            else:
+                snear     = Internal.getValue(Internal.getNodeFromName2(Internal.getNodeFromName(offset_zones, tt), 'snear'))
+                tmpOffset = T.join(Internal.getNodeFromName(offset_zones, tt), tmpOffset)
+                D_IBM._setSnear(tmpOffset,snear)
+        newOffsetsTbox.append(tmpOffset)
+
+    noffsetBase     = [len(newOffsetsIBM),len(newOffsetsTbox)]
+    offset_zonesNew = [newOffsetsIBM,newOffsetsTbox]
+    offset_name     = ['IBM body', 'tbox']
+    noffsets        = max(noffsetBase)
+    C.convertPyTree2File(newOffsetsIBM,'check_newOffsetsIBM.cgns')
+    C.convertPyTree2File(newOffsetsTbox,'check_newOffsetsTbox.cgns')
     for i in range(noffsets-1, -1,-1):
         if Cmpi.rank == 0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        for nBase in range(numBase):
-            if Cmpi.rank == 0: print("~~~~~~~~~~Base %d AdaptMesh...start"%nBase, flush=True)
+        for nBase in range(2): #0:IBM body; 1:tbox
+            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
             if i > noffsetBase[nBase]-1: continue
-            offsetloc = offset_zones[i+shiftOffsetBase[nBase]]
+            offsetloc = offset_zonesNew[nBase][i]
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
-            hx = hminLocal * 2**i
+            hx = hminLocal# * 2**i
             adaptPass = 0
             adapting  = True
-            isTbox    = False
-            if nBase >= numBase-numTbox: isTbox = True
+            isTbox    = bool(nBase)
             while adapting:
                 o = tagInsideOffset__(o, offset1=offset_inside[nBase], offset2=offsetloc, dim=dim, h_target=hx, isTbox=isTbox)
                 indicMax = C.getMaxValue(o,"centers:indicator")
@@ -1185,7 +1220,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             offsetValues.append(offsetValuesBase)
         #generate list of offsets
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tbMod, snears, offsetValues=offsetValues, dim=dim, opt=opt)
+        toffset = generateListOfOffsets__(tbMod, snears, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox)
         if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
