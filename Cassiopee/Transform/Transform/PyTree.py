@@ -251,6 +251,27 @@ def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     info = C.getAllFields(surfDelta, 'nodes')
     return C._TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
+def controlPoints(a, N=(2,2,2)):
+    """Create control points for free form."""
+    import Generator.PyTree as G
+    bb = G.bbox(a)
+    b = G.cart((bb[0],bb[1],bb[2]),(bb[3]-bb[0],bb[4]-bb[1],bb[5]-bb[2]),N)
+    C._addVars(b, ['dx','dy','dz'])
+    return b
+
+def freeForm(a, controlPoints):
+    """Coupute free form deformation vector."""
+    b = Internal.copyRef(a)
+    _freeForm(b, controlPoints)
+    return b
+
+def _freeForm(a, controlPoints):
+    """Coupute free form deformation vector."""
+    array = C.getAllFields(a, 'nodes')
+    control = C.getAllFields(controlPoints, 'nodes')
+    Transform.freeForm(array, control)
+    return None
+
 def join(t, t2=None, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
     Usage: join(t,t2) or join(t)"""
