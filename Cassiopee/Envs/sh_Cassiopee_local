@@ -642,8 +642,24 @@ elif [ "$MAC" = "msys2" ]; then
 fi
 fi
 
+getSupportedMachines() {
+    local script_path="$1"
+    grep -E '^\s*(if|elif)\s*\[\s*"\$MAC"\s*=\s*"' "$script_path" \
+      | sed -E 's/.*"\$MAC"\s*=\s*"([^"]+)".*/\1/'
+}
+
 if [ -z $ELSAPROD ]; then
     echo 'Error: your machine was not found in Envs.'
+    # Check names of all listed MACHINEs in this file and in sh_Cassiopee_user
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+    MACS_LOCAL=$(getSupportedMachines "$SCRIPT_PATH")
+    SCRIPT_PATH="${SCRIPT_PATH:0:-5}user"
+    echo 'Supported MACHINE values are:'
+    echo "$MACS_LOCAL"
+    if [ -e $SCRIPT_PATH ]; then
+        MACS_USER=$(getSupportedMachines "$SCRIPT_PATH")
+        echo "$MACS_USER"
+    fi
     return 1
 fi
 
