@@ -1198,6 +1198,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
+    minSnearsOrig = min(snearsLocal)
+    if abs(hmin-min(snearsLocal))>__TOL__:
+        for nBase in range(numBase):
+            snearMult = snears[nBase]/minSnearsOrig
+            snears[nBase] = snearMult*hmin
+
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
