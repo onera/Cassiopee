@@ -15,6 +15,26 @@ import time as ktime
 
 __TOL__ = 1e-9
 
+def vminsInputCheck(vminsIN, numBaseTMP, levelMaxTMP):
+    import copy
+    vminsTMP = copy.deepcopy(vminsIN)
+    # list of vminsTMP
+    if isinstance(vminsTMP,list):
+        ## vmin = [] & vmin =[[],[]] for 3 bases
+        if not isinstance(vminsTMP[0],list): vminsTMP=[vminsTMP] # vmin = [] --> vmin = [[]]
+
+        # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
+        isDone = False
+        while not isDone:
+            numSublists = sum(1 for item in vminsTMP if isinstance(item, list))
+            if numSublists<numBaseTMP: vminsTMP.append(vminsTMP[0])
+            else: isDone=True
+    else:
+        ## vmin = 10
+        vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
+        vminsTMP = vminsTMP.tolist() ##needed
+    return vminsTMP
+
 def _addItemDict(d, key, value):
     if key in d:
         d[key].append(value)
@@ -246,6 +266,32 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     _addPhysicalBCs__(o, tb, dim=dim)
     Internal._adaptNGon32NGon4(o)
     return o, levelSkel
+
+def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
+    to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
+    C._initVars(to,'centers:indicatorTmp',0.)
+
+    if dim==2: tbTMP = T.addkplane(tbTMP)
+    bodies1 = [Internal.getZones(tbTMP)]
+    bb1 = G.bbox(tbTMP)
+    L1 = max(bb1[3]-bb1[0], bb1[4]-bb1[1])
+    if dim == 3: L1 = max(L1, bb1[5]-bb1[2])
+
+    BM = numpy.ones((1,1),dtype=Internal.E_NpyInt)
+
+    # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
+    XRAYDIM1 = int(L1/h_target)+10;
+    XRAYDIM1 = max(500, min(5000, XRAYDIM1));
+    C._initVars(to, "cellNIn",1.)
+
+    to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
+                      cellNName='cellN')
+    to = C.node2Center(to,["cellN"])
+    C._initVars(to,"{centers:indicatorTmp}=({centers:cellN}>0)")
+    C._rmVars(to, ["cellN","centers:cellN"])
+    o = Internal.getZones(to)[0]
+    return o
 
 def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
@@ -958,6 +1004,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
+                if nBase == 0:
+                    o = tagOutside__(o, tbTMP=offset_inside[nBase], dim=dim, h_target=hx)
+                    C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
+                    C._rmVars(o, ["centers:indicatorTmp"])
 
                 indicMax = C.getMaxValue(o,"centers:indicator")
                 indicMax = Cmpi.allgather(indicMax)
@@ -1142,30 +1192,29 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
-    numTbox = 0
-    tbMod = Internal.copyTree(tb)
+
+    snears, numBase = listSnear(tb, snears)
+    # list of vmins
+    vmins=vminsInputCheck(vmins, numBase, levelMax)
+
+    snearsTbox = []
+    numTbox    = 0
+    tb_tbox    = Internal.copyTree(tb)
     if tbox:
-        numTbox = len(Internal.getBases(tbox))
-        tbMod[2]+=Internal.getBases(tbox)
+        numTbox    = len(Internal.getBases(tbox))
+        tb_tbox[2]+=Internal.getBases(tbox)
 
         if vminsTbox is None:
-            vminsTboxLocal = numpy.ones((numTbox,levelMax))*5
-            vminsTbox = vminsTboxLocal.tolist()
+            vminsTbox = numpy.ones((numTbox,levelMax))*5
+            vminsTbox = vminsTbox.tolist()
         else:
-            numSublists = sum(1 for item in vminsTbox if isinstance(item, list))
-            if numSublists<numTbox: vminsTbox.append(numpy.ones(levelMax)*5)
+            vminsTbox=vminsInputCheck(vminsTbox, numTbox, levelMax)
         Cmpi.barrier()
-             
-    snears, numBase = listSnear(tbMod, snears)
-    snearsLocal = snears if numTbox==0 else snears[:-numTbox]
+        snearsTbox, tmpRMV = listSnear(tbox, 1)
+        vmins.extend(vminsTbox)
 
-    # list of vmins
-    isDone = False
-    while not isDone:
-        numSublists = sum(1 for item in vmins if isinstance(item, list))
-        if numSublists<numBase-numTbox: vmins.append(vmins[0])
-        else: isDone=True
-    if tbox: vmins.extend(vminsTbox)
+    snearsTbTbox  = snears  + snearsTbox
+    numBase       = numBase + numTbox
     
     vminsLocal = numpy.ones((numBase,levelMax))
     for nBase in range(numBase):
@@ -1178,7 +1227,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             vminsLocal[nBase][:] = vmins[nBase][:levelMax]
         else:
             vminsLocal[nBase][:] = vmins[nBase][:]
-
     vmins=[]
     for nBase in range(numBase):
         vmins.append(list(vminsLocal[nBase]))
@@ -1186,7 +1234,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
-    o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsLocal, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+    # ONLY tb, no tbox
+    o, newLevelMax = generateSkeletonMesh__(tb, snears=snears, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
         if Cmpi.rank==0: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
         while len(vmins) < newLevelMax: vmins.append(vmins[-1]) # if newLevelMax > levelMax
@@ -1198,11 +1247,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
-    minSnearsOrig = min(snearsLocal)
-    if abs(hmin-min(snearsLocal))>__TOL__:
+    minSnearsOrig = min(snears)
+    if abs(hmin-min(snears))>__TOL__:
         for nBase in range(numBase):
-            snearMult = snears[nBase]/minSnearsOrig
-            snears[nBase] = snearMult*hmin
+            snearMult = snearsTbTbox[nBase]/minSnearsOrig
+            snearsTbTbox[nBase] = snearMult*hmin
 
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
@@ -1218,15 +1267,16 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             offsetprev       = 0.
             offsetValuesBase = [] 
             for no_adapt in range(len(vmins[nBase])):
-                hminLocal = snears[nBase]
+                hminLocal = snearsTbTbox[nBase]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                 if offsetloc < 0.99*dfarmax:
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             offsetValues.append(offsetValuesBase)
         #generate list of offsets
+        # tb & tbox
         print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tbMod, snears, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox)
+        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox)
         if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
@@ -1237,6 +1287,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
+    # only tb --> for blanking & tagging inside the geometry
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
