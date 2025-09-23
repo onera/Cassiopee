@@ -655,11 +655,10 @@ if [ -z $ELSAPROD ]; then
     MACS_LOCAL=$(getSupportedMachines "$SCRIPT_PATH")
     SCRIPT_PATH="${SCRIPT_PATH:0:-5}user"
     echo 'Supported MACHINE values are:'
+    echo "$MACS_LOCAL"
     if [ -e $SCRIPT_PATH ]; then
         MACS_USER=$(getSupportedMachines "$SCRIPT_PATH")
-        echo -e "$MACS_LOCAL\n$MACS_USER"
-    else
-        echo "$MACS_LOCAL"
+        echo "$MACS_USER"
     fi
     return 1
 fi

@@ -62,7 +62,7 @@ if [ "$INSTALL_MODS" -eq 1 ]; then
     if [ -z $PREFIX ]; then
         INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
     else
-        INSTALLPATH="$PREFIX/Dist/bin/$ELSAPROD" #"$PREFIX"
+        INSTALLPATH="$PREFIX/Dist/bin/$ELSAPROD"
     fi
 fi
 
@@ -109,7 +109,7 @@ if [ "$INSTALL_MODS" -eq 1 ]; then
         cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
         cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
     else
-        cp Envs/env_Cassiopee* "$PREFIX"/Dist #"$INSTALLPATH"/
-        cp Envs/sh_Cassiopee*  "$PREFIX"/Dist #"$INSTALLPATH"/
+        cp Envs/env_Cassiopee* "$PREFIX"/Dist
+        cp Envs/sh_Cassiopee*  "$PREFIX"/Dist
     fi
 fi
