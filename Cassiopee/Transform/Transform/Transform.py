@@ -691,14 +691,14 @@ def freeForm(array, controlPoints):
         out = []
         for a in array:
             b = Converter.addVars(a, ['dx','dy','dz'])
-            transform._freeForm(b, controlPoints)    
+            transform._freeForm(b, controlPoints)
             out.append(b)
         return out
     else:
         b = Converter.addVars(array, ['dx','dy','dz'])
-        transform._freeForm(b, controlPoints)    
+        transform._freeForm(b, controlPoints)
         return b
-        
+
 def join(array, array2=[], arrayc=[], arrayc2=[], tol=1.e-10):
     """Join two arrays in one or join a list of arrays in one. 
     Usage: join(array, array2) or join(arrays)"""

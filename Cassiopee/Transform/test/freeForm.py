@@ -18,4 +18,4 @@ a = T.freeForm(a, b)
 a = T.deform(a, ['dx','dy','dz'])
 b = T.deform(b, ['dx','dy','dz'])
 
-C.convertArrays2File([a,b], 'out.plt') 
+C.convertArrays2File([a,b], 'out.plt')
