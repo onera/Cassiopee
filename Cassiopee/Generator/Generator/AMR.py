@@ -142,7 +142,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         t = C.newPyTree(["BASE",Internal.getZones(b)])
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
         C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        ##Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
 
         preffixLocal = 'z_offsetBase'
         if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
@@ -247,9 +247,14 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     Internal._adaptNGon32NGon4(o)
     return o, levelSkel
 
-def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.,isTbox=False):
+def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
-    C._initVars(to,'centers:indicator',0.)
+    C._initVars(to,'centers:indicatorTmp',0.)
+
+    isTbox=False
+    if offset1 is None:
+        offset1=Internal.copyTree(offset2)
+        isTbox=True
 
     if dim==2:
         offset1 = T.addkplane(offset1)
@@ -275,22 +280,23 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.,isTbox=
     C._initVars(to, "cellNOut",1.)
     C._initVars(to, "cellNIn",1.)
 
-    to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
-                      cellNName='cellNOut')
-    to = X.setHoleInterpolatedPoints(to, depth=-1, cellNName='cellNOut', loc='nodes')
     to = X.blankCells(to, bodies2, BM, blankingType='node_in',
                       XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                       cellNName='cellNIn')
     if isTbox: C._initVars(to,'{cellN}=({cellNIn}<1)')
-    else: C._initVars(to,'{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
+    else:
+        to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                          XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                          cellNName='cellNOut')
+        to = X.setHoleInterpolatedPoints(to, depth=-1, cellNName='cellNOut', loc='nodes')
+        C._initVars(to,'{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
 
     to = C.node2Center(to,["cellN"])
-    C._initVars(to,"{centers:indicator}=({centers:cellN}>0.)")
+    C._initVars(to,"{centers:indicatorTmp}=({centers:cellN}>0.)")
     #
     G._getVolumeMap(to)
     vol_target = h_target**dim * 1.01 # add a tolerance
-    C._initVars(to,"{centers:indicator}={centers:indicator}*({centers:vol}>%g)"%vol_target)
+    C._initVars(to,"{centers:indicatorTmp}={centers:indicatorTmp}*({centers:vol}>%g)"%(vol_target))
     #
     C._rmVars(to, ["cellN","cellNIn","cellNOut","centers:cellN","centers:vol","centers:h"])
     o = Internal.getZones(to)[0]
@@ -904,7 +910,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     else: normal2D = numpy.array([0.0,0.0,1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
     offset_zones       = Internal.getZones(toffset)
-    offset_inside      = Internal.getZones(tb)
+    offset_inside      = [Internal.getZones(tb)]
     noffsetBase        = []
 
     sortDicOffsetIBM = {}
@@ -912,56 +918,51 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
         if 'Tbox' in i[0]: continue
         hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
         _addItemDict(sortDicOffsetIBM,hminLocal,i[0])
-
-    sortDicOffsetTbox = {}
-    for i in offset_zones:
-        if 'Tbox' not in i[0]: continue
-        hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-        _addItemDict(sortDicOffsetTbox,hminLocal,i[0])
-
-    newOffsetsIBM=[]
+    newOffsetsIBM = []
     for snearLocal in sortDicOffsetIBM:
-        for countLocal, tt in enumerate(sortDicOffsetIBM[snearLocal]):
-            if countLocal==0:tmpOffset=Internal.getNodeFromName(offset_zones, tt)
-            else:
-                snear     = Internal.getValue(Internal.getNodeFromName2(Internal.getNodeFromName(offset_zones, tt), 'snear'))
-                tmpOffset = T.join(Internal.getNodeFromName(offset_zones, tt), tmpOffset)
-                D_IBM._setSnear(tmpOffset,snear)
+        tmpOffset = []
+        for tt in sortDicOffsetIBM[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
         newOffsetsIBM.append(tmpOffset)
 
-    newOffsetsTbox=[]
-    for snearLocal in sortDicOffsetTbox:
-        for countLocal, tt in enumerate(sortDicOffsetTbox[snearLocal]):
-            if countLocal==0:tmpOffset=Internal.getNodeFromName(offset_zones, tt)
-            else:
-                snear     = Internal.getValue(Internal.getNodeFromName2(Internal.getNodeFromName(offset_zones, tt), 'snear'))
-                tmpOffset = T.join(Internal.getNodeFromName(offset_zones, tt), tmpOffset)
-                D_IBM._setSnear(tmpOffset,snear)
-        newOffsetsTbox.append(tmpOffset)
+    sortDicOffsetTbox = {}
+    newOffsetsTbox = []
+    if numTbox > 0:
+        for i in offset_zones:
+            if 'Tbox' not in i[0]: continue
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
+            _addItemDict(sortDicOffsetTbox,hminLocal,i[0])
 
-    noffsetBase     = [len(newOffsetsIBM),len(newOffsetsTbox)]
-    offset_zonesNew = [newOffsetsIBM,newOffsetsTbox]
+        for snearLocal in sortDicOffsetTbox:
+            tmpOffset = []
+            for tt in sortDicOffsetTbox[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
+            newOffsetsTbox.append(tmpOffset)
+        offset_inside.append(None)
+
+    noffsetBase     = [len(newOffsetsIBM), len(newOffsetsTbox)]
+    offset_zonesNew = [newOffsetsIBM, newOffsetsTbox]
     offset_name     = ['IBM body', 'tbox']
     noffsets        = max(noffsetBase)
-    C.convertPyTree2File(newOffsetsIBM,'check_newOffsetsIBM.cgns')
-    C.convertPyTree2File(newOffsetsTbox,'check_newOffsetsTbox.cgns')
     for i in range(noffsets-1, -1,-1):
         if Cmpi.rank == 0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        for nBase in range(2): #0:IBM body; 1:tbox
-            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
+        for nBase in range(1+min(1,numTbox)): #0:IBM body; 1:tbox
             if i > noffsetBase[nBase]-1: continue
-            offsetloc = offset_zonesNew[nBase][i]
+            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
+            offsetloc = offset_zonesNew[nBase][i][0]
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
-            hx = hminLocal# * 2**i
+            hx        = hminLocal# * 2**i
             adaptPass = 0
             adapting  = True
-            isTbox    = bool(nBase)
             while adapting:
-                o = tagInsideOffset__(o, offset1=offset_inside[nBase], offset2=offsetloc, dim=dim, h_target=hx, isTbox=isTbox)
+                C._initVars(o,'centers:indicator',0.)
+                for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
+                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx)
+                    C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
+                    C._rmVars(o, ["centers:indicatorTmp"])
+
                 indicMax = C.getMaxValue(o,"centers:indicator")
                 indicMax = Cmpi.allgather(indicMax)
                 indicMax = max(indicMax)
-                if indicMax<1. or (i==0 and adaptPass>0):
+                if indicMax<1. or (i == 0 and adaptPass > 0):
                     adapting=False
                     C._rmVars(o,["centers:indicator"])
                     break
@@ -976,7 +977,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = Internal.getZones(o)[0]
                     if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
-            if Cmpi.rank == 0: print("~~~~~~~~~~Base %d AdaptMesh...end"%nBase, flush=True)
+            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
     if Cmpi.rank == 0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
                                    
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
@@ -1196,7 +1197,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
-    # Internal._rmNodesByName1(tb, "SYM")
 
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
@@ -1225,12 +1225,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    baseSYM = Internal.getNodesFromName1(tbMod,"SYM")
+    baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM is not None:
         ##Remove SYM Base & Zones - keep real closed tb
-        tbMod = Internal.rmNodesByNameAndType(tbMod, 'SYM', 'CGNSBase_t')
-        tbMod = Internal.rmNodesByNameAndType(tbMod, '*_sym*', 'Zone_t')
+        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tbMod, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
+    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
