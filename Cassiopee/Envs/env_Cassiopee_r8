@@ -1,8 +1,9 @@
-#! /bin/csh
-# *Cassiopee* Compilation Environment
-
-if (-e $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local) then
-    source $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local
-else
-    source $CASSIOPEE/Dist/env_Cassiopee_local
+if ($?CASSIOPEE == 0) then
+    echo "You must specify a CASSIOPEE variable in your environment."
+    echo "This variable specifies the installation path of *Cassiopee*."
+    exit
 endif
+# source env from bash env
+bash $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local
+source /tmp/vars.csh
+#cat vars.csh
