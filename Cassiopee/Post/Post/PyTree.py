@@ -1217,27 +1217,27 @@ def zipper(t, options=[]):
     a = Post.zipper(arrays, options)
     return C.convertArrays2ZoneNode('zipper', [a])
 
-def extractArraysForScalarInteg__(t, var=''):
+def extractArraysForScalarInteg__(t, var='', api=1):
     zones = Internal.getZones(t)
     zvars = var.split(':')
     if len(zvars) == 2: loc = 'centers'
     else: loc = 'nodes'
 
-    coords = C.getFields(Internal.__GridCoordinates__, zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=api)
     fields = []; fieldsc = []
     if var == '':
-        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
         fields = Converter.addVars([coords,fields])
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
     elif var == Internal.__GridCoordinates__:
         fields = coords
     elif var == Internal.__FlowSolutionNodes__:
-        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
     elif var == Internal.__FlowSolutionCenters__:
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
     else: # un champ specifique
-        if loc == 'nodes': fields = C.getField(var, zones)
-        else: fieldsc = C.getField(var,zones)
+        if loc == 'nodes': fields = C.getField(var, zones, api=api)
+        else: fieldsc = C.getField(var,zones, api=api)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
@@ -1249,7 +1249,7 @@ def extractArraysForScalarInteg__(t, var=''):
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
 
-def extractArraysForVectorInteg__(t, vector):
+def extractArraysForVectorInteg__(t, vector, api=1):
     zones = Internal.getZones(t)
     loc = 'unknown'
     if len(vector) != 3: raise ValueError("extractArraysForVectorInteg: vector must be of size 3.")
@@ -1260,15 +1260,15 @@ def extractArraysForVectorInteg__(t, vector):
         elif len(v)  > 1 and loc != 'nodes': loc = 'centers'; zvars.append(v[1])
         else: raise ValueError("extractArraysForVectorInteg: all the components of the vector must have the same location.")
 
-    coords = C.getFields(Internal.__GridCoordinates__, zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=api)
     fields = []; fieldsc = []
     if vector == ['CoordinateX','CoordinateY','CoordinateZ']: fields = coords
     else:
         if loc == 'nodes':
-            fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+            fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
             if fields != []: fields = Converter.extractVars(fields, zvars)
         else:
-            fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+            fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
             if fieldsc != []: fieldsc = Converter.extractVars(fieldsc, zvars)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
@@ -1281,11 +1281,11 @@ def extractArraysForVectorInteg__(t, vector):
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
 
-def extractRatioForInteg__(t):
+def extractRatioForInteg__(t, api=1):
     zones = Internal.getZones(t)
     # extraction des ratios
-    ration = C.getField('ratio', zones)
-    ratioc = C.getField('centers:ratio', zones)
+    ration = C.getField('ratio', zones, api=api)
+    ratioc = C.getField('centers:ratio', zones, api=api)
     foundn = 0; foundc = 0
     for nof in range(len(ration)):
         if ration[nof] != []: foundn = 1
@@ -1299,8 +1299,8 @@ def extractRatioForInteg__(t):
 def integ2(t, var=''):
     """Integral of fields defined in t.
     Usage: integ(t, var)"""
-    info = extractArraysForScalarInteg__(t, var)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForScalarInteg__(t, var, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
