@@ -30,18 +30,6 @@ using namespace K_FLD;
 
 extern "C"
 {   
-  void k6boundbox2_(const E_Int& im, const E_Int& jm, const E_Int& km,
-                    const E_Float* x, const E_Float* y, const E_Float* z,
-                    const E_Float* m,const E_Float* r0,const E_Float* xc0, 
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin );
-
-  void k6boundboxunstr2_(const E_Int& npts, 
-                         const E_Float* x, const E_Float* y, const E_Float* z, 
-                         const E_Float* m, const E_Float* r0, const E_Float* xc0,
-                         E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                         E_Float& xmin, E_Float& ymin, E_Float& zmin);
-
   void k6compcartelembox_(const E_Int& is1, const E_Int& is2,
                           const E_Int& js1, const E_Int& js2,
                           const E_Int& ks1, const E_Int& ks2,
@@ -597,27 +585,6 @@ K_KINTERP::KMesh::boundingBox(E_Float& xmax, E_Float& ymax, E_Float& zmax,
                                     xmin, ymin, zmin, xmax, ymax, zmax);
 }
 
-//=============================================================================
-/* Find the bounding box of a mesh in the absolute frame */
-//=============================================================================
-void
-K_KINTERP::KMesh::boundingBox(E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                             E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                             const FldArrayF& m, 
-                             const FldArrayF& r0,
-                             const FldArrayF& xc0) const
-{
-  if ( _isStruct == true)
-    k6boundbox2_(_im, _jm, _km, 
-                 _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                 m.begin(), r0.begin(), xc0.begin(),
-                 xmax, ymax, zmax, xmin, ymin, zmin);
-  else 
-    k6boundboxunstr2_(_npts, 
-                      _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                      m.begin(), r0.begin(), xc0.begin(),
-                      xmax, ymax, zmax, xmin, ymin, zmin);
-}
 //=============================================================================
 /* Find the cartesian elements bounding box (CEBB) in the Z direction */
 //=============================================================================

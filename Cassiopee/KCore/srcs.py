@@ -376,11 +376,6 @@ if NUGA:
 # Fichiers fortrans
 #==============================================================================
 for_srcs = [
-    'KCore/CompGeom/CompBBoxOfCellF.for',
-    'KCore/CompGeom/CompBoundingBox2F.for',
-    'KCore/CompGeom/CompBoundingBoxUnstr2F.for',
-    'KCore/CompGeom/CompBoundingBoxUnstrF.for',
-    'KCore/CompGeom/CompBoundingBoxF.for',
     'KCore/CompGeom/CompCEBoxF.for',
     'KCore/CompGeom/CompMinDistF.for',
     'KCore/CompGeom/RectifyNormalsF.for',
