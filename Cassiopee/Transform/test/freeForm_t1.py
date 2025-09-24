@@ -17,4 +17,4 @@ a = T.freeForm(a, b)
 a = T.deform(a, ['dx','dy','dz'])
 b = T.deform(b, ['dx','dy','dz'])
 
-test.testT(a, 1)
+test.testA(a, 1)

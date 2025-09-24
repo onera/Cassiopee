@@ -51,7 +51,7 @@ void k6naca1(E_Float e, E_Int npt,
   /* Naca donne analytiquement (d'apres Van Rouzaud) */
   for (n = 1; n <= npt; n++)
   {
-    is = (E_Float)(n - 2) / nps2;
+    is = E_Int((n - 2) / nps2);
     is = 2 * is - 1;
     si = is;
     en = n - nps2 - 1;
@@ -89,9 +89,9 @@ void k6naca2(E_Float e, E_Int& npt,
   nr = 1;
   for (n = 1; n <= npt; n++)
   {
-    is = E_Float(n - 2) / E_Float(nps2);
+    is = E_Int((n - 2) / nps2);
     is = 2 * is - 1;
-    si = E_Int(is);
+    si = is;
     en = n - nps2 - 1;
     en = sqrt(1.008930411365) * sin(0.5 * pi * en * usnps2);
     xpn = en * en;

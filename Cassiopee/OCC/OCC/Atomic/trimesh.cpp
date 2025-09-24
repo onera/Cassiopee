@@ -61,7 +61,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   DELAUNAY::SurfaceMesher<OCCSurface> mesher;
 
   // Recuperation des donnees
-  E_Int api = fi->getApi();
+  //E_Int api = fi->getApi();
   E_Int n = fi->getSize();
   K_FLD::FloatArray pos3D(3, n); // pos3D: les coords reelles
   for (E_Int i = 0; i < n; i++) pos3D(0,i) = (*fi)(i,1);

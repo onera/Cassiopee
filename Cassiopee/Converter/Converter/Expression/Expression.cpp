@@ -310,7 +310,8 @@ namespace {
             if (res == 1) 
             {
                 fnp = K_ARRAY::getFieldPtr(result);
-            } else 
+            } 
+            else 
             {
                 fnp = K_ARRAY::getFieldPtr(result);
                 E_Int* cnp = K_ARRAY::getConnectPtr(result);
