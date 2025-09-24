@@ -214,7 +214,7 @@ class Entity:
             else: self.name = getName("entity")
         # entity type
         self.type = type
-        # reference mesh
+        # optional reference mesh
         self.mesh = mesh
         # parameters
         self.P = []; c = 1
@@ -238,6 +238,16 @@ class Entity:
             else:
                 raise(ValueError, "Wrong argument.")
             c += 1
+        
+        # global parameters (always added)
+        P = Vec3((0,0,0), name='%s.position'%self.name)
+        self.P.append(P)
+        P = Point((0,0,0), name='%s.rotCenter'%self.name)
+        self.P.append(P)
+        P = Vec3((0,0,1), name='%s.rotAxis'%self.name)
+        self.P.append(P)
+        P = Scalar(0., name='%s.rotAngle'%self.name)
+        self.P.append(P)
 
         # hook on cad
         self.update()
@@ -290,12 +300,16 @@ class Entity:
             OCC.occ.addSpline(self.hook, mesh[1], 1)
 
         elif self.type == "circle":
-            OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v(), 0)
+            OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
         elif self.type == "arc":
             OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
+        # global positionning
+        OCC._translate(self.hook, self.P[-4].v())
+        OCC._rotate(self.hook, self.P[-3].v(), self.P[-2].v(), self.P[-1].v)
+                                    
     def print(self, shift=0):
         for c, P in enumerate(self.P):
             print(" "*shift, P.name)
@@ -542,7 +556,7 @@ class Driver:
         self.update()
 
     # diff (finite difference) of free parameters on discrete mesh
-    def _diff(self, entity, mesh, deps=1.e-10):
+    def _diff(self, entity, mesh, deps=1.e-6):
         import Converter, KCore
 
         freevars = self.freevars
@@ -558,20 +572,22 @@ class Driver:
             for q in freevars:
                 d[q.name] = self.scalars2[q].v
             d[f.name] += deps
-            print("DIFF: ", f.name)
+            print("DIFF on: ", f.name)
 
             # update CAD at param+eps
             self.instantiate(d)
             # project mesh on modified CAD
             OCC._projectOnEdges(entity.hook, mesho)
+            #Converter.convertArrays2File(mesh+mesho, 'diff.plt')
             # get derivatives
             Converter._addVars(mesh, ['dx%d'%c, 'dy%d'%c, 'dz%d'%c])
             for p, m in enumerate(mesh):
-                pos1 = KCore.isNamePresent(m, 'dx%d'%c)-1
-                pos2 = KCore.isNamePresent(m, 'dy%d'%c)-1
-                pos3 = KCore.isNamePresent(m, 'dz%d'%c)-1
+                pos1 = KCore.isNamePresent(m, 'dx%d'%c)
+                pos2 = KCore.isNamePresent(m, 'dy%d'%c)
+                pos3 = KCore.isNamePresent(m, 'dz%d'%c)
                 p1x = m[1]
                 p2x = mesho[p][1]
+                print(pos1, pos2, pos3)
                 p1x[pos1,:] = (p2x[0,:]-p1x[0,:])/deps
                 p1x[pos2,:] = (p2x[1,:]-p1x[1,:])/deps
                 p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps

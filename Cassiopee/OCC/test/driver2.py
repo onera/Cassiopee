@@ -1,14 +1,14 @@
 # test driver
 import OCC.Driver as D
 
-# Create parameter
+# Create parameters
 hauteur = D.Scalar(1., name='hauteur')
 hauteur.range = [0,1]
 
 largeur = D.Scalar(1., name='largeur')
 largeur.range = [0,2]
 
-# equation par reference
+# equation
 D.Eq(largeur.s, 2*hauteur.s)
 
 # Create point
