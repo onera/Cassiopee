@@ -51,9 +51,15 @@ sketch1 = D.Sketch([line1, line2, line3, line4], name='sketch1')
 #sketch1.writeCAD('out.step')
 #sketch1.print()
 
-# test
+# solve
 solution, freevars = D.DRIVER.solve2()
-D.DRIVER.instantiate(solution, freevars, [3, 1.])
-#sketch1.print()
-D.DRIVER.update()
+D.DRIVER.instantiate({'P3.x': 3, 'P4.y': 1.})
+
 sketch1.writeCAD('out.step')
+
+import CPlot, time
+for i in range(50):
+    D.DRIVER.instantiate({'P3.x': 3+i/50., 'P4.y': 1.})
+    mesh = sketch1.mesh(0.01, 0.01, 0.01)
+    CPlot.display(mesh)
+    time.sleep(0.5)

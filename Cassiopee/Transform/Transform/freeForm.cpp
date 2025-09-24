@@ -181,9 +181,9 @@ PyObject* K_TRANSFORM::_freeForm(PyObject* self, PyObject* args)
   E_Float dym = ym-yo;
   E_Float dzm = zm-zo;
   
-  printf("%g %g\n", xo, xm);
-  printf("%g %g\n", yo, ym);
-  printf("%g %g\n", zo, zm);
+  //printf("%g %g\n", xo, xm);
+  //printf("%g %g\n", yo, ym);
+  //printf("%g %g\n", zo, zm);
   
   E_Int ind;
   E_Float x, y, z;
