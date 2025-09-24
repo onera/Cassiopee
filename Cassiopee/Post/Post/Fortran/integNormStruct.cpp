@@ -17,6 +17,72 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
+# include "Array/Array.h"
+
+//=============================================================================
+// Integre les grandeurs de F.vect(n)
+// Retourne 1 si success, 0 si echec
+//=============================================================================
+E_Int K_POST::integNormStruct2D(E_Int ni, E_Int nj, E_Int nk,
+                     E_Int center2node,
+                     E_Int posx, E_Int posy, E_Int posz,
+                     FldArrayF& coord, FldArrayF& F,
+                     FldArrayF& ratio, FldArrayF& resultat)
+{
+  E_Int NI, NJ;
+  FldArrayF result(3);
+  result.setAllValuesAtNull();
+
+  E_Int numberOfVariables = F.getNfld();
+  E_Float* resultat1 = resultat.begin(1);
+  E_Float* resultat2 = resultat.begin(2);
+  E_Float* resultat3 = resultat.begin(3);
+
+  if      (nk == 1) { NI = ni; NJ = nj; }
+  else if (nj == 1) { NI = ni; NJ = nk; }
+  else if (ni == 1) { NI = nj; NJ = nk; }
+  else return 0;
+
+  // Compute surface of each "block" i cell, with coordinates coord
+  E_Int ncells = (NI - 1) * (NJ - 1);
+  FldArrayF nsurf(ncells, 3);
+  K_METRIC::compNormStructSurf(
+    NI, NJ, coord.begin(posx), coord.begin(posy), coord.begin(posz),
+    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3)
+  );
+
+  if (center2node == 1)
+  {
+    // Compute integral, coordinates defined in node and field F in center
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      integNormStructNodeCenter2D(
+        NI-1, NJ-1, ratio.begin(),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), F.begin(n),
+        result.begin());
+
+      resultat1[n-1] += result[0];
+      resultat2[n-1] += result[1];
+      resultat3[n-1] += result[2];
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      integNormStructCellCenter2D(
+        NI, NJ, ratio.begin(),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), F.begin(n),
+        result.begin());
+
+      resultat1[n-1] += result[0];
+      resultat2[n-1] += result[1];
+      resultat3[n-1] += result[2];
+    }
+  }
+  return 1;
+}
 
 // ============================================================================
 //  Compute surface integral of the field F.vect(n), coordinates 
@@ -24,7 +90,7 @@
 //      I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //      Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 //=============================================================================
-void K_POST::integNormStruct(
+void K_POST::integNormStructCellCenter2D(
   const E_Int ni, const E_Int nj, const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
   const E_Float* field, E_Float* result)
@@ -65,7 +131,7 @@ void K_POST::integNormStruct(
 // Compute surface integral of the field F.vect(n), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-void K_POST::integNormStructNodeCenter(
+void K_POST::integNormStructNodeCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio, const E_Float* sx, const E_Float* sy,
   const E_Float* sz, const E_Float* field, E_Float* result)
