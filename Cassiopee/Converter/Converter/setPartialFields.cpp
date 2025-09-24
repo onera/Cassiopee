@@ -46,7 +46,6 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
                     "setPartialFields: 1st array is not valid.");
     return NULL; 
   }
-  E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
   // Check arrayF
   E_Int nil, njl, nkl;
   FldArrayF* fl; FldArrayI* cnl;
@@ -81,22 +80,19 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* tpl; 
+  PyObject* tpl;
+  E_Int api = f->getApi();
   if (res == 1) //structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varString, ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk, api);
   } 
   else //unstructured 
-  {
-    E_Int csize = cn->getSize()*cn->getNfld();
-    
-    tpl = K_ARRAY::buildArray(nfld, varString,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
+  {    
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
   }
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
-  fn = *f; // on copie pour ts les autres points
+  FldArrayF* fn;
+  K_ARRAY::getFromArray3(tpl, fn);
+
   E_Int nPts = listIndices->getSize();
   E_Int* indices = listIndices->begin();
   E_Int nfldc = posv.size();//nb de variables communes
@@ -107,7 +103,7 @@ PyObject* K_CONVERTER::setPartialFields(PyObject* self, PyObject* args)
     for (E_Int eq = 0; eq < nfldc; eq++)
     {
       pos1 = posv[eq]; posv1 = posvl[eq]; 
-      E_Float* foutp = fn.begin(pos1);
+      E_Float* foutp = fn->begin(pos1);
       E_Float* fip = fl->begin(posv1);
       #pragma omp for
       for (E_Int i = 0; i < nPts; i++)

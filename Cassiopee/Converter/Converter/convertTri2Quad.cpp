@@ -323,9 +323,10 @@ PyObject* K_CONVERTER::convertTri2Quad(PyObject* self, PyObject* args)
   
   PyObject* tpl = PyList_New(0);
   PyObject* o;
-  o = K_ARRAY::buildArray(fq, varString, cq, 3, NULL);
+  E_Int api = f->getApi();
+  o = K_ARRAY::buildArray3(fq, varString, cq, "QUAD", api);
   PyList_Append(tpl, o); Py_DECREF(o);
-  o = K_ARRAY::buildArray(ft, varString, ct, 2, NULL);
+  o = K_ARRAY::buildArray3(ft, varString, ct, "TRI", api);
   PyList_Append(tpl, o); Py_DECREF(o);
   
   return tpl;

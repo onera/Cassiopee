@@ -380,7 +380,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   FldArrayF field(sizeRef, nvarRef, fielp, true);
 
   structured = -1; nvar = 0;
-  for (int l = 0; l < n; l++) 
+  for (E_Int l = 0; l < n; l++) 
   { 
     array = PyList_GetItem(arrays, l);
     res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
