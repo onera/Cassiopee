@@ -98,9 +98,13 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Float tol2 = tol*tol;
   for (E_Int v = 0; v < nzones; v++)
   {
-    K_COMPGEOM::boundingBox(
-      nit[v], njt[v], nkt[v], posxt[v], posyt[v], poszt[v], 
-      *structF[v], xminp[v], yminp[v], zminp[v], xmaxp[v], ymaxp[v], zmaxp[v]);
+    K_COMPGEOM::boundingBoxStruct(nit[v], njt[v], nkt[v],
+                                  structF[v]->begin(posxt[v]),
+                                  structF[v]->begin(posyt[v]), 
+                                  structF[v]->begin(poszt[v]),
+                                  xminp[v], yminp[v], zminp[v],
+                                  xmaxp[v], ymaxp[v], zmaxp[v]);
+
     minB[0] = xminp[v]; minB[1] = yminp[v]; minB[2] = zminp[v];
     maxB[0] = xmaxp[v]; maxB[1] = ymaxp[v]; maxB[2] = zmaxp[v];
     if (dim == 2) { minB[2] = 0.; maxB[2] = 1.; }

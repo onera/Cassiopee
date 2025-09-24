@@ -765,9 +765,8 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     if not exists: raise IOError("convertFile2Arrays: file %s not found."%fileName)
 
     if format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
-        print('Reading \''+fileName+'\'...'),
+        import pickle
+        print('Reading \''+fileName+'\'...', end="")
         try:
             file = open(fileName, 'rb')
             oldData = False
@@ -806,7 +805,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a
     elif format == 'fmt_free':
-        print('Reading '+fileName+' (fmt_free)...'),
+        print('Reading '+fileName+' (fmt_free)...', end="")
         try:
             file = open(fileName, 'r')
             f = file.read()
@@ -877,10 +876,9 @@ def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
     if format is None:
         format = convertExt2Format__(fileName)
     if format == 'bin_pickle':
-        try: import cPickle as pickle
-        except: import pickle
+        import pickle
         file = open(fileName, 'wb')
-        print('Writing \''+fileName+'\'...'),
+        print('Writing \''+fileName+'\'...', end="")
         pickle.dump(arrays, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
         print('done.')
     elif format == 'fmt_free':
@@ -1617,7 +1615,7 @@ def createGlobalHook(a, function='None', indir=0):
         if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]), indir)
         else: return converter.registerAllElements(convertArray2NGon(a), indir)
     elif function == 'extractMesh': # 1
-        print('function=extractMesh not implemented for global hook.')
+        raise ValueError('function=extractMesh not implemented for global hook.')
     else: raise ValueError("function is invalid.")
 
 #==============================================================================
@@ -1898,7 +1896,7 @@ def send(data, host='localhost', rank=0, port=15555):
             nbytes += s.send(data[nbytes:nbytes+sizeBuf])
         else:
             nbytes += s.send(data[nbytes:])
-        #print('send',nbytes,size)
+        #print('send', nbytes, size)
     s.close()
 
 #==============================================================================

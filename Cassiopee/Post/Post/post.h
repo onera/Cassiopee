@@ -92,7 +92,7 @@ namespace K_POST
 //   I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //   Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-  void integStruct(
+  void integStructCellCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -100,7 +100,7 @@ namespace K_POST
 // Compute linear integral of field F, structured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-  void integStruct1D(
+  void integStructCellCenter1D(
     const E_Int ni,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
@@ -109,7 +109,7 @@ namespace K_POST
 // field defined in centers, structured case
 // IN: ni1, nj1 : dim en centres
 // ============================================================================
-  void integStructNodeCenter(
+  void integStructNodeCenter2D(
     const E_Int ni1, const E_Int nj1,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -129,18 +129,9 @@ namespace K_POST
 //   I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C)+F(D))/4   QUAD
 //   Aire(ABC) = ||AB^AC||/2
 // ============================================================================
-  void integUnstruct(
+  void integUnstructCellCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
-    E_Float& result);
-
-// ============================================================================
-// Compute linear integral of field F, unstructured 1D case
-//   I(AB) = Length(AB)*(F(A)+F(B))/2
-// ============================================================================
-  void integUnstruct1D(
-    FldArrayI& cn, const char* eltType,
-    const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
 
 // ============================================================================
@@ -162,10 +153,10 @@ namespace K_POST
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
 */
-  E_Int integ1(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
-               E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
-               FldArrayF& coordBlk, FldArrayF& FBlk,
-               FldArrayF& ratioBlk, FldArrayF& resultat);
+  E_Int integStruct2D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
+                      E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                      FldArrayF& coordBlk, FldArrayF& FBlk,
+                      FldArrayF& ratioBlk, FldArrayF& resultat);
 /*
   Compute the linear integral of field F
   ni*nj*nk: dimension of coordinate array (coord)
@@ -176,11 +167,10 @@ namespace K_POST
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
 */
-  E_Int integ11D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
-                 E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
-                 FldArrayF& coordBlk, FldArrayF& FBlk,
-                 FldArrayF& ratioBlk, FldArrayF& resultat);
-
+  E_Int integStruct1D(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
+                      E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                      FldArrayF& coordBlk, FldArrayF& FBlk,
+                      FldArrayF& ratioBlk, FldArrayF& resultat);
 /*
   Compute the surface integral of field F
   posx, posy, posz: positions de x,y,z dans coord
@@ -192,13 +182,11 @@ namespace K_POST
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
 */
-  E_Int integUnstruct1(E_Int center2node,
-                       E_Int posx, E_Int posy, E_Int posz,
-                       FldArrayI& cn,
-                       FldArrayF& coord,
-                       FldArrayF& F,
-                       FldArrayF& ratio,
-                       FldArrayF& resultat);
+  E_Int integUnstruct2D(E_Int center2node,
+                        E_Int posx, E_Int posy, E_Int posz,
+                        FldArrayI& cn, const char* eltType, FldArrayF& coord,
+                        FldArrayF& F, FldArrayF& ratio,
+                        FldArrayF& resultat);
 /*
   Calcul de l'integrale de F sur une surface "BAR"
   posx, posy, posz: positions de x,y,z dans coord
@@ -210,11 +198,11 @@ namespace K_POST
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number
 */
-  E_Int integUnstruct11D(E_Int center2node,
-                         E_Int posx, E_Int posy, E_Int posz,
-                         FldArrayI& cn, FldArrayF& coord,
-                         FldArrayF& F, FldArrayF& ratio,
-                         FldArrayF& resultat);
+  E_Int integUnstruct1D(E_Int center2node,
+                        E_Int posx, E_Int posy, E_Int posz,
+                        FldArrayI& cn, const char* eltType, FldArrayF& coord,
+                        FldArrayF& F, FldArrayF& ratio,
+                        FldArrayF& resultat);
 /*
    Compute the surface integral of field F * normal vect(n)
    ni*nj*nk: dimension of coordinate array (coord)

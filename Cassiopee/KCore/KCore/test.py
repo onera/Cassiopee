@@ -310,8 +310,7 @@ def testO(objet, number=1):
         file.close()
         return True
     else:
-        try: import pickle
-        except ImportError: import cPickle as pickle
+        import pickle
         file = open(reference, 'rb')
         oldData = False
         if oldData: a = pickle.load(file, encoding='latin1')

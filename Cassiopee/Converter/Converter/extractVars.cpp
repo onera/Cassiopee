@@ -101,9 +101,10 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < sizevvars; i++) delete [] vvars[i];
 
   // Build array here
+  E_Int api = f->getApi();
   if (res == 1)
   {
-    tpl = K_ARRAY::buildArray3(nt, fstring, nil, njl, nkl);
+    tpl = K_ARRAY::buildArray3(nt, fstring, nil, njl, nkl, api);
   }
   else
   {
@@ -111,7 +112,7 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
     E_Bool compact = false;
     if (api == 1) compact = true;
     FldArrayF f2(fSize, nt, compact);
-    tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType);
+    tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType, api);
   }
   FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
 

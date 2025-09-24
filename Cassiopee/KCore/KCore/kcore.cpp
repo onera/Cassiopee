@@ -83,24 +83,6 @@ extern "C"
                        const E_Int& nfld, E_Float* fieldnode, 
                        E_Float* fieldcenter);
 
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-  
-  void k6boundboxunstr2_(
-    const E_Int& npts, 
-    const E_Float* x, const E_Float* y, const E_Float* z, 
-    const E_Float* m, const E_Float* r0, const E_Float* xc0,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-    E_Float& xmin, E_Float& ymin, E_Float& zmin);
-
-  void k6boundbox2_(const E_Int& im, const E_Int& jm, const E_Int& km,
-                    const E_Float* x, const E_Float* y, const E_Float* z,
-                    const E_Float* m,const E_Float* r0,const E_Float* xc0, 
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin);
-
   void k6compmeanlengthofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
                                      E_Int& indA,  
                                      E_Float* xt, E_Float* yt, 
@@ -207,9 +189,6 @@ void K_KCORE::testFooKCore()
   
   k6conv2center1_(i, i, i, i, NULL, NULL);
 
-  k6boundboxunstr_(i, NULL, NULL, NULL, 
-                   f, f, f, f, f, f);
-
   k6compmeanlengthofstructcell_(i, i, i, i,
                                 NULL, NULL, NULL, f);
 
@@ -256,17 +235,5 @@ void K_KCORE::testFooKCore()
                          NULL, NULL,
                          NULL, NULL,
                          NULL);
-  
-  k6boundbox2_(i, i, i,
-               NULL, NULL, NULL,
-               NULL, NULL, NULL, 
-               f, f, f, 
-               f, f, f);
-
-  k6boundboxunstr2_(i, 
-                    NULL, NULL, NULL, 
-                    NULL, NULL, NULL,
-                    f, f, f, 
-                    f, f, f);
 }
 

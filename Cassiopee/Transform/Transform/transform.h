@@ -303,6 +303,7 @@ namespace K_TRANSFORM
   PyObject* deformPoint(PyObject* self, PyObject* args);
   PyObject* deformMeshStruct(PyObject* self, PyObject* args);
   PyObject* computeDeformationVector(PyObject* self, PyObject* args);
+  PyObject* _freeForm(PyObject* self, PyObject* args);
 
   PyObject* join(PyObject* self, PyObject* args);
   PyObject* joinBoth(PyObject* self, PyObject* args);

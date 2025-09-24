@@ -364,8 +364,8 @@ void K_GEOM::compTetraType1(E_Int type0,
 
   // calcul des bounding box du contour 1 
   E_Float xmin1, xmax1, ymin1, ymax1, zmin1, zmax1;
-  K_COMPGEOM::boundingBox(posxc1, posyc1, poszc1, coordpoly1, 
-                          xmin1, ymin1,zmin1, xmax1, ymax1, zmax1);
+  K_COMPGEOM::boundingBoxUnstruct(nvmax, coordpoly1.begin(posxc1), coordpoly1.begin(posyc1), coordpoly1.begin(poszc1),
+                                  xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
 
   // Extend bounding box from delta
   E_Float delta = 0.05;//10% ds la triangulation de Delaunay
@@ -521,10 +521,12 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
   //calcul des bounding box des contours1 et 2
   E_Float xmin1, xmax1, ymin1, ymax1, zmin1, zmax1;
   E_Float xmin2, xmax2, ymin2, ymax2, zmin2, zmax2;
-  K_COMPGEOM::boundingBox(posxc1, posyc1, poszc1, fc1, 
-                          xmin1, ymin1,zmin1, xmax1, ymax1, zmax1);
-  K_COMPGEOM::boundingBox(posxc2, posyc2, poszc2, fc2, 
-                          xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
+  E_Int npts1 = fc1.getSize();
+  E_Int npts2 = fc2.getSize();
+  K_COMPGEOM::boundingBoxUnstruct(npts1, fc1.begin(posxc1), fc1.begin(posyc1), fc1.begin(poszc1),
+                                  xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
+  K_COMPGEOM::boundingBoxUnstruct(npts2, fc2.begin(posxc2), fc2.begin(posyc2), fc2.begin(poszc2),
+                                  xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
 
   // Extend bounding box from delta
   E_Float delta = 0.05;//10% ds la triangulation de Delaunay

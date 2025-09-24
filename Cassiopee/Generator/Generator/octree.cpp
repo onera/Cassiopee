@@ -25,13 +25,6 @@
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
-extern "C"
-{
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 namespace K_GENERATOR 
 {

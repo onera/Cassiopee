@@ -945,11 +945,21 @@ def naca0012(snear=0.001, ibctype='Musker', alpha=0.):
     return t
 
 #====================================================================================
-#Add .Solver#Define with dirx,diry, & dirz to the base of the rectilinear in tbox
-def _addOneOverLocally(FileName,oneOver):
+#Add .Solver#Define with dirx, diry, dirz, & granularity to the base of the tboneover. tboneover is the
+#PyTree that defines the region in space wherein a one over n coarsening will be pursued
+#during the automatic cartesian grid generator of FastIBC.
+#IN: t: PyTree
+#IN: oneOver: list of list of dirx,diry,dirz,granularity for each base in tboneover. E.g. oneOver=[[1,1,2,0],[1,2,1,0],[2,1,1,1]]
+#             for a tboneover with 3 bases where the 1st base has dirx=1, diry=1, dirz=2, & granularity=0 (coarse)
+#                                                    2nd base has dirx=1, diry=2, dirz=1, & granularity=0 (coarse)
+#                                                    3rd base has dirx=2, diry=1, dirz=1, & granularity=0 (fine)
+#OUT: Nothing. Rewrite tboneover with the same FileName as that original used
+##NOTE # 1: To be run SEQUENTIALLY ONLY. This is ok as we are dealing with a surface geometry which tend to be
+##          relatively small.
+##NOTE # 2: Generation of tboneover is similar to that used for tbox.
+def _addOneOverLocally(t,oneOver):
     count   = 0
-    t_local = C.convertFile2PyTree(FileName)
-    nodes   = Internal.getNodesFromNameAndType(t_local, '*OneOver*', 'CGNSBase_t')
+    nodes   = Internal.getNodesFromNameAndType(t, '*OneOver*', 'CGNSBase_t')
     for b in nodes:
         Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(b, '.Solver#define')
@@ -958,5 +968,4 @@ def _addOneOverLocally(FileName,oneOver):
         Internal._createUniqueChild(n, 'dirz'       , 'DataArray_t', value=oneOver[count][2])
         Internal._createUniqueChild(n, 'granularity', 'DataArray_t', value=oneOver[count][3])
         count+=1
-    C.convertPyTree2File(t_local,FileName)
     return None

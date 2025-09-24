@@ -18,7 +18,8 @@ __all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', 
            'rotate', '_rotate', '_scale', 'scale',
            'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
            'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches',
-           'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
+           'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'controlPoints', 'freeForm',
+           'kround', 'smoothField', '_smoothField',
            'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
 
 #========================================================================================
@@ -675,6 +676,28 @@ def computeDeformationVector(array, surfDelta, beta=4.):
     if isinstance(array[0], list):
         return transform.computeDeformationVector(array, surfDelta, beta)
     else: return transform.computeDeformationVector([array], surfDelta, beta)
+
+def controlPoints(a, N=(2,2,2)):
+    """Create control points for free form."""
+    import Generator
+    bb = Generator.bbox(a)
+    b = Generator.cart((bb[0],bb[1],bb[2]),(bb[3]-bb[0],bb[4]-bb[1],bb[5]-bb[2]), N)
+    b = Converter.addVars(b, ['dx','dy','dz'])
+    return b
+
+def freeForm(array, controlPoints):
+    """Coupute free form deformation vector."""
+    if isinstance(array[0], list):
+        out = []
+        for a in array:
+            b = Converter.addVars(a, ['dx','dy','dz'])
+            transform._freeForm(b, controlPoints)
+            out.append(b)
+        return out
+    else:
+        b = Converter.addVars(array, ['dx','dy','dz'])
+        transform._freeForm(b, controlPoints)
+        return b
 
 def join(array, array2=[], arrayc=[], arrayc2=[], tol=1.e-10):
     """Join two arrays in one or join a list of arrays in one. 

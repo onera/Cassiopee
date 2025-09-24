@@ -1,7 +1,6 @@
 # Fenetre de dialogue pour le choix de la couleur
 # Attention : dependance aux colormaps de matplotlib
-try: import Tkinter as TK
-except: import tkinter as TK
+import tkinter as TK
 from . import Ttk as TTK
 import colorsys
 import tkPlotXY

@@ -2,15 +2,17 @@
 # Print help message
 usage() {
   echo -e "Usage: $0                                             : Install all modules"
-  echo -e "       $0 --all                                       : Install modules and docs"
-  echo -e "       $0 --doc                                       : Install docs only"
-  echo -e "       $0 --cassiopee=</path/to/cassiopee/root/dir>   : Set env. var. CASSIOPEE and install all modules"
-  echo -e "       $0 --elsaprod=<production_name>                : Set env. var. ELSAPROD and install all modules"
-  echo -e "       $0 --help                                      : Print help message"
+  echo -e "       $0 --all, -a                                   : Install modules and docs"
+  echo -e "       $0 --doc, -d                                   : Install docs only"
+  echo -e "       $0 --cassiopee=<path_to_cassiopee_root_dir>    : Set env. var. CASSIOPEE"
+  echo -e "       $0 --elsaprod=<production_name>                : Set env. var. ELSAPROD"
+  echo -e "       $0 --prefix=<installation_path>                : Change default installation path"
+  echo -e "       $0 --help, -h                                  : Print help message"
   exit 1
 }
 
 # Parse command-line arguments
+PREFIX=""
 INSTALL_DOCS=0
 INSTALL_MODS=1
 while [ "$1" != "" ]; do
@@ -28,6 +30,9 @@ while [ "$1" != "" ]; do
       ;;
     --elsaprod=*)
       export ELSAPROD="${1#*=}"
+      ;;
+    --prefix=*)
+      export PREFIX="${1#*=}"
       ;;
     --help | -h)
       usage
@@ -54,7 +59,11 @@ if [ "$INSTALL_MODS" -eq 1 ]; then
         echo "This variable identifies the processor type."
         usage
     fi
-    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+    if [ -z $PREFIX ]; then
+        INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+    else
+        INSTALLPATH="$PREFIX/Dist/bin/$ELSAPROD"
+    fi
 fi
 
 # Load module names
@@ -71,7 +80,7 @@ do
   then
       cd $mod
       if [ "$INSTALL_MODS" -eq 1 ]; then
-          ./install
+          ./install $INSTALLPATH
           [ $? != 0 ] && exit 1;
       fi
       if [ "$INSTALL_DOCS" -eq 1 ]; then
@@ -96,6 +105,11 @@ fi
 
 # Copy environment scripts
 if [ "$INSTALL_MODS" -eq 1 ]; then
-    cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
-    cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+    if [ -z $PREFIX ]; then
+        cp Envs/env_Cassiopee* "$CASSIOPEE"/Dist
+        cp Envs/sh_Cassiopee*  "$CASSIOPEE"/Dist
+    else
+        cp Envs/env_Cassiopee* "$PREFIX"/Dist
+        cp Envs/sh_Cassiopee*  "$PREFIX"/Dist
+    fi
 fi

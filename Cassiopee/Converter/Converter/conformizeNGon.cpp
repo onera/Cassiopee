@@ -64,7 +64,7 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
   // Construction de l'array de sortie
   PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, "NGON", api);
   delete cn;
-  RELEASESHAREDU(array, f, cnl); 
+  RELEASESHAREDU(array, f, cnl);
 
   return tpl;
 }

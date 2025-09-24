@@ -130,9 +130,10 @@ void K_COMPGEOM::compAndTileBoundingBox(E_Float coefa, E_Float coefb,
 { 
   E_Float xmin, xmax, ymin, ymax, zmin, zmax;
   E_Float inv, pt1, pt2, pt3, pt4;
+  E_Int npts = field.getSize();
 
   // Compute the bbox
-  boundingBox(1, 2, 3, field, xmin, ymin, zmin, xmax, ymax, zmax);
+  boundingBoxUnstruct(npts, field.begin(1), field.begin(2), field.begin(3), xmin, ymin, zmin, xmax, ymax, zmax);
 
   // Realloc field array to put 4 new points
   E_Int sizeIni = field.getSize();

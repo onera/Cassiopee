@@ -19,13 +19,3 @@ sketch = D.sketch([line1, line2, line3, line4])
 sketch.perform()
 sketch.writeCAD('out.step')
 sketch.print()
-
-# add contraints to sketch
-# add control parameters
-
-params = sketch.scanParameters()
-print(params)
-
-# solve
-
-#D.DRIVER.print()

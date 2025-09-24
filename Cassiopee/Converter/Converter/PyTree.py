@@ -5625,7 +5625,6 @@ def computeBCMatchField(z, allMatch, variables=None):
 
                 if key in allCount.keys():
                     ncount = allCount[key]
-                    # print(key, ncount)
                 else:
                     ncount = None
 

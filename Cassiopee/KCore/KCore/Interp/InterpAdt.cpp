@@ -286,9 +286,10 @@ E_Int K_INTERP::InterpAdt::buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
 {  
   _tree = NULL;
  
-  K_COMPGEOM::boundingBox(ni*nj*nk, x, y, z, 
-                          _xmin, _ymin, _zmin, 
-                          _xmax, _ymax, _zmax);
+  K_COMPGEOM::boundingBoxStruct(ni, nj, nk, x, y, z,
+                                _xmin, _ymin, _zmin,
+                                _xmax, _ymax, _zmax);
+
   if (nk == 1) // traitement 2D
   {
     if (K_FUNC::E_abs(_zmax-_zmin) < K_CONST::E_GEOM_CUTOFF) //cas 1 plan en k=zmin = OK
@@ -303,6 +304,7 @@ E_Int K_INTERP::InterpAdt::buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
   E_Float xmax,ymax,zmax,xmin,ymin,zmin;
   E_Int ind, ind2;
   
+  // use compgeom functions instead?
   if (nk > 1)
   { 
     for (E_Int k = 0; k < nk-1; k++)
@@ -436,9 +438,11 @@ E_Int K_INTERP::InterpAdt::buildUnstrAdt(E_Int npts, FldArrayI& connect,
                                          E_Float* x, E_Float* y, E_Float* z)
 {  
   _tree = NULL;
-  K_COMPGEOM::boundingBox(npts, x, y, z, 
-                          _xmin, _ymin, _zmin, 
-                          _xmax, _ymax, _zmax);
+
+  K_COMPGEOM::boundingBoxUnstruct(npts, x, y, z,
+                                  _xmin, _ymin, _zmin,
+                                  _xmax, _ymax, _zmax);
+
   /* Insert all points (cells) in the tree */
   E_Float xmax,ymax,zmax,xmin,ymin,zmin;
   E_Int nelts = connect.getSize();

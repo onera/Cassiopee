@@ -198,9 +198,9 @@ def getInstallPath(prefix, type=0):
     a = site.getsitepackages()[0].split('/')[-4:]
     if type == 0:
         if a[0] != 'local':
-            installPath = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
+            installPath = os.path.join(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
         else:
-            installPath = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
+            installPath = os.path.join(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
     else:
         installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
     return installPath
@@ -327,8 +327,8 @@ def writeInstallPath():
 
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
-    if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
-    else: libPath = '%s/%s/%s'%(prefix, a[0], a[1])  # 'prefix/local/lib'
+    if a[0] != 'local': libPath = os.path.join(prefix, a[1])  # 'prefix/lib'
+    else: libPath = os.path.join(prefix, a[0], a[1])  # 'prefix/local/lib'
     p.write('libPath = \'%s\'\n'%libPath)
 
     '''
@@ -773,7 +773,7 @@ def scanext(args, dir, file):
     ret = args[1]
     for f in file:
         (root,ext) = os.path.splitext(f)
-        tot = '%s/%s'%(dir,f)
+        tot = os.path.join(dir,f)
         t = os.path.islink(tot)
         m = True
         if f[len(f)-1] == '~' : m = False
@@ -2880,12 +2880,9 @@ def createCudaScanner(env):
     SCons.Tool.SourceFileScanner.add_scanner(['.cu'], CudaScanner)
     return env
 
+# Add underlying common "NVIDIA CUDA compiler" variables that
+# are used by multiple builders.
 def addCommonNvccVariables(env):
-    """
-    Add underlying common "NVIDIA CUDA compiler" variables that
-    are used by multiple builders.
-    """
-
     # "NVCC common command line"
     if not env.has_key('_NVCCCOMCOM'):
         # nvcc needs '-I' prepended before each include path, regardless of platform

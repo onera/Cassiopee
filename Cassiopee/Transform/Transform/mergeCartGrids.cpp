@@ -112,10 +112,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   {
     CartBlock* blk = new CartBlock;
     blk->_ni = nit[noz]; blk->_nj = njt[noz]; blk->_nk = nkt[noz];
-    K_COMPGEOM::boundingBox(
-      nit[noz], njt[noz], nkt[noz], posxt[noz], posyt[noz], poszt[noz],
-      *structF[noz], blk->_xmin, blk->_ymin, blk->_zmin,
-      blk->_xmax, blk->_ymax, blk->_zmax);
+    K_COMPGEOM::boundingBoxStruct(nit[noz], njt[noz], nkt[noz],
+                                  structF[noz]->begin(posxt[noz]),
+                                  structF[noz]->begin(posyt[noz]),
+                                  structF[noz]->begin(poszt[noz]),
+                                  blk->_xmin, blk->_ymin, blk->_zmin,
+                                  blk->_xmax, blk->_ymax, blk->_zmax);
+
     blk->_dh = (blk->_xmax-blk->_xmin)/(nit[noz]-1);
     listOfBlocks.push_back(blk);
   }

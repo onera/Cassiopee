@@ -1,6 +1,5 @@
 # - loft (array) -
 import OCC
-import numpy
 
 N = 10
 out = []

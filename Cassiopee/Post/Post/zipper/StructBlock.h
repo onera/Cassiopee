@@ -200,9 +200,9 @@ class StructBlock
                       FldArrayI& string, FldArrayB& dejaVu);
     
   private:
- /* Projection du point (x,y,z) sur la frontière dir (i=1...). 
-    Retourne false si le projeté n'est pas situé sur cette frontiere, 
-    a un epsilon près.*/
+ /* Projection du point (x,y,z) sur la frontiere dir (i=1...). 
+    Retourne false si le projete n'est pas situe sur cette frontiere, 
+    a un epsilon pres.*/
     E_Bool projectOrtho(E_Float x, E_Float y, E_Float z, E_Int dir);
                              
     /* Given a pt (x1,y1,z1), says if it belongs to a match/nearmatch/nomatch 
@@ -324,12 +324,6 @@ class StructBlock
     /* Compute the triangular connectivity taking into account
        the degenerations and the boundaries. */
     void compUnsConnectEN();
-
-    /* Compute bounding box of cell */
-    void boundingBoxOfCell(
-      E_Int ind,
-      E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-      E_Float& xmin, E_Float& ymin, E_Float& zmin);
 
     /* Return true if string is a loop (starting point = end point) */
     E_Bool isStringALoop(FldArrayI& string);

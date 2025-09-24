@@ -25,19 +25,6 @@ using namespace K_FLD;
 using namespace K_FUNC;
 using namespace K_CONST;
 
-extern "C"
-{
-  void k6boundboxofstructcell_(E_Int* ind, E_Int& ni, 
-                               E_Float* x, E_Float* y, E_Float* z,
-                               E_Float& xmin, E_Float& xmax, 
-                               E_Float& ymin, E_Float& ymax, 
-                               E_Float& zmin, E_Float& zmax);
-  void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km, 
-                   const E_Float* x, const E_Float* y, const E_Float* z,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
-
 //=============================================================================
 /* Constructor from a field.
    field(ind, 1-3) : mesh coordinates
@@ -73,9 +60,12 @@ StructBlock::StructBlock(E_Int id, E_Int ni, E_Int nj, E_Int nk,
   _coord = coord;
 
   _nMeshPts = ni*nj*nk;
-  k6boundbox_(_im, _jm, _km, 
-              _coord.begin(1), _coord.begin(2), _coord.begin(3),
-              _xmax, _ymax, _zmax, _xmin, _ymin, _zmin);
+  K_COMPGEOM::boundingBoxStruct(_im, _jm, _km,
+                                _coord.begin(1),
+                                _coord.begin(2),
+                                _coord.begin(3),
+                                _xmin, _ymin, _zmin,
+                                _xmax, _ymax, _zmax);
   
   _globalField.malloc(_nMeshPts, 3+_cfdField.getNfld());
 
@@ -93,9 +83,13 @@ StructBlock::StructBlock(E_Int id, E_Int ni, E_Int nj, E_Int nk,
   E_Float xmax, xmin, ymax, ymin, zmax, zmin;
   for (i = 0; i < _nMeshPts; i++)
   {
-    boundingBoxOfCell(i,
-                      xmax, ymax, zmax,
-                      xmin, ymin, zmin);
+    K_COMPGEOM::boundingBoxOfStructCell(i, _im, _jm, _km,
+                                        _coord.begin(1),
+                                        _coord.begin(2),
+                                        _coord.begin(3),
+                                        xmin, ymin, zmin,
+                                        xmax, ymax, zmax, 0); // node
+
     _bbCell(i,1) = xmax;
     _bbCell(i,2) = ymax;
     _bbCell(i,3) = zmax;
@@ -545,9 +539,9 @@ E_Bool StructBlock::testMatchingBlks( StructBlock* blk1,
 }
 
 //=============================================================================
-/* Projection du point (x,y,z) sur la frontière dir. 
-   Retourne false si le projeté n'est pas situé sur cette frontiere, à
-   un epsilon près.
+/* Projection du point (x,y,z) sur la frontiere dir. 
+   Retourne false si le projete n'est pas situe sur cette frontiere, a
+   un epsilon pres.
 */
 //=============================================================================
 E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
@@ -618,11 +612,11 @@ E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        // teste si le projeté est dans le segment [xi,xi+1]
+        // teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          // distance entre P et son projeté
+          // distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -682,11 +676,11 @@ E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        // teste si le projeté est dans le segment [xi,xi+1]
+        // teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -746,11 +740,11 @@ E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
          
-        //teste si le projeté est dans le segment [xi,xi+1]
+        //teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -811,11 +805,11 @@ E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        //teste si le projeté est dans le segment [xi,xi+1]
+        //teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -1360,46 +1354,6 @@ E_Bool StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
     }
   }
   return false;
-}
-//=============================================================================
-void StructBlock::boundingBoxOfCell(
-  E_Int ind,
-  E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-  E_Float& xmin, E_Float& ymin, E_Float& zmin)
-{ 
-  E_Int imjm = _im*_jm;
-  E_Int k = ind/imjm;
-  E_Int j = ( ind - k * imjm )/_im;
-  E_Int i = ind - j * _im + k * imjm;
-
-  E_Int alpha = 1;
-  E_Int beta  = 1;
-  E_Int gamma = 1;
-            
-  if (i == _im-1) alpha = -1;
-  
-  if (j == _jm-1) beta = -1;
-  
-  if ( k == _km-1) gamma = -1;
-  
-  if ( _im == 1 ) alpha = 0;
-  if ( _jm == 1 ) beta = 0;
-  if ( _km == 1 ) gamma = 0;
-  
-  FldArrayI indtab(8);
-  indtab[0] = ind;
-  indtab[1] = (i+alpha) + j*_im + k*imjm;
-  indtab[2] = (i+alpha) + (j+beta)*_im + k*imjm;
-  indtab[3] = i + (j+beta)*_im + k*imjm;
-  indtab[4] = i + j*_im + (k+gamma)*imjm;
-  indtab[5] = (i+alpha) + j*_im + (k+gamma)*imjm;
-  indtab[6] = (i+alpha) + (j+beta)*_im + (k+gamma)*imjm;  
-  indtab[7] = i + (j+beta)*_im + (k+gamma)*imjm;
-  
-  E_Int size = _coord.getSize();
-  k6boundboxofstructcell_( indtab.begin(), size,
-                           _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                           xmin, xmax, ymin, ymax, zmin, zmax);
 }
 
 //=============================================================================

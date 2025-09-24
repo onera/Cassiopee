@@ -17,7 +17,7 @@ __all__ = ['convertCAD2Arrays',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
            'meshAllFacesTri', 'meshFaceWithMetric', 'identifyTags__',
-           '_projectOnFaces',
+           '_projectOnEdges', '_projectOnFaces',
            'readCAD', 'writeCAD',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat', 'getFaceArea',
            '_translate', '_rotate', '_scale', '_sewing',
@@ -735,6 +735,15 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
         print("STRUCTFAILED on face = %03d_edgeUV.plt"%f)
 
     return dfaces, nloct, nofacet
+
+# project arrays on edges
+def _projectOnEdges(hook, a, edgeList=None):
+    """Project arrays on CAD."""
+    if isinstance(a[0], list):
+        for i in a: occ.projectOnEdges(hook, i, edgeList)
+    else:
+        occ.projectOnEdges(hook, a, edgeList)
+    return None
 
 # project arrays on faces
 def _projectOnFaces(hook, a, faceList=None):

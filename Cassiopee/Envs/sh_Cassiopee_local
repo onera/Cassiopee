@@ -13,43 +13,9 @@ fi
 [ "$(ulimit -Hs)" = "unlimited" ] && ulimit -s unlimited
 
 # Compilation on different machines:
-
-# Detect machine by uname (longest first)
-KC=$(uname -n)
-for pattern in \
-  "WDAAA161Z:WDAAA161Z" \
-  "atlas:atlas" \
-  "topaze:topaze" \
-  "node6.cluster:macosx" \
-  "jean-zay:jean-zay" \
-  "irene:irene" \
-  "cobalt:cobalt" \
-  "spiro:spiro_el8" \
-  "sator:sator_cas" \
-  "giulia:giulia" \
-  "visung:visung" \
-  "celeste:visio" \
-  "visio:visio" \
-  "ubuntu:ubuntu" \
-  "clausius:ld" \
-  "fv-az:azure" \
-  "v0:juno" \
-  "b0:juno" \
-  "n0:juno" \
-  "f0:juno" \
-  "ld:ld" \
-  "n:sator_cas"
-do
-  key=${pattern%%:*}; val=${pattern#*:}
-  if echo "$KC" | grep -q "$key"; then
-    export MAC="$val"
-    break
-  fi
-done
-
-# Detect MAC environement from MACHINE
 EXT=""
 if [ -n "$MACHINE" ]; then
+    # Detect MAC environement from MACHINE
     INTTYPE=""
     DBGMODE=""
     BRANCHNAME=""
@@ -75,6 +41,39 @@ if [ -n "$MACHINE" ]; then
     export MAC=$MACHINETMP
     EXT=$BRANCHNAME$INTTYPE$DBGMODE
     unset MACHINETMP BRANCHNAME INTTYPE DBGMODE
+else
+    # Detect machine by uname (longest first)
+    KC=$(uname -n)
+    for pattern in \
+      "WDAAA161Z:WDAAA161Z" \
+      "atlas:atlas" \
+      "topaze:topaze" \
+      "node6.cluster:macosx" \
+      "jean-zay:jean_zay" \
+      "irene:irene" \
+      "cobalt:cobalt" \
+      "spiro:spiro" \
+      "sator:sator_cas" \
+      "giulia:giulia" \
+      "visung:visung" \
+      "celeste:visio" \
+      "visio:visio" \
+      "ubuntu:ubuntu" \
+      "clausius:ld" \
+      "fv-az:azure" \
+      "v0:juno" \
+      "b0:juno" \
+      "n0:juno" \
+      "f0:juno" \
+      "ld:ld" \
+      "n:sator_cas"
+    do
+      key=${pattern%%:*}; val=${pattern#*:}
+      if echo "$KC" | grep -q "$key"; then
+        export MAC="$val"
+        break
+      fi
+    done
 fi
 
 if [ -z "$MAC" ]; then
@@ -201,7 +200,7 @@ elif [ "$MAC" = "linux" ]; then
 
 elif [ "$MAC" = "visio" ]; then
 #----------------------------- visio -----------------------------------------
-    export ELSAPROD=vis_r8
+    export ELSAPROD=visio
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-dri.sh
     module load python/3.6.1
@@ -241,8 +240,8 @@ elif [ "$MAC" = "visung" ]; then
     export I_MPI_FABRICS=shm
 
 elif [ "$MAC" = "cobalt" ]; then
-#-------------------------------- cobalt -----------------------------------------
-    export ELSAPROD=cob_r8
+#-------------------------------- cobalt --------------------------------------
+    export ELSAPROD=cobalt
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=28
@@ -254,9 +253,9 @@ elif [ "$MAC" = "cobalt" ]; then
     module load libosmesa/10.6.5
     module load libpng/1.6.23
 
-elif [ "$MAC" = "tgcc_irene" ]; then
-#-------------------------------- irene -----------------------------------------
-    export ELSAPROD=irene_r8
+elif [ "$MAC" = "irene" ]; then
+#-------------------------------- irene ---------------------------------------
+    export ELSAPROD=irene
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
@@ -267,9 +266,9 @@ elif [ "$MAC" = "tgcc_irene" ]; then
     module load hdf5/1.8.20
     #module load scons/3.0.1
 
-elif [ "$MAC" = "jean-zay" ]; then
-#-------------------------------- jean-zay -----------------------------------------
-    export ELSAPROD=jz_r8
+elif [ "$MAC" = "jean_zay" ]; then
+#-------------------------------- jean-zay ------------------------------------
+    export ELSAPROD=jean_zay
     export ELSAPROD=$ELSAPROD$EXT
     module load python/3.8.2
     module load gcc/9.1.0-cuda-openacc
@@ -279,9 +278,9 @@ elif [ "$MAC" = "jean-zay" ]; then
     # Number of threads
     export OMP_NUM_THREADS=28
 
-elif [ "$MAC" = "spiro_el8" ]; then
-#----------------------------- spiro -----------------------------------------
-    export ELSAPROD=spiro_el8
+elif [ "$MAC" = "spiro" ]; then
+#----------------------------- spiro ------------------------------------------
+    export ELSAPROD=spiro
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=24
@@ -306,7 +305,7 @@ elif [ "$MAC" = "spiro_el8" ]; then
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno" ]; then
-#----------------------------- juno -----------------------------------------
+#----------------------------- juno -------------------------------------------
     export ELSAPROD=juno
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -401,8 +400,8 @@ elif [ "$MAC" = "juno_coda" ]; then
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_brw" ]; then
-#----------------------------- sator for broadwell -----------------------------------------
-    export ELSAPROD=sat_r8
+#----------------------------- sator for broadwell ----------------------------
+    export ELSAPROD=sator_brw
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/module.sh
     module purge
@@ -419,8 +418,8 @@ elif [ "$MAC" = "sator_brw" ]; then
     export OMP_PLACES=cores
 
 elif [ "$MAC" = "topaze" ]; then
-#----------------------------- topaze ccrt proc amd milan ---------------------------------------
-    export ELSAPROD=topaze_r8
+#----------------------------- topaze ccrt proc amd milan ---------------------
+    export ELSAPROD=topaze
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/module.sh
     module purge
@@ -437,8 +436,8 @@ elif [ "$MAC" = "topaze" ]; then
     export OMP_PLACES=cores
 
 elif [ "$MAC" = "sator_sky" ]; then
-#----------------------------- sator skylake ---------------------------------------
-    export ELSAPROD=sat_sky_r8
+#----------------------------- sator skylake ----------------------------------
+    export ELSAPROD=sator_sky
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/module.sh
     module purge
@@ -454,8 +453,8 @@ elif [ "$MAC" = "sator_sky" ]; then
     export OMP_PLACES=cores
 
 elif [ "$MAC" = "sator_cas" ]; then
-#----------------------------- sator for cascade ---------------------------------------
-    export ELSAPROD=sat_cas_r8
+#----------------------------- sator for cascade ------------------------------
+    export ELSAPROD=sator_cas
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
@@ -474,8 +473,8 @@ elif [ "$MAC" = "sator_cas" ]; then
     alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
 
 elif [ "$MAC" = "sator_sph" ]; then
-#----------------------------- sator for saphire ---------------------------------------
-    export ELSAPROD=sat_sph
+#----------------------------- sator for saphire ------------------------------
+    export ELSAPROD=sator_sph
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
@@ -493,8 +492,8 @@ elif [ "$MAC" = "sator_sph" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     
 elif [ "$MAC" = "sator_gcc" ]; then
-#----------------------------- sator gcc ---------------------------------------
-    export ELSAPROD=sat_gcc
+#----------------------------- sator gcc --------------------------------------
+    export ELSAPROD=sator_gcc
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
@@ -513,7 +512,7 @@ elif [ "$MAC" = "sator_gcc" ]; then
 
 elif [ "$MAC" = "sator_coda" ]; then
 #----------------------------- sator coda --------------------------------------
-    export ELSAPROD=sat_coda
+    export ELSAPROD=sator_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
@@ -535,7 +534,7 @@ elif [ "$MAC" = "sator_coda" ]; then
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_coda2" ]; then
-#----------------------------- sator coda --------------------------------------
+#----------------------------- sator coda -------------------------------------
     export ELSAPROD=sator_coda2
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -566,9 +565,9 @@ elif [ "$MAC" = "sator_coda2" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
-elif [ "$MAC" = "adastra_cpu" ]; then
-#----------------------------- adastra cpu  ---------------------------------------
-    export ELSAPROD=adastra_cpu
+elif [ "$MAC" = "adastra" ]; then
+#----------------------------- adastra cpu  -----------------------------------
+    export ELSAPROD=adastra
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=48
     export OMP_PLACES=cores
@@ -590,7 +589,7 @@ elif [ "$MAC" = "adastra_cpu" ]; then
     export PYTHONEXE=python3
 
 elif [ "$MAC" = "adastra_gpu" ]; then
-#----------------------------- adastra gpu  ---------------------------------------
+#----------------------------- adastra gpu  -----------------------------------
     export ELSAPROD=adastra_gpu
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=12
@@ -613,7 +612,7 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     export PYTHONEXE=python3
     
 elif [ "$MAC" = "atlas" ]; then
-#----------------------------- Atlas msys2  ---------------------------------------
+#----------------------------- Atlas msys2  -----------------------------------
     export ELSAPROD=win64
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -622,7 +621,7 @@ elif [ "$MAC" = "atlas" ]; then
     export PRODMODE=1
 
 elif [ "$MAC" = "WDAAA161Z" ]; then
-#----------------------------- msys64 "AlainRE"  ---------------------------------------
+#----------------------------- msys64 "AlainRE"  ------------------------------
     export ELSAPROD=win64
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -632,7 +631,7 @@ elif [ "$MAC" = "WDAAA161Z" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
 
 elif [ "$MAC" = "msys2" ]; then
-#----------------------------- msys2 (generic)  ---------------------------------------
+#----------------------------- msys2 (generic)  -------------------------------
     export ELSAPROD=win64
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -643,12 +642,28 @@ elif [ "$MAC" = "msys2" ]; then
 fi
 fi
 
+getSupportedMachines() {
+    local script_path="$1"
+    grep -E '^\s*(if|elif)\s*\[\s*"\$MAC"\s*=\s*"' "$script_path" \
+      | sed -E 's/.*"\$MAC"\s*=\s*"([^"]+)".*/\1/'
+}
+
 if [ -z $ELSAPROD ]; then
     echo 'Error: your machine was not found in Envs.'
+    # Check names of all listed MACHINEs in this file and in sh_Cassiopee_user
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+    MACS_LOCAL=$(getSupportedMachines "$SCRIPT_PATH")
+    SCRIPT_PATH="${SCRIPT_PATH:0:-5}user"
+    echo 'Supported MACHINE values are:'
+    echo "$MACS_LOCAL"
+    if [ -e $SCRIPT_PATH ]; then
+        MACS_USER=$(getSupportedMachines "$SCRIPT_PATH")
+        echo "$MACS_USER"
+    fi
     return 1
 fi
 
-#-------------------------- Common to all prods --------------------------------
+#-------------------------- Common to all prods -------------------------------
 # Chemin de l'executable python
 if ! [ -z $PATHL ]; then
     OLD_PATHL=$PATHL

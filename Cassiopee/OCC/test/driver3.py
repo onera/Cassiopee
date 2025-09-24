@@ -26,7 +26,6 @@ P7 = D.Point( (4,2,0), name='P7' )
 
 P8 = D.Point( (0,2,0), name='P8' )
 
-
 # Create lines
 spline1 = D.Spline1( [P1,P2,P3,P4,P5,P6], name='spline1' )
 
@@ -37,8 +36,15 @@ line3 = D.Line( P8, P1, name='line3' )
 # Create sketch
 sketch1 = D.Sketch([spline1, line1, line2, line3], name='sketch1')
 
-# test
+# solve
 D.DRIVER.solve2()
-D.DRIVER.instantiate([0.5])
+D.DRIVER.instantiate({'P4.y': 0.5})
 
 sketch1.writeCAD('out.step')
+
+import CPlot, time
+for i in range(50):
+    D.DRIVER.instantiate({'P4.y': 0.3+i/100.})
+    mesh = sketch1.mesh(0.01, 0.01, 0.01)
+    CPlot.display(mesh)
+    time.sleep(0.5)

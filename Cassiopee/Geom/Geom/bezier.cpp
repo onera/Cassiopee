@@ -31,7 +31,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ II_ R_,
                     &array, &N, &M, &density))
   {
-      return NULL;
+    return NULL;
   }
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
