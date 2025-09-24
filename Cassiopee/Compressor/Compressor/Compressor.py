@@ -6,8 +6,7 @@ __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Xavier Juvigny"
 from . import compressor
 import numpy
 import Converter.Internal as Internal
-try: import cPickle as pickle # best for now
-except: import pickle
+import pickle
 
 #==============================================================================
 # deltaIndex
