@@ -191,7 +191,7 @@ class Grid:
             for j in range(self.nj):
                 for i in range(self.ni):
                     self.P[i][j][k].print(shift+4)
-                    
+
     def check(self):
         for k in range(self.nk):
             for j in range(self.nj):
@@ -199,7 +199,7 @@ class Grid:
                     ret = self.P[i][j][k].check()
                     if ret == 0: return 0
         return 1
-    
+
 #============================================================
 # Entities
 #============================================================
@@ -271,7 +271,7 @@ class Entity:
             ni, nj, nk = grid.ni, grid.nj, grid.nk
             cp = Generator.cart((0,0,0), (1,1,1), (ni,nj,nk))
             cp = Converter.addVars(cp, ['dx','dy','dz'])
-            
+
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
@@ -282,7 +282,7 @@ class Entity:
                         cp[1][3,ind] = grid.P[i][j][k].x.v - grid.xo - i*grid.dx
                         cp[1][4,ind] = grid.P[i][j][k].y.v - grid.yo - j*grid.dy
                         cp[1][5,ind] = grid.P[i][j][k].z.v - grid.zo - k*grid.dz
-                        
+
             mesh = Transform.freeForm(self.mesh, cp)
             mesh = Transform.deform(mesh, ['dx','dy','dz'])
 
@@ -307,7 +307,7 @@ class Entity:
 
     # mesh sketch
     def mesh(self, hmin, hmax, hausd):
-        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)        
+        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         return edges
 
     # check parameters validity
@@ -385,9 +385,9 @@ class Sketch():
 
     # mesh sketch
     def mesh(self, hmin, hmax, hausd):
-        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)        
+        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         return edges
-    
+
 #============================================================
 class Eq:
     """Equation"""
@@ -544,17 +544,17 @@ class Driver:
     # diff (finite difference) of free parameters on discrete mesh
     def _diff(self, entity, mesh, deps=1.e-10):
         import Converter, KCore
-        
+
         freevars = self.freevars
         if len(freevars) == 0:
-            print("Warning: no free vars.") 
+            print("Warning: no free vars.")
             return None
-        
+
         mesho = Converter.copy(mesh)
-            
+
         for c, f in enumerate(freevars):
             # free vars value dict
-            d = {}    
+            d = {}
             for q in freevars:
                 d[q.name] = self.scalars2[q].v
             d[f.name] += deps
@@ -577,13 +577,13 @@ class Driver:
                 p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps
 
         # remet le hook original
-        d = {}    
+        d = {}
         for q in freevars:
             d[q.name] = self.scalars2[q].v
         self.instantiate(d)
-            
+
         return None
-    
+
 #============================================================
 # Global
 DRIVER=Driver()
