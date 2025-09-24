@@ -273,7 +273,7 @@ PyObject* K_POST::integNorm(PyObject* self, PyObject* args)
         RELEASESHAREDU(coordObj, fc, cnc);
         RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
-                        "integNorm: only QUAD or BAR unstructured arrays are possible.");
+                        "integNorm: only QUAD or TRI unstructured arrays are possible.");
         return NULL;
       }
 
