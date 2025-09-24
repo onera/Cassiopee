@@ -574,8 +574,7 @@ PyObject* K_POST::exteriorFacesBasic(char* varString, FldArrayF& f,
   }
   else
   {
-    tpl = K_ARRAY::buildArray(f, varString, 
-                              *connect, -1, elttypeout);
+    tpl = K_ARRAY::buildArray3(f, varString, *connect, elttypeout, api);
     delete connect;
   }
 

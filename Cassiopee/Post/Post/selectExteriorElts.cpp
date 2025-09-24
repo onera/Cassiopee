@@ -99,6 +99,7 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   else if (strcmp(eltType, "PYRA") == 0) nvoisins = 5;
   else if (strcmp(eltType, "PENTA") == 0) nvoisins = 5;
   
+  E_Int api = f.getApi();
   E_Int nv = cn.getNfld();
   E_Int nthreads = __NUMTHREADS__;
   E_Int net = nelts/nthreads+1;
@@ -147,7 +148,7 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   for (E_Int i = 0; i < nthreads; i++) delete [] indirs[i];
   delete [] indirs; delete [] nes; delete [] prev;
 
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
+  PyObject* t = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
   return t;
 }
 
@@ -177,6 +178,7 @@ PyObject* K_POST::selectExteriorEltsBasic2(FldArrayF& f, FldArrayI& cn,
     return NULL;
   }
  
+  E_Int api = f.getApi();
   E_Int ne = cn.getSize();
   E_Int nv = cn.getNfld();
   E_Float* fx = f.begin(posx);
@@ -265,7 +267,7 @@ PyObject* K_POST::selectExteriorEltsBasic2(FldArrayF& f, FldArrayI& cn,
       }
     }
   }
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
+  PyObject* t = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
   return t;
 }
 
@@ -295,6 +297,7 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
     return NULL;
   }
  
+  E_Int api = f.getApi();
   E_Int ne = cn.getSize();
   E_Int nv = cn.getNfld();
   E_Float* fx = f.begin(posx);
@@ -364,7 +367,7 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
       ff++;
     }
   }
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
+  PyObject* t = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
   return t;
 }
 
