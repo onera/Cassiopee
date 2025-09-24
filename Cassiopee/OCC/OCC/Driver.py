@@ -238,7 +238,7 @@ class Entity:
             else:
                 raise(ValueError, "Wrong argument.")
             c += 1
-        
+
         # global parameters (always added)
         P = Vec3((0,0,0), name='%s.position'%self.name)
         self.P.append(P)
@@ -309,7 +309,7 @@ class Entity:
         # global positionning
         OCC._translate(self.hook, self.P[-4].v())
         OCC._rotate(self.hook, self.P[-3].v(), self.P[-2].v(), self.P[-1].v)
-                                    
+
     def print(self, shift=0):
         for c, P in enumerate(self.P):
             print(" "*shift, P.name)
