@@ -364,8 +364,11 @@ void K_GEOM::compTetraType1(E_Int type0,
 
   // calcul des bounding box du contour 1 
   E_Float xmin1, xmax1, ymin1, ymax1, zmin1, zmax1;
-  K_COMPGEOM::boundingBoxUnstruct(nvmax, coordpoly1.begin(posxc1), coordpoly1.begin(posyc1), coordpoly1.begin(poszc1),
-                                  xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
+  K_COMPGEOM::boundingBoxUnstruct(
+    coordpoly1.getSize(),
+    coordpoly1.begin(posxc1), coordpoly1.begin(posyc1), coordpoly1.begin(poszc1),
+    xmin1, ymin1, zmin1, xmax1, ymax1, zmax1
+  );
 
   // Extend bounding box from delta
   E_Float delta = 0.05;//10% ds la triangulation de Delaunay

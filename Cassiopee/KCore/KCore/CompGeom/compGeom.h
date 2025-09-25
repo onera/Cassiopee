@@ -383,7 +383,7 @@ typedef struct {
   /* Calcul de l'aire d'un triangle ABC a partir des longueurs a, b et c
      de ses trois cotes (formule de Heron). 
      Retourne 0. si triangle degenere */
-  E_Float compTriangleArea(E_Float a, E_Float b, E_Float c);
+  E_Float compTriangleArea(const E_Float a, const E_Float b, const E_Float c);
 
   /* Calcul le cercle circonscrit a un triangle du plan (x,y)
      IN: p1, p2, p3: triangles coordinates (in plane x,y)
@@ -623,15 +623,17 @@ typedef struct {
   // Bounding boxes et Cartesian Elements Bounding boxes (CEBB)
   //===========================================================================
   /* Bounding box d'une grille structuree */
-  void boundingBoxStruct(E_Int im, E_Int jm, E_Int km, 
-                   E_Float* x, E_Float* y, E_Float* z,
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax);
+  void boundingBoxStruct(
+   E_Int im, E_Int jm, E_Int km, 
+   E_Float* x, E_Float* y, E_Float* z,
+   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Bounding box d'une grille non structuree */ 
-  void boundingBoxUnstruct(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax);
+  void boundingBoxUnstruct(
+   const E_Int npts, const E_Float* xt, const E_Float* yt, const E_Float* zt,
+   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Bounding box globale d'une liste de grilles */
   void globalBoundingBox(

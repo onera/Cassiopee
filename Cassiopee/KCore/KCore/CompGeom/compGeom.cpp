@@ -29,20 +29,23 @@ using namespace std;
 /* Calcul de l'aire d un triangle ABC a partir des longueurs de ses 3 cotes
    par la formule de Heron */
 //===========================================================================
-E_Float K_COMPGEOM::compTriangleArea(E_Float a, E_Float b, E_Float c)
+E_Float K_COMPGEOM::compTriangleArea(
+  const E_Float a, const E_Float b, const E_Float c
+)
 {
-  E_Float ps2 = (a+b+c)*0.5;
-  return sqrt(ps2*(ps2-a)*(ps2-b)*(ps2-c));
+  E_Float ps2 = (a + b + c)*0.5;
+  return sqrt(ps2*(ps2 - a)*(ps2 - b)*(ps2 - c));
 }
 
 //===========================================================================
 // Calcul de la bounding box d'un array structure
 //===========================================================================
-void K_COMPGEOM::boundingBoxUnstruct(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
-                             E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                             E_Float& xmax, E_Float& ymax, E_Float& zmax)
+void K_COMPGEOM::boundingBoxUnstruct(
+  const E_Int npts, const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  E_Float& xmin, E_Float& ymin, E_Float& zmin,
+  E_Float& xmax, E_Float& ymax, E_Float& zmax
+)
 {
-
   xmin =  K_CONST::E_MAX_FLOAT;
   ymin =  K_CONST::E_MAX_FLOAT;
   zmin =  K_CONST::E_MAX_FLOAT;
@@ -72,12 +75,12 @@ void K_COMPGEOM::boundingBoxUnstruct(E_Int npts, E_Float* xt, E_Float* yt, E_Flo
     #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
-      xminl[ithread] = K_FUNC::E_min(xminl[ithread],xt[ind]);
-      yminl[ithread] = K_FUNC::E_min(yminl[ithread],yt[ind]);
-      zminl[ithread] = K_FUNC::E_min(zminl[ithread],zt[ind]);
-      xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread],xt[ind]);
-      ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread],yt[ind]);
-      zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread],zt[ind]);
+      xminl[ithread] = K_FUNC::E_min(xminl[ithread], xt[ind]);
+      yminl[ithread] = K_FUNC::E_min(yminl[ithread], yt[ind]);
+      zminl[ithread] = K_FUNC::E_min(zminl[ithread], zt[ind]);
+      xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xt[ind]);
+      ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], yt[ind]);
+      zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zt[ind]);
     }
   }
 
@@ -105,9 +108,9 @@ void K_COMPGEOM::boundingBoxUnstruct(E_Int npts, E_Float* xt, E_Float* yt, E_Flo
 // Calcul de la bounding box d'un array structure
 //=============================================================================
 void K_COMPGEOM::boundingBoxStruct(E_Int im, E_Int jm, E_Int km, 
-                             E_Float* x, E_Float* y, E_Float* z,
-                             E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                             E_Float& xmax, E_Float& ymax, E_Float& zmax)
+                                   E_Float* x, E_Float* y, E_Float* z,
+                                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+                                   E_Float& xmax, E_Float& ymax, E_Float& zmax)
 {
 
   E_Int im1 = K_FUNC::E_max(1, im-1);
@@ -146,7 +149,7 @@ void K_COMPGEOM::boundingBoxStruct(E_Int im, E_Int jm, E_Int km,
     zmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
 
     //faces imin & imax
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < km1; k++)
     {
       for (E_Int j = 0; j < jm1; j++)
@@ -155,38 +158,42 @@ void K_COMPGEOM::boundingBoxStruct(E_Int im, E_Int jm, E_Int km,
         i = 0;
         ind = i+j*im1+k*im1jm1;
 
-        boundingBoxOfStructCell(ind, im, jm, km,
+        boundingBoxOfStructCell(
+          ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
 
         // imax --------------------------------------------------
         i = im1-1;
         ind = i+j*im1+k*im1jm1;
 
-        boundingBoxOfStructCell(ind, im, jm, km,
+        boundingBoxOfStructCell(
+          ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
       }
     }
 
     //faces jmin & jmax
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < km1; k++)
     {
       for (E_Int i = 0; i < im1; i++)
@@ -195,38 +202,42 @@ void K_COMPGEOM::boundingBoxStruct(E_Int im, E_Int jm, E_Int km,
         j = 0;
         ind = i+j*im1+k*im1jm1;
 
-        boundingBoxOfStructCell(ind, im, jm, km,
+        boundingBoxOfStructCell(
+          ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
 
         // jmax --------------------------------------------------
         j = jm1-1;
         ind = i+j*im1+k*im1jm1;
 
-        boundingBoxOfStructCell(ind, im, jm, km,
+        boundingBoxOfStructCell(
+          ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
       }
     }
 
     //faces kmin & kmax
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int j = 0; j < jm1; j++)
     {
       for (E_Int i = 0; i < im1; i++)
@@ -238,30 +249,33 @@ void K_COMPGEOM::boundingBoxStruct(E_Int im, E_Int jm, E_Int km,
         boundingBoxOfStructCell(ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
 
         // kmax --------------------------------------------------
         k = km1-1;
         ind = i+j*im1+k*im1jm1;
 
-        boundingBoxOfStructCell(ind, im, jm, km,
+        boundingBoxOfStructCell(
+          ind, im, jm, km,
           x, y, z,
           xmincell, ymincell, zmincell,
-          xmaxcell, ymaxcell, zmaxcell, 1);
+          xmaxcell, ymaxcell, zmaxcell, 1
+        );
 
-          xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
-          ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
-          zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
-          xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
-          yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
-          zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
+        xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xmaxcell);
+        ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], ymaxcell);
+        zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zmaxcell);
+        xminl[ithread] = K_FUNC::E_min(xminl[ithread], xmincell);
+        yminl[ithread] = K_FUNC::E_min(yminl[ithread], ymincell);
+        zminl[ithread] = K_FUNC::E_min(zminl[ithread], zmincell);
       }
     }
   }
@@ -314,9 +328,11 @@ void K_COMPGEOM::globalBoundingBox(
     E_Int posy = posyt[i];
     E_Int posz = poszt[i];
     
-    boundingBoxUnstruct(size, field->begin(posx), field->begin(posy), field->begin(posz),
+    boundingBoxUnstruct(
+      size, field->begin(posx), field->begin(posy), field->begin(posz),
       xminl, yminl, zminl,
-      xmaxl, ymaxl, zmaxl);
+      xmaxl, ymaxl, zmaxl
+    );
 
     xmin = K_FUNC::E_min(xmin, xminl);
     ymin = K_FUNC::E_min(ymin, yminl);
@@ -352,11 +368,12 @@ void K_COMPGEOM::boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
     #pragma omp for
     for (E_Int ind = 0; ind < im1*jm1*km1; ind++)
     {
-
-      boundingBoxOfStructCell(ind, im, jm, km,
+      boundingBoxOfStructCell(
+        ind, im, jm, km,
         x, y, z,
         xmin, ymin, zmin,
-        xmax, ymax, zmax, 1);
+        xmax, ymax, zmax, 1
+      );
 
       bbox(ind,1) = xmin;
       bbox(ind,2) = ymin;
