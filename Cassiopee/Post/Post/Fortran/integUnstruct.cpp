@@ -152,7 +152,15 @@ void K_POST::integUnstructCellCenter(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  E_Int elOffset = 0;
+  std::vector<E_Int> nepc(nc+1);
+  nepc[0] = 0;
+
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic+1] = nepc[ic] + nelts;
+  }
   
   result = 0.0;
 
@@ -160,6 +168,7 @@ void K_POST::integUnstructCellCenter(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
+    E_Int elOffset = nepc[ic];
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
@@ -206,8 +215,6 @@ void K_POST::integUnstructCellCenter(
         result += K_CONST::ONE_HALF * surf[i+elOffset] * (f1 + f2);
       }
     }
-
-    elOffset += nelts;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
