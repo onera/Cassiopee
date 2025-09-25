@@ -241,8 +241,9 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      res = integ3(nic, njc, nkc, center2node, posx, posy, posz,
+      res = integNormProdStruct2D(nic, njc, nkc, center2node, posx, posy, posz,
                    *fc, *ff, *ratio, resultat);
+
       if (res == 0) 
       {
         RELEASESHAREDS(coordObj, fc);
@@ -260,16 +261,29 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     }
     else if (resc == 2 && resf == 2)//cas non structure
     {
-      if ( strcmp(eltTypec,"TRI")==0 && strcmp(eltTypef,"TRI")==0) 
-        center2node = 0;
-      else if (strcmp(eltTypec,"TRI")==0 && strcmp(eltTypef,"TRI*")==0 )
-        center2node = 1;
-      else
+      // check if field is cell or node centered
+      E_Int l = strlen(eltTypef);
+      if (eltTypef[l-1] == '*') center2node = 1;
+      else center2node = 0;
+
+      res = 1;
+      std::vector<char*> eltTypecs, eltTypefs;
+      K_ARRAY::extractVars(eltTypec, eltTypecs);
+
+      // check if elt is valid (QUAD, TRI)
+      for (E_Int ic = 0; ic < eltTypecs.size(); ic++)
+      {
+        if ((strcmp(eltTypecs[ic], "QUAD") != 0) && (strcmp(eltTypecs[ic], "TRI") != 0)) res = 0;
+      }
+
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++) delete [] eltTypecs[ic];
+
+      if (res == 0)
       {
         RELEASESHAREDU(coordObj, fc, cnc);
         RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
-                        "integNormProduct: only TRI unstructured arrays are possible.");
+                        "integNormProd: only QUAD or TRI unstructured arrays are possible.");
         return NULL;
       }
 
@@ -296,10 +310,10 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      
-      res = integUnstruct3(center2node, posx, posy, posz, 
-                           *cnc, *fc, *ff, *ratio, resultat);
-      if ( res == 0 ) 
+      res = integNormProdUnstruct2D(center2node, posx, posy, posz, 
+                           *cnc, eltTypec, *fc, *ff, *ratio, resultat);
+
+      if (res == 0) 
       {
         RELEASESHAREDU(coordObj, fc, cnc);
         RELEASESHAREDU(FObj, ff, cnf);
@@ -332,111 +346,4 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
 
   PyObject* tpl = Py_BuildValue(R_, resultat);
   return tpl;
-}
-
-//=============================================================================
-// Integre les grandeurs de vect(F).vect(n)
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ3(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                     E_Int center2node,
-                     E_Int posx, E_Int posy, E_Int posz,
-                     FldArrayF& coordBlk, FldArrayF& FBlk, 
-                     FldArrayF& ratioBlk, E_Float& resultat)
-{
-  E_Int NI, NJ;
-  E_Float resultBlk = 0.;
-  
-  if (nkBlk == 1) { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1) { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1) { NI = njBlk; NJ = nkBlk; }
-  else return 0;
- 
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk((NI-1) * (NJ-1), 3);
-
-  //E_Int npts = coordBlk.getSize();
-  K_METRIC::compNormStructSurf(
-    NI, NJ, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
-    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    integNormProdStructNodeCenter(
-      NI-1, NJ-1, ratioBlk.begin(), 
-      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
-      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      resultBlk
-    );
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    integNormProdStruct(
-      NI, NJ, ratioBlk.begin(),
-      nsurfBlk.begin(1), nsurfBlk.begin(2),  nsurfBlk.begin(3),  
-      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      resultBlk
-    );
-  }
-  resultat += resultBlk;   
-  return 1;
-}
-  
-//=============================================================================
-// Integre les grandeurs de vect(F).vect(n)
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct3(E_Int center2node,
-                             E_Int posx, E_Int posy, E_Int posz,
-                             FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                             FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                             E_Float& resultat)
-{
-  E_Float resultBlk = 0.;
-  /*E_Int size = coordBlk.getSize();*/
-
-  E_Int ntotElts = 0;
-  E_Int nc = cnBlk.getNConnect();
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    FldArrayI& cm = *(cnBlk.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    ntotElts += nelts;
-  }
-  
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk(ntotElts, 3);
-  K_METRIC::compNormUnstructSurf(
-    cnBlk, "TRI",
-    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3)
-  );
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node and field FBlk in center 
-    integNormProdUnstructNodeCenter(
-      ntotElts,
-      ratioBlk.begin(), 
-      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
-      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      resultBlk
-    );
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    integNormProdUnstruct(
-      cnBlk, "TRI",
-      ratioBlk.begin(),
-      nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3),
-      FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      resultBlk
-    );
-  }
-  resultat += resultBlk;
-  return 1;
 }
