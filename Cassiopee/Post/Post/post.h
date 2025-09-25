@@ -139,8 +139,8 @@ namespace K_POST
 // field defined in centers, unstructured case
 // ============================================================================
   void integUnstructNodeCenter(
-    FldArrayI& cn,
-    const E_Float* ratio, const E_Float* surf, const E_Float* field,
+    const E_Int nelts, const E_Float* ratio, 
+    const E_Float* surf, const E_Float* field,
     E_Float& result);
 
 /*
@@ -212,11 +212,11 @@ namespace K_POST
    1 if coord is in nodes and F in centers
    resultat: integration result, same size as F variable number*3
 */
-  E_Int integ2(E_Int niBlk, E_Int njBlk, E_Int nkBlk,
+  E_Int integNormStruct2D(E_Int ni, E_Int nj, E_Int nk,
                E_Int center2node,
                E_Int posx, E_Int posy, E_Int posz,
-               FldArrayF& coordBlk, FldArrayF& FBlk,
-               FldArrayF& ratioBlk, FldArrayF& resultat);
+               FldArrayF& coord, FldArrayF& F,
+               FldArrayF& ratio, FldArrayF& resultat);
 
 /*
   Compute the surface integral of field F * normal vect(n)
@@ -227,11 +227,11 @@ namespace K_POST
   1 if coord is in nodes and F in centers
   resultat: integration result, same size as F variable number*3
 */
-  E_Int integUnstruct2(E_Int center2node,
-                       E_Int posx, E_Int posy, E_Int posz,
-                       FldArrayI& cnBlk, FldArrayF& coordBlk,
-                       FldArrayF& FBlk, FldArrayF& ratioBlk,
-                       FldArrayF& resultat);
+  E_Int integNormUnstruct2D(E_Int center2node,
+                          E_Int posx, E_Int posy, E_Int posz,
+                          FldArrayI& cnBlk, const char* eltType, FldArrayF& coordBlk,
+                          FldArrayF& FBlk, FldArrayF& ratioBlk,
+                          FldArrayF& resultat);
 
 /*
    Compute the surface integral of scalar product field
@@ -452,7 +452,7 @@ namespace K_POST
 //      I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //      Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 //=============================================================================
-  void integNormStruct(
+  void integNormStructCellCenter2D(
     const E_Int ni, const E_Int nj, const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* field, E_Float* result);
@@ -461,7 +461,7 @@ namespace K_POST
 // Compute surface integral of the field F.vect(n), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integNormStructNodeCenter(
+  void integNormStructNodeCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float* ratio, const E_Float* sx, const E_Float* sy,
     const E_Float* sz, const E_Float* field, E_Float* result);
@@ -497,7 +497,7 @@ namespace K_POST
 // I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)F(D))/4  - QUAD
 // Aire(ABCD) = ||AB^AC||/2
 // ============================================================================
-  void integNormUnstruct(
+  void integNormUnstructCellCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float *ratio,
     const E_Float *sx, const E_Float *sy, const E_Float *sz, 

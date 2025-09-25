@@ -55,7 +55,7 @@ E_Int K_POST::integUnstruct2D(E_Int center2node,
       // Compute integral, coordinates defined in node 
       // and field F in center 
       K_POST::integUnstructNodeCenter(
-        cn,
+        ntotElts,
         ratio.begin(), surf.begin(), F.begin(n),
         result
       );
@@ -113,7 +113,7 @@ E_Int K_POST::integUnstruct1D(E_Int center2node,
       // Compute integral, coordinates defined in node 
       // and field F in center 
       K_POST::integUnstructNodeCenter(
-        cn,
+        ntotElts,
         ratio.begin(), length.begin(), F.begin(n),
         result
       );
@@ -152,15 +152,7 @@ void K_POST::integUnstructCellCenter(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  std::vector<E_Int> nepc(nc+1);
-  nepc[0] = 0;
-
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    nepc[ic+1] = nepc[ic] + nelts;
-  }
+  E_Int elOffset = 0;
   
   result = 0.0;
 
@@ -168,7 +160,6 @@ void K_POST::integUnstructCellCenter(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int elOffset = nepc[ic];
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
@@ -215,6 +206,8 @@ void K_POST::integUnstructCellCenter(
         result += K_CONST::ONE_HALF * surf[i+elOffset] * (f1 + f2);
       }
     }
+
+    elOffset += nelts;
   }
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
@@ -225,33 +218,16 @@ void K_POST::integUnstructCellCenter(
 // field defined in centers, unstructured case
 // ============================================================================
 void K_POST::integUnstructNodeCenter(
-  K_FLD::FldArrayI& cn,
-  const E_Float* ratio, const E_Float* surf, const E_Float* field,
+  const E_Int nelts, const E_Float* ratio, 
+  const E_Float* surf, const E_Float* field,
   E_Float& result)
 {
-  E_Int nc = cn.getNConnect();
   result = 0.0;
+  E_Float f;
 
-  std::vector<E_Int> nepc(nc+1);
-  nepc[0] = 0;
-
-  for (E_Int ic = 0; ic < nc; ic++)
+  for (E_Int i = 0; i < nelts; i++)
   {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    nepc[ic+1] = nepc[ic] + nelts;
-  }
-
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    E_Int elOffset = nepc[ic];
-
-    for (E_Int i = 0; i < nelts; i++)
-    {
-      E_Float f = ratio[i+elOffset] * field[i+elOffset];
-      result += surf[i+elOffset] * f;
-    }
+    f = ratio[i] * field[i];
+    result += surf[i] * f;
   }
 }

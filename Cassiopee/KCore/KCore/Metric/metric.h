@@ -164,11 +164,6 @@ namespace K_METRIC
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* nsurfx, E_Float* nsurfy, E_Float* nsurfz);
 
-  void compNormUnstructSurft(
-    K_FLD::FldArrayI& cn, const char* eltType,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* nxt, E_Float* nyt, E_Float* nzt);
-    
   /* Compute barycenter of cells.
      This version does not use minOfIntvoid
      IN: im, im, km: Number of mesh vertices along %i, %j, %k
