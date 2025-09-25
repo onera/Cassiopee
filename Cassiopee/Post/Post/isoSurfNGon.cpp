@@ -105,7 +105,8 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* t = K_ARRAY::buildArray(fiso, varString, ciso, -1, "TRI");
+  E_Int api = 1; //f->getApi();
+  PyObject* t = K_ARRAY::buildArray3(fiso, varString, ciso, "TRI", api);
   return t;
 }
 

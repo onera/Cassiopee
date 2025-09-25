@@ -117,6 +117,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzones = objs.size();
   E_Int nfldTot = fields[0]->getNfld();
+  E_Int api = fields[0]->getApi();
   if (isOk == -1 || nfldTot < 4)
   {
     if (isOk == -1)
@@ -278,7 +279,7 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
 
   vector<char*> vars; K_ARRAY::extractVars(tmpStr, vars);
   E_Int varsSize = vars.size();
-  char* varStringOut = new char [strlen(tmpStr)+4];
+  char* varStringOut = new char [strlen(tmpStr)+4]; varStringOut[0] = '\0';
   
   for (E_Int v = 0; v < varsSize; v++)
   {
@@ -287,11 +288,12 @@ PyObject* K_POST::extractPoint(PyObject* self, PyObject* args)
         strcmp(var0, "y") != 0 && strcmp(var0, "CoordinateY") != 0 &&
         strcmp(var0, "z") != 0 && strcmp(var0, "CoordinateZ") != 0 )
     {
-      strcpy(varStringOut, var0);
+      if (varStringOut[0] == '\0') strcpy(varStringOut, var0);
+      else { strcat(varStringOut, ","); strcat(varStringOut, var0); }
     }
   }
   for (E_Int v = 0; v < varsSize; v++) delete[] vars[v];
-  PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, npts, 1, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(field, varStringOut, npts, 1, 1, api);
   delete an; delete[] tmpStr; delete[] varStringOut;
   return tpl;
 }
