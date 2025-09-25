@@ -102,6 +102,7 @@ PyObject* K_CONVERTER::tagDefinedBC(PyObject* self, PyObject* args)
   if (dim == 3) tagDefinedBC3D(posd, im, jm, km, *fn, ranges);
   else tagDefinedBC2D(posd, im, jm, *fn, ranges);
   
+  RELEASESHAREDS(tpl, fn);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

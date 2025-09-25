@@ -253,6 +253,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
         voisins.clear(); voisins = voisinsL; voisinsL.clear();
       }
     }
+    RELEASESHAREDS(tpl, out);
   } // cellN at nodes for NGON 
   else 
   {
@@ -312,7 +313,8 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
         //std::unique(voisinsL.begin(), voisinsL.end());
         voisins.clear(); voisins = voisinsL; voisinsL.clear();
       }
-    }     
+    }
+    RELEASESHAREDS(tpl, out);  
   }// End cellN at elements
   
   RELEASESHAREDN(faceList, indicesF);
