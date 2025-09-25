@@ -71,34 +71,33 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   posx++; posy++; posz++;
   E_Int nfld = f->getNfld()+1;
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   PyObject* tpl;
-  if (res == 1) //structured
+  if (res == 1) // structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varStringOut, 
-                              ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(nfld, varStringOut, ni, nj, nk, api);
   } 
-  else //unstructured 
+  else // unstructured 
   {
-    E_Int csize = cn->getSize()*cn->getNfld(); 
-    tpl = K_ARRAY::buildArray(nfld, varStringOut,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
+    tpl = K_ARRAY::buildArray3(nfld, varStringOut, npts,
+                               *cn, eltType, false, api, true);
   }
 
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
   // Recopie
   E_Float* fp = f->begin();
+  E_Float* f2p = f2->begin();
   for (E_Int v = 0; v < nfld-1; v++)
   {
-    for (E_Int i = 0; i < npts; i++) fnp[i] = fp[i];
-    fnp += npts; fp += npts;
+    for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+    f2p += npts; fp += npts;
   }
   // Perlin
   K_NOISE::PDS data;
   K_NOISE::initPerlinNoise(100, data);
 
-  fnp = fn.begin(nfld);
+  f2p = f2->begin(nfld);
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
@@ -118,16 +117,11 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   
   for (E_Int i = 0; i < npts; i++)
   {
-    fnp[i] = K_NOISE::perlinNoise3D( (x[i]-xmin)*dx, (y[i]-ymin)*dy, 
+    f2p[i] = K_NOISE::perlinNoise3D( (x[i]-xmin)*dx, (y[i]-ymin)*dy, 
                                      (z[i]-zmin)*dz, alpha, beta, n, data);
   }
 
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-  }
-
-  RELEASESHAREDB(res, array,f, cn);
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

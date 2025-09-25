@@ -61,21 +61,27 @@ PyObject* K_POST::selectExteriorFacesStructured(PyObject* self, PyObject* args)
   /* Exterior faces */
   E_Int nfld = f->getNfld();
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
 
   PyObject* l = PyList_New(0);
   PyObject* tpl;
+  FldArrayF* f2; E_Float* f2p;
 
   // 1D array
   if ((ni == 1 && nj == 1) || (nj == 1 && nk == 1) || (ni == 1 && nk == 1))
   {
-    tpl = K_ARRAY::buildArray(nfld, varString, 1, 1, 1);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    for (E_Int eq = 0; eq < nfld; eq++) fnp[eq] = (*f)(0, eq+1);
+    tpl = K_ARRAY::buildArray3(nfld, varString, 1, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2p = f2->begin();
+    for (E_Int eq = 0; eq < nfld; eq++) f2p[eq] = (*f)(0, eq+1);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
 
-    tpl = K_ARRAY::buildArray(nfld, varString, 1, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    for (E_Int eq = 0; eq < nfld; eq++) fnp[eq] = (*f)(npts-1, eq+1);
+    tpl = K_ARRAY::buildArray3(nfld, varString, 1, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2p = f2->begin();
+    for (E_Int eq = 0; eq < nfld; eq++) f2p[eq] = (*f)(npts-1, eq+1);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   else if (ni == 1 || nj == 1 || nk == 1) // 2d
@@ -95,121 +101,123 @@ void K_POST::selectExteriorFacesStruct3D(E_Int ni, E_Int nj, E_Int nk,
                                          PyObject* l)
 {
   E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
   E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1;
   E_Int ninj = ni*nj;
   E_Int shift;
-  E_Float* fnp; PyObject* tpl;
+  PyObject* tpl;
+  FldArrayF* f2; 
 
   // i = 1
-  tpl = K_ARRAY::buildArray(nfld, varString, nj, nk, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f2(nj*nk, nfld, fnp, true);
+  tpl = K_ARRAY::buildArray3(nfld, varString, nj, nk, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f2.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int k = 0; k < nk; k++)
-#pragma omp for
         for (E_Int j = 0; j < nj; j++)
           fv2[j+k*nj] = fv[j*ni+k*ninj];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
   // i = imax
-  tpl = K_ARRAY::buildArray(nfld, varString, nj, nk, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f3(nj*nk, nfld, fnp, true);
+  tpl = K_ARRAY::buildArray3(nfld, varString, nj, nk, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
   shift = ni1;
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f3.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int k = 0; k < nk; k++)
-#pragma omp for
         for (E_Int j = 0; j < nj; j++)
           fv2[j+k*nj] = fv[shift+j*ni+k*ninj];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
   // j = 1
-  tpl = K_ARRAY::buildArray(nfld, varString, ni, nk, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f4(ni*nk, nfld, fnp, true);
-#pragma omp parallel default(shared)
+  tpl = K_ARRAY::buildArray3(nfld, varString, ni, nk, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f4.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int k = 0; k < nk; k++)
-#pragma omp for
         for (E_Int i = 0; i < ni; i++)
           fv2[i+k*ni] = fv[i+k*ninj];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
   // j = jmax
-  tpl = K_ARRAY::buildArray(nfld, varString, ni, nk, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f5(ni*nk, nfld, fnp, true);
+  tpl = K_ARRAY::buildArray3(nfld, varString, ni, nk, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
   shift = nj1*ni;
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f5.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int k = 0; k < nk; k++)
-#pragma omp for
         for (E_Int i = 0; i < ni; i++)
           fv2[i+k*ni] = fv[i+shift+k*ninj];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
   // k = 1
-  tpl = K_ARRAY::buildArray(nfld, varString, ni, nj, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f6(ni*nj, nfld, fnp, true);
-#pragma omp parallel default(shared)
+  tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f6.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj; j++)
-#pragma omp for
         for (E_Int i = 0; i < ni; i++)
           fv2[i+j*ni] = fv[i+j*ni];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
   // k = kmax
-  tpl = K_ARRAY::buildArray(nfld, varString, ni, nj, 1);
-  fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f7(ni*nj, nfld, fnp, true);
+  tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, 1, api);
+  K_ARRAY::getFromArray3(tpl, f2);
   shift = nk1*ninj;
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f7.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj; j++)
-#pragma omp for
         for (E_Int i = 0; i < ni; i++)
           fv2[i+j*ni] = fv[i+j*ni+shift];
     }
   }
+  RELEASESHAREDS(tpl, f2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 }
 //=============================================================================
@@ -218,164 +226,165 @@ void K_POST::selectExteriorFacesStruct2D(E_Int ni, E_Int nj, E_Int nk,
                                          PyObject* l)
 {
   E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
   E_Int ni1 = ni-1; E_Int nj1 = nj-1; E_Int nk1 = nk-1;
   E_Int ninj = ni*nj;
   E_Int shift;
-  E_Float* fnp; PyObject* tpl;
+  PyObject* tpl;
+  FldArrayF* f2;
 
   if (nk == 1)
   {
     // i = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, nj, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f2(nj, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nj, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f2.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int j = 0; j < nj; j++) fv2[j] = fv[j*ni];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // i = imax
-    tpl = K_ARRAY::buildArray(nfld, varString, nj, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f3(nj, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nj, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f3.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int j = 0; j < nj; j++) fv2[j] = fv[ni1+j*ni];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // j = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, ni, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f4(ni, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, ni, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f4.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int i = 0; i < ni; i++) fv2[i] = fv[i];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // j = jmax
-    tpl = K_ARRAY::buildArray(nfld, varString, ni, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f5(ni, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, ni, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     shift = nj1*ni;
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f5.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int i = 0; i < ni; i++) fv2[i] = fv[i+shift];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-
   else if (nj == 1)
   {
     // i = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, nk, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f2(nk, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nk, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f2.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int k = 0; k < nk; k++) fv2[k] = fv[k*ninj];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // i = imax
-    tpl = K_ARRAY::buildArray(nfld, varString, nk, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f3(nk, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nk, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f3.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int k = 0; k < nk; k++) fv2[k] = fv[ni1+k*ninj];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // k = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, ni, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f4(ni, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, ni, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f4.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int i = 0; i < ni; i++) fv2[i] = fv[i];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // k = kmax
-    tpl = K_ARRAY::buildArray(nfld, varString, ni, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f5(ni, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, ni, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     shift = nk1*ninj;
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f5.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int i = 0; i < ni; i++) fv2[i] = fv[i+shift];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   else //ni = 1
   {
     // j = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, nk, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f2(nk, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nk, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f2.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int k = 0; k < nk; k++) fv2[k] = fv[k*ninj];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     
     // j= jmax
-    tpl = K_ARRAY::buildArray(nfld, varString, nk, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f3(nk, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nk, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     shift = nj1*ni;
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f3.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int k = 0; k < nk; k++) fv2[k] = fv[k*ninj+shift];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
 
     // k = 1
-    tpl = K_ARRAY::buildArray(nfld, varString, nj, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f4(nj, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nj, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f4.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int j = 0; j < nj; j++) fv2[j] = fv[j*ni];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
 
     // k = kmax
-    tpl = K_ARRAY::buildArray(nfld, varString, nj, 1, 1);
-    fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f5(nj, nfld, fnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nj, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, f2);
     shift = nk1*ninj;
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
       E_Float* fv = f.begin(nv);
-      E_Float* fv2 = f5.begin(nv);
+      E_Float* fv2 = f2->begin(nv);
       for (E_Int j = 0; j < nj; j++) fv2[j] = fv[j*ni+shift];
     }
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 }

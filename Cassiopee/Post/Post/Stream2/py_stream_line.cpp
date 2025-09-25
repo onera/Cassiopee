@@ -174,8 +174,8 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         // variables pas presentes dans l'array v
         if (posv1 == -1 || posv2 == -1 || posv3 == -1)
         {
-            for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
-            for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+            for (size_t nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
+            for (size_t nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
             PyErr_SetString(PyExc_TypeError, 
                     "streamLine: Vector is missing.");
             return NULL;
@@ -201,8 +201,8 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
       // variables pas presentes dans l'array v
       if (posv1== -1 || posv2 == -1 || posv3 == -1)
       {
-        for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
-            for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+        for (size_t nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
+            for (size_t nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
         PyErr_SetString(PyExc_TypeError, 
                 "streamLine: Vector is missing.");
         return NULL;
@@ -303,9 +303,9 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
     */
    
     delete [] varStringOut;
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
 
     return list_of_streamlines;
