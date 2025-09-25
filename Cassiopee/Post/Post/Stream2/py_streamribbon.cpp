@@ -119,7 +119,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     E_Bool skipStructured = false;
     E_Bool skipUnstructured = false; 
     E_Bool skipDiffVars = true;
-    //E_Int isOk = 
+    E_Int api = -1;
     K_ARRAY::getFromArrays( arrays, resl, 
                             structVarString, unstrVarString,
                             structF, unstrF, nit, njt, nkt, 
@@ -162,33 +162,35 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     zones.reserve(nb_zones);
     for (E_Int no = 0; no < nzonesS; no++)
     {
-        E_Int posx = K_ARRAY::isCoordinateXPresent(structVarString[no]); posx++;
-        E_Int posy = K_ARRAY::isCoordinateYPresent(structVarString[no]); posy++;
-        E_Int posz = K_ARRAY::isCoordinateZPresent(structVarString[no]); posz++;
-        E_Int posc = K_ARRAY::isCellNatureField2Present(structVarString[no]); posc++;
-        // On extrait la position du vecteur servant au streamline (a priori la vitesse!) du champs structF :
-        E_Int posv1 = K_ARRAY::isNamePresent(vnames[0], structVarString[no]);
-        E_Int posv2 = K_ARRAY::isNamePresent(vnames[1], structVarString[no]);
-        E_Int posv3 = K_ARRAY::isNamePresent(vnames[2], structVarString[no]);
-        // variables pas presentes dans l'array v
-        if (posv1 == -1 || posv2 == -1 || posv3 == -1)
-        {
-            for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
-            for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-            PyErr_SetString(PyExc_TypeError, 
-                    "streamRibbon: vector is missing.");
-            return NULL;
-        }
-        posv1++; posv2++; posv3++;
+      if (api == -1) api = structF[no]->getApi();
+      E_Int posx = K_ARRAY::isCoordinateXPresent(structVarString[no]); posx++;
+      E_Int posy = K_ARRAY::isCoordinateYPresent(structVarString[no]); posy++;
+      E_Int posz = K_ARRAY::isCoordinateZPresent(structVarString[no]); posz++;
+      E_Int posc = K_ARRAY::isCellNatureField2Present(structVarString[no]); posc++;
+      // On extrait la position du vecteur servant au streamline (a priori la vitesse!) du champs structF :
+      E_Int posv1 = K_ARRAY::isNamePresent(vnames[0], structVarString[no]);
+      E_Int posv2 = K_ARRAY::isNamePresent(vnames[1], structVarString[no]);
+      E_Int posv3 = K_ARRAY::isNamePresent(vnames[2], structVarString[no]);
+      // variables pas presentes dans l'array v
+      if (posv1 == -1 || posv2 == -1 || posv3 == -1)
+      {
+        for (unsigned int nos = 0; nos < objs.size(); nos++) RELEASESHAREDS(objs[nos], structF[nos]);
+        for (unsigned int nos = 0; nos < obju.size(); nos++) RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
+        PyErr_SetString(PyExc_TypeError, 
+                "streamRibbon: vector is missing.");
+        return NULL;
+      }
+      posv1++; posv2++; posv3++;
 
-        zones.push_back( structured_data_view( {nit[no],njt[no],nkt[no]}, structF[no], {posx, posy, posz}, 
-                                               {posv1, posv2, posv3}, posc));
+      zones.push_back( structured_data_view( {nit[no],njt[no],nkt[no]}, structF[no], {posx, posy, posz}, 
+                                              {posv1, posv2, posv3}, posc));
     }
 
     // InterpData non structuree (pour les n-gons, c'est aussi ici ?)
     //std::cout << "Construction des vues pour zones non structurees (" << nzonesU << ")." << std::flush << std::endl;
     for (E_Int no = 0; no < nzonesU; no++)
     {
+      if (api == -1) api = unstrF[no]->getApi();
       E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;
       E_Int posy = K_ARRAY::isCoordinateYPresent(unstrVarString[no]); posy++;
       E_Int posz = K_ARRAY::isCoordinateZPresent(unstrVarString[no]); posz++;
@@ -207,6 +209,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
         return NULL;
       }
       posv1++; posv2++; posv3++;
+      if (api == -1) api = 1;
 
       // On separe la connectivité par type d'elements :
       // cnt[no] => FldArrayI -> connectivité element vers sommets, je pense...
@@ -237,7 +240,7 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
         streamline sline( {x0,y0,z0}, zones, nStreamPtsMax, (signe==1) );
         FldArrayF& field = sline.field();
         E_Int number_of_points = field.getSize();
-        PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, number_of_points, 1, 1);
+        PyObject* tpl = K_ARRAY::buildArray3(field, varStringOut, number_of_points, 1, 1, api);
         //delete [] varStringOut;
         PyList_SetItem(list_of_streamlines, 0, tpl);
         return list_of_streamlines;
@@ -245,38 +248,38 @@ PyObject* K_POST::comp_streamribbon(PyObject* self, PyObject* args)
     */
     PyObject* list_of_ribbonstreams = PyList_New(beg_nodes.size());
     std::vector<FldArrayF> blockFields(beg_nodes.size());
-#   pragma omp parallel for schedule(dynamic,10)
+#pragma omp parallel for schedule(dynamic, 10)
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
-        //#pragma omp critical
-        //std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
-        try
-        {
-            ribbon_streamline r(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
-            FldArrayF& field = r.field();
-            blockFields[i] = field;            
-        }
-        catch (std::exception& err)
-        {
-            printf("Warning: streamRibbon: %s\n", err.what());
-            Py_INCREF(Py_None);
-            PyList_SetItem(list_of_ribbonstreams, i, Py_None);
-        }
+      //#pragma omp critical
+      //std::cout << "Calcul streamline no" << i+1 << std::flush << std::endl;
+      try
+      {
+        ribbon_streamline r(beg_nodes[i], zones, nStreamPtsMax, width, (signe==1));
+        FldArrayF& field = r.field();
+        blockFields[i] = field;            
+      }
+      catch (std::exception& err)
+      {
+        printf("Warning: streamRibbon: %s\n", err.what());
+        Py_INCREF(Py_None);
+        PyList_SetItem(list_of_ribbonstreams, i, Py_None);
+      }
     }
     for (size_t i = 0; i < beg_nodes.size(); ++i)
     {
-        FldArrayF& field = blockFields[i];
-        E_Int number_of_points = field.getSize()/2;
-        if (number_of_points > 0)
-        {
-            PyObject* tpl = K_ARRAY::buildArray(field, varStringOut, 2, number_of_points, 1);
-            PyList_SetItem(list_of_ribbonstreams, i, tpl);
-        }
-        else
-        {
-            Py_INCREF(Py_None);
-            PyList_SetItem(list_of_ribbonstreams, i, Py_None);
-        }
+      FldArrayF& field = blockFields[i];
+      E_Int number_of_points = field.getSize()/2;
+      if (number_of_points > 0)
+      {
+        PyObject* tpl = K_ARRAY::buildArray3(field, varStringOut, 2, number_of_points, 1, api);
+        PyList_SetItem(list_of_ribbonstreams, i, tpl);
+      }
+      else
+      {
+        Py_INCREF(Py_None);
+        PyList_SetItem(list_of_ribbonstreams, i, Py_None);
+      }
     }
     
     // Compact - Essai pour enlever des streamlines qui auraient 0 points
