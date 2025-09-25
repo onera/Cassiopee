@@ -220,6 +220,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     }
   }
   // sortie
+  RELEASESHAREDS(tpl, fieldROut);
   RELEASESHAREDB(resr, arrayR, fr, cnr); 
   RELEASESHAREDB(resd, arrayD, fd, cnd); 
   RELEASESHAREDN(pyIndRcv, rcvPtsI);

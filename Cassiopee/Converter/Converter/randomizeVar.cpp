@@ -78,6 +78,7 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
     }
   }
 
+  RELEASESHAREDS(tpl, fn);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 } 
