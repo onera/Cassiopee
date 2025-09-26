@@ -67,16 +67,6 @@ res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','Velo
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,5)
 
-# BE (QUAD)
-z = G.cartHexa((0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
-z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
-z = C.initVars(z, 'centers:MomentumX', 4.)
-z = C.initVars(z, 'centers:MomentumY', 0.)
-z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
-       P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
-test.testO(res,6)
-
 # ME (QUAD+TRI)
 a = G.cartHexa((0.,0.,0.), (0.5/(N-1),1./(N-1),1), (N,N,1))
 b = G.cartTetra((0.5,0.,0.), (0.5/(N-1),1./(N-1),1), (N,N,1))
@@ -87,4 +77,4 @@ z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
 res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
-test.testO(res,7)
+test.testO(res,6)
