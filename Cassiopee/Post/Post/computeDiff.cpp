@@ -77,6 +77,7 @@ PyObject* K_POST::computeDiff(PyObject* self, PyObject* args)
 
   E_Int ind, indm1, indp1;
   E_Float vali1, vali2, valj1, valj2, valk1, valk2;
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   E_Float find;
   E_Int ninj = ni*nj;
@@ -317,14 +318,13 @@ PyObject* K_POST::computeDiff(PyObject* self, PyObject* args)
       }      
     }
     RELEASESHAREDB(res, array, f, cn);
-    PyObject* tpl = K_ARRAY::buildArray3(*diff, var, ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*diff, var, ni, nj, nk, api);
     delete diff;
     return tpl;
   } // fin structure
   else // non structure
   {
-    E_Int ok = 0; 
-    E_Int api = f->getApi();
+    E_Int ok = 0;
     FldArrayF* diff;
     // centres ou noeuds ?
     if (strcmp(eltType,"BAR") == 0 || strcmp(eltType,"TRI") == 0 || 

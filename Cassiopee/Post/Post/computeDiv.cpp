@@ -100,6 +100,7 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   if (nfld < 6)
   {
@@ -143,7 +144,7 @@ PyObject* K_POST::computeDiv(PyObject* self, PyObject* args)
     E_Int ni1 = K_FUNC::E_max(1, ni-1);
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
-    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1, api);
     K_ARRAY::getFromArray3(tpl, f2);
     E_Int ierr = computeDivStruct(
       ni, nj, nk,

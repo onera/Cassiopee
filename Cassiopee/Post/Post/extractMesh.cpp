@@ -324,6 +324,8 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   E_Int posyo = K_ARRAY::isCoordinateYPresent(varStringOut); posyo++; 
   E_Int poszo = K_ARRAY::isCoordinateZPresent(varStringOut); poszo++;
 
+  E_Int api = -1;
+
   // Recherche des cellules d'interpolation
   vector<FldArrayF*> structFields;
   vector<FldArrayF*> unstructFields; vector<FldArrayI*> cnout;
@@ -331,6 +333,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   for (E_Int v = 0; v < ns0; v++)
   {
     FldArrayF& f = *structF0[v];// receptor
+    if (api == -1) api = f.getApi();
     E_Int nbI = f.getSize();
     E_Float vol = K_CONST::E_MAX_FLOAT;
     FldArrayF* interp = new FldArrayF(nbI, nvars); //x,y,z + interpolated field
@@ -390,6 +393,7 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   for (E_Int v = 0; v < nu0; v++)
   {
     FldArrayF& f = *unstrF0[v];
+    if (api == -1) api = f.getApi();
     E_Int nbI = f.getSize();
     E_Float vol = K_CONST::E_MAX_FLOAT;
     FldArrayF* interp = new FldArrayF(nbI, nvars); //x,y,z + interpolated field
@@ -461,6 +465,8 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < nu0; nos++)
     RELEASESHAREDU(objut0[nos], unstrF0[nos], cnt0[nos]);
 
+  if (api == -1) api = 1;
+
   //------------------------------------//
   // Construction de l'arrays de sortie //
   //------------------------------------//
@@ -474,14 +480,14 @@ PyObject* K_POST::extractMesh(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < ns0; nos++)
   {
     tpl = K_ARRAY::buildArray3(*structFields[nos], varStringOut,
-                               nit0[nos], njt0[nos], nkt0[nos]);
+                               nit0[nos], njt0[nos], nkt0[nos], api);
     delete structFields[nos]; 
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int nou = 0; nou < nu0; nou++)
   {
     tpl = K_ARRAY::buildArray3(*unstructFields[nou], varStringOut, *cnout[nou],
-                               eltType0[nou]);
+                               eltType0[nou], api);
     
     delete unstructFields[nou]; delete cnout[nou];
     PyList_Append(l, tpl); Py_DECREF(tpl);

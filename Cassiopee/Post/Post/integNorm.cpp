@@ -261,7 +261,7 @@ PyObject* K_POST::integNorm(PyObject* self, PyObject* args)
       K_ARRAY::extractVars(eltTypec, eltTypecs);
 
       // check if elt is valid (QUAD, TRI)
-      for (E_Int ic = 0; ic < eltTypecs.size(); ic++)
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++)
       {
         if ((strcmp(eltTypecs[ic], "QUAD") != 0) && (strcmp(eltTypecs[ic], "TRI") != 0)) res = 0;
       }

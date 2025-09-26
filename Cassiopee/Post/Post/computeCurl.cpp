@@ -99,6 +99,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
   }
   
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   if (nfld < 6)
   {
@@ -118,8 +119,7 @@ PyObject* K_POST::computeCurl(PyObject* self, PyObject* args)
     E_Int ni1 = K_FUNC::E_max(1, ni-1);
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
-    E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray3(3, varStringOut, ni1, nj1, nk1);
+    tpl = K_ARRAY::buildArray3(3, varStringOut, ni1, nj1, nk1, api);
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* rotx = f2->begin(1);
     E_Float* roty = f2->begin(2);

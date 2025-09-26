@@ -80,6 +80,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Number of vector fields whose divergence to compute (three components for each)
+  E_Int api = fc->getApi();
   E_Int nfld = fc->getNfld(); // total number of scalar fields
   vector<char*> vars;
   K_ARRAY::extractVars(varStringc, vars);
@@ -237,10 +238,12 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDN(fieldZ, bfieldZ);
   }
   
-  // Build unstructured NGON array from existing connectivity & empty fields
-  FldArrayF* gp = new FldArrayF(nelts, nfld, true); gp->setAllValuesAtNull();
-  PyObject* tpl = K_ARRAY::buildArray3(*gp, varStringOut, *cn, "NGON");
-  delete gp; K_ARRAY::getFromArray3(tpl, gp);
+  // Build unstructured NGON array from existing connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varStringOut, nelts,
+                                       *cn, "NGON", true, api, true);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();  // empty fields
 
   FldArrayF surf(nfaces, 4);
   E_Float* sxp = surf.begin(1);
@@ -272,7 +275,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   E_Int i1, i2;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpdv = gp->begin(n+1);
+    E_Float* gpdv = gn->begin(n+1);
     E_Float* fpx = faceField.begin(3*n+1);
     E_Float* fpy = faceField.begin(3*n+2);
     E_Float* fpz = faceField.begin(3*n+3);
@@ -298,7 +301,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   {
     for (E_Int n = 1; n <= nfld; n++)
     {
-      E_Float* gpdv = gp->begin(n);
+      E_Float* gpdv = gn->begin(n);
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -309,7 +312,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
 
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(arrayc, fc, cnc);
-  RELEASESHAREDS(tpl, gp);
+  RELEASESHAREDS(tpl, gn);
   if (cellNc != Py_None) Py_DECREF(cellNc);
 
   delete [] varStringOut;
@@ -512,6 +515,7 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Int nbIntIJ = nbIntI + nbIntJ;
   E_Int nbIntTot = nbIntIJ + nbIntK;
   
+  E_Int api = fc.getApi();
   E_Int nfldg = fc.getNfld(); // nfldg: num of scalar components
   E_Int nfld = nfldg/3; // nfld: num of vector fields
   E_Int ncells = nicnjc*nkc;
@@ -803,9 +807,10 @@ PyObject* K_POST::computeDiv2Struct3D(
   }
 
   // Build empty array
-  PyObject* tpl = K_ARRAY::buildArray3(nfld,varStringOut, nic, njc, nkc);
-  E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF gp(ncells, nfld, gnp, true); gp.setAllValuesAtNull();
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varStringOut, nic, njc, nkc, api);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();
 
   FldArrayF surf(nbIntTot,3);
   FldArrayF centerInt(nbIntTot,3);
@@ -828,7 +833,7 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Float ffx, ffy, ffz;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpdv = gp.begin(n+1);
+    E_Float* gpdv = gn->begin(n+1);
     E_Float* fpx = faceField.begin(3*n+1);
     E_Float* fpy = faceField.begin(3*n+2);
     E_Float* fpz = faceField.begin(3*n+3);
@@ -854,7 +859,7 @@ PyObject* K_POST::computeDiv2Struct3D(
   {
     for (E_Int n = 1; n <= nfld; n++)
     {
-      E_Float* gpdv = gp.begin(n);
+      E_Float* gpdv = gn->begin(n);
       #pragma omp for
       for (E_Int i = 0; i < ncells; i++)
       {
@@ -863,6 +868,7 @@ PyObject* K_POST::computeDiv2Struct3D(
     }
   }
   
+  RELEASESHAREDS(tpl, gn);
   return tpl;
 }
 //=============================================================================
@@ -884,6 +890,7 @@ PyObject* K_POST::computeDiv2Struct2D(
   E_Int nbIntJ = nicnj;
   E_Int nbIntIJ = nbIntI + nbIntJ;
   E_Int nbIntTot = nbIntIJ;
+  E_Int api = fc.getApi();
   E_Int nfldg = fc.getNfld(); // nfldg: num of scalar components
   E_Int nfld = nfldg/2;
   E_Int ncells = nicnjc;
@@ -1132,9 +1139,10 @@ PyObject* K_POST::computeDiv2Struct2D(
   }
 
   // Build empty array
-  PyObject* tpl = K_ARRAY::buildArray3(nfld,varStringOut, nic, njc, nkc);
-  E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF gp(ncells, nfld, gnp, true); gp.setAllValuesAtNull();
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varStringOut, nic, njc, nkc, api);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();
 
   E_Int inti = 0; E_Int intj = 0;
   if (ixyz == 0) { inti = 1; intj = 2; }
@@ -1148,7 +1156,7 @@ PyObject* K_POST::computeDiv2Struct2D(
   E_Float ffi, ffj;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpdv = gp.begin(n+1);
+    E_Float* gpdv = gn->begin(n+1);
     E_Float* fpi = faceField.begin(2*n+1);
     E_Float* fpj = faceField.begin(2*n+2);
     for (E_Int i = 0; i < nbIntTot; i++)
@@ -1173,7 +1181,7 @@ PyObject* K_POST::computeDiv2Struct2D(
     E_Float voli;
     for (E_Int n = 1; n <= nfld; n++)
     {
-      E_Float* gpdv = gp.begin(n);
+      E_Float* gpdv = gn->begin(n);
       #pragma omp for
       for (E_Int indcell = 0; indcell < ncells; indcell++)
       {
@@ -1184,6 +1192,7 @@ PyObject* K_POST::computeDiv2Struct2D(
     }
   }
   
+  RELEASESHAREDS(tpl, gn);
   return tpl;
 }
 

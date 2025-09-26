@@ -54,11 +54,8 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
   {
     if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int nv;
-      E_Int* ngon = cn->getNGon();
-      E_Int* indPG = cn->getIndPG();
-      cn->getFace(0, nv, ngon, indPG);
-      if (nv == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
+      E_Int dim = cn->getDim();
+      if (dim == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
       else tpl = selectExteriorFacesNGon3D(varString, *f, *cn, indices);
     }
     else tpl = exteriorFacesBasic(varString, *f, *cn, eltType, indices);
@@ -77,7 +74,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                           E_Int ni, E_Int nj, E_Int nk, 
                                           PyObject* indices)
 {
-  E_Int api = 1;
+  E_Int api = f.getApi();
   E_Int nfld = f.getNfld();
   PyObject* tpl = NULL;
   bool boolIndir = false;
@@ -478,7 +475,8 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                    1.e-12, newEltType,
                                    *fnodes, *connect);
 
-    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);
+    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString,
+                                          *connect, newEltType, api);
     RELEASESHAREDU(tpl, fnodes, connect);
     if (boolIndir)
     {
