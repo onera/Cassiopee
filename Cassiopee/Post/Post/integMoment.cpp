@@ -206,10 +206,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       // coord et F de meme taille ?
       if (nic == nif && njc == njf && nkc == nkf)
         center2node = 0;
-      
       else if (nic == nif+1 && njc == njf+1 && nkc == nkf+1)
         center2node = 1;
-      
       else
       {
         if ((nic == 1 && njc == njf+1 && nkc == nkf+1) || 
@@ -250,19 +248,16 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      switch (case1D) 
-      {
-        case 1:
-          res = integ41D(nic, njc, nkc, center2node, 
-                         posx, posy, posz, cx, cy, cz, 
-                         *fc, *ff, *ratio, resultat);
-          break;
-        default:
-          res = integ4(nic, njc, nkc, center2node, 
-                       posx, posy, posz, cx, cy, cz,
-                       *fc, *ff, *ratio, resultat);
-          break;
-      }
+
+      if (case1D == 1)
+          res = integMomentStruct1D(nic, njc, nkc, center2node,
+                                    posx, posy, posz, cx, cy, cz,
+                                    *fc, *ff, *ratio, resultat);
+      else
+          res = integMomentStruct2D(nic, njc, nkc, center2node, 
+                                    posx, posy, posz, cx, cy, cz,
+                                    *fc, *ff, *ratio, resultat);
+
       if (res == 0) 
       {
         RELEASESHAREDS(coordObj, fc);
@@ -278,21 +273,33 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       if (nRatioArrays == 0 || resr != 1) delete ratio;
       else RELEASESHAREDS(ratioObj, ratio);
     }
-    
-    else if (resc == 2 && resf == 2) // cas non structure
+    else if (resc == 2 && resf == 2) // ME
     {
-      if ((strcmp(eltTypec, "TRI") == 0 && strcmp(eltTypef, "TRI") == 0) || 
-          (strcmp(eltTypec, "BAR") == 0 && strcmp(eltTypef, "BAR") == 0))
-        center2node = 0;
-      else if ((strcmp(eltTypec, "TRI") == 0 && strcmp(eltTypef, "TRI*") == 0) || 
-               (strcmp(eltTypec, "BAR") == 0 && strcmp(eltTypef, "BAR*") == 0))
-        center2node = 1;
-      else
+      // check if field is cell or node centered
+      E_Int l = strlen(eltTypef);
+      if (eltTypef[l-1] == '*') center2node = 1;
+      else center2node = 0;
+
+      res = 1;
+      std::vector<char*> eltTypecs, eltTypefs;
+      K_ARRAY::extractVars(eltTypec, eltTypecs);
+
+      // check if elt is valid (BAR, QUAD, TRI)
+      for (E_Int ic = 0; ic < eltTypecs.size(); ic++)
+      {
+        if (strcmp(eltTypecs[ic], "BAR") == 0) case1D = 1;
+        else if ((strcmp(eltTypecs[ic], "QUAD") == 0) || (strcmp(eltTypecs[ic], "TRI") == 0)) case1D = 0;
+        else res = 0;
+      }
+
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++) delete [] eltTypecs[ic];
+
+      if (res == 0)
       {
         RELEASESHAREDU(coordObj, fc, cnc);
-        RELEASESHAREDU(FObj, ff, cnf);        
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
-                        "integMoment: only TRI or BAR unstructured arrays are possible.");
+                        "integMoment: only TRI, QUAD, or BAR unstructured arrays are possible.");
         return NULL;
       }
       
@@ -320,12 +327,13 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
 
       // integ sur chaque bloc
       res = 0;
-      if (strcmp(eltTypec, "TRI") == 0)
-        res = integUnstruct4(center2node, posx, posy, posz, cx, cy, cz, 
-                             *cnc, *fc, *ff, *ratio, resultat); 
+
+      if (case1D == 1)
+        res = integMomentUnstruct1D(center2node, posx, posy, posz, cx, cy, cz, 
+                                    *cnc, eltTypec, *fc, *ff, *ratio, resultat); 
       else
-        res = integUnstruct41D(center2node, posx, posy, posz, cx, cy, cz, 
-                               *cnc, *fc, *ff, *ratio, resultat);
+        res = integMomentUnstruct2D(center2node, posx, posy, posz, cx, cy, cz, 
+                                    *cnc, eltTypec, *fc, *ff, *ratio, resultat);
         
       if (res == 0)
       {
@@ -363,255 +371,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < nFld; i++)
   {
-#ifdef E_DOUBLEREAL  
-    tpl = Py_BuildValue("d", resultat[i]);
-#else
-    tpl = Py_BuildValue("f", resultat[i]);
-#endif
+    tpl = Py_BuildValue(R_, resultat[i]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   return l;
 }
-
-//=============================================================================
-// Integre "surfaciquement" les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ4(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                     E_Int center2node, 
-                     E_Int posx, E_Int posy, E_Int posz,
-                     E_Float cx, E_Float cy, E_Float cz, 
-                     FldArrayF& coordBlk, 
-                     FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                     FldArrayF& resultat)
-{
-  E_Int NI, NJ;
-  FldArrayF res(3);
-  
-  if (nkBlk == 1)
-  { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1)
-  { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1)
-  { NI = njBlk; NJ = nkBlk; }
-  else return 0;
-  
-  E_Int ncells = (NI-1)*(NJ-1);
-  FldArrayF surfBlk(ncells);
-  
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  K_METRIC::compSurfStruct2D(
-    NI, NJ, 1,
-    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    surfBlk.begin());
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    integMomentStructNodeCenter(
-      NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
-      res.begin()
-    );
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    integMomentStruct(
-      NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
-      res.begin()
-    );
-  }
-  
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];   
-  return 1;
-}
-//=============================================================================
-// Integre "lineairement" les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                       E_Int center2node, 
-                       E_Int posx, E_Int posy, E_Int posz,
-                       E_Float cx, E_Float cy, E_Float cz, 
-                       FldArrayF& coordBlk, 
-                       FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                       FldArrayF& resultat)
-{
-  E_Int NI, NJ, NK;
-  FldArrayF res(3);
-  resultat.setAllValuesAtNull();
-
-  if (nkBlk == 1 && njBlk == 1)
-  { NI = niBlk; NJ = njBlk; NK = nkBlk; }
-  else if (njBlk == 1 && niBlk == 1)
-  { NI = nkBlk; NJ = njBlk; NK = niBlk; }
-  else if (niBlk == 1 && nkBlk == 1)
-  { NI = njBlk; NJ = niBlk; NK = nkBlk; }
-  else return 0;
-  
-  FldArrayF lengthBlk(NI-1);
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  K_METRIC::compSurfStruct1D(
-    NI, NJ, NK,
-    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    lengthBlk.begin());
-  
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node and field FBlk in center 
-    integMomentStructNodeCenter1D(
-      NI, cx, cy, cz, ratioBlk.begin(), 
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
-      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
-      res.begin()
-    );
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    integMomentStruct1D(
-      NI, cx, cy, cz, ratioBlk.begin(),
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      res.begin()
-    );
-  }
-  
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];
-  
-  return 1;
-}
-  
-  
-//=============================================================================
-// Integre les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct4(E_Int center2node,
-                             E_Int posx, E_Int posy, E_Int posz,
-                             E_Float cx, E_Float cy, E_Float cz, 
-                             FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                             FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                             FldArrayF& resultat)
-{
-  FldArrayF res(3);
-
-  E_Int ntotElts = 0;
-  E_Int nc = cnBlk.getNConnect();
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    FldArrayI& cm = *(cnBlk.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    ntotElts += nelts;
-  }
- 
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF snx(ntotElts); // normale a la surface  
-  FldArrayF sny(ntotElts);
-  FldArrayF snz(ntotElts);
-  FldArrayF surfBlk(ntotElts);
-
-  K_METRIC::compSurfUnstruct(
-    cnBlk, "TRI",
-    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    snx.begin(), sny.begin(), snz.begin(), surfBlk.begin()
-  );
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node and field FBlk in center 
-    integMomentUnstructNodeCenter(
-      cnBlk, "TRI",
-      cx, cy, cz, ratioBlk.begin(),
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      res.begin()
-    );
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    integMomentUnstruct(
-      cnBlk, "TRI",
-      cx, cy, cz, ratioBlk.begin(),
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-      surfBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      res.begin()
-    );
-  }
-
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];
-   
-  return 1;
-}
-//=============================================================================
-// Integre les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct41D(E_Int center2node,
-                               E_Int posx, E_Int posy, E_Int posz,
-                               E_Float cx, E_Float cy, E_Float cz, 
-                               FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                               FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                               FldArrayF& resultat)
-{
-  FldArrayF res(3);
-  
-  E_Int ntotElts = 0;
-  E_Int nc = cnBlk.getNConnect();
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    FldArrayI& cm = *(cnBlk.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    ntotElts += nelts;
-  }
-
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF lengthBlk(ntotElts);
-  K_METRIC::compUnstructSurf1d(
-    cnBlk, "BAR",
-    coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz),
-    lengthBlk.begin()
-  );
-
-  if (center2node == 1) 
-  { 
-    // Compute integral, coordinates defined in node and field FBlk in center 
-    integMomentUnstructNodeCenter1D(
-      cnBlk, "BAR",
-      cx, cy, cz, ratioBlk.begin(),
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
-      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      res.begin()
-    );
-  }
-  else
-  {
-    integMomentUnstruct1D(
-      cnBlk, "BAR",
-      cx, cy, cz, ratioBlk.begin(),
-      coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
-      lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-      res.begin()
-    );
-  }
-
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];   
-
-  return 1;
-}
-  
-  
