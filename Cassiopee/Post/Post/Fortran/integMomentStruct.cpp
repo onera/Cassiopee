@@ -17,14 +17,129 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
+# include "Array/Array.h"
 
+//=============================================================================
+// Integre "surfaciquement" les grandeurs de M = OM^F
+// Retourne 1 si success, 0 si echec
+//=============================================================================
+E_Int K_POST::integMomentStruct2D(E_Int ni, E_Int nj, E_Int nk, 
+                     E_Int center2node, 
+                     E_Int posx, E_Int posy, E_Int posz,
+                     E_Float cx, E_Float cy, E_Float cz, 
+                     FldArrayF& coord, 
+                     FldArrayF& F, FldArrayF& ratio, 
+                     FldArrayF& resultat)
+{
+  E_Int NI, NJ;
+  FldArrayF res(3);
+  
+  if      (nk == 1) {NI = ni; NJ = nj;}
+  else if (nj == 1) {NI = ni; NJ = nk;}
+  else if (ni == 1) {NI = nj; NJ = nk;}
+  else return 0;
+
+  
+  E_Int ncells = (NI-1)*(NJ-1);
+  FldArrayF surf(ncells);
+  
+  // Compute surface of each "block" i cell, with coordinates coord
+  K_METRIC::compSurfStruct2D(
+    NI, NJ, 1,
+    coord.begin(posx), coord.begin(posy), coord.begin(posz),
+    surf.begin());
+
+  if (center2node == 1)
+  {
+    // Compute integral, coordinates defined in node 
+    // and field F in center 
+    integMomentStructNodeCenter2D(
+      NI, NJ, cx, cy, cz, ratio.begin(), 
+      coord.begin(posx), coord.begin(posy), coord.begin(posz),
+      surf.begin(), F.begin(1), F.begin(2), F.begin(3), 
+      res.begin()
+    );
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    integMomentStructCellCenter2D(
+      NI, NJ, cx, cy, cz, ratio.begin(), 
+      coord.begin(posx), coord.begin(posy), coord.begin(posz),
+      surf.begin(), F.begin(1), F.begin(2), F.begin(3), 
+      res.begin()
+    );
+  }
+  
+  resultat[0] += res[0];
+  resultat[1] += res[1];
+  resultat[2] += res[2];   
+  return 1;
+}
+
+//=============================================================================
+// Integre "lineairement" les grandeurs de M = OM^F
+// Retourne 1 si success, 0 si echec
+//=============================================================================
+E_Int K_POST::integMomentStruct1D(E_Int ni, E_Int nj, E_Int nk, 
+                       E_Int center2node, 
+                       E_Int posx, E_Int posy, E_Int posz,
+                       E_Float cx, E_Float cy, E_Float cz, 
+                       FldArrayF& coord, 
+                       FldArrayF& F, FldArrayF& ratio, 
+                       FldArrayF& resultat)
+{
+  E_Int NI;
+  FldArrayF res(3);
+  resultat.setAllValuesAtNull();
+
+  if      (ni > 1) NI = ni;
+  else if (nj > 1) NI = nj;
+  else if (nk > 1) NI = nk;
+  else return 0;
+  
+  FldArrayF length(NI-1);
+  // Compute surface of each "block" i cell, with coordinates coord
+  K_METRIC::compSurfStruct1D(
+    NI, 1, 1,
+    coord.begin(posx), coord.begin(posy), coord.begin(posz),
+    length.begin());
+  
+  if (center2node == 1)
+  {
+    // Compute integral, coordinates defined in node and field F in center 
+    integMomentStructNodeCenter1D(
+      NI, cx, cy, cz, ratio.begin(), 
+      coord.begin(posx), coord.begin(posy), coord.begin(posz), 
+      length.begin(), F.begin(1), F.begin(2), F.begin(3), 
+      res.begin()
+    );
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    integMomentStructCellCenter1D(
+      NI, cx, cy, cz, ratio.begin(),
+      coord.begin(posx), coord.begin(posy), coord.begin(posz),
+      length.begin(), F.begin(1), F.begin(2), F.begin(3),
+      res.begin()
+    );
+  }
+  
+  resultat[0] += res[0];
+  resultat[1] += res[1];
+  resultat[2] += res[2];
+  
+  return 1;
+}
+  
 // ============================================================================
 // Compute surface integral of the moment M (OM^F), coordinates 
 //     and field have the same size
 //     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-void K_POST::integMomentStruct(const E_Int ni, const E_Int nj,
+void K_POST::integMomentStructCellCenter2D(const E_Int ni, const E_Int nj,
   const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt,
   const E_Float* zt, const E_Float* surf,
@@ -124,12 +239,11 @@ void K_POST::integMomentStruct(const E_Int ni, const E_Int nj,
 //     and field have the same size
 //     I(AB) = LENGTH(ABCD)*(F(A)+F(B))/2
 // ============================================================================
-void K_POST::integMomentStruct1D(
+void K_POST::integMomentStructCellCenter1D(
   const E_Int ni, const E_Float cx, const E_Float cy,
   const E_Float cz, const E_Float* ratio, const E_Float* xt, const E_Float* yt,
   const E_Float* zt, const E_Float* length, const E_Float* vx, const E_Float* vy,
-  const E_Float* vz, E_Float* result
-)
+  const E_Float* vz, E_Float* result)
 {
   E_Int ind1, ind2, ind;
   E_Float f1x, f2x;
@@ -189,12 +303,11 @@ void K_POST::integMomentStruct1D(
   result[2] = K_CONST::ONE_HALF * res3;
 }
 
-
 //=============================================================================
 // Compute surface integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-void K_POST::integMomentStructNodeCenter(const E_Int ni, const E_Int nj,
+void K_POST::integMomentStructNodeCenter2D(const E_Int ni, const E_Int nj,
   const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt,
   const E_Float* zt, const E_Float* surf, const E_Float* vx,

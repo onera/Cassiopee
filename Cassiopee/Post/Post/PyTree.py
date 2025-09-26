@@ -1378,8 +1378,8 @@ def integNormProduct(t, vector=[]):
 def integMoment(t, center=(0.,0.,0.), vector=[]):
     """Integral of moments.
     Usage: integMoment(t, (xc, yc, zc), vector)"""
-    info = extractArraysForVectorInteg__(t, vector)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForVectorInteg__(t, vector, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
