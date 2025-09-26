@@ -86,7 +86,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   for (int i = 0; i < nblkArrays; i++)
   {
     tpl = PyList_GetItem(blkArrays, i);
-    res = K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl, cn, eltType);
+    res = K_ARRAY::getFromArray3(tpl, varString, f, nil, njl, nkl, cn, eltType);
     
     if (res == 1) // structured
     {
@@ -349,7 +349,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nzone; i++)
   {
     tpl = K_ARRAY::buildArray3(*vectOfRatios[i], "ratio",
-                               nis[i], njs[i], nks[i]);
+                               nis[i], njs[i], nks[i], api);
     delete vectOfRatios[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

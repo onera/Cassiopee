@@ -102,6 +102,7 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   if (nfld < 6)
   {
@@ -122,7 +123,7 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
     E_Int nj1 = K_FUNC::E_max(1, nj-1);
     E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ncells = ni1*nj1*nk1;
-    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1);
+    tpl = K_ARRAY::buildArray3(1, varStringOut, ni1, nj1, nk1, api);
     
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* fnp = f2->begin(1);
@@ -144,7 +145,6 @@ PyObject* K_POST::computeNormCurl(PyObject* self, PyObject* args)
   else // non structure 
   {
     E_Int npts = f->getSize();
-    E_Int api = f->getApi();
     E_Bool center = true;
     E_Bool copyConnect = true;
 

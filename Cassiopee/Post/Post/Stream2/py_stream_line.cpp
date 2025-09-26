@@ -238,7 +238,7 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
         streamline sline( {x0,y0,z0}, zones, nStreamPtsMax, (signe==2) );
         FldArrayF& field = sline.field();
         E_Int number_of_points = field.getSize();
-        PyObject* tpl = K_ARRAY::buildArray3(field, varStringOut, number_of_points, 1, 1);
+        PyObject* tpl = K_ARRAY::buildArray3(field, varStringOut, number_of_points, 1, 1, api);
         //delete [] varStringOut;
         PyList_SetItem(list_of_streamlines, 0, tpl);
         return list_of_streamlines;

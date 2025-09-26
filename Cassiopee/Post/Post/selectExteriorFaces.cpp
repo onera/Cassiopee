@@ -74,7 +74,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                           E_Int ni, E_Int nj, E_Int nk, 
                                           PyObject* indices)
 {
-  E_Int api = 1;
+  E_Int api = f.getApi();
   E_Int nfld = f.getNfld();
   PyObject* tpl = NULL;
   bool boolIndir = false;
@@ -475,7 +475,8 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
                                    1.e-12, newEltType,
                                    *fnodes, *connect);
 
-    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType);
+    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString,
+                                          *connect, newEltType, api);
     RELEASESHAREDU(tpl, fnodes, connect);
     if (boolIndir)
     {

@@ -265,7 +265,7 @@ PyObject* K_POST::computeVariables(PyObject* self, PyObject* args)
 
   if (res == 1)
   {
-    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*fnew, varStringOut, ni, nj, nk, api);
     delete fnew; 
     RELEASESHAREDS(array, f);
     return tpl;
