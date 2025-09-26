@@ -1,4 +1,4 @@
-# test driver
+# driver: parametric sketch from lines and spline
 import OCC.Driver as D
 
 # Create parameter

@@ -319,7 +319,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
       
     }
     FldArrayF* f2;
-    K_ARRAY::getFromArray3(tpl, f2); 
+    K_ARRAY::getFromArray3(tpl, f2);
     errors.push_back(f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }

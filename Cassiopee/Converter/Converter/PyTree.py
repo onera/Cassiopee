@@ -534,8 +534,9 @@ def setValue(t, var, ind, val):
     else: loc = '*'; var = u[0]
 
     c = 0
-    if not isinstance(val, list): val = [val]
-
+    if isinstance(val, float): val = [val]
+    elif isinstance(val, int): val=[float(val)]
+    
     # dim
     dim = Internal.getZoneDim(z); cellDim = dim[4]
     if dim[0] == 'Structured': # output im,jm,km

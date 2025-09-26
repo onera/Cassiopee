@@ -219,8 +219,8 @@ PyObject* K_CONVERTER::copy(PyObject* self, PyObject* args)
   if (res == 1)
   { 
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
-    FldArrayF* f2; FldArrayI* cn2;
-    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
 
     #pragma omp parallel
     {

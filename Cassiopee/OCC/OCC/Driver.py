@@ -239,16 +239,6 @@ class Entity:
                 raise(ValueError, "Wrong argument.")
             c += 1
 
-        # global parameters (always added)
-        P = Vec3((0,0,0), name='%s.position'%self.name)
-        self.P.append(P)
-        P = Point((0,0,0), name='%s.rotCenter'%self.name)
-        self.P.append(P)
-        P = Vec3((0,0,1), name='%s.rotAxis'%self.name)
-        self.P.append(P)
-        P = Scalar(0., name='%s.rotAngle'%self.name)
-        self.P.append(P)
-
         # hook on cad
         self.update()
 
@@ -305,11 +295,7 @@ class Entity:
             OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
-
-        # global positionning
-        OCC._translate(self.hook, self.P[-4].v())
-        OCC._rotate(self.hook, self.P[-3].v(), self.P[-2].v(), self.P[-1].v)
-
+        
     def print(self, shift=0):
         for c, P in enumerate(self.P):
             print(" "*shift, P.name)
@@ -358,38 +344,59 @@ def Arc(P1, P2, P3, name=None):
 
 #============================================================
 class Sketch():
-    """Define a parametric sketch."""
-    def __init__(self, listEdges=[], name="sketch"):
+    """Define a parametric sketch from a list of entities."""
+    def __init__(self, listEntities=[], name="sketch"):
         # name
-        self.name = getName("sketch")
-        # entities
-        self.edges = listEdges
+        self.name = getName(name)
+        # dependant entities
+        self.entities = listEntities
+        # type
+        self.type = "sketch"
+        # hook
         self.hook = None
+        # global parameters (always added)
+        self.P = []
+        P = Vec3((0,0,0), name='%s.position'%self.name)
+        self.P.append(P)
+        self.position = P
+        P = Point((0,0,0), name='%s.rotCenter'%self.name)
+        self.P.append(P)
+        self.rotCenter = P
+        P = Vec3((0,0,1), name='%s.rotAxis'%self.name)
+        self.P.append(P)
+        self.rotAxis = P
+        P = Scalar(0., name='%s.rotAngle'%self.name)
+        self.P.append(P)
+        self.rotAngle = P
+        # update hook
         self.update()
         # register
         DRIVER.registerSketch(self)
 
-    def add(self, edge):
-        self.edges.append(edge)
+    def add(self, entity):
+        self.entities.append(entity)
 
     # update the CAD from parameters
     def update(self):
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
         hooks = []
-        for e in self.edges: hooks.append(e.hook)
+        for e in self.entities: hooks.append(e.hook)
         self.hook = OCC.occ.mergeCAD(hooks)
+        # global positionning
+        OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
+        OCC._translate(self.hook, self.P[0].v())
 
     # check if parameters are valid
     def check(self):
-        for e in self.edges:
+        for e in self.entities:
             ret = e.check()
             if ret == 1: return 1
         return 0
 
     # print information
     def print(self, shift=0):
-        for e in self.edges:
+        for e in self.entities:
             print(" "*shift, e.name)
             e.print(shift+4)
 
@@ -401,6 +408,111 @@ class Sketch():
     def mesh(self, hmin, hmax, hausd):
         edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         return edges
+
+#============================================================
+class Surface():
+    """Define a parametric surface."""
+    def __init__(self, listSketches=[], listSurfaces=[], data={}, name="surface", type="loft"):
+        # name
+        self.name = getName(name)
+        # type
+        self.type = type
+        # dependant sketches
+        self.sketches = listSketches
+        # dependant surfaces
+        self.surfaces = listSurfaces
+        # optional data
+        self.data = data
+        # hook
+        self.hook = None
+        # global parameters (always added)
+        self.P = []
+        P = Vec3((0,0,0), name='%s.position'%self.name)
+        self.P.append(P)
+        self.position = P
+        P = Point((0,0,0), name='%s.rotCenter'%self.name)
+        self.P.append(P)
+        self.rotCenter = P
+        P = Vec3((0,0,1), name='%s.rotAxis'%self.name)
+        self.P.append(P)
+        self.rotAxis = P
+        P = Scalar(0., name='%s.rotAngle'%self.name)
+        self.P.append(P)
+        self.rotAngle = P
+        # update hook
+        self.update()
+        # register
+        DRIVER.registerSurface(self)
+
+    def add(self, sketch):
+        self.sketches.append(sketch)
+
+    # update the CAD from parameters
+    def update(self):
+        if self.hook is not None: OCC.occ.freeHook(self.hook)
+        self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
+        if self.type == "loft":
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            OCC.occ.loft(self.hook, [i for i in range(1,len(hooks)+1)], [])
+        elif self.type == "revolve":
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            OCC.occ.revolve(self.hook, [1], self.data['center'], self.data['axis'], self.data['angle'])
+        elif self.type == "compound":
+            hooks = []
+            for e in self.surfaces: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+        elif self.type == "fill":
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            self.hook = OCC.occ.fillHole(self.hook, [i for i in range(1,len(hooks)+1)], [], self.data['continuity'])
+
+        # global positionning
+        OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
+        OCC._translate(self.hook, self.P[0].v())
+
+    # print information
+    def print(self, shift=0):
+        for e in self.sketches:
+            print(" "*shift, e.name)
+            e.print(shift+4)
+
+    # export CAD to file
+    def writeCAD(self, fileName, format="fmt_step"):
+        OCC.occ.writeCAD(self.hook, fileName, format)
+
+    # mesh surface
+    def mesh(self, hmin, hmax, hausd):
+        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
+        nbFaces = OCC.getNbFaces(self.hook)
+        faceList = range(1, nbFaces+1)
+        if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+        else: hList = [(hmin,hmax,hausd)]*len(faceList)
+        faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList)
+        return faces
+
+def loft(listSketches=[], name="loft"):
+    return Surface(listSketches=listSketches, name=name, type="loft")
+
+def revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
+    return Surface(listSketches=[sketch], 
+                   data={'center':center, 'axis':axis, 'angle':angle},
+                   name=name, type="revolve")
+
+def compound(listSurfaces=[], name="compound"):
+    return None # a faire
+
+def fill(sketch, continuity=0, name="fill"):
+    return Surface(listSketches=[sketch], 
+                   data={'continuity':continuity},
+                   name=name, type="fill")
+
+def boolean(listSurfaces=[], name="boolean"):
+    return None # a faire
 
 #============================================================
 class Eq:
@@ -429,15 +541,16 @@ class Eq:
 class Driver:
     """Driver is Model"""
     def __init__(self):
-        # updated when creating scalar, points, entities
+        # all parameters
         self.scalars = {} # id -> scalar
         self.scalars2 = {} # symbol -> scalar
         self.points = {} # points
         self.grids = {} # grids
-
+        # all entities
         self.edges = {} # edges
         self.sketches = {} # wires
         self.surfaces = {} # shapes
+        # all equations
         self.equationCount = 0
         self.equations = {} # equations
 
@@ -462,6 +575,9 @@ class Driver:
     def registerSketch(self, e):
         self.sketches[e.name] = e
 
+    def registerSurface(self, e):
+        self.surfaces[e.name] = e
+
     def registerEquation(self, eq):
         self.equations["EQUATION%04d"%self.equationCount] = eq
         self.equationCount += 1
@@ -479,6 +595,7 @@ class Driver:
         # update from parameters
         for k in self.edges: self.edges[k].update()
         for k in self.sketches: self.sketches[k].update()
+        for k in self.surfaces: self.surfaces[k].update()
 
     def solve2(self):
         # solve all equations and all parameters
@@ -577,7 +694,10 @@ class Driver:
             # update CAD at param+eps
             self.instantiate(d)
             # project mesh on modified CAD
-            OCC._projectOnEdges(entity.hook, mesho)
+            if entity.type == "surface":
+                OCC._projectOnFaces(entity.hook, mesho)
+            else:                 
+                OCC._projectOnEdges(entity.hook, mesho)
             #Converter.convertArrays2File(mesh+mesho, 'diff.plt')
             # get derivatives
             Converter._addVars(mesh, ['dx%d'%c, 'dy%d'%c, 'dz%d'%c])
@@ -587,7 +707,6 @@ class Driver:
                 pos3 = KCore.isNamePresent(m, 'dz%d'%c)
                 p1x = m[1]
                 p2x = mesho[p][1]
-                print(pos1, pos2, pos3)
                 p1x[pos1,:] = (p2x[0,:]-p1x[0,:])/deps
                 p1x[pos2,:] = (p2x[1,:]-p1x[1,:])/deps
                 p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps

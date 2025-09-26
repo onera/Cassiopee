@@ -266,10 +266,11 @@ def freeForm(a, controlPoints):
     return b
 
 def _freeForm(a, controlPoints):
-    """Coupute free form deformation vector."""
+    """Compute free form deformation vector."""
     array = C.getAllFields(a, 'nodes')
-    control = C.getAllFields(controlPoints, 'nodes')
-    Transform.freeForm(array, control)
+    control = C.getAllFields(controlPoints, 'nodes')[0]
+    array = Transform.freeForm(array, control)
+    C.setFields(array, a, 'nodes', writeDim=False)
     return None
 
 def join(t, t2=None, tol=1.e-10):

@@ -68,7 +68,7 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       loftBuilder.AddWire(W);
     }
     loftBuilder.Build();
-    TopoDS_Shape loftedSurface = loftBuilder.Shape();
+    const TopoDS_Shape& loftedSurface = loftBuilder.Shape();
     newshp = new TopoDS_Shape(loftedSurface);
   }
   else // loft with guides

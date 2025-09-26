@@ -1,7 +1,5 @@
-# test driver
+# driver: parametric circle (derivatives)
 import OCC.Driver as D
-import Geom
-import Generator
 import Converter
 
 # Create parameter
@@ -16,8 +14,6 @@ sketch1 = D.Sketch([circle1], name='sketch1')
 
 # test
 D.DRIVER.solve2()
-
-#grid1.P[1][2][0].y.print()
 
 D.DRIVER.instantiate({'radius': 1.5})
 

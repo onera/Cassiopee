@@ -41,7 +41,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &arrayR, &arrayD))
   {
-      return NULL;
+    return NULL;
   }
 
   /*--------------------------------------*/
