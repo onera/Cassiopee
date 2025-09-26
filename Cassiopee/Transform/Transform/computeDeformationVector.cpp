@@ -208,6 +208,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     coordy.push_back(structF[nos]->begin(posys[nos])); dys.push_back(f2->begin(2));
     coordz.push_back(structF[nos]->begin(poszs[nos])); dzs.push_back(f2->begin(3));
     sizes.push_back(npts);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 

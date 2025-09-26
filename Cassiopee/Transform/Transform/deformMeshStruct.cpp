@@ -170,13 +170,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 
   // Build array
   E_Int nfld = 3;
-  E_Int npts = f->getSize();
-  PyObject* tpl = K_ARRAY::buildArray(nfld, "dx,dy,dz", im, jm, km);
-  E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fout(npts, nfld, fp, true); fout.setAllValuesAtNull();
-  E_Float* dxt = fout.begin(1);
-  E_Float* dyt = fout.begin(2);
-  E_Float* dzt = fout.begin(3);
+  E_Int api = f->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, "dx,dy,dz", im, jm, km, api);
+  FldArrayF* fout;
+  K_ARRAY::getFromArray3(tpl, fout);
+  fout->setAllValuesAtNull();
+  E_Float* dxt = fout->begin(1);
+  E_Float* dyt = fout->begin(2);
+  E_Float* dzt = fout->begin(3);
 
   E_Float pt[3]; 
 
@@ -552,6 +553,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   
   delete surfaces;
   // Release memory
+  RELEASESHAREDS(tpl, fout);
   RELEASESHAREDS(array, f);
   for (E_Int nou = 0; nou < nwalls; nou++)
     RELEASESHAREDU(objuts[nou], unstrFs[nou], cnts[nou]);

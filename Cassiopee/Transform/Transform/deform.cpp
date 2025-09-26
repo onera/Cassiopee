@@ -90,65 +90,58 @@ PyObject* K_TRANSFORM::deform(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString1);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(res1, array,f1,cn1);
+    RELEASESHAREDB(res1, array, f1, cn1);
     PyErr_SetString(PyExc_ValueError,
                     "deform: coordinates not found in 1st argument.");
     return NULL;
   }
   posx++; posy++; posz++;
   
-  E_Int posdx = K_ARRAY::isNamePresent(vars[0],varString1);
-  E_Int posdy = K_ARRAY::isNamePresent(vars[1],varString1);
-  E_Int posdz = K_ARRAY::isNamePresent(vars[2],varString1);
+  E_Int posdx = K_ARRAY::isNamePresent(vars[0], varString1);
+  E_Int posdy = K_ARRAY::isNamePresent(vars[1], varString1);
+  E_Int posdz = K_ARRAY::isNamePresent(vars[2], varString1);
   if ( posdx == -1 || posdy == -1 || posdz == -1)
   {
-    RELEASESHAREDB(res1, array,f1,cn1);
+    RELEASESHAREDB(res1, array, f1, cn1);
     PyErr_SetString(PyExc_ValueError,
                     "deform: vector not found in zone.");
     return NULL;
   }
   posdx++; posdy++; posdz++;
   
-  E_Int npts = f1->getSize();
-  E_Int nFld = f1->getNfld(); 
-
-
   // Construit l'array resultat et l'initialise par copie
+  E_Int api = f1->getApi();
+  E_Int npts = f1->getSize();
   PyObject* tpl;
-  if (res1 == 1) //structured
-  {
-    tpl = K_ARRAY::buildArray(nFld, varString1, im1, jm1, km1);
-  } 
-  else //unstructured
-  {
-    E_Int csize = cn1->getSize()*cn1->getNfld();
-    tpl = K_ARRAY::buildArray(nFld, varString1,npts,cn1->getSize(),-1,eltType1,false,csize);      
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn1->begin(), cn1->getSize()*cn1->getNfld());
-  }
+  FldArrayF* newF;
 
-  E_Float* newFp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF newF(npts,nFld,newFp,true); newF.setAllValuesAt(*f1);// copie
+  if (res1 == 1) // structured
+  {
+    tpl = K_ARRAY::buildArray3(*f1, varString1, im1, jm1, km1, api);
+  } 
+  else // unstructured
+  {
+    tpl = K_ARRAY::buildArray3(*f1, varString1, *cn1, eltType1, api);      
+  }
+  K_ARRAY::getFromArray3(tpl, newF);
 
   // Deformation
-  E_Float* newFx = newF.begin(posx);
-  E_Float* newFy = newF.begin(posy);
-  E_Float* newFz = newF.begin(posz);
-  E_Float* f1x = f1->begin(posx);
-  E_Float* f1y = f1->begin(posy);
-  E_Float* f1z = f1->begin(posz);
-  E_Float* f2x = f1->begin(posdx);
-  E_Float* f2y = f1->begin(posdy);
-  E_Float* f2z = f1->begin(posdz);
+  E_Float* newFx = newF->begin(posx);
+  E_Float* newFy = newF->begin(posy);
+  E_Float* newFz = newF->begin(posz);
+  E_Float* f1x = f1->begin(posx); E_Float* f2x = f1->begin(posdx);
+  E_Float* f1y = f1->begin(posy); E_Float* f2y = f1->begin(posdy);
+  E_Float* f1z = f1->begin(posz); E_Float* f2z = f1->begin(posdz);
 
-#pragma omp parallel for default(shared)
-  for (E_Int i = 0;  i < npts; i++) 
+  #pragma omp parallel for
+  for (E_Int i = 0; i < npts; i++) 
   {   
     newFx[i] = f1x[i] + f2x[i];
     newFy[i] = f1y[i] + f2y[i];
     newFz[i] = f1z[i] + f2z[i];
   }
   
-  RELEASESHAREDB(res1, array,f1,cn1);
+  RELEASESHAREDS(tpl, newF);
+  RELEASESHAREDB(res1, array, f1, cn1);
   return tpl;
 }
