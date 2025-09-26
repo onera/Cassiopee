@@ -295,7 +295,7 @@ class Entity:
             OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
-        
+
     def print(self, shift=0):
         for c, P in enumerate(self.P):
             print(" "*shift, P.name)
@@ -499,7 +499,7 @@ def loft(listSketches=[], name="loft"):
     return Surface(listSketches=listSketches, name=name, type="loft")
 
 def revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
-    return Surface(listSketches=[sketch], 
+    return Surface(listSketches=[sketch],
                    data={'center':center, 'axis':axis, 'angle':angle},
                    name=name, type="revolve")
 
@@ -507,7 +507,7 @@ def compound(listSurfaces=[], name="compound"):
     return None # a faire
 
 def fill(sketch, continuity=0, name="fill"):
-    return Surface(listSketches=[sketch], 
+    return Surface(listSketches=[sketch],
                    data={'continuity':continuity},
                    name=name, type="fill")
 
@@ -696,7 +696,7 @@ class Driver:
             # project mesh on modified CAD
             if entity.type == "surface":
                 OCC._projectOnFaces(entity.hook, mesho)
-            else:                 
+            else:
                 OCC._projectOnEdges(entity.hook, mesho)
             #Converter.convertArrays2File(mesh+mesho, 'diff.plt')
             # get derivatives
