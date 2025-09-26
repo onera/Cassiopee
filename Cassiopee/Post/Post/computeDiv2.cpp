@@ -507,7 +507,6 @@ PyObject* K_POST::computeDiv2Struct3D(
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;
   E_Int nicnj = nic*nj;
-  E_Int nic1 = nic - 1; E_Int njc1 = njc - 1; E_Int nkc1 = nkc - 1;
   
   E_Int nbIntI = ninjc*nkc;
   E_Int nbIntJ = nicnj*nkc;
@@ -529,17 +528,14 @@ PyObject* K_POST::computeDiv2Struct3D(
       
       #pragma omp parallel
       {
-        E_Int i, j, k;
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = (idx/nic1)%njc;
-          k = idx/(nic1*njc);
-
           indint = i + j*ni + k*ninjc;
           indcellg = (i - 1) + j*nic + k*nicnjc;
           indcelld = indcellg + 1;
@@ -548,13 +544,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
         {
-          j = idx%njc;
-          k = idx/njc;
-
-          i = 0;
+          E_Int i = 0;
           indint = i + j*ni + k*ninjc;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -568,13 +562,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc1*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc1 + 1;
-          k = idx/(nic*njc1);
-
           indint = i + j*nic + k*nicnj + nbIntI;
           indcellg = i + (j - 1)*nic + k*nicnjc;
           indcelld = indcellg + nic;
@@ -583,13 +575,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*nic; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          k = idx/nic;
-
-          j = 0;
+          E_Int j = 0;
           indint = i + j*nic + k*nicnj + nbIntI;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1;
@@ -604,13 +594,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc1*njc*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc;
-          k = idx/(nic*njc) + 1;
-
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcellg = i + j*nic + (k - 1)*nicnjc;
           indcelld = indcellg + nicnjc;
@@ -619,13 +607,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en k
-        #pragma omp for
-        for (E_Int idx = 0; idx < njc*nic; idx++) 
+        #pragma omp for collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic;
-
-          k = 0;
+          E_Int k = 0;
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -649,17 +635,14 @@ PyObject* K_POST::computeDiv2Struct3D(
       
       #pragma omp parallel
       {
-        E_Int i, j, k;
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = (idx/nic1)%njc;
-          k = idx/(nic1*njc);
-
           indint = i + j*ni + k*ninjc;
           indcellg = (i - 1) + j*nic + k*nicnjc;
           indcelld = indcellg + 1;
@@ -670,13 +653,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
         {
-          j = idx%njc;
-          k = idx/njc;
-
-          i = 0;
+          E_Int i = 0;
           indint = i + j*ni + k*ninjc;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -690,13 +671,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc1*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc1 + 1;
-          k = idx/(nic*njc1);
-
           indint = i + j*nic + k*nicnj + nbIntI;
           indcellg = i + (j - 1)*nic + k*nicnjc;
           indcelld = indcellg + nic;
@@ -707,13 +686,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*nic; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          k = idx/nic;
-
-          j = 0;
+          E_Int j = 0;
           indint = i + j*nic + k*nicnj + nbIntI;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1;
@@ -728,13 +705,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc1*njc*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc;
-          k = idx/(nic*njc) + 1;
-
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcellg = i + j*nic + (k - 1)*nicnjc;
           indcelld = indcellg + nicnjc;
@@ -745,13 +720,11 @@ PyObject* K_POST::computeDiv2Struct3D(
         }
         
         // bords des faces en k
-        #pragma omp for
-        for (E_Int idx = 0; idx < njc*nic; idx++) 
+        #pragma omp for collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic;
-
-          k = 0;
+          E_Int k = 0;
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -884,7 +857,6 @@ PyObject* K_POST::computeDiv2Struct2D(
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;
   E_Int nicnj = nic*nj;
-  E_Int nic1 = nic - 1; E_Int njc1 = njc - 1;
   
   E_Int nbIntI = ninjc;
   E_Int nbIntJ = nicnj;
@@ -903,16 +875,13 @@ PyObject* K_POST::computeDiv2Struct2D(
   // Compute length of faces
   #pragma omp parallel
   {
-    E_Int i, j, indint;
-    E_Int indm, indp;
+    E_Int indint, indm, indp;
     E_Float d13x, d13y, d13z, d24x, d24y, d24z;
     
-    #pragma omp for nowait
-    for (E_Int idx = 0; idx < ninjc; idx++)
+    #pragma omp for nowait collapse(2)
+    for (E_Int j = 0; j < njc; j++)
+    for (E_Int i = 0; i < ni; i++)
     {
-      i = idx%ni;
-      j = idx/ni;
-      
       indm = i + j*ni; indp = indm + ni;
       d13x = xt[indp] - xt[indm];
       d13y = yt[indp] - yt[indm];
@@ -921,18 +890,15 @@ PyObject* K_POST::computeDiv2Struct2D(
       d24y = yt[indm] - yt[indp];
       d24z = 1;
 
-      sxint[idx] = 0.5*(d13y*d24z - d13z*d24y);
-      syint[idx] = 0.5*(d13z*d24x - d13x*d24z);
-      szint[idx] = 0.5*(d13x*d24y - d13y*d24x);
+      sxint[indm] = 0.5*(d13y*d24z - d13z*d24y);
+      syint[indm] = 0.5*(d13z*d24x - d13x*d24z);
+      szint[indm] = 0.5*(d13x*d24y - d13y*d24x);
     }
     
-    #pragma omp for
-    for (E_Int idx = 0; idx < nicnj; idx++)
+    #pragma omp for collapse(2)
+    for (E_Int j = 0; j < nj; j++)
+    for (E_Int i = 0; i < nic; i++)
     {
-      i = idx%nic;
-      j = idx/nic;
-      indint = ninjc + idx;
-      
       indm = i + j*ni; indp = indm + 1;
       d13x = xt[indp] - xt[indm];
       d13y = yt[indp] - yt[indm];
@@ -941,6 +907,7 @@ PyObject* K_POST::computeDiv2Struct2D(
       d24y = yt[indp] - yt[indm];
       d24z = -1;
 
+      indint = i + j*nic + ninjc;
       sxint[indint] = 0.5*(d13y*d24z - d13z*d24y);
       syint[indint] = 0.5*(d13z*d24x - d13x*d24z);
       szint[indint] = 0.5*(d13x*d24y - d13y*d24x);
@@ -956,16 +923,13 @@ PyObject* K_POST::computeDiv2Struct2D(
         
       #pragma omp parallel
       {
-        E_Int i, j;
         E_Int indint, indcellg, indcelld;
         
         // faces en i internes
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < njc*nic1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = idx/nic1;
-          
           indint = i + j*ni;
           indcellg = (i - 1) + j*nic; indcelld = indcellg + 1;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -990,12 +954,10 @@ PyObject* K_POST::computeDiv2Struct2D(
         }
 
         // faces en j internes
-        #pragma omp for
-        for (E_Int idx = 0; idx < nic*njc1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic + 1;
-    
           indint = i + j*nic + nbIntI;
           indcellg = i + (j - 1)*nic; indcelld = indcellg + nic;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -1030,16 +992,13 @@ PyObject* K_POST::computeDiv2Struct2D(
         
       #pragma omp parallel
       {
-        E_Int i, j;
         E_Int indint, indcellg, indcelld;
         
         // faces en i internes
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < njc*nic1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = idx/nic1;
-          
           indint = i + j*ni;
           indcellg = (i - 1) + j*nic; indcelld = indcellg + 1;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -1066,12 +1025,10 @@ PyObject* K_POST::computeDiv2Struct2D(
         }
 
         // faces en j internes
-        #pragma omp for
-        for (E_Int idx = 0; idx < nic*njc1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic + 1;
-    
           indint = i + j*nic + nbIntI;
           indcellg = i + (j - 1)*nic; indcelld = indcellg + nic;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
