@@ -274,7 +274,8 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
       K_ARRAY::extractVars(eltTypec, eltTypecs);
 
       // check if elt is valid (BAR, QUAD, TRI)
-      for (E_Int ic = 0; ic < eltTypecs.size(); ic++)
+      case1D = 0;
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++)
       {
         if (strcmp(eltTypecs[ic], "BAR") == 0) case1D = 1;
         else if ((strcmp(eltTypecs[ic], "QUAD") == 0) || (strcmp(eltTypecs[ic], "TRI") == 0)) case1D = 0;

@@ -28,7 +28,7 @@ E_Int K_POST::integStruct2D(E_Int ni, E_Int nj, E_Int nk,
                             FldArrayF& coord, FldArrayF& F, 
                             FldArrayF& ratio, FldArrayF& resultat)
 {
-  E_Int NI, NJ, NK;
+  E_Int NI, NJ;
   E_Float result = 0.;
   E_Int numberOfVariables = F.getNfld();
 

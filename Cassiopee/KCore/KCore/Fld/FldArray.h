@@ -480,11 +480,10 @@ E_Int FldArray<T>::getDim(char* eltType)
 {
   E_Int size0;  // number of vertices of the first face
   E_Int dim = 3;
-  if (_ngon > 0)  // NGon
-  {
+  // if (_ngon > 0)  // NGon
+  // {
     if (_ngon == 3)  // Array3/NGonv4
     {
-      E_Int* ngon = _rake[0];
       E_Int* indPG = _rake[2];
       E_Int pos0 = indPG[0];
       size0 = indPG[1] - pos0;
@@ -505,14 +504,14 @@ E_Int FldArray<T>::getDim(char* eltType)
     }
     if (size0 == 1) dim = 1;
     else if (size0 == 2) dim = 2;
-  }
-  else  // ME connectivity
-  {
-    assert((eltType != NULL) && "The first eltType must be provided.");
-    if (strcmp(eltType, "NODE") == 0) dim = 0;
-    else if (strcmp(eltType, "BAR") == 0) dim = 1;
-    else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) dim = 2;
-  }
+  // }
+  // else  // ME connectivity
+  // {
+  //   assert((eltType != NULL) && "The first eltType must be provided.");
+  //   if (strcmp(eltType, "NODE") == 0) dim = 0;
+  //   else if (strcmp(eltType, "BAR") == 0) dim = 1;
+  //   else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) dim = 2;
+  // }
   return dim;
 }
 
