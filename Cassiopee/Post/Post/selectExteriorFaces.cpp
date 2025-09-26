@@ -54,11 +54,10 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
   {
     if (strcmp(eltType, "NGON") == 0)
     {
-      E_Int nv;
+      E_Int dim = cn->getDim();
       E_Int* ngon = cn->getNGon();
       E_Int* indPG = cn->getIndPG();
-      cn->getFace(0, nv, ngon, indPG);
-      if (nv == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
+      if (dim == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
       else tpl = selectExteriorFacesNGon3D(varString, *f, *cn, indices);
     }
     else tpl = exteriorFacesBasic(varString, *f, *cn, eltType, indices);
