@@ -100,8 +100,9 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
   
+  E_Int api = f1->getApi();
   E_Int npts = f1->getSize();
-  E_Int nFld = f1->getNfld(); 
+  E_Int nfld = f1->getNfld(); 
   
   // Vecteur normal de dimension 3 ?
   E_Int dim = f2->getNfld();
@@ -126,8 +127,9 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
 
   // Connectivite des faces incidentes a un noeud
   E_Int* cNG = cn1->begin();
-  E_Int nfaces = cNG[0];
-  E_Int nelts = cNG[2+cNG[1]];
+  E_Int ngonType = cn1->getNGonType();
+  E_Int nfaces = cn1->getNFaces();
+  E_Int nelts = cn1->getNElts();
   E_Int* cNGe = cNG + 2 + cNG[1];
   //printf("input surface has " SF_D_ " faces and " SF_D_ " elements\n", nfaces, nelts);
   vector< vector<E_Int> > cVF(npts); K_CONNECT::connectNG2VF(*cn1, cVF);
@@ -149,7 +151,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
   E_Int* pt; E_Int* pt1; E_Int* pt2; E_Int* ptf1; E_Int* ptf2;
   E_Float x1, x2, y1, y2, z1, z2, l1, l2, d, xp1, xp2, yp1, yp2, zp1, zp2;
   E_Float v1x,v1y,v1z,v2x,v2y,v2z,d1x,d1y,d1z,r1x,r1y,r1z,r2x,r2y,r2z,s;
-  bool boundary;
+  E_Bool boundary;
   E_Float* f1x = f1->begin(posx);
   E_Float* f1y = f1->begin(posy);
   E_Float* f1z = f1->begin(posz);
@@ -173,7 +175,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
    xp2 = x2 + f2x[ind2]; yp2 = y2 + f2y[ind2]; zp2 = z2 + f2z[ind2];
    l1 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
    l2 = (xp2-xp1)*(xp2-xp1)+(yp2-yp1)*(yp2-yp1)+(zp2-zp1)*(zp2-zp1);
-   l2 = std::max(l2, 1.e-12);
+   l2 = K_FUNC::E_max(l2, 1.e-12);
    // Critere de rapport de longeurs d'aretes
    d = l1/l2;
    d = sqrt(d);
@@ -183,13 +185,13 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
    v1x = x2-x1; v1y = y2-y1; v1z = z2-z1;
    v2x = xp2-xp1; v2y = yp2-yp1; v2z = zp2-zp1;
    d1x =  xp1-x1; d1y = yp1-y1; d1z = zp1-z1;
-   r1x = VECTX(v1x,v1y,v1z,d1x,d1y,d1z);
-   r1y = VECTY(v1x,v1y,v1z,d1x,d1y,d1z);
-   r1z = VECTZ(v1x,v1y,v1z,d1x,d1y,d1z);
-   r2x = VECTX(v2x,v2y,v2z,d1x,d1y,d1z);
-   r2y = VECTY(v2x,v2y,v2z,d1x,d1y,d1z);
-   r2z = VECTZ(v2x,v2y,v2z,d1x,d1y,d1z);
-   s = SCAL(r1x,r1y,r1z,r2x,r2y,r2z);
+   r1x = VECTX(v1x, v1y, v1z, d1x, d1y, d1z);
+   r1y = VECTY(v1x, v1y, v1z, d1x, d1y, d1z);
+   r1z = VECTZ(v1x, v1y, v1z, d1x, d1y, d1z);
+   r2x = VECTX(v2x, v2y, v2z, d1x, d1y, d1z);
+   r2y = VECTY(v2x, v2y, v2z, d1x, d1y, d1z);
+   r2z = VECTZ(v2x, v2y, v2z, d1x, d1y, d1z);
+   s = SCAL(r1x, r1y, r1z, r2x, r2y, r2z);
    if (s < 0)  { tagp[ind1] = -1; tagp[ind2] = -1; collapsed++; } // collapse
   }
   printf("Expanded=" SF_D_ ", collapsed=" SF_D_ "\n", expanded, collapsed);
@@ -205,10 +207,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
     for (E_Int j = 0; j < nbn; j++)
     {
       ind = n[j];
-      if (tagp[ind-1] == 1)
-      {
-        em[i] += 1;
-      }
+      if (tagp[ind-1] == 1) em[i] += 1;
     }
   }
   //printf("======================\n");
@@ -270,16 +269,19 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
   //printf("sizeNGonPlus=" SF_D_ " sizeNFacePluis=" SF_D_ " sizeNFaceMoins=" SF_D_ "\n", sizeNGonPlus, sizeNFacePlus, sizeNFaceMoins);
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
-  E_Int sizeConnect = 4+cNG[1]+cNGe[1]+sizeNGonPlus+sizeNFacePlus;
   E_Int nptsNew = npts+nptsPlus;
-  tpl = K_ARRAY::buildArray(nFld, varString1, nptsNew, sizeConnect,-1,eltType1,false,sizeConnect);      
+  E_Int neltsNew = nelts+neltsPlus;
+  E_Int nfacesNew = nfaces+nfacesPlus;
+  tpl = K_ARRAY::buildArray3(nfld, varString1, nptsNew, neltsNew, nfacesNew,
+                             eltType1, cNG[1]+sizeNGonPlus, cNGe[1]+sizeNFacePlus,
+                             ngonType, false, api);      
   E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
 
   // copie des faces (identiques a l'input)
-  cnnp[0] = nfaces+nfacesPlus; // nbre de faces
+  cnnp[0] = nfacesNew; // nbre de faces
   cnnp[1] = cNG[1]+sizeNGonPlus;
   E_Int* cne = cnnp+cnnp[1]+2;
-  cne[0] = nelts+neltsPlus;
+  cne[0] = neltsNew;
   cne[1] = cNGe[1]+sizeNFacePlus;
   for (E_Int i = 0; i < cNG[1]; i++) cnnp[i+2] = cNG[i+2];
 
@@ -464,7 +466,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
         ptFace += 3;
       }
 
-      if (boundary == false)
+      if (!boundary)
       {
         ptFace[0] = 2;
         ptFace[1] = currNpts+nbf; ptFace[2] = currNpts+1;
@@ -550,7 +552,7 @@ PyObject* K_TRANSFORM::deform2(PyObject* self, PyObject* args)
         ft[i]->push_back(e); 
       }
 
-      if (boundary == false) currFace += 2*nbf;
+      if (!boundary) currFace += 2*nbf;
       else currFace += 2*nbf-1;
     }
   }

@@ -213,32 +213,29 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   vector<E_Float*> coordyp(nprojectedZones);
   vector<E_Float*> coordzp(nprojectedZones);
   PyObject* tpl;
+  FldArrayF* f;
   for (E_Int nop = 0; nop < nprojectedZones; nop++)
   {
-    E_Int nfld = fieldsP[nop]->getNfld(); E_Int npts = fieldsP[nop]->getSize();
+    E_Int api = fieldsP[nop]->getApi();
     if (resl[nop] == 1)
     {
       E_Int nip = *(E_Int*)a2[nop];
       E_Int njp = *(E_Int*)a3[nop];
       E_Int nkp = *(E_Int*)a4[nop];
-      tpl = K_ARRAY::buildArray(nfld, varStringP[nop], nip, njp, nkp);
+      tpl = K_ARRAY::buildArray3(*fieldsP[nop], varStringP[nop], nip, njp, nkp, api);
     }
     else // 2
     {
       FldArrayI* cn = (FldArrayI*)a2[nop];
       char* eltType = (char*)a3[nop];
-      E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();    
-      E_Int csize = nelts*nvert;
-      tpl = K_ARRAY::buildArray(nfld,varStringP[nop], npts, 
-                                nelts, -1, eltType, false, csize);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnnp, cn->begin(), csize);            
+      tpl = K_ARRAY::buildArray3(*fieldsP[nop], varStringP[nop], *cn, eltType, api);          
     }
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *fieldsP[nop];
-    coordxp[nop] = f.begin(posxp[nop]);
-    coordyp[nop] = f.begin(posyp[nop]);
-    coordzp[nop] = f.begin(poszp[nop]);
+
+    K_ARRAY::getFromArray3(tpl, f);
+    coordxp[nop] = f->begin(posxp[nop]);
+    coordyp[nop] = f->begin(posyp[nop]);
+    coordzp[nop] = f->begin(poszp[nop]);
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 

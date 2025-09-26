@@ -132,34 +132,33 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   vector<E_Float*> coordx; vector<E_Float*> coordy; vector<E_Float*> coordz;
   vector<E_Int> sizet;
+  PyObject* tpl;
+  FldArrayF* f;
   for (E_Int nos = 0; nos < ns; nos++)
   {
-    E_Int nfld = structF[nos]->getNfld(); E_Int npts = structF[nos]->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, structVarString[nos], 
-                                        nit[nos], njt[nos], nkt[nos]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *structF[nos];
-    coordx.push_back(f.begin(posxs[nos]));
-    coordy.push_back(f.begin(posys[nos]));
-    coordz.push_back(f.begin(poszs[nos]));
-    sizet.push_back(f.getSize());
+    E_Int api = structF[nos]->getApi();
+    tpl = K_ARRAY::buildArray3(*structF[nos], structVarString[nos], 
+                               nit[nos], njt[nos], nkt[nos], api);
+    K_ARRAY::getFromArray3(tpl, f);
+    coordx.push_back(f->begin(posxs[nos]));
+    coordy.push_back(f->begin(posys[nos]));
+    coordz.push_back(f->begin(poszs[nos]));
+    sizet.push_back(f->getSize());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
   {
-    E_Int nfld = unstrF[nou]->getNfld(); E_Int npts = unstrF[nou]->getSize();
-    E_Int nelts = cnt[nou]->getSize(); E_Int nvert = cnt[nou]->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, unstrVarString[nou], npts, 
-                                        nelts, -1, eltType[nou], false, nelts);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *unstrF[nou];
-    E_Int* cnpo = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cno(nelts, nvert, cnpo, true); cno = *cnt[nou];    
-    coordx.push_back(f.begin(posxu[nou]));
-    coordy.push_back(f.begin(posyu[nou]));
-    coordz.push_back(f.begin(poszu[nou]));
-    sizet.push_back(f.getSize());
+    E_Int api = unstrF[nou]->getApi();
+    tpl = K_ARRAY::buildArray3(*unstrF[nou], unstrVarString[nou],
+                               *cnt[nou], eltType[nou], api);  
+    K_ARRAY::getFromArray3(tpl, f);
+    coordx.push_back(f->begin(posxu[nou]));
+    coordy.push_back(f->begin(posyu[nou]));
+    coordz.push_back(f->begin(poszu[nou]));
+    sizet.push_back(f->getSize());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   // Projete
