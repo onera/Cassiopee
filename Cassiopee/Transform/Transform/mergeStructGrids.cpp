@@ -167,6 +167,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
                     "merge: arrays is not valid.");
     return NULL;
   }
+  E_Int api = -1;
   E_Int nzones = structF.size();
   E_Int dim = 2;
   for (E_Int v = 0; v < nzones; v++)
@@ -241,6 +242,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(structVarString[0]); posz++;
   for (E_Int v = 0; v < nzones; v++)
   {
+    if (api == -1) api = structF[v]->getApi();
     char* varString = structVarString[v];
     E_Int posxi = K_ARRAY::isCoordinateXPresent(varString); posxi++;
     E_Int posyi = K_ARRAY::isCoordinateYPresent(varString); posyi++;
@@ -253,6 +255,8 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       return NULL;
     }
   }
+  if (api == -1) api = 1;
+
   // calcul de la normale aux centres sur la premiere couche en k
   E_Int nptsAll = 0;
   for (E_Int v = 0; v < nzones; v++) nptsAll += (nit[v]-1)*(njt[v]-1);
@@ -509,7 +513,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     {
       nio = (*itr)->_ni; njo = (*itr)->_nj; nko = (*itr)->_nk;
       FldArrayF* field = (*itr)->_field;
-      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko);
+      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko, api);
       delete field;
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
@@ -558,12 +562,12 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     {
       nio = (*itr)->_ni; njo = (*itr)->_nj; nko = (*itr)->_nk;
       FldArrayF* field = (*itr)->_field;
-      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko);
+      PyObject* tpl = K_ARRAY::buildArray3(*field, structVarString[0], nio, njo, nko, api);
       PyList_Append(lnodes, tpl); Py_DECREF(tpl);
       delete field;
       nioc = K_FUNC::E_max(1,nio-1); njoc = K_FUNC::E_max(1,njo-1); nkoc = K_FUNC::E_max(1,nko-1);
       FldArrayF* fieldc = (*itr)->_fieldc;
-      PyObject* tplc = K_ARRAY::buildArray3(*fieldc, structVarStringc[0], nioc, njoc, nkoc);
+      PyObject* tplc = K_ARRAY::buildArray3(*fieldc, structVarStringc[0], nioc, njoc, nkoc, api);
       PyList_Append(lcenters, tplc); Py_DECREF(tplc);
       delete fieldc;
     }

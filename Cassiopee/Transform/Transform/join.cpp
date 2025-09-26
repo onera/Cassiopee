@@ -98,6 +98,7 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
     posx2++; posy2++; posz2++;
 
     PyObject* tpl = NULL;
+    E_Int api = f1->getApi();
     if (res1 == 1 && res2 == 1) //structured 
     {
       FldArrayF* an = new FldArrayF();
@@ -109,7 +110,7 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
       if (res == 0)
         PyErr_SetString(PyExc_TypeError,
                         "join: failed to join structured connectivities");
-      else tpl = K_ARRAY::buildArray3(*an, varString, im, jm, km);
+      else tpl = K_ARRAY::buildArray3(*an, varString, im, jm, km, api);
       
       delete an; delete [] varString;
       RELEASESHAREDS(array1,f1); RELEASESHAREDS(array2,f2);

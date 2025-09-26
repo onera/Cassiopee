@@ -156,7 +156,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   for (int i = 0; i < nibArrays; i++)
   {
     tpl = PyList_GetItem(ibArrays, i);
-    res = K_ARRAY::getFromArray(
+    res = K_ARRAY::getFromArray3(
       tpl, varString, f, nil, njl, nkl, cn, eltType);
     
     if (res == 1)

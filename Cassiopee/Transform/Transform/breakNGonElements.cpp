@@ -69,6 +69,7 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
 
   PyObject* tpl;
   PyObject* l = PyList_New(0);
+  E_Int api = f->getApi();
   char eltType[10]; strcpy(eltType, "BAR");
 
   for (size_t v = 0; v < cEV.size(); v++)
@@ -87,7 +88,7 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
       if (posx != 0 && posy != 0 && posz != 0)
         K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
                                      *fields[v], *cEV[v]);   
-      tpl = K_ARRAY::buildArray3(*fields[v], varString, *cEV[v], eltType);
+      tpl = K_ARRAY::buildArray3(*fields[v], varString, *cEV[v], eltType, api);
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
     delete fields[v]; delete cEV[v];
