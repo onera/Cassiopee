@@ -80,6 +80,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
     return NULL;         
   }
     
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
   if ( npts < 6 )
   {
@@ -101,7 +102,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   {
     FldArrayF& f0 = *fsplit[v];
     E_Int ni = f0.getSize();
-    tpl = K_ARRAY::buildArray(f0, varString, ni, 1, 1);
+    tpl = K_ARRAY::buildArray3(f0, varString, ni, 1, 1, api);
     delete &f0;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

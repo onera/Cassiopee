@@ -325,7 +325,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, 
                                  *f, *cno);
-    PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+    PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType, api);
     // PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(
     //   unstructVarString[0], *f, *cno, newEltType, tol);
     RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
@@ -678,13 +678,13 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   // {
   //  PyList_Append(l, tpln);
   // }
-  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType, api);
   PyList_Append(l, tpln2); Py_DECREF(tpln2);
 
   char newEltTypec[K_ARRAY::VARSTRINGLENGTH];
   K_ARRAY::starVarString(newEltType, newEltTypec);
   PyObject* tplc = K_ARRAY::buildArray3(*fc, unstructVarStringc[0], 
-                                        *cno, newEltTypec);
+                                        *cno, newEltTypec, api);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
   RELEASESHAREDU(tpln, f, cno);
   return l;

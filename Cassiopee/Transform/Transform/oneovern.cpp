@@ -87,17 +87,18 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
     if (km - kn*nk != 1-nk) addk = 1;
   }
   E_Int nfld = f->getNfld();
+  E_Int api = f->getApi();
   //printf("size %d %d %d\n", in+addi, jn+addj, kn+addk);
 
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray3(nfld, varString, in+addi, jn+addj, kn+addk);
-  E_Float* subzonep = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF subzone((in+addi)*(jn+addj)*(kn+addk), nfld, subzonep, true);
+  tpl = K_ARRAY::buildArray3(nfld, varString, in+addi, jn+addj, kn+addk, api);
+  FldArrayF* subzone;
+  K_ARRAY::getFromArray3(tpl, subzone);
   E_Int ind, ind2;
 
   for (E_Int n = 1; n <= nfld; n++)
   {
-    E_Float* sp = subzone.begin(n);
+    E_Float* sp = subzone->begin(n);
     E_Float* fp = f->begin(n);
     ind2 = 0;
 
@@ -149,6 +150,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
     }
   }
   
+  RELEASESHAREDS(tpl, subzone);
   RELEASESHAREDS(array, f);
   return tpl;
 }

@@ -53,6 +53,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
+  E_Int api = 1;
   if (isOk == -1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -157,8 +158,10 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
         f->begin(posx1), f->begin(posy1), f->begin(posz1), oriented);
     structFields.push_back(f);
   }
-
   RELEASESHAREDU(array2, f2, cn2);
+
+  if (ns > 0) api = structF[0]->getApi();
+  else if (nu > 0) api = unstrF[0]->getApi();
   for (E_Int nos = 0; nos < ns; nos++)
     RELEASESHAREDS(objst[nos], structF[nos]);
   for (E_Int nou = 0; nou < nu; nou++)
@@ -170,7 +173,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < ns; nos++)
   {
     tpl = K_ARRAY::buildArray3(*structFields[nos], structVarString[nos],
-                               nit[nos], njt[nos], nkt[nos]);
+                               nit[nos], njt[nos], nkt[nos], api);
     delete structFields[nos];
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }

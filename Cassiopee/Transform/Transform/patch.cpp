@@ -136,6 +136,7 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
         return NULL;      
       }
     }
+    E_Int api = f2->getApi();
     E_Int nfld = pos1.size();
     vector<E_Float*> fp1(nfld);
     // pointeur sur les champs de array1
@@ -155,7 +156,7 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
         }
   
     // Build array 
-    PyObject* tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2);
+    PyObject* tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2, api);
     delete [] varString;
     RELEASESHAREDS(array1, f1);
     RELEASESHAREDS(array2, f2);
@@ -276,7 +277,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   if (res2 == 1)
   {
-    tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2);
+    tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2, api);
   }
   else if (res2 == 2)
   {

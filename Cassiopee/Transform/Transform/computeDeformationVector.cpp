@@ -183,7 +183,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     }
   } //fin kdtree
   
-  ArrayAccessor<FldArrayF> coordAcc(*surfaces, 1,2,3);
+  ArrayAccessor<FldArrayF> coordAcc(*surfaces, 1, 2, 3);
   KdTree<FldArrayF> kdt(coordAcc);
 
   // Build arrays
@@ -191,34 +191,41 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
   vector<E_Float*> coordx; vector<E_Float*> dxs; 
   vector<E_Float*> coordy; vector<E_Float*> dys;
   vector<E_Float*> coordz; vector<E_Float*> dzs; 
-  vector<E_Int> sizes;  
+  vector<E_Int> sizes;
+  PyObject* tpl;
+  FldArrayF* f2;
   E_Int nfld = 3;
   for (E_Int nos = 0; nos < ns; nos++)
   { 
+    E_Int api = structF[nos]->getApi();
     E_Int npts = structF[nos]->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, "dx,dy,dz", nit[nos], njt[nos], nkt[nos]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f.setAllValuesAtNull();
-    coordx.push_back(structF[nos]->begin(posxs[nos])); dxs.push_back(f.begin(1));
-    coordy.push_back(structF[nos]->begin(posys[nos])); dys.push_back(f.begin(2));
-    coordz.push_back(structF[nos]->begin(poszs[nos])); dzs.push_back(f.begin(3));
+    tpl = K_ARRAY::buildArray3(
+      nfld, "dx,dy,dz", nit[nos], njt[nos], nkt[nos], api
+    );
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    coordx.push_back(structF[nos]->begin(posxs[nos])); dxs.push_back(f2->begin(1));
+    coordy.push_back(structF[nos]->begin(posys[nos])); dys.push_back(f2->begin(2));
+    coordz.push_back(structF[nos]->begin(poszs[nos])); dzs.push_back(f2->begin(3));
     sizes.push_back(npts);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
   {
+    E_Int api = unstrF[nou]->getApi();
     E_Int npts = unstrF[nou]->getSize();
-    E_Int nelts = cnt[nou]->getSize(); E_Int nvert = cnt[nou]->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, "dx,dy,dz", npts, nelts, -1, eltType[nou]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f.setAllValuesAtNull();
-    E_Int* cnpo = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cno(nelts, nvert, cnpo, true); cno = *cnt[nou];    
-    coordx.push_back(unstrF[nou]->begin(posxu[nou])); dxs.push_back(f.begin(1));
-    coordy.push_back(unstrF[nou]->begin(posyu[nou])); dys.push_back(f.begin(2));
-    coordz.push_back(unstrF[nou]->begin(poszu[nou])); dzs.push_back(f.begin(3));
+    tpl = K_ARRAY::buildArray3(
+      nfld, "dx,dy,dz", npts,
+      *cnt[nou], eltType[nou], false, api, true
+    );
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    coordx.push_back(unstrF[nou]->begin(posxu[nou])); dxs.push_back(f2->begin(1));
+    coordy.push_back(unstrF[nou]->begin(posyu[nou])); dys.push_back(f2->begin(2));
+    coordz.push_back(unstrF[nou]->begin(poszu[nou])); dzs.push_back(f2->begin(3));
     sizes.push_back(npts);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 

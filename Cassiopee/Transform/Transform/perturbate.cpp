@@ -47,7 +47,9 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
   E_Float rx, ry, rz;
   E_Float rxi, ryi, rzi, rxj, ryj, rzj, rxk, ryk,rzk;
   E_Int ind, indi, indj, indk;
-  E_Float l; 
+  E_Float l;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -128,7 +130,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     }
       
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
     RELEASESHAREDS(array, f);  
     return tpl;
   }
@@ -154,7 +156,6 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     E_LONG idum = -1;
 
     E_Int npts = f->getSize();
-    E_Int api = f->getApi();
     vector< vector<E_Int> > cVN(npts);
     if (strcmp(eltType, "NGON") == 0) K_CONNECT::connectNG2VNbrs(*cn, cVN);
     else K_CONNECT::connectEV2VNbrs(*cn, cVN);
@@ -183,7 +184,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     }
     
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
     RELEASESHAREDU(array, f, cn);
     return tpl;
   }

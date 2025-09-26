@@ -62,6 +62,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
     E_Int kn = k2-k1+1;
     E_Int injn = in*jn;
     E_Int nfld = f->getNfld();
+    E_Int api = f->getApi();
     
     // Check
     if (i2 > im || i1 > im || i2 < i1 || i1 < 1 ||
@@ -77,8 +78,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
     }
     
     // Construit l'array resultat
-    //E_Int api = f->getApi();
-    PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn);
+    PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn, api);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
     FldArrayF subzone0(injn*kn, nfld, fnp, true);
 
@@ -90,7 +90,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
         {
           E_Float* sp = subzone0.begin(n);
           E_Float* fp = f->begin(n);
-#pragma omp for nowait
+#pragma omp for collapse(3)
           for (E_Int k = k1; k <= k2; k++)
             for (E_Int j = j1; j <= j2; j++)
               for (E_Int i = i1; i <= i2; i++)
@@ -110,7 +110,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
         {
           E_Float* sp = subzone0.begin(n);
           E_Float* fp = f->begin(n);
-#pragma omp for nowait
+#pragma omp for collapse(3)
           for (E_Int j = j1; j <= j2; j++)
             for (E_Int k = k1; k <= k2; k++)
               for (E_Int i = i1; i <= i2; i++)
@@ -779,7 +779,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nbFacesOut; i++) indPG2[i] = cPGTemp[i];
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int i = 0; i < n; i++) indPH2[i] = cPHTemp[i];
       }
     }
@@ -1063,7 +1063,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nbFacesOut; i++) indPG2[i] = cPGTemp[i];
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int i = 0; i < n; i++) indPH2[i] = cPHTemp[i];
       }
     }

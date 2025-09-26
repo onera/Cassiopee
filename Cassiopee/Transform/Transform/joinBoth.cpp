@@ -139,6 +139,7 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       return NULL;
     }
     posx1++; posy1++; posz1++; posx2++; posy2++; posz2++; 
+    E_Int api = f1->getApi();
 
     if (resprod == 1) //structure
     {
@@ -160,9 +161,9 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       }
       RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
       RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
-      PyObject* tpl1 = K_ARRAY::buildArray3(*an, varString, im, jm, km);
+      PyObject* tpl1 = K_ARRAY::buildArray3(*an, varString, im, jm, km, api);
       PyList_Append(l, tpl1); Py_DECREF(tpl1); delete an;
-      PyObject* tpl2 = K_ARRAY::buildArray3(*ac, varStringc, imc, jmc, kmc);
+      PyObject* tpl2 = K_ARRAY::buildArray3(*ac, varStringc, imc, jmc, kmc, api);
       PyList_Append(l, tpl2); Py_DECREF(tpl2); delete ac;
       delete [] varString; delete [] varStringc;
       return l;
@@ -960,7 +961,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
   if (posx > 0 && posy > 0 && posz > 0)
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
-    PyObject* tpln2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType);
+    PyObject* tpln2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
     PyList_Append(l, tpln2); Py_DECREF(tpln2);
   }
   else
@@ -970,7 +971,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
 
   char eltTypec[K_ARRAY::VARSTRINGLENGTH];
   K_ARRAY::starVarString(eltType, eltTypec);
-  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec);
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec, api);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
   RELEASESHAREDU(tpln, f, cn);
   return l;
@@ -1109,7 +1110,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
     
   PyObject* l = PyList_New(0);
   PyList_Append(l, tpln); Py_DECREF(tpln);
-  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*");
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*", api);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
   RELEASESHAREDU(tpln, f, cn);
   return l;

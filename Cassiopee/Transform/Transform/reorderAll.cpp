@@ -86,6 +86,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   vector<E_Int> poszt;
   E_Int posx, posy, posz;
   char* varString;
+  E_Int api = -1;
   FldArrayF bbox(nzone, 6); 
 
   // Extraction des infos pour chaque bloc
@@ -100,6 +101,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
       K_ARRAY::getFromArray3(tpl, varString, f, nil, njl, nkl, cn, eltType);
     
     nis.push_back(nil); njs.push_back(njl); nks.push_back(nkl);
+    if (api == -1) api = f->getApi();
       
     if (res != 1)
     {  
@@ -153,6 +155,8 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
     
     vectOfFields.push_back(f);
   }//parcours de toutes les zones
+
+  if (api == -1) api = 1;
   
   E_Int vectOfFieldsSize = vectOfFields.size();
   if (vectOfFieldsSize != nzone )
@@ -296,7 +300,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nzone; i++)
   {
     tpl = K_ARRAY::buildArray3(*vectOfFields[i], varString,
-                               nis[i], njs[i], nks[i]);
+                               nis[i], njs[i], nks[i], api);
     RELEASESHAREDS(PyList_GetItem(listBlks, i), vectOfFields[i]);
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
