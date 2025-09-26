@@ -42,6 +42,7 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int api = f->getApi();
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -56,20 +57,19 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
     imjm = im*jm;
     imjmkm = imjm*km;
     km1 = km+1;
-    E_Int npts = imjm*km1;
     E_Int nfld = f->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km1);
-    E_Float* nzp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF nz(npts, nfld, nzp, true);
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, im, jm, km1, api);
+    FldArrayF* nz;
+    K_ARRAY::getFromArray3(tpl, nz);
     
     for (E_Int n = 1; n <= nfld; n++)
     {
-      E_Float* newzonep = nz.begin(n);
+      E_Float* newzonep = nz->begin(n);
       E_Float* fpn = f->begin(n);
 #pragma omp parallel
       {
         E_Int ind, ind2;
-#pragma omp for
+#pragma omp for nowait
         for (E_Int i = 0; i < imjmkm; i++)
         {
           newzonep[i] = fpn[i];
@@ -87,24 +87,25 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
 
     if (posx > 0 && posy > 0 && posz > 0)
     {
-      E_Float* nfx = nz.begin(posx);
-      E_Float* nfy = nz.begin(posy);
-      E_Float* nfz = nz.begin(posz);
+      E_Float* nfx = nz->begin(posx);
+      E_Float* nfy = nz->begin(posy);
+      E_Float* nfz = nz->begin(posz);
       E_Float* fx = f->begin(posx);
       E_Float* fy = f->begin(posy);
       E_Float* fz = f->begin(posz);
-      for (E_Int j = 0; j < jm; j++)
-#pragma omp parallel
+      #pragma omp parallel
       {
-        E_Int ind, ind2;
-#pragma omp for
+        E_Int ind, ind1, ind2;
+        #pragma omp for collapse(2)
+        for (E_Int j = 0; j < jm; j++)
         for (E_Int i = 0; i < im; i++)
         {
-          ind = i + j*im + (km-1)*imjm;
-          ind2  = i + j*im + imjmkm; 
-          nfx[ind2] = fx[ind] + vx;
-          nfy[ind2] = fy[ind] + vy;
-          nfz[ind2] = fz[ind] + vz;
+          ind = i + j*im;
+          ind1 = ind + (km-1)*imjm;
+          ind2 = ind + imjmkm; 
+          nfx[ind2] = fx[ind1] + vx;
+          nfy[ind2] = fy[ind1] + vy;
+          nfz[ind2] = fz[ind1] + vz;
         }
       }
     }

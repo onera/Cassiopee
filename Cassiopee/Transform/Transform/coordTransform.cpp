@@ -103,7 +103,7 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
   E_Bool in;
 
   // Contraction
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     E_Float sigma1, sigma0, dist2;
     E_Float xint, yint, zint;
@@ -116,9 +116,9 @@ PyObject* K_TRANSFORM::contract(PyObject* self, PyObject* args)
                                      dist2, in, xint, yint, zint,
                                      sigma0, sigma1);
     
-      xp[i] = xint + alpha*(xp[i]-xint); 
-      yp[i] = yint + alpha*(yp[i]-yint); 
-      zp[i] = zint + alpha*(zp[i]-zint);
+      xp[i] = xint + alpha*(xp[i] - xint); 
+      yp[i] = yint + alpha*(yp[i] - yint); 
+      zp[i] = zint + alpha*(zp[i] - zint);
     }
   }
 
@@ -181,49 +181,41 @@ PyObject* K_TRANSFORM::deformPoint(PyObject* self, PyObject* args)
   
   // Construit l'array resultat
   PyObject* tpl;
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
-  E_Int nfld = f->getNfld();
-  if (res == 1) //structured
+  if (res == 1)  // structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km);
+    tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
   } 
-  else //unstructured 
+  else  // unstructured 
   {
-    E_Int csize = cn->getSize()*cn->getNfld(); 
-    tpl = K_ARRAY::buildArray(nfld, varString,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
-  }
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
-  fn.setAllValuesAt(*f);
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
   }
 
   // Pointers
-  E_Float* xo = fn.begin(posx);
-  E_Float* yo = fn.begin(posy);
-  E_Float* zo = fn.begin(posz);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
+  E_Float* x2 = f2->begin(posx);
+  E_Float* y2 = f2->begin(posy);
+  E_Float* z2 = f2->begin(posz);
 
   // Regularisation
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
-  E_Float d1, d2, d3, dd, f;
-#pragma omp for  
-  for (E_Int i = 0; i < npts; i++)
-  {
-    d1 = xo[i]-xi; d2 = yo[i]-yi; d3 = zo[i]-zi;
-    dd = d1*d1+d2*d2+d3*d3;
-    f = depth * exp(-dd*sigma);
-    xo[i] += dx*f;
-    yo[i] += dy*f;
-    zo[i] += dz*f;
-  }
+    E_Float d1, d2, d3, dd, fac;
+    #pragma omp for  
+    for (E_Int i = 0; i < npts; i++)
+    {
+      d1 = x2[i] - xi; d2 = y2[i] - yi; d3 = z2[i] - zi;
+      dd = d1*d1 + d2*d2 + d3*d3;
+      fac = depth * exp(-dd*sigma);
+      x2[i] += dx*fac;
+      y2[i] += dy*fac;
+      z2[i] += dz*fac;
+    }
   }
   
+  RELEASESHAREDS(tpl, f2);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

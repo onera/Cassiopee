@@ -90,6 +90,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   }
 
   // coordonnees deja verifiees dans getFromArrays
+  E_Int api = -1;
   E_Int nzones = structF.size();
   vector<E_Int> posxt(nzones); vector<E_Int> posyt(nzones); vector<E_Int> poszt(nzones);
   for (E_Int v = 0; v < nzones; v++)
@@ -99,6 +100,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
     posxt[v] = posx; posyt[v] = posy; poszt[v] = posz;
+    if (api == -1) api = structF[v]->getApi();
   }
   //printf("Running mergecart\n"); fflush(stdout);
   
@@ -182,13 +184,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       if ((*itr) != (*itr2))
       {
         /* compare cas 1 */
-        if(K_FUNC::fEqualZero(xmin1-xmin2, eps) == true &&
-           K_FUNC::fEqualZero(xmax1-xmax2, eps) == true &&
-           K_FUNC::fEqualZero(ymin1-ymin2, eps) == true &&
-           K_FUNC::fEqualZero(ymax1-ymax2, eps) == true &&
-           K_FUNC::fEqualZero(dh1-dh2, eps) == true)
+        if(K_FUNC::fEqualZero(xmin1-xmin2, eps) &&
+           K_FUNC::fEqualZero(xmax1-xmax2, eps) &&
+           K_FUNC::fEqualZero(ymin1-ymin2, eps) &&
+           K_FUNC::fEqualZero(ymax1-ymax2, eps) &&
+           K_FUNC::fEqualZero(dh1-dh2, eps))
         {
-          if (K_FUNC::fEqualZero(zmin1-zmax2, eps) == true)//possible en 3D seulmt
+          if (K_FUNC::fEqualZero(zmin1-zmax2, eps))//possible en 3D seulmt
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -203,7 +205,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
             (*itr)->_listOfFaces.push_back(face);
             (*itr2)->_listOfFaces.push_back(face);
           }
-          else if (K_FUNC::fEqualZero(zmax1-zmin2, eps) == true)//possible en 3D seulmt
+          else if (K_FUNC::fEqualZero(zmax1-zmin2, eps))//possible en 3D seulmt
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -221,13 +223,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
         }// cas 1
         
         /* compare cas 2 */ 
-        else if (K_FUNC::fEqualZero(ymin1-ymin2, eps) == true &&
-                 K_FUNC::fEqualZero(ymax1-ymax2, eps) == true &&
-                 K_FUNC::fEqualZero(zmin1-zmin2, eps) == true && // Toujours vrai en 2D
-                 K_FUNC::fEqualZero(zmax1-zmax2, eps) == true &&
-                 K_FUNC::fEqualZero(dh1-dh2, eps) == true)
+        else if (K_FUNC::fEqualZero(ymin1-ymin2, eps) &&
+                 K_FUNC::fEqualZero(ymax1-ymax2, eps) &&
+                 K_FUNC::fEqualZero(zmin1-zmin2, eps) && // Toujours vrai en 2D
+                 K_FUNC::fEqualZero(zmax1-zmax2, eps) &&
+                 K_FUNC::fEqualZero(dh1-dh2, eps))
         {
-          if (K_FUNC::fEqualZero(xmin1-xmax2, eps) == true)
+          if (K_FUNC::fEqualZero(xmin1-xmax2, eps))
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -243,7 +245,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
             (*itr)->_listOfFaces.push_back(face);
             (*itr2)->_listOfFaces.push_back(face);
           }
-          else if (K_FUNC::fEqualZero(xmax1-xmin2, eps) == true)
+          else if (K_FUNC::fEqualZero(xmax1-xmin2, eps))
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -261,13 +263,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
         }// cas 2 
         
         /* compare cas 3 */
-        else if (K_FUNC::fEqualZero(xmin1-xmin2, eps) == true &&
-                 K_FUNC::fEqualZero(xmax1-xmax2, eps) == true &&
-                 K_FUNC::fEqualZero(zmin1-zmin2, eps) == true && // Toujours vrai en 2D
-                 K_FUNC::fEqualZero(zmax1-zmax2, eps) == true &&
-                 K_FUNC::fEqualZero(dh1-dh2,eps) == true)
+        else if (K_FUNC::fEqualZero(xmin1-xmin2, eps) &&
+                 K_FUNC::fEqualZero(xmax1-xmax2, eps) &&
+                 K_FUNC::fEqualZero(zmin1-zmin2, eps) && // Toujours vrai en 2D
+                 K_FUNC::fEqualZero(zmax1-zmax2, eps) &&
+                 K_FUNC::fEqualZero(dh1-dh2,eps))
         {
-          if (K_FUNC::fEqualZero(ymin1-ymax2, eps) == true)
+          if (K_FUNC::fEqualZero(ymin1-ymax2, eps))
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -283,7 +285,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
             (*itr)->_listOfFaces.push_back(face);
             (*itr2)->_listOfFaces.push_back(face);
           }
-          else if (K_FUNC::fEqualZero(ymax1-ymin2, eps) == true)
+          else if (K_FUNC::fEqualZero(ymax1-ymin2, eps))
           {
             /* cette facette est mergeable */
             face = new CartBlockFace;
@@ -348,7 +350,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
           else if ((*itrf3)->_j1 == (*itrf3)->_j2) { itrf3const = 2; findex2 = (*itrf3)->_ymin; }
           else { itrf3const = 3; findex2 = (*itrf3)->_zmin; }
 
-          if (itrf3const == itrf2const && K_FUNC::fEqualZero(findex1-findex2,eps) == true)
+          if (itrf3const == itrf2const && K_FUNC::fEqualZero(findex1-findex2,eps))
           {
 	    /*
             if (itrfconst == 1) 
@@ -382,14 +384,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
             {
               /* compare cas 1 */
               if (itrfconst != 3 &&
-                  K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmin, eps) == true && 
-                  K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmax, eps) == true && 
-                  K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymin, eps) == true && 
-                  K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymax, eps) == true && 
-                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps) == true)
+                  K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmin, eps) && 
+                  K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmax, eps) && 
+                  K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymin, eps) && 
+                  K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymax, eps) && 
+                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps))
               {
-                if (K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmax, eps) == true || 
-                    K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmin, eps) == true ) 
+                if (K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmax, eps) || 
+                    K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmin, eps) ) 
                 {
                   mface->_grade--;
                   mface->_grade--;
@@ -397,14 +399,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
               }
               /* compare cas 2 */
               if (itrfconst != 1 &&
-                  K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymin, eps) == true && 
-                  K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymax, eps) == true && 
-                  K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmin, eps) == true && 
-                  K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmax, eps) == true && 
-                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps) == true)
+                  K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymin, eps) && 
+                  K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymax, eps) && 
+                  K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmin, eps) && 
+                  K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmax, eps) && 
+                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps))
               {
-                if (K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmax, eps) == true || 
-                    K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmin, eps) == true ) 
+                if (K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmax, eps) || 
+                    K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmin, eps) ) 
                 {
                   mface->_grade--;
                   mface->_grade--;
@@ -412,14 +414,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
               }
               /* compare cas 3 */
               if (itrfconst != 2 &&
-                  K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmin, eps) == true && 
-                  K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmax, eps) == true && 
-                  K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmin, eps) == true && 
-                  K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmax, eps) == true && 
-                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps) == true)
+                  K_FUNC::fEqualZero(zfusmin-(*itr2)->_zmin, eps) && 
+                  K_FUNC::fEqualZero(zfusmax-(*itr2)->_zmax, eps) && 
+                  K_FUNC::fEqualZero(xfusmin-(*itr2)->_xmin, eps) && 
+                  K_FUNC::fEqualZero(xfusmax-(*itr2)->_xmax, eps) && 
+                  K_FUNC::fEqualZero(dhfus-(*itr2)->_dh,eps))
               {
-                if (K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymax, eps) == true || 
-                    K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymin, eps) == true ) 
+                if (K_FUNC::fEqualZero(yfusmin-(*itr2)->_ymax, eps) || 
+                    K_FUNC::fEqualZero(yfusmax-(*itr2)->_ymin, eps) ) 
                 {
                   mface->_grade--;
                   mface->_grade--;
@@ -480,11 +482,11 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
 
   //printf("stepH\n"); fflush(stdout);
 
-  if (K_FUNC::fEqualZero(faceMin->_xmin-faceMin->_xmax,eps) == true)
+  if (K_FUNC::fEqualZero(faceMin->_xmin-faceMin->_xmax,eps))
   {
     ninew = block1->_ni+block2->_ni-1; njnew = block1->_nj; nknew = block1->_nk; //dir = 1;
   }
-  else if (K_FUNC::fEqualZero(faceMin->_ymin-faceMin->_ymax,eps) == true)
+  else if (K_FUNC::fEqualZero(faceMin->_ymin-faceMin->_ymax,eps))
   {
     ninew = block1->_ni; njnew = block1->_nj+block2->_nj-1; nknew = block1->_nk; //dir = 2;
   }
@@ -644,13 +646,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       dh2 = (*itr2)->_dh;
      
       /* compare cas 1 */
-      if( K_FUNC::fEqualZero(xmin1-xmin2, eps) == true &&
-          K_FUNC::fEqualZero(xmax1-xmax2, eps) == true &&
-          K_FUNC::fEqualZero(ymin1-ymin2, eps) == true &&
-          K_FUNC::fEqualZero(ymax1-ymax2, eps) == true &&
-          K_FUNC::fEqualZero(dh1-dh2,eps) == true )
+      if( K_FUNC::fEqualZero(xmin1-xmin2, eps) &&
+          K_FUNC::fEqualZero(xmax1-xmax2, eps) &&
+          K_FUNC::fEqualZero(ymin1-ymin2, eps) &&
+          K_FUNC::fEqualZero(ymax1-ymax2, eps) &&
+          K_FUNC::fEqualZero(dh1-dh2,eps) )
       {
-        if (K_FUNC::fEqualZero(zmin1-zmax2, eps) == true )//possible en 3D seulmt
+        if (K_FUNC::fEqualZero(zmin1-zmax2, eps) )//possible en 3D seulmt
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -665,7 +667,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
           block1->_listOfFaces.push_back(face);
           (*itr2)->_listOfFaces.push_back(face);         
         }
-        else if (K_FUNC::fEqualZero(zmax1-zmin2, eps) == true)//possible en 3D seulmt
+        else if (K_FUNC::fEqualZero(zmax1-zmin2, eps))//possible en 3D seulmt
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -683,13 +685,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       }// fin cas 1
       
       /* compare cas 2 */
-      else if (K_FUNC::fEqualZero(ymin1-ymin2, eps) == true &&
-               K_FUNC::fEqualZero(ymax1-ymax2, eps) == true &&
-               K_FUNC::fEqualZero(zmin1-zmin2, eps) == true && // Toujours vrai en 2D
-               K_FUNC::fEqualZero(zmax1-zmax2, eps) == true &&
-               K_FUNC::fEqualZero(dh1-dh2,eps) == true)     
+      else if (K_FUNC::fEqualZero(ymin1-ymin2, eps) &&
+               K_FUNC::fEqualZero(ymax1-ymax2, eps) &&
+               K_FUNC::fEqualZero(zmin1-zmin2, eps) && // Toujours vrai en 2D
+               K_FUNC::fEqualZero(zmax1-zmax2, eps) &&
+               K_FUNC::fEqualZero(dh1-dh2,eps))     
       {
-        if (K_FUNC::fEqualZero(xmin1-xmax2, eps) == true)
+        if (K_FUNC::fEqualZero(xmin1-xmax2, eps))
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -704,7 +706,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
           block1->_listOfFaces.push_back(face);
           (*itr2)->_listOfFaces.push_back(face);         
         }
-        else if (K_FUNC::fEqualZero(xmax1-xmin2, eps) == true)
+        else if (K_FUNC::fEqualZero(xmax1-xmin2, eps))
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -721,13 +723,13 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
         }
       }// fin cas 2    
       /* compare cas 3 */
-      else if (K_FUNC::fEqualZero(xmin1-xmin2, eps) == true &&
-               K_FUNC::fEqualZero(xmax1-xmax2, eps) == true &&
-               K_FUNC::fEqualZero(zmin1-zmin2, eps) == true && // Toujours vrai en 2D
-               K_FUNC::fEqualZero(zmax1-zmax2, eps) == true &&
-               K_FUNC::fEqualZero(dh1-dh2,eps) == true)
+      else if (K_FUNC::fEqualZero(xmin1-xmin2, eps) &&
+               K_FUNC::fEqualZero(xmax1-xmax2, eps) &&
+               K_FUNC::fEqualZero(zmin1-zmin2, eps) && // Toujours vrai en 2D
+               K_FUNC::fEqualZero(zmax1-zmax2, eps) &&
+               K_FUNC::fEqualZero(dh1-dh2,eps))
       {
-        if (K_FUNC::fEqualZero(ymin1-ymax2, eps) == true)
+        if (K_FUNC::fEqualZero(ymin1-ymax2, eps))
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -743,7 +745,7 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
           block1->_listOfFaces.push_back(face);
           (*itr2)->_listOfFaces.push_back(face);
         }
-        else if (K_FUNC::fEqualZero(ymax1-ymin2, eps) == true)
+        else if (K_FUNC::fEqualZero(ymax1-ymin2, eps))
         {
           /* cette facette est mergeable */
           face = new CartBlockFace;
@@ -775,21 +777,21 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
       ymin2 = (*itr2)->_ymin; ymax2 = (*itr2)->_ymax;
       zmin2 = (*itr2)->_zmin; zmax2 = (*itr2)->_zmax;
       dh2 = (*itr2)->_dh;
-      if (K_FUNC::fEqualZero(dh1-dh2,eps) == true)
+      if (K_FUNC::fEqualZero(dh1-dh2,eps))
       {
-        if (((K_FUNC::fEqualZero(zmin1-zmax2, eps) == true ||
-              K_FUNC::fEqualZero(zmax1-zmin2, eps) == true) &&
+        if (((K_FUNC::fEqualZero(zmin1-zmax2, eps) ||
+              K_FUNC::fEqualZero(zmax1-zmin2, eps)) &&
              xmin2 < xmax1 && xmax2 > xmin1 && ymin2 < ymax1 && ymax2 > ymin1) ||
-            ((K_FUNC::fEqualZero(xmin1-xmax2, eps) == true ||
-              K_FUNC::fEqualZero(xmax1-xmin2, eps) == true) &&
+            ((K_FUNC::fEqualZero(xmin1-xmax2, eps) ||
+              K_FUNC::fEqualZero(xmax1-xmin2, eps)) &&
              ymin2 < ymax1 && ymax2 > ymin1 && 
              ((zmin2 < zmax1 && zmax2 > zmin1) ||                // 3D
-              K_FUNC::fEqualZero(zmin1-zmax1, eps) == true)) ||  // 2D
-            ((K_FUNC::fEqualZero(ymin1-ymax2, eps) == true ||
-              K_FUNC::fEqualZero(ymax1-ymin2, eps) == true) &&
+              K_FUNC::fEqualZero(zmin1-zmax1, eps))) ||  // 2D
+            ((K_FUNC::fEqualZero(ymin1-ymax2, eps) ||
+              K_FUNC::fEqualZero(ymax1-ymin2, eps)) &&
              xmin2 < xmax1 && xmax2 > xmin1 &&
              ((zmin2 < zmax1 && zmax2 > zmin1) ||             // 3D
-              K_FUNC::fEqualZero(zmin1-zmax1, eps) == true))) // 2D
+              K_FUNC::fEqualZero(zmin1-zmax1, eps)))) // 2D
         {
           for (itrf = (*itr2)->_listOfFaces.begin();
                itrf != (*itr2)->_listOfFaces.end();
@@ -868,14 +870,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                       {
                         /* compare cas 1 */
                         if (itrfconst != 3 &&
-                            K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmin, eps) == true && 
-                            K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmax, eps) == true && 
-                            K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymin, eps) == true && 
-                            K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymax, eps) == true && 
-                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps) == true)
+                            K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmin, eps) && 
+                            K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmax, eps) && 
+                            K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymin, eps) && 
+                            K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymax, eps) && 
+                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps))
                         {
-                          if (K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmax, eps) == true || 
-                              K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmin, eps) == true ) 
+                          if (K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmax, eps) || 
+                              K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmin, eps) ) 
                           {
                             (*itrf)->_grade--;
                             (*itrf)->_grade--;
@@ -883,14 +885,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                         }
                         /* compare cas 2 */
                         if (itrfconst != 1 &&
-                            K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymin, eps) == true && 
-                            K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymax, eps) == true && 
-                            K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmin, eps) == true && 
-                            K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmax, eps) == true && 
-                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps) == true)
+                            K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymin, eps) && 
+                            K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymax, eps) && 
+                            K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmin, eps) && 
+                            K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmax, eps) && 
+                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps))
                         {
-                          if (K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmax, eps) == true || 
-                              K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmin, eps) == true ) 
+                          if (K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmax, eps) || 
+                              K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmin, eps) ) 
                           {
                             (*itrf)->_grade--;
                             (*itrf)->_grade--;
@@ -898,14 +900,14 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
                         }
                         /* compare cas 3 */
                         if (itrfconst != 2 &&
-                            K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmin, eps) == true && 
-                            K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmax, eps) == true && 
-                            K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmin, eps) == true && 
-                            K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmax, eps) == true && 
-                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps) == true)
+                            K_FUNC::fEqualZero(zfusmin-(*itr3)->_zmin, eps) && 
+                            K_FUNC::fEqualZero(zfusmax-(*itr3)->_zmax, eps) && 
+                            K_FUNC::fEqualZero(xfusmin-(*itr3)->_xmin, eps) && 
+                            K_FUNC::fEqualZero(xfusmax-(*itr3)->_xmax, eps) && 
+                            K_FUNC::fEqualZero(dhfus-(*itr3)->_dh,eps))
                         {
-                          if (K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymax, eps) == true || 
-                              K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymin, eps) == true ) 
+                          if (K_FUNC::fEqualZero(yfusmin-(*itr3)->_ymax, eps) || 
+                              K_FUNC::fEqualZero(yfusmax-(*itr3)->_ymin, eps) ) 
                           {
                             (*itrf)->_grade--;
                             (*itrf)->_grade--;
@@ -941,32 +943,40 @@ PyObject* K_TRANSFORM::mergeCartGrids(PyObject* self, PyObject* args)
   if (listOfMergeableFace.size() > 0) goto truc;
   end:;
   
-  //printf("producing\n");
-  
-  E_Int ind;
-  PyObject* l = PyList_New(0); 
-
+  PyObject* l = PyList_New(0);
+  PyObject* tpl;
+  FldArrayF* coordso;
+  E_Float *xto, *yto, *zto;
+  E_Int nionjo;
+  E_Float xmin, ymin, zmin, dh;
   for (itr = listOfBlocks.begin(); itr != listOfBlocks.end(); itr++)
   {
     nio = (*itr)->_ni; njo = (*itr)->_nj; nko = (*itr)->_nk;
-    PyObject* tpl = K_ARRAY::buildArray(3, structVarString[0], nio, njo, nko);
-    E_Float* xto = K_ARRAY::getFieldPtr(tpl);
-    E_Float* yto = xto + nio*njo*nko;
-    E_Float* zto = yto + nio*njo*nko;
-    E_Float xmin = (*itr)->_xmin;
-    E_Float ymin = (*itr)->_ymin;
-    E_Float zmin = (*itr)->_zmin;
-    E_Float dh = (*itr)->_dh;
-    E_Int nionjo = nio*njo;
-    for (E_Int k = 0; k < nko; k++)
+    tpl = K_ARRAY::buildArray3(3, structVarString[0], nio, njo, nko, api);
+    K_ARRAY::getFromArray3(tpl, coordso);
+    xto = coordso->begin(1);
+    yto = coordso->begin(2);
+    zto = coordso->begin(3);
+    xmin = (*itr)->_xmin;
+    ymin = (*itr)->_ymin;
+    zmin = (*itr)->_zmin;
+    dh = (*itr)->_dh;
+    nionjo = nio*njo;
+    #pragma omp parallel
+    {
+      E_Int ind;
+      #pragma omp for collapse(3)
+      for (E_Int k = 0; k < nko; k++)
       for (E_Int j = 0; j < njo; j++)
-        for (E_Int i = 0; i < nio; i++)
-        {
-          ind  = i + j * nio + k * nionjo;
-          xto[ind] = xmin + i *dh;
-          yto[ind] = ymin + j *dh;
-          zto[ind] = zmin + k *dh;
-        }
+      for (E_Int i = 0; i < nio; i++)
+      {
+        ind = i + j * nio + k * nionjo;
+        xto[ind] = xmin + i * dh;
+        yto[ind] = ymin + j * dh;
+        zto[ind] = zmin + k * dh;
+      }
+    }
+    RELEASESHAREDS(tpl, coordso);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
