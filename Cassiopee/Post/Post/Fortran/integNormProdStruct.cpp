@@ -19,17 +19,67 @@
 
 # include "post.h"
 
+//=============================================================================
+// Integre les grandeurs de vect(F).vect(n)
+// Retourne 1 si success, 0 si echec
+//=============================================================================
+E_Int K_POST::integNormProdStruct2D(E_Int ni, E_Int nj, E_Int nk, 
+                                    E_Int center2node,
+                                    E_Int posx, E_Int posy, E_Int posz,
+                                    FldArrayF& coord, FldArrayF& F, 
+                                    FldArrayF& ratio, E_Float& resultat)
+{
+  E_Int NI, NJ;
+  E_Float result = 0.;
+  
+  if (nk == 1) { NI = ni; NJ = nj; }
+  else if (nj == 1) { NI = ni; NJ = nk; }
+  else if (ni == 1) { NI = nj; NJ = nk; }
+  else return 0;
+ 
+  // Compute surface of each "block" i cell, with coordinates coord
+  FldArrayF nsurf((NI-1) * (NJ-1), 3);
+
+  //E_Int npts = coord.getSize();
+  K_METRIC::compNormStructSurf(
+    NI, NJ, coord.begin(posx), coord.begin(posy), coord.begin(posz), 
+    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+
+  if (center2node == 1)
+  {
+    // Compute integral, coordinates defined in node 
+    // and field F in center 
+    integNormProdStructNodeCenter2D(
+      NI-1, NJ-1, ratio.begin(), 
+      nsurf.begin(1), nsurf.begin(2), nsurf.begin(3),
+      F.begin(1), F.begin(2), F.begin(3),
+      result
+    );
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    integNormProdStructCellCenter2D(
+      NI, NJ, ratio.begin(),
+      nsurf.begin(1), nsurf.begin(2),  nsurf.begin(3),  
+      F.begin(1), F.begin(2), F.begin(3),
+      result
+    );
+  }
+  resultat += result;   
+  return 1;
+}
+
 //==============================================================================
 // Compute surface integral of the product vect(F).vect(n), coordinates
 // are defined in nodes and F is defined in center
 //==============================================================================
-void K_POST::integNormProdStruct(
+void K_POST::integNormProdStructCellCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
   const E_Float* vx, const E_Float* vy, const E_Float* vz,
-  E_Float& result
-)
+  E_Float& result)
 {
   E_Int ni1;
   E_Int ind1, ind2, ind3, ind4, ind;
@@ -70,13 +120,12 @@ void K_POST::integNormProdStruct(
 // Compute surface integral of the product vect(F).vect(n), coordinates 
 // are defined in nodes and F is defined in nodes (center-based formulation)
 //==============================================================================
-void K_POST::integNormProdStructNodeCenter(
+void K_POST::integNormProdStructNodeCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
   const E_Float* vx, const E_Float* vy, const E_Float* vz,
-  E_Float& result
-)
+  E_Float& result)
 {
   E_Int ind;
   E_Float sum;

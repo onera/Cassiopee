@@ -116,10 +116,11 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   }
 
   PyObject* t;
+  E_Int api = 1;  // f->getApi();
   if (strcmp(eltType0, "TRI") == 0)
-    t = K_ARRAY::buildArray(fiso, varString0, ciso, -1, "BAR");
+    t = K_ARRAY::buildArray3(fiso, varString0, ciso, "BAR", api);
   else
-    t = K_ARRAY::buildArray(fiso, varString0, ciso, -1, "NODE");
+    t = K_ARRAY::buildArray3(fiso, varString0, ciso, "NODE", api);
   return t;
 }
 

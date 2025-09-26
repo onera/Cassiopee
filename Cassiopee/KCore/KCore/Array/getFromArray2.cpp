@@ -69,14 +69,14 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   if (PyList_Check(o) == false)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
     return -1;
   }
   E_Int size = PyList_Size(o);
   if (size != 4 && size != 5)
   {
     PyErr_Warn(PyExc_Warning, 
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
     return -2;
   }
  
@@ -96,7 +96,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   else
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
   
@@ -114,7 +114,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (PyArray_NDIM(a) != 2)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: field must have two dimensions.");
+                 "getFromArray2: field must have two dimensions.");
       Py_DECREF(tpl);
       return -4;
     }
@@ -125,7 +125,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (nfld != nvar)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: number of variables different in varString and field.");
+                 "getFromArray2: number of variables different in varString and field.");
       Py_DECREF(tpl);
       return -4;
     }    
@@ -148,7 +148,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
       else
       {
         PyErr_Warn(PyExc_Warning,
-                   "getFromArray: field must a list of numpys.");
+                   "getFromArray2: field must a list of numpys.");
         Py_DECREF(tpl);
         return -4;
       }
@@ -159,7 +159,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   else
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: second arg in array must be a numpy array.");
+               "getFromArray2: second arg in array must be a numpy array.");
     return -4;
   }
   
@@ -177,7 +177,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
       if (PyArray_NDIM(ac) > 2)
       {
         PyErr_Warn(PyExc_Warning,
-                   "getFromArray: connectivity must have two dimensions max.");
+                   "getFromArray2: connectivity must have two dimensions max.");
         Py_DECREF(ref); Py_DECREF(tpl);
         return -4;
       }
@@ -228,7 +228,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     else
     {
       PyErr_Warn(PyExc_Warning, 
-                 "getFromArray: third arg in array must be a numpy array.");
+                 "getFromArray2: third arg in array must be a numpy array.");
       Py_DECREF(ref); Py_DECREF(tpl);
       return -6;
     }
@@ -248,7 +248,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     else
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
+                 "getFromArray2: an unstruct array must be of list of type ['vars', a, c, 'ELTTYPE']. Last element must be a string.");
       Py_DECREF(ref); Py_DECREF(tpl);
       return -7;
     }
@@ -257,7 +257,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (eltString2TypeId(eltType, st, dummy, dummy, dummy) == 0)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");
+                 "getFromArray2: element type unknown: %s. Must be in NODE, BAR, TRI, QUAD, TETRA, PYRA, PENTA, HEXA, NGON or NODE*, BAR*, TRI*, QUAD*, TETRA*, PYRA*, PENTA*, HEXA*, NGON*.");
       Py_DECREF(ref); Py_DECREF(tpl);
       return -7;
     }
@@ -269,7 +269,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: third arg must be an integer.");
+                 "getFromArray2: third arg must be an integer.");
       Py_DECREF(ref);
       return -5;
     }
@@ -278,7 +278,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: fourth arg must be an integer.");
+                 "getFromArray2: fourth arg must be an integer.");
       Py_DECREF(ref);
       return -5;
     }
@@ -287,7 +287,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (PyLong_Check(tpl) == false && PyInt_Check(tpl) == false)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: fifth arg must be an integer.");
+                 "getFromArray2: fifth arg must be an integer.");
       Py_DECREF(ref);
       return -5;
     }
@@ -345,14 +345,14 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   if (PyList_Check(o) == false)
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check list.");
     return -1;
   }
   E_Int size = PyList_Size(o);
   if (size != 4 && size != 5)
   {
     PyErr_Warn(PyExc_Warning, 
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. Check number of elements in list.");
     return -2;
   }
  
@@ -372,7 +372,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   else
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
+               "getFromArray2: an array must be a list of type ['vars', a, ni, nj, nk] or ['vars', a, c, 'ELTTYPE']. First element must be a string.");
     return -3;
   }
   E_Int nvar = getNumberOfVariables(varString);
@@ -389,7 +389,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (PyArray_NDIM(a) != 2)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: field must have two dimensions.");
+                 "getFromArray2: field must have two dimensions.");
       Py_DECREF(tpl);
       return -4;
     }
@@ -400,7 +400,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
     if (nfld != nvar)
     {
       PyErr_Warn(PyExc_Warning,
-                 "getFromArray: number of variables different in varString and field.");
+                 "getFromArray2: number of variables different in varString and field.");
       Py_DECREF(tpl);
       return -4;
     }    
@@ -423,7 +423,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
       else
       {
         PyErr_Warn(PyExc_Warning,
-                   "getFromArray: field must a list of numpys.");
+                   "getFromArray2: field must a list of numpys.");
         Py_DECREF(tpl);
         return -4;
       }
@@ -434,7 +434,7 @@ E_Int K_ARRAY::getFromArray2(PyObject* o,
   else
   {
     PyErr_Warn(PyExc_Warning,
-               "getFromArray: second arg in array must be a numpy array.");
+               "getFromArray2: second arg in array must be a numpy array.");
     return -4;
   }
   
