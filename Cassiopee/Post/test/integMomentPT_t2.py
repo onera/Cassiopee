@@ -19,7 +19,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F1D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 0.)
 z = C.initVars(z, 'centers:MomentumY', 4.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,1)
 
@@ -29,7 +29,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F1D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 0.)
 z = C.initVars(z, 'centers:MomentumY', 4.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,2)
 
@@ -43,7 +43,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 4.)
 z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,3)
 
@@ -53,7 +53,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 4.)
 z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,4)
 
@@ -63,7 +63,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 4.)
 z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,5)
 
@@ -73,7 +73,7 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 4.)
 z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,6)
 
@@ -85,6 +85,6 @@ z = C.initVars(z, ['VelocityX', 'VelocityY', 'VelocityZ'], F2D, ['CoordinateX','
 z = C.initVars(z, 'centers:MomentumX', 4.)
 z = C.initVars(z, 'centers:MomentumY', 0.)
 z = C.initVars(z, 'centers:MomentumZ', 0.)
-res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']), 
+res = [P.integMoment(z, center=(0.,0.,0.), vector=['VelocityX','VelocityY','VelocityZ']),
        P.integMoment(z, center=(0.,0.,0.), vector=['centers:MomentumX','centers:MomentumY','centers:MomentumZ'])]
 test.testO(res,7)
