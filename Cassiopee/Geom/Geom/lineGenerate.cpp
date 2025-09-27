@@ -213,7 +213,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     }
     RELEASESHAREDS(array, f1);
     RELEASESHAREDS(arrayLine, f2);
-    PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3, api);
     delete coord;
     return tpl; 
   }

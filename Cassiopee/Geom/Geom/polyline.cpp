@@ -23,7 +23,7 @@ using namespace K_FLD;
 //===========================================================================
 /* Polyline */
 //===========================================================================
-PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
+PyObject* K_GEOM::polyline(PyObject* self, PyObject* args)
 {
   PyObject* listPts;
 
@@ -43,7 +43,7 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
   
   for (E_Int i = 0; i < npts; i++)
   {
-    PyObject* tpli = PyList_GetItem(listPts,i);
+    PyObject* tpli = PyList_GetItem(listPts, i);
     if (PyTuple_Check(tpli) == 0 && PyList_Check(tpli) == 0)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -72,11 +72,13 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
   }
  
   /* 2: lecture des coordonnees et creation du tableau de pts */
-  PyObject* tpl = K_ARRAY::buildArray(3, "x,y,z", npts, 1, 1);
-
-  E_Float* x = K_ARRAY::getFieldPtr(tpl);
-  E_Float* y = x + npts;
-  E_Float* z = y + npts;
+  E_Int api = 1; // TODO
+  PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, 1, 1, api);
+  FldArrayF* f;
+  K_ARRAY::getFromArray3(tpl, f);
+  E_Float* x = f->begin(1);
+  E_Float* y = f->begin(2);
+  E_Float* z = f->begin(3);
   
   PyObject *o, *c1, *c2, *c3;
  
@@ -125,5 +127,6 @@ PyObject* K_GEOM::polyline( PyObject* self, PyObject* args )
     }
   }
   
+  RELEASESHAREDS(tpl, f);
   return tpl;
 }

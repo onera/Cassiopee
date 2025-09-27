@@ -224,7 +224,8 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   // t1 ou t2 elimine
   checkTetrahedra(type, cn, coord);
 
-  PyObject* tpl = K_ARRAY::buildArray(coord, "x,y,z", cn, 4, "TETRA");
+  E_Int api = f1->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(coord, "x,y,z", cn, "TETRA", api);
   delete an; delete cni;
   RELEASESHAREDU(array1, f1, cn1);
   RELEASESHAREDU(array2, f2, cn2); 

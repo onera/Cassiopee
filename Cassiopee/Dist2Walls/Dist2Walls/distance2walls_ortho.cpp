@@ -251,7 +251,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < nsn; nos++)
   {
     tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
-                               nitn[nos], njtn[nos], nktn[nos]);
+                               nitn[nos], njtn[nos], nktn[nos], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
     RELEASESHAREDS(objsn[nos], structFn[nos]);

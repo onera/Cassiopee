@@ -61,49 +61,55 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
     if ( im > 1 && jm > 1 && km > 1 ) 
     {
       PyErr_SetString(PyExc_TypeError,
-                    "getCurvatureHeight: array must be 1D or 2D.");
+                      "getCurvatureHeight: array must be 1D or 2D.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }
   else if ( res == 2 ) 
   {
-    if ( strcmp(eltType,"BAR") != 0 && strcmp(eltType,"TRI") != 0 && strcmp(eltType,"QUAD") != 0 )
+    if ( strcmp(eltType, "BAR") != 0 && strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0 )
     {
       PyErr_SetString(PyExc_TypeError,
-                    "getCurvatureHeight: unstructured array must be BAR, TRI or QUAD.");
+                      "getCurvatureHeight: unstructured array must be BAR, TRI or QUAD.");
       RELEASESHAREDU(array, f, cn); return NULL;
     }
   }
 
   // build array
+  E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
   PyObject* tpl = NULL;
+  FldArrayF* hmaxt;
 
   if (res == 1)
   {
-    tpl = K_ARRAY::buildArray(1,"hmax", im, jm, km);     
-    E_Float* hmaxt = K_ARRAY::getFieldPtr(tpl);                                  
-    if (im>1 && jm==1 && km== 1) K_COMPGEOM::compStructCurvatureHeight1D(im, xt, yt, zt, hmaxt);
-    else if (im>1 && jm>1  && km==1 ) K_COMPGEOM::compStructCurvatureHeight2D(im, jm, xt, yt, zt, hmaxt);
+    tpl = K_ARRAY::buildArray3(1, "hmax", im, jm, km, api);
+    K_ARRAY::getFromArray3(tpl, hmaxt);
+    E_Float* hmaxtp = hmaxt->begin();                    
+    if (im > 1 && jm == 1 && km == 1) K_COMPGEOM::compStructCurvatureHeight1D(im, xt, yt, zt, hmaxtp);
+    else if (im > 1 && jm > 1  && km == 1) K_COMPGEOM::compStructCurvatureHeight2D(im, jm, xt, yt, zt, hmaxtp);
     else 
     {
       PyErr_SetString(PyExc_TypeError,
-                    "getCurvatureHeight: array must be (ni,1,1) in 1D or (ni,nj,1) in 2D.");
+                      "getCurvatureHeight: array must be (ni,1,1) in 1D or (ni,nj,1) in 2D.");
       RELEASESHAREDS(array, f); return NULL;
     }
+    RELEASESHAREDS(tpl, hmaxt);
     RELEASESHAREDS(array, f);
   }
   else
   {
-    tpl = K_ARRAY::buildArray(1, "hmax", f->getSize(), cn->getSize(), -1, eltType);
-    E_Float* hmaxt = K_ARRAY::getFieldPtr(tpl);                                  
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cnn(cn->getSize(), cn->getNfld(), cnnp, true); cnn = *cn;
-    
-    if (strcmp(eltType,"BAR") == 0) K_COMPGEOM::compCurvatureHeightForBAR(f->getSize(), xt, yt, zt, cnn, hmaxt);
-    else if (strcmp(eltType,"TRI") == 0 || strcmp(eltType,"QUAD") == 0) K_COMPGEOM::compCurvatureHeightForTRIQUAD(f->getSize(), xt, yt, zt, cnn, hmaxt);
+    E_Int npts = f->getSize();
+    tpl = K_ARRAY::buildArray3(1, "hmax", npts,
+                               *cn, eltType, false, api, true);
+    FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, hmaxt, cn2);
+    E_Float* hmaxtp = hmaxt->begin();      
+    if (strcmp(eltType, "BAR") == 0) K_COMPGEOM::compCurvatureHeightForBAR(npts, xt, yt, zt, *cn2, hmaxtp);
+    else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) K_COMPGEOM::compCurvatureHeightForTRIQUAD(npts, xt, yt, zt, *cn2, hmaxtp);
+    RELEASESHAREDU(tpl, hmaxt, cn2);
     RELEASESHAREDU(array, f, cn);
   }
   return tpl; 

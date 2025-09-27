@@ -268,11 +268,13 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
   E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
+  E_Int api = f->getApi();
   E_Int posx, posy, posz;
-  E_Float length;
-  E_Float l;
+  E_Float length = 0.;
+  E_Float l, dx, dy, dz;
+  PyObject* tpl = NULL;
+  FldArrayF* ab;
 
-  length = 0.;
   if (res == 1)
   {      
     if (jm != 1 || km != 1)
@@ -291,16 +293,15 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
 
     
-    PyObject* tpl;
-    tpl = K_ARRAY::buildArray(1, "s", im, jm, km);
-    E_Float* ab = K_ARRAY::getFieldPtr(tpl);
+    tpl = K_ARRAY::buildArray3(1, "s", im, jm, km, api);
+    K_ARRAY::getFromArray3(tpl, ab);
+    E_Float* abp = ab->begin();
 
-    ab[0] = 0.;
+    abp[0] = 0.;
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
     
-    E_Float dx, dy, dz;
     for (E_Int i = 1; i < im; i++)
     {
       dx = xt[i] - xt[i-1];
@@ -309,12 +310,13 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
  
       l = sqrt(dx*dx + dy*dy + dz*dz);
       length += l;
-      ab[i] = ab[i-1] + l;
+      abp[i] = abp[i-1] + l;
     }
 
-    E_Float inv = 1/length;
-    for (E_Int i = 1; i < im; i++) ab[i] = ab[i] * inv;
+    E_Float inv = 1./length;
+    for (E_Int i = 1; i < im; i++) abp[i] *= inv;
     
+    RELEASESHAREDS(tpl, ab);
     RELEASESHAREDS(array, f);
     return tpl;
   }
@@ -338,15 +340,13 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
       return NULL;    
     }
     posx++; posy++; posz++;
-    E_Int npts = f->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(1, "s", npts, cn->getSize(), 
-                                        -1, eltType);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
 
-    E_Float* ab = K_ARRAY::getFieldPtr(tpl);
+    E_Int npts = f->getSize();
+    tpl = K_ARRAY::buildArray3(1, "s", npts, *cn, eltType, false, api, true);
+    K_ARRAY::getFromArray3(tpl, ab);
+    E_Float* abp = ab->begin();
     
-    ab[0] = 0.;
+    abp[0] = 0.;
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
@@ -355,7 +355,7 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
     
     // pt de depart : 0
     E_Int nelts = cn->getSize();
-    E_Int ind2; E_Float dx, dy, dz;
+    E_Int ind2;
     FldArrayIS dejaVu(nelts); dejaVu.setAllValuesAtNull();
     short* dejaVup = dejaVu.begin();
     for (E_Int ind1 = 0; ind1 < npts-1; ind1++)
@@ -371,7 +371,7 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
           
           l = sqrt(dx*dx + dy*dy + dz*dz);
           length += l;
-          ab[ind2] = ab[ind1] + l;
+          abp[ind2] = abp[ind1] + l;
           dejaVup[et] = 1;
           break;
         }
@@ -379,8 +379,9 @@ PyObject* K_GEOM::getCurvilinearAbscissa(PyObject* self, PyObject* args)
     }
     
     E_Float inv = 1./length;
-    for (E_Int i = 1; i < npts; i++) ab[i] = ab[i] * inv;
- 
+    for (E_Int i = 1; i < npts; i++) abp[i] *= inv;
+
+    RELEASESHAREDS(tpl, ab);
     RELEASESHAREDU(array, f, cn);
     return tpl;
   }

@@ -73,20 +73,16 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
-    
-  E_Int npts = f->getSize();
-  E_Int nfld = f->getNfld();
 
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(nfld, varString, nil, njl, nkl);
-  
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
-  fn.setAllValuesAt(*f);
+  FldArrayF* f2;
+  tpl = K_ARRAY::buildArray3(*f, varString, nil, njl, nkl, api);
+  K_ARRAY::getFromArray3(tpl, f2);
 
   // Get the pointer on phi
   E_Int pos = K_ARRAY::isNamePresent("Phi", varString);
@@ -97,10 +93,10 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
                     "eikonal: cannot find Phi in array.");
     return NULL;
   }
-  E_Float* phi = fn.begin(pos+1);
+  E_Float* phi = f2->begin(pos+1);
   E_Float max_float = 0.;
-  for ( int i = 0; i < nil*njl*nkl; ++i )
-    max_float = std::max(max_float,phi[i]);
+  for (E_Int i = 0; i < nil*njl*nkl; i++)
+    max_float = K_FUNC::E_max(max_float, phi[i]);
 
   // Get the pointer on v (speed)
   E_Int posv = K_ARRAY::isNamePresent("speed", varString);
@@ -112,8 +108,8 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Float* v = fn.begin(posv+1);
-  E_Float dh = x[1]-x[0];
+  E_Float* v = f2->begin(posv+1);
+  E_Float dh = x[1] - x[0];
   //E_Int nbSubIter = 5;
 
   //clock_gettime(CLOCK_REALTIME, &end);
@@ -144,6 +140,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //clock_gettime(CLOCK_REALTIME, &end);
   //seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
   //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;  
+  RELEASESHAREDS(tpl, f2);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

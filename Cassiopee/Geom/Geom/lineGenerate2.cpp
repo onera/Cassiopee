@@ -76,6 +76,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   }
   
   // Main curve
+  E_Int api = f1->getApi();
   E_Int nfld = f1->getNfld();
   E_Int n1 = f1->getSize();
   E_Int posx1 = K_ARRAY::isCoordinateXPresent(varString1);
@@ -321,7 +322,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   for (size_t i = 0; i < obju.size(); i++)
     RELEASESHAREDU(obju[i], unstructF[i], c[i]);
   RELEASESHAREDS(array, f1);
-  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3, api);
 
   delete coord;
   return tpl; 

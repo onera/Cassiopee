@@ -75,6 +75,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
 
   // calcul du rayon de courbure
@@ -93,7 +94,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
       rad[i] = -K_CONST::E_MAX_FLOAT;
     else rad[i] = 1./c;
   }
-  PyObject* tpl = K_ARRAY::buildArray(rad, "radius", npts, 1, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(rad, "radius", npts, 1, 1, api);
   delete f; delete radp;
   return tpl;
 }     

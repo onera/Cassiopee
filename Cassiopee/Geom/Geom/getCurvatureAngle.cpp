@@ -89,7 +89,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       FldArrayF& angle = *an;
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngle(im, xt, yt, zt, dirVect, angle);
-      tpl = K_ARRAY::buildArray3(*an, "angle", im, jm, km);
+      tpl = K_ARRAY::buildArray3(*an, "angle", im, jm, km, api);
       delete an;
     }
     else if (res == 2 && strcmp(eltType, "BAR") == 0)

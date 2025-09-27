@@ -511,6 +511,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
   }
 
   PyObject* tpl = NULL;
+  E_Int api = 1; // TODO
   if (im == -1) // input avec epaisseur
   {
     // Data check
@@ -532,7 +533,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     coord.setAllValuesAtNull();
     k6naca2_(e, n, coord.begin(1), coord.begin(2), coord.begin(3));
     coord.reAllocMat(n, 3);
-    tpl = K_ARRAY::buildArray(coord, "x,y,z", n, 1, 1);
+    tpl = K_ARRAY::buildArray3(coord, "x,y,z", n, 1, 1, api);
   }
   else // input avec digits
   {
@@ -556,6 +557,9 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
 
     FldArrayF xl(npt);
     FldArrayF coord(2*npt, 3);
+    E_Float* x = coord.begin(1);
+    E_Float* y = coord.begin(2);
+    E_Float* z = coord.begin(3);
     coord.setAllValuesAtNull();
 
     // determination de la serie
@@ -563,21 +567,21 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     {
       // iq used as ii
       k6nacas4m_(im, ip, ith, it, iq, sharpte, 
-                npt, coord.begin(1), coord.begin(2), coord.begin(3), xl.begin());
+                 npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && iq > -0.5 && it > -0.5)
     {
       // im used as il
       k6nacas5g_(im, ip, iq, it, sharpte,
-                npt, coord.begin(1), coord.begin(2), coord.begin(3), xl.begin());
+                 npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && it > -0.5)
     {
       k6nacas4g_(im, ip, it, sharpte,
-                npt, coord.begin(1), coord.begin(2), coord.begin(3), xl.begin());
+                 npt, x, y , z, xl.begin());
     }
     coord.reAllocMat(N, 3);
-    tpl = K_ARRAY::buildArray(coord, "x,y,z", N, 1, 1);
+    tpl = K_ARRAY::buildArray3(coord, "x,y,z", N, 1, 1, api);
   }
 
   return tpl;
