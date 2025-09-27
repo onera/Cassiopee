@@ -335,7 +335,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   {
     RELEASESHAREDS(array, f0);
     if (useR != 0) RELEASESHAREDB(useR, arrayR, fR, cnR);
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString0, ni0, nj0, nteta);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString0, ni0, nj0, nteta, api);
     delete f;
     return tpl;
   }

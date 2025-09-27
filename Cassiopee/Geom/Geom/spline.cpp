@@ -108,6 +108,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
     return NULL;
   }
   /* Fin des tests */
+  E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz); 
@@ -119,7 +120,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularSpline(im, ordern, N, density, xt, yt, zt, PF);
       RELEASESHAREDS(Array, f);
-      PyObject* tpl = K_ARRAY::buildArray(PF, "x,y,z", PF.getSize(), 1, 1);
+      PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", PF.getSize(), 1, 1, api);
       return tpl;
     }
     else 
@@ -129,7 +130,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
       K_COMPGEOM::regularSpline2D(im, jm, ordern, N, orderm, M, 
                                   density, xt, yt, zt, PF, niout, njout);
       RELEASESHAREDS(Array, f);
-      PyObject* tpl = K_ARRAY::buildArray(PF, "x,y,z", niout, njout, 1);
+      PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", niout, njout, 1, api);
       return tpl;
     }
   }

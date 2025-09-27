@@ -108,7 +108,8 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   }
   
   // Build array
-  PyObject* tpl = K_ARRAY::buildArray(coord, "x,y,z", Nr, NR, 1);
+  E_Int api = 1; // TODO
+  PyObject* tpl = K_ARRAY::buildArray3(coord, "x,y,z", Nr, NR, 1, api);
   return tpl;
 
   return NULL;

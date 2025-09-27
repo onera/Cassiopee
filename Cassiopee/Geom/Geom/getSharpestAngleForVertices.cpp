@@ -38,35 +38,40 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
                                      ni, nj, nk, cn, eltType);
  
+  E_Int api = f->getApi();
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_TypeError, "getSharpestAngleForVertices: coordinates not found in array.");
-    RELEASESHAREDU(array,f, cn); return NULL;
+    RELEASESHAREDU(array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
+
+  PyObject* tpl = NULL;
+  FldArrayF* alph;
 
   if (res == 1) 
   { 
     if (nj > 1 || nk > 1) 
     {
       PyErr_SetString(PyExc_TypeError, "getSharpestAngleForVertices: structured array must be 1D.");
-      RELEASESHAREDS(array,f); return NULL;
+      RELEASESHAREDS(array, f); return NULL;
     }
     E_Int npts = f->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(1, "alpha", npts, 1, 1);
-    E_Float* alpt = K_ARRAY::getFieldPtr(tpl);
+    tpl = K_ARRAY::buildArray3(1, "alpha", npts, 1, 1, api);
+    K_ARRAY::getFromArray3(tpl, alph);
+    E_Float* alpt = alph->begin();
     E_Float ptA1[3]; E_Float ptB1[3];  E_Float ptA2[3]; E_Float ptB2[3]; 
     E_Float* xt = f->begin(posx); E_Float* yt = f->begin(posy); E_Float* zt = f->begin(posz);
     E_Int i, im, ip;
     E_Float alpha0;
     alpt[0] = 0.; alpt[npts-1] = 0.; 
     E_Int closed = 0;
-    if (K_FUNC::fEqualZero(xt[0]-xt[npts-1]) == true && 
-        K_FUNC::fEqualZero(yt[0]-yt[npts-1]) == true && 
-        K_FUNC::fEqualZero(zt[0]-zt[npts-1]) == true) closed = 1;
+    if (K_FUNC::fEqualZero(xt[0] - xt[npts-1]) && 
+        K_FUNC::fEqualZero(yt[0] - yt[npts-1]) && 
+        K_FUNC::fEqualZero(zt[0] - zt[npts-1])) closed = 1;
     for (i = 1; i < npts-1; i++)
     {
       im = i-1; ip = i+1;
@@ -88,7 +93,9 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
       alpha0 = K_COMPGEOM::getAlphaAngleBetweenBars(ptA1, ptB1, ptA2, ptB2, dirVect);
       if (alpha0 != -1000.) {alpt[0] = alpha0; alpt[npts-1] = alpha0;}
     }
-    RELEASESHAREDS(array,f); 
+
+    RELEASESHAREDS(tpl, alph);
+    RELEASESHAREDS(array, f);
     return tpl;
   }
   else // ( res == 2 ) 
@@ -97,32 +104,31 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
     {
       E_Int npts = f->getSize();
       E_Int* cnp = cn->begin(); // pointeur sur la connectivite NGon
-      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-      PyObject* tpl = K_ARRAY::buildArray(1, "alpha", npts, nelts, -1, eltType, 
-                                          false, cn->getSize());
-      E_Float* alpt = K_ARRAY::getFieldPtr(tpl);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
-      E_Int nfaces = cnp[0];
+      PyObject* tpl = K_ARRAY::buildArray3(1, "alpha", npts,
+                                           *cn, eltType, false, api, true);
+      K_ARRAY::getFromArray3(tpl, alph);
+      E_Float* alpt = alph->begin();
+      E_Int nfaces = cn->getNFaces();
       FldArrayI pos; K_CONNECT::getPosElts(*cn, pos);
       FldArrayI posFaces(nfaces); K_CONNECT::getPosFaces(*cn, posFaces);
       //E_Int* posFacesp = posFaces.begin();
-      vector< vector<E_Int> > cVF(npts); K_CONNECT::connectNG2VF(*cn, cVF);
+      vector<vector<E_Int> > cVF(npts); K_CONNECT::connectNG2VF(*cn, cVF);
       FldArrayI cFE; K_CONNECT::connectNG2FE(*cn, cFE);
-      FldArrayI dimElts(npts); K_CONNECT::getDimElts(*cn, dimElts);
-      E_Int dim = dimElts[0]; // dimension de la zone
+      E_Int dim = cn->getDim(); // dimension de la zone
       E_Int indf, e1, e2, ind1, ind2, indl;
       E_Int* pt; E_Float dalphamin, alpha;
       E_Float xbf, ybf, zbf, alpha0;
       E_Float ptA[3]; E_Float ptB[3]; E_Float ptC[3]; E_Float ptD[3];
-      E_Float* xt = f->begin(posx); E_Float* yt = f->begin(posy); E_Float* zt = f->begin(posz);
+      E_Float* xt = f->begin(posx);
+      E_Float* yt = f->begin(posy);
+      E_Float* zt = f->begin(posz);
       vector<E_Int> indices; E_Int c;
 
       if (dim == 1)
       {
         PyErr_SetString(PyExc_TypeError, "getSharpestAngleForVertices: array must be NGON2D.");
-        RELEASESHAREDU(array,f, cn); return NULL;       
+        RELEASESHAREDS(tpl, alph);
+        RELEASESHAREDU(array, f, cn); return NULL;       
       }
       else if (dim == 2)
       {
@@ -176,15 +182,17 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           if (c > 0) alpt[ind] = alpha;
           else alpt[ind] = 0.;
         }
-        RELEASESHAREDU(array,f, cn); return tpl;
+        RELEASESHAREDS(tpl, alph);
+        RELEASESHAREDU(array, f, cn); return tpl;
       }
       else // dim = 3
       {
         // delete tpl
         PyErr_SetString(PyExc_TypeError, "getSharpestAngleForVertices: array must be NGON2D.");
-        RELEASESHAREDU(array,f, cn); return NULL;        
+        RELEASESHAREDS(tpl, alph);
+        RELEASESHAREDU(array, f, cn); return NULL;        
       }
-      
+      RELEASESHAREDS(tpl, alph);
     }
     else // BASIC ELTS
     {
@@ -193,28 +201,28 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           strcmp(eltType, "BAR")  != 0)
       {
         PyErr_SetString(PyExc_TypeError, "getSharpestAngleForVertices: array must be TRI or QUAD.");
-        RELEASESHAREDU(array,f, cn); return NULL;
+        RELEASESHAREDU(array, f, cn); return NULL;
       }
 
       E_Int npts = f->getSize();
-      E_Int type = cn->getNfld(); E_Int nelts = cn->getSize();
-      PyObject* tpl = K_ARRAY::buildArray(1, "alpha", npts, nelts, -1, eltType);
-      E_Float* alpt = K_ARRAY::getFieldPtr(tpl);
-      E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cno(nelts, type, cnp, true); cno = *cn;
+      E_Int type = cn->getNfld();
+      PyObject* tpl = K_ARRAY::buildArray3(1, "alpha", npts,
+                                           *cn, eltType, false, api, true);
+      K_ARRAY::getFromArray3(tpl, alph);
+      E_Float* alpt = alph->begin();
 
       E_Float ptA1[3]; E_Float ptB1[3]; E_Float ptC1[3]; E_Float ptD1[3];
       E_Float ptA2[3]; E_Float ptB2[3]; E_Float ptC2[3]; E_Float ptD2[3];
-      vector< vector<E_Int> > cVE(npts);
-      K_CONNECT::connectEV2VE(cno, cVE);
+      vector<vector<E_Int> > cVE(npts);
+      K_CONNECT::connectEV2VE(*cn, cVE);
       E_Float* xt = f->begin(posx); E_Float* yt = f->begin(posy); E_Float* zt = f->begin(posz);
       E_Int indA1, indB1, indC1, indD1, indA2, indB2, indC2, indD2;
       E_Int et1, et2, c; E_Float alpha0, alpha;
-      E_Int* cn1 = cno.begin(1); E_Int* cn2 = cno.begin(2);
+      E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2);
       E_Float dalphamin = 360.;
       if (type == 3) // TRI
       {
-        E_Int* cn3 = cno.begin(3);
+        E_Int* cn3 = cn->begin(3);
         for (E_Int ind = 0; ind < npts; ind++)
         {
           vector<E_Int>& elts = cVE[ind];
@@ -246,11 +254,12 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           if ( c > 0 ) alpt[ind] = alpha;
           else alpt[ind] = 0.;
         }
-        RELEASESHAREDU(array,f, cn); return tpl;
+        RELEASESHAREDS(tpl, alph);
+        RELEASESHAREDU(array, f, cn); return tpl;
       }
       else if (type == 4)  //QUAD
       {
-        E_Int* cn3 = cno.begin(3); E_Int* cn4 = cno.begin(4);
+        E_Int* cn3 = cn->begin(3); E_Int* cn4 = cn->begin(4);
         for (E_Int ind = 0; ind < npts; ind++)
         {
           vector<E_Int>& elts = cVE[ind];
@@ -286,7 +295,8 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           else alpt[ind] = 0.;
         }
 
-        RELEASESHAREDU(array,f, cn); return tpl;  
+        RELEASESHAREDS(tpl, alph);
+        RELEASESHAREDU(array, f, cn); return tpl;  
       }
       else //BAR
       {
@@ -349,6 +359,7 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           else alpt[ind] = alpha0;
         }
 
+        RELEASESHAREDS(tpl, alph);
         RELEASESHAREDU(array,f, cn); return tpl;  
       }
     }
