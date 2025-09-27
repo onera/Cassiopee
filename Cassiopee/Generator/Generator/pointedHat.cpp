@@ -74,8 +74,9 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
                     "pointedHat: can't find coordinates in array.");
     return NULL;
   }
-  
   posx++; posy++; posz++;
+
+  E_Int api = f->getApi();
   E_Int npts = im*jm;
   FldArrayF* sol = new FldArrayF(2*npts,3);
   E_Float* xt = sol->begin(1);
@@ -93,7 +94,7 @@ PyObject* K_GENERATOR::pointedHat(PyObject* self, PyObject* args)
   
   E_Int im2 = im; E_Int jm2 = jm; E_Int km2 = 2;
   if (jm == 1) {jm2 = 2; km2 = 1;}
-  PyObject* tpl = K_ARRAY::buildArray3(*sol, "x,y,z", im2, jm2, km2);
+  PyObject* tpl = K_ARRAY::buildArray3(*sol, "x,y,z", im2, jm2, km2, api);
   delete sol;
   RELEASESHAREDS(array, f);  
   return tpl;

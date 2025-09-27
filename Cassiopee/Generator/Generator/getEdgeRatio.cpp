@@ -72,6 +72,8 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
 
+  E_Int api = f->getApi();
+
   if (res == 1) // cas structure
   {
     E_Int im1 = im-1;
@@ -80,7 +82,7 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
     if (im == 1) im1 = 1;
     if (jm == 1) jm1 = 1;
     if (km == 1) km1 = 1;
-    tpl = K_ARRAY::buildArray3(1, "EdgeRatio", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "EdgeRatio", im1, jm1, km1, api);
     E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
 
     E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
@@ -99,7 +101,6 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
   }
   else
   {
-    E_Int api = f->getApi();
     E_Bool center = true;
     if (strcmp(eltType, "NGON") == 0) // NGON
     {

@@ -56,11 +56,12 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
   
   if (res == 1) 
   {
+    E_Int api = f->getApi();
     E_Int ni1 = K_FUNC::E_max(1,ni-1);
     E_Int nj1 = K_FUNC::E_max(1,nj-1);
     E_Int nk1 = K_FUNC::E_max(1,nk-1);
     PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
-      ni1, nj1, nk1);
+                                         ni1, nj1, nk1, api);
 
     char* varString2; FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, varString2, f2);
@@ -80,9 +81,9 @@ PyObject* K_GENERATOR::getBBOfCells(PyObject* self, PyObject* args)
       //E_Int api = f->getApi();
       E_Int nvertex = f->getSize();
 
+      // center=1, api=3, copyConnect=true
       PyObject* tpl = K_ARRAY::buildArray3(6, "xmin,ymin,zmin,xmax,ymax,zmax", 
-        nvertex, *cn, "NGON", 1, 3, true); // center=1, api=3, copyConnect=true
-
+                                           nvertex, *cn, "NGON", 1, 3, true);
       FldArrayF* f2; FldArrayI* cn2;
       K_ARRAY::getFromArray3(tpl, f2, cn2);
 

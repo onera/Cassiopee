@@ -50,9 +50,9 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
 
   if (res == 1)
   {      
-    posx = K_ARRAY::isCoordinateXPresent( varString);
-    posy = K_ARRAY::isCoordinateYPresent( varString);
-    posz = K_ARRAY::isCoordinateZPresent( varString);
+    posx = K_ARRAY::isCoordinateXPresent(varString);
+    posy = K_ARRAY::isCoordinateYPresent(varString);
+    posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
       RELEASESHAREDS(array, f);
@@ -67,6 +67,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
     E_Int npts = f->getSize();
     FldArrayI n(npts);
     E_Int nfld = f->getNfld();
+    E_Int api = f->getApi();
 
 // Size of new field
 // -------------------
@@ -125,7 +126,7 @@ PyObject* K_GENERATOR::densifyMesh(PyObject* self, PyObject* args)
     
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, len, 1, 1);
+    PyObject* tpl = K_ARRAY::buildArray3(*newf, varString, len, 1, 1, api);
     delete newf;
     return tpl;  
   }

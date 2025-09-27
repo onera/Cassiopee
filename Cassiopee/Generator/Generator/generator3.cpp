@@ -100,6 +100,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     jc = 0;
     hl = x0;
 
+    E_Int api = f->getApi();
     E_Float* xt = coord.begin(posx);
 
     // Determination de la cellule de distrib contenant hl
@@ -450,7 +451,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     }
 
     RELEASESHAREDS(array, f);  
-    PyObject* tpl = K_ARRAY::buildArray3(*an, varString, np, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*an, varString, np, nj, nk, api);
     delete an;
     return tpl;
   }
@@ -2260,6 +2261,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
 
     E_Int i, j, k;
+    E_Int api = f->getApi();
 
     // Distribution finale
     coord.malloc(ni*nj*nk, 3);
@@ -2294,7 +2296,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
     if (E_abs(epsilon) < 1.e-12) // nothing to do
     {
-      PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk);
+      PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk, api);
       RELEASESHAREDS(array, f);
       return tpl;
     }

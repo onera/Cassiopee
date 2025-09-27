@@ -87,6 +87,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
+  E_Int api = f->getApi();
   E_Int nj = jm;
   E_Int ni = im;
   
@@ -122,7 +123,7 @@ PyObject* K_GENERATOR::TTMMesh(PyObject* self, PyObject* args)
  
   // build array
   RELEASESHAREDS(array, f);  
-  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString, ni, nj, 1);
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, varString, ni, nj, 1, api);
   delete coord;
   return tpl;
 }

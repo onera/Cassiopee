@@ -63,13 +63,14 @@ PyObject* K_GENERATOR::enforceMesh(PyObject* self, PyObject* args)
   {
     FldArrayF* out = new FldArrayF();
     E_Int niout, njout, nkout;
+    E_Int api = f->getApi();
     E_Int ret = enforceCommon(name, varString, ni, nj, nk, 
                               *f, P0, eh, supp, add, 
                               *out, niout, njout, nkout);
     RELEASESHAREDS(array, f);
     if (ret != 0) return NULL;
-    PyObject* tpl = K_ARRAY::buildArray3(*out, "x,y,z", niout, njout, nkout);
-    delete  out;
+    PyObject* tpl = K_ARRAY::buildArray3(*out, "x,y,z", niout, njout, nkout, api);
+    delete out;
     return tpl;
   }
   if (res == 2)

@@ -76,6 +76,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   vector<FldArrayF*> vectOfCartGrids;
   /* Etape 1 : detection du niveau le plus fin */ 
   // calcul de dh
+  E_Int api = f->getApi();
   E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld();
   E_Int* cnt1 = cn->begin(1); E_Int* cnt2 = cn->begin(2);
   FldArrayF dht(nelts); E_Float dhmin = K_CONST::E_MAX_FLOAT; E_Float dhmax = 0.;
@@ -96,7 +97,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   E_Float* indict = indic.begin();
   for (E_Int et = 0; et < nelts; et++)
   {
-    if (K_FUNC::fEqualZero(dht[et]-dhmin) == true) 
+    if (K_FUNC::fEqualZero(dht[et]-dhmin)) 
     {
       indict[et] = -1.;
       FldArrayF* coord = new FldArrayF(ninjnk,3); 
@@ -152,7 +153,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
     for (E_Int et = 0; et < nelts; et++)
     {
       //if (dejaVu[et] == 0 && indico[et] == -1.)
-      if (dejaVu[et] == 0 && K_FUNC::fEqual(indico[et], -1.) == true)
+      if (dejaVu[et] == 0 && K_FUNC::fEqual(indico[et], -1.))
       {
         mergeOctreeElement(et, npts, indico[et], cn2, xmin, ymin, zmin, xmax, ymax, zmax,
 			   xt, yt, zt, dht.begin(1), indicto,
@@ -185,7 +186,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
     xo = fo.begin(1); yo = fo.begin(2); zo = fo.begin(3);
     for (E_Int eto = 0; eto < neltso; eto++)
     {
-      if (K_FUNC::fEqual(indico[eto], -1.) == true)
+      if (K_FUNC::fEqual(indico[eto], -1.))
       {
         FldArrayF* coord = new FldArrayF(ninjnk,3); 
         E_Float* xt = coord->begin(1); E_Float* yt = coord->begin(2); E_Float* zt = coord->begin(3);
@@ -242,7 +243,8 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   E_Int nzones = vectOfCartGrids.size();
   for (E_Int v = 0; v < nzones; v++)
   {
-    PyObject* tpl = K_ARRAY::buildArray3(*vectOfCartGrids[v], "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*vectOfCartGrids[v], "x,y,z",
+                                         ni, nj, nk, api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   // nettoyage
