@@ -90,7 +90,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
       E_Int nintk = im1*jm1*km;
       E_Int nint =  ninti + nintj + nintk;
 
-      tpl = K_ARRAY::buildArray3(1, "vol", im1, jm1, km1);
+      tpl = K_ARRAY::buildArray3(1, "vol", im1, jm1, km1, api);
       FldArrayF* f2;
       K_ARRAY::getFromArray3(tpl, f2);
       E_Float* volap = f2->begin(1);

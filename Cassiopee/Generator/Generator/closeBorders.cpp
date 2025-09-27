@@ -101,7 +101,9 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
     std::vector<FldArrayF*> cstructF;
     for (size_t v = 0; v < structF.size(); v++)
     {
-      tpl = K_ARRAY::buildArray3(*structF[v], structVarString[v], nit[v], njt[v], nkt[v]);
+      E_Int api = structF[v]->getApi();
+      tpl = K_ARRAY::buildArray3(*structF[v], structVarString[v],
+                                 nit[v], njt[v], nkt[v], api);
       RELEASESHAREDS(objs[v], structF[v]);
       FldArrayF* f2;
       K_ARRAY::getFromArray3(tpl, f2);
@@ -165,7 +167,9 @@ PyObject* K_GENERATOR::closeBorders(PyObject* self, PyObject* args)
       std::vector<FldArrayF*> cunstrF; std::vector<FldArrayI*> ccnt;
       for (size_t v = 0; v < unstrF.size(); v++)
       {
-        tpl = K_ARRAY::buildArray3(*unstrF[v], unstrVarString[v], *cnt[v], eltType[v]);
+        E_Int api = unstrF[v]->getApi();
+        tpl = K_ARRAY::buildArray3(*unstrF[v], unstrVarString[v],
+                                   *cnt[v], eltType[v], api);
         RELEASESHAREDU(obju[v], unstrF[v], cnt[v]);
         FldArrayF* f2; FldArrayI* cn2;
         K_ARRAY::getFromArray3(tpl, f2, cn2);

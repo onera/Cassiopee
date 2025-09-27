@@ -210,6 +210,7 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
   // Check vmin
   if (Vmin < 2) Vmin = 2;
 
+  E_Int api = f1->getApi();
   E_Float* xt1 = f1->begin(posx1);
   E_Float* yt1 = f1->begin(posy1);
   E_Float* zt1 = f1->begin(posz1);
@@ -403,7 +404,7 @@ PyObject* front2Struct(PyObject* self, PyObject* args)
           fz[ind] = Fz + gamma*(Cz-Fz);
         }
     }
-    tpl = K_ARRAY::buildArray3(*f, "x,y,z", Vmin, Vmin, Nk);
+    tpl = K_ARRAY::buildArray3(*f, "x,y,z", Vmin, Vmin, Nk, api);
     delete f;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);
@@ -461,6 +462,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
   // Check vmin
   if (Vmin < 2) Vmin = 2;
 
+  E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
@@ -534,7 +536,7 @@ PyObject* fillWithStruct( PyObject* self, PyObject* args )
         fz[ind] = Cz; ind++;
       }
     
-    tpl = K_ARRAY::buildArray3(*fl, "x,y,z", Vmin, Vmin, 1);
+    tpl = K_ARRAY::buildArray3(*fl, "x,y,z", Vmin, Vmin, 1, api);
     delete fl;
     PyList_Append(meshes, tpl);
     Py_DECREF(tpl);

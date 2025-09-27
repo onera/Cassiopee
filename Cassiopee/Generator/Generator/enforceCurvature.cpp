@@ -81,6 +81,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     E_Float l;
     s[0] = 0.;
 
+    E_Int api = fc->getApi();
     E_Float* xc = fc->begin(posxc);
     E_Float* yc = fc->begin(posyc);
     E_Float* zc = fc->begin(poszc);
@@ -266,7 +267,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     }
 
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray3(*fd, varStringd, N, jmd, kmd);
+    PyObject* tpl = K_ARRAY::buildArray3(*fd, varStringd, N, jmd, kmd, api);
     RELEASESHAREDS(arrayC, fc);
     RELEASESHAREDS(arrayD, fd);
     return tpl;

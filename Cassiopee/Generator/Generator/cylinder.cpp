@@ -96,7 +96,8 @@ PyObject* K_GENERATOR::cylinderMesh(PyObject* self, PyObject* args)
       }  
   }
   // Build array
-  PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
+  E_Int api = 1; // TODO
+  PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk, api);
   delete coord;
   return tpl;
 }
@@ -180,6 +181,7 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
     FldArrayF& dz = *fZ;
 
     // Create a portion of cylinder
+    E_Int api = fR->getApi();
     FldArrayF* coord = new FldArrayF(ni*nj*nk, 3);
     
     E_Float alpha, cosalpha, sinalpha;
@@ -213,7 +215,7 @@ PyObject* K_GENERATOR::cylinderMesh2(PyObject* self, PyObject* args)
     RELEASESHAREDS(arrayZ, fZ);
 
     // Build array 
-    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk, api);
     delete coord;
     return tpl;
   }
@@ -317,6 +319,7 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
     FldArrayF* coord = new FldArrayF(ni*nj*nk, 3);
     E_Int ninj = ni*nj;
     E_Float t2mt1 = t2-t1;
+    E_Int api = fxz->getApi();
     E_Float* xt = coord->begin(1);
     E_Float* yt = coord->begin(2);
     E_Float* zt = coord->begin(3);
@@ -344,7 +347,7 @@ PyObject* K_GENERATOR::cylinderMesh3( PyObject* self,
     RELEASESHAREDS(arrayT, ft);  
 
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, "x,y,z", ni, nj, nk, api);
     delete coord;
     return tpl;
   }
