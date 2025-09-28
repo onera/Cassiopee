@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -24,14 +24,14 @@ using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
-/* Redresseur de normales: etant donnee une liste de bloc non structures 
-   paroi (TRI, QUAD), oriente les blocs de telle sorte que les normales soient 
+/* Redresseur de normales: etant donnee une liste de bloc non structures
+   paroi (TRI, QUAD), oriente les blocs de telle sorte que les normales soient
    toutes orientees vers l'exterieur ou l'interieur au choix.
-*/ 
+*/
 //=============================================================================
 PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
 {
-  // Load block arrays 
+  // Load block arrays
   PyObject* listBlks;
   E_Int outward=1; // direction of the normals vers l'exterieur par defaut
   if (!PYPARSETUPLE_(args, O_ I_,
@@ -43,13 +43,13 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
   if (outward != 1 && outward != -1)
   {
     printf("Warning: reorderAllUnstr: direction is invalid. outward direction is assumed.\n");
-    outward = 1;          
+    outward = 1;
   }
 
   // Check every array in listBlks
   if (PyList_Check(listBlks) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "reorderAllUnstr: argument must be a list.");
     return NULL;
   }
@@ -69,16 +69,16 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
     E_Int nil, njl, nkl;
     PyObject* tpl = PyList_GetItem(listBlks, i);
 
-    E_Int res = 
+    E_Int res =
       K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl, cn, eltType);
-      
+
     if (res != 2)
     {
       PyErr_SetString(PyExc_TypeError,
                     "reorderAllUnstr: array is not unstructured.");
       return NULL;
     }
-  
+
     if ((strcmp(eltType, "TRI") != 0) && (strcmp(eltType, "QUAD") != 0))
     {
       std::cout << "eltType " << eltType << std::endl;
@@ -87,12 +87,12 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
                       "reorderAllUnstr: currently only supported for TRI or QUAD arrays.");
       return NULL;
     }
-    
+
     //check if coordinates exist
     posx = K_ARRAY::isCoordinateXPresent(varString);
     posy = K_ARRAY::isCoordinateYPresent(varString);
     posz = K_ARRAY::isCoordinateZPresent(varString);
-    
+
     if (posx == -1 || posy == -1 || posz == -1)
     {
       delete f; delete cn;
@@ -100,7 +100,7 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
                       "reorderAllUnstr: coordinates not found.");
       return NULL;
     }
-    
+
     if (strcmp(eltType, "QUAD") == 0)
     {
       is_quad[i]=true;
@@ -119,22 +119,22 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
       }
     }
     else tri_cnts[i]=cn;
-      
+
     //std::cout << "zone type is quad : " << is_quad[i] << std::endl;
-           
+
     crds[i]=f;
     cnts[i]=cn;
   }//parcours de toutes les zones
-  
+
   bool otwd = (outward == 1);
   NUGA::GeomAlgo<K_MESH::Triangle>::reversi_chimera_skin(crds, tri_cnts, otwd);
-  
+
   /*--------------*/
   /* build arrays */
   /*--------------*/
   PyObject* tpl;
   PyObject* l = PyList_New(0);
-  
+
   for (E_Int i = 0; i < nzone; i++)
   {
     // apply reverse to quads
@@ -157,6 +157,6 @@ PyObject* K_TRANSFORM::reorderAllUnstr(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  
+
   return l;
 }

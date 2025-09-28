@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -25,9 +25,9 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitTRI: 
-   Splits an unstructured mesh (currently only TRI) into several manifold 
+/*
+   splitTRI:
+   Splits an unstructured mesh (currently only TRI) into several manifold
    pieces.
 */
 //=============================================================================
@@ -43,8 +43,8 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FloatArray* f; IntArray* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res =
+    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -59,7 +59,7 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
                     "splitManifold: unknown type of array.");
     return NULL;
   }
-  
+
   if ((strcmp(eltType, "TRI") != 0) && (strcmp(eltType, "BAR") != 0))
   {
     delete f; delete cn;
@@ -67,10 +67,10 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
                     "splitManifold: currently only supported for TRI and BAR arrays.");
     return NULL;
   }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-   
+
   if (posx == -1 || posy == -1)
   {
     delete f; delete cn;
@@ -78,13 +78,13 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
                     "splitManifold: can't find coordinates in array.");
     return NULL;
   }
-  
+
   K_FLD::IntArray neighbors;
   std::vector<E_Int> colors;
   E_Int NB_NODES=3;
   std::vector<E_Int> dupIds;
   NUGA::MeshTool::removeDuplicated(*cn, dupIds, false);
-  
+
   if (strcmp(eltType, "TRI") == 0)
   {
     NUGA::EltAlgo<K_MESH::Triangle>::getManifoldNeighbours(*cn, neighbors, false);
@@ -96,13 +96,13 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
     NUGA::EltAlgo<K_MESH::Edge>::coloring(neighbors, colors);
     NB_NODES = 2;
   }
-  
+
   size_t nb_bits = *std::max_element(colors.begin(), colors.end())+1;
-  
+
   // Formation des array de sortie
   PyObject* tpl;
   PyObject* l = PyList_New(0);
-  
+
   if (nb_bits == 1)
   {
     tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
@@ -114,13 +114,13 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
     K_FLD::FloatArray* fs = new K_FLD::FloatArray[nb_bits];
     K_FLD::IntArray*   cs = new K_FLD::IntArray[nb_bits];
     K_FLD::IntArray::const_iterator pS;
-    
+
     for (size_t i = 0; i < colors.size(); ++i)
     {
       pS = cn->col(i);
       cs[colors[i]].pushBack(pS, pS+NB_NODES);
     }
-    
+
     std::vector<E_Int> nids;
     for (size_t i=0; i < nb_bits; ++i)
     {
@@ -132,7 +132,7 @@ PyObject* K_TRANSFORM::splitManifold(PyObject* self, PyObject* args)
     }
     delete [] fs; delete [] cs;
   }
-  
+
   delete f; delete cn;
   return l;
 }

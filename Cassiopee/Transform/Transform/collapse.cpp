@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -30,18 +30,18 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
 {
   PyObject* array;
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, 
-                                     f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
+                                     f, im, jm, km, cn, eltType);
   if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "collapse: array must be unstructured.");
-    if (res == 1) delete f; 
+    if (res == 1) delete f;
     return NULL;
   }
   if (K_STRING::cmp(eltType, "TRI") != 0)
@@ -53,7 +53,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-   
+
   if (posx == -1 || posy == -1 || posz == -1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -67,7 +67,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
   E_Float* zt = f->begin(posz);
   E_Int nelts = cn->getSize();
   E_Int api = f->getApi();
-  
+
   // Construction de la BAR ou TRI
   FldArrayI* cn2 = new FldArrayI();
   E_Float eps = 1.e-12;
@@ -80,15 +80,15 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
     for (E_Int et = 0; et < nelts; et++)
     {
       E_Int ind1 = (*cn)(et,1) - 1;
-      E_Int ind2 = (*cn)(et,2) - 1; 
-      E_Int ind3 = (*cn)(et,3) - 1;   
+      E_Int ind2 = (*cn)(et,2) - 1;
+      E_Int ind3 = (*cn)(et,3) - 1;
       E_Float dx = xt[ind1] - xt[ind2];
       E_Float dy = yt[ind1] - yt[ind2];
       E_Float dz = zt[ind1] - zt[ind2];
       E_Float dist = dx*dx + dy*dy + dz*dz;
       if (dist <= eps*eps) // doublon
       {
-        (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind3+1; 
+        (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind3+1;
         goto nexttri;
       }
       dx = xt[ind1] - xt[ind3];
@@ -97,7 +97,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
       dist = dx*dx + dy*dy + dz*dz;
       if (dist <= eps*eps) // doublon
       {
-        (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind2+1; 
+        (*cn2)(et,1) = ind1+1; (*cn2)(et,2) = ind2+1;
         goto nexttri;
       }
       dx = xt[ind3] - xt[ind2];
@@ -106,7 +106,7 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
       dist = dx*dx + dy*dy + dz*dz;
       if ( dist <= eps*eps ) // doublon
       {
-        (*cn2)(et,1) = ind3+1; (*cn2)(et,2) = ind1+1; 
+        (*cn2)(et,1) = ind3+1; (*cn2)(et,2) = ind1+1;
         goto nexttri;
       }
       PyErr_SetString(PyExc_TypeError,
@@ -124,12 +124,12 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Collapse un vertex du triangle sur un autre 
+/* Collapse un vertex du triangle sur un autre
    On calcul les longeurs de chaque edge et la hauteur de chaque point.
    Le point de hauteur minimum est supprime si sa hauteur est inferieure
    a la longueur des edges. Sinon, l'edge le plus petit est contracte. */
 //=============================================================================
-void 
+void
 K_TRANSFORM::collapseMinVertexInTriangle(FldArrayI& cn,
                                          E_Float* xt, E_Float* yt, E_Float* zt)
 {
@@ -146,31 +146,31 @@ K_TRANSFORM::collapseMinVertexInTriangle(FldArrayI& cn,
   for ( E_Int et = 0; et < cn.getSize(); et++)
   {
     nov1 = cn1[et]-1; nov2 = cn2[et]-1; nov3 = cn3[et]-1;
-    
+
     // Calcul des hauteurs pour chaque point
     p1[0] = xt[nov1]; p1[1] = yt[nov1]; p1[2] = zt[nov1];
     p2[0] = xt[nov2]; p2[1] = yt[nov2]; p2[2] = zt[nov2];
     p3[0] = xt[nov3]; p3[1] = yt[nov3]; p3[2] = zt[nov3];
-    
+
     K_COMPGEOM::distanceToBar(p2, p3, p1, 0, xp, yp, zp, in, h1);
     K_COMPGEOM::distanceToBar(p1, p3, p2, 0, xp, yp, zp, in, h2);
     K_COMPGEOM::distanceToBar(p1, p3, p3, 0, xp, yp, zp, in, h3);
 
     // Distances des edges
-    dx = xt[nov1]-xt[nov2]; dy = yt[nov1]-yt[nov2]; dz = zt[nov1]-zt[nov2]; 
+    dx = xt[nov1]-xt[nov2]; dy = yt[nov1]-yt[nov2]; dz = zt[nov1]-zt[nov2];
     d12 = dx*dx + dy*dy + dz*dz;
 
     dx = xt[nov1]-xt[nov3]; dy = yt[nov1]-yt[nov3]; dz = zt[nov1]-zt[nov3];
     d13 = dx*dx + dy*dy + dz*dz;
 
-    dx = xt[nov2]-xt[nov3]; dy = yt[nov2]-yt[nov3]; dz = zt[nov2]-zt[nov3]; 
+    dx = xt[nov2]-xt[nov3]; dy = yt[nov2]-yt[nov3]; dz = zt[nov2]-zt[nov3];
     d23 = dx*dx + dy*dy + dz*dz;
 
     h = K_FUNC::E_min(h1, h2, h3);
     d = K_FUNC::E_min(d12, d13, d23);
     if (h < d)
     {
-      if (h == h1) 
+      if (h == h1)
       {
         if (d12 < d13)
         {vert1 = 1; vert2 = 2;}

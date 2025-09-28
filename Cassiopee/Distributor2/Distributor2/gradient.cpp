@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -47,7 +47,7 @@ void K_DISTRIBUTOR2::gradient(
   for (E_Int i = 0; i < nb; i++)
   {
     if (setBlocks[i] < 0) nbeq++;
-  }  
+  }
 
   // Nb de noeuds des maillages imposes par processeurs : nbNodePerProc
   FldArrayF nbNodePerProc(NProc);
@@ -81,7 +81,7 @@ void K_DISTRIBUTOR2::gradient(
   FldArrayF nbPtsPerProcs(NProc);
   nbPtsPerProcs.setAllValuesAtNull();
   E_Float* nbPtsPerProcsp = nbPtsPerProcs.begin();
-  
+
   E_Int* largest = new E_Int [nb];
   vector<E_Float> npts(nbPts);
   for (E_Int i = 0; i < nb; i++)
@@ -100,15 +100,15 @@ void K_DISTRIBUTOR2::gradient(
     if (setBlocks[j] < 0)
     {
       if (i < NProc)
-      { 
+      {
         dis1[j] = i;
-        nbPtsPerProcsp[i] += nbPts[j]; 
+        nbPtsPerProcsp[i] += nbPts[j];
       }
       else
       {
         E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
         for (E_Int k = 0; k < NProc; k++)
-        { 
+        {
           if (nbPtsPerProcsp[k] < minProc)
           { kless = k; minProc = nbPtsPerProcsp[k]; }
         }
@@ -116,7 +116,7 @@ void K_DISTRIBUTOR2::gradient(
         nbPtsPerProcsp[kless] += nbPts[j];
       }
     }
-    else 
+    else
     {
       dis1[j] = setBlocks[j];
       nbPtsPerProcs[setBlocks[j]] += nbPts[j];
@@ -128,8 +128,8 @@ void K_DISTRIBUTOR2::gradient(
   nbPtsPerProcs.setAllValuesAtNull();
   E_Int* alreadySet = new E_Int [nb];
   for (E_Int i = 0; i < nb; i++) alreadySet[i] = 0;
-  for (E_Int i = 0; i < nb; i++) 
-  { 
+  for (E_Int i = 0; i < nb; i++)
+  {
     if (setBlocks[i] >= 0)
     {
       alreadySet[i] = 1; dis[i] = setBlocks[i];
@@ -145,8 +145,8 @@ void K_DISTRIBUTOR2::gradient(
       // on le met sur le proc le moins charge
       E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
       for (E_Int k = 0; k < NProc; k++)
-      { 
-        if (nbPtsPerProcs[k] < minProc) 
+      {
+        if (nbPtsPerProcs[k] < minProc)
         { kless = k; minProc = nbPtsPerProcs[k]; }
       }
       alreadySet[j] = 1;
@@ -164,7 +164,7 @@ void K_DISTRIBUTOR2::gradient(
           {
             volCom = com[k + j*nb];
             if (volCom > volComMax &&
-                nbPtsPerProcs[kless] + nbPts[k] <= 1.01*meanPtsPerProc) 
+                nbPtsPerProcs[kless] + nbPts[k] <= 1.01*meanPtsPerProc)
             { volComMax = volCom; kmax = k; }
           }
         }
@@ -183,10 +183,10 @@ void K_DISTRIBUTOR2::gradient(
 
   E_Float evalp1 = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                         solver, latence,
-                                        comSpeed, com, comd, sizeComd, 
+                                        comSpeed, com, comd, sizeComd,
                                         nbPtsPerProcs, nbPts,
                                         dis1.begin());
-  
+
   dis = dis1;
   E_Float evalp = evalp1;
   /*
@@ -198,7 +198,7 @@ void K_DISTRIBUTOR2::gradient(
   if (evalp1 < evalp)
   { dis = dis1; evalp1 = evalp; }
   */
-  
+
   //printf("Adaptation init: %f\n", evalp);
 
   if (param == 1)
@@ -212,7 +212,7 @@ void K_DISTRIBUTOR2::gradient(
     {
       for (E_Int k = b+1; k < nb; k++)
       {
-        if (dis[b] != dis[k] && 
+        if (dis[b] != dis[k] &&
             setBlocks[b] < 0 && setBlocks[k] < 0)
         {
           diff = K_FUNC::E_abs(nbPts[b] - nbPts[k]);
@@ -222,13 +222,13 @@ void K_DISTRIBUTOR2::gradient(
             temp = dis[b];
             dis[b] = dis[k];
             dis[k] = temp;
-          } 
+          }
         }
       }
     }
     evalp = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                  solver, latence,
-                                 comSpeed, com, comd, sizeComd, 
+                                 comSpeed, com, comd, sizeComd,
                                  nbPtsPerProcs, nbPts,
                                  dis.begin());
     //printf("Adaptation randomized: %f\n", evalp);
@@ -255,11 +255,11 @@ void K_DISTRIBUTOR2::gradient(
             temp = disp[b];
             disp[b] = disp[k];
             disp[k] = temp;
-            
+
             // Recherche du bloc swap qui baisse F
             evaln = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                          solver, latence,
-                                         comSpeed, com, comd, sizeComd, 
+                                         comSpeed, com, comd, sizeComd,
                                          nbPtsPerProcs, nbPts,
                                          disp);
             if (evaln < evalp)
@@ -288,7 +288,7 @@ void K_DISTRIBUTOR2::gradient(
 
   // external stats
   E_Int empty;
-  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty,
         varMin, varMax, varRMS, volRatio);
 
 }

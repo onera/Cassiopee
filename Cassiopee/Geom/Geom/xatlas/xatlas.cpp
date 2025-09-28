@@ -5336,13 +5336,13 @@ struct ClusteredCharts
     {
         const uint32_t faceCount = m_data.mesh->faceCount();
         m_facesLeft = 0;
-        
-        for (uint32_t i = 0; i < faceCount; i++) 
+
+        for (uint32_t i = 0; i < faceCount; i++)
         {
             if (!m_data.isFaceInChart.get(i)) m_facesLeft++;
         }
         const uint32_t chartCount = m_charts.size();
-        for (uint32_t i = 0; i < chartCount; i++) 
+        for (uint32_t i = 0; i < chartCount; i++)
         {
             m_charts[i]->~Chart();
             XA_FREE(m_charts[i]);
@@ -5351,7 +5351,7 @@ struct ClusteredCharts
         m_faceCharts.resize(faceCount);
         m_faceCharts.fill(-1);
         m_texcoords.resize(faceCount * 3);
-        
+
         if (m_facesLeft == 0) return;
         // Create initial charts greedely.
         placeSeeds(m_data.options.maxCost * 0.5f);

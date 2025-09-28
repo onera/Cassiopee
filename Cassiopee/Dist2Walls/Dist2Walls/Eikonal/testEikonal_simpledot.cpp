@@ -9,7 +9,7 @@
 
 bool isSource( double x, double y, double z )
 {
-  double x1 = x+0.5, y1 = y, z1 = z; 
+  double x1 = x+0.5, y1 = y, z1 = z;
   double x2 = x-0.5, y2 = y, z2 = z;
   if ( ( x1*x1+y1*y1+z1*z1 < 1.E-2) || ( std::fabs(x2*x2+y2+z2) < 1.E-2 ) ) return true;
   return false;
@@ -47,7 +47,7 @@ void saveVTK( const std::string& fileName, unsigned n, double lbx, double lby, d
   fprintf(fich, "POINT_DATA %d\n",n*n*n);
   fprintf(fich, "SCALARS Distance double\n");
   fprintf(fich, "LOOKUP_TABLE default\n");
-  
+
   for ( unsigned i = 0; i < n*n*n; ++i )
     fprintf(fich, "%lg\t", h*sol[i]);
   fprintf(fich, "\n");
@@ -66,10 +66,10 @@ int main()
   solveEikonalOnIsotropGrid( n, n, n, lbx, lby, lbz, h, isSource, speedFunction, sol );
   end = std::chrono::system_clock::now();
   std::cout << "Fini algo par point sequentiel\n";
- 
+
   std::chrono::duration<double> elapsed_seconds = end-start;
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
- 
+
   std::cout << "finished sequential Eikonal in " << std::ctime(&end_time)
 	    << "elapsed time: " << elapsed_seconds.count() << "s\n";
   // On sauvegarde sol dans un gnuplot :
@@ -82,7 +82,7 @@ int main()
   std::cout << "Fini algo par bloc\n";
   elapsed_seconds = end-start;
   end_time = std::chrono::system_clock::to_time_t(end);
- 
+
   std::cout << "finished Block Parallel Eikonal in " << std::ctime(&end_time)
 	    << "elapsed time: " << elapsed_seconds.count() << "s\n";
   //saveVTK( "Distance_blockdot.vtk", n, lbx, lby, lbz, h, sol );

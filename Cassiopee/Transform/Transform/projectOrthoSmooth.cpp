@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -51,7 +51,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
+    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
   if (isOk == -1)
@@ -73,21 +73,21 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     posx1 = K_ARRAY::isCoordinateXPresent(structVarString[nos]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(structVarString[nos]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(structVarString[nos]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
   for (E_Int nou = 0; nou < nu; nou++)
   {
     posx1 = K_ARRAY::isCoordinateXPresent(unstrVarString[nou]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(unstrVarString[nou]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(unstrVarString[nou]); posz1++;
-    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
+    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1);
   }
   // Projection surface array
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, 
-                                      f2, im2, jm2, km2, cn2, eltType2); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2,
+                                      f2, im2, jm2, km2, cn2, eltType2);
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -114,7 +114,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
   E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-   
+
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -127,7 +127,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     return NULL;
   }
   posx2++; posy2++; posz2++;
-  
+
   // Build arrays
   PyObject* l = PyList_New(0);
   vector<E_Float*> coordx; vector<E_Float*> coordy; vector<E_Float*> coordz;
@@ -137,7 +137,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < ns; nos++)
   {
     E_Int api = structF[nos]->getApi();
-    tpl = K_ARRAY::buildArray3(*structF[nos], structVarString[nos], 
+    tpl = K_ARRAY::buildArray3(*structF[nos], structVarString[nos],
                                nit[nos], njt[nos], nkt[nos], api);
     K_ARRAY::getFromArray3(tpl, f);
     coordx.push_back(f->begin(posxs[nos]));
@@ -152,7 +152,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   {
     E_Int api = unstrF[nou]->getApi();
     tpl = K_ARRAY::buildArray3(*unstrF[nou], unstrVarString[nou],
-                               *cnt[nou], eltType[nou], api);  
+                               *cnt[nou], eltType[nou], api);
     K_ARRAY::getFromArray3(tpl, f);
     coordx.push_back(f->begin(posxu[nou]));
     coordy.push_back(f->begin(posyu[nou]));
@@ -162,7 +162,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   // Projete
-  K_COMPGEOM::projectOrthoWithPrecond(posx2, posy2, posz2, *cn2, *f2, 
+  K_COMPGEOM::projectOrthoWithPrecond(posx2, posy2, posz2, *cn2, *f2,
                                       sizet, coordx, coordy, coordz);
 
   // On cree les directions de projection et la qualite
@@ -199,14 +199,14 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     E_Float* yo = orig.begin(posys[nos]);
     E_Float* zo = orig.begin(poszs[nos]);
     E_Int npts = structF[nos]->getSize();
-    E_Float* x = coordx[no]; // projete 
+    E_Float* x = coordx[no]; // projete
     E_Float* y = coordy[no];
     E_Float* z = coordz[no];
     E_Float* nx = nxt[no];
     E_Float* ny = nyt[no];
     E_Float* nz = nzt[no];
     E_Float* q = qual[no];
-    
+
     for (E_Int i = 0; i < npts; i++)
     {
       nx[i] = x[i]-xo[i];
@@ -224,20 +224,20 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     E_Float* yo = orig.begin(posyu[nou]);
     E_Float* zo = orig.begin(poszu[nou]);
     E_Int npts = unstrF[nou]->getSize();
-    E_Float* x = coordx[nou]; // projete 
+    E_Float* x = coordx[nou]; // projete
     E_Float* y = coordy[nou];
     E_Float* z = coordz[nou];
     E_Float* nx = nxt[nou];
     E_Float* ny = nyt[nou];
     E_Float* nz = nzt[nou];
-    
+
     for (E_Int i = 0; i < npts; i++)
     {
       nx[i] = x[i]-xo[i];
       ny[i] = y[i]-yo[i];
       nz[i] = z[i]-zo[i];
     }
-    
+
     no++;
   }
 
@@ -249,7 +249,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     delete [] nzt[no];
     delete [] qual[no];
   }
-                                   
+
   RELEASESHAREDU(array2, f2, cn2);
   for (E_Int nos = 0; nos < ns; nos++)
     RELEASESHAREDS(objst[nos], structF[nos]);

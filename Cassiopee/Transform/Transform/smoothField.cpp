@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -28,7 +28,7 @@ using namespace K_SEARCH;
 PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Float eps;  
+  E_Float eps;
   PyObject* epsl; // numpy de eps (optional)
   E_Int niter, type;
   PyObject* varList;
@@ -47,7 +47,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   }
   // nbre de variables a lisser
   E_Int nvars = PyList_Size(varList);
-  
+
   // Check epsl
   E_Float* epsf = NULL;
   if (epsl != Py_None)
@@ -60,7 +60,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
                                      f, im, jm, km, cn, eltType);
 
   if (res != 2)
@@ -69,8 +69,8 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "smoothField: array must be unstructured.");
     return NULL;
-  }  
-  
+  }
+
   // position des variables a lisser
   vector<E_Int> posVars(nvars);
   for (E_Int i = 0; i < nvars; i++)
@@ -82,8 +82,8 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
       else if (PyUnicode_Check(varname)) var = (char*)PyUnicode_AsUTF8(varname);
 #endif
       E_Int pos = K_ARRAY::isNamePresent(var, varString);
-      if (pos == -1) 
-      { 
+      if (pos == -1)
+      {
           PyErr_SetString(PyExc_TypeError,
                         "smoothField: var doesn't exist.");
         return NULL;
@@ -98,8 +98,8 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
       E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
       E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
       E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-      if (posx == -1 || posy == -1 || posz == -1) 
-      { 
+      if (posx == -1 || posy == -1 || posz == -1)
+      {
         PyErr_SetString(PyExc_TypeError,
                         "smoothField: requires coordinates for type=1.");
         return NULL;
@@ -117,14 +117,14 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
 
   // local temp arrays
   E_Float* ft = new E_Float [npts*nvars];
-  if (epsl == Py_None) 
-  { 
+  if (epsl == Py_None)
+  {
     epsf = new E_Float [npts];
     # pragma omp parallel for
     for (E_Int ind = 0; ind < npts; ind++) epsf[ind] = eps;
   }
 
-  if (type == 0) // isotrope 
+  if (type == 0) // isotrope
   {
 #pragma omp parallel
   {
@@ -138,14 +138,14 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
         {
             fp = f->begin(posVars[nv]+1);
             tp = ft+npts*nv;
-                
+
             #pragma omp for
             for (E_Int ind = 0; ind < npts; ind++)
             {
                 vector<E_Int>& v = cVN[ind]; // vertex voisins
                 nbV = v.size();
                 eps2 = epsf[ind]/nbV;
-            
+
                 df = 0.;
                 for (E_Int vi = 0; vi < nbV; vi++)
                 {
@@ -180,7 +180,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
         {
             fp = f->begin(posVars[nv]+1);
             tp = ft+npts*nv;
-                
+
             #pragma omp for
             for (E_Int ind = 0; ind < npts; ind++)
             {
@@ -199,7 +199,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
                     sum += w;
                 }
                 eps2 = epsf[ind]/sum;
-            
+
                 df = 0.;
                 for (E_Int vi = 0; vi < nbV; vi++)
                 {
@@ -228,7 +228,7 @@ PyObject* K_TRANSFORM::_smoothField(PyObject* self, PyObject* args)
   RELEASESHAREDB(res, array, f, cn);
   if (epsl != Py_None) { Py_DECREF(epsl); }
   else { delete [] epsf; }
-  
+
   Py_INCREF(Py_None);
-  return Py_None; 
+  return Py_None;
 }

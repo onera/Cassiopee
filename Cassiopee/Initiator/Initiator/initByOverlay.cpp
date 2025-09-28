@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -41,10 +41,10 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
   FldArrayI* cn1; FldArrayI* cn2;
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
-  
-  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
-                                      cn1, eltType1); 
-  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1,
+                                      cn1, eltType1);
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2,
                                       cn2, eltType2);
 
   E_Int res0;
@@ -80,7 +80,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
     else if (res0 == 0)
     {
       printf("Warning: overlayField: some variables are different...\n");
-      printf(" Only common variables are kept.\n"); 
+      printf(" Only common variables are kept.\n");
     }
     // Search for location of conservative variables in f1
     posr1 = K_ARRAY::isDensityPresent(varString1);
@@ -158,13 +158,13 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
     E_Float* zt1 = f1->begin(pos1[2]);
     E_Float invgam1 = 1/0.4;
 
-    E_Float* xt = cfdField.begin(1); 
-    E_Float* yt = cfdField.begin(2); 
+    E_Float* xt = cfdField.begin(1);
+    E_Float* yt = cfdField.begin(2);
     E_Float* zt = cfdField.begin(3);
-    E_Float* rot = cfdField.begin(4); E_Float* rout = cfdField.begin(5); 
+    E_Float* rot = cfdField.begin(4); E_Float* rout = cfdField.begin(5);
     E_Float* rovt = cfdField.begin(6); E_Float* rowt = cfdField.begin(7);
     E_Float* roet = cfdField.begin(8);
- 
+
     for (E_Int i = 0; i < ncells1; i++)
     {
       ro1 = fr1[i];
@@ -174,7 +174,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
       w1 = frw1[i] * invr1;
       roe1 = fre1[i]-0.5*ro1*(u1*u1+v1*v1+w1*w1);
       p1 = 0.4*roe1;
-      
+
       ro2= fr2[i];
       invr2 = 1./ro2;
       u2 = fru2[i] * invr2;
@@ -182,13 +182,13 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
       w2 = frw2[i] * invr2;
       roe2 = fre2[i]-0.5*ro2*(u2*u2+v2*v2+w2*w2);
       p2 = 0.4*roe2;
-      
+
       ro = ro1+ro2-roinf;
       p = p1+p2-pinf;
       u = u1+u2-uinf; // on suppose 0 degre d'incidence
       v = v1+v2;
       w = w1+w2;
-      
+
       xt[i] = xt1[i];
       yt[i] = yt1[i];
       zt[i] = zt1[i];
@@ -221,7 +221,7 @@ PyObject* K_INITIATOR::overlayField(PyObject* self, PyObject* args)
                     "overlayField: not used for unstructured arrays.");
     return NULL;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "overlayField: one or both arrays are invalid.");

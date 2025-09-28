@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -39,9 +39,9 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f,
                                      im, jm, km, cn, eltType);
-  if ( res != 1 && res != 2 ) 
+  if ( res != 1 && res != 2 )
   {
     PyErr_SetString(PyExc_TypeError, "getCurvatureHeight: invalid array.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
@@ -58,14 +58,14 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
   posx++; posy++; posz++;
   if ( res == 1 ) //1D ou 2D seulement
   {
-    if ( im > 1 && jm > 1 && km > 1 ) 
+    if ( im > 1 && jm > 1 && km > 1 )
     {
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureHeight: array must be 1D or 2D.");
       RELEASESHAREDS(array, f); return NULL;
     }
   }
-  else if ( res == 2 ) 
+  else if ( res == 2 )
   {
     if ( strcmp(eltType, "BAR") != 0 && strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0 )
     {
@@ -87,10 +87,10 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
   {
     tpl = K_ARRAY::buildArray3(1, "hmax", im, jm, km, api);
     K_ARRAY::getFromArray3(tpl, hmaxt);
-    E_Float* hmaxtp = hmaxt->begin();                    
+    E_Float* hmaxtp = hmaxt->begin();
     if (im > 1 && jm == 1 && km == 1) K_COMPGEOM::compStructCurvatureHeight1D(im, xt, yt, zt, hmaxtp);
     else if (im > 1 && jm > 1  && km == 1) K_COMPGEOM::compStructCurvatureHeight2D(im, jm, xt, yt, zt, hmaxtp);
-    else 
+    else
     {
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureHeight: array must be (ni,1,1) in 1D or (ni,nj,1) in 2D.");
@@ -106,11 +106,11 @@ PyObject* K_GEOM::getCurvatureHeight(PyObject* self,
                                *cn, eltType, false, api, true);
     FldArrayI* cn2;
     K_ARRAY::getFromArray3(tpl, hmaxt, cn2);
-    E_Float* hmaxtp = hmaxt->begin();      
+    E_Float* hmaxtp = hmaxt->begin();
     if (strcmp(eltType, "BAR") == 0) K_COMPGEOM::compCurvatureHeightForBAR(npts, xt, yt, zt, *cn2, hmaxtp);
     else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) K_COMPGEOM::compCurvatureHeightForTRIQUAD(npts, xt, yt, zt, *cn2, hmaxtp);
     RELEASESHAREDU(tpl, hmaxt, cn2);
     RELEASESHAREDU(array, f, cn);
   }
-  return tpl; 
-}     
+  return tpl;
+}

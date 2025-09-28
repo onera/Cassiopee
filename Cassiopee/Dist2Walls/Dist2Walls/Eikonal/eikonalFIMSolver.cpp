@@ -22,7 +22,7 @@ namespace {
         /**
          * @brief Scanne le champs solution initial pour localiser les points sources ( != infini )
          * @details [long description]
-         * 
+         *
          * @param ni Nombre de noeuds dans la direction Oi
          * @param nj Nombre de noeuds dans la direction Oj
          * @param nk Nombre de noeuds dans la direction Ok
@@ -63,7 +63,7 @@ namespace {
         /**
          * @brief Recherche les points voisins d'un point et regarde si il faut les rajouter aux points actifs
          * @details [long description]
-         * 
+         *
          * @param i L'indice i du point courant
          * @param j L'indice j du point courant
          * @param k L'indice k du point courant
@@ -131,7 +131,7 @@ namespace {
          *          dans le front d'onde et on rajoute de nouveaux noeuds avec l'avancement du front.
          *          La gestion du front se fait à l'aide de deux vecteurs permettant la mise à jour des noeuds sans
          *          allocations/désallocations inutiles.
-         * 
+         *
          */
         void update( E_Float* sol, const E_Float* speed, const E_Float& eps = 1.E-6 ) {
             size_t ninj = m_dimensions.i * m_dimensions.j;
@@ -207,7 +207,7 @@ namespace {
 
 /*    struct multi_blk_fim_t {
     private:
-        
+
     };*/
 }
 
@@ -216,7 +216,7 @@ namespace Eikonal {
         /**
          * @brief Résolution de l'équation Eikonal à l'aide de l'algorithme FIM
          * @details Résolution de l'équation Eikonal à l'aide de l'algorithme FIM séquentiel.
-         * 
+         *
          * @param ni Nombre d'inconnus dans la direction i
          * @param nj Nombre d'inconnus dans la direction j
          * @param nk Nombre d'inconnus dans la direction k
@@ -229,7 +229,7 @@ namespace Eikonal {
          * @param max_float [description]
          */
         void solveOnIsotropGrid( unsigned ni, unsigned nj, unsigned nk, E_Float lbx, E_Float lby, E_Float lbz,
-                                 E_Float h, E_Float* sol, E_Float* speed, 
+                                 E_Float h, E_Float* sol, E_Float* speed,
                                  E_Float max_float ) {
             // Initialisation de l'algorithme FIM :
             fim_t fim( ni, nj, nk, sol, max_float );

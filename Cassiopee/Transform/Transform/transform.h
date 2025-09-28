@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -42,7 +42,7 @@ namespace K_TRANSFORM
    IN: pos2: position des champs communs a f1 ds f2
    OUT: field: array resultant des champs obtenus par join des 2 arrays
    OUT: im, jm, km: dimensions de l array resultant
-   retourne 0 si pas de join possible, 1 si ok 
+   retourne 0 si pas de join possible, 1 si ok
    ATTENTION: on fait une copie car joinStructured modifie f1 et f2
 */
   E_Int joinStructured(FldArrayF f1, E_Int im1, E_Int jm1, E_Int km1,
@@ -61,10 +61,10 @@ namespace K_TRANSFORM
                            FldArrayF fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                            std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
                            std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                           FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+                           FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
                            FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
 
-  // join structure 3d: memes arguments que joinStructured 
+  // join structure 3d: memes arguments que joinStructured
   E_Int joinstructured3d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
                          E_Int posx1, E_Int posy1, E_Int posz1,
                          FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
@@ -80,15 +80,15 @@ namespace K_TRANSFORM
                              FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                              std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
                              std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
                              FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
 
-  E_Int nextCornerMatchingIndices(E_Int i1, E_Int j1, E_Int k1, 
-                                  E_Int im1, E_Int jm1, E_Int km1,  
-                                  E_Int im2, E_Int jm2, E_Int km2, 
-                                  E_Int posx1, E_Int posy1, E_Int posz1, 
+  E_Int nextCornerMatchingIndices(E_Int i1, E_Int j1, E_Int k1,
+                                  E_Int im1, E_Int jm1, E_Int km1,
+                                  E_Int im2, E_Int jm2, E_Int km2,
+                                  E_Int posx1, E_Int posy1, E_Int posz1,
                                   E_Int posx2, E_Int posy2, E_Int posz2,
-                                  FldArrayF& f1, FldArrayF& f2, 
+                                  FldArrayF& f1, FldArrayF& f2,
                                   E_Int& i2, E_Int& j2, E_Int& k2,
                                   E_Float eps=1.e-12);
 
@@ -109,7 +109,7 @@ namespace K_TRANSFORM
                              FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                              std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
                              std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
                              FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
   // join structure 1d: memes arguments que joinStructured
   E_Int joinstructured1d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
@@ -127,7 +127,7 @@ namespace K_TRANSFORM
                              FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                              std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
                              std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
                              FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
 
   /* Join 2 arrays non structures */
@@ -159,7 +159,7 @@ namespace K_TRANSFORM
                          std::vector<FldArrayF*>& fsplit);
 
 
-  void collapseMinVertexInTriangle(FldArrayI& cn, 
+  void collapseMinVertexInTriangle(FldArrayI& cn,
                                    E_Float* xt, E_Float* yt, E_Float* zt);
 
   /* Fonctions necessaires a projectSmoothDir
@@ -173,29 +173,29 @@ namespace K_TRANSFORM
                                    E_Int im1, E_Int jm1, E_Int km1,
                                    E_Int nelts2, FldArrayI& cn2,
                                    E_Float* fx2, E_Float* fy2, E_Float* fz2,
-                                   E_Float* fx, E_Float* fy, E_Float* fz, 
+                                   E_Float* fx, E_Float* fy, E_Float* fz,
                                    E_Int oriented=0);
   void smoothUnprojectedPts(E_Int im1, E_Int jm1, E_Int km1, E_Int npts,
                             E_Float* fx, E_Float* fy, E_Float* fz, short* tagp);
 
   /* Fonctions necessaires a reorderAll */
-  E_Int pivotingBlks(E_Int bg, E_Int bd, FldArrayI& sortedBlks, 
+  E_Int pivotingBlks(E_Int bg, E_Int bd, FldArrayI& sortedBlks,
                      FldArrayF& dist);
 
-  void quickSortBlks(E_Int bg, E_Int bd, FldArrayI& sortedBlks, 
+  void quickSortBlks(E_Int bg, E_Int bd, FldArrayI& sortedBlks,
                      FldArrayF& dist);
 
-  void sortBlocks(FldArrayF& distMat, 
+  void sortBlocks(FldArrayF& distMat,
                   std::vector<FldArrayI*>& listOfSortedBlks);
 
-  // Algorithme recursif de parcours de graphe: Depth First Search   
+  // Algorithme recursif de parcours de graphe: Depth First Search
   //IN: nb_father:  no du bloc pere
   //IN: nb_cur: no du bloc courant
   //IN: rel: relation entre les blocs : distance < eps
-  //IN/OUT: dejaVu 
-  //IN/OUT: tagOpp : sens de la normale par rapport a la reference 
-  void graphPathSearch( E_Int nb_father, E_Int nb_cur, 
-                        std::vector<FldArrayF*>& listOfFields, 
+  //IN/OUT: dejaVu
+  //IN/OUT: tagOpp : sens de la normale par rapport a la reference
+  void graphPathSearch( E_Int nb_father, E_Int nb_cur,
+                        std::vector<FldArrayF*>& listOfFields,
                         std::vector<E_Int>& nit, std::vector<E_Int>& njt,
                         std::vector<E_Int>& posxt, std::vector<E_Int>& posyt,
                         std::vector<E_Int>& poszt,
@@ -205,7 +205,7 @@ namespace K_TRANSFORM
                         FldArrayI& tagOpp);
 
 /* Reorder a 2D grid */
-  void reorder(const E_Int im, const E_Int jm, 
+  void reorder(const E_Int im, const E_Int jm,
                FldArrayF& field);
 
 /* Return 1 if bbox of blocks intersect, 0 elsewhere */
@@ -213,7 +213,7 @@ namespace K_TRANSFORM
                            FldArrayF& bbox);
 
 /* Return 1 if one negative volume cell exists in the mesh */
-  E_Int checkNegativeVolumeCells(E_Int dim, E_Int im, E_Int jm, E_Int km, 
+  E_Int checkNegativeVolumeCells(E_Int dim, E_Int im, E_Int jm, E_Int km,
                                  FldArrayF& coords);
   void increaseGradeForRotation(
     E_Int indA1, E_Int indB1, E_Int indC1, E_Int indD1,
@@ -221,7 +221,7 @@ namespace K_TRANSFORM
     E_Int indA2, E_Int indB2, E_Int indC2, E_Int indD2,
     E_Float* xt2, E_Float* yt2, E_Float* zt2,
     E_Int& grade);
-  /* Computes the max deviation angle (from 180 deg) between zones 1 and 
+  /* Computes the max deviation angle (from 180 deg) between zones 1 and
      2 sharing an edge of direction dir1 in z1 and dir2 in z2 */
   E_Float compAngleBetweenZones(E_Int dir1, E_Int ni1, E_Int nj1,
                                 E_Float* xt1, E_Float* yt1, E_Float* zt1,
@@ -229,33 +229,33 @@ namespace K_TRANSFORM
                                 E_Float* xt2, E_Float* yt2, E_Float* zt2);
 
   /* break a NGON connectivity into elements */
-  void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF, 
-                         std::vector<FldArrayI*>& cEV, 
-                         std::vector<FldArrayF*>& fields, 
+  void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF,
+                         std::vector<FldArrayI*>& cEV,
+                         std::vector<FldArrayF*>& fields,
                          std::vector<E_Int>& eltType,
                          char* varString);
   /* break a MIXED connectivity into elements */
-  void breakMixedElements(FldArrayF& field, FldArrayI& ce, 
+  void breakMixedElements(FldArrayF& field, FldArrayI& ce,
                          std::vector<FldArrayI*>& cEV,
-                         std::vector<FldArrayF*>& fields, 
+                         std::vector<FldArrayF*>& fields,
                          std::vector<E_Int>& eltType);
-  
+
   /* Cree le dual d un maillage NGON 1D, 2D ou 3D.
-   IN: f: champs contenant les coordonnees localises aux noeuds du 
+   IN: f: champs contenant les coordonnees localises aux noeuds du
    maillage primal
    IN: cn: connectivite NGON  du primal
    OUT: fd: champs aux noeuds du maillage dual
-   OUT: cNGD: connectivite NGON du dual 
+   OUT: cNGD: connectivite NGON du dual
    fd et cNGD sont alloues dans ces fonctions */
   void dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                   FldArrayF& fd, FldArrayI& cNGD);
   void dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                   FldArrayF& fd, FldArrayI& cNGD);
-  void dualNGON3D(FldArrayF& f, FldArrayI& cn, 
+  void dualNGON3D(FldArrayF& f, FldArrayI& cn,
                   FldArrayF& fd, FldArrayI& cNGD);
-  //E_Int createDegeneratedPrimalMesh3D(E_Int nptsp, FldArrayI& cNG, 
+  //E_Int createDegeneratedPrimalMesh3D(E_Int nptsp, FldArrayI& cNG,
   //                                    FldArrayI& cNGD);
-  E_Int createDegeneratedPrimalMesh3D(FldArrayF& fNG, FldArrayI& cNG, 
+  E_Int createDegeneratedPrimalMesh3D(FldArrayF& fNG, FldArrayI& cNG,
                                       FldArrayF& fNGD, FldArrayI& cNGD);
   void  umbrella(FldArrayF& coord, FldArrayF& coordo,
                  FldArrayF& move, FldArrayF& proj,
@@ -266,8 +266,8 @@ namespace K_TRANSFORM
                  E_Float eps, E_Int niter,
                  std::vector< std::vector<E_Int> > &cVN,
                  E_Float xR, E_Float yR, E_Float zR, E_Float radius);
-  
-  E_Int extractVectorComponents(char* varString, PyObject* listOfFieldVectors, 
+
+  E_Int extractVectorComponents(char* varString, PyObject* listOfFieldVectors,
                                 std::vector<E_Int>& posvx, std::vector<E_Int>& posvy, std::vector<E_Int>& posvz);
 
   // Flip Edges dans un maillage TRI
@@ -340,7 +340,7 @@ namespace K_TRANSFORM
   PyObject* splitCurvatureAngle(PyObject* self, PyObject* args);
   PyObject* splitCurvatureRadius(PyObject* self, PyObject* args);
   PyObject* splitConnexity(PyObject* self, PyObject* args);
-  PyObject* splitConnexityBasics(FldArrayF* f, FldArrayI* cn, 
+  PyObject* splitConnexityBasics(FldArrayF* f, FldArrayI* cn,
                                  char* eltType, char* varString,
                                  E_Int posx, E_Int posy, E_Int posz);
   PyObject* splitConnexityNGon(FldArrayF* f, FldArrayI* cn, char* varString,
@@ -350,10 +350,10 @@ namespace K_TRANSFORM
                                E_Int posx, E_Int posy, E_Int posz);
 
   PyObject* splitSharpEdges(PyObject* self, PyObject* args);
-  PyObject* splitSharpEdgesBasics(FldArrayF* f, FldArrayI* cn, 
+  PyObject* splitSharpEdgesBasics(FldArrayF* f, FldArrayI* cn,
                                   char* eltType, char* varString,
                                   E_Int posx, E_Int posy, E_Int posz,
-                                  E_Int type, E_Float alphaRef, 
+                                  E_Int type, E_Float alphaRef,
                                   E_Float* dirVect);
   PyObject* splitSharpEdgesNGon(FldArrayF* f, FldArrayI* cn, char* varString,
                                 E_Int posx, E_Int posy, E_Int posz,

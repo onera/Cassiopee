@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,32 +36,32 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cnl;
   char* varString; char* eltTypes;
-  res = K_ARRAY::getFromArray3(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString,
                                f, ni, nj, nk, cnl, eltTypes);
 
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(array, f);
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "breakElements: array is invalid.");
     return NULL;
   }
   if (strcmp(eltTypes, "TRI")   == 0 || strcmp(eltTypes, "QUAD") == 0 ||
       strcmp(eltTypes, "TETRA") == 0 || strcmp(eltTypes, "HEXA") == 0 ||
-      strcmp(eltTypes, "PENTA") == 0 || strcmp(eltTypes, "BAR")  == 0 || 
+      strcmp(eltTypes, "PENTA") == 0 || strcmp(eltTypes, "BAR")  == 0 ||
       strcmp(eltTypes, "PYRA")  == 0 || strcmp(eltTypes, "NODE") == 0)
   { RELEASESHAREDU(array, f, cnl); return array; }
   if (strcmp(eltTypes, "NGON") != 0 && strcmp(eltTypes, "MIXED") != 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "breakElements: elt type must be NGON or MIXED.");
-    RELEASESHAREDU(array, f, cnl); return NULL;    
+    RELEASESHAREDU(array, f, cnl); return NULL;
   }
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
-  
+
   vector<E_Int> eltTypev; vector<FldArrayI*> cEV; vector<FldArrayF*> fields;
   if (strcmp(eltTypes, "NGON") == 0)
     breakNGonElements(*f, *cnl, cEV, fields, eltTypev, varString);
@@ -74,7 +74,7 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
 
   for (size_t v = 0; v < cEV.size(); v++)
   {
-    if (fields[v]->getSize() != 0) 
+    if (fields[v]->getSize() != 0)
     {
       if (eltTypev[v] == 1) strcpy(eltType, "BAR");
       else if (eltTypev[v] == 2) strcpy(eltType, "TRI");
@@ -86,8 +86,8 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
       else if (eltTypev[v] == 8) strcpy(eltType, "NGON");
 
       if (posx != 0 && posy != 0 && posz != 0)
-        K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
-                                     *fields[v], *cEV[v]);   
+        K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
+                                     *fields[v], *cEV[v]);
       tpl = K_ARRAY::buildArray3(*fields[v], varString, *cEV[v], eltType, api);
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
@@ -102,11 +102,11 @@ PyObject* K_TRANSFORM::breakElements(PyObject* self, PyObject* args)
 void K_TRANSFORM::breakNGonElements(
   FldArrayF& field, FldArrayI& cNG, vector<FldArrayI*>& cEV,
   vector<FldArrayF*>& fields, vector<E_Int>& eltType, char* varString)
-{ 
+{
   E_Int nfld = field.getNfld();
   E_Int api = field.getApi();
   E_Int shift = 1; if (api == 3) shift = 0;
-  
+
   E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();
   E_Int* indPG = cNG.getIndPG(); E_Int* indPH = cNG.getIndPH();
   E_Int ncells = cNG.getNElts();
@@ -189,13 +189,13 @@ void K_TRANSFORM::breakNGonElements(
       for (size_t nov = 0; nov < vertices.size(); nov++)
       {
         vert0 = vertices[nov];
-        if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3) 
+        if (vert0 != vert1 && vert0 != vert2 && vert0 != vert3)
         {
           vert4 = vert0; break;
         }
       }
       vertices = {vert1, vert2, vert3, vert4};
-      
+
       for (size_t nov = 0; nov < vertices.size(); nov++)
       {
         auto res = vMapTetra.insert(std::make_pair(vertices[nov]-1, nptstetra));
@@ -219,7 +219,7 @@ void K_TRANSFORM::breakNGonElements(
         {
           E_Int* face = cNG.getFace(elem[nf]-1, nv, ngon, indPG);
           if (nv == 4) // face = base quad
-          {       
+          {
             vert1 = face[0]; vert2 = face[1]; vert3 = face[2]; vert4 = face[3];
             for (size_t nov = 0; nov < vertices.size(); nov++)
             {
@@ -269,8 +269,8 @@ void K_TRANSFORM::breakNGonElements(
             vert5 = K_CONNECT::image(vert2, fidx, et, verticesf, cNG,
                                      ngon, nface, indPG, indPH);
             vert6 = K_CONNECT::image(vert3, fidx, et, verticesf, cNG,
-                                     ngon, nface, indPG, indPH);      
-            break;        
+                                     ngon, nface, indPG, indPH);
+            break;
           }
         }
 
@@ -294,7 +294,7 @@ void K_TRANSFORM::breakNGonElements(
       E_Int* face = cNG.getFace(fidx-1, nv, ngon, indPG);
       E_Int vert1 = face[0], vert2 = face[1], vert3 = face[2], vert4 = face[3];
 
-      verticesf.clear(); 
+      verticesf.clear();
       for (size_t nov = 0; nov < vertices.size(); nov++)
       {
         E_Int vert0 = vertices[nov];
@@ -372,15 +372,15 @@ void K_TRANSFORM::breakNGonElements(
   FldArrayF* ftetrap = new FldArrayF(nptstetra,nfld);
   FldArrayF& ftetra = *ftetrap; FldArrayI& cEVtetra = *cEVtetrap;
 
-  FldArrayI* cEVpyrap = new FldArrayI(netpyra,5); 
+  FldArrayI* cEVpyrap = new FldArrayI(netpyra,5);
   FldArrayF* fpyrap = new FldArrayF(nptspyra,nfld);
   FldArrayF& fpyra = *fpyrap; FldArrayI& cEVpyra = *cEVpyrap;
-  
+
   FldArrayI* cEVpentap = new FldArrayI(netpenta,6);
   FldArrayF* fpentap = new FldArrayF(nptspenta, nfld);
   FldArrayF& fpenta = *fpentap; FldArrayI& cEVpenta = *cEVpentap;
 
-  FldArrayI* cEVhexap = new FldArrayI(nethexa,8); 
+  FldArrayI* cEVhexap = new FldArrayI(nethexa,8);
   FldArrayF* fhexap = new FldArrayF(nptshexa,nfld);
   FldArrayF& fhexa = *fhexap; FldArrayI& cEVhexa = *cEVhexap;
 
@@ -407,7 +407,7 @@ void K_TRANSFORM::breakNGonElements(
   #pragma omp parallel
   {
     E_Int et, ind1, ind2;
-    
+
     #pragma omp for
     for (E_Int i = 0; i < netbar; i++) // BAR
     {
@@ -479,7 +479,7 @@ void K_TRANSFORM::breakNGonElements(
         }
       }
     }
-    
+
     #pragma omp for
     for (E_Int i = 0; i < netpyra; i++) // PYRA
     {
@@ -497,7 +497,7 @@ void K_TRANSFORM::breakNGonElements(
         }
       }
     }
-    
+
     #pragma omp for
     for (E_Int i = 0; i < netpenta; i++) // PENTA
     {
@@ -566,7 +566,7 @@ void K_TRANSFORM::breakNGonElements(
         ngon2[ind3+nov+shift] = ind2+1;
       }
       ind3 += nv+shift;
-      
+
       nface2[ind4+nf+shift] = fMapNGon[fidx]+1;
     }
     ind4 += nfacesl+shift;

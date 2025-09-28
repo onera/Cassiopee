@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -23,8 +23,8 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* splitCurvatureRadius  
-   Decoupe un i-array aux pts de courbure importante de la 
+/* splitCurvatureRadius
+   Decoupe un i-array aux pts de courbure importante de la
    courbe. Retourne la liste des morceaux. */
 //=============================================================================
 PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
@@ -35,7 +35,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   {
     return NULL;
   }
-  
+
   E_Float cvs = 1./K_FUNC::E_max(Rs, 1.e-10);
   E_Float ds = 0.;
   // extraction de l'array 1D
@@ -44,7 +44,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   FldArrayI* cn;
   char* varString;
   char* et;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, et);
   if ( res != 1 && res != 2 )
   {
@@ -54,7 +54,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   }
   if ( res == 2 )
   {
-    RELEASESHAREDU(array, f, cn);  
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: array must be an i-array.");
     return NULL;
@@ -65,31 +65,31 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if ( posx == -1 || posy == -1 || posz == -1 )
   {
-    RELEASESHAREDS(array, f);  
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: coordinates not found in array.");
     return NULL;
   }
   posx++; posy++; posz++;
- 
+
   if ( im < 2 || jm != 1 || km != 1 )
   {
-    RELEASESHAREDS(array, f);  
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: structured array must be an i-array.");
-    return NULL;         
+    return NULL;
   }
-    
+
   E_Int api = f->getApi();
   E_Int npts = f->getSize();
   if ( npts < 6 )
   {
-    RELEASESHAREDS(array, f);  
-    PyErr_SetString(PyExc_TypeError, 
+    RELEASESHAREDS(array, f);
+    PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureRadius: not enough points in i-array.");
     return NULL;
   }
-  
+
   // Insertion dans une liste des morceaux de courbe splittee
   PyObject* l = PyList_New(0);
 
@@ -119,7 +119,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 {
   vector<E_Int> splitPts;
   E_Int npts = f->getSize();
- 
+
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
@@ -140,7 +140,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
     if ( i == 0 ) im = 0;
     if ( i == N ) ip = N;
 
-    if ( cv > K_FUNC::E_abs(curv[im])+eps 
+    if ( cv > K_FUNC::E_abs(curv[im])+eps
          && cv > K_FUNC::E_abs(curv[ip])+eps ) //max local
     {
       if ( cv > cmax )
@@ -150,7 +150,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
   splitPts.push_back(N);
 
   // split de la spline aux pts splitPts
-  E_Int iprev = 0;  
+  E_Int iprev = 0;
   E_Int splitSize = splitPts.size();
 
   for (E_Int i = 0; i < splitSize; i++)
@@ -173,7 +173,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
     fsplit.push_back(f0);
     iprev = ii;
   }
-  
+
   delete f;
 }
 // //===========================================================================
@@ -185,7 +185,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 // {
 //   vector<E_Int> splitPts;
 //   E_Int npts = f->getSize();
- 
+
 //   E_Float* xt = f->begin(posx);
 //   E_Float* yt = f->begin(posy);
 //   E_Float* zt = f->begin(posz);
@@ -207,33 +207,33 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 // //     E_Int ip2 = node[i+2];
 // //     E_Int ip1 = node[i+1];
 // //     E_Int ii = i-2;
-    
+
 // //     //calcul du deplacement
-// //     E_Float dtx = 
+// //     E_Float dtx =
 // //       inv36*(xt[im2]+xt[ip2])+2*inv9*(xt[im1]+xt[ip1])-0.5*xt[ii];
-// //     E_Float dty = 
+// //     E_Float dty =
 // //       inv36*(yt[im2]+yt[ip2])+2*inv9*(yt[im1]+yt[ip1])-0.5*yt[ii];
 
 // //     //calcul de la courbure avec deplacement
-// //     E_Float bp1 = 
+// //     E_Float bp1 =
 // //       inv12*(xt[im2]+xt[ip2])+inv6*(xt[im1]+xt[ip1])-0.5*xt[ii];
-// //     E_Float bp2 = 
+// //     E_Float bp2 =
 // //       inv12*(yt[im2]+yt[ip2])+inv6*(yt[im1]+yt[ip1])-0.5*yt[ii];
-// //     E_Float cp1 = 
+// //     E_Float cp1 =
 // //       inv3*(xt[ip1]-xt[im1]) + inv12*(xt[ip2]-xt[im2]);
-// //     E_Float cp2 = 
+// //     E_Float cp2 =
 // //       inv3*(yt[ip1]-yt[im1]) + inv12*(yt[ip2]-yt[im2]);
 
 // //     E_Float coef = cp1*cp1+cp2*cp2;
 // //     E_Float coef32 = sqrt(coef*coef*coef);
 // //     cvt[ii] = K_FUNC::E_abs(2 * (cp1*bp2-cp2*bp1)/coef32);
-    
+
 // //     // calcul de la courbure locale
 // //     E_Float dxpm = xt[ip1]-xt[im1];
 // //     E_Float dypm = yt[ip1]-yt[im1];
-    
+
 // //     dpt[ii] = K_FUNC::E_abs(dtx+dty);
-// //     curv[ii] = 
+// //     curv[ii] =
 // //       4*( dxpm*(yt[ip1]-2*yt[ii]+yt[im1]) - dypm*(xt[ip1]-2*xt[ii]+xt[im1]) ) /
 // //       (pow( dxpm*dxpm + dypm*dypm, 3./2. ));
 // //   }
@@ -244,7 +244,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 //   E_Float eps = 1.e-6;
 //   for (E_Int i = 0; i < npts; i++)
 //   {
-//     E_Float cv = K_FUNC::E_abs(curv[i]); 
+//     E_Float cv = K_FUNC::E_abs(curv[i]);
 //     //E_Float cv = cvt[i];
 // //     E_Float dt = dpt[i];
 //     E_Int im = i-1;
@@ -253,15 +253,15 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 //     if ( i == N ) ip = N;
 
 //     //if ( cv > cvt[im]+eps && cv > cvt[ip]+eps )//max local
-//     if ( cv > K_FUNC::E_abs(curv[im])+eps 
+//     if ( cv > K_FUNC::E_abs(curv[im])+eps
 //          && cv > K_FUNC::E_abs(curv[ip])+eps )//max local
-//     {          
+//     {
 //       if ( cv > cmax )//&& dt > dmax)
 //         splitPts.push_back(i);
 //     }
 //   }
 //   splitPts.push_back(N);
-  
+
 // //   // On split aussi ensuite suivant la courbure cumulee
 // //   vector<E_Int> splitPtsF;
 // //   E_Int splitSize = splitPts.size();
@@ -273,7 +273,7 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 // //     E_Float I = 0.;
 // //     for (E_Int j = istart; j < ii; j++)
 // //       I = I + curv[j];
-// //     E_Int N = K_FUNC::E_abs(I) / (2000.*cmax) + 1; 
+// //     E_Int N = K_FUNC::E_abs(I) / (2000.*cmax) + 1;
 // //     E_Float ctmax = K_FUNC::E_abs(I / (1.*N));
 // //     printf("I : %f, N : %d, ctmax : %f\n", I, N, ctmax);
 // //     E_Float ct = 0.;
@@ -313,6 +313,6 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
 //     fsplit.push_back(f0);
 //     iprev = ii;
 //   }
-  
+
 //   delete f;
 // }
