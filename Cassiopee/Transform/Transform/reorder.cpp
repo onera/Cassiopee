@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,7 +36,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   // Check tuple
   if (PyTuple_Check(order) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "reorder: order argument must be a tuple.");
     return NULL;
   }
@@ -58,7 +58,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   }
   else
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "reorder: order must be like (1,2,3) or (1,).");
     return NULL;
   }
@@ -67,9 +67,9 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
-  
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
+
   E_Int api = f->getApi();
   FldArrayF* f2;
 
@@ -77,7 +77,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   {
     tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
     K_ARRAY::getFromArray3(tpl, f2);
-    K_CONNECT::reorderStructField(im, jm, km, *f, *f2, 
+    K_CONNECT::reorderStructField(im, jm, km, *f, *f2,
                                   E_Int(oi), E_Int(oj), E_Int(ok));
     PyList_SetItem(tpl, 2, PyInt_FromLong(im));
     PyList_SetItem(tpl, 3, PyInt_FromLong(jm));
@@ -89,7 +89,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   else if (res == 2)
   {
     FldArrayI* cn2;
-    if (strncmp(eltType, "NGON", 4) == 0) 
+    if (strncmp(eltType, "NGON", 4) == 0)
     {
       // check si le NGON est surfacique
       E_Int dim = cn->getDim();
@@ -107,7 +107,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }
-      
+
       tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
       K_ARRAY::getFromArray3(tpl, f2, cn2);
       K_CONNECT::reorderNGON(*f2, *cn2, E_Int(oi));

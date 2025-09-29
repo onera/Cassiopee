@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -41,7 +41,7 @@ using namespace K_SEARCH;
 // ============================================================================
 /* Computes the deformation vector for the 4/6 borders of a mesh             */
 // ============================================================================
-PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self, 
+PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
                                         PyObject* args)
 {
   PyObject* array; PyObject* deltas;
@@ -54,14 +54,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
-  
+
   if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "deformMeshStruct: invalid array.");
     return NULL;
   }
-  if ( res == 2) 
+  if ( res == 2)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
@@ -83,11 +83,11 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   vector<PyObject*> objsts, objuts;
   E_Bool skipNoCoord = true;
   E_Bool skipStructured = true;
-  E_Bool skipUnstructured = false; 
+  E_Bool skipUnstructured = false;
   E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     deltas, resls, structVarStrings, unstrVarStrings,
-    structFs, unstrFs, nits, njts, nkts, cnts, eltTypes, objsts, objuts, 
+    structFs, unstrFs, nits, njts, nkts, cnts, eltTypes, objsts, objuts,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
   E_Int nwalls = objuts.size();
@@ -100,7 +100,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
       RELEASESHAREDU(objuts[nos], unstrFs[nos], cnts[nos]);
     return NULL;
   }
-  if (nwalls == 0) 
+  if (nwalls == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "deformMeshStruct: no valid surface provided.");
@@ -124,10 +124,10 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     if (posdx < 1) { found = 0; break; }
     posdz = K_ARRAY::isNamePresent("dz",unstrVarStrings[nou]); posdz++;
     if (posdx < 1) { found = 0; break; }
-    posxw.push_back(posx1); posyw.push_back(posy1); poszw.push_back(posz1); 
-    posdxw.push_back(posdx); posdyw.push_back(posdy); posdzw.push_back(posdz); 
+    posxw.push_back(posx1); posyw.push_back(posy1); poszw.push_back(posz1);
+    posdxw.push_back(posdx); posdyw.push_back(posdy); posdzw.push_back(posdz);
   }
-  if (found == 0) 
+  if (found == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "deformMeshStruct: surface arrays must all contain dx, dy, dz variables.");
@@ -159,12 +159,12 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     E_Int nptsw = fieldv->getSize();
     for (E_Int i = 0; i < nptsw; i++)
     {
-      xw[c] = xw0[i]; yw[c] = yw0[i]; zw[c] = zw0[i]; 
+      xw[c] = xw0[i]; yw[c] = yw0[i]; zw[c] = zw0[i];
       dxw[c] = dxw0[i]; dyw[c] = dyw0[i]; dzw[c] = dzw0[i];
       c++;
     }
   } //fin kdtree
-  
+
   ArrayAccessor<FldArrayF> coordAcc(*surfaces, 1,2,3);
   KdTree<FldArrayF> kdt(coordAcc);
 
@@ -179,7 +179,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   E_Float* dyt = fout->begin(2);
   E_Float* dzt = fout->begin(3);
 
-  E_Float pt[3]; 
+  E_Float pt[3];
 
   E_Float* xt = f->begin(posx1);
   E_Float* yt = f->begin(posy1);
@@ -190,7 +190,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   E_Int ind, indw, dir, ok, noi;
   E_Int* ptrIndices;
   // On utilise une exponentielle en puissance de 2
-  // On attend 70% d'amortissement a une distance de beta*deformation locale 
+  // On attend 70% d'amortissement a une distance de beta*deformation locale
   //E_Float beta = 7;
   //E_Int factor = 8;
   E_Float eps = 1.e-10;
@@ -199,65 +199,65 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   if (km == 1)//2D
   {
     vector<FldArrayI> vectOfIndices(4);
-    FldArrayI indIMIN(jm); vectOfIndices[0] = indIMIN; 
-    FldArrayI indIMAX(jm); vectOfIndices[1] = indIMAX; 
-    FldArrayI indJMIN(im); vectOfIndices[2] = indJMIN; 
-    FldArrayI indJMAX(im); vectOfIndices[3] = indJMAX; 
+    FldArrayI indIMIN(jm); vectOfIndices[0] = indIMIN;
+    FldArrayI indIMAX(jm); vectOfIndices[1] = indIMAX;
+    FldArrayI indJMIN(im); vectOfIndices[2] = indJMIN;
+    FldArrayI indJMAX(im); vectOfIndices[3] = indJMAX;
     //j=1
     distmaxloc = -K_CONST::E_MAX_FLOAT;
     ptrIndices=vectOfIndices[2].begin();
     noi=0;
     for (E_Int i = 0; i < im; i++)
-    { 
+    {
       ind = i;
       BLOCK;
     }
     distmax = distmaxloc; dir = 3;
-    
+
     //i=1
     distmaxloc = -K_CONST::E_MAX_FLOAT;
     ptrIndices=vectOfIndices[0].begin();
     ok = 1; noi=0;
     for (E_Int j = 0; j < jm; j++)
-    {      
+    {
       ind = j*im;
       BLOCK;
-      if (distmaxloc > distmax)  {ok = -1; break;}    
+      if (distmaxloc > distmax)  {ok = -1; break;}
     }
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=1;}
-    
+
     //i=imax
     distmaxloc = -K_CONST::E_MAX_FLOAT;
     ok = 1; noi=0;
     ptrIndices=vectOfIndices[1].begin();
     for (E_Int j = 0; j < jm; j++)
-    {      
+    {
       ind = im-1+j*im;
       BLOCK;
-      if (distmaxloc > distmax)  {ok = -1; break;}    
+      if (distmaxloc > distmax)  {ok = -1; break;}
     }
     if (distmaxloc < distmax  && ok == 1) {distmax = distmaxloc; dir=2;}
-    
+
     //j=jmax
     distmaxloc = -K_CONST::E_MAX_FLOAT;
     ok = 1; noi=0;
     ptrIndices=vectOfIndices[3].begin();
     for (E_Int i = 0; i < im; i++)
-    { 
+    {
       ind = i+(jm-1)*im;
       BLOCK;
-      if (distmaxloc > distmax)  {ok = -1; break;}    
+      if (distmaxloc > distmax)  {ok = -1; break;}
     }
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=4;}
-    
+
     //cleaning
     for (E_Int no = 1; no < 5; no++)
     {
       if (no != dir)  vectOfIndices[no-1].malloc(0);
     }
     ptrIndices = vectOfIndices[dir-1].begin();
-    
-    // deformation vector computation for each node 
+
+    // deformation vector computation for each node
     // detection of the nearest surface point
     if (dir == 1 || dir == 2)
     {
@@ -274,11 +274,11 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 
         //Pt on border i=const
         AMORTI;
-        
+
         //Pt on opposite border
         ind=shift1+j*im;
         AMORTI;
-        
+
         // Lateral borders - pas tres joli...
         if ( j == 0 || j == jm-1)
         {
@@ -287,7 +287,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
             ind = i + j*im;
             AMORTI;
           }
-        }        
+        }
         noi++;
       }
     }//dir=1 or 2
@@ -306,7 +306,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 
         //Pt on border j=const
         AMORTI;
-        
+
         //Pt on opposite border
         ind=i+shift1;
         AMORTI;
@@ -319,7 +319,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
             ind = i + j*im;
             AMORTI;
           }
-        }        
+        }
         noi++;
       }
     }
@@ -327,25 +327,25 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
   else
   {
     vector<FldArrayI> vectOfIndices(6);
-    FldArrayI indIMIN(jm*km); vectOfIndices[0] = indIMIN; 
-    FldArrayI indIMAX(jm*km); vectOfIndices[1] = indIMAX; 
-    FldArrayI indJMIN(im*km); vectOfIndices[2] = indJMIN; 
-    FldArrayI indJMAX(im*km); vectOfIndices[3] = indJMAX; 
-    FldArrayI indKMIN(im*jm); vectOfIndices[4] = indKMIN; 
-    FldArrayI indKMAX(im*jm); vectOfIndices[5] = indKMAX; 
+    FldArrayI indIMIN(jm*km); vectOfIndices[0] = indIMIN;
+    FldArrayI indIMAX(jm*km); vectOfIndices[1] = indIMAX;
+    FldArrayI indJMIN(im*km); vectOfIndices[2] = indJMIN;
+    FldArrayI indJMAX(im*km); vectOfIndices[3] = indJMAX;
+    FldArrayI indKMIN(im*jm); vectOfIndices[4] = indKMIN;
+    FldArrayI indKMAX(im*jm); vectOfIndices[5] = indKMAX;
 
     //k=1
     distmaxloc = -K_CONST::E_MAX_FLOAT;
     ptrIndices=vectOfIndices[4].begin();
     noi=0;
     for(E_Int j=0; j < jm; j++)
-    { 
+    {
       for (E_Int i = 0; i < im; i++)
-      { 
+      {
         ind = i+j*im;
         BLOCK;
       }
-    } 
+    }
     distmax = distmaxloc; dir = 5;
 
     //k=km
@@ -354,14 +354,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ok = 1; noi=0;
     E_Int imjm = im*jm;
     for (E_Int j = 0; j < jm; j++)
-    { 
+    {
       for (E_Int i = 0; i < im; i++)
-      {      
+      {
         ind = i+j*im+(km-1)*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
-    } 
+    }
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=6;}
 
     //i=1
@@ -369,14 +369,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[0].begin();
     ok = 1; noi=0;
     for (E_Int k = 0; k < km; k++)
-    { 
+    {
       for (E_Int j = 0; j < jm; j++)
-      {      
+      {
         ind = j*im+k*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
-    } 
+    }
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=1;}
 
     //i=im
@@ -384,14 +384,14 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[1].begin();
     ok = 1; noi=0;
     for (E_Int k = 0; k < km; k++)
-    { 
+    {
       for (E_Int j = 0; j < jm; j++)
-      {      
+      {
         ind = im-1+j*im+k*imjm;
         BLOCK;
         if (distmaxloc > distmax) {ok = -1; break;}
       }
-    } 
+    }
     if (distmaxloc < distmax && ok == 1) {distmax = distmaxloc; dir=2;}
 
     //j=1
@@ -400,7 +400,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[2].begin();
     for (E_Int k = 0; k < km; k++)
       for (E_Int i = 0; i < im; i++)
-      { 
+      {
         ind = i+ k*imjm;
         BLOCK;
         if (distmaxloc > distmax)  {ok = -1; break;}
@@ -413,7 +413,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
     ptrIndices=vectOfIndices[3].begin();
     for (E_Int k = 0; k < km; k++)
       for (E_Int i = 0; i < im; i++)
-      { 
+      {
         ind = i+(jm-1)*im +k*imjm;
         BLOCK;
         if (distmaxloc > distmax)  {ok = -1; break;}
@@ -425,7 +425,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
       if (no != dir)  vectOfIndices[no-1].malloc(0);
     }
     ptrIndices = vectOfIndices[dir-1].begin();
-    // deformation vector computation for each node 
+    // deformation vector computation for each node
     // detection of the nearest surface point
     if (dir == 1 || dir == 2)
     {
@@ -440,31 +440,31 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
           indw = ptrIndices[noi];
           dx0 = dxw[indw]; dy0 = dyw[indw]; dz0 = dzw[indw];//delta vector of nearest surface pt
           delta = dx0*dx0+dy0*dy0+dz0*dz0;//norm of the delta vector
-          
+
           //Pt on border i=const
           AMORTI;
-          
+
           //Pt on opposite border
           ind=shift1+j*im+k*imjm;
           AMORTI;
-        
+
           // Lateral borders - pas tres joli...
           if ( j == 0 || j == jm-1)
-          {            
+          {
             for (E_Int i = 1; i < im-1; i++)
             {
               ind = i + j*im+k*imjm;
               AMORTI;
             }
-          }        
+          }
           if (k == 0 || k == km-1)
-          {            
+          {
             for (E_Int i = 1; i < im-1; i++)
             {
               ind = i + j*im +k*imjm;
               AMORTI;
             }
-          } 
+          }
           noi++;
         }
     }//dir=1 or 2
@@ -483,11 +483,11 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 
           //Pt on border j=const
           AMORTI;
-        
+
           //Pt on opposite border
           ind=i+shift1+k*imjm;
           AMORTI;
-          
+
           // Lateral borders - pas tres joli...
           if ( i == 0 || i == im-1)
           {
@@ -496,7 +496,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               ind = i + j*im + k*imjm;
               AMORTI;
             }
-          }    
+          }
           if (k == 0 || k == km-1)
           {
             for (E_Int j = 1; j < jm-1; j++)
@@ -504,7 +504,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               ind = i + j*im + k*imjm;
              AMORTI;
             }
-          }            
+          }
           noi++;
       }
     }//dir=3 or 4
@@ -523,11 +523,11 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
 
           //Pt on border k=const
           AMORTI;
-        
+
           //Pt on opposite border
           ind=i+shift1+j*im;
           AMORTI;
-          
+
           // Lateral borders - pas tres joli...
           if (i == 0 || i == im-1)
           {
@@ -536,7 +536,7 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               ind = i + j*im + k*imjm;
               AMORTI;
             }
-          }    
+          }
           if (j == 0 || j == jm-1)
           {
             for (E_Int k = 1; k < km-1; k++)
@@ -544,13 +544,13 @@ PyObject* K_TRANSFORM::deformMeshStruct(PyObject* self,
               ind = i + j*im + k*imjm;
               AMORTI;
             }
-          }            
+          }
         noi++;
       }
     }//dir=3 or 4
 
   } //3D
-  
+
   delete surfaces;
   // Release memory
   RELEASESHAREDS(tpl, fout);

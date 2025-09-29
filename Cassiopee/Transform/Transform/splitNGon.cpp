@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,26 +36,26 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray3(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString,
                                f, ni, nj, nk, cn, eltType);
 
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(array, f);
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "splitNGon: array is invalid.");
     return NULL;
   }
   if (strcmp(eltType, "TRI")   == 0 || strcmp(eltType, "QUAD") == 0 ||
       strcmp(eltType, "TETRA") == 0 || strcmp(eltType, "HEXA") == 0 ||
-      strcmp(eltType, "PENTA") == 0 || strcmp(eltType, "BAR")  == 0 || 
+      strcmp(eltType, "PENTA") == 0 || strcmp(eltType, "BAR")  == 0 ||
       strcmp(eltType, "PYRA")  == 0 || strcmp(eltType, "NODE") == 0)
   { RELEASESHAREDU(array, f, cn); return array; }
   if (strcmp(eltType, "NGON") != 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "splitNGon: elt type must be NGON.");
-    RELEASESHAREDU(array, f, cn); return NULL;    
+    RELEASESHAREDU(array, f, cn); return NULL;
   }
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
@@ -72,7 +72,7 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   E_Int* indPH = cn->getIndPH();
   E_Int nelts = cn->getNElts();
   //printf("nelts=%d\n", nelts);
-  
+
   E_Int nf;
   E_Int size = 0; // size of adj
   for (E_Int i = 0; i < nelts; i++)
@@ -113,9 +113,9 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   E_Int objval = 0;
   idx_t* parts = new idx_t [nelts];
   //for (E_Int i = 0; i < nelts; i++) parts[i] = 0; // dbx
-  //METIS_PartGraphRecursive(&nelts, &ncon, xadj, adj, NULL, NULL, NULL, 
+  //METIS_PartGraphRecursive(&nelts, &ncon, xadj, adj, NULL, NULL, NULL,
   //                         &nparts, NULL, NULL, NULL, &objval, parts);
-  METIS_PartGraphKway(&nelts, &ncon, xadj, adj, NULL, NULL, NULL, 
+  METIS_PartGraphKway(&nelts, &ncon, xadj, adj, NULL, NULL, NULL,
                       &nparts, NULL, NULL, NULL, &objval, parts);
   delete [] xadj; delete [] adj1;
 
@@ -144,11 +144,11 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nparts; i++) partSize[i] = 0;
   for (E_Int i = 0; i < nelts; i++)
   {
-    p = parts[i]; partPtr[p][partSize[p]] = i; partSize[p] += 1; 
+    p = parts[i]; partPtr[p][partSize[p]] = i; partSize[p] += 1;
   }
 
   delete [] partSize; delete [] partPtr;
   delete [] parts;
-  RELEASESHAREDU(array, f, cn); 
+  RELEASESHAREDU(array, f, cn);
   return l;
 }

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -29,7 +29,7 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
-/* Eikonal solver (array) 
+/* Eikonal solver (array)
    IN: cartesian grid */
 // ============================================================================
 PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
@@ -39,13 +39,13 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //clock_gettime(CLOCK_REALTIME, &beg);
   int algo = 0;
   if (!PyArg_ParseTuple(args, "O|i", &array, &algo)) return NULL;
-  
+
   // Check array
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                cn, eltType);
 
   if (res != 1 && res != 2)
@@ -114,8 +114,8 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
 
   //clock_gettime(CLOCK_REALTIME, &end);
   //double seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
-  //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;  
-  //E_Int nt = __NUMTHREADS__;  
+  //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;
+  //E_Int nt = __NUMTHREADS__;
   //nt = 0; // pas de multithread pour l'instant
   //clock_gettime(CLOCK_REALTIME, &beg);
   if (algo == 0 ) // Algorithme d'origine FMM
@@ -127,19 +127,19 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     Eikonal::FIM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v, max_float);
   }
   if (algo == 2 )// Si on a choisit l'algorithme FIM
-  //if (nt == 0) 
+  //if (nt == 0)
   {
     solveEikonalOnIsotropGrid(nil, njl, nkl,
                               x[0], y[0], z[0],
                               dh, v, phi);
   }
-  // else 
+  // else
   // {
   //   blockFIM( nil, njl, nkl, x[0], y[0], z[0], dh, niBlk, njBlk, nkBlk, nbSubIter, v, phi);
   // }
   //clock_gettime(CLOCK_REALTIME, &end);
   //seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
-  //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;  
+  //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;
   RELEASESHAREDS(tpl, f2);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;

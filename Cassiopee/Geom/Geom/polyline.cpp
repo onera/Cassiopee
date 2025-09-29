@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -37,10 +37,10 @@ PyObject* K_GEOM::polyline(PyObject* self, PyObject* args)
                     "polyline: argument must be a list of tuples.");
     return NULL;
   }
-  
+
   /* Taille de la liste de listes et conversion en C */
   E_Int npts = PyList_Size(listPts); // nb d'elements ds la liste
-  
+
   for (E_Int i = 0; i < npts; i++)
   {
     PyObject* tpli = PyList_GetItem(listPts, i);
@@ -48,29 +48,29 @@ PyObject* K_GEOM::polyline(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "polyline: each element of the list must be (x,y,z).");
-      
+
       return NULL;
     }
-    
-    E_Int dim;  
+
+    E_Int dim;
     if (PyTuple_Check(tpli) != 0)
     {
-      dim = PyTuple_Size(tpli); 
+      dim = PyTuple_Size(tpli);
     }
     else
     {
-      dim = PyList_Size(tpli); 
+      dim = PyList_Size(tpli);
     }
-    
+
     // verifie que chq element de la liste est un triplet (x,y,z)
     if (dim != 3 && dim != 2)
-    {        
+    {
       PyErr_SetString(PyExc_TypeError,
                       "polyline: 2 or 3 coordinates must be found in each element of the list.");
-      return NULL;  
+      return NULL;
     }
   }
- 
+
   /* 2: lecture des coordonnees et creation du tableau de pts */
   E_Int api = 1; // TODO
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, 1, 1, api);
@@ -79,9 +79,9 @@ PyObject* K_GEOM::polyline(PyObject* self, PyObject* args)
   E_Float* x = f->begin(1);
   E_Float* y = f->begin(2);
   E_Float* z = f->begin(3);
-  
+
   PyObject *o, *c1, *c2, *c3;
- 
+
   for (E_Int j = 0; j < npts; j++)
   {
     o = PyList_GetItem(listPts, j); // on recupere les listes des elements
@@ -126,7 +126,7 @@ PyObject* K_GEOM::polyline(PyObject* self, PyObject* args)
       z[j] = 0.;
     }
   }
-  
+
   RELEASESHAREDS(tpl, f);
   return tpl;
 }

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -22,7 +22,7 @@
 
 # include "kcore.h"
 
-namespace K_TEMPLATE 
+namespace K_TEMPLATE
 {
   PyObject* intFloatExample(PyObject* self, PyObject* args);
   PyObject* numpyExample(PyObject* self, PyObject* args);

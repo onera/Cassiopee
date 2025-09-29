@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Global operations on several meshes (patch) 
+// Global operations on several meshes (patch)
 
 # include "transform.h"
 
@@ -43,18 +43,18 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
   vector<E_Int> pos1; vector<E_Int> pos2;
-  E_Int res1 = 
-    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
-                           cn1, eltType1); 
-  E_Int res2 = 
-    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+  E_Int res1 =
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1,
+                           cn1, eltType1);
+  E_Int res2 =
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2,
                            cn2, eltType2);
   E_Int ind, ind2;
 
   if (res1 == 1 && res2 == 1)
   {
     char* varString = new char [strlen(varString1) + strlen(varString2) + 4];
-    E_Int res0 = 
+    E_Int res0 =
       K_ARRAY::getPosition(varString1, varString2, pos1, pos2, varString);
 
     if (res0 == -1)
@@ -63,15 +63,15 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
       RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_ValueError,
                       "patch: one array is empty.");
-      return NULL;      
+      return NULL;
     }
     else if (res0 == 0)
     {
-      printf("Warning: patch: arrays have different variables."); 
+      printf("Warning: patch: arrays have different variables.");
       printf("Only common variables are kept.\n");
     }
 
-    if (im1 > im2 || jm1 > jm2 || km1 > km2) 
+    if (im1 > im2 || jm1 > jm2 || km1 > km2)
     {
       RELEASESHAREDS(array1, f1);
       RELEASESHAREDS(array2, f2);
@@ -111,18 +111,18 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
         RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: i index is too big.");
-        return NULL;      
+        return NULL;
       }
     }
     if (jm1 != 1 && jm2 != 1)
-    {    
+    {
       if (jj + jm1 > jm2+1)
       {
         RELEASESHAREDS(array1, f1);
         RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: j index is too big.");
-        return NULL;      
+        return NULL;
       }
     }
     if (km1 != 1 && km2 != 1)
@@ -133,17 +133,17 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
         RELEASESHAREDS(array2, f2);
         PyErr_SetString(PyExc_ValueError,
                         "patch: k index is too big.");
-        return NULL;      
+        return NULL;
       }
     }
     E_Int api = f2->getApi();
     E_Int nfld = pos1.size();
     vector<E_Float*> fp1(nfld);
     // pointeur sur les champs de array1
-    for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }  
+    for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }
     // pointeur sur les champs de array2
     vector<E_Float*> fp2(nfld);
-    for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }  
+    for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }
 
     for (E_Int k = kk-1; k < kk+km1-1; k++)
       for (E_Int j = jj-1; j < jj+jm1-1; j++)
@@ -154,24 +154,24 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
           for (E_Int n = 0; n < nfld; n++)
             fp2[n][ind] = fp1[n][ind2];
         }
-  
-    // Build array 
+
+    // Build array
     PyObject* tpl = K_ARRAY::buildArray3(*f2, varString, im2, jm2, km2, api);
     delete [] varString;
     RELEASESHAREDS(array1, f1);
     RELEASESHAREDS(array2, f2);
-      
+
     return tpl;
   }
-  else if (res1 == 2 || res2 == 2) 
+  else if (res1 == 2 || res2 == 2)
   {
     RELEASESHAREDB(res1, array1, f1, cn1);
-    RELEASESHAREDB(res2, array2, f2, cn2);      
+    RELEASESHAREDB(res2, array2, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "patch: can not be used on an unstructured array.");
     return NULL;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "patch: invalid array.");
@@ -180,7 +180,7 @@ PyObject* K_TRANSFORM::patch(PyObject* self, PyObject* args)
 }
 
 // ============================================================================
-/* Patch array1 into array2 at nodes [n1, n2, n3 ...] of array2 
+/* Patch array1 into array2 at nodes [n1, n2, n3 ...] of array2
    work for structured and unstructured meshes */
 // ============================================================================
 PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
@@ -192,7 +192,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   {
     return NULL;
   }
-  
+
   // Check array
   E_Int im1, jm1, km1, im2, jm2, km2;
   FldArrayF* f1; // champ de array1
@@ -203,11 +203,11 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   char* varString2; // liste des variables contenues dans array2
   char* eltType1; // type d'elements de array1
   char* eltType2; // type d'elements de array2
-  E_Int res1 = 
-    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+  E_Int res1 =
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1,
                            cn1, eltType1);
-  E_Int res2 = 
-    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+  E_Int res2 =
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2,
                            cn2, eltType2);
 
   if (res1 != 1 && res1 != 2)
@@ -225,9 +225,9 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 
   E_Int nbnodes, nf; E_Int* n0;
   K_NUMPY::getFromNumpyArray(nodesIndices, n0, nbnodes, nf);
-  
+
   if (nbnodes != f1->getSize())
-  {  
+  {
     PyErr_SetString(PyExc_ValueError,
                     "patch: array1 and nodes must have the same size.");
     return NULL;
@@ -237,9 +237,9 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   // construction d'un nouveau varString a partir de varString1 et varString2
   vector<E_Int> pos1; vector<E_Int> pos2;
   char* varString = new char [strlen(varString1) + strlen(varString2) + 4];
-  E_Int res0 = 
+  E_Int res0 =
     K_ARRAY::getPosition(varString1, varString2, pos1, pos2, varString);
-  
+
   if (res0 == -1)
   {
     PyErr_SetString(PyExc_ValueError,
@@ -248,7 +248,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   }
   else if (res0 == 0)
   {
-    printf("Warning: patch: arrays have different variables."); 
+    printf("Warning: patch: arrays have different variables.");
     printf("Only common variables are kept.\n");
   }
 
@@ -257,13 +257,13 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
 
   vector<E_Float*> fp1(nfld);
   // pointeur sur les champs de array1
-  for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }  
+  for (E_Int p = 0; p < nfld; p++) { fp1[p] = f1->begin(pos1[p]); }
   // pointeur sur les champs de array2
   vector<E_Float*> fp2(nfld);
-  for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }  
-  
+  for (E_Int p = 0; p < nfld; p++) { fp2[p] = f2->begin(pos2[p]); }
+
   // boucle sur les indices a patcher
-  for (E_Int p = 0; p < nfld; p++) 
+  for (E_Int p = 0; p < nfld; p++)
   {
     for (E_Int ind = 0; ind < nbnodes; ind++)
     {
@@ -273,7 +273,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
     }
   }
 
-  // Build array 
+  // Build array
   PyObject* tpl = NULL;
   if (res2 == 1)
   {
@@ -287,7 +287,7 @@ PyObject* K_TRANSFORM::patch2(PyObject* self, PyObject* args)
   Py_DECREF(nodesIndices);
   RELEASESHAREDB(res1, array1, f1, cn1);
   RELEASESHAREDB(res2, array2, f2, cn2);
-      
-  delete [] varString; 
+
+  delete [] varString;
   return tpl;
 }

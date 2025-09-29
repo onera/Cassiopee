@@ -18,11 +18,11 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk,
                                cn, eltType);
 
   /* More info on arrays in KCore/Array/Array.h */
-  
+
   if (res == 1) // C'est un array structure
   {
     E_Int nfld = f->getNfld();
@@ -68,8 +68,8 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
       // Pointeur sur la connectivite elts->noeuds
       // Recuperer le nbre de ptrs?
       E_Int* cn1 = cn->begin(1);
-      
-      
+
+
     }
   }
   else // Ce n'est pas un array
@@ -78,7 +78,7 @@ PyObject* K_TEMPLATE::arrayExample(PyObject* self, PyObject* args)
     Py_INCREF(Py_None);
     return Py_None;
   }
-  
+
   // Release memory
   RELEASESHAREDB(res, array, f, cn);
 

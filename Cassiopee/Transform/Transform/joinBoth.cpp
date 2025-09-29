@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -41,9 +41,9 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   FldArrayI* cn1; FldArrayI* cn2;
   char *varString1; char *varString2;
   char* eltType1; char* eltType2;
-  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, 
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1,
 				                              cn1, eltType1);
-  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2,
 				                              cn2, eltType2);
 
   // Check array: fields located at centers of zone 1 and 2
@@ -52,9 +52,9 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   FldArrayI* cnc1; FldArrayI* cnc2;
   char *varStringc1; char *varStringc2;
   char* eltTypec1; char* eltTypec2;
-  E_Int resc1 = K_ARRAY::getFromArray3(arrayc1, varStringc1, fc1, 
+  E_Int resc1 = K_ARRAY::getFromArray3(arrayc1, varStringc1, fc1,
 				                               imc1, jmc1, kmc1, cnc1, eltTypec1);
-  E_Int resc2 = K_ARRAY::getFromArray3(arrayc2, varStringc2, fc2, 
+  E_Int resc2 = K_ARRAY::getFromArray3(arrayc2, varStringc2, fc2,
 				                               imc2, jmc2, kmc2, cnc2, eltTypec2);
 
   vector<E_Int> pos1; vector<E_Int> posc1;
@@ -65,9 +65,9 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   E_Int resprod = res1*res2*resc1*resc2;
   if (resprod <= 0)
   {
-    if ( res1 > 0 ) RELEASESHAREDB(res1,  array1,   f1, cn1); 
-    if (resc1 > 0 ) RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
-    if ( res2 > 0 ) RELEASESHAREDB(res2,  array2,   f2, cn2); 
+    if ( res1 > 0 ) RELEASESHAREDB(res1,  array1,   f1, cn1);
+    if (resc1 > 0 ) RELEASESHAREDB(resc1, arrayc1, fc1, cnc1);
+    if ( res2 > 0 ) RELEASESHAREDB(res2,  array2,   f2, cn2);
     if (resc2 > 0 ) RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
     PyErr_SetString(PyExc_TypeError,
                     "joinBoth: one array is invalid.");
@@ -75,25 +75,25 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
   }
   else if (resprod != 1 && resprod != 16)
   {
-    RELEASESHAREDB(res1, array1, f1, cn1); 
-    RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
-    RELEASESHAREDB(res2, array2, f2, cn2); 
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(resc1, arrayc1, fc1, cnc1);
+    RELEASESHAREDB(res2, array2, f2, cn2);
     RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
     PyErr_SetString(PyExc_TypeError,
                     "joinBoth: cannot be used with one structured and one "
                     "unstructured array.");
     return NULL;
   }
-  else 
+  else
   {
     char* varString = new char [strlen(varString1)+strlen(varString2)+4];
-    E_Int res0 = K_ARRAY::getPosition(varString1, varString2, pos1, pos2, 
+    E_Int res0 = K_ARRAY::getPosition(varString1, varString2, pos1, pos2,
                                       varString);
     if (res0 == -1)
     {
-      RELEASESHAREDB(res1, array1, f1, cn1); 
-      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
-      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
       PyErr_SetString(PyExc_TypeError,
                       "joinBoth: one array is empty.");
@@ -104,13 +104,13 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
              "Only variables %s are kept.\n", varString);
 
     char* varStringc = new char[strlen(varStringc1)+strlen(varStringc2)+4];
-    res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2, 
+    res0 = K_ARRAY::getPosition(varStringc1, varStringc2, posc1, posc2,
                                 varStringc);
     if (res0 == -1)
     {
-      RELEASESHAREDB(res1, array1, f1, cn1); 
-      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
-      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
       PyErr_SetString(PyExc_TypeError,
                       "joinBoth: one array is empty.");
@@ -129,16 +129,16 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
     if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
         posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      RELEASESHAREDB(res1, array1, f1, cn1); 
-      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1); 
-      RELEASESHAREDB(res2, array2, f2, cn2); 
+      RELEASESHAREDB(res1, array1, f1, cn1);
+      RELEASESHAREDB(resc1, arrayc1, fc1, cnc1);
+      RELEASESHAREDB(res2, array2, f2, cn2);
       RELEASESHAREDB(resc2, arrayc2, fc2, cnc2);
       PyErr_SetString(PyExc_ValueError,
                       "joinBoth: coordinates not found in arrays.");
       delete [] varString; delete [] varStringc;
       return NULL;
     }
-    posx1++; posy1++; posz1++; posx2++; posy2++; posz2++; 
+    posx1++; posy1++; posz1++; posx2++; posy2++; posz2++;
     E_Int api = f1->getApi();
 
     if (resprod == 1) //structure
@@ -147,10 +147,10 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
       FldArrayF* ac = new FldArrayF(); FldArrayF& fieldc = *ac;
       res = joinBothStructured(*f1, im1, jm1, km1, posx1, posy1, posz1,
                                *f2, im2, jm2, km2, posx2, posy2, posz2,
-                               *fc1, imc1, jmc1, kmc1, *fc2, imc2, jmc2, kmc2, 
-                               pos1, pos2, posc1, posc2, field, im, jm, km, 
+                               *fc1, imc1, jmc1, kmc1, *fc2, imc2, jmc2, kmc2,
+                               pos1, pos2, posc1, posc2, field, im, jm, km,
                                fieldc, imc, jmc, kmc, tol);
-      if (res == 0) 
+      if (res == 0)
       {
         RELEASESHAREDS(array1, f1); RELEASESHAREDS(arrayc1, fc1);
         RELEASESHAREDS(array2, f2); RELEASESHAREDS(arrayc2, fc2);
@@ -207,7 +207,7 @@ E_Int K_TRANSFORM::joinBothStructured(
   FldArrayF fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
   vector<E_Int>& pos1, vector<E_Int>& pos2,
   vector<E_Int>& posc1, vector<E_Int>& posc2,
-  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
   FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol)
 {
   if (im1 != 1 && jm1 != 1 && km1 != 1)
@@ -216,22 +216,22 @@ E_Int K_TRANSFORM::joinBothStructured(
     {
       return joinbothstructured3d(f1, im1, jm1, km1, posx1, posy1, posz1,
                                   f2, im2, jm2, km2, posx2, posy2, posz2,
-                                  fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2, 
-                                  pos1, pos2, posc1, posc2, field, im, jm, km, 
+                                  fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2,
+                                  pos1, pos2, posc1, posc2, field, im, jm, km,
                                   fieldc, imc, jmc, kmc, tol);
     }
-    else 
+    else
     {
       printf("Warning: joinBoth: arrays must be both 3D.\n");
       return 0;
     }
   }
-  else if ((im1 == 1 && jm1 == 1) || 
-           (jm1 == 1 && km1 == 1) || 
+  else if ((im1 == 1 && jm1 == 1) ||
+           (jm1 == 1 && km1 == 1) ||
            (im1 == 1 && km1 == 1))
   {
-    if ((im2 == 1 && jm2 == 1) || 
-        (jm2 == 1 && km2 == 1) || 
+    if ((im2 == 1 && jm2 == 1) ||
+        (jm2 == 1 && km2 == 1) ||
         (im2 == 1 && km2 == 1))
     {
       return joinbothstructured1d(f1, im1, jm1, km1, posx1, posy1, posz1,
@@ -239,7 +239,7 @@ E_Int K_TRANSFORM::joinBothStructured(
                                   fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2,
                                   pos1, pos2, posc1, posc2, field, im, jm, km, fieldc, imc, jmc, kmc, tol);
     }
-    else 
+    else
     {
       printf("Warning: joinBoth: arrays must be both 1D.\n");
       return 0;
@@ -251,16 +251,16 @@ E_Int K_TRANSFORM::joinBothStructured(
     {
       return joinbothstructured2d(f1, im1, jm1, km1, posx1, posy1, posz1,
                                   f2, im2, jm2, km2, posx2, posy2, posz2,
-                                  fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2, 
+                                  fc1, imc1, jmc1, kmc1, fc2, imc2, jmc2, kmc2,
                                   pos1, pos2, posc1, posc2, field, im, jm, km, fieldc, imc, jmc, kmc, tol);
     }
-    else 
+    else
     {
       printf("Warning: joinBoth: arrays must be both 2D.\n");
       return 0;
     }
   }
-  else 
+  else
   {
     printf("Warning: joinBoth: invalid dimensions.\n");
     return 0;
@@ -278,16 +278,16 @@ E_Int K_TRANSFORM::joinbothstructured3d(
   FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
   vector<E_Int>& pos1, vector<E_Int>& pos2,
   vector<E_Int>& posc1, vector<E_Int>& posc2,
-  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
   FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol)
 {
   E_Int nof1, nof2;
-  E_Int ok = K_CONNECT::detectMatchInterface(im1, jm1, km1, 
+  E_Int ok = K_CONNECT::detectMatchInterface(im1, jm1, km1,
                                              posx1, posy1, posz1,
-                                             im2, jm2, km2, 
+                                             im2, jm2, km2,
                                              posx2, posy2, posz2,
                                              f1, f2, nof1, nof2, tol);
-  if (ok == 0) return 0;  
+  if (ok == 0) return 0;
   switch (nof1)
   {
     case 1:
@@ -311,7 +311,7 @@ E_Int K_TRANSFORM::joinbothstructured3d(
     case 6:
       K_CONNECT::reorderStructField(im1, jm1, km1, f1, 2, 3, 1);
       K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 2, 3, 1);
-      break; 
+      break;
     default:
       return 0;
   }
@@ -346,10 +346,10 @@ E_Int K_TRANSFORM::joinbothstructured3d(
   // determination des pts coincidents avec A1(im1,1,1) et B1(im1,jm1,1)
   E_Int iA2, jA2, kA2, iB2, jB2, kB2;
   ok = K_CONNECT::getCoincidentVertexIndices(
-    im1, 1, 1, im1, jm1, km1, im2, jm2, km2, 
+    im1, 1, 1, im1, jm1, km1, im2, jm2, km2,
     posx1, posy1, posz1, posx2, posy2, posz2,
     f1, f2, iA2, jA2, kA2, tol);
-  if (ok == 0) return 0; 
+  if (ok == 0) return 0;
   ok = K_CONNECT:: getCoincidentVertexIndices(
     im1, jm1, 1, im1, jm1, km1, im2, jm2, km2,
     posx1, posy1, posz1, posx2, posy2, posz2,
@@ -358,12 +358,12 @@ E_Int K_TRANSFORM::joinbothstructured3d(
   if (ok > 1)// ambigu : test un pt a cote
   {
     //Point A1(im1,2,2) a tester avec (1,2,2),(1,im2-1,2),(1,2,km2-1),(1,jm2-1,km2-1)
-    ok = nextCornerMatchingIndices(im1, 2, 2, im1, jm1, km1, im2, jm2, km2, 
+    ok = nextCornerMatchingIndices(im1, 2, 2, im1, jm1, km1, im2, jm2, km2,
                                    posx1, posy1, posz1, posx2, posy2, posz2,
                                    f1, f2, iA2, jA2, kA2, tol);
     if (ok == 0) return 0;
     //Point B1(im1,jm1-1,2) a tester avec les memes points
-    ok = nextCornerMatchingIndices(im1, jm1-1, 2, im1, jm1, km1, im2, jm2, km2, 
+    ok = nextCornerMatchingIndices(im1, jm1-1, 2, im1, jm1, km1, im2, jm2, km2,
                                    posx1, posy1, posz1, posx2, posy2, posz2,
                                    f1, f2, iB2, jB2, kB2, tol);
     if (ok == 0) return 0;
@@ -377,12 +377,12 @@ E_Int K_TRANSFORM::joinbothstructured3d(
     else kB2 = km2;
   }
   if (iA2 != 1 || iB2 != 1) return 0;
-  
+
   if (jA2 == 1 && kA2 == 1)
   {
     if (jB2 == jm2 && kB2 == 1 )
     {;}
-    else if (jB2 == 1 && kB2 == km2) 
+    else if (jB2 == 1 && kB2 == km2)
     {
       K_CONNECT::reorderStructField(im2, jm2, km2, f2, 1, 3, 2);
       K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 1, 3, 2);
@@ -435,7 +435,7 @@ E_Int K_TRANSFORM::joinbothstructured3d(
 
   // assemblage des arrays
   im = im1+im2-1; jm = jm2; km = km2;
-  imc = imc1+imc2; jmc = jmc2; kmc = kmc2; 
+  imc = imc1+imc2; jmc = jmc2; kmc = kmc2;
   E_Int imjm = im*jm; E_Int imcjmc = imc*jmc;
   E_Int nfld = pos1.size(); field.malloc(imjm*km, nfld);
   E_Int nfldc = posc1.size(); fieldc.malloc(imcjmc*kmc, nfldc);
@@ -480,7 +480,7 @@ E_Int K_TRANSFORM::joinbothstructured3d(
     E_Int ind, ind1, ind2;
     for (E_Int eq = 0 ; eq < nfldc; eq++)
     {
-      E_Int eq1 = posc1[eq]; 
+      E_Int eq1 = posc1[eq];
       E_Int eq2 = posc2[eq];
       E_Float* floc1 = fc1.begin(eq1);
       E_Float* floc2 = fc2.begin(eq2);
@@ -493,7 +493,7 @@ E_Int K_TRANSFORM::joinbothstructured3d(
           {
             ind1 = i + j*imc1 + k*imc1jmc1;
             ind  = i + j*imc  + k*imcjmc;
-            fcnt[ind] = floc1[ind1];                       
+            fcnt[ind] = floc1[ind1];
           }
           for (E_Int i = 0; i < imc2; i++)
           {
@@ -504,7 +504,7 @@ E_Int K_TRANSFORM::joinbothstructured3d(
         }
       }//eq for centers
     }//omp
-  return 1; 
+  return 1;
 }
 //=============================================================================
 /* Join 2d */
@@ -518,7 +518,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
   FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
   vector<E_Int>& pos1, vector<E_Int>& pos2,
   vector<E_Int>& posc1, vector<E_Int>& posc2,
-  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
   FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol)
 {
   E_Int nof1, nof2;
@@ -527,24 +527,24 @@ E_Int K_TRANSFORM::joinbothstructured2d(
     K_CONNECT::reorderStructField(im1, jm1, km1, f1, 3, 1, 2);
     K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 3, 1, 2);
   }
-  if (jm1 == 1) 
+  if (jm1 == 1)
   {
     K_CONNECT::reorderStructField(im1, jm1, km1, f1, 1, 3, 2);
     K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 1, 3, 2);
   }
-  if (im2 == 1) 
+  if (im2 == 1)
   {
     K_CONNECT::reorderStructField(im2, jm2, km2, f2, 3, 1, 2);
     K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 3, 1, 2);
   }
-  if (jm2 == 1) 
+  if (jm2 == 1)
   {
-    K_CONNECT::reorderStructField(im2, jm2, km2, f2, 1, 3, 2);  
-    K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 1, 3, 2);  
+    K_CONNECT::reorderStructField(im2, jm2, km2, f2, 1, 3, 2);
+    K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 1, 3, 2);
   }
-  E_Int isok = K_CONNECT::detectMatchInterface(im1, jm1, km1, 
+  E_Int isok = K_CONNECT::detectMatchInterface(im1, jm1, km1,
                                                posx1, posy1, posz1,
-                                               im2, jm2, km2, 
+                                               im2, jm2, km2,
                                                posx2, posy2, posz2,
                                                f1, f2, nof1, nof2, tol);
   if (isok == 0) return 0;
@@ -589,19 +589,19 @@ E_Int K_TRANSFORM::joinbothstructured2d(
   }
   // bloc en O ?
   E_Int nfld = pos1.size(); E_Int nfldc = posc1.size();
-  // imax de blk1 est connecte a imin de blk2 
-  E_Int ind11 = im1-1; E_Int ind12 = im1-1 + (jm1-1)*im1; 
-  E_Int ind21 = 0; E_Int ind22 = (jm2-1)*im2; 
-  E_Float dx1 = f1(ind11, posx1)-f1(ind12, posx1); 
-  E_Float dy1 = f1(ind11, posy1)-f1(ind12, posy1); 
+  // imax de blk1 est connecte a imin de blk2
+  E_Int ind11 = im1-1; E_Int ind12 = im1-1 + (jm1-1)*im1;
+  E_Int ind21 = 0; E_Int ind22 = (jm2-1)*im2;
+  E_Float dx1 = f1(ind11, posx1)-f1(ind12, posx1);
+  E_Float dy1 = f1(ind11, posy1)-f1(ind12, posy1);
   E_Float dz1 = f1(ind11, posz1)-f1(ind12, posz1);
-  E_Float dx2 = f2(ind21, posx2)-f2(ind22, posx2); 
-  E_Float dy2 = f2(ind21, posy2)-f2(ind22, posy2); 
+  E_Float dx2 = f2(ind21, posx2)-f2(ind22, posx2);
+  E_Float dy2 = f2(ind21, posy2)-f2(ind22, posy2);
   E_Float dz2 = f2(ind21, posz2)-f2(ind22, posz2);
-  if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && 
-      K_FUNC::E_abs(dz1) < tol && 
-      K_FUNC::E_abs(dx2) < tol && K_FUNC::E_abs(dy2) < tol && 
-      K_FUNC::E_abs(dz2) < tol) 
+  if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol &&
+      K_FUNC::E_abs(dz1) < tol &&
+      K_FUNC::E_abs(dx2) < tol && K_FUNC::E_abs(dy2) < tol &&
+      K_FUNC::E_abs(dz2) < tol)
   {
     // reconnecter les pts du bloc 2 dans l ordre par rapport au bloc 1
     FldArrayF tmp(f2.getSize(), f2.getNfld()); tmp.setAllValuesAtNull();
@@ -616,7 +616,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
         dx1 = f1(ind11, posx1)-f2(ind21, posx1);
         dy1 = f1(ind11, posy1)-f2(ind21, posy1);
         dz1 = f1(ind11, posz1)-f2(ind21, posz1);
-        if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && 
+        if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol &&
             K_FUNC::E_abs(dz1) < tol )
         {
           for (E_Int eq = 1; eq <= nfld; eq++)
@@ -635,7 +635,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
   {
     // test match A1(im1,1) avec  (1,1) ou (1,jm2) ?
     E_Int indA1 = im1-1;
-    E_Float x1 = f1(indA1, posx1); 
+    E_Float x1 = f1(indA1, posx1);
     E_Float y1 = f1(indA1, posy1);
     E_Float z1 = f1(indA1, posz1);
 
@@ -647,13 +647,13 @@ E_Int K_TRANSFORM::joinbothstructured2d(
     E_Float dy = y2-y1;
     E_Float dz = z2-z1;
 
-    if (K_FUNC::fEqualZero(dx, tol) == false || 
-        K_FUNC::fEqualZero(dy, tol) == false || 
+    if (K_FUNC::fEqualZero(dx, tol) == false ||
+        K_FUNC::fEqualZero(dy, tol) == false ||
         K_FUNC::fEqualZero(dz, tol) == false)
     {
       K_CONNECT::reorderStructField(im2, jm2, km2, f2, 1,-2, 3);
       K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 1,-2, 3);
-    }  
+    }
   }
   /*-----------------------*/
   /* assemblage des arrays */
@@ -666,7 +666,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
     E_Int ind, ind1, ind2;
     for (E_Int eq = 0 ; eq < nfld; eq++)
     {
-      E_Int eq1 = pos1[eq]; 
+      E_Int eq1 = pos1[eq];
       E_Int eq2 = pos2[eq];
       E_Float* floc1 = f1.begin(eq1);
       E_Float* floc2 = f2.begin(eq2);
@@ -678,7 +678,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
         {
           ind1 = i + j*im1;
           ind  = i + j*im;
-          fcnt[ind] = floc1[ind1];          
+          fcnt[ind] = floc1[ind1];
         }
   #pragma omp for
         for (E_Int i = 0; i < im2; i++)
@@ -697,11 +697,11 @@ E_Int K_TRANSFORM::joinbothstructured2d(
     E_Int ind, ind1, ind2;
     for (E_Int eq = 0 ; eq < nfldc; eq++)
     {
-      E_Int eq1 = posc1[eq]; 
+      E_Int eq1 = posc1[eq];
       E_Int eq2 = posc2[eq];
       E_Float* floc1 = fc1.begin(eq1);
       E_Float* floc2 = fc2.begin(eq2);
-      E_Float* fcnt = fieldc.begin(eq+1);    
+      E_Float* fcnt = fieldc.begin(eq+1);
       for (E_Int j = 0; j < jmc; j++)
       {
   #pragma omp for
@@ -720,7 +720,7 @@ E_Int K_TRANSFORM::joinbothstructured2d(
         }
       }
     }
-  } 
+  }
   return 1;
 }
 //=============================================================================
@@ -735,31 +735,31 @@ E_Int K_TRANSFORM::joinbothstructured1d(
   FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
   vector<E_Int>& pos1, vector<E_Int>& pos2,
   vector<E_Int>& posc1, vector<E_Int>& posc2,
-  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, 
+  FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
   FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol)
 {
-  if (jm1 != 1) 
+  if (jm1 != 1)
   {
     K_CONNECT::reorderStructField(im1, jm1, km1, f1, 3, 1, 2);
-    K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 3, 1, 2);  
+    K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 3, 1, 2);
   }
-  if (km1 != 1) 
+  if (km1 != 1)
   {
     K_CONNECT::reorderStructField(im1, jm1, km1, f1, 2, 3, 1);
     K_CONNECT::reorderStructField(imc1, jmc1, kmc1, fc1, 2, 3, 1);
   }
-  if (jm2 != 1) 
+  if (jm2 != 1)
   {
     K_CONNECT::reorderStructField(im2, jm2, km2, f2, 3, 1, 2);
     K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 3, 1, 2);
   }
-  if (km2 != 1) 
+  if (km2 != 1)
   {
-    K_CONNECT::reorderStructField(im2, jm2, km2, f2, 2, 3, 1);  
-    K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 2, 3, 1);  
+    K_CONNECT::reorderStructField(im2, jm2, km2, f2, 2, 3, 1);
+    K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, 2, 3, 1);
   }
   E_Int nof1, nof2;
-  E_Int isok = K_CONNECT::detectMatchInterface( 
+  E_Int isok = K_CONNECT::detectMatchInterface(
     im1, jm1, km1, posx1, posy1, posz1,
     im2, jm2, km2, posx2, posy2, posz2,
     f1, f2, nof1, nof2, tol);
@@ -780,13 +780,13 @@ E_Int K_TRANSFORM::joinbothstructured1d(
   {
     case 1://deja ordonne
       break;
-    case 2: 
+    case 2:
       K_CONNECT::reorderStructField(im2, jm2, km2, f2, -1, 2, 3);
       K_CONNECT::reorderStructField(imc2, jmc2, kmc2, fc2, -1, 2, 3);
       break;
     default:
       return 0;
-  } 
+  }
 
   // assemblage des arrays
   im = im1+im2-1; jm = 1; km = 1;
@@ -818,7 +818,7 @@ E_Int K_TRANSFORM::joinbothstructured1d(
 }
 
 //=============================================================================
-/* 
+/*
    Join topologique: somme des vertex et de la connectivite aux noeuds
    idem en centres
    + cleanConnectivity de la connectivite en noeuds
@@ -913,7 +913,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
       #pragma omp for
       for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
     }
-    
+
     // Copie des champs aux centres
     for (E_Int n = 1; n <= nfldc; n++)
     {
@@ -955,7 +955,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
-  
+
   PyObject* l = PyList_New(0);
   // Clean connectivity
   if (posx > 0 && posy > 0 && posz > 0)
@@ -977,7 +977,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
   return l;
 }
 //=============================================================================
-/* Join topologique : somme des vertex et de la connectivite 
+/* Join topologique : somme des vertex et de la connectivite
    + cleanConnectivity de la connectivite en noeuds
    Il faut que les champs soient ranges dans le meme ordre */
 //=============================================================================
@@ -1107,7 +1107,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
   //   K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
   //   tpln = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
   // }
-    
+
   PyObject* l = PyList_New(0);
   PyList_Append(l, tpln); Py_DECREF(tpln);
   PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*", api);

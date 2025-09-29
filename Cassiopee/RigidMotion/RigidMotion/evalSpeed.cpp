@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 # include "rigidMotion.h"
 
 using namespace K_FLD;
@@ -54,10 +54,10 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
   K_NUMPY::getFromNumpyArray(syo, sy, size);
   E_Float* sz;
   K_NUMPY::getFromNumpyArray(szo, sz, size);
-  
+
 #pragma omp parallel
   {
-    //E_Float sin_teta, cos_teta, kcm, 
+    //E_Float sin_teta, cos_teta, kcm,
     E_Float cmx, cmy, cmz;
     E_Float kvcmx, kvcmy, kvcmz;
 
@@ -71,10 +71,10 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
       cmx = x[i] - cx;
       cmy = y[i] - cy;
       cmz = z[i] - cz;
-    
+
       // k.cm
       //kcm = kx*cmx + ky*cmy + kz*cmz;
-    
+
       // k x cm
       kvcmx = ky*cmz-kz*cmy;
       kvcmy = kz*cmx-kx*cmz;
@@ -93,5 +93,5 @@ PyObject* K_RIGIDMOTION::evalSpeed3(PyObject* self, PyObject* args)
   Py_DECREF(xo); Py_DECREF(yo); Py_DECREF(zo);
   Py_DECREF(sxo); Py_DECREF(syo); Py_DECREF(szo);
   Py_INCREF(Py_None);
-  return Py_None; 
+  return Py_None;
 }

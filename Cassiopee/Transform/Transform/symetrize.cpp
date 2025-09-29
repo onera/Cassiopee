@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -46,9 +46,9 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int res; E_Float norm;
 
-  res = 
-    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType); 
-  
+  res =
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, cn, eltType);
+
   if (res == 1 || res == 2)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -63,29 +63,29 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
       return NULL;
     }
     posx++; posy++; posz++;
-   
+
     E_Int npts = f->getSize();
 
     // Normalisation des vecteurs du plan
     norm = sqrt(v1x*v1x + v1y*v1y + v1z*v1z);
-    v1x = v1x / norm; 
-    v1y = v1y / norm; 
-    v1z = v1z / norm; 
+    v1x = v1x / norm;
+    v1y = v1y / norm;
+    v1z = v1z / norm;
     norm = sqrt(v2x*v2x + v2y*v2y + v2z*v2z);
-    v2x = v2x / norm; 
+    v2x = v2x / norm;
     v2y = v2y / norm;
     v2z = v2z / norm;
-   
+
     // 3 points du plan
-    E_Float p1[3]; E_Float p2[3]; E_Float p3[3]; 
+    E_Float p1[3]; E_Float p2[3]; E_Float p3[3];
     p1[0] = x0; p1[1] = y0; p1[2] = z0;
     p2[0] = x0+v1x; p2[1] = y0+v1y; p2[2] = z0+v1z;
     p3[0] = x0+v2x; p3[1] = y0+v2y; p3[2] = z0+v2z;
-    
+
     E_Float* xp = f->begin(posx);
     E_Float* yp = f->begin(posy);
     E_Float* zp = f->begin(posz);
-    
+
     // Symetry
 #pragma omp parallel
     {
@@ -100,8 +100,8 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
             K_COMPGEOM::distanceToTriangle(p1, p2, p3, p, 0,
 				     dist2, in, xint, yint, zint,
 				     sigma0, sigma1);
-    
-            xp[i] = 2*xint - xp[i]; 
+
+            xp[i] = 2*xint - xp[i];
             yp[i] = 2*yint - yp[i];
             zp[i] = 2*zint - zp[i];
         }
@@ -113,7 +113,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   }
   else
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "symetrize: not a valid array.");
     return NULL;
   }

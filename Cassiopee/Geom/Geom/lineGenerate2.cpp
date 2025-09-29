@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -25,7 +25,7 @@ using namespace std;
 using namespace K_FLD;
 
 // ============================================================================
-/* Generate a 2D surface mesh defined by an array from 
+/* Generate a 2D surface mesh defined by an array from
    a structured 1D line
    and a set of structured lines */
 // ============================================================================
@@ -33,7 +33,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* dCurves;
   if (!PYPARSETUPLE_(args, OO_, &array, &dCurves)) return NULL;
-  
+
   // Driving curves
   vector<E_Int> res;
   vector<char*> structVarString;
@@ -62,7 +62,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
   E_Int im1, jm1, km1;
-  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1, 
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1,
                                       cn1, eltType1);
 
   if (res1 == 2)
@@ -74,7 +74,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
                     "lineGenerate2: array must be structured.");
     return NULL;
   }
-  
+
   // Main curve
   E_Int api = f1->getApi();
   E_Int nfld = f1->getNfld();
@@ -98,7 +98,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
 
   // Driving curves
   E_Int nd = structF.size();
-  
+
   E_Int im2 = ni[0]; // reference
   E_Int jm2 = nj[0];
   E_Int km2 = nk[0];
@@ -131,14 +131,14 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   {
     im3 = im1; jm3 = jm1; km3 = im2;
   }
-  
+
   im3jm3 = im3*jm3;
-    
+
   FldArrayF* coord = new FldArrayF(im3jm3*km3, nfld);
   E_Float* xt = coord->begin(posx1);
   E_Float* yt = coord->begin(posy1);
   E_Float* zt = coord->begin(posz1);
-    
+
   E_Int ind, ind2, indm;
   FldArrayI firstCurve(im3); FldArrayF firstDist(im3);
   FldArrayI secondCurve(im3); FldArrayF secondDist(im3);
@@ -216,7 +216,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           {
             ind = i + k*im1jm1;
             ind2 = i + j* im3 + k*im3jm3;
-            ft[ind2] = ft1[ind];         
+            ft[ind2] = ft1[ind];
           }
     }
     else
@@ -231,7 +231,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           }
     }
   }
-  
+
   E_Int c1, c2;
   E_Float alpha, beta, del1x, del1y, del1z, del2x, del2y, del2z, d1, d2;
 
@@ -253,11 +253,11 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           del1x = dxt[c1][i] - dxt[c1][0];
           del1y = dyt[c1][i] - dyt[c1][0];
           del1z = dzt[c1][i] - dzt[c1][0];
-          
+
           del2x = dxt[c2][i] - dxt[c2][0];
           del2y = dyt[c2][i] - dyt[c2][0];
           del2z = dzt[c2][i] - dzt[c2][0];
- 
+
           xt[ind]= xt1[indm] + alpha*del2x + beta*del1x;
           yt[ind]= yt1[indm] + alpha*del2y + beta*del1y;
           zt[ind]= zt1[indm] + alpha*del2z + beta*del1z;
@@ -280,7 +280,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           del1x = dxt[c1][j] - dxt[c1][0];
           del1y = dyt[c1][j] - dyt[c1][0];
           del1z = dzt[c1][j] - dzt[c1][0];
-          
+
           del2x = dxt[c2][j] - dxt[c2][0];
           del2y = dyt[c2][j] - dyt[c2][0];
           del2z = dzt[c2][j] - dzt[c2][0];
@@ -307,7 +307,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           del1x = dxt[c1][k] - dxt[c1][0];
           del1y = dyt[c1][k] - dyt[c1][0];
           del1z = dzt[c1][k] - dzt[c1][0];
-          
+
           del2x = dxt[c2][k] - dxt[c2][0];
           del2y = dyt[c2][k] - dyt[c2][0];
           del2z = dzt[c2][k] - dzt[c2][0];
@@ -317,7 +317,7 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
           zt[ind]= zt1[indm] + alpha*del2z + beta*del1z;
         }
   }
-  
+
   for (size_t i = 0; i < objs.size(); i++) RELEASESHAREDS(objs[i], structF[i]);
   for (size_t i = 0; i < obju.size(); i++)
     RELEASESHAREDU(obju[i], unstructF[i], c[i]);
@@ -325,5 +325,5 @@ PyObject* K_GEOM::lineGenerate2(PyObject* self, PyObject* args)
   PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3, api);
 
   delete coord;
-  return tpl; 
+  return tpl;
 }

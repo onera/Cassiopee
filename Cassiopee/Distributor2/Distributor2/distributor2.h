@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -27,16 +27,16 @@ namespace K_DISTRIBUTOR2
 {
 E_Float eval(E_Int nb, E_Int NProc, E_Float meanPtsPerProc,
              std::vector<E_Float>& solver, std::vector<E_Float>& latence,
-             std::vector<E_Float>& comSpeed, E_Int* com, E_Int* comd, E_Int sizeComd, 
+             std::vector<E_Float>& comSpeed, E_Int* com, E_Int* comd, E_Int sizeComd,
              K_FLD::FldArrayF& nbPtsPerProcs, std::vector<E_Float>& nbPts,
              E_Int* nicePeople );
 void genetic(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,
-             E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd, 
+             E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd,
              std::vector<E_Float>& solver,
              std::vector<E_Float>& latence, std::vector<E_Float>& comSpeed,
              E_Int param,
              std::vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
-             E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, 
+             E_Float& varMax, E_Float& varRMS, E_Int& nptsCom,
              E_Float& volRatio, E_Float& bestAdapt);
 void graph(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,
            E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd,
@@ -44,18 +44,18 @@ void graph(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,
            std::vector<E_Float>& latence, std::vector<E_Float>& comSpeed,
            E_Int param,
            std::vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
-           E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, 
+           E_Float& varMax, E_Float& varRMS, E_Int& nptsCom,
            E_Float& volRatio, E_Float& bestAdapt);
 void gradient(std::vector<E_Float>& nbPts, std::vector<E_Int>& setBlocks,
               E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd,
               std::vector<E_Float>& solver,
               std::vector<E_Float>& latence, std::vector<E_Float>& comSpeed,
-              E_Int param, std::vector<E_Int>& out, 
+              E_Int param, std::vector<E_Int>& out,
               E_Float& meanPtsPerProc, E_Float& varMin,
-              E_Float& varMax, E_Float& varRMS, E_Int& nptsCom, 
+              E_Float& varMax, E_Float& varRMS, E_Int& nptsCom,
               E_Float& volRatio, E_Float& bestAdapt);
-void stats(std::vector<E_Float>& nbPts, E_Int NProc, 
-           E_Int* com, E_Int* comd, E_Int sizeComd, 
+void stats(std::vector<E_Float>& nbPts, E_Int NProc,
+           E_Int* com, E_Int* comd, E_Int sizeComd,
            std::vector<E_Int>& out,
            E_Int& empty, E_Float& varMin, E_Float& varMax, E_Float& varRMS,
            E_Float& volRatio);

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -24,12 +24,12 @@ using namespace std;
 
 //=============================================================================
 void K_TRANSFORM::breakMixedElements(
-  FldArrayF& field, FldArrayI& ce, 
+  FldArrayF& field, FldArrayI& ce,
   vector<FldArrayI*>& cEV, vector<FldArrayF*>& fields, vector<E_Int>& eltType)
-{ 
+{
   E_Int npts = field.getSize(); E_Int nfld = field.getNfld();
   E_Int* cnp = ce.begin();
-  
+
   E_Int netbar = 0; E_Int nptsbar = 0;
   E_Int nettri = 0; E_Int nptstri = 0;
   E_Int netquad = 0; E_Int nptsquad = 0;
@@ -87,43 +87,43 @@ void K_TRANSFORM::breakMixedElements(
   }
 
   // Remplit
-  FldArrayI* cEVbarp = new FldArrayI(netbar, 2); 
+  FldArrayI* cEVbarp = new FldArrayI(netbar, 2);
   FldArrayF* fbarp = new FldArrayF(nptsbar, nfld);
   FldArrayF& fbar = *fbarp; FldArrayI& cEVbar = *cEVbarp;
   FldArrayI indirbF(npts); indirbF.setAllValuesAt(-1);
   E_Int* indirb = indirbF.begin();
 
-  FldArrayI* cEVtrip = new FldArrayI(nettri,3); 
+  FldArrayI* cEVtrip = new FldArrayI(nettri,3);
   FldArrayF* ftrip = new FldArrayF(nptstri,nfld);
   FldArrayF& ftri = *ftrip; FldArrayI& cEVtri = *cEVtrip;
   FldArrayI indirtF(npts); indirtF.setAllValuesAt(-1);
   E_Int* indirt = indirtF.begin();
 
-  FldArrayI* cEVquadp = new FldArrayI(netquad,4); 
+  FldArrayI* cEVquadp = new FldArrayI(netquad,4);
   FldArrayF* fquadp = new FldArrayF(nptsquad,nfld);
   FldArrayF& fquad = *fquadp; FldArrayI& cEVquad = *cEVquadp;
   FldArrayI indirqF(npts); indirqF.setAllValuesAt(-1);
   E_Int* indirq = indirqF.begin();
-  
-  FldArrayI* cEVtetrap = new FldArrayI(nettetra,4); 
+
+  FldArrayI* cEVtetrap = new FldArrayI(nettetra,4);
   FldArrayF* ftetrap = new FldArrayF(nptstetra,nfld);
   FldArrayF& ftetra = *ftetrap; FldArrayI& cEVtetra = *cEVtetrap;
   FldArrayI indirttF(npts); indirttF.setAllValuesAt(-1);
   E_Int* indirtt = indirttF.begin();
 
-  FldArrayI* cEVpentap = new FldArrayI(netpenta, 6); 
+  FldArrayI* cEVpentap = new FldArrayI(netpenta, 6);
   FldArrayF* fpentap = new FldArrayF(nptspenta, nfld);
   FldArrayF& fpenta = *fpentap; FldArrayI& cEVpenta = *cEVpentap;
   FldArrayI indirpF(npts); indirpF.setAllValuesAt(-1);
   E_Int* indirp = indirpF.begin();
 
-  FldArrayI* cEVpyrap = new FldArrayI(netpyra, 5); 
+  FldArrayI* cEVpyrap = new FldArrayI(netpyra, 5);
   FldArrayF* fpyrap = new FldArrayF(nptspyra,nfld);
   FldArrayF& fpyra = *fpyrap; FldArrayI& cEVpyra = *cEVpyrap;
   FldArrayI indiryF(npts); indiryF.setAllValuesAt(-1);
   E_Int* indiry = indiryF.begin();
 
-  FldArrayI* cEVhexap = new FldArrayI(nethexa, 8); 
+  FldArrayI* cEVhexap = new FldArrayI(nethexa, 8);
   FldArrayF* fhexap = new FldArrayF(nptshexa,nfld);
   FldArrayF& fhexa = *fhexap; FldArrayI& cEVhexa = *cEVhexap;
   FldArrayI indirhF(npts); indirhF.setAllValuesAt(-1);
@@ -158,7 +158,7 @@ void K_TRANSFORM::breakMixedElements(
         }
       }
       for (E_Int nov = 0; nov < 2; nov++)
-      {  
+      {
         cEVbar(netbar, nov+1) = indirb[cnp[nov+1]-1];
       }
       netbar++;
@@ -177,7 +177,7 @@ void K_TRANSFORM::breakMixedElements(
         }
       }
       for (E_Int nov = 0; nov < 3; nov++)
-      {  
+      {
         cEVtri(nettri,nov+1) = indirt[cnp[nov+1]-1];
       }
       nettri++;
@@ -190,17 +190,17 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirq[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fquad(nptsquad,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fquad(nptsquad,eq) = field(et,eq);
           nptsquad++;
           indirq[et] = nptsquad;
         }
       }
       for (E_Int nov = 0; nov < 4; nov++)
-      {  
+      {
         cEVquad(netquad,nov+1) = indirq[cnp[nov+1]-1];
       }
       netquad++;
-      cnp += 4+1; ps += 4+1;   
+      cnp += 4+1; ps += 4+1;
     }
     else if (ntype == 10) // TETRA
     {
@@ -209,17 +209,17 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirtt[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) ftetra(nptstetra,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) ftetra(nptstetra,eq) = field(et,eq);
           nptstetra++;
           indirtt[et] = nptstetra;
         }
       }
       for (E_Int nov = 0; nov < 4; nov++)
-      {  
+      {
         cEVtetra(nettetra,nov+1) = indirtt[cnp[nov+1]-1];
       }
       nettetra++;
-      cnp += 4+1; ps += 4+1;   
+      cnp += 4+1; ps += 4+1;
     }
     else if (ntype == 12) // PYRA
     {
@@ -228,17 +228,17 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indiry[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fpyra(nptspyra,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fpyra(nptspyra,eq) = field(et,eq);
           nptspyra++;
           indiry[et] = nptspyra;
         }
       }
       for (E_Int nov = 0; nov < 5; nov++)
-      {  
+      {
         cEVpyra(netpyra,nov+1) = indiry[cnp[nov+1]-1];
       }
       netpyra++;
-      cnp += 5+1; ps += 5+1;   
+      cnp += 5+1; ps += 5+1;
     }
     else if (ntype == 14) // PENTA
     {
@@ -247,13 +247,13 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirp[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fpenta(nptspenta,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fpenta(nptspenta,eq) = field(et,eq);
           nptspenta++;
           indirp[et] = nptspenta;
         }
       }
       for (E_Int nov = 0; nov < 6; nov++)
-      {  
+      {
         cEVpenta(netpenta,nov+1) = indirp[cnp[nov+1]-1];
       }
       netpenta++;
@@ -266,13 +266,13 @@ void K_TRANSFORM::breakMixedElements(
         et = cnp[nov+1]-1;
         if (indirp[et] == -1)
         {
-          for (E_Int eq = 1; eq <= nfld; eq++) fhexa(nptshexa,eq) = field(et,eq);    
+          for (E_Int eq = 1; eq <= nfld; eq++) fhexa(nptshexa,eq) = field(et,eq);
           nptshexa++;
           indirh[et] = nptshexa;
         }
       }
       for (E_Int nov = 0; nov < 8; nov++)
-      {  
+      {
         cEVhexa(nethexa,nov+1) = indirh[cnp[nov+1]-1];
       }
       nethexa++;
@@ -283,7 +283,7 @@ void K_TRANSFORM::breakMixedElements(
   printf("found " SF_D_ " QUAD\n", netquad);
   printf("found " SF_D_ " HEXA\n", nethexa);
   printf("found " SF_D_ " PENTA\n", netpenta);
-  printf("found " SF_D_ " TETRA\n", nettetra);  
+  printf("found " SF_D_ " TETRA\n", nettetra);
 
   // BAR
   cEVbarp->reAllocMat(netbar,2);

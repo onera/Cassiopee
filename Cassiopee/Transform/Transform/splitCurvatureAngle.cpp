@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -33,7 +33,7 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
   dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
   PyObject* array;
 
-  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol) && 
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &tol) &&
       !PYPARSETUPLE_(args, O_, &array))
   {
     return NULL;
@@ -45,7 +45,7 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int is, ic;
 
-  E_Int res = K_ARRAY::getFromArray3(array, varString, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString,
                                      f, im, jm, km, cn, eltType);
 
   if (res == 1)
@@ -58,14 +58,14 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
       RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "splitCurvatureAngle: can't find coordinates in array.");
-      return NULL;        
+      return NULL;
     }
     if (im < 2 || jm != 1 || km != 1)
     {
       RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "splitCurvatureAngle: structured array must be an i-array.");
-      return NULL;         
+      return NULL;
     }
     posx++; posy++; posz++;
 
@@ -89,17 +89,17 @@ PyObject* K_TRANSFORM::splitCurvatureAngle(PyObject* self, PyObject* args)
       }
       ic++;
     }
-    
-    RELEASESHAREDS(array, f);  
+
+    RELEASESHAREDS(array, f);
     PyObject* tpl = Py_BuildValue("l", long(is));
     return tpl;
   }
   else if (res == 2)
   {
-    RELEASESHAREDU(array, f, cn);  
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitCurvatureAngle: not for unstructured arrays.");
-    return NULL;   
+    return NULL;
   }
   else
   {

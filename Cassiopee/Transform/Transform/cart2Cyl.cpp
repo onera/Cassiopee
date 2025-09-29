@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -26,7 +26,7 @@ using namespace std;
 // ============================================================================
 PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
 {
-    PyObject *array; 
+    PyObject *array;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
     E_Int depth;
@@ -34,12 +34,12 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
     if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_,
                       &array, &X0, &Y0, &Z0, &ex, &ey, &ez, &depth, &thetaShift))
         return NULL;
-    
+
     // check array
     E_Int im, jm, km;
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
-    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+    E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km,
                                        cn, eltType);
     if (res != 1 && res != 2)
     {
@@ -81,7 +81,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
       RELEASESHAREDB(res, array, f, cn); return NULL;
     }
     E_Int ret = K_LOC::cart2Cyl(npts, f->begin(posx), f->begin(posy), f->begin(posz),
-                                X0, Y0, Z0, ex, ey, ez, rt, thetat,  
+                                X0, Y0, Z0, ex, ey, ez, rt, thetat,
                                 im, jm, km, depth, thetaShift);
     if (ret == 1)
     {
@@ -92,7 +92,7 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
 
     RELEASESHAREDB(res, array, f, cn);
 
-    Py_INCREF(Py_None); 
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -101,25 +101,25 @@ PyObject* K_TRANSFORM::_cart2CylA(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
 {
-    PyObject *zone; 
+    PyObject *zone;
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     E_Float X0, Y0, Z0;
     E_Float ex, ey, ez;
     E_Int depth; E_Float thetaShift;
     if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ I_ R_ SSS_,
-                      &zone, &X0, &Y0, &Z0, &ex, &ey, &ez, 
+                      &zone, &X0, &Y0, &Z0, &ex, &ey, &ez,
                       &depth, &thetaShift, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
         return NULL;
-    
+
     vector<PyArrayObject*> hook;
     E_Int im, jm, km, cnSize, cnNfld;
     char* varString; char* eltType;
     vector<E_Float*> fields; vector<E_Int> locs;
     vector<E_Int*> cn;
-    E_Int res = K_PYTREE::getFromZone(zone, 1, 0, varString, fields, locs, 
-                                      im, jm, km, 
-                                      cn, cnSize, cnNfld, eltType, hook, 
-                                      GridCoordinates, 
+    E_Int res = K_PYTREE::getFromZone(zone, 1, 0, varString, fields, locs,
+                                      im, jm, km,
+                                      cn, cnSize, cnNfld, eltType, hook,
+                                      GridCoordinates,
                                       FlowSolutionNodes, FlowSolutionCenters);
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -132,7 +132,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
                       "cart2Cyl: cannot find coordinates in zone.");
       return NULL;
     }
-    
+
     E_Int npts;
     if (res == 1) npts = im*jm*km;
     else npts = im;
@@ -152,7 +152,7 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
     {
       rt = fields[posx]; thetat = fields[posy];
     }
-   
+
     E_Int ret = K_LOC::cart2Cyl(npts, fields[posx], fields[posy], fields[posz],
                                 X0, Y0, Z0, ex, ey, ez, rt, thetat,  im, jm, km, depth, thetaShift);
     if (ret == 1)
@@ -161,10 +161,10 @@ PyObject* K_TRANSFORM::_cart2CylZ(PyObject* self, PyObject* args)
       RELEASESHAREDZ(hook, varString, (char*)NULL);
       PyErr_SetString(PyExc_TypeError,
                       "cart2Cyl: axis must be canonical.");
-      return NULL;      
-    }    
+      return NULL;
+    }
     if (res == 2) delete [] eltType;
     RELEASESHAREDZ(hook, varString, (char*)NULL);
-    Py_INCREF(Py_None); 
+    Py_INCREF(Py_None);
     return Py_None;
 }

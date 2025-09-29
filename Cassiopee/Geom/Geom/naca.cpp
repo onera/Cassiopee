@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -25,15 +25,15 @@ extern "C"
 {
   void k6naca2_(const E_Float& e, E_Int& N,
                 E_Float* x, E_Float* y, E_Float* z);
-  void k6nacas4g_(E_Int& im, E_Int& ip, E_Int& it, E_Int& sharpte, 
+  void k6nacas4g_(E_Int& im, E_Int& ip, E_Int& it, E_Int& sharpte,
                   E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
-  void k6nacas5g_(E_Int& il, E_Int& ip, E_Int& iq, E_Int& it, E_Int& sharpte, 
+  void k6nacas5g_(E_Int& il, E_Int& ip, E_Int& iq, E_Int& it, E_Int& sharpte,
                   E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
-  void k6nacas4m_(E_Int& im, E_Int& ip, E_Int& ith, E_Int& it, E_Int& ii, E_Int& sharpte, 
+  void k6nacas4m_(E_Int& im, E_Int& ip, E_Int& ith, E_Int& it, E_Int& ii, E_Int& sharpte,
                   E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
 }
 
-/* 
+/*
   naca avec fermeture de Van Rouzaud
 */
 void k6naca1(E_Float e, E_Int npt,
@@ -84,7 +84,7 @@ void k6naca2(E_Float e, E_Int& npt,
   nps2 = (np - 1) / 2;
   usnps2 = 1.0 / nps2;
   pi = 3.1415926;
-  
+
   /* Naca donne analytiquement */
   nr = 1;
   for (n = 1; n <= npt; n++)
@@ -107,7 +107,7 @@ void k6naca2(E_Float e, E_Int& npt,
     }
   }
   npt = nr - 1;
-  
+
   /* Fermeture */
   ypn = 0.5 * (y[0] + y[npt - 1]);
   xpn = 0.5 * (x[0] + x[npt - 1]);
@@ -527,7 +527,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
       printf("Warning: naca: number of points set to " SF_D_ ".\n", N+1);
       N = N+1;
     }
-  
+
     E_Int n = E_Int(N);
     FldArrayF coord(N, 3);
     coord.setAllValuesAtNull();
@@ -552,7 +552,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
       N = N+1;
     }
 
-    E_Int npt = N/2; 
+    E_Int npt = N/2;
     if (sharpte == 1) npt++;
 
     FldArrayF xl(npt);
@@ -566,7 +566,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if (im > -0.5 && ip > -0.5 && ith > -0.5 && it > -0.5 && iq > -0.5)
     {
       // iq used as ii
-      k6nacas4m_(im, ip, ith, it, iq, sharpte, 
+      k6nacas4m_(im, ip, ith, it, iq, sharpte,
                  npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && iq > -0.5 && it > -0.5)
