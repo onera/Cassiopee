@@ -1394,8 +1394,8 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
 def integMomentNorm(t, center=(0.,0.,0.), var=''):
     """Integral of moments (OM^f.vect(n)).
     Usage: integMomentNorm( t, (xc, yc, zc), var )"""
-    info = extractArraysForScalarInteg__(t, var)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForScalarInteg__(t, var, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
