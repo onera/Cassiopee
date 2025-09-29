@@ -368,8 +368,7 @@ def writeEnvs():
     env = os.environ
     cassiopee = env.get('CASSIOPEE', '')
     elsaprod = env.get('ELSAPROD', '')
-    if cassiopee != '': envPath = libPath+'/../../../'
-    else: envPath = libPath+'/../'
+    envPath = libPath+'/../'
     cmdPath = libPath+'/..'
     installLD = os.getenv('LD_LIBRARY_PATH')
 
@@ -380,7 +379,7 @@ def writeEnvs():
     except: mt = 1
 
     # sh ou bash
-    # usage: source $CASSIOPEE/Dist/env_Cassiopee.sh
+    # usage: source $CASSIOPEE/Dist/bin/$ELSAPROD/env_Cassiopee.sh
     with open(envPath+"env_Cassiopee.sh", 'w') as p:
         p.write("ulimit -s unlimited\n")
         if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
@@ -406,7 +405,7 @@ def writeEnvs():
             p.write("fi\n")
 
     # csh ou tcsh
-    # usage: source $CASSIOPEE/Dist/env_Cassiopee.csh
+    # usage: source $CASSIOPEE/Dist/bin/ELSAPROD/env_Cassiopee.csh
     with open(envPath+"env_Cassiopee.csh", 'w') as p:
         p.write("limit stacksize unlimited\n")
         if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
@@ -440,7 +439,7 @@ def writeEnvs():
     # module
     # usage: module use $CASSIOPEE/Dist
     # module load cassiopee
-    with open(envPath+"cassiopee", 'w') as p:
+    with open(envPath+"mod_cassiopee", 'w') as p:
         p.write("#%Module1.0#####################################################################\n")
         p.write("##\n")
         p.write("## CASSIOPEE\n")

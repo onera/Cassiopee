@@ -175,11 +175,11 @@ void K_POST::integMomentUnstructCellCenter(
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-    E_Int nfpe;
+    E_Int nfpe=1;
     E_Float nfpeinv;
     
     E_Int ind;
-    E_Float fx, fy, fz, f;
+    E_Float fx, fy, fz;
     E_Float f1, f2, f3;
     E_Float mx, my, mz;
     E_Float dx, dy, dz, ri, si;

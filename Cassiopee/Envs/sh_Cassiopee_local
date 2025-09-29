@@ -512,7 +512,7 @@ elif [ "$MAC" = "sator_gcc" ]; then
 
 elif [ "$MAC" = "sator_coda" ]; then
 #----------------------------- sator coda -------------------------------------
-    export ELSAPROD=sator_coda2
+    export ELSAPROD=sator_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
@@ -534,7 +534,7 @@ elif [ "$MAC" = "sator_coda" ]; then
 
 elif [ "$MAC" = "sator_coda2" ]; then
 #----------------------------- sator coda --------------------------------------
-    export ELSAPROD=sator_coda
+    export ELSAPROD=sator_coda2
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
