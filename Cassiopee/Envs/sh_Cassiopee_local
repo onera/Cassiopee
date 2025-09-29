@@ -511,6 +511,28 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_coda" ]; then
+#----------------------------- sator coda -------------------------------------
+    export ELSAPROD=sator_coda2
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load occt/7.6.1-gnu831
+    module load fmt/8.1.1-gnu831 gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
+    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    module use /tmp_user/sator/rhea/sator_coda_v2025_08/modules/linux-rocky8-x86_64_v3
+    module load coda/2025.08.0-gnu12.1.0 fszoltanintegration/2025.08.0-gnu12.1.0    
+    export OMP_PLACES=cores
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+
+elif [ "$MAC" = "sator_coda2" ]; then
 #----------------------------- sator coda --------------------------------------
     export ELSAPROD=sator_coda
     export ELSAPROD=$ELSAPROD$EXT
@@ -525,38 +547,6 @@ elif [ "$MAC" = "sator_coda" ]; then
     export CASSIOPEE=$CASSIOPEESAVE
     export ELSAPROD=$ELSAPRODSAVE
     module load occt/7.6.1-gnu831
-    export OMP_PLACES=cores
-    export PYTHONEXE=python3
-    export PRODMODE=1
-    export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
-
-elif [ "$MAC" = "sator_coda2" ]; then
-#----------------------------- sator coda -------------------------------------
-    export ELSAPROD=sator_coda2
-    export ELSAPROD=$ELSAPROD$EXT
-    # Nbre de threads
-    export OMP_NUM_THREADS=48
-    # modules
-    source /opt/tools/Modules/init/bash
-    module purge
-    module load occt/7.6.1-gnu831
-    # Socle CODA OpenMPI4
-    module load gcc/12.1.0
-    module load openmpi/4.0.5-gnu831
-    module load python/3.10.8-gnu831
-    # Load manually-, pip-installed modules
-    py310_mod_dir=/tmp_user/sator/rhea/opt/python3.10_modules
-    export PATH=${py310_mod_dir}/bin:$PATH
-    export PYTHONPATH=${py310_mod_dir}/lib/python3.10/site-packages:$PYTHONPATH
-    # Expose and load packages installed with spack
-    modules_dir=/tmp_user/sator/rhea/socle_openmpi4_sator_gcc12/modules/linux-rocky8-x86_64_v3
-    module use $modules_dir
-    module load hdf5/1.14.3-gnu12.1.0
-    # Optional but cleaner (less messy module av)
-    module unuse $modules_dir
     export OMP_PLACES=cores
     export PYTHONEXE=python3
     export PRODMODE=1
