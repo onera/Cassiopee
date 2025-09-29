@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -25,11 +25,11 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 //==============================================================================
-E_Int K_TRANSFORM::extractVectorComponents(char* varString, 
-                                           PyObject* listOfFieldVectors, 
+E_Int K_TRANSFORM::extractVectorComponents(char* varString,
+                                           PyObject* listOfFieldVectors,
                                            vector<E_Int>& posvx, vector<E_Int>& posvy, vector<E_Int>& posvz)
 {
-  if (PyList_Check(listOfFieldVectors) == 0) 
+  if (PyList_Check(listOfFieldVectors) == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "rotate: last argument must be a list.");
@@ -52,7 +52,7 @@ E_Int K_TRANSFORM::extractVectorComponents(char* varString,
     {
       PyErr_SetString(PyExc_TypeError,
                       "rotate: vector fields must be defined by 3 components.");
-      return -1;       
+      return -1;
     }
     // Check if each component is a string
     vector<char*> vars;
@@ -62,15 +62,15 @@ E_Int K_TRANSFORM::extractVectorComponents(char* varString,
       char* vect;
       if (PyString_Check(tpl1))
       {
-        vect = PyString_AsString(tpl1); 
+        vect = PyString_AsString(tpl1);
       }
 #if PY_VERSION_HEX >= 0x03000000
       else if (PyUnicode_Check(tpl1))
       {
-        vect = (char*)PyUnicode_AsUTF8(tpl1); 
+        vect = (char*)PyUnicode_AsUTF8(tpl1);
       }
-#endif 
-      else 
+#endif
+      else
       {
         PyErr_SetString(PyExc_TypeError,
                         "rotate: vector component name must be a string.");
@@ -81,14 +81,14 @@ E_Int K_TRANSFORM::extractVectorComponents(char* varString,
     E_Int posu = K_ARRAY::isNamePresent(vars[0], varString);
     E_Int posv = K_ARRAY::isNamePresent(vars[1], varString);
     E_Int posw = K_ARRAY::isNamePresent(vars[2], varString);
-    if (posu == -1 || posv == -1 || posw == -1) 
+    if (posu == -1 || posv == -1 || posw == -1)
     {
       // printf("Warning: rotate: vector field (%s,%s,%s) not found in array.\n",vars[0],vars[1],vars[2]);
       ;
     }
-    else 
+    else
     {
-      posvx.push_back(posu+1); posvy.push_back(posv+1); posvz.push_back(posw+1); 
+      posvx.push_back(posu+1); posvy.push_back(posv+1); posvz.push_back(posw+1);
     }
   }
   return 0;
@@ -116,18 +116,18 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   E_Int res;
 
   // Preliminary check
-  if (K_FUNC::fEqualZero(nx) == true && 
+  if (K_FUNC::fEqualZero(nx) == true &&
       K_FUNC::fEqualZero(ny) == true &&
       K_FUNC::fEqualZero(nz) == true)
   {
     PyErr_SetString(PyExc_ValueError,
                     "rotate: vector has null norm.");
-    return NULL; 
+    return NULL;
   }
 
-  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
-                               cn, eltType); 
-  
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                               cn, eltType);
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -141,16 +141,16 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
   E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
-  if (ok == -1) 
+  if (ok == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
-  
+
   // Transformation en radians
   E_Float pi = 4.*atan(1.);
   teta = teta*pi/180.;
-    
+
   E_Int npts = f->getSize();
 
   // rotate
@@ -184,7 +184,7 @@ PyObject* K_TRANSFORM::_rotateA1(PyObject* self, PyObject* args)
     #pragma omp parallel default(shared)
     {
       E_Float rx,ry,rz,a2,px,py,pz;
-      #pragma omp for 
+      #pragma omp for
       for (E_Int ind = 0; ind < npts; ind++)
       {
         rx = xt[ind]-xc;
@@ -250,13 +250,13 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
 
   if (!PYPARSETUPLE_(args, O_ TRRR_ "(" TRRR_ TRRR_ TRRR_ ")" "(" TRRR_ TRRR_ TRRR_ ")" O_,
                      &array,
-                     &xc, &yc, &zc, 
+                     &xc, &yc, &zc,
                      &e1x, &e1y, &e1z,
                      &e2x, &e2y, &e2z,
                      &e3x, &e3y, &e3z,
                      &f1x, &f1y, &f1z,
                      &f2x, &f2y, &f2z,
-                    &f3x, &f3y, &f3z, 
+                    &f3x, &f3y, &f3z,
                     &listOfFieldVectors))
   {
       return NULL;
@@ -274,12 +274,12 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   E_Float e3 = sqrt(e3x*e3x+e3y*e3y+e3z*e3z);
   E_Float f1 = sqrt(f1x*f1x+f1y*f1y+f1z*f1z);
   E_Float f2 = sqrt(f2x*f2x+f2y*f2y+f2z*f2z);
-  E_Float f3 = sqrt(f3x*f3x+f3y*f3y+f3z*f3z);  
+  E_Float f3 = sqrt(f3x*f3x+f3y*f3y+f3z*f3z);
 
-  if (K_FUNC::fEqualZero(e1) == true || 
+  if (K_FUNC::fEqualZero(e1) == true ||
       K_FUNC::fEqualZero(e2) == true ||
       K_FUNC::fEqualZero(e3) == true ||
-      K_FUNC::fEqualZero(f1) == true || 
+      K_FUNC::fEqualZero(f1) == true ||
       K_FUNC::fEqualZero(f2) == true ||
       K_FUNC::fEqualZero(f3) == true)
   {
@@ -297,9 +297,9 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   f2x = f2x * f2; f2y = f2y * f2; f2z = f2z * f2;
   f3x = f3x * f3; f3y = f3y * f3; f3z = f3z * f3;
 
-  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
-                               cn, eltType); 
-  
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                               cn, eltType);
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -312,14 +312,14 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
   E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
-  if (ok == -1) 
+  if (ok == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
-  
+
   E_Int npts = f->getSize();
-  
+
   // rotate
   E_Float m11 = f1x*e1x+f2x*e2x+f3x*e3x;
   E_Float m21 = f1y*e1x+f2y*e2x+f3y*e3x;
@@ -348,7 +348,7 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
         z = zt[i]-zc;
         xt[i] = xc + m11*x + m12*y + m13*z;
         yt[i] = yc + m21*x + m22*y + m23*z;
-        zt[i] = zc + m31*x + m32*y + m33*z;      
+        zt[i] = zc + m31*x + m32*y + m33*z;
       }
     }
   }
@@ -365,14 +365,14 @@ PyObject* K_TRANSFORM::_rotateA2(PyObject* self, PyObject* args)
         E_Float* xt = f->begin(posvx[nov]);
         E_Float* yt = f->begin(posvy[nov]);
         E_Float* zt = f->begin(posvz[nov]);
-      
+
         #pragma omp for
         for (E_Int i = 0; i < npts; i++)
         {
           x = xt[i]; y = yt[i]; z = zt[i];
           xt[i] = m11*x + m12*y + m13*z;
           yt[i] = m21*x + m22*y + m23*z;
-          zt[i] = m31*x + m32*y + m33*z;      
+          zt[i] = m31*x + m32*y + m33*z;
         }
       }
     }
@@ -404,9 +404,9 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                cn, eltType);
-  
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -420,12 +420,12 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   vector<E_Int> posvx; vector<E_Int> posvy; vector<E_Int> posvz;
   E_Int ok = extractVectorComponents(varString, listOfFieldVectors, posvx, posvy, posvz);
-  if (ok == -1) 
+  if (ok == -1)
   {
     RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
-  
+
   // Transformation en radians
   E_Float pi = 4*atan(1.);
   alpha = alpha*pi/180.;
@@ -441,13 +441,13 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
   E_Float sbeta = sin(beta);
   E_Float cgamma = cos(gamma);
   E_Float sgamma = sin(gamma);
-    
+
   if (posx>0 && posy>0 && posz>0)
   {
     E_Float* x = f->begin(posx);
     E_Float* y = f->begin(posy);
     E_Float* z = f->begin(posz);
-  
+
     #pragma omp parallel default(shared)
     {
       E_Float dx, dy, dz;
@@ -460,19 +460,19 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
         x1 = xc + cgamma*dx - sgamma*dy;
         y1 = yc + sgamma*dx + cgamma*dy;
         z1 = zc + dz;
-      
+
         // Rotation autour de Oy1 (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2)
         dx = x1-xc; dy = y1-yc; dz = z1-zc;
         x2 = xc + cbeta*dx - sbeta*dz;
         y2 = yc + dy;
         z2 = zc + sbeta*dx + cbeta*dz;
-      
+
         // Rotation autour de Oz2 (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2)
         dx = x2-xc; dy = y2-yc; dz = z2-zc;
         x[i] = xc + dx;
         y[i] = yc + calpha*dy - salpha*dz;
         z[i] = zc + salpha*dy + calpha*dz;
-      } 
+      }
     }
   }
 
@@ -489,7 +489,7 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
         E_Float* x = f->begin(posvx[nov]);
         E_Float* y = f->begin(posvy[nov]);
         E_Float* z = f->begin(posvz[nov]);
-  
+
         #pragma omp for
         for (E_Int i = 0; i < npts; i++)
         {
@@ -498,13 +498,13 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
           x1 = cgamma*dx - sgamma*dy;
           y1 = sgamma*dx + cgamma*dy;
           z1 = dz;
-      
+
           // Rotation autour de Oy1 (Ox1->Ox2, Oy1->Oy1, Oz1->Oz2)
           dx = x1; dy = y1; dz = z1;
           x2 = cbeta*dx - sbeta*dz;
           y2 = dy;
           z2 = sbeta*dx + cbeta*dz;
-      
+
           // Rotation autour de Oz2 (Ox2->Ox3, Oy2->Oy3, Oz2->Oz2)
           dx = x2; dy = y2; dz = z2;
           x[i] = dx;
@@ -513,7 +513,7 @@ PyObject* K_TRANSFORM::_rotateA3(PyObject* self, PyObject* args)
         }
       }
     }
-  } 
+  }
 
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);

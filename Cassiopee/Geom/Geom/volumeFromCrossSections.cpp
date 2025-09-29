@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -31,7 +31,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   PyObject* array1; PyObject* array2;
   PyObject* contour1; PyObject* contour2;
 
-  if (!PYPARSETUPLE_(args, OOOO_, &array1, &array2, 
+  if (!PYPARSETUPLE_(args, OOOO_, &array1, &array2,
                       &contour1, &contour2)) return NULL;
 
   // Extraction des 2 contours
@@ -41,11 +41,11 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   E_Int imc2, jmc2, kmc2;
   FldArrayF* fc2; FldArrayI* cnpoly2;
   char* varStringc2; char* eltTypec2;
-  E_Int resc1 = 
-    K_ARRAY::getFromArray3(contour1, varStringc1, fc1, imc1, jmc1, kmc1, 
-                           cnpoly1, eltTypec1);  
-  E_Int resc2 = 
-    K_ARRAY::getFromArray3(contour2, varStringc2, fc2, imc2, jmc2, kmc2, 
+  E_Int resc1 =
+    K_ARRAY::getFromArray3(contour1, varStringc1, fc1, imc1, jmc1, kmc1,
+                           cnpoly1, eltTypec1);
+  E_Int resc2 =
+    K_ARRAY::getFromArray3(contour2, varStringc2, fc2, imc2, jmc2, kmc2,
                            cnpoly2, eltTypec2);
   // check contours
   E_Int posxc1, posyc1, poszc1;
@@ -61,14 +61,14 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
                       "volumeFromCrossSections: contours must be BAR-arrays.");
       return NULL;
     }
-   
+
     posxc1 = K_ARRAY::isCoordinateXPresent(varStringc1);
     posyc1 = K_ARRAY::isCoordinateYPresent(varStringc1);
     poszc1 = K_ARRAY::isCoordinateZPresent(varStringc1);
     posxc2 = K_ARRAY::isCoordinateXPresent(varStringc2);
     posyc2 = K_ARRAY::isCoordinateYPresent(varStringc2);
     poszc2 = K_ARRAY::isCoordinateZPresent(varStringc2);
-    
+
     if (posxc1 == -1 || posyc1 == -1 || poszc1 == -1 ||
         posxc2 == -1 || posyc2 == -1 || poszc2 == -1 )
     {
@@ -80,7 +80,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
     }
     posxc1++; posyc1++; poszc1++; posxc2++; posyc2++; poszc2++;
   }
-  else 
+  else
   {
     if ( resc1 == 1 ) RELEASESHAREDS(contour1, fc1);
     if ( resc2 == 1 ) RELEASESHAREDS(contour2, fc2);
@@ -105,20 +105,20 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
 
-  E_Int res1 = 
-    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, cn1, 
-                           eltType1); 
-  E_Int res2 = 
-    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, cn2, 
+  E_Int res1 =
+    K_ARRAY::getFromArray3(array1, varString1, f1, im1, jm1, km1, cn1,
+                           eltType1);
+  E_Int res2 =
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2, cn2,
                            eltType2);
   // Check args
   if (res1 != 2 || strcmp(eltType1, "TRI") != 0)
   {
     RELEASESHAREDB(res1, array1, f1, cn1);
-    RELEASESHAREDB(res2, array2, f2, cn2);    
+    RELEASESHAREDB(res2, array2, f2, cn2);
     delete fc1; delete fc2; delete cnpoly1; delete cnpoly2;
 
-          
+
     PyErr_SetString(PyExc_ValueError,
                     "volumeFromCrossSections: array1 must be a TRI-array.");
     return NULL;
@@ -126,14 +126,14 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   if (res2 != 2 || strcmp(eltType2, "TRI") != 0)
   {
     RELEASESHAREDB(res1, array1, f1, cn1);
-    RELEASESHAREDB(res2, array2, f2, cn2);    
+    RELEASESHAREDB(res2, array2, f2, cn2);
     RELEASESHAREDU(contour1, fc1, cnpoly1);
     RELEASESHAREDU(contour2, fc2, cnpoly2);
     PyErr_SetString(PyExc_ValueError,
                     "volumeFromCrossSections: array2 must be a TRI-array.");
     return NULL;
   }
-  
+
   E_Int posx1 = K_ARRAY::isCoordinateXPresent( varString1);
   E_Int posy1 = K_ARRAY::isCoordinateYPresent( varString1);
   E_Int posz1 = K_ARRAY::isCoordinateZPresent( varString1);
@@ -167,7 +167,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   // perturbation des triangulations
   FldArrayF coord1(f1->getSize(), 3);
   FldArrayF coord2(f2->getSize(), 3);
-  perturbate2D(posx1, posy1, posz1, *f1, posx2, posy2, posz2, *f2, 
+  perturbate2D(posx1, posy1, posz1, *f1, posx2, posy2, posz2, *f2,
                coord1, coord2);
 
   // Determine les hauteurs de chaque coupe
@@ -178,7 +178,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   //if (coord2.getSize() > 0) z2 = coord2(0, posz2);
 
   // calcul des centres des cercles circonscrits a t1 et t2
-  FldArrayF coordCC1; 
+  FldArrayF coordCC1;
   FldArrayF coordCC2;
   compCCCenters(coord1.begin(1), coord1.begin(2),coord1.begin(3),*cn1, coordCC1);
   compCCCenters(coord2.begin(1), coord2.begin(2),coord2.begin(3),*cn2, coordCC2);
@@ -192,35 +192,35 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   FldArrayF& coord = *an;
   FldArrayI* cni = new FldArrayI(nemax, 4);
   FldArrayI& cn = *cni;
-  
+
   // calcul des tetraedres de type T1 et T2
   FldArrayI type1(cn1->getSize()); //type des triangles de T1
   FldArrayI type2(cn2->getSize()); //type des triangles de T2
   type1.setAllValuesAtNull(); type2.setAllValuesAtNull();
 
   FldArrayI type(nemax); // type des tetraedres crees
-  compTetraType1(1, posxc1, posyc1, poszc1, *fc1, *cnpoly1, 
-                 *cn1, coordCC1, coord1, coord2, 
+  compTetraType1(1, posxc1, posyc1, poszc1, *fc1, *cnpoly1,
+                 *cn1, coordCC1, coord1, coord2,
                  nv, ne, type1, coord, cn, type);
 
-  compTetraType1(2, posxc2, posyc2, poszc2, *fc2, *cnpoly2, 
-                 *cn2, coordCC2, coord2, coord1, 
+  compTetraType1(2, posxc2, posyc2, poszc2, *fc2, *cnpoly2,
+                 *cn2, coordCC2, coord2, coord1,
                  nv, ne, type2, coord, cn, type);
 
-  // Creation des tetradres de type T12 : issus de 2 aretes 
+  // Creation des tetradres de type T12 : issus de 2 aretes
   // des diagrammes de Voronoi
-  compTetraType12(posxc1, posyc1, poszc1, *fc1, *cnpoly1, 
-                  *cn1, coordCC1, coord1, 
+  compTetraType12(posxc1, posyc1, poszc1, *fc1, *cnpoly1,
+                  *cn1, coordCC1, coord1,
                   posxc2, posyc2, poszc2, *fc2,  *cnpoly2,
                   *cn2, coordCC2, coord2, type1, type2,
                   nv, ne, coord, cn, type);
   cn.reAllocMat(ne, 4);
   coord.reAllocMat(nv, 3);
-  
+
   // Nettoyage de la connectivite et des points (doublons...)
   K_CONNECT::cleanConnectivity(1, 2, 3, 1.e-10, eltType1, coord, cn);
 
-  // check tetraedres de type t1/t2 : si pas de voisin de type t12, 
+  // check tetraedres de type t1/t2 : si pas de voisin de type t12,
   // t1 ou t2 elimine
   checkTetrahedra(type, cn, coord);
 
@@ -228,14 +228,14 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
   PyObject* tpl = K_ARRAY::buildArray3(coord, "x,y,z", cn, "TETRA", api);
   delete an; delete cni;
   RELEASESHAREDU(array1, f1, cn1);
-  RELEASESHAREDU(array2, f2, cn2); 
+  RELEASESHAREDU(array2, f2, cn2);
   RELEASESHAREDU(contour1, fc1, cnpoly1);
   RELEASESHAREDU(contour2, fc2, cnpoly2);
   return tpl;
 }
 
 //===========================================================================
-/* Verification des tetraedres : elimination de ceux de type t1 ou t2 qui 
+/* Verification des tetraedres : elimination de ceux de type t1 ou t2 qui
    n'ont aucun voisin de type t12 */
 //===========================================================================
 void K_GEOM::checkTetrahedra(FldArrayI& type, FldArrayI& cn, FldArrayF& coord)
@@ -247,27 +247,27 @@ void K_GEOM::checkTetrahedra(FldArrayI& type, FldArrayI& cn, FldArrayF& coord)
 
   E_Int cnt = 0;
   FldArrayI temp(nelts, 4);
-  
+
   // parcours des elements
   for (E_Int et1 = 0; et1 < nelts; et1++)
   {
     if ( type[et1] < 10 )
-    { 
+    {
       vector<E_Int>& eltVoisins = cEEN[et1];//liste des tetras voisins de et1
       E_Int nvoisins = eltVoisins.size();
 
       E_Int found = 0; // un voisin est il t12 ?
       for (E_Int n = 0; n < nvoisins; n++ )
       {
-        E_Int et2 = eltVoisins[n]; // indice du tetra voisins 
-        
+        E_Int et2 = eltVoisins[n]; // indice du tetra voisins
+
         if ( type[et2] == 12 )
         {
           found = 1;
           break;
         }
       }
-      
+
       if ( found == 1 )
       {
         for (E_Int v = 1; v <= 4; v++)
@@ -275,19 +275,19 @@ void K_GEOM::checkTetrahedra(FldArrayI& type, FldArrayI& cn, FldArrayF& coord)
         cnt++;
       }
     }
-    else 
+    else
     {
       for (E_Int v = 1; v <= 4; v++)
         temp(cnt, v) = cn(et1,v);
-      cnt++; 
+      cnt++;
     }
   }
   temp.reAllocMat(cnt, 4);
- 
+
   cn = temp;
 }
 //===========================================================================
-/* Calcul des centres des cercles circonscrits de tous les triangles 
+/* Calcul des centres des cercles circonscrits de tous les triangles
    coordCC est alloue par la routine
 */
 //===========================================================================
@@ -303,7 +303,7 @@ void K_GEOM::compCCCenters(E_Float* xt, E_Float* yt, E_Float* zt, FldArrayI& cn,
   E_Float* xCC = coordCC.begin(1);
   E_Float* yCC = coordCC.begin(2);
   E_Float* zCC = coordCC.begin(3);
-  
+
   E_Int* cn1 = cn.begin(1);
   E_Int* cn2 = cn.begin(2);
   E_Int* cn3 = cn.begin(3);
@@ -316,7 +316,7 @@ void K_GEOM::compCCCenters(E_Float* xt, E_Float* yt, E_Float* zt, FldArrayI& cn,
     p2[0] = xt[ind2]; p2[1] = yt[ind2]; p2[2] = zt[ind2];
     p3[0] = xt[ind3]; p3[1] = yt[ind3]; p3[2] = zt[ind3];
     K_COMPGEOM::circumCircle(p1, p2, p3, pc, R);
- 
+
     xCC[et] = pc[0];
     yCC[et] = pc[1];
     zCC[et] = pc[2];
@@ -324,13 +324,13 @@ void K_GEOM::compCCCenters(E_Float* xt, E_Float* yt, E_Float* zt, FldArrayI& cn,
 }
 
 //===========================================================================
-/* Construction des tetraedres formes par une base tri et un vertex de 
+/* Construction des tetraedres formes par une base tri et un vertex de
    type Ti */
 //===========================================================================
-void K_GEOM::compTetraType1(E_Int type0, 
-                            E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+void K_GEOM::compTetraType1(E_Int type0,
+                            E_Int posxc1, E_Int posyc1, E_Int poszc1,
                             FldArrayF& coordpoly1, FldArrayI& cnpoly1,
-                            FldArrayI& cn1, FldArrayF& coordCC1, 
+                            FldArrayI& cn1, FldArrayF& coordCC1,
                             FldArrayF& coord1, FldArrayF& coord2,
                             E_Int& nv, E_Int& ne, FldArrayI& type1,
                             FldArrayF& coord, FldArrayI& cn,
@@ -340,7 +340,7 @@ void K_GEOM::compTetraType1(E_Int type0,
   E_Float P[3];
   E_Int nvmax = coord.getSize();
   E_Int nemax = cn.getSize();
-  
+
   E_Float* xCC1 = coordCC1.begin(1);
   E_Float* yCC1 = coordCC1.begin(2);
   E_Float* zCC1 = coordCC1.begin(3);
@@ -363,7 +363,7 @@ void K_GEOM::compTetraType1(E_Int type0,
   E_Int* cn03 = cn.begin(3);
   E_Int* cn04 = cn.begin(4);
 
-  // calcul des bounding box du contour 1 
+  // calcul des bounding box du contour 1
   E_Float xmin1, xmax1, ymin1, ymax1, zmin1, zmax1;
   K_COMPGEOM::boundingBoxUnstruct(
     coordpoly1.getSize(),
@@ -383,35 +383,35 @@ void K_GEOM::compTetraType1(E_Int type0,
   ArrayAccessor<FldArrayF> coordAcc(coord2, 1,2,3);
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
 
-  E_Float Q[3]; 
+  E_Float Q[3];
   for (E_Int et = 0; et < ne1; et++) //parcours des triangles
   {
     P[0] = xCC1[et];
     P[1] = yCC1[et];
     P[2] = zCC1[et];
     E_Int ind = kdt.getClosest(P);
-    
+
     if ( ind != -1 )
     {
       E_Int ind1 = cn11[et]-1;
       E_Int ind2 = cn12[et]-1;
       E_Int ind3 = cn13[et]-1;
-      
-      // test si un des sommets est exterieur au contour : 
+
+      // test si un des sommets est exterieur au contour :
       // creation du tetraedre
       Q[0] = xt1[ind1]; Q[1] = yt1[ind1]; Q[2] = zt1[ind1];
-      E_Int in1 = 
+      E_Int in1 =
         K_COMPGEOM::pointInBB(xmin1, ymin1, zmin1, xmax1, ymax1, zmax1, Q);
       Q[0] = xt1[ind2]; Q[1] = yt1[ind2]; Q[2] = zt1[ind2];
-      E_Int in2 = 
+      E_Int in2 =
         K_COMPGEOM::pointInBB(xmin1, ymin1, zmin1, xmax1, ymax1, zmax1, Q);
       Q[0] = xt1[ind3]; Q[1] = yt1[ind3]; Q[2] = zt1[ind3];
-      E_Int in3 = 
+      E_Int in3 =
         K_COMPGEOM::pointInBB(xmin1, ymin1, zmin1, xmax1, ymax1, zmax1, Q);
 
       if ( in1 == 1 && in2 == 1 && in3 == 1 )
       {
-        E_Int in = testIfEdgesCentersInContour(ind1, ind2, ind3, coord1, 
+        E_Int in = testIfEdgesCentersInContour(ind1, ind2, ind3, coord1,
                                                posxc1, posyc1, poszc1,
                                                coordpoly1, cnpoly1);
 
@@ -434,10 +434,10 @@ void K_GEOM::compTetraType1(E_Int type0,
 
           cn01[ne] = nv+1; cn02[ne] = nv+2; cn03[ne] = nv+3; cn04[ne] = nv+4;
           type[ne] = type0;
-        
+
           ne++;
 
-          if (ne >= nemax-1) 
+          if (ne >= nemax-1)
           {
             nemax = nemax + 1000;
             cn.reAllocMat(nemax, 4);
@@ -448,7 +448,7 @@ void K_GEOM::compTetraType1(E_Int type0,
             type.reAlloc(nemax);
           }
           nv = nv + 4;
-          if ( nv >= nvmax-4 ) 
+          if ( nv >= nvmax-4 )
           {
             nvmax = nvmax + 1000;
             coord.reAllocMat(nvmax, 3);
@@ -463,7 +463,7 @@ void K_GEOM::compTetraType1(E_Int type0,
 }
 
 //===========================================================================
-/* Creation du tableau des aretes du diagramme de Voronoi d'une 
+/* Creation du tableau des aretes du diagramme de Voronoi d'une
    triangulation */
 //===========================================================================
 void K_GEOM::compVoronoiEdges(E_Int nvertex, FldArrayI& cn, FldArrayI& vedges)
@@ -474,11 +474,11 @@ void K_GEOM::compVoronoiEdges(E_Int nvertex, FldArrayI& cn, FldArrayI& vedges)
   vedges.malloc(3*nelts,2); // allocation max
   vector< vector<E_Int> > cEEN(nelts);
   K_CONNECT::connectEV2EENbrs(eltType, nvertex, cn, cEEN);
-  
+
   E_Int nv = 0;
   FldArrayIS dejaVu(nelts, nelts);
   dejaVu.setAllValuesAtNull();
-  
+
   E_Int* vedges1 = vedges.begin(1);
   E_Int* vedges2 = vedges.begin(2);
 
@@ -507,15 +507,15 @@ void K_GEOM::compVoronoiEdges(E_Int nvertex, FldArrayI& cn, FldArrayI& vedges)
 /* Calcul les tetraedres de type T12 : issus de 2 aretes intersectantes
    des diagrammes de Voronoi de T1 et T2 */
 //===========================================================================
-void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
                              FldArrayF& fc1, FldArrayI& cnpoly1,
                              FldArrayI& cn1,
                              FldArrayF& coordCC1, FldArrayF& coord1,
-                             E_Int posxc2, E_Int posyc2, E_Int poszc2, 
+                             E_Int posxc2, E_Int posyc2, E_Int poszc2,
                              FldArrayF& fc2,FldArrayI& cnpoly2,
                              FldArrayI& cn2, FldArrayF& coordCC2,
                              FldArrayF& coord2,
-                             FldArrayI& type1, FldArrayI& type2, 
+                             FldArrayI& type1, FldArrayI& type2,
                              E_Int& nv, E_Int& ne,
                              FldArrayF& coord, FldArrayI& cn, FldArrayI& type)
 {
@@ -547,7 +547,7 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
   zmin1 = zmin1 - deltaz1; zmin2 = zmin2 - deltaz2;
   zmax1 = zmax1 + deltaz1; zmax2 = zmax2 + deltaz2;
 
-  FldArrayI vedges1; //vedges(.,1) : indice du 1er elt, vedges(.,2) : 2eme elt 
+  FldArrayI vedges1; //vedges(.,1) : indice du 1er elt, vedges(.,2) : 2eme elt
   FldArrayI vedges2;
 
   // Calcul des aretes du diagramme de Voronoi de T1
@@ -588,17 +588,17 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
   {
     E_Int et1a = vedges1(v1, 1);
     E_Int et1b = vedges1(v1, 2);
-    
+
     if (type1[et1a] != 0 || type1[et1b] != 0 ) //de type type[et]-solide
-    {      
+    {
       ps1a[0] = xCC1[et1a];
       ps1a[1] = yCC1[et1a];
-      ps1a[2] = 0.; //coordCC1(et1a,3);   
-      
+      ps1a[2] = 0.; //coordCC1(et1a,3);
+
       ps1b[0] = xCC1[et1b];
       ps1b[1] = yCC1[et1b];
       ps1b[2] = 0.; //coordCC1(et1b,3);
-      
+
       for (E_Int v2 = 0; v2 < v2Size; v2++)
       {
         E_Int et2a = vedges2(v2, 1);
@@ -607,13 +607,13 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
         {
           ps2a[0] = xCC2[et2a];
           ps2a[1] = yCC2[et2a];
-          ps2a[2] = 0.; //coordCC2(et2a,3);   
-      
+          ps2a[2] = 0.; //coordCC2(et2a,3);
+
           ps2b[0] = xCC2[et2b];
           ps2b[1] = yCC2[et2b];
           ps2b[2] = 0.; //coordCC2(et2b,3);
 
-          E_Int intersect = K_COMPGEOM::intersect2Segments(ps1a, ps1b, 
+          E_Int intersect = K_COMPGEOM::intersect2Segments(ps1a, ps1b,
                                                            ps2a, ps2b,
                                                            pi0, pi1);
           if ( intersect == 1 )
@@ -625,41 +625,41 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
             E_Int ind2a = ind2[0]-1; E_Int ind2b = ind2[1]-1;
 
             P[0] = xt1[ind1a]; P[1] = yt1[ind1a]; P[2] = zt1[ind1a];
-            E_Int in1 = 
+            E_Int in1 =
               K_COMPGEOM::pointInBB(xmin1, ymin1, zmin1, xmax1, ymax1, zmax1,P);
 
             P[0] = xt1[ind1b]; P[1] = yt1[ind1b]; P[2] = zt1[ind1b];
-            E_Int in2 = 
+            E_Int in2 =
               K_COMPGEOM::pointInBB(xmin1, ymin1, zmin1, xmax1, ymax1, zmax1,P);
 
             P[0] = xt2[ind2a]; P[1] = yt2[ind2a]; P[2] = zt2[ind2a];
-            E_Int in3 = 
+            E_Int in3 =
               K_COMPGEOM::pointInBB(xmin2, ymin2, zmin2, xmax2, ymax2, zmax2,P);
 
             P[0] = xt2[ind2b]; P[1] = yt2[ind2b]; P[2] = zt2[ind2b];
-            E_Int in4 = 
+            E_Int in4 =
               K_COMPGEOM::pointInBB(xmin2, ymin2, zmin2, xmax2, ymax2, zmax2,P);
 
             if (in1 == 1 && in2 == 1 && in3 == 1 && in4 == 1)
             {
               xt[nv] = xt1[ind1a];
               yt[nv] = yt1[ind1a];
-              zt[nv] = zt1[ind1a]; 
+              zt[nv] = zt1[ind1a];
               xt[nv+1] = xt1[ind1b];
-              yt[nv+1] = yt1[ind1b]; 
-              zt[nv+1] = zt1[ind1b]; 
+              yt[nv+1] = yt1[ind1b];
+              zt[nv+1] = zt1[ind1b];
               xt[nv+2] = xt2[ind2a];
               yt[nv+2] = yt2[ind2a];
-              zt[nv+2] = zt2[ind2a]; 
-              xt[nv+3] = xt2[ind2b];   
+              zt[nv+2] = zt2[ind2a];
+              xt[nv+3] = xt2[ind2b];
               yt[nv+3] = yt2[ind2b];
               zt[nv+3] = zt2[ind2b];
-              cn01[ne] = nv+1; cn02[ne] = nv+2; 
+              cn01[ne] = nv+1; cn02[ne] = nv+2;
               cn03[ne] = nv+3; cn04[ne] = nv+4;
               type[ne] = 12;
               ne++;
 
-              if (ne >= nemax-1) 
+              if (ne >= nemax-1)
               {
                 nemax = nemax + 1000;
                 cn.reAllocMat(nemax, 4);
@@ -670,7 +670,7 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
                 type.reAlloc(nemax);
               }
               nv = nv+4;
-              if ( nv >= nvmax-4 ) 
+              if ( nv >= nvmax-4 )
               {
                 nvmax = nvmax + 1000;
                 coord.reAllocMat(nvmax, 3);
@@ -687,11 +687,11 @@ void K_GEOM::compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
 }
 
 //===========================================================================
-/* Determine les indices des vertices dans la triangulation de Delaunay 
-   communs aux 2 elements et1 et et2. Retourne les indices des sommets 
+/* Determine les indices des vertices dans la triangulation de Delaunay
+   communs aux 2 elements et1 et et2. Retourne les indices des sommets
    ind demarre a 1 */
 //===========================================================================
-void K_GEOM::getDelaunayVertices(E_Int et1, E_Int et2, FldArrayI& cEV, 
+void K_GEOM::getDelaunayVertices(E_Int et1, E_Int et2, FldArrayI& cEV,
                                  FldArrayI& ind)
 {
   E_Int indi1[3]; E_Int indi2[3];
@@ -699,7 +699,7 @@ void K_GEOM::getDelaunayVertices(E_Int et1, E_Int et2, FldArrayI& cEV,
   //indices des 3 sommets des triangles
   indi1[0] = cEV(et1,1); indi1[1] = cEV(et1,2); indi1[2] = cEV(et1,3);
   indi2[0] = cEV(et2,1); indi2[1] = cEV(et2,2); indi2[2] = cEV(et2,3);
-  
+
   ind.setAllValuesAtNull();
 
   E_Int n = 0;
@@ -707,7 +707,7 @@ void K_GEOM::getDelaunayVertices(E_Int et1, E_Int et2, FldArrayI& cEV,
   {
     for (E_Int i2 = 0; i2 < 3; i2++)
     {
-      if ( indi1[i1] == indi2[i2] ) 
+      if ( indi1[i1] == indi2[i2] )
       {
         ind[n] = indi1[i1];
         n++;
@@ -716,16 +716,16 @@ void K_GEOM::getDelaunayVertices(E_Int et1, E_Int et2, FldArrayI& cEV,
     }
     if ( n == 2 ) break;
   }
-  if ( n != 2 ) 
+  if ( n != 2 )
     printf("Warning: getDelaunayVertices: a common edge not found.\n");
 }
 //==========================================================================
-/* Pertubation d'un des points si identiques dans le plan (x,y) 
-   coord1, coord2 : 
+/* Pertubation d'un des points si identiques dans le plan (x,y)
+   coord1, coord2 :
 */
 //==========================================================================
-void 
-K_GEOM::perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1, FldArrayF& f1, 
+void
+K_GEOM::perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1, FldArrayF& f1,
                      E_Int posx2, E_Int posy2, E_Int posz2, FldArrayF& f2,
                      FldArrayF& coord1, FldArrayF& coord2)
 {
@@ -753,7 +753,7 @@ K_GEOM::perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1, FldArrayF& f1,
     {
       E_Float dx = xt2[ind2]-xt1[ind1];
       E_Float dy = yt2[ind2]-yt1[ind1];
-      
+
       if ( K_FUNC::E_abs(dx) < dmin && K_FUNC::E_abs(dy) < dmin)
       {
         coord1(ind1,1) = coord1(ind1,1) + K_NOISE::stdRand(&idum)*perturb;
@@ -764,30 +764,30 @@ K_GEOM::perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1, FldArrayF& f1,
   }
 }
 //===========================================================================
-/* 
+/*
    Test si le centre des 3 aretes d'un triangle defini par les 3 indices
-   ind1, ind2, ind3 de coord sont toutes internes au 
+   ind1, ind2, ind3 de coord sont toutes internes au
    contour definit par (coordc, cnc).
    Une tolerance est ajoutee de facon a ce que la routine retourne 1
    meme si les centres sont sur le contour lui-meme.
    Retourne 1 si le centre des 3 aretes est a l'interieur du contour.
 */
 //===========================================================================
-E_Int 
+E_Int
 K_GEOM::testIfEdgesCentersInContour(E_Int ind1, E_Int ind2, E_Int ind3,
-                                    FldArrayF& coord, 
-                                    E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+                                    FldArrayF& coord,
+                                    E_Int posxc1, E_Int posyc1, E_Int poszc1,
                                     FldArrayF& coordc, FldArrayI& cnc)
 {
   E_Float x1 = coord(ind1,1); E_Float y1 = coord(ind1,2);
-  E_Float x2 = coord(ind2,1); E_Float y2 = coord(ind2,2); 
+  E_Float x2 = coord(ind2,1); E_Float y2 = coord(ind2,2);
   E_Float x3 = coord(ind3,1); E_Float y3 = coord(ind3,2);
   E_Float z = coord(ind1,3);
 
   E_Float dx12 = K_FUNC::E_abs(x2-x1); E_Float dy12 = K_FUNC::E_abs(y2-y1);
   E_Float dx23 = K_FUNC::E_abs(x2-x3); E_Float dy23 = K_FUNC::E_abs(y2-y3);
   E_Float dx31 = K_FUNC::E_abs(x3-x1); E_Float dy31 = K_FUNC::E_abs(y3-y1);
-  E_Float dx = K_FUNC::E_max(dx12, dx31); 
+  E_Float dx = K_FUNC::E_max(dx12, dx31);
   E_Float dy = K_FUNC::E_max(dy12, dy31);
   dx = K_FUNC::E_max(dx, dx23); dy = K_FUNC::E_max(dy, dy23);
 
@@ -798,20 +798,20 @@ K_GEOM::testIfEdgesCentersInContour(E_Int ind1, E_Int ind2, E_Int ind3,
   E_Float P[3];
   P[0] = 0.5*(x1+x2); P[1] = 0.5*(y1+y2); P[2] = z;
 
-  E_Int isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1), 
-                                            cnc, P, eps, 
+  E_Int isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1),
+                                            cnc, P, eps,
                                             NULL, NULL);
   if ( isIn == 0 ) return 0;
-  
+
   P[0] = 0.5*(x3+x2); P[1] = 0.5*(y3+y2); P[2] = z;
-  isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1), 
-                                      cnc, P, eps, 
+  isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1),
+                                      cnc, P, eps,
                                       NULL, NULL);
   if ( isIn == 0 ) return 0;
 
   P[0] = 0.5*(x1+x3); P[1] = 0.5*(y1+y3); P[2] = z;
-  isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1), 
-                                      cnc, P, eps, 
+  isIn = K_COMPGEOM::pointInPolygon2D(coordc.begin(posxc1), coordc.begin(posyc1), coordc.begin(poszc1),
+                                      cnc, P, eps,
                                       NULL, NULL);
   if ( isIn == 0 ) return 0;
   return 1;

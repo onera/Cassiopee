@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -32,21 +32,21 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   PyObject *blks, *bodiesC;
   E_Int isminortho;
   if (!PYPARSETUPLE_(args, OO_ I_, &blks, &bodiesC, &isminortho)) return NULL;
-  
+
   if (PyList_Check(blks) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "dist2Walls: 1st argument must be a list.");
     return NULL;
   }
 
   if (PyList_Check(bodiesC) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "dist2Walls: 2nd argument must be a list.");
     return NULL;
   }
-  
+
   // Maillage: les coordonnees doivent etre en premier
   vector<PyObject*> objst, objut;
   vector<char*> structVarString0; vector<char*> unstrVarString0;
@@ -62,7 +62,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nz; i++)
   {
     o = PyList_GetItem(blks, i);
-    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
                                  nil, njl, nkl, cnl, eltTypel);
     if (res == 1)
     {
@@ -83,20 +83,20 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
 
   E_Int api = -1;
   E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
-  E_Int posx=-1, posy=-1, posz=-1; 
-  vector<E_Int> ncellss; vector<E_Int> ncellsu; 
+  E_Int posx=-1, posy=-1, posz=-1;
+  vector<E_Int> ncellss; vector<E_Int> ncellsu;
   // Verification de posxi, posyi, poszi dans listFields: vars 1,2,3 imposees
   for (E_Int i = 0; i < ns0; i++)
   {
     E_Int posxi = K_ARRAY::isCoordinateXPresent(structVarString0[i]);
     E_Int posyi = K_ARRAY::isCoordinateYPresent(structVarString0[i]);
     E_Int poszi = K_ARRAY::isCoordinateZPresent(structVarString0[i]);
-    posxi++; posyi++; poszi++; 
+    posxi++; posyi++; poszi++;
     if (posx == -1) posx = posxi;
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
 
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
         "dist2Walls: coordinates must be located at same position for all zones.");
@@ -118,7 +118,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
 
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
         "dist2Walls: coordinates must be located at same position for all zones.");
@@ -136,13 +136,13 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt;
   vector<char*> eltTypeb;
-  vector<PyObject*> objs, obju;  
+  vector<PyObject*> objs, obju;
   nz = PyList_Size(bodiesC);
 
   for (E_Int i = 0; i < nz; i++)
   {
     o = PyList_GetItem(bodiesC, i);
-    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
                                  nil, njl, nkl, cnl, eltTypel);
     if (api == -1) api = fl->getApi();
     if (res == 1)
@@ -178,7 +178,7 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // verification de posxv, posyv, poszv dans bodiesC  
+  // verification de posxv, posyv, poszv dans bodiesC
   vector<E_Int> posxv; vector<E_Int> posyv; vector<E_Int> poszv;
   vector<E_Int> poscv;
   for (E_Int v = 0; v < nwalls; v++)
@@ -192,41 +192,41 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
     poszv0++; poszv.push_back(poszv0);
     poscv0++; poscv.push_back(poscv0);
   }
-  
+
   // Calcul de la distance a la paroi
   vector<FldArrayF*> distances;
   for (E_Int i = 0; i < ns0; i++)
   {
     E_Int ncells = ncellss[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distances.push_back(distance);
   }
-  if (structF0.size() > 0) 
-    computeMininterf(ncellss, posx, posy, posz, 
-                     structF0, posxv, posyv, poszv, poscv, unstrF, 
+  if (structF0.size() > 0)
+    computeMininterf(ncellss, posx, posy, posz,
+                     structF0, posxv, posyv, poszv, poscv, unstrF,
                      distances,cnt,isminortho);
   vector<FldArrayF*> distancesu;
   for (E_Int i = 0; i < nu0; i++)
   {
     E_Int ncells = ncellsu[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distancesu.push_back(distance);
   }
   if (unstrF0.size() > 0)
     computeMininterf(ncellsu, posx, posy, posz,
-                     unstrF0, posxv, posyv, poszv, poscv, unstrF, 
+                     unstrF0, posxv, posyv, poszv, poscv, unstrF,
                      distancesu, cnt, isminortho);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
   // Build arrays
   PyObject* l = PyList_New(0);
-  PyObject* tpl;    
+  PyObject* tpl;
   for (E_Int nos = 0; nos < ns0; nos++)
   {
-    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance",
                                nit0[nos], njt0[nos], nkt0[nos], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
@@ -249,10 +249,10 @@ PyObject* K_DIST2WALLS::distance2Walls(PyObject* self, PyObject* args)
 //=============================================================================
 void K_DIST2WALLS::computeMininterf(
   vector<E_Int>& ncellst,
-  E_Int posx, E_Int posy, E_Int posz, 
-  vector<FldArrayF*>& fields, 
-  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
-  vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw, 
+  E_Int posx, E_Int posy, E_Int posz,
+  vector<FldArrayF*>& fields,
+  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv,
+  vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw,
   vector<FldArrayF*>& distances,vector<FldArrayI*>& cntw,
   E_Int isminortho)
 {
@@ -274,7 +274,7 @@ void K_DIST2WALLS::computeMininterf(
   E_Float* zw2 = wallpts->begin(3);
   E_Int c = 0;
   E_Int nzones = fields.size();
-  
+
   // concatenate walls in a single array
   for (E_Int v = 0; v < nwalls; v++)
   {
@@ -284,10 +284,10 @@ void K_DIST2WALLS::computeMininterf(
     E_Float* yw = fieldv->begin(posyw);
     E_Float* zw = fieldv->begin(poszw);
     E_Int ncellsw = fieldv->getSize();
-    /* recuperation des points calcules uniquement 
+    /* recuperation des points calcules uniquement
        pas de pts masques et interpoles dans kdtree */
     E_Int poscw = poscv[v]; E_Float* cellnw0 = fieldv->begin(poscw);
-    
+
     for (E_Int i = 0; i < ncellsw; i++)
     {
       if (cellnw0[i] == 1.)
@@ -296,10 +296,10 @@ void K_DIST2WALLS::computeMininterf(
   }
 
   if (c != wallpts->getSize()) wallpts->reAllocMat(c, 3); // si cellN
-  
+
   if (c == 0) // no wall
   {
-    for (E_Int v = 0; v < nzones; v++) 
+    for (E_Int v = 0; v < nzones; v++)
     {
       E_Int ncells = ncellst[v];
       E_Float* distancep = distances[v]->begin();
@@ -308,14 +308,14 @@ void K_DIST2WALLS::computeMininterf(
     }
     return;
   }
-  
+
   xw2 = wallpts->begin(1);
   yw2 = wallpts->begin(2);
   zw2 = wallpts->begin(3);
-  
+
   ArrayAccessor<FldArrayF> coordAcc(*wallpts, 1,2,3);
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
-  
+
   /* Detection de la paroi la plus proche */
   #pragma omp parallel
   {

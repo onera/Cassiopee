@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,7 +36,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   if ( res == 1 ) ;
   else if (res == 2)
   {
@@ -44,7 +44,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
                     "subzoneStructInt: cannot be used on an unstructured array.");
     RELEASESHAREDU(array, f, cn); return NULL;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: unknown type of array.");
@@ -52,7 +52,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   }
   FldArrayI intIndices;
   E_Int ok = K_ARRAY::getFromList(listOfInterfaces, intIndices);
-  if (ok == 0) 
+  if (ok == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: 2nd argument must be an integer list or a numpy.");
@@ -62,19 +62,19 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   E_Int* intIndicesp = intIndices.begin();
 
   char newEltType[256];
-  E_Int ni1 = K_FUNC::E_max(1,ni-1); 
-  E_Int nj1 = K_FUNC::E_max(1,nj-1); 
+  E_Int ni1 = K_FUNC::E_max(1,ni-1);
+  E_Int nj1 = K_FUNC::E_max(1,nj-1);
   E_Int nk1 = K_FUNC::E_max(1,nk-1);
   E_Int ni1nj1 = ni1*nj1;
   E_Int ninti  = ni*nj1*nk1;
-  E_Int nintj  = ni1*nj*nk1; 
+  E_Int nintj  = ni1*nj*nk1;
   E_Int nintij = ninti+nintj;
-  E_Int nfld = f->getNfld();  
+  E_Int nfld = f->getNfld();
   E_Int api = f->getApi();
   PyObject* tpl;
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;  
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
   E_Int i,j,k,ind, indint, incnode;
   E_Int incdir1, incdir2;
   E_Int ni1nj = ni1*nj;
@@ -109,7 +109,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
     for (E_Int noint = 0; noint < n; noint++)
     {
       indint = intIndicesp[noint];
-      if (indint < ninti) // i-interface 
+      if (indint < ninti) // i-interface
       {
         incnode = ni;
         j = indint/ni;
@@ -120,8 +120,8 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
         incnode = 1;
         j = (indint-ninti)/ni1;
         i = (indint-ninti)-j*ni1;
-      } 
-      
+      }
+
       ind = i + j*ni;
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
@@ -133,16 +133,16 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
       nov+=2;
       indcell++;
     }
-    
+
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType, 
+      K_CONNECT::cleanConnectivity(posx, posy, posz,
+                                   1.e-12, newEltType,
                                    *fnodes, *connect);
     tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType, api);
     delete fnodes; delete connect;
   }
   else if (ni > 1 && nj > 1 && nk > 1)
-  {  
+  {
     strcpy(newEltType, "QUAD");
     FldArrayF* fnodes = new FldArrayF(n*4,nfld);// dimension max
     FldArrayI* connect = new FldArrayI(n,4);// nb interfaces
@@ -155,7 +155,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
     for (E_Int noint = 0; noint < n; noint++)
     {
       indint = intIndicesp[noint];
-      if (indint < ninti) // i-interface 
+      if (indint < ninti) // i-interface
       {
         //indint = i+j*ni+k*ni*nj1;
         k = indint/(ninj1);
@@ -170,7 +170,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
         j = (indint-ninti-k*ni1nj)/ni1;
         i = indint-ninti-k*ni1nj-j*ni1;
         incdir1 = 1; incdir2 = ninj;
-      } 
+      }
       else // k-interface
       {
         //indint = i+j*ni1+k*ni1*nj1+nintij;
@@ -193,15 +193,15 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
       cn4[indcell] = nov+4;
       nov+=4; indcell++;
     }
-    
+
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType, 
+      K_CONNECT::cleanConnectivity(posx, posy, posz,
+                                   1.e-12, newEltType,
                                    *fnodes, *connect);
     tpl = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType, api);
     delete fnodes; delete connect;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: 1D zones must be nk=1 and 2D zones (nj=1,nk=1).");
@@ -209,7 +209,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   }
   RELEASESHAREDS(array, f);
   return tpl;
-}     
+}
 // ============================================================================
 /* Subzone a structured mesh using a list of interface indices
   returns a QUAD mesh */
@@ -221,7 +221,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
 
   FldArrayI intIndices;
   E_Int ok = K_ARRAY::getFromList(listOfInterfaces, intIndices);
-  if (ok == 0) 
+  if (ok == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructIntBoth: 2nd argument must be an integer list or a numpy.");
@@ -234,7 +234,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(arrayN, varString, f, ni, nj, nk, cn, eltType);
   if (res == 1);
   else if (res == 2)
   {
@@ -242,17 +242,17 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
                     "subzoneStructInt: cannot be used on an unstructured array.");
     RELEASESHAREDU(arrayN, f, cn); return NULL;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: unknown type of array.");
     return NULL;
   }
-  // Check array of centers 
+  // Check array of centers
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  res = K_ARRAY::getFromArray3(arrayC, varStringc, fc, nic, njc, nkc, cnc, eltTypec); 
+  res = K_ARRAY::getFromArray3(arrayC, varStringc, fc, nic, njc, nkc, cnc, eltTypec);
   if (res == 1);
   else if (res == 2)
   {
@@ -260,7 +260,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
                     "subzoneStructInt: cannot be used on an unstructured array.");
     RELEASESHAREDS(arrayN,f); RELEASESHAREDU(arrayC, fc, cnc); return NULL;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: unknown type of array.");
@@ -268,12 +268,12 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   }
 
   char newEltType[256];
-  E_Int ni1 = K_FUNC::E_max(1,ni-1); 
-  E_Int nj1 = K_FUNC::E_max(1,nj-1); 
+  E_Int ni1 = K_FUNC::E_max(1,ni-1);
+  E_Int nj1 = K_FUNC::E_max(1,nj-1);
   E_Int nk1 = K_FUNC::E_max(1,nk-1);
   E_Int ni1nj1 = ni1*nj1;
   E_Int ninti  = ni*nj1*nk1;
-  E_Int nintj  = ni1*nj*nk1; 
+  E_Int nintj  = ni1*nj*nk1;
   E_Int nintij = ninti+nintj;
   E_Int i,j,k,ind, indcell, indint, incnode;
   E_Int incdir1, incdir2;
@@ -282,12 +282,12 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   E_Int ninj1 = ni*nj1;
 
   E_Int api = f->getApi();
-  E_Int nfld = f->getNfld();  
-  E_Int nfldc = fc->getNfld();  
+  E_Int nfld = f->getNfld();
+  E_Int nfldc = fc->getNfld();
   PyObject *tplN, *tplC;
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;  
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
   PyObject* l = PyList_New(0);
   E_Int nov = 0;
   E_Int noet = 0;
@@ -301,17 +301,17 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
     {
       indint = intIndicesp[noint];
       i = indint;
-      for (E_Int eq = 1; eq <= nfld; eq++)      
+      for (E_Int eq = 1; eq <= nfld; eq++)
         (*fnodes)(nov,eq) = (*f)(i,eq);
       if (i == 0)
       {
         for (E_Int eq = 1; eq <= nfldc; eq++)
-          (*fcenters)(nov,eq) = (*fc)(i,eq); 
+          (*fcenters)(nov,eq) = (*fc)(i,eq);
       }
       else if (i == ni-1)
       {
         for (E_Int eq = 1; eq <= nfldc; eq++)
-          (*fcenters)(nov,eq) = (*fc)(i-1,eq); 
+          (*fcenters)(nov,eq) = (*fc)(i-1,eq);
       }
       else
       {
@@ -324,7 +324,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
     PyList_Append(l,tplN); Py_DECREF(tplN);
     tplC = K_ARRAY::buildArray3(*fcenters, varStringc, *connect, newEltType, api);
     PyList_Append(l,tplC); Py_DECREF(tplC);
-    delete fnodes; delete fcenters; delete connect; 
+    delete fnodes; delete fcenters; delete connect;
   }
   else if (nk == 1)
   {
@@ -337,7 +337,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
     for (E_Int noint = 0; noint < n; noint++)
     {
       indint = intIndicesp[noint];
-      if (indint < ninti) // i-interface 
+      if (indint < ninti) // i-interface
       {
         incnode = ni;
         j = indint/ni;
@@ -348,8 +348,8 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
         incnode = 1;
         j = (indint-ninti)/ni1;
         i = (indint-ninti)-j*ni1;
-      } 
-      
+      }
+
       ind = i + j*ni;
       indcell = i+ j*ni1;
       for (E_Int eq = 1; eq <= nfld; eq++)
@@ -357,26 +357,26 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
         (*fnodes)(nov,eq) = (*f)(ind,eq);
         (*fnodes)(nov+1,eq) = (*f)(ind+incnode,eq);
       }
-      for (E_Int eq = 1; eq <= nfldc; eq++)      
+      for (E_Int eq = 1; eq <= nfldc; eq++)
         (*fcenters)(noet,eq) = (*fc)(indcell,eq);
-      
+
       cn1[noet] = nov+1;
       cn2[noet] = nov+2;
       nov+=2; noet++;
     }
-    
+
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType, 
+      K_CONNECT::cleanConnectivity(posx, posy, posz,
+                                   1.e-12, newEltType,
                                    *fnodes, *connect);
     tplN = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType, api);
     PyList_Append(l,tplN); Py_DECREF(tplN);
     tplC = K_ARRAY::buildArray3(*fcenters, varStringc, *connect, newEltType, api);
     PyList_Append(l,tplC); Py_DECREF(tplC);
-    delete fnodes; delete fcenters; delete connect; 
+    delete fnodes; delete fcenters; delete connect;
   }
   else if (ni > 1 && nj > 1 && nk > 1)
-  {  
+  {
     strcpy(newEltType, "QUAD");
     FldArrayF* fnodes = new FldArrayF(n*4,nfld);// dimension max
     FldArrayF* fcenters = new FldArrayF(n,nfldc);
@@ -390,7 +390,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
     for (E_Int noint = 0; noint < n; noint++)
     {
       indint = intIndicesp[noint];
-      if (indint < ninti) // i-interface 
+      if (indint < ninti) // i-interface
       {
         //indint = i+j*ni+k*ni*nj1;
         k = indint/(ninj1);
@@ -405,7 +405,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
         j = (indint-ninti-k*ni1nj)/ni1;
         i = indint-ninti-k*ni1nj-j*ni1;
         incdir1 = 1; incdir2 = ninj;
-      } 
+      }
       else // k-interface
       {
         //indint = i+j*ni1+k*ni1*nj1+nintij;
@@ -431,18 +431,18 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
       cn4[noet] = nov+4;
       nov+=4; noet++;
     }
-    
+
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType, 
+      K_CONNECT::cleanConnectivity(posx, posy, posz,
+                                   1.e-12, newEltType,
                                    *fnodes, *connect);
     tplN = K_ARRAY::buildArray3(*fnodes, varString, *connect, newEltType, api);
     PyList_Append(l,tplN); Py_DECREF(tplN);
     tplC = K_ARRAY::buildArray3(*fcenters, varStringc, *connect, newEltType, api);
     PyList_Append(l,tplC); Py_DECREF(tplC);
-    delete fnodes; delete fcenters; delete connect; 
+    delete fnodes; delete fcenters; delete connect;
   }
-  else 
+  else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: 1D zones must be nk=1 and 2D zones (nj=1,nk=1).");
@@ -450,5 +450,5 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   }
   RELEASESHAREDS(arrayN, f); RELEASESHAREDS(arrayC, fc);
   return l;
-}     
+}
 

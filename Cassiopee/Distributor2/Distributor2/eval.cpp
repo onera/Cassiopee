@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -34,7 +34,7 @@ E_Float K_DISTRIBUTOR2::eval(
 {
   nbPtsPerProcs.setAllValuesAtNull();
   E_Float* nbPtsPerProcsp = nbPtsPerProcs.begin();
-      
+
   E_Int i, k, p, proci, prock;
   E_Float res, volcom, lati, speedi;
 
@@ -42,7 +42,7 @@ E_Float K_DISTRIBUTOR2::eval(
   {
     nbPtsPerProcsp[dis[i]] += nbPts[i];
   }
- 
+
   res = 0.;
   for (p = 0; p < NProc; p++)
     res += solver[p] * K_FUNC::E_abs(nbPtsPerProcsp[p]-meanPtsPerProc);
@@ -70,7 +70,7 @@ E_Float K_DISTRIBUTOR2::eval(
       }
     }
   }
-  
+
   // avec comd
   if (comd != NULL)
   {

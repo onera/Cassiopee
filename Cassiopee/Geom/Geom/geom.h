@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -51,23 +51,23 @@ namespace K_GEOM
   PyObject* getNearestPointIndex(PyObject* self, PyObject* args);
   PyObject* getUV(PyObject* self, PyObject* args);
 
-  /* Calcul des centres des cercles circonscrits de tous les triangles 
+  /* Calcul des centres des cercles circonscrits de tous les triangles
      IN: coord: coordonnees des vertices
      IN: cn: connectivite element->vertex
-     OUT: coordCC: coordonnees des centres des cercles circonscrits aux 
+     OUT: coordCC: coordonnees des centres des cercles circonscrits aux
      triangles
      coordCC est alloue par la routine */
-  void compCCCenters(E_Float* xt, E_Float* yt, E_Float* zt, K_FLD::FldArrayI& cn, 
+  void compCCCenters(E_Float* xt, E_Float* yt, E_Float* zt, K_FLD::FldArrayI& cn,
                      K_FLD::FldArrayF& coordCC);
 
   /* Creation du tableau des aretes du diagramme de Voronoi d une triangulation
      IN: nvertex: nb de vertices dans la triangulation
      IN: cn: connectivite element -> vertex
      OUT: vedges: retourne les 2 elements voisins a une arete du diagramme de Voronoi */
-  void compVoronoiEdges(E_Int nv, K_FLD::FldArrayI& cn, 
+  void compVoronoiEdges(E_Int nv, K_FLD::FldArrayI& cn,
                         K_FLD::FldArrayI& vedges);
 
-  /* Construction des tetraedres formes par une base tri et un vertex de 
+  /* Construction des tetraedres formes par une base tri et un vertex de
      type Ti
      type: tableau informant sur le type de tetraedre forme: type0
      IN: type0: type de la triangulation (1 ou 2)
@@ -83,16 +83,16 @@ namespace K_GEOM
      IN/OUT: coord: coordonnees des sommets du maillage tetraedrique mis a jour
      IN/OUT: cn: connectivite du maillage tetraedrique
   */
-  void compTetraType1(E_Int type0, E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+  void compTetraType1(E_Int type0, E_Int posxc1, E_Int posyc1, E_Int poszc1,
                       K_FLD::FldArrayF& fc1, K_FLD::FldArrayI& cnpoly1,
-                      K_FLD::FldArrayI& cn1, K_FLD::FldArrayF& coordCC1, 
+                      K_FLD::FldArrayI& cn1, K_FLD::FldArrayF& coordCC1,
                       K_FLD::FldArrayF& coord1, K_FLD::FldArrayF& coord2,
                       E_Int& nv, E_Int& ne, K_FLD::FldArrayI& type1,
                       K_FLD::FldArrayF& coord, K_FLD::FldArrayI& cn,
                       K_FLD::FldArrayI& type);
 
   /* Calcul les tetraedres de type T12 : issus de 2 aretes intersectantes
-     des diagrammes de Voronoi de T1 et T2 
+     des diagrammes de Voronoi de T1 et T2
      IN: coordpoly1: coordonnees des sommets du contour 1
      IN: cnpoly1: connectivite BAR du contour1
      IN: cn1: connectivite triangle element->vertex de la triangulation T1
@@ -111,27 +111,27 @@ namespace K_GEOM
      IN/OUT: cn: connectivite du maillage tetraedrique
      IN/OUT: type: type des tetraedres (t1, t2, t12)
   */
-  void compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+  void compTetraType12(E_Int posxc1, E_Int posyc1, E_Int poszc1,
                        K_FLD::FldArrayF& fc1, K_FLD::FldArrayI& cnpoly1,
                        K_FLD::FldArrayI& cn1,
                        K_FLD::FldArrayF& coordCC1, K_FLD::FldArrayF& coord1,
-                       E_Int posxc2, E_Int posyc2, E_Int poszc2, 
+                       E_Int posxc2, E_Int posyc2, E_Int poszc2,
                        K_FLD::FldArrayF& fc2, K_FLD::FldArrayI& cnpoly2,
                        K_FLD::FldArrayI& cn2, K_FLD::FldArrayF& coordCC2,
-                       K_FLD::FldArrayF& coord2, 
-                       K_FLD::FldArrayI& type1, K_FLD::FldArrayI& type2, 
+                       K_FLD::FldArrayF& coord2,
+                       K_FLD::FldArrayI& type1, K_FLD::FldArrayI& type2,
                        E_Int& nv, E_Int& ne,
                        K_FLD::FldArrayF& coord, K_FLD::FldArrayI& cn,
                        K_FLD::FldArrayI& type);
 
-  /* Determine les indices des vertices dans la triangulation de Delaunay 
-     communs aux 2 elements et1 et et2. Retourne les indices des sommets 
+  /* Determine les indices des vertices dans la triangulation de Delaunay
+     communs aux 2 elements et1 et et2. Retourne les indices des sommets
      ind demarre a 1
      IN: et1, et2: numero des elements
-     IN: cEV: connectivite element->vertex 
+     IN: cEV: connectivite element->vertex
      OUT: ind: tableau des indices des 2 sommets communs aux triangles et1 et et2
   */
-  void getDelaunayVertices(E_Int et1, E_Int et2, K_FLD::FldArrayI& cEV, 
+  void getDelaunayVertices(E_Int et1, E_Int et2, K_FLD::FldArrayI& cEV,
                            K_FLD::FldArrayI& ind);
 
   /* Perturbe la triangulation T1 si les coordonnees (x,y) de 2 points,
@@ -141,11 +141,11 @@ namespace K_GEOM
      IN: f1: coordonnees des pts de la triangulation T1
      IN: f2: coordonnees des pts de la triangulation T2
      OUT: coord1: coordonnees de T1 eventuellement perturbees
-     OUT: coord2: coordonnees de T2 
+     OUT: coord2: coordonnees de T2
   */
-  void perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1, 
-                    K_FLD::FldArrayF& f1, 
-                    E_Int posx2, E_Int posy2, E_Int posz2, 
+  void perturbate2D(E_Int posx1, E_Int posy1, E_Int posz1,
+                    K_FLD::FldArrayF& f1,
+                    E_Int posx2, E_Int posy2, E_Int posz2,
                     K_FLD::FldArrayF& f2,
                     K_FLD::FldArrayF& coord1, K_FLD::FldArrayF& coord2);
 
@@ -153,12 +153,12 @@ namespace K_GEOM
      si le tetraedre n a pas un voisin t12, le supprimer.
      IN: type : tableau des types des tetraedres
      IN/OUT: cn : connectivite TETRA/VERTEX
-     IN/OUT: coord : points dans le maillage tetraedrique 
+     IN/OUT: coord : points dans le maillage tetraedrique
   */
-  void checkTetrahedra(K_FLD::FldArrayI& type, K_FLD::FldArrayI& cn, 
+  void checkTetrahedra(K_FLD::FldArrayI& type, K_FLD::FldArrayI& cn,
                        K_FLD::FldArrayF& coord);
 
-  /* Test si les trois aretes d'un triangle sont interieures 
+  /* Test si les trois aretes d'un triangle sont interieures
      au contour ou sur le contour.
      IN: ind1, ind2, ind3: indices globaux des sommets du triangle
      IN: coord: coordonnees des sommets
@@ -169,44 +169,44 @@ namespace K_GEOM
   */
   E_Int testIfEdgesCentersInContour(
     E_Int ind1, E_Int ind2,E_Int ind3,
-    K_FLD::FldArrayF& coord,  
-    E_Int posxc1, E_Int posyc1, E_Int poszc1, 
+    K_FLD::FldArrayF& coord,
+    E_Int posxc1, E_Int posyc1, E_Int poszc1,
     K_FLD::FldArrayF& coordpoly1, K_FLD::FldArrayI& cnc);
 
   /* Calcule l'angle de courbure pour un "i-array" */
-  void computationForiArray(E_Int im, E_Float* xt, E_Float* yt, 
+  void computationForiArray(E_Int im, E_Float* xt, E_Float* yt,
                             K_FLD::FldArrayF& angle);
 
   /* Calcule l'angle de courbure pour un "Bar" */
-  void computationForBar(E_Int im, E_Int sizef, E_Float* xt, E_Float* yt, 
+  void computationForBar(E_Int im, E_Int sizef, E_Float* xt, E_Float* yt,
                          K_FLD::FldArrayI* cn, K_FLD::FldArrayF& angle);
 
   /* Calcule l'angle de courbure pour un "Tri" */
-  void computationForTri(E_Int im, E_Int sizef, E_Float* xt, E_Float* yt, 
-                         E_Float* zt, K_FLD::FldArrayI* cn, 
+  void computationForTri(E_Int im, E_Int sizef, E_Float* xt, E_Float* yt,
+                         E_Float* zt, K_FLD::FldArrayI* cn,
                          K_FLD::FldArrayF& angle);
   /* Calcul des B-spline avec l'algorithme de De Boor */
-  void evalSpline(E_Float t, K_FLD::FldArrayF& x, E_Int n, E_Int c, 
+  void evalSpline(E_Float t, K_FLD::FldArrayF& x, E_Int n, E_Int c,
                   E_Float* xt, E_Float* yt, E_Float* zt,
                   E_Float& xo, E_Float& yo, E_Float& zo);
 
 
   /* Calcul des nurbs avec l'algorithme de De Boor */
-  void evalNurbs (E_Float t, K_FLD::FldArrayF& x, E_Int n, E_Int c, 
+  void evalNurbs (E_Float t, K_FLD::FldArrayF& x, E_Int n, E_Int c,
                   K_FLD::FldArrayF& N);
 
   /* Calcule l'angle de courbure pour un i-array */
   void getCurvatureAngleForiArray(
-    E_Int im, E_Float* xt, E_Float* yt, E_Float* zt, 
+    E_Int im, E_Float* xt, E_Float* yt, E_Float* zt,
     K_FLD::FldArrayF& angle);
   /* Calcule l'angle de courbure pour un BAR-array */
   void getCurvatureAngleForBar(
-    E_Int sizef, E_Float* xt, E_Float* yt, E_Float* zt, 
+    E_Int sizef, E_Float* xt, E_Float* yt, E_Float* zt,
     K_FLD::FldArrayI* cn, K_FLD::FldArrayF& angle);
   /* Calcule l'angle de courbure pour un TRI-array */
   E_Int getCurvatureAngleForTri(
     E_Float* xt, E_Float* yt, E_Float* zt,
-    K_FLD:: FldArrayI* cn, 
+    K_FLD:: FldArrayI* cn,
     K_FLD::FldArrayF& angle);
 
   /* Calcul le factoriel */

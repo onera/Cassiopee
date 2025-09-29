@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -42,28 +42,28 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int imjm = im*jm;
 
   if (res == 1)
-  { 
+  {
     // Negative -> max indices
     if (i1 < 0) i1 = im+i1+1;
     if (j1 < 0) j1 = jm+j1+1;
     if (k1 < 0) k1 = km+k1+1;
-    
+
     if (i2 < 0) i2 = im+i2+1;
     if (j2 < 0) j2 = jm+j2+1;
     if (k2 < 0) k2 = km+k2+1;
-    
+
     E_Int in = i2-i1+1;
     E_Int jn = j2-j1+1;
     E_Int kn = k2-k1+1;
     E_Int injn = in*jn;
     E_Int nfld = f->getNfld();
     E_Int api = f->getApi();
-    
+
     // Check
     if (i2 > im || i1 > im || i2 < i1 || i1 < 1 ||
         j2 > jm || j1 > jm || j2 < j1 || j1 < 1 ||
@@ -76,7 +76,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
                       "subzone: wrong choice of index.");
       return NULL;
     }
-    
+
     // Construit l'array resultat
     PyObject* tpl= K_ARRAY::buildArray3(nfld, varString, in, jn, kn, api);
     E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
@@ -139,7 +139,7 @@ PyObject* K_TRANSFORM::subzoneStruct(PyObject* self, PyObject* args)
                     "subzone: unknown type of array.");
     return NULL;
   }
-}     
+}
 
 // ============================================================================
 /* Subzone an unstructured mesh given a list of vertex indices */
@@ -154,7 +154,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -168,7 +168,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDS(array, f); return NULL;
   }
-  if (strcmp(eltType,"NGON") == 0) 
+  if (strcmp(eltType,"NGON") == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: type='nodes' not implemented for a NGON array.");
@@ -176,19 +176,19 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   }
   FldArrayI indices;
   E_Int ok = K_ARRAY::getFromList(listOfNodes, indices);
-  if (ok == 0) 
+  if (ok == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: 2nd argument must be an integer list or a numpy.");
     RELEASESHAREDU(array, f, cn); return NULL;
   }
-  
+
   E_Int n = indices.getSize();
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
   E_Int* indicesp = indices.begin();
   FldArrayI tmap(npts); tmap.setAllValuesAt(-1); E_Int* tmapP = tmap.begin();
 
-  if (strcmp(eltType, "NODE") == 0) 
+  if (strcmp(eltType, "NODE") == 0)
   {
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, n, 0, eltType,
                                          false, api);
@@ -197,10 +197,10 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int indv;
-      
+
       #pragma omp for
       for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
-      
+
       // Mapping f -> f2
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
@@ -245,7 +245,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       for (E_Int j = 1; j <= nvpe; j++)
       {
         indv = cm(i,j)-1;
-        if (tmapP[indv] != -1) compt++; 
+        if (tmapP[indv] != -1) compt++;
       }
       if (compt == nvpe)
       {
@@ -295,7 +295,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       {
         noe = eltList[ic][i];
         for (E_Int j = 1; j <= nvpe; j++)
-        {  
+        {
           indv = cm(noe,j)-1;
           cm2(i,j) = tmapP[indv]+1;
         }
@@ -303,7 +303,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       ic2++;
     }
 
-    for (E_Int eq = 1; eq <= nfld; eq++) 
+    for (E_Int eq = 1; eq <= nfld; eq++)
     {
       E_Float* fp = f->begin(eq);
       E_Float* f2p = f2->begin(eq);
@@ -342,7 +342,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
 
   FldArrayI indices;
   E_Int ok = K_ARRAY::getFromList(listOfNodes, indices);
-  if (ok == 0) 
+  if (ok == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: 2nd argument must be an integer list or a numpy.");
@@ -353,7 +353,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -366,7 +366,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDS(arrayNodes, f); return NULL;
   }
-  if (strcmp(eltType,"NGON") == 0) 
+  if (strcmp(eltType,"NGON") == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: type='nodes' not implemented for a NGON array.");
@@ -376,7 +376,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec); 
+  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -389,11 +389,11 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters,fc); return NULL;
   }
-  if (K_STRING::cmp(eltTypec,"NGON*") == 0) 
+  if (K_STRING::cmp(eltTypec,"NGON*") == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: type='nodes' not implemented for a NGON array.");
-    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
 
@@ -401,7 +401,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: sizes of connectivities at nodes and centers are not equal.");
-    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+    RELEASESHAREDU(arrayNodes,f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
 
@@ -411,8 +411,8 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   E_Int nfld = f->getNfld(), nfldc = fc->getNfld();
   E_Int* indicesp = indices.begin();
   FldArrayI tmap(npts); tmap.setAllValuesAt(-1); E_Int* tmapP = tmap.begin();
-  
-  if (strcmp(eltType, "NODE") == 0) 
+
+  if (strcmp(eltType, "NODE") == 0)
   {
     PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, n, 0, eltType,
                                           false, api);
@@ -427,8 +427,8 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
 
       #pragma omp for
       for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
-      
-      for (E_Int eq = 1; eq <= nfld; eq++) 
+
+      for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
         E_Float* f2p = f2->begin(eq);
@@ -440,7 +440,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
         }
       }
 
-      for (E_Int eq = 1; eq <= nfldc; eq++) 
+      for (E_Int eq = 1; eq <= nfldc; eq++)
       {
         E_Float* fcp = fc->begin(eq);
         E_Float* fc2p = fc2->begin(eq);
@@ -452,10 +452,10 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
         }
       }
     }
-    
+
     RELEASESHAREDS(tpln, f2); PyList_Append(l, tpln); Py_DECREF(tpln);
     RELEASESHAREDS(tplc, fc2); PyList_Append(l, tplc); Py_DECREF(tplc);
-    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);  
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
     return l;
   }
 
@@ -466,12 +466,12 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
     FldArrayI& cm = *(cn->getConnect(ic));
     neltstot += cm.getSize();
   }
-  
+
   if (nelts != neltstot)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: arrays located at nodes and centers are not consistent.");
-    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
 
@@ -483,7 +483,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
   // Permet de savoir si un point n'est pas utilise
   FldArrayI tag(n); tag.setAllValuesAtNull();
   E_Int* tagp = tag.begin();
-  
+
   #pragma omp parallel num_threads(numThreads)
   {
     #pragma omp for
@@ -492,7 +492,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
     E_Int threadId = __CURRENT_THREAD__;
     vector<vector<E_Int> >& threadIdEltList = threadEltList[threadId];
     threadIdEltList.resize(nc);
-  
+
     for (E_Int ic = 0; ic < nc; ic++)
     {
       E_Int compt, indv;
@@ -507,7 +507,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
         for (E_Int j = 1; j <= nvpe; j++)
         {
           indv = cm(i,j)-1;
-          if (tmapP[indv] != -1) compt++; 
+          if (tmapP[indv] != -1) compt++;
         }
         if (compt == nvpe)
         {
@@ -566,7 +566,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
       {
         noe = eltList[ic][i];
         for (E_Int j = 1; j <= nvpe; j++)
-        {  
+        {
           indv = cm(noe,j)-1;
           cm2(i,j) = tmapP[indv]+1;
         }
@@ -591,7 +591,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
     E_Int ind;
 
     // Champs aux noeuds
-    for (E_Int eq = 1; eq <= nfld; eq++) 
+    for (E_Int eq = 1; eq <= nfld; eq++)
     {
       E_Float* fp = f->begin(eq);
       E_Float* f2p = f2->begin(eq);
@@ -604,7 +604,7 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
     }
 
     // Champs aux centres
-    for (E_Int eq = 1; eq <= nfldc; eq++) 
+    for (E_Int eq = 1; eq <= nfldc; eq++)
     {
       E_Float* fcp = fc->begin(eq);
       E_Float* fc2p = fc2->begin(eq);
@@ -649,7 +649,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -657,16 +657,16 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     return NULL;
   }
   if (res == 1)
-  {    
+  {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: can not be used on a structured array.");
     RELEASESHAREDS(array, f); return NULL;
   }
-  
+
   PyObject* tpl = NULL;
   E_Int n = eltList.getSize();
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
-  
+
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
     E_Int shift = 1; if (api == 3) shift = 0;
@@ -697,17 +697,17 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       for (E_Int nof = 0; nof < nfaces; nof++)
       {
         indface = elt[nof]-1;
-        if (indirFacesp[indface] == -1) 
+        if (indirFacesp[indface] == -1)
         {
-          indFaceOut = nbFacesOut; 
-          indirFacesp[indface] = indFaceOut; 
+          indFaceOut = nbFacesOut;
+          indirFacesp[indface] = indFaceOut;
           nbFacesOut++;
           origIndicesOfFaces.push_back(indface);
         }
         else indFaceOut = indirFacesp[indface];
         ptrEFTemp[nof+shift] = indFaceOut+1;
-      }      
-      ptrEFTemp += nfaces+shift; sizeEF2 += nfaces+shift; 
+      }
+      ptrEFTemp += nfaces+shift; sizeEF2 += nfaces+shift;
       cPHTemp[noe] = nfaces;
     }
     indirFaces.malloc(0); cEFTemp.resize(sizeEF2);
@@ -732,7 +732,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
           ptrFNTemp[p+shift] = nUniqueNodes+1;
           nUniqueNodes++;
         }
-        else 
+        else
         {
           ptrFNTemp[p+shift] = indirNp[indnode];
         }
@@ -740,7 +740,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       ptrFNTemp += nbnodes+shift; sizeFN2 += nbnodes+shift;
       cPGTemp[nfe] = nbnodes;
     }
-    origIndicesOfFaces.clear();      
+    origIndicesOfFaces.clear();
 
     // construit l'array de sortie
     tpl = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, n, nbFacesOut,
@@ -753,7 +753,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
-  
+
     #pragma omp parallel default(shared)
     {
       E_Int indf;
@@ -796,7 +796,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     char* eltType2 = new char[50]; strcpy(eltType2, "");
     vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
-    
+
     // Compute the cumulative number of elements per connectivity,
     // these are the bounds of the bins that are used to inform on
     // the element type of an element index
@@ -831,7 +831,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       {
         strcat(eltType2, eltTypes[ic]); // Build eltType2
         neltspc2[nc2] = binnedEltList[ic].size();
-        
+
         FldArrayI& cm = *(cn->getConnect(ic));
         for (E_Int i = 0; i < neltspc2[nc2]; i++)
         {
@@ -840,7 +840,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
           {
             E_Int indv = cm(noe,v)-1;
             if (indirNodesp[indv] == -1)
-            { 
+            {
               listOfNodes[nUniqueNodes] = indv; nUniqueNodes++;
               indirNodesp[indv] = nUniqueNodes;
             }
@@ -881,13 +881,13 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
           }
         }
       }
-      
+
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
         E_Float* f2p = f2->begin(eq);
         #pragma omp for
-        for (E_Int i = 0; i < nUniqueNodes; i++) f2p[i] = fp[listOfNodes[i]];    
+        for (E_Int i = 0; i < nUniqueNodes; i++) f2p[i] = fp[listOfNodes[i]];
       }
     }
 
@@ -925,7 +925,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -933,7 +933,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     return NULL;
   }
   if (res == 1)
-  {    
+  {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: can not be used on a structured array.");
     RELEASESHAREDS(arrayNodes, f); return NULL;
@@ -943,7 +943,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec); 
+  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -993,17 +993,17 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       for (E_Int nof = 0; nof < nfaces; nof++)
       {
         indface = elt[nof]-1;
-        if (indirFacesp[indface] == -1) 
+        if (indirFacesp[indface] == -1)
         {
-          indFaceOut = nbFacesOut; 
-          indirFacesp[indface] = indFaceOut; 
+          indFaceOut = nbFacesOut;
+          indirFacesp[indface] = indFaceOut;
           nbFacesOut++;
           origIndicesOfFaces.push_back(indface);
         }
         else indFaceOut = indirFacesp[indface];
         ptrEFTemp[nof+shift] = indFaceOut+1;
-      }      
-      ptrEFTemp += nfaces+shift; sizeEF2 += nfaces+shift; 
+      }
+      ptrEFTemp += nfaces+shift; sizeEF2 += nfaces+shift;
       cPHTemp[noe] = nfaces;
     }
     indirFaces.malloc(0); cEFTemp.resize(sizeEF2);
@@ -1028,7 +1028,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
           ptrFNTemp[p+shift] = nUniqueNodes+1;
           nUniqueNodes++;
         }
-        else 
+        else
         {
           ptrFNTemp[p+shift] = indirNp[indnode];
         }
@@ -1088,7 +1088,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
         }
       }
       // Champs aux centres
-      for (E_Int eq = 1; eq <= nfldc; eq++) 
+      for (E_Int eq = 1; eq <= nfldc; eq++)
       {
         E_Float* fcp = fc->begin(eq);
         E_Float* fc2p = fc2->begin(eq);
@@ -1113,7 +1113,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     char* eltType2 = new char[50]; strcpy(eltType2, "");
     vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
-    
+
     // Compute the cumulative number of elements per connectivity,
     // these are the bounds of the bins that are used to inform on
     // the element type of an element index
@@ -1148,7 +1148,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       {
         strcat(eltType2, eltTypes[ic]); // Build eltType2
         neltspc2[nc2] = binnedEltList[ic].size();
-        
+
         FldArrayI& cm = *(cn->getConnect(ic));
         for (E_Int i = 0; i < neltspc2[nc2]; i++)
         {
@@ -1157,7 +1157,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
           {
             E_Int indv = cm(noe,v)-1;
             if (indirNodesp[indv] == -1)
-            { 
+            {
               listOfNodes[nUniqueNodes] = indv; nUniqueNodes++;
               indirNodesp[indv] = nUniqueNodes;
             }
@@ -1168,13 +1168,13 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       }
     }
     neltspc2.resize(nc2); listOfNodes.resize(nUniqueNodes);
-    
+
     // Create connectivities
-    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, 
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes,
                                           neltspc2, eltType2, false, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray3(tpln, f2, cn2);
-    
+
     #pragma omp parallel default(shared)
     {
       E_Int indv, noe;
@@ -1207,14 +1207,14 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
 
     #pragma omp parallel default(shared)
-    {  
+    {
       // Champs aux noeuds
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
         E_Float* f2p = f2->begin(eq);
         #pragma omp for
-        for (E_Int i = 0; i < nUniqueNodes; i++) f2p[i] = fp[listOfNodes[i]];    
+        for (E_Int i = 0; i < nUniqueNodes; i++) f2p[i] = fp[listOfNodes[i]];
       }
 
       // Champs aux centres
@@ -1223,7 +1223,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
         E_Float* fcp = fc->begin(eq);
         E_Float* fc2p = fc2->begin(eq);
         #pragma omp for
-        for (E_Int i = 0; i < n; i++) fc2p[i] = fcp[eltList[i]];    
+        for (E_Int i = 0; i < n; i++) fc2p[i] = fcp[eltList[i]];
       }
     }
 
@@ -1258,7 +1258,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1272,7 +1272,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDS(array, f); return NULL;
   }
-  
+
   E_Int n = faceList.getSize();
   E_Int* faceListp = faceList.begin();
   E_Int nfld = f->getNfld(); E_Int npts = f->getSize();
@@ -1283,7 +1283,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int nbnodes, fidx;
     E_Int indedgen = 1;
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
-    
+
     // Acces non universel sur les ptrs
     E_Int* ngon = cn->getNGon();
     E_Int* indPG = cn->getIndPG();
@@ -1312,7 +1312,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       {
         edge[0] = face[j]-1; edge[1] = face[(j+1)%nbnodes]-1;
         E.set(edge.data(), 2);
-        
+
         // If indirection table is -1 for the first vertex, then first time
         // this vertex is encountered. The second vertex will be dealt with
         // when considering the next edge
@@ -1333,7 +1333,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int nfaces2 = edgeMap.size();
     E_Int sizeFN2 = (2+shift)*nfaces2;
     E_Int nelts2 = n;
-    
+
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
@@ -1386,7 +1386,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
         #pragma omp for
         for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
       }
-    
+
       for(E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
@@ -1405,9 +1405,9 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     return tpl;
   }
   else // Basic faces
-  {    
+  {
     E_Int ierr, vidx, fidx, eidx, fic, nfpe, nvpf, nfaces, nelts;
-    
+
     vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     // facetspc: list of facets per connectivity
@@ -1424,8 +1424,8 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
     // nfpc: number of faces per connectivity (cumulative)
-    vector<E_Int> nfpc(nc+1); nfpc[0] = 0; 
-    
+    vector<E_Int> nfpc(nc+1); nfpc[0] = 0;
+
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cn->getConnect(ic));
@@ -1521,7 +1521,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       FaceAttrs fattrs = face.second;
       FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
       const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
-      
+
       for (E_Int j = 0; j < nvpf; j++)
       {
         indv = cm(fattrs.eidx_,facet[j])-1;
@@ -1529,7 +1529,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       }
       eidx++;
     }
-    
+
     #pragma omp parallel if (npts > __MIN_SIZE_MEAN__)
     {
       E_Int indv;
@@ -1585,7 +1585,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f,
-                                     im, jm, km, cn, eltType); 
+                                     im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1598,13 +1598,13 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDS(arrayNodes, f); return NULL;
   }
-  
+
   // Check array of centers
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
   E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc,
-                                      imc, jmc, kmc, cnc, eltTypec); 
+                                      imc, jmc, kmc, cnc, eltTypec);
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1629,7 +1629,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int nbnodes, fidx, nf;
     E_Int indedgen = 1;
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
-    
+
     // Acces non universel sur les ptrs
     E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
     E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
@@ -1659,7 +1659,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       {
         edge[0] = face[j]-1; edge[1] = face[(j+1)%nbnodes]-1;
         E.set(edge.data(), 2);
-        
+
         // If indirection table is -1 for the first vertex, then first time
         // this vertex is encountered. The second vertex will be dealt with
         // when considering the next edge
@@ -1680,7 +1680,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int nfaces2 = edgeMap.size();
     E_Int sizeFN2 = (2+shift)*nfaces2;
     E_Int nelts2 = n;
-    
+
     E_Int ngonType = 1; // CGNSv3 compact array1
     if (api == 2) ngonType = 2; // CGNSv3, array2
     else if (api == 3) ngonType = 3; // force CGNSv4, array3
@@ -1749,12 +1749,12 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
         #pragma omp for
         for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
       }
-    
+
       for(E_Int eq = 1; eq <= nfld; eq++)
       {
         E_Float* fp = f->begin(eq);
         E_Float* f2p = f2->begin(eq);
-        
+
         #pragma omp for
         for (E_Int ind = 0; ind < npts; ind++)
         {
@@ -1774,7 +1774,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
           indf = faceListp[ind]-1;
           etg = PE1[indf]; etd = PE2[indf];
           if (etd > 0) fc2p[ind] = 0.5*(fcp[etg-1] + fcp[etd-1]);
-          else fc2p[ind] = fcp[etg-1];        
+          else fc2p[ind] = fcp[etg-1];
         }
       }
     }
@@ -1793,7 +1793,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
   else // Basic faces
   {
     E_Int ierr, vidx, fidx, eidx, fic, nfpe, nvpf, nfaces, nelts;
-    
+
     vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
     // facetspc: list of facets per connectivity
@@ -1810,8 +1810,8 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
     // nfpc: number of faces per connectivity (cumulative)
-    vector<E_Int> nfpc(nc+1); nfpc[0] = 0; 
-    
+    vector<E_Int> nfpc(nc+1); nfpc[0] = 0;
+
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cn->getConnect(ic));
@@ -1923,7 +1923,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       FaceAttrs fattrs = face.second;
       FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
       const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
-      
+
       for (E_Int j = 0; j < nvpf; j++)
       {
         indv = cm(fattrs.eidx_,facet[j])-1;
@@ -2023,6 +2023,6 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     return l;
   }
 
-  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc); 
+  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
   return NULL;
 }
