@@ -18,11 +18,82 @@
 */
 # include "post.h"
 
+//=============================================================================
+// Integre les grandeurs de M = OM^F.vect(n)
+// Retourne 1 si success, 0 si echec
+//=============================================================================
+E_Int K_POST::integMomentNormStruct2D(E_Int ni, E_Int nj, E_Int nk, 
+                                      E_Int center2node, 
+                                      E_Int posx, E_Int posy, E_Int posz,
+                                      E_Float cx, E_Float cy, E_Float cz, 
+                                      FldArrayF& coord, 
+                                      FldArrayF& F, FldArrayF& ratio, 
+                                      FldArrayF& resultat)
+{
+  E_Int NI, NJ;
+  FldArrayF result(3);
+  result.setAllValuesAtNull();
+
+  E_Int numberOfVariables = F.getNfld();
+  E_Float* resultat1 = resultat.begin(1);
+  E_Float* resultat2 = resultat.begin(2);
+  E_Float* resultat3 = resultat.begin(3);
+
+  if      (nk == 1) {NI = ni; NJ = nj;}
+  else if (nj == 1) {NI = ni; NJ = nk;}
+  else if (ni == 1) {NI = nj; NJ = nk;}
+  else return 0;
+ 
+  // Compute surface of each "block" i cell, with coordinates coord
+  E_Int ncells = (NI-1) * (NJ-1); 
+  FldArrayF nsurf(ncells, 3);  
+
+  K_METRIC::compNormStructSurf(
+    NI, NJ, coord.begin(posx), coord.begin(posy), coord.begin(posz), 
+    nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+
+  if (center2node == 1) 
+  { 
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {  
+      // Compute integral, coordinates defined in node and field F in center 
+      integMomentNormStructNodeCenter2D(
+        NI, NJ, cx, cy, cz, ratio.begin(), 
+        coord.begin(posx), coord.begin(posy),coord.begin(posz),
+        nsurf.begin(1),nsurf.begin(2), nsurf.begin(3),   
+        F.begin(), result.begin()
+      );
+      
+      resultat1[n-1] += result[0];   
+      resultat2[n-1] += result[1];
+      resultat3[n-1] += result[2];
+    }
+  }
+  else
+  {
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      // Compute integral, coordinates and field have the same size
+      integMomentNormStructCellCenter2D(
+        NI, NJ, cx, cy, cz, ratio.begin(), 
+        coord.begin(posx), coord.begin(posy), coord.begin(posz),
+        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), F.begin(),  
+        result.begin()
+      );
+
+      resultat1[n-1] += result[0];   
+      resultat2[n-1] += result[1];
+      resultat3[n-1] += result[2];
+    }
+  }
+  return 1;
+}
+
 // ============================================================================
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 //       and F have the same size
 // ============================================================================
-void K_POST::integMomentNormStruct(
+void K_POST::integMomentNormStructCellCenter2D(
   const E_Int ni, const E_Int nj, const E_Float cx,
   const E_Float cy, const E_Float cz, const E_Float* ratio, const E_Float* xt,
   const E_Float* yt, const E_Float* zt, const E_Float* sx, const E_Float* sy,
@@ -85,7 +156,7 @@ void K_POST::integMomentNormStruct(
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 //       are defined in nodes and F is defined in center
 //=============================================================================
-void K_POST::integMomentNormStructNodeCenter(
+void K_POST::integMomentNormStructNodeCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
   const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* sx,
