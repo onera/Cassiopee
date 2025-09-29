@@ -191,6 +191,8 @@ void K_POST::integMomentUnstructCellCenter(
     else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
     else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
 
+    nfpeinv = 1./nfpe;
+
     for (E_Int i = 0; i < nelts; i++)
     {
       f1 = 0.0;
@@ -224,9 +226,9 @@ void K_POST::integMomentUnstructCellCenter(
       res3 += si*f3;
     }
 
-    result[0] += (1./nfpe)*res1; 
-    result[1] += (1./nfpe)*res2;
-    result[2] += (1./nfpe)*res3;
+    result[0] += nfpeinv*res1; 
+    result[1] += nfpeinv*res2;
+    result[2] += nfpeinv*res3;
   }
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
