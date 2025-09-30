@@ -13,7 +13,7 @@ import numpy
 # modifies t
 #=======================================================================================
 def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
-    
+
     import Ael.Quantum as KDG
 
     # merge tp in a single projection surface
