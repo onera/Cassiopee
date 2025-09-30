@@ -1239,34 +1239,17 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else // if (res == 2)
   {
-    E_Int nelts = cn->getSize(); // nb d'elements
-    
-    if (strcmp(eltType, "NGON") != 0) // Elements basiques
-    {      
-      PyObject* tpl = K_ARRAY::buildArray3(1, "regularityAngle", nvertex, *cn, eltType, 1, api, true);
-      FldArrayF* f2; FldArrayI* cn2;
-      K_ARRAY::getFromArray3(tpl, f2, cn2);
-      E_Float* alphamax = f2->begin(1);
-      for (E_Int i = 0; i < nelts; i++) alphamax[i] = 0.;
-    }
-    else
-    {
-      PyObject* tpl = K_ARRAY::buildArray3(1, "regularityAngle", nvertex, *cn, "NGON", 1, api, true);
-      FldArrayF* f2; FldArrayI* cn2;
-      K_ARRAY::getFromArray3(tpl, f2, cn2);
-      E_Float* alphamax = f2->begin(1);
-      for (E_Int i = 0; i < nelts; i++) alphamax[i] = 0.;
-    } 
-    
+    PyObject* tpl = K_ARRAY::buildArray3(1, "regularityAngle", nvertex, *cn, eltType, 1, api, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    RELEASESHAREDS(tpl, f2);
     return tpl;
-    //RELEASESHAREDB(res, array, f, cn);
-    //PyErr_SetString(PyExc_ValueError,
-    //                "getAngleOrthogonalityMap: not for unstructured arrays.");
-    //return NULL;
   }
 }
