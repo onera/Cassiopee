@@ -210,15 +210,15 @@ PyObject* K_GENERATOR::TFIPENTA(PyObject* arrays)
   E_Int p1 = p-1;
   E_Int invp1 = 1/p1;
   E_Int indt, inddiagj, inddiagi, indik, indjk;
-  E_Int nelts = n1*n1*p1; 
-  PyObject* tpl = K_ARRAY::buildArray(3, varString, npts, nelts, -1, "PENTA");
-  E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF coord(npts, 3, coordp, true);
-  E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(nelts,6, cnp, true);
-  E_Float* xt = coord.begin(1);
-  E_Float* yt = coord.begin(2);
-  E_Float* zt = coord.begin(3);
+  E_Int nelts = n1*n1*p1;
+
+  E_Int api = unstrF[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nelts, "PENTA", false, api);
+  FldArrayF* coord; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpl, coord, cn);
+  E_Float* xt = coord->begin(1);
+  E_Float* yt = coord->begin(2);
+  E_Float* zt = coord->begin(3);
 
   for (E_Int k = 0; k < p; k++)
   {
@@ -290,12 +290,12 @@ PyObject* K_GENERATOR::TFIPENTA(PyObject* arrays)
   E_Int off1 = 0;
   E_Int off2;
   E_Int off3 = n*(n+1)/2;
-  E_Int* cnp1 = cn.begin(1);
-  E_Int* cnp2 = cn.begin(2);
-  E_Int* cnp3 = cn.begin(3);
-  E_Int* cnp4 = cn.begin(4);
-  E_Int* cnp5 = cn.begin(5);
-  E_Int* cnp6 = cn.begin(6);
+  E_Int* cnp1 = cn->begin(1);
+  E_Int* cnp2 = cn->begin(2);
+  E_Int* cnp3 = cn->begin(3);
+  E_Int* cnp4 = cn->begin(4);
+  E_Int* cnp5 = cn->begin(5);
+  E_Int* cnp6 = cn->begin(6);
   for (E_Int k = 0; k < p1; k++)
   {
     for (E_Int j = n1-1; j >= 0; j--)
@@ -330,6 +330,7 @@ PyObject* K_GENERATOR::TFIPENTA(PyObject* arrays)
     off1++;
   }
   
+  RELEASESHAREDU(tpl, coord, cn);
   for (E_Int nos = 0; nos < ns0; nos++)
     RELEASESHAREDS(objs[nos], structF[nos]);
   for (E_Int nos = 0; nos < nu0; nos++)

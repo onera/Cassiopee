@@ -50,14 +50,14 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
   if (ns >= 2) // concatenate all structs, il doivent etre tous ni*nj et memes champs
   {
     E_Int nfld = structF[0]->getNfld();
+    E_Int api = structF[0]->getApi();
     E_Int ni1 = ni[0]; E_Int nj1 = nj[0];
     E_Int ni1nj1 = ni1*nj1;
     E_Int nk1 = 0;
     for (E_Int p = 0; p < ns; p++) nk1 += nk[p];
-    tpl = K_ARRAY::buildArray(nfld, structVarString[0], 
-                              ni1, nj1, nk1);
-    E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF coord(ni1nj1*nk1, nfld, coordp, true);
+    tpl = K_ARRAY::buildArray3(nfld, structVarString[0], ni1, nj1, nk1, api);
+    FldArrayF* coord;
+    K_ARRAY::getFromArray3(tpl, coord);
 
     nk1 = 0;
     for (E_Int p = 0; p < ns; p++)
@@ -65,7 +65,7 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
       for (E_Int n = 1; n <= nfld; n++)
       {
         E_Float* f1p = structF[p]->begin(n);
-        E_Float* coordp = coord.begin(n);
+        E_Float* coordp = coord->begin(n);
         for (E_Int k = 0; k < nk[p]; k++)
           for (E_Int i = 0; i < ni1nj1; i++)
           {
@@ -74,15 +74,17 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
       }
       nk1 += nk[p];
     }
+    RELEASESHAREDS(tpl, coord);
   }
   else if (nu >= 2) // concatenate all unstructs
   {
-    char outEltType[10]; E_Int nf = 1;
-    if (strcmp(eltType[0], "BAR") == 0) { strcpy(outEltType, "QUAD"); nf=4; }
-    if (strcmp(eltType[0], "QUAD") == 0) { strcpy(outEltType, "HEXA"); nf=8; }
-    if (strcmp(eltType[0], "TRI") == 0) { strcpy(outEltType, "PENTA"); nf=6; }
+    char outEltType[10];
+    if (strcmp(eltType[0], "BAR") == 0) { strcpy(outEltType, "QUAD"); }
+    if (strcmp(eltType[0], "QUAD") == 0) { strcpy(outEltType, "HEXA"); }
+    if (strcmp(eltType[0], "TRI") == 0) { strcpy(outEltType, "PENTA"); }
   
     E_Int nfld = unstructF[0]->getNfld();
+    E_Int api = unstructF[0]->getApi();
     E_Int ne = cn[0]->getSize();
     E_Int nv1 = 0;
     for (E_Int p = 0; p < nu; p++) nv1 += unstructF[p]->getSize();
@@ -90,17 +92,17 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
     E_Int nv0 = unstructF[0]->getSize();
     E_Int ne1 = (nu-1)*cn[0]->getSize();
 
-    tpl = K_ARRAY::buildArray(nfld, unstructVarString[0], nv1, ne1, -1, outEltType);
-    E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-    E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayF coord(nv1, nfld, coordp, true);
-    FldArrayI cno(ne1, nf, cnp, true);
+    tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], nv1, ne1,
+                               outEltType, false, api);
+    FldArrayF* coord; FldArrayI* cno;
+    K_ARRAY::getFromArray3(tpl, coord, cno);
+
     for (E_Int p = 0; p < nu; p++)
     {
       for (E_Int n = 1; n <= nfld; n++)
       {
         E_Float* f1p = unstructF[p]->begin(n);
-        E_Float* coordp = coord.begin(n);
+        E_Float* coordp = coord->begin(n);
         for (E_Int i = 0; i < nv0; i++)
         {
           coordp[i+nv0*p] = f1p[i];
@@ -114,47 +116,53 @@ PyObject* K_GENERATOR::stackMesh(PyObject* self, PyObject* args)
       {
         FldArrayI& cn0 = *cn[p];
         FldArrayI& cn1 = *cn[p+1];
+        FldArrayI& cmo = *(cno->getConnect(0));
+
         for (E_Int i = 0; i < ne; i++)
         {
-          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
-          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
-          cno(i+ne*p,3) = cn1(i,2)+nv0*(p+1);
-          cno(i+ne*p,4) = cn1(i,1)+nv0*(p+1);
+          cmo(i + ne*p, 1) = cn0(i, 1) + nv0*p;
+          cmo(i + ne*p, 2) = cn0(i, 2) + nv0*p;
+          cmo(i + ne*p, 3) = cn1(i, 2) + nv0*(p + 1);
+          cmo(i + ne*p, 4) = cn1(i, 1) + nv0*(p + 1);
         }
       }
       else if (strcmp(eltType[0], "QUAD") == 0)
       {
         FldArrayI& cn0 = *cn[p];
         FldArrayI& cn1 = *cn[p+1];
+        FldArrayI& cmo = *(cno->getConnect(0));
 
         for (E_Int i = 0; i < ne; i++)
         {
-          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
-          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
-          cno(i+ne*p,3) = cn0(i,3)+nv0*p;
-          cno(i+ne*p,4) = cn0(i,4)+nv0*p;
-          cno(i+ne*p,5) = cn1(i,1)+nv0*(p+1);
-          cno(i+ne*p,6) = cn1(i,2)+nv0*(p+1);
-          cno(i+ne*p,7) = cn1(i,3)+nv0*(p+1);
-          cno(i+ne*p,8) = cn1(i,4)+nv0*(p+1);
+          cmo(i + ne*p, 1) = cn0(i, 1) + nv0*p;
+          cmo(i + ne*p, 2) = cn0(i, 2) + nv0*p;
+          cmo(i + ne*p, 3) = cn0(i, 3) + nv0*p;
+          cmo(i + ne*p, 4) = cn0(i, 4) + nv0*p;
+          cmo(i + ne*p, 5) = cn1(i, 1) + nv0*(p + 1);
+          cmo(i + ne*p, 6) = cn1(i, 2) + nv0*(p + 1);
+          cmo(i + ne*p, 7) = cn1(i, 3) + nv0*(p + 1);
+          cmo(i + ne*p, 8) = cn1(i, 4) + nv0*(p + 1);
         }
       }
       else if (strcmp(eltType[0], "TRI") == 0)
       {
         FldArrayI& cn0 = *cn[p];
         FldArrayI& cn1 = *cn[p+1];
+        FldArrayI& cmo = *(cno->getConnect(0));
 
         for (E_Int i = 0; i < ne; i++)
         {
-          cno(i+ne*p,1) = cn0(i,1)+nv0*p;
-          cno(i+ne*p,2) = cn0(i,2)+nv0*p;
-          cno(i+ne*p,3) = cn0(i,3)+nv0*p;
-          cno(i+ne*p,4) = cn1(i,1)+nv0*(p+1);
-          cno(i+ne*p,5) = cn1(i,2)+nv0*(p+1);
-          cno(i+ne*p,6) = cn1(i,3)+nv0*(p+1);     
+          cmo(i + ne*p, 1) = cn0(i, 1) + nv0*p;
+          cmo(i + ne*p, 2) = cn0(i, 2) + nv0*p;
+          cmo(i + ne*p, 3) = cn0(i, 3) + nv0*p;
+          cmo(i + ne*p, 4) = cn1(i, 1) + nv0*(p + 1);
+          cmo(i + ne*p, 5) = cn1(i, 2) + nv0*(p + 1);
+          cmo(i + ne*p, 6) = cn1(i, 3) + nv0*(p + 1);     
         }
       }
     }
+
+    RELEASESHAREDU(tpl, coord, cno);
   }
     
   for (E_Int noz = 0; noz < ns; noz++)
