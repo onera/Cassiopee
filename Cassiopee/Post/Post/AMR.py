@@ -12,6 +12,9 @@ import Post.ExtraVariables2 as PE
 import os, sys, numpy, math
 
 def createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, augStateNumpy, discSelectionParaDict):
+    """ Create a CGNS IBM PyTree from IBM numpy data. 
+    Usage: createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, augStateNumpy, discSelectionParaDict)"""
+    
     ##Serial functions
     print("Creating pyTree of the quantities from the FSMesh of the donorPoints..", flush=True)
     nb_node     = donorPointsNumpy.shape[0]
@@ -54,6 +57,8 @@ def createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, au
 
 
 def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
+    """ Extract IBM wall data. Interface between the CODA approach and the FastIBM function.
+    Usage: extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype)"""
     #ibctype = 3 --> Musker
     from numpy.linalg import norm
     
@@ -77,6 +82,8 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
 
 
 def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=False, invertYZ=False, verbose=False, time=-1):
+    """  Computes the aerodynamic loads at the wall.
+    Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, reorderFlag, invertYZ, verbose, time)"""
     if Cmpi.master: print("Computing integral coefficients..")
     if dim == 2:
         zw = C.convertBAR2Struct(zw)

@@ -17,7 +17,8 @@ except:
 
 
 def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, markerIBM, wallBoundaryMarkers=[], localDir='./', check=False):
-    
+    """ Interpolate the CODA flow field to the IBM donor points (image points in ghost cell IBM approach). 
+    Usage: interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, markerIBM, wallBoundaryMarkers, localDir, check)"""
     try:
         from FSZoltan import FSZoltanInterface  # noqa: 401
         WITH_FSZOLTAN = True
@@ -138,6 +139,9 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
 
 
 def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, localDir='./', check=False, verbose=False):
+    """ Surface quantity post-processing for CODA IBM computation. 
+    Usage: computeSurfValues(fileNameResultIn, tb, CODAInputs, dim, fileNameIBMPnts, fileNameResultOut, localDir, check, verbose)"""
+
     ## CODAInputs = [discParaDictAllStages, discSelectionParaDict, IBM_markers, dictReferenceQuantities]
     ## fileNameResultIn = (e.g) output_stage3.h5 (the h5 from the CODA run)
     if isinstance(tb, str): tb = C.convertFile2PyTree(tb)
