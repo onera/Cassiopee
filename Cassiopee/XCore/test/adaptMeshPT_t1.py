@@ -6,6 +6,8 @@ import Converter.Internal as Internal
 import KCore.test as test
 import numpy
 
+from mpi4py import MPI
+
 # 2D QUAD
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
 a = C.convertArray2NGon(a)
@@ -75,3 +77,4 @@ test.testT(a, 5)
 
 a = XC.AdaptMesh_ExtractMesh(AM, conformize=1)
 test.testT(a, 6)
+
