@@ -221,16 +221,16 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
           }
       }
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else // Cas non structure
   {
     E_Int nelts = cn->getSize(); // nb d'elements
-    
     PyObject* tpl = K_ARRAY::buildArray3(1, "orthogonality", nvertex, *cn, eltType, 1, api, true);
-    FldArrayF* f2; FldArrayI* cnn;
-    K_ARRAY::getFromArray3(tpl, f2, cnn);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1);
  
     if (strcmp(eltType, "TRI") == 0)
@@ -348,6 +348,8 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                     "getOrthogonalityMap: not yet implemented for PYRA.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
       return NULL;
     }
     else if (strcmp(eltType, "PENTA") == 0)
@@ -474,9 +476,11 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "getOrthogonalityMap: unknown type of element.");
+      RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
   }

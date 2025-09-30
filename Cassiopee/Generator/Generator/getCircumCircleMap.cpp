@@ -56,14 +56,12 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   
   E_Int ncells = cn->getSize();
-  E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-
   E_Int api = f->getApi();
   E_Int nvertex = f->getSize();
 
   PyObject* tpl = K_ARRAY::buildArray3(1, "ccradius", nvertex, *cn, eltType, 1, api, true);
-  FldArrayF* f2; FldArrayI* cnn;
-  K_ARRAY::getFromArray3(tpl, f2, cnn);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
   E_Float* ccrad = f2->begin(1);
 
   E_Float* xt = f->begin(posx);
@@ -84,6 +82,7 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
     ccrad[et] = K_COMPGEOM::circumCircleRadius(p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z);
   }
   
+  RELEASESHAREDS(tpl, f2); 
   RELEASESHAREDU(array, f, cn); 
   return tpl;
 }

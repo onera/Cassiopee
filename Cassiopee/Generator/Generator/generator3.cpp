@@ -2258,8 +2258,6 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
   E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
-  E_Int api = f->getApi();
-
   if (res == 1)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);

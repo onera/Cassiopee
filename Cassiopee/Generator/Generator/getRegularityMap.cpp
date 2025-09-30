@@ -570,6 +570,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
+
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
@@ -582,8 +584,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     // Construction du tableau numpy stockant le ratio max de volumes entre elements voisins, 
     // definissant la regularite
     PyObject* tpl = K_ARRAY::buildArray3(1, "regularity", npts, *cn, eltType, 1, api, true);
-    FldArrayF* f2; FldArrayI* cnn;
-    K_ARRAY::getFromArray3(tpl, f2, cnn);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
     E_Float* reg = f2->begin(1);
 
     // Calcul de la connectivite vertex->elements
@@ -718,6 +720,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       // volume computation not implemented for PYRA
       PyErr_SetString(PyExc_TypeError,
                       "getRegularityMap: not yet implemented for PYRA.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn); 
       return NULL;
     }
     else if (strcmp(eltType, "PENTA") == 0)
@@ -825,10 +829,12 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     {
         PyErr_SetString(PyExc_TypeError,
                         "getRegularityMap: unknown type of element.");
+        RELEASESHAREDS(tpl, f2);
         RELEASESHAREDU(array, f, cn);
         return NULL;
     }
     
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
   }
