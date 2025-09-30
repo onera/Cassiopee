@@ -114,6 +114,8 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
   E_Float* yc = fc->begin(posyc); E_Float* yd = fd->begin(posyd);
   E_Float* zc = fc->begin(poszc); E_Float* zd = fd->begin(poszd);
 
+  E_Int api = fc->getApi();
+
   for (E_Int tc = 0; tc < nbars; tc++) // parcours des BARS
   {
     E_Int ic1 = cncp(tc,1)-1; E_Int ic2 = cncp(tc,2)-1;
@@ -166,37 +168,41 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
     
     if ( found == 0 ) // pas de coincidence entre une arete de tri et BAR
     { 
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varStringc, npts+1, nbars+1, -1, eltTypec);
-      E_Float* fc2p = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fc2(npts+1, nfld, fc2p, true);
-      E_Int* cnc2p = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnc2(nbars+1, 2, cnc2p, true);
+      PyObject* tpl = K_ARRAY::buildArray3(nfld, varStringc, npts+1, nbars+1, eltTypec, 0, api);
+      FldArrayF* fc2; FldArrayI* cnc2;
+      K_ARRAY::getFromArray3(tpl, fc2, cnc2);
+      FldArrayI& cncp2 = *cnc2;
 
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fc2p0 = fc2.begin(eq);
+        E_Float* fc2p0 = fc2->begin(eq);
         E_Float* fcp = fc->begin(eq);
         for (E_Int i = 0; i < npts; i++) fc2p0[i] = fcp[i];
       }
 
       for (E_Int eq = 1; eq <= nfld; eq++)
-        fc2(npts, eq) = 0.5*((*fc)(ic1,eq)+(*fc)(ic2,eq)); 
+      {
+        E_Float* fc2p0 = fc2->begin(eq);
+        E_Float* fcp = fc->begin(eq);
+        for (E_Int i = 0; i < npts; i++) fc2p0[i] = fcp[i];
+        fc2p0[npts] = 0.5*(fcp[ic1]+fcp[ic2]); 
+      }
 
       // avant la bar...
       for (E_Int tc2 = 0; tc2 < tc; tc2++)
       {
         E_Int ind1 = cncp(tc2,1); E_Int ind2 = cncp(tc2,2);
-        cnc2(tc2,1) = ind1; cnc2(tc2,2) = ind2;
+        cncp2(tc2,1) = ind1; cncp2(tc2,2) = ind2;
       }
       // la bar...
-      cnc2(tc,1) = cncp(tc,1); cnc2(tc,2) = npts+1;
-      cnc2(tc+1,1) = npts+1; cnc2(tc+1,2) = cncp(tc,2);
+      cncp2(tc,1) = cncp(tc,1); cncp2(tc,2) = npts+1;
+      cncp2(tc+1,1) = npts+1; cncp2(tc+1,2) = cncp(tc,2);
       // apres la bar...
       for (E_Int tc2 = tc+1; tc2 < nbars; tc2++)
       {
         E_Int tc2p = tc2+1;
         E_Int ind1 = cncp(tc2,1); E_Int ind2 = cncp(tc2,2);
-        cnc2(tc2p,1) = ind1; cnc2(tc2p,2) = ind2;
+        cncp2(tc2p,1) = ind1; cncp2(tc2p,2) = ind2;
       }
       RELEASESHAREDU(arrayc, fc, cnc);
       RELEASESHAREDU(arrayd, fd, cnd);
@@ -204,11 +210,7 @@ PyObject* K_GENERATOR::checkDelaunay(PyObject* self, PyObject* args)
     }
   } //parcours des bars
 
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varStringc, npts, nbars, -1, eltTypec);
-  E_Float* fc2p = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fc2(npts+1, nfld, fc2p, true); fc2 = *fc;
-  E_Int* cnc2p = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cnc2(nbars+1, 2, cnc2p, true); cnc2 = *cnc;
+  PyObject* tpl = K_ARRAY::buildArray3(*fc, varStringc, *cnc, eltTypec, api);
   RELEASESHAREDU(arrayc, fc, cnc);
   RELEASESHAREDU(arrayd, fd, cnd);
   return tpl;

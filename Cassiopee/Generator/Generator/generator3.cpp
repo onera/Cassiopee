@@ -503,6 +503,8 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
   E_Int jc, np, np1;
   E_Float delta1;
 
+  E_Int api = f->getApi();
+
   if (res == 1)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -737,7 +739,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
     }
     RELEASESHAREDS(array, f);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, np, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, np, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -785,6 +787,8 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1, sn2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1004,7 +1008,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
     }
 
     RELEASESHAREDS(array, f);  
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, np, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, np, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -1046,6 +1050,8 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF snr; FldArrayF snl; FldArrayF snl2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1394,7 +1400,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
 
     RELEASESHAREDS(array, f);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -1436,6 +1442,8 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1668,7 +1676,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     }
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -1710,6 +1718,8 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1, sn2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1931,7 +1941,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
     }
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -1983,6 +1993,8 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
 
   E_Int posx1, posy1, posz1;
   E_Int posx2, posy2, posz2;
+
+  E_Int api = f1->getApi();
 
   if (res1 == 1 && res2 == 1)
   {
@@ -2208,7 +2220,7 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
     RELEASESHAREDS(array1, f1);
     RELEASESHAREDS(array2, f2);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     delete [] varString;
     return tpl;
   }
@@ -2245,6 +2257,8 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
   E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -2372,7 +2386,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
@@ -2407,6 +2421,9 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
 
   E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+
+  E_Int api = f->getApi();
+
   if (res == 1)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -2483,7 +2500,7 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
 
     RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, nip1, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, nip1, nj, nk, api);
     return tpl;
   }
   else if (res == 2)

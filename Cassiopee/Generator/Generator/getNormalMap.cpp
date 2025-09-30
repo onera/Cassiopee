@@ -52,6 +52,9 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
     }
     posx++; posy++; posz++;
 
+    E_Int api = f->getApi();
+    E_Int npts = f->getSize();
+
     //E_Int npts = f->getSize();
     if (res == 1) // cas structure
     {
@@ -88,12 +91,17 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
       }
 
       E_Int ncells = im1*jm1*km1;
-      PyObject* tpl = K_ARRAY::buildArray(3, "sx,sy,sz", im1, jm1, km1);
-      E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF nsurf(ncells, 3, nsurfp, true);
+
+      PyObject* tpl = K_ARRAY::buildArray3(3, "sx,sy,sz", im1, jm1, km1, api);
+      FldArrayF* f2;
+      K_ARRAY::getFromArray3(tpl, f2);
+      E_Float* sx = f2->begin(1);
+      E_Float* sy = f2->begin(2);
+      E_Float* sz = f2->begin(3);
+      
       K_METRIC::compNormStructSurf(
         im, jm, f->begin(posx), f->begin(posy), f->begin(posz),
-        nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+        sx, sy, sz);
       RELEASESHAREDS(array, f);
       return tpl;
     }
@@ -110,18 +118,18 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
                           "getNormalMap: NGON array must be a surface.");
           RELEASESHAREDU(array, f, cn); return NULL;
         }
-        E_Int nelts = cn->getNElts();  // nombre total d elements
-        E_Int csize = cn->getSize()*cn->getNfld();
 
         // Build array contenant la surface
-        PyObject* tpl = K_ARRAY::buildArray(3, "sx,sy,sz", nelts, nelts, -1, eltType, true, csize);
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-        E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
-        FldArrayF nsurf(nelts,3, nsurfp, true);
+        PyObject* tpl = K_ARRAY::buildArray3(3, "sx,sy,sz", npts, *cn, eltType, 1, api, true);
+        FldArrayF* f2; FldArrayI* cn2;
+        K_ARRAY::getFromArray3(tpl, f2, cn2);
+        E_Float* sx = f2->begin(1);
+        E_Float* sy = f2->begin(2);
+        E_Float* sz = f2->begin(3);
+
         E_Int err = K_METRIC::compSurfNGon(
           f->begin(posx), f->begin(posy), f->begin(posz), *cn,
-          nsurf.begin(1), nsurf.begin(2), nsurf.begin(3));
+          sx, sy, sz);
 
         // sortie si une erreur a ete trouvee
         if (err == 1)
@@ -153,16 +161,19 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
                           "getNormalMap: elements must be TRI or QUAD.");
           RELEASESHAREDU(array, f, cn); return NULL;
         }
-        PyObject* tpl = K_ARRAY::buildArray(3, "sx,sy,sz", nelts, nelts, -1, eltType, true);
-        E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-        K_KCORE::memcpy__(cnnp, cn->begin(), nelts*nvpe);
-        E_Float* nsurfp = K_ARRAY::getFieldPtr(tpl);
-        FldArrayF nsurf(nelts, 3, nsurfp, true);
+
+        PyObject* tpl = K_ARRAY::buildArray3(3, "sx,sy,sz", npts, *cn, eltType, 1, api, true);
+        FldArrayF* f2; FldArrayI* cn2;
+        K_ARRAY::getFromArray3(tpl, f2, cn2);
+        E_Float* sx = f2->begin(1);
+        E_Float* sy = f2->begin(2);
+        E_Float* sz = f2->begin(3);
         FldArrayF surf(nelts, 1);
+
         K_METRIC::compSurfUnstruct(
           *cn, eltType,
           f->begin(posx), f->begin(posy), f->begin(posz),
-          nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), surf.begin());
+          sx, sy, sz, surf.begin());
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }
