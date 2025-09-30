@@ -110,14 +110,10 @@ PyObject* K_GENERATOR::quad2Pyra(PyObject* self, PyObject* args)
   K_FLD::FloatArray & crd = *f;
   K_FLD::IntArray & cnt = *cn;
   
-  //~ std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
-  //~ std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
-  
   quad_to_pyra(crd, cnt, hratio);
   
-  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnt, -1, "PYRA", false);;
-  
-  
+  PyObject* tpl = K_ARRAY::buildArray(crd, varString, cnt, -1, "PYRA", false);
+
   delete f; delete cn;
   return tpl;
 }
