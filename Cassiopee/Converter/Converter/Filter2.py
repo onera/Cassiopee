@@ -1,8 +1,4 @@
-# Part loader - taken from old maia
-#import Converter.PyTree as C
-#import Converter.Internal as I
-#import Converter.Filter as Filter
-#import Converter.Mpi as Cmpi
+# Part loader
 from . import PyTree as C
 from . import Internal as I
 from . import Filter as Filter
@@ -25,7 +21,7 @@ def _addSizesToZoneTree(zone, zone_path, size_data):
     """
     for elmt in I.getNodesFromType1(zone, 'Elements_t'):
         elmt_path = zone_path+"/"+elmt[0]
-        ec_path   = elmt_path+"/ElementConnectivity"
+        ec_path = elmt_path+"/ElementConnectivity"
         I.newIndexArray('ElementConnectivity#Size', value=size_data[ec_path][2], parent=elmt)
 
     for zone_bc in I.getNodesFromType1(zone, 'ZoneBC_t'):

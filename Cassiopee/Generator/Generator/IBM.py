@@ -1158,7 +1158,7 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 def createRefinementBodies(tb, dimPb=3, hmod=0.01, hmax=None, pointsPerUnitLength=None):
     """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
     import Geom.IBM as D_IBM
-    import Geom.Offset as O
+    import Geom.Offset
 
     if pointsPerUnitLength is None:
         print("Info: createRefinementBodies: pointsPerUnitLength is None, using default values (25 for 3D or 1000 for 2D).")
@@ -1182,7 +1182,7 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01, hmax=None, pointsPerUnitLengt
             else:
                 z2 = D_IBM.closeSurface(z)
 
-            a = O.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
+            a = Geom.Offset.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
 
             a = T.splitConnexity(a)
             a = max([za for za in Internal.getZones(a)], key=lambda za: len(Internal.getNodeFromName(za, 'CoordinateX')[1]))

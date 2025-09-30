@@ -5,8 +5,6 @@ from . import generator
 __version__ = Generator.__version__
 import numpy
 
-from .AMR import generateAMRMesh
-
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal

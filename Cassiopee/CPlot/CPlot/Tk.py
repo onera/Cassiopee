@@ -11,7 +11,6 @@ from . import PyTree as CPlot
 from . import Panels
 from . import iconics
 import os, os.path
-from sys import version_info
 import re, fnmatch
 
 # Set this to suppress CPlot firewalls (fixNGon, breakConnect) and enables direct v4
@@ -520,28 +519,7 @@ def fixFileString__(files, initFile=None):
         system = platform.uname()[0]
     except: system = 'unix'
 
-    if version_info[0] == 2 and isinstance(files, unicode): # windows old bug (single unicode) in python2
-        import sys
-        encoding = sys.getfilesystemencoding()
-        # try to find { and }
-        out = []
-        while len(files) > 0:
-            c = 0
-            pos1 = files.find(u'{', c)
-            if pos1 == -1: break
-            c = pos1+1
-            pos2 = files.find(u'}', c)
-            if pos2 == -1: break
-            c = pos2+1
-            if pos2 > pos1: out.append(files[pos1+1:pos2])
-            files = files[:pos1] + files[pos2+1:]
-
-        # split les autres
-        sp = files.split(u' ')
-        for s in sp:
-            s = s.encode(encoding)
-            if s != ' ' and s != '': out.append(s)
-    elif system == 'Windows': # doesnt return initfile
+    if system == 'Windows': # doesnt return initfile
         if initFile != '' and initFile is not None:
             if len(files) == 0: out = [initFile]
             else: out = files
@@ -552,8 +530,6 @@ def fixFileString__(files, initFile=None):
             if len(files) == 0: out = [initFile]
             else: out = files[1:]
         else: out = files
-    if version_info[0] == 2:
-        out = [o.encode('utf-8') for o in out] # Force utf-8
     return out
 
 #==============================================================================
@@ -567,8 +543,7 @@ def fixFileString2__(file):
     #    s = file.encode(encoding)
     #    return s
     #else: return file
-    if version_info[0] == 2: return file.encode('utf-8')
-    else: return file
+    return file
 
 #==============================================================================
 # Load a file par un dialog

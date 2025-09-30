@@ -1,11 +1,11 @@
 """Mapedge functions."""
 try:
-    import Generator as G
-    import Transform as T
     import Converter as C
     import Geom as D
     import KCore.kcore as KCore
     import numpy
+    import Generator as G
+    import Transform as T
     importOK = True
 except ImportError:
     importOK = False

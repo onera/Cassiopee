@@ -9,7 +9,6 @@ try:
     import Converter
 except ImportError:
     raise ImportError("Geom.PyTree: requires Converter.PyTree module.")
-from .Offset import offsetSurface
 
 def point(P):
     """Create a point.
@@ -503,3 +502,7 @@ def _getUVFromIJ(a):
                     pu[i+j*ni] = j*1./(nj-1)
                     pv[i+j*ni] = i*1./(ni-1)
     return None
+
+def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
+    import Geom.Offset
+    return Geom.Offset.offsetSurface(a, offset, pointsPerUnitLength, algo, dim)

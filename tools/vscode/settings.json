@@ -16,6 +16,7 @@
         "**/.sconsign.dblite": true,
         "**/*.pyc": true,
         "**/Data": true,
+        "**/*.log": true,
         "Cassiopee/KCore/doc/source": true,
         "Cassiopee/ValidData*": true,
         "docs/doc/*": true,
