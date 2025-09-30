@@ -55,11 +55,14 @@ PyObject* K_GENERATOR::getInCircleMap(PyObject* self, PyObject* args)
   
   E_Int ncells = cn->getSize();
   E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-  PyObject* tpl = K_ARRAY::buildArray(1, "icradius", ncells, ncells, -1, eltType, true);
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  K_KCORE::memcpy__(cnnp, cn->begin(), ncells*nnodes);
-  E_Float* ccradp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF ccrad(ncells,1, ccradp, true);
+
+  E_Int api = f->getApi();
+  E_Int nvertex = f->getSize();
+
+  PyObject* tpl = K_ARRAY::buildArray3(1, "icradius", nvertex, *cn, eltType, 1, api, true);
+  FldArrayF* f2; FldArrayI* cnn;
+  K_ARRAY::getFromArray3(tpl, f2, cnn);
+  E_Float* ccrad = f2->begin(1);
 
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);

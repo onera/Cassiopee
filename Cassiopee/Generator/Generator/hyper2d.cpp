@@ -117,6 +117,8 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
   // Extraction des infos sur la distribution
   E_Int resd = 
     K_ARRAY::getFromArray3(arrayd, varStringd, fd, nid, njd, nkd, cnd, eltTyped);
+
+  E_Int api = f->getApi();
  
   if (res == 1 && resd == 1)
   {
@@ -251,7 +253,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
     RELEASESHAREDS(array, f);
     RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
-      K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
+      K_ARRAY::buildArray3(coord, varString0, nid, njd, 1, api);
     delete [] varString0;
     return tpl;
   }
@@ -321,6 +323,8 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
   E_Int resd = 
     K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
                            nid, njd, nkd, cnd, eltTyped);
+
+  E_Int api = f->getApi();
  
   if (res == 1 && resd == 1)
   {
@@ -392,7 +396,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     RELEASESHAREDS(array, f);
     RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
-      K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
+      K_ARRAY::buildArray3(coord, varString0, nid, njd, 1, api);
     delete [] varString0;
     return tpl;
   }
@@ -465,6 +469,8 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
   E_Int resd = 
     K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
                            nid, njd, nkd, cnd, eltTyped);
+
+  E_Int api = f->getApi();
  
   if ( res == 1 && resd == 1)
   {
@@ -540,7 +546,7 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
     RELEASESHAREDS(array, f);
     RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
-      K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
+      K_ARRAY::buildArray3(coord, varString0, nid, njd, 1, api);
     delete [] varString0;
     return tpl;
   }
@@ -609,6 +615,8 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
   E_Int resd = 
     K_ARRAY::getFromArray3(arrayd, varStringd, fd, 
                            nid, njd, nkd, cnd, eltTyped);
+
+  E_Int api = f->getApi();
  
   if ( res == 1 && resd == 1)
   {
@@ -683,7 +691,7 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
     RELEASESHAREDS(array, f);
     RELEASESHAREDS(arrayd, fd);
     PyObject* tpl = 
-      K_ARRAY::buildArray(coord, varString0, nid, njd, 1);
+      K_ARRAY::buildArray3(coord, varString0, nid, njd, 1, api);
     delete [] varString0;
     return tpl;
   }

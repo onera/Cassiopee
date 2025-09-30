@@ -118,13 +118,13 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
                                              *cn, eltType, true, api, true);
         FldArrayF* nsurf;
         K_ARRAY::getFromArray3(tpl, nsurf);
-        E_Int err = K_METRIC::compSurfNGon(
+        E_Int ierr = K_METRIC::compSurfNGon(
           f->begin(posx), f->begin(posy), f->begin(posz), *cn,
           nsurf->begin(1), nsurf->begin(2), nsurf->begin(3)
         );
 
         // sortie si une erreur a ete trouvee
-        if (err == 1)
+        if (ierr == 1)
         {
           PyErr_SetString(PyExc_TypeError,
                           "getNormalMap: only valid for surface NGons.");
@@ -147,11 +147,14 @@ PyObject* K_GENERATOR::getNormalMapOfMesh(PyObject* self, PyObject* args)
                           "getNormalMap: elements must be TRI or QUAD.");
           RELEASESHAREDU(array, f, cn); return NULL;
         }
+
         PyObject* tpl = K_ARRAY::buildArray3(3, "sx,sy,sz", npts,
                                              *cn, eltType, true, api, true);
         FldArrayF* nsurf;
         K_ARRAY::getFromArray3(tpl, nsurf);
+
         FldArrayF surf(nelts, 1);
+
         K_METRIC::compSurfUnstruct(
           *cn, eltType,
           f->begin(posx), f->begin(posy), f->begin(posz),
