@@ -50,4 +50,4 @@ Dist.writeBuildInfo()
 shutil.copyfile("buildInfo.py", installPath+"/buildInfo.py")
 
 # Ecrit les fichiers d'environnement
-# Dist.writeEnvs()
+Dist.writeEnvs()

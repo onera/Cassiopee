@@ -198,9 +198,9 @@ def getInstallPath(prefix, type=0):
     a = site.getsitepackages()[0].split('/')[-4:]
     if type == 0:
         if a[0] != 'local':
-            installPath = os.path.join(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
+            installPath = '%s/%s/%s/%s'%(prefix, a[1], a[2], a[3])  # 'prefix/lib/python3.12/site-packages'
         else:
-            installPath = os.path.join(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
+            installPath = '%s/%s/%s/%s/%s'%(prefix, a[0], a[1], a[2], a[3])  # 'prefix/local/lib/python3.12/site-packages'
     else:
         installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
     return installPath
@@ -327,8 +327,8 @@ def writeInstallPath():
 
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
-    if a[0] != 'local': libPath = os.path.join(prefix, a[1])  # 'prefix/lib'
-    else: libPath = os.path.join(prefix, a[0], a[1])  # 'prefix/local/lib'
+    if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
+    else: libPath = '%s/%s/%s'%(prefix, a[0], a[1])  # 'prefix/local/lib'
     p.write('libPath = \'%s\'\n'%libPath)
 
     '''
@@ -368,8 +368,7 @@ def writeEnvs():
     env = os.environ
     cassiopee = env.get('CASSIOPEE', '')
     elsaprod = env.get('ELSAPROD', '')
-    if cassiopee != '': envPath = libPath+'/../../../'
-    else: envPath = libPath+'/../'
+    envPath = libPath+'/../'
     cmdPath = libPath+'/..'
     installLD = os.getenv('LD_LIBRARY_PATH')
 
@@ -380,7 +379,7 @@ def writeEnvs():
     except: mt = 1
 
     # sh ou bash
-    # usage: source $CASSIOPEE/Dist/env_Cassiopee.sh
+    # usage: source $CASSIOPEE/Dist/bin/$ELSAPROD/env_Cassiopee.sh
     with open(envPath+"env_Cassiopee.sh", 'w') as p:
         p.write("ulimit -s unlimited\n")
         if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
@@ -406,7 +405,7 @@ def writeEnvs():
             p.write("fi\n")
 
     # csh ou tcsh
-    # usage: source $CASSIOPEE/Dist/env_Cassiopee.csh
+    # usage: source $CASSIOPEE/Dist/bin/ELSAPROD/env_Cassiopee.csh
     with open(envPath+"env_Cassiopee.csh", 'w') as p:
         p.write("limit stacksize unlimited\n")
         if cassiopee != '': p.write("setenv CASSIOPEE %s\n"%cassiopee)
@@ -440,7 +439,7 @@ def writeEnvs():
     # module
     # usage: module use $CASSIOPEE/Dist
     # module load cassiopee
-    with open(envPath+"cassiopee", 'w') as p:
+    with open(envPath+"mod_cassiopee", 'w') as p:
         p.write("#%Module1.0#####################################################################\n")
         p.write("##\n")
         p.write("## CASSIOPEE\n")
@@ -773,7 +772,7 @@ def scanext(args, dir, file):
     ret = args[1]
     for f in file:
         (root,ext) = os.path.splitext(f)
-        tot = os.path.join(dir,f)
+        tot = '%s/%s'%(dir,f)
         t = os.path.islink(tot)
         m = True
         if f[len(f)-1] == '~' : m = False
