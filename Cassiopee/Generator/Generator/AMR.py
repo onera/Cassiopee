@@ -62,7 +62,7 @@ def listSnear(tb,snears):
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
-def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0):
+def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None):
     import Geom.IBM as D_IBM
     if offsetValues==[]: return []
 
@@ -99,6 +99,27 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                     fixedConstraints = []
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
+        if tbv2 is not None:
+            for nob in range(len(tbv2[2])):
+                if Internal.getType(tbv2[2][nob])=='CGNSBase_t':
+                    z = Internal.getZones(tbv2[2][nob])
+                    z = C.convertArray2Tetra(z)
+                    z = T.join(z)
+                    bbz = G.bbox(z)
+                    # hausd is a length and must be adapted to the dimensions of each case
+                    hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
+                    hmax = hausd*1000
+                    if Cmpi.master: print(hausd, hmax, flush=True)
+                    # exteriorFaces currently crashes if the surface is closed
+                    try:
+                        fixedConstraints = P.exteriorFaces(z)
+                    except:
+                        fixedConstraints = []
+                    z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
+                    tbv2[2][nob][2] = Internal.getZones(z)
+
+    tbTmp = Internal.copyTree(tb)
+    if tbv2 is not None: tbTmp = tbv2
 
     t_offset = C.newPyTree()
     no_offsetGlobal=0
@@ -125,7 +146,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         zmax_core = BB[5]+delta2
         
         if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
-        else: ni_core = 51; nj_core = 51; nk_core = 51
+        else: ni_core = 61; nj_core = 61; nk_core = 61
         hi_core = (xmax_core-xmin_core)/(ni_core-1)
         hj_core = (ymax_core-ymin_core)/(nj_core-1)
         hk_core = (zmax_core-zmin_core)/(nk_core-1)
@@ -146,19 +167,20 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
         XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
         b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
-        
-        C._initVars(tbLocal,"cellN",1.)
+
+        tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
+        C._initVars(tbLocalTmp,"cellN",1.)
         
         Cmpi.barrier()
         t0 = ktime.time()
-        DTW._distance2Walls(b, tbLocal, type='ortho', loc='nodes', signed=0)
+        DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         Cmpi.barrier()
         if Cmpi.rank == 0: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0],nBase,(ktime.time()-t0)), flush=True)
         
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
         # required for blankCells as a closed set of surfaces
-        bodies = [tbLocal]; nbodies = 1
+        bodies = [tbLocalTmp]; nbodies = 1
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
         t = C.newPyTree(["BASE",Internal.getZones(b)])
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
@@ -266,6 +288,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     o = G.close(o)
     _addPhysicalBCs__(o, tb, dim=dim)
     Internal._adaptNGon32NGon4(o)
+    if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
 def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
@@ -990,10 +1013,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     offset_name     = ['IBM body', 'tbox']
     noffsets        = max(noffsetBase)
     for i in range(noffsets-1, -1,-1):
-        if Cmpi.rank == 0: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
+        if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
         for nBase in range(1+min(1,numTbox)): #0:IBM body; 1:tbox
             if i > noffsetBase[nBase]-1: continue
-            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
             offsetloc = offset_zonesNew[nBase][i][0]
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
             hx        = hminLocal# * 2**i
@@ -1018,7 +1041,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     C._rmVars(o,["centers:indicator"])
                     break
                 else:
-                    if Cmpi.rank == 0: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
+                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
                     f = Internal.getNodeFromName(o, 'indicator')[1]
                     REF = f.astype(dtype=Internal.E_NpyInt)
                     XC.AdaptMesh_AssignRefData(hookAM, REF)
@@ -1028,9 +1051,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = Internal.getZones(o)[0]
                     if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
-            if Cmpi.rank == 0: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
-    if Cmpi.rank == 0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
-                                   
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
+    if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
+
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
     o = Internal.getZones(o)[0]
     owners = XC.AdaptMesh_ExtractOwners(hookAM)
@@ -1189,12 +1212,14 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None):
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None):
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
     snears, numBase = listSnear(tb, snears)
+    if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
+
     # list of vmins
     vmins=vminsInputCheck(vmins, numBase, levelMax)
 
@@ -1238,7 +1263,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # ONLY tb, no tbox
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snears, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
-        if Cmpi.rank==0: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
+        if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
         while len(vmins) < newLevelMax: vmins.append(vmins[-1]) # if newLevelMax > levelMax
         vmins = vmins[:newLevelMax] # if newLevelMax < levelMax
         levelMax = newLevelMax
@@ -1246,7 +1271,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
-    if Cmpi.rank==0: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     minSnearsOrig = min(snears)
     if abs(hmin-min(snears))>__TOL__:
@@ -1254,7 +1279,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             snearMult = snearsTbTbox[nBase]/minSnearsOrig
             snearsTbTbox[nBase] = snearMult*hmin
     # mandatory save file for loadAndSplit for adaptation
-    if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
+    if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
 
     bbo = G.bbox(o)
@@ -1274,11 +1299,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                     offsetprev=offsetloc
             offsetValues.append(offsetValuesBase)
         #generate list of offsets
-        # tb & tbox
-        print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox)
-        if check and Cmpi.rank==0: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
+        # tb & tbox
+        if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
+        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2)
+        if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
+    Cmpi.barrier()
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     baseSYM = Internal.getNodesFromName1(tb,"SYM")

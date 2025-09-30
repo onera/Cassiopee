@@ -22,6 +22,7 @@
 # include "Nuga/include/BbTree.h"
 # include "Search/OctreeNode.h"
 # include "Nuga/include/ArrayAccessor.h"
+#include <iomanip>
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
@@ -469,7 +470,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       {
         //regarder si dh > snear ? 
         snear = K_FUNC::E_min(snears[v], snear);
-        if (dh > snear-tol && dh != snear) found = 1;
+        if (dh-tol > snear && dh != snear) found = 1;
       }
       indicesBB.clear();
     }
