@@ -277,6 +277,7 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
       }
     }
 
+    delete[] eltType2;
     RELEASESHAREDU(tpl, coord, cn2);
     RELEASESHAREDB(res, array, f, cn); RELEASESHAREDB(resv, vect, fv, cnv);
     return tpl;
