@@ -32,4 +32,3 @@ for i in range(2):
     XC.AdaptMesh_Exit(AM)
     test.printMem("Releasing hook on mesh adaptation.")
 print("done.")
-
