@@ -92,7 +92,7 @@ namespace K_POST
 //   I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //   Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-  void integStructCellCenter2D(
+  void integStructNodeCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -100,7 +100,7 @@ namespace K_POST
 // Compute linear integral of field F, structured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-  void integStructCellCenter1D(
+  void integStructNodeCenter1D(
     const E_Int ni,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
@@ -109,7 +109,7 @@ namespace K_POST
 // field defined in centers, structured case
 // IN: ni1, nj1 : dim en centres
 // ============================================================================
-  void integStructNodeCenter2D(
+  void integStructCellCenter2D(
     const E_Int ni1, const E_Int nj1,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -117,7 +117,7 @@ namespace K_POST
 // ============================================================================
 // Compute linear integral of field F, node/center case, 1D
 // ============================================================================
-  void integStructNodeCenter1D(
+  void integStructCellCenter1D(
     const E_Int ni,
     const E_Float* ratio, const E_Float* length, const E_Float* field,
     E_Float& result);
@@ -129,7 +129,7 @@ namespace K_POST
 //   I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C)+F(D))/4   QUAD
 //   Aire(ABC) = ||AB^AC||/2
 // ============================================================================
-  void integUnstructCellCenter(
+  void integUnstructNodeCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -138,7 +138,7 @@ namespace K_POST
 // Compute surface integral of field F, coordinates in nodes,
 // field defined in centers, unstructured case
 // ============================================================================
-  void integUnstructNodeCenter(
+  void integUnstructCellCenter(
     const E_Int nelts, const E_Float* ratio, 
     const E_Float* surf, const E_Float* field,
     E_Float& result);
@@ -362,7 +362,7 @@ namespace K_POST
 //     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-  void integMomentStructCellCenter2D(
+  void integMomentStructNodeCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
@@ -375,7 +375,7 @@ namespace K_POST
 //     and field have the same size
 //     I(AB) = LENGTH(ABCD)*(F(A)+F(B))/2
 // ============================================================================
-  void integMomentStructCellCenter1D(
+  void integMomentStructNodeCenter1D(
     const E_Int ni, const E_Float cx, const E_Float cy,
     const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
@@ -387,7 +387,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integMomentStructNodeCenter2D(
+  void integMomentStructCellCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
@@ -398,7 +398,7 @@ namespace K_POST
 // Compute linear integral of the moment M (OM^F), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integMomentStructNodeCenter1D(
+  void integMomentStructCellCenter1D(
     const E_Int ni, const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
     const E_Float* length, const E_Float* vx, const E_Float* vy, const E_Float* vz,
@@ -408,7 +408,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 //       and F have the same size
 // ============================================================================
-  void integMomentNormStructCellCenter2D(
+  void integMomentNormStructNodeCenter2D(
     const E_Int ni, const E_Int nj, const E_Float cx,
     const E_Float cy, const E_Float cz, const E_Float* ratio, const E_Float* xt,
     const E_Float* yt, const E_Float* zt, const E_Float* sx, const E_Float* sy,
@@ -418,7 +418,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integMomentNormStructNodeCenter2D(
+  void integMomentNormStructCellCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* sx,
@@ -430,7 +430,7 @@ namespace K_POST
 //     I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //     Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-  void integNormProdStructCellCenter2D(
+  void integNormProdStructNodeCenter2D(
     const E_Int ni, const E_Int nj, const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* vx, const E_Float* vy, const E_Float* vz,
@@ -440,7 +440,7 @@ namespace K_POST
 // Compute surface integral of the product vect(F).vect(n), coordinates 
 // are defined in nodes and F is defined in nodes (center-based formulation)
 //==============================================================================
-  void integNormProdStructNodeCenter2D(
+  void integNormProdStructCellCenter2D(
     const E_Int ni, const E_Int nj, const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* vx, const E_Float* vy, const E_Float* vz,
@@ -452,7 +452,7 @@ namespace K_POST
 //      I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //      Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 //=============================================================================
-  void integNormStructCellCenter2D(
+  void integNormStructNodeCenter2D(
     const E_Int ni, const E_Int nj, const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* field, E_Float* result);
@@ -461,7 +461,7 @@ namespace K_POST
 // Compute surface integral of the field F.vect(n), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-  void integNormStructNodeCenter2D(
+  void integNormStructCellCenter2D(
     const E_Int ni, const E_Int nj,
     const E_Float* ratio, const E_Float* sx, const E_Float* sy,
     const E_Float* sz, const E_Float* field, E_Float* result);
@@ -470,7 +470,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 // and F have the same size
 // ============================================================================
-  void integMomentNormUnstructCellCenter(
+  void integMomentNormUnstructNodeCenter(
       FldArrayI& cn, const char* eltType,
       const E_Float cx, const E_Float cy, const E_Float cz, 
       const E_Float* ratio,
@@ -482,7 +482,7 @@ namespace K_POST
 // Compute linear integral of the moment.norm (OM^F.n), coordinates 
 // are defined in nodes and F is defined in center, unstructured case
 // ============================================================================
-  void integMomentNormUnstructNodeCenter(
+  void integMomentNormUnstructCellCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio,
@@ -497,7 +497,7 @@ namespace K_POST
 // I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)F(D))/4  - QUAD
 // Aire(ABCD) = ||AB^AC||/2
 // ============================================================================
-  void integNormUnstructCellCenter(
+  void integNormUnstructNodeCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float *ratio,
     const E_Float *sx, const E_Float *sy, const E_Float *sz, 
@@ -507,7 +507,7 @@ namespace K_POST
 // Compute surface integral of the field F, coordinates are defined
 // in nodes and F is defined in center, unstructured case
 // ============================================================================
-  void integNormUnstructNodeCenter(
+  void integNormUnstructCellCenter(
     const E_Int nelts, const E_Float *ratio,
     const E_Float *nsurfx, const E_Float *nsurfy, const E_Float *nsurfz,
     const E_Float *field, E_Float *result);
@@ -518,7 +518,7 @@ namespace K_POST
 // I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 // Aire(ABCD) = ||AB^AC||/2 + ||DB^DC||/2
 // ============================================================================
-  void integMomentUnstructCellCenter(
+  void integMomentUnstructNodeCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
@@ -528,7 +528,7 @@ namespace K_POST
 // Compute surface integral of the moment M (OM^F)
 // coordinates are defined in nodes and F is defined in center (unstructured)
 // ============================================================================
-  void integMomentUnstructNodeCenter(
+  void integMomentUnstructCellCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
@@ -542,7 +542,7 @@ namespace K_POST
 //     I(ABC) = Aire(ABC) * (F(A) + F(B) + F(C)) / 3
 //     Aire(ABC) = ||AB ^ AC|| / 2
 // ============================================================================
-  void integNormProdUnstructCellCenter(
+  void integNormProdUnstructNodeCenter(
     FldArrayI& cn, const char* eltType,
     const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
@@ -553,7 +553,7 @@ namespace K_POST
 // Compute surface integral of the field F, coordinates are defined
 // in nodes and F is defined in center, unstructured case
 // ============================================================================
-  void integNormProdUnstructNodeCenter(
+  void integNormProdUnstructCellCenter(
     const E_Int nbt, const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* vx, const E_Float* vy, const E_Float* vz,

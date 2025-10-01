@@ -49,7 +49,7 @@ E_Int K_POST::integNormProdStruct2D(E_Int ni, E_Int nj, E_Int nk,
   {
     // Compute integral, coordinates defined in node 
     // and field F in center 
-    integNormProdStructNodeCenter2D(
+    integNormProdStructCellCenter2D(
       NI-1, NJ-1, ratio.begin(), 
       nsurf.begin(1), nsurf.begin(2), nsurf.begin(3),
       F.begin(1), F.begin(2), F.begin(3),
@@ -59,7 +59,7 @@ E_Int K_POST::integNormProdStruct2D(E_Int ni, E_Int nj, E_Int nk,
   else
   {
     // Compute integral, coordinates and field have the same size
-    integNormProdStructCellCenter2D(
+    integNormProdStructNodeCenter2D(
       NI, NJ, ratio.begin(),
       nsurf.begin(1), nsurf.begin(2),  nsurf.begin(3),  
       F.begin(1), F.begin(2), F.begin(3),
@@ -74,52 +74,6 @@ E_Int K_POST::integNormProdStruct2D(E_Int ni, E_Int nj, E_Int nk,
 // Compute surface integral of the product vect(F).vect(n), coordinates
 // are defined in nodes and F is defined in center
 //==============================================================================
-void K_POST::integNormProdStructCellCenter2D(
-  const E_Int ni, const E_Int nj,
-  const E_Float* ratio,
-  const E_Float* sx, const E_Float* sy, const E_Float* sz,
-  const E_Float* vx, const E_Float* vy, const E_Float* vz,
-  E_Float& result)
-{
-  E_Int ni1;
-  E_Int ind1, ind2, ind3, ind4, ind;
-  E_Float fx, fy, fz;
-  E_Float r1, r2, r3, r4;
-
-  ni1 = ni - 1;
-  result = 0.0;
-
-  for (E_Int j = 0; j < nj - 1; j++)
-  {
-    for (E_Int i = 0; i < ni - 1; i++)
-    {
-      ind1 = i + j * ni;
-      ind2 = ind1 + ni;
-      ind3 = ind1 + 1;
-      ind4 = ind3 + ni;
-
-      ind = i + j * ni1;
-
-      r1 = ratio[ind1];
-      r2 = ratio[ind2];
-      r3 = ratio[ind3];
-      r4 = ratio[ind4];
-
-      fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3] + r4 * vx[ind4];
-      fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3] + r4 * vy[ind4];
-      fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3] + r4 * vz[ind4];
-
-      result += sx[ind] * fx + sy[ind] * fy + sz[ind] * fz;
-    }
-  }
-
-  result = K_CONST::ONE_FOURTH * result;
-}
-
-//==============================================================================
-// Compute surface integral of the product vect(F).vect(n), coordinates 
-// are defined in nodes and F is defined in nodes (center-based formulation)
-//==============================================================================
 void K_POST::integNormProdStructNodeCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio,
@@ -127,17 +81,56 @@ void K_POST::integNormProdStructNodeCenter2D(
   const E_Float* vx, const E_Float* vy, const E_Float* vz,
   E_Float& result)
 {
-  E_Int ind;
-  E_Float sum;
-
+  E_Int ni1 = ni - 1;
   result = 0.0;
 
+  #pragma omp parallel for collapse(2) reduction(+:result)
+  for (E_Int j = 0; j < nj - 1; j++)
+  {
+    for (E_Int i = 0; i < ni - 1; i++)
+    {
+      E_Int ind1 = i + j * ni;
+      E_Int ind2 = ind1 + ni;
+      E_Int ind3 = ind1 + 1;
+      E_Int ind4 = ind3 + ni;
+
+      E_Int ind = i + j * ni1;
+
+      E_Float r1 = ratio[ind1];
+      E_Float r2 = ratio[ind2];
+      E_Float r3 = ratio[ind3];
+      E_Float r4 = ratio[ind4];
+
+      E_Float fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3] + r4 * vx[ind4];
+      E_Float fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3] + r4 * vy[ind4];
+      E_Float fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3] + r4 * vz[ind4];
+
+      result += sx[ind] * fx + sy[ind] * fy + sz[ind] * fz;
+    }
+  }
+  result *= 0.25;
+}
+
+//==============================================================================
+// Compute surface integral of the product vect(F).vect(n), coordinates 
+// are defined in nodes and F is defined in nodes (center-based formulation)
+//==============================================================================
+void K_POST::integNormProdStructCellCenter2D(
+  const E_Int ni, const E_Int nj,
+  const E_Float* ratio,
+  const E_Float* sx, const E_Float* sy, const E_Float* sz,
+  const E_Float* vx, const E_Float* vy, const E_Float* vz,
+  E_Float& result)
+{
+  result = 0.0;
+
+  #pragma omp parallel for collapse(2) reduction(+:result)
   for (E_Int j = 0; j < nj; j++)
   {
     for (E_Int i = 0; i < ni; i++)
     {
-      ind = i + j * ni;
-      sum = sx[ind] * vx[ind] + sy[ind] * vy[ind] + sz[ind] * vz[ind];
+      E_Int ind = i + j * ni;
+      E_Float sum = sx[ind] * vx[ind] + sy[ind] * vy[ind] + sz[ind] * vz[ind];
       result += ratio[ind] * sum;
     }
   }

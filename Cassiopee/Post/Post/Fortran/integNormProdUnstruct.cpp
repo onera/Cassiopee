@@ -52,7 +52,7 @@ E_Int K_POST::integNormProdUnstruct2D(E_Int center2node,
   if (center2node == 1)
   {
     // Compute integral, coordinates defined in node and field F in center 
-    integNormProdUnstructNodeCenter(
+    integNormProdUnstructCellCenter(
       ntotElts,
       ratio.begin(), 
       nsurf.begin(1), nsurf.begin(2), nsurf.begin(3),
@@ -63,7 +63,7 @@ E_Int K_POST::integNormProdUnstruct2D(E_Int center2node,
   else
   {
     // Compute integral, coordinates and field have the same size
-    integNormProdUnstructCellCenter(
+    integNormProdUnstructNodeCenter(
       cn, eltType,
       ratio.begin(),
       nsurf.begin(1), nsurf.begin(2), nsurf.begin(3),
@@ -81,7 +81,7 @@ E_Int K_POST::integNormProdUnstruct2D(E_Int center2node,
 //     I(ABC) = Aire(ABC) * (F(A) + F(B) + F(C)) / 3
 //     Aire(ABC) = ||AB ^ AC|| / 2
 // ============================================================================
-void K_POST::integNormProdUnstructCellCenter(
+void K_POST::integNormProdUnstructNodeCenter(
   FldArrayI& cn, const char* eltType,
   const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
@@ -104,57 +104,39 @@ void K_POST::integNormProdUnstructCellCenter(
   
   result = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Int ind1, ind2, ind3, ind4;
-    E_Float fx, fy, fz;
-    E_Float r1, r2, r3, r4;
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-    
-    if (strcmp(eltTypes[ic], "TRI") == 0)
+    E_Int nfpe=1;
+    E_Float nfpeinv;
+
+    E_Int ind;
+    E_Float fx, fy, fz;
+
+    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
+
+    nfpeinv = 1./nfpe;
+
+    #pragma omp for reduction(+:result)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      for (E_Int i = 0; i < nelts; i++)
+      fx = 0.0;
+      fy = 0.0;
+      fz = 0.0;
+      for (E_Int j = 1; j <= nfpe; j++)
       {
-        ind1 = cm(i, 1) - 1;
-        ind2 = cm(i, 2) - 1;
-        ind3 = cm(i, 3) - 1;
-
-        r1 = ratio[ind1];
-        r2 = ratio[ind2];
-        r3 = ratio[ind3];
-
-        fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3];
-        fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3];
-        fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3];
-
-        result += K_CONST::ONE_THIRD * (sx[i+elOffset] * fx + sy[i+elOffset] * fy + sz[i+elOffset] * fz);
+        ind = cm(i, j) - 1;
+        fx += ratio[ind] * vx[ind];
+        fy += ratio[ind] * vy[ind];
+        fz += ratio[ind] * vz[ind];
       }
-    }
-    else if (strcmp(eltTypes[ic], "QUAD") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        ind1 = cm(i, 1) - 1;
-        ind2 = cm(i, 2) - 1;
-        ind3 = cm(i, 3) - 1;
-        ind4 = cm(i, 4) - 1;
-
-        r1 = ratio[ind1];
-        r2 = ratio[ind2];
-        r3 = ratio[ind3];
-        r4 = ratio[ind4];
-
-        fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3] + r4 * vx[ind4];
-        fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3] + r4 * vy[ind4];
-        fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3] + r4 * vz[ind4];
-
-        result += K_CONST::ONE_FOURTH * (sx[i+elOffset] * fx + sy[i+elOffset] * fy + sz[i+elOffset] * fz);
-      }
+      result += nfpeinv * (sx[i+elOffset] * fx + sy[i+elOffset] * fy + sz[i+elOffset] * fz);
     }
   }
-
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
@@ -162,19 +144,19 @@ void K_POST::integNormProdUnstructCellCenter(
 // Compute surface integral of the field F, coordinates are defined
 // in nodes and F is defined in center, unstructured case
 // ============================================================================
-void K_POST::integNormProdUnstructNodeCenter(
+void K_POST::integNormProdUnstructCellCenter(
   const E_Int nbt, const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
   const E_Float* vx, const E_Float* vy, const E_Float* vz,
   E_Float& result)
 {
-  E_Float ri, sum;
-
   result = 0.0;
+
+  #pragma omp parallel for reduction(+:result)
   for (E_Int i = 0; i < nbt; i++)
   {
-    ri = ratio[i];
-    sum = sx[i] * vx[i] + sy[i] * vy[i] + sz[i] * vz[i];
+    E_Float ri = ratio[i];
+    E_Float sum = sx[i] * vx[i] + sy[i] * vy[i] + sz[i] * vz[i];
     result += ri * sum;
   }
 }

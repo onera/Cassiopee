@@ -54,7 +54,7 @@ E_Int K_POST::integUnstruct2D(E_Int center2node,
     {
       // Compute integral, coordinates defined in node 
       // and field F in center 
-      K_POST::integUnstructNodeCenter(
+      K_POST::integUnstructCellCenter(
         ntotElts,
         ratio.begin(), surf.begin(), F.begin(n),
         result
@@ -67,7 +67,7 @@ E_Int K_POST::integUnstruct2D(E_Int center2node,
     // Compute integral, coordinates and field have the same size
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      K_POST::integUnstructCellCenter(
+      K_POST::integUnstructNodeCenter(
         cn, eltType,
         ratio.begin(), surf.begin(), F.begin(n),
         result
@@ -112,7 +112,7 @@ E_Int K_POST::integUnstruct1D(E_Int center2node,
     {
       // Compute integral, coordinates defined in node 
       // and field F in center 
-      K_POST::integUnstructNodeCenter(
+      K_POST::integUnstructCellCenter(
         ntotElts,
         ratio.begin(), length.begin(), F.begin(n),
         result
@@ -125,7 +125,7 @@ E_Int K_POST::integUnstruct1D(E_Int center2node,
     for (E_Int n = 1 ; n <= numberOfVariables ; n++)    
     {
       // Compute integral, coordinates and field have the same size
-      K_POST::integUnstructCellCenter(
+      K_POST::integUnstructNodeCenter(
         cn, eltType,
         ratio.begin(), length.begin(), F.begin(n),
         result
@@ -143,7 +143,7 @@ E_Int K_POST::integUnstruct1D(E_Int center2node,
 //   I(ABC) = Aire(ABC)*(F(A)+F(B)+F(C)+F(D))/4   QUAD
 //   Aire(ABC) = ||AB^AC||/2
 // ============================================================================
-void K_POST::integUnstructCellCenter(
+void K_POST::integUnstructNodeCenter(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* ratio, const E_Float* surf, const E_Float* field,
   E_Float& result)
@@ -164,59 +164,36 @@ void K_POST::integUnstructCellCenter(
   
   result = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
+    E_Int nfpe=1;
+    E_Float nfpeinv;
 
-    if (strcmp(eltTypes[ic], "TRI") == 0)
+    E_Int ind;
+    E_Float f;
+
+    if (strcmp(eltTypes[ic], "BAR") == 0) nfpe = 2;
+    else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
+    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
+
+    nfpeinv = 1./nfpe;
+
+    #pragma omp for reduction(+:result)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      for (E_Int i = 0; i < nelts; i++)
+      f = 0.0;
+      for (E_Int j = 1; j <= nfpe; j++)
       {
-        E_Int ind1 = cm(i, 1) - 1;
-        E_Int ind2 = cm(i, 2) - 1;
-        E_Int ind3 = cm(i, 3) - 1;
-
-        E_Float f1 = ratio[ind1] * field[ind1];
-        E_Float f2 = ratio[ind2] * field[ind2];
-        E_Float f3 = ratio[ind3] * field[ind3];
-
-        result += K_CONST::ONE_THIRD * surf[i+elOffset] * (f1 + f2 + f3);
+        ind = cm(i, j) - 1;
+        f += ratio[ind] * field[ind];
       }
-    }
-    else if (strcmp(eltTypes[ic], "QUAD") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        E_Int ind1 = cm(i, 1) - 1;
-        E_Int ind2 = cm(i, 2) - 1;
-        E_Int ind3 = cm(i, 3) - 1;
-        E_Int ind4 = cm(i, 4) - 1;
-
-        E_Float f1 = ratio[ind1] * field[ind1];
-        E_Float f2 = ratio[ind2] * field[ind2];
-        E_Float f3 = ratio[ind3] * field[ind3];
-        E_Float f4 = ratio[ind4] * field[ind4];
-
-        result += K_CONST::ONE_FOURTH * surf[i+elOffset] * (f1 + f2 + f3 + f4);
-      }
-    }
-    else if (strcmp(eltTypes[ic], "BAR") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        E_Int ind1 = cm(i, 1) - 1;
-        E_Int ind2 = cm(i, 2) - 1;
-
-        E_Float f1 = ratio[ind1] * field[ind1];
-        E_Float f2 = ratio[ind2] * field[ind2];
-
-        result += K_CONST::ONE_HALF * surf[i+elOffset] * (f1 + f2);
-      }
+      result += nfpeinv * surf[i+elOffset] * f;
     }
   }
-
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
@@ -224,17 +201,17 @@ void K_POST::integUnstructCellCenter(
 // Compute surface integral of field F, coordinates in nodes,
 // field defined in centers, unstructured case
 // ============================================================================
-void K_POST::integUnstructNodeCenter(
+void K_POST::integUnstructCellCenter(
   const E_Int nelts, const E_Float* ratio, 
   const E_Float* surf, const E_Float* field,
   E_Float& result)
 {
   result = 0.0;
-  E_Float f;
 
+  #pragma omp parallel for reduction(+:result)
   for (E_Int i = 0; i < nelts; i++)
   {
-    f = ratio[i] * field[i];
+    E_Float f = ratio[i] * field[i];
     result += surf[i] * f;
   }
 }

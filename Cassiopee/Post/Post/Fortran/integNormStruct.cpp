@@ -56,7 +56,7 @@ E_Int K_POST::integNormStruct2D(E_Int ni, E_Int nj, E_Int nk,
     // Compute integral, coordinates defined in node and field F in center
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      integNormStructNodeCenter2D(
+      integNormStructCellCenter2D(
         NI-1, NJ-1, ratio.begin(),
         nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), F.begin(n),
         result.begin());
@@ -71,7 +71,7 @@ E_Int K_POST::integNormStruct2D(E_Int ni, E_Int nj, E_Int nk,
     // Compute integral, coordinates and field have the same size
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      integNormStructCellCenter2D(
+      integNormStructNodeCenter2D(
         NI, NJ, ratio.begin(),
         nsurf.begin(1), nsurf.begin(2), nsurf.begin(3), F.begin(n),
         result.begin());
@@ -90,7 +90,7 @@ E_Int K_POST::integNormStruct2D(E_Int ni, E_Int nj, E_Int nk,
 //      I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //      Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 //=============================================================================
-void K_POST::integNormStructCellCenter2D(
+void K_POST::integNormStructNodeCenter2D(
   const E_Int ni, const E_Int nj, const E_Float* ratio,
   const E_Float* sx, const E_Float* sy, const E_Float* sz,
   const E_Float* field, E_Float* result)
@@ -101,6 +101,7 @@ void K_POST::integNormStructCellCenter2D(
 
   E_Int ni1 = ni - 1;
 
+  #pragma omp parallel for collapse(2) reduction(+:res1,res2,res3)
   for (E_Int j = 0; j < nj - 1; j++)
   {
     for (E_Int i = 0; i < ni - 1; i++)
@@ -122,16 +123,16 @@ void K_POST::integNormStructCellCenter2D(
     }
   }
 
-  result[0] = K_CONST::ONE_FOURTH * res1;
-  result[1] = K_CONST::ONE_FOURTH * res2;
-  result[2] = K_CONST::ONE_FOURTH * res3;
+  result[0] = 0.25 * res1;
+  result[1] = 0.25 * res2;
+  result[2] = 0.25 * res3;
 }
 
 //=============================================================================
 // Compute surface integral of the field F.vect(n), coordinates 
 //     are defined in nodes and F is defined in center
 //=============================================================================
-void K_POST::integNormStructNodeCenter2D(
+void K_POST::integNormStructCellCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio, const E_Float* sx, const E_Float* sy,
   const E_Float* sz, const E_Float* field, E_Float* result)
@@ -140,6 +141,7 @@ void K_POST::integNormStructNodeCenter2D(
   E_Float res2 = 0.0;
   E_Float res3 = 0.0;
 
+  #pragma omp parallel for collapse(2) reduction(+:res1,res2,res3)
   for (E_Int j = 0; j < nj; j++)
   {
     for (E_Int i = 0; i < ni; i++)
