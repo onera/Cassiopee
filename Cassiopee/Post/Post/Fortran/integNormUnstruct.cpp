@@ -80,7 +80,7 @@ E_Int K_POST::integNormUnstruct2D(E_Int center2node,
     {
       // Compute integral, coordinates and field have the same size
       integNormUnstructNodeCenter(
-        cn, eltType,
+        cn,
         ratio.begin(),
         nsurf1, nsurf2, nsurf3, F.begin(n),
         result.begin());
@@ -101,14 +101,12 @@ E_Int K_POST::integNormUnstruct2D(E_Int center2node,
 // Aire(ABCD) = ||AB^AC||/2
 // ============================================================================
 void K_POST::integNormUnstructNodeCenter(
-  FldArrayI& cn, const char* eltType,
+  FldArrayI& cn,
   const E_Float *ratio,
   const E_Float *sx, const E_Float *sy, const E_Float *sz, 
   const E_Float *field, E_Float *result)
 {
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -130,27 +128,22 @@ void K_POST::integNormUnstructNodeCenter(
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-    E_Int nfpe=1;
-    E_Float nfpeinv;
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
 
     E_Int ind;
     E_Float sum, f;
-
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
-
-    nfpeinv = 1./nfpe;
 
     #pragma omp for reduction(+:res1,res2,res3)
     for (E_Int i = 0; i < nelts; i++)
     {
       f = 0.0;
-      for (E_Int j = 1; j <= nfpe; j++)
+      for (E_Int j = 1; j <= nvpe; j++)
       {
         ind = cm(i, j) - 1;
         f += ratio[ind] * field[ind];
       }
-      sum = nfpeinv * f;
+      sum = nvpeinv * f;
       res1 += sx[i+elOffset] * sum;
       res2 += sy[i+elOffset] * sum;
       res3 += sz[i+elOffset] * sum;
@@ -160,8 +153,6 @@ void K_POST::integNormUnstructNodeCenter(
   result[0] = res1;
   result[1] = res2;
   result[2] = res3;
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 // ============================================================================

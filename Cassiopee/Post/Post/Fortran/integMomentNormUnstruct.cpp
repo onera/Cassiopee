@@ -65,7 +65,7 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
       integMomentNormUnstructCellCenter(
-        cn, eltType,
+        cn,
         cx, cy, cz, ratio.begin(), 
         coord.begin(posx), coord.begin(posy), coord.begin(posz),
         nsurf1, nsurf2, nsurf3, F.begin(n),
@@ -83,7 +83,7 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
     {
       // Compute integral, coordinates and field have the same size
       integMomentNormUnstructNodeCenter(
-        cn, eltType,
+        cn,
         cx, cy, cz, ratio.begin(), 
         coord.begin(posx), coord.begin(posy), coord.begin(posz), 
         nsurf1, nsurf2, nsurf3, F.begin(n), 
@@ -104,15 +104,13 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
 // and F have the same size
 // ============================================================================
 void K_POST::integMomentNormUnstructNodeCenter(
-  FldArrayI& cn, const char* eltType,
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz, 
   const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* sx, const E_Float* sy, const E_Float* sz, 
   const E_Float* field, E_Float* result)
 {
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -135,18 +133,12 @@ void K_POST::integMomentNormUnstructNodeCenter(
     E_Float f, fi;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe=1;
-    E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-
-    if (strcmp(eltTypes[ic], "BAR") == 0) nfpe = 2;
-    else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
-
-    nfpeinv = 1./nfpe;
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
 
     #pragma omp for reduction(+:res1,res2,res3)
     for (E_Int i = 0; i < nelts; i++)
@@ -156,7 +148,7 @@ void K_POST::integMomentNormUnstructNodeCenter(
       centery = 0.0;
       centerz = 0.0;
 
-      for (E_Int j = 1; j <= nfpe; j++)
+      for (E_Int j = 1; j <= nvpe; j++)
       {
         ind = cm(i, j) - 1;
 
@@ -168,10 +160,10 @@ void K_POST::integMomentNormUnstructNodeCenter(
         centerz += zt[ind];
       }
 
-      f *= nfpeinv;
-      centerx = nfpeinv * centerx - cx;
-      centery = nfpeinv * centery - cy;
-      centerz = nfpeinv * centerz - cz;
+      f *= nvpeinv;
+      centerx = nvpeinv * centerx - cx;
+      centery = nvpeinv * centery - cy;
+      centerz = nvpeinv * centerz - cz;
 
       sx0 = sx[i+elOffset];
       sy0 = sy[i+elOffset];
@@ -190,8 +182,6 @@ void K_POST::integMomentNormUnstructNodeCenter(
   result[0] = res1;
   result[1] = res2;
   result[2] = res3;
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
 // ============================================================================
@@ -199,15 +189,13 @@ void K_POST::integMomentNormUnstructNodeCenter(
 // are defined in nodes and F is defined in center, unstructured case
 // ============================================================================
 void K_POST::integMomentNormUnstructCellCenter(
-  FldArrayI& cn, const char* eltType,
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* sx, const E_Float* sy, const E_Float* sz, 
   const E_Float* field, E_Float* result)
 {
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -230,18 +218,12 @@ void K_POST::integMomentNormUnstructCellCenter(
     E_Float f, fi;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe=1;
-    E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-
-    if (strcmp(eltTypes[ic], "BAR") == 0) nfpe = 2;
-    else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
-
-    nfpeinv = 1./nfpe;
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
 
     #pragma omp for reduction(+:res1,res2,res3)
     for (E_Int i = 0; i < nelts; i++)
@@ -251,7 +233,7 @@ void K_POST::integMomentNormUnstructCellCenter(
       centery = 0.0;
       centerz = 0.0;
 
-      for (E_Int j = 1; j <= nfpe; j++)
+      for (E_Int j = 1; j <= nvpe; j++)
       {
         ind = cm(i, j) - 1;
 
@@ -260,9 +242,9 @@ void K_POST::integMomentNormUnstructCellCenter(
         centerz += zt[ind];
       }
 
-      centerx = nfpeinv * centerx - cx;
-      centery = nfpeinv * centery - cy;
-      centerz = nfpeinv * centerz - cz;
+      centerx = nvpeinv * centerx - cx;
+      centery = nvpeinv * centery - cy;
+      centerz = nvpeinv * centerz - cz;
 
       sx0 = sx[i+elOffset];
       sy0 = sy[i+elOffset];
@@ -281,6 +263,4 @@ void K_POST::integMomentNormUnstructCellCenter(
   result[0] = res1;
   result[1] = res2;
   result[2] = res3;
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }

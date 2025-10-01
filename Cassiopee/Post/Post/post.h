@@ -130,7 +130,7 @@ namespace K_POST
 //   Aire(ABC) = ||AB^AC||/2
 // ============================================================================
   void integUnstructNodeCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float* ratio, const E_Float* surf, const E_Float* field,
     E_Float& result);
 
@@ -471,7 +471,7 @@ namespace K_POST
 // and F have the same size
 // ============================================================================
   void integMomentNormUnstructNodeCenter(
-      FldArrayI& cn, const char* eltType,
+      FldArrayI& cn,
       const E_Float cx, const E_Float cy, const E_Float cz, 
       const E_Float* ratio,
       const E_Float* xt, const E_Float* yt, const E_Float* zt,
@@ -483,7 +483,7 @@ namespace K_POST
 // are defined in nodes and F is defined in center, unstructured case
 // ============================================================================
   void integMomentNormUnstructCellCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
@@ -498,7 +498,7 @@ namespace K_POST
 // Aire(ABCD) = ||AB^AC||/2
 // ============================================================================
   void integNormUnstructNodeCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float *ratio,
     const E_Float *sx, const E_Float *sy, const E_Float *sz, 
     const E_Float *field, E_Float *result);
@@ -519,7 +519,7 @@ namespace K_POST
 // Aire(ABCD) = ||AB^AC||/2 + ||DB^DC||/2
 // ============================================================================
   void integMomentUnstructNodeCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
     const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
     const E_Float* vx, const E_Float* vy, const E_Float* vz, E_Float* result);
@@ -529,7 +529,7 @@ namespace K_POST
 // coordinates are defined in nodes and F is defined in center (unstructured)
 // ============================================================================
   void integMomentUnstructCellCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float cx, const E_Float cy, const E_Float cz,
     const E_Float* ratio, const E_Float* xt, const E_Float* yt,
     const E_Float* zt, const E_Float* surf,
@@ -543,7 +543,7 @@ namespace K_POST
 //     Aire(ABC) = ||AB ^ AC|| / 2
 // ============================================================================
   void integNormProdUnstructNodeCenter(
-    FldArrayI& cn, const char* eltType,
+    FldArrayI& cn,
     const E_Float* ratio,
     const E_Float* sx, const E_Float* sy, const E_Float* sz,
     const E_Float* vx, const E_Float* vy, const E_Float* vz,
