@@ -175,7 +175,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
             iso[0]='%s%d_%d'%(preffixLocal,nBase,no_offset)
-            D_IBM._setSnear(iso,snears[nBase]* 2**no_offset)
+            D_IBM._setSnear(iso,snears[nBase]*2**no_offset)
             C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase,no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal+=1
@@ -198,24 +198,24 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
             if n is not None: dfars[c] = Internal.getValue(n)*1.
     else:
         if len(bodies) != len(dfars): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
-    
+    levelSkelInput = levelSkel
     for c, z in enumerate(bodies):
+        levelSkel = levelSkelInput 
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
             levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
             if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
-
-            dfarloc = dfars[c]
-            snearloc = 2**levelSkel*snears[c]
-
+            dfarloc      = dfars[c]
+            snearloc     = 2**levelSkel*snears[c]
             while snearloc > dfarloc/2: # security so that levelSkel is not too big
-                snearloc /= 2.
+                snearloc  /= 2.
                 levelSkel -= 1
+            levelSkelList.append(levelSkel)
             snearsList.append(snearloc)
             dfarList.append(dfarloc)
 
     o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
-
+    levelSkel = max(levelSkelList)
     #
     # SYMMETRY - select only cells from one side
     #
@@ -1004,10 +1004,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
-
-                o = tagOutside__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx)
-                C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
-                C._rmVars(o, ["centers:indicatorTmp"])
+                for offsetlocTmp in offset_inside[0]:
+                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx)
+                    C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
+                    C._rmVars(o, ["centers:indicatorTmp"])
 
                 indicMax = C.getMaxValue(o,"centers:indicator")
                 indicMax = Cmpi.allgather(indicMax)
@@ -1252,7 +1252,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         for nBase in range(numBase):
             snearMult = snearsTbTbox[nBase]/minSnearsOrig
             snearsTbTbox[nBase] = snearMult*hmin
-
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.rank==0: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
