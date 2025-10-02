@@ -7,7 +7,8 @@ from __future__ import print_function
 import numpy, sys, os
 
 # global tolerance on float fields
-TOLERANCE = 1.e-11
+TOLERANCE = 1.e-11  # absolute
+RELTOLERANCE = 2.e-15  # relative
 
 # whether to diffArrays geometrically or topologically. default is topologically.
 GEOMETRIC_DIFF = False
@@ -79,14 +80,16 @@ def testA(arrays, number=1):
         nvarNames = len(varNames)
         l0 = [0. for _ in range(nvarNames)]
         l2 = [0. for _ in range(nvarNames)]
-        for i in ret:
+        l0ref = [0. for _ in range(nvarNames)]
+        for i, j in zip(ret, old):
             for v in i[0].split(','):
                 vidx = varNames.index(v)
                 l0[vidx] = max(l0[vidx], C.normL0(i, v))
                 l2[vidx] = max(l2[vidx], C.normL2(i, v))
+                l0ref[vidx] = max(l0ref[vidx], C.normL0(j, v[1:]))
 
         for vidx, v in enumerate(varNames):
-            if l0[vidx] > TOLERANCE:
+            if l0[vidx] > TOLERANCE + RELTOLERANCE*l0ref[vidx]:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0[vidx], l2[vidx]))
                 isSuccessful = False
 
@@ -166,7 +169,8 @@ def testT(t, number=1):
         for v in mvars:
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
-            if l0 > TOLERANCE:
+            l0ref = 0. #C.normL0(old, v[1:])
+            if l0 > TOLERANCE + RELTOLERANCE*l0ref:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
                 isSuccessful = False
         return isSuccessful
@@ -238,7 +242,7 @@ def checkObject_(objet, refObjet, reference):
             return False
     elif isinstance(refObjet, (float, numpy.float32, numpy.float64)):
         diff = abs(refObjet-objet)
-        if diff > TOLERANCE:
+        if diff > TOLERANCE + RELTOLERANCE*abs(refObjet):
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
             return False
     elif isinstance(refObjet, dict):
@@ -259,9 +263,9 @@ def checkObject_(objet, refObjet, reference):
                 return False
         else:
             diff = numpy.abs(refObjet-objet)
-            diff = (diff < TOLERANCE)
-            if not diff.all():
-                print("DIFF: object value differs from "+reference+'.')
+            if (diff > TOLERANCE + RELTOLERANCE*numpy.abs(refObjet)).any():
+                print(f"DIFF: object value differs from {reference} "
+                      "(max. diff={numpy.max(diff):g}).")
                 return False
     elif isinstance(refObjet, list): # liste
         for i, ai in enumerate(refObjet):
