@@ -1004,10 +1004,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
-                if nBase == 0:
-                    o = tagOutside__(o, tbTMP=offset_inside[nBase], dim=dim, h_target=hx)
-                    C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
-                    C._rmVars(o, ["centers:indicatorTmp"])
+
+                o = tagOutside__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx)
+                C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
+                C._rmVars(o, ["centers:indicatorTmp"])
 
                 indicMax = C.getMaxValue(o,"centers:indicator")
                 indicMax = Cmpi.allgather(indicMax)
