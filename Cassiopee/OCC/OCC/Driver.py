@@ -621,7 +621,7 @@ class Driver:
 
     def solve2(self):
         """Solve equations to get free parameters."""
-        
+
         # get free params
         params = []
         for s in self.scalars:
@@ -715,7 +715,7 @@ class Driver:
                 if self.scalars2[f].name in freeParams: listVars.append(f)
         else:
             raise TypeError("diff: incorrect freevars.")
-        
+
         mesho = Converter.copy(mesh)
 
         for c, f in enumerate(listVars):
@@ -756,7 +756,7 @@ class Driver:
         return None
 
     # get DOE for free parameters
-    # IN: dict of deltas for each desired free parameter 
+    # IN: dict of deltas for each desired free parameter
     # OUT: arange dict
     def setDOE(self, deltas):
         # set default
@@ -768,7 +768,7 @@ class Driver:
 
         for k in deltas: # free param names
             for c, f in enumerate(self.freeParams):
-                if self.scalars2[f].name == k: 
+                if self.scalars2[f].name == k:
                     p = self.scalars2[f]
                     self.doeRange[c] = numpy.arange(p.range[0], p.range[1], deltas[k])
                     self.doeSize[c] = deltas[k]
@@ -780,12 +780,12 @@ class Driver:
         ranges = []
         for k in self.doeRange:
             ranges.append(range(k.size))
-        
-        for indexes in itertools.product(*ranges):    
+
+        for indexes in itertools.product(*ranges):
             # create value dict
             values = {}
             hash = self.getHash(indexes)
-            for c, f in enumerate(self.freeParams): 
+            for c, f in enumerate(self.freeParams):
                 val = self.doeRange[c][indexes[c]]
                 f = self.freeParams[c]
                 p = self.scalars2[f]
@@ -805,7 +805,7 @@ class Driver:
         return hash
 
     # IN: hash
-    # OUT: return (i,j,k,...)    
+    # OUT: return (i,j,k,...)
     def getInd(self, hash):
         hashcode = hash
         np = len(self.doeSize)
@@ -845,7 +845,7 @@ class Driver:
         Filter.writeNodesFromPaths(self.doeFileName, 'CGNSTree/Snapshots', node)
         print("ADD: snapshot %d added."%hashcode)
         return None
-    
+
     def readSnaphot(self, hashcode):
         import Converter.Filter as Filter
         nodes = Filter.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
@@ -872,18 +872,18 @@ class Driver:
             if nm != nv:
                 # this should not happen if dmesh
                 power = nv/nm
-                #print("Remeshing with power=", power) 
+                #print("Remeshing with power=", power)
                 m = Generator.refine(m, power, dir=1)
             m = m[1].ravel('k')
             F[:,hash] = m[:]
         return F
-    
+
     # ROM
     def createROM(self, fileName):
         import Converter.PyTree
         self.romFileName = fileName
         t = Converter.PyTree.newPyTree(['POD'])
-        Converter.PyTree.convertPyTree2File(t, self.romFileName)        
+        Converter.PyTree.convertPyTree2File(t, self.romFileName)
 
     # build POD from full matrix
     def fullSvd(self, F):
@@ -899,7 +899,7 @@ class Driver:
         # energy of each modes
         energy = S**2 / numpy.sum(S**2)
         return U, S, Vt
-    
+
     # rebuild samples from POD
     def buildSvd(self, U, S, Vt):
         # Convert S to a diagonal matrix
@@ -907,7 +907,7 @@ class Driver:
         # Multiply to get back A
         Fr = U @ Sigma @ Vt
         return Fr
-     
+
 #============================================================
 # Global
 DRIVER=Driver()

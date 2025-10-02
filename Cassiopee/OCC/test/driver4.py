@@ -60,4 +60,3 @@ for i in range(20):
 mesh1 = D.DRIVER.dmesh(sketch1, mesh, ['P.1.2.0.y'], 0.1)
 mesh2 = D.DRIVER.dmesh(sketch1, mesh1, ['P.1.2.0.y'], 0.1)
 Converter.convertArrays2File(mesh+mesh1+mesh2, 'out.plt')
-
