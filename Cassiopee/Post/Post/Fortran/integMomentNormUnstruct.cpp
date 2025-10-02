@@ -135,7 +135,7 @@ void K_POST::integMomentNormUnstructCellCenter(
     E_Float f, fi;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe;
+    E_Int nfpe=1;
     E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
@@ -226,10 +226,10 @@ void K_POST::integMomentNormUnstructNodeCenter(
   for (E_Int ic = 0; ic < nc; ic++)
   {
     E_Int ind;
-    E_Float f, fi;
+    E_Float f;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe;
+    E_Int nfpe=1;
     E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
