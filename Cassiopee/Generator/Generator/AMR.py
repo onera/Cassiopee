@@ -281,7 +281,7 @@ def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
-    XRAYDIM1 = max(500, min(5000, XRAYDIM1));
+    XRAYDIM1 = max(5000, min(50000, XRAYDIM1));
     C._initVars(to, "cellNIn",1.)
 
     to = X.blankCells(to, bodies1, BM, blankingType='node_in',
