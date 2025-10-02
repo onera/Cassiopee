@@ -641,22 +641,6 @@ installDict = {
         [] # NvccAdditionalOptions
     ],
     ###############################################################################
-    'sator_brw': [
-        'Cluster de calcul Sator Broadwell (Onera)',
-        'ifort', # f77compiler
-        'ifort', # f90compiler
-        'icc', # Cppcompiler
-        ['-DCACHELINE=32', '-DNB_SOCKET=2', '-DCORE_PER_SOCK=14', '-Dvtune', '-DSIMD=AVX2'], # CppAdditionalOptions
-        [], # f77AdditionalOptions
-        True, # useOMP
-        False, # static
-        [], # additionalIncludePaths
-        [], # additionalLibs
-        [], # additionalLibPaths
-        False, # useCuda
-        [] # NvccAdditionalOptions
-    ],
-    ###############################################################################
     'sator_sky': [
         'Cluster de calcul Sator Skylake (Onera)',
         'ifort', # f77compiler

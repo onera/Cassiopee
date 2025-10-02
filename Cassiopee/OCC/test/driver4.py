@@ -36,9 +36,27 @@ mesh = sketch1.mesh(0.01, 0.01, 0.01)
 D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
+D.DRIVER.setDOE({'P.1.2.0.y': 0.1})
+D.DRIVER.createDOE('doe.hdf')
+D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
+# reread from doe file
+m = D.DRIVER.readSnaphot(0)
+Converter.convertArrays2File(m, 'reread.plt')
+full = D.DRIVER.readAllSnapshots()
+print(full.shape)
+#print(full)
+D.DRIVER.fullSvd(full)
+
+import sys; sys.exit()
+
 import CPlot, time
-for i in range(50):
+for i in range(20):
     D.DRIVER.instantiate({'P.1.2.0.y': 0.3+i/50.})
     mesh = sketch1.mesh(0.01, 0.01, 0.01)
     CPlot.display(mesh)
     time.sleep(0.5)
+
+# build dmesh
+mesh1 = D.DRIVER.dmesh(sketch1, mesh, ['P.1.2.0.y'], 0.1)
+mesh2 = D.DRIVER.dmesh(sketch1, mesh1, ['P.1.2.0.y'], 0.1)
+Converter.convertArrays2File(mesh+mesh1+mesh2, 'out.plt')
