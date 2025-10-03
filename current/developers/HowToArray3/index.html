@@ -103,7 +103,7 @@
 <h2 id="in-place-functions">In place functions</h2>
 <p>Use getFromArray3 to pass from python object to FldArrays:</p>
 <pre><code>PyObject* o;
-if (!PyArg_ParseTuple(args, "O", &amp;o)) return NULL;
+if (!PYPARSETUPLE_(args, O_, &amp;o)) return NULL;
 E_Int ni, nj, nk;
 K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
 char* varString; char* eltType;
@@ -186,7 +186,7 @@ for (size_t i = 0; i &lt; eltTypes.size(); i++) delete [] eltTypes[i];
 if apif=2, it is an array2 or an array3
 For structured array, there is no difference between array2 and array3.</p>
 <p>For NGONs:</p>
-<pre><code>E_Int isNGon = c-&gt;isNGon();
+<pre><code>E_Int isNGon = c-&gt;getNGonType();
 // isNGon=1: NGON, NFACE CGNSv3 array1 compact
 // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
 // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4
