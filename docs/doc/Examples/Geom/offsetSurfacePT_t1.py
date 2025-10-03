@@ -1,7 +1,7 @@
 # - offsetSurface (pyTree) -
 import Geom.PyTree as D
-import KCore.test as test
 import Geom.Offset
+import KCore.test as test
 
 #2D
 a = D.circle((0,0,0), 1)

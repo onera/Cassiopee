@@ -4,7 +4,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Connector.PyTree as X
+import Connector.AMR as X_AMR
 import Geom.IBM as D_IBM
 import Transform.PyTree as T
 import KCore.test as test
@@ -54,7 +54,7 @@ tb = C.newPyTree(["BODY",a])
 o = G.octree(tb, dfar=20, snearList=[0.1], balancing=1)
 T._addkplane(o)
 t = C.newPyTree(["CARTESIAN",o])
-t = X.prepareAMRData(tb, t, IBM_parameters=IBM_parameters, dim=dimPb)
+t = X_AMR.prepareAMRData(tb, t, IBM_parameters=IBM_parameters, dim=dimPb)
 test.testT(t,1)
 # 3D
 a = D.sphere((0.,0.,0.),1.)
@@ -66,5 +66,5 @@ tb = C.newPyTree(["BODY",a])
 o = G.octree(tb, dfar=20, snearList=[0.05], balancing=1)
 o = G.expandLayer(o)
 t = C.newPyTree(["CARTESIAN",o])
-t = X.prepareAMRData(tb, t, IBM_parameters=IBM_parameters, dim=dimPb)
+t = X_AMR.prepareAMRData(tb, t, IBM_parameters=IBM_parameters, dim=dimPb)
 test.testT(t,2)
