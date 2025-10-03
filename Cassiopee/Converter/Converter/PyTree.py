@@ -5649,7 +5649,7 @@ def computeBCMatchField(z, allMatch, variables=None):
             if len(spl) != 1: varL.append(spl[1])
             else: varL.append(spl[0])
 
-        fld  = []; indR = None
+        fld = None; indR = None
 
         for key in allMatch:
             if key.split("/")[0] == z[0]:
@@ -5660,12 +5660,12 @@ def computeBCMatchField(z, allMatch, variables=None):
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
 
-                if indR is not None:
+                if fld is not None:
+                    fld.append(fld1)
                     indR = numpy.concatenate((indR,indR1))
                 else:
+                    fld  = [fld1]
                     indR = indR1
-
-                fld.append(fld1)
 
     return indR, fld
 
