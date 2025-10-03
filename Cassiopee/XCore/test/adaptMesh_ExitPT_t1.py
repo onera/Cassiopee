@@ -7,6 +7,9 @@ import KCore.test as test
 import numpy
 import KCore.test as test
 
+from mpi4py import MPI
+
+
 # 2D QUAD
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
 a = C.convertArray2NGon(a)
