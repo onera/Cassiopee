@@ -5,10 +5,7 @@ import XCore.PyTree as XC
 import Converter.Internal as Internal
 import KCore.test as test
 import numpy
-import KCore.test as test
-
-from mpi4py import MPI
-
+from mpi4py import MPI # for MPI_Init
 
 # 2D QUAD
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))

@@ -4,7 +4,7 @@ import Geom
 import Generator
 import Converter
 
-# Create parameter
+# Create a parameter
 epaisseur = D.Scalar(12., name='epaisseur')
 epaisseur.range = [10,15]
 
@@ -12,43 +12,54 @@ epaisseur.range = [10,15]
 naca = Geom.naca(12, N=51)
 bbox = Generator.bbox(naca)
 
-# Create grid
+# Create parameter grid
 grid1 = D.Grid(bbox[0:3], bbox[3:], N=(3,3,1))
 grid1.P[1][2][0].y.range = [0, 5]
 D.Eq(epaisseur.s, grid1.P[1][2][0].x.s)
 
-# Create profile
+# Create parametric profile
 spline1 = D.Spline3( grid1, mesh=naca, name='spline1' )
 
-# Create sketch
+# Create parametric sketch
 sketch1 = D.Sketch([spline1], name='sketch1')
 
-# test
+# solve for free parameters
 D.DRIVER.solve2()
-
 #grid1.P[1][2][0].y.print()
 
+# instantiate a CAD from free parameters
+# then mesh and get sensibilities
 D.DRIVER.instantiate({'P.1.2.0.y': 0.8})
-
 sketch1.writeCAD('out.step')
-
 mesh = sketch1.mesh(0.01, 0.01, 0.01)
 D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
+# Build DOE
 D.DRIVER.setDOE({'P.1.2.0.y': 0.1})
 D.DRIVER.createDOE('doe.hdf')
 D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
-# reread from doe file
+
+# reread one snapshot from DOE file
 m = D.DRIVER.readSnaphot(0)
 Converter.convertArrays2File(m, 'reread.plt')
-full = D.DRIVER.readAllSnapshots()
-print(full.shape)
-#print(full)
-D.DRIVER.fullSvd(full)
 
-import sys; sys.exit()
+# read snapshots as matrix
+F = D.DRIVER.readAllSnapshots()
+#print('F', F.shape)
+#print(F)
+# Create a ROM limited to K modes
+Phi,S,Vt = D.DRIVER.createROM(F, K=20)
+D.DRIVER.writeROM('rom.hdf')
+# add to file the coordinates of snapshots on POD vectors
+D.DRIVER.addAllCoefs()
 
+# reread and build a snapshot from ROM
+coords = D.DRIVER.readCoefs(0)
+m = D.DRIVER.evalROM(coords)
+Converter.convertArrays2File(m, 'reread2.plt')
+
+# instantiate CADs, mesh and display
 import CPlot, time
 for i in range(20):
     D.DRIVER.instantiate({'P.1.2.0.y': 0.3+i/50.})

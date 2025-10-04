@@ -305,8 +305,11 @@ def buildCPlotArrays(a, topTree=[]):
             if FIREWALL:
                 if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
                     arrays[i] = Post.exteriorElts(b)
-                if b[3] == 'NGON' and b[2][0,2] > 2:
+                if api == 1: dim3D = (b[2][0,2] > 2)
+                else: dim3D = (b[2][0][0] > 2)
+                if b[3] == 'NGON' and dim3D:
                     arrays[i] = Post.exteriorElts(b)
+                    #arrays[i] = Post.exteriorFaces(b)
     return arrays
 
 #==============================================================================

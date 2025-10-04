@@ -573,6 +573,10 @@ class Driver:
         self.doeSize = [] # list param->size of discretization
         # ROM
         self.romFileName = 'rom.hdf'
+        self.K = 0 # reduced dimension
+        self.mean = None
+        self.Phi = None # POD vectors
+        self.ak = None # POD coefficients of each mesh in doe
 
     def registerScalar(self, s):
         """Register parametric scalar."""
@@ -828,6 +832,16 @@ class Driver:
         mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
         return mesh2
 
+    # remesh input mesh to match nv points
+    def remesh(self, mesh, nv):
+        import Generator
+        nm = mesh[1].shape[1]
+        if nm != nv:
+            power = (nv-1)*1./(nm-1)
+            m = Generator.refine(mesh, power, dir=1)
+        else: m = mesh
+        return m
+
     # DOE in file
     def createDOE(self, fileName):
         import Converter.PyTree
@@ -846,6 +860,7 @@ class Driver:
         print("ADD: snapshot %d added."%hashcode)
         return None
 
+    # read a snapshot, return an mesh array
     def readSnaphot(self, hashcode):
         import Converter.Filter as Filter
         nodes = Filter.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
@@ -853,10 +868,9 @@ class Driver:
         msh = ['x,y,z', msh, msh.shape[1], 1, 1]
         return msh
 
-    # read all snapshots in a flatten matrix
+    # read all snapshots, return a flatten matrix
     def readAllSnapshots(self):
         import itertools
-        import Generator
         ranges = []; np = 0
         for k in self.doeRange:
             ranges.append(range(k.size))
@@ -868,44 +882,88 @@ class Driver:
         for indexes in itertools.product(*ranges):
             hash = self.getHash(indexes)
             m = self.readSnaphot(hash)
-            nm = m[1].shape[1]
-            if nm != nv:
-                # this should not happen if dmesh
-                power = nv/nm
-                #print("Remeshing with power=", power)
-                m = Generator.refine(m, power, dir=1)
+            m = self.remesh(m, nv)
             m = m[1].ravel('k')
             F[:,hash] = m[:]
         return F
 
     # ROM
-    def createROM(self, fileName):
+    def writeROM(self, fileName):
         import Converter.PyTree
         self.romFileName = fileName
         t = Converter.PyTree.newPyTree(['POD'])
+        node = ["phi", self.Phi, [], 'phi_t']
+        t[2][1][2].append(node)
         Converter.PyTree.convertPyTree2File(t, self.romFileName)
 
-    # build POD from full matrix
-    def fullSvd(self, F):
-        # on deformation?
-        Xmean = numpy.mean(F, axis=1, keepdims=True)
-        Xcentered = F - Xmean
-        U, S, Vt = numpy.linalg.svd(F, full_matrices=False)
-        #print(U) # spatial coordinates, each column is a mesh
-        #print(S) # energy
-        #print(Vt) # parameters
-        podModes = U
-        print(podModes)
+    # build POD from full matrix F, keep K modes
+    def createROM(self, F, K=-1):
+        # on deformation from 
+        mean = numpy.mean(F, axis=1, keepdims=True)
+        self.mean = mean # maillage moyen
+        #F = F - mean
+        Phi, S, Vt = numpy.linalg.svd(F, full_matrices=False)
         # energy of each modes
-        energy = S**2 / numpy.sum(S**2)
-        return U, S, Vt
+        #energy = S**2 / numpy.sum(S**2)
+        if K > 0: self.K = K
+        else: self.K = Phi.shape[1]
+        self.Phi = Phi[:, 0:self.K]
+        return Phi, S, Vt
+    
+    # get modes as meshes
+    def getMode(self, i):
+        m = self.Phi[:,i]
+        np = m.size//3
+        m = m.reshape( (3,np) )
+        m = ['x,y,z', m, np, 1, 1]
+        return m
+    
+    # get coords of mesh on POD
+    def addCoefs(self, hashcode, msh):
+        import Converter.Filter as Filter
+        coords = numpy.empty( (self.K), dtype=numpy.float64 ) 
+        m = msh[1].ravel('k')
+        for i in range(self.K):
+            c0 = numpy.dot(self.Phi[:,i], m)
+            coords[i] = c0
+        node = ["%05d"%hashcode, coords, [], 'coeffs_t']
+        Filter.writeNodesFromPaths(self.romFileName, 'CGNSTree/POD', node)
+        print("ADD: coeffs %d added."%hashcode)
+        return coords
+
+    def addAllCoefs(self):    
+        import itertools
+        ranges = []
+        for k in self.doeRange:
+            ranges.append(range(k.size))
+
+        m = self.readSnaphot(0)
+        nv = m[1].shape[1]
+        
+        for indexes in itertools.product(*ranges):
+            hashcode = self.getHash(indexes)
+            m = self.readSnaphot(hashcode)
+            m = self.remesh(m, nv)
+            self.addCoefs(hashcode, m)
+
+    def evalROM(self, coords):
+        m = self.Phi @ coords
+        m = m.reshape((3, m.size//3))
+        msh = ['x,y,z', m, m.shape[1], 1, 1]
+        return msh
+
+    def readCoefs(self, hashcode):
+        import Converter.Filter as Filter
+        nodes = Filter.readNodesFromPaths(self.romFileName, ['CGNSTree/POD/%05d'%hashcode])
+        coord = nodes[0][1]
+        return coord
 
     # rebuild samples from POD
-    def buildSvd(self, U, S, Vt):
+    def rebuildF(self, Phi, S, Vt):
         # Convert S to a diagonal matrix
         Sigma = numpy.diag(S)
         # Multiply to get back A
-        Fr = U @ Sigma @ Vt
+        Fr = Phi @ Sigma @ Vt
         return Fr
 
 #============================================================
