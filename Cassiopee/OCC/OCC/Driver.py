@@ -898,7 +898,7 @@ class Driver:
 
     # build POD from full matrix F, keep K modes
     def createROM(self, F, K=-1):
-        # on deformation from 
+        # on deformation from
         mean = numpy.mean(F, axis=1, keepdims=True)
         self.mean = mean # maillage moyen
         #F = F - mean
@@ -909,7 +909,7 @@ class Driver:
         else: self.K = Phi.shape[1]
         self.Phi = Phi[:, 0:self.K]
         return Phi, S, Vt
-    
+
     # get modes as meshes
     def getMode(self, i):
         m = self.Phi[:,i]
@@ -917,11 +917,11 @@ class Driver:
         m = m.reshape( (3,np) )
         m = ['x,y,z', m, np, 1, 1]
         return m
-    
+
     # get coords of mesh on POD
     def addCoefs(self, hashcode, msh):
         import Converter.Filter as Filter
-        coords = numpy.empty( (self.K), dtype=numpy.float64 ) 
+        coords = numpy.empty( (self.K), dtype=numpy.float64 )
         m = msh[1].ravel('k')
         for i in range(self.K):
             c0 = numpy.dot(self.Phi[:,i], m)
@@ -931,7 +931,7 @@ class Driver:
         print("ADD: coeffs %d added."%hashcode)
         return coords
 
-    def addAllCoefs(self):    
+    def addAllCoefs(self):
         import itertools
         ranges = []
         for k in self.doeRange:
@@ -939,7 +939,7 @@ class Driver:
 
         m = self.readSnaphot(0)
         nv = m[1].shape[1]
-        
+
         for indexes in itertools.product(*ranges):
             hashcode = self.getHash(indexes)
             m = self.readSnaphot(hashcode)
