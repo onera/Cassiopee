@@ -118,7 +118,8 @@ Mesh *Mesh_from_Karray(Karray *karray)
     M->fstride = IntArray(M->nf);
     M->frange = IntArray(4 * M->nf);
 
-    for (E_Int i = 0; i < M->nf; i++) {
+    for (E_Int i = 0; i < M->nf; i++) 
+    {
         E_Int np = -1;
         E_Int *pn = karray->get_face(i, np);
         assert(np != -1);
@@ -128,7 +129,8 @@ Mesh *Mesh_from_Karray(Karray *karray)
         E_Int *face = Mesh_get_face(M, i);
         E_Int *frange = Mesh_get_frange(M, i);
 
-        for (E_Int j = 0; j < np; j++) {
+        for (E_Int j = 0; j < np; j++) 
+        {
             face[2*j] = pn[j] - 1;
             frange[j] = 1;
         }
