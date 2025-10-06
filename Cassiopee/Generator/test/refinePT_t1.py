@@ -55,4 +55,3 @@ t = C.newPyTree(['Base']); t[2][1][2]+=[a,b]
 C._initVars(t,'F',1.); C._initVars(t,'centers:G',2.)
 for noz in range(2): t[2][1][2][noz] = G.refine(t[2][1][2][noz],0.3,dir=0)
 test.testT(t,7)
-
