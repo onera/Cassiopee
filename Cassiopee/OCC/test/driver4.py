@@ -14,7 +14,7 @@ bbox = Generator.bbox(naca)
 
 # Create parameter grid
 grid1 = D.Grid(bbox[0:3], bbox[3:], N=(3,3,1))
-grid1.P[1][2][0].y.range = [0, 5]
+grid1.P[1][2][0].y.range = [0, 5, 0.1]
 D.Eq(epaisseur.s, grid1.P[1][2][0].x.s)
 
 # Create parametric profile
@@ -36,7 +36,8 @@ D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
 # Build DOE
-D.DRIVER.setDOE({'P.1.2.0.y': 0.1})
+#D.DRIVER.setDOE({'P.1.2.0.y': 0.1})
+D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
 D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
 
@@ -46,8 +47,6 @@ Converter.convertArrays2File(m, 'reread.plt')
 
 # read snapshots as matrix
 F = D.DRIVER.readAllSnapshots()
-#print('F', F.shape)
-#print(F)
 # Create a ROM limited to K modes
 Phi,S,Vt = D.DRIVER.createROM(F, K=20)
 D.DRIVER.writeROM('rom.hdf')

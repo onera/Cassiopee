@@ -4,7 +4,7 @@ import Converter
 
 # Create a parameter
 radius = D.Scalar(1., name='radius')
-radius.range = [0.1, 10]
+radius.range = [0.1, 10, 0.3]
 
 # Create parametric circle
 circle1 = D.Circle( (0,0,0), radius, name='circle1' )
@@ -23,7 +23,7 @@ D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
 # Build DOE
-D.DRIVER.setDOE({'radius': 0.3})
+D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
 D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
 
