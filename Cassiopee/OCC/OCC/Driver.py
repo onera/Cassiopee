@@ -793,7 +793,7 @@ class Driver:
             ranges.append(range(k.size))
             size += k.size
         raf = size - size%Cmpi.size # seq reste a faire
-        
+
         for indexes in itertools.product(*ranges):
             # create value dict
             values = {}
@@ -907,7 +907,7 @@ class Driver:
         else: # given range
             for k in paramSlab:
                 ranges.append(range(k[0],k[1]))
-                np += k[1]-k[0]     
+                np += k[1]-k[0]
         m = self.readSnaphot(0)
         nv = m[1].shape[1]
         F = numpy.empty( (nv*3, np), dtype=numpy.float64)

@@ -2078,7 +2078,7 @@ def tkLoadFile(files, mode='full'):
             except:
                 print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
                 return
-        
+
         if format == 'bin_adf' or format == 'bin_hdf':
             # Load skeleton
             import Converter.Filter as Filter
