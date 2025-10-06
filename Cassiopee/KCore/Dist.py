@@ -1565,6 +1565,33 @@ def checkOSMesa(additionalLibPaths=[], additionalIncludePaths=[]):
         return (False, i, l, libname)
 
 #=============================================================================
+# Check for adolc (automatic differentiation)
+# additionalPaths: chemins d'installation non standards: ['/home/toto',...]
+# Retourne: (True/False, chemin des includes, chemin de la librairie)
+#=============================================================================
+def checkAdolc(additionalLibPaths=[], additionalIncludePaths=[]):
+    libname = 'adolc'
+    l = checkLibFile__('libadolc.so', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('libadolc.a', additionalLibPaths)
+    if l is None:
+        l = checkLibFile__('adolc.dll.a', additionalLibPaths)
+
+    i = checkIncFile__('adolc/adolc.h', additionalIncludePaths)
+    if i is not None and l is not None:
+        print('Info: libadolc detected at %s.'%l)
+        return (True, i, l, libname)
+    elif l is None and i is not None:
+        print('Info: libadolc was not found on your system. No AD support.')
+        return (False, i, l, libname)
+    elif l is not None and i is None:
+        print('Info: adolc/adolc.h was not found on your system. No AD support.')
+        return (False, i, l, libname)
+    else:
+        print('Info: libadolc and adolc/adolc.h was not found on your system. No AD support.')
+        return (False, i, l, libname)
+
+#=============================================================================
 # Check for OCC/OCE (open cascade classic or community edition)
 # additionalPaths: chemins d'installation non standards: ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)

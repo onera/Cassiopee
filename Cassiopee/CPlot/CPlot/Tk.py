@@ -305,8 +305,11 @@ def buildCPlotArrays(a, topTree=[]):
             if FIREWALL:
                 if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
                     arrays[i] = Post.exteriorElts(b)
-                if b[3] == 'NGON' and b[2][0,2] > 2:
+                if api == 1: dim3D = (b[2][0,2] > 2)
+                else: dim3D = (b[2][0][0] > 2)
+                if b[3] == 'NGON' and dim3D:
                     arrays[i] = Post.exteriorElts(b)
+                    #arrays[i] = Post.exteriorFaces(b)
     return arrays
 
 #==============================================================================
@@ -2069,18 +2072,22 @@ def tkLoadFile(files, mode='full'):
 
     if mode == 'partial': # partial load
         fileName = files[0]
-        try: format = Converter.checkFileType(fileName)
-        except:
-            print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
-            return
-        if format != 'bin_adf' and format != 'bin_hdf': mode = 'full'
+        format = Converter.convertExt2Format__(fileName)
+        if format == 'bin_cgns' or format == "unknown":
+            try: format = Converter.checkFileType(fileName)
+            except:
+                print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
+                return
 
-        import Converter.Filter as Filter
-        HANDLE = Filter.Handle(files[0])
-        t = HANDLE.loadSkeleton()
-        HANDLE._loadTreeExtras(t)
-        Filter._convert2PartialTree(t)
-        HANDLE.getVariables()
+        if format == 'bin_adf' or format == 'bin_hdf':
+            # Load skeleton
+            import Converter.Filter as Filter
+            HANDLE = Filter.Handle(files[0])
+            t = HANDLE.loadSkeleton()
+            HANDLE._loadTreeExtras(t)
+            Filter._convert2PartialTree(t)
+            HANDLE.getVariables()
+        else: mode = 'full'
 
     if mode == 'full': # full load of multiple files
         t = []

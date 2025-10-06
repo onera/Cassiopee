@@ -3,6 +3,7 @@ import OCC
 import sympy
 import numpy
 import re
+import Converter.Mpi as Cmpi
 
 #============================================================
 # name server for creating entities with unique names
@@ -573,6 +574,10 @@ class Driver:
         self.doeSize = [] # list param->size of discretization
         # ROM
         self.romFileName = 'rom.hdf'
+        self.K = 0 # reduced dimension
+        self.mean = None
+        self.Phi = None # POD vectors
+        self.ak = None # POD coefficients of each mesh in doe
 
     def registerScalar(self, s):
         """Register parametric scalar."""
@@ -755,17 +760,23 @@ class Driver:
 
         return None
 
-    # get DOE for free parameters
+    # set DOE deltas for free parameters
+    # it is better to set them in scalar.range
     # IN: dict of deltas for each desired free parameter
     # OUT: arange dict
-    def setDOE(self, deltas):
+    def setDOE(self, deltas={}):
         # set default
         self.doeRange = []; self.doeSize = []
         for f in self.freeParams: # give order
             p = self.scalars2[f]
-            self.doeRange.append(numpy.linspace(p.range[0], p.range[1], 2))
-            self.doeSize.append(2)
+            if len(p.range) == 3: # disc given
+                self.doeRange.append(numpy.arange(p.range[0], p.range[1], p.range[2]))
+                self.doeSize.append(p.range[2])
+            else: # set to 2 points
+                self.doeRange.append(numpy.linspace(p.range[0], p.range[1], 2))
+                self.doeSize.append(2)
 
+        # set dictionary (optional)
         for k in deltas: # free param names
             for c, f in enumerate(self.freeParams):
                 if self.scalars2[f].name == k:
@@ -777,9 +788,11 @@ class Driver:
     # walk DOE, append snapshots to file
     def walkDOE(self, entity, hmin, hmax, hausd):
         import itertools
-        ranges = []
+        ranges = []; size = 0
         for k in self.doeRange:
             ranges.append(range(k.size))
+            size += k.size
+        raf = size - size%Cmpi.size # seq reste a faire
 
         for indexes in itertools.product(*ranges):
             # create value dict
@@ -790,10 +803,23 @@ class Driver:
                 f = self.freeParams[c]
                 p = self.scalars2[f]
                 values[p.name] = val
-            # instantiate
-            self.instantiate(values)
-            mesh = entity.mesh(hmin, hmax, hausd)
-            self.addSnapshot(hash, mesh)
+            if Cmpi.rank == hash%Cmpi.size and hash < raf:
+                # instantiate and mesh
+                self.instantiate(values)
+                mesh = entity.mesh(hmin, hmax, hausd)
+                if Cmpi.rank == 0:
+                    self.addSnapshot(hash, mesh)
+                    if Cmpi.size > 1: Cmpi.send(1, dest=1)
+                else:
+                    go = Cmpi.recv(source=Cmpi.rank-1)
+                    self.addSnapshot(hash, mesh)
+                    if Cmpi.rank < Cmpi.size-1: Cmpi.send(Cmpi.rank+1, dest=Cmpi.rank+1)
+                Cmpi.barrier()
+            elif Cmpi.rank == 0 and hash >= raf:
+                # instantiate and mesh
+                self.instantiate(values)
+                mesh = entity.mesh(hmin, hmax, hausd)
+                self.addSnapshot(hash, mesh)
 
     # IN: list of indexes for each param
     # OUT: single hash integer (flatten)
@@ -828,39 +854,60 @@ class Driver:
         mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
         return mesh2
 
+    # remesh input mesh to match nv points
+    def remesh(self, mesh, nv):
+        import Generator
+        nm = mesh[1].shape[1]
+        if nm != nv:
+            power = (nv-1)*1./(nm-1)
+            m = Generator.refine(mesh, power, dir=1)
+        else: m = mesh
+        return m
+
     # DOE in file
     def createDOE(self, fileName):
-        import Converter.PyTree
         self.doeFileName = fileName
+        if Cmpi.rank > 0: return None
+        import Converter.PyTree
         t = Converter.PyTree.newPyTree(['Parameters', 'Snapshots'])
+        for c, k in enumerate(self.doeRange):
+            node = ["p%05d"%c, k, [], 'parameter_t']
+            t[2][1][2].append(node)
         Converter.PyTree.convertPyTree2File(t, self.doeFileName)
         return None
 
+    # add snapshot to file
     def addSnapshot(self, hashcode, msh):
-        import Converter.Filter as Filter
+        import Converter.Distributed as Distributed
         import Transform, Converter
         msh = Converter.extractVars(msh, ['x','y','z'])
         msh = Transform.join(msh) # merge mesh
         node = ["%05d"%hashcode, msh[1], [], 'snapshot_t']
-        Filter.writeNodesFromPaths(self.doeFileName, 'CGNSTree/Snapshots', node)
-        print("ADD: snapshot %d added."%hashcode)
+        Distributed.writeNodesFromPaths(self.doeFileName, 'CGNSTree/Snapshots', node)
+        print("ADD: snapshot %d added."%hashcode, flush=True)
         return None
 
+    # read a snapshot, return an mesh array
     def readSnaphot(self, hashcode):
-        import Converter.Filter as Filter
-        nodes = Filter.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
+        import Converter.Distributed as Distributed
+        nodes = Distributed.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
         msh = nodes[0][1]
         msh = ['x,y,z', msh, msh.shape[1], 1, 1]
         return msh
 
-    # read all snapshots in a flatten matrix
-    def readAllSnapshots(self):
+    # read all snapshots, return a flatten matrix
+    # IN: paramSlab: optional ( (5,120), (3,20), ...) for each parameters
+    def readAllSnapshots(self, paramSlab=None):
         import itertools
-        import Generator
         ranges = []; np = 0
-        for k in self.doeRange:
-            ranges.append(range(k.size))
-            np += k.size
+        if paramSlab is None: # full range
+            for k in self.doeRange:
+                ranges.append(range(k.size))
+                np += k.size
+        else: # given range
+            for k in paramSlab:
+                ranges.append(range(k[0],k[1]))
+                np += k[1]-k[0]
         m = self.readSnaphot(0)
         nv = m[1].shape[1]
         F = numpy.empty( (nv*3, np), dtype=numpy.float64)
@@ -868,44 +915,90 @@ class Driver:
         for indexes in itertools.product(*ranges):
             hash = self.getHash(indexes)
             m = self.readSnaphot(hash)
-            nm = m[1].shape[1]
-            if nm != nv:
-                # this should not happen if dmesh
-                power = nv/nm
-                #print("Remeshing with power=", power)
-                m = Generator.refine(m, power, dir=1)
+            m = self.remesh(m, nv)
             m = m[1].ravel('k')
             F[:,hash] = m[:]
         return F
 
     # ROM
-    def createROM(self, fileName):
-        import Converter.PyTree
+    def writeROM(self, fileName):
         self.romFileName = fileName
+        if Cmpi.rank > 0: return None
+        import Converter.PyTree
         t = Converter.PyTree.newPyTree(['POD'])
+        node = ["phi", self.Phi, [], 'phi_t']
+        t[2][1][2].append(node)
         Converter.PyTree.convertPyTree2File(t, self.romFileName)
+        return None
 
-    # build POD from full matrix
-    def fullSvd(self, F):
-        # on deformation?
-        Xmean = numpy.mean(F, axis=1, keepdims=True)
-        Xcentered = F - Xmean
-        U, S, Vt = numpy.linalg.svd(F, full_matrices=False)
-        #print(U) # spatial coordinates, each column is a mesh
-        #print(S) # energy
-        #print(Vt) # parameters
-        podModes = U
-        print(podModes)
+    # build POD from full matrix F, keep K modes
+    def createROM(self, F, K=-1):
+        # on deformation from
+        mean = numpy.mean(F, axis=1, keepdims=True)
+        self.mean = mean # maillage moyen
+        #F = F - mean
+        Phi, S, Vt = numpy.linalg.svd(F, full_matrices=False)
         # energy of each modes
-        energy = S**2 / numpy.sum(S**2)
-        return U, S, Vt
+        #energy = S**2 / numpy.sum(S**2)
+        if K > 0: self.K = K
+        else: self.K = Phi.shape[1]
+        self.Phi = Phi[:, 0:self.K]
+        return Phi, S, Vt
+
+    # get modes as meshes
+    def getMode(self, i):
+        m = self.Phi[:,i]
+        np = m.size//3
+        m = m.reshape( (3,np) )
+        m = ['x,y,z', m, np, 1, 1]
+        return m
+
+    # get coords of mesh on POD
+    def addCoefs(self, hashcode, msh):
+        import Converter.Distributed as Distributed
+        coords = numpy.empty( (self.K), dtype=numpy.float64 )
+        m = msh[1].ravel('k')
+        for i in range(self.K):
+            c0 = numpy.dot(self.Phi[:,i], m)
+            coords[i] = c0
+        node = ["%05d"%hashcode, coords, [], 'coeffs_t']
+        Distributed.writeNodesFromPaths(self.romFileName, 'CGNSTree/POD', node)
+        print("ADD: coeffs %d added."%hashcode)
+        return coords
+
+    def addAllCoefs(self):
+        import itertools
+        ranges = []
+        for k in self.doeRange:
+            ranges.append(range(k.size))
+
+        m = self.readSnaphot(0)
+        nv = m[1].shape[1]
+
+        for indexes in itertools.product(*ranges):
+            hashcode = self.getHash(indexes)
+            m = self.readSnaphot(hashcode)
+            m = self.remesh(m, nv)
+            self.addCoefs(hashcode, m)
+
+    def evalROM(self, coords):
+        m = self.Phi @ coords
+        m = m.reshape((3, m.size//3))
+        msh = ['x,y,z', m, m.shape[1], 1, 1]
+        return msh
+
+    def readCoefs(self, hashcode):
+        import Converter.Distributed as Distributed
+        nodes = Distributed.readNodesFromPaths(self.romFileName, ['CGNSTree/POD/%05d'%hashcode])
+        coord = nodes[0][1]
+        return coord
 
     # rebuild samples from POD
-    def buildSvd(self, U, S, Vt):
+    def rebuildF(self, Phi, S, Vt):
         # Convert S to a diagonal matrix
         Sigma = numpy.diag(S)
         # Multiply to get back A
-        Fr = U @ Sigma @ Vt
+        Fr = Phi @ Sigma @ Vt
         return Fr
 
 #============================================================

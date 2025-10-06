@@ -22,7 +22,7 @@ c0 = C.initVars(c0,'vy', f2, ['x','y'])
 c = C.extractVars(c0, ['vx','vy','vz'])
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 1)
 
 # STRUCT 2D NODE / NODE
@@ -34,7 +34,7 @@ c0 = C.initVars(c0,'vy', f2, ['x','y'])
 c = C.extractVars(c0, ['vx','vy','vz'])
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 2)
 
 # STRUCT 1D NODE / CENTER
@@ -47,7 +47,7 @@ c0 = C.initVars(c0,'vy', f2, ['x','y'])
 c = C.extractVars(c0, ['vx','vy','vz'])
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 3)
 
 # STRUCT 1D NODE / NODE
@@ -59,7 +59,7 @@ c0 = C.initVars(c0,'vy', f2, ['x','y'])
 c = C.extractVars(c0, ['vx','vy','vz'])
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 4)
 
 # TRI NODE / NODE
@@ -68,7 +68,7 @@ c = C.array('vx,vy,vz', m[1].shape[1], m[2].shape[1], 'TRI')
 c = C.initVars(c, 'vx,vy,vz', 1.)
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 5)
 
 # TRI NODE / CENTER
@@ -78,7 +78,7 @@ c = C.initVars(c, 'vx,vy,vz', 1.)
 c = C.node2Center(c)
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 6)
 
 # BAR NODE / NODE
@@ -88,7 +88,7 @@ c = C.array('vx,vy,vz', m[1].shape[1], m[2].shape[1], 'BAR')
 c = C.initVars(c, 'vx,vy,vz', 1.)
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 7)
 
 # BAR NODE / CENTER
@@ -101,5 +101,5 @@ c = C.node2Center(c)
 c = C.extractVars(c,['vx','vy','vz'])
 res = P.integ([m], [c], [])
 out = C.array('res', 3, 1, 1)
-out[1][0,0] = res[0]; out[1][0,1] = res[1]; out[1][0,2] = res[2];
+out[1][:] = res
 test.testA([out], 8)

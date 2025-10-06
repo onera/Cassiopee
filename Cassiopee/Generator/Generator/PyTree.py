@@ -136,7 +136,7 @@ def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False):
 
 def adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None):
     import XCore.PyTree as XC
-
+    from mpi4py import MPI # for MPI_Init
     a = Internal.getZones(a)[0]
     dimZ = Internal.getZoneDim(a)
     eltType = dimZ[3]
@@ -179,6 +179,7 @@ def createHook4AdaptMesh(a, dim=3, splitInfos=None):
 
 def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
     import XCore.PyTree as XC
+    from mpi4py import MPI # for MPI_Init
     z = Internal.getZones(a)[0]
     dimZ = Internal.getZoneDim(z)
     eltType = dimZ[3]

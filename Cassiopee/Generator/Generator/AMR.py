@@ -849,6 +849,7 @@ def _createBCStandard__(a_hexa, a):
     return None
 
 def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False):
+    from mpi4py import MPI
     o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
     gcells = res[5]
