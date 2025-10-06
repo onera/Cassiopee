@@ -454,7 +454,7 @@ def _refine(t, zones_to_refine, dirs, refined={}, factor=2):
             oppBlock = neigh[1]
             oppRac = neigh[2]
             trf = neigh[3]
-            dirOpp = getRac(oppRac)        
+            dirOpp = getRac(oppRac)
             dirt = trf[dir0s-1] # direction du traitement sur blocopp
             if isOppRac:
                 if dirt == 1: diro = 1
@@ -465,8 +465,8 @@ def _refine(t, zones_to_refine, dirs, refined={}, factor=2):
                 elif dirt == -3: diro = -5
                 zones_to_refine.append(oppBlock)
                 dirs.append(abs(diro))
-        _refine(t, zones_to_refine, dirs, refined, factor)    
-        
+        _refine(t, zones_to_refine, dirs, refined, factor)
+
 # Return the first wall in t
 # Return zoneName, window and window direction
 def getAWallWindow(t):

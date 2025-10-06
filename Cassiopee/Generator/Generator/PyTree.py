@@ -1225,7 +1225,7 @@ def coarsenBCRanges__(r0, ni0, nj0, nk0, ni, nj, nk, dir, factor):
 
     w0 = [i1N,i2N, j1N,j2N,k1N,k2N]
     return Internal.window2Range(w0)
-    
+
 def refineBCRanges__(r0, ni0, nj0, nk0, ni, nj, nk, dir, factor):
     if not isinstance(factor,int):
         raise ValueError("refineBCRanges__: factor must be an integer.")
@@ -1302,23 +1302,23 @@ def _refineBC__(z, ni0, nj0, nk0, factor, dir):
             r0[1] = refineBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
         else:
             r0[1] = coarsenBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-            
+
     # Connectivite
     connect = Internal.getNodesFromType2(z, 'ZoneGridConnectivity_t')
     for cn in connect:
         prs = Internal.getNodesFromName2(cn, 'PointRange')
         for pr in prs:
-            if factor>0: 
+            if factor>0:
                 pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-            else: 
-                pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)                
+            else:
+                pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
         prs = Internal.getNodesFromName3(cn, 'PointRangeDonor')
         for pr in prs:
-            if factor>0: 
+            if factor>0:
                 pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-            else: 
+            else:
                 pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-                
+
     return None
 
 def refine(t, power, dir):
@@ -1344,14 +1344,14 @@ def _refine(t, power, dir):
             # modify BCs
             refined=False
             factor = int(power)
-            if float(factor)-power == 0.:                 
+            if float(factor)-power == 0.:
                 refined=True
             if not refined:
                 if float(int(1./power))-1./power==0.:
                     factor = int(-1./power)
                     refined=True
             if refined: _refineBC__(z, ni0, nj0, nk0, factor, dir)
-            else: C._deleteZoneBC__(z); C._deleteGridConnectivity__(z)                    
+            else: C._deleteZoneBC__(z); C._deleteGridConnectivity__(z)
     return None
 
 def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
