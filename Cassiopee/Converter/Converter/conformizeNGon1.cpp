@@ -433,7 +433,7 @@ void K_CONVERTER::conformizeNGon(
     #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN; i++) ngon2[i] = ngon[i];
 
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       #pragma omp for
       for (E_Int i = 0; i < nfaces; i++) indPG2[i] = indPG[i];
@@ -444,7 +444,7 @@ void K_CONVERTER::conformizeNGon(
   E_Int nf2 = 0, c = 0;
   for (E_Int i = 0; i < nelts; i++)
   {
-    if (api == 2 || api == 3) indPH2[i] = nf2;
+    if (ngonType == 2 || ngonType == 3) indPH2[i] = nf2;
     nf2 = 0;
     E_Int* elem = cn.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
@@ -457,7 +457,7 @@ void K_CONVERTER::conformizeNGon(
         { nface2[c+shift+nf2] = addr[k+1]+1; nf2++; }
       }
     }
-    if (api == 1 || api == 2) nface2[c] = nf2;
+    if (ngonType != 3) nface2[c] = nf2;
     c += nf2+shift;
   }
   

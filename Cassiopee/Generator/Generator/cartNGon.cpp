@@ -75,8 +75,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int nj1 = E_max(1, E_Int(nj)-1);
   E_Int nk1 = E_max(1, E_Int(nk)-1);  
   E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
-  E_Int shift = 1;
-  if (ngonType == 3) shift = 0;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   E_Int nfaces = 0; E_Int sizeFN = 0; E_Int sizeEF = 0;
   if (dim0 == 1)
