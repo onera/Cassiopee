@@ -388,11 +388,12 @@ void K_CONVERTER::conformizeNGon(
   E_Int* indPH = cn.getIndPH();
   E_Int sizeFN = cn.getSizeNGon();
   E_Int nelts = cn.getNElts();
+  E_Int ngonType = cn.getNGonType();
 
   E_Int nf; 
   E_Int* addr;
   E_Int api = f.getApi();
-  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
   E_Int sizeEF = 0;
   if (api == 1 || api == 2) sizeEF = nelts;
 
@@ -411,7 +412,6 @@ void K_CONVERTER::conformizeNGon(
   // Create new NGON connectivity
   E_Int npts = f.getSize();
   E_Int nfld = f.getNfld();
-  E_Int ngonType = cn.getNGonType();
   E_Bool center = false;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, "x,y,z", npts, nelts, nfaces, "NGON",
                                        sizeFN, sizeEF, ngonType, center, api);
@@ -422,20 +422,20 @@ void K_CONVERTER::conformizeNGon(
   E_Int* ngon2 = cno->getNGon();
   E_Int* nface2 = cno->getNFace();
   E_Int *indPG2 = NULL, *indPH2 = NULL;
-  if (api == 2 || api == 3) // array2 ou array3
+  if (ngonType == 2 || ngonType == 3) // set offsets
   {
     indPG2 = cno->getIndPG(); indPH2 = cno->getIndPH();
   }
 
   // Recopie la connectivite faces/noeuds
-#pragma omp parallel
+  #pragma omp parallel
   {
-#pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN; i++) ngon2[i] = ngon[i];
 
     if (api == 2 || api == 3)
     {
-#pragma omp for
+      #pragma omp for
       for (E_Int i = 0; i < nfaces; i++) indPG2[i] = indPG[i];
     }
   }
@@ -467,15 +467,5 @@ void K_CONVERTER::conformizeNGon(
     if (indir[i] != NULL) delete [] indir[i];
   }
   delete [] indir;
-
   RELEASESHAREDS(tpl, f2); // cno is returned
-
-  // DEBUG
-  /*
-  FldArrayI cFE;
-  K_CONNECT::connectNG2FE(*cno, cFE);
-  printf("final %d %d\n", cFE(16649,1), cFE(16649,2));
-  printf("final2 %d %d\n", cFE(13971,1), cFE(13971,2));
-  printf("final3 %d %d\n", cFE(13969,1), cFE(13969,2));
-  */
 }
