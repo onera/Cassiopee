@@ -133,9 +133,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   if (strcmp(eltRef, "NGON") == 0)
   {
     strcat(newEltType, "NGON");
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn[0]->getNGonType();
     tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
                                nfaces, newEltType, sizeFN, sizeEF,
                                ngonType, false, api);
@@ -197,10 +195,11 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 
   // Acces non universel sur les ptrs NGON
   E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  E_Int ngonType = cno->getNGonType();
   if (strcmp(eltRef, "NGON") == 0)
   {
     ngon = cno->getNGon(); nface = cno->getNFace();
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG = cno->getIndPG(); indPH = cno->getIndPH();
     }
@@ -245,7 +244,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < sizeEFk; i++)
           nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
 
-        if (api == 2 || api == 3)
+        if (ngonType == 2 || ngonType == 3)
         {
           indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
           #pragma omp for
@@ -472,9 +471,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   {
     strcpy(newEltType, "NGON");
     neltstot = neltsNGON;
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn[0]->getNGonType();
     tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
                                 nfaces, newEltType, sizeFN, sizeEF,
                                 ngonType, false, api);
@@ -528,10 +525,11 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
 
   // Acces non universel sur les ptrs NGON
   E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  E_Int ngonType = cno->getNGonType();
   if (strcmp(eltRef, "NGON") == 0)
   {
     ngon = cno->getNGon(); nface = cno->getNFace();
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG = cno->getIndPG(); indPH = cno->getIndPH();
     }
@@ -554,7 +552,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       {
         E_Float* fkn = unstructF[k]->begin(n);
         E_Float* fn = f->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nptsk; i++) fn[i+offsetPts] = fkn[i];
       }
 
@@ -563,7 +561,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       {
         E_Float* fckn = unstructFc[k]->begin(n);
         E_Float* fcn = fc->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < unstructFc[k]->getSize(); i++)
           fcn[i+offsetElts] = fckn[i];
       }
@@ -579,17 +577,17 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
         E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
         E_Int *indPGk = NULL, *indPHk = NULL;
 
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < sizeFNk; i++)
           ngon[i+offsetSizeFN] = ngonk[i] + offsetPts;
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < sizeEFk; i++)
           nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
 
-        if (api == 2 || api == 3)
+        if (ngonType == 2 || ngonType == 3)
         {
           indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
-          #pragma omp for
+          #pragma omp for nowait
           for (E_Int i = 0; i < nfacesk; i++)
             indPG[i+offsetFaces] = indPGk[i] + offsetFaces;
           #pragma omp for
