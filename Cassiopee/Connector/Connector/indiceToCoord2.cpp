@@ -79,19 +79,19 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   K_NUMPY::getFromNumpyArray(indiceslist, ind_list); E_Int* ipt_ind_list = ind_list->begin();
 
   FldArrayI* rangedonor_;
-  K_NUMPY::getFromNumpyArray(rangedonor, rangedonor_);  E_Int* ipt_rangedonor = rangedonor_->begin();
+  K_NUMPY::getFromNumpyArray(rangedonor, rangedonor_); E_Int* ipt_rangedonor = rangedonor_->begin();
 
   FldArrayI* transfo_;
-  K_NUMPY::getFromNumpyArray(transfo, transfo_);  E_Int* ipt_transfo = transfo_->begin();
+  K_NUMPY::getFromNumpyArray(transfo, transfo_); //E_Int* ipt_transfo = transfo_->begin();
 
   FldArrayI* profondeur_;
-  K_NUMPY::getFromNumpyArray(profondeur, profondeur_);  E_Int* ipt_profondeur = profondeur_->begin();
+  K_NUMPY::getFromNumpyArray(profondeur, profondeur_); E_Int* ipt_profondeur = profondeur_->begin();
 
   FldArrayI* dirD_;
-  K_NUMPY::getFromNumpyArray(dirD, dirD_);  E_Int* ipt_dirD = dirD_->begin();
+  K_NUMPY::getFromNumpyArray(dirD, dirD_); E_Int* ipt_dirD = dirD_->begin();
 
   FldArrayI* typ_;
-  K_NUMPY::getFromNumpyArray(typ, typ_);  E_Int* ipt_typ = typ_->begin();
+  K_NUMPY::getFromNumpyArray(typ, typ_); E_Int* ipt_typ = typ_->begin();
 
    //
    //Determination fenetre donneur

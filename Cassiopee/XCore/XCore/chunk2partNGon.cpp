@@ -1086,12 +1086,16 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // 8 must be an array of FlowSolutions#Centers chunks
   o = PyList_GetItem(l, 7);
   E_Int csize = PyList_Size(o);
-  if (csize == 0) {
+  if (csize == 0) 
+  {
     PyList_Append(out, PyList_New(0));
-  } else {
+  } 
+  else 
+  {
     E_Float **csols = (E_Float **)XCALLOC(csize, sizeof(E_Float *));
 
-    for (E_Int i = 0; i < csize; i++) {
+    for (E_Int i = 0; i < csize; i++) 
+    {
       PyObject *csol = PyList_GetItem(o, i);
       res = K_NUMPY::getFromNumpyArray(csol, csols[i], ncells, nfld);
       if (res != 1) { RAISE("Bad input."); return NULL; }
@@ -1127,6 +1131,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
       Py_DECREF(ca);
     }
 
+    XFREE(csols);
     PyList_Append(out, clist);
     Py_DECREF(clist);
   }
