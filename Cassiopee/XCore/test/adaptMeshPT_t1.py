@@ -76,3 +76,5 @@ test.testT(a, 5)
 
 a = XC.AdaptMesh_ExtractMesh(AM, conformize=1)
 test.testT(a, 6)
+
+XC.AdaptMesh_Exit(AM)
