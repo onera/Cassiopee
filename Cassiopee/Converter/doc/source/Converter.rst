@@ -2057,7 +2057,7 @@ Array / PyTree analysis
 
 .. py:function:: Converter.normL0(a, var)
 
-    Return the L0 norm of field 'var' on input.
+    Return the infinite norm of field 'var' on input.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

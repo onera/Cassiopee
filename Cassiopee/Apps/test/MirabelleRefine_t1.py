@@ -14,14 +14,14 @@ a = D.cylinder((0,0,0), 1., 10.,N=20)
 distrib = G.cart((0.,0.,0.),(0.05,1,1),(11,1,1))
 a = G.addNormalLayers(a, distrib,niter=50)
 for z in Internal.getZones(a):
-    C._addBC2Zone(z,"wall","BCWall",'kmin')
-    C._addBC2Zone(z,"ovst","BCOverlap",'kmax')
+    C._addBC2Zone(z, "wall", "BCWall", 'kmin')
+    C._addBC2Zone(z, "ovst", "BCOverlap", 'kmax')
 
 t = C.newPyTree(['Base',Internal.getZones(a)])
 t = X.connectMatch(t)
 
-zones_to_refine = ["cyl-part11"]
+zonesToRefine = ["cyl-part11"]
 dirs = [1]
 
-Mirabelle._refine(t, zones_to_refine, dirs, refined={}, factor=2)
-test.testT(t,1)
+Mirabelle._refine(t, zonesToRefine, dirs, refined={}, factor=2)
+test.testT(t, 1)

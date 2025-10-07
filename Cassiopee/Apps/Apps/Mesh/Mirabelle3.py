@@ -152,41 +152,6 @@ def stackIt(B0, dir0s, dir1, graph, treated, stack):
         elif dirt == -3: diro = -5
         if (B1,abs(dirt)) not in treated: stack.append((B1, diro))
 
-# Graph for refine only
-def getGraph4Refine(t):
-    graph = {}
-    zones = Internal.getZones(t)
-    for z in zones:
-        neighs = []
-        dim = Internal.getZoneDim(z)
-        if dim[0] == 'Unstructured': continue
-        bcs = T.getBCMatchs__(z)
-        for bc in bcs:
-            (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
-            racc = 0
-            if rnge[0] == rnge[1] and rnge[0] == 1:
-                racc = 1
-                oppRacc = getOppRac(trf[0], donor)
-            elif rnge[0] == rnge[1] and rnge[0] == dim[1]:
-                racc = 2
-                oppRacc = getOppRac(trf[0], donor)
-            elif rnge[2] == rnge[3] and rnge[2] == 1:
-                racc = 3
-                oppRacc = getOppRac(trf[1], donor)
-            elif rnge[2] == rnge[3] and rnge[2] == dim[2]:
-                racc = 4
-                oppRacc = getOppRac(trf[1], donor)
-            elif rnge[4] == rnge[5] and rnge[4] == 1:
-                racc = 5
-                oppRacc = getOppRac(trf[2], donor)
-            elif rnge[4] == rnge[5] and rnge[4] == dim[3]:
-                racc = 6
-                oppRacc = getOppRac(trf[2], donor)
-            if racc != 0:
-                neigh = [racc, oppBlock, oppRacc, trf]
-                neighs.append(neigh)
-        graph[z[0]] = neighs
-    return graph
 #============================================================================
 # Construit le graph de connection
 # Pour chaque bloc : 1=imin, 2=imax, 3=jmin, 4=jmax, 5=kmin, 6=kmax
@@ -225,6 +190,44 @@ def getGraph(t):
 
             neigh[racc] = (oppBlock, oppRacc, trf)
         graph[z[0]] = neigh
+    return graph
+
+#============================================================================
+# Build graph for refine only
+#============================================================================
+def getGraph4Refine(t):
+    graph = {}
+    zones = Internal.getZones(t)
+    for z in zones:
+        neighs = []
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured': continue
+        bcs = T.getBCMatchs__(z)
+        for bc in bcs:
+            (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
+            racc = 0
+            if rnge[0] == rnge[1] and rnge[0] == 1:
+                racc = 1
+                oppRacc = getOppRac(trf[0], donor)
+            elif rnge[0] == rnge[1] and rnge[0] == dim[1]:
+                racc = 2
+                oppRacc = getOppRac(trf[0], donor)
+            elif rnge[2] == rnge[3] and rnge[2] == 1:
+                racc = 3
+                oppRacc = getOppRac(trf[1], donor)
+            elif rnge[2] == rnge[3] and rnge[2] == dim[2]:
+                racc = 4
+                oppRacc = getOppRac(trf[1], donor)
+            elif rnge[4] == rnge[5] and rnge[4] == 1:
+                racc = 5
+                oppRacc = getOppRac(trf[2], donor)
+            elif rnge[4] == rnge[5] and rnge[4] == dim[3]:
+                racc = 6
+                oppRacc = getOppRac(trf[2], donor)
+            if racc != 0:
+                neigh = [racc, oppBlock, oppRacc, trf]
+                neighs.append(neigh)
+        graph[z[0]] = neighs
     return graph
 
 #==========================================================================
@@ -421,10 +424,13 @@ def buildDistribWallLaw(t, block, dir, h1, h2, N):
     C._initVars(l, '{CoordinateZ}=0.')
     return l
 
-def _refine(t, zones_to_refine, dirs, refined={}, factor=2):
+#============================================
+# refine t of a given factor in given dir
+#============================================
+def _refine(t, zonesToRefine, dirs, refined={}, factor=2):
     graph = getGraph4Refine(t)
-    while len(zones_to_refine)>0:
-        zname = zones_to_refine.pop(0)
+    while len(zonesToRefine) > 0:
+        zname = zonesToRefine.pop(0)
         dir0 = dirs.pop(0)
         if zname in refined: continue
 
@@ -433,10 +439,9 @@ def _refine(t, zones_to_refine, dirs, refined={}, factor=2):
         dir0s = getRac(dir0)
 
         zp = G.refine(z, factor, dir0s)
-        #
         (p, c) = Internal.getParentOfNode(t, z)
         p[2][c] = zp
-        refined[zname]=True
+        refined[zname] = True
 
         # reporter les BCMatch sur zp
         _reportBCMatchs(zp, z, t, dir0s)
@@ -463,9 +468,9 @@ def _refine(t, zones_to_refine, dirs, refined={}, factor=2):
                 elif dirt == -1: diro = -1
                 elif dirt == -2: diro = -3
                 elif dirt == -3: diro = -5
-                zones_to_refine.append(oppBlock)
+                zonesToRefine.append(oppBlock)
                 dirs.append(abs(diro))
-        _refine(t, zones_to_refine, dirs, refined, factor)
+        _refine(t, zonesToRefine, dirs, refined, factor)
 
 # Return the first wall in t
 # Return zoneName, window and window direction

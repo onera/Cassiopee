@@ -43,8 +43,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
   E_Int npts = f->getSize();
   if (res != 1 && res != 2)
   {
-    PyErr_SetString(PyExc_TypeError, 
-                    "normL0: invalid array." );
+    PyErr_SetString(PyExc_TypeError, "normL0: invalid array." );
     return NULL;
   }
 
@@ -79,7 +78,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
       for (E_Int i = istart; i < iend; i++)
       {
         celln = (fc[i] == 0.) ? 0. : 1.; 
-        fmax[ithread] = E_max(fmax[ithread], fv[i]) * celln;
+        fmax[ithread] = E_max(fmax[ithread], std::abs(fv[i])) * celln;
       }
     }
   }
@@ -93,7 +92,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
       if (ithread == nthreads-1) iend = npts;
       for (E_Int i = istart; i < iend; i++)
       {
-        fmax[ithread] = E_max(fmax[ithread], fv[i]);
+        fmax[ithread] = E_max(fmax[ithread], std::abs(fv[i]));
       }
     }
   }

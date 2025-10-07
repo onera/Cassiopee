@@ -19,55 +19,55 @@ C._initVars(t,'F',1.); C._initVars(t,'centers:G',2.)
 # Non integer refinement factor: GCs and BCs are removed
 # topTree
 factor = 1.5
-t2 = G.refine(t,factor,dir=1)
-test.testT(t2,1)
+t2 = G.refine(t, factor, dir=1)
+test.testT(t2, 1)
 
-t2 = G.refine(t,factor,dir=0)
-test.testT(t2,2)
+t2 = G.refine(t, factor, dir=0)
+test.testT(t2, 2)
 
 # single zone
 t2 = Internal.copyRef(t)
-for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz],factor,dir=1)
-test.testT(t2,3)
+for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz], factor, dir=1)
+test.testT(t2, 3)
 
 # Integer refinement factor: GCs and BCs are removed
 # topTree
 factor = 2.
-t2 = G.refine(t,factor,dir=1)
-test.testT(t2,4)
+t2 = G.refine(t, factor, dir=1)
+test.testT(t2, 4)
 
-t2 = G.refine(t,factor,dir=0)
-test.testT(t2,5)
+t2 = G.refine(t, factor, dir=0)
+test.testT(t2, 5)
 
 # single zone
 t2 = Internal.copyRef(t)
-for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz],factor,dir=1)
-test.testT(t2,6)
+for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz], factor, dir=1)
+test.testT(t2, 6)
 
 # Non integer refinement factor: GCs and BCs are removed
 # topTree
 factor = 0.3
-t2 = G.refine(t,factor,dir=1)
-test.testT(t2,7)
+t2 = G.refine(t, factor, dir=1)
+test.testT(t2, 7)
 
-t2 = G.refine(t,factor,dir=0)
-test.testT(t2,8)
+t2 = G.refine(t, factor, dir=0)
+test.testT(t2, 8)
 
 # single zone
 t2 = Internal.copyRef(t)
-for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz],factor,dir=1)
-test.testT(t2,9)
+for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz], factor, dir=1)
+test.testT(t2, 9)
 
 # Integer refinement factor: GCs and BCs are removed
 # topTree
 factor = 0.5
-t2 = G.refine(t,factor,dir=1)
-test.testT(t2,10)
+t2 = G.refine(t, factor, dir=1)
+test.testT(t2, 10)
 
-t2 = G.refine(t,factor,dir=0)
-test.testT(t2,11)
+t2 = G.refine(t, factor, dir=0)
+test.testT(t2, 11)
 
 # single zone
 t2 = Internal.copyRef(t)
-for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz],factor,dir=1)
-test.testT(t2,12)
+for noz in range(2): t2[2][1][2][noz] = G.refine(t2[2][1][2][noz], factor, dir=1)
+test.testT(t2, 12)
