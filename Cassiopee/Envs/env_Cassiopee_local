@@ -13,4 +13,10 @@ fi
 if [ -n "${PRODMODE}" ]; then
    env | grep PRODMODE | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
 fi
+if [ -n "${PIP_DISABLE_PIP_VERSION_CHECK}" ]; then
+   env | grep PIP_DISABLE_PIP_VERSION_CHECK | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+fi
 exit
+
+#unsetenv SLURM*
+#unsetenv OMP_PLACES

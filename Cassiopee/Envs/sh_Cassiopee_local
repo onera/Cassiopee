@@ -53,7 +53,7 @@ else
       "irene:irene" \
       "cobalt:cobalt" \
       "spiro:spiro" \
-      "sator:sator_cas" \
+      "sator:sator_sph" \
       "giulia:giulia" \
       "visung:visung" \
       "celeste:visio" \
@@ -66,7 +66,7 @@ else
       "n0:juno" \
       "f0:juno" \
       "ld:ld" \
-      "n:sator_cas"
+      "n:sator_sph"
     do
       key=${pattern%%:*}; val=${pattern#*:}
       if echo "$KC" | grep -q "$key"; then
@@ -398,24 +398,6 @@ elif [ "$MAC" = "juno_coda" ]; then
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
-
-elif [ "$MAC" = "sator_brw" ]; then
-#----------------------------- sator for broadwell ----------------------------
-    export ELSAPROD=sator_brw
-    export ELSAPROD=$ELSAPROD$EXT
-    . /etc/profile.d/module.sh
-    module purge
-    module load python/3.7.4-intel2120
-    module load hdf5/1.10.5-intel2120-impi
-    module load emacs/27.2-gnu831
-    module load occt/7.6.1-gnu831
-    unset I_MPI_PMI_LIBRARY
-    export PYTHONEXE=python3
-    alias ffmpeg=/opt/tools/altair/2021.1/altair/hwdesktop/hw/bin/linux64/ffmpeg
-    # Number of threads
-    export OMP_NUM_THREADS=28
-    export KMP_AFFINITY="compact,1,0,granularity=fine,verbose"
-    export OMP_PLACES=cores
 
 elif [ "$MAC" = "topaze" ]; then
 #----------------------------- topaze ccrt proc amd milan ---------------------
