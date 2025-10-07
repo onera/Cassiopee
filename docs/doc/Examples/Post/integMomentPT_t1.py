@@ -3,6 +3,7 @@ import Converter.PyTree as C
 import Generator.PyTree as G
 import Post.PyTree as P
 import KCore.test as test
+test.TOLERANCE = 1.e-10
 
 ni = 11; nj = 11
 def f1(x,y): return 2*x + y
