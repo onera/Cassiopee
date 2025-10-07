@@ -84,28 +84,35 @@ void K_POST::integNormProdStructNodeCenter2D(
   E_Int ni1 = ni - 1;
   result = 0.0;
 
-  #pragma omp parallel for collapse(2) reduction(+:result)
-  for (E_Int j = 0; j < nj - 1; j++)
+  #pragma omp parallel
   {
-    for (E_Int i = 0; i < ni - 1; i++)
+    E_Int ind, ind1, ind2, ind3, ind4;
+    E_Float r1, r2, r3, r4;
+    E_Float fx, fy, fz;
+
+    #pragma omp for collapse(2) reduction(+:result)
+    for (E_Int j = 0; j < nj - 1; j++)
     {
-      E_Int ind1 = i + j * ni;
-      E_Int ind2 = ind1 + ni;
-      E_Int ind3 = ind1 + 1;
-      E_Int ind4 = ind3 + ni;
+      for (E_Int i = 0; i < ni - 1; i++)
+      {
+        ind1 = i + j * ni;
+        ind2 = ind1 + ni;
+        ind3 = ind1 + 1;
+        ind4 = ind3 + ni;
 
-      E_Int ind = i + j * ni1;
+        ind = i + j * ni1;
 
-      E_Float r1 = ratio[ind1];
-      E_Float r2 = ratio[ind2];
-      E_Float r3 = ratio[ind3];
-      E_Float r4 = ratio[ind4];
+        r1 = ratio[ind1];
+        r2 = ratio[ind2];
+        r3 = ratio[ind3];
+        r4 = ratio[ind4];
 
-      E_Float fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3] + r4 * vx[ind4];
-      E_Float fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3] + r4 * vy[ind4];
-      E_Float fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3] + r4 * vz[ind4];
+        fx = r1 * vx[ind1] + r2 * vx[ind2] + r3 * vx[ind3] + r4 * vx[ind4];
+        fy = r1 * vy[ind1] + r2 * vy[ind2] + r3 * vy[ind3] + r4 * vy[ind4];
+        fz = r1 * vz[ind1] + r2 * vz[ind2] + r3 * vz[ind3] + r4 * vz[ind4];
 
-      result += sx[ind] * fx + sy[ind] * fy + sz[ind] * fz;
+        result += sx[ind] * fx + sy[ind] * fy + sz[ind] * fz;
+      }
     }
   }
   result *= 0.25;
@@ -124,14 +131,20 @@ void K_POST::integNormProdStructCellCenter2D(
 {
   result = 0.0;
 
-  #pragma omp parallel for collapse(2) reduction(+:result)
-  for (E_Int j = 0; j < nj; j++)
+  #pragma omp parallel
   {
-    for (E_Int i = 0; i < ni; i++)
+    E_Int ind;
+    E_Float sum;
+
+    #pragma omp for collapse(2) reduction(+:result)
+    for (E_Int j = 0; j < nj; j++)
     {
-      E_Int ind = i + j * ni;
-      E_Float sum = sx[ind] * vx[ind] + sy[ind] * vy[ind] + sz[ind] * vz[ind];
-      result += ratio[ind] * sum;
+      for (E_Int i = 0; i < ni; i++)
+      {
+        ind = i + j * ni;
+        sum = sx[ind] * vx[ind] + sy[ind] * vy[ind] + sz[ind] * vz[ind];
+        result += ratio[ind] * sum;
+      }
     }
   }
 }
