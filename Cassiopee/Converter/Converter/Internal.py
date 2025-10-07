@@ -4363,7 +4363,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           if offset is not None: # CGNSv4
             offset = offset[1]
             cNFace = cNFace.copy()
-            cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
+            cNFace = numpy.insert(numpy.abs(cNFace), offset[:-1], offset[1:]-offset[:-1])
       c += 1
 
     if cNFace is not None and NGON is not None and cNGon is not None:
