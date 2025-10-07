@@ -152,71 +152,83 @@ void K_POST::integMomentStructNodeCenter2D(const E_Int ni, const E_Int nj,
 
   E_Int ni1 = ni - 1;
 
-  #pragma omp parallel for collapse(2) reduction(+:res1,res2,res3)
-  for (E_Int j = 0; j < nj - 1; j++)
+  #pragma omp parallel
   {
-    for (E_Int i = 0; i < ni - 1; i++)
+    E_Int ind, ind1, ind2, ind3, ind4;
+    E_Float rind, sind, dx, dy, dz;
+    E_Float f1x, f1y, f1z;
+    E_Float f2x, f2y, f2z;
+    E_Float f3x, f3y, f3z;
+    E_Float f4x, f4y, f4z;
+    E_Float m1x, m1y, m1z;
+    E_Float m2x, m2y, m2z;
+    E_Float m3x, m3y, m3z;
+    E_Float m4x, m4y, m4z;
+
+    #pragma omp for collapse(2) reduction(+:res1,res2,res3)
+    for (E_Int j = 0; j < nj - 1; j++)
     {
-      E_Int ind1 = i + j*ni;
-      E_Int ind2 = ind1 + ni;
-      E_Int ind3 = ind1 + 1;
-      E_Int ind4 = ind3 + ni;
-      E_Int ind = i + j*ni1;
+      for (E_Int i = 0; i < ni - 1; i++)
+      {
+        ind1 = i + j*ni;
+        ind2 = ind1 + ni;
+        ind3 = ind1 + 1;
+        ind4 = ind3 + ni;
+        ind = i + j*ni1;
 
-      E_Float rind, dx, dy, dz;
+        rind = ratio[ind1];
+        dx = xt[ind1] - cx;
+        dy = yt[ind1] - cy;
+        dz = zt[ind1] - cz;
 
-      rind = ratio[ind1];
-      dx = xt[ind1] - cx;
-      dy = yt[ind1] - cy;
-      dz = zt[ind1] - cz;
+        f1x = rind * vx[ind1];
+        f1y = rind * vy[ind1];
+        f1z = rind * vz[ind1];
+        m1x = dy * f1z - dz * f1y;
+        m1y = dz * f1x - dx * f1z;
+        m1z = dx * f1y - dy * f1x;
 
-      E_Float f1x = rind * vx[ind1];
-      E_Float f1y = rind * vy[ind1];
-      E_Float f1z = rind * vz[ind1];
-      E_Float m1x = dy * f1z - dz * f1y;
-      E_Float m1y = dz * f1x - dx * f1z;
-      E_Float m1z = dx * f1y - dy * f1x;
+        rind = ratio[ind2];
+        dx = xt[ind2] - cx;
+        dy = yt[ind2] - cy;
+        dz = zt[ind2] - cz;
 
-      rind = ratio[ind2];
-      dx = xt[ind2] - cx;
-      dy = yt[ind2] - cy;
-      dz = zt[ind2] - cz;
+        f2x = rind * vx[ind2];
+        f2y = rind * vy[ind2];
+        f2z = rind * vz[ind2];
+        m2x = dy * f2z - dz * f2y;
+        m2y = dz * f2x - dx * f2z;
+        m2z = dx * f2y - dy * f2x;
 
-      E_Float f2x = rind * vx[ind2];
-      E_Float f2y = rind * vy[ind2];
-      E_Float f2z = rind * vz[ind2];
-      E_Float m2x = dy * f2z - dz * f2y;
-      E_Float m2y = dz * f2x - dx * f2z;
-      E_Float m2z = dx * f2y - dy * f2x;
+        rind = ratio[ind3];
+        dx = xt[ind3] - cx;
+        dy = yt[ind3] - cy;
+        dz = zt[ind3] - cz;
 
-      rind = ratio[ind3];
-      dx = xt[ind3] - cx;
-      dy = yt[ind3] - cy;
-      dz = zt[ind3] - cz;
+        f3x = rind * vx[ind3];
+        f3y = rind * vy[ind3];
+        f3z = rind * vz[ind3];
+        m3x = dy * f3z - dz * f3y;
+        m3y = dz * f3x - dx * f3z;
+        m3z = dx * f3y - dy * f3x;
 
-      E_Float f3x = rind * vx[ind3];
-      E_Float f3y = rind * vy[ind3];
-      E_Float f3z = rind * vz[ind3];
-      E_Float m3x = dy * f3z - dz * f3y;
-      E_Float m3y = dz * f3x - dx * f3z;
-      E_Float m3z = dx * f3y - dy * f3x;
+        rind = ratio[ind4];
+        dx = xt[ind4] - cx;
+        dy = yt[ind4] - cy;
+        dz = zt[ind4] - cz;
 
-      rind = ratio[ind4];
-      dx = xt[ind4] - cx;
-      dy = yt[ind4] - cy;
-      dz = zt[ind4] - cz;
+        f4x = rind * vx[ind4];
+        f4y = rind * vy[ind4];
+        f4z = rind * vz[ind4];
+        m4x = dy * f4z - dz * f4y;
+        m4y = dz * f4x - dx * f4z;
+        m4z = dx * f4y - dy * f4x;
 
-      E_Float f4x = rind * vx[ind4];
-      E_Float f4y = rind * vy[ind4];
-      E_Float f4z = rind * vz[ind4];
-      E_Float m4x = dy * f4z - dz * f4y;
-      E_Float m4y = dz * f4x - dx * f4z;
-      E_Float m4z = dx * f4y - dy * f4x;
-
-      E_Float sind = surf[ind];
-      res1 += sind * (m1x + m2x + m3x + m4x);
-      res2 += sind * (m1y + m2y + m3y + m4y);
-      res3 += sind * (m1z + m2z + m3z + m4z);
+        sind = surf[ind];
+        res1 += sind * (m1x + m2x + m3x + m4x);
+        res2 += sind * (m1y + m2y + m3y + m4y);
+        res3 += sind * (m1z + m2z + m3z + m4z);
+      }
     }
   }
 
@@ -240,41 +252,46 @@ void K_POST::integMomentStructNodeCenter1D(
   E_Float res2 = 0.0;
   E_Float res3 = 0.0;
 
+  E_Int ind, ind1, ind2;
+  E_Float rind, lind, dx, dy, dz;
+  E_Float f1x, f1y, f1z;
+  E_Float f2x, f2y, f2z;
+  E_Float m1x, m1y, m1z;
+  E_Float m2x, m2y, m2z;
+
   for (E_Int i = 0; i < ni - 1; i++)
   {
-    E_Int ind1 = i;
-    E_Int ind2 = i + 1;
-    E_Int ind = i;
-
-    E_Float rind, dx, dy, dz;
+    ind1 = i;
+    ind2 = i + 1;
+    ind = i;
 
     rind = ratio[ind1];
-    E_Float f1x = rind * vx[ind1];
-    E_Float f1y = rind * vy[ind1];
-    E_Float f1z = rind * vz[ind1];
+    f1x = rind * vx[ind1];
+    f1y = rind * vy[ind1];
+    f1z = rind * vz[ind1];
 
     dx = xt[ind1] - cx;
     dy = yt[ind1] - cy;
     dz = zt[ind1] - cz;
 
-    E_Float m1x = dy * f1z - dz * f1y;
-    E_Float m1y = dz * f1x - dx * f1z;
-    E_Float m1z = dx * f1y - dy * f1x;
+    m1x = dy * f1z - dz * f1y;
+    m1y = dz * f1x - dx * f1z;
+    m1z = dx * f1y - dy * f1x;
 
     rind = ratio[ind2];
-    E_Float f2x = rind * vx[ind2];
-    E_Float f2y = rind * vy[ind2];
-    E_Float f2z = rind * vz[ind2];
+    f2x = rind * vx[ind2];
+    f2y = rind * vy[ind2];
+    f2z = rind * vz[ind2];
 
     dx = xt[ind2] - cx;
     dy = yt[ind2] - cy;
     dz = zt[ind2] - cz;
 
-    E_Float m2x = dy * f2z - dz * f2y;
-    E_Float m2y = dz * f2x - dx * f2z;
-    E_Float m2z = dx * f2y - dy * f2x;
+    m2x = dy * f2z - dz * f2y;
+    m2y = dz * f2x - dx * f2z;
+    m2z = dx * f2y - dy * f2x;
 
-    E_Float lind = length[ind];
+    lind = length[ind];
     res1 += lind * (m1x + m2x);
     res2 += lind * (m1y + m2y);
     res3 += lind * (m1z + m2z);
@@ -301,35 +318,42 @@ void K_POST::integMomentStructCellCenter2D(const E_Int ni, const E_Int nj,
 
   E_Int ni1 = ni - 1;
 
-  #pragma omp parallel for collapse(2) reduction(+:res1,res2,res3)
-  for (E_Int j = 0; j < nj - 1; j++)
+  #pragma omp parallel
   {
-    for (E_Int i = 0; i < ni - 1; i++)
+    E_Int ind, ind1, ind2, ind3, ind4;
+    E_Float srind, mx, my, mz;
+    E_Float centerx, centery, centerz;
+
+    #pragma omp for collapse(2) reduction(+:res1,res2,res3)
+    for (E_Int j = 0; j < nj - 1; j++)
     {
-      E_Int ind1 = i + j * ni;
-      E_Int ind2 = ind1 + ni;
-      E_Int ind3 = ind1 + 1;
-      E_Int ind4 = ind2 + 1;
-      E_Int ind = i + j*ni1;
+      for (E_Int i = 0; i < ni - 1; i++)
+      {
+        ind1 = i + j * ni;
+        ind2 = ind1 + ni;
+        ind3 = ind1 + 1;
+        ind4 = ind2 + 1;
+        ind = i + j*ni1;
 
-      E_Float srind = surf[ind]*ratio[ind];
-      
-      E_Float centerx = xt[ind1] + xt[ind2] + xt[ind3] + xt[ind4];
-      centerx = 0.25 * centerx - cx;
+        srind = surf[ind]*ratio[ind];
+        
+        centerx = xt[ind1] + xt[ind2] + xt[ind3] + xt[ind4];
+        centerx = 0.25 * centerx - cx;
 
-      E_Float centery = yt[ind1] + yt[ind2] + yt[ind3] + yt[ind4];
-      centery = 0.25 * centery - cy;
+        centery = yt[ind1] + yt[ind2] + yt[ind3] + yt[ind4];
+        centery = 0.25 * centery - cy;
 
-      E_Float centerz = zt[ind1] + zt[ind2] + zt[ind3] + zt[ind4];
-      centerz = 0.25 * centerz - cz;
+        centerz = zt[ind1] + zt[ind2] + zt[ind3] + zt[ind4];
+        centerz = 0.25 * centerz - cz;
 
-      E_Float mx = centery * vz[ind] - centerz * vy[ind];
-      E_Float my = centerz * vx[ind] - centerx * vz[ind];
-      E_Float mz = centerx * vy[ind] - centery * vx[ind];
+        mx = centery * vz[ind] - centerz * vy[ind];
+        my = centerz * vx[ind] - centerx * vz[ind];
+        mz = centerx * vy[ind] - centery * vx[ind];
 
-      res1 += srind * mx;
-      res2 += srind * my;
-      res3 += srind * mz;
+        res1 += srind * mx;
+        res2 += srind * my;
+        res3 += srind * mz;
+      }
     }
   }
 
@@ -352,21 +376,25 @@ void K_POST::integMomentStructCellCenter1D(
   E_Float res2 = 0.0;
   E_Float res3 = 0.0;
 
+  E_Int ind, ind1, ind2;
+  E_Float rlind, mx, my, mz;
+  E_Float centerx, centery, centerz;
+
   for (E_Int i = 0; i < ni - 1; i++)
   {
-    E_Int ind1 = i;
-    E_Int ind2 = i + 1;
-    E_Int ind = i;
+    ind1 = i;
+    ind2 = i + 1;
+    ind = i;
 
-    E_Float rlind = length[ind] * ratio[ind];
+    rlind = length[ind] * ratio[ind];
 
-    E_Float centerx = 0.5 * (xt[ind1] + xt[ind2]) - cx;
-    E_Float centery = 0.5 * (yt[ind1] + yt[ind2]) - cy;
-    E_Float centerz = 0.5 * (zt[ind1] + zt[ind2]) - cz;
+    centerx = 0.5 * (xt[ind1] + xt[ind2]) - cx;
+    centery = 0.5 * (yt[ind1] + yt[ind2]) - cy;
+    centerz = 0.5 * (zt[ind1] + zt[ind2]) - cz;
 
-    E_Float mx = centery * vz[ind] - centerz * vy[ind];
-    E_Float my = centerz * vx[ind] - centerx * vz[ind];
-    E_Float mz = centerx * vy[ind] - centery * vx[ind];
+    mx = centery * vz[ind] - centerz * vy[ind];
+    my = centerz * vx[ind] - centerx * vz[ind];
+    mz = centerx * vy[ind] - centery * vx[ind];
 
     res1 += rlind * mx;
     res2 += rlind * my;
