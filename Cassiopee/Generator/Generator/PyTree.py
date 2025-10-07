@@ -1289,22 +1289,13 @@ def refineBCRanges__(r0, ni0, nj0, nk0, ni, nj, nk, dir, factor):
     w0 = [i1N,i2N, j1N,j2N,k1N,k2N]
     return Internal.window2Range(w0)
 
-def _refineBC__(z, ni0, nj0, nk0, factor, dir):
+# refinement/coarsening of GridConnectivity - only if the topTree is refined
+def _refineGC__(z, ni0, nj0, nk0, factor, dir):
     dims = Internal.getZoneDim(z)
     if dims[0] == 'Unstructured': return None
     ni = dims[1]; nj = dims[2]; nk = dims[3]
-    wins = Internal.getNodesFromType2(z, 'BC_t')
-    # BC
-
-    for w in wins:
-        r0 = Internal.getNodeFromName1(w, 'PointRange')
-        if factor>0:
-            r0[1] = refineBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-        else:
-            r0[1] = coarsenBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-
-    # Connectivite
-    connect = Internal.getNodesFromType2(z, 'ZoneGridConnectivity_t')
+    # Connectivity abutting 1-to-1 or n-to-m
+    connect = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
     for cn in connect:
         prs = Internal.getNodesFromName2(cn, 'PointRange')
         for pr in prs:
@@ -1312,12 +1303,63 @@ def _refineBC__(z, ni0, nj0, nk0, factor, dir):
                 pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
             else:
                 pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-        prs = Internal.getNodesFromName3(cn, 'PointRangeDonor')
+        prs = Internal.getNodesFromName2(cn, 'PointRangeDonor')
         for pr in prs:
             if factor>0:
                 pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
             else:
                 pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+
+    connect = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for cn in connect:
+        gctype = Internal.getNodeFromType1(cn, 'GridConnectivityType_t')
+        if gctype is not None:
+            gctype = Internal.getValue(gctype)
+            nmratio = Internal.getNodeFromName3(cn, 'NMRatio')
+            if gctype == 'Abutting' and nmratio is not None:
+                prs = Internal.getNodesFromName2(cn, 'PointRange')
+                for pr in prs:
+                    if factor>0:
+                        pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+                    else:
+                        pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+                prs = Internal.getNodesFromName3(cn, 'PointRangeDonor')
+                for pr in prs:
+                    if factor>0:
+                        pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+                    else:
+                        pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+        
+    return None
+
+# refinement or coarsening of BCs and GC Overset
+def _refineBC__(z, ni0, nj0, nk0, factor, dir):
+    dims = Internal.getZoneDim(z)
+    if dims[0] == 'Unstructured': return None
+    ni = dims[1]; nj = dims[2]; nk = dims[3]
+    wins = Internal.getNodesFromType2(z, 'BC_t')
+    # BC
+    for w in wins:
+        r0 = Internal.getNodeFromName1(w, 'PointRange')
+        if factor>0:
+            r0[1] = refineBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+        else:
+            r0[1] = coarsenBCRanges__(r0[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+
+    # Connectivity overset - only PointRange
+    connect = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+    for cn in connect:
+        isOvst = False
+        gctype = Internal.getNodeFromType(cn, 'GridConnectivityType_t')
+        if gctype is None: return None
+
+        if Internal.getValue(gctype)=='Overset': 
+            prs = Internal.getNodesFromName2(cn, 'PointRange')
+            for pr in prs:
+                if factor>0:
+                    pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
+                else:
+                    pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
 
     return None
 
@@ -1330,6 +1372,7 @@ def refine(t, power, dir):
 def _refine(t, power, dir):
     """Refine a mesh keeping original point distribution.
     Usage: refine(z, power, dir)"""
+    isTopTree = Internal.isTopTree(t)
     zones = Internal.getZones(t)
     for z in zones:
         dims = Internal.getZoneDim(z)
@@ -1341,17 +1384,31 @@ def _refine(t, power, dir):
             C._TZGC1(z, 'nodes', True, Generator.refine, power, dir)
             # delete Chimera data : OversetHoles and InterpolationData
             C._deleteChimeraInfo__(z)
-            # modify BCs
-            refined=False
+            # modify BCs + GCs if t is a topTree
+            refineGC = False
             factor = int(power)
             if float(factor)-power == 0.:
-                refined=True
-            if not refined:
+                _refineBC__(z, ni0, nj0, nk0, factor, dir)
+                if isTopTree and dir==0:
+                    _refineGC__(z, ni0, nj0, nk0, factor, dir)
+                else: 
+                    C._rmBCOfType(z,'BCMatch')
+                    C._rmBCOfType(z,'BCNearMatch')
+            else:
                 if float(int(1./power))-1./power==0.:
                     factor = int(-1./power)
-                    refined=True
-            if refined: _refineBC__(z, ni0, nj0, nk0, factor, dir)
-            else: C._deleteZoneBC__(z); C._deleteGridConnectivity__(z)
+                    _refineBC__(z, ni0, nj0, nk0, factor, dir)
+                    if isTopTree and dir==0:
+                        # ratio must be compliant with win ranges
+                        # remove bcnearmatch for the moment
+                        C._rmBCOfType(z,'BCNearMatch')
+                        _refineGC__(z, ni0, nj0, nk0, factor, dir)
+                    else: 
+                        C._rmBCOfType(z,'BCMatch')
+                        C._rmBCOfType(z,'BCNearMatch')
+                else:
+                    C._deleteZoneBC__(z)
+                    C._deleteGridConnectivity__(z)
     return None
 
 def mmgs(t, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
