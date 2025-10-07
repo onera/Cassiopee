@@ -1005,9 +1005,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
   E_Int npts = npts1 + npts2;
 
   E_Int api = f1.getApi();
-  E_Int ngonType = 1; // CGNSv3 compact array1
-  if (api == 2) ngonType = 2; // CGNSv3, array2
-  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  E_Int ngonType = cn1.getNGonType();
   PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
                                         nfaces, "NGON", sizeFN, sizeEF,
                                         ngonType, false, api);
@@ -1024,7 +1022,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
   E_Int *nface1 = cn1.getNFace(), *nface2 = cn2.getNFace(), *nface = cn->getNFace();
   E_Int *indPG1 = NULL, *indPG2 = NULL, *indPG = NULL;
   E_Int *indPH1 = NULL, *indPH2 = NULL, *indPH = NULL;
-  if (api == 2 || api == 3)
+  if (ngonType == 2 || ngonType == 3)
   {
     indPG1 = cn1.getIndPG(); indPG2 = cn2.getIndPG(); indPG = cn->getIndPG();
     indPH1 = cn1.getIndPH(); indPH2 = cn2.getIndPH(); indPH = cn->getIndPH();
@@ -1038,9 +1036,9 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
       E_Float* f1n = f1.begin(n);
       E_Float* f2n = f2.begin(n);
       E_Float* fn = f->begin(n);
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts1; i++) fn[i] = f1n[i];
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
     }
 
@@ -1050,32 +1048,32 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
       E_Float* fc1n = fc1.begin(n);
       E_Float* fc2n = fc2.begin(n);
       E_Float* fcn = fc->begin(n);
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nelts1; i++) fcn[i] = fc1n[i];
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nelts2; i++) fcn[i+nelts1] = fc2n[i];
     }
 
     // Copie des connectivites (add offset to all elements of the second
     // connectivity and correct outside the parallel block)
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN1; i++) ngon[i] = ngon1[i];
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN2; i++) ngon[i+sizeFN1] = ngon2[i] + npts1;
 
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeEF1; i++) nface[i] = nface1[i];
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeEF2; i++) nface[i+sizeEF1] = nface2[i] + nfaces1;
 
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nfaces1; i++) indPG[i] = indPG1[i];
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nfaces2; i++) indPG[i+nfaces1] = indPG2[i] + nfaces1;
 
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nelts1; i++) indPH[i] = indPH1[i];
       #pragma omp for
       for (E_Int i = 0; i < nelts2; i++) indPH[i+nelts1] = indPH2[i] + nelts1;

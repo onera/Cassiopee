@@ -36,9 +36,9 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   E_Float xo, yo, zo;
   E_Float hi, hj, hk;
-  E_Int api = 1;
+  E_Int ngonType = 1;
   if (!PYPARSETUPLE_(args, TRRR_ TRRR_ TIII_ I_,
-                    &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &api))
+                    &xo, &yo, &zo, &hi, &hj, &hk, &ni, &nj, &nk, &ngonType))
     {
     return NULL;
   }
@@ -75,8 +75,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int nj1 = E_max(1, E_Int(nj)-1);
   E_Int nk1 = E_max(1, E_Int(nk)-1);  
   E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
-  E_Int shift = 1;
-  if (api == 3) shift = 0;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   E_Int nfaces = 0; E_Int sizeFN = 0; E_Int sizeEF = 0;
   if (dim0 == 1)
@@ -94,10 +93,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
     sizeFN = (4+shift)*nfaces; sizeEF = (6+shift)*ncells;
   }
 
-  E_Int ngonType = 1;
-  if (api == 1) ngonType = 1; // CGNSv3 compact array1
-  else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  else if (api == 2) ngonType = 2; // CGNSv3, array2
+  E_Int api = 3; if (ngonType == 1) api = 1;
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", npts, ncells, nfaces, "NGON", 
                                        sizeFN, sizeEF, ngonType, false, api);
 
@@ -107,7 +103,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
   E_Int* cFN = cn->getNGon();
   E_Int* cEF = cn->getNFace();
   E_Int *indPG = NULL, *indPH = NULL; 
-  if (api == 2 || api == 3) // array2 ou array3
+  if (ngonType == 2 || ngonType == 3) // set offsets
   {
     indPG = cn->getIndPG(); indPH = cn->getIndPH();
   }
@@ -369,7 +365,7 @@ PyObject* K_GENERATOR::cartNGon(PyObject* self, PyObject* args)
     }
 
     // Start offset indices
-    if (api == 2 || api == 3) // array2 ou array3
+    if (ngonType == 2 || ngonType == 3) // set offsets
     {
 #pragma omp for nowait
       for (E_Int i = 0; i < nfaces; i++) indPG[i] = (pow(2,dim0-1)+shift)*i;

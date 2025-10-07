@@ -64,8 +64,8 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
     // and field F in center 
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      integMomentNormUnstructNodeCenter(
-        cn, eltType,
+      integMomentNormUnstructCellCenter(
+        cn,
         cx, cy, cz, ratio.begin(), 
         coord.begin(posx), coord.begin(posy), coord.begin(posz),
         nsurf1, nsurf2, nsurf3, F.begin(n),
@@ -82,8 +82,8 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
       // Compute integral, coordinates and field have the same size
-      integMomentNormUnstructCellCenter(
-        cn, eltType,
+      integMomentNormUnstructNodeCenter(
+        cn,
         cx, cy, cz, ratio.begin(), 
         coord.begin(posx), coord.begin(posy), coord.begin(posz), 
         nsurf1, nsurf2, nsurf3, F.begin(n), 
@@ -103,17 +103,14 @@ E_Int K_POST::integMomentNormUnstruct2D(E_Int center2node,
 // Compute surface integral of the moment M (OM^F.vect(n)), coordinates 
 // and F have the same size
 // ============================================================================
-void K_POST::integMomentNormUnstructCellCenter(
-  FldArrayI& cn, const char* eltType,
+void K_POST::integMomentNormUnstructNodeCenter(
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz, 
   const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* sx, const E_Float* sy, const E_Float* sz, 
   const E_Float* field, E_Float* result)
 {
-  E_Float resx, resy, resz;
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -125,29 +122,25 @@ void K_POST::integMomentNormUnstructCellCenter(
     nepc[ic+1] = nepc[ic] + nelts;
   }
 
-  resx = 0.0;
-  resy = 0.0;
-  resz = 0.0;
+  E_Float res1 = 0.0;
+  E_Float res2 = 0.0;
+  E_Float res3 = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
     E_Int ind;
     E_Float f, fi;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe=1;
-    E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
 
-    if (strcmp(eltTypes[ic], "BAR") == 0) nfpe = 2;
-    else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
-
-    nfpeinv = 1./nfpe;
-
+    #pragma omp for reduction(+:res1,res2,res3)
     for (E_Int i = 0; i < nelts; i++)
     {
       f = 0.0;
@@ -155,7 +148,7 @@ void K_POST::integMomentNormUnstructCellCenter(
       centery = 0.0;
       centerz = 0.0;
 
-      for (E_Int j = 1; j <= nfpe; j++)
+      for (E_Int j = 1; j <= nvpe; j++)
       {
         ind = cm(i, j) - 1;
 
@@ -167,10 +160,10 @@ void K_POST::integMomentNormUnstructCellCenter(
         centerz += zt[ind];
       }
 
-      f *= nfpeinv;
-      centerx = nfpeinv * centerx - cx;
-      centery = nfpeinv * centery - cy;
-      centerz = nfpeinv * centerz - cz;
+      f *= nvpeinv;
+      centerx = nvpeinv * centerx - cx;
+      centery = nvpeinv * centery - cy;
+      centerz = nvpeinv * centerz - cz;
 
       sx0 = sx[i+elOffset];
       sy0 = sy[i+elOffset];
@@ -180,34 +173,29 @@ void K_POST::integMomentNormUnstructCellCenter(
       my = centerz * sx0 - centerx * sz0;
       mz = centerx * sy0 - centery * sx0;
 
-      resx += f * mx;
-      resy += f * my;
-      resz += f * mz;
+      res1 += f * mx;
+      res2 += f * my;
+      res3 += f * mz;
     }
   }
 
-  result[0] = resx;
-  result[1] = resy;
-  result[2] = resz;
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  result[0] = res1;
+  result[1] = res2;
+  result[2] = res3;
 }
 
 // ============================================================================
 // Compute linear integral of the moment.norm (OM^F.n), coordinates 
 // are defined in nodes and F is defined in center, unstructured case
 // ============================================================================
-void K_POST::integMomentNormUnstructNodeCenter(
-  FldArrayI& cn, const char* eltType,
+void K_POST::integMomentNormUnstructCellCenter(
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt, const E_Float* zt,
   const E_Float* sx, const E_Float* sy, const E_Float* sz, 
   const E_Float* field, E_Float* result)
 {
-  E_Float resx, resy, resz;
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -219,29 +207,25 @@ void K_POST::integMomentNormUnstructNodeCenter(
     nepc[ic+1] = nepc[ic] + nelts;
   }
 
-  resx = 0.0;
-  resy = 0.0;
-  resz = 0.0;
+  E_Float res1 = 0.0;
+  E_Float res2 = 0.0;
+  E_Float res3 = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
     E_Int ind;
     E_Float f;
     E_Float mx, my, mz, sx0, sy0, sz0;
     E_Float centerx, centery, centerz;
-    E_Int nfpe=1;
-    E_Float nfpeinv;
   
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
 
-    if (strcmp(eltTypes[ic], "BAR") == 0) nfpe = 2;
-    else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 3;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 4;
-
-    nfpeinv = 1./nfpe;
-
+    #pragma omp for reduction(+:res1,res2,res3)
     for (E_Int i = 0; i < nelts; i++)
     {
       f = ratio[i+elOffset] * field[i+elOffset];
@@ -249,7 +233,7 @@ void K_POST::integMomentNormUnstructNodeCenter(
       centery = 0.0;
       centerz = 0.0;
 
-      for (E_Int j = 1; j <= nfpe; j++)
+      for (E_Int j = 1; j <= nvpe; j++)
       {
         ind = cm(i, j) - 1;
 
@@ -258,9 +242,9 @@ void K_POST::integMomentNormUnstructNodeCenter(
         centerz += zt[ind];
       }
 
-      centerx = nfpeinv * centerx - cx;
-      centery = nfpeinv * centery - cy;
-      centerz = nfpeinv * centerz - cz;
+      centerx = nvpeinv * centerx - cx;
+      centery = nvpeinv * centery - cy;
+      centerz = nvpeinv * centerz - cz;
 
       sx0 = sx[i+elOffset];
       sy0 = sy[i+elOffset];
@@ -270,15 +254,13 @@ void K_POST::integMomentNormUnstructNodeCenter(
       my = centerz * sx0 - centerx * sz0;
       mz = centerx * sy0 - centery * sx0;
 
-      resx += f * mx;
-      resy += f * my;
-      resz += f * mz;
+      res1 += f * mx;
+      res2 += f * my;
+      res3 += f * mz;
     }
   }
 
-  result[0] = resx;
-  result[1] = resy;
-  result[2] = resz;
-
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  result[0] = res1;
+  result[1] = res2;
+  result[2] = res3;
 }

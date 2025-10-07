@@ -105,7 +105,8 @@ void K_TRANSFORM::breakNGonElements(
 {
   E_Int nfld = field.getNfld();
   E_Int api = field.getApi();
-  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int ngonType = cNG.getNGonType();
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   E_Int* ngon = cNG.getNGon(); E_Int* nface = cNG.getNFace();
   E_Int* indPG = cNG.getIndPG(); E_Int* indPH = cNG.getIndPH();
@@ -389,16 +390,13 @@ void K_TRANSFORM::breakNGonElements(
   E_Int *indPG2 = NULL; E_Int* indPH2 = NULL;
   if (netngon)
   {
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsngon, netngon,
                                          nfacesngon, "NGON", sizeFN2, sizeEF2,
                                          ngonType, false, api);
     K_ARRAY::getFromArray3(tpl, f2, cn2);
     ngon2 = cn2->getNGon();
     nface2 = cn2->getNFace();
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
