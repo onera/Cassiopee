@@ -1329,7 +1329,7 @@ def _refineGC__(z, ni0, nj0, nk0, factor, dir):
                         pr[1] = refineBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
                     else:
                         pr[1] = coarsenBCRanges__(pr[1], ni0, nj0, nk0, ni, nj, nk, dir, factor)
-        
+
     return None
 
 # refinement or coarsening of BCs and GC Overset
@@ -1353,7 +1353,7 @@ def _refineBC__(z, ni0, nj0, nk0, factor, dir):
         gctype = Internal.getNodeFromType(cn, 'GridConnectivityType_t')
         if gctype is None: return None
 
-        if Internal.getValue(gctype)=='Overset': 
+        if Internal.getValue(gctype)=='Overset':
             prs = Internal.getNodesFromName2(cn, 'PointRange')
             for pr in prs:
                 if factor>0:
@@ -1391,7 +1391,7 @@ def _refine(t, power, dir):
                 _refineBC__(z, ni0, nj0, nk0, factor, dir)
                 if isTopTree and dir==0:
                     _refineGC__(z, ni0, nj0, nk0, factor, dir)
-                else: 
+                else:
                     C._rmBCOfType(z,'BCMatch')
                     C._rmBCOfType(z,'BCNearMatch')
             else:
@@ -1403,7 +1403,7 @@ def _refine(t, power, dir):
                         # remove bcnearmatch for the moment
                         C._rmBCOfType(z,'BCNearMatch')
                         _refineGC__(z, ni0, nj0, nk0, factor, dir)
-                    else: 
+                    else:
                         C._rmBCOfType(z,'BCMatch')
                         C._rmBCOfType(z,'BCNearMatch')
                 else:
