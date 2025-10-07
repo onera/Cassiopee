@@ -5488,7 +5488,7 @@ def _mergeBCs(z):
     BCs=[]; BCNames=[]; BCTypes=[]
     for i in alltypes:
         BCs.append(alltypes[i])
-        #BCNames.append('Merged'+i)
+        BCNames.append(i)
         BCTypes.append(i)
 
     _recoverBCs(z, (BCs,BCNames,BCTypes))
