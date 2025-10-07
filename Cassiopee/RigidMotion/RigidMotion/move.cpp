@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 # include "rigidMotion.h"
 
 using namespace K_FLD;
@@ -45,7 +45,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res < 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -64,7 +64,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
-    
+
   E_Int npts = f->getSize();
   E_Float* fx = f->begin(posx);
   E_Float* fy = f->begin(posy);
@@ -85,7 +85,7 @@ PyObject* K_RIGIDMOTION::move(PyObject* self, PyObject* args)
   }
   RELEASESHAREDB(res, array, f, cn);
   Py_INCREF(Py_None);
-  return Py_None; 
+  return Py_None;
 }
 
 //=============================================================================
@@ -99,7 +99,7 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   E_Float cx, cy, cz;
   E_Float r11, r12, r13, r21, r22, r23, r31, r32, r33;
 
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ RRRR_ RRRR_ R_, 
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ RRRR_ RRRR_ R_,
                      &pyCoordsN,
                      &dx, &dy, &dz,
                      &cx, &cy, &cz,
@@ -114,7 +114,7 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   int size=PyList_Size(pyCoordsN);
   if (size != 3)
   {
-    PyErr_SetString(PyExc_TypeError,"moveN: 1st arg must be a list of 3 elements.");    
+    PyErr_SetString(PyExc_TypeError,"moveN: 1st arg must be a list of 3 elements.");
     return NULL;
   }
   vector<FldArrayF*> coords(size);
@@ -130,11 +130,11 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
   E_Float* zt = coords[2]->begin();
 
   E_Int npts = coords[0]->getSize() * coords[0]->getNfld();
-  
-#pragma omp parallel default(shared) 
+
+#pragma omp parallel default(shared)
   {
     E_Float x, y, z;
-  #pragma omp for 
+  #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       x = xt[ind]; y = yt[ind]; z = zt[ind];
@@ -150,17 +150,17 @@ PyObject* K_RIGIDMOTION::moveN(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-// Compute the grid velocity : 
-// se = s0-omgp ^ c + omgp ^ x 
+// Compute the grid velocity :
+// se = s0-omgp ^ c + omgp ^ x
 //=============================================================================
 PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
 {
-  E_Float s01, s02, s03; 
+  E_Float s01, s02, s03;
   E_Float cx, cy, cz;
   E_Float omg1, omg2, omg3; // vitesse de rotation
   PyObject *pyCoordsN;
   PyObject *pySeN;
-  if (!PYPARSETUPLE_(args, OO_ TRRR_ TRRR_ TRRR_, 
+  if (!PYPARSETUPLE_(args, OO_ TRRR_ TRRR_ TRRR_,
                      &pyCoordsN, &pySeN,
                      &s01, &s02, &s03,
                      &cx, &cy, &cz,
@@ -173,7 +173,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   int size = PyList_Size(pyCoordsN);
   if (size != 3)
   {
-    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list of 3 elements.");    
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 1st arg must be a list of 3 elements.");
     return NULL;
   }
   if (PyList_Check(pySeN) == 0)
@@ -184,7 +184,7 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   int size2 = PyList_Size(pySeN);
   if (size2 != 3)
   {
-    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list of 3 elements.");    
+    PyErr_SetString(PyExc_TypeError,"evalGridMotionN: 2nd arg must be a list of 3 elements.");
     return NULL;
   }
   vector<FldArrayF*> coords(size);
@@ -213,9 +213,9 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   E_Float ty = s02 - (omg3 * cx - omg1 * cz);
   E_Float tz = s03 - (omg1 * cy - omg2 * cx);
 
-#pragma omp parallel default(shared) 
+#pragma omp parallel default(shared)
   {
-  #pragma omp for 
+  #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       se1[ind] = tx + (omg2 * zt[ind] - omg3 * yt[ind]);
@@ -225,8 +225,8 @@ PyObject* K_RIGIDMOTION::evalGridMotionN(PyObject* self, PyObject* args)
   }
 
   for (int i = 0; i < 3; i++)
-  { 
-    RELEASESHAREDN(l[i], coords[i]);   
+  {
+    RELEASESHAREDN(l[i], coords[i]);
     RELEASESHAREDN(l2[i], se[i]);
   }
   Py_INCREF(Py_None);

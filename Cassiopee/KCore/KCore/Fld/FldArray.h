@@ -173,7 +173,7 @@ class FldArray
     inline E_Int getNGonType() const { return _ngon; }
     inline E_Bool isNGon() const { return _ngon > 0; }
     // 1: compact array1 NGONv3, 2: rake NGONv3, 3: rake NGONv4
-    void setNGon(E_Int ngon) { _ngon = ngon; };
+    void setNGonType(E_Int ngon) { _ngon = ngon; };
     /** Only if NGon */
     inline E_Int getNFaces();
     inline E_Int* getNGon();

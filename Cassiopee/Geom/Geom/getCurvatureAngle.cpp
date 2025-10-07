@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -40,7 +40,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int posx, posy, posz;
 
@@ -56,33 +56,33 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       delete f;
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: can't find coordinates in array.");
-      return NULL;  
+      return NULL;
     }
-    posx++; posy++; posz++;  
+    posx++; posy++; posz++;
 
     if (res == 1 && (jm != 1 || km != 1))
     {
       delete f;
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
-      return NULL;  
+      return NULL;
     }
-    if ( (res == 2 && (strcmp(eltType, "BAR") != 0)))// || 
-      if ((res == 2 && (strcmp(eltType, "TRI") != 0))) 
+    if ( (res == 2 && (strcmp(eltType, "BAR") != 0)))// ||
+      if ((res == 2 && (strcmp(eltType, "TRI") != 0)))
       {
         delete f; delete cn;
         PyErr_SetString(PyExc_TypeError,
                         "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
-        return NULL;  
+        return NULL;
       }
-    
+
     E_Int sizef = f->getSize();
     E_Int api = f->getApi();
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
     PyObject* tpl = NULL;
-    
+
     if (res == 1)
     {
       FldArrayF* an = new FldArrayF(sizef);
@@ -124,4 +124,4 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
                     "getCurvatureAngle: invalid array.");
     return NULL;
   }
-}     
+}

@@ -1,7 +1,7 @@
  if (isminortho == 1)
  {
-   npts_walls_limit.push_back(nptsmax-1);	
-   // calcul de la connectivite vertex->elements 
+   npts_walls_limit.push_back(nptsmax-1);
+   // calcul de la connectivite vertex->elements
    // give a vertex & get the elements
    npts_local = fieldsw[v]->getSize();
    vector< vector<E_Int>  > cVE_local(npts_local);

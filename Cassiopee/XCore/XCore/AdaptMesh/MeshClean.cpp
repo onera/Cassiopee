@@ -112,6 +112,8 @@ void Mesh_reset_parallel_data(Mesh *M)
 
     XFREE(M->xneis);
     XFREE(M->cneis);
+
+    XFREE(M->reqs);
 }
 
 void Mesh_reset_tags(Mesh *M)

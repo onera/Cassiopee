@@ -13,19 +13,19 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
   char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
   PyObject* zone;
   if (!PYPARSETUPLE_(args, O_ SSS_, &zone, &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
-  
+
   E_Int ni, nj, nk, cnSize, cnNfld;
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
   vector<E_Int*> cn;
   vector<PyArrayObject*> hook;
-  E_Int res = K_PYTREE::getFromZone(zone, 1, 2, varString, 
+  E_Int res = K_PYTREE::getFromZone(zone, 1, 2, varString,
                                     fields, locs, ni, nj, nk,
                                     cn, cnSize, cnNfld,
-                                    eltType, hook, 
+                                    eltType, hook,
                                     GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
   /* Plus d'info dans KCore/PyTree/PyTree.h */
-  if (res == 1) 
+  if (res == 1)
   {
     printf("Zone structuree (%d %d %d).\n", ni, nj, nk);
   }
@@ -33,7 +33,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
   {
     printf("Zone non structuree de type %s.\n", eltType);
   }
-  else 
+  else
   {
     printf("Zone invalide.\n");
     Py_INCREF(Py_None);
@@ -79,7 +79,7 @@ PyObject* K_TEMPLATE::pyTreeExample(PyObject* self, PyObject* args)
   }
   else if (res == 2) /* no structure */
   {
-    
+
   }
 
   RELEASESHAREDZ(hook, varString, eltType);

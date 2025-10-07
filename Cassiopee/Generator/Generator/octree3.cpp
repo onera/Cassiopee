@@ -170,6 +170,8 @@ PyObject* octree3(PyObject* self, PyObject* args)
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi);
   }
 
+  E_Int api = 1; // TODO unstrF[0]->getApi();
+
   // recuperation des snears 
   E_Int nsnear = PyList_Size(listOfSnears);
   if ( nzones != nsnear )
@@ -425,7 +427,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
     zmino = current->getZmin(); zmaxo = zmino+dh0;//current->getZmax();
 
     // feuille->inserer dans le maillage
-    if (  current->getNext1() == NULL ) 
+    if (current->getNext1() == NULL) 
     { 
       //creation des 9 ou 27 sommets de la cellule 1
       xt[ind] = xmino; yt[ind] = ymino; zt[ind] = zmino; cn1[et] = ind+1; ind++; 
@@ -490,7 +492,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(1, 2, 3, 1.e-6, eltType,*coords, *cn);
     
   // buildArray
-  tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, eltType, false);
+  tpl = K_ARRAY::buildArray3(*coords, "x,y,z", *cn, eltType, api);
   // nettoyage
   delete coords; delete cn;
   for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);

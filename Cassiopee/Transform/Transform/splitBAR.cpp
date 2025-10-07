@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -24,8 +24,8 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitBAR: 
+/*
+   splitBAR:
    Split a bar into 2 bits given 2 nodes of the bar.
 */
 //=============================================================================
@@ -40,8 +40,8 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -56,7 +56,7 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
                     "splitBAR: invalid array.");
     return NULL;
   }
-  
+
   if (strcmp(eltType, "BAR") != 0)
   {
     RELEASESHAREDU(array, f, cn);
@@ -64,11 +64,11 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
                     "splitBAR: must be used on a BAR-array.");
     return NULL;
   }
-  
+
   // Duplique le pt et c'est tout. Le reste sera fait par un splitConnexity.
   E_Int npts = f->getSize();
   E_Int N1 = N;
- 
+
   if (N1 < 0 || N1 > npts-1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -80,7 +80,7 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   E_Int nptsf = npts+1;
   if (N2 > 0) nptsf = npts+2;
   E_Int nfld = f->getNfld();
-  E_Int csize = cn->getSize()*cn->getNfld(); 
+  E_Int csize = cn->getSize()*cn->getNfld();
   PyObject* tpl = K_ARRAY::buildArray(nfld, varString,
                                       nptsf, cn->getSize(),
                                       -1, eltType, false, csize);
@@ -96,11 +96,11 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     f2[npts] = f1[N1];
   if (N2 > 0) f2[npts+1] = f1[N2];
   }
-  
+
   // copie connectivite
   E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
   memcpy(cnnp, cn->begin(), cn->getSize()*cn->getNfld()*sizeof(E_Int));
-   
+
   // change le pts
   for (E_Int i = 0; i < cn->getSize(); i++)
   {
@@ -108,6 +108,6 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
     if (cnnp[i] == N2+1) { cnnp[i] = npts+2; }
   }
 
-  RELEASESHAREDU(array, f, cn);  
+  RELEASESHAREDU(array, f, cn);
   return tpl;
 }

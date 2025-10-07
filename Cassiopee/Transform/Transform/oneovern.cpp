@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -23,7 +23,7 @@ using namespace std;
 using namespace K_FLD;
 
 // ============================================================================
-/* Prend 1 point sur N 
+/* Prend 1 point sur N
    Si le nbre de points ne tombe pas juste, le dernier plan est ajoute.
 */
 // ============================================================================
@@ -56,7 +56,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
@@ -73,7 +73,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
                     "oneovern: can not be used on an unstructured array.");
     return NULL;
   }
-  
+
   E_Int addi=0, addj=0, addk=0;
   E_Int imjm = im*jm;
   E_Int in = E_Int(floor(1.*(im-1)/ni)+1);
@@ -82,8 +82,8 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
 
   if (add == 1)
   {
-    if (im - in*ni != 1-ni) addi = 1; 
-    if (jm - jn*nj != 1-nj) addj = 1; 
+    if (im - in*ni != 1-ni) addi = 1;
+    if (jm - jn*nj != 1-nj) addj = 1;
     if (km - kn*nk != 1-nk) addk = 1;
   }
   E_Int nfld = f->getNfld();
@@ -111,7 +111,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
           ind = i + j*im + k*imjm;
           sp[ind2] = fp[ind]; ind2++;
         }
-        if (addi == 1) 
+        if (addi == 1)
         {ind = im-1 + j*im + k*imjm; sp[ind2] = fp[ind]; ind2++;}
       }
       if (addj == 1)
@@ -121,7 +121,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
           ind = i + (jm-1)*im + k*imjm;
           sp[ind2] = fp[ind]; ind2++;
         }
-        if (addi == 1) 
+        if (addi == 1)
         {ind = im-1 + (jm-1)*im + k*imjm; sp[ind2] = fp[ind]; ind2++;}
       }
     }
@@ -134,7 +134,7 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
           ind = i + j*im + (km-1)*imjm;
           sp[ind2] = fp[ind]; ind2++;
         }
-        if (addi == 1) 
+        if (addi == 1)
         {ind = im-1 + j*im + (km-1)*imjm; sp[ind2] = fp[ind]; ind2++;}
       }
       if (addj == 1)
@@ -144,12 +144,12 @@ PyObject* K_TRANSFORM::oneovern(PyObject* self, PyObject* args)
           ind = i + (jm-1)*im + (km-1)*imjm;
           sp[ind2] = fp[ind]; ind2++;
         }
-        if (addi == 1) 
+        if (addi == 1)
         {ind = im-1 + (jm-1)*im + (km-1)*imjm; sp[ind2] = fp[ind]; ind2++;}
       }
     }
   }
-  
+
   RELEASESHAREDS(tpl, subzone);
   RELEASESHAREDS(array, f);
   return tpl;

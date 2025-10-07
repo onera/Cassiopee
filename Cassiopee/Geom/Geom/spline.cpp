@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -25,7 +25,7 @@ using namespace std;
 /* Array spline */
 //===========================================================================
 PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
-{  
+{
   PyObject* Array;
   E_Int N,M;
   E_Int ordern, orderm;
@@ -35,7 +35,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   {
     return NULL;
   }
- 
+
   if ((ordern < 1) || (orderm < 1))
   {
     PyErr_SetString(PyExc_TypeError,
@@ -46,7 +46,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km,
                                      cn, eltType);
   if (res != 1)
   {
@@ -55,7 +55,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
                     "spline: input array not valid.");
     return NULL;
   }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -68,7 +68,7 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  if (im < 2) 
+  if (im < 2)
   {
     RELEASESHAREDS(Array, f);
     PyErr_SetString(PyExc_TypeError,
@@ -84,14 +84,14 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (jm > 1 && jm < orderm)// ij-array 
+  if (jm > 1 && jm < orderm)// ij-array
   {
     RELEASESHAREDS(Array, f);
     PyErr_SetString(PyExc_TypeError,
                     "spline: number of control points must be greater than order.");
     return NULL;
   }
-  
+
   if (km > 1)
   {
     RELEASESHAREDS(Array, f);
@@ -111,23 +111,23 @@ PyObject* K_GEOM::spline(PyObject* self, PyObject* args)
   E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
-  E_Float* zt = f->begin(posz); 
+  E_Float* zt = f->begin(posz);
 
   if (im != 1)
   {
     if (jm == 1)
-    { 
+    {
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularSpline(im, ordern, N, density, xt, yt, zt, PF);
       RELEASESHAREDS(Array, f);
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", PF.getSize(), 1, 1, api);
       return tpl;
     }
-    else 
+    else
     {
       K_FLD::FldArrayF PF;
       E_Int niout, njout;
-      K_COMPGEOM::regularSpline2D(im, jm, ordern, N, orderm, M, 
+      K_COMPGEOM::regularSpline2D(im, jm, ordern, N, orderm, M,
                                   density, xt, yt, zt, PF, niout, njout);
       RELEASESHAREDS(Array, f);
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", niout, njout, 1, api);

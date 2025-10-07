@@ -115,15 +115,14 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Float ip, jp, ip1; E_Float invni1 = 1./ni1;
   E_Int npts = (ni+1)*ni/2; E_Int nelts = ni1*ni1;
 
-  PyObject* tpl = K_ARRAY::buildArray(3, varString, npts, nelts, -1, "TRI");
-  E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF coord(npts, 3, coordp, true);
-  E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(nelts,3, cnp, true);
+  E_Int api = fields[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nelts, "TRI", false, api);
+  FldArrayF* coord; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpl, coord, cn);
 
-  E_Float* xt = coord.begin(1);
-  E_Float* yt = coord.begin(2);
-  E_Float* zt = coord.begin(3);
+  E_Float* xt = coord->begin(1);
+  E_Float* yt = coord->begin(2);
+  E_Float* zt = coord->begin(3);
   
   E_Int ind = 0;
   for (E_Int j = 0; j < ni; j++)
@@ -149,9 +148,9 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Int et = 0;
   E_Int off1 = 0;
   E_Int off2;
-  E_Int* cn1 = cn.begin(1);
-  E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3);
+  E_Int* cn1 = cn->begin(1);
+  E_Int* cn2 = cn->begin(2);
+  E_Int* cn3 = cn->begin(3);
 
   for (E_Int j = ni1-1; j >= 0; j--)
   {
@@ -173,8 +172,9 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
     et++;
     off1 = off2;
   }
-  for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
 
+  RELEASESHAREDU(tpl, coord, cn);
+  for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
   return tpl;
 }
 

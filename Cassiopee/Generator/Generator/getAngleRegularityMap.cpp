@@ -87,6 +87,9 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
+
+  E_Int api = f->getApi();
+  E_Int nvertex = f->getSize();
   
   if (res == 1) // cas structure
   {
@@ -122,11 +125,11 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray(1, "regularityAngle", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "regularityAngle", im1, jm1, km1, api);
     // pointeur sur le tableau d'angle
-    E_Float* alphamax = K_ARRAY::getFieldPtr(tpl);
-    //E_Int ncells = im1*jm1*km1;
-    // FldArrayF alphamax(ncells, 1, alpha, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* alphamax = f2->begin(1);
     
     // calcul de l'orthogonalite globale
     #pragma omp parallel
@@ -1236,39 +1239,17 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else // if (res == 2)
   {
-    if (strcmp(eltType, "NGON") != 0) // Elements basiques
-    { 
-      E_Int nelts = cn->getSize(); // nb d'elements
-      tpl = K_ARRAY::buildArray(1, "regularityAngle", f->getSize(), nelts, -1, eltType, true);
-      E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(nelts, cn->getNfld(), cnnp, true); cnn = *cn;
-      for (E_Int i = 0; i < nelts; i++) fieldp[i] = 0.;
-    }
-    else
-    {
-      E_Int* cnp = cn->begin(); // pointeur sur la connectivite NGon
-      E_Int sizeFN = cnp[1]; //  taille de la connectivite Face/Noeuds
-      E_Int nelts = cnp[sizeFN+2];  // nombre total d elements
-      E_Int npts = f->getSize();
-      tpl = K_ARRAY::buildArray(1, "regularityAngle",
-                                npts, nelts,
-                                -1, eltType, true, cn->getSize());
-      E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), 1, cnnp, true); cnn = *cn;
-      for (E_Int i = 0; i < nelts; i++) fieldp[i] = 0.;
-    } 
-    
+    PyObject* tpl = K_ARRAY::buildArray3(1, "regularityAngle", nvertex, *cn, eltType, 1, api, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    RELEASESHAREDS(tpl, f2);
     return tpl;
-    //RELEASESHAREDB(res, array, f, cn);
-    //PyErr_SetString(PyExc_ValueError,
-    //                "getAngleOrthogonalityMap: not for unstructured arrays.");
-    //return NULL;
   }
 }

@@ -1094,14 +1094,13 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     E_Float zzor = zp[0]-ext5[v]*dh3;
     RELEASESHAREDS(objst[v], structF[v]);
     E_Int nio = ni+ext1[v]+ext2[v]; E_Int njo = nj+ext3[v]+ext4[v]; E_Int nko = nk+ext5[v]+ext6[v];
-    E_Int npts = nio*njo*nko;
     E_Int api = 1;//api 2 plante
     PyObject* tpl = K_ARRAY::buildArray3(nfldo, structVarString[v], nio, njo, nko, api); 
-    E_Float* fptr = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF newcoords(npts,nfldo, fptr, true);
-    E_Float* xn = newcoords.begin(1);
-    E_Float* yn = newcoords.begin(2);
-    E_Float* zn = newcoords.begin(3);
+    FldArrayF* newcoords; 
+    K_ARRAY::getFromArray3(tpl, newcoords);
+    E_Float* xn = newcoords->begin(1);
+    E_Float* yn = newcoords->begin(2);
+    E_Float* zn = newcoords->begin(3);
     E_Int nionjo = nio*njo;
     for (E_Int k = 0; k < nko; k++)    
       for (E_Int j = 0; j < njo; j++)
@@ -1112,11 +1111,13 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
           yn[ind] = yyor + j*dh2;
           zn[ind] = zzor + k*dh3;
         }
+
+    RELEASESHAREDS(tpl, newcoords);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-      PyObject* extentN = K_NUMPY::buildNumpyArray(extension,1);
+
+  PyObject* extentN = K_NUMPY::buildNumpyArray(extension,1);
   PyObject* tupleOut = Py_BuildValue("[OO]", l, extentN);
-      //return l;
   Py_DECREF(l); 
   Py_DECREF(extentN); 
   return tupleOut;

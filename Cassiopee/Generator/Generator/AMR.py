@@ -2,15 +2,12 @@
 # cartRX in offsets ?
 # snear to adjust as in FAST/IBM
 import Converter.PyTree as C
-import Converter.Filter2 as Filter2
 import Converter.Mpi as Cmpi
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import Dist2Walls.PyTree as DTW
-import Geom.PyTree as D
 import Post.PyTree as P
-import Geom.IBM as D_IBM
 import XCore.PyTree as XC
 from . import PyTree as G
 import os
@@ -852,6 +849,7 @@ def _createBCStandard__(a_hexa, a):
     return None
 
 def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False):
+    from mpi4py import MPI
     o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
     gcells = res[5]

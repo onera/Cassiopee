@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -41,7 +41,7 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
     PyObject* tpli = PyList_GetItem(listPts, i);
     if (PyTuple_Check(tpli) == 0)
     {
-      
+
       PyErr_SetString(PyExc_TypeError,
                       "getNearestPointIndex: each element of the list must be (x,y,z).");
       return NULL;
@@ -60,9 +60,9 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f,
                                      ni, nj, nk, cn, eltType);
-  if (res != 1 && res != 2) 
+  if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError, "getNearestPointIndex: invalid array.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
@@ -76,7 +76,7 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getNearestPointIndex: array must be contains coordinates.");
-    RELEASESHAREDB(res, array, f, cn); 
+    RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
   posx++; posy++; posz++;
@@ -89,9 +89,9 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
 
   KdTree<FldArrayF> kdt(coordAcc);
   E_Float pt[3];
-  
+
   PyObject* tpl = PyList_New(0);
-  
+
   for (E_Int i = 0; i < npts; i++)
   {
     PyObject* tpli = PyList_GetItem(listPts, i);
@@ -111,7 +111,7 @@ PyObject* K_GEOM::getNearestPointIndex(PyObject* self, PyObject* args)
     PyObject* out = Py_BuildValue("(l,d)", ind, dist2);
     PyList_Append(tpl, out);
   }
-  
+
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

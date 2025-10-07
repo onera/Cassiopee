@@ -55,8 +55,8 @@ E_Int K_POST::integMomentUnstruct2D(E_Int center2node,
   if (center2node == 1)
   {
     // Compute integral, coordinates defined in node and field F in center 
-    integMomentUnstructNodeCenter(
-      cn, eltType,
+    integMomentUnstructCellCenter(
+      cn,
       cx, cy, cz, ratio.begin(),
       coord.begin(posx), coord.begin(posy), coord.begin(posz),
       surf.begin(), F.begin(1), F.begin(2), F.begin(3),
@@ -66,8 +66,8 @@ E_Int K_POST::integMomentUnstruct2D(E_Int center2node,
   else
   {
     // Compute integral, coordinates and field have the same size
-    integMomentUnstructCellCenter(
-      cn, eltType,
+    integMomentUnstructNodeCenter(
+      cn,
       cx, cy, cz, ratio.begin(),
       coord.begin(posx), coord.begin(posy), coord.begin(posz),
       surf.begin(), F.begin(1), F.begin(2), F.begin(3),
@@ -114,8 +114,8 @@ E_Int K_POST::integMomentUnstruct1D(E_Int center2node,
   if (center2node == 1) 
   { 
     // Compute integral, coordinates defined in node and field F in center 
-    integMomentUnstructNodeCenter(
-      cn, eltType,
+    integMomentUnstructCellCenter(
+      cn,
       cx, cy, cz, ratio.begin(),
       coord.begin(posx), coord.begin(posy), coord.begin(posz), 
       length.begin(), F.begin(1), F.begin(2), F.begin(3),
@@ -124,8 +124,8 @@ E_Int K_POST::integMomentUnstruct1D(E_Int center2node,
   }
   else
   {
-    integMomentUnstructCellCenter(
-      cn, eltType,
+    integMomentUnstructNodeCenter(
+      cn,
       cx, cy, cz, ratio.begin(),
       coord.begin(posx), coord.begin(posy), coord.begin(posz), 
       length.begin(), F.begin(1), F.begin(2), F.begin(3),
@@ -146,15 +146,13 @@ E_Int K_POST::integMomentUnstruct1D(E_Int center2node,
 // I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 // Aire(ABCD) = ||AB^AC||/2 + ||DB^DC||/2
 // ============================================================================
-void K_POST::integMomentUnstructCellCenter(
-  FldArrayI& cn, const char* eltType,
+void K_POST::integMomentUnstructNodeCenter(
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz, const E_Float* ratio,
   const E_Float* xt, const E_Float* yt, const E_Float* zt, const E_Float* surf,
   const E_Float* vx, const E_Float* vy, const E_Float* vz, E_Float* result)
 {
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -166,159 +164,78 @@ void K_POST::integMomentUnstructCellCenter(
     nepc[ic+1] = nepc[ic] + nelts;
   }
 
-  result[0] = 0.0;
-  result[1] = 0.0;
-  result[2] = 0.0;
+  E_Float res1 = 0.0;
+  E_Float res2 = 0.0;
+  E_Float res3 = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
     
     E_Int ind;
-    E_Float fx, fy, fz, f;
+    E_Float fx, fy, fz;
     E_Float f1, f2, f3;
     E_Float mx, my, mz;
     E_Float dx, dy, dz, ri, si;
-    E_Float res1 = 0.0;
-    E_Float res2 = 0.0;
-    E_Float res3 = 0.0;
 
-    if (strcmp(eltTypes[ic], "TRI") == 0)
+    #pragma omp for reduction(+:res1,res2,res3)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      for (E_Int i = 0; i < nelts; i++)
+      f1 = 0.0;
+      f2 = 0.0;
+      f3 = 0.0;
+
+      for (E_Int j = 1; j <= nvpe; j++)
       {
-        f1 = 0.0;
-        f2 = 0.0;
-        f3 = 0.0;
+        ind = cm(i, j) - 1;
+        
+        ri = ratio[ind];
+        dx = xt[ind] - cx;
+        dy = yt[ind] - cy;
+        dz = zt[ind] - cz;
+        fx = vx[ind];
+        fy = vy[ind];
+        fz = vz[ind];
 
-        for (E_Int j = 1; j <= 3; j++)
-        {
-          ind = cm(i, j) - 1;
-          
-          ri = ratio[ind];
-          dx = xt[ind] - cx;
-          dy = yt[ind] - cy;
-          dz = zt[ind] - cz;
-          fx = vx[ind];
-          fy = vy[ind];
-          fz = vz[ind];
+        mx = dy * fz - dz * fy;
+        my = dz * fx - dx * fz;
+        mz = dx * fy - dy * fx;
 
-          mx = dy * fz - dz * fy;
-          my = dz * fx - dx * fz;
-          mz = dx * fy - dy * fx;
-
-          f1 += ri*mx;
-          f2 += ri*my;
-          f3 += ri*mz;
-        }
-
-        si = surf[i+elOffset];
-        res1 += si*f1;
-        res2 += si*f2;
-        res3 += si*f3;
+        f1 += ri*mx;
+        f2 += ri*my;
+        f3 += ri*mz;
       }
-      result[0] += K_CONST::ONE_THIRD*res1; 
-      result[1] += K_CONST::ONE_THIRD*res2;
-      result[2] += K_CONST::ONE_THIRD*res3;
-    }
-    else if (strcmp(eltTypes[ic], "QUAD") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        f1 = 0.0;
-        f2 = 0.0;
-        f3 = 0.0;
 
-        for (E_Int j = 1; j <= 4; j++)
-        {
-          ind = cm(i, j) - 1;
-          
-          ri = ratio[ind];
-          dx = xt[ind] - cx;
-          dy = yt[ind] - cy;
-          dz = zt[ind] - cz;
-          fx = vx[ind];
-          fy = vy[ind];
-          fz = vz[ind];
-
-          mx = dy * fz - dz * fy;
-          my = dz * fx - dx * fz;
-          mz = dx * fy - dy * fx;
-
-          f1 += ri*mx;
-          f2 += ri*my;
-          f3 += ri*mz;
-        }
-
-        si = surf[i+elOffset];
-        res1 += si*f1;
-        res2 += si*f2;
-        res3 += si*f3;
-      }
-      result[0] += K_CONST::ONE_FOURTH*res1; 
-      result[1] += K_CONST::ONE_FOURTH*res2;
-      result[2] += K_CONST::ONE_FOURTH*res3;
-    }
-    else if (strcmp(eltTypes[ic], "BAR") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        f1 = 0.0;
-        f2 = 0.0;
-        f3 = 0.0;
-
-        for (E_Int j = 1; j <= 2; j++)
-        {
-          ind = cm(i, j) - 1;
-          
-          ri = ratio[ind];
-          dx = xt[ind] - cx;
-          dy = yt[ind] - cy;
-          dz = zt[ind] - cz;
-          fx = vx[ind];
-          fy = vy[ind];
-          fz = vz[ind];
-
-          mx = dy * fz - dz * fy;
-          my = dz * fx - dx * fz;
-          mz = dx * fy - dy * fx;
-
-          f1 += ri*mx;
-          f2 += ri*my;
-          f3 += ri*mz;
-        }
-
-        si = surf[i+elOffset];
-        res1 += si*f1;
-        res2 += si*f2;
-        res3 += si*f3;
-      }
-      result[0] += K_CONST::ONE_HALF*res1; 
-      result[1] += K_CONST::ONE_HALF*res2;
-      result[2] += K_CONST::ONE_HALF*res3;
+      si = surf[i+elOffset];
+      res1 += nvpeinv*si*f1;
+      res2 += nvpeinv*si*f2;
+      res3 += nvpeinv*si*f3;
     }
   }
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  result[0] = res1; 
+  result[1] = res2;
+  result[2] = res3;
 }
 
 // ============================================================================
 // Compute surface integral of the moment M (OM^F)
 // coordinates are defined in nodes and F is defined in center (unstructured)
 // ============================================================================
-void K_POST::integMomentUnstructNodeCenter(
-  FldArrayI& cn, const char* eltType,
+void K_POST::integMomentUnstructCellCenter(
+  FldArrayI& cn,
   const E_Float cx, const E_Float cy, const E_Float cz,
   const E_Float* ratio, const E_Float* xt, const E_Float* yt,
   const E_Float* zt, const E_Float* surf,
   const E_Float* vx, const E_Float* vy, const E_Float* vz,
   E_Float* result)
 {
-  E_Float res1, res2, res3;
   E_Int nc = cn.getNConnect();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   std::vector<E_Int> nepc(nc+1);
   nepc[0] = 0;
@@ -330,100 +247,55 @@ void K_POST::integMomentUnstructNodeCenter(
     nepc[ic+1] = nepc[ic] + nelts;
   }
 
-  result[0] = 0.0;
-  result[1] = 0.0;
-  result[2] = 0.0;
+  E_Float res1 = 0.0;
+  E_Float res2 = 0.0;
+  E_Float res3 = 0.0;
 
+  #pragma omp parallel
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    E_Int ind1, ind2, ind3, ind4;
-    E_Float mx, my, mz, sri;
-    E_Float centerx, centery, centerz;
-  
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     E_Int elOffset = nepc[ic];
-    
-    if (strcmp(eltTypes[ic], "TRI") == 0)
+    E_Int nvpe = cm.getNfld();
+    E_Float nvpeinv = 1./nvpe;
+
+    E_Int ind;
+    E_Float mx, my, mz, sri;
+    E_Float centerx, centery, centerz;
+
+    #pragma omp for reduction(+:res1,res2,res3)
+    for (E_Int i = 0; i < nelts; i++)
     {
-      for (E_Int i = 0; i < nelts; i++)
+      centerx = 0.0;
+      centery = 0.0;
+      centerz = 0.0;
+
+      for (E_Int j = 1; j <= nvpe; j++)
       {
-        ind1 = cm(i, 1) - 1;
-        ind2 = cm(i, 2) - 1;
-        ind3 = cm(i, 3) - 1;
+        ind = cm(i, j) - 1;
 
-        centerx = K_CONST::ONE_THIRD * (xt[ind1] + xt[ind2] + xt[ind3]) - cx;
-        centery = K_CONST::ONE_THIRD * (yt[ind1] + yt[ind2] + yt[ind3]) - cy;
-        centerz = K_CONST::ONE_THIRD * (zt[ind1] + zt[ind2] + zt[ind3]) - cz;
-
-        mx = centery * vz[i] - centerz * vy[i];
-        my = centerz * vx[i] - centerx * vz[i];
-        mz = centerx * vy[i] - centery * vx[i];
-
-        sri = surf[i+elOffset] * ratio[i];
-        res1 = sri * mx;
-        res2 = sri * my;
-        res3 = sri * mz;
-
-        result[0] += res1;
-        result[1] += res2;
-        result[2] += res3;
-      
+        centerx += xt[ind];
+        centery += yt[ind];
+        centerz += zt[ind];
       }
-    }
-    else if (strcmp(eltTypes[ic], "QUAD") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        ind1 = cm(i, 1) - 1;
-        ind2 = cm(i, 2) - 1;
-        ind3 = cm(i, 3) - 1;
-        ind4 = cm(i, 4) - 1;
 
-        centerx = K_CONST::ONE_FOURTH * (xt[ind1] + xt[ind2] + xt[ind3] + xt[ind4]) - cx;
-        centery = K_CONST::ONE_FOURTH * (yt[ind1] + yt[ind2] + yt[ind3] + yt[ind4]) - cy;
-        centerz = K_CONST::ONE_FOURTH * (zt[ind1] + zt[ind2] + zt[ind3] + zt[ind4]) - cz;
+      centerx = nvpeinv * centerx - cx;
+      centery = nvpeinv * centery - cy;
+      centerz = nvpeinv * centerz - cz;
 
-        mx = centery * vz[i] - centerz * vy[i];
-        my = centerz * vx[i] - centerx * vz[i];
-        mz = centerx * vy[i] - centery * vx[i];
+      mx = centery * vz[i] - centerz * vy[i];
+      my = centerz * vx[i] - centerx * vz[i];
+      mz = centerx * vy[i] - centery * vx[i];
 
-        sri = surf[i+elOffset] * ratio[i];
-        res1 = sri * mx;
-        res2 = sri * my;
-        res3 = sri * mz;
-
-        result[0] += res1;
-        result[1] += res2;
-        result[2] += res3;
-      
-      }
-    }
-    else if (strcmp(eltTypes[ic], "BAR") == 0)
-    {
-      for (E_Int i = 0; i < nelts; i++)
-      {
-        ind1 = cm(i, 1) - 1;
-        ind2 = cm(i, 2) - 1;
-
-        centerx = K_CONST::ONE_HALF * (xt[ind1] + xt[ind2]) - cx;
-        centery = K_CONST::ONE_HALF * (yt[ind1] + yt[ind2]) - cy;
-        centerz = K_CONST::ONE_HALF * (zt[ind1] + zt[ind2]) - cz;
-
-        mx = centery * vz[i] - centerz * vy[i];
-        my = centerz * vx[i] - centerx * vz[i];
-        mz = centerx * vy[i] - centery * vx[i];
-
-        sri = surf[i+elOffset] * ratio[i];
-        res1 = sri * mx;
-        res2 = sri * my;
-        res3 = sri * mz;
-
-        result[0] += res1;
-        result[1] += res2;
-        result[2] += res3;
-      }
+      sri = surf[i+elOffset] * ratio[i];
+      res1 += sri * mx;
+      res2 += sri * my;
+      res3 += sri * mz;
     }
   }
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  result[0] = res1;
+  result[1] = res2;
+  result[2] = res3;
 }

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -50,7 +50,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
+    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
   E_Int api = 1;
@@ -72,22 +72,22 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
     posx1 = K_ARRAY::isCoordinateXPresent(structVarString[nos]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(structVarString[nos]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(structVarString[nos]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
   for (E_Int nou = 0; nou < nu; nou++)
   {
     posx1 = K_ARRAY::isCoordinateXPresent(unstrVarString[nou]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(unstrVarString[nou]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(unstrVarString[nou]); posz1++;
-    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
+    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1);
   }
 
   // projection surfaces
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, 
-                                      f2, im2, jm2, km2, cn2, eltType2); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2,
+                                      f2, im2, jm2, km2, cn2, eltType2);
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -115,7 +115,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
   E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
   E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-   
+
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -142,19 +142,19 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
     // Reorder eventuel de array1 pour avoir un tableau ni x nj
     if (km1 != 1 && im1 == 1)
       K_CONNECT::reorderStructField(im1, jm1, km1, *f, 3, 2, -1);
-    
+
     else if (km1 != 1 && jm1 == 1)
       K_CONNECT::reorderStructField(im1, jm1, km1, *f, 1, 3, -2);
 
     if (precond == 0)
       projectSmoothDirWithoutPrecond(
         nx, ny, nz, im1, jm1, km1, cn2->getSize(), *cn2,
-        f2->begin(posx2), f2->begin(posy2), f2->begin(posz2), 
+        f2->begin(posx2), f2->begin(posy2), f2->begin(posz2),
         f->begin(posx1), f->begin(posy1), f->begin(posz1), oriented);
-    else 
+    else
       projectSmoothDirWithPrecond(
         nx, ny, nz, im1, jm1, km1, cn2->getSize(), *cn2,
-        f2->begin(posx2), f2->begin(posy2), f2->begin(posz2), 
+        f2->begin(posx2), f2->begin(posy2), f2->begin(posz2),
         f->begin(posx1), f->begin(posy1), f->begin(posz1), oriented);
     structFields.push_back(f);
   }
@@ -169,7 +169,7 @@ PyObject* K_TRANSFORM::projectSmoothDir(PyObject* self, PyObject* args)
 
   // Build arrays
   PyObject* l = PyList_New(0);
-  PyObject* tpl;    
+  PyObject* tpl;
   for (E_Int nos = 0; nos < ns; nos++)
   {
     tpl = K_ARRAY::buildArray3(*structFields[nos], structVarString[nos],
@@ -210,16 +210,16 @@ void K_TRANSFORM::projectSmoothDirWithPrecond(
   for (E_Int et = 0; et < nelts2; et++)
   {
     minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et];
     boxes[et] = new BBox3DType(minB, maxB);
   }
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
-    
+
   // Algorithme de projection
   E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
   E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-  E_Float dist; E_Float distc; 
+  E_Float dist; E_Float distc;
   E_Int ret; E_Int ind1, ind2, ind3;
   E_Float dx, dy, dz, normp, ps;
   vector<E_Int> indicesBB;
@@ -231,7 +231,7 @@ void K_TRANSFORM::projectSmoothDirWithPrecond(
     pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
     pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
     bbtree.getIntersectingBoxes(pr1, pr2, indicesBB, tol);
-    
+
     distc = 1e6;
     nbboxes = indicesBB.size();
     for (E_Int noe = 0; noe < nbboxes; noe++)
@@ -240,7 +240,7 @@ void K_TRANSFORM::projectSmoothDirWithPrecond(
       ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
+      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
       ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
                                              pr1, pr2,
                                              pi);
@@ -254,15 +254,15 @@ void K_TRANSFORM::projectSmoothDirWithPrecond(
           //distp = sqrt(dist);//PP'
           normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
           ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-          if ( ps > 0. ) 
+          if ( ps > 0. )
           {
-            if (dist < distc) 
+            if (dist < distc)
             {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist; tagp[ind] = 1;}
           }
         }
-        else 
+        else
         {
-          if (dist < distc) 
+          if (dist < distc)
           {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist; tagp[ind] = 1;}
         }
       }
@@ -294,7 +294,7 @@ void K_TRANSFORM::projectSmoothDirWithoutPrecond(
   // Algorithme de projection
   E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
   E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
-  E_Float dist; E_Float distc; 
+  E_Float dist; E_Float distc;
   E_Int ret; E_Int ind1, ind2, ind3;
   E_Float dx, dy, dz, normp, ps;
   for (E_Int ind = 0; ind < npts; ind++)
@@ -310,8 +310,8 @@ void K_TRANSFORM::projectSmoothDirWithoutPrecond(
       ind3 = cn2p3[e]-1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-     
+      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
       ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
                                              pr1, pr2,
                                              pi);
@@ -324,17 +324,17 @@ void K_TRANSFORM::projectSmoothDirWithoutPrecond(
           //distp = sqrt(dist);//PP'
           normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
           ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-          if ( ps > 0. ) 
+          if ( ps > 0. )
           {
-            if (dist < distc) 
+            if (dist < distc)
               {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;tagp[ind] = 1;}
           }
         }
-        else 
+        else
         {
-          if (dist < distc) 
+          if (dist < distc)
           {fx[ind] = pi[0]; fy[ind] = pi[1]; fz[ind] = pi[2]; distc = dist;tagp[ind] = 1;}
-        } 
+        }
       }
     }
   }
@@ -374,7 +374,7 @@ void K_TRANSFORM::smoothUnprojectedPts(
       {
         k = ind / nij;
         j = (ind - k*nij) / ni;
-        i = ind - j*ni - k*nij; 
+        i = ind - j*ni - k*nij;
         indPN = K_FUNC::E_min(i+1, ni1) + j*ni + k*nij;
         indMN = K_FUNC::E_max(i-1, 0) + j*ni + k*nij;
         indNP = i + K_FUNC::E_min(j+1, nj1)*ni + k*nij;
@@ -385,9 +385,9 @@ void K_TRANSFORM::smoothUnprojectedPts(
         cx[ind] = fx[ind]*eps1 + eps4 * deltax;
         cy[ind] = fy[ind]*eps1 + eps4 * deltay;
         cz[ind] = fz[ind]*eps1 + eps4 * deltaz;
-        diffx = fx[ind] - cx[ind]; 
-        diffy = fy[ind] - cy[ind]; 
-        diffz = fz[ind] - cz[ind]; 
+        diffx = fx[ind] - cx[ind];
+        diffy = fy[ind] - cy[ind];
+        diffz = fz[ind] - cz[ind];
 
         diff = K_FUNC::E_max(diff, diffx*diffx + diffy*diffy + diffz*diffz);
       }

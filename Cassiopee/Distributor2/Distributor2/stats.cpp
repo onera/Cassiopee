@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -26,16 +26,16 @@ using namespace K_FLD;
 // Remplit les stats
 // IN: nbPts: nbre de points de chaque zone
 // IN: out: affectation de zone sur procs
-// OUT: empty, varMin, varMax, varRMS, volRatio 
+// OUT: empty, varMin, varMax, varRMS, volRatio
 //============================================================================
-void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc, 
-  E_Int* com, E_Int* comd, E_Int sizeComd, 
+void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
+  E_Int* com, E_Int* comd, E_Int sizeComd,
   vector<E_Int>& out,
   E_Int& empty, E_Float& varMin, E_Float& varMax, E_Float& varRMS,
   E_Float& volRatio)
 {
   E_Int proc, nptsCom;
-  E_Int nb = nbPts.size(); 
+  E_Int nb = nbPts.size();
 
   // Nb total de pts: nbTot = 0
   E_Float nbTot = 0;
@@ -53,7 +53,7 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
     nbNodePerProc[proc] += nbPts[i];
   }
   //printf("Nb de pts moyen par proc: " SF_D_ "\n", E_Int(meanPtsPerProc));
- 
+
   //printf("Nb de pts par proc:\n");
   empty = 0;
   for (E_Int i = 0; i < NProc; i++)
@@ -61,7 +61,7 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
     //  printf("Proc " SF_D_ ": " SF_D_ " pts\n", i, nbNodePerProc[i]);
     if (nbNodePerProc[i] == 0)
     {
-      empty = 1; 
+      empty = 1;
       printf("Warning: processor " SF_D_ " is empty!\n", i);
     }
   }
@@ -102,7 +102,7 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
       }
     }
   }
-  
+
   if (comd != NULL)
   {
     E_Int v1, volcom, proci, prock;
@@ -116,7 +116,7 @@ void K_DISTRIBUTOR2::stats(vector<E_Float>& nbPts, E_Int NProc,
       prock = out[k];
       volTot += volcom;
       // le voisin est-il sur le meme processeur?
-      if (proci != prock) 
+      if (proci != prock)
       {
         nptsCom += volcom;
       }

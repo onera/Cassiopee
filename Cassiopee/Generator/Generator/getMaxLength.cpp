@@ -84,13 +84,14 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (km == 1) km1 = 1;
       
     tpl = K_ARRAY::buildArray3(1, "MaxLength", im1, jm1, km1, api);
-    E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
+    FldArrayF* field; 
+    K_ARRAY::getFromArray3(tpl, field);
 
-    E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
-                                          im, jm, km, 
-                                          NULL, NULL,
-                                          dim, 0,
-                                          fieldp);
+    E_Int ret = K_COMPGEOM::getEdgeLength(
+      xt, yt, zt, im, jm, km, 
+      NULL, NULL, dim, 0, field->begin()
+    );
+    RELEASESHAREDS(tpl, field);
     RELEASESHAREDS(array, f);
     if (ret == 0)
     {
@@ -102,37 +103,14 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
   }
   else
   {
-    E_Bool center = true;
-    if (strcmp(eltType, "NGON") == 0) // NGON
-    {
-      E_Int nelts = cn->getNElts();
-      E_Int nfaces = cn->getNFaces();
-      E_Int sizeFN = cn->getSizeNGon();
-      E_Int sizeEF = cn->getSizeNFace();
-      E_Int ngonType = 1; // CGNSv3 compact array1
-      if (api == 2) ngonType = 2; // CGNSv3, array2
-      else if (api == 3) ngonType = 3; // force CGNSv4, array3
-      tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), nelts, nfaces,
-                                 eltType, sizeFN, sizeEF, ngonType, center, api);
-    }
-    else // BE/ME
-    {
-      E_Int nc = cn->getNConnect();
-      std::vector<E_Int> nelts(nc);
-      for (E_Int ic = 0; ic < nc; ic++)
-      {
-        FldArrayI& cm = *(cn->getConnect(ic));
-        nelts[ic] = cm.getSize();
-      }
-      tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), nelts,
-                                 eltType, center, api);
-    }
-    E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-    E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
-                                          -1, -1, -1, 
-                                          cn, eltType,
-                                          dim, 0, fieldp);
-
+    tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), *cn, eltType, api);
+    FldArrayF* field; 
+    K_ARRAY::getFromArray3(tpl, field);
+    E_Int ret = K_COMPGEOM::getEdgeLength(
+      xt, yt, zt, -1, -1, -1, 
+      cn, eltType, dim, 0, field->begin()
+    );
+    RELEASESHAREDS(tpl, field);
     RELEASESHAREDU(array, f, cn);
     if (ret == 0)
     {

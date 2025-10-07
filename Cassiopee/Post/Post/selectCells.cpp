@@ -793,7 +793,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
     
-    cout->setNGon(1);
+    cout->setNGonType(1);
     tpl = K_ARRAY::buildArray3(*fout, varString, *cout, eltType, api);
     tplc = K_ARRAY::buildArray3(*foutC, varStringC, *cout, eltType, api);
     
@@ -1602,7 +1602,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     // close
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
-    cout->setNGon(1);
+    cout->setNGonType(1);
     tpl = K_ARRAY::buildArray3(*fout, varString, *cout, eltType, api);
     delete fout; delete cout;
   }

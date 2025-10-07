@@ -239,6 +239,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   in.mesh_dim = 3;
   in.numberofpointattributes = 0;
 
+  E_Int api = f->getApi();
   E_Int n = f->getSize();
   E_Float* ptx = f->begin(posx);
   E_Float* pty = f->begin(posy);
@@ -320,27 +321,32 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   E_Int np = out.numberofpoints;
   ne = out.numberoftetrahedra;
   printf("INFO: tetgen: generate " SF_D_ " points and " SF_D_ " elements.\n", np, ne);
-  pout = K_ARRAY::buildArray(3, "x,y,z", np, ne, 4, NULL, false, 0);
-  E_Float* fp = K_ARRAY::getFieldPtr(pout);
-  E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
+
+  pout = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", false, api);
+  FldArrayF* fout; FldArrayI* cout;
+  K_ARRAY::getFromArray3(pout, fout, cout);
+  E_Float* fx = fout->begin(1);
+  E_Float* fy = fout->begin(2);
+  E_Float* fz = fout->begin(3);
+
   E_Float* pt = out.pointlist;
   for (E_Int i = 0; i < np; i++)
   {
     fx[i] = pt[0]; fy[i] = pt[1]; fz[i] = pt[2]; pt += 3;
   }
-  E_Int* cp = K_ARRAY::getConnectPtr(pout);
-  E_Int* cp1 = cp; E_Int* cp2 = cp+ne; 
-  E_Int* cp3 = cp+2*ne; E_Int* cp4 = cp+3*ne;
+  E_Int* cp1 = cout->begin(1); E_Int* cp2 = cout->begin(2); 
+  E_Int* cp3 = cout->begin(3); E_Int* cp4 = cout->begin(4);
   E_Int ind = 0;
   int* tl = out.tetrahedronlist;
   for (E_Int i = 0; i < ne; i++)
   { 
-    cp1[i] = tl[ind]+1;
-    cp2[i] = tl[ind+1]+1;
-    cp3[i] = tl[ind+2]+1;
-    cp4[i] = tl[ind+3]+1;
+    cp1[i] = tl[ind] + 1;
+    cp2[i] = tl[ind+1] + 1;
+    cp3[i] = tl[ind+2] + 1;
+    cp4[i] = tl[ind+3] + 1;
     ind += 4;
   }
 
+  RELEASESHAREDU(pout, fout, cout);
   return pout;
 }

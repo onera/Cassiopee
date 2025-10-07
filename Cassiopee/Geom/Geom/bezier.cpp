@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,7 +36,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* et;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, et);  
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, et);
 
   if (res != 1 && res != 2)
   {
@@ -63,7 +63,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
-  
+
   E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
@@ -71,7 +71,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
 
   if (im != 1)
   {
-    if (jm == 1) 
+    if (jm == 1)
     {
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularBezier(im, N, density, xt, yt, zt, PF);
@@ -79,7 +79,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", PF.getSize(), 1, 1, api);
       return tpl;
     }
-    else 
+    else
     {
       K_FLD::FldArrayF PF;
       E_Int niout, njout;

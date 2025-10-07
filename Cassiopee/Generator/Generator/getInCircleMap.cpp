@@ -54,12 +54,13 @@ PyObject* K_GENERATOR::getInCircleMap(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   
   E_Int ncells = cn->getSize();
-  E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-  PyObject* tpl = K_ARRAY::buildArray(1, "icradius", ncells, ncells, -1, eltType, true);
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  K_KCORE::memcpy__(cnnp, cn->begin(), ncells*nnodes);
-  E_Float* ccradp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF ccrad(ncells,1, ccradp, true);
+  E_Int api = f->getApi();
+  E_Int nvertex = f->getSize();
+
+  PyObject* tpl = K_ARRAY::buildArray3(1, "icradius", nvertex, *cn, eltType, 1, api, true);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
+  E_Float* ccrad = f2->begin(1);
 
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
@@ -71,13 +72,14 @@ PyObject* K_GENERATOR::getInCircleMap(PyObject* self, PyObject* args)
   E_Float p1[3]; E_Float p2[3]; E_Float p3[3];
   for (E_Int et = 0; et < ncells; et++)
   {
-    
     E_Int ind1 = cn1[et]-1; E_Int ind2 = cn2[et]-1; E_Int ind3 = cn3[et]-1;
     p1[0] = xt[ind1]; p1[1] = yt[ind1]; p1[2] = zt[ind1];  
     p2[0] = xt[ind2]; p2[1] = yt[ind2]; p2[2] = zt[ind2];  
     p3[0] = xt[ind3]; p3[1] = yt[ind3]; p3[2] = zt[ind3];
     ccrad[et] = K_COMPGEOM::inscribedCircleRadius(p1, p2, p3);
   }
+
+  RELEASESHAREDS(tpl, f2); 
   RELEASESHAREDU(array, f, cn); 
   return tpl;
 }

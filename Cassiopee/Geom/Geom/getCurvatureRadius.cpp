@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -32,19 +32,19 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
 {
   PyObject* array;
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: array must be a BAR or an i-array.");
-    return NULL;  
+    return NULL;
   }
   if ( res == 1 && ( jm != 1 || km != 1 || im == 1 ) )
   {
@@ -71,7 +71,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
                     "getCurvatureRadius: can't find coordinates in array.");
     return NULL;
   }
-  posx++; posy++; posz++;  
+  posx++; posy++; posz++;
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
@@ -81,7 +81,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   // calcul du rayon de courbure
   FldArrayF* radp = new FldArrayF(npts);
   FldArrayF& rad = *radp;
-  
+
   FldArrayF curv(npts);
   K_COMPGEOM::compCurvature(npts, xt, yt, zt, curv);
   E_Float c;
@@ -97,4 +97,4 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   PyObject* tpl = K_ARRAY::buildArray3(rad, "radius", npts, 1, 1, api);
   delete f; delete radp;
   return tpl;
-}     
+}

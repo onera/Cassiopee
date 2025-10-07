@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -97,13 +97,13 @@ static void RasterizeTriangle(uint8_t *dest, int destWidth, const int *t0, const
 }
 
 // Rasterize triangle with a different color for each vertex (field)
-static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, const int *t1, const int *t2, 
+static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, const int *t1, const int *t2,
                                uint8_t *colorv0, uint8_t *colorv1, uint8_t* colorv2)
 {
   //printf("rastering triangle : u0=%d v0=%d\n", t0[0], t0[1]);
   //printf("rastering triangle : u1=%d v1=%d\n", t1[0], t1[1]);
   //printf("rastering triangle : u2=%d v2=%d\n", t2[0], t2[1]);
-  
+
   if (t0[1] > t1[1]) { std::swap(t0, t1); std::swap(colorv0, colorv1); }
   if (t0[1] > t2[1]) { std::swap(t0, t2); std::swap(colorv0, colorv2); }
   if (t1[1] > t2[1]) { std::swap(t1, t2); std::swap(colorv1, colorv2); }
@@ -122,7 +122,7 @@ static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, cons
     int segment_height = second_half ? t2[1] - t1[1] : t1[1] - t0[1];
     float alpha = (float)i / total_height;
     float beta = (float)(i - (second_half ? t1[1] - t0[1] : 0)) / segment_height;
-    for (int j = 0; j < 2; j++) 
+    for (int j = 0; j < 2; j++)
     {
       A[j] = int(t0[j] + (t2[j] - t0[j]) * alpha);
       B[j] = int(second_half ? t1[j] + (t2[j] - t1[j]) * beta : t0[j] + (t1[j] - t0[j]) * beta);
@@ -138,10 +138,10 @@ static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, cons
       //printf("u0=%f, v0=%f\n", u0,v0);
       //printf("u1=%f, v1=%f\n", u1,v1);
       //printf("u2=%f, v2=%f\n", u2,v2);
-      
+
       dd = (u2-u0)*(v1-v0)-(v2-v0)*(u1-u0);
-      
-      r0 = colorv0[0]; r1 = colorv1[0]; r2 = colorv2[0];  
+
+      r0 = colorv0[0]; r1 = colorv1[0]; r2 = colorv2[0];
       a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
       a0 = a0 / dd;
       if (v1 != v0)
@@ -163,7 +163,7 @@ static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, cons
       color[0] = int(a0*u + a1*v + a2);
       //printf("u=%f v=%f r=%d, r0=%d r1=%d r2=%d dd=%f \n ",u,v,color[0],colorv0[0],colorv1[0],colorv2[0],dd);
 
-      r0 = colorv0[1]; r1 = colorv1[1]; r2 = colorv2[1];      
+      r0 = colorv0[1]; r1 = colorv1[1]; r2 = colorv2[1];
       a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
       a0 = a0 / dd;
 
@@ -186,10 +186,10 @@ static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, cons
       a2 = r0 - a0*u0 - a1*v0;
       color[1] = int(a0*u + a1*v + a2);
 
-      r0 = colorv0[2]; r1 = colorv1[2]; r2 = colorv2[2];      
+      r0 = colorv0[2]; r1 = colorv1[2]; r2 = colorv2[2];
       a0 = (r2-r0)*(v1-v0)-(v2-v0)*(r1-r0);
       a0 = a0 / dd;
-      
+
       if (v1 != v0)
       {
         a1 = (r1-r0) - a0*(u1-u0);
@@ -225,7 +225,7 @@ static void RasterizeTriangle2(uint8_t *dest, int destWidth, const int *t0, cons
 static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], const int vertexCount, const uint8_t *color)
 {
   int IMAGE_TOP = INT_MAX, IMAGE_BOT = 0, IMAGE_LEFT = INT_MAX, IMAGE_RIGHT = 0;
-  for (int i = 0; i < vertexCount; i++) 
+  for (int i = 0; i < vertexCount; i++)
   {
     const int *vertex = vertices[i];
     IMAGE_TOP = vertex[1] < IMAGE_TOP ? vertex[1] : IMAGE_TOP;
@@ -235,11 +235,11 @@ static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], co
   }
   int nodes, nodeX[255], pixelX, pixelY, i, j, swap;
   //  Loop through the rows of the image.
-  for (pixelY=IMAGE_TOP; pixelY<IMAGE_BOT; pixelY++) 
+  for (pixelY=IMAGE_TOP; pixelY<IMAGE_BOT; pixelY++)
   {
     //  Build a list of nodes.
     nodes=0; j=vertexCount-1;
-    for (i=0; i<vertexCount; i++) 
+    for (i=0; i<vertexCount; i++)
     {
       if ((vertices[i][1]<(double)pixelY && vertices[j][1]>=(double)pixelY) || (vertices[j][1]<(double)pixelY && vertices[i][1]>=(double)pixelY))
       {
@@ -249,22 +249,22 @@ static void RasterizePolygon(uint8_t *dest, int destWidth, int vertices[][2], co
     }
     //  Sort the nodes, via a simple Bubble sort.
     i=0;
-    while (i<nodes-1) 
+    while (i<nodes-1)
     {
-      if (nodeX[i]>nodeX[i+1]) 
+      if (nodeX[i]>nodeX[i+1])
       {
-        swap=nodeX[i]; nodeX[i]=nodeX[i+1]; nodeX[i+1]=swap; if (i) i--; 
+        swap=nodeX[i]; nodeX[i]=nodeX[i+1]; nodeX[i+1]=swap; if (i) i--;
       }
-      else 
+      else
       {
         i++;
       }
     }
     //  Fill the pixels between node pairs.
-    for (i=0; i<nodes; i+=2) 
+    for (i=0; i<nodes; i+=2)
     {
       if (nodeX[i  ]>=IMAGE_RIGHT) break;
-      if (nodeX[i+1]> IMAGE_LEFT ) 
+      if (nodeX[i+1]> IMAGE_LEFT )
       {
         if (nodeX[i  ]< IMAGE_LEFT) nodeX[i  ]=IMAGE_LEFT ;
         if (nodeX[i+1]> IMAGE_RIGHT) nodeX[i+1]=IMAGE_RIGHT;
@@ -282,18 +282,18 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float normalDeviationWeight;
-  E_Float texResolution; 
+  E_Float texResolution;
   PyObject* fields; // champ a sortir en rgb
-  if (!PYPARSETUPLE_(args, O_ RR_ O_, &array, &normalDeviationWeight, 
+  if (!PYPARSETUPLE_(args, O_ RR_ O_, &array, &normalDeviationWeight,
       &texResolution, &fields)) return NULL;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
+  E_Int res =
     K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
-  
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -308,7 +308,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                       "getUV: ony for TRI or QUAD array.");
-    return NULL;  
+    return NULL;
   }
 
   if (strcmp(eltType, "TRI") != 0 && strcmp(eltType, "QUAD") != 0)
@@ -316,7 +316,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                       "getUV: ony for TRI or QUAD array.");
-    return NULL;  
+    return NULL;
   }
 
   // check coords
@@ -329,7 +329,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getUV: can't find coordinates in array.");
-    return NULL;  
+    return NULL;
   }
   posx++; posy++; posz++;
 
@@ -341,7 +341,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getUV: can't find _u_,_v_ in array.");
-    return NULL;  
+    return NULL;
   }
   posu++; posv++;
 
@@ -350,16 +350,16 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   std::vector<char*> fNames;
   if (fields != Py_None)
   {
-    for (E_Int i = 0; i < PyList_Size(fields); i++) 
+    for (E_Int i = 0; i < PyList_Size(fields); i++)
     {
       PyObject* tpl0 = PyList_GetItem(fields, i);
-      if (PyString_Check(tpl0)) 
+      if (PyString_Check(tpl0))
       {
         char* str = PyString_AsString(tpl0);
         fNames.push_back(str);
       }
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(tpl0)) 
+      else if (PyUnicode_Check(tpl0))
       {
         char* str = (char*)PyUnicode_AsUTF8(tpl0);
         fNames.push_back(str);
@@ -372,13 +372,13 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   if (fNames.size() >= 1)
   {
     posvx = K_ARRAY::isNamePresent(fNames[0], varString);
-    if (posvx >= 0) { exportFields = true; posvy = posvx; posvz = posvx; } 
+    if (posvx >= 0) { exportFields = true; posvy = posvx; posvz = posvx; }
   }
   if (fNames.size() >= 2 && exportFields)
   {
     posvy = K_ARRAY::isNamePresent(fNames[1], varString);
     if (posvy >= 0) { posvz = posvy; }
-    else exportFields = false; 
+    else exportFields = false;
   }
   if (fNames.size() >= 3 && exportFields)
   {
@@ -401,12 +401,12 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 
 #define SCALEFACTOR 1000.
 
-  for (E_Int i = 0; i < nvertex; i++) 
+  for (E_Int i = 0; i < nvertex; i++)
   {
     coords[3*i] = px[i] * SCALEFACTOR;
     coords[3*i+1] = py[i] * SCALEFACTOR;
     coords[3*i+2] = pz[i] * SCALEFACTOR;
-  }  
+  }
   // ecrit connect
   uint32_t* connect = new uint32_t [nf*nelts];
   for (E_Int i = 0; i < nelts; i++)
@@ -455,7 +455,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   //opt1.straightnessWeight = 6.0f;
   //opt1.normalSeamWeight = 4.0f; // If > 1000, normal seams are fully respected.
   //opt1.textureSeamWeight = 0.5f;
-  
+
   xatlas::PackOptions opt2;
   //opt2.texelsPerUnit = texelsPerUnit;
   opt2.resolution = texResolution; // 1920
@@ -498,10 +498,10 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   PyObject* o;
   if (exportFields)
     o = K_ARRAY::buildArray3(8, "x,y,z,u,v,vx,vy,vz", nvertexOut, nelts, eltType, false, api);
-  else 
+  else
     o = K_ARRAY::buildArray3(5, "x,y,z,u,v", nvertexOut, nelts, eltType, false, api);
 
-  FldArrayF* fo; FldArrayI* cno; 
+  FldArrayF* fo; FldArrayI* cno;
   K_ARRAY::getFromArray3(o, fo, cno);
   E_Float* puo = fo->begin(4);
   E_Float* pvo = fo->begin(5);
@@ -549,13 +549,13 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   PyObject* tpl = PyList_New(0);
   PyList_Append(tpl, o); RELEASESHAREDU(o, fo, cno);
 
-  if (atlas->width <= 0 || atlas->height <= 0) return tpl; 
+  if (atlas->width <= 0 || atlas->height <= 0) return tpl;
 
   // si la vitesse est presente, on calcule le max de la norme
   E_Float vmax = 0.;
   E_Float dx, dy, dz;
   if (exportFields)
-  { 
+  {
     for (E_Int i = 0; i < nvertex; i++)
     {
       dx = pvx[i]; dy = pvy[i]; dz = pvz[i];
@@ -583,12 +583,12 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   int verts[255][2];
   uint8_t color[3];
   uint8_t color0[3]; uint8_t color1[3]; uint8_t color2[3];
-  
+
   for (uint32_t f = 0; f < faceCount; f++)
   {
     int32_t atlasIndex = -1;
     const uint32_t faceVertexCount = nf;
-    for (uint32_t j = 0; j < faceVertexCount; j++) 
+    for (uint32_t j = 0; j < faceVertexCount; j++)
     {
       const xatlas::Vertex &v = mesh.vertexArray[mesh.indexArray[faceFirstIndex + j]];
       atlasIndex = v.atlasIndex; // The same for every vertex in the face.
@@ -611,10 +611,10 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       color0[0] = int(255*pvx[i0]/vmax);
       color0[1] = int(255*pvy[i0]/vmax);
       color0[2] = int(255*pvz[i0]/vmax);
-      color1[0] = int(255*pvx[i1]/vmax); 
+      color1[0] = int(255*pvx[i1]/vmax);
       color1[1] = int(255*pvy[i1]/vmax);
       color1[2] = int(255*pvz[i1]/vmax);
-      color2[0] = int(255*pvx[i2]/vmax); 
+      color2[0] = int(255*pvx[i2]/vmax);
       color2[1] = int(255*pvy[i2]/vmax);
       color2[2] = int(255*pvz[i2]/vmax);
 
@@ -642,7 +642,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     int32_t atlasIndex = -1;
     int verts[255][2];
     const uint32_t faceVertexCount = nf;
-    for (uint32_t j = 0; j < faceVertexCount; j++) 
+    for (uint32_t j = 0; j < faceVertexCount; j++)
     {
       const xatlas::Vertex &v = mesh.vertexArray[mesh.indexArray[faceFirstIndex + j]];
       atlasIndex = v.atlasIndex; // The same for every vertex in the face.
@@ -654,7 +654,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     color[0] = 126; color[1] = 126; color[2] = 255;
     uint8_t color2[3];
     color2[0] = 126; color2[1] = 126; color2[2] = 250;
-    
+
     uint8_t *imageData = &outputBumpImage[atlasIndex * imageDataSize];
     if (faceVertexCount == 3)
       RasterizeTriangle(imageData, atlas->width, verts[0], verts[1], verts[2], color);
@@ -672,7 +672,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     E_Float* pvx = f->begin(posvx+1);
     E_Float* pvy = f->begin(posvy+1);
     E_Float* pvz = f->begin(posvz+1);
-    
+
     outputFieldImage.resize(atlas->atlasCount * imageDataSize);
     faceFirstIndex = 0;
     for (uint32_t f = 0; f < faceCount; f++)
@@ -680,7 +680,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       int32_t atlasIndex = -1;
       int verts[255][2];
       const uint32_t faceVertexCount = nf;
-      for (uint32_t j = 0; j < faceVertexCount; j++) 
+      for (uint32_t j = 0; j < faceVertexCount; j++)
       {
         const xatlas::Vertex &v = mesh.vertexArray[mesh.indexArray[faceFirstIndex + j]];
         atlasIndex = v.atlasIndex; // The same for every vertex in the face.
@@ -690,7 +690,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       if (atlasIndex < 0) continue; // Skip faces that weren't atlased.
       uint8_t color[3];
       color[0] = pvx[];
-      
+
       uint8_t *imageData = &outputFieldImage[atlasIndex * imageDataSize];
       if (faceVertexCount == 3)
         RasterizeTriangle(imageData, atlas->width, verts[0], verts[1], verts[2], color);
@@ -705,7 +705,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
 
   // Rasterize mesh charts.
   /*
-  for (uint32_t j = 0; j < mesh.chartCount; j++) 
+  for (uint32_t j = 0; j < mesh.chartCount; j++)
   {
     const xatlas::Chart *chart = &mesh.chartArray[j];
     uint8_t color[3];
@@ -718,7 +718,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       for (uint32_t l = 0; l < face; l++)
       faceFirstIndex += nvertex;
       int verts[255][2];
-      for (uint32_t l = 0; l < faceVertexCount; l++) 
+      for (uint32_t l = 0; l < faceVertexCount; l++)
       {
         const xatlas::Vertex &v = mesh.vertexArray[mesh.indexArray[faceFirstIndex + l]];
         verts[l][0] = int(v.uv[0]);
@@ -736,7 +736,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   */
 
   // Export images as a cartesian zone
-  for (uint32_t i = 0; i < atlas->atlasCount; i++) 
+  for (uint32_t i = 0; i < atlas->atlasCount; i++)
   {
     E_Int width = atlas->width;
     E_Int height = atlas->height;
@@ -749,7 +749,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     E_Float* px = fo->begin(1);
     E_Float* py = fo->begin(2);
     E_Float* pz = fo->begin(3);
-      
+
     for (E_Int lj = 0; lj < height; lj++)
     for (E_Int li = 0; li < width;  li++)
     {
@@ -761,9 +761,9 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     }
     PyList_Append(tpl, o); RELEASESHAREDS(o, fo);
   }
-  
+
   // Export images as a cartesian zone
-  for (uint32_t i = 0; i < atlas->atlasCount; i++) 
+  for (uint32_t i = 0; i < atlas->atlasCount; i++)
   {
     E_Int width = atlas->width;
     E_Int height = atlas->height;
@@ -776,7 +776,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
     E_Float* px = fo->begin(1);
     E_Float* py = fo->begin(2);
     E_Float* pz = fo->begin(3);
-      
+
     for (E_Int lj = 0; lj < height; lj++)
     for (E_Int li = 0; li < width;  li++)
     {

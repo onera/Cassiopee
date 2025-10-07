@@ -16,6 +16,6 @@
       vector< vector<E_Int> >& cVE_11_local = cVE_all[vw];
       vector<E_Int> & cVE_1_local = cVE_11_local[indw2];
 
-      ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw_local, yw_local, zw_local, 
+      ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw_local, yw_local, zw_local,
                           cVE_1_local, cnloc_local, xp_local, yp_local, zp_local,
                           p0, p1, p2, p);

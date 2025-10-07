@@ -95,6 +95,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   possx++; possy++; possz++;
 
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   FldArrayF fout(npts,1);
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
@@ -185,7 +186,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
       }
     }
   }
-  PyObject* tpl = K_ARRAY::buildArray(fout, "ht", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(fout, "ht", *cn, eltType, api);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(normales, fn, cnn);
   return tpl;
@@ -268,6 +269,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   possx++; possy++; possz++;
 
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   FldArrayF fout(npts,2);
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
@@ -454,7 +456,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
       }
     }
   }
-  PyObject* tpl = K_ARRAY::buildArray(fout, "ht,hl", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(fout, "ht,hl", *cn, eltType, api);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(normales, fn, cnn);
   return tpl;

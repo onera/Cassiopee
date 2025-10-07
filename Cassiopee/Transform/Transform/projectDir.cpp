@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -24,7 +24,7 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Projette un surface array1 sur un surface array2 (TRI) suivant une 
+/* Projette un surface array1 sur un surface array2 (TRI) suivant une
    direction donnee */
 // ============================================================================
 PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
@@ -50,7 +50,7 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
+    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
   if (isOk == -1)
@@ -71,22 +71,22 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
     posx1 = K_ARRAY::isCoordinateXPresent(structVarString[nos]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(structVarString[nos]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(structVarString[nos]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
   for (E_Int nou = 0; nou < nu; nou++)
   {
     posx1 = K_ARRAY::isCoordinateXPresent(unstrVarString[nou]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(unstrVarString[nou]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(unstrVarString[nou]); posz1++;
-    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
+    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1);
   }
 
   // projection surfaces
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 =  K_ARRAY::getFromArray3(array2, varString2, 
-                                       f2, im2, jm2, km2, cn2, eltType2); 
+  E_Int res2 =  K_ARRAY::getFromArray3(array2, varString2,
+                                       f2, im2, jm2, km2, cn2, eltType2);
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -113,21 +113,21 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
   E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-   
+
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
     for (E_Int nos = 0; nos < ns; nos++)
       RELEASESHAREDS(objst[nos], structF[nos]);
     for (E_Int nos = 0; nos < nu; nos++)
       RELEASESHAREDU(objut[nos], unstrF[nos], cnt[nos]);
-    RELEASESHAREDU(array2, f2, cn2); 
+    RELEASESHAREDU(array2, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "projectDir: can't find coordinates in array2.");
     return NULL;
   }
   posx2++; posy2++; posz2++;
   // Build arrays
-  PyObject* l = PyList_New(0);  
+  PyObject* l = PyList_New(0);
   vector<E_Float*> coordx; vector<E_Float*> coordy; vector<E_Float*> coordz;
   vector<E_Int> sizet;
   PyObject* tpl;
@@ -163,7 +163,7 @@ PyObject* K_TRANSFORM::projectDir(PyObject* self, PyObject* args)
   // projete
   K_COMPGEOM::projectDirWithPrecond(
     nx, ny, nz, *cn2,
-    f2->begin(posx2), f2->begin(posy2), f2->begin(posz2), 
+    f2->begin(posx2), f2->begin(posy2), f2->begin(posz2),
     sizet, coordx, coordy, coordz, oriented);
   RELEASESHAREDU(array2, f2, cn2);
   for (E_Int nos = 0; nos < ns; nos++)

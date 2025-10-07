@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "transform.h"
- 
+
 using namespace K_FLD;
 
 // ============================================================================
@@ -25,14 +25,14 @@ using namespace K_FLD;
 // ============================================================================
 PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
 {
-  PyObject* array; 
+  PyObject* array;
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
-  
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km,
                                      cn, eltType);
 
   if (res != 1 && res != 2)
@@ -47,7 +47,7 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   posx++; posy++; posz++;
-  
+
   // Vector add
   E_Float vx = 0.; E_Float vy = 0.; E_Float vz = 1.;
 
@@ -61,7 +61,7 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, im, jm, km1, api);
     FldArrayF* nz;
     K_ARRAY::getFromArray3(tpl, nz);
-    
+
     for (E_Int n = 1; n <= nfld; n++)
     {
       E_Float* newzonep = nz->begin(n);
@@ -79,7 +79,7 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < im*jm; i++)
         {
           ind   = i + (km-1)*imjm;
-          ind2  = i + imjmkm; 
+          ind2  = i + imjmkm;
           newzonep[ind2] = fpn[ind];
         }
       }
@@ -100,7 +100,7 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
         {
           ind = i + j*im;
           ind1 = ind + (km-1)*imjm;
-          ind2 = ind + imjmkm; 
+          ind2 = ind + imjmkm;
           nfx[ind2] = fx[ind1] + vx;
           nfy[ind2] = fy[ind1] + vy;
           nfz[ind2] = fz[ind1] + vz;
@@ -370,9 +370,9 @@ PyObject* K_TRANSFORM::addkplane(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* copie les champs de arrayC dans les centres de arrayK 
-   arrayC doit definir les champs en centres de l'array arrayK avant 
-   son addkplane(N) 
+/* copie les champs de arrayC dans les centres de arrayK
+   arrayC doit definir les champs en centres de l'array arrayK avant
+   son addkplane(N)
    On fournit arrayK et pas seulement N car on a besoin de connaitre la
    nature de l array (a cause du passage de 2D a 3D si N>1) */
 //=============================================================================
@@ -387,7 +387,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringc, fc, imc, jmc, kmc, 
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringc, fc, imc, jmc, kmc,
                                       cnc, eltTypec);
 
   if (resc != 1 && resc != 2)
@@ -400,9 +400,9 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(arrayK, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(arrayK, varString, f, im, jm, km,
                                      cn, eltType);
-  
+
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -417,11 +417,11 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
                     "addkplane: array of centers and nodes must be both structured or unstructured.");
     return NULL;
   }
-  if (resc == 2) 
+  if (resc == 2)
   {
-    if (K_STRING::cmp(eltTypec,"BAR*") != 0 && 
-        K_STRING::cmp(eltTypec,"TRI*") != 0 && 
-        K_STRING::cmp(eltTypec,"QUAD*") != 0 && 
+    if (K_STRING::cmp(eltTypec,"BAR*") != 0 &&
+        K_STRING::cmp(eltTypec,"TRI*") != 0 &&
+        K_STRING::cmp(eltTypec,"QUAD*") != 0 &&
         K_STRING::cmp(eltTypec,"NGON*") != 0)
     {
       RELEASESHAREDB(resc, arrayC, fc, cnc);
@@ -433,10 +433,10 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
   }
   E_Int api = fc->getApi();
   E_Int nfld = fc->getNfld();
-  
+
   PyObject* tpl;
   FldArrayF* f2;
-  if (resc == 1) 
+  if (resc == 1)
   {
     E_Int size = imc*jmc*kmc;
     E_Int imcjmc = imc*jmc;
@@ -455,7 +455,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
         }
       }
     }
-    else 
+    else
     {
       #pragma omp parallel
       {
@@ -472,7 +472,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
             for (E_Int ind = 0; ind < imcjmc; ind++)
             {
               val = ptrFc[ind];
-              ptrF[ind] = val;      
+              ptrF[ind] = val;
               ptrF[ind+offset] = val;
             }
           }
@@ -480,7 +480,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
       }
     }
   }
-  else 
+  else
   {
     E_Int npts = f->getSize();
     E_Int neltsC;
@@ -491,8 +491,8 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
                                *cn, eltType, true, api, true);
     K_ARRAY::getFromArray3(tpl, f2);
 
-    if (K_STRING::cmp(eltTypec, "BAR*") == 0 || 
-        K_STRING::cmp(eltTypec, "TRI*") == 0 || 
+    if (K_STRING::cmp(eltTypec, "BAR*") == 0 ||
+        K_STRING::cmp(eltTypec, "TRI*") == 0 ||
         K_STRING::cmp(eltTypec, "QUAD*") == 0) // addkplane: QUAD*
     {
       #pragma omp parallel
@@ -505,12 +505,12 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
           for (E_Int noz = 0; noz < N; noz++)
           for (E_Int ind = 0; ind < neltsC; ind++)
           {
-            ptrF[ind+noz*neltsC] = ptrFc[ind];   
+            ptrF[ind+noz*neltsC] = ptrFc[ind];
           }
         }
       }
     }
-    else if (K_STRING::cmp(eltTypec, "NGON*") == 0) 
+    else if (K_STRING::cmp(eltTypec, "NGON*") == 0)
     {
       E_Int dim = cnc->getDim();
       // il faut verifier que le NGON* est 2D pour extruder
@@ -537,7 +537,7 @@ PyObject* K_TRANSFORM::addkplaneCenters(PyObject* self, PyObject* args)
           }
         }
       }
-    }    
+    }
   }
 
   RELEASESHAREDS(tpl, f2);

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -34,7 +34,7 @@ using namespace K_FLD;
 //=============================================================================
 void K_DISTRIBUTOR2::genetic(
   vector<E_Float>& nbPts, vector<E_Int>& setBlocks,
-  E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd, 
+  E_Int NProc, E_Int* com, E_Int* comd, E_Int sizeComd,
   vector<E_Float>& solver,
   vector<E_Float>& latence, vector<E_Float>& comSpeed, E_Int param,
   vector<E_Int>& out, E_Float& meanPtsPerProc, E_Float& varMin,
@@ -117,12 +117,12 @@ void K_DISTRIBUTOR2::genetic(
       E_Float nbPtsForMesh = nbPts[i];
       for (E_Int p = 0; p < NProc; p++)
       {
-        E_Float eval = 
+        E_Float eval =
           K_FUNC::E_abs(meanPtsPerProc-nbPtsForMesh-nbPtsPerProcsp[p]);
         if (eval < bestEval)
         {
           bestEval = eval;
-          indBest  = p; 
+          indBest  = p;
         }
       }
       nbPtsPerProcsp[indBest] += nbPtsForMesh;
@@ -133,7 +133,7 @@ void K_DISTRIBUTOR2::genetic(
 
   // Pour le deuxieme, on repartit les blocs les uns apres les autres
   E_Int* pop2 = popp+nb;
-  for (E_Int i = 0; i < nb; i++) 
+  for (E_Int i = 0; i < nb; i++)
   {
     if (setBlocks[i] < 0) pop2[i] = i%NProc;
     else pop2[i] = setBlocks[i];
@@ -156,7 +156,7 @@ void K_DISTRIBUTOR2::genetic(
   for (E_Int i = 0; i < nb; i++)
   {
     E_Int j = largest[i];
-    if (setBlocks[j] < 0) pop3[j] = i%NProc; 
+    if (setBlocks[j] < 0) pop3[j] = i%NProc;
     else pop3[j] = setBlocks[j];
   }
 
@@ -177,21 +177,21 @@ void K_DISTRIBUTOR2::genetic(
       {
         E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
         for (E_Int k = 0; k < NProc; k++)
-        { 
-          if (nbPtsPerProcs[k] < minProc) 
+        {
+          if (nbPtsPerProcs[k] < minProc)
           { kless = k; minProc = nbPtsPerProcs[k]; }
         }
         pop4[j] = kless;
         nbPtsPerProcs[kless] += nbPts[j];
       }
     }
-    else 
+    else
     {
-      pop4[j] = setBlocks[j]; 
+      pop4[j] = setBlocks[j];
       nbPtsPerProcs[setBlocks[j]] += nbPts[j];
     }
   }
-  
+
   // Pour le cinquieme, best fit avec utilisation des coms
   /*
   E_Int* pop5 = popp+4*nb;
@@ -199,8 +199,8 @@ void K_DISTRIBUTOR2::genetic(
   for (E_Int i = 0; i < nb; i++) alreadySet[i] = 0;
   nbPtsPerProcs.setAllValuesAtNull();
 
-  for (E_Int i = 0; i < nb; i++) 
-  { 
+  for (E_Int i = 0; i < nb; i++)
+  {
     if (setBlocks[i] >= 0)
     {
       alreadySet[i] = 1; pop5[i] = setBlocks[i];
@@ -216,8 +216,8 @@ void K_DISTRIBUTOR2::genetic(
       // on le met sur le proc le moins charge
       E_Int kless = 0; E_Float minProc = K_CONST::E_MAX_FLOAT;
       for (E_Int k = 0; k < NProc; k++)
-      { 
-        if (nbPtsPerProcs[k] < minProc) 
+      {
+        if (nbPtsPerProcs[k] < minProc)
         { kless = k; minProc = nbPtsPerProcs[k]; }
       }
       alreadySet[j] = 1;
@@ -234,8 +234,8 @@ void K_DISTRIBUTOR2::genetic(
           if (alreadySet[k] == 0)
           {
             volCom = com[k + j*nb];
-            if (volCom > volComMax && 
-                nbPtsPerProcs[kless] + nbPts[k] <= 1.01*meanPtsPerProc) 
+            if (volCom > volComMax &&
+                nbPtsPerProcs[kless] + nbPts[k] <= 1.01*meanPtsPerProc)
             { volComMax = volCom; kmax = k; }
           }
         }
@@ -250,7 +250,7 @@ void K_DISTRIBUTOR2::genetic(
   }
   delete [] alreadySet;
   */
-  
+
   //for (E_Int i = 0; i < nb; i++)
   //  printf("%d %d %d\n", i, pop(i, 3), nbPts[i]);
   delete [] largest;
@@ -282,7 +282,7 @@ void K_DISTRIBUTOR2::genetic(
   }
 
   //for (E_Int j = 1; j <= sizeOfPopulation; j++) printf("evalp=%f\n", evalp[j-1]);
-  
+
   //printf("Adaptation init1: %f\n", evalp[0]);
   //printf("Adaptation init2: %f\n", evalp[1]);
   //printf("Adaptation init3: %f\n", evalp[2]);
@@ -326,7 +326,7 @@ void K_DISTRIBUTOR2::genetic(
     for (E_Int j = 1; j <= sizeOfPopulation; j++)
     {
       if (K_NOISE::stdRand(&idum) > bestEval/evalp[j-1])
-      { 
+      {
         evalp[j-1] = -1;
       }
       else
@@ -497,7 +497,7 @@ void K_DISTRIBUTOR2::genetic(
     {
       evalp[j-1] = K_DISTRIBUTOR2::eval(nb, NProc, meanPtsPerProc,
                                         solver, latence,
-                                        comSpeed, com, comd, sizeComd, 
+                                        comSpeed, com, comd, sizeComd,
                                         nbPtsPerProcs, nbPts,
                                         popp+(j-1)*nb);
     }
@@ -507,7 +507,7 @@ void K_DISTRIBUTOR2::genetic(
     for (E_Int j = 1; j <= sizeOfPopulation; j++)
       jBest = (evalp[j-1] < evalp[jBest-1] ? j : jBest);
     //printf("Adaptation: %f\n", evalp[jBest-1]);
-    
+
   } // loop
 
   // Sortie
@@ -519,7 +519,7 @@ void K_DISTRIBUTOR2::genetic(
 
   // external stats
   E_Int empty;
-  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty,
         varMin, varMax, varRMS, volRatio);
 
 }

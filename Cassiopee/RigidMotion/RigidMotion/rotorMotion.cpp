@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 # include "rigidMotion.h"
 using namespace K_FLD;
 using namespace std;
@@ -62,11 +62,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     *bet_pnt0, *bet_vct, *betc0, *bets0,
     *tet_pnt0, *tet_vct, *tetc0, *tets0,
     *span_vct, *pre_lag_pnt0, *pre_lag_vct, *pre_con_pnt0, *pre_con_vct;
-  if (!PYPARSETUPLE_(args, 
+  if (!PYPARSETUPLE_(args,
                      R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOO_ R_ OO_ R_ OO_,
-                     &time, &transl_speed, &psi0, &psi0_b, 
+                     &time, &transl_speed, &psi0, &psi0_b,
                      &alp_pnt0, &alp_vct, &alp0,
-                     &rot_pnt0, &rot_vct, &rot_omg,                     
+                     &rot_pnt0, &rot_vct, &rot_omg,
                      &del_pnt0, &del_vct, &del0, &delc0, &dels0,
                      &bet_pnt0, &bet_vct, &bet0, &betc0, &bets0,
                      &tet_pnt0, &tet_vct, &tet0, &tetc0, &tets0,
@@ -79,7 +79,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
   E_Float transl[3]; E_Float alp_pnt[3];E_Float rotor_pnt[3];
   E_Float pre_lag_pnt[3]; E_Float pre_con_pnt[3];
   E_Float del_pnt[3]; E_Float bet_pnt[3]; E_Float tet_pnt[3];
-  
+
   //harmonics for lead-lag, pitching and flapping
   E_Int nhdel = PyList_Size(delc0);
   FldArrayF delc(nhdel); FldArrayF dels(nhdel);
@@ -111,7 +111,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(tets0,nov);
     pttets[nov] = PyFloat_AsDouble(tpl0);
   }
-  
+
   for (E_Int nov = 0; nov < 3; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(transl_speed,nov);
@@ -121,7 +121,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(alp_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     alp_pnt[nov] = PyFloat_AsDouble(tpl0);
-    
+
     tpl0 = PyList_GetItem(rot_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     rotor_pnt[nov] = val;
@@ -129,7 +129,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(pre_lag_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     pre_lag_pnt[nov] = val;
-    
+
     tpl0 =  PyList_GetItem(pre_con_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     pre_con_pnt[nov] = val;
@@ -141,11 +141,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(bet_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     bet_pnt[nov] = val;
-    
+
     tpl0 =  PyList_GetItem(tet_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     tet_pnt[nov] = val;
-        
+
     tpl0 =  PyList_GetItem(span_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) blade_span_axis = nov+1;
@@ -157,7 +157,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 =  PyList_GetItem(rot_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis1 = nov+1;
-    
+
     tpl0 =  PyList_GetItem(pre_lag_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis2 = nov+1;
@@ -169,7 +169,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
     tpl0 =  PyList_GetItem(del_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis4 = nov+1;
-    
+
     tpl0 =  PyList_GetItem(bet_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis5= nov+1;
@@ -207,11 +207,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
   // printf(" MATRICE : \n");
   // for (E_Int no = 0; no < 3; no++)
   //   printf(" %f %f %f \n", rotMat(no,1), rotMat(no,2), rotMat(no,3));
- 
+
   // printf("Deplacement : \n");
   // printf(" %g %g %g \n", r0[0], r0[1], r0[2]);
   // printf(" psi=%f, pitch=%f, flap=%f, lag=%f\n",
-  //        psideg, tetdeg, betdeg, deldeg); 
+  //        psideg, tetdeg, betdeg, deldeg);
   PyObject* l = PyList_New(0);
   PyObject* tpl = K_NUMPY::buildNumpyArray(r0);
   PyList_Append(l,tpl); Py_DECREF(tpl);
@@ -223,7 +223,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionInfo(PyObject* self, PyObject* args)
   PyList_Append(l, tpl); Py_DECREF(tpl);
   tpl = K_NUMPY::buildNumpyArray(omega);
   PyList_Append(l, tpl); Py_DECREF(tpl);
-  
+
   return l;
 }
 
@@ -242,9 +242,9 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args,
                       OOOO_ R_ O_ RR_ OO_ R_ OO_ R_ OO_ R_ OOOO_ R_ OOOO_ R_ OOO_ R_ OO_ R_ OO_ SSS_,
                      &zone, &sxo, &syo, &szo,
-                     &time, &transl_speed, &psi0, &psi0_b, 
+                     &time, &transl_speed, &psi0, &psi0_b,
                      &alp_pnt0, &alp_vct, &alp0,
-                     &rot_pnt0, &rot_vct, &rot_omg,                     
+                     &rot_pnt0, &rot_vct, &rot_omg,
                      &del_pnt0, &del_vct, &del0, &delc0, &dels0,
                      &bet_pnt0, &bet_vct, &bet0, &betc0, &bets0,
                      &tet_pnt0, &tet_vct, &tet0, &tetc0, &tets0,
@@ -253,16 +253,16 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
                      &pre_con_ang, &pre_con_pnt0, &pre_con_vct,
                      &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
     return NULL;
-                 
+
   vector<PyArrayObject*> hookz;
   E_Int im, jm, km, cnSize, cnNfld;
   char* varString; char* eltType;
   vector<E_Float*> fields; vector<E_Int> locs;
   vector<E_Int*> cn;
-  E_Int res = K_PYTREE::getFromZone(zone, 1, 0, varString, fields, locs, 
-                                    im, jm, km, 
-                                    cn, cnSize, cnNfld, eltType, hookz, 
-                                    GridCoordinates, 
+  E_Int res = K_PYTREE::getFromZone(zone, 1, 0, varString, fields, locs,
+                                    im, jm, km,
+                                    cn, cnSize, cnNfld, eltType, hookz,
+                                    GridCoordinates,
                                     FlowSolutionNodes, FlowSolutionCenters);
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -273,7 +273,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "rotorMotionZ: cannot find coordinates in zone.");
     return NULL;
-  }    
+  }
   E_Int npts;
   if (res == 1) npts = im*jm*km;
   else npts = im;
@@ -282,7 +282,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   E_Float transl[3]; E_Float alp_pnt[3];E_Float rotor_pnt[3];
   E_Float pre_lag_pnt[3]; E_Float pre_con_pnt[3];
   E_Float del_pnt[3]; E_Float bet_pnt[3]; E_Float tet_pnt[3];
-  
+
   //harmonics for lead-lag, pitching and flapping
   E_Int nhdel = PyList_Size(delc0);
   FldArrayF delc(nhdel); FldArrayF dels(nhdel);
@@ -314,7 +314,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(tets0,nov);
     pttets[nov] = PyFloat_AsDouble(tpl0);
   }
-  
+
   for (E_Int nov = 0; nov < 3; nov++)
   {
     PyObject* tpl0 = PyList_GetItem(transl_speed,nov);
@@ -324,7 +324,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(alp_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     alp_pnt[nov] = PyFloat_AsDouble(tpl0);
-    
+
     tpl0 = PyList_GetItem(rot_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     rotor_pnt[nov] = val;
@@ -332,7 +332,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(pre_lag_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     pre_lag_pnt[nov] = val;
-    
+
     tpl0 =  PyList_GetItem(pre_con_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     pre_con_pnt[nov] = val;
@@ -344,11 +344,11 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 = PyList_GetItem(bet_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     bet_pnt[nov] = val;
-    
+
     tpl0 =  PyList_GetItem(tet_pnt0,nov);
     val = PyFloat_AsDouble(tpl0);
     tet_pnt[nov] = val;
-        
+
     tpl0 =  PyList_GetItem(span_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) blade_span_axis = nov+1;
@@ -360,7 +360,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 =  PyList_GetItem(rot_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis1 = nov+1;
-    
+
     tpl0 =  PyList_GetItem(pre_lag_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis2 = nov+1;
@@ -372,7 +372,7 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     tpl0 =  PyList_GetItem(del_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis4 = nov+1;
-    
+
     tpl0 =  PyList_GetItem(bet_vct,nov);
     val = PyFloat_AsDouble(tpl0);
     if (K_FUNC::fEqualZero(val) == false) axis5 = nov+1;
@@ -412,13 +412,13 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   // printf(" MATRICE RMZ : \n");
   // for (E_Int no = 0; no < 3; no++)
   //   printf(" %f %f %f \n", rotMat(no,1), rotMat(no,2), rotMat(no,3));
- 
+
   // printf("Deplacement : \n");
   // printf(" %g %g %g \n", r0[0], r0[1], r0[2]);
   // printf(" Zone %s : psi=%f, pitch=%f, flap=%f, lag=%f\n", zoneName,
-  //        psideg, tetdeg, betdeg, deldeg); 
+  //        psideg, tetdeg, betdeg, deldeg);
   //RELEASEHOOK(hook);
-  
+
   // move zone
   E_Float* xt = fields[posx];
   E_Float* yt = fields[posy];
@@ -428,15 +428,15 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
   E_Float xa = r0[0]; E_Float ya = r0[1]; E_Float za = r0[2];
   // coordinates of the center of rotation in the relative frame
   E_Float xr = x0[0]; E_Float yr = x0[1]; E_Float zr = x0[2];
-  //rotation matrix 
+  //rotation matrix
   E_Float r11 = rotMat(0,1); E_Float r12 = rotMat(0,2); E_Float r13 = rotMat(0,3);
   E_Float r21 = rotMat(1,1); E_Float r22 = rotMat(1,2); E_Float r23 = rotMat(1,3);
   E_Float r31 = rotMat(2,1); E_Float r32 = rotMat(2,2); E_Float r33 = rotMat(2,3);
 
-#pragma omp parallel default(shared) 
+#pragma omp parallel default(shared)
   {
     E_Float x, y, z;
-  #pragma omp for 
+  #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       x = xt[ind]; y = yt[ind]; z = zt[ind];
@@ -471,14 +471,14 @@ PyObject* K_RIGIDMOTION::_computeRotorMotionZ(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < size; i++)
     {
         sx[i] = tx + (omg2 * zt[i] - omg3 * yt[i]);
-        sy[i] = ty + (omg3 * xt[i] - omg1 * zt[i]); 
+        sy[i] = ty + (omg3 * xt[i] - omg1 * zt[i]);
         sz[i] = tz + (omg1 * yt[i] - omg2 * xt[i]);
     }
          // faux
   }
-  
+
   if (res == 2) delete [] eltType;
   RELEASESHAREDZ(hookz, varString, (char*)NULL);
-  Py_INCREF(Py_None); 
+  Py_INCREF(Py_None);
   return Py_None;
 }

@@ -594,7 +594,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       for (E_Int i = 0; i < sizeco2; i++) cnep[i] = newptrEF[i];
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                        *f, *cne);
-      cne->setNGon(1);
+      cne->setNGonType(1);
       tpl = K_ARRAY::buildArray3(*f, varString0, *cne, "NGON", api);
       delete fe; delete cne;
       RELEASESHAREDU(array, f, cn);

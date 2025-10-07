@@ -1162,7 +1162,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
       else if (cellNp[ind] == 0.) { blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
     // WARNING: NGON is array1 type here !!! 
-    if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGon(1);
+    if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGonType(1);
  
     searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
     for (E_Int ind = 0; ind < npts; ind++)

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -24,7 +24,7 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Projette une liste de zones 1D ou 2D sur une surface definie par array2 
+/* Projette une liste de zones 1D ou 2D sur une surface definie par array2
    (TRI) suivant une direction donnee pour chaque point de array1 */
 // ============================================================================
 PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
@@ -40,18 +40,18 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   // Check normal components
   if (PyList_Check(varsO) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: vars must be a list.");
     return NULL;
   }
   E_Int nvars = PyList_Size(varsO);
   if (nvars != 3)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: vars must be a 3-component vector.");
     return NULL;
   }
- 
+
   // Extract infos from zones to be projected
   vector<E_Int> resl; vector<char*> varStringP;
   vector<FldArrayF*> fieldsP;
@@ -62,7 +62,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   E_Bool skipNoCoord = true;  E_Bool skipStructured = false;
   E_Bool skipUnstructured = false;  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
-    arrays, resl, varStringP, fieldsP, a2, a3, a4, objsP,  
+    arrays, resl, varStringP, fieldsP, a2, a3, a4, objsP,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nprojectedZones = fieldsP.size();
   if (isOk == -1)
@@ -70,7 +70,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: invalid list of arrays.");
     for (E_Int no = 0; no < nprojectedZones; no++)
-      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
     return NULL;
   }
   if (nprojectedZones == 0 )
@@ -78,7 +78,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: no valid projected zone found.");
     for (E_Int no = 0; no < nprojectedZones; no++)
-      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
     return NULL;
   }
 
@@ -89,12 +89,12 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     posx1 = K_ARRAY::isCoordinateXPresent(varStringP[no]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(varStringP[no]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(varStringP[no]); posz1++;
-    posxp.push_back(posx1); posyp.push_back(posy1); poszp.push_back(posz1); 
+    posxp.push_back(posx1); posyp.push_back(posy1); poszp.push_back(posz1);
   }
 
   // Normals
   FldArrayI posnormal(nprojectedZones,3);
-  char* var; 
+  char* var;
   E_Int m; E_Int err = 0;
   for (E_Int v  = 0 ; v < nvars; v++)
   {
@@ -131,26 +131,26 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
           break;
         }
         else posN[no] = m+1;
-      } 
+      }
     }
-#endif 
-  
+#endif
+
     else
     {
       err = 1;
       PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: invalid string for normal component.");
     }
-    
-    
+
+
     if (err != 0)
     {
       for (E_Int no = 0; no < nprojectedZones; no++)
-        RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+        RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
       return NULL;
     }
   }
-    
+
   // Extract infos from projection surfaces
   vector<E_Int> ress;  vector<char*> varStringS;
   vector<FldArrayF*> fieldsS;
@@ -160,7 +160,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   vector<PyObject*> objsS;
   skipStructured = true;
   isOk = K_ARRAY::getFromArrays(
-    surfArrays, ress, varStringS, fieldsS, a2s, a3s, a4s, objsS,  
+    surfArrays, ress, varStringS, fieldsS, a2s, a3s, a4s, objsS,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nsurfaces = fieldsS.size();
   if (isOk == -1)
@@ -168,7 +168,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: invalid list of surface arrays.");
     for (E_Int no = 0; no < nprojectedZones; no++)
-      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
     for (E_Int no = 0; no < nsurfaces; no++)
       RELEASESHAREDA(ress[no],objsS[no],fieldsS[no],a2s[no],a3s[no],a4s[no]);
     return NULL;
@@ -178,7 +178,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "projectAllDirs: no valid projected zone found.");
     for (E_Int no = 0; no < nprojectedZones; no++)
-      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+      RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
     for (E_Int no = 0; no < nsurfaces; no++)
       RELEASESHAREDA(ress[no],objsS[no],fieldsS[no],a2s[no],a3s[no],a4s[no]);
     return NULL;
@@ -191,24 +191,24 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError,
                       "projectAllDirs: surface arrays must be TRI.");
       for (E_Int no = 0; no < nprojectedZones; no++)
-        RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+        RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
       for (E_Int no = 0; no < nsurfaces; no++)
         RELEASESHAREDA(ress[no],objsS[no],fieldsS[no],a2s[no],a3s[no],a4s[no]);
       return NULL;
     }
   }
-  
+
   vector<E_Int> posxs; vector<E_Int> posys; vector<E_Int> poszs;
   for (E_Int no = 0; no < nsurfaces; no++)
   {
     posx1 = K_ARRAY::isCoordinateXPresent(varStringS[no]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(varStringS[no]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(varStringS[no]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
-  
+
   // Build arrays
-  PyObject* l = PyList_New(0);  
+  PyObject* l = PyList_New(0);
   vector<E_Float*> coordxp(nprojectedZones);
   vector<E_Float*> coordyp(nprojectedZones);
   vector<E_Float*> coordzp(nprojectedZones);
@@ -228,7 +228,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     {
       FldArrayI* cn = (FldArrayI*)a2[nop];
       char* eltType = (char*)a3[nop];
-      tpl = K_ARRAY::buildArray3(*fieldsP[nop], varStringP[nop], *cn, eltType, api);          
+      tpl = K_ARRAY::buildArray3(*fieldsP[nop], varStringP[nop], *cn, eltType, api);
     }
 
     K_ARRAY::getFromArray3(tpl, f);
@@ -239,8 +239,8 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
-  // build BBTREE 
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  // build BBTREE
+  typedef K_SEARCH::BoundingBox<3>  BBox3DType;
   E_Float minB[3]; E_Float maxB[3];
   vector< vector<BBox3DType*> > vectOfBoxes(nsurfaces);// a detruire a la fin
   vector<K_SEARCH::BbTree3D*> vectOfBBTrees(nsurfaces);
@@ -261,7 +261,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     for (E_Int et = 0; et < nelts; et++)
     {
       minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et];
       boxes[et] = new BBox3DType(minB, maxB);
     }
     vectOfBoxes[nos] = boxes;
@@ -271,7 +271,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
 
   // Projection
   E_Float x, y, z, xo, yo, zo, dist2, distl;
-  vector<E_Int> indicesBB; 
+  vector<E_Int> indicesBB;
   E_Float pr1[3]; E_Float pr2[3];
   E_Float dirx, diry, dirz;
   E_Float tol = K_CONST::E_GEOM_CUTOFF;
@@ -287,7 +287,7 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     E_Int posnz = posnormal(nop,3);
     E_Float* nxt = fields.begin(posnx);
     E_Float* nyt = fields.begin(posny);
-    E_Float* nzt = fields.begin(posnz);    
+    E_Float* nzt = fields.begin(posnz);
     E_Int npts = fields.getSize();
     E_Float* xp = coordxp[nop];
     E_Float* yp = coordyp[nop];
@@ -297,12 +297,12 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
     {
       x = xp[ind]; y = yp[ind]; z = zp[ind];
       dirx = nxt[ind]; diry = nyt[ind]; dirz = nzt[ind];
-      pr1[0]=x; pr2[0]=x+dirx; 
-      pr1[1]=y; pr2[1]=y+diry; 
+      pr1[0]=x; pr2[0]=x+dirx;
+      pr1[1]=y; pr2[1]=y+diry;
       pr1[2]=z; pr2[2]=z+dirz;
       // parcours de toutes les surfaces de projection - on conserve ensuite le projete le + proche
       dist2 = K_CONST::E_MAX_FLOAT;
-      xsav = x; ysav = y; zsav = z; 
+      xsav = x; ysav = y; zsav = z;
       for (E_Int nos = 0; nos < nsurfaces; nos++)
       {
         K_SEARCH::BbTree3D* bbtree = vectOfBBTrees[nos];
@@ -312,18 +312,18 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
         E_Float* ys = fieldsS[nos]->begin(posys[nos]);
         E_Float* zs = fieldsS[nos]->begin(poszs[nos]);
         FldArrayI* cns = (FldArrayI*)a2s[nos];
-        
-        // Precond : indices : triangles candidats a la projection        
+
+        // Precond : indices : triangles candidats a la projection
         E_Int ok = K_COMPGEOM::projectDir(x, y, z, dirx, diry, dirz,
                                           xs, ys, zs, indicesBB, *cns, xo, yo, zo, oriented);
-        indicesBB.clear(); 
+        indicesBB.clear();
         if ( ok > -1 )
         {
           distl = (x-xo)*(x-xo)+(y-yo)*(y-yo)+(z-zo)*(z-zo);
-          if ( distl < dist2 ) 
+          if ( distl < dist2 )
           {
             dist2 = distl;
-            xsav = xo; ysav = yo; zsav = zo;            
+            xsav = xo; ysav = yo; zsav = zo;
           }
         }
       }
@@ -342,8 +342,8 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   vectOfBoxes.clear(); vectOfBBTrees.clear();
 
   for (E_Int no = 0; no < nprojectedZones; no++)
-    RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);   
+    RELEASESHAREDA(resl[no],objsP[no],fieldsP[no],a2[no],a3[no],a4[no]);
   for (E_Int no = 0; no < nsurfaces; no++)
-    RELEASESHAREDA(ress[no],objsS[no],fieldsS[no],a2s[no],a3s[no],a4s[no]);   
+    RELEASESHAREDA(ress[no],objsS[no],fieldsS[no],a2s[no],a3s[no],a4s[no]);
   return l;
 }

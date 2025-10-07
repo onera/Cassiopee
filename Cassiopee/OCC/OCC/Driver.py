@@ -3,6 +3,7 @@ import OCC
 import sympy
 import numpy
 import re
+import Converter.Mpi as Cmpi
 
 #============================================================
 # name server for creating entities with unique names
@@ -445,10 +446,12 @@ class Surface():
         DRIVER.registerSurface(self)
 
     def add(self, sketch):
+        """Add a sketch to the surface definition."""
         self.sketches.append(sketch)
 
     # update the CAD from parameters
     def update(self):
+        """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
         if self.type == "loft":
@@ -477,16 +480,19 @@ class Surface():
 
     # print information
     def print(self, shift=0):
+        """Print surface information."""
         for e in self.sketches:
             print(" "*shift, e.name)
             e.print(shift+4)
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
+        """Export to CAD file."""
         OCC.occ.writeCAD(self.hook, fileName, format)
 
     # mesh surface
     def mesh(self, hmin, hmax, hausd):
+        """Mesh surface."""
         edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         nbFaces = OCC.getNbFaces(self.hook)
         faceList = range(1, nbFaces+1)
@@ -496,17 +502,21 @@ class Surface():
         return faces
 
 def loft(listSketches=[], name="loft"):
+    """Create a loft surface from sketches."""
     return Surface(listSketches=listSketches, name=name, type="loft")
 
 def revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
+    """Create a revolution surface from a sketch."""
     return Surface(listSketches=[sketch],
                    data={'center':center, 'axis':axis, 'angle':angle},
                    name=name, type="revolve")
 
 def compound(listSurfaces=[], name="compound"):
+    """Create a compound surface from a list of surfaces."""
     return None # a faire
 
 def fill(sketch, continuity=0, name="fill"):
+    """Create a surface that fill a sketch."""
     return Surface(listSketches=[sketch],
                    data={'continuity':continuity},
                    name=name, type="fill")
@@ -523,6 +533,7 @@ class Eq:
         DRIVER.registerEquation(self)
 
     def analyse(self):
+        """Analyse equation to return vars and symbols."""
         keywords = ["=", "length", "\*", "\+", "\-", "\/", "cos", "sin", "\(", "\)"]
         pattern = f"({'|'.join(keywords)})"
         segments = re.split(pattern, self.expr)
@@ -553,32 +564,48 @@ class Driver:
         # all equations
         self.equationCount = 0
         self.equations = {} # equations
-
         # updated by solve
         self.solution = None # solution of system in sympy symbols
-        self.vars = None # all model vars in sympy symbols
-        self.freevars = None # all model free vars in sympy symbols
+        self.params = None # all model params in sympy symbols
+        self.freeParams = None # all model free params in sympy symbols (order)
+        # DOE
+        self.doeFileName = 'doe.hdf'
+        self.doeRange = [] # list param->discretized range
+        self.doeSize = [] # list param->size of discretization
+        # ROM
+        self.romFileName = 'rom.hdf'
+        self.K = 0 # reduced dimension
+        self.mean = None
+        self.Phi = None # POD vectors
+        self.ak = None # POD coefficients of each mesh in doe
 
     def registerScalar(self, s):
+        """Register parametric scalar."""
         self.scalars[s.id] = s # id -> scalar
         self.scalars2[s.s] = s # symbol -> scalar
 
     def registerPoint(self, p):
+        """Register parametric point."""
         self.points[p.name] = p
 
     def registerGrid(self, p):
+        """Register parametric grid."""
         self.grids[p.name] = p
 
     def registerEdge(self, e):
+        """Register parametric entity."""
         self.edges[e.name] = e
 
     def registerSketch(self, e):
+        """Register parametric sketch."""
         self.sketches[e.name] = e
 
     def registerSurface(self, e):
+        """Register parametric surface."""
         self.surfaces[e.name] = e
 
     def registerEquation(self, eq):
+        """Register equation."""
         self.equations["EQUATION%04d"%self.equationCount] = eq
         self.equationCount += 1
 
@@ -592,22 +619,22 @@ class Driver:
         for k in self.equations: print(k)
 
     def update(self):
-        # update from parameters
+        """Update allfrom parameters."""
         for k in self.edges: self.edges[k].update()
         for k in self.sketches: self.sketches[k].update()
         for k in self.surfaces: self.surfaces[k].update()
 
     def solve2(self):
-        # solve all equations and all parameters
+        """Solve equations to get free parameters."""
 
-        # get free vars
-        vars = []
+        # get free params
+        params = []
         for s in self.scalars:
             mu = self.scalars[s]
-            if mu.isFree(): vars.append(mu.s)
-        print('SOLVE: vars=', vars)
+            if mu.isFree(): params.append(mu.s)
+        print('SOLVE: params=', params)
 
-        # get equations, sub fixed vars
+        # get equations, sub fixed params
         equations = []
         for e in self.equations:
             eq = self.equations[e]
@@ -618,50 +645,49 @@ class Driver:
         print('SOLVE: eqs=', equations)
 
         # solve([eq0,eq1], [x0,x1])
-        solution = sympy.solve(equations, vars)
+        solution = sympy.solve(equations, params)
         print('SOLVE: sol=', solution)
 
         # number of free vars
-        nvars = len(vars)
+        nparams = len(params)
         neqs = len(equations)
-        nd = nvars - neqs
-        print("SOLVE: vars=", nvars)
+        nd = nparams - neqs
+        print("SOLVE: nparams=", nparams)
         print("SOLVE: neqs=", neqs)
-        print("SOLVE: free vars=", nd)
+        print("SOLVE: free params=", nd)
 
         # who is free at the end?
-        freevars = vars[:]
+        freeParams = params[:]
         for s in solution:
             if solution[s].is_Float:
                 print('SOLVE: fixed', s, 'to', solution[s])
                 self.scalars2[s].v = solution[s]
                 if self.scalars2[s].check(): print('=> valid')
                 else: print('=> invalid')
-            freevars.remove(s)
-        print('SOLVE: free vars=', freevars)
+            freeParams.remove(s)
+        print('SOLVE: free vars=', freeParams)
 
         self.solution = solution
-        self.vars = vars
-        self.freevars = freevars
-        return solution, freevars
+        self.params = params
+        self.freeParams = freeParams
+        return solution, freeParams
 
-    # instantiation of free vars
-    # IN: freevalues: dict
-    def instantiate(self, freevalues):
-
-        # set freevars
-        for f in self.freevars:
-            self.scalars2[f].v = freevalues[f.name]
-            print('SET: fixed', f, 'to', freevalues[f.name])
+    # instantiation of free parameters
+    # IN: paramValues: dict of free parameters given values
+    def instantiate(self, paramValues):
+        """Instantiate all from given paramValues."""
+        # set freeParams
+        for f in self.freeParams:
+            self.scalars2[f].v = paramValues[f.name]
+            print('SET: fixed', f, 'to', paramValues[f.name])
 
         # set other vars with solution
         soli = self.solution.copy()
         for k in soli:
-            for f in self.freevars:
-                print("SET: set ", f, " to ", freevalues[f.name])
-                soli[k] = soli[k].subs(f, freevalues[f.name])
+            for f in self.freeParams:
+                print("SET: set ", f, " to ", paramValues[f.name])
+                soli[k] = soli[k].subs(f, paramValues[f.name])
 
-        #print(soli)
         for s in soli:
             if soli[s].is_Float:
                 print('SET: fixed', s, 'to', soli[s])
@@ -669,26 +695,41 @@ class Driver:
                 if self.scalars2[s].check(): print('SET: => valid')
                 else: print('SET: => invalid')
 
-        # update geometry
+        # update geometries
         self.update()
 
     # diff (finite difference) of free parameters on discrete mesh
-    def _diff(self, entity, mesh, deps=1.e-6):
+    # if freevars is None, derivate for all free parameters else derivate for given parameters
+    def _diff(self, entity, mesh, freeParams=None, deps=1.e-6):
+        """Compute all derivatives dX/dmu on entity."""
         import Converter, KCore
 
-        freevars = self.freevars
-        if len(freevars) == 0:
+        if len(self.freeParams) == 0:
             print("Warning: no free vars.")
             return None
 
+        if freeParams is None: # no param given
+            listVars = self.freeParams
+        elif isinstance(freeParams, str): # free param given by name
+            listVars = []
+            for f in self.freeParams:
+                if self.scalars2[f].name == freeParams: listVars.append(f)
+        elif isinstance(freeParams, list): # suppose list of names
+            listVars = []
+            for f in self.freeParams:
+                if self.scalars2[f].name in freeParams: listVars.append(f)
+        else:
+            raise TypeError("diff: incorrect freevars.")
+
         mesho = Converter.copy(mesh)
 
-        for c, f in enumerate(freevars):
+        for c, f in enumerate(listVars):
             # free vars value dict
             d = {}
-            for q in freevars:
+            for q in self.freeParams:
                 d[q.name] = self.scalars2[q].v
             d[f.name] += deps
+
             print("DIFF on: ", f.name)
 
             # update CAD at param+eps
@@ -713,11 +754,252 @@ class Driver:
 
         # remet le hook original
         d = {}
-        for q in freevars:
+        for q in self.freeParams:
             d[q.name] = self.scalars2[q].v
         self.instantiate(d)
 
         return None
+
+    # set DOE deltas for free parameters
+    # it is better to set them in scalar.range
+    # IN: dict of deltas for each desired free parameter
+    # OUT: arange dict
+    def setDOE(self, deltas={}):
+        # set default
+        self.doeRange = []; self.doeSize = []
+        for f in self.freeParams: # give order
+            p = self.scalars2[f]
+            if len(p.range) == 3: # disc given
+                self.doeRange.append(numpy.arange(p.range[0], p.range[1], p.range[2]))
+                self.doeSize.append(p.range[2])
+            else: # set to 2 points
+                self.doeRange.append(numpy.linspace(p.range[0], p.range[1], 2))
+                self.doeSize.append(2)
+
+        # set dictionary (optional)
+        for k in deltas: # free param names
+            for c, f in enumerate(self.freeParams):
+                if self.scalars2[f].name == k:
+                    p = self.scalars2[f]
+                    self.doeRange[c] = numpy.arange(p.range[0], p.range[1], deltas[k])
+                    self.doeSize[c] = deltas[k]
+        return None
+
+    # walk DOE, append snapshots to file
+    def walkDOE(self, entity, hmin, hmax, hausd):
+        import itertools
+        ranges = []; size = 0
+        for k in self.doeRange:
+            ranges.append(range(k.size))
+            size += k.size
+        raf = size - size%Cmpi.size # seq reste a faire
+
+        for indexes in itertools.product(*ranges):
+            # create value dict
+            values = {}
+            hash = self.getHash(indexes)
+            for c, f in enumerate(self.freeParams):
+                val = self.doeRange[c][indexes[c]]
+                f = self.freeParams[c]
+                p = self.scalars2[f]
+                values[p.name] = val
+            if Cmpi.rank == hash%Cmpi.size and hash < raf:
+                # instantiate and mesh
+                self.instantiate(values)
+                mesh = entity.mesh(hmin, hmax, hausd)
+                if Cmpi.rank == 0:
+                    self.addSnapshot(hash, mesh)
+                    if Cmpi.size > 1: Cmpi.send(1, dest=1)
+                else:
+                    go = Cmpi.recv(source=Cmpi.rank-1)
+                    self.addSnapshot(hash, mesh)
+                    if Cmpi.rank < Cmpi.size-1: Cmpi.send(Cmpi.rank+1, dest=Cmpi.rank+1)
+                Cmpi.barrier()
+            elif Cmpi.rank == 0 and hash >= raf:
+                # instantiate and mesh
+                self.instantiate(values)
+                mesh = entity.mesh(hmin, hmax, hausd)
+                self.addSnapshot(hash, mesh)
+
+    # IN: list of indexes for each param
+    # OUT: single hash integer (flatten)
+    def getHash(self, indexes):
+        hash = 0
+        for c, i in enumerate(indexes):
+            if c == 0: hash = i
+            else: hash += i * self.doeSize[c-1]
+        return hash
+
+    # IN: hash
+    # OUT: return (i,j,k,...)
+    def getInd(self, hash):
+        hashcode = hash
+        np = len(self.doeSize)
+        out = []
+        for c in range(np):
+            prod = 1
+            for s in self.doeSize[:np-c]: prod *= s
+            h = hashcode // prod
+            out.append(h)
+            hashcode = hashcode - h*prod
+        return out
+
+    # Compute a dmesh from a mesh and a deps on a parameter freevar
+    def dmesh(self, entity, mesh, freevar, deps=0.1):
+        import Converter, Transform
+        self._diff(entity, mesh, freevar, deps)
+        Converter._initVars(mesh, '{dx0} = {dx0}*%g'%deps)
+        Converter._initVars(mesh, '{dy0} = {dy0}*%g'%deps)
+        Converter._initVars(mesh, '{dz0} = {dy0}*%g'%deps)
+        mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
+        return mesh2
+
+    # remesh input mesh to match nv points
+    def remesh(self, mesh, nv):
+        import Generator
+        nm = mesh[1].shape[1]
+        if nm != nv:
+            power = (nv-1)*1./(nm-1)
+            m = Generator.refine(mesh, power, dir=1)
+        else: m = mesh
+        return m
+
+    # DOE in file
+    def createDOE(self, fileName):
+        self.doeFileName = fileName
+        if Cmpi.rank > 0: return None
+        import Converter.PyTree
+        t = Converter.PyTree.newPyTree(['Parameters', 'Snapshots'])
+        for c, k in enumerate(self.doeRange):
+            node = ["p%05d"%c, k, [], 'parameter_t']
+            t[2][1][2].append(node)
+        Converter.PyTree.convertPyTree2File(t, self.doeFileName)
+        return None
+
+    # add snapshot to file
+    def addSnapshot(self, hashcode, msh):
+        import Converter.Distributed as Distributed
+        import Transform, Converter
+        msh = Converter.extractVars(msh, ['x','y','z'])
+        msh = Transform.join(msh) # merge mesh
+        node = ["%05d"%hashcode, msh[1], [], 'snapshot_t']
+        Distributed.writeNodesFromPaths(self.doeFileName, 'CGNSTree/Snapshots', node)
+        print("ADD: snapshot %d added."%hashcode, flush=True)
+        return None
+
+    # read a snapshot, return an mesh array
+    def readSnaphot(self, hashcode):
+        import Converter.Distributed as Distributed
+        nodes = Distributed.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
+        msh = nodes[0][1]
+        msh = ['x,y,z', msh, msh.shape[1], 1, 1]
+        return msh
+
+    # read all snapshots, return a flatten matrix
+    # IN: paramSlab: optional ( (5,120), (3,20), ...) for each parameters
+    def readAllSnapshots(self, paramSlab=None):
+        import itertools
+        ranges = []; np = 0
+        if paramSlab is None: # full range
+            for k in self.doeRange:
+                ranges.append(range(k.size))
+                np += k.size
+        else: # given range
+            for k in paramSlab:
+                ranges.append(range(k[0],k[1]))
+                np += k[1]-k[0]
+        m = self.readSnaphot(0)
+        nv = m[1].shape[1]
+        F = numpy.empty( (nv*3, np), dtype=numpy.float64)
+
+        for indexes in itertools.product(*ranges):
+            hash = self.getHash(indexes)
+            m = self.readSnaphot(hash)
+            m = self.remesh(m, nv)
+            m = m[1].ravel('k')
+            F[:,hash] = m[:]
+        return F
+
+    # ROM
+    def writeROM(self, fileName):
+        self.romFileName = fileName
+        if Cmpi.rank > 0: return None
+        import Converter.PyTree
+        t = Converter.PyTree.newPyTree(['POD'])
+        node = ["phi", self.Phi, [], 'phi_t']
+        t[2][1][2].append(node)
+        Converter.PyTree.convertPyTree2File(t, self.romFileName)
+        return None
+
+    # build POD from full matrix F, keep K modes
+    def createROM(self, F, K=-1):
+        # on deformation from
+        mean = numpy.mean(F, axis=1, keepdims=True)
+        self.mean = mean # maillage moyen
+        #F = F - mean
+        Phi, S, Vt = numpy.linalg.svd(F, full_matrices=False)
+        # energy of each modes
+        #energy = S**2 / numpy.sum(S**2)
+        if K > 0: self.K = K
+        else: self.K = Phi.shape[1]
+        self.Phi = Phi[:, 0:self.K]
+        return Phi, S, Vt
+
+    # get modes as meshes
+    def getMode(self, i):
+        m = self.Phi[:,i]
+        np = m.size//3
+        m = m.reshape( (3,np) )
+        m = ['x,y,z', m, np, 1, 1]
+        return m
+
+    # get coords of mesh on POD
+    def addCoefs(self, hashcode, msh):
+        import Converter.Distributed as Distributed
+        coords = numpy.empty( (self.K), dtype=numpy.float64 )
+        m = msh[1].ravel('k')
+        for i in range(self.K):
+            c0 = numpy.dot(self.Phi[:,i], m)
+            coords[i] = c0
+        node = ["%05d"%hashcode, coords, [], 'coeffs_t']
+        Distributed.writeNodesFromPaths(self.romFileName, 'CGNSTree/POD', node)
+        print("ADD: coeffs %d added."%hashcode)
+        return coords
+
+    def addAllCoefs(self):
+        import itertools
+        ranges = []
+        for k in self.doeRange:
+            ranges.append(range(k.size))
+
+        m = self.readSnaphot(0)
+        nv = m[1].shape[1]
+
+        for indexes in itertools.product(*ranges):
+            hashcode = self.getHash(indexes)
+            m = self.readSnaphot(hashcode)
+            m = self.remesh(m, nv)
+            self.addCoefs(hashcode, m)
+
+    def evalROM(self, coords):
+        m = self.Phi @ coords
+        m = m.reshape((3, m.size//3))
+        msh = ['x,y,z', m, m.shape[1], 1, 1]
+        return msh
+
+    def readCoefs(self, hashcode):
+        import Converter.Distributed as Distributed
+        nodes = Distributed.readNodesFromPaths(self.romFileName, ['CGNSTree/POD/%05d'%hashcode])
+        coord = nodes[0][1]
+        return coord
+
+    # rebuild samples from POD
+    def rebuildF(self, Phi, S, Vt):
+        # Convert S to a diagonal matrix
+        Sigma = numpy.diag(S)
+        # Multiply to get back A
+        Fr = Phi @ Sigma @ Vt
+        return Fr
 
 #============================================================
 # Global

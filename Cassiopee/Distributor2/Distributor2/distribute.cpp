@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -29,8 +29,8 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   PyObject* perfProcs; PyObject* weight;
   PyObject* com; PyObject* comd; E_Int NProc;
   char* algorithm;
-  if (!PYPARSETUPLE_(args, OOOO_ OO_ I_ S_, 
-                     &nbPts, &setBlocks, &perfProcs, &weight, 
+  if (!PYPARSETUPLE_(args, OOOO_ OO_ I_ S_,
+                     &nbPts, &setBlocks, &perfProcs, &weight,
                      &com, &comd, &NProc, &algorithm)) return NULL;
 
   // Check algorithm
@@ -72,7 +72,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
                     "distribute: arrays and set must have the same size.");
     return NULL;
   }
- 
+
   // Analyse weight
   if (PyList_Check(weight) == 0)
   {
@@ -104,7 +104,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
     volCom = (E_Int*)PyArray_DATA(coma);
     Py_INCREF(coma);
   }
-  
+
   // Analyse de comd
   E_Int* volComd = NULL; E_Int sizeComd = 0; PyArrayObject* comad = NULL;
   if (comd == Py_None) volComd = NULL;
@@ -153,7 +153,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
                       "distribute: perfo must be tuples (solver,latency,comSpeed).");
       return NULL;
     }
-    
+
     valf = PyFloat_AsDouble(PyTuple_GetItem(o, 0));
     solver.push_back(valf);
     valf = PyFloat_AsDouble(PyTuple_GetItem(o, 1));
@@ -161,7 +161,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
     valf = PyFloat_AsDouble(PyTuple_GetItem(o, 2));
     comSpeed.push_back(valf);
   }
-  
+
   // Recupere le vecteur des poids du solveur pour les blocs
   vector<E_Float> lweight(nb);
   E_Float val;
@@ -193,17 +193,17 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   vector<E_Int> out(nb);
   E_Float meanPtsPerProc;
   E_Float varMin, varMax, varRMS, comRatio, bestAdapt;
-  E_Int nptsCom; 
+  E_Int nptsCom;
   if (algo == 1) // genetic
-    K_DISTRIBUTOR2::genetic(lnbPts, lsetBlocks, NProc, volCom, 
-                            volComd, sizeComd,  
+    K_DISTRIBUTOR2::genetic(lnbPts, lsetBlocks, NProc, volCom,
+                            volComd, sizeComd,
                             solver, latence, comSpeed, param, out,
                             meanPtsPerProc, varMin,
                             varMax, varRMS, nptsCom, comRatio,
                             bestAdapt);
   else if (algo == 2) // graph
   {
-    K_DISTRIBUTOR2::graph(lnbPts, lsetBlocks, NProc, volCom, 
+    K_DISTRIBUTOR2::graph(lnbPts, lsetBlocks, NProc, volCom,
                           volComd, sizeComd,
                           solver, latence, comSpeed, param, out,
                           meanPtsPerProc, varMin,
@@ -211,14 +211,14 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
                           bestAdapt);
   }
   else // algo = 0
-    K_DISTRIBUTOR2::gradient(lnbPts, lsetBlocks, NProc, volCom, 
+    K_DISTRIBUTOR2::gradient(lnbPts, lsetBlocks, NProc, volCom,
                              volComd, sizeComd,
                              solver, latence, comSpeed, param, out,
                              meanPtsPerProc, varMin,
-                             varMax, varRMS, nptsCom, comRatio, 
+                             varMax, varRMS, nptsCom, comRatio,
                              bestAdapt);
-    
-  // Formation de la sortie 
+
+  // Formation de la sortie
   PyObject* tpl = PyList_New(0);
   E_Int size = out.size();
   PyObject* o;
@@ -229,7 +229,7 @@ PyObject* K_DISTRIBUTOR2::distribute(PyObject* self, PyObject* args)
   }
   if (coma != NULL) Py_DECREF(coma);
   if (comad != NULL) Py_DECREF(comad);
-  
+
   // Formation du dictionnaire de stats
   PyObject* stats = PyDict_New();
   PyDict_SetItemString(stats, "distrib", tpl); Py_DECREF(tpl);

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -26,7 +26,7 @@ using namespace std;
 
 #define RELEASEARRAYS                                       \
 for (E_Int no = 0; no < nzones; no++)                       \
-    RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]); 
+    RELEASESHAREDA(resl[no],objs[no],fields[no],a2[no],a3[no],a4[no]);
 
 #define RELEASEROTMAT                                       \
     for (E_Int nob = 0; nob < NbBlades; nob++)              \
@@ -42,7 +42,7 @@ for (E_Int no = 0; no < nzones; no++)                       \
     {                                                       \
         PyObject* tpl = PyList_GetItem(listOfAllLoads, j);  \
         RELEASESHAREDN(tpl, vectOfLoads[j]);                \
-    }                                                       
+    }
 
 #define RELEASEBLOCKP0                                      \
     for (E_Int j = 0; j < i; j++)                           \
@@ -50,13 +50,13 @@ for (E_Int no = 0; no < nzones; no++)                       \
         PyObject* tpl = PyList_GetItem(listOfAllLoads, j);  \
         RELEASESHAREDN(tpl, vectOfLoads[j]);                \
     }
-                                                      
+
 #define RELEASEBLOCK1                                       \
     for (E_Int j = 0; j < NbBlades; j++)                    \
     {                                                       \
         PyObject* tpl = PyList_GetItem(listOfALPositions, j);         \
         RELEASESHAREDN(tpl, vectOfALPositions[j]);          \
-    }    
+    }
 
 #define RELEASEBLOCKP1                                          \
     for (E_Int j = 0; j < i; j++)                               \
@@ -64,7 +64,7 @@ for (E_Int no = 0; no < nzones; no++)                       \
         PyObject* tpl = PyList_GetItem(listOfALPositions, j);   \
         RELEASESHAREDN(tpl, vectOfALPositions[j]);              \
     }
-    
+
 #define RELEASEBLOCK2                               \
     RELEASESHAREDN(pyLocalEpsX, localEps_X);  \
     RELEASESHAREDN(pyLocalEpsY, localEps_Y);  \
@@ -74,21 +74,21 @@ for (E_Int no = 0; no < nzones; no++)                       \
 /* AL Gaussian - version non normalisee (GaussInteg=1)*/
 // ============================================================================
 PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
-{   
+{
     char* TRUNCVARLOADS;
     char* TRUNCVARVELOS;
     E_Int NbBlades, NbPoints;
-    PyObject *listOfAllLoads;// liste des numpy (3, nbsec) des composantes des forces pour chaque pale 
+    PyObject *listOfAllLoads;// liste des numpy (3, nbsec) des composantes des forces pour chaque pale
     PyObject *pyLocalEpsX, *pyLocalEpsY, *pyLocalEpsZ;//local epsilon dans chaque direction pour les pts de la section
     PyObject *listOfALPositions;//coordonnees de tous les pts des actuator lines de toutes les pales
     PyObject* arrays; // champs en centres + coordonnees en centres
     PyObject* listOfRotMat2SourceFrame;// matrice de rotation pour chaque pale & pour chaque section de pale
     // la liste est de longueur nbblades*nbPts : toutes les sections de la 1ere pale, puis toutes les sections de la 2e etc
-    if (!PYPARSETUPLE_(args, OOOO_ OOO_ II_ SS_, 
-                        &arrays, &listOfAllLoads, &listOfALPositions, 
+    if (!PYPARSETUPLE_(args, OOOO_ OOO_ II_ SS_,
+                        &arrays, &listOfAllLoads, &listOfALPositions,
                         &listOfRotMat2SourceFrame,
                         &pyLocalEpsX, &pyLocalEpsY, &pyLocalEpsZ,
-                        &NbBlades, &NbPoints, &TRUNCVARLOADS, &TRUNCVARVELOS)) 
+                        &NbBlades, &NbPoints, &TRUNCVARLOADS, &TRUNCVARVELOS))
         return NULL;
 
     vector<E_Int> resl;  vector<char*> varString;
@@ -99,8 +99,8 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     vector<PyObject*> objs;
     E_Bool skipNoCoord = false; E_Bool skipStructured = false;
     E_Bool skipUnstructured = false; E_Bool skipDiffVars = false;
-    E_Int ok = K_ARRAY::getFromArrays(arrays, resl, varString, fields, a2, a3, a4, objs,  
-                                      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true); 
+    E_Int ok = K_ARRAY::getFromArrays(arrays, resl, varString, fields, a2, a3, a4, objs,
+                                      skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
     E_Int nzones = objs.size();
     if (ok == -1 || nzones == 0)
     {
@@ -108,7 +108,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         PyErr_SetString(PyExc_TypeError,
                         "applyGaussianAL: 1st argument is not valid.");
         return NULL;
-    }    
+    }
 
     //recuperation des composantes des efforts sur les pales
     vector<FldArrayF*> vectOfLoads(NbBlades);
@@ -121,9 +121,9 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         {
             RELEASEARRAYS;
             RELEASEBLOCKP0;
-            PyErr_SetString(PyExc_TypeError, 
+            PyErr_SetString(PyExc_TypeError,
                     "applyAL: 2nd arg (loads per blade) must be a numpy of floats.");
-            return NULL;            
+            return NULL;
         }
         vectOfLoads[i] = loadsF;
     }
@@ -138,10 +138,10 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         {
             RELEASEARRAYS;
             RELEASEBLOCK0;
-            RELEASEBLOCKP1;        
-            PyErr_SetString(PyExc_TypeError, 
+            RELEASEBLOCKP1;
+            PyErr_SetString(PyExc_TypeError,
                             "applyAL: 3rd arg (AL positions per blade) must be a numpy of floats.");
-            return NULL;            
+            return NULL;
         }
         vectOfALPositions[i] = ALPositionsF;
     }
@@ -156,12 +156,12 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             if (resn==0)
             {
                 RELEASEARRAYS;
-                RELEASEBLOCK0;                
-                RELEASEBLOCK1; 
+                RELEASEBLOCK0;
+                RELEASEBLOCK1;
                 for (E_Int ind2 = 0; ind2 < ind; ind2++)
                 {
                     PyObject* tpl = PyList_GetItem(listOfRotMat2SourceFrame, ind2);
-                    RELEASESHAREDN(tpl, vectOfRotMat2LocalFrame[ind]);                  
+                    RELEASESHAREDN(tpl, vectOfRotMat2LocalFrame[ind]);
                 }
             }
             vectOfRotMat2LocalFrame[ind] = RotMatLocal;
@@ -171,39 +171,39 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     // chaque pale a le meme epsx,epsy,epsz pour une section donnee
     FldArrayF* localEps_X;
     E_Int rese = K_NUMPY::getFromNumpyArray(pyLocalEpsX, localEps_X);
-    if (rese == 0) 
+    if (rese == 0)
     {
         RELEASEARRAYS;
-        RELEASEBLOCK0;           
+        RELEASEBLOCK0;
         RELEASEBLOCK1; RELEASEROTMAT;
-        PyErr_SetString(PyExc_TypeError, 
+        PyErr_SetString(PyExc_TypeError,
                         "applyAL: 3rd arg (eps local wrt x) must be a numpy of floats .");
         return NULL;
     }
 
     FldArrayF* localEps_Y;
     rese = K_NUMPY::getFromNumpyArray(pyLocalEpsY, localEps_Y);
-    if (rese == 0) 
+    if (rese == 0)
     {
         RELEASEARRAYS;
-        RELEASEBLOCK0;          
+        RELEASEBLOCK0;
         RELEASEBLOCK1; RELEASEROTMAT;
         RELEASESHAREDN(pyLocalEpsX, localEps_X);
-        PyErr_SetString(PyExc_TypeError, 
+        PyErr_SetString(PyExc_TypeError,
                         "applyAL: 4th arg (eps local wrt y) must be a numpy of floats .");
         return NULL;
     }
-  
+
     FldArrayF* localEps_Z;
     rese = K_NUMPY::getFromNumpyArray(pyLocalEpsZ, localEps_Z);
-    if (rese == 0) 
+    if (rese == 0)
     {
         RELEASEARRAYS;
-        RELEASEBLOCK0;          
+        RELEASEBLOCK0;
         RELEASEBLOCK1; RELEASEROTMAT;
         RELEASESHAREDN(pyLocalEpsX, localEps_X);
         RELEASESHAREDN(pyLocalEpsY, localEps_Y);
-        PyErr_SetString(PyExc_TypeError, 
+        PyErr_SetString(PyExc_TypeError,
                         "applyAL: 5th arg (eps local wrt z) must be a numpy of floats .");
         return NULL;
     }
@@ -211,13 +211,13 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
     E_Float* epsX = localEps_X->begin();
     E_Float* epsY = localEps_Y->begin();
     E_Float* epsZ = localEps_Z->begin();
-    FldArrayF epsXInvF(NbPoints); E_Float* epsXInv = epsXInvF.begin(); 
-    FldArrayF epsYInvF(NbPoints); E_Float* epsYInv = epsYInvF.begin();  
-    FldArrayF epsZInvF(NbPoints); E_Float* epsZInv = epsZInvF.begin();  
-    FldArrayF eps3InvF(NbPoints);  E_Float* eps3Inv = eps3InvF.begin(); 
+    FldArrayF epsXInvF(NbPoints); E_Float* epsXInv = epsXInvF.begin();
+    FldArrayF epsYInvF(NbPoints); E_Float* epsYInv = epsYInvF.begin();
+    FldArrayF epsZInvF(NbPoints); E_Float* epsZInv = epsZInvF.begin();
+    FldArrayF eps3InvF(NbPoints);  E_Float* eps3Inv = eps3InvF.begin();
  #pragma omp parallel default(shared)
   {
-#pragma omp for 
+#pragma omp for
     for (E_Int nosec = 0; nosec < NbPoints; nosec++)
     {
         epsXInv[nosec]= 1./epsX[nosec];
@@ -237,7 +237,7 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
         E_Float* Fx = vectOfLoads[nob]->begin();
         E_Float* Fy = vectOfLoads[nob]->begin()+NbPoints;
         E_Float* Fz = vectOfLoads[nob]->begin()+2*NbPoints;
-            
+
         for(E_Int nosec = 0; nosec < NbPoints; nosec++)
         {
             E_Float Fx0 = Fx[nosec];
@@ -246,9 +246,9 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             E_Float epsxi = epsXInv[nosec];
             E_Float epsyi = epsYInv[nosec];
             E_Float epszi = epsZInv[nosec];
-      
+
             E_Int nomat = nosec + nob * NbPoints;
-            FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);            
+            FldArrayF& RotMatLocal = *(vectOfRotMat2LocalFrame[nomat]);
             E_Float RotMat11 = epsxi*RotMatLocal(0,1);
             E_Float RotMat12 = epsyi*RotMatLocal(1,1);
             E_Float RotMat13 = epszi*RotMatLocal(2,1);
@@ -259,59 +259,59 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
             E_Float RotMat32 = epsyi*RotMatLocal(1,3);
             E_Float RotMat33 = epszi*RotMatLocal(2,3);
 
-            E_Float coef = alphaPi * eps3Inv[nosec]; 
+            E_Float coef = alphaPi * eps3Inv[nosec];
 
             for (E_Int noz = 0; noz < nzones; noz++)
             {
                 E_Int posx = K_ARRAY::isNamePresent("XCell", varString[noz]); //K_ARRAY::isCoordinateXPresent(varString);
                 E_Int posy = K_ARRAY::isNamePresent("YCell", varString[noz]);//K_ARRAY::isCoordinateYPresent(varString);
                 E_Int posz = K_ARRAY::isNamePresent("ZCell", varString[noz]);//K_ARRAY::isCoordinateZPresent(varString);
-                E_Int posvol = K_ARRAY::isNamePresent("vol", varString[noz]); 
-                E_Int postruncl = K_ARRAY::isNamePresent(TRUNCVARLOADS, varString[noz]); 
-                E_Int postruncv = K_ARRAY::isNamePresent(TRUNCVARVELOS, varString[noz]); 
-                E_Int posgs = K_ARRAY::isNamePresent("GaussSum", varString[noz]); 
-                E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]); 
-                E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]); 
-                E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]); 
-                E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]); 
+                E_Int posvol = K_ARRAY::isNamePresent("vol", varString[noz]);
+                E_Int postruncl = K_ARRAY::isNamePresent(TRUNCVARLOADS, varString[noz]);
+                E_Int postruncv = K_ARRAY::isNamePresent(TRUNCVARVELOS, varString[noz]);
+                E_Int posgs = K_ARRAY::isNamePresent("GaussSum", varString[noz]);
+                E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]);
+                E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]);
+                E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]);
+                E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]);
                 E_Int posu = K_ARRAY::isVelocityXPresent(varString[noz]);
-                E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
-                E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]);   
+                E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]);
+                E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]);
                 E_Int posuo = K_ARRAY::isNamePresent("VelXOut", varString[noz]);
-                E_Int posvo = K_ARRAY::isNamePresent("VelYOut", varString[noz]); 
-                E_Int poswo = K_ARRAY::isNamePresent("VelZOut", varString[noz]); 
-                if (posx==-1 || posy==-1 || posz==-1 || posvol==-1 || 
+                E_Int posvo = K_ARRAY::isNamePresent("VelYOut", varString[noz]);
+                E_Int poswo = K_ARRAY::isNamePresent("VelZOut", varString[noz]);
+                if (posx==-1 || posy==-1 || posz==-1 || posvol==-1 ||
                     postruncl==-1 || postruncv==-1 || posgs==-1 ||
-                    posrou_src==-1 || posrov_src==-1 || posrow_src==-1 || posroe_src == -1 || 
-                    posu==-1 || posv==-1 || posw==-1 || 
-                    posuo==-1 || posvo==-1 || poswo==-1)                                      
+                    posrou_src==-1 || posrov_src==-1 || posrow_src==-1 || posroe_src == -1 ||
+                    posu==-1 || posv==-1 || posw==-1 ||
+                    posuo==-1 || posvo==-1 || poswo==-1)
                 {
                     RELEASEARRAYS;
-                    RELEASEBLOCK0;          
+                    RELEASEBLOCK0;
                     RELEASEBLOCK1; RELEASEROTMAT;
                     RELEASESHAREDN(pyLocalEpsX, localEps_X);
-                    RELEASESHAREDN(pyLocalEpsY, localEps_Y); 
-                    RELEASESHAREDN(pyLocalEpsZ, localEps_Z); 
+                    RELEASESHAREDN(pyLocalEpsY, localEps_Y);
+                    RELEASESHAREDN(pyLocalEpsZ, localEps_Z);
 
-                    printf(" posx = " SF_D3_ " | posvol " SF_D_ " postruncl " SF_D_ " postruncv " SF_D_ " | posgs = " SF_D_ " posrou_src  = (" SF_D4_ ") | posu = " SF_D3_ " | posuo = " SF_D3_ " \n", 
-                            posx, posy, posz, posvol, postruncl, postruncv, posgs,  
-                            posrou_src, posrov_src, posrow_src, posroe_src, posu, posv, posw, posuo, posvo, poswo );                
+                    printf(" posx = " SF_D3_ " | posvol " SF_D_ " postruncl " SF_D_ " postruncv " SF_D_ " | posgs = " SF_D_ " posrou_src  = (" SF_D4_ ") | posu = " SF_D3_ " | posuo = " SF_D3_ " \n",
+                            posx, posy, posz, posvol, postruncl, postruncv, posgs,
+                            posrou_src, posrov_src, posrow_src, posroe_src, posu, posv, posw, posuo, posvo, poswo );
                     PyErr_SetString(PyExc_TypeError,
                     "applyGaussianAL: cannot find required fields in array.");
                     return NULL;
                 }
-                posx++; posy++; posz++; posvol++; 
-                postruncl++; postruncv++; posgs++; 
-                posrou_src++; posrov_src++; posrow_src++;                               
-                posuo++; posvo++; poswo++; 
+                posx++; posy++; posz++; posvol++;
+                postruncl++; postruncv++; posgs++;
+                posrou_src++; posrov_src++; posrow_src++;
+                posuo++; posvo++; poswo++;
                 FldArrayF* f = fields[noz];
-                E_Int npts = f->getSize(); 
+                E_Int npts = f->getSize();
                 E_Float* xt = f->begin(posx);
                 E_Float* yt = f->begin(posy);
-                E_Float* zt = f->begin(posz);         
-                E_Float* volt = f->begin(posvol);  
-                E_Float* truncloadst = f->begin(postruncl);  
-                E_Float* truncvelost = f->begin(postruncv);  
+                E_Float* zt = f->begin(posz);
+                E_Float* volt = f->begin(posvol);
+                E_Float* truncloadst = f->begin(postruncl);
+                E_Float* truncvelost = f->begin(postruncv);
                 E_Float* gausssumt = f->begin(posgs);
                 E_Float* MomentumX_src = f->begin(posrou_src);
                 E_Float* MomentumY_src = f->begin(posrov_src);
@@ -319,14 +319,14 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                 E_Float* EnergyStagnationDensity_src = f->begin(posroe_src);
                 E_Float* vxt = f->begin(posu);
                 E_Float* vyt = f->begin(posv);
-                E_Float* vzt = f->begin(posw);  
+                E_Float* vzt = f->begin(posw);
                 E_Float* vxo = f->begin(posuo);
                 E_Float* vyo = f->begin(posvo);
-                E_Float* vzo = f->begin(poswo); 
+                E_Float* vzo = f->begin(poswo);
 
             #pragma omp parallel default(shared)
                 {
-                #pragma omp for 
+                #pragma omp for
                 for (E_Int ind = 0; ind < npts; ind++)
                 {
                     E_Float volCell = volt[ind];
@@ -337,17 +337,17 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     E_Float ZCell = zt[ind];
 
                     //(Xcell-X_AL)/epsX
-                    E_Float X_ind = 
+                    E_Float X_ind =
                         RotMat11*(XCell-x_AL[nosec])+
                         RotMat12*(YCell-y_AL[nosec])+
                         RotMat13*(ZCell-z_AL[nosec]);
-                
-                    E_Float Y_ind = 
+
+                    E_Float Y_ind =
                         RotMat21*(XCell-x_AL[nosec])+
                         RotMat22*(YCell-y_AL[nosec])+
                         RotMat23*(ZCell-z_AL[nosec]);
 
-                    E_Float Z_ind = 
+                    E_Float Z_ind =
                         RotMat31*(XCell-x_AL[nosec])+
                         RotMat32*(YCell-y_AL[nosec])+
                         RotMat33*(ZCell-z_AL[nosec]);
@@ -360,41 +360,41 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
                     MomentumX_src[ind] += gaussFx;
                     MomentumY_src[ind] += gaussFy;
                     MomentumZ_src[ind] += gaussFz;
-                    EnergyStagnationDensity_src[ind]+=gaussFx*vxt[ind]+gaussFy*vyt[ind]+gaussFz*vzt[ind];                    
-                    gausssumt[ind]+=gaussl;  
-                    E_Float gaussvel = gauss * truncVelosCell * GaussianNormInv;  
+                    EnergyStagnationDensity_src[ind]+=gaussFx*vxt[ind]+gaussFy*vyt[ind]+gaussFz*vzt[ind];
+                    gausssumt[ind]+=gaussl;
+                    E_Float gaussvel = gauss * truncVelosCell * GaussianNormInv;
                     vxo[ind] = vxt[ind]*gaussvel;
                     vyo[ind] = vyt[ind]*gaussvel;
                     vzo[ind] = vzt[ind]*gaussvel;
                 }//npts
                 }//omp
-            }//nzones    
+            }//nzones
         }//nsections
     }//nblades
 // for (E_Int noz = 0; noz < nzones; noz++)
 // {
 //     FldArrayF* f = fields[noz];
-//     E_Int npts = f->getSize();     
-//     E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]); 
-//     E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]); 
-//     E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]); 
+//     E_Int npts = f->getSize();
+//     E_Int posrou_src = K_ARRAY::isNamePresent("MomentumX_src", varString[noz]);
+//     E_Int posrov_src = K_ARRAY::isNamePresent("MomentumY_src", varString[noz]);
+//     E_Int posrow_src = K_ARRAY::isNamePresent("MomentumZ_src", varString[noz]);
 //     E_Int posu = K_ARRAY::isVelocityXPresent(varString[noz]);
-//     E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]); 
-//     E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]); 
-//     E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]);           
-//     posu++; posv++; posw++;    
-//     posrou_src++; posrov_src++; posrow_src++; posroe_src++;         
+//     E_Int posv = K_ARRAY::isVelocityYPresent(varString[noz]);
+//     E_Int posw = K_ARRAY::isVelocityZPresent(varString[noz]);
+//     E_Int posroe_src = K_ARRAY::isNamePresent("EnergyStagnationDensity_src", varString[noz]);
+//     posu++; posv++; posw++;
+//     posrou_src++; posrov_src++; posrow_src++; posroe_src++;
 //     E_Float* vxt = f->begin(posu);
 //     E_Float* vyt = f->begin(posv);
-//     E_Float* vzt = f->begin(posw);  
+//     E_Float* vzt = f->begin(posw);
 //     E_Float* MomentumX_src = f->begin(posrou_src);
 //     E_Float* MomentumY_src = f->begin(posrov_src);
-//     E_Float* MomentumZ_src = f->begin(posrow_src);                         
+//     E_Float* MomentumZ_src = f->begin(posrow_src);
 //     E_Float* EnergyStagnationDensity_src = f->begin(posroe_src);
 
 // #pragma omp parallel default(shared)
 // {
-// #pragma omp for     
+// #pragma omp for
 //     for (E_Int ind = 0; ind < npts; ind++)
 //     {
 //         EnergyStagnationDensity_src[ind]=MomentumX_src[ind]*vxt[ind]+MomentumY_src[ind]*vyt[ind]+MomentumZ_src[ind]*vzt[ind];
@@ -402,10 +402,10 @@ PyObject* K_INITIATOR::applyGaussianAL(PyObject* self, PyObject* args)
 // }
 // }
     RELEASEARRAYS;
-    RELEASEBLOCK0;  
-    RELEASEBLOCK1; 
+    RELEASEBLOCK0;
+    RELEASEBLOCK1;
     RELEASEBLOCK2;
-    RELEASEROTMAT;      
+    RELEASEROTMAT;
     Py_INCREF(Py_None);
     return Py_None;
 }

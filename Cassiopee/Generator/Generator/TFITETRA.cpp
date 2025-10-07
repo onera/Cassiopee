@@ -140,15 +140,15 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
   E_Int ni1 = ni-1;
   E_Int ntetra = ni1*ni1*ni1;
   char* varString = unstrVarString[0];
-  PyObject* tpl = K_ARRAY::buildArray(3, varString, npts, ntetra, -1, "TETRA");
-  E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF coord(npts, 3, coordp, true);
-  E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(ntetra, 4, cnp, true); cn.setAllValuesAt(1);
+  E_Int api = unstrF[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, ntetra, "TETRA", false, api);
+  FldArrayF* coord; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpl, coord, cn);
+  cn->setAllValuesAt(1);
  
-  E_Float* xt = coord.begin(1);
-  E_Float* yt = coord.begin(2);
-  E_Float* zt = coord.begin(3);
+  E_Float* xt = coord->begin(1);
+  E_Float* yt = coord->begin(2);
+  E_Float* zt = coord->begin(3);
 
   E_Int ind = 0;
   E_Int invni1 = E_Int(1./E_Float(ni1));
@@ -232,10 +232,10 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
   E_Int offi=0, offj=0;
   E_Int offi2=0, offj2=0;
   
-  E_Int* cn1 = cn.begin(1);
-  E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3);
-  E_Int* cn4 = cn.begin(4);
+  E_Int* cn1 = cn->begin(1);
+  E_Int* cn2 = cn->begin(2);
+  E_Int* cn3 = cn->begin(3);
+  E_Int* cn4 = cn->begin(4);
 
   for (E_Int k = 0; k < ni1; k++)
   { 
@@ -304,6 +304,8 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
     }
     offi++;
   }
+
+  RELEASESHAREDU(tpl, coord, cn);
   for (E_Int nos = 0; nos < 4; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
   return tpl;

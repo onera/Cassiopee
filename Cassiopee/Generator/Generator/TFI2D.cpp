@@ -94,12 +94,14 @@ PyObject* K_GENERATOR::TFI2D(PyObject* arrays)
   E_Int nj = fields[imin]->getSize();
   E_Int ni = fields[jmin]->getSize();
   E_Int nk = 1;
-  E_Int npts = ni*nj*nk;
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, ni, nj, nk);
-  E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF coord(npts, nfld, coordp, true);
+
+  E_Int api = fields[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk, api);
+  FldArrayF* coord;
+  K_ARRAY::getFromArray3(tpl, coord);
+
   //short isok = TFIstruct2D(ni, nj, nfld, imin, imax, jmin, jmax, fields, coord);
-  short isok = TFIstruct2D2(ni, nj, nfld, posx, posy, posz, imin, imax, jmin, jmax, fields, coord);
+  short isok = TFIstruct2D2(ni, nj, nfld, posx, posy, posz, imin, imax, jmin, jmax, fields, *coord);
 
   if (isok < 1) //echec
   {
@@ -116,6 +118,8 @@ PyObject* K_GENERATOR::TFI2D(PyObject* arrays)
                       "TFI: input arrays are not valid.");
     return NULL;
   }
+
+  RELEASESHAREDS(tpl, coord);
   for (E_Int nos = 0; nos < nzones; nos++)
     RELEASESHAREDS(objs[nos], fields[nos]);
   return tpl;

@@ -93,9 +93,10 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int sizeFN = cn.getSizeNGon(), sizeEF = cn.getSizeNFace();
   E_Int nfaces = cn.getNFaces(), nelts = cn.getNElts();
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
-  E_Bool array23 = false;
-  if (api == 2 || api == 3) array23 = true;
-  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int ngonType = cn.getNGonType();
+  E_Bool hasCnOffsets = false;
+  if (ngonType == 2 || ngonType == 3) hasCnOffsets = true;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   // Get dimensionality
   E_Int dim = 3;
@@ -253,7 +254,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         }
         if (shift == 1) ngon[k] = nvins;
       }
-      if (array23) // array2 or array3
+      if (hasCnOffsets) // array2 or array3
       {
         indPG[j] = k; j += 1;
       }
@@ -308,7 +309,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         if (shift == 1) nface[k] = nfins;
       }
       
-      if (rmDirtyElts && array23) // array2 or array3
+      if (rmDirtyElts && hasCnOffsets) // array2 or array3
       {
         indPH[j] = k; j += 1;
       }
@@ -325,9 +326,6 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   // --- 5. Create resized connectivity ---
   if (rmOverlappingPts || rmDuplicatedFaces || rmDuplicatedElts)
   {  
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
     E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                nuniqueFaces, "NGON", sizeFN2, sizeEF2,
@@ -336,7 +334,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     K_ARRAY::getFromArray3(tpl, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (array23)
+    if (hasCnOffsets)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -358,7 +356,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       #pragma omp for nowait
       for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = nface[i];
 
-      if (array23) // array2 or array3
+      if (hasCnOffsets) // array2 or array3
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nuniqueFaces; i++) indPG2[i] = indPG[i];

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -93,11 +93,11 @@ PyObject* K_GEOM::circleMesh(PyObject* self, PyObject* args)
   // Data check
   if (N < 2)
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "circle: insufficient number of points.");
     return NULL;
   }
-  
+
   // Create a portion of circle
   E_Int api = 1; // TODO
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", N, 1, 1, api);
@@ -118,7 +118,7 @@ PyObject* K_GEOM::circleMesh(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDS(tpl, f);
-  return tpl;  
+  return tpl;
 }
 
 // ============================================================================
@@ -140,11 +140,11 @@ PyObject* K_GEOM::sphereMesh(PyObject* self, PyObject* args)
   // Data check
   if (N < 2)
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "sphere: insufficient number of points.");
     return NULL;
   }
-  
+
   // Create a sphere
   E_Int api = 1; // TODO
   E_Int P = 2*N;
@@ -160,7 +160,7 @@ PyObject* K_GEOM::sphereMesh(PyObject* self, PyObject* args)
 
   E_Float delta = pi/(N-1.);
   E_Float deltap = (2*pi)/(P-1.);
-  
+
   for (E_Int j = 0; j < P; j++)
     for (E_Int i = 0; i < N; i++)
     {
@@ -176,13 +176,13 @@ PyObject* K_GEOM::sphereMesh(PyObject* self, PyObject* args)
       yt[ind] = yc + cbeta*y1 - sbeta*z1;
       zt[ind] = zc + sbeta*y1 + cbeta*z1;
     }
-  
+
   RELEASESHAREDS(tpl, f);
   return tpl;
 }
 
 // ============================================================================
-/* Create a cone of center C, basis radius Rb, vertex radius Rv, 
+/* Create a cone of center C, basis radius Rb, vertex radius Rv,
    and height H */
 // ============================================================================
 PyObject* K_GEOM::coneMesh(PyObject* self, PyObject* args)
@@ -200,17 +200,17 @@ PyObject* K_GEOM::coneMesh(PyObject* self, PyObject* args)
   // Data check
   if (N < 2)
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "cone: insufficient number of points.");
     return NULL;
   }
   if (K_FUNC::fEqualZero(H))
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "cone: H must be non null.");
     return NULL;
   }
-  
+
   // Create a cone
   E_Int api = 1; // TODO
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", N, N, 1, api);
@@ -227,7 +227,7 @@ PyObject* K_GEOM::coneMesh(PyObject* self, PyObject* args)
   E_Float hk = H/(N-1.);
   E_Float Rk;
   z1 = 0.;
-  
+
   for (E_Int k = 0; k < N; k++)
   {
     Rk = Rb - z1*rapport;
@@ -240,11 +240,11 @@ PyObject* K_GEOM::coneMesh(PyObject* self, PyObject* args)
       yt[i+k*N] = yc + y1;
       zt[i+k*N] = zc + z1;
     }
-    z1 = z1 + hk; 
+    z1 = z1 + hk;
   }
-  
+
   RELEASESHAREDS(tpl, f);
-  return tpl;  
+  return tpl;
 }
 
 // ============================================================================
@@ -260,7 +260,7 @@ PyObject* K_GEOM::triangleMesh(PyObject* self, PyObject* args)
   {
       return NULL;
   }
-  
+
   E_Int api = 1; // TODO
   PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", 3, 1, "TRI", false, api);
   FldArrayF* f; FldArrayI* cn;

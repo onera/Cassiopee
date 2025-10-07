@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -28,7 +28,7 @@ using namespace K_SEARCH;
 
 //=============================================================================
 /* Calcul de la distance a la paroi par projection orthogonale
-   Les corps doivent etre en TRI, avec le cellN localise aux noeuds du 
+   Les corps doivent etre en TRI, avec le cellN localise aux noeuds du
    maillage TRI */
 //=============================================================================
 PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
@@ -38,21 +38,21 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   E_Int isIBM_F1;
   E_Float dTarget;
   if (!PYPARSETUPLE_(args, OO_ II_ R_, &centers, &bodiesC, &isminortho, &isIBM_F1, &dTarget)) return NULL;
-  
+
   if (PyList_Check(centers) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "dist2Walls: 1st argument must be a list.");
     return NULL;
   }
 
   if (PyList_Check(bodiesC) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "dist2Walls: 2nd argument must be a list.");
     return NULL;
   }
-  
+
   // Maillage en noeuds
   // les coordonnees doivent etre en premier
   vector<PyObject*> objsn, objun;
@@ -70,7 +70,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nz; i++)
   {
     o = PyList_GetItem(centers, i);
-    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
                                  nil, njl, nkl, cnl, eltTypel);
     if (res == 1)
     {
@@ -93,7 +93,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   E_Int nsn = structFn.size(); E_Int nun = unstrFn.size();
   E_Int posx=-1, posy=-1, posz=-1;
   vector<E_Int> ncellss; vector<E_Int> ncellsu;
-  vector<E_Int> posflags; vector<E_Int> posflagu; 
+  vector<E_Int> posflags; vector<E_Int> posflagu;
 
   // Verification de posxi, posyi, poszi dans listFields: vars 1,2,3 imposees
   for (E_Int i = 0; i < nsn; i++)
@@ -101,11 +101,11 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     E_Int posxi = K_ARRAY::isCoordinateXPresent(structVarStringn[i]);
     E_Int posyi = K_ARRAY::isCoordinateYPresent(structVarStringn[i]);
     E_Int poszi = K_ARRAY::isCoordinateZPresent(structVarStringn[i]);
-    posxi++; posyi++; poszi++; 
+    posxi++; posyi++; poszi++;
     if (posx == -1) posx = posxi;
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
         "dist2Walls: coordinates must be located at same position for all zones.");
@@ -131,7 +131,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
 
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
         "dist2Walls: coordinates must be located at same position for all zones.");
@@ -157,7 +157,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nz; i++)
   {
     o = PyList_GetItem(bodiesC, i);
-    res = K_ARRAY::getFromArray3(o, varStringl, fl, 
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
                                  nil, njl, nkl, cnl, eltTypel);
     if (api == -1) api = fl->getApi();
     if (res == 1)
@@ -189,8 +189,8 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
       RELEASESHAREDU(objun[nos], unstrFn[nos], cntn[nos]);
     return NULL;
   }
-  
-  // Get posxv, posyv, poszv in bodiesC, already checked  
+
+  // Get posxv, posyv, poszv in bodiesC, already checked
   vector<E_Int> posxv;  vector<E_Int> posyv;  vector<E_Int> poszv;
   vector<E_Int> poscv;
   for (E_Int v = 0; v < nwalls; v++)
@@ -203,7 +203,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
     posyv0++; posyv.push_back(posyv0);
     poszv0++; poszv.push_back(poszv0);
     poscv0++; poscv.push_back(poscv0);
-    if (poscv0 == 0) 
+    if (poscv0 == 0)
     {
       PyErr_SetString(PyExc_TypeError, "distance2Walls: cellN must be defined for bodies.");
       for (E_Int nos = 0; nos < nsn; nos++)
@@ -220,7 +220,7 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nsn; i++)
   {
     E_Int ncells = ncellss[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distances.push_back(distance);
   }
@@ -229,17 +229,17 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nun; i++)
   {
     E_Int ncells = ncellsu[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distancesu.push_back(distance);
   }
   if (structFn.size() > 0)
-    computeOrthoDist(ncellss, posx, posy, posz, posflags, 
+    computeOrthoDist(ncellss, posx, posy, posz, posflags,
                      structFn, posxv, posyv, poszv, poscv, unstrF, cnt,
                      distances, isminortho, isIBM_F1, dTarget);
   if (unstrFn.size() > 0)
     computeOrthoDist(ncellsu, posx, posy, posz, posflagu,
-                     unstrFn, posxv, posyv, poszv, poscv, unstrF, cnt, 
+                     unstrFn, posxv, posyv, poszv, poscv, unstrF, cnt,
                      distancesu, isminortho, isIBM_F1, dTarget);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
@@ -247,10 +247,10 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
 
   // Build arrays
   PyObject* l = PyList_New(0);
-  PyObject* tpl;    
+  PyObject* tpl;
   for (E_Int nos = 0; nos < nsn; nos++)
   {
-    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance", 
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance",
                                nitn[nos], njtn[nos], nktn[nos], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
@@ -274,15 +274,15 @@ PyObject* K_DIST2WALLS::distance2WallsOrtho(PyObject* self, PyObject* args)
 void K_DIST2WALLS::computeOrthoDist(
   vector<E_Int>& ncellst,
   E_Int posx, E_Int posy, E_Int posz,  vector<E_Int>& posflag,
-  vector<FldArrayF*>& fields, 
-  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
+  vector<FldArrayF*>& fields,
+  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv,
   vector<E_Int>& poscv,
   vector<FldArrayF*>& fieldsw, vector<FldArrayI*>& cntw,
   vector<FldArrayF*>& distances,E_Int isminortho, E_Int isIBM_F1, E_Float dTarget)
 {
   E_Int nzones = fields.size();
   /* 1 - creation du kdtree et du bbtree */
-  typedef K_SEARCH::BoundingBox<3> BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector< vector<BBox3DType*> > vectOfBoxes; // a detruire a la fin
   // allocate kdtree array: kdtree points are cell vertices
   E_Int nwalls = cntw.size();
@@ -308,11 +308,11 @@ void K_DIST2WALLS::computeOrthoDist(
   E_Int ind;
   vector<FldArrayF> bboxes;
   E_Float minB[3]; E_Float maxB[3];
-  
+
   for (E_Int now = 0; now < nwalls; now++)
   {
     FldArrayF* fieldv = fieldsw[now];
-    E_Int posxw = posxv[now]; E_Int posyw = posyv[now]; E_Int poszw = poszv[now];  
+    E_Int posxw = posxv[now]; E_Int posyw = posyv[now]; E_Int poszw = poszv[now];
     E_Float* xw = fieldv->begin(posxw);
     E_Float* yw = fieldv->begin(posyw);
     E_Float* zw = fieldv->begin(poszw);
@@ -331,12 +331,12 @@ void K_DIST2WALLS::computeOrthoDist(
     for (E_Int et = 0; et < nelts; et++)
     {
       minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
+      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et];
       boxes[et] = new BBox3DType(minB, maxB);
       for (E_Int nov = 1; nov <= nvert; nov++)
       {
         ind = cnloc(et, nov)-1;
-        if (cellnw[ind] == 1. && dejavup[ind] == 0) 
+        if (cellnw[ind] == 1. && dejavup[ind] == 0)
         {
           xw2[nop] = xw[ind]; yw2[nop] = yw[ind]; zw2[nop] = zw[ind];
           lmaxp[nop] = K_FUNC::E_max(maxB[0]-minB[0], maxB[1]-minB[1], maxB[2]-minB[2]);
@@ -358,12 +358,12 @@ void K_DIST2WALLS::computeOrthoDist(
       E_Int size = boxes.size();
       for (E_Int v = 0; v < size; v++) delete boxes[v];
     }
-    for (E_Int v = 0; v < nzones; v++) 
+    for (E_Int v = 0; v < nzones; v++)
     {
       E_Int ncells = ncellst[v];
       E_Float* distancep = distances[v]->begin();
       for (ind = 0; ind < ncells; ind++)
-        distancep[ind] = sqrt(distancep[ind]); 
+        distancep[ind] = sqrt(distancep[ind]);
     }
     return;
   }
@@ -381,10 +381,10 @@ void K_DIST2WALLS::computeOrthoDist(
     vectOfBBTrees.push_back(bbtree);
   }
 
-  /* Compute the distance with orthogonal projection */    
+  /* Compute the distance with orthogonal projection */
   #pragma omp parallel
   {
-    E_Float pt[3]; 
+    E_Float pt[3];
     vector<E_Int> indicesBB; vector<E_Int> candidates;
     E_Float minB[3]; E_Float maxB[3];
     E_Int ret,vw;
@@ -401,12 +401,12 @@ void K_DIST2WALLS::computeOrthoDist(
       E_Float* xt = fields[v]->begin(posx);
       E_Float* yt = fields[v]->begin(posy);
       E_Float* zt = fields[v]->begin(posz);
-      E_Float* distancep = distances[v]->begin(); 
+      E_Float* distancep = distances[v]->begin();
       E_Int npts = distances[v]->getSize();
       E_Int isFlagged = false;
       E_Float* flagp = NULL;
       if (posflag[v] > 0)
-      { 
+      {
         flagp = fields[v]->begin(posflag[v]);
         isFlagged = true;
       }
@@ -420,19 +420,19 @@ void K_DIST2WALLS::computeOrthoDist(
           {
             #include "algoOrtho.h"
           }
-        }   
+        }
       }
       else
       {
         #pragma omp for schedule(dynamic)
         for (E_Int ind = 0; ind < npts; ind++)
-        {   
+        {
           #include "algoOrtho.h"
-        }  
+        }
       }
     }
   }
-  
+
   // Computes the distance (sqrt)
   #pragma omp parallel
   {

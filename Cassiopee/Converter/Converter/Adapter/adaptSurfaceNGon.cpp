@@ -113,7 +113,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
                                "NGON", sizeNGonA, sizeNFaceA, isNGon, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
-    // co->setNGon(isNGon); // force NGonType
+    // co->setNGonType(isNGon); // force NGonType
 
     E_Int* ngonA = co->getNGon();
     E_Int* nfaceA = co->getNFace();
@@ -213,7 +213,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
                                "NGON", sizeNGonB, sizeNFaceB, isNGon, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
-    // co->setNGon(isNGon); // force NGonType
+    // co->setNGonType(isNGon); // force NGonType
 
     E_Int* ngonB = co->getNGon();
     E_Int* indPGB = co->getIndPG(); 

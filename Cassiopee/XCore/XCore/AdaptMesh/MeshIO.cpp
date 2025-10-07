@@ -41,7 +41,8 @@ PyObject *export_BE_mesh(Mesh *M)
     E_Int NODES[26];
     E_Int i0;
 
-    for (E_Int cid = 0; cid < M->nc; cid++) {
+    for (E_Int cid = 0; cid < M->nc; cid++) 
+    {
         E_Int *cell = Mesh_get_cell(M, cid);
         E_Int *crange = Mesh_get_crange(M, cid);
 
@@ -514,6 +515,7 @@ PyObject *export_BE_mesh(Mesh *M)
     PyList_Append(out, PROCS);
     Py_DECREF(PROCS);
 
+    RELEASESHAREDU(karray, f, cn);
     return out;
 }
 

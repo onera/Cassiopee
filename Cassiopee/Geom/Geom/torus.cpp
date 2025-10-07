@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -36,7 +36,7 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   E_Float R, r;
   E_Float alphas, alphae, betas, betae;
 
-  if (!PYPARSETUPLE_(args, TRRR_ RRRR_ RR_ II_, 
+  if (!PYPARSETUPLE_(args, TRRR_ RRRR_ RR_ II_,
                     &xc, &yc, &zc, &R, &r,
                     &alphas, &alphae, &betas, &betae, &NR, &Nr))
   {
@@ -52,17 +52,17 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   // Data check
   if (NR < 2 || Nr < 2)
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "torus: insufficient number of points.");
     return NULL;
   }
   if (r > R)
   {
-    PyErr_SetString(PyExc_ValueError, 
+    PyErr_SetString(PyExc_ValueError,
                     "torus: degenerated surface (r must be lower than R).");
     return NULL;
   }
-  
+
   E_Bool valid_angles = (alphas >= 0.) && (alphas <= 2*pi);
   valid_angles &= (alphae >= 0.) && (alphae <= 2*pi);
   valid_angles &= (betas >= 0.) && (betas <= 2*pi);
@@ -72,7 +72,7 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   if (!valid_angles)
   {
     PyErr_SetString(
-      PyExc_ValueError, 
+      PyExc_ValueError,
       "torus: invalid angles. They must be specified in the range [0,360] and the starting angles must be lower than the ending ones.");
     return NULL;
   }
@@ -87,13 +87,13 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
   E_Float* xt = coord.begin(1);
   E_Float* yt = coord.begin(2);
   E_Float* zt = coord.begin(3);
-  
+
   for (E_Int j = 0; j < NR; ++j)
   {
     alpha = alphas + j * dalpha;
     ca = ::cos(alpha);
     sa = ::sin(alpha);
-    
+
     for (E_Int i = 0; i < Nr; ++i)
     {
       beta  = betae - i * dbeta; // to have the normals toward the exterior.
@@ -106,7 +106,7 @@ PyObject* K_GEOM::torus( PyObject* self, PyObject* args )
       zt[ind] = zc + r * sb;
     }
   }
-  
+
   // Build array
   E_Int api = 1; // TODO
   PyObject* tpl = K_ARRAY::buildArray3(coord, "x,y,z", Nr, NR, 1, api);

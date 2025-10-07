@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -42,36 +42,36 @@ namespace K_TRANSFORM
       E_Float _ptD[3];
   };
 
-  struct Block 
+  struct Block
   {
       E_Int _nmerging;
       list<BlockEdge*> _listOfEdges;
       list<Block*> _voisins;
-      E_Int _ni; 
+      E_Int _ni;
       E_Int _nj;
       E_Int _nk;
       FldArrayF* _field;
       FldArrayF* _fieldc;
   };
   E_Int matchingEdges2D(E_Float xA1, E_Float yA1, E_Float zA1,
-                        E_Float xB1, E_Float yB1, E_Float zB1, 
+                        E_Float xB1, E_Float yB1, E_Float zB1,
                         E_Float xA2, E_Float yA2, E_Float zA2,
                         E_Float xB2, E_Float yB2, E_Float zB2,
                         E_Float tol=1.e-10);
 
   E_Int matchingEdges3D(E_Float xA1, E_Float yA1, E_Float zA1,
-                        E_Float xB1, E_Float yB1, E_Float zB1,    
-                        E_Float xC1, E_Float yC1, E_Float zC1,    
-                        E_Float xD1, E_Float yD1, E_Float zD1,              
+                        E_Float xB1, E_Float yB1, E_Float zB1,
+                        E_Float xC1, E_Float yC1, E_Float zC1,
+                        E_Float xD1, E_Float yD1, E_Float zD1,
                         E_Float xA2, E_Float yA2, E_Float zA2,
                         E_Float xB2, E_Float yB2, E_Float zB2,
-                        E_Float xC2, E_Float yC2, E_Float zC2,    
-                        E_Float xD2, E_Float yD2, E_Float zD2, 
+                        E_Float xC2, E_Float yC2, E_Float zC2,
+                        E_Float xD2, E_Float yD2, E_Float zD2,
                         E_Float tol=1.e-10);
 
   void buildListOfBlks(
     vector<E_Int>& nit, vector<E_Int>& njt, vector<E_Int>& nkt,
-    vector<FldArrayF*>& coords, vector<FldArrayF*>& fieldsc, 
+    vector<FldArrayF*>& coords, vector<FldArrayF*>& fieldsc,
     list<Block*>& listOfBlks);
 
   void buildListOfMergeablesEdges(
@@ -90,16 +90,16 @@ namespace K_TRANSFORM
     list<BlockEdge*>& listOfMergeableEdges,
     E_Float tol=1.e-10);
 
-  void gradeEdge(E_Int dim, BlockEdge* edge, list<Block*>& listOfBlks, 
-                 list<BlockEdge*>& listOfMergeableEdges, 
+  void gradeEdge(E_Int dim, BlockEdge* edge, list<Block*>& listOfBlks,
+                 list<BlockEdge*>& listOfMergeableEdges,
                  E_Float tol=1.e-10);
 
-  void gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks, 
-                   list<BlockEdge*>& listOfMergeableEdges, 
+  void gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
+                   list<BlockEdge*>& listOfMergeableEdges,
                    E_Float tol=1.e-10);
 
-  void gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks, 
-                   list<BlockEdge*>& listOfMergeableEdges, 
+  void gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
+                   list<BlockEdge*>& listOfMergeableEdges,
                    E_Float tol=1.e-10);
 
   void deleteListOfEdgesForBlk(Block* block1, BlockEdge* faceMin,
@@ -109,16 +109,16 @@ namespace K_TRANSFORM
 }
 
 //=============================================================================
-/* Fusion des grilles surfaciques 2D (k=1) ou volumiques selon l'algorithme 
-   de Rigby 
+/* Fusion des grilles surfaciques 2D (k=1) ou volumiques selon l'algorithme
+   de Rigby
    Ne suppose pour l'instant que le maillage est coincident (pas de raccords
-   1 pt sur 2 ) a cause de la connectivite 
+   1 pt sur 2 ) a cause de la connectivite
    Attention : pas de partage de memoire entre python et le c car les tableaux
    sont modifies/supprimes */
 //=============================================================================
 PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
 {
-  E_Float tol=1.e-10;// tolerance match 
+  E_Float tol=1.e-10;// tolerance match
   E_Float alphaRef=180.;
   E_Int dircons=0;
   PyObject *arrays, *arraysc;
@@ -132,14 +132,14 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   // Check every arrays
   if (PyList_Check(arrays) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "merge: arrays argument must be a list.");
     return NULL;
   }
   // Check every arrays
   if (PyList_Check(arraysc) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "merge: arraysc argument must be a list.");
     return NULL;
   }
@@ -154,16 +154,16 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   vector<PyObject*> objst, objut;
   E_Bool skipNoCoord = true;
   E_Bool skipStructured = false;
-  E_Bool skipUnstructured = true; 
+  E_Bool skipUnstructured = true;
   E_Bool skipDiffVars = true;
   vector<E_Int> rest;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, rest, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-  if (isOk == -1) 
+  if (isOk == -1)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "merge: arrays is not valid.");
     return NULL;
   }
@@ -171,10 +171,10 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   E_Int nzones = structF.size();
   E_Int dim = 2;
   for (E_Int v = 0; v < nzones; v++)
-  { 
+  {
     if (nkt[v] != 1) { dim = 3; break; }
   }
- 
+
    // Extract infos from arrays defining fields at centers
   vector<char*> structVarStringc; vector<char*> unstrVarStringc;
   vector<FldArrayF*> structFc; vector<FldArrayF*> unstrFc;
@@ -186,21 +186,21 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   E_Int nzonesc = 0;
   skipNoCoord = false;
   skipStructured = false;
-  skipUnstructured = true; 
+  skipUnstructured = true;
   skipDiffVars = true;
   isOk = K_ARRAY::getFromArrays(
     arraysc, resc, structVarStringc, unstrVarStringc,
-    structFc, unstrFc, nitc, njtc, nktc, cntc, eltTypec, 
+    structFc, unstrFc, nitc, njtc, nktc, cntc, eltTypec,
     objstc, objutc,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (isOk == -1)
   {
     for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "merge: arrays defining fields at centers are not valid.");
     return NULL;
   }
-  
+
   nzonesc = structFc.size();
   E_Int both = 0;// both nodes and centers are merged -> both=1
   if (nzonesc > 0) both = 1;
@@ -212,7 +212,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
       for (E_Int v1 = 0; v1 < nzonesc; v1++) RELEASESHAREDS(objstc[v1], structFc[v1]);
 
-      PyErr_SetString(PyExc_TypeError, 
+      PyErr_SetString(PyExc_TypeError,
                       "merge: number of arrays at nodes and centers must be equal.");
       return NULL;
     }
@@ -225,8 +225,8 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       {
         for (E_Int v1 = 0; v1< nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
         for (E_Int v1 = 0; v1< nzones; v1++) RELEASESHAREDS(objstc[v1], structFc[v1]);
-  
-        PyErr_SetString(PyExc_TypeError, 
+
+        PyErr_SetString(PyExc_TypeError,
                         "merge: inconsistent dimensions between arrays at nodes and centers.");
         return NULL;
       }
@@ -249,7 +249,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     E_Int poszi = K_ARRAY::isCoordinateZPresent(varString); poszi++;
     if (posxi != posx || posyi != posy || poszi != posz)
     {
-      PyErr_SetString(PyExc_TypeError, 
+      PyErr_SetString(PyExc_TypeError,
                       "merge: coordinates are not located at same position.");
       for (E_Int v1 = 0; v1 < nzones; v1++) RELEASESHAREDS(objst[v1], structF[v1]);
       return NULL;
@@ -277,7 +277,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     K_ARRAY::getPosition(structVarStringc[0], structVarStringc[0], posc1, posc2, varStringc);
     delete [] varStringc;
   }
-  
+
   //E_Int rank = 0; E_Int idum = -1; E_Int ncandidates = 0;
 
   // -----------------
@@ -295,22 +295,22 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   list<Block*>::iterator itr2;
   list<BlockEdge*>::iterator itrf;
   list<BlockEdge*>::iterator itrf3;
-//   list<BlockEdge*> candidates; 
+//   list<BlockEdge*> candidates;
   E_Int nmergeMin;
-  E_Int found = 0; 
+  E_Int found = 0;
   E_Int nic1, njc1, nkc1, nic2, njc2, nkc2;
   for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
   {
     for (itr2 = itr; itr2 != listOfBlks.end(); itr2++)
     {
-      if (*itr2 != *itr) 
-        buildListOfMergeablesEdges(dim, alphaRef, posx, posy, posz, 
+      if (*itr2 != *itr)
+        buildListOfMergeablesEdges(dim, alphaRef, posx, posy, posz,
                                    *itr, *itr2, listOfMergeableEdges, tol);
     }
   }
 
   /* 2 - determination du grade */
-  for (itrf = listOfMergeableEdges.begin(); 
+  for (itrf = listOfMergeableEdges.begin();
        itrf != listOfMergeableEdges.end(); itrf++)
     gradeEdge(dim, *itrf, listOfBlks, listOfMergeableEdges, tol);
 
@@ -325,7 +325,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   {
     if ( (*itrf)->_grade <= gradeMin && (*itrf)->_grade >= 0)
     {
-      gradeMin = (*itrf)->_grade; 
+      gradeMin = (*itrf)->_grade;
     }
   }
   // the first edge of grade min is kept
@@ -341,15 +341,15 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       }
     }
   }
-  else 
+  else
   {
-    for (itrf = listOfMergeableEdges.begin(); 
+    for (itrf = listOfMergeableEdges.begin();
          itrf != listOfMergeableEdges.end(); itrf++)
     {
       if (K_FUNC::E_abs((*itrf)->_dirBlk1) == dircons && K_FUNC::E_abs((*itrf)->_dirBlk2) == dircons)
       {(*itrf)->_grade = -10000;  gradeMin = -10000; }
     }
-    
+
     found = 0; nmergeMin = 1000000;
     for (itrf = listOfMergeableEdges.begin(); itrf != listOfMergeableEdges.end(); itrf++)
     {
@@ -358,7 +358,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
         faceMin = *itrf; found = 1;
         break;
       }
-    }    
+    }
     if (found == 0)  goto end;
   }
 //   for (itrf = listOfMergeableEdges.begin();
@@ -371,66 +371,66 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
 //   for (itrf = candidates.begin();
 //        itrf != candidates.end(); itrf++)
 //   {
-//     if ( ncandidates == rank ) 
+//     if ( ncandidates == rank )
 //     {faceMin = *itrf; break;}
 //     ncandidates++;
 //   }
 //   candidates.clear();
 
   /* 7 - join blk1 et blk2 -> mergedBlk */
-  blk1 = faceMin->_blk1; blk2 = faceMin->_blk2;                 
-  mergedField = new FldArrayF(); 
+  blk1 = faceMin->_blk1; blk2 = faceMin->_blk2;
+  mergedField = new FldArrayF();
   mergedFieldc = new FldArrayF();
 
   if (both == 0)
   {
-    res = joinStructured(*(blk1->_field), blk1->_ni, blk1->_nj, blk1->_nk, posx, posy, posz, 
+    res = joinStructured(*(blk1->_field), blk1->_ni, blk1->_nj, blk1->_nk, posx, posy, posz,
                          *(blk2->_field), blk2->_ni, blk2->_nj, blk2->_nk, posx, posy, posz,
-                         pos1, pos2, *mergedField, nio, njo, nko, tol); 
+                         pos1, pos2, *mergedField, nio, njo, nko, tol);
     if (res != 0)
     {
       if (dircons == 1 && gradeMin == -10000) K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, -1, -2, 3);
       else if (dircons == 2 && gradeMin == -10000) K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, 2,-1, 3);
       else if (dircons == 3 && gradeMin == -10000) K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, 3, 1, 2);
-      
-      //check du volume  
+
+      //check du volume
       res2 = checkNegativeVolumeCells(dim, nio,njo,nko,*mergedField);
       if (res2 == 0) K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, oi,oj,ok);
     }
   }
-  else 
+  else
   {
     nic1 = K_FUNC::E_max(1,blk1->_ni-1); nic2 = K_FUNC::E_max(1,blk2->_ni-1);
     njc1 = K_FUNC::E_max(1,blk1->_nj-1); njc2 = K_FUNC::E_max(1,blk2->_nj-1);
     nkc1 = K_FUNC::E_max(1,blk1->_nk-1); nkc2 = K_FUNC::E_max(1,blk2->_nk-1);
     res = joinBothStructured(*(blk1->_field), blk1->_ni, blk1->_nj, blk1->_nk, posx, posy, posz,
                              *(blk2->_field), blk2->_ni, blk2->_nj, blk2->_nk, posx, posy, posz,
-                             *(blk1->_fieldc), nic1, njc1, nkc1, 
-                             *(blk2->_fieldc), nic2, njc2, nkc2, 
+                             *(blk1->_fieldc), nic1, njc1, nkc1,
+                             *(blk2->_fieldc), nic2, njc2, nkc2,
                              pos1, pos2, posc1, posc2,
-                             *mergedField, nio, njo, nko, 
-                             *mergedFieldc, nioc, njoc, nkoc, tol); 
+                             *mergedField, nio, njo, nko,
+                             *mergedFieldc, nioc, njoc, nkoc, tol);
     if (res != 0)
     {
-      if (dircons == 1 && gradeMin == -10000) 
+      if (dircons == 1 && gradeMin == -10000)
       {
         K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, -1, -2, 3);
         K_CONNECT::reorderStructField(nioc, njoc, nkoc, *mergedFieldc, -1, -2, 3);
       }
-      else if (dircons == 2 && gradeMin == -10000) 
+      else if (dircons == 2 && gradeMin == -10000)
       {
         K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, 2,-1, 3);
         K_CONNECT::reorderStructField(nioc, njoc, nkoc, *mergedFieldc, 2,-1, 3);
       }
-      else if (dircons == 3 && gradeMin == -10000) 
+      else if (dircons == 3 && gradeMin == -10000)
       {
         K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, 3, 1, 2);
         K_CONNECT::reorderStructField(nioc, njoc, nkoc, *mergedFieldc, 3, 1, 2);
       }
-    
+
       //check du volume
       res2 = checkNegativeVolumeCells(dim,nio,njo,nko,*mergedField);
-      if (res2 == 0) 
+      if (res2 == 0)
       {
         K_CONNECT::reorderStructField(nio, njo, nko, *mergedField, oi,oj,ok);
         K_CONNECT::reorderStructField(nioc, njoc, nkoc, *mergedFieldc, oi,oj,ok);
@@ -439,7 +439,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   } // fin des joins
 
   /* + s'assurer que la grille ne soit pas trop grande */
-  if (nio*njo*nko > sizeMax || res == 0) 
+  if (nio*njo*nko > sizeMax || res == 0)
   {
     /* On enleve la facette choisie de la liste des facettes mergeables */
     itrf = blk1->_listOfEdges.begin();
@@ -468,15 +468,15 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     else goto end;
   }
   /* 5 - tag des facettes condamnees */
-  deleteListOfEdgesForBlk(blk1, faceMin, listOfMergeableEdges); 
-  deleteListOfEdgesForBlk(blk2, faceMin, listOfMergeableEdges); 
+  deleteListOfEdgesForBlk(blk1, faceMin, listOfMergeableEdges);
+  deleteListOfEdgesForBlk(blk2, faceMin, listOfMergeableEdges);
 
   /* 6 - enlever la facette faceMin de la liste des mergeables */
   itrf = listOfMergeableEdges.begin();
   while ((itrf != listOfMergeableEdges.end())&&((*itrf) != faceMin)) itrf++;
   listOfMergeableEdges.erase(itrf);
   delete faceMin;
-  if (res != 0) 
+  if (res != 0)
   {
     delete blk1->_field; delete blk1->_fieldc;
     blk1->_field = mergedField;
@@ -486,8 +486,8 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     blk1->_voisins.clear();
     blk1->_nmerging++;
     /*8- delete blk2 */
-    delete blk2->_field; delete blk2->_fieldc; 
-    deleteBlkInfo(blk2, listOfBlks); delete blk2; 
+    delete blk2->_field; delete blk2->_fieldc;
+    deleteBlkInfo(blk2, listOfBlks); delete blk2;
   }
   /* 9 - nouvelles facettes mergeables pour blk1 : comme pt 1 */
   for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
@@ -496,7 +496,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       buildListOfMergeablesEdges(dim, alphaRef, posx, posy, posz, blk1, *itr, listOfMergeableEdges);
   }
   /* 10- grade de mergedBlk : comme pt2 */
-  for (itrf = blk1->_listOfEdges.begin(); 
+  for (itrf = blk1->_listOfEdges.begin();
        itrf != blk1->_listOfEdges.end(); itrf++)
     gradeEdge(dim, *itrf, listOfBlks, listOfMergeableEdges, tol);
 
@@ -518,9 +518,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
     // nettoyages...
-    if (dircons == 0) 
+    if (dircons == 0)
     {
-      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)  
+      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
       {
         for (itrf = (*itr)->_listOfEdges.begin(); itrf != (*itr)->_listOfEdges.end(); itrf++)
           delete *itrf;
@@ -529,9 +529,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
         delete *itr;
       }
     }
-    else 
+    else
     {
-      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)  
+      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
       {
         for (itrf = (*itr)->_listOfEdges.begin(); itrf != (*itr)->_listOfEdges.end(); itrf++)
         {
@@ -540,7 +540,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
           {
             if (*itrf == *itrf3) {found = 1; break;}
           }
-          
+
           if (found == 0) delete *itrf;
         }
         (*itr)->_listOfEdges.clear();
@@ -572,9 +572,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
       delete fieldc;
     }
     // nettoyages...
-    if (dircons == 0) 
+    if (dircons == 0)
     {
-      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)  
+      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
       {
         for (itrf = (*itr)->_listOfEdges.begin(); itrf != (*itr)->_listOfEdges.end(); itrf++)
           delete *itrf;
@@ -583,9 +583,9 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
         delete *itr;
       }
     }
-    else 
+    else
     {
-      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)  
+      for (itr = listOfBlks.begin(); itr != listOfBlks.end(); itr++)
       {
         for (itrf = (*itr)->_listOfEdges.begin(); itrf != (*itr)->_listOfEdges.end(); itrf++)
         {
@@ -594,7 +594,7 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
           {
             if (*itrf == *itrf3) {found = 1; break;}
           }
-          
+
           if (found == 0) delete *itrf;
         }
         (*itr)->_listOfEdges.clear();
@@ -605,19 +605,19 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     for (itrf = listOfMergeableEdges.begin(); itrf != listOfMergeableEdges.end(); itrf++)
       delete *itrf;
     listOfMergeableEdges.clear();
-    
+
     listOfBlks.clear();
     return Py_BuildValue("(OO)", lnodes, lcenters);
   }
 }
-                 
+
 //=============================================================================
 void K_TRANSFORM::deleteBlkInfo(Block* blk, list<Block*>& listOfBlks)
 {
   list<Block*>::iterator itr;
   blk->_listOfEdges.clear();
   blk->_voisins.clear();
-  
+
   itr = listOfBlks.begin();
   while ((*itr) != blk) itr++;
   listOfBlks.erase(itr);
@@ -626,13 +626,13 @@ void K_TRANSFORM::deleteBlkInfo(Block* blk, list<Block*>& listOfBlks)
 void K_TRANSFORM::deleteListOfEdgesForBlk(
   Block* block1, BlockEdge* faceMin,
   list<BlockEdge*>& listOfMergeableEdges)
-{  
+{
   list<BlockEdge*>::iterator itrf;
   list<BlockEdge*>::iterator itrf3;
   list<BlockEdge*>::iterator itrf2;
 
   itrf = block1->_listOfEdges.begin();
-  
+
   while (itrf != block1->_listOfEdges.end())
   {
     itrf3 = itrf; itrf3++;
@@ -672,7 +672,7 @@ void K_TRANSFORM::buildListOfBlks(
 {
   E_Int nzones = coords.size();
   FldArrayF bboxes(nzones,6);
-  if (fieldsc.size() == 0) 
+  if (fieldsc.size() == 0)
   {
     for (E_Int v = 0; v < nzones; v++)
     {
@@ -682,7 +682,7 @@ void K_TRANSFORM::buildListOfBlks(
       listOfBlks.push_back(blk);
     }
   }
-  else 
+  else
   {
     for (E_Int v = 0; v < nzones; v++)
     {
@@ -702,10 +702,10 @@ void K_TRANSFORM::buildListOfMergeablesEdges(
   Block* blk1, Block* blk2,
   list<BlockEdge*>& listOfMergeableEdges, E_Float tol)
 {
-  if (dim == 2) 
-    return buildListOfMergeablesEdges2D(alphaRef, posx, posy, posz, blk1, blk2, 
+  if (dim == 2)
+    return buildListOfMergeablesEdges2D(alphaRef, posx, posy, posz, blk1, blk2,
                                         listOfMergeableEdges, tol);
-  else return buildListOfMergeablesEdges3D(posx, posy, posz, blk1, blk2, 
+  else return buildListOfMergeablesEdges3D(posx, posy, posz, blk1, blk2,
                                            listOfMergeableEdges, tol);
 }
 //=============================================================================
@@ -758,7 +758,7 @@ void K_TRANSFORM::buildListOfMergeablesEdges3D(
     {
       indA1 = 0; indB1 = shifti1; indC1 = indB1+shiftk1; indD1 = indA1+shiftk1;
     }
-    else if (dir1 == 2) 
+    else if (dir1 == 2)
     {
       indA1 = shiftj1; indB1 = indA1+shifti1; indC1 = indB1+shiftk1; indD1 = indA1+shiftk1;
     }
@@ -786,7 +786,7 @@ void K_TRANSFORM::buildListOfMergeablesEdges3D(
       {
         indA2 = 0; indB2 = shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
       }
-      else if (dir2 == 2) 
+      else if (dir2 == 2)
       {
         indA2 = shiftj2; indB2 = indA2+shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
       }
@@ -814,15 +814,15 @@ void K_TRANSFORM::buildListOfMergeablesEdges3D(
       if (dir2 == 1 || dir2 == -1) ndir2 = nj2*nk2;
       else if (dir2 == 2 || dir2 == -2) ndir2 = ni2*nk2;
       else if (dir2 == 3 || dir2 == -3) ndir2 = ni2*nj2;
- 
-      if (ndir1 == ndir2) 
+
+      if (ndir1 == ndir2)
       {
         E_Int match = matchingEdges3D(xA1, yA1, zA1, xB1, yB1, zB1, xC1, yC1, zC1, xD1, yD1, zD1,
-                                      xA2, yA2, zA2, xB2, yB2, zB2, xC2, yC2, zC2, xD2, yD2, zD2, 
+                                      xA2, yA2, zA2, xB2, yB2, zB2, xC2, yC2, zC2, xD2, yD2, zD2,
                                       tol);
         if (match == 4)
         {
-          blk1->_voisins.push_back(blk2); blk2->_voisins.push_back(blk1); 
+          blk1->_voisins.push_back(blk2); blk2->_voisins.push_back(blk1);
           newEdge = new BlockEdge;
           newEdge->_grade = 0; newEdge->_externEdge = 0;
           newEdge->_blk1 = blk1; newEdge->_blk2 = blk2;
@@ -861,18 +861,18 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
   dirt2[0] = 1; dirt2[1] =-1; dirt2[2] = 2; dirt2[3] =-2;
   E_Int indA10, indB10, indC10, indD10, indA20, indB20, indC20, indD20;
   E_Int indA1=-1, indB1=-1, indC1=-1, indD1=-1, indA2=-1, indB2=-1, indC2=-1, indD2=-1;
-  E_Float xA1, yA1, zA1, xB1, yB1, zB1, xA2, yA2, zA2, xB2, yB2, zB2; 
+  E_Float xA1, yA1, zA1, xB1, yB1, zB1, xA2, yA2, zA2, xB2, yB2, zB2;
   E_Int dir1, dir2, ndir1, ndir2;
   E_Int ni1 = blk1->_ni; E_Int nj1 = blk1->_nj;
   E_Int ni2 = blk2->_ni; E_Int nj2 = blk2->_nj;
   E_Float dx1, dy1, dz1, dx2, dy2, dz2;
-  E_Int ie1=0, ie2=0, inc1, inc2, ishift1, ishift2, nmatch; 
+  E_Int ie1=0, ie2=0, inc1, inc2, ishift1, ishift2, nmatch;
   E_Int grade = 0;
   if (blk2 == blk1) return;
   E_Int freezeSE = 1;
   if (K_FUNC::E_abs(alphaRef-180.) < tol) freezeSE = 0;
   indA10 = 0; indB10 = ni1-1; indC10 = indB10+(nj1-1)*ni1; indD10 = indA10 + (nj1-1)*ni1;
-  indA20 = 0; indB20 = ni2-1; indC20 = indB20+(nj2-1)*ni2; indD20 = indA20 + (nj2-1)*ni2;                            
+  indA20 = 0; indB20 = ni2-1; indC20 = indB20+(nj2-1)*ni2; indD20 = indA20 + (nj2-1)*ni2;
   E_Float dalpha;
   //detection si aretes coincidentes
   for (E_Int i1 = 0; i1 < 4; i1++)
@@ -890,7 +890,7 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
       else if (dir2 == 1){indA2 = indB20; indB2 = indC20; indC2 = indD20; indD2 = indA20;}//imax
       else if (dir2 ==-2){indA2 = indA20; indB2 = indB20; indC2 = indC20; indD2 = indD20;}//jmin
       else if (dir2 == 2){indA2 = indC20; indB2 = indD20; indC2 = indA20; indD2 = indB20;}//jmax
-    
+
       xA1 = xt1[indA1]; yA1 = yt1[indA1]; zA1 = zt1[indA1];
       xB1 = xt1[indB1]; yB1 = yt1[indB1]; zB1 = zt1[indB1];
       xA2 = xt2[indA2]; yA2 = yt2[indA2]; zA2 = zt2[indA2];
@@ -902,16 +902,16 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
       else ndir2 = ni2;
       grade = 0;
 
-      if (ndir1 == ndir2) 
+      if (ndir1 == ndir2)
       {
         E_Int match = matchingEdges2D(xA1, yA1, zA1, xB1, yB1, zB1, xA2, yA2, zA2, xB2, yB2, zB2, tol);
-        if (match == 0) 
+        if (match == 0)
         {
           // detection maillage en C
-          dx1 = xB1-xA1; dx2 = xB2-xA2;  
-          dy1 = yB1-yA1; dy2 = yB2-yA2; 
+          dx1 = xB1-xA1; dx2 = xB2-xA2;
+          dy1 = yB1-yA1; dy2 = yB2-yA2;
           dz1 = zB1-zA1; dz2 = zB2-zA2;
-          if (K_FUNC::E_abs(dx1)<tol && K_FUNC::E_abs(dy1)<tol && K_FUNC::E_abs(dz1)<tol && 
+          if (K_FUNC::E_abs(dx1)<tol && K_FUNC::E_abs(dy1)<tol && K_FUNC::E_abs(dz1)<tol &&
               K_FUNC::E_abs(dx2)<tol && K_FUNC::E_abs(dy2)<tol && K_FUNC::E_abs(dz2)<tol )
           {
             nmatch = 0; inc1 = 0; inc2 = 0; ishift1 = 1; ishift2 = 1;
@@ -919,7 +919,7 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
             switch (dir1)
             {
               case -1:
-                ie1 = nj1; ishift1 = ni1-1; 
+                ie1 = nj1; ishift1 = ni1-1;
                 break;
               case  1:
                 inc1 = (ni1-1); ie1 = nj1; ishift1 = ni1-1;
@@ -934,13 +934,13 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
             switch (dir2)
             {
               case -1:
-                ie2 = nj2; ishift2 = ni2-1; 
+                ie2 = nj2; ishift2 = ni2-1;
                 break;
               case 1:
                 inc2 = (ni1-1); ie2 = nj2; ishift2 = ni2-1;
               break;
               case -2:
-                ie2 = ni2; 
+                ie2 = ni2;
                 break;
               case 2:
                 inc2 = (nj2-1)*ni2; ie2 = ni2;
@@ -958,7 +958,7 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
               }
               suivant:;
             }
-       
+
             //verifie que les pts sont coincidents 2 a 2
             if (nmatch == ndir1) match = 2;
           }
@@ -969,11 +969,11 @@ void K_TRANSFORM::buildListOfMergeablesEdges2D(
           dalpha = 0.;
           if (freezeSE == 1) dalpha = compAngleBetweenZones(dir1, ni1, nj1, xt1, yt1, zt1, dir2, ni2, nj2, xt2, yt2, zt2);
 
-          if (K_FUNC::E_abs(dalpha) < alphaRef) 
+          if (K_FUNC::E_abs(dalpha) < alphaRef)
           {
-            increaseGradeForRotation(indA1, indB1, indC1, indD1, xt1, yt1, zt1, 
+            increaseGradeForRotation(indA1, indB1, indC1, indD1, xt1, yt1, zt1,
                                      indA2, indB2, indC2, indD2, xt2, yt2, zt2, grade);
-            blk1->_voisins.push_back(blk2); blk2->_voisins.push_back(blk1); 
+            blk1->_voisins.push_back(blk2); blk2->_voisins.push_back(blk1);
             newEdge = new BlockEdge;
             newEdge->_grade = grade; newEdge->_externEdge = 0;
             newEdge->_blk1 = blk1; newEdge->_blk2 = blk2;
@@ -1019,13 +1019,13 @@ E_Float K_TRANSFORM::compAngleBetweenZones(
       break;
     case 2:
       inci1 = 1; incj1 = ni1; indA10 = (nj1-2)*ni1; shift1 = 1; shiftmax1 = ni1-1; ind1 = (nj1-1)*ni1; ind2 = ind1 + shift1;
-      break;  
+      break;
   }
   switch ( dir2 )
   {
     case -1:
       inci2 = 1; incj2 = ni2; indA20 = 0; shift2 = ni2; ind2 = 0;
-      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol || 
+      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol ||
           K_FUNC::E_abs(yt1[ind1]-yt2[ind2]) > tol ||
           K_FUNC::E_abs(zt1[ind1]-zt2[ind2]) > tol)//reverse
       {
@@ -1034,7 +1034,7 @@ E_Float K_TRANSFORM::compAngleBetweenZones(
       break;
     case 1:
       inci2 = 1; incj2 = ni2; indA20 = ni2-2; shift2 = ni2; ind2 = ni2-1;
-       if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol || 
+       if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol ||
            K_FUNC::E_abs(yt1[ind1]-yt2[ind2]) > tol ||
            K_FUNC::E_abs(zt1[ind1]-zt2[ind2]) > tol)//reverse
        {
@@ -1044,49 +1044,49 @@ E_Float K_TRANSFORM::compAngleBetweenZones(
       break;
     case -2:
       inci2 = 1; incj2 = ni2; indA20 = 0; shift2 = 1; ind2 = 0;
-      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol || 
+      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol ||
           K_FUNC::E_abs(yt1[ind1]-yt2[ind2]) > tol ||
           K_FUNC::E_abs(zt1[ind1]-zt2[ind2]) > tol)//reverse
       {
 
         indA20 = indA20+ni2-2; shift2 = -1;
-      }      
+      }
       break;
     case 2:
-      inci2 = 1; incj2 = ni2; indA20 = (nj2-2)*ni2; shift2 = 1; ind2 = (nj2-1)*ni2; 
-      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol || 
+      inci2 = 1; incj2 = ni2; indA20 = (nj2-2)*ni2; shift2 = 1; ind2 = (nj2-1)*ni2;
+      if (K_FUNC::E_abs(xt1[ind1]-xt2[ind2]) > tol ||
           K_FUNC::E_abs(yt1[ind1]-yt2[ind2]) > tol ||
           K_FUNC::E_abs(zt1[ind1]-zt2[ind2]) > tol)//reverse
       {
         indA20 = indA20 +(ni2-2); shift2 = -1;
-      }    
-      break;  
+      }
+      break;
   }
-  
+
   for (E_Int i1 = 0; i1 < shiftmax1; i1++)
   {
     indB10 = indA10 + inci1; indC10 = indA10 + inci1 + incj1; indD10 = indA10 + incj1;
     indB20 = indA20 + inci2; indC20 = indA20 + inci2 + incj2; indD20 = indA20 + incj2;
-    ptA1[0] = xt1[indA10]; ptB1[0] = xt1[indB10]; ptC1[0] = xt1[indC10]; ptD1[0] = xt1[indD10]; 
-    ptA1[1] = yt1[indA10]; ptB1[1] = yt1[indB10]; ptC1[1] = yt1[indC10]; ptD1[1] = yt1[indD10]; 
-    ptA1[2] = zt1[indA10]; ptB1[2] = zt1[indB10]; ptC1[2] = zt1[indC10]; ptD1[2] = zt1[indD10]; 
-    ptA2[0] = xt2[indA20]; ptB2[0] = xt2[indB20]; ptC2[0] = xt2[indC20]; ptD2[0] = xt2[indD20]; 
-    ptA2[1] = yt2[indA20]; ptB2[1] = yt2[indB20]; ptC2[1] = yt2[indC20]; ptD2[1] = yt2[indD20]; 
-    ptA2[2] = zt2[indA20]; ptB2[2] = zt2[indB20]; ptC2[2] = zt2[indC20]; ptD2[2] = zt2[indD20]; 
+    ptA1[0] = xt1[indA10]; ptB1[0] = xt1[indB10]; ptC1[0] = xt1[indC10]; ptD1[0] = xt1[indD10];
+    ptA1[1] = yt1[indA10]; ptB1[1] = yt1[indB10]; ptC1[1] = yt1[indC10]; ptD1[1] = yt1[indD10];
+    ptA1[2] = zt1[indA10]; ptB1[2] = zt1[indB10]; ptC1[2] = zt1[indC10]; ptD1[2] = zt1[indD10];
+    ptA2[0] = xt2[indA20]; ptB2[0] = xt2[indB20]; ptC2[0] = xt2[indC20]; ptD2[0] = xt2[indD20];
+    ptA2[1] = yt2[indA20]; ptB2[1] = yt2[indB20]; ptC2[1] = yt2[indC20]; ptD2[1] = yt2[indD20];
+    ptA2[2] = zt2[indA20]; ptB2[2] = zt2[indB20]; ptC2[2] = zt2[indC20]; ptD2[2] = zt2[indD20];
 
-    ptA1[0] = xt1[indA10]; ptB1[0] = xt1[indB10]; ptC1[0] = xt1[indC10]; ptD1[0] = xt1[indD10]; 
-    ptA1[1] = yt1[indA10]; ptB1[1] = yt1[indB10]; ptC1[1] = yt1[indC10]; ptD1[1] = yt1[indD10]; 
-    ptA1[2] = zt1[indA10]; ptB1[2] = zt1[indB10]; ptC1[2] = zt1[indC10]; ptD1[2] = zt1[indD10]; 
+    ptA1[0] = xt1[indA10]; ptB1[0] = xt1[indB10]; ptC1[0] = xt1[indC10]; ptD1[0] = xt1[indD10];
+    ptA1[1] = yt1[indA10]; ptB1[1] = yt1[indB10]; ptC1[1] = yt1[indC10]; ptD1[1] = yt1[indD10];
+    ptA1[2] = zt1[indA10]; ptB1[2] = zt1[indB10]; ptC1[2] = zt1[indC10]; ptD1[2] = zt1[indD10];
 
-    if ( reverse == 1) alpha0 = K_COMPGEOM::getAlphaAngleBetweenQuads(ptA1, ptB1, ptC1, ptD1, 
-                                                                      ptA2, ptB2, ptC2, ptD2); 
-    else alpha0 = K_COMPGEOM::getAlphaAngleBetweenQuads(ptA1, ptB1, ptC1, ptD1, 
-                                                        ptA2, ptD2, ptC2, ptB2); 
+    if ( reverse == 1) alpha0 = K_COMPGEOM::getAlphaAngleBetweenQuads(ptA1, ptB1, ptC1, ptD1,
+                                                                      ptA2, ptB2, ptC2, ptD2);
+    else alpha0 = K_COMPGEOM::getAlphaAngleBetweenQuads(ptA1, ptB1, ptC1, ptD1,
+                                                        ptA2, ptD2, ptC2, ptB2);
     if ( alpha0 != -1000.)
     {
       dalpha = K_FUNC::E_max(dalpha,K_FUNC::E_abs(180.-alpha0));
     }
-    indA10 = indA10 + shift1; indA20 = indA20 + shift2; 
+    indA10 = indA10 + shift1; indA20 = indA20 + shift2;
   }
   return dalpha;
 }
@@ -1107,27 +1107,27 @@ void K_TRANSFORM::increaseGradeForRotation(E_Int indA1, E_Int indB1, E_Int indC1
   E_Float xAC1 = xt1[indC1]-xt1[indA1];
   E_Float yAC1 = yt1[indC1]-yt1[indA1];
   E_Float zAC1 = zt1[indC1]-zt1[indA1];
-  
+
   E_Float xBC1 = xt1[indC1]-xt1[indB1];
   E_Float yBC1 = yt1[indC1]-yt1[indB1];
   E_Float zBC1 = zt1[indC1]-zt1[indB1];
-  
+
   E_Float xAD1 = xt1[indD1]-xt1[indA1];
   E_Float yAD1 = yt1[indD1]-yt1[indA1];
   E_Float zAD1 = zt1[indD1]-zt1[indA1];
-  
+
   E_Float xBD1 = xt1[indD1]-xt1[indB1];
   E_Float yBD1 = yt1[indD1]-yt1[indB1];
   E_Float zBD1 = zt1[indD1]-zt1[indB1];
-  
+
   E_Float d2AB1 = xAB1*xAB1+yAB1*yAB1+zAB1*zAB1; E_Float dAB1 = sqrt(d2AB1);
-  E_Float d2AC1 = xAC1*xAC1+yAC1*yAC1+zAC1*zAC1; 
+  E_Float d2AC1 = xAC1*xAC1+yAC1*yAC1+zAC1*zAC1;
   E_Float d2BC1 = xBC1*xBC1+yBC1*yBC1+zBC1*zBC1; E_Float dBC1 = sqrt(d2BC1);
   E_Float d2AD1 = xAD1*xAD1+yAD1*yAD1+zAD1*zAD1; E_Float dAD1 = sqrt(d2AD1);
-  E_Float d2BD1 = xBD1*xBD1+yBD1*yBD1+zBD1*zBD1; 
+  E_Float d2BD1 = xBD1*xBD1+yBD1*yBD1+zBD1*zBD1;
 
-  E_Float cosDAB1 = 0.5*(-d2BD1+d2AD1+d2AB1)/(dAB1*dAD1); 
-  E_Float cosABC1 = 0.5*(-d2AC1+d2AB1+d2BC1)/(dAB1*dBC1); 
+  E_Float cosDAB1 = 0.5*(-d2BD1+d2AD1+d2AB1)/(dAB1*dAD1);
+  E_Float cosABC1 = 0.5*(-d2AC1+d2AB1+d2BC1)/(dAB1*dBC1);
 
   // test triangle A2B2C2 puis A2B2D2
   E_Float xAB2 = xt2[indB2]-xt2[indA2];
@@ -1137,27 +1137,27 @@ void K_TRANSFORM::increaseGradeForRotation(E_Int indA1, E_Int indB1, E_Int indC1
   E_Float xAC2 = xt2[indC2]-xt2[indA2];
   E_Float yAC2 = yt2[indC2]-yt2[indA2];
   E_Float zAC2 = zt2[indC2]-zt2[indA2];
-  
+
   E_Float xBC2 = xt2[indC2]-xt2[indB2];
   E_Float yBC2 = yt2[indC2]-yt2[indB2];
   E_Float zBC2 = zt2[indC2]-zt2[indB2];
-  
+
   E_Float xAD2 = xt2[indD2]-xt2[indA2];
   E_Float yAD2 = yt2[indD2]-yt2[indA2];
   E_Float zAD2 = zt2[indD2]-zt2[indA2];
-  
+
   E_Float xBD2 = xt2[indD2]-xt2[indB2];
   E_Float yBD2 = yt2[indD2]-yt2[indB2];
   E_Float zBD2 = zt2[indD2]-zt2[indB2];
-  
+
   E_Float d2AB2 = xAB2*xAB2+yAB2*yAB2+zAB2*zAB2; E_Float dAB2 = sqrt(d2AB2);
   E_Float d2AC2 = xAC2*xAC2+yAC2*yAC2+zAC2*zAC2;
   E_Float d2BC2 = xBC2*xBC2+yBC2*yBC2+zBC2*zBC2; E_Float dBC2 = sqrt(d2BC2);
   E_Float d2AD2 = xAD2*xAD2+yAD2*yAD2+zAD2*zAD2; E_Float dAD2 = sqrt(d2AD2);
   E_Float d2BD2 = xBD2*xBD2+yBD2*yBD2+zBD2*zBD2;
 
-  E_Float cosDAB2 = 0.5*(-d2BD2+d2AD2+d2AB2)/(dAB2*dAD2); 
-  E_Float cosABC2 = 0.5*(-d2AC2+d2AB2+d2BC2)/(dAB2*dBC2); 
+  E_Float cosDAB2 = 0.5*(-d2BD2+d2AD2+d2AB2)/(dAB2*dAD2);
+  E_Float cosABC2 = 0.5*(-d2AC2+d2AB2+d2BC2)/(dAB2*dBC2);
   E_Float cosmax1 = K_FUNC::E_max(K_FUNC::E_abs(cosABC1),K_FUNC::E_abs(cosDAB1));
   E_Float cosmax2 = K_FUNC::E_max(K_FUNC::E_abs(cosABC2),K_FUNC::E_abs(cosDAB2));
   E_Float cos60 = cos(K_CONST::E_PI/3.); E_Float cos30 = cos(K_CONST::E_PI/6.); E_Float cos45 = cos(K_CONST::E_PI/4.);
@@ -1172,13 +1172,13 @@ void K_TRANSFORM::increaseGradeForRotation(E_Int indA1, E_Int indB1, E_Int indC1
 /* Retourne le nb de pts coincident entre 2 faces */
 //=============================================================================
 E_Int K_TRANSFORM::matchingEdges3D(E_Float xA1, E_Float yA1, E_Float zA1,
-                                   E_Float xB1, E_Float yB1, E_Float zB1,  
+                                   E_Float xB1, E_Float yB1, E_Float zB1,
                                    E_Float xC1, E_Float yC1, E_Float zC1,
-                                   E_Float xD1, E_Float yD1, E_Float zD1,    
+                                   E_Float xD1, E_Float yD1, E_Float zD1,
                                    E_Float xA2, E_Float yA2, E_Float zA2,
                                    E_Float xB2, E_Float yB2, E_Float zB2,
                                    E_Float xC2, E_Float yC2, E_Float zC2,
-                                   E_Float xD2, E_Float yD2, E_Float zD2, 
+                                   E_Float xD2, E_Float yD2, E_Float zD2,
                                    E_Float tol)
 {
   E_Float dx1, dy1, dz1;
@@ -1229,16 +1229,16 @@ E_Int K_TRANSFORM::matchingEdges3D(E_Float xA1, E_Float yA1, E_Float zA1,
    0 sinon */
 //=============================================================================
 E_Int K_TRANSFORM::matchingEdges2D(E_Float xA1, E_Float yA1, E_Float zA1,
-                                   E_Float xB1, E_Float yB1, E_Float zB1,   
+                                   E_Float xB1, E_Float yB1, E_Float zB1,
                                    E_Float xA2, E_Float yA2, E_Float zA2,
                                    E_Float xB2, E_Float yB2, E_Float zB2,
                                    E_Float tol)
-{  
+{
   E_Float dx1, dy1, dz1, dx2, dy2, dz2;
-  
-  //test arete A1B1 avec A2B2 
-  dx1 = xA2-xA1; dx2 = xB2-xB1;  
-  dy1 = yA2-yA1; dy2 = yB2-yB1; 
+
+  //test arete A1B1 avec A2B2
+  dx1 = xA2-xA1; dx2 = xB2-xB1;
+  dy1 = yA2-yA1; dy2 = yB2-yB1;
   dz1 = zA2-zA1; dz2 = zB2-zB1;
   if( K_FUNC::E_abs(dx1)<tol && K_FUNC::E_abs(dy1)<tol && K_FUNC::E_abs(dz1)<tol)
   {
@@ -1248,22 +1248,22 @@ E_Int K_TRANSFORM::matchingEdges2D(E_Float xA1, E_Float yA1, E_Float zA1,
     else return 1;
   }
 
-  //test arete A1B1 avec B2A2 
-  dx1 = xB2-xA1; dx2 = xA2-xB1;  
-  dy1 = yB2-yA1; dy2 = yA2-yB1; 
+  //test arete A1B1 avec B2A2
+  dx1 = xB2-xA1; dx2 = xA2-xB1;
+  dy1 = yB2-yA1; dy2 = yA2-yB1;
   dz1 = zB2-zA1; dz2 = zA2-zB1;
   if( K_FUNC::E_abs(dx1)<tol && K_FUNC::E_abs(dy1)<tol && K_FUNC::E_abs(dz1)<tol)
   {
     // verif B1 et B2 coincidents
-    if( K_FUNC::E_abs(dx2)<tol && K_FUNC::E_abs(dy2)<tol && K_FUNC::E_abs(dz2)<tol) 
+    if( K_FUNC::E_abs(dx2)<tol && K_FUNC::E_abs(dy2)<tol && K_FUNC::E_abs(dz2)<tol)
       return 2;
     else return 1;
   }
   return 0;
 }
 //=============================================================================
-void K_TRANSFORM::gradeEdge(E_Int dim, 
-                            BlockEdge* edge, list<Block*>& listOfBlks, 
+void K_TRANSFORM::gradeEdge(E_Int dim,
+                            BlockEdge* edge, list<Block*>& listOfBlks,
                             list<BlockEdge*>& listOfMergeableEdges,
                             E_Float tol)
 {
@@ -1271,11 +1271,11 @@ void K_TRANSFORM::gradeEdge(E_Int dim,
   else return gradeEdge3D(edge, listOfBlks, listOfMergeableEdges, tol);
 }
 //=============================================================================
-void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks, 
+void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
                               list<BlockEdge*>& listOfMergeableEdges,
                               E_Float tol)
 {
-  Block* blk1 = edge->_blk1; 
+  Block* blk1 = edge->_blk1;
   Block* blk2 = edge->_blk2;
   edge->_grade = K_FUNC::E_max(blk1->_nmerging, blk2->_nmerging);
   // test si facette contient un pt exterieur
@@ -1286,7 +1286,7 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
   list<BlockEdge*>::iterator itrf1;
   list<BlockEdge*>::iterator itrf2;
   list<BlockEdge*>::iterator itrf3;
-  E_Int dirt2[6]; 
+  E_Int dirt2[6];
   E_Int match0, match;
   E_Int indA2 =-1, indB2 =-1, indC2 =-1, indD2 = -1;
   E_Float ptA2[3]; E_Float ptB2[3]; E_Float ptC2[3]; E_Float ptD2[3];
@@ -1300,7 +1300,7 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
     if ((*itrf2)->_blk1 == blk1 ) diff = (*itrf2)->_dirBlk1-edge->_dirBlk1;
     else if  ((*itrf2)->_blk2 == blk1 ) diff = (*itrf2)->_dirBlk2-edge->_dirBlk1;
     if (diff != 0 && diff != 2 && diff != 4 && diff != 6)
-    { 
+    {
       //edge->_grade++;
       itrf1 = listOfMergeableEdges.begin();
       while ((itrf1 != listOfMergeableEdges.end())&&((*itrf1) != (*itrf2))) itrf1++;
@@ -1313,18 +1313,18 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
         // recuperation des extremites de itrf2 et itrf3
         for ( E_Int i = 0; i < 3; i++)
         {
-          ptA2[i] = (*itrf2)->_ptA[i]; ptB2[i] = (*itrf2)->_ptB[i]; 
+          ptA2[i] = (*itrf2)->_ptA[i]; ptB2[i] = (*itrf2)->_ptB[i];
           ptC2[i] = (*itrf2)->_ptC[i]; ptD2[i] = (*itrf2)->_ptD[i];
-          ptA3[i] = (*itrf3)->_ptA[i]; ptB3[i] = (*itrf3)->_ptB[i]; 
+          ptA3[i] = (*itrf3)->_ptA[i]; ptB3[i] = (*itrf3)->_ptB[i];
           ptC3[i] = (*itrf3)->_ptC[i]; ptD3[i] = (*itrf3)->_ptD[i];
         }
         // Trouver l arete commune (found = 1)
         E_Int found = 0;
         //--A2B2 et A3B3
-        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2], 
+        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2],
                                  ptA3[0], ptA3[1], ptA3[2], ptB3[0], ptB3[1], ptB3[2], tol);
-        if (match0 != 0 ) 
-        { 
+        if (match0 != 0 )
+        {
           for ( E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptC3[i]; pt22[i] = ptD3[i];
@@ -1332,65 +1332,65 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
           found = 1; goto next;
         }
         //A2B2 et B3C3
-        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2], 
+        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2],
                                  ptB3[0], ptB3[1], ptB3[2], ptC3[0], ptC3[1], ptC3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for ( E_Int i = 0; i < 3; i++)
-          {          
-            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptD3[i]; pt22[i] = ptA3[i]; 
+          {
+            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptD3[i]; pt22[i] = ptA3[i];
           }
           found = 1; goto next;
         }
         //A2B2 et C3D3
-        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2], 
+        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2],
                                  ptC3[0], ptC3[1], ptC3[2], ptD3[0], ptD3[1], ptD3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for ( E_Int i = 0; i < 3; i++)
           {
-            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptA3[i]; pt22[i] = ptB3[i]; 
+            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptA3[i]; pt22[i] = ptB3[i];
           }
           found = 1; goto next;
         }
         //A2B2 et D3A3
-        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2], 
+        match0 = matchingEdges2D(ptA2[0], ptA2[1], ptA2[2], ptB2[0], ptB2[1], ptB2[2],
                                  ptD3[0], ptD3[1], ptD3[2], ptA3[0], ptA3[1], ptA3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for ( E_Int i = 0; i < 3; i++)
           {
-            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptB3[i]; pt22[i] = ptC3[i]; 
+            pt11[i] = ptC2[i]; pt12[i] = ptD2[i]; pt21[i] = ptB3[i]; pt22[i] = ptC3[i];
           }
           found = 1; goto next;
-        }  
- 
+        }
+
         //--B2C2 et A3B3
-        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2], 
+        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2],
                                  ptA3[0], ptA3[1], ptA3[2], ptB3[0], ptB3[1], ptB3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptA2[i]; pt12[i] = ptD2[i]; pt21[i] = ptC3[i]; pt22[i] = ptD3[i];
-          } 
+          }
           found = 1; goto next;
         }
         //B2C2 et B3C3
-        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2], 
+        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2],
                                  ptB3[0], ptB3[1], ptB3[2], ptC3[0], ptC3[1], ptC3[2], tol);
         if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptA2[i]; pt12[i] = ptD2[i]; pt21[i] = ptD3[i]; pt22[i] = ptA3[i];
-          } 
+          }
           found = 1; goto next;
         }
         //B2C2 et C3D3
-        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2], 
+        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2],
                                  ptC3[0], ptC3[1], ptC3[2], ptD3[0], ptD3[1], ptD3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
@@ -1399,51 +1399,51 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
           found = 1; goto next;
         }
         //B2C2 et D3A3
-        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2], 
+        match0 = matchingEdges2D(ptB2[0], ptB2[1], ptB2[2], ptC2[0], ptC2[1], ptC2[2],
                                  ptD3[0], ptD3[1], ptD3[2], ptA3[0], ptA3[1], ptA3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptA2[i]; pt12[i] = ptD2[i]; pt21[i] = ptC3[i]; pt22[i] = ptB3[i];
-          } 
+          }
           found = 1; goto next;
         }
-       
+
         //--C2D2 et A3B3
-        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2], 
+        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],
                                  ptA3[0], ptA3[1], ptA3[2], ptB3[0], ptB3[1], ptB3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptA2[i]; pt12[i] = ptB2[i]; pt21[i] = ptC3[i]; pt22[i] = ptD3[i];
-          } 
+          }
           found = 1; goto next;
         }
         //C2D2 et B3C3
-        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2], 
+        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],
                                  ptB3[0], ptB3[1], ptB3[2], ptC3[0], ptC3[1], ptC3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
-          {      
+          {
             pt11[i] = ptA2[i]; pt12[i] = ptB2[i]; pt21[i] = ptA3[i]; pt22[i] = ptD3[i];}
           found = 1; goto next;
         }
         //C2D2 et C3D3
-        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],  
+        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],
                                  ptC3[0], ptC3[1], ptC3[2], ptD3[0], ptD3[1], ptD3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptA2[i]; pt12[i] = ptB2[i]; pt21[i] = ptA3[i]; pt22[i] = ptB3[i];
-          } 
+          }
           found = 1; goto next;
         }
         //C2D2 et D3A3
-        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],  
+        match0 = matchingEdges2D(ptC2[0], ptC2[1], ptC2[2], ptD2[0], ptD2[1], ptD2[2],
                                  ptD3[0], ptD3[1], ptD3[2], ptA3[0], ptA3[1], ptA3[2], tol);
         if (match0 != 0 )
         {
@@ -1452,16 +1452,16 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
             pt11[i] = ptA2[i]; pt12[i] = ptB2[i]; pt21[i] = ptC3[i]; pt22[i] = ptB3[i];
           }
           found = 1; goto next;
-        } 
-   
+        }
+
         //--D2A2 et A3B3
         match0 = matchingEdges2D(ptD2[0], ptD2[1], ptD2[2], ptA2[0], ptA2[1], ptA2[2],
                                  ptA3[0], ptA3[1], ptA3[2], ptB3[0], ptB3[1], ptB3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
-            pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptC3[i]; pt22[i] = ptD3[i]; 
+            pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptC3[i]; pt22[i] = ptD3[i];
           }
           found = 1; goto next;
         }
@@ -1471,43 +1471,43 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
         if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
-          { 
-            pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptA3[i]; pt22[i] = ptD3[i]; 
+          {
+            pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptA3[i]; pt22[i] = ptD3[i];
           }
           found = 1; goto next;
         }
         //D2A2 et C3D3
-        match0 = matchingEdges2D(ptD2[0], ptD2[1], ptD2[2], ptA2[0], ptA2[1], ptA2[2],  
+        match0 = matchingEdges2D(ptD2[0], ptD2[1], ptD2[2], ptA2[0], ptA2[1], ptA2[2],
                                  ptC3[0], ptC3[1], ptC3[2], ptD3[0], ptD3[1], ptD3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptA3[i]; pt22[i] = ptB3[i];
-          } 
+          }
           found = 1; goto next;
         }
         //D2A2 et D3A3
         match0 = matchingEdges2D(ptD2[0], ptD2[1], ptD2[2], ptA2[0], ptA2[1], ptA2[2],
                                  ptD3[0], ptD3[1], ptD3[2], ptA3[0], ptA3[1], ptA3[2], tol);
-        if (match0 != 0 ) 
+        if (match0 != 0 )
         {
           for (E_Int i = 0; i < 3; i++)
           {
             pt11[i] = ptC2[i]; pt12[i] = ptB2[i]; pt21[i] = ptB3[i]; pt22[i] = ptC3[i];
           }
           found = 1; goto next;
-        }   
+        }
 
         next:;
         // si oui : recherche d un bloc dont une face est coincidente avec la face constituee de pt11,pt12,pt21,pt22
-        if ( found != 0 ) 
+        if ( found != 0 )
         {
           for (itr2 = listOfBlks.begin(); itr2 != listOfBlks.end(); itr2++)
           {
-            E_Int ni2 = (*itr2)->_ni; E_Int nj2 = (*itr2)->_nj; 
+            E_Int ni2 = (*itr2)->_ni; E_Int nj2 = (*itr2)->_nj;
             FldArrayF* f2 = (*itr2)->_field;
-            E_Float* xt2 = f2->begin(1); 
+            E_Float* xt2 = f2->begin(1);
             E_Float* yt2 = f2->begin(2);
             E_Float* zt2 = f2->begin(3);
             E_Int shiftk2 = ni2*nj2;
@@ -1519,22 +1519,22 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
 
               switch (dir2)
               {
-                case -1: 
+                case -1:
                   indA2 = 0; indB2 = shiftj2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
                   break;
-                case  1: 
+                case  1:
                   indA2 = shifti2; indB2 = indA2+shiftj2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
                   break;
                 case -2:
-                  indA2 = 0; indB2 = shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2; 
+                  indA2 = 0; indB2 = shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
                   break;
                 case  2:
-                  indA2 = shiftj2; indB2 = indA2+shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2; 
+                  indA2 = shiftj2; indB2 = indA2+shifti2; indC2 = indB2+shiftk2; indD2 = indA2+shiftk2;
                   break;
                 case -3:
-                  indA2 = 0; indB2 = shifti2; indC2 = indB2 + shiftj2; indD2 = indA2 + shiftj2; 
+                  indA2 = 0; indB2 = shifti2; indC2 = indB2 + shiftj2; indD2 = indA2 + shiftj2;
                   break;
-                case  3: 
+                case  3:
                   indA2 = shiftk2; indB2 = indA2+shifti2; indC2 = indB2 + shiftj2; indD2 = indA2 + shiftj2;
                   break;
               }
@@ -1543,14 +1543,14 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
                                       xt2[indA2], yt2[indA2], zt2[indA2], xt2[indB2], yt2[indB2], zt2[indB2],
                                       xt2[indC2], yt2[indC2], zt2[indC2], xt2[indD2], yt2[indD2], zt2[indD2],
                                       tol);
-           
+
               if (match == 4) edge->_grade--;
             }
           }
         }
       }
     }
-  } 
+  }
   //blk2
   for (itrf2 = blk2->_listOfEdges.begin();
        itrf2 != blk2->_listOfEdges.end();
@@ -1571,11 +1571,11 @@ void K_TRANSFORM::gradeEdge3D(BlockEdge* edge, list<Block*>& listOfBlks,
   return;
 }
 //=============================================================================
-void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks, 
+void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
                               list<BlockEdge*>& listOfMergeableEdges,
                               E_Float tol)
 {
-  Block* blk1 = edge->_blk1; 
+  Block* blk1 = edge->_blk1;
   Block* blk2 = edge->_blk2;
   //edge->_grade = K_FUNC::E_max(blk1->_nmerging, blk2->_nmerging);
 
@@ -1588,10 +1588,10 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
   list<BlockEdge*>::iterator itrf1;
   list<BlockEdge*>::iterator itrf2;
   list<BlockEdge*>::iterator itrf3;
-  E_Int dirt2[4]; 
+  E_Int dirt2[4];
   E_Int indA2 =-1, indB2 =-1;
   dirt2[0] = 1; dirt2[1] =-1; dirt2[2] = 2; dirt2[3] =-2;
-  E_Float xA2, yA2, zA2, xB2, yB2, zB2; 
+  E_Float xA2, yA2, zA2, xB2, yB2, zB2;
 
   //blk1
   for (itrf2 = blk1->_listOfEdges.begin(); itrf2 != blk1->_listOfEdges.end(); itrf2++)
@@ -1600,7 +1600,7 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
     if ((*itrf2)->_blk1 == blk1 ) diff = (*itrf2)->_dirBlk1-edge->_dirBlk1;
     else if  ((*itrf2)->_blk2 == blk1 ) diff = (*itrf2)->_dirBlk2-edge->_dirBlk1;
     if ( diff != 0 && diff != 2 && diff != 4)
-    { 
+    {
       //edge->_grade++;
       itrf1 = listOfMergeableEdges.begin();
       while ((itrf1 != listOfMergeableEdges.end())&&((*itrf1) != (*itrf2))) itrf1++;
@@ -1621,37 +1621,37 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
         dx1 = ptA2[0]-ptA3[0]; dy1 = ptA2[1]-ptA3[1]; dz1 = ptA2[2]-ptA3[2];
         if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && K_FUNC::E_abs(dz1) < tol)
         {
-          xA = ptB2[0]; yA = ptB2[1]; zA = ptB2[2]; 
-          xB = ptB3[0]; yB = ptB3[1]; zB = ptB3[2]; 
+          xA = ptB2[0]; yA = ptB2[1]; zA = ptB2[2];
+          xB = ptB3[0]; yB = ptB3[1]; zB = ptB3[2];
           found = 1; goto next;
         }
         // test A2 B3
         dx1 = ptA2[0]-ptB3[0]; dy1 = ptA2[1]-ptB3[1]; dz1 = ptA2[2]-ptB3[2];
         if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && K_FUNC::E_abs(dz1) < tol)
         {
-          xA = ptB2[0]; yA = ptB2[1]; zA = ptB2[2]; 
-          xB = ptA3[0]; yB = ptA3[1]; zB = ptA3[2]; 
+          xA = ptB2[0]; yA = ptB2[1]; zA = ptB2[2];
+          xB = ptA3[0]; yB = ptA3[1]; zB = ptA3[2];
           found = 1; goto next;
         }
         // test B2A3
         dx1 = ptB2[0]-ptA3[0]; dy1 = ptB2[1]-ptA3[1]; dz1 = ptB2[2]-ptA3[2];
         if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && K_FUNC::E_abs(dz1) < tol)
         {
-          xA = ptA2[0]; yA = ptA2[1]; zA = ptA2[2]; 
-          xB = ptB3[0]; yB = ptB3[1]; zB = ptB3[2]; 
+          xA = ptA2[0]; yA = ptA2[1]; zA = ptA2[2];
+          xB = ptB3[0]; yB = ptB3[1]; zB = ptB3[2];
           found = 1; goto next;
         }
         // test B2B3
         dx1 = ptB2[0]-ptB3[0]; dy1 = ptB2[1]-ptB3[1]; dz1 = ptB2[2]-ptB3[2];
         if (K_FUNC::E_abs(dx1) < tol && K_FUNC::E_abs(dy1) < tol && K_FUNC::E_abs(dz1) < tol)
         {
-          xA = ptA2[0]; yA = ptA2[1]; zA = ptA2[2]; 
-          xB = ptA3[0]; yB = ptA3[1]; zB = ptA3[2]; 
+          xA = ptA2[0]; yA = ptA2[1]; zA = ptA2[2];
+          xB = ptA3[0]; yB = ptA3[1]; zB = ptA3[2];
           found = 1; goto next;
         }
         // si oui : recherche d un bloc dont une arete est coincidente avec les 2 autres extremites
         next:;
-        if ( found == 1 ) 
+        if ( found == 1 )
         {
           for (itr2 = listOfBlks.begin(); itr2 != listOfBlks.end(); itr2++)
           {
@@ -1660,7 +1660,7 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
             E_Float* xt2 = f2->begin(1);
             E_Float* yt2 = f2->begin(2);
             E_Float* zt2 = f2->begin(3);
-            
+
             for (E_Int i2 = 0; i2 < 4; i2++)
             {
               E_Int dir2 = dirt2[i2];
@@ -1670,9 +1670,9 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
               else if ( dir2 == 2) {indA2 = ni2-1+(nj2-1)*ni2; indB2 = (nj2-1)*ni2;}//jmax
               xA2 = xt2[indA2]; yA2 = yt2[indA2]; zA2 = zt2[indA2];
               xB2 = xt2[indB2]; yB2 = yt2[indB2]; zB2 = zt2[indB2];
-              E_Int match = matchingEdges2D(xA, yA, zA, xB, yB, zB, 
+              E_Int match = matchingEdges2D(xA, yA, zA, xB, yB, zB,
                                             xA2, yA2, zA2, xB2, yB2, zB2, tol);
-              if ( match == 2 ) 
+              if ( match == 2 )
               {
                 edge->_grade--;
               }
@@ -1703,7 +1703,7 @@ void K_TRANSFORM::gradeEdge2D(BlockEdge* edge, list<Block*>& listOfBlks,
 }
 //=============================================================================
 E_Int K_TRANSFORM::checkNegativeVolumeCells(
-  E_Int dim, E_Int im, E_Int jm, E_Int km, 
+  E_Int dim, E_Int im, E_Int jm, E_Int km,
   FldArrayF& coords)
 {
   E_Int im1 = K_FUNC::E_max(im-1,1);
@@ -1723,12 +1723,12 @@ E_Int K_TRANSFORM::checkNegativeVolumeCells(
     K_METRIC::compSurfStruct2D(
       im, jm, km,
       coords.begin(1), coords.begin(2), coords.begin(3), vol.begin());
-  else 
+  else
     K_METRIC::compMetricStruct(
-      im, jm, km, ninti, nintj, nintk, 
-      coords.begin(1), coords.begin(2), coords.begin(3), 
-      vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 
-      snorm.begin(), 
+      im, jm, km, ninti, nintj, nintk,
+      coords.begin(1), coords.begin(2), coords.begin(3),
+      vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3),
+      snorm.begin(),
       centerInt.begin(1), centerInt.begin(2), centerInt.begin(3));
   for (E_Int ind = 0; ind < ncells; ind++)
   {

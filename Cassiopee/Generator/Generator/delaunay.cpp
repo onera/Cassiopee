@@ -106,6 +106,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
 
   /* coordonnees */
   K_FLD::FldArrayF& field = *f;
+  E_Int api = field.getApi();
   E_Int nfld = field.getNfld();
   K_FLD::FldArrayF* coordp = new K_FLD::FldArrayF(sizeIni, nfld);
   K_FLD::FldArrayF& coord = *coordp; //coord
@@ -124,8 +125,7 @@ PyObject* K_GENERATOR::delaunay(PyObject* self, PyObject* args)
 
   K_FLD::FldArrayI* cn2 = new K_FLD::FldArrayI();
   K_COMPGEOM::delaunay(coefa, coefb, coefc, coefd, coord, *cn2, keepBB);
-  PyObject* tpl = K_ARRAY::buildArray(coord, varString, *cn2, -1, "TRI", 
-                                      false);
+  PyObject* tpl = K_ARRAY::buildArray3(coord, varString, *cn2, "TRI", api);
   delete &coord; delete cn2; 
   RELEASESHAREDB(res, array, f, cn);      
   return tpl;

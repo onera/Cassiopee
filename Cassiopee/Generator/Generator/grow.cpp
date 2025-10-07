@@ -43,6 +43,8 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
   E_Int res =  K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
                                       cn, eltType);
 
+  E_Int api = f->getApi();
+
   // Check data
   if (res == -1)
   {
@@ -138,14 +140,13 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
         step = ni*nj; 
         break;
     }
-    PyObject* tpl = K_ARRAY::buildArray(nfld, varString, nic, njc, nkc);
-    E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-    E_Int npts = nic*njc*nkc;
-    FldArrayF coord(npts, nfld, coordp, true);
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nic, njc, nkc, api);
+    FldArrayF* coord;
+    K_ARRAY::getFromArray3(tpl, coord);
 
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
-      E_Float* coordp0 = coord.begin(nv);
+      E_Float* coordp0 = coord->begin(nv);
       E_Float* fp = f->begin(nv);
       
       for (E_Int k = 0; k < nk; k++)
@@ -159,9 +160,9 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
           }
     }
 
-    E_Float* coordx = coord.begin(posx);
-    E_Float* coordy = coord.begin(posy);
-    E_Float* coordz = coord.begin(posz);
+    E_Float* coordx = coord->begin(posx);
+    E_Float* coordy = coord->begin(posy);
+    E_Float* coordz = coord->begin(posz);
     E_Float* fx = f->begin(posx);
     E_Float* fy = f->begin(posy);
     E_Float* fz = f->begin(posz);
@@ -180,6 +181,7 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
           coordz[indp+step] = fz[ind] + fvz[ind];
         }
  
+    RELEASESHAREDS(tpl, coord);
     RELEASESHAREDS(array, f); RELEASESHAREDB(resv, vect, fv, cnv);
     return tpl;
   }
@@ -188,17 +190,21 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
     E_Int nt = f->getSize(); E_Int nfld = f->getNfld();
     E_Int nelts = cn->getSize(); E_Int nvert = cn->getNfld()*2;
     E_Int npts = 2*nt;// nbr of pts in the new zone
-    E_Int elt = 0;
-    if (nvert == 6) elt = 6; // PENTA
-    else if (nvert == 8) elt = 7;// HEXA
-    else elt = 2;// QUAD
-    PyObject* tpl = K_ARRAY::buildArray(nfld, varString, npts, nelts, elt, NULL);
-    // Coordonnees
-    E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF coord(npts, nfld, coordp, true);
+
+    char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+    eltType2[0] = '\0';
+    if (nvert == 6) strcpy(eltType2, "PENTA");
+    else if (nvert == 8) strcpy(eltType2, "HEXA");
+    else strcpy(eltType2, "QUAD");
+
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, eltType2, 0, api);
+    FldArrayF* coord; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, coord, cn2);
+    K_FLD::FldArrayI& cm2 = *(cn2->getConnect(0));
+
     for (E_Int nv = 1; nv <= nfld; nv++)
     {
-      E_Float* coordp0 = coord.begin(nv);
+      E_Float* coordp0 = coord->begin(nv);
       E_Float* fp = f->begin(nv);
       for (E_Int ind = 0; ind < nt; ind++)
       {
@@ -206,9 +212,9 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
         coordp0[ind+nt] = fp[ind];
       }
     }
-    E_Float* coordx = coord.begin(posx);
-    E_Float* coordy = coord.begin(posy);
-    E_Float* coordz = coord.begin(posz);
+    E_Float* coordx = coord->begin(posx);
+    E_Float* coordy = coord->begin(posy);
+    E_Float* coordz = coord->begin(posz);
     E_Float* fx = f->begin(posx);
     E_Float* fy = f->begin(posy);
     E_Float* fz = f->begin(posz);
@@ -221,9 +227,6 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
       coordy[ind+nt] = fy[ind] + fvy[ind];
       coordz[ind+nt] = fz[ind] + fvz[ind];
     }
-    // Connectivite
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI connect(nelts, nvert, cnnp, true);
 
     // Connectivite
     if (nvert == 6) // PENTA
@@ -234,12 +237,12 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
 
       for (E_Int ind = 0; ind < nelts; ind++)
       {
-        connect(ind, 1) = cn10[ind];
-        connect(ind, 2) = cn20[ind];
-        connect(ind, 3) = cn30[ind];
-        connect(ind, 4) = cn10[ind] + nt;
-        connect(ind, 5) = cn20[ind] + nt;
-        connect(ind, 6) = cn30[ind] + nt;
+        cm2(ind, 1) = cn10[ind];
+        cm2(ind, 2) = cn20[ind];
+        cm2(ind, 3) = cn30[ind];
+        cm2(ind, 4) = cn10[ind] + nt;
+        cm2(ind, 5) = cn20[ind] + nt;
+        cm2(ind, 6) = cn30[ind] + nt;
       }
     }
     else if (nvert == 8) // HEXA
@@ -251,14 +254,14 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
 
       for (E_Int ind = 0; ind < nelts; ind++)
       {
-        connect(ind, 1) = cn10[ind];
-        connect(ind, 2) = cn20[ind];
-        connect(ind, 3) = cn30[ind];
-        connect(ind, 4) = cn40[ind];
-        connect(ind, 5) = cn10[ind] + nt;
-        connect(ind, 6) = cn20[ind] + nt;
-        connect(ind, 7) = cn30[ind] + nt;
-        connect(ind, 8) = cn40[ind] + nt;
+        cm2(ind, 1) = cn10[ind];
+        cm2(ind, 2) = cn20[ind];
+        cm2(ind, 3) = cn30[ind];
+        cm2(ind, 4) = cn40[ind];
+        cm2(ind, 5) = cn10[ind] + nt;
+        cm2(ind, 6) = cn20[ind] + nt;
+        cm2(ind, 7) = cn30[ind] + nt;
+        cm2(ind, 8) = cn40[ind] + nt;
       }
     }
     else if (nvert == 4) // QUAD
@@ -267,12 +270,15 @@ PyObject* K_GENERATOR::growMesh(PyObject* self, PyObject* args)
       E_Int* cn20 = cn->begin(2);
       for (E_Int ind = 0; ind < nelts; ind++)
       {
-        connect(ind, 1) = cn10[ind];
-        connect(ind, 2) = cn20[ind];
-        connect(ind, 3) = cn10[ind] + nt;
-        connect(ind, 4) = cn20[ind] + nt;
+        cm2(ind, 1) = cn10[ind];
+        cm2(ind, 2) = cn20[ind];
+        cm2(ind, 3) = cn10[ind] + nt;
+        cm2(ind, 4) = cn20[ind] + nt;
       }
     }
+
+    delete[] eltType2;
+    RELEASESHAREDU(tpl, coord, cn2);
     RELEASESHAREDB(res, array, f, cn); RELEASESHAREDB(resv, vect, fv, cnv);
     return tpl;
   }

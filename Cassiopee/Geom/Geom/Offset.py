@@ -29,7 +29,7 @@ def _compDistance__(b, a, loc):
     return None
 
 def computeH__(hi,hj,hk,dim=3, tol=1e-6):
-    if dim==2:
+    if dim == 2:
         if hi > tol and hj > tol: h = min(hi, hj)
         elif hi < tol: h = hj
         elif hj < tol: h = hi
@@ -52,6 +52,7 @@ def computeH__(hi,hj,hk,dim=3, tol=1e-6):
                 else: h=min(hi,hj)
     h = max(h,tol)
     return h
+
 #==============================================================================
 def withCart__(a, offset, pointsPerUnitLength, dim=3):
     # Grille cartesienne
@@ -141,11 +142,10 @@ def withOctree__(a, offset, pointsPerUnitLength, dim=3):
     iso = P.isoSurfMC([o], 'TurbulentDistance', value=offset)
     return iso
 
-
-
+#==============================================================================
 def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
     """Offset a surface a given distance.
     Usage: offsetSurface(t,offset, pointsPerUnitLength, algo, dim)"""
-    if algo==0: iso = withCart__(Internal.getZones(a), offset, pointsPerUnitLength, dim)
+    if algo == 0: iso = withCart__(Internal.getZones(a), offset, pointsPerUnitLength, dim)
     else: iso = withOctree__(Internal.getZones(a), offset, pointsPerUnitLength, dim)
     return iso

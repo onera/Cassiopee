@@ -30,8 +30,8 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int api = 1;
-  if (!PYPARSETUPLE_(args, O_ I_, &array, &api)) return NULL;
+  E_Int ngonType = 1;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &ngonType)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
@@ -65,8 +65,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   // Total number of elements and faces for all connectivities
   E_Int ntotelts = 0, ntotfaces = 0;
   E_Int sizeFN = 0, sizeEF = 0;
-
-  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   // Boucle sur toutes les connectivites une premiere fois pour savoir si elles
   // sont valides et calcule les quantites totales (elements, faces, etc)
@@ -146,10 +145,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
 
   // Build an empty NGON connectivity
   E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
-  E_Int ngonType = 1;
-  if (api == 1) ngonType = 1; // CGNSv3 compact array1
-  else if (api == 3) ngonType = 3; // force CGNSv4, array3
-  else if (api == 2) ngonType = 2; // CGNSv3, array2
+  E_Int api = 3; if (ngonType == 1) api = 1;
   E_Bool center = false;
 
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, ntotelts,
@@ -162,7 +158,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   E_Int* ngon2 = cn2->getNGon();
   E_Int* nface2 = cn2->getNFace();
   E_Int *indPG2 = NULL, *indPH2 = NULL; 
-  if (api == 2 || api == 3) // array2 ou array3
+  if (ngonType == 2 || ngonType == 3) // set offsets
   {
     indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
   }
@@ -314,7 +310,7 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
       }
 
       // Start offset indices
-      if (api == 2 || api == 3) // array2 ou array3
+      if (ngonType == 2 || ngonType == 3) // set offsets
       {
         E_Int c = 0, d = 0;
         if (strcmp(eltTypConn, "PENTA") == 0)

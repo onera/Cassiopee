@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 // ct: connectivite TRI
-# include "transform.h" 
+# include "transform.h"
 # include "kcore.h"
 
 using namespace K_FLD;
@@ -31,7 +31,7 @@ PyObject* K_TRANSFORM::checkTriMesh(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode;
   if (!PYPARSETUPLE_(args, O_ I_, &o, &mode)) return NULL;
-   
+
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
@@ -82,7 +82,7 @@ PyObject* K_TRANSFORM::checkTriMesh(PyObject* self, PyObject* args)
 // check mesh
 // verifie s'il y a des mailles ecrasees ou inversees dans un maillage TRI
 //=================================================================================
-void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np, 
+void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
                                E_Float* x, E_Float* y, E_Float* z,
                                E_Int& ne, E_Int& ni)
 {
@@ -103,7 +103,7 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
   E_Int indA, indB, indC, indD, ind5, ind6;
 
   E_Int maillesEcrasees = 0;
-  E_Int maillesInversees = 0;  
+  E_Int maillesInversees = 0;
 
   for (E_Int i = 0; i < ntr; i++)
   {
@@ -118,9 +118,9 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
     dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
     dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
     ndirl = sqrt(dir1[0]*dir1[0]+dir1[1]*dir1[1]+dir1[2]*dir1[2]);
-    if (ndirl < 1.e-11) 
+    if (ndirl < 1.e-11)
     {
-      printf("check: " SF_D_ ": " SF_F_ " maille ecrase.\n", i, ndirl); 
+      printf("check: " SF_D_ ": " SF_F_ " maille ecrase.\n", i, ndirl);
       maillesEcrasees += 1;
     }
 
@@ -148,7 +148,7 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
       else if (ind2 == ind5 && ind3 == ind6) {indA = ind1; indB = ind2; indC = ind3; indD = ind4;}
       else if (ind2 == ind6 && ind3 == ind4) {indA = ind1; indB = ind2; indC = ind3; indD = ind5;}
       else if (ind2 == ind6 && ind3 == ind5) {indA = ind1; indB = ind2; indC = ind3; indD = ind4;}
-      else 
+      else
       {
         indA = 0; indB = 0; indC = 0; indD = 0;
         printf("what?? problem\n");
@@ -159,7 +159,7 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
       ptC[0] = x[indC]; ptC[1] = y[indC]; ptC[2] = z[indC];
       ptD[0] = x[indD]; ptD[1] = y[indD]; ptD[2] = z[indD];
 
-      // AB ^ AC  
+      // AB ^ AC
       dir1[0] = (ptB[1]-ptA[1])*(ptC[2]-ptA[2])-(ptB[2]-ptA[2])*(ptC[1]-ptA[1]);
       dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
       dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
@@ -181,7 +181,7 @@ void K_TRANSFORM::checkTriMesh(FldArrayI& ct, E_Int np,
 
       if (inverse1 < -0.9)
       {
-        printf("check: " SF_D_ ": " SF_F_ " maille inversee.\n", i, inverse1); 
+        printf("check: " SF_D_ ": " SF_F_ " maille inversee.\n", i, inverse1);
         maillesInversees += 1;
       }
     }

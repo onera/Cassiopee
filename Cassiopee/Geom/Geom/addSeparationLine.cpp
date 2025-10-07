@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -42,9 +42,9 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
   char* varString1; char* varString2;
   char* eltType1; char* eltType2;
 
-  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, 
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1,
                                       im, jm, km, cn1, eltType1);
-  if (res1 != 1 && res1 != 2)                               
+  if (res1 != 1 && res1 != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "addSeparationLine: unknown type of array.");
@@ -58,9 +58,9 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2,
                                       im2, jm2, km2, cn2, eltType2);
-  if (res2 != 1 && res2 != 2)                               
+  if (res2 != 1 && res2 != 2)
   {
     RELEASESHAREDB(res1, array1, f1, cn1);
     PyErr_SetString(PyExc_TypeError,
@@ -100,13 +100,13 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
                     "addSeparationLine: array must be i-array.");
     return NULL;
   }
-      
+
   E_Int nfld = pos1.size();
   // Find the nearest point of two geometries
   E_Float dmax = 1.e6;
   E_Int isav = -1;
   E_Int isav2 = -1;
-    
+
   // Extremite de la ligne
   x2 = (*f2)(0,pos2[0]);
   y2 = (*f2)(0,pos2[1]);
@@ -117,7 +117,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     x = (*f1)(i,pos1[0]);
     y = (*f1)(i,pos1[1]);
     z = (*f1)(i,pos1[2]);
-      
+
     d = (x - x2)*(x - x2) + (y - y2)*(y - y2) + (z - z2)*(z - z2);
     if (d < dmax)
     {
@@ -125,7 +125,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
       dmax = d;
     }
   }
-    
+
   x2 = (*f2)(im2-1,pos2[0]);
   y2 = (*f2)(im2-1,pos2[1]);
   z2 = (*f2)(im2-1,pos2[2]);
@@ -135,7 +135,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     x = (*f1)(i,pos1[0]);
     y = (*f1)(i,pos1[1]);
     z = (*f1)(i,pos1[2]);
-      
+
     d = (x - x2)*(x - x2) + (y - y2)*(y - y2) + (z - z2)*(z - z2);
     if (d < dmax)
     {
@@ -143,19 +143,19 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
       dmax = d;
     }
   }
-    
+
   if (E_abs(dmax) > 1.e-4)
   {
     printf("Warning: addSeparationLine: msh2 is not stuck on mesh...");
     printf(" Sticking forced.\n");
   }
-    
+
   // Formation du ou des nouveaux maillages
   coord.malloc(im+2*im2, nfld);
   coord2.malloc(im+2*im2, nfld);
   ind = 0;
   npt1 = 0; npt2 = 0;
-    
+
   if (isav2 == -1 && (isav == 0 || isav == im-1)) // Extremite 1 est sur msh
   {
     for (i = im2-1; i >= 0; i--)
@@ -178,7 +178,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     }
     npt1 = ind;
   }
-    
+
   else if (isav2 == -1)  // Extremite 1 est sur msh
   {
     for (i = im2-1; i >= 0; i--)
@@ -209,7 +209,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     }
     npt2 = ind;
   }
-    
+
   else if (isav2 == 0 || isav2 == im-1) // Extremite 2 est sur msh
   {
     for (i = 0; i < im2; i++)
@@ -219,7 +219,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
       ind++;
     }
     for (i = 0; i < im; i++)
-    {  
+    {
       for (E_Int n = 1; n <= nfld; n++)
         coord(ind, n) = (*f1)(i,pos1[n-1]);
       ind++;
@@ -235,7 +235,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
   else
   {
     for (i = 0; i < im2; i++)
-    {  
+    {
       for (E_Int n = 1; n <= nfld; n++)
         coord(ind,n) = (*f2)(i,pos2[n-1]);
       ind++;
@@ -262,13 +262,13 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     }
     npt2 = ind;
   }
-    
+
   coord.reAllocMat(npt1, nfld);
   coord2.reAllocMat(npt2, nfld);
 
   K_CONNECT::supIdPoints(coord, pos1[0], pos1[1], pos1[2]);
   K_CONNECT::supIdPoints(coord2,pos1[0], pos1[1], pos1[2]);
-    
+
   npt1 = coord.getSize();
   npt2 = coord2.getSize();
 
@@ -282,7 +282,7 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-    
+
   if (npt2 > 0)
   {
     PyObject* tpl = K_ARRAY::buildArray3(*coord1, varString, npt2, 1, 1, api);
@@ -293,5 +293,5 @@ PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
   delete [] varString;
   RELEASESHAREDS(array1, f1);
   RELEASESHAREDS(array2, f2);
-  return l; 
+  return l;
 }

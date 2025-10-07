@@ -238,7 +238,7 @@ E_Int K_IO::GenIO::cedreread(
       cp[pt+2+i] = connect3[i];
     }
     connect3.malloc(0); connect1.malloc(0);
-    cn->setNGon(1);
+    cn->setNGonType(1);
 
     // Lit les frontieres
     //printf("Lecture frontieres " SF_D_ "\n", nboundaryfaces);

@@ -5,6 +5,7 @@ import XCore.PyTree as XC
 import Converter.Internal as Internal
 import KCore.test as test
 import numpy
+from mpi4py import MPI # for MPI_Init
 
 # 2D QUAD
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
@@ -75,3 +76,5 @@ test.testT(a, 5)
 
 a = XC.AdaptMesh_ExtractMesh(AM, conformize=1)
 test.testT(a, 6)
+
+XC.AdaptMesh_Exit(AM)

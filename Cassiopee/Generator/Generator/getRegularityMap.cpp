@@ -83,6 +83,9 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   E_Float* xp = f->begin(posx);
   E_Float* yp = f->begin(posy);
   E_Float* zp = f->begin(posz);
+
+  E_Int api = f->getApi();
+  E_Int npts = f->getSize();
   
   if (res == 1) // cas structure
   {
@@ -159,9 +162,11 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
 
     // Construction du tableau numpy stockant les champs 
     // definissant la regularite
-    tpl = K_ARRAY::buildArray(1, "regularity", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "regularity", im1, jm1, km1, api);
     // pointeur sur le tableau
-    E_Float* reg = K_ARRAY::getFieldPtr(tpl);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* reg = f2->begin(1);
       
     // calcul du volume
     FldArrayF vol(ncells);
@@ -565,24 +570,23 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
+
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
-  else // if (res == 2)
+  else // cas non structure
   {
-    // cas non structure
-    E_Int nelts = cn->getSize();
-    E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-    E_Int npts = f->getSize();
     E_Float etVol; E_Int eti; E_Int indi;
+    E_Int nelts = cn->getSize(); // nb d'elements
+    E_Int nnodes = cn->getNfld();
 
     // Construction du tableau numpy stockant le ratio max de volumes entre elements voisins, 
     // definissant la regularite
-    PyObject* tpl = K_ARRAY::buildArray(1, "regularity", nelts, nelts, -1, eltType, true);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), nelts*nnodes);
-    E_Float* regp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF reg(nelts,1, regp, true);
+    PyObject* tpl = K_ARRAY::buildArray3(1, "regularity", npts, *cn, eltType, 1, api, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* reg = f2->begin(1);
 
     // Calcul de la connectivite vertex->elements
     vector< vector<E_Int> > cVE(npts); 
@@ -716,6 +720,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       // volume computation not implemented for PYRA
       PyErr_SetString(PyExc_TypeError,
                       "getRegularityMap: not yet implemented for PYRA.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn); 
       return NULL;
     }
     else if (strcmp(eltType, "PENTA") == 0)
@@ -823,10 +829,12 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     {
         PyErr_SetString(PyExc_TypeError,
                         "getRegularityMap: unknown type of element.");
+        RELEASESHAREDS(tpl, f2);
         RELEASESHAREDU(array, f, cn);
         return NULL;
     }
     
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
   }

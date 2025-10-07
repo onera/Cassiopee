@@ -22,7 +22,7 @@ tbox = G.cartHexa((xmin,ymin,zmin),(xmax-xmin,ymax-ymin,zmin),(2,2,1))
 ff = P.exteriorFaces(tbox)
 ff = D.uniformize(ff, N)
 
-airfoil = D.naca(12., N=N_airfoil, sharpte=True)
+airfoil = D.naca(12., N=N_airfoil)
 
 airfoil = T.reorder(airfoil, (-1,2,3))
 distrib = D.line((0,0,0), (0.1,0,0), N=10)

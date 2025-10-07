@@ -164,6 +164,9 @@ a CGNS/Python tree zone or set of zones, depending on the selected interface.</p
 <tr class="row-odd"><td><p><a class="reference internal" href="#.Geom.connect1D" title=".Geom.connect1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.connect1D</span></code></a></p></td>
 <td><p>Connect 1D curves in a single curve.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#.Geom.Offset.offsetSurface" title=".Geom.Offset.offsetSurface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.Offset.offsetSurface</span></code></a></p></td>
+<td><p>Offset a surface a given distance.</p></td>
+</tr>
 </tbody>
 </table>
 <p><strong>&#8211; 1D distributions</strong></p>
@@ -1937,11 +1940,12 @@ and an isosurface of given &#8220;offset&#8221; distance is output.</p>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - offsetSurface (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+<span class="kn">import</span> <span class="nn">Geom.Offset</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">offsetSurface</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">pointsPerUnitLength</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Geom</span><span class="o">.</span><span class="n">Offset</span><span class="o">.</span><span class="n">offsetSurface</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">pointsPerUnitLength</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

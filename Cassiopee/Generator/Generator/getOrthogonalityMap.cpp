@@ -75,6 +75,9 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   E_Float pi = 4*atan(1.);
   E_Float degconst = 180.0 / pi;
 
+  E_Int api = f->getApi();
+  E_Int nvertex = f->getSize();
+
   if (res == 1) // cas structure
   {
     // Dimension du tableau
@@ -109,11 +112,13 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray(1, "orthogonality", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "orthogonality", im1, jm1, km1, api);
     // pointeur sur le tableau d'angle
-    E_Float* alpha = K_ARRAY::getFieldPtr(tpl);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* alphamax = f2->begin(1);
+
     E_Int ncells = im1*jm1*km1;
-    FldArrayF alphamax(ncells, 1, alpha, true);
     
     // calcul de l'orthogonalite
     if (dim == 1)         // dimension = 1D
@@ -174,7 +179,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
 
       // angle by mesh direction
       // Boucle sur les indices de la grille
-#pragma omp parallel
+      #pragma omp parallel
       {
         E_Float alpha1, alpha2, alpha3, a2, b2, c2, a, b;
         E_Int inext, jnext, knext, ind, ind1, ind2, ind3;
@@ -216,25 +221,17 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
           }
       }
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
-  else // if (res == 2)
+  else // Cas non structure
   {
-    // Cas non structure
-    E_Int nelts = cn->getSize();
-    E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-
-    E_Float* x = f->begin(posx);
-    E_Float* y = f->begin(posy);
-    E_Float* z = f->begin(posz);
-
-    PyObject* tpl = K_ARRAY::buildArray(1, "orthogonality", nelts, 
-					nelts, -1, eltType, true);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), nelts*nnodes);
-    E_Float* alphamaxp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF alphamax(nelts,1, alphamaxp, true);
+    E_Int nelts = cn->getSize(); // nb d'elements
+    PyObject* tpl = K_ARRAY::buildArray3(1, "orthogonality", nvertex, *cn, eltType, 1, api, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* alphamax = f2->begin(1);
  
     if (strcmp(eltType, "TRI") == 0)
     {
@@ -351,6 +348,8 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                     "getOrthogonalityMap: not yet implemented for PYRA.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
       return NULL;
     }
     else if (strcmp(eltType, "PENTA") == 0)
@@ -477,9 +476,11 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "getOrthogonalityMap: unknown type of element.");
+      RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
     }
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
   }

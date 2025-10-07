@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -38,7 +38,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km,
                                      cn, eltType);
 
   if (res != 2)
@@ -58,7 +58,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  
+
   if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -73,7 +73,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
   cn->getFace(0, nvpf0, ngon, indPG);
-  cNGD.setNGon(1);
+  cNGD.setNGonType(1);
   if (nvpf0 == 1) dualNGON1D(*f, *cn, extraPoints, fd, cNGD);
   else if (nvpf0 == 2) dualNGON2D(*f, *cn, extraPoints, fd, cNGD);
   else if (nvpf0 > 2)
@@ -81,14 +81,14 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
     FldArrayI cn2; FldArrayF f2;
     if (extraPoints == 1) // ajoute les pts sur les faces externes
     {
-      E_Int ext = K_TRANSFORM::createDegeneratedPrimalMesh3D(*f, *cn, f2, cn2); 
+      E_Int ext = K_TRANSFORM::createDegeneratedPrimalMesh3D(*f, *cn, f2, cn2);
       if (ext != 0) dualNGON3D(f2, cn2, fd, cNGD);
       else dualNGON3D(*f, *cn, fd, cNGD);
     }
     else dualNGON3D(*f, *cn, fd, cNGD);
   }
-  else 
-  {    
+  else
+  {
     PyErr_SetString(PyExc_TypeError,
                     "dual: array must be 1D, 2D or 3D.");
     RELEASESHAREDU(array,f,cn); return NULL;
@@ -110,14 +110,14 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
 //=============================================================================
 /* dualNGON 3D */
 //=============================================================================
-void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn, 
+void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
                              FldArrayF& fd, FldArrayI& cNGD)
 {
   // Cree les centres du maillage primal = les noeuds du maillage dual
   E_Int nfld = f.getNfld();
   E_Int nptsp = f.getSize();// nb de pts ds le maillage primal
   E_Int* cNGp = cn.begin();
-  E_Int sizeFNp = cNGp[1]; 
+  E_Int sizeFNp = cNGp[1];
   E_Int neltsp = cNGp[2+sizeFNp];
   E_Int sizeEFp = cNGp[3+sizeFNp];
 
@@ -133,9 +133,9 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
   // calcul de la connectivite Vertex/Faces primale
   vector< vector<E_Int> > cVFp(nptsp);
   K_CONNECT::connectNG2VF(cn, cVFp);
-  
+
   // calcul de la connectivite faces/elts primale
-  FldArrayI cFEp; K_CONNECT::connectNG2FE(cn, cFEp); 
+  FldArrayI cFEp; K_CONNECT::connectNG2FE(cn, cFEp);
 
   E_Int* cFEp1 = cFEp.begin(1);
   E_Int* cFEp2 = cFEp.begin(2);
@@ -157,7 +157,7 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
     vector<E_Int>& faces = cVFp[indv];
     E_Int nfacesv = faces.size();
     // Determination des sommets P' differents de P appartenant a des faces contenant P
-    vector<E_Int> vertices;// sommets differents de indv appartenant aux faces 
+    vector<E_Int> vertices;// sommets differents de indv appartenant aux faces
     for (E_Int nof = 0; nof < nfacesv; nof++)
     {
       indface = faces[nof]-1;
@@ -185,7 +185,7 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
         ptr = &cNGp[pface];
         nvert = ptr[0];
         for (E_Int nov = 1; nov <= nvert; nov++)
-        {         
+        {
           if (ptr[nov]-1 == indv || ptr[nov]-1 == indv2) found++;
         }
         if (found >= 2) facesPP0.push_back(indface);
@@ -202,9 +202,9 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
       for (j = 0; j < sizeFacesPP0; j++)
       {
         face0 = facesPP0[j];
-        etg = cFEp1[face0]; 
+        etg = cFEp1[face0];
         etd = cFEp2[face0];
-        if (etg == 0 || etd == 0) 
+        if (etg == 0 || etd == 0)
         {
           vsize--; goto skipFace;
         }
@@ -212,21 +212,21 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
 
       face0 = facesPP0[0]; //1ere face
       etg = cFEp1[face0];
-      etd = cFEp2[face0]; 
+      etd = cFEp2[face0];
       if (etd != 0) {start = etg; next = etd;}
       else {start = etd; next = etg;}
       facesPP.push_back(face0);
       cf = 1;
-      
-      dejaVu.malloc(sizeFacesPP0); 
+
+      dejaVu.malloc(sizeFacesPP0);
       dejaVu.setAllValuesAtNull(); dejaVu[0] = 1;
-      
+
       compt = 1;
       while (cf < sizeFacesPP0)
-      {        
+      {
         for (j = 1; j < sizeFacesPP0; j++)
         {
-          if (dejaVu[j] == 0) 
+          if (dejaVu[j] == 0)
           {
             face1 = facesPP0[j];
             etg = cFEp1[face1];
@@ -241,9 +241,9 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
         nextface:;
         if (compt == sizeFacesPP0) break;
       }
-      // Parcours des faces 
+      // Parcours des faces
       ptrFN[0] = facesPP.size();
-      face0 = facesPP[0]; etg = cFEp1[face0]; etd = cFEp2[face0]; 
+      face0 = facesPP[0]; etg = cFEp1[face0]; etd = cFEp2[face0];
       start = etg; next = etd; ptrFN[1] = etg; ptrFN[2] = etd;
 
       for (size_t nof = 2; nof <= facesPP.size(); nof++)
@@ -256,7 +256,7 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
       ptrEF[noface+1] = currentFace+1; currentFace++; noface++;
       skipFace:;
     }// fin boucle sur les sommets P' appartenant a une face contenant P
-    if (vsize > 1) 
+    if (vsize > 1)
     {
       ptrEF[0] = noface; ptrEF+= noface+1; sizeEFd += noface+1; neltsfin++;
     }
@@ -275,7 +275,7 @@ void K_TRANSFORM::dualNGON3D(FldArrayF& f, FldArrayI& cn,
 //=============================================================================
 /* dualNGON 2D */
 //=============================================================================
-void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints, 
+void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                              FldArrayF& fd, FldArrayI& cNGD)
 {
   FldArrayI posFace; K_CONNECT::getPosFaces(cn, posFace);
@@ -284,13 +284,13 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   E_Int nptsp = f.getSize();// nb de pts ds le maillage primal
   E_Int* cNGp = cn.begin();
   E_Int nfacesp = cNGp[0];// nb de faces ds le maillage primal
-  E_Int sizeFNp = cNGp[1]; 
+  E_Int sizeFNp = cNGp[1];
   E_Int neltsp = cNGp[2+sizeFNp];
   E_Int sizeEFp = cNGp[3+sizeFNp];
 
   fd.malloc(neltsp, nfld); //nb de pts ds le dual=nb d'elts dans le primal
   K_LOC::node2centerNGon(f, cn, fd);
-   
+
   // calcul de la connectivite Vertex/Faces primale
   vector< vector<E_Int> > cVFp(nptsp);
   K_CONNECT::connectNG2VF(cn, cVFp);
@@ -309,7 +309,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   // determination des faces externes du maillage primal
   E_Int* ptr = cNGp+2;
   vector<E_Int> facesExt;//faces externes du maillage primal: demarre a 0
-  vector<E_Int> pointsExt;//sommets externes du maillage primal: demarre a 0 
+  vector<E_Int> pointsExt;//sommets externes du maillage primal: demarre a 0
   FldArrayI dejaVu(nptsp); dejaVu.setAllValuesAtNull();//1 = point Ext
   E_Int* dejaVup = dejaVu.begin();
   for (E_Int nof = 0; nof < nfacesp; nof++)
@@ -318,7 +318,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     E_Int etg = cFEp1[nof]; E_Int etd = cFEp2[nof];
     if (etd == 0 || etg == 0) //face exterieure
     {
-      facesExt.push_back(nof);    
+      facesExt.push_back(nof);
       for (E_Int nov = 1; nov <= nvertp; nov++)
       {
         E_Int indv = ptr[nov]-1;
@@ -364,7 +364,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
         cEFp[nof+1] = currentFace+1;
         if (tagp[indface] == 0) tagp[indface] = 1;
         E_Int etg = cFEp1[indface]; E_Int etd = cFEp2[indface];
-        
+
         // connectivite faces/vertex
         cFNp[0] = 2; cFNp[1] = etg; cFNp[2] = etd;
         cFNp += 3; offFaces += 3;
@@ -374,7 +374,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
       bad: ;
     }
     tag.malloc(0);
-    //printf("%d %d - nf=%d, ne=%d\n", offElts, offFaces, currentFace, ne); 
+    //printf("%d %d - nf=%d, ne=%d\n", offElts, offFaces, currentFace, ne);
     cEFd.reAlloc(offElts); cFNd.reAlloc(offFaces);
     cNGD.malloc(4+cEFd.getSize()+cFNd.getSize());
     E_Int* cNGDp = cNGD.begin();
@@ -388,7 +388,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     return;
   }
 
-  if (facesExt.size() == 0) 
+  if (facesExt.size() == 0)
   {
     // Connectivite Elts/Faces duale
     FldArrayI cEFd(nfacesd+nptsp);
@@ -412,7 +412,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
         cEFp[nof+1] = currentFace+1;
         if (tagp[indface] == 0) tagp[indface] = 1;
         E_Int etg = cFEp1[indface]; E_Int etd = cFEp2[indface];
-        
+
         // connectivite faces/vertex
         cFNp[0] = 2; cFNp[1] = etg; cFNp[2] = etd;
         cFNp += 3;
@@ -423,7 +423,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     tag.malloc(0);
     cNGD.malloc(4+cEFd.getSize()+cFNd.getSize());
     E_Int* cNGDp = cNGD.begin();
-    cNGDp[0] = nfacesd; 
+    cNGDp[0] = nfacesd;
     cNGDp[1] = cFNd.getSize(); cNGDp += 2;
     for (E_Int v = 0; v < cFNd.getSize(); v++) cNGDp[v] = cFNd[v];
     cNGDp += cFNd.getSize();
@@ -434,18 +434,18 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   }
   /* Frontieres Externes */
   //Construction des elts degeneres en BAR
-  E_Int nfacesExt = facesExt.size(); 
+  E_Int nfacesExt = facesExt.size();
   E_Int nptsExt = pointsExt.size();
   FldArrayI cFNp2(nfacesExt*3*(2+1)+nptsExt*1*(2+1));// on rajoute 3 faces par face exterieure et 1 faces par sommet exterieur
   FldArrayI cEFp2(nfacesExt*(4+1)+nptsExt*(3+1));// on rajoute 1 elt QUAD degenere par face ext et 1 elt TRI degenere par point ext
-  E_Int* ptrFN = cFNp2.begin(); 
+  E_Int* ptrFN = cFNp2.begin();
   E_Int* ptrEF = cEFp2.begin();
   E_Int* ptr1 = NULL;
   FldArrayI facesopp(nptsp,2); facesopp.setAllValuesAt(-1);
   E_Int* foppg = facesopp.begin(1);// pour chq sommet externe on recupere les faces gauche et droite creees par les faces externes
   E_Int* foppd = facesopp.begin(2);
-  E_Int cf = 0;//compteur sur les faces 
-  E_Int ce = 0; // compteur sur les elts  
+  E_Int cf = 0;//compteur sur les faces
+  E_Int ce = 0; // compteur sur les elts
   for (E_Int nof = 0; nof < nfacesExt; nof++)
   {
     E_Int indface = facesExt[nof];
@@ -461,7 +461,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     for (E_Int nov = 1; nov <= nvertp; nov++)
     {
       ptrFN[0] = 2;
-      E_Int indv = ptr1[nov]; ptrFN[1] = indv; ptrFN[2] = indv; 
+      E_Int indv = ptr1[nov]; ptrFN[1] = indv; ptrFN[2] = indv;
       ptrFN+=3;
       if (foppg[indv-1] == -1) foppg[indv-1] = nfacesp+cf+nov+1;
       else if (foppd[indv-1] == -1) foppd[indv-1] = nfacesp+cf+nov+1;
@@ -486,7 +486,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     ptrFN[0] = 2;
     ptrFN[1] = indv+1;
     ptrFN[2] = indv+1;
-    ptrFN += 3; 
+    ptrFN += 3;
 
     //Creation de l elt associe
     ptrEF[0] = 3;
@@ -498,13 +498,13 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
     ce++; cf++;//1 face ajoutee
   }
   facesopp.malloc(0);
-  
-  // Creation de la nouvelle connectivite avec degenerescences 
+
+  // Creation de la nouvelle connectivite avec degenerescences
   nfacesp += cf; neltsp += ce;
   E_Int sizeFN0 = sizeFNp; E_Int sizeEF0 = sizeEFp;
   sizeFNp += cFNp2.getSize(); sizeEFp += cEFp2.getSize();
   FldArrayI cNGon(4+sizeFNp+sizeEFp);
-  cNGon.setNGon(1);
+  cNGon.setNGonType(1);
   cNGon[0] = nfacesp; cNGon[1] = sizeFNp;
   cNGon[2+sizeFNp] = neltsp; cNGon[3+sizeFNp] = sizeEFp;
   E_Int* ptrFN0 = cNGp+2;
@@ -512,10 +512,10 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   ptr1 = cNGon.begin()+2;
   for (E_Int i = 0; i < sizeFN0; i++)
   {ptr1[0] = ptrFN0[i]; ptr1++; }
- 
+
   for (E_Int i = 0; i < cFNp2.getSize(); i++)
   {ptr1[0] = cFNp2[i];  ptr1++; }
-  
+
   ptr1 += 2;//cEF initial
   for (E_Int i = 0; i < sizeEF0; i++)
   {ptr1[0] = ptrEF0[i]; ptr1++; }
@@ -531,7 +531,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   /*------------------------------------------------*/
   // calcul de la connectivite Vertex/Faces primale
   for (size_t nov = 0; nov < cVFp.size(); nov++) cVFp[nov].clear();
-  K_CONNECT::connectNG2VF(cNGon, cVFp); 
+  K_CONNECT::connectNG2VF(cNGon, cVFp);
   K_CONNECT::getPosFaces(cNGon, posFace);
   // calcul de la connectivite faces/elts primale
   K_CONNECT::connectNG2FE(cNGon, cFEp);
@@ -569,12 +569,12 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
       cFNp[0] = 2; cFNp[1] = etg; cFNp[2] = etd;
       cFNp += 3;
       currentFace++;
-      sizeFN2 += 3;      
+      sizeFN2 += 3;
     }
     sizeEF2 += nfacesv+1;
     cEFp += nfacesv+1; neltsd++;
   }
-  cEFd.resize(sizeEF2); cFNd.resize(sizeFN2); 
+  cEFd.resize(sizeEF2); cFNd.resize(sizeFN2);
   //cleanings
   tag.malloc(0); posFace.malloc(0);  cFEp.malloc(0);
   for (size_t nov = 0; nov < cVFp.size(); nov++) cVFp[nov].clear();
@@ -582,7 +582,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   // sortie
   cNGD.malloc(4+sizeFN2+sizeEF2);
   E_Int* cNGDp = cNGD.begin();
-  cNGDp[0] = currentFace; 
+  cNGDp[0] = currentFace;
   cNGDp[1] = cFNd.getSize(); cNGDp += 2;
   for (E_Int v = 0; v < cFNd.getSize(); v++) cNGDp[v] = cFNd[v];
   cNGDp += cFNd.getSize();
@@ -595,7 +595,7 @@ void K_TRANSFORM::dualNGON2D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
 //=============================================================================
 /* dualNGON 1D */
 //=============================================================================
-void K_TRANSFORM::dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints, 
+void K_TRANSFORM::dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
                              FldArrayF& fd, FldArrayI& cNGD)
 {
   E_Int nfld = f.getNfld();
@@ -617,7 +617,7 @@ void K_TRANSFORM::dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
   cNGD.malloc(sizeConn);
 
   cNGD[0] = nptsd; cNGD[1] = sizeFNd;
-  cNGD[2+sizeFNd] = neltsd; cNGD[2+sizeFNd+1] = sizeEFd;                    
+  cNGD[2+sizeFNd] = neltsd; cNGD[2+sizeFNd+1] = sizeEFd;
 
   #pragma omp parallel
   {
@@ -629,7 +629,7 @@ void K_TRANSFORM::dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
       ind = offset + fac*i;
       cNGD[ind] = 1; cNGD[ind+shift] = cn[ind+shift];
     }
-    
+
     offset = 4 + sizeFNd; offsetp = 4 + sizeFNp; fac = (2+shift);
     #pragma omp for
     for(E_Int i = 0; i < neltsd; i++)
@@ -648,21 +648,21 @@ void K_TRANSFORM::dualNGON1D(FldArrayF& f, FldArrayI& cn, E_Int extraPoints,
 }
 
 //=============================================================================
-/* Creation du maillage primal en ajoutant des elts degeneres a partir des 
-   faces exterieures et des aretes partageant 2 faces exterieures 
+/* Creation du maillage primal en ajoutant des elts degeneres a partir des
+   faces exterieures et des aretes partageant 2 faces exterieures
    Le tableau de coordonnees reste identique, avec nptsp points
    cNGD est alloue ici, si pas de faces externes, de taille nulle */
 //=============================================================================
 E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
-  FldArrayF& fNG, FldArrayI& cNG, 
+  FldArrayF& fNG, FldArrayI& cNG,
   FldArrayF& fNGD, FldArrayI& cNGD)
 {
   E_Int nptsp = fNG.getSize(); E_Int nfld = fNG.getNfld();
   cNGD.malloc(0);  fNGD.malloc(0);
   E_Int* cNGp = cNG.begin();
   E_Int nfacesp = cNGp[0];// nb de faces ds le maillage primal
-  E_Int sizeFNp = cNGp[1]; 
-  E_Int neltsp = cNGp[2+sizeFNp]; 
+  E_Int sizeFNp = cNGp[1];
+  E_Int neltsp = cNGp[2+sizeFNp];
   E_Int sizeEFp = cNGp[3+sizeFNp];
 
   FldArrayI posFace; K_CONNECT::getPosFaces(cNG, posFace);
@@ -688,7 +688,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
       sizeEF2 += (nvertp+2+1);// face courante + face dupliquee + nvertp faces laterales + 1 pour la taille
       nptsd += nvertp;
     }
-    ptr += nvertp+1;    
+    ptr += nvertp+1;
   }
   E_Int nfacesExt = facesExt.size();
   if (nfacesExt == 0) return 0;
@@ -704,8 +704,8 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
   E_Int* ptrFN2 = cFN2.begin();
   E_Int* ptrEF2 = cEF2.begin();
   E_Int sizeFN3 = 0; E_Int sizeEF3 = 0;
-//   E_Int cf = 0;//compteur sur les faces 
-  E_Int ce = 0; // compteur sur les elts  
+//   E_Int cf = 0;//compteur sur les faces
+  E_Int ce = 0; // compteur sur les elts
   // Creation des elements degeneres a partir des frontieres externes
   E_Int compt = nptsp;
   FldArrayI indirExt(nptsp); indirExt.setAllValuesAt(-1);//demarre a 0
@@ -724,7 +724,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
     }
     ptr1 += nvertp+1;
   }
-  vector< vector<E_Int> > facesLaterales(nptsExt); 
+  vector< vector<E_Int> > facesLaterales(nptsExt);
   FldArrayI indir(nptsExt); indir.setAllValuesAtNull();
   E_Int nfacesTot = nfacesp;
   for (E_Int nof = 0; nof < nfacesExt; nof++)
@@ -741,7 +741,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
     for (E_Int nov = 1; nov <= nvertp; nov++)
     {
       E_Int indv = ptr1[nov]-1;
-      E_Int indExt = indirExt[indv]; // numero de noeud externe associe 
+      E_Int indExt = indirExt[indv]; // numero de noeud externe associe
       if (indir[indExt] == 0) // on cree le nouveau pt degenere
       {
         for (E_Int eq = 1; eq <= nfld; eq++) fNGD(compt,eq) = fNG(indv,eq);
@@ -753,7 +753,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
     ptrFN2 += nvertp+1; sizeFN3 += nvertp+1;
     ptrEF2[2] = nfacesTot+1; nfacesTot++;
 
-    // 2.creation des faces laterales 
+    // 2.creation des faces laterales
     for (E_Int nov = 1; nov <= nvertp; nov++)
     {
       ptrFN2[0] = 4;// 4 sommets par face laterale
@@ -769,8 +769,8 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
       for (size_t i1 = 0; i1 < facesVExt1.size(); i1++)
         for (size_t i2 = 0; i2 < facesVExt2.size(); i2++)
         {
-          if (facesVExt1[i1] == facesVExt2[i2]) 
-          { 
+          if (facesVExt1[i1] == facesVExt2[i2])
+          {
             ptrEF2[2+nov] = facesVExt1[i1];// numero de la face qui existe deja
             goto skipv;
           }
@@ -782,11 +782,11 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
       ptrFN2 += 5; sizeFN3 += 5;
       ptrEF2[2+nov] = nfacesTot+1;
 
-      facesVExt1.push_back(nfacesTot+1); facesVExt2.push_back(nfacesTot+1); 
+      facesVExt1.push_back(nfacesTot+1); facesVExt2.push_back(nfacesTot+1);
       nfacesTot++;
       skipv:;
     }
-    
+
     ptrEF2 += nvertp+3; ce++; sizeEF3 += nvertp+3;
   }
   fNGD.reAllocMat(compt,nfld); indir.malloc(0); indirExt.malloc(0);
@@ -794,7 +794,7 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
     facesLaterales[nof].clear();
   facesLaterales.clear();
   sizeFN2 = sizeFN3; sizeEF2 = sizeEF3;
-  // Creation de la nouvelle connectivite avec degenerescences 
+  // Creation de la nouvelle connectivite avec degenerescences
   nfacesp = nfacesTot; neltsp +=ce;
   E_Int sizeFN0 = sizeFNp; E_Int sizeEF0 = sizeEFp;
   sizeFNp += sizeFN2; sizeEFp += sizeEF2;
@@ -809,17 +809,17 @@ E_Int K_TRANSFORM::createDegeneratedPrimalMesh3D(
   ptr1 = cNGD.begin()+2;
   for (E_Int i = 0; i < sizeFN0; i++)
   { ptr1[0] = ptrFN0[i]; ptr1++; }
- 
+
   for (E_Int i = 0; i < sizeFN2; i++)
   { ptr1[0] = ptrFN2[i]; ptr1++;}
-  
-  ptr1 += 2;// cEF initial  
+
+  ptr1 += 2;// cEF initial
   for (E_Int i = 0; i < sizeEF0; i++)
   { ptr1[0] = ptrEF0[i]; ptr1++; }
 
   for (E_Int i = 0; i < sizeEF2; i++)
   { ptr1[0] = ptrEF2[i]; ptr1++;}
-  cNGD.setNGon(1);
-  
+  cNGD.setNGonType(1);
+
   return nfacesExt;
 }

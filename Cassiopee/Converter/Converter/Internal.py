@@ -1,7 +1,5 @@
 # -- Internal --
 # -- PyTree node manipulations --
-from sys import version_info
-
 import numpy
 import fnmatch # unix wildcards
 import KCore.kcore as KCore
@@ -2019,30 +2017,18 @@ def getValue(node):
   if isinstance(n, numpy.ndarray):
     if n.dtype.char == 'S':
       if len(n.shape) == 1:
-        if version_info[0] == 2:
-          try: return n.tobytes()
-          except: return n.tostring()
-        else: return n.tobytes().decode()
+        return n.tobytes().decode()
       out = []
       for i in range(n.shape[1]):
-        if version_info[0] == 2:
-          try: v = n[:,i].tobytes()
-          except: v = n[:,i].tostring()
-        else: v = n[:,i].tobytes().decode()
+        v = n[:,i].tobytes().decode()
         out.append(v.strip())
       return out
     elif n.dtype.char == 'c':
       if len(n.shape) == 1:
-        if version_info[0] == 2:
-          try: return n.tobytes()
-          except: return n.tostring()
-        else: return n.tobytes().decode()
+        return n.tobytes().decode()
       out = []
       for i in range(n.shape[1]):
-        if version_info[0] == 2:
-          try: v = n[:,i].tobytes()
-          except: v = n[:,i].tostring()
-        else: v = n[:,i].tobytes().decode()
+        v = n[:,i].tobytes().decode()
         out.append(v.strip())
       return out
     elif n.dtype == numpy.int32:
@@ -4377,7 +4363,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           if offset is not None: # CGNSv4
             offset = offset[1]
             cNFace = cNFace.copy()
-            cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
+            cNFace = numpy.insert(numpy.abs(cNFace), offset[:-1], offset[1:]-offset[:-1])
       c += 1
 
     if cNFace is not None and NGON is not None and cNGon is not None:

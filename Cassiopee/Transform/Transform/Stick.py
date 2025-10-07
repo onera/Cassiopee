@@ -1,6 +1,5 @@
 # Stick
 import Converter.PyTree as C
-import Ael.Quantum as KDG
 import Converter.Internal as Internal
 import Transform.PyTree as T
 import numpy
@@ -14,6 +13,8 @@ import numpy
 # modifies t
 #=======================================================================================
 def _stick(t, tp, stickBCName='FamilySpecified:stick', nitSmooth=0):
+
+    import Ael.Quantum as KDG
 
     # merge tp in a single projection surface
     zones = Internal.getZones(tp)

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -39,19 +39,19 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray3(array, varString, 
+  res = K_ARRAY::getFromArray3(array, varString,
                                f, ni, nj, nk, cn, eltType);
 
   if (res != 2)
   {
     if (res == 1) RELEASESHAREDS(array, f);
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "splitElement: array is invalid.");
     return NULL;
   }
   if (strcmp(eltType, "NGON") == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "splitElement: array must be basic elements.");
     RELEASESHAREDU(array, f, cn); return NULL;
   }
@@ -65,11 +65,11 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   E_Int ne = cn->getSize();
   vector< vector<E_Int> > cEEN(ne);
   K_CONNECT::connectEV2EENbrs(eltType, np, *cn, cEEN);
-  
+
   E_Int size = 0; // size of adj
   for (E_Int i = 0; i < ne; i++)
   {
-    vector<E_Int>& voisins = cEEN[i]; 
+    vector<E_Int>& voisins = cEEN[i];
     size += voisins.size();
   }
   //printf("size = " SF_D_ "\n", size);
@@ -81,9 +81,9 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   size = 0;
   for (E_Int i = 0; i < ne; i++)
   {
-    vector<E_Int>& voisins = cEEN[i]; 
+    vector<E_Int>& voisins = cEEN[i];
     xadj[i] = size;
-    
+
     for (size_t n = 0; n < voisins.size(); n++)
     {
       adj[size+n] = voisins[n];
@@ -92,10 +92,10 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   }
   xadj[ne] = size;
   adj = adj1;
-  
+
   E_Int ncon = 1;
   E_Int objval = 0; // retour
-  
+
   //idx_t options[METIS_NOPTIONS];
   //METIS_SetDefaultOptions(options);
   //options[METIS_OPTION_CONTIG] = 1; // force contiguite
@@ -104,9 +104,9 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
 
   idx_t* parts = new idx_t [ne];
   //for (E_Int i = 0; i < ne; i++) parts[i] = 0; // dbx
-  //METIS_PartGraphRecursive(&ne, &ncon, xadj, adj, NULL, NULL, NULL, 
+  //METIS_PartGraphRecursive(&ne, &ncon, xadj, adj, NULL, NULL, NULL,
   //                         &nparts, NULL, NULL, NULL, &objval, parts);
-  METIS_PartGraphKway(&ne, &ncon, xadj, adj, NULL, NULL, NULL, 
+  METIS_PartGraphKway(&ne, &ncon, xadj, adj, NULL, NULL, NULL,
                       &nparts, NULL, NULL, NULL, &objval, parts);
   delete [] xadj; delete [] adj1;
 
@@ -135,11 +135,11 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < nparts; i++) partSize[i] = 0;
   for (E_Int i = 0; i < ne; i++)
   {
-    p = parts[i]; partPtr[p][partSize[p]] = i; partSize[p] += 1; 
+    p = parts[i]; partPtr[p][partSize[p]] = i; partSize[p] += 1;
   }
 
   delete [] partSize; delete [] partPtr;
   delete [] parts;
-  RELEASESHAREDU(array, f, cn); 
+  RELEASESHAREDU(array, f, cn);
   return l;
 }

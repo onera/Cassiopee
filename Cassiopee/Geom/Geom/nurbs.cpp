@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -27,7 +27,7 @@ using namespace std;
 /* Nurbs */
 //===========================================================================
 PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
-{ 
+{
   PyObject* Array;
   E_Int N, M;
   E_Int ordern, orderm;
@@ -61,7 +61,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
 
   FldArrayF* fw; FldArrayI* cnw;
   char* varStringw; char* eltTypew;
-  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(Array, varString, f, im, jm, km,
                                      cn, eltType);
   if (res != 1)
   {
@@ -71,7 +71,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int resw = K_ARRAY::getFromArray3(ArrayW, varStringw, fw, imw, jmw, kmw, 
+  E_Int resw = K_ARRAY::getFromArray3(ArrayW, varStringw, fw, imw, jmw, kmw,
                                       cnw, eltTypew);
   if (resw != 1)
   {
@@ -81,7 +81,7 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
                     "nurbs: (weights) input array not valid.");
     return NULL;
   }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
@@ -95,9 +95,9 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  if (im < 2) 
+  if (im < 2)
   {
-    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);    
+    RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: minimum 2 control points required.");
     return NULL;
@@ -118,15 +118,15 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
                     "nurbs: number of control points must be greater than order.");
     return NULL;
   }
-  
-  if (jm > 1 && jm < orderm) // ij-array 
+
+  if (jm > 1 && jm < orderm) // ij-array
   {
     RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: number of control points must be greater than order.");
     return NULL;
   }
-  
+
   if (km > 1)
   {
     RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
@@ -154,10 +154,10 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
                       "nurbs: all the weight must be positive.");
       return NULL;
     }
-    
+
     if (K_FUNC::fEqualZero(fw[0][i]) == true) test += 1;
   }
-  
+
   if (test == taille)
   {
     RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
@@ -166,28 +166,28 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
     return NULL;
   }
   /*Fin des Tests*/
-  
+
   E_Int api = f->getApi();
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
-  E_Float* zt = f->begin(posz); 
+  E_Float* zt = f->begin(posz);
   E_Float* W = fw->begin();
 
   if (im != 1)
   {
-    if (jm == 1) 
-    { 
+    if (jm == 1)
+    {
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularNurbs(im, ordern, N, density, xt, yt, zt, W, PF);
       RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", PF.getSize(), 1, 1, api);
       return tpl;
     }
-    else 
+    else
     {
       K_FLD::FldArrayF PF;
       E_Int niout, njout;
-      K_COMPGEOM::regularNurbs2D(im, jm, ordern, N, orderm, M, 
+      K_COMPGEOM::regularNurbs2D(im, jm, ordern, N, orderm, M,
                                  density, xt, yt, zt, W, PF, niout, njout);
       RELEASESHAREDS(Array, f); RELEASESHAREDS(ArrayW, fw);
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", niout, njout, 1, api);

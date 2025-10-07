@@ -1120,13 +1120,11 @@ E_Int K_IO::GenIO::tpread(
       FldArrayI cEF;
       K_CONNECT::connectFE2EF(cFE, ne, cEF);
       // Fusionne les connectivites
-      E_Int shift = 1; if (api == 3) shift = 0;
-      E_Int ngonType = 1; // CGNSv3 compact array1
-      if (api == 2) ngonType = 2; // CGNSv3, array2
-      else if (api == 3) ngonType = 3; // force CGNSv4, array3 
+      E_Int ngonType = api; // TODO
+      E_Int shift = 1; if (ngonType == 3) shift = 0;
       E_Int sizeFN = faces.getSize(); // size in api 1
       E_Int sizeEF = cEF.getSize(); // size in api 1
-      if (api == 3) { sizeFN -= nfaces; sizeEF -= ne; }
+      if (ngonType == 3) { sizeFN -= nfaces; sizeEF -= ne; }
       PyObject* tpl = K_ARRAY::buildArray3(3, varString, np, ne, nfaces, 
                                            "NGON", sizeFN, sizeEF, ngonType,
                                            false, api);
@@ -1135,7 +1133,7 @@ E_Int K_IO::GenIO::tpread(
       E_Int* ngon2 = cn2->getNGon();
       E_Int* nface2 = cn2->getNFace();
       E_Int *indPG2 = NULL, *indPH2 = NULL; 
-      if (api == 2 || api == 3) // array2 ou array3
+      if (ngonType == 2 || ngonType == 3) // set offsets
       {
         indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
         indPG2[0] = 0; indPH2[0] = 0;
@@ -1146,8 +1144,8 @@ E_Int K_IO::GenIO::tpread(
       for (E_Int i = 0; i < nfaces; i++)
       {
         nv = faces[c2]; ngon2[c1] = nv;
-        if (api == 3) indPG2[i+1] = indPG2[i] + nv;
-        if ((api == 2) and (i+1 < nfaces)) indPG2[i+1] = indPG2[i] + nv;
+        if (ngonType == 3) indPG2[i+1] = indPG2[i] + nv;
+        if ((ngonType == 2) and (i+1 < nfaces)) indPG2[i+1] = indPG2[i] + nv;
         for (E_Int j = 0; j < nv; j++)
         {
           ind1 = c1+j+shift; ind2 = c2+j+1;
@@ -1160,8 +1158,8 @@ E_Int K_IO::GenIO::tpread(
       for (E_Int i = 0; i < ne; i++)
       {
         nf = cEF[c2]; nface2[c1] = nf;
-        if (api == 3) indPH2[i+1] = indPH2[i] + nf;
-        if ((api == 2) and (i+1 < ne)) indPH2[i+1] = indPH2[i] + nf;
+        if (ngonType == 3) indPH2[i+1] = indPH2[i] + nf;
+        if ((ngonType == 2) and (i+1 < ne)) indPH2[i+1] = indPH2[i] + nf;
         for (E_Int j = 0; j < nf; j++)
         {
           ind1 = c1+j+shift; ind2 = c2+j+1;

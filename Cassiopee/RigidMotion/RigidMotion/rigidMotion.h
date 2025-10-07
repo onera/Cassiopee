@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -23,7 +23,7 @@
 # include "kcore.h"
 
 namespace K_RIGIDMOTION
-{ 
+{
   PyObject* move(PyObject* self, PyObject* args);
   PyObject* moveN(PyObject* self, PyObject* args);
   PyObject* evalGridMotionN(PyObject* self, PyObject* args);

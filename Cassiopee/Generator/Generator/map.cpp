@@ -46,6 +46,7 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
   E_Int resd = K_ARRAY::getFromArray3(arrayd, varStringd, fd,
                                       nid, njd, nkd, cnd, eltTyped);
 
+  E_Int api = f->getApi();
   if (res == 1 && resd == 1)
   {
     // find x,y,z if possible
@@ -74,14 +75,19 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
     FldArrayF dy(ni);
     FldArrayF dz(ni);
     
-    PyObject* tpl = K_ARRAY::buildArray(3, "x,y,z", nid, 1, 1);
-    E_Float* coord1 = K_ARRAY::getFieldPtr(tpl);
+    PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", nid, 1, 1, api);
+    FldArrayF* coord1;
+    K_ARRAY::getFromArray3(tpl, coord1);
 
-    K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-    			nid, fd->begin(posxd),
-    			coord1, coord1+nid, coord1+2*nid,
-    			s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmap(
+      ni, f->begin(posx), f->begin(posy), f->begin(posz),
+      nid, fd->begin(posxd),
+      coord1->begin(1), coord1->begin(2), coord1->begin(3),
+      s.begin(), dx.begin(), dy.begin(), dz.begin()
+    );
+
     s.malloc(0); dx.malloc(0); dy.malloc(0); dz.malloc(0);
+    RELEASESHAREDS(tpl, coord1);
     RELEASESHAREDB(res, array, f, cn);
     RELEASESHAREDB(resd, arrayd, fd, cnd);
     return tpl;
@@ -120,23 +126,25 @@ PyObject* K_GENERATOR::mapMesh( PyObject* self, PyObject* args )
     // connectivite sortante: verif bar entrante fermee
     E_Int net = nid-1;
     E_Int inds = cn1[0]; E_Int inde = cn2[net0-1];
-    E_Int elt = 1; // BAR
     //if (inds == inde) net = net-1;
 
-    PyObject* tpl = K_ARRAY::buildArray(3, "x,y,z", nid, net, elt, NULL);
-    E_Float* coord1 = K_ARRAY::getFieldPtr(tpl);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cnout(net, 2, cnnp, true); 
+    PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", nid, net,
+                                         "BAR", false, api);
+    FldArrayF* coord1; FldArrayI* cnout;
+    K_ARRAY::getFromArray3(tpl, coord1, cnout);
 
-    K_COMPGEOM::onedmapbar(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-    			   nid, fd->begin(posxd), net0, cn1, cn2, 
-    			   net, cnout.begin(1), cnout.begin(2),
-    			   coord1, coord1+nid, coord1+2*nid,
-    			   s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmapbar(
+      ni, f->begin(posx), f->begin(posy), f->begin(posz),
+      nid, fd->begin(posxd), net0, cn1, cn2, 
+      net, cnout->begin(1), cnout->begin(2),
+      coord1->begin(1), coord1->begin(2), coord1->begin(3),
+      s.begin(), dx.begin(), dy.begin(), dz.begin()
+    );
     s.malloc(0); dx.malloc(0); dy.malloc(0); dz.malloc(0);
 
-    if (inds == inde) { cnout(net-1,2)=1; }
+    if (inds == inde) { (*cnout)(net-1, 2) = 1; }
 
+    RELEASESHAREDU(tpl, coord1, cnout);
     RELEASESHAREDB(res, array, f, cn);
     RELEASESHAREDB(resd, arrayd, fd, cnd);
     return tpl;

@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -26,32 +26,32 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
 {
   char* cpacsFileName; char* exportFileName; char* format;
   if (!PYPARSETUPLE_(args, SSS_, &cpacsFileName, &exportFileName, &format)) return NULL;
-  
+
   TixiDocumentHandle tixiHandle;
   TiglCPACSConfigurationHandle tiglHandle;
   int nWings = 0;
   int nFuselages = 0;
   int i = 0;
   double x, y, z;
-  
+
   // read in cpacs xml file
   if (tixiOpenDocument(cpacsFileName, &tixiHandle) != SUCCESS)
   {
     return NULL;
   }
-  
+
   // enable logging of errors and warnings into file
   tiglLogSetFileEnding("txt");
   tiglLogSetTimeInFilenameEnabled(TIGL_FALSE);
   tiglLogToFileEnabled("demolog");
-  
+
   // now open cpacs file with tigl
-  if (tiglOpenCPACSConfiguration(tixiHandle, "", &tiglHandle) != TIGL_SUCCESS) 
+  if (tiglOpenCPACSConfiguration(tixiHandle, "", &tiglHandle) != TIGL_SUCCESS)
   {
     printf("Error: exportCAD: reading in cpacs file with TiGL.\n");
     return NULL;
   }
-  
+
   // Check cpacs validity
   TiglBoolean isValid;
   tiglIsCPACSConfigurationHandleValid(tiglHandle, &isValid);
@@ -60,26 +60,26 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
   // query number of wings and fuselages and their names
   tiglGetWingCount(tiglHandle, &nWings);
   tiglGetFuselageCount(tiglHandle, &nFuselages);
-  for (i = 1; i <= nWings; ++i) 
+  for (i = 1; i <= nWings; ++i)
   {
     char * wingUID = NULL;
     tiglWingGetUID(tiglHandle, i, &wingUID);
     printf("Wing %d name: %s\n", i, wingUID);
   }
-    
-  for (i = 1; i <= nFuselages; ++i) 
+
+  for (i = 1; i <= nFuselages; ++i)
   {
     char * fuselageUID = NULL;
     tiglFuselageGetUID(tiglHandle, i, &fuselageUID);
     printf("Fuselage %d name: %s\n", i, fuselageUID);
   }
-    
+
   // query point on the upper wing surface
-  if (nWings > 0 && tiglWingGetUpperPoint(tiglHandle, 1, 1, 0.5, 0.5, &x, &y, &z) == TIGL_SUCCESS) 
+  if (nWings > 0 && tiglWingGetUpperPoint(tiglHandle, 1, 1, 0.5, 0.5, &x, &y, &z) == TIGL_SUCCESS)
   {
     printf("Point on upper wing surface of wing 1/segment 1: (x,y,z) = (%g, %g, %g)\n", x, y, z);
   }
-    
+
   // compute intersection of wing with a x-z plane
   if (nWings > 0)
   {
@@ -89,16 +89,16 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
     tiglWingGetUID(tiglHandle, 1, &wingUID);
     // do the intersection with a plane at p = (0,0.5,0) and normal vector n = (0,1,0)
     tiglIntersectWithPlane(tiglHandle, wingUID, 0, 0.5, 0, 0, 1, 0, &int_id);
-        
+
     // get number of intersection wires
     tiglIntersectGetLineCount(tiglHandle, int_id, &nlines);
-        
+
     // query points on the first line
-    if (nlines > 0) 
+    if (nlines > 0)
     {
       double zeta = 0.;
       printf("\nIntersection points of a plane with first wing:\n");
-      while ( zeta < 1) 
+      while ( zeta < 1)
       {
         tiglIntersectGetPoint(tiglHandle, int_id, 1, zeta, &x, &y, &z);
         printf("zeta = %g\tp=(%g, %g, %g)\n", zeta, x, y, z);
@@ -107,7 +107,7 @@ PyObject* K_MODELER::exportCAD(PyObject* self, PyObject* args)
       printf("\n");
     }
   }
-    
+
   // Export geometry to iges file
   if (strcmp(format, "fmt_iges") == 0)
   {

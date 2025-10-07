@@ -99,7 +99,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   E_Int nFld = -1;
   E_Int center2node = 2; // set to 1 if coord is in nodes and F in centers
                          // set to 0 if coord and F have the same size
-  E_Int case1D;          // set to 1 if linear integration
+  E_Int case1D=0;        // set to 1 if linear integration
 
 
   char* eltTypec; FldArrayI* cnc;
@@ -285,7 +285,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       K_ARRAY::extractVars(eltTypec, eltTypecs);
 
       // check if elt is valid (BAR, QUAD, TRI)
-      for (E_Int ic = 0; ic < eltTypecs.size(); ic++)
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++)
       {
         if (strcmp(eltTypecs[ic], "BAR") == 0) case1D = 1;
         else if ((strcmp(eltTypecs[ic], "QUAD") == 0) || (strcmp(eltTypecs[ic], "TRI") == 0)) case1D = 0;

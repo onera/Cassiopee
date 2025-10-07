@@ -11,7 +11,6 @@ from . import PyTree as CPlot
 from . import Panels
 from . import iconics
 import os, os.path
-from sys import version_info
 import re, fnmatch
 
 # Set this to suppress CPlot firewalls (fixNGon, breakConnect) and enables direct v4
@@ -306,8 +305,11 @@ def buildCPlotArrays(a, topTree=[]):
             if FIREWALL:
                 if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
                     arrays[i] = Post.exteriorElts(b)
-                if b[3] == 'NGON' and b[2][0,2] > 2:
+                if api == 1: dim3D = (b[2][0,2] > 2)
+                else: dim3D = (b[2][0][0] > 2)
+                if b[3] == 'NGON' and dim3D:
                     arrays[i] = Post.exteriorElts(b)
+                    #arrays[i] = Post.exteriorFaces(b)
     return arrays
 
 #==============================================================================
@@ -520,28 +522,7 @@ def fixFileString__(files, initFile=None):
         system = platform.uname()[0]
     except: system = 'unix'
 
-    if version_info[0] == 2 and isinstance(files, unicode): # windows old bug (single unicode) in python2
-        import sys
-        encoding = sys.getfilesystemencoding()
-        # try to find { and }
-        out = []
-        while len(files) > 0:
-            c = 0
-            pos1 = files.find(u'{', c)
-            if pos1 == -1: break
-            c = pos1+1
-            pos2 = files.find(u'}', c)
-            if pos2 == -1: break
-            c = pos2+1
-            if pos2 > pos1: out.append(files[pos1+1:pos2])
-            files = files[:pos1] + files[pos2+1:]
-
-        # split les autres
-        sp = files.split(u' ')
-        for s in sp:
-            s = s.encode(encoding)
-            if s != ' ' and s != '': out.append(s)
-    elif system == 'Windows': # doesnt return initfile
+    if system == 'Windows': # doesnt return initfile
         if initFile != '' and initFile is not None:
             if len(files) == 0: out = [initFile]
             else: out = files
@@ -552,8 +533,6 @@ def fixFileString__(files, initFile=None):
             if len(files) == 0: out = [initFile]
             else: out = files[1:]
         else: out = files
-    if version_info[0] == 2:
-        out = [o.encode('utf-8') for o in out] # Force utf-8
     return out
 
 #==============================================================================
@@ -567,8 +546,7 @@ def fixFileString2__(file):
     #    s = file.encode(encoding)
     #    return s
     #else: return file
-    if version_info[0] == 2: return file.encode('utf-8')
-    else: return file
+    return file
 
 #==============================================================================
 # Load a file par un dialog
@@ -2094,18 +2072,22 @@ def tkLoadFile(files, mode='full'):
 
     if mode == 'partial': # partial load
         fileName = files[0]
-        try: format = Converter.checkFileType(fileName)
-        except:
-            print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
-            return
-        if format != 'bin_adf' and format != 'bin_hdf': mode = 'full'
+        format = Converter.convertExt2Format__(fileName)
+        if format == 'bin_cgns' or format == "unknown":
+            try: format = Converter.checkFileType(fileName)
+            except:
+                print('Error: convertFile2PyTree: fail to read file %s.'%fileName)
+                return
 
-        import Converter.Filter as Filter
-        HANDLE = Filter.Handle(files[0])
-        t = HANDLE.loadSkeleton()
-        HANDLE._loadTreeExtras(t)
-        Filter._convert2PartialTree(t)
-        HANDLE.getVariables()
+        if format == 'bin_adf' or format == 'bin_hdf':
+            # Load skeleton
+            import Converter.Filter as Filter
+            HANDLE = Filter.Handle(files[0])
+            t = HANDLE.loadSkeleton()
+            HANDLE._loadTreeExtras(t)
+            Filter._convert2PartialTree(t)
+            HANDLE.getVariables()
+        else: mode = 'full'
 
     if mode == 'full': # full load of multiple files
         t = []

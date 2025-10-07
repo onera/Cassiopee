@@ -1,4 +1,4 @@
-/*    
+/*
     Copyright 2013-2025 Onera.
 
     This file is part of Cassiopee.
@@ -43,7 +43,7 @@ E_Int findEmptyProc(E_Int NProc, FldArrayF& nbNodePerProc)
 //=======================================================================
 // Fill empty proc with another block
 //=======================================================================
-E_Int fillEmpty(E_Int iEmpty, E_Int NProc, E_Int nb, std::vector<E_Int>& out, 
+E_Int fillEmpty(E_Int iEmpty, E_Int NProc, E_Int nb, std::vector<E_Int>& out,
                 FldArrayF& nbNodePerProc, FldArrayI& nbBlockPerProc,
                 std::vector<E_Float>& nbPts)
 {
@@ -151,15 +151,15 @@ void K_DISTRIBUTOR2::graph(
       b2 = comd[2*i]/nb;
       b1 = comd[2*i]-b2*nb;
       if (b1 > b2) // retourne que si il n'existe pas deja dans la partie inferieure de la matrice
-      {  
-        exist = false;  
+      {
+        exist = false;
         for (E_Int n = 0; n < sizeComd/2; n++)
         {
           bb2 = comd[2*n]/nb;
           bb1 = comd[2*n]-bb2*nb;
           if (n != i && bb1 == b2 && bb2 == b1) { exist = true; break; }
         }
-        if (exist == false) comd[2*i] = b2 + b1*nb; // inverse 
+        if (exist == false) comd[2*i] = b2 + b1*nb; // inverse
       }
     }
   }
@@ -174,11 +174,11 @@ void K_DISTRIBUTOR2::graph(
     printf("\n");
   }
   */
-  // Graph : les vertex du graph sont les blocs, 
+  // Graph : les vertex du graph sont les blocs,
   // le poids vertex est le nbre de pts
   // les edges du graph sont les coms
   // le poids de edges est le volume de com
-  
+
   // taille des adj
   E_Int size = 0;
   if (com != NULL)
@@ -204,14 +204,14 @@ void K_DISTRIBUTOR2::graph(
       }
     }
   }
-  
+
   //printf("size of adj %d\n", size);
-  
+
   idx_t* adj = new idx_t [size];
   idx_t* xadj = new idx_t [nb+1];
   idx_t* vweight = new idx_t [nb];
   idx_t* adjweight = new idx_t [size];
-  
+
   // remplissage des poids des blocs
   //printf("weight=");
   for (E_Int i = 0; i < nb; i++)
@@ -246,7 +246,7 @@ void K_DISTRIBUTOR2::graph(
       xadj[nb] = size;
     }
   }
-  
+
   // remplissage adj + xadj a partir de comd (symetrisation ici)
   if (comd != NULL)
   {
@@ -278,14 +278,14 @@ void K_DISTRIBUTOR2::graph(
   }
 
   //printf("xadj = ");
-  //for (E_Int i = 0; i < nb; i++) printf("%d ", xadj[i]); 
+  //for (E_Int i = 0; i < nb; i++) printf("%d ", xadj[i]);
   //printf("\n");
   //printf("size of adj %d\n", size);
   //for (E_Int i = 0; i < size; i++) printf("%d adj=%d adjw=%d\n", i, adj[i], adjweight[i]);
 
   E_Int objval = 0; // retour
   E_Int ncon = 1;
-  
+
   //idx_t options[METIS_NOPTIONS];
   //METIS_SetDefaultOptions(options);
   //options[METIS_OPTION_CONTIG] = 1; // force contiguite
@@ -295,13 +295,13 @@ void K_DISTRIBUTOR2::graph(
   //options[METIS_OPTION_UFACTOR] = 1.; // imbalance tol
 
   idx_t* parts = new idx_t [nb];
-  METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, adjweight, 
+  METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, adjweight,
                       &NProc, NULL, NULL, NULL, &objval, parts);
-  //METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, NULL, 
+  //METIS_PartGraphKway(&nb, &ncon, xadj, adj, vweight, NULL, NULL,
   //                     &NProc, NULL, NULL, options, &objval, parts);
   //METIS_PartGraphRecursive(&nb, &ncon, xadj, adj, vweight, NULL, adjweight,
   //                         &NProc, NULL, NULL, options, &objval, parts);
-  
+
   delete [] adj; delete [] xadj;
   delete [] vweight; delete [] adjweight;
 
@@ -326,7 +326,7 @@ void K_DISTRIBUTOR2::graph(
     nbBlockPerProc[proc] += 1;
   }
   //printf("Info: Nb de pts moyen par proc: %d\n", int(meanPtsPerProc));
- 
+
   // Si processeur empty, prendre un bloc sur le plus chargé iterativement
   E_Int iEmpty;
   iEmpty = findEmptyProc(NProc, nbNodePerProc);
@@ -342,7 +342,7 @@ void K_DISTRIBUTOR2::graph(
 
   // external stats
   E_Int empty;
-  stats(nbPts, NProc, com, comd, sizeComd, out, empty, 
+  stats(nbPts, NProc, com, comd, sizeComd, out, empty,
         varMin, varMax, varRMS, volRatio);
 
 }
