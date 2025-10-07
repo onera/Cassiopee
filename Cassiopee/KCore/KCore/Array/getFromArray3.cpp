@@ -210,7 +210,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
       { s = PyArray_DIMS(ac)[1]; nfld = PyArray_DIMS(ac)[0]; }
       else { s = PyArray_DIMS(ac)[0]; nfld = 1; }
       c = new FldArrayI(s, nfld, (E_Int*)PyArray_DATA(ac), true);
-      if (K_STRING::cmp(eltType, 4, "NGON") == 0) c->setNGon(1);
+      if (K_STRING::cmp(eltType, 4, "NGON") == 0) c->setNGonType(1);
     }
     else if (PyList_Check(tpl) == true) // -- Array2 or Array3 --
     {
@@ -239,7 +239,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
           if (nfaces > 0 && pt[nfaces-1] == sizeNGon) { nfaces -= 1; nelts -= 1; ngon = 3; }
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), (E_Int*)PyArray_DATA(ac2),
                             (E_Int*)PyArray_DATA(ac3), (E_Int*)PyArray_DATA(ac4), sizeNGon, sizeNFace);
-          c->setNGon(ngon);
+          c->setNGonType(ngon);
         }
         else if (nc == 3) // NGON/SO/PE Array3
         {
@@ -258,7 +258,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), NULL,
                             (E_Int*)PyArray_DATA(ac2), NULL, 
                             sizeNGon, sizeNFace, (E_Int*)PyArray_DATA(ac3));
-          c->setNGon(3);
+          c->setNGonType(3);
         }
         else if (nc == 5) // NGON/NFACE/SONGON/SONFACE/PE Array2 ou 3
         {
@@ -277,7 +277,7 @@ E_Int K_ARRAY::getFromArray3(PyObject* o,
           c = new FldArrayI(nfaces, nelts, (E_Int*)PyArray_DATA(ac1), (E_Int*)PyArray_DATA(ac2),
                             (E_Int*)PyArray_DATA(ac3), (E_Int*)PyArray_DATA(ac4), 
                             sizeNGon, sizeNFace, (E_Int*)PyArray_DATA(ac5));
-          c->setNGon(ngon);
+          c->setNGonType(ngon);
         }
       }
       else // suppose BE => compact + stride (Array2 ou Array3)
