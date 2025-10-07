@@ -53,7 +53,7 @@ E_Int K_POST::integStruct2D(E_Int ni, E_Int nj, E_Int nk,
     // and field F in center 
     for (E_Int n = 1; n <= numberOfVariables; n++)
     { 
-      K_POST::integStructNodeCenter2D(
+      K_POST::integStructCellCenter2D(
         NI-1, NJ-1,
         ratio.begin(), surf.begin(), F.begin(n),
         result);
@@ -66,7 +66,7 @@ E_Int K_POST::integStruct2D(E_Int ni, E_Int nj, E_Int nk,
     // Compute integral, coordinates and field have the same size
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      K_POST::integStructCellCenter2D(
+      K_POST::integStructNodeCenter2D(
         NI, NJ,
         ratio.begin(), surf.begin(), F.begin(n),
         result);
@@ -110,7 +110,7 @@ E_Int K_POST::integStruct1D(E_Int ni, E_Int nj, E_Int nk,
     // and field F in center 
     for (E_Int n = 1; n <= numberOfVariables; n++)
     { 
-      K_POST::integStructNodeCenter1D(
+      K_POST::integStructCellCenter1D(
         NI-1,
         ratio.begin(), length.begin(), F.begin(n),
         result);
@@ -123,7 +123,7 @@ E_Int K_POST::integStruct1D(E_Int ni, E_Int nj, E_Int nk,
     // Compute integral, coordinates and field have the same size
     for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      K_POST::integStructCellCenter1D(
+      K_POST::integStructNodeCenter1D(
         NI,
         ratio.begin(), length.begin(), F.begin(n),
         result);
@@ -140,7 +140,7 @@ E_Int K_POST::integStruct1D(E_Int ni, E_Int nj, E_Int nk,
 //   I(ABCD) = Aire(ABCD)*(F(A)+F(B)+F(C)+F(D))/4
 //   Aire(ABCD) = ||AB^AC||/2+||DB^DC||/2
 // ============================================================================
-void K_POST::integStructCellCenter2D(
+void K_POST::integStructNodeCenter2D(
   const E_Int ni, const E_Int nj,
   const E_Float* ratio, const E_Float* surf, const E_Float* field,
   E_Float& result)
@@ -148,6 +148,7 @@ void K_POST::integStructCellCenter2D(
   E_Int ni1 = ni - 1;
   result = 0.0;
 
+  #pragma omp parallel for collapse(2) reduction(+:result)
   for (E_Int j = 0; j <= nj - 2; j++)
   {
     for (E_Int i = 0; i <= ni - 2; i++)
@@ -166,14 +167,14 @@ void K_POST::integStructCellCenter2D(
       result += surf[ind] * (f1 + f2 + f3 + f4);
     }
   }
-  result /= K_CONST::FOUR;
+  result *= 0.25;
 }
 
 // ============================================================================
 // Compute linear integral of field F, structured 1D case
 //   I(AB) = Length(AB)*(F(A)+F(B))/2
 // ============================================================================
-void K_POST::integStructCellCenter1D(
+void K_POST::integStructNodeCenter1D(
   const E_Int ni,
   const E_Float* ratio, const E_Float* length, const E_Float* field,
   E_Float& result)
@@ -190,7 +191,7 @@ void K_POST::integStructCellCenter1D(
 
     result += length[ind] * (f1 + f2);
   }
-  result *= K_CONST::ONE_HALF;
+  result *= 0.5;
 }
 
 // ============================================================================
@@ -198,13 +199,14 @@ void K_POST::integStructCellCenter1D(
 // field defined in centers, structured case
 // IN: ni1, nj1 : dim en centres
 // ============================================================================
-void K_POST::integStructNodeCenter2D(
+void K_POST::integStructCellCenter2D(
   const E_Int ni1, const E_Int nj1,
   const E_Float* ratio, const E_Float* surf, const E_Float* field,
   E_Float& result)
 {
   result = 0.0;
 
+  #pragma omp parallel for collapse(2) reduction(+:result)
   for (E_Int j = 0; j <= nj1 - 1; j++)
   {
     for (E_Int i = 0; i <= ni1 - 1; i++)
@@ -218,7 +220,7 @@ void K_POST::integStructNodeCenter2D(
 // ============================================================================
 // Compute linear integral of field F, node/center case, 1D
 // ============================================================================
-void K_POST::integStructNodeCenter1D(
+void K_POST::integStructCellCenter1D(
   const E_Int ni,
   const E_Float* ratio, const E_Float* length, const E_Float* field,
   E_Float& result)

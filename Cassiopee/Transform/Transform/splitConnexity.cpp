@@ -285,7 +285,7 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
 
     K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                      fp, cnp);
-    cnp.setNGon(cn->getNGonType());
+    cnp.setNGonType(cn->getNGonType());
     tpl = K_ARRAY::buildArray3(fp, varString, cnp, "NGON", api);
     delete &fp; delete components[i];
     PyList_Append(l, tpl);

@@ -781,7 +781,7 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
    + cleanConnectivity
    Il faut que les champs soient ranges dans le meme ordre */
 //=============================================================================
-PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
+PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI& cn1,
                                 FldArrayF& f2, FldArrayI& cn2,
                                 E_Int posx, E_Int posy, E_Int posz,
                                 char* varString, E_Float tol)
@@ -803,9 +803,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
   E_Int npts = npts1 + npts2;
 
   E_Int api = f1.getApi();
-  E_Int ngonType = 1; // CGNSv3 compact array1
-  if (api == 2) ngonType = 2; // CGNSv3, array2
-  else if (api == 3) ngonType = 3; // force CGNSv4, array3
+  E_Int ngonType = cn1.getNGonType();
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
                                        nfaces, "NGON", sizeFN, sizeEF,
                                        ngonType, false, api);
@@ -817,7 +815,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
   E_Int *nface1 = cn1.getNFace(), *nface2 = cn2.getNFace(), *nface = cn->getNFace();
   E_Int *indPG1 = NULL, *indPG2 = NULL, *indPG = NULL;
   E_Int *indPH1 = NULL, *indPH2 = NULL, *indPH = NULL;
-  if (api == 2 || api == 3)
+  if (ngonType == 2 || ngonType == 3)
   {
     indPG1 = cn1.getIndPG(); indPG2 = cn2.getIndPG(); indPG = cn->getIndPG();
     indPH1 = cn1.getIndPH(); indPH2 = cn2.getIndPH(); indPH = cn->getIndPH();
@@ -849,7 +847,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI&  cn1,
     #pragma omp for
     for (E_Int i = 0; i < sizeEF2; i++) nface[i+sizeEF1] = nface2[i] + nfaces1;
 
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
         #pragma omp for
         for (E_Int i = 0; i < nfaces1; i++) indPG[i] = indPG1[i];

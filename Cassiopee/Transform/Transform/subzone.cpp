@@ -669,10 +669,8 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
-    E_Int shift = 1; if (api == 3) shift = 0;
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn->getNGonType();
+    E_Int shift = 1; if (ngonType == 3) shift = 0;
 
     E_Int *ngon = cn->getNGon(), *indPG = cn->getIndPG();
     E_Int *nface = cn->getNFace(), *indPH = cn->getIndPH();
@@ -749,7 +747,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     K_ARRAY::getFromArray3(tpl, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -775,7 +773,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       #pragma omp for nowait
       for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = cEFTemp[i];
 
-      if (api == 2 || api == 3) // array2 or array3
+      if (ngonType == 2 || ngonType == 3) // set offsets
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nbFacesOut; i++) indPG2[i] = cPGTemp[i];
@@ -965,10 +963,8 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
-    E_Int shift = 1; if (api == 3) shift = 0;
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn->getNGonType();
+    E_Int shift = 1; if (ngonType == 3) shift = 0;
 
     E_Int *ngon = cn->getNGon(), *indPG = cn->getIndPG();
     E_Int *nface = cn->getNFace(), *indPH = cn->getIndPH();
@@ -1046,7 +1042,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     K_ARRAY::getFromArray3(tpln, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -1059,7 +1055,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       #pragma omp for nowait
       for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = cEFTemp[i];
 
-      if (api == 2 || api == 3) // array2 or array3
+      if (ngonType == 2 || ngonType == 3) // set offsets
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nbFacesOut; i++) indPG2[i] = cPGTemp[i];
@@ -1285,10 +1281,10 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
 
     // Acces non universel sur les ptrs
+    E_Int ngonType = cn->getNGonType();
     E_Int* ngon = cn->getNGon();
     E_Int* indPG = cn->getIndPG();
-    E_Int shift = 1;
-    if (api == 3) shift = 0;
+    E_Int shift = 1; if (ngonType == 3) shift = 0;
 
     // Calcul du nombre de points et aretes uniques dans la nouvelle
     // connectivite
@@ -1334,9 +1330,6 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int sizeFN2 = (2+shift)*nfaces2;
     E_Int nelts2 = n;
 
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
     E_Bool center = false;
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
                                          nfaces2, "NGON", sizeFN2, sizeEF2,
@@ -1346,7 +1339,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int* ngon2 = cn2->getNGon();
     E_Int* nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -1357,7 +1350,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       fidx = faceListp[i]-1;
       E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
       nface2[c2] = nbnodes;
-      if (api == 2 || api == 3) indPH2[i] = nbnodes;
+      if (ngonType == 2 || ngonType == 3) indPH2[i] = nbnodes;
 
       for (E_Int p = 0; p < nbnodes; p++)
       {
@@ -1381,7 +1374,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int indv;
-      if (api == 2 || api == 3)
+      if (ngonType == 2 || ngonType == 3)
       {
         #pragma omp for
         for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
@@ -1631,11 +1624,12 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
 
     // Acces non universel sur les ptrs
+    E_Int ngonType = cn->getNGonType();
+    E_Int shift = 1; if (ngonType == 3) shift = 0;
+
     E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
     E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
-    E_Int shift = 1;
     E_Int nelts = cn->getNElts(); E_Int nfaces = cn->getNFaces();
-    if (api == 3) shift = 0;
 
     // Calcul du nombre de points et aretes uniques dans la nouvelle
     // connectivite
@@ -1681,9 +1675,6 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int sizeFN2 = (2+shift)*nfaces2;
     E_Int nelts2 = n;
 
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
     E_Bool center = false;
     PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
                                          nfaces2, "NGON", sizeFN2, sizeEF2,
@@ -1693,7 +1684,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     E_Int* ngon2 = cn2->getNGon();
     E_Int* nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -1704,7 +1695,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       fidx = faceListp[i]-1;
       E_Int* face = cn->getFace(fidx, nbnodes, ngon, indPG);
       nface2[c2] = nbnodes;
-      if (api == 2 || api == 3) indPH2[i] = nbnodes;
+      if (ngonType == 2 || ngonType == 3) indPH2[i] = nbnodes;
 
       for (E_Int p = 0; p < nbnodes; p++)
       {
@@ -1744,7 +1735,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int indv, indf, etg, etd;
-      if (api == 2 || api == 3)
+      if (ngonType == 2 || ngonType == 3)
       {
         #pragma omp for
         for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = 2;
