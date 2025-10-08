@@ -970,7 +970,7 @@ def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
            rmDuplicatedFaces=True, rmDuplicatedElts=True,
            rmDegeneratedFaces=True, rmDegeneratedElts=True,
            indices=None):
-    fields = C.getAllFields(t, 'nodes', api=1)
+    fields = C.getAllFields(t, 'nodes', api=3)
     fields = Generator.close(fields, tol, rmOverlappingPts, rmOrphanPts,
                              rmDuplicatedFaces, rmDuplicatedElts,
                              rmDegeneratedFaces, rmDegeneratedElts,
