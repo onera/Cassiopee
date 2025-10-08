@@ -30,4 +30,3 @@ a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
 a = C.signNGonFaces(a)
 a = G.close(a, 1.e-6) # lose sign faces
 test.testT(a, 5)
-

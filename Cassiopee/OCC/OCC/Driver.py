@@ -993,7 +993,7 @@ class Driver:
             elif Cmpi.rank == 0 and hash >= raf:
                 m = self.readSnaphot(hash)
                 m = self.remesh(m, nv)
-                self.addCoefs(hash, m)            
+                self.addCoefs(hash, m)
 
     def evalROM(self, coords):
         m = self.Phi @ coords
