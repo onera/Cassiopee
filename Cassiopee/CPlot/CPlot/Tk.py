@@ -288,7 +288,7 @@ def buildCPlotArrays(a, topTree=[]):
     # Transmet les maillages contenant les borders elts pour les zones volumiques
     if __ONEOVERN__ > 0:
         for z in Internal.getZones(ap):
-            dimz = Internal.getZoneDim(z) 
+            dimz = Internal.getZoneDim(z)
             if dimz[0] == 'Unstructured' and dimz[4] == 3:
                 # dont call in ME for now because exteriorElts not working on ME
                 if ',' not in dimz[3]: P._exteriorElts(z)
