@@ -5,6 +5,7 @@ import Transform.PyTree as T
 import Apps.Mesh.Mirabelle3 as Mirabelle
 import Geom.PyTree as D
 import KCore.test as test
+
 t = C.convertFile2PyTree("premirabelle.cgns")
 
 # Getting the linelet
@@ -29,8 +30,8 @@ treated = []
 Mirabelle._propagate(t, g, stack, treated, linelet, h1, h2, isAvg=isAvg, nAvg=2)
 
 t = C.rmBCOfType(t, 'BC*') # rm Wall BCs
-t = C.rmBCOfType(t, 'BCMatch') # rm Wall BCs
-t = C.rmBCOfType(t, 'BCOverlap') # rm Wall BCs
+t = C.rmBCOfType(t, 'BCMatch')
+t = C.rmBCOfType(t, 'BCOverlap')
 
 T._makeDirect(t)
 test.testT(t, 1)

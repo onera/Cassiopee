@@ -994,7 +994,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                 _isoAlphaMin[nfield] = PyFloat_AsDouble(amin);
                 _isoAlphaMax[nfield] = PyFloat_AsDouble(amax);
                 PyObject* cmap = PyList_GetItem(l, 6); // colormap for isos
-                _isoColormap[nfield] = (int)(PyLong_AsLong(cmap));
+                if (PyLong_Check(cmap) == true) _isoColormap[nfield] = (int)(PyLong_AsLong(cmap));
+                else _isoColormap[nfield] = (int)(PyFloat_AsDouble(cmap));
               }
             }
           }

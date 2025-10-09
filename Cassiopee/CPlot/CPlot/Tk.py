@@ -5,8 +5,8 @@ import Converter.PyTree as C
 import Converter
 import Converter.Internal as Internal
 from . import CPlot as CP
-import Transform
-import Post
+import Transform.PyTree as T
+import Post.PyTree as P
 from . import PyTree as CPlot
 from . import Panels
 from . import iconics
@@ -62,8 +62,8 @@ __FIELD__ = '__all__'
 # Status de l'arbre (MAIN=1 ou <=0 - voir ci-dessous)
 __MAINTREE__ = 1
 # Les differents status pour l'arbre
-MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4;
-UNDEFINEDBC=-5; IJK=-6; MONITOR=-7;UNDEFINEDIBC=-8;
+MAIN=1; DEFINEDBC=-1; TIME=-2; SLICE=-2; CELLN=-3; MESHQUAL=-4
+UNDEFINEDBC=-5; IJK=-6; MONITOR=-7; UNDEFINEDIBC=-8
 
 # Sauvegarde des zones actives de main (avant de basculer sur un arbre
 # temporaire)
@@ -277,39 +277,38 @@ def buildCPlotArrays(a, topTree=[]):
                 a = C.center2Node(a, __FIELD__)
     else: a = C.node2Center(a)
 
+    ap = Internal.copyRef(a)
+
+    # Oneovern for structured grids
+    if __ONEOVERN__ > 1:
+        for z in Internal.getZones(ap):
+            if Internal.getZoneType(z) == 1:
+                T._oneovern(z, (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
+
+    # Transmet les maillages contenant les borders elts pour les zones volumiques
+    if __ONEOVERN__ > 0:
+        for z in Internal.getZones(ap):
+            dimz = Internal.getZoneDim(z) 
+            if dimz[0] == 'Unstructured' and dimz[4] == 3:
+                # dont call in ME for now because exteriorElts not working on ME
+                if ',' not in dimz[3]: P._exteriorElts(z)
+
     if FIREWALL: api = 1
     else: api = 3
 
     if __FIELD__ == '__all__':
-        arrays = C.getAllFields(a, 'nodes', api=api)
+        arrays = C.getAllFields(ap, 'nodes', api=api)
     elif __FIELD__ == '__none__':
-        arrays = C.getFields(Internal.__GridCoordinates__, a, api=api)
+        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=api)
     else:
-        arrays = C.getFields(Internal.__GridCoordinates__, a, api=api)
+        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=api)
         v = __FIELD__.split(':')
         if len(v) == 2: v = v[1]
         else: v = __FIELD__
-        arrays2 = C.getField(v, a, api=api)
+        arrays2 = C.getField(v, ap, api=api)
         for i, b in enumerate(arrays):
             if b != []: Converter._addVars([arrays[i], b])
 
-    if __ONEOVERN__ > 1:
-        for i, b in enumerate(arrays):
-            if len(b) == 5:
-                arrays[i] = Transform.oneovern(b, (__ONEOVERN__,__ONEOVERN__,__ONEOVERN__))
-
-    # Transmet les maillages contenant les borders elts pour HEXA, TETRA,
-    # PYRA, PENTA, NGON
-    if __ONEOVERN__ > 0:
-        for i, b in enumerate(arrays):
-            if FIREWALL:
-                if b[3] == 'TETRA' or b[3] == 'HEXA' or b[3] == 'PYRA' or b[3] == 'PENTA':
-                    arrays[i] = Post.exteriorElts(b)
-                if api == 1: dim3D = (b[2][0,2] > 2)
-                else: dim3D = (b[2][0][0] > 2)
-                if b[3] == 'NGON' and dim3D:
-                    arrays[i] = Post.exteriorElts(b)
-                    #arrays[i] = Post.exteriorFaces(b)
     return arrays
 
 #==============================================================================
