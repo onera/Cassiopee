@@ -3497,7 +3497,6 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
             else: gbcs.append(getBCs(z, extrapFlow=False))
     else: _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
-    #_TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
     _TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
     Internal._fixNGon(t, api=api)
 
@@ -7148,8 +7147,8 @@ def _addBCFaces(t, BCFaces):
 def createHook(a, function='None'):
     """Create a hook for a given function.
       Usage: hook = createHook(a, function)"""
-    if function == 'extractMesh': # growOfEps pas pret pour Array2
-        fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    if function == 'extractMesh':
+        fields = getFields(Internal.__GridCoordinates__, a, api=3)
     else:
         fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if function == 'extractMesh' or function == 'adt':
@@ -7192,7 +7191,7 @@ def identifyNodes(hook, a, tol=1.e-11):
 def identifyFaces(hook, a, tol=1.e-11):
     """Find in a hook nearest points of face centers of a. return identified face indices.
     Usage: identifyFaces(hook, a)"""
-    fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol)
     else: return Converter.identifyFaces(hook, fields, tol)
 
@@ -7238,14 +7237,14 @@ def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
             varsC[nov] = vc
 
     zones = Internal.getZones(tRcv)
-    coordsR = getFields(Internal.__GridCoordinates__, zones, api=1)
+    coordsR = getFields(Internal.__GridCoordinates__, zones, api=3)
 
     if varsN != [] and hookN is not None:
-        fnodes = getFields(Internal.__FlowSolutionNodes__, tDnr, api=1)
+        fnodes = getFields(Internal.__FlowSolutionNodes__, tDnr, api=3)
         resn = Converter.identifySolutions(coordsR, fnodes, hookN, vars=varsN, tol=tol)
         setFields(resn, zones, 'nodes')
     if varsC != [] and hookC is not None:
-        fcenters = getFields(Internal.__FlowSolutionCenters__, tDnr, api=1)
+        fcenters = getFields(Internal.__FlowSolutionCenters__, tDnr, api=3)
         centersR = Converter.node2Center(coordsR)
         resc = Converter.identifySolutions(centersR, fcenters, hookC, vars=varsC, tol=tol)
         setFields(resc, zones, 'centers')
@@ -7263,7 +7262,7 @@ def nearestNodes(hook, a):
 def nearestFaces(hook, a):
     """Identify nearest face centers to a in hook. return identified face indices.
     Usage: nearestFaces(hook, a)"""
-    fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if len(fields) == 1: return Converter.nearestFaces(hook, fields[0])
     else: return Converter.nearestFaces(hook, fields)
 
