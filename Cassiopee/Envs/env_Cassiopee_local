@@ -16,7 +16,18 @@ fi
 if [ -n "${PIP_DISABLE_PIP_VERSION_CHECK}" ]; then
    env | grep PIP_DISABLE_PIP_VERSION_CHECK | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
 fi
-exit
+if [ -n "${ASAN_OPTIONS}" ]; then
+   env | grep ASAN_OPTIONS | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+fi
+if [ -n "${LSAN_OPTIONS}" ]; then
+   env | grep LSAN_OPTIONS | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+fi
+if [ -n "${ASAN_LIB}" ]; then
+   env | grep ASAN_LIB | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+fi
 
 #unsetenv SLURM*
 #unsetenv OMP_PLACES
+
+exit
+
