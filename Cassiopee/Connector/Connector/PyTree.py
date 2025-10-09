@@ -1047,7 +1047,7 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b, api=3) # api=1 a cause de node2Center en center_in dans le Connector.py
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=3)
         if coords != []:
             if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=3)
             else: cellN = C.getField(cellNName, b, api=3)
