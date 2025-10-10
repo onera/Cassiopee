@@ -37,8 +37,8 @@ def line(P1, P2, N=100):
 
 def polyline(Pts):
     """Create a polyline of N points.
-    Usage: polyline( [(x1,y1,z1),....,(xn,yn,zn)])"""
-    a = Geom.polyline( Pts )
+    Usage: polyline([(x1,y1,z1),....,(xn,yn,zn)])"""
+    a = Geom.polyline(Pts)
     return C.convertArrays2ZoneNode('polyline', [a])
 
 def circle(Center, R, tetas=0., tetae=360., N=100):
@@ -51,19 +51,17 @@ def circle(Center, R, tetas=0., tetae=360., N=100):
 def bezier(t, N=100, M=100, density=-1):
     """Create a a Bezier curve controlled by an array of control points.
     Usage: bezier(tc, N)"""
-    return C.TZGC1(t, 'nodes', True, Geom.bezier, N, M, density)
+    return C.TZGC3(t, 'nodes', True, Geom.bezier, N, M, density)
 
 def spline(t, order=3, N=100, M=100, density=-1):
     """Create a spline of N points.
     Usage: spline(ctrlsPts, order, N)"""
-    return C.TZGC1(t, 'nodes', True, Geom.spline, order, N, M, density)
+    return C.TZGC3(t, 'nodes', True, Geom.spline, order, N, M, density)
 
 def nurbs(t, weight='weight', order=3, N=100, M=100, density=-1):
     """Create a nurbs of N points.
     Usage: nurbs(ctrlPts, order, N)"""
-    w = C.getField(weight, t, api=1)[0]
-    Pts = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
-    Pts = Converter.addVars([Pts,w])
+    Pts = C.getAllFields(t, 'nodes', api=3)[0]
     surf = Geom.nurbs(Pts, weight, order, N, M, density)
     return C.convertArrays2ZoneNode('nurbs', [surf])
 
@@ -204,14 +202,14 @@ def getDistantIndex(t, ind, l):
     """Return the index of 1D array defining a mesh located at a
     distance l of ind.
     Usage: getDistantIndex(t, ind, l)"""
-    a = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
+    a = C.getFields(Internal.__GridCoordinates__, t, api=3)[0]
     return Geom.getDistantIndex(a, ind, l)
 
 def getNearestPointIndex(t, pointList):
     """Return the nearest index of points in array.
     Usage: getNearestPointIndex(t, pointList)"""
-    a = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
-    return Geom.getNearestPointIndex( a, pointList )
+    a = C.getFields(Internal.__GridCoordinates__, t, api=3)[0]
+    return Geom.getNearestPointIndex(a, pointList)
 
 def getCurvatureHeight(t):
     """Return the curvature height for each point.
@@ -287,7 +285,7 @@ def addSeparationLine(t, line0):
         zones.append(zone)
     return zones
 
-# Obsolete
+# Obsolete name
 def lineGenerate(t, line):
     """Obsolete function."""
     return lineDrive(t, line)
