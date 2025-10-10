@@ -105,7 +105,7 @@ def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=
 def conformOctree3(o):
     """Conformize an octree3.
     Usage: conformOctree3(octree)"""
-    a = C.getAllFields(o, 'nodes')[0]
+    a = C.getAllFields(o, 'nodes', api=1)[0]
     a2 = Generator.conformOctree3(a)
     return C.convertArrays2ZoneNode(o[0], [a2])
 
@@ -416,15 +416,15 @@ def constrainedDelaunay(contour, tol=1.e-10, keepBB=0):
 def plaster(contours, surfaces, side=0):
     """Create a sticky plaster around contours surrounded by surfaces.
     Usage: plaster(contours, surfaces)"""
-    surfn = C.getAllFields(surfaces, 'nodes')
-    cs = C.getAllFields(contours, 'nodes')
+    surfn = C.getAllFields(surfaces, 'nodes', api=1)
+    cs = C.getAllFields(contours, 'nodes', api=1)
     pa = Generator.plaster(cs, surfn, side)
     return C.convertArrays2ZoneNode('plaster', [pa])
 
 def fittingPlaster(contour, bumpFactor=0.):
     """Create a sticky plaster around a contour and bump it.
     Usage: plaster(contour, bumpFactor)"""
-    c = C.getAllFields(contour, 'nodes')[0]
+    c = C.getAllFields(contour, 'nodes', api=1)[0]
     pa = Generator.fittingPlaster(c, bumpFactor)
     return C.convertArrays2ZoneNode('plaster', [pa])
 
@@ -434,7 +434,7 @@ def fittingPlaster(contour, bumpFactor=0.):
 def T3mesher2D(a, grading=1.2, triangulateOnly=0, metricInterpType=0):
     """Create a delaunay mesh given a set of points defined by a.
     Usage: T3mesher2D(a, grading, triangulateOnly, metricInterpType) """
-    c = C.getAllFields(a, 'nodes')[0]
+    c = C.getAllFields(a, 'nodes', api=1)[0]
     c = Generator.T3mesher2D(c, grading, triangulateOnly, metricInterpType)
     return C.convertArrays2ZoneNode('tri', [c])
 
@@ -461,7 +461,7 @@ def gapfixer(contour, cloud, hardPoints=None, refine=1):
     If the optional refine argument is set to 0, the resulting surface will be a contrained triangulation of the contour [and the additional hard nodes].
     Usage: gapFixer(contour, cloud, hardPoints, refine)"""
     contour1 = C.deleteFlowSolutions__(contour)
-    c = C.getAllFields(contour1, 'nodes')[0]
+    c = C.getAllFields(contour1, 'nodes', api=1)[0]
     clouda = C.getFields(Internal.__GridCoordinates__, cloud, api=1)[0]
     hp = None
     if hardPoints is not None:
@@ -474,7 +474,7 @@ def gapsmanager(components, mode=0, refine=0, coplanar=0):
     The mode sets the case (0 for POST with a center mesh, 1 for POST with a nodal mesh, 2 otherwise).
     The planar argument tells whether the components are coplanar or not (1 for coplanar case).
     Usage: gapsmanager(components, mode, refine, coplanar)"""
-    stlArrays = C.getAllFields(components, loc='nodes')
+    stlArrays = C.getAllFields(components, loc='nodes', api=1)
     stlArrays = Converter.convertArray2Tetra(stlArrays)
     a = Generator.gapsmanager(stlArrays, mode, refine, coplanar)
     zones = []
@@ -946,7 +946,7 @@ def closeLegacy(a, tol=1.e-12, suppressDegeneratedNGons=False):
     return t
 
 def _closeLegacy(t, tol=1.e-12, suppressDegeneratedNGons=False):
-    fields = C.getAllFields(t, 'nodes')
+    fields = C.getAllFields(t, 'nodes', api=1)
     fields = Generator.closeLegacy(fields, tol, suppressDegeneratedNGons)
     C.setFields(fields, t, 'nodes')
     return None
@@ -985,7 +985,7 @@ def zip(a, tol=1.e-12):
 
 def _zip(t, tol=1e-12):
     """Zip zones if they are distant of tol."""
-    fields = C.getAllFields(t, 'nodes')
+    fields = C.getAllFields(t, 'nodes', api=1)
     fields = Generator.zip(fields, tol)
     C.setFields(fields, t, 'nodes')
     return None
@@ -1023,7 +1023,7 @@ def grow(t, vector):
             print("Warning: grow: variables not found in zone.")
             a = []
         if a != []:
-            nodes = C.getAllFields(z, 'nodes')[0]
+            nodes = C.getAllFields(z, 'nodes', api=1)[0]
             nodes = Generator.grow(nodes, a)
             C.setFields([nodes], z, 'nodes')
     tp = Internal.addOneLayer2BC(tp, 3)
@@ -1033,10 +1033,10 @@ def stack(t1, t2=None):
     """Stack two meshes (with same nixnj) into a single mesh.
     Usage: stack(a1, a2)"""
     if t2 is not None:
-        a2 = C.getAllFields(t2, 'nodes')[0]
+        a2 = C.getAllFields(t2, 'nodes', api=1)[0]
         return C.TZA1(t1, 'nodes', 'nodes', True, Generator.stack, a2)
     else:
-        a1 = C.getAllFields(t1, 'nodes')
+        a1 = C.getAllFields(t1, 'nodes', api=1)
         b = Generator.stack(a1)
         return C.convertArrays2ZoneNode('stack', [b])
 

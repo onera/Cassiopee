@@ -269,21 +269,21 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     nodes2 = Internal.getZones(t2)
     for c, z1 in enumerate(nodes):
         if loc == 'centers':
-            a1 = C.getAllFields(z1, 'centers')[0]
+            a1 = C.getAllFields(z1, 'centers', api=1)[0]
             x1 = C.getFields(Internal.__GridCoordinates__, z1, api=1)[0]
             x1 = Converter.node2Center(x1)
             a1 = Converter.addVars([x1, a1])
             z2 = nodes2[c]
-            a2 = C.getAllFields(z2, 'centers')[0]
+            a2 = C.getAllFields(z2, 'centers', api=1)[0]
             x2 = C.getFields(Internal.__GridCoordinates__, z2, api=1)[0]
             x2 = Converter.node2Center(x2)
             a2 = Converter.addVars([x2, a2])
             ret = Initiator.overlayField(a1, a2, MInf)
             C.setFields([ret], z1, 'centers')
         else:
-            a1 = C.getAllFields(z1, 'nodes')[0]
+            a1 = C.getAllFields(z1, 'nodes', api=1)[0]
             z2 = nodes2[c]
-            a2 = C.getAllFields(z2, 'nodes')[0]
+            a2 = C.getAllFields(z2, 'nodes', api=1)[0]
             ret = Initiator.overlayField(a1, a2, MInf)
             C.setFields([ret], z1, 'nodes')
     return None

@@ -64,7 +64,7 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
     if allExtFaces != []:
         nzones = len(zonesp)
         tagsF = C.node2Center(allExtFaces)
-        tagsF = C.getAllFields(tagsF, 'nodes')
+        tagsF = C.getAllFields(tagsF, 'nodes', api=1)
         tagsF = Connector.identifyMatching(tagsF, tol) # modifie tag1, tag2
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]
@@ -162,7 +162,7 @@ def _connectMatchHybrid__(a, tol, dim, glob):
     # identify matching exterior faces
     if allExtFaces != []:
         tagsF = C.node2Center(allExtFaces)
-        tagsF = C.getAllFields(tagsF, 'nodes')
+        tagsF = C.getAllFields(tagsF, 'nodes', api=1)
         tagsF = Connector.identifyMatching(tagsF, tol)
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]

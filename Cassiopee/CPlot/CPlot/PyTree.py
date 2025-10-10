@@ -202,7 +202,7 @@ def display1D(t, slot=0, gridPos=(0,0), gridSize=(-1,-1),
         array[1][1,:] = y[:]
         arrays = [array]
     else:
-        arrays = C.getAllFields(t, 'nodes') # as pyZone
+        arrays = C.getAllFields(t, 'nodes', api=1) # as pyZone
     CPlot.display1D(arrays, slot, gridPos, gridSize, bgBlend,
                     var1, var2, r1, r2)
 
@@ -436,11 +436,11 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
     """Move camera.
     Usage: moveCamera(checkPoints, moveEye, N, speed, pos)."""
     if isinstance(posCams[0], str): # zone
-        posCams = C.getAllFields(posCams, 'nodes')[0]
+        posCams = C.getAllFields(posCams, 'nodes', api=1)[0]
     if posEyes is not None and isinstance(posEyes[0], str): # zone
-        posEyes = C.getAllFields(posEyes, 'nodes')[0]
+        posEyes = C.getAllFields(posEyes, 'nodes', api=1)[0]
     if dirCams is not None and isinstance(dirCams[0], str): # zone
-        dirCams = C.getAllFields(dirCams, 'nodes')[0]
+        dirCams = C.getAllFields(dirCams, 'nodes', api=1)[0]
     ret = CPlot.moveCamera(posCams, posEyes, dirCams, moveEye, N, speed, pos)
     return ret
 

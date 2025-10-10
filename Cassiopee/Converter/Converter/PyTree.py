@@ -3451,8 +3451,8 @@ def _convertArray2Tetra(t, split='simple'):
     else:
         nodes = Internal.getZones(t)
         for z in nodes:
-            fieldn = getAllFields(z, 'nodes')[0]
-            fieldc = getAllFields(z, 'centers')[0]
+            fieldn = getAllFields(z, 'nodes', api=1)[0]
+            fieldc = getAllFields(z, 'centers', api=1)[0]
             if fieldc == []:
                 res = Converter.convertArray2Tetra1__(fieldn, split='withBarycenters')
                 z = setFields([res], z, 'nodes', writeDim=True)
@@ -3567,7 +3567,7 @@ def _convertArray2Node(t):
 def convertTri2Quad(z, alpha=30.):
     """Convert a TRI zone to a QUAD zone.
     Usage: convertTri2Quad(z, angle)"""
-    a = getAllFields(z, 'nodes')
+    a = getAllFields(z, 'nodes', api=1)
     b, c = Converter.convertTri2Quad(a, alpha)
     z1 = convertArrays2ZoneNode(getZoneName('quad'), [b])
     z2 = convertArrays2ZoneNode(getZoneName('tri'), [c])
@@ -5742,7 +5742,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # else:
     #   if zoneType == 1: # Structured mesh
 
-    #     fields = getAllFields(zdonor, 'centers')[0]
+    #     fields = getAllFields(zdonor, 'centers', api=1)[0]
         if fields != []:
             # raise ValueError("extractBCMatch: Variable(s) not found:", variables)
 
@@ -6564,7 +6564,7 @@ def node2ExtCenter(t, var=''):
             zones = Internal.getZones(la[i])
             for z in zones:
                 (p, pos) = Internal.getParentOfNode(la[i], z)
-                fieldn = getAllFields(z, loc='nodes')
+                fieldn = getAllFields(z, loc='nodes', api=1)
                 fieldc = getFields(Internal.__FlowSolutionCenters__, z)
                 _deleteFlowSolutions__(z, 'centers')
                 _deleteZoneBC__(z)

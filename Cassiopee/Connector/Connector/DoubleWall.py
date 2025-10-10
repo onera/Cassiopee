@@ -259,7 +259,7 @@ def extractDoubleWallInfo__(t):
         for z1 in zones1:
             surfs = getExtCenterSurfaces__(z1, wallBndIndicesN[nob][noz])
             if surfs != []:
-                surfs = C.getAllFields(surfs, loc='nodes')
+                surfs = C.getAllFields(surfs, loc='nodes', api=1)
                 #surfs = T.merge(surfs)
                 surfs = Converter.convertArray2Hexa(surfs)
                 surfs = Transform.join(surfs)
@@ -353,7 +353,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
         walls1 = T.reorder(walls1, (1,))
 
         D._getCurvatureHeight(walls1)
-        surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+        surfaceCenters1 = C.getAllFields(walls1, 'nodes', api=1) # array with __GridCoordinates__ + __FlowSolutionNodes_
         if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s_to_%s.plt'%(familyBC2, familyBC1))
 
     # STEP2 : project surfaces of mismatch2 (a2c (domain) and firstWallCenters2 (wall))
@@ -408,7 +408,7 @@ def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
     walls1 = T.reorder(walls1, (1,))
 
     D._getCurvatureHeight(walls1)
-    surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+    surfaceCenters1 = C.getAllFields(walls1, 'nodes', api=1) # array with __GridCoordinates__ + __FlowSolutionNodes_
     if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s.plt'%(familyBC1))
 
     return surfaceCenters1

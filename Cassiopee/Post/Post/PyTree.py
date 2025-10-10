@@ -79,7 +79,7 @@ def extractPlane(t, T, order=2, tol=1.e-6):
     Usage: extractPlane(t, (coefa, coefb, coefc, coefd), order)"""
     #t = C.deleteFlowSolutions__(t, 'centers')
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    A = C.getAllFields(t, 'nodes')
+    A = C.getAllFields(t, 'nodes', api=1)
     a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
@@ -108,7 +108,7 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
         import Transform.PyTree as T
         cloud = T.projectOrtho(cloud, surf)
 
-    fc = C.getAllFields(cloud, 'nodes')[0]
+    fc = C.getAllFields(cloud, 'nodes', api=1)[0]
     zones = Internal.getZones(surf)
     for noz, z in enumerate(zones):
         interpData = Internal.getNodeFromName(z, 'POST_MLS')
@@ -116,11 +116,11 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
             offset = Internal.getNodeFromName(interpData, 'offset')[1]
             interpDonor = Internal.getNodeFromName(interpData, 'interpDonor')[1]
             interpCoef = Internal.getNodeFromName(interpData, 'interpCoef')[1]
-            fs = C.getAllFields(z, 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes', api=1)[0]
             res = Post.projectCloudSolutionWithInterpData(fc, fs, offset, interpDonor, interpCoef, dim=dim)
             C.setFields([res], z, 'nodes')
         else:
-            fs = C.getAllFields(z, 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes', api=1)[0]
             res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm, old=old)
             C.setFields([res], z, 'nodes')
     return None
@@ -133,10 +133,10 @@ def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
 
 def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
-    fc = C.getAllFields(cloud, 'nodes')[0]
+    fc = C.getAllFields(cloud, 'nodes', api=1)[0]
     zones = Internal.getZones(surf)
     for noz in range(len(zones)):
-        fs = C.getAllFields(zones[noz], 'nodes')[0]
+        fs = C.getAllFields(zones[noz], 'nodes', api=1)[0]
         res = Post.prepareProjectCloudSolution(fc, fs, dim=dim, ibm=ibm)
 
         interpDonor, interpCoef = res
@@ -184,7 +184,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
 
         if hook is not None:
             if not isinstance(hook,list): raise TypeError("_extractMesh: hook must be a list of hooks on ADTs.")
-        fa = C.getAllFields(tc, 'nodes')
+        fa = C.getAllFields(tc, 'nodes', api=1)
         del tc
         an = C.getFields(Internal.__GridCoordinates__, extractionMesh, api=1)
         res = Post.extractMesh(fa, an, order, extrapOrder, constraint, tol, hook)
@@ -645,7 +645,7 @@ def exteriorFacesStructured(t):
     zones = Internal.getZones(t)
     listzones = []
     for z in zones:
-        field = C.getAllFields(z, 'nodes')[0]
+        field = C.getAllFields(z, 'nodes', api=1)[0]
         A = Post.exteriorFacesStructured(field)
         c = 1
         for a in A:
@@ -1213,7 +1213,7 @@ def zipper(t, options=[]):
     """Extract Chimera surface as an unique unstructured surface.
     Usage: zipper(t, options)"""
     t = C.deleteFlowSolutions__(t,'centers')
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.zipper(arrays, options)
     return C.convertArrays2ZoneNode('zipper', [a])
 
@@ -1656,7 +1656,7 @@ def computeDiv(t,var):
             name = v[1]
         divVector.append(name)
 
-    tn = C.getAllFields(tp, 'nodes') # < get all fields (?) We only need a few...
+    tn = C.getAllFields(tp, 'nodes', api=1) # < get all fields (?) We only need a few...
     for i in range(dim):
         if posv[i] == -1: C._rmVars(tp, divVector[i])
     tc = Post.computeDiv(tn, divVector)
@@ -2073,7 +2073,7 @@ def computeDiff(t, var):
             loc = 'centers'; var = v[1]
     tp = Internal.copyRef(t)
     Internal._addGhostCells(tp, tp, 1, adaptBCs=0)
-    nodes = C.getAllFields(tp, loc)
+    nodes = C.getAllFields(tp, loc, api=1)
     res = Post.computeDiff(nodes, var)
     C.setFields(res, tp, loc)
     tp = Internal.rmGhostCells(tp, tp, 1, adaptBCs=0)
@@ -2091,7 +2091,7 @@ def streamLine(t, X0, vector, N=2000, dir=2):
     a list of arrays containing 'vector' information.
     Usage: streamLine(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.streamLine(arrays, X0, vector, N, dir)
     return C.convertArrays2ZoneNode('streamLine', [a])
 
@@ -2101,7 +2101,7 @@ def streamLine2(t, X0, vector, N=2000, dir=2, eps=1.e-2):
     a list of arrays containing 'vector' information.
     Usage: streamLine2(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     for c, v in enumerate(vector): vector[c] = v.replace('centers:', '')
     a = Post.streamLine2(arrays, X0, vector, N, dir, eps)
     out = []
@@ -2115,7 +2115,7 @@ def streamSurf(t, b, vector, N=2000, dir=1):
     a list of arrays containing 'vector' information.
     Usage: streamSurf(t, b, (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     bar = C.getFields(Internal.__GridCoordinates__, b, api=1)[0]
     a = Post.streamSurf(arrays, bar, vector, N, dir)
     return C.convertArrays2ZoneNode('streamSurf', [a])
@@ -2127,7 +2127,7 @@ def streamRibbon(t, X0, N0, vector, N=2000, dir=2):
     from X0.
     Usage: streamRibbon(arrays, (x0,y0,z0), (n0x,n0y,n0z), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.streamRibbon(arrays, X0, N0, vector, N, dir)
     return C.convertArrays2ZoneNode('streamRibbon', [a])
 
@@ -2136,7 +2136,7 @@ def isoLine(t, var, value):
     Usage: isoLine(t, var, value)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     v, loc = Internal.fixVarName(var)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.isoLine(arrays, v, value)
     return C.convertArrays2ZoneNode('isoLine', [a])
 
@@ -2158,7 +2158,7 @@ def isoSurf(t, var, value, vars=None, split='simple'):
     var, loc = Internal.fixVarName(var)
     ret = []
     for z in zones:
-        if vars is None: array = C.getAllFields(z, 'nodes')[0]
+        if vars is None: array = C.getAllFields(z, 'nodes', api=1)[0]
         else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc, api=1)[0]
         try:
             a = Post.isoSurf(array, var, value, split)
@@ -2197,7 +2197,7 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
         if vars is  None or vc != []:
             z = C.center2Node(z, target_var )
         if vars is None:
-            array = C.getAllFields(z, 'nodes')[0]
+            array = C.getAllFields(z, 'nodes', api=1)[0]
         else:
             array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc, api=1)[0]
         try:
@@ -2298,7 +2298,7 @@ def sharpEdges(a, alphaRef=30.):
     """Detect sharp edges between adjacent cells of a surface. Angle out of
     [180-alpharef,180+alpharef] are considered as sharp.
     Usage: sharpEdges(a, alphaRef)"""
-    arrays = C.getAllFields(a, 'nodes')
+    arrays = C.getAllFields(a, 'nodes', api=1)
     res = Post.sharpEdges(arrays, alphaRef)
     zones = []
     for r in res: zones.append(C.convertArrays2ZoneNode('edge', [r]))
@@ -2306,7 +2306,7 @@ def sharpEdges(a, alphaRef=30.):
 
 def silhouette(a, vector):
     """Detect shape of an unstructured surface."""
-    arrays = C.getAllFields(a, 'nodes')
+    arrays = C.getAllFields(a, 'nodes', api=1)
     res = Post.silhouette(arrays, vector)
     zones = []
     for r in res: zones.append(C.convertArrays2ZoneNode('silhouette', [r]))
