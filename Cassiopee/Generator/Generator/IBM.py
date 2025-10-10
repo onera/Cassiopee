@@ -789,8 +789,8 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         else: tbox = tbox
 
     o, parento, tbOneOver, tbF1, tbOneOverF1, infoSym = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
-                                                                           tbox=tbox, snearsf=snearsf, check=check, to=to,
-                                                                           expand=expand, octreeMode=octreeMode)
+                                                                          tbox=tbox, snearsf=snearsf, check=check, to=to,
+                                                                          expand=expand, octreeMode=octreeMode)
 
     # Split octree
     bb = G.bbox(o)
