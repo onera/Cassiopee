@@ -1483,7 +1483,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                     zrname = zonesRIBC[nozr][0]
                     interpPtsBB = Generator.BB(allInterpPts[nozr])
                     for z in zones:
-                        bba = C.getFields('GridCoordinates', z)[0]
+                        bba = C.getFields('GridCoordinates', z, api=1)[0]
                         if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                             zname = z[0]
                             popp  = Cmpi.getProc(z)
@@ -1509,7 +1509,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         zrname = zonesRIBC[nozr][0]
                         interpPtsBB2 = Generator.BB(allInterpPts2[nozr])
                         for z in zones:
-                            bba = C.getFields('GridCoordinates', z)[0]
+                            bba = C.getFields('GridCoordinates', z, api=1)[0]
                             if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
@@ -2333,21 +2333,21 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
     listOfModelisationHeightsLoc = []
     if loc == 'nodes':
         for z in Internal.getZones(t):
-            an = C.getFields(Internal.__GridCoordinates__, z)[0]
-            ac1 = C.getField(cellNName, z)[0]
+            an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            ac1 = C.getField(cellNName, z, api=1)[0]
             ac1[0] = 'cellN'
-            ac2 = C.getField('TurbulentDistance', z)[0]
-            ac3 = C.getField('gradxTurbulentDistance', z)[0]
-            ac4 = C.getField('gradyTurbulentDistance', z)[0]
-            ac5 = C.getField('gradzTurbulentDistance', z)[0]
+            ac2 = C.getField('TurbulentDistance', z, api=1)[0]
+            ac3 = C.getField('gradxTurbulentDistance', z, api=1)[0]
+            ac4 = C.getField('gradyTurbulentDistance', z, api=1)[0]
+            ac5 = C.getField('gradzTurbulentDistance', z, api=1)[0]
             an = Converter.addVars([an,ac1,ac2,ac3,ac4,ac5])
-            ah = C.getField('hi', z)[0]
+            ah = C.getField('hi', z, api=1)[0]
             if ah != []: an = Converter.addVars([an,ah])
-            ah = C.getField('he', z)[0]
+            ah = C.getField('he', z, api=1)[0]
             if ah != []: an = Converter.addVars([an,ah])
             correctedPts = Connector.getInterpolatedPoints__(an)
             allCorrectedPts.append(correctedPts)
-            xt = C.getField('CoordinateX', z)[0][1][0]
+            xt = C.getField('CoordinateX', z, api=1)[0][1][0]
             snearl = xt[1]-xt[0]
             if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
@@ -2360,22 +2360,22 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
                 listOfModelisationHeightsLoc.append(0.)
     else:
         for z in Internal.getZones(t):
-            an = C.getFields(Internal.__GridCoordinates__,z)[0]
+            an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
             an = Converter.node2Center(an)
-            ac1 = C.getField('centers:'+cellNName,z)[0]
+            ac1 = C.getField('centers:'+cellNName, z, api=1)[0]
             ac1[0] = 'cellN'
-            ac2 = C.getField('centers:TurbulentDistance',z)[0]
-            ac3 = C.getField('centers:gradxTurbulentDistance',z)[0]
-            ac4 = C.getField('centers:gradyTurbulentDistance',z)[0]
-            ac5 = C.getField('centers:gradzTurbulentDistance',z)[0]
+            ac2 = C.getField('centers:TurbulentDistance', z, api=1)[0]
+            ac3 = C.getField('centers:gradxTurbulentDistance', z, api=1)[0]
+            ac4 = C.getField('centers:gradyTurbulentDistance', z, api=1)[0]
+            ac5 = C.getField('centers:gradzTurbulentDistance', z, api=1)[0]
             an = Converter.addVars([an,ac1,ac2,ac3,ac4,ac5])
-            ah = C.getField('centers:hi',z)[0]
+            ah = C.getField('centers:hi', z, api=1)[0]
             if ah != []: an = Converter.addVars([an,ah])
-            ah = C.getField('centers:he',z)[0]
+            ah = C.getField('centers:he', z, api=1)[0]
             if ah != []: an = Converter.addVars([an,ah])
             correctedPts = Connector.getInterpolatedPoints__(an)
             allCorrectedPts.append(correctedPts)
-            xt = C.getField('CoordinateX',z)[0][1][0]
+            xt = C.getField('CoordinateX', z, api=1)[0][1][0]
             snearl = xt[1]-xt[0]
             if twoFronts: snearl *= 2
             listOfSnearsLoc.append(snearl)
@@ -2428,7 +2428,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
         bodies = []; listOfIBCTypes=[]
         for itype in dictOfBodiesByIBCType:
             s = dictOfBodiesByIBCType.get(itype)
-            body = C.getFields(Internal.__GridCoordinates__,s)
+            body = C.getFields(Internal.__GridCoordinates__, s, api=1)
             body = Converter.convertArray2Tetra(body)
             body = Transform.join(body)
             bodies.append(body)
@@ -2439,7 +2439,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             allCorrectedPts = Converter.initVars(allCorrectedPts,'dist',dmin)
             res = connector.getIBMPtsWithoutFront(allCorrectedPts, bodies, varsn, 'dist', signOfDistCorrected)
         else:
-            front = C.getFields(Internal.__GridCoordinates__,tfront)
+            front = C.getFields(Internal.__GridCoordinates__, tfront, api=1)
 
             front = Converter.convertArray2Tetra(front)
             allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
@@ -3089,7 +3089,7 @@ def doInterp(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None,
                                 if zdnr[3] == 'Zone_t':
                                     zdnrname = zdnr[0]
                                     zbb = tbb[2][nobd][2][nozd]
-                                    bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
+                                    bba = C.getFields(Internal.__GridCoordinates__, zbb, api=1)[0]
                                     if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
                                         if interpDataType == 1:
                                             if zdnrname not in dictOfADT:
@@ -3575,7 +3575,7 @@ def doInterp2(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, front=None
                                 if zdnr[3] == 'Zone_t':
                                     zdnrname = zdnr[0]
                                     zbb = tbb[2][nobd][2][nozd]
-                                    bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
+                                    bba = C.getFields(Internal.__GridCoordinates__, zbb, api=1)[0]
                                     if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
                                         if interpDataType == 1:
                                             if zdnrname not in dictOfADT:
@@ -4066,7 +4066,7 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
                                 if zdnr[3] == 'Zone_t':
                                     zdnrname = zdnr[0]
                                     zbb = tbb[2][nobd][2][nozd]
-                                    bba = C.getFields(Internal.__GridCoordinates__,zbb)[0]
+                                    bba = C.getFields(Internal.__GridCoordinates__, zbb, api=1)[0]
                                     if Generator.bboxIntersection(interpPtsBB,bba,isBB=True) == 1:
                                         if zdnrname not in dictOfADT:
                                             HOOKADT = C.createHook(zdnr, 'adt')

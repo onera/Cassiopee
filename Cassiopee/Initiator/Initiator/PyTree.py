@@ -270,12 +270,12 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     for c, z1 in enumerate(nodes):
         if loc == 'centers':
             a1 = C.getAllFields(z1, 'centers')[0]
-            x1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
+            x1 = C.getFields(Internal.__GridCoordinates__, z1, api=1)[0]
             x1 = Converter.node2Center(x1)
             a1 = Converter.addVars([x1, a1])
             z2 = nodes2[c]
             a2 = C.getAllFields(z2, 'centers')[0]
-            x2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+            x2 = C.getFields(Internal.__GridCoordinates__, z2, api=1)[0]
             x2 = Converter.node2Center(x2)
             a2 = Converter.addVars([x2, a2])
             ret = Initiator.overlayField(a1, a2, MInf)

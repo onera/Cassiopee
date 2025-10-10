@@ -35,8 +35,8 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
     z = C.convertArray2Node(z)
     _extractMesh(t, z, order, extrapOrder, constraint, tol, hook, mode)
 
-    soln = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-    solc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+    soln = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+    solc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
     if not isinstance(Pts, list):
         resn = []; resc = []
         solnN = soln[1]
@@ -186,7 +186,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             if not isinstance(hook,list): raise TypeError("_extractMesh: hook must be a list of hooks on ADTs.")
         fa = C.getAllFields(tc, 'nodes')
         del tc
-        an = C.getFields(Internal.__GridCoordinates__, extractionMesh)
+        an = C.getFields(Internal.__GridCoordinates__, extractionMesh, api=1)
         res = Post.extractMesh(fa, an, order, extrapOrder, constraint, tol, hook)
         if len(res) != len(orderedZones):
             raise ValueError("_extractMesh: invalid number of zones.")
@@ -224,9 +224,9 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             if hook is not None:
                 print("Warning: _extractMesh: hook is not used in 'accurate' mode.")
             tp = Internal.addGhostCells(t, t, 1, adaptBCs=0)
-            an = C.getFields(Internal.__GridCoordinates__, zones)
+            an = C.getFields(Internal.__GridCoordinates__, zones, api=1)
             ac = Converter.node2Center(an)
-            fc = C.getFields(Internal.__GridCoordinates__, tp)
+            fc = C.getFields(Internal.__GridCoordinates__, tp, api=1)
             nzones = len(fc)
             for i in range(len(fc)):
                 if len(fc[i]) == 4:
@@ -234,7 +234,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                     except: raise ImportError('extractMesh: Transform module is required.')
                     fc[i] = Transform.dual(fc[i], extraPoints=0)
                 else: fc[i] = Converter.node2Center(fc[i])
-            fa = C.getFields(Internal.__FlowSolutionCenters__, tp)
+            fa = C.getFields(Internal.__FlowSolutionCenters__, tp, api=1)
             del tp
             allf = []
             nzones = len(fc)
@@ -266,10 +266,10 @@ def coarsen(t, indicName='indic', argqual=0.1, tol=1.e6):
     C._deleteGridConnectivity__(tp)
     nodes = Internal.getZones(tp)
     for z in nodes:
-        taga = C.getFields(Internal.__FlowSolutionCenters__, z)
+        taga = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)
         taga = Converter.extractVars(taga, [indicName])[0]
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
             fp = Post.coarsen(f, taga, argqual, tol)
@@ -301,10 +301,10 @@ def _refine(t, indicName='indic', w=-1):
         if len(indicName) != 1: indicName = indicName[1]
         else: indicName = indicName[0]
         for z in zones:
-            taga = C.getFields(Internal.__FlowSolutionCenters__, z)
+            taga = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)
             taga = Converter.extractVars(taga, [indicName])[0]
-            fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-            fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = Post.refine(f, taga)
@@ -318,7 +318,7 @@ def _refine(t, indicName='indic', w=-1):
         C._deleteFlowSolutions__(t, 'centers')
     else: # butterfly everywhere
         C._deleteFlowSolutions__(t, 'centers')
-        C._TZA(t, 'nodes', 'nodes', Post.refine, None, None, w)
+        C._TZA1(t, 'nodes', 'nodes', Post.refine, None, None, w)
     return None
 
 #==============================================================================
@@ -374,9 +374,9 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
                 node = GEl[NGON]
                 PE = Internal.getNodeFromName1(node, 'ParentElements')
 
-            fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-            fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
 
             if fc != [] and fa != []:
                 ft = Converter.addVars([fc, fa])
@@ -448,7 +448,7 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
         C._addVars(tp, 'centers:__tag__')
-        fields = C.getFields(Internal.__FlowSolutionCenters__, tp)
+        fields = C.getFields(Internal.__FlowSolutionCenters__, tp, api=1)
 
         tags = []
         if varStrings == []:
@@ -495,15 +495,15 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
             PE = Internal.getNodeFromName1(node, 'ParentElements')
 
         if loc == 0: # noeuds
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-            taga = C.getFields(Internal.__FlowSolutionNodes__, z)
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+            taga = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)
             taga = Converter.extractVars(taga, [tagName])[0]
         else:
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             taga = Converter.extractVars(fb, [res[1]])
 
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
 
         if loc != 0: # centres
             if KCore.isNamePresent(fb,res[1]) > -1:
@@ -612,10 +612,10 @@ def frontFaces(t, tagName):
     C._deleteFlowSolutions__(tp, 'centers')
     nodes = Internal.getZones(tp)
     for z in nodes:
-        taga = C.getFields(Internal.__FlowSolutionNodes__, z)
+        taga = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)
         taga = Converter.extractVars(taga, [tagName])[0]
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
             fp = Post.frontFaces(f, taga)
@@ -735,10 +735,10 @@ def computeVariables(t, varList,
                                 'centers:MomentumY', 'centers:MomentumZ',
                                 'centers:EnergyStagnationDensity'])
 
-    tp = C.TZAGC(tp, 'both', 'both', False,
-                 Post.computeVariables, Post.computeVariables,
-                 varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
-                 varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
+    tp = C.TZAGC1(tp, 'both', 'both', False,
+                  Post.computeVariables, Post.computeVariables,
+                  varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
+                  varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
     if presc == -1 and varnamesc != []:
         tp = C.rmVars(tp, ['centers:Density', 'centers:MomentumX',
                            'centers:MomentumY', 'centers:MomentumZ',
@@ -786,10 +786,10 @@ def _computeVariables(t, varList,
     if presn == -1 and varnamesn != []:
         raise ValueError("computeVariables: conservative variables missing.")
 
-    C._TZAGC(t, 'both', 'both', False,
-             Post.computeVariables, Post.computeVariables,
-             varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
-             varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
+    C._TZAGC1(t, 'both', 'both', False,
+              Post.computeVariables, Post.computeVariables,
+              varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
+              varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
     if presc == -1 and varnamesc != []:
         C._rmVars(t, ['centers:Density', 'centers:MomentumX',
                       'centers:MomentumY', 'centers:MomentumZ',
@@ -1417,8 +1417,8 @@ def usurp(t):
 def _usurp(t):
     """Extract unique surfaces using ranked polygons.
     Usage: usurp(t)"""
-    coords = C.getFields(Internal.__GridCoordinates__, t)
-    fields = C.getFields(Internal.__FlowSolutionCenters__, t)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    fields = C.getFields(Internal.__FlowSolutionCenters__, t, api=1)
     r = Post.usurp(coords, fields)
     C.setFields(r, t, 'centers')
     return None
@@ -1545,8 +1545,8 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                 if cellN is not None: cellN = cellN[1]
         else: cellN = None
 
-        f = C.getField(var, z)[0]
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        f = C.getField(var, z, api=1)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         # Get BCDataSet if any
         indices=None; BCField=None
 
@@ -1712,13 +1712,13 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         flist, f = [], []
         for v in var:
             for sdir in sdirlist:
-                flist.append(C.getField('%s%s' % (v,sdir), z)[0])
+                flist.append(C.getField('%s%s' % (v,sdir), z, api=1)[0])
         flist = [x for x in flist if x]
 
         if flist and len(flist)%ndims == 0:
             f = [Converter.addVars(flist[i:i+ndims]) for i in range(0, len(flist), ndims)]
 
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         # Get BCDataSet if any
         indices  = None
         BCFieldX = None; BCFieldY = None; BCFieldZ = None
@@ -2116,7 +2116,7 @@ def streamSurf(t, b, vector, N=2000, dir=1):
     Usage: streamSurf(t, b, (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     arrays = C.getAllFields(t, 'nodes')
-    bar = C.getFields(Internal.__GridCoordinates__, b)[0]
+    bar = C.getFields(Internal.__GridCoordinates__, b, api=1)[0]
     a = Post.streamSurf(arrays, bar, vector, N, dir)
     return C.convertArrays2ZoneNode('streamSurf', [a])
 
@@ -2159,7 +2159,7 @@ def isoSurf(t, var, value, vars=None, split='simple'):
     ret = []
     for z in zones:
         if vars is None: array = C.getAllFields(z, 'nodes')[0]
-        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
+        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc, api=1)[0]
         try:
             a = Post.isoSurf(array, var, value, split)
             if a != []:
@@ -2199,7 +2199,7 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
         if vars is None:
             array = C.getAllFields(z, 'nodes')[0]
         else:
-            array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc)[0]
+            array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc, api=1)[0]
         try:
             a = Post.isoSurfMC(array, var, value, split)
             if purge: Internal._rmNodesByName1(z, Internal.__FlowSolutionNodes__)
@@ -2250,11 +2250,11 @@ def _computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies,
     refineFinestLevel, coarsenCoarsestLevel)"""
     zvars = varName.split(':')
-    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa)[0]
+    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa, api=1)[0]
     bodiesA = []
     if bodies != []:
-        bodiesA = C.getFields(Internal.__GridCoordinates__, bodies)
-    fields = C.getField(varName, octreeHexa)[0]
+        bodiesA = C.getFields(Internal.__GridCoordinates__, bodies, api=1)
+    fields = C.getField(varName, octreeHexa, api=1)[0]
     if zvars[0] != 'centers': fields = Converter.node2Center(fields)
 
     if isAMR:
@@ -2285,9 +2285,9 @@ def _computeIndicatorValue(octreeHexa, t, varName):
     vars0 = varName.split(':')
     if vars0[0] == 'centers': loc = 'centers'
     else: loc = 'nodes'
-    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa)[0]
-    coords = C.getFields(Internal.__GridCoordinates__, t)
-    field = C.getField(varName, t)
+    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa, api=1)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    field = C.getField(varName, t, api=1)
     if loc == 'centers': field = Converter.center2Node(field)
     indicValue = Post.computeIndicatorValue(hexa, coords, field)
     if loc == 'centers': indicValue = Converter.node2Center(indicValue)

@@ -61,8 +61,8 @@ def spline(t, order=3, N=100, M=100, density=-1):
 def nurbs(t, weight='weight', order=3, N=100, M=100, density=-1):
     """Create a nurbs of N points.
     Usage: nurbs(ctrlPts, order, N)"""
-    w = C.getField(weight, t)[0]
-    Pts = C.getFields(Internal.__GridCoordinates__, t)[0]
+    w = C.getField(weight, t, api=1)[0]
+    Pts = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
     Pts = Converter.addVars([Pts,w])
     surf = Geom.nurbs(Pts, weight, order, N, M, density)
     return C.convertArrays2ZoneNode('nurbs', [surf])
@@ -197,20 +197,20 @@ def surface(f, N=100):
 def getLength(t):
     """Return the length of 1D array(s) defining a mesh.
     Usage: getLength(t)"""
-    coords = C.getFields(Internal.__GridCoordinates__, t)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
     return Geom.getLength(coords)
 
 def getDistantIndex(t, ind, l):
     """Return the index of 1D array defining a mesh located at a
     distance l of ind.
     Usage: getDistantIndex(t, ind, l)"""
-    a = C.getFields(Internal.__GridCoordinates__, t)[0]
+    a = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
     return Geom.getDistantIndex(a, ind, l)
 
 def getNearestPointIndex(t, pointList):
     """Return the nearest index of points in array.
     Usage: getNearestPointIndex(t, pointList)"""
-    a = C.getFields(Internal.__GridCoordinates__, t)[0]
+    a = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
     return Geom.getNearestPointIndex( a, pointList )
 
 def getCurvatureHeight(t):
@@ -296,41 +296,41 @@ def lineDrive(t, line):
     """Generate a surface mesh by using 1D array (defining a mesh)
     and following the curve defined in line.
     Usage: lineDrive(t, line)"""
-    al = C.getFields(Internal.__GridCoordinates__, line)
+    al = C.getFields(Internal.__GridCoordinates__, line, api=1)
     if len(al) == 1: al = al[0]
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC(t, 'both', 'both', True, Geom.lineDrive,
-                   Geom.lineDrive, al, al2)
+    return C.TZAGC1(t, 'both', 'both', True, Geom.lineDrive,
+                    Geom.lineDrive, al, al2)
 
 def orthoDrive(t, line, mode=0):
     """Generate a surface mesh by using 1D array (defining a mesh)
     and following orthogonally the curve defined in line.
     Usage: orthoDrive(t, line)"""
-    al = C.getFields(Internal.__GridCoordinates__, line)
+    al = C.getFields(Internal.__GridCoordinates__, line, api=1)
     if len(al) == 1: al = al[0]
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC(t, 'both', 'both', True, Geom.orthoDrive,
-                   Geom.orthoDrive, al, mode, al2, mode)
+    return C.TZAGC1(t, 'both', 'both', True, Geom.orthoDrive,
+                    Geom.orthoDrive, al, mode, al2, mode)
 
 def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     """Create an axisymmetric mesh given an azimuthal surface mesh.
     Usage: axisym(t, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
     # Attention en centres, les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod)[0]
-    return C.TZAGC(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
-                   center, axis, angle, Ntheta, rmod,
-                   center, axis, angle, Ntheta-1, rmod)
-
-def _axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
-    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod)[0]
-    return C._TZAGC(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
+    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=1)[0]
+    return C.TZAGC1(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
                     center, axis, angle, Ntheta, rmod,
                     center, axis, angle, Ntheta-1, rmod)
+
+def _axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
+    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=1)[0]
+    return C._TZAGC1(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
+                     center, axis, angle, Ntheta, rmod,
+                     center, axis, angle, Ntheta-1, rmod)
 
 def volumeFromCrossSections(t):
     """Generate a 3D volume from cross sections contours in (x,y) planes.
@@ -339,7 +339,7 @@ def volumeFromCrossSections(t):
     nodes = Internal.getZones(tp)
     coords = []
     for z in nodes:
-        coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+        coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
     coordp = Geom.volumeFromCrossSections(coords)
     zone = C.convertArrays2ZoneNode('Volume', [coordp])
     return zone
@@ -372,7 +372,7 @@ def text3D(string, font='vera', smooth=0, offset=0.5):
 def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     """Connect curves with sharp or smooth junctions.
     Usage: a = connect1D(A, sharpness=0)"""
-    a = C.getFields(Internal.__GridCoordinates__, curves)
+    a = C.getFields(Internal.__GridCoordinates__, curves, api=1)
     z = Geom.connect1D(a, sharpness, N, lengthFactor)
     return C.convertArrays2ZoneNode('connected', [z])
 
@@ -384,7 +384,7 @@ def uniformize(a, N=100, h=-1, factor=-1., density=-1., sharpAngle=30.):
 
 def _uniformize(a, N=100, h=-1., factor=-1, density=-1, sharpAngle=30.):
     C._deleteFlowSolutions__(a)
-    ar = C.getFields(Internal.__GridCoordinates__, a)
+    ar = C.getFields(Internal.__GridCoordinates__, a, api=1)
     ar = Geom.uniformize(ar, N, h, factor, density, sharpAngle)
     C.setFields(ar, a, 'nodes')
     return None

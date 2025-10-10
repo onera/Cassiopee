@@ -1473,7 +1473,7 @@ def getFields(containerName, t, vars=None, api=1):
             if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
             elif api==2: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
             elif api==3: array = Internal.convertDataNodes2Array3(out, dim, connects, loc)
-            else: raise ValueError('getFields: unknow api.')
+            else: raise ValueError('getFields: unknown api.')
         else: array = []
         arrays.append(array)
     return arrays
@@ -7148,7 +7148,7 @@ def createHook(a, function='None'):
     """Create a hook for a given function.
       Usage: hook = createHook(a, function)"""
     if function == 'extractMesh':
-        fields = getFields(Internal.__GridCoordinates__, a, api=3)
+        fields = getFields(Internal.__GridCoordinates__, a, api=1) # because of growofeps
     else:
         fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if function == 'extractMesh' or function == 'adt':

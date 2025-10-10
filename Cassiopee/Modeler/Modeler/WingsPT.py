@@ -16,7 +16,7 @@ def getTangent(z):
     a zone. Each node of the output represents the unitary tangent vector, 
     pointing towards the tangent direction of the input 1D curve.
     """
-    coords = C.getFields(Internal.__GridCoordinates__, z)
+    coords = C.getFields(Internal.__GridCoordinates__, z, api=1)
     a = Aero.getTangent(coords[0])
     return C.convertArrays2ZoneNode('line', [a])
 
@@ -26,7 +26,7 @@ def getDistribution(t):
     equivalent distribution of points. Useful when combined with Generator's
     mapping functions.
     Usage: getDistribution(t) """
-    coords = C.getFields(Internal.__GridCoordinates__, t)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
     a = Aero.getDistribution(coords[0])
     return C.convertArrays2ZoneNode('line', [a])
 
@@ -79,7 +79,7 @@ def splinelaw(polyLine,N=100,Distribution=None,SplineDegree=3):
     value like linelaw, but rather as a non-dimensional 0 to 1 ratio of the 
     polyLine length.
     """
-    polyLineA = C.getFields(Internal.__GridCoordinates__, polyLine)[0]
+    polyLineA = C.getFields(Internal.__GridCoordinates__, polyLine, api=1)[0]
     a = Aero.splinelaw(polyLineA,N,Distribution,SplineDegree)
     return C.convertArrays2ZoneNode('splinelaw', [a])
 
@@ -140,7 +140,7 @@ def wing(sections=[airfoil(),airfoil()], span=[1.], washout=[0.], sweep=[0.],
     sectionsA = []
 
     for i in range(len(sections)):
-        sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
+        sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i], api=1)[0])
     a = Aero.wing(sectionsA, span, washout, sweep,
                   dihedral, distribution,sectionShapeLaw)
     return C.convertArrays2ZoneNode('wing', [a])
@@ -192,7 +192,7 @@ def sweepSections(sections=[airfoil(),airfoil()], SpanPositions=None,
     '''
     sectionsA = []
     for i in range(len(sections)):
-        sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i])[0])
+        sectionsA.append(C.getFields(Internal.__GridCoordinates__, sections[i], api=1)[0])
     spineA = C.getFields(Internal.__GridCoordinates__, spine)[0]
     a = Aero.sweepSections(sectionsA, SpanPositions, rotation, rotationLaw,
                            NormalDirection, spineA, sectionShapeLaw)

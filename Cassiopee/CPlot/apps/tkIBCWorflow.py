@@ -31,8 +31,8 @@ def getIBCFrontForZone__(a):
     tf0 = C.newPyTree(['Base', f0])
     tf0 = P.extractMesh(ta, tf0)
     tf0 = C.rmVars(tf0,['centers:cellN','cellN'])
-    coords = C.getFields(Internal.__GridCoordinates__,tf0)
-    solc =  C.getFields(Internal.__FlowSolutionCenters__,tf0)
+    coords = C.getFields(Internal.__GridCoordinates__, tf0, api=1)
+    solc =  C.getFields(Internal.__FlowSolutionCenters__, tf0, api=1)
     coords = Converter.node2Center(coords) # passage en centres pour recuperer les coordonnees des centres
     coords = Converter.addVars([coords,solc])
     # passage en 'NODE'
@@ -58,7 +58,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     indices,distances = C.nearestNodes(hook,fc1)
     C.freeHook(hook)
 
-    coords1 = C.getFields(Internal.__GridCoordinates__,fc1)[0]
+    coords1 = C.getFields(Internal.__GridCoordinates__, fc1, api=1)[0]
     Converter._initVars(coords1,'ind',-1.)
     Converter._initVars(coords1,'indI',-1.)
     Converter._initVars(coords1,'indJ',-1.)
@@ -69,9 +69,9 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     dimGC = Internal.getZoneDim(parentZone)
     nigc = dimGC[1]; njgc = dimGC[2]; nkgc = dimGC[3]; nigcnjgc = nigc*njgc
     dhLoc = [dhloc]*npts # tableau dhLoc
-    xt = C.getField('CoordinateX',parentZone)[0][1]
-    yt = C.getField('CoordinateY',parentZone)[0][1]
-    zt = C.getField('CoordinateZ',parentZone)[0][1]
+    xt = C.getField('CoordinateX', parentZone, api=1)[0][1]
+    yt = C.getField('CoordinateY', parentZone, api=1)[0][1]
+    zt = C.getField('CoordinateZ', parentZone, api=1)[0][1]
     for ind in range(npts):
         index = indices[ind]-1
         dist  = distances[ind]
@@ -104,10 +104,10 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
     fc1 = C.normalize(fc1, [varnx, varny, varnz])
 
     if listPts == []:
-        C._initVars(fc1,'delta',0.)
-        deltaa = C.getField('delta',fc1)[0]
-        distance = C.getField('TurbulentDistance',fc1)[0][1]
-        # formule d obtention du frontC2
+        C._initVars(fc1, 'delta', 0.)
+        deltaa = C.getField('delta', fc1, api=1)[0]
+        distance = C.getField('TurbulentDistance', fc1, api=1)[0][1]
+        # formule d'obtention du frontC2
         for ind in range(deltaa[1].shape[1]):
             dist = distance[0,ind]
             # NOUVELLE VERSION
@@ -125,7 +125,7 @@ def getIBCFrontInfo__(fc1, parentZone, dhloc, toldist=1.e-10):
 
     else:
         # modification locale de delta : a modifier ?
-        deltaa = C.getField('delta',fc1)[0]
+        deltaa = C.getField('delta', fc1, api=1)[0]
         for ind in listPts: deltaa[1][0,ind] += eps
         C.setFields([deltaa], fc1, loc='nodes')
 

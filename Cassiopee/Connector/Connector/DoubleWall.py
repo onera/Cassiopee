@@ -126,7 +126,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
 # Coordonnees + dir1 + dir2 + dir3 + curvature height
 #------------------------------------------------------------------------------
 def getFirstPointsInfo__(z, wallRanges, loc='nodes', ghostCells=False):
-    coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
     wallsc = getFirstPointsInfo0__(coords, wallRanges, loc, ghostCells)
     # calcul de la hauteur de courbure
     hmax = Geom.getCurvatureHeight(wallsc)
@@ -369,8 +369,8 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
 
                 z2c = Internal.getNodeFromPath(tc, name[0])
                 if z2c is not None:
-                    a2c = C.getFields(Internal.__GridCoordinates__, z2c)[0]
-                    cellN = C.getField('cellN', z2c)[0]
+                    a2c = C.getFields(Internal.__GridCoordinates__, z2c, api=1)[0]
+                    cellN = C.getField('cellN', z2c, api=1)[0]
                     a2c = Converter.addVars([a2c,cellN]) # array at centers with cellN
                     if check: Converter.convertArrays2File(a2c, 'surfaceCenters2_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
 

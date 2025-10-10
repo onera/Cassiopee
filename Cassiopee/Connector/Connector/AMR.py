@@ -368,7 +368,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
     bodies = []; listOfIBCTypes=[]
 
     for noz,zone in enumerate(Internal.getZones(tb)):
-        body = C.getFields(Internal.__GridCoordinates__,zone)
+        body = C.getFields(Internal.__GridCoordinates__, zone, api=1)
         body = Converter.convertArray2Tetra(body)
         body = Transform.join(body)
         bodies.append(body)
@@ -381,7 +381,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         wallpts = res[0]
         imagepts = res[1]
     elif frontTypeDP == "1":
-        frontDP = C.getFields(Internal.__GridCoordinates__,frontDP)
+        frontDP = C.getFields(Internal.__GridCoordinates__, frontDP, api=1)
         frontDP = Converter.convertArray2Tetra(frontDP)
         listOfSnearsLoc=[]
         listOfModelingHeightsLoc = []

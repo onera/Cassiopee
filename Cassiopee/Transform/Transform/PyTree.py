@@ -187,16 +187,16 @@ def _smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
     if fixedConstraints != []:
         c = []
         for z in fixedConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         fixedConstraints = c
     if projConstraints != []:
         c = []
         for z in projConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         projConstraints = c
     zones = Internal.getZones(t)
     coords = []
-    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
     coordsp = Transform.smooth(coords, eps, niter, type,
                                fixedConstraints, projConstraints, delta,
                                point, radius)
@@ -226,7 +226,7 @@ def deformNormals(t, alpha, niter=1):
 
 def _deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals."""
-    alphat = C.getField(alpha, t)
+    alphat = C.getField(alpha, t, api=1)
     res = C.TLAGC(t, Transform.deformNormals, alphat, niter, None, None)
     C.setFields(res[0], t, 'nodes')
     return None
@@ -1765,11 +1765,11 @@ def _reorderAll(t, dir=1):
     nofan=0; nofac=0
     for z in zones:
         # champs en noeuds
-        coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
-        fnz = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
+        fnz = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fnz == []: indirn.append(0)
         else: indirn.append(1); nofan += 1
-        fcz = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fcz = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fcz == []: indirc.append(0)
         else: indirc.append(1); nofac += 1
         fn.append(fnz); fc.append(fcz)
@@ -1960,9 +1960,9 @@ def _addkplane(t, N=1):
     """Add N k-plane(s) to a mesh."""
     zones = Internal.getZones(t)
     for z in zones:
-        nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fn = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        nodes = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fn = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         # Coordinates + fields located at nodes
         if fn != []:
             if nodes == []: nodes = fn
@@ -1991,7 +1991,7 @@ def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     zones = Internal.getZones(t1)
     a1 = C.getAllFields(zones, loc='nodes')
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2007,8 +2007,8 @@ def projectDir(t1, t2, dir, smooth=0, oriented=0):
 def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
     """Project a surface array onto surface arrays following dir."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectDir(a1, a2, dir, smooth, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2024,8 +2024,8 @@ def projectOrtho(t1, t2):
 def _projectOrtho(t1, t2): # t1 is modified
     """Project a surface t1 onto surface t2 orthogonally."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrtho(a1, a2)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2041,8 +2041,8 @@ def projectOrthoSmooth(t1, t2, niter=1):
 def _projectOrthoSmooth(t1, t2, niter=1): # t1 is modified
     """Project a surface array onto surface arrays following smoothed normals."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrthoSmooth(a1, a2, niter)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2058,8 +2058,8 @@ def projectRay(t1, t2, Pt):
 def _projectRay(t1, t2, Pt): # t1 is modified
     """Project a surface array onto surface arrays following rays."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectRay(a1, a2, Pt)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2768,7 +2768,7 @@ def splitMultiplePts3D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1; ksplit = -1
@@ -2871,7 +2871,7 @@ def splitMultiplePts2D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b,'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1
