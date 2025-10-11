@@ -1055,7 +1055,7 @@ def _setInterpData(t, tc):
             print("      * neltsOpp: {}".format(neltsOpp))
             print("      * r: {}".format(getEdgeRangeOfFace(t, pos, faceNo, edgeList)[edgeNo]))
             print("      * rOpp: {}".format(getEdgeRangeOfFace(t, pos, faceOppNo)[edgeNo]))
-            faceOpp = C.getAllFields(faceOpp, 'nodes')[0]
+            faceOpp = C.getAllFields(faceOpp, 'nodes', api=1)[0]
 
             # Extract vertex indices of edge
             vIdx = getEdgeVerticesOfFace(t, pos, faceNo).get(edgeNo)

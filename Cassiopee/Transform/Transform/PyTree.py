@@ -243,12 +243,12 @@ def _deformPoint(a, xyz, dxdydz, depth, width):
 def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C.TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C._TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def controlPoints(a, N=(2,2,2)):
@@ -267,8 +267,8 @@ def freeForm(a, controlPoints):
 
 def _freeForm(a, controlPoints):
     """Compute free form deformation vector."""
-    array = C.getAllFields(a, 'nodes')
-    control = C.getAllFields(controlPoints, 'nodes')[0]
+    array = C.getAllFields(a, 'nodes', api=1)
+    control = C.getAllFields(controlPoints, 'nodes', api=1)[0]
     array = Transform.freeForm(array, control)
     C.setFields(array, a, 'nodes', writeDim=False)
     return None
@@ -285,9 +285,9 @@ def join(t, t2=None, tol=1.e-10):
         allBCInfos += C.extractBCInfo(t2)
     Internal._orderFlowSolution(nodes, loc='both')
 
-    fieldn = C.getAllFields(nodes, 'nodes')
+    fieldn = C.getAllFields(nodes, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(nodes, 'centers'):
+    for f in C.getAllFields(nodes, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.join(fieldn, arrayc=fieldc, tol=tol)
     if not isinstance(res[0], list): # join sans les centres
@@ -304,9 +304,9 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=Fals
     Usage: merge(t, sizeMax, dir, tol, alphaRef)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    fieldn = C.getAllFields(t, 'nodes')
+    fieldn = C.getAllFields(t, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(t, 'centers'):
+    for f in C.getAllFields(t, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.merge(fieldn, Ac=fieldc, sizeMax=sizeMax,
                           dir=dir, tol=tol, alphaRef=alphaRef)
@@ -382,7 +382,7 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
-        a2 = C.getAllFields(z2, 'nodes')[0]
+        a2 = C.getAllFields(z2, 'nodes', api=1)[0]
         C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
     return None
 
@@ -1989,7 +1989,7 @@ def projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
 def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     """Project points defined in arrays to surfaces according to the direction provided by vect."""
     zones = Internal.getZones(t1)
-    a1 = C.getAllFields(zones, loc='nodes')
+    a1 = C.getAllFields(zones, loc='nodes', api=1)
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
     a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
@@ -2684,7 +2684,7 @@ def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
 def splitCurvatureAngle(t, sensibility):
     """Split a curve following curvature angle.
     Usage: splitCurvatureAngle(t, sensibility)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureAngle(a, sensibility)
     zones = []
     for i in arrays:
@@ -2695,7 +2695,7 @@ def splitCurvatureAngle(t, sensibility):
 def splitConnexity(t):
     """Split zone into connex zones.
     Usage: splitConnexity(t)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitConnexity(a)
     zones = []
     for i in A:
@@ -2706,7 +2706,7 @@ def splitConnexity(t):
 def breakElements(t):
     """Break a NGON array in a set of arrays of BAR, TRI, ... elements.
     Usage: breakElements(t)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.breakElements(a)
     zones = []
     for i in A:
@@ -2729,7 +2729,7 @@ def _dual(t, extraPoints=1):
 def splitSharpEdges(t, alphaRef=30.):
     """Split zone into smooth zones.
     Usage: splitSharpEdges(t, alphaRef)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitSharpEdges(a, alphaRef)
     zones = []
     for i in A:
@@ -2740,7 +2740,7 @@ def splitSharpEdges(t, alphaRef=30.):
 def splitCurvatureRadius(t, Rs=100.):
     """Return the indices of the array where the curvature radius is low.
     Usage: splitCurvatureRadius(t, Rs)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureRadius(a, Rs)
     zones = []
     for i in arrays:
@@ -3006,7 +3006,7 @@ def splitMultiplePts(t, dim=3):
 def splitBAR(t, N, N2=-1):
     """Split a BAR at index N (start 0).
     Usage: splitBAR(t, N)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitBAR(a, N, N2)
     zones = []
     for i in A:
@@ -3017,7 +3017,7 @@ def splitBAR(t, N, N2=-1):
 def splitTBranches(t, tol=1.e-10):
     """Split a BAR at vertices where T-branches exist.
     Usage: splitTBranches(t, tol)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitTBranches(a, tol)
     zones = []
     for i in A:
@@ -3028,7 +3028,7 @@ def splitTBranches(t, tol=1.e-10):
 def splitTRI(t, idxList):
     """Split a TRI into several TRIs delimited by the input poly line.
     Usage: splitTRI(t, idxList)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitTRI(a, idxList)
     zones = []
     for i in A:
@@ -3039,7 +3039,7 @@ def splitTRI(t, idxList):
 def splitManifold(t):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitManifold(a)
     zones = []
     for i in A:
@@ -3051,8 +3051,8 @@ def _splitNGon(t, N, N2=-1, shift=1000):
     """Split a NGon putting result in a "part" field"""
     zones = Internal.getZones(t)
     for z in zones:
-        a1 = C.getAllFields(z, 'nodes')[0]
-        a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
+        a1 = C.getAllFields(z, 'nodes', api=1)[0]
+        a2 = C.getAllFields(z, 'centers', api=1)[0] # must contain "part" field
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
     return None

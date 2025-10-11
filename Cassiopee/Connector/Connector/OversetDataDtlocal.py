@@ -135,7 +135,7 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 noWallsInDnr = 0
                 walls = D.getCurvatureHeight(walls)
                 walls = C.convertArray2Tetra(walls, split="withBarycenters")
-                walls = C.getAllFields(walls,loc='nodes')
+                walls = C.getAllFields(walls,loc='nodes', api=1)
             donorSurfs.append(walls)
 
         # Zones receveuses : on determine les 1ers points paroi (centres ou noeuds)

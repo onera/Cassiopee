@@ -266,7 +266,7 @@ def prepare(t_case, t, tskel, check=False):
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -680,7 +680,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)

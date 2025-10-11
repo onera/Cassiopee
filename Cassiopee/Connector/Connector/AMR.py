@@ -360,7 +360,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
         C._initVars(frontIP_C,'dist',distance_DP)
 
-    ip_pts = C.getAllFields(frontIP_C,loc='nodes')[0]
+    ip_pts = C.getAllFields(frontIP_C,loc='nodes', api=1)[0]
     ip_pts = Converter.convertArray2Node(ip_pts)
     ip_pts = [ip_pts]
 
