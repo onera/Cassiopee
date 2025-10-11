@@ -270,10 +270,12 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   cellnout->setOneField(*fc, posc, 1);
   res = K_LOC::node2centerStruct(nodes, im, jm, km,  -1, 1, centers);
 
-  E_Int ok = modifyCellNForDoublyDefined(imc, jmc, kmc, depth, range, 
-                                         centers.begin(1), centers.begin(2), centers.begin(3), cellnout->begin(),
-                                         posxt, posyt, poszt, posct, 
-                                         nit, njt, nkt, structF, nitc, njtc, nktc, structFc);
+  E_Int ok = modifyCellNForDoublyDefined(
+    imc, jmc, kmc, depth, range, 
+    centers.begin(1), centers.begin(2), centers.begin(3), cellnout->begin(),
+    posxt, posyt, poszt, posct, 
+    nit, njt, nkt, structF, nitc, njtc, nktc, structFc
+  );
   if ( ok == -1 ) 
   {
     delete cellnout;
@@ -285,7 +287,8 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
     return NULL;
   }
   // build output array
-  PyObject* tpl = K_ARRAY::buildArray3(*cellnout, varStringc, imc, jmc, kmc);
+  E_Int api = structF[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*cellnout, varStringc, imc, jmc, kmc, api);
   delete cellnout;
   RELEASESHAREDS(a1, f); RELEASESHAREDS(celln1, fc);      
   for (E_Int is = 0; is < nsc; is++)

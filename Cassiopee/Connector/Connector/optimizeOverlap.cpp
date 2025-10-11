@@ -256,11 +256,12 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   RELEASESHAREDS(coordArray1, f1); RELEASESHAREDS(coordArray2, f2);
 
   //build Arrays
+  E_Int api = f1->getApi();
   PyObject* l = PyList_New(0);
-  PyObject* tpl = K_ARRAY::buildArray3(*fc1, varStringc1, imc1, jmc1, kmc1);
+  PyObject* tpl = K_ARRAY::buildArray3(*fc1, varStringc1, imc1, jmc1, kmc1, api);
   RELEASESHAREDS(centerArray1, fc1);
   PyList_Append(l, tpl); Py_DECREF(tpl);
-  tpl = K_ARRAY::buildArray3(*fc2, varStringc2, imc2, jmc2, kmc2);
+  tpl = K_ARRAY::buildArray3(*fc2, varStringc2, imc2, jmc2, kmc2, api);
   RELEASESHAREDS(centerArray2, fc2);
   PyList_Append(l, tpl); Py_DECREF(tpl);
 
