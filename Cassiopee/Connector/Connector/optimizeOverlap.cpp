@@ -232,6 +232,7 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   K_INTERP::InterpAdt* interpData1 = (K_INTERP::InterpAdt*)(packet1[1]);
   K_INTERP::InterpAdt* interpData2 = (K_INTERP::InterpAdt*)(packet2[1]);
 
+  E_Int api = f1->getApi();
   E_Float* xc1 = fc1->begin(posxc1);
   E_Float* yc1 = fc1->begin(posyc1);
   E_Float* zc1 = fc1->begin(poszc1);
@@ -256,7 +257,6 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
   RELEASESHAREDS(coordArray1, f1); RELEASESHAREDS(coordArray2, f2);
 
   //build Arrays
-  E_Int api = f1->getApi();
   PyObject* l = PyList_New(0);
   PyObject* tpl = K_ARRAY::buildArray3(*fc1, varStringc1, imc1, jmc1, kmc1, api);
   RELEASESHAREDS(centerArray1, fc1);
