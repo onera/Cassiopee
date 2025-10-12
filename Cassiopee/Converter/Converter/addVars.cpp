@@ -86,10 +86,9 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
       sizet = nt+1; strcat(fstring, ","); strcat(fstring, name);
     }
     else sizet = nt;
-
+    
     E_Int fSize = f->getSize();
     E_Int api = f->getApi();
-    // Building array here
     if (res == 1) 
       tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, api);
     else
@@ -267,8 +266,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     Py_INCREF(Py_None); return Py_None;
   }
 
-  PyObject* tpl, *array;
-  E_Int nil, njl, nkl;
+  PyObject *tpl, *array;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int sizevars;
@@ -283,10 +281,10 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(tpl)) varString = (char*)PyUnicode_AsUTF8(tpl);
 #endif    
-    varStringL += strlen(varString)+4;
+    varStringL += strlen(varString) + 4;
   }
-  char* fstring = new char [varStringL];  // var string du array de sortie
-  fstring[0] = '\0';
+  char* varString2 = new char [varStringL];  // var string du array de sortie
+  varString2[0] = '\0';
 
   vector<char*> vars; // vars du array de sortie
   vector<char*> local; // vars du array courant
@@ -296,134 +294,137 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
 
   // Extraction du nombre total de variables pour chaque arrays 
   // et verification
-  E_Int npts = -1;
-  E_Int* cnRef = NULL;
-  char eltTypeRef[256];
-  E_Int sizelocal = 0;
+  E_Int res, res0 = -1;
+  E_Int npts, nfld, api, nelts, sizeConnect, ni, nj, nk;
+  E_Int sizelocal = 0, nvar = 0;
+  E_Int npts0 = -1, ni0 = -1, nj0 = -1, nk0 = -1, nelts0 = -1;
+  E_Int iarr0 = -1;  // index of the first valid array
+  E_Bool center, center0 = false;
+  char* eltType0 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType0[0] = '\0';
+  E_Bool arrMask[n];
 
-  // Nombre de variables et taille de l'array final
-  E_Int size=0, res, nvar=0, sizeRef=0;
-  E_Int ni, nj, nk, nvertex, nelt, sizeConnect;
-  E_Int niRef=0, njRef=0, nkRef=0, nvertexRef=0, neltRef=0, sizeConnectRef=0;
-  E_Int structured=-1; // type de la sortie = type du premier array
-  for (int l = 0; l < n; l++)
+  for (E_Int l = 0; l < n; l++)
   {
     array = PyList_GetItem(arrays, l);
     res = K_ARRAY::getInfoFromArray(array, varString,
-                                    ni, nj, nk, nvertex, nelt, 
+                                    ni, nj, nk, npts, nelts, 
                                     sizeConnect, eltType);
-    if (res == 1) size = ni*nj*nk;
-    else if (res == 2) size = nvertex;
-    if (res == 1 || res == 2)
-    {
-      if (structured == -1)
-      {
-        structured = res;
-        sizeRef = size;
-        if (res == 1)
-        {
-          niRef = ni; njRef = nj; nkRef = nk;
-        }
-        else if (res == 2)
-        {
-          nvertexRef = nvertex; neltRef = nelt; sizeConnectRef = sizeConnect;
-          strcpy(eltTypeRef, eltType);
-        }
-      }
-
-      // Selectionne les variables non communes
-      K_ARRAY::extractVars(varString, local);
-      nvar = vars.size();
-      sizelocal = local.size();
-      for (E_Int j = 0; j < sizelocal; j++)
-      {
-        sizevars  = vars.size();
-        localj = local[j];
-        E_Bool exist = false;
-        for (E_Int i = 0; i < sizevars; i++)
-        {
-          if (K_STRING::cmp(vars[i], localj) == 0){exist = true; break;}
-        }
-        if (exist == false) // var non commune
-        {
-          vars.push_back(localj);
-          strcat(fstring, localj);
-          strcat(fstring, ",");
-          nvar++;
-        }
-        else delete [] localj;
-      }
-      local.clear();
-    }
-  }
-  E_Int nvarRef = nvar;
-  // fstring final modification
-  E_Int leng = strlen(fstring)-1;
-  if (fstring[leng] == ',') fstring[leng] = '\0';
-
-  // Construit le numpy de sortie
-  if (structured == 1)
-  {
-    tpl = K_ARRAY::buildArray(nvarRef, fstring, 
-                              niRef, njRef, nkRef);
-  }
-  else
-  {  
-    tpl = K_ARRAY::buildArray(nvarRef, fstring, 
-                              nvertexRef, neltRef, -1, eltTypeRef,
-                              false, sizeConnectRef);
-    cnRef = K_ARRAY::getConnectPtr(tpl);
-  }
-  E_Float* fielp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF field(sizeRef, nvarRef, fielp, true);
-
-  structured = -1; nvar = 0;
-  for (E_Int l = 0; l < n; l++) 
-  { 
-    array = PyList_GetItem(arrays, l);
-    res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
-                                 cn, eltType);
-
+    center = (npts > 0 && nelts > 0) && (npts == nelts);
+    
     if (res != 1 && res != 2)
     {
-      printf("Warning: addVars: array is invalid. Array %d skipped...\n",
-             l+1);
-      goto skip;
+      printf("Warning: addVars: array is invalid. Array " SF_D_ " skipped...\n", l+1);
+      arrMask[l] = false;
+      continue;
     }
-
-    if (structured == 1 && res == 2)
+    else if (res0 == -1)
     {
-      RELEASESHAREDU(array, f, cn);
-      printf("Warning: addVars: arrays must be defined on the same grid. Array %d skipped...\n", l+1);
-      goto skip;
-    }
-    if (structured == 2 && res == 1)
-    {
-      RELEASESHAREDS(array, f);
-      printf("Warning: addVars: arrays must be defined on the same grid. Array %d skipped...\n", l+1);
-      goto skip;
-    }
-    if (structured != -1 && f->getSize() != sizeRef)
-    {
-      RELEASESHAREDB(res, array, f, cn);
-      printf("Warning: addVars: arrays must be defined on the same grid. Array %d skipped...\n", l+1);
-      goto skip;
-    }
-
-    if (structured == -1)
-    {
-      structured = res;
-      if (res == 2)
+      arrMask[l] = true;
+      iarr0 = l;
+      res0 = res;
+      if (res == 1) { ni0 = ni; nj0 = nj; nk0 = nk; }
+      else
       {
-        E_Int* cnp = cn->begin();
-        E_Int size = cn->getSize()*cn->getNfld();
-        for (E_Int i = 0; i < size; i++) cnRef[i] = cnp[i];
+        npts0 = npts; nelts0 = nelts;
+        strcpy(eltType0, eltType);
+        std::cout << npts0 << " " << nelts0 << " " << eltType << std::endl;
+        if (center || strchr(eltType0, '*') != NULL) center0 = true;
       }
     }
+    // else if (
+    //   res != res0 || 
+    //   (res == 1 && (ni0 != ni || nj0 != nj || nk0 != nk)) ||
+    //   (res == 2 && (center0 && nelts != nelts0) || (!center0 && npts != npts0))
+    // )
+    // {
+    //   printf("Warning: addVars: arrays must be defined on the same grid. "
+    //          "Array " SF_D_ " skipped...\n", l+1);
+    //   arrMask[l] = false;
+    //   std::cout << res << " " << npts << " " << nelts << " " << eltType << std::endl;
+    //   std::cout << res0 << " " << npts0 << " " << nelts0 << " " << eltType0 <<  std::endl;
+    //   continue;
+    // }
+
+    // This array is valid
+    arrMask[l] = true;
 
     // Selectionne les variables non communes
     K_ARRAY::extractVars(varString, local);
-    
+    nvar = vars.size();
+    sizelocal = local.size();
+    for (E_Int j = 0; j < sizelocal; j++)
+    {
+      sizevars  = vars.size();
+      localj = local[j];
+      E_Bool exist = false;
+      for (E_Int i = 0; i < sizevars; i++)
+      {
+        if (K_STRING::cmp(vars[i], localj) == 0){exist = true; break;}
+      }
+      if (!exist) // var non commune
+      {
+        vars.push_back(localj);
+        strcat(varString2, localj);
+        strcat(varString2, ",");
+        nvar++;
+      }
+      else delete [] localj;
+    }
+    local.clear();
+  }
+
+  E_Int nvalidArrs = 0;
+  for (E_Int l = 0; l < n; l++) nvalidArrs += (E_Int)arrMask[l];
+  if (nvalidArrs == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "addVars: none of the arrays are valid.");
+    for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
+    delete [] varString2;
+    delete [] eltType0;
+    return NULL;
+  }
+
+  // varString2 final modification
+  E_Int nfld2 = nvar;
+  E_Int leng = strlen(varString2) - 1;
+  if (varString2[leng] == ',') varString2[leng] = '\0';
+
+  // Get first valid array
+  array = PyList_GetItem(arrays, iarr0);
+  res0 = K_ARRAY::getFromArray3(array, varString, f, ni0, nj0, nk0, 
+                                cn, eltType);
+  api = f->getApi();
+  
+  // Construit le numpy de sortie
+  if (res0 == 1)
+  {
+    tpl = K_ARRAY::buildArray3(nfld2, varString2, ni0, nj0, nk0, api);
+  }
+  else
+  {  
+    std::cout << eltType0 << " " << center0 << std::endl;
+    tpl = K_ARRAY::buildArray3(nfld2, varString2, f->getSize(),
+                               *cn, eltType0, center0, api, true);
+  }
+
+  // Free memory from the first valid array
+  RELEASESHAREDB(res0, array, f, cn);
+
+  FldArrayF* field;
+  K_ARRAY::getFromArray3(tpl, field);
+
+  nvar = 0;
+  for (E_Int l = 0; l < n; l++) 
+  { 
+    if (!arrMask[l]) continue;  // array is invalid, skip
+    array = PyList_GetItem(arrays, l);
+    K_ARRAY::getFromArray3(array, varString, f);
+    nfld = f->getNfld();
+
+    // Selectionne les variables non communes
+    K_ARRAY::extractVars(varString, local);
     nvar = vars.size();
     sizelocal = local.size();
     pos.malloc(sizelocal); posp = pos.begin();
@@ -439,29 +440,25 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
       delete [] localj;
     }
     local.clear();
-    npts = f->getSize();
 
-    // Init
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
-      E_Int nfld = f->getNfld();
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fip = field.begin(posp[eq-1]);
+        E_Float* fip = field->begin(posp[eq-1]);
         E_Float* fp = f->begin(eq);
-#pragma omp for nowait
-        for (E_Int i = 0; i < npts; i++) fip[i] = fp[i];
+        #pragma omp for nowait
+        for (E_Int i = 0; i < npts0; i++) fip[i] = fp[i];
       }
     }
 
-    RELEASESHAREDB(res, array, f, cn);
-    skip: ;
-    
+    RELEASESHAREDS(array, f);
   }
 
-  sizevars = vars.size();
-  for (E_Int i = 0; i < sizevars; i++) delete [] vars[i];
-  delete [] fstring;
+  for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
+  delete [] varString2;
+  delete [] eltType0;
+  RELEASESHAREDS(tpl, field);
 
   return tpl;
 }

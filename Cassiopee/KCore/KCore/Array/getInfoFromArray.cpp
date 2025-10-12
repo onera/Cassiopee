@@ -170,7 +170,7 @@ E_Int K_ARRAY::getInfoFromArray(PyObject* o, char*& varString,
     //PyArrayObject* ac = 
     //  (PyArrayObject*)PyArray_ContiguousFromObject(c, E_NPY_INT,
     //               1, 10000000);  
-    if (K_STRING::cmp(eltType, "NGON") == 0)
+    if (K_STRING::cmp(eltType, 4, "NGON") == 0)
     {
       if (PyList_Check(c) == true) // array2
       {
