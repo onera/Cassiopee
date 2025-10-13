@@ -28,7 +28,7 @@ TOL = 1.e-9
 OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./'):
     sym3D=False; forceAlignment=False;
-
+    Cmpi.trace('AMR prepare IBM...start', master=True)
     t_prep_start = time.perf_counter()
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     if frontTypeIP not in ["1","2"]:
@@ -255,6 +255,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             Internal._renameNode(t, "TurbulentDistanceForCFDComputation","TurbulentDistance")
 
     Internal._renameNode(t,'FlowSolution#Centers','FlisWallDistance')
+    Cmpi.trace('AMR prepare IBM...end', master=True)
     return t
 
 def computationDistancesNormals(t, tb, dim=3):
@@ -940,33 +941,21 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                   snears, dfars, loadBalancing, conformal, OutputAMRMesh,
                   localDir= fileName)"""
-    import time
-    startTime = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR Mesh Generation...start',flush=True)
+
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
                                   toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=False)
-    if Cmpi.rank==0: print('AMR Mesh Generation...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)/1.0e09
-    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Generation: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
-
-    startTime   = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR Mesh Dist2Wal...start',flush=True)
+    
+    Cmpi.trace('AMR Mesh Dist2Wal...start', master=True)
     if dim==2: tb2=T.addkplane(tb)
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
     del tb2
-    if Cmpi.rank==0: print('AMR Mesh Dist2Wall...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)/1.0e09
-    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Dist2Wall: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    Cmpi.trace('AMR Mesh Dist2Wal...end', master=True)
 
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
-    startTime   = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR prepare IBM...start',flush=True)
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir)
-    if Cmpi.rank==0: print('AMR prepare IBM...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)/1.0e09
-    if Cmpi.rank==0: print('Elapsed Time: AMR prepare IBM: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+
     if fileName is not None:
         Cmpi.convertPyTree2File(t_AMR, localDir+fileName)
         return None
