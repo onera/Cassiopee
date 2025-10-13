@@ -195,7 +195,7 @@ def surface(f, N=100):
 def getLength(t):
     """Return the length of 1D array(s) defining a mesh.
     Usage: getLength(t)"""
-    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=3)
     return Geom.getLength(coords)
 
 def getDistantIndex(t, ind, l):
@@ -214,29 +214,29 @@ def getNearestPointIndex(t, pointList):
 def getCurvatureHeight(t):
     """Return the curvature height for each point.
     Usage: getCurvatureHeight(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureHeight)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureHeight)
 
 def _getCurvatureHeight(t):
     """Return the curvature height for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureHeight)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureHeight)
 
 def getCurvatureRadius(t):
     """Return the curvature radius for each point.
     Usage: getCurvatureRadius(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureRadius)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureRadius)
 
 def _getCurvatureRadius(t):
     """Return the curvature radius for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureRadius)
 
 def getCurvatureAngle(t):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureAngle)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureAngle)
 
 def _getCurvatureAngle(t):
     """Return the curvature angle for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureAngle)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureAngle)
 
 def getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle

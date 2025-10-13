@@ -63,11 +63,11 @@ hmsh = XOR.createHMesh(t, 0)
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 # Get BC points
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS)
@@ -79,7 +79,6 @@ t = C.setFields(hx,t, 'nodes')
 t = C.setFields(hy,t, 'nodes')
 t = C.setFields(hz,t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
-
 
 #-------------------------------------------
 # updateFcadidFromNcadid
@@ -123,11 +122,11 @@ t = C.setFields(ncadid, t, 'nodes')
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 occ.linkNodes2CAD( c, wall_face_ids, hook, hx, hy, hz, ncadid )
 
@@ -136,9 +135,6 @@ t = C.setFields(hx,t, 'nodes')
 t = C.setFields(hy,t, 'nodes')
 t = C.setFields(hz,t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
-
-#C.convertPyTree2File(t, 'out.cgns')
-
 
 #-------------------------------------------
 # QUANTUM
