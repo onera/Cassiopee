@@ -1,5 +1,4 @@
 LIBNAME = PostF
 SOURCEF90 =
-SOURCEF77 = ComputNormF.for ConstrConnectF.for
+SOURCEF77 =
 include ../Make.inc
-
