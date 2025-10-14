@@ -105,7 +105,7 @@ else: # try import (may fail - core or hang)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 # Store state for trace
-TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': True, 'cpu': True, 'master': False }
+TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': True, 'cpu': True, 'master': True }
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
@@ -212,7 +212,7 @@ def isFinite(t, var=None):
 # Trace memory and cpu time.
 # if cpu=True, write cpu time ellapsed from previous trace call.
 # if mem=True, write node used memory
-# if reset, empty log
+# if reset is true, empty log
 # if filename="stdout", write to screen, else write in file filename
 # if master=True, only master write output and max is performed on mem and time.
 # if method is present: Rss(0), tracemalloc(1), heap(2), VmRss(3), Resident(4)

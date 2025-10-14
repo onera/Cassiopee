@@ -344,7 +344,7 @@ E_Int K_GENERATOR::getNeighbourHexas2(
 
 #pragma omp parallel default(shared)
   {
-    E_Float minB0[3];  E_Float maxB0[3];
+    E_Float minB0[3]; E_Float maxB0[3];
 #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
@@ -357,7 +357,7 @@ E_Int K_GENERATOR::getNeighbourHexas2(
 
 #pragma omp parallel default(shared)
   {
-  E_Float minB[3];  E_Float maxB[3];
+  E_Float minB[3]; E_Float maxB[3];
   E_Int et2;
 #pragma omp for
   for (E_Int et1 = 0; et1 < nelts; et1++)

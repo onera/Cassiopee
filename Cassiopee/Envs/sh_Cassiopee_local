@@ -296,7 +296,7 @@ elif [ "$MAC" = "spiro" ]; then
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
     alias vtune="vtune -collect hotspots -result-dir result -quiet"
     export PYTHONEXE=python3
-    export PRODMODE=0
+    export PRODMODE=1
     unset I_MPI_FABRICS_LIST
     unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK
