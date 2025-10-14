@@ -211,11 +211,11 @@ def preparePeriodicFeature(feature, canal, JTOL, rotation_angle, max_overlap_ang
 
     if nf1 < nf2 : # choose z11
         zb = T.rotate(z1s[0], (0.,0.,0.), (rotation_angle, 0., 0.))
-        m = C.getFields(I.__GridCoordinates__, zb)[0]
+        m = C.getFields(I.__GridCoordinates__, zb, api=1)[0]
         C.setFields([m], z1s[1], 'nodes') # replace the mesh in the zone
     else:          # choose z12
         zb = T.rotate(z1s[1], (0.,0.,0.), (-rotation_angle, 0., 0.))
-        m = C.getFields(I.__GridCoordinates__, zb)[0]
+        m = C.getFields(I.__GridCoordinates__, zb, api=1)[0]
         C.setFields([m], z1s[0], 'nodes') # replace the mesh in the zone
 
     return feature

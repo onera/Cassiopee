@@ -2540,7 +2540,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
     for i in range(len(zonesN)):
         z = zonesN[i]
         dim = Internal.getZoneDim(z)
-        a = C.getFields(Internal.__GridCoordinates__, z)[0]
+        a = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         zlist = []
         if NPart[i] > 1:
             if recoverBC: bcs = C.getBCs(z)

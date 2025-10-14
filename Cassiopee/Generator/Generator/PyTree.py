@@ -401,7 +401,7 @@ def checkDelaunay(contour, tri):
     """Check if the Delaunay triangulation defined by tri is inside the contour.
     Usage: checkDelaunay(contour, tri)"""
     contour = C.deleteFlowSolutions__(contour, 'centers')
-    tria = C.getFields(Internal.__GridCoordinates__, tri)[0]
+    tria = C.getFields(Internal.__GridCoordinates__, tri, api=1)[0]
     return C.TZA1(contour, 'nodes', 'nodes', True,
                   Generator.checkDelaunay, tria)
 
