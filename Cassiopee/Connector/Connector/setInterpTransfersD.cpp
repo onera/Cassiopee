@@ -270,12 +270,13 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
       E_Int sizecoefs = 0;
       E_Float* cellNR = fieldROut.begin(nvars);
       E_Float* cellND = fieldsD[poscd];
+      E_Float* ptrCoefs = donorCoefsF->begin();
       for (E_Int noind = 0; noind < nbRcvPts; noind++)
       {
-        // adressage direct pour indR
-        indR = noind;
+	// adressage direct pour indR
+	indR = noind;
 # include "commonCellNTransfersStrict.h"   
-      }  
+      }
     }
   }
   else

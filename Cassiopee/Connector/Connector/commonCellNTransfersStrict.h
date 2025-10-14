@@ -3,7 +3,9 @@ type = types[noind];
 SIZECF(type, meshtype, sizecoefs);
 
 nocf = 0;
-E_Float val = 1.;
+E_Float val   = 1.;
+E_Float seuil = 1.e-8;
+
 // - pas de cellule masquee, ni interpolee dans la molecule d interpolation, sauf si son cf associe est nul.
 // - somme des cf = 1.
 // -----------------
@@ -31,59 +33,58 @@ switch (type)
     else cellNR[indR] = 0.;
     sizecoefs = 1;
     noi+=1;
+    ptrCoefs += sizecoefs;
     break;
     
   case 2: // Structure Lineaire O2 par tetra
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
+    nocf =0;
     for (E_Int kk=0; kk<2; kk++)
       for (E_Int jj=0; jj<2; jj++)
         for (E_Int ii=0; ii<2; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);   
+          indD = indD0 + ii +jj*imd + kk*imdjmd;
+
+          if ( K_FUNC::E_abs(ptrCoefs[nocf])>seuil) { val *= cellND[indD]*(2.-cellND[indD]);   }
           nocf++;
         }
-    
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;
+    ptrCoefs += sizecoefs;
     break;
     
   case 22:// O2CF 2D
     indD0 = donorPts[noind];
-    j = indD0/imd;
-    i = indD0-j*imd;
+    nocf =0;
     for (E_Int jj=0; jj<2; jj++)
       for (E_Int ii=0; ii<2; ii++)
       {
-        indD = (i+ii)+(j+jj)*imd;
-        val *= cellND[indD]*(2.-cellND[indD]);   
+        indD = indD0 + ii +jj*imd;
+        if ( K_FUNC::E_abs(ptrCoefs[nocf])>seuil) { val *= cellND[indD]*(2.-cellND[indD]);   }
         nocf++;
       }      
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;
+    ptrCoefs += sizecoefs;
     break;
     
   case 3: // Lagrange O3
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
-    
+    nocf =0;
     for (E_Int kk=0; kk<3; kk++)
       for (E_Int jj=0; jj<3; jj++)
         for (E_Int ii=0; ii<3; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);             
+          indD = indD0 + ii +jj*imd + kk*imdjmd;
+          if ( K_FUNC::E_abs(ptrCoefs[nocf])>seuil) { val *= cellND[indD]*(2.-cellND[indD]);   }
+          nocf++;
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;
+    ptrCoefs += sizecoefs;
     break;
     
   case 4: // Tetra O2
@@ -97,23 +98,41 @@ switch (type)
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;      
+    ptrCoefs += sizecoefs;
     break;
     
-  case 5: // Lagrange O5
-    indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
-    for (E_Int kk=0; kk<5; kk++)
-      for (E_Int jj=0; jj<5; jj++)
-        for (E_Int ii=0; ii<5; ii++)
+  case 44: // Lagrange O4
+    indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+    nocf =0;
+    for (E_Int kk=0; kk<4; kk++)
+      for (E_Int jj=0; jj<4; jj++)
+        for (E_Int ii=0; ii<4; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);         
+          indD = indD0 + ii +jj*imd + kk*imdjmd;
+          if ( K_FUNC::E_abs(ptrCoefs[nocf])>seuil) { val *= cellND[indD]*(2.-cellND[indD]);   }
+          nocf++;
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;
+    ptrCoefs += sizecoefs;
+    break;
+
+  case 5: // Lagrange O5
+    indD0 = donorPts[noind];
+    nocf =0;
+    for (E_Int kk=0; kk<5; kk++)
+      for (E_Int jj=0; jj<5; jj++)
+        for (E_Int ii=0; ii<5; ii++)
+        {
+          indD = indD0 + ii +jj*imd + kk*imdjmd;
+          if ( K_FUNC::E_abs(ptrCoefs[nocf])>seuil) { val *= cellND[indD]*(2.-cellND[indD]);   }
+          nocf++;
+        }
+    if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
+    else cellNR[indR] = 0.;
+    noi += 1;
+    ptrCoefs += sizecoefs;
     break;
     
   default:;
