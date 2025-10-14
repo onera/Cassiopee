@@ -295,9 +295,9 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
 
     if optimized != -1:  # legacy behaviour
-      Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
     else:
-      setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
+        setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
     #===================
@@ -313,23 +313,23 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
 
     if optimized == -1:  # on recalcule les interp chimere en supprimant les coin maintenant que le calcul du front est ok
-      if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data 2nd pass corner (Abutting & Chimera)', time=-1)
-      setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, extrap=extrap, order=order, cartesian=cartesian, corner=False)
+        if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data 2nd pass corner (Abutting & Chimera)', time=-1)
+        setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, extrap=extrap, order=order, cartesian=cartesian, corner=False)
 
-      if verbose: printTimeAndMemory__('compute interpolation data 2nd pass corner (Abutting & Chimera)', time=python_time.time()-pt0)
+        if verbose: printTimeAndMemory__('compute interpolation data 2nd pass corner (Abutting & Chimera)', time=python_time.time()-pt0)
 
     #===================
     # STEP 5 : INTERP DATA IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1)
-    if optimized != -1: 
-      nature_loc = 1
-      extrap_loc = 1
-      val        = 0
+    if optimized != -1:
+        nature_loc = 1
+        extrap_loc = 1
+        val        = 0
     else:
-      nature_loc = 0
-      extrap_loc = 0
-      val        = 2
+        nature_loc = 0
+        extrap_loc = 0
+        val        = 2
 
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
@@ -488,9 +488,9 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=2, cartesian=cartesian)
 
     if optimized != -1:  # legacy behaviour
-      Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=2, cartesian=cartesian)
     else:
-      setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
+        setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
     #===================
@@ -504,21 +504,21 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
 
     if optimized == -1:  # on recalcule les interp chimere en supprimant les coin maintenant que le calcul du front est ok
-      setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, extrap=extrap, order=order, cartesian=cartesian, corner=False)
+        setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, extrap=extrap, order=order, cartesian=cartesian, corner=False)
 
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
     #===================
     # STEP 6 : INTERP DATA IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='prepareIBMDataExtrude')
-    if optimized != -1: 
-      nature_loc = 1
-      extrap_loc = 1
-      val        = 0
+    if optimized != -1:
+        nature_loc = 1
+        extrap_loc = 1
+        val        = 0
     else:
-      nature_loc = 0
-      extrap_loc = 0
-      val        = 2
+        nature_loc = 0
+        extrap_loc = 0
+        val        = 2
 
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
@@ -1361,46 +1361,46 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFront
     C._initVars(t,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})')# vaut -3, 0, 1, 2, 3 initialement
     npass = 1
     if optimized==-1:
-       npass=2
-       for z in Internal.getZones(t):
-         tmp = Internal.getNodeFromName(z,'cellNIBC')[1]
-         sh = numpy.shape(tmp)
-         for k in range(sh[2]):
-           for j in range(sh[1]):
-             for i in range(sh[0]):
-               if tmp[i,j,k] >=2.5:  tmp[i,j,k]=1.5
+        npass=2
+        for z in Internal.getZones(t):
+            tmp = Internal.getNodeFromName(z,'cellNIBC')[1]
+            sh = numpy.shape(tmp)
+            for k in range(sh[2]):
+                for j in range(sh[1]):
+                    for i in range(sh[0]):
+                        if tmp[i,j,k] >=2.5:  tmp[i,j,k]=1.5
 
     C._initVars(t,'{centers:cellNIBC}={centers:cellNIBC}*({centers:cellNIBC}<2.5)')
     C._cpVars(t,'centers:cellNIBC',t,'centers:cellN')
 
     if optimized==-1:
-      Internal._rmNodesByName(tc,'cellN')
-      C._initVars(tc,'{cellN}=1.')
-      for z in Internal.getZones(tc):
+        Internal._rmNodesByName(tc,'cellN')
+        C._initVars(tc,'{cellN}=1.')
+        for z in Internal.getZones(tc):
 
-        cellN = Internal.getNodeFromName(z,'cellN')[1]
-        z1    = Internal.getNodeFromName(t,z[0])
-        sol   = Internal.getNodeFromName(z1,'FlowSolution#Centers')
-        cellNc= Internal.getNodeFromName(sol,'cellN')[1]
-        sh = numpy.shape(cellNc)
-        sh2 = numpy.shape(cellN)
-        if len(sh)==3 and sh[2]!=1:
-          cellN[:,:,:]=cellNc[:,:,:]
-        elif len(sh)==3 and sh[2]==1:
-          cellN[:,:]=cellNc[:,:,0]
-        else:
-          cellN[:,:]=cellNc[:,:]
+            cellN = Internal.getNodeFromName(z,'cellN')[1]
+            z1    = Internal.getNodeFromName(t,z[0])
+            sol   = Internal.getNodeFromName(z1,'FlowSolution#Centers')
+            cellNc= Internal.getNodeFromName(sol,'cellN')[1]
+            sh = numpy.shape(cellNc)
+            sh2 = numpy.shape(cellN)
+            if len(sh)==3 and sh[2]!=1:
+                cellN[:,:,:]=cellNc[:,:,:]
+            elif len(sh)==3 and sh[2]==1:
+                cellN[:,:]=cellNc[:,:,0]
+            else:
+                cellN[:,:]=cellNc[:,:]
     else:
-      C._cpVars(t,'centers:cellN',tc,'cellN')
+        C._cpVars(t,'centers:cellN',tc,'cellN')
 
     if optimized==-1: npass=2
 
     for l in range(npass):
-      # Transfert du cellNFront
-      C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
+        # Transfert du cellNFront
+        C._cpVars(t,'centers:cellNFront',tc,'cellNFront')
 
-      # propager cellNVariable='cellNFront'
-      Xmpi._setInterpTransfers(t, tc, variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
+        # propager cellNVariable='cellNFront'
+        Xmpi._setInterpTransfers(t, tc, variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
 
     #C.convertPyTree2File(t,'t_FrontAprsTrans.cgns')
 
@@ -1661,38 +1661,38 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         zd = Internal.copyRef(Internal.getNodeFromName2(tc, zdname))
                         if zd is None: print('!!!Zone None', zrname, zdname)
                         else: dnrZones.append(zd)
-                    
+
                     if nature ==0: # correction ghost non masque pour les rendre donneuse
-                      for z in dnrZones:
-                        cellN = Internal.getNodeFromName(z,'cellN')[1]
-                        #print("shape", z[0], z[1], numpy.shape(cellN))
-                        C._initVars(z,'{tmp}={cellN}')
-                        sh_R    = numpy.shape(cellN)
-                        ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
-                        for k in range(nk):
-                          for j in range(nj):
-                           for i in range(2):
-                             if abs(cellN[i     , j, k]-1.5) < 0.01: cellN[i,j,k       ]= val
-                             if abs(cellN[ni-1-i, j, k]-1.5) < 0.01: cellN[ni-1-i, j, k]= val
-                        for k in range(nk):
-                         for j in range(2):
-                          for i in range(ni):
-                            if abs(cellN[i     , j     , k     ]-1.5) < 0.01: cellN[i,j     , k]= val
-                            if abs(cellN[i     , nj-1-j, k     ]-1.5) < 0.01: cellN[i,nj-1-j, k]= val
-                        if dimPb ==3:
-                          for k in range(2):
-                           for j in range(nj):
-                            for i in range(ni):
-                              if abs(cellN[i, j, k     ]-1.5) < 0.01: cellN[i, j , k     ]= val
-                              if abs(cellN[i, j, nk-1-k]-1.5) < 0.01: cellN[i, j , nk-1-k]= val
+                        for z in dnrZones:
+                            cellN = Internal.getNodeFromName(z,'cellN')[1]
+                            #print("shape", z[0], z[1], numpy.shape(cellN))
+                            C._initVars(z,'{tmp}={cellN}')
+                            sh_R    = numpy.shape(cellN)
+                            ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
+                            for k in range(nk):
+                                for j in range(nj):
+                                    for i in range(2):
+                                        if abs(cellN[i     , j, k]-1.5) < 0.01: cellN[i,j,k       ]= val
+                                        if abs(cellN[ni-1-i, j, k]-1.5) < 0.01: cellN[ni-1-i, j, k]= val
+                            for k in range(nk):
+                                for j in range(2):
+                                    for i in range(ni):
+                                        if abs(cellN[i     , j     , k     ]-1.5) < 0.01: cellN[i,j     , k]= val
+                                        if abs(cellN[i     , nj-1-j, k     ]-1.5) < 0.01: cellN[i,nj-1-j, k]= val
+                            if dimPb ==3:
+                                for k in range(2):
+                                    for j in range(nj):
+                                        for i in range(ni):
+                                            if abs(cellN[i, j, k     ]-1.5) < 0.01: cellN[i, j , k     ]= val
+                                            if abs(cellN[i, j, nk-1-k]-1.5) < 0.01: cellN[i, j , nk-1-k]= val
 
                     XOD._setIBCDataForZone__(zrcv, dnrZones, allCorrectedPts[nozr], allWallPts[nozr], allInterpPts[nozr],
                                              nature=nature, penalty=penalty, extrap=extrap, loc='centers', storage='inverse', dim=dimPb,
                                              interpDataType=interpDataType, ReferenceState=ReferenceState, bcType=ibcTypeL,model=model)
 
                     if nature==0:
-                      C._initVars(dnrZones,'{cellN}={tmp}')
-                      Internal.rmNodesByName(dnrZones,'tmp')
+                        C._initVars(dnrZones,'{cellN}={tmp}')
+                        Internal.rmNodesByName(dnrZones,'tmp')
 
                     nozr += 1
                     for zd in dnrZones:
@@ -4064,8 +4064,8 @@ def doInterp3(t, tc, tbb, tb=None, typeI='ID', dim=3, dictOfADT=None, frontType=
 
         #dico={}
         #for zrcv in Internal.getZones(t):
-               # listofjoins = Internal.getNodesFromType2(zrcv, 'GridConnectivity_t')
-               # if listofjoins is not None:
+                # listofjoins = Internal.getNodesFromType2(zrcv, 'GridConnectivity_t')
+                # if listofjoins is not None:
                 #    prange_list=[]
                 #    dir_list=[]
                 #    for join in listofjoins:
@@ -4357,7 +4357,7 @@ def _writeOutputProject__(outputProjection, tLocal):
 
 
 ##########################################################################
-#Interpolation chimere en 7 etapes pour prepIBM si optimized=-1 
+#Interpolation chimere en 7 etapes pour prepIBM si optimized=-1
 #limite le recouvrement
 ##  etape1 : interp ordre2 nature 1 entre grille de meme niveau
 ##  etape2 : modif cellN=0 pour les points interpole dans etape 1
@@ -4415,21 +4415,21 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
     #
     if not corner:
 
-      print("ON optimise les coins a interpoler")
-      #Internal._rmNodesByName(tc,'ID_*')
-      #Sauvegarde cellN passe 2
-      C._initVars(t, '{centers:cellNSave2}= {centers:cellN}') #cellN pointe sur cellNIBC 
-      C._initVars(tc, '{cellNSave2}= {cellN}') 
-      C._initVars(t, '{centers:cellN}= {centers:cellNSave1}') #modifie cellNIBC 
+        print("ON optimise les coins a interpoler")
+        #Internal._rmNodesByName(tc,'ID_*')
+        #Sauvegarde cellN passe 2
+        C._initVars(t, '{centers:cellNSave2}= {centers:cellN}') #cellN pointe sur cellNIBC
+        C._initVars(tc, '{cellNSave2}= {cellN}')
+        C._initVars(t, '{centers:cellN}= {centers:cellNSave1}') #modifie cellNIBC
 
-      _correctCellNCorner(t, tc, dim=dim, verbose=0)
+        _correctCellNCorner(t, tc, dim=dim, verbose=0)
 
-      C._cpVars(t,'centers:cellN',tc,'cellN')
-      C._initVars(t, '{centers:cellNSave3}= {centers:cellN}')
+        C._cpVars(t,'centers:cellN',tc,'cellN')
+        C._initVars(t, '{centers:cellNSave3}= {centers:cellN}')
 
     else:
-      #Sauvegarde cellN passe 1
-      C._initVars(t, '{centers:cellNSave1}= {centers:cellN}')
+        #Sauvegarde cellN passe 1
+        C._initVars(t, '{centers:cellNSave1}= {centers:cellN}')
 
     tbbc = Cmpi.createBBoxTree(tc)
     interDict = X.getIntersectingDomains(tbbc, taabb=tbbc)
@@ -4496,15 +4496,15 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
 
             hookL = []; interpDataTypeL = []
             for z in dnrZones:
-               h = hooks[z[0]]
-               hookL.append(h)
-               if h is None: interpDataTypeL.append(0)
-               else: interpDataTypeL.append(1)
+                h = hooks[z[0]]
+                hookL.append(h)
+                if h is None: interpDataTypeL.append(0)
+                else: interpDataTypeL.append(1)
 
             #print("zd=", zd[0],  "donors", dnrZones)
             if dnrZones != []:
                 X._setInterpData(zr, dnrZones, nature=1, penalty=1, extrap=0, loc='centers', storage='inverse',
-                                interpDataType=interpDataTypeL, hook=hookL, sameName=1, order=2, itype='chimera', verbose=0)
+                                 interpDataType=interpDataTypeL, hook=hookL, sameName=1, order=2, itype='chimera', verbose=0)
                 '''
                 fix='Nocorner'
                 if corner: fix='corner'
@@ -4534,12 +4534,12 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                         if destProc not in datas: datas[destProc] = [[zdname,IDs]]
                         else: datas[destProc].append([zdname,IDs])
                 else:
-                      if destProc not in datas: datas[destProc] = []
+                    if destProc not in datas: datas[destProc] = []
 
             cellNModif[zrname]=modCellN  # a terminer: attention surememnt indice "bandelette" en mpi a cette position
 
     Cmpi._rmXZones(tc)
-    #for h in hooks: C.freeHook(hooks[h])      
+    #for h in hooks: C.freeHook(hooks[h])
     #test.printMem(">>> Interpdata [after rmXZones]")
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
@@ -4550,7 +4550,7 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                 zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IDs
 
-    
+
     datas = {}; destDatas = None;# graph={}
 
     #C.convertPyTree2File(t,'tE1.cgns')
@@ -4566,17 +4566,17 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
     val=0  #on force cellN a zero car etape 1 et 3 = nature 1
     #if nature==0: val=1 #Ghost donneuse acceptee
     for zd in Internal.getZones(tc):
-      #subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
-      subRegions =  cellNModif[ zd[0] ]
-      for s in subRegions:
-        zRname = Internal.getValue(s)
-        #faire test sur dest proc
+        #subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        subRegions =  cellNModif[ zd[0] ]
+        for s in subRegions:
+            zRname = Internal.getValue(s)
+            #faire test sur dest proc
 
-        zr = Internal.getNodeFromName2(t,zRname)
-        sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
-        cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
- 
-        '''
+            zr = Internal.getNodeFromName2(t,zRname)
+            sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
+            cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
+
+            '''
         fix='Nocorner'
         if corner: fix='corner'
         if zr[0]=='Cart.48X0':
@@ -4584,23 +4584,23 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
             C.convertPyTree2File(zd,'tc48_E2_'+zd[0]+fix+'.cgns')
         '''
 
-        sh   = numpy.shape(cellN)
-        nxny = sh[0]*sh[1]
-        nx   = sh[0]
-        pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
-        if len(sh)==2:
-          for l in range(numpy.size(pointlistD)):
-             j  = pointlistD[l]//nx
-             i  = pointlistD[l] -j*nx
-             cellN[i,j]=val #si nature=0 , 0 sinon
-        else:
-          for l in range(numpy.size(pointlistD)):
-             k    = pointlistD[l]//nxny
-             rest = pointlistD[l]-k*nxny
-             j    = rest//nx
-             i    = rest -j*nx
+            sh   = numpy.shape(cellN)
+            nxny = sh[0]*sh[1]
+            nx   = sh[0]
+            pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
+            if len(sh)==2:
+                for l in range(numpy.size(pointlistD)):
+                    j  = pointlistD[l]//nx
+                    i  = pointlistD[l] -j*nx
+                    cellN[i,j]=val #si nature=0 , 0 sinon
+            else:
+                for l in range(numpy.size(pointlistD)):
+                    k    = pointlistD[l]//nxny
+                    rest = pointlistD[l]-k*nxny
+                    j    = rest//nx
+                    i    = rest -j*nx
 
-             cellN[i,j,k]=val #si nature=0 , 0 sinon
+                    cellN[i,j,k]=val #si nature=0 , 0 sinon
 
     C._cpVars(t,'centers:cellN',tc,'cellN')
     Cmpi._addXZones(tc, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, zoneGC=False, keepOldNodes=False)
@@ -4631,14 +4631,14 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
 
             hookL = []; interpDataTypeL = []
             for z in dnrZones:
-               h = hooks[z[0]]
-               hookL.append(h)
-               if h is None: interpDataTypeL.append(0)
-               else: interpDataTypeL.append(1)
+                h = hooks[z[0]]
+                hookL.append(h)
+                if h is None: interpDataTypeL.append(0)
+                else: interpDataTypeL.append(1)
 
             if dnrZones != []:
                 X._setInterpData(zr, dnrZones, nature=1, penalty=1, extrap=0, loc='centers', storage='inverse',
-                                interpDataType=interpDataTypeL, hook=hookL, sameName=1, order=2, itype='chimera', verbose=0)
+                                 interpDataType=interpDataTypeL, hook=hookL, sameName=1, order=2, itype='chimera', verbose=0)
 
                 '''
                 fix='Nocorner'
@@ -4669,12 +4669,12 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                         if destProc not in datas: datas[destProc] = [[zdname,IDs]]
                         else: datas[destProc].append([zdname,IDs])
                 else:
-                      if destProc not in datas: datas[destProc] = []
+                    if destProc not in datas: datas[destProc] = []
 
             cellNModif[zrname]=modCellN  # a terminer: attention surememnt indice "bandelette" en mpi a cette position
 
     Cmpi._rmXZones(tc)
-    #for h in hooks: C.freeHook(hooks[h])      
+    #for h in hooks: C.freeHook(hooks[h])
     #test.printMem(">>> Interpdata [after rmXZones]")
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
@@ -4685,7 +4685,7 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                 zD = Internal.getNodeFromName2(tc, zname)
                 zD[2] += IDs
 
-    
+
     datas = {}; destDatas = None;# graph={}
 
     #
@@ -4698,33 +4698,33 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
     val=0
     #if nature==0: val=1 #modif suite etape 6 et 7
     for zd in Internal.getZones(tc):
-      subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
-      #subRegions =  cellNModif[ zd[0] ]
-      for s in subRegions:
-        zRname = Internal.getValue(s)
-        #faire test sur dest proc
+        subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+        #subRegions =  cellNModif[ zd[0] ]
+        for s in subRegions:
+            zRname = Internal.getValue(s)
+            #faire test sur dest proc
 
-        zr = Internal.getNodeFromName2(t,zRname)
-        sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
-        cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
- 
-        sh   = numpy.shape(cellN)
-        nxny = sh[0]*sh[1]
-        nx   = sh[0]
-        pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
-        if len(sh)==2:
-          for l in range(numpy.size(pointlistD)):
-             j  = pointlistD[l]//nx
-             i  = pointlistD[l] -j*nx
-             cellN[i,j]=val #si nature=0 , 0 sinon
-        else:
-          for l in range(numpy.size(pointlistD)):
-             k    = pointlistD[l]//nxny
-             rest = pointlistD[l]-k*nxny
-             j    = rest//nx
-             i    = rest -j*nx
+            zr = Internal.getNodeFromName2(t,zRname)
+            sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
+            cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
 
-             cellN[i,j,k]=val #si nature=0 , 0 sinon
+            sh   = numpy.shape(cellN)
+            nxny = sh[0]*sh[1]
+            nx   = sh[0]
+            pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
+            if len(sh)==2:
+                for l in range(numpy.size(pointlistD)):
+                    j  = pointlistD[l]//nx
+                    i  = pointlistD[l] -j*nx
+                    cellN[i,j]=val #si nature=0 , 0 sinon
+            else:
+                for l in range(numpy.size(pointlistD)):
+                    k    = pointlistD[l]//nxny
+                    rest = pointlistD[l]-k*nxny
+                    j    = rest//nx
+                    i    = rest -j*nx
+
+                    cellN[i,j,k]=val #si nature=0 , 0 sinon
 
     C._cpVars(t,'centers:cellN',tc,'cellN')
 
@@ -4756,10 +4756,10 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
 
             hookL = []; interpDataTypeL = []
             for z in dnrZones:
-               h = hooks[z[0]]
-               hookL.append(h)
-               if h is None: interpDataTypeL.append(0)
-               else: interpDataTypeL.append(1)
+                h = hooks[z[0]]
+                hookL.append(h)
+                if h is None: interpDataTypeL.append(0)
+                else: interpDataTypeL.append(1)
 
             if dnrZones != []:
                 #X._setInterpData(zr, dnrZones, nature=nature, penalty=1, loc='centers', storage='inverse', extrap=extrap, verbose=3,
@@ -4772,7 +4772,7 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                 if zr[0]=='Cart.48X0':
                       C.convertPyTree2File(zr,'t48_E5_'+fix+'.cgns')
                       C.convertPyTree2File(dnrZones,'tc48_E5_'+fix+'.cgns')
-                ''' 
+                '''
             for zd in dnrZones:
                 zdname = zd[0]
                 destProc = procDict[zdname]
@@ -4792,7 +4792,7 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
                     if destProc not in datas: datas[destProc] = []
 
     Cmpi._rmXZones(tc)
-    for h in hooks: C.freeHook(hooks[h])      
+    for h in hooks: C.freeHook(hooks[h])
     #test.printMem(">>> Interpdata [after rmXZones]")
     destDatas = Cmpi.sendRecv(datas, graph)
     for i in destDatas:
@@ -4805,119 +4805,119 @@ def setInterpDataAndSetInterpTransfer__(t, tc, nature=1, loc='centers', storage=
     datas = {}; destDatas = None; graph={}
 
     if nature==0:
-       #
-       #etape 6 : modif CellN=0 pour les points interpoles a l'etape 5  et on vire info orphelin
-       #
-       #
-       # Ne fonctionne pas en mpi: faudrait tranferer le ptlist receveur pour modifer cellN
-       #
-       #
-       val=1 #Ghost donneuse acceptee, mais pas les coin car cellN=0 si etape1 et not corner
-       for zd in Internal.getZones(tc):
-         subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
-         #subRegions =  cellNModif[ zd[0] ]
-         for s in subRegions:
-           zRname = Internal.getValue(s)
-           #faire test sur dest proc
+        #
+        #etape 6 : modif CellN=0 pour les points interpoles a l'etape 5  et on vire info orphelin
+        #
+        #
+        # Ne fonctionne pas en mpi: faudrait tranferer le ptlist receveur pour modifer cellN
+        #
+        #
+        val=1 #Ghost donneuse acceptee, mais pas les coin car cellN=0 si etape1 et not corner
+        for zd in Internal.getZones(tc):
+            subRegions =  Internal.getNodesFromType1(zd, 'ZoneSubRegion_t')
+            #subRegions =  cellNModif[ zd[0] ]
+            for s in subRegions:
+                zRname = Internal.getValue(s)
+                #faire test sur dest proc
 
-           zr = Internal.getNodeFromName2(t,zRname)
-           sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
-           cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
- 
-           sh   = numpy.shape(cellN)
-           nxny = sh[0]*sh[1]
-           nx   = sh[0]
-           pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
-           if len(sh)==2:
-             for l in range(numpy.size(pointlistD)):
-                j  = pointlistD[l]//nx
-                i  = pointlistD[l] -j*nx
-                cellN[i,j]=val #si nature=0 , 0 sinon
-           else:
-             for l in range(numpy.size(pointlistD)):
-                k    = pointlistD[l]//nxny
-                rest = pointlistD[l]-k*nxny
-                j    = rest//nx
-                i    = rest -j*nx
+                zr = Internal.getNodeFromName2(t,zRname)
+                sol= Internal.getNodeFromName2(zr, 'FlowSolution#Centers')
+                cellN= Internal.getNodeFromName1(sol, 'cellN')[1]
 
-                cellN[i,j,k]=val #si nature=0 , 0 sinon
+                sh   = numpy.shape(cellN)
+                nxny = sh[0]*sh[1]
+                nx   = sh[0]
+                pointlistD =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
+                if len(sh)==2:
+                    for l in range(numpy.size(pointlistD)):
+                        j  = pointlistD[l]//nx
+                        i  = pointlistD[l] -j*nx
+                        cellN[i,j]=val #si nature=0 , 0 sinon
+                else:
+                    for l in range(numpy.size(pointlistD)):
+                        k    = pointlistD[l]//nxny
+                        rest = pointlistD[l]-k*nxny
+                        j    = rest//nx
+                        i    = rest -j*nx
 
-       C._cpVars(t,'centers:cellN',tc,'cellN')
+                        cellN[i,j,k]=val #si nature=0 , 0 sinon
 
-       Cmpi._addXZones(tc, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, zoneGC=False, keepOldNodes=False)
+        C._cpVars(t,'centers:cellN',tc,'cellN')
 
-       Internal._rmNodesByName(tc,'*Orphan*')
-       Internal._rmNodesByName(t,'*Orphan*')
+        Cmpi._addXZones(tc, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, zoneGC=False, keepOldNodes=False)
 
-       #
-       #etape 7: calcul interpolation entre grille de niveau N (Receveur) et N+1 (donneurs)
-       #
-       for level in range(Nlevels):
-           print("Interp level=",level, "etape 7")
-           #filtre les zones par niveau de resolution
-           zones=[]
-           for z in Internal.getZones(t):
-               if levelZone[z[0]]==level: zones.append(z)
+        Internal._rmNodesByName(tc,'*Orphan*')
+        Internal._rmNodesByName(t,'*Orphan*')
 
-           for zr in zones:
-               dnrZones = []
-               zrname = zr[0]
-               baseNameRcv = baseNames[zrname]
-               for zdname in interDict[zrname]:
-                   zd = Internal.getNodeFromName2(tc, zdname)
-                   baseNameDnr = baseNames[zd[0]]
-                   if levelZone[zd[0]]==level+1 and (sameBase ==1 or baseNameDnr == baseNameRcv):
-                       dnrZones.append(zd)
-                   #print("level=", level,"zone In", z[0])
+        #
+        #etape 7: calcul interpolation entre grille de niveau N (Receveur) et N+1 (donneurs)
+        #
+        for level in range(Nlevels):
+            print("Interp level=",level, "etape 7")
+            #filtre les zones par niveau de resolution
+            zones=[]
+            for z in Internal.getZones(t):
+                if levelZone[z[0]]==level: zones.append(z)
 
-               hookL = []; interpDataTypeL = []
-               for z in dnrZones:
-                  h = hooks[z[0]]
-                  hookL.append(h)
-                  if h is None: interpDataTypeL.append(0)
-                  else: interpDataTypeL.append(1)
+            for zr in zones:
+                dnrZones = []
+                zrname = zr[0]
+                baseNameRcv = baseNames[zrname]
+                for zdname in interDict[zrname]:
+                    zd = Internal.getNodeFromName2(tc, zdname)
+                    baseNameDnr = baseNames[zd[0]]
+                    if levelZone[zd[0]]==level+1 and (sameBase ==1 or baseNameDnr == baseNameRcv):
+                        dnrZones.append(zd)
+                    #print("level=", level,"zone In", z[0])
 
-               if dnrZones != []:
-                   X._setInterpData(zr, dnrZones, nature=nature, penalty=1, loc='centers', storage='inverse', extrap=extrap, verbose=3,
-                                    sameName=1, interpDataType=interpDataTypeL, hook=hookL, order=order, itype='chimera')
-               for zd in dnrZones:
-                  zdname = zd[0]
-                  destProc = procDict[zdname]
-                  IDs = []
-                  for i in zd[2]:
-                      if i[0][0:2] == 'ID':
-                         if Internal.getValue(i)==zrname: IDs.append(i)
-                  if IDs != []:
-                    if destProc == Cmpi.rank:
-                       zD = Internal.getNodeFromName2(tc, zdname)
-                       #zD[2] += IDs
+                hookL = []; interpDataTypeL = []
+                for z in dnrZones:
+                    h = hooks[z[0]]
+                    hookL.append(h)
+                    if h is None: interpDataTypeL.append(0)
+                    else: interpDataTypeL.append(1)
+
+                if dnrZones != []:
+                    X._setInterpData(zr, dnrZones, nature=nature, penalty=1, loc='centers', storage='inverse', extrap=extrap, verbose=3,
+                                     sameName=1, interpDataType=interpDataTypeL, hook=hookL, order=order, itype='chimera')
+                for zd in dnrZones:
+                    zdname = zd[0]
+                    destProc = procDict[zdname]
+                    IDs = []
+                    for i in zd[2]:
+                        if i[0][0:2] == 'ID':
+                            if Internal.getValue(i)==zrname: IDs.append(i)
+                    if IDs != []:
+                        if destProc == Cmpi.rank:
+                            zD = Internal.getNodeFromName2(tc, zdname)
+                            #zD[2] += IDs
+                        else:
+                            if destProc not in datas: datas[destProc] = [[zdname,IDs]]
+                            else: datas[destProc].append([zdname,IDs])
                     else:
-                       if destProc not in datas: datas[destProc] = [[zdname,IDs]]
-                       else: datas[destProc].append([zdname,IDs])
-                  else:
-                    if destProc not in datas: datas[destProc] = []
+                        if destProc not in datas: datas[destProc] = []
 
-       Cmpi._rmXZones(tc)
-       for h in hooks: C.freeHook(hooks[h])      
-       #test.printMem(">>> Interpdata [after rmXZones]")
-       destDatas = Cmpi.sendRecv(datas, graph)
-       for i in destDatas:
-           for n in destDatas[i]:
-               zname = n[0]
-               IDs = n[1]
-               if IDs != []:
-                   zD = Internal.getNodeFromName2(tc, zname)
-                   zD[2] += IDs
-       datas = {}; destDatas = None; graph={}
+        Cmpi._rmXZones(tc)
+        for h in hooks: C.freeHook(hooks[h])
+        #test.printMem(">>> Interpdata [after rmXZones]")
+        destDatas = Cmpi.sendRecv(datas, graph)
+        for i in destDatas:
+            for n in destDatas[i]:
+                zname = n[0]
+                IDs = n[1]
+                if IDs != []:
+                    zD = Internal.getNodeFromName2(tc, zname)
+                    zD[2] += IDs
+        datas = {}; destDatas = None; graph={}
 
     #Recuperation du vrai cellN
     if corner:
-      C._initVars(t, '{centers:cellN}= {centers:cellNSave1}')
+        C._initVars(t, '{centers:cellN}= {centers:cellNSave1}')
     else:
-      C._initVars(t, '{centers:cellN}= {centers:cellNSave2}')
-      C._cpVars(t,'centers:cellN',tc,'cellN')
-      Internal._rmNodesByName(t,'cellNSave1')
-      Internal._rmNodesByName(t,'cellNSave2')
+        C._initVars(t, '{centers:cellN}= {centers:cellNSave2}')
+        C._cpVars(t,'centers:cellN',tc,'cellN')
+        Internal._rmNodesByName(t,'cellNSave1')
+        Internal._rmNodesByName(t,'cellNSave2')
 
     Internal._rmNodesByName(tc,'*Orphan*')
 
@@ -4936,16 +4936,16 @@ def _buildConservativeFlux(t, tc, verbose=0):
 
     ## on purge les BC conservative eventuellememntexistante
     for z in Internal.getZones(t):
-       bcs = Internal.getNodesFromType2(z, 'BC_t')
-       for bc in bcs:
-          btype = Internal.getValue(bc)
-          if 'BCFluxOctree' in btype: Internal._rmNodesByName(z, bc[0])
+        bcs = Internal.getNodesFromType2(z, 'BC_t')
+        for bc in bcs:
+            btype = Internal.getValue(bc)
+            if 'BCFluxOctree' in btype: Internal._rmNodesByName(z, bc[0])
 
 
     ## determine dx=dy for each zone & store per zone
     levelZone={}
     deltaZ={}
-    boxZ={} 
+    boxZ={}
     zones = Internal.getZones(t)
     level0 = Internal.getNodeFromName(zones[0],'niveaux_temps')
     hmin_loc=1e30
@@ -5063,7 +5063,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
                 lmin  = numpy.zeros( 6, Internal.E_NpyInt)
 
                 for l in range( numpy.size(ptListD)):
-                   #i,j,k receveur
+                    #i,j,k receveur
                     k =  ptListD[l]//(sh[0]*sh[1])
                     j = (ptListD[l] -k*sh[0]*sh[1])//sh[0]
                     i =  ptListD[l] -k*sh[0]*sh[1] -j*sh[0]
@@ -5200,19 +5200,19 @@ def _buildConservativeFlux(t, tc, verbose=0):
                         winD[5,idir]  =k2D
 
                         if idir==0:
-                          posR= boxR[0]+dxR*2
-                          posD= boxD[3]-dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfImin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[3]-dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[0]+dxR*2
+                            posD= boxD[3]-dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfImin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[3]-dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
                         else:
-                          posR= boxR[3]-dxR*2
-                          posD= boxD[0]+dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfImax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[0]+dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[3]-dxR*2
+                            posD= boxD[0]+dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfImax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[0]+dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
                     elif idir < 4:
                         sz=(win[1,idir]-win[0,idir]+1)*(win[5,idir]-win[4,idir]+1)
                         j1 =dimR[2]-3
@@ -5230,19 +5230,19 @@ def _buildConservativeFlux(t, tc, verbose=0):
                         winD[5,idir]  =k2D
 
                         if idir==2:
-                          posR= boxR[1]+dxR*2
-                          posD= boxD[4]-dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfJmin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[4]-dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[1]+dxR*2
+                            posD= boxD[4]-dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfJmin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[4]-dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
                         else:
-                          posR= boxR[4]-dxR*2
-                          posD= boxD[1]+dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfJmax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[1]+dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[4]-dxR*2
+                            posD= boxD[1]+dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfJmax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[1]+dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
 
                     else:
                         sz=(win[1,idir]-win[0,idir]+1)*(win[3,idir]-win[2,idir]+1)
@@ -5261,19 +5261,19 @@ def _buildConservativeFlux(t, tc, verbose=0):
                         winD[3,idir]  =jminD-2+(win[3,idir]-win[2,idir]+1)*2
 
                         if idir==4:
-                          posR= boxR[2]+dxR*2
-                          posD= boxD[5]-dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfKmin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[5]-dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[2]+dxR*2
+                            posD= boxD[5]-dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfKmin RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[5]-dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
                         else:
-                          posR= boxR[5]-dxR*2
-                          posD= boxD[2]+dxD*3
-                          if abs( posR - posD) > 1e-6:
-                            print("Pos interfKmax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[2]+dxD*5)
-                            print('boxR', boxR, zRname)
-                            print('boxD', boxD, z[0])
+                            posR= boxR[5]-dxR*2
+                            posD= boxD[2]+dxD*3
+                            if abs( posR - posD) > 1e-6:
+                                print("Pos interfKmax RD",  posR, posD, 'dxD', dxD, 'pos5:', boxD[2]+dxD*5)
+                                print('boxR', boxR, zRname)
+                                print('boxD', boxD, z[0])
 
                     print("verif count",sz , count[idir], ratio_k )
                     if sz== count[idir]:
@@ -5389,194 +5389,193 @@ def _buildConservativeFlux(t, tc, verbose=0):
 ##
 def _correctCellNCorner(t, tc, dim=3, verbose=0):
 
-      #on flag les coins a 1, saud 1ere rangee
-      C._initVars(t, '{centers:cellNCornerD}= 0')
-      C._initVars(t, '{centers:cellNCornerR}= 0')
-      for z in Internal.getZones(t):
-         cellN = Internal.getNodeFromName(z, "cellNCornerR")[1]
-         sh_R    = numpy.shape(cellN)
+    #on flag les coins a 1, saud 1ere rangee
+    C._initVars(t, '{centers:cellNCornerD}= 0')
+    C._initVars(t, '{centers:cellNCornerR}= 0')
+    for z in Internal.getZones(t):
+        cellN = Internal.getNodeFromName(z, "cellNCornerR")[1]
+        sh_R    = numpy.shape(cellN)
 
-         val=0  #on force cellN a zero car etape 1 et 3 = nature 1
-         #if len(sh_R)==2:
-         #print("Dim coin", dim, sh_R)
-         if dim==2:
-           #ghost 2eme couronne a 1
-           ni =sh_R[0]; nj =sh_R[1]
-           for i in range(2):
-              cellN[i     , 0      ]=1
-              cellN[ni-1-i, 0      ]=1
-              cellN[i     , nj-1   ]=1
-              cellN[ni-1-i, nj-1   ]=1
-           cellN[0     , 1      ]=1
-           cellN[ni-1  , 1      ]=1
-           cellN[0     , nj-2   ]=1
-           cellN[ni-1  , nj-2   ]=1
+        val=0  #on force cellN a zero car etape 1 et 3 = nature 1
+        #if len(sh_R)==2:
+        #print("Dim coin", dim, sh_R)
+        if dim==2:
+            #ghost 2eme couronne a 1
+            ni =sh_R[0]; nj =sh_R[1]
+            for i in range(2):
+                cellN[i     , 0      ]=1
+                cellN[ni-1-i, 0      ]=1
+                cellN[i     , nj-1   ]=1
+                cellN[ni-1-i, nj-1   ]=1
+            cellN[0     , 1      ]=1
+            cellN[ni-1  , 1      ]=1
+            cellN[0     , nj-2   ]=1
+            cellN[ni-1  , nj-2   ]=1
 
-           #ghost classique et cell reelle a 3 
-           cellN[ :     , 2:nj-2]=3
-           cellN[2:ni-2, 0:2    ]=3
-           cellN[2:ni-2, nj-2:nj]=3
+            #ghost classique et cell reelle a 3
+            cellN[ :     , 2:nj-2]=3
+            cellN[2:ni-2, 0:2    ]=3
+            cellN[2:ni-2, nj-2:nj]=3
 
-         else:
-           ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
-           for k in range(nk):
-              for i in range(2):
-                 cellN[i     , 0      , k]=1
-                 cellN[ni-1-i, 0      , k]=1
-                 cellN[i     , nj-1   , k]=1
-                 cellN[ni-1-i, nj-1   , k]=1
-              cellN[0     , 1      , k]=1
-              cellN[ni-1  , 1      , k]=1
-              cellN[0     , nj-2   , k]=1
-              cellN[ni-1  , nj-2   , k]=1
+        else:
+            ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
+            for k in range(nk):
+                for i in range(2):
+                    cellN[i     , 0      , k]=1
+                    cellN[ni-1-i, 0      , k]=1
+                    cellN[i     , nj-1   , k]=1
+                    cellN[ni-1-i, nj-1   , k]=1
+                cellN[0     , 1      , k]=1
+                cellN[ni-1  , 1      , k]=1
+                cellN[0     , nj-2   , k]=1
+                cellN[ni-1  , nj-2   , k]=1
 
-           for i in range(2,ni-2):
-              for j in range(2):
-                 cellN[i     , j      , 0     ]=1
-                 cellN[i     , nj-1-j , 0     ]=1
-                 cellN[i     , j      , nk-1  ]=1
-                 cellN[i     , nj-1-j , nk-1  ]=1
-              cellN[i     , 0      ,    1  ]=1
-              cellN[i     , nj-1   ,    1  ]=1
-              cellN[i     , 0      ,  nk-2 ]=1
-              cellN[i     , nj-1   ,  nk-2 ]=1
+            for i in range(2,ni-2):
+                for j in range(2):
+                    cellN[i     , j      , 0     ]=1
+                    cellN[i     , nj-1-j , 0     ]=1
+                    cellN[i     , j      , nk-1  ]=1
+                    cellN[i     , nj-1-j , nk-1  ]=1
+                cellN[i     , 0      ,    1  ]=1
+                cellN[i     , nj-1   ,    1  ]=1
+                cellN[i     , 0      ,  nk-2 ]=1
+                cellN[i     , nj-1   ,  nk-2 ]=1
 
-           for j in range(2,nj-2):
-              for i in range(2):
-                 cellN[i     , j   , 0   ]=1
-                 cellN[ni-1-i, j   , 0   ]=1
-                 cellN[i     , j   , nk-1]=1
-                 cellN[ni-1-i, j   , nk-1]=1
-              cellN[0     , j      , 1   ]=1
-              cellN[ni-1  , j      , 1   ]=1
-              cellN[0     , j      , nk-2]=1
-              cellN[ni-1  , j      , nk-2]=1
+            for j in range(2,nj-2):
+                for i in range(2):
+                    cellN[i     , j   , 0   ]=1
+                    cellN[ni-1-i, j   , 0   ]=1
+                    cellN[i     , j   , nk-1]=1
+                    cellN[ni-1-i, j   , nk-1]=1
+                cellN[0     , j      , 1   ]=1
+                cellN[ni-1  , j      , 1   ]=1
+                cellN[0     , j      , nk-2]=1
+                cellN[ni-1  , j      , nk-2]=1
 
-           #flag point reel a 3
-           cellN[:     , 2:nj-2  , 2:nk-2 ]=3
-           cellN[2:ni-2, 0:2     , 2:nk-2 ]=3
-           cellN[2:ni-2, nj-2:nj , 2:nk-2 ]=3
-           cellN[2:ni-2, 2:nj-2 ,  0:2    ]=3
-           cellN[2:ni-2, 2:nj-2 ,  nk-2:nk]=3
+            #flag point reel a 3
+            cellN[:     , 2:nj-2  , 2:nk-2 ]=3
+            cellN[2:ni-2, 0:2     , 2:nk-2 ]=3
+            cellN[2:ni-2, nj-2:nj , 2:nk-2 ]=3
+            cellN[2:ni-2, 2:nj-2 ,  0:2    ]=3
+            cellN[2:ni-2, 2:nj-2 ,  nk-2:nk]=3
 
 
-      for z in Internal.getZones(tc):
+    for z in Internal.getZones(tc):
         zd = Internal.getNodeFromName(t, z[0])
         cellNCornerD_D = Internal.getNodeFromName(zd, "cellNCornerD")[1]
         cellNCornerR_D = Internal.getNodeFromName(zd, "cellNCornerR")[1]
         subRegions  =  Internal.getNodesFromType1(z, 'ZoneSubRegion_t')
         for s in subRegions:
-          count =0
-          zRname = Internal.getValue(s)
- 
-          dimD = Internal.getZoneDim(z)
+            count =0
+            zRname = Internal.getValue(s)
 
-          zr   = Internal.getNodeFromName(t, zRname)
-          zr_c = Internal.getNodeFromName(tc, zRname)
-          cellNCornerR_R = Internal.getNodeFromName(zr, "cellNCornerR")[1]
-          dimR = Internal.getZoneDim(zr_c)
+            dimD = Internal.getZoneDim(z)
 
-          pointlist  =  Internal.getNodeFromName1(s, 'PointList')[1]
-          pointlistD  =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
-          Interptype =  Internal.getNodeFromName1(s, 'InterpolantsType')[1]
-          coeff      =  Internal.getNodeFromName1(s, 'InterpolantsDonor')[1]
+            zr   = Internal.getNodeFromName(t, zRname)
+            zr_c = Internal.getNodeFromName(tc, zRname)
+            cellNCornerR_R = Internal.getNodeFromName(zr, "cellNCornerR")[1]
+            dimR = Internal.getZoneDim(zr_c)
 
-          nxnyD = dimD[1]*dimD[2]
-          nxD   = dimD[1]
-          nxnyR = dimR[1]*dimR[2]
-          nxR   = dimR[1]
+            pointlist  =  Internal.getNodeFromName1(s, 'PointList')[1]
+            pointlistD  =  Internal.getNodeFromName1(s, 'PointListDonor')[1]
+            Interptype =  Internal.getNodeFromName1(s, 'InterpolantsType')[1]
+            coeff      =  Internal.getNodeFromName1(s, 'InterpolantsDonor')[1]
 
-          #Flag donor
-          for l in range(numpy.size(pointlist)):
-        
-            kD    = pointlist[l]//nxnyD
-            rest = pointlist[l]-kD*nxnyD
-            jD    = rest//nxD
-            iD    = rest -jD*nxD
+            nxnyD = dimD[1]*dimD[2]
+            nxD   = dimD[1]
+            nxnyR = dimR[1]*dimR[2]
+            nxR   = dimR[1]
 
-            kR    = pointlistD[l]//nxnyR
-            rest = pointlistD[l]-kR*nxnyR
-            jR    = rest//nxR
-            iR    = rest -jR*nxR
+            #Flag donor
+            for l in range(numpy.size(pointlist)):
 
-            #if zRname=='Cart.2X0': print('ijkD', iD, jD,kD, 'zD:', z[0], 'R_R', cellNCornerR_R[iR,jR,kR], 'ijkR', iR,jR,kR, 'type', Interptype[l],'R_D', cellNCornerR_D[iD,jD,kD] )
+                kD    = pointlist[l]//nxnyD
+                rest = pointlist[l]-kD*nxnyD
+                jD    = rest//nxD
+                iD    = rest -jD*nxD
 
-            if cellNCornerR_R[iR,jR,kR]==3:
+                kR    = pointlistD[l]//nxnyR
+                rest = pointlistD[l]-kR*nxnyR
+                jR    = rest//nxR
+                iR    = rest -jR*nxR
 
-              #if l==0: print(cellNCornerR_R[iR,jR,kR], iR,jR,kR)
+                #if zRname=='Cart.2X0': print('ijkD', iD, jD,kD, 'zD:', z[0], 'R_R', cellNCornerR_R[iR,jR,kR], 'ijkR', iR,jR,kR, 'type', Interptype[l],'R_D', cellNCornerR_D[iD,jD,kD] )
 
-              if Interptype[l]==1 and cellNCornerR_D[iD,jD,kD]<=1: 
-                cellNCornerD_D[iD,jD,kD]=1
-                count +=1
+                if cellNCornerR_R[iR,jR,kR]==3:
 
-              elif Interptype[l]==2: 
-                count_loc=0
-                for kk in range(2):
-                  for jj in range(2):
-                    for ii in range(2):
-                      if coeff[count +count_loc] > 1.e-8 and cellNCornerR_D[iD +ii ,jD +jj, kD+ kk]<=1: cellNCornerD_D[iD +ii ,jD +jj, kD+ kk]=1
-                      count_loc+=1
-                count+=8
+                    #if l==0: print(cellNCornerR_R[iR,jR,kR], iR,jR,kR)
 
-              elif Interptype[l]==44: 
+                    if Interptype[l]==1 and cellNCornerR_D[iD,jD,kD]<=1:
+                        cellNCornerD_D[iD,jD,kD]=1
+                        count +=1
 
-                for kk in range(4):
-                  for jj in range(4):
-                    for ii in range(4):
-                       val = coeff[count +ii ] * coeff[count +jj + 4 ] * coeff[count +kk +8 ]
-                       #if zd[0]=='Cart.79X0': print('type 44: ijkD', iD, jD,kD, 'zR:', zRname, val, 'iijjkk', ii,jj,kk )
-                       if abs(val) > 1.e-11 and cellNCornerR_D[iD +ii, jD +jj, kD +kk]<=1: cellNCornerD_D[iD +ii, jD +jj, kD +kk ]=1
-                count+=12
+                    elif Interptype[l]==2:
+                        count_loc=0
+                        for kk in range(2):
+                            for jj in range(2):
+                                for ii in range(2):
+                                    if coeff[count +count_loc] > 1.e-8 and cellNCornerR_D[iD +ii ,jD +jj, kD+ kk]<=1: cellNCornerD_D[iD +ii ,jD +jj, kD+ kk]=1
+                                    count_loc+=1
+                        count+=8
 
-              elif Interptype[l]==22: 
+                    elif Interptype[l]==44:
 
-                count_loc=0
-                for jj in range(2):
-                  for ii in range(2):
-                    if coeff[count +count_loc] > 1.e-8 and cellNCornerR_D[iD +ii ,jD +jj, kD]<=1: cellNCornerD_D[iD +ii ,jD +jj, kD]=1
-                    count_loc+=1
-                count+=4
-             
+                        for kk in range(4):
+                            for jj in range(4):
+                                for ii in range(4):
+                                    val = coeff[count +ii ] * coeff[count +jj + 4 ] * coeff[count +kk +8 ]
+                                    #if zd[0]=='Cart.79X0': print('type 44: ijkD', iD, jD,kD, 'zR:', zRname, val, 'iijjkk', ii,jj,kk )
+                                    if abs(val) > 1.e-11 and cellNCornerR_D[iD +ii, jD +jj, kD +kk]<=1: cellNCornerD_D[iD +ii, jD +jj, kD +kk ]=1
+                        count+=12
 
-      Internal._rmNodesByName(tc,'ID_*')
+                    elif Interptype[l]==22:
 
-      for z in Internal.getZones(t):
-         cellN       = Internal.getNodeFromName(z, "cellN")[1]
-         cellNCorner = Internal.getNodeFromName(z, "cellNCornerD")[1]
-         sh_R    = numpy.shape(cellN)
+                        count_loc=0
+                        for jj in range(2):
+                            for ii in range(2):
+                                if coeff[count +count_loc] > 1.e-8 and cellNCornerR_D[iD +ii ,jD +jj, kD]<=1: cellNCornerD_D[iD +ii ,jD +jj, kD]=1
+                                count_loc+=1
+                        count+=4
 
-         val=0  #on force cellN a zero car etape 1 et 3 = nature 1
-         if dim==2:
-           ni =sh_R[0]; nj =sh_R[1]
-           for j in range(2):
-             for i in range(2):
-               if cellNCorner[i      , j     ] < 0.1: cellN[i      , j     ]= min(val, cellN[i      , j ] )
-               if cellNCorner[ni-2+i , j     ] < 0.1: cellN[ni-2+i , j     ]= min(val, cellN[ni-2+i , j ] )
-               if cellNCorner[ni-2+i , nj-2+j] < 0.1: cellN[ni-2+i ,nj-2+j ]= min(val, cellN[ni-2+i , nj-2+j ] )
-               if cellNCorner[i      , nj-2+j] < 0.1: cellN[ i     ,nj-2+j ]= min(val, cellN[ i     , nj-2+j ] )
-         else:
-           ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
-           for k in range(nk):
+
+    Internal._rmNodesByName(tc,'ID_*')
+
+    for z in Internal.getZones(t):
+        cellN       = Internal.getNodeFromName(z, "cellN")[1]
+        cellNCorner = Internal.getNodeFromName(z, "cellNCornerD")[1]
+        sh_R    = numpy.shape(cellN)
+
+        val=0  #on force cellN a zero car etape 1 et 3 = nature 1
+        if dim==2:
+            ni =sh_R[0]; nj =sh_R[1]
             for j in range(2):
-              for i in range(2):
-                if cellNCorner[i     , j     , k] < 0.1: cellN[i     , j      , k]=min(val, cellN[i     , j     , k] )
-                if cellNCorner[i     , nj-2+j, k] < 0.1: cellN[i     , nj-2+j , k]=min(val, cellN[i     , nj-2+j, k] )
-                if cellNCorner[ni-2+i, j     , k] < 0.1: cellN[ni-2+i, j      , k]=min(val, cellN[ni-2+i, j     , k] )
-                if cellNCorner[ni-2+i, nj-2+j, k] < 0.1: cellN[ni-2+i, nj-2+j , k]=min(val, cellN[ni-2+i, nj-2+j, k] )
-           for k in range(2):
-            for j in range(2):
-              for i in range(2,ni-2):
-                if cellNCorner[i     , j      , k     ] < 0.1: cellN[i     , j      , k     ]= min(val, cellN[i     , j     , k] )
-                if cellNCorner[i     , j      , nk-2+k] < 0.1: cellN[i     , j      , nk-2+k]= min(val, cellN[i     , j     , nk-2+k] )
-                if cellNCorner[i     , nj-2+j , k     ] < 0.1: cellN[i     , nj-2+j , k     ]= min(val, cellN[i     , nj-2+j, k     ] )
-                if cellNCorner[i     , nj-2+j , nk-2+k] < 0.1: cellN[i     , nj-2+j , nk-2+k]= min(val, cellN[i     , nj-2+j, nk-2+k] )
-           for k in range(2):
-            for j in range(2,nj-2):
-              for i in range(2):
-                if cellNCorner[i     , j      , k     ] < 0.1: cellN[i     , j      , k     ]= min(val, cellN[i     , j     , k     ] )
-                if cellNCorner[i     , j      , nk-2+k] < 0.1: cellN[i     , j      , nk-2+k]= min(val, cellN[i     , j     , nk-2+k] )
-                if cellNCorner[ni-2+i, j      , k     ] < 0.1: cellN[ni-2+i, j      , k     ]= min(val, cellN[ni-2+i, j     , k     ] )
-                if cellNCorner[ni-2+i, j      , nk-2+k] < 0.1: cellN[ni-2+i, j      , nk-2+k]= min(val, cellN[ni-2+i, j     , nk-2+k] )
+                for i in range(2):
+                    if cellNCorner[i      , j     ] < 0.1: cellN[i      , j     ]= min(val, cellN[i      , j ] )
+                    if cellNCorner[ni-2+i , j     ] < 0.1: cellN[ni-2+i , j     ]= min(val, cellN[ni-2+i , j ] )
+                    if cellNCorner[ni-2+i , nj-2+j] < 0.1: cellN[ni-2+i ,nj-2+j ]= min(val, cellN[ni-2+i , nj-2+j ] )
+                    if cellNCorner[i      , nj-2+j] < 0.1: cellN[ i     ,nj-2+j ]= min(val, cellN[ i     , nj-2+j ] )
+        else:
+            ni =sh_R[0]; nj =sh_R[1];nk =sh_R[2];
+            for k in range(nk):
+                for j in range(2):
+                    for i in range(2):
+                        if cellNCorner[i     , j     , k] < 0.1: cellN[i     , j      , k]=min(val, cellN[i     , j     , k] )
+                        if cellNCorner[i     , nj-2+j, k] < 0.1: cellN[i     , nj-2+j , k]=min(val, cellN[i     , nj-2+j, k] )
+                        if cellNCorner[ni-2+i, j     , k] < 0.1: cellN[ni-2+i, j      , k]=min(val, cellN[ni-2+i, j     , k] )
+                        if cellNCorner[ni-2+i, nj-2+j, k] < 0.1: cellN[ni-2+i, nj-2+j , k]=min(val, cellN[ni-2+i, nj-2+j, k] )
+            for k in range(2):
+                for j in range(2):
+                    for i in range(2,ni-2):
+                        if cellNCorner[i     , j      , k     ] < 0.1: cellN[i     , j      , k     ]= min(val, cellN[i     , j     , k] )
+                        if cellNCorner[i     , j      , nk-2+k] < 0.1: cellN[i     , j      , nk-2+k]= min(val, cellN[i     , j     , nk-2+k] )
+                        if cellNCorner[i     , nj-2+j , k     ] < 0.1: cellN[i     , nj-2+j , k     ]= min(val, cellN[i     , nj-2+j, k     ] )
+                        if cellNCorner[i     , nj-2+j , nk-2+k] < 0.1: cellN[i     , nj-2+j , nk-2+k]= min(val, cellN[i     , nj-2+j, nk-2+k] )
+            for k in range(2):
+                for j in range(2,nj-2):
+                    for i in range(2):
+                        if cellNCorner[i     , j      , k     ] < 0.1: cellN[i     , j      , k     ]= min(val, cellN[i     , j     , k     ] )
+                        if cellNCorner[i     , j      , nk-2+k] < 0.1: cellN[i     , j      , nk-2+k]= min(val, cellN[i     , j     , nk-2+k] )
+                        if cellNCorner[ni-2+i, j      , k     ] < 0.1: cellN[ni-2+i, j      , k     ]= min(val, cellN[ni-2+i, j     , k     ] )
+                        if cellNCorner[ni-2+i, j      , nk-2+k] < 0.1: cellN[ni-2+i, j      , nk-2+k]= min(val, cellN[ni-2+i, j     , nk-2+k] )
 
-      Internal._rmNodesByName(t,'cellNCorner*')
-
+    Internal._rmNodesByName(t,'cellNCorner*')
