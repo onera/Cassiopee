@@ -625,6 +625,14 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             del ZONEStbOneOverTmp
     print('After merging: nb Cartesian zones=%d (ext. =%d).'%(len(zones),ext))
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
+
+    if optimized==-1:
+      if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
+      else: ratios = [[2,2,1],[4,4,1],[8,8,1],[16,16,1]]
+      zones = X.connectMatch(zones, dim=dimPb)
+      for ratio0 in ratios:
+        zones = X.connectNearMatch(zones,ratio=ratio0,dim=dimPb)
+
     if ext == -1: return zones
 
     if ext > 0:
@@ -635,6 +643,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             Internal.newRind(value=rinds[noz], parent=zones[noz])
     # Creation des zones du pyTree
     for z in zones: z[0] = C.getZoneName('cart')
+
     if ext == 0:
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
         else: ratios = [[2,2,1],[4,4,1],[8,8,1],[16,16,1]]
@@ -645,6 +654,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
     else:
         bbox0 = G.bbox(o)
         _addBCOverlaps(zones, bbox0)
+
     return zones
 
 # only in generateIBMMesh and generateIBMMesh
@@ -800,14 +810,29 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
+    #res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
+    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=optimized, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
     del p
     if parento is not None:
         for po in parento: del po
-    t = C.newPyTree(['CARTESIAN', res])
+
+    #Split les zones qui possede des faces avec racord 1:1, 1:2  et 2:1 (zones voisines avec 3 niveau de resolution different)
+    if optimized==-1:
+      t1 = C.newPyTree(['CARTESIAN', res])
+      zones = Internal.getZones(t1)
+      t = splitZoneForConservative(t1,dimPb=dimPb )
+    else:
+      t = C.newPyTree(['CARTESIAN', res])
 
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%Cmpi.rank
+    '''
+    c=0
+    for z in zones:
+      z[0] = 'Cart.'+str(c)+'X%d'%Cmpi.rank
+      c+=1
+    '''
+
     Cmpi._setProc(t, Cmpi.rank)
 
     C._addState(t, 'EquationDimension', dimPb)
@@ -891,6 +916,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
             Internal.newRind(value=rinds[noz], parent=zones[noz])
 
     Cmpi._rmXZones(t)
+
     coords = None; zones = None
 
     if symmetry == 0:
@@ -1092,6 +1118,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 
         else: #expand = 2, 3 or 4
             corner = 0
+            if expand==2: corner = 1
+
             to = C.newPyTree(['Base',o])
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o, "centers:indicator", 0.)
@@ -1568,3 +1596,314 @@ def _add2listAdditionalZones__(list_additional_zones, tbBB_scale, tBB, mean_tb, 
                 list_additional_zones.append(i)
         count += 1
     return None
+
+###
+## Split les zones generere par generate Cartmesh pour empecher qu'une face possede 3 type de raccord: fin/fin, fin/grossier et grossier/fin
+## Sinon souci pour flux conservatif
+def splitZoneForConservative(t, dimPb=3):
+
+   zone_out=[]
+   candidat={}
+   for z in Internal.getZones(t):
+      matches     = Internal.getNodesByType2(z,"GridConnectivity1to1_t")
+      nearmatches = Internal.getNodesByType2(z,"GridConnectivity_t")
+      totalRac=  len(matches)+len(nearmatches)
+      #recherche des zones candidate au split
+      if totalRac > dimPb*2 and len(nearmatches)!=0:
+         #print("nb raccord", totalRac)
+         #recherche des faces problematique
+         imin=[];jmin=[];kmin=[];imax=[];jmax=[];kmax=[];
+         for rac in matches:
+            rg = Internal.getNodeByName(rac,'PointRange')[1]
+            #CL I
+            if rg[0][1] - rg[0][0]==0:
+              if rg[0][1]==1: imin.append([rac, 1])
+              else: imax.append( [rac,1])
+            #CL J
+            if rg[1][1] - rg[1][0]==0:
+              if rg[1][1]==1: jmin.append([rac,1])
+              else:  jmax.append( [rac,1])   
+            #CL K
+            if dimPb==3:
+              if rg[2][1] - rg[2][0]==0:
+                if rg[2][1]==1: kmin.append( [rac,1])
+                else:  kmax.append( [rac,1])
+
+         for rac in nearmatches:
+            rg    = Internal.getNodeByName1(rac,'PointRange')[1]
+            ratio = Internal.getNodeByName2(rac,'NMRatio')[1]
+            #CL I
+            if rg[0][1] - rg[0][0]==0:
+              if rg[0][1]==1: imin.append([rac, ratio[1]])
+              else: imax.append( [rac, ratio[1] ])
+            #CL J
+            if rg[1][1] - rg[1][0]==0:
+              if rg[1][1]==1: jmin.append([rac, ratio[0]])
+              else:  jmax.append( [rac, ratio[0]])   
+            #CL K
+            if dimPb==3:
+              if rg[2][1] - rg[2][0]==0:
+                if rg[2][1]==1: kmin.append( [rac, ratio[0]])
+                else:  kmax.append( [rac, ratio[0]])
+
+ 
+         ladd =True
+         for dir in [[imin,'imin'], [imax,'imax'], [jmin,'jmin'],[jmax,'jmax'], [kmin,'kmin'],[kmax,'kmax']]:
+           ratio=[]
+           for sf in dir[0]:
+             if sf[1] not in ratio: ratio.append(sf[1])
+
+           if len(ratio) >=3:
+              dims = Internal.getZoneDim(z)
+              #print(z[0], ': zone a decouper en', dir[1],  'ratio:', ratio, 'dim:', dims[1:4])
+              for sf in dir[0]:
+                rg    = Internal.getNodeByName1(sf[0],'PointRange')[1]
+                if sf[1]==0.5:
+                  print("zone a splitter", z[0], "dir", dir[1], 'ptrange', rg)
+                  ladd=False
+                  if z[0] in candidat: 
+                    tmp = candidat[z[0]]
+                    tmp.append( [dir[1], rg])
+                    candidat[z[0]]= tmp
+                  else:
+                    candidat[z[0]]= [[dir[1], rg]]
+         if ladd:
+            zone_out.append(z)
+      else:
+         zone_out.append(z)
+
+   for key in candidat:
+     zone = Internal.getNodeFromName(t,key)
+     print("zone candidate au split", zone[0])
+     llist =  candidat[key]
+     for tmp in llist:
+        rg2=tmp[1]
+        #print("verif init", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+     racFinal=[]
+     while len(llist)!=0:
+       l = llist[0]
+       rg = l[1]
+
+       if len(llist)==1:
+         ldel = False
+         for rac in racFinal:
+            tmp = rac[1]
+            if rg[1,1] == tmp[1,1] and rg[2,0] == tmp[2,0] and rg[1,0] == tmp[1,0] and  rg[2,1] == tmp[2,1] and  rg[0,1] == tmp[0,1] and rg[0,0] == tmp[0,0]: 
+              #print("on skippe: le dernier rac existe deja")
+              ldel=True
+         if not ldel:
+            racFinal.append(l)
+         llist.pop(0)
+
+       else:
+          i =1
+          fusion=False
+          same = False
+          for l2 in llist[1:]:
+            fusion=False
+            rg2= l2[1]
+            if (l[0]=='imax' or l[0]=='imin') and (l2[0]=='imax' or l2[0]=='imin') :
+              if rg[1,0] == rg2[1,1] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                fusion=True
+                rg[1,0]= rg2[1,0]
+              elif rg[1,1] == rg2[1,0] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                fusion=True
+                rg[1,1]= rg2[1,1]
+              elif rg[2,0] == rg2[2,1] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                fusion=True
+                rg[2,0]= rg2[2,0] 
+              elif rg[2,1] == rg2[2,0] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                fusion=True
+                rg[2,1]= rg2[2,1] 
+              elif rg[1,1] == rg2[1,1] and rg[2,0] == rg2[2,0] and rg[1,0] == rg2[1,0] and  rg[2,1] == rg2[2,1] :
+                fusion=True
+                same=True
+
+            elif (l[0]=='jmax' or l[0]=='jmin') and (l2[0]=='jmax' or l2[0]=='jmin') :
+              if rg[0,0] == rg2[0,1] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                fusion=True
+                rg[0,0]= rg2[0,0]
+              elif rg[0,1] == rg2[0,0] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                fusion=True
+                rg[0,1]= rg2[0,1]
+              elif rg[2,0] == rg2[2,1] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                fusion=True
+                rg[2,0]= rg2[2,0] 
+              elif rg[2,1] == rg2[2,0] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                fusion=True
+                rg[2,1]= rg2[2,1] 
+              elif rg[0,1] == rg2[0,1] and rg[2,0] == rg2[2,0] and rg[0,0] == rg2[0,0] and  rg[2,1] == rg2[2,1]:
+                fusion=True
+                same=True
+ 
+            elif (l[0]=='kmax' or l[0]=='kmin') and (l2[0]=='kmax' or l2[0]=='kmin') :
+              if rg[0,0] == rg2[0,1] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                fusion=True
+                rg[0,0]= rg2[0,0]
+              elif rg[0,1] == rg2[0,0] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                fusion=True
+                rg[0,1]= rg2[0,1]
+              elif rg[1,0] == rg2[1,1] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                fusion=True
+                rg[1,0]= rg2[1,0] 
+              elif rg[1,1] == rg2[1,0] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                fusion=True
+                rg[1,1]= rg2[1,1] 
+              elif rg[0,1] == rg2[0,1] and rg[0,0] == rg2[0,0] and rg[1,0] == rg2[1,0] and  rg[1,1] == rg2[1,1]:
+                same=True
+                fusion=True
+            else:
+               print("skip")
+  
+            if fusion: 
+              print("dirF", l[0], rg[0,0], rg[0,1], rg[1,0], rg[1,1], rg[2,0], rg[2,1] )
+              llist.pop(i)
+
+            i +=1
+
+          if not same: racFinal.append(l)
+          if not fusion:
+            llist.pop(0)
+            for tmp in llist:
+              rg2=tmp[1]
+            for tmp in racFinal:
+               rg2=tmp[1]
+          else:
+            for tmp in llist:
+               rg2=tmp[1]
+            for tmp in racFinal:
+               rg2=tmp[1]
+
+     dims = Internal.getZoneDim(zone)
+     for tmp in racFinal:
+        rg2=tmp[1]
+        #print("verif Final", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+        #passage surface volume
+        #print(zone[0], 'dim:', dims[1:4])
+        if tmp[0]=='imin': rg2[0,1]= dims[1]
+        if tmp[0]=='imax': rg2[0,0]= 1
+        if tmp[0]=='jmin': rg2[1,1]= dims[2]
+        if tmp[0]=='jmax': rg2[1,0]= 1
+        if tmp[0]=='kmin': rg2[2,1]= dims[3]
+        if tmp[0]=='kmax': rg2[2,0]= 1
+        #print("verif Final1", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+
+     i=0
+     for rac in racFinal:
+        rg = rac[1]
+        j=0
+        for rac2 in racFinal:
+          tmp = rac2[1]
+          if rg[1,1] == tmp[1,1] and rg[2,0] == tmp[2,0] and rg[1,0] == tmp[1,0] and  rg[2,1] == tmp[2,1] and  rg[0,1] == tmp[0,1] and rg[0,0] == tmp[0,0] and j!=i: 
+              #print("on vire le rac: doublon ")
+              racFinal.pop(i)
+              break
+          j+=1 
+        i+=1 
+    
+     for tmp in racFinal:
+        rg2=tmp[1]
+        print("Final filtre", zone[0], tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )          
+
+     ni   = dims[1]; nj = dims[2]; nk = dims[3]
+     out=[ [zone, (1,1,1), (ni,nj,nk) ]]
+     count=0
+     for rac in  racFinal:
+         rg = rac[1]; ideb = rg[0,0]; jdeb= rg[1,0]; kdeb= rg[2,0]; ifin = rg[0,1]; jfin= rg[1,1]; kfin= rg[2,1]
+         start= (ideb, jdeb, kdeb)
+         end  = (ifin, jfin, kfin)
+         #print("Split", zone[0], tmp[0], rg[0,0], rg[0,1], rg[1,0], rg[1,1], rg[2,0], rg[2,1] )          
+         #recherche de la zone de decouper 
+         i=0
+         for sub in out:
+           start_tg= sub[1]; end_tg = sub[2]
+           if start[0] >= start_tg[0] and end[0] <= end_tg[0] and start[1] >= start_tg[1] and end[1] <= end_tg[1] and start[2] >= start_tg[2] and end[2] <= end_tg[2]:
+             zone_tg = sub[0]
+             i_tg=i
+           i+=1
+
+         #print('i_tg', i_tg, 'indice_tg', start_tg[0], end_tg[0], start_tg[1],  end_tg[1] ,start_tg[2], end_tg[2])
+         dims = Internal.getZoneDim(zone_tg)
+         ni   = dims[1]; nj = dims[2]; nk = dims[3]
+         ideb = start[0]-start_tg[0]+1; jdeb = start[1]-start_tg[1]+1; kdeb = start[2]-start_tg[2]+1
+         ifin = end[0]-start_tg[0]+1; jfin = end[1]-start_tg[1]+1; kfin = end[2]-start_tg[2]+1
+         start_loc=( ideb, jdeb, kdeb)
+         end_loc=  ( ifin, jfin, kfin)
+         #print("start", start)
+         #print("end  ",  end)
+         #print("start_loc", start_loc)
+         #print("end_loc  ",  end_loc)
+         #print("dim",  dims[1:4], zone_tg[0])
+
+         #print(' split centre', start_loc, end_loc ,  Internal.getZoneDim(zone_tg)[1:4], flush=True)
+         zp  = T.subzone(zone_tg, start_loc, end_loc )
+         #print(' split centre OK', flush=True)
+         Internal._rmNodesByName(zp,'ZoneGridConnectivity')
+         zp[0]=zone[0]+'split'+str(count)
+         count +=1
+         out.append( [zp, start_loc, end_loc] )
+         #decoupe de 6 sous zone potentiel
+         if ideb !=1:  
+           start= (1   ,  1, kdeb)
+           end  = (ideb, nj, kfin)
+           start_loc=( 1   , 1   , kdeb)
+           end_loc=  ( ideb, nj, kfin)
+
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           zp[0]=zone[0]+'split'+str(count)
+           count +=1
+           out.append( [zp, start, end] )
+         if jfin != nj:
+           start= (ideb, jfin, kdeb)
+           end  = (ifin, nj  , kfin)
+           start_loc=( ideb, jfin, kdeb)
+           end_loc=  ( ifin, nj, kfin)
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           zp[0]=zone[0]+'split'+str(count)
+           count +=1
+           out.append( [zp, start, end] )
+         if ifin != ni:
+           start= (ifin,  1  , kdeb)
+           end  = ( ni , nj  , kfin)
+           start_loc=( ifin,   1 , kdeb)
+           end_loc=  (  ni ,  nj , kfin)
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           zp[0]=zone[0]+'split'+str(count)
+           count +=1
+           out.append( [zp, start, end] )
+         if jdeb != 1:
+           start= (ideb,  1   , kdeb)
+           end  = (ifin, jdeb , kfin)
+           start_loc=( ideb,  1  , kdeb)
+           end_loc=  ( ifin, jdeb, kfin)
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           out.append( [zp, start, end] )
+         if kdeb != 1:
+           start= (1,  1  , 1)
+           end  = (ni, nj , kdeb)
+           start_loc=(   1 ,  1  ,  1  )
+           end_loc=  (  ni ,  nj , kdeb)
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           zp[0]=zone[0]+'split'+str(count)
+           count +=1
+           out.append( [zp, start, end] )
+         if kfin != nk:
+           start= (1,  1  , kfin)
+           end  = (ni, nj , nk)
+           start_loc=(  1  ,  1  , kfin)
+           end_loc=  (  ni ,  nj ,  nk )
+           zp  = T.subzone(zone_tg, start_loc, end_loc )
+           zp[0]=zone[0]+'split'+str(count)
+           count +=1
+           out.append( [zp, start, end] )
+              
+         out.pop(i_tg) 
+         
+     for z in out:
+       zone_out.append(z[0])
+       
+   t = C.newPyTree(['CARTESIAN', zone_out])
+   Internal._rmNodesByName(t,'ZoneGridConnectivity')
+
+   return t
+         

@@ -105,6 +105,7 @@ namespace K_GENERATOR
   PyObject* octree2AMR(PyObject* self, PyObject* args);
   PyObject* octree2Struct(PyObject* self, PyObject* args);
   PyObject* extendCartGrids(PyObject* self, PyObject* args);
+  PyObject* extendCartGrids2(PyObject* self, PyObject* args);
   PyObject* adaptOctree(PyObject* self, PyObject* args);
   PyObject* adaptOctree3(PyObject* self, PyObject* args);
   PyObject* conformOctree3(PyObject* self, PyObject* args);

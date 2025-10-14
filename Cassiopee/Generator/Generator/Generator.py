@@ -1788,7 +1788,10 @@ def balanceOctree__(octree, ratio=2, corners=0):
     return generator.balanceOctree(octree, ratio, corners)
 
 def extendCartGrids(A, ext=0, optimized=0, extBnd=0, tol=1.e-6):
-    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd, tol)
+    if optimized==-1:
+        A, rinds = generator.extendCartGrids2(A, ext, optimized, extBnd)
+    else:
+        A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd, tol)
     return A, rinds
 
 def extendOctreeGrids__(A, ext, optimized, extBnd=0, tol=1.e-6):

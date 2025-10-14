@@ -101,6 +101,7 @@ static PyMethodDef Pygenerator [] =
   {"octree2AMR", K_GENERATOR::octree2AMR, METH_VARARGS},
   {"octree2Struct", K_GENERATOR::octree2Struct, METH_VARARGS},
   {"extendCartGrids",K_GENERATOR::extendCartGrids, METH_VARARGS},
+  {"extendCartGrids2",K_GENERATOR::extendCartGrids2, METH_VARARGS},
   {"adaptOctree", K_GENERATOR::adaptOctree, METH_VARARGS},
   {"adaptOctree3", K_GENERATOR::adaptOctree3, METH_VARARGS}, 
   {"conformOctree3", K_GENERATOR::conformOctree3, METH_VARARGS},
