@@ -945,7 +945,7 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
                                   toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=False)
-    
+
     Cmpi.trace('AMR Mesh Dist2Wal...start', master=True)
     if dim==2: tb2=T.addkplane(tb)
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
