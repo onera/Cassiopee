@@ -299,7 +299,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
 
     # build msg
     if TRACESTATE['cpu']: msg += ' [%g secs]'%dt
-    if TRACESTATE['mem']: 
+    if TRACESTATE['mem']:
         if peak == -1: # peak is not known
             if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
             elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
