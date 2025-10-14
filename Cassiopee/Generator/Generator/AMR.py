@@ -1051,6 +1051,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./'):
+    Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
@@ -1115,4 +1116,5 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
+    Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
