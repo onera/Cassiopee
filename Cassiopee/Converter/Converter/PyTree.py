@@ -1940,7 +1940,7 @@ def TZGF(t, locout, fieldName, F, *args):
 def _TZGF(t, locout, fieldName, F, *args):
     zones = Internal.getZones(t)
     for z in zones:
-        fa = getFields(fieldName, z)[0]
+        fa = getFields(fieldName, z, api=1)[0]
         if fa != []:
             if F is not None: fa = F(fa, *args)
             setFields([fa], z, locout)
@@ -1971,8 +1971,8 @@ def _TZA(t, locin, locout, F, Fc, *args):
     zones = Internal.getZones(t)
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args)
@@ -1984,7 +1984,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
                 fp = F(fc, *args)
                 setFields([fp], z, locout)
         elif locin == 'centers':
-            fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fa = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fa != []:
                 fp = Fc(fa, *args)
                 setFields([fp], z, locout)
@@ -1992,9 +1992,9 @@ def _TZA(t, locin, locout, F, Fc, *args):
             # Dans ce cas, on suppose que F ne change pas la localisation
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args1)
@@ -2016,8 +2016,8 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
     zones = Internal.getZones(t)
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args)
@@ -2029,8 +2029,8 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
                 fp = Fc(fc, *args)
                 setFields([fp], z, locout, writeDim)
         elif locin == 'centers':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 posx = KCore.isNamePresent(fa,'CoordinateX')
                 posy = KCore.isNamePresent(fa,'CoordinateY')
@@ -2066,9 +2066,9 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
         else: # both
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args1)
@@ -2127,8 +2127,8 @@ def _TZANC(t, locin, locout, F, Fc, *args):
     args1 = args[0:l]; args2 = args[l:]
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args)
@@ -2143,24 +2143,24 @@ def _TZANC(t, locin, locout, F, Fc, *args):
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fa = getFields(Internal.__FlowSolutionNodes__, zp)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
             if fa != []:
                 fa = Fc(fa, *args)
                 if locout == 'nodes': setFields([fa], z, 'nodes')
                 else:
                     zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                    fa = getFields(Internal.__FlowSolutionCenters__, zp)[0]
+                    fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
                     setFields([fa], z, 'centers')
 
         else: # both
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fb = getFields(Internal.__FlowSolutionNodes__, zp)[0]
+            fb = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args1)
@@ -2176,7 +2176,7 @@ def _TZANC(t, locin, locout, F, Fc, *args):
                 if Fc is not None: fb = Fc(fb, *args2)
                 setFields([fb], zp, 'nodes')
                 zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                fa = getFields(Internal.__FlowSolutionCenters__, zp)[0]
+                fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
                 setFields([fa], z, 'centers')
     return None
 
@@ -2202,9 +2202,9 @@ def TLAGC(t, F, *args):
     if nzones == 0: return tp
 
     for z in zones:
-        fc = getFields(Internal.__GridCoordinates__, z)[0]
-        fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         allfc.append(fc); allfa.append(fa); allfb.append(fb)
 
     # Application par lot des noeuds
@@ -5068,7 +5068,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
         indicesE = indicesF
     if undefBC:
         ze = T.subzone(z, indicesE, type='faces')
-        zea = getFields('GridCoordinates', ze)[0]
+        zea = getFields('GridCoordinates', ze, api=1)[0]
         id0 = T.transform.splitSharpEdgesList(zea, indicesE, splitFactor)
         return id0
     else: return []
@@ -6092,7 +6092,7 @@ def extractBCDataStruct__(z):
                     range0 = pr[1]
                     w = Internal.range2Window(range0)
                     imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
-                    coords = getFields(Internal.__GridCoordinates__,z)[0]
+                    coords = getFields(Internal.__GridCoordinates__,z, api=1)[0]
                     coords = T.subzone(coords, (imin,jmin,kmin), (imax,jmax,kmax))
                     info = [bcname, 'BCOverlap', bcdata, coords]
                     infos.append(info)
@@ -6113,7 +6113,7 @@ def extractBCDataStruct__(z):
             range0 = pr[1]
             w = Internal.range2Window(range0)
             imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
-            coords = getFields(Internal.__GridCoordinates__,z)[0]
+            coords = getFields(Internal.__GridCoordinates__,z, api=1)[0]
             coords = T.subzone(coords, (imin,jmin,kmin), (imax,jmax,kmax))
             info = [bcname, bctype, bcdata, coords]
             infos.append(info)
@@ -6346,7 +6346,7 @@ def node2Center(t, var='', accurate=0):
             zones = Internal.getZones(la[i])
             for z in zones:
                 (p, pos) = Internal.getParentOfNode(la[i], z)
-                fieldc = getFields(Internal.__FlowSolutionCenters__, z)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, z, api=1)
                 _deleteFlowSolutions__(z, 'centers')
                 _deleteZoneBC__(z)
                 _deleteGridConnectivity__(z)
@@ -6469,7 +6469,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
                 if ghost is None and useGhost:
                     a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[Internal.__FlowSolutionCenters__])
                 else: a = Internal.copyRef(t)
-                fieldc = getFields(Internal.__FlowSolutionCenters__, a)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, a, api=1)
                 fieldn = []
                 listVar = []
                 for i in fieldc:
@@ -6483,7 +6483,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
                 if ghost is None and useGhost:
                     a = Internal.rmGhostCells(a, a, 1, adaptBCs=0,
                                               modified=[listVar, Internal.__FlowSolutionCenters__])
-                fieldsc = getFields(Internal.__FlowSolutionNodes__, a)
+                fieldsc = getFields(Internal.__FlowSolutionNodes__, a, api=1)
 
         # destruction
         t = deleteFlowSolutions__(t, 'centers')
@@ -6565,7 +6565,7 @@ def node2ExtCenter(t, var=''):
             for z in zones:
                 (p, pos) = Internal.getParentOfNode(la[i], z)
                 fieldn = getAllFields(z, loc='nodes', api=1)
-                fieldc = getFields(Internal.__FlowSolutionCenters__, z)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, z, api=1)
                 _deleteFlowSolutions__(z, 'centers')
                 _deleteZoneBC__(z)
                 _deleteGridConnectivity__(z)
@@ -6583,13 +6583,13 @@ def node2ExtCenter(t, var=''):
         return a
 
     elif var == Internal.__GridCoordinates__:
-        fieldn = getFields(Internal.__GridCoordinates__, a)
+        fieldn = getFields(Internal.__GridCoordinates__, a, api=1)
         fielde = Converter.node2ExtCenter(fieldn)
         setFields(fielde, a, 'nodes', writeDim=True)
         return a
 
     elif var == Internal.__FlowSolutionNodes__:
-        fieldn = getFields(Internal.__FlowSolutionNodes__, a)
+        fieldn = getFields(Internal.__FlowSolutionNodes__, a, api=1)
         fielde = Converter.node2ExtCenter(fieldn)
         setFields(fielde, a, 'nodes', writeDim=True)
         return a
