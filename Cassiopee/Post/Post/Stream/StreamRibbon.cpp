@@ -28,15 +28,6 @@ using namespace K_FLD;
 using namespace std;
 using namespace K_FUNC;
 
-extern "C"
-{  
-  void  k6compmeancurloftetracell_(
-    const E_Int& npts, const E_Int& ind1, const E_Int& ind2, 
-    const E_Int& ind3, const E_Int& ind4, 
-    const E_Float* u, const E_Float* v, const E_Float* w, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float& rotu, E_Float& rotv, E_Float& rotw);
-}
 //=============================================================================
 /* Cree un ruban de courant */
 //=============================================================================
@@ -1263,14 +1254,12 @@ short K_POST::getThetaRKCoef(
     E_Int posy = posyu[noblk0];
     E_Int posz = poszu[noblk0];
     E_Int noet = indi[0];
-    E_Int indA = cnEV(noet, 1) - 1;
-    E_Int indB = cnEV(noet, 2) - 1;
-    E_Int indC = cnEV(noet, 3) - 1;
-    E_Int indD = cnEV(noet, 4) - 1;
-    k6compmeancurloftetracell_( field->getSize(), indA, indB, indC, indD, 
-                                velo->begin(1), velo->begin(2), velo->begin(3), 
-                                field->begin(posx), field->begin(posy), field->begin(posz),
-                                rotvx, rotvy, rotvz);
+
+    compMeanCurlOfUnstructCell(noet, cnEV, "TETRA",
+      velo->begin(1), velo->begin(2), velo->begin(3),
+      field->begin(posx), field->begin(posy), field->begin(posz),
+      rotvx, rotvy, rotvz);
+
     // 2-calcul de v/normv
     E_Float normu = sqrt(up*up+vp*vp+wp*wp);
     if (fEqualZero(normu)) 

@@ -381,3 +381,90 @@ void K_POST::compCurlUnstruct2D(
 
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic]; 
 }
+
+// ============================================================================
+//  Computation of the mean curl of a vector field (u,v,w) over an unstructured cell
+//  Only called in StreamRibbon.cpp for TETRA cells  
+// ============================================================================
+void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* eltType,
+  const E_Float* ux, const E_Float* uy, const E_Float* uz,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  E_Float& rotx, E_Float& roty, E_Float& rotz
+)
+{
+
+  E_Int nfpe, sizeFace, ind, ierr;
+  E_Int nvpe = cn.getNfld();
+
+  if      (strcmp(eltType, "TETRA") == 0) nfpe = 4;
+  else if (strcmp(eltType, "PYRA")  == 0) nfpe = 5;
+  else if (strcmp(eltType, "PENTA") == 0) nfpe = 5;
+  else if (strcmp(eltType, "HEXA")  == 0) nfpe = 6;
+  else
+  {
+    fprintf(stderr, "Error: in K_POST::compMeanCurlOfUnstructCell.\n");
+    fprintf(stderr, "Unknown type of element, %s.\n", eltType);
+  }
+
+  std::vector<std::vector<E_Int>> facets;
+  ierr = K_CONNECT::getEVFacets(facets, eltType, false);
+
+  // allocate temp fields
+  FldArrayI cnloc(1, nvpe);
+  FldArrayF xtloc(nvpe), ytloc(nvpe), ztloc(nvpe);
+  FldArrayF snx(nfpe), sny(nfpe), snz(nfpe), surf(nfpe);
+  FldArrayF uintx(nfpe), uinty(nfpe), uintz(nfpe);
+  FldArrayF vol(1);
+
+  uintx.setAllValuesAtNull();
+  uinty.setAllValuesAtNull();
+  uintz.setAllValuesAtNull();
+
+  for (E_Int j = 1; j <= nvpe; j++)
+  {
+    ind = cn(noet, j) - 1;
+    xtloc[j-1] = xt[ind];
+    ytloc[j-1] = yt[ind];
+    ztloc[j-1] = zt[ind];
+
+    cnloc(0, j) = j;
+  }
+
+  // compute surf + vol of the elt
+  K_METRIC::compMetricUnstruct(
+    cnloc, eltType,
+    xtloc.begin(), ytloc.begin(), ztloc.begin(),
+    snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+  );
+
+  // compute velocity components at interfaces
+  for (E_Int i = 0; i < nfpe; i++)
+  {
+    sizeFace = facets[i].size();
+    for (E_Int j = 0; j < sizeFace; j++)
+    {
+      ind = cn(noet, facets[i][j]) - 1;
+      uintx[i] += ux[ind];
+      uinty[i] += uy[ind];
+      uintz[i] += uz[ind];
+    }
+    uintx[i] *= 1./sizeFace;
+    uinty[i] *= 1./sizeFace;
+    uintz[i] *= 1./sizeFace;
+  }
+
+  // compute mean curl
+  E_Float curlx = 0.0;
+  E_Float curly = 0.0;
+  E_Float curlz = 0.0;
+  for (E_Int i = 0; i < nfpe; i++)
+  {
+    curlx += uinty[i]*snz[i] - uintz[i]*sny[i];
+    curly += uintz[i]*snx[i] - uintx[i]*snz[i];
+    curlz += uintx[i]*sny[i] - uinty[i]*snx[i];
+  }
+
+  rotx = -vol[0] * curlx;
+  roty = -vol[0] * curly;
+  rotz = -vol[0] * curlz;
+}
