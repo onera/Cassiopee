@@ -406,7 +406,7 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
     fprintf(stderr, "Unknown type of element, %s.\n", eltType);
   }
 
-  std::vector<std::vector<E_Int>> facets;
+  std::vector<std::vector<E_Int> > facets;
   ierr = K_CONNECT::getEVFacets(facets, eltType, false);
 
   // allocate temp fields
