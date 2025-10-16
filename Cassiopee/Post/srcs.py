@@ -135,7 +135,7 @@ else: cpp_srcs.append("Post/usurpStub.cpp")
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Post/Fortran/CompMeanCurlOfTetraCellF.for',]
+for_srcs = []
 
 f90_srcs = []
 if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):

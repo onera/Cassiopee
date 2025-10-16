@@ -836,6 +836,15 @@ namespace K_POST
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float& rotu, E_Float& rotv, E_Float& rotw);
 
+// ============================================================================
+// Calcul du rotationnel moyen d un champ (u,v,w) sur une cellule non structuree
+// ============================================================================
+  void compMeanCurlOfUnstructCell(
+    E_Int noet, FldArrayI& cn, const char* eltType,
+    const E_Float* ux, const E_Float* uy, const E_Float* uz,
+    const E_Float* xt, const E_Float* yt, const E_Float* zt,
+    E_Float& rotx, E_Float& roty, E_Float& rotz);
+
   /* Calcul du gradient d'un champ defini aux noeuds d une grille non structuree
    retourne le gradient defini aux centres des elts.
    IN: xt, yt, zt: coordonnees x, y, z des pts de la grille

@@ -1,4 +1,4 @@
 LIBNAME = PostF
 SOURCEF90 =
-SOURCEF77 = CompMeanCurlOfTetraCellF.for
+SOURCEF77 =
 include ../Make.inc
