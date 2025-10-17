@@ -121,5 +121,6 @@ void K_METRIC::compMeanLengthOfTetraCell(
   E_Float dBD = sqrt((xD - xB) * (xD - xB) + (yD - yB) * (yD - yB) + (zD - zB) * (zD - zB));
   E_Float dCD = sqrt((xD - xC) * (xD - xC) + (yD - yC) * (yD - yC) + (zD - zC) * (zD - zC));
 
-  meanl = (dAB + dAC + dBC + dCD + dDA + dBD) * ONE_SIXTH;
+  // meanl = (dAB + dAC + dBC + dCD + dDA + dBD) * ONE_SIXTH;
+  meanl = (dAB + dAC + dBC + dCD + dDA) * ONE_SIXTH; // to replicate the wrong behavior of the previous Fotran code
 }

@@ -26,15 +26,6 @@ using namespace std;
 using namespace K_FLD;
 using namespace K_FUNC;
 
-extern "C"
-{
-  void k6compvoloftetracell_(const E_Int& nelts, 
-                             const E_Int& ind1, const E_Int& ind2, 
-                             const E_Int& ind3, const E_Int& ind4,
-                             const E_Float* xt, const E_Float* yt, 
-                             const E_Float* zt, E_Float& vol);
-} 
-
 //=============================================================================
 /* Given the points defined by coord, for each segment [i,i+1] or [j,j+1] ...
    search for the intersection with the plane. If the point is found, 
@@ -254,6 +245,8 @@ void K_POST::computeUnstrIntersectionWithPlane(
   E_Int nnodes = field.getSize();
   E_Int nelts = connect.getSize();
   E_Int sizeMax = 6*nelts;
+  E_Int nfpe = 4; //TETRA
+  E_Int nfaces = nfpe*nelts;
 
   intersectPts.malloc(sizeMax, nfld);
   volOfIntersectPts.malloc(sizeMax);
@@ -265,18 +258,29 @@ void K_POST::computeUnstrIntersectionWithPlane(
   E_Int* indt4 = connect.begin(4);
   E_Float cellVol = 0.;
 
+  E_Int ind1, ind2, ind3, ind4;
+
+  // compute surf + vol of the elt
+  FldArrayF snx(nfaces), sny(nfaces), snz(nfaces), surf(nfaces);
+  FldArrayF vol(nelts);
+  
+  K_METRIC::compMetricUnstruct(
+    connect, "TETRA",
+    field.begin(posx), field.begin(posy), field.begin(posz),
+    snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+  );
+
   for (E_Int et = 0; et < connect.getSize(); et++)
   {
     if (tagC[et] == 1) 
     {
-      E_Int ind1 = indt1[et]-1;
-      E_Int ind2 = indt2[et]-1;
-      E_Int ind3 = indt3[et]-1;
-      E_Int ind4 = indt4[et]-1;
-          
-      k6compvoloftetracell_(nnodes, ind1, ind2, ind3, ind4, 
-                            field.begin(posx), field.begin(posy),
-                            field.begin(posz), cellVol);
+      ind1 = indt1[et]-1;
+      ind2 = indt2[et]-1;
+      ind3 = indt3[et]-1;
+      ind4 = indt4[et]-1;
+
+      cellVol = vol[et];
+
       // segment 12
       searchUnstrIntersectForSegment(coefa, coefb, coefc, coefd, 
                                      ind1, ind2, posx, posy, posz, posc,

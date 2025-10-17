@@ -82,16 +82,7 @@ extern "C"
   void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
                        const E_Int& nfld, E_Float* fieldnode, 
                        E_Float* fieldcenter);
-
-  void k6compmeanlengthofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                                     E_Int& indA,  
-                                     E_Float* xt, E_Float* yt, 
-                                     E_Float* zt, E_Float& meanl);
   
-  void k6compmeanlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
-                                    E_Int& indC, E_Int& indD, 
-                                    E_Float* xt, E_Float* yt, E_Float* zt, 
-                                    E_Float& meanl);
   void k6compminlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
                                    E_Int& indC, E_Int& indD, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
@@ -188,12 +179,6 @@ void K_KCORE::testFooKCore()
   E_Int i=0; E_Float f=0.;
   
   k6conv2center1_(i, i, i, i, NULL, NULL);
-
-  k6compmeanlengthofstructcell_(i, i, i, i,
-                                NULL, NULL, NULL, f);
-
-  k6compmeanlengthoftetracell_(i, i, i, i, i, 
-                               NULL, NULL, NULL, f);
   k6compminlengthofcell_(i, i, i, i, 
                          NULL, NULL, NULL, f);
   k6compminlengthoftetracell_(i, i, i, i, i, 

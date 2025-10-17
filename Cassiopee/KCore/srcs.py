@@ -393,7 +393,6 @@ for_srcs = [
     'KCore/Metric/CompStructCellCenterF.for',
     'KCore/Metric/CompVolOfStructCellF.for',
     'KCore/Metric/CompVolOfTetraCellF.for',
-    'KCore/Metric/CompMeanLengthOfCellF.for',
     'KCore/Metric/CompMinLengthOfCellF.for',
     'KCore/Metric/CompIntSurfOfCellF.for',
     'KCore/Metric/CompIntSurfF.for',
