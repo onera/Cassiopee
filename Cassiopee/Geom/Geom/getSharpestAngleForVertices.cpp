@@ -183,7 +183,8 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           else alpt[ind] = 0.;
         }
         RELEASESHAREDS(tpl, alph);
-        RELEASESHAREDU(array, f, cn); return tpl;
+        RELEASESHAREDU(array, f, cn); 
+        return tpl;
       }
       else // dim = 3
       {
@@ -255,7 +256,8 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
           else alpt[ind] = 0.;
         }
         RELEASESHAREDS(tpl, alph);
-        RELEASESHAREDU(array, f, cn); return tpl;
+        RELEASESHAREDU(array, f, cn); 
+        return tpl;
       }
       else if (type == 4)  //QUAD
       {
@@ -360,8 +362,10 @@ PyObject* K_GEOM::getSharpestAngleForVertices(PyObject* self, PyObject* args)
         }
 
         RELEASESHAREDS(tpl, alph);
-        RELEASESHAREDU(array,f, cn); return tpl;
+        RELEASESHAREDU(array,f, cn); 
+        return tpl;
       }
     }
   }
+  return NULL;
 }

@@ -20,7 +20,7 @@
 **************************************************************************/
 void ConstructSeparator(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, j, k, nvtxs, nbnd;
+  idx_t i, j, nvtxs, nbnd;
   idx_t *xadj, *where, *bndind;
 
   WCOREPUSH;
