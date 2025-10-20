@@ -3668,11 +3668,18 @@ def getZoneDim(zone):
           if eltName in dimBE: cellDim = dimBE[eltName]
           elif eltName in ['NGON', 'NFACE']:
             eltName = 'NGON'
-            data = getNodeFromName1(c[0], 'ElementConnectivity')
-            if data is not None and len(data)>0: datar = data[1]
-            if datar is not None and datar.size > 0:
-              if datar[0] == 1: cellDim = 1
-              elif datar[0] == 2: cellDim = 2
+            data = getNodeFromName1(c[0], 'ElementStartOffset')
+            if data is not None: # NGON4
+              datar = data[1]
+              if datar is not None and len(datar)>1:
+                if datar[1] == 1: cellDim = 1
+                elif datar[1] == 2: cellDim = 2
+            else: # NGON3
+              data = getNodeFromName1(c[0], 'ElementConnectivity')
+              if data is not None and len(data)>0: datar = data[1]
+              if datar is not None and datar.size>0:
+                if datar[0] == 1: cellDim = 1
+                elif datar[0] == 2: cellDim = 2
           else: eltName = 'UNKNOWN'
           return [gtype, np, ne, eltName, cellDim]
         else: # lc >= 2:
@@ -3684,15 +3691,14 @@ def getZoneDim(zone):
             data = getNodeFromName1(NGONp, 'ElementStartOffset')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>1:
               if datar[1] == 1: cellDim = 1
               elif datar[1] == 2: cellDim = 2
               return [gtype, np, ne, 'NGON', cellDim]
-
             data = getNodeFromName1(NGONp, 'ElementConnectivity')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>0:
               if datar[0] == 1: cellDim = 1
               elif datar[0] == 2: cellDim = 2
 
@@ -4302,17 +4308,17 @@ def _adaptPE2NFace(t, remove=True):
   for z in zones:
     NGON = getNodeFromName1(z, 'NGonElements')
     offset = getNodeFromName1(NGON, 'ElementStartOffset')
-    api = 3 if offset is not None else 2
+    ngonType = 4 if offset is not None else 3
 
     parentElt = getNodeFromName2(z, 'ParentElements')
     if parentElt is not None:
       cFE = parentElt[1]
-      cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+      cNFace, off, nelts = converter.adaptPE2NFace(cFE, ngonType)
       p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
       #p[1] = p[1].astype(numpy.int32) # force I4
       createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
       createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
-      if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+      if ngonType == 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
       else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
 
       if remove: _rmNodesByName(z, 'ParentElements')
@@ -4322,6 +4328,7 @@ def _adaptPE2NFace(t, remove=True):
 # remove = True: detruit la connectivite NFace
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
+# if shiftPE=True, element numbers are shifted of nfaces
 def adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   tp = copyRef(t)
@@ -4350,7 +4357,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           node = getNodeFromName1(e, 'ElementRange')[1]
           nfaces = node[1]-node[0]+1
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNGon = cNGon.copy()
             cNGon = numpy.insert(cNGon, offset[:-1], offset[1:]-offset[:-1])
@@ -4360,7 +4367,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           noNFace = c
           cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNFace = cNFace.copy()
             cNFace = numpy.insert(numpy.abs(cNFace), offset[:-1], offset[1:]-offset[:-1])
@@ -4368,9 +4375,9 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
 
     if cNFace is not None and NGON is not None and cNGon is not None:
       cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
+      if shiftPE: cFE = numpy.where(cFE==0, 0, cFE+nfaces)
       createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
     if remove: del z[2][noNFace]
-    if shiftPE: cFE[:] += nfaces
   return None
 
 def adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):

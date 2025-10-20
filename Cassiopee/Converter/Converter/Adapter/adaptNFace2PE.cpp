@@ -31,8 +31,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   PyObject* arrayNF; PyObject* arrayNG;  
   E_Int nfaces; E_Int nelts;
   E_Int methodPE(0);
-  PyObject* arrayX; PyObject* arrayY; PyObject* arrayZ; 
-
+  PyObject* arrayX; PyObject* arrayY; PyObject* arrayZ;
   if (!PYPARSETUPLE_(args, OOOO_ O_ III_, &arrayNF,  &arrayNG, 
                      &arrayX, &arrayY, &arrayZ, 
                      &nelts, &nfaces, &methodPE)) return NULL;

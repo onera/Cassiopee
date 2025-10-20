@@ -498,7 +498,7 @@ def showSelectionInTkTree(event=None):
 def upgradeTree(t):
     Internal.autoSetContainers(t)
     Internal._correctPyTree(t, level=0) # version node
-    #t = Internal.correctPyTree(t, level=9) # connectivity
+    #Internal._correctPyTree(t, level=9) # connectivity
     if FIREWALL: Internal._fixNGon(t) # suppressed in v4
     try:
         if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')

@@ -1112,7 +1112,7 @@ def _correctCGNSType(t):
 # si une zone a NGON+PE et pas de NFace
 # si il y a des connectivites multiples
 # ou une zone a NGON+PE et pas de NFace
-# les vertex referenes existent.
+# les vertex references existent.
 #==============================================================================
 def checkElementNodes(t):
     errors = []
@@ -1172,6 +1172,7 @@ def checkElementNodes(t):
 #==============================================================================
 def _correctElementNodes(t):
     _correctBCElementNodes(t)
+    _cleanBEConnect(t)
     errors = checkElementNodes(t)
     le = len(errors)//3
     for e in range(le):
@@ -1184,7 +1185,7 @@ def _correctElementNodes(t):
             zones = C.breakConnectivity(zone)
             c = Internal.getNodePosition(zone, parent)
             parent[2][c] = zones[0]; parent[2] += zones[1:]
-        elif msg[0:6] == 'NFace':
+        elif msg[0:5] == 'NFace':
             # Look for PE
             PE = Internal.getNodeFromName2(zone, 'ParentElements')
             if PE is not None:
@@ -1195,7 +1196,6 @@ def _correctElementNodes(t):
 # Corrige des boundary connectivity qui sont a zero (GE[1][1])
 #===============================================================================
 def _correctBCElementNodes(t):
-    _cleanBEConnect(t)
     #_correctBC_PL2ER(t)
 
     zones = Internal.getZones(t)
