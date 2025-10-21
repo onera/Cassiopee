@@ -63,6 +63,7 @@ def listSnear(tb,snears):
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
 def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0):
+    import Geom.IBM as D_IBM
     if offsetValues==[]: return []
 
     snears, numBase = listSnear(tb, snears)
