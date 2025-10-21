@@ -458,8 +458,13 @@ def oneovern(t, N):
 
 def _oneovern(t, N):
     """Take one over N points from mesh."""
+    centers = C.getAllFields(t, 'centers', api=1)
     C._TZA1(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
-    C._TZA1(t, 'centers', 'centers', False, Transform.oneovern, N, 0)
+    zones = Internal.getZones(t)
+    for c, z in enumerate(zones):
+        if centers[c] != []:
+            fc = Transform.oneovern(centers[c], N, 0)
+            C.setFields([fc], z, 'centers', False)
     _oneovernBC__(t, N)
     return None
 

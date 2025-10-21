@@ -924,7 +924,7 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
 
     list_suffix_datasets = [""]
     list_suffix_datasets.extend(range(1, N_IP_per_cell))
-    walldistance_volume_ip = Internal.getNodeFromName(z_IP,"TurbulentDistance")[1]
+    walldistance_volume_ip = Internal.getNodeFromName(z_IP, "TurbulentDistance")[1]
 
     zones = Internal.getZones(t) #always one single zone
     for i in range(N_IP_per_cell):
@@ -946,12 +946,12 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
                                   toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=False)
 
-    Cmpi.trace('AMR Mesh Dist2Wal...start', master=True)
-    if dim==2: tb2=T.addkplane(tb)
+    Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
+    if dim == 2: tb2 = T.addkplane(tb)
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
     del tb2
-    Cmpi.trace('AMR Mesh Dist2Wal...end', master=True)
+    Cmpi.trace('AMR Mesh Dist2Walls...end', master=True)
 
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir)

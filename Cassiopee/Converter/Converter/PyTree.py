@@ -941,6 +941,7 @@ def _upgradeTree(t, uncompress=True, oldcompress=False):
     Internal._correctPyTree(t, level=10) # force CGNS names
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
+    #Internal._correctBCElementNodes(t) # boundary connectivity
     #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
     #Converter.Check._shiftParentElement(t, shift=-1) # shift -nface in PE
     #Internal._adaptSurfaceNGon(a)

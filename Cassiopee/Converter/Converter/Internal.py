@@ -73,6 +73,9 @@ KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal
 __DEG2RAD__ = 0.017453292519943295 #math.pi/180.
 __RAD2DEG__ = 57.29577951308232    #180./math.pi
 
+# Elements dimension by elt no
+DIMELTS = [0,0,0,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,2,2,2,3,3]  
+
 #==============================================================================
 # -- is? --
 #==============================================================================
@@ -2707,6 +2710,7 @@ def eltName2EltNo(name):
     else: nnodes = int(name[4:])
     if nnodes == 2: eltno = 3
     elif nnodes == 3: eltno = 4
+    elif nnodes == 4: eltno = 24
   elif name[0:3] == 'TRI':
     if len(name) == 3: nnodes = 3
     else: nnodes = int(name[4:])
@@ -2770,6 +2774,7 @@ def eltNo2EltName(eltno):
   if eltno == 2: name = 'NODE'; nnodes = 1
   elif eltno == 3: name = 'BAR'; nnodes = 2
   elif eltno == 4: name = 'BAR_3'; nnodes = 3
+  elif eltno == 24: name = 'BAR_4'; nnodes = 4
   elif eltno == 5: name = 'TRI'; nnodes = 3
   elif eltno == 6: name = 'TRI_6'; nnodes = 6
   elif eltno == 25: name = 'TRI_9'; nnodes = 9
@@ -3612,7 +3617,7 @@ def _groupByFamily(t, familyChilds=None, unique=False):
               setValue(child,getValue(FamBC))
               e = 0
               break
-          if e==-1: children.append(FamBC)
+          if e == -1: children.append(FamBC)
 
         nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
         setValue(bc, 'FamilySpecified')
@@ -3638,8 +3643,6 @@ def groupByFamily(t, familyChilds=None, unique=False):
 # EltsName: nom des elements (BAR, NODE, ..., NGON ou MULTI)
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
-  dimBE = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2, 'TETRA': 3,
-           'PYRA': 3, 'PENTA': 3, 'HEXA': 3}
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
   if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
@@ -3664,9 +3667,10 @@ def getZoneDim(zone):
         lc = len(c)
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
         elif lc == 1:
-          eltName,stype = eltNo2EltName(c[0][1][0])
-          if eltName in dimBE: cellDim = dimBE[eltName]
-          elif eltName in ['NGON', 'NFACE']:
+          elt = c[0][1][0]
+          eltName,stype = eltNo2EltName(elt)
+          cellDim = DIMELTS[elt]
+          if elt == 22 or elt == 23: # NGON or NFACE
             eltName = 'NGON'
             data = getNodeFromName1(c[0], 'ElementStartOffset')
             if data is not None: # NGON4
@@ -3680,7 +3684,6 @@ def getZoneDim(zone):
               if datar is not None and datar.size>0:
                 if datar[0] == 1: cellDim = 1
                 elif datar[0] == 2: cellDim = 2
-          else: eltName = 'UNKNOWN'
           return [gtype, np, ne, eltName, cellDim]
         else: # lc >= 2:
           # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
@@ -3701,11 +3704,10 @@ def getZoneDim(zone):
             if datar is not None and datar.size>0:
               if datar[0] == 1: cellDim = 1
               elif datar[0] == 2: cellDim = 2
-
             return [gtype, np, ne, 'NGON', cellDim]
           else: # BE/ME
             cellDim = 0
-            for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
+            for i in c: cellDim = max(cellDim, DIMELTS[i[1][0]])
             eltNames = dict.fromkeys(eltNames, None)
             return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
@@ -4229,11 +4231,16 @@ def _setElementDim(z):
 # -- Retourne une liste des noeuds Elements_t volumiques d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementNodes(z):
+  dim = 0; out = []
   GEl = getNodesFromType1(z, 'Elements_t')
-  out = []
   for GE in GEl:
-    if GE[1][1] == 0: out.append(GE)
-  return out
+    elt = GE[1][0] 
+    if DIMELTS[elt] == dim: out.append(GE)
+    elif DIMELTS[elt] > dim:
+      out.clear()
+      dim = DIMELTS[elt]
+      out.append(GE)
+  return out 
 
 # -- Retourne le noeud Element_t NGon si il existe
 def getNGonNode(z):
