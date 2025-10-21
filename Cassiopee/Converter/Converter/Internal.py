@@ -4235,6 +4235,20 @@ def getElementNodes(z):
     if GE[1][1] == 0: out.append(GE)
   return out
 
+# -- Retourne le noeud Element_t NGon si il existe
+def getNGonNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 22: return GE
+  return None
+
+# -- Retourne le noeud Elements_t NFace si il existe
+def getNFaceNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 23: return GE
+  return None
+
 # -- Retourne une liste des noeuds Elements_t de boundary d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementBoundaryNodes(z):
@@ -4306,10 +4320,9 @@ def _adaptPE2NFace(t, remove=True):
   """Creates NFaceElements nodes from ParentElements arrays in each zone."""
   zones = getZones(t)
   for z in zones:
-    NGON = getNodeFromName1(z, 'NGonElements')
+    NGON = getNGonNode(z)
     offset = getNodeFromName1(NGON, 'ElementStartOffset')
     ngonType = 4 if offset is not None else 3
-
     parentElt = getNodeFromName2(z, 'ParentElements')
     if parentElt is not None:
       cFE = parentElt[1]
@@ -4567,16 +4580,14 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
   """
   # add NFace node if necessary
   for z in getZones(a):
-    nFace = getNodeFromName(z, 'NFaceElements')
+    nFace = getNFaceNode(z)
     if nFace is None:
-      nGon = getNodeFromName(z, 'NGonElements')
+      nGon = getNGonNode(z)
       offset = getNodeFromName(nGon, 'ElementStartOffset')
-      api = 3 if offset is not None else 2
+      ngonType = 4 if offset is not None else 3
       rnGon = getNodeFromName(nGon, 'ElementRange')[1]
-
       nface = createNode('NFaceElements', 'Elements_t', parent=z,
-                         value=numpy.array([23,0],
-                                           dtype=E_NpyInt, order='F'))
+                         value=numpy.array([23,0], dtype=E_NpyInt, order='F'))
 
       value = numpy.array([rnGon[1]+1, rnGon[1]+1],
                           dtype=E_NpyInt, order='F')
@@ -4585,11 +4596,10 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
       value = numpy.array([], dtype=E_NpyInt, order='F')
       createNode('ElementConnectivity', 'DataArray_t',
                  parent=nface, value=value)
-      if api == 3:
+      if ngonType == 4:
         value = numpy.array([0], dtype=E_NpyInt, order='F')
       else: value =  numpy.array([], dtype=E_NpyInt, order='F')
-      createNode('ElementStartOffset', 'DataArray_t',
-                 parent=nface, value=value)
+      createNode('ElementStartOffset', 'DataArray_t', parent=nface, value=value)
 
   import Converter.PyTree as C
   import Converter
@@ -4597,9 +4607,9 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
 
   if rmEmptyNFaceElements:
     for z in getZones(a):
-      nFace = getNodeFromName(z, 'NFaceElements')
+      nFace = getNFaceNode(z)
       cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
-      if cnFace.size == 0: _rmNodesByName(z, 'NFaceElements')
+      if cnFace.size == 0: _rmNodesByName(z, nFace[0])
 
   return a
 

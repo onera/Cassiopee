@@ -941,6 +941,10 @@ def _upgradeTree(t, uncompress=True, oldcompress=False):
     Internal._correctPyTree(t, level=10) # force CGNS names
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
+    #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
+    #Converter.Check._shiftParentElement(t, shift=-1) # shift -nface in PE
+    #Internal._adaptSurfaceNGon(a)
+
     registerAllNames(t)
     if uncompress:
         try:
@@ -8089,7 +8093,7 @@ def _unsignNGonFaces(t):
     zones = Internal.getZones(t)
     isSigned = -1
     for z in zones:
-        n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+        n0 = Internal.getNFaceNode(z)
         if n0 is None: return None # not an NGon
         n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
         if n is None: return None # not an NGon v4
@@ -8112,7 +8116,7 @@ def resignNGonFaces(t):
 def _resignNGonFaces(t):
     """Resign NFACE connectivity in NGON zones and delete node `Signed`."""
     z = Internal.getZones(t)[0]
-    n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+    n0 = Internal.getNFaceNode(z)
     if n0 is None: return None # not an NGon
     n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
     if n is None: return None # not an NGon v4

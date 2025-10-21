@@ -203,11 +203,11 @@ def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
     if dim == 3: normal2D = None
     else:normal2D = numpy.array([0.0,0.0,1.0])
     if splitInfos is None or eltType != 'NGON':
-        ngonelts = Internal.getNodeFromName(z,"NGonElements")
-        ER = Internal.getNodeFromName(ngonelts,'ElementRange')[1]
+        ngonelts = Internal.getNGonNode(z)
+        ER = Internal.getNodeFromName(ngonelts, 'ElementRange')[1]
         nfaces = ER[1]
-        nfaceselts = Internal.getNodeFromName(z,"NFaceElements")
-        ER = Internal.getNodeFromName(nfaceselts,'ElementRange')[1]
+        nfaceselts = Internal.getNFaceNode(z)
+        ER = Internal.getNodeFromName(nfaceselts, 'ElementRange')[1]
         ncells = ER[1]-ER[0]+1
         gcells=numpy.arange(0, ncells)
         gfaces=numpy.arange(1,nfaces+1)

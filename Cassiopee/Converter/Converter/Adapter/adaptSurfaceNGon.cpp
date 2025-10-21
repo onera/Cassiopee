@@ -68,7 +68,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
   E_Int npts = f->getSize();
 
   PyObject* tpl = NULL;
-  if (nelts == 0) // INPUT is type B  
+  if (nelts == 0) // INPUT is type B
   {
     E_Int isNGon = c->getNGonType(); 
     E_Int nfacesA = 0;

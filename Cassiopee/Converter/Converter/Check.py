@@ -1111,8 +1111,7 @@ def _correctCGNSType(t):
 # Verifie:
 # si une zone a NGON+PE et pas de NFace
 # si il y a des connectivites multiples
-# ou une zone a NGON+PE et pas de NFace
-# les vertex references existent.
+# les vertex references existent pour element et ngon
 #==============================================================================
 def checkElementNodes(t):
     errors = []
@@ -1141,12 +1140,13 @@ def checkElementNodes(t):
 
             for iBE in iBEs: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
-                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None: 
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        errors += [z, b, 'Element connectivity referenced unexisting vertices in zone %s.'%z[0]]
 
             #for iNFace in iNFaces: # check positive faces
             #    c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
@@ -1157,12 +1157,13 @@ def checkElementNodes(t):
 
             for iNGon in iNGons: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
-                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None: 
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        errors += [z, b, 'NGON connectivity referenced unexisting vertices in zone %s.'%z[0]]
     return errors
 
 #==============================================================================
@@ -1280,6 +1281,31 @@ def _cleanBEConnect(t):
                     elt_no = Internal.getValue(elt_t)[0]
                     if elt_no != 22 and elt_no != 23:
                         Internal._rmNodesFromName(z, elt_t[0])
+    return None
+
+# Dans un ParentElement, shift les elements si pas deja le cas
+# shift=1: add nface shift if possible
+# shift=-1: sub nface shift if possible
+def _shiftParentElement(t, shift=1):
+    for z in Internal.getZones(t):
+        zdim = Internal.getZoneDim(z)
+        if zdim[0] == 'Unstructured' and zdim[3] == 'NGON':
+            PE = Internal.getNodesFromName(z, 'ParentElements')
+            if PE is not None:
+                n = PE[1]
+                if n is not None:
+                    np = numpy.where(n, n==0, 1, n)
+                    emin = numpy.min(np)
+                    if emin == 1:
+                        if shift == 1: 
+                            nf = np.size
+                            np = np+nf
+                            np = numpy.where(np, np==nf, 0, np)
+                    else:
+                        if shift == -1:
+                            nf = np.size
+                            np = np-nf
+                            np = numpy.where(np, np==-nf, 0, np)
     return None
 
 #===============================================================================
