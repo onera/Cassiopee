@@ -74,7 +74,7 @@ __DEG2RAD__ = 0.017453292519943295 #math.pi/180.
 __RAD2DEG__ = 57.29577951308232    #180./math.pi
 
 # Elements dimension by elt no
-DIMELTS = [0,0,0,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,2,2,2,3,3]  
+DIMELTS = [0,0,0,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,2,2,2,3,3]
 
 #==============================================================================
 # -- is? --
@@ -4234,13 +4234,13 @@ def getElementNodes(z):
   dim = 0; out = []
   GEl = getNodesFromType1(z, 'Elements_t')
   for GE in GEl:
-    elt = GE[1][0] 
+    elt = GE[1][0]
     if DIMELTS[elt] == dim: out.append(GE)
     elif DIMELTS[elt] > dim:
       out.clear()
       dim = DIMELTS[elt]
       out.append(GE)
-  return out 
+  return out
 
 # -- Retourne le noeud Element_t NGon si il existe
 def getNGonNode(z):
