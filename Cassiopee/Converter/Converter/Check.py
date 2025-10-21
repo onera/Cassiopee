@@ -1140,7 +1140,7 @@ def checkElementNodes(t):
 
             for iBE in iBEs: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
-                if c[1] is None: 
+                if c[1] is None:
                     print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
@@ -1157,7 +1157,7 @@ def checkElementNodes(t):
 
             for iNGon in iNGons: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
-                if c[1] is None: 
+                if c[1] is None:
                     print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
@@ -1297,7 +1297,7 @@ def _shiftParentElement(t, shift=1):
                     np = numpy.where(n, n==0, 1, n)
                     emin = numpy.min(np)
                     if emin == 1:
-                        if shift == 1: 
+                        if shift == 1:
                             nf = np.size
                             np = np+nf
                             np = numpy.where(np, np==nf, 0, np)
