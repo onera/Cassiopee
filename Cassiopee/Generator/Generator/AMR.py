@@ -58,6 +58,24 @@ def listSnear(tb,snears):
     numBase = len(Internal.getBases(tbTMP))
     return snears, numBase
 
+def checkBaseNames(tb,tbox):
+    from mpi4py import MPI
+    baseNameListLocal = []
+    for b in Internal.getBases(tb):
+        if b[0] in baseNameListLocal:
+            raise ValueError('Tb must have bases with distinct names. Exiting...')
+            MPI.COMM_WORLD.Abort(1);
+        else:
+            baseNameListLocal.append(b[0])
+    if tbox is not None:
+        for b in Internal.getBases(tbox):
+            if b[0] in baseNameListLocal:
+                raise ValueError('Tb and Tbox have a base with the same name. Tbox must have base names that are distinct to those found in tb. Exiting...')
+                MPI.COMM_WORLD.Abort(1);
+            else:
+                baseNameListLocal.append(b[0])
+    return None
+
 # Generation of the list of offset surfaces starting from tb
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
@@ -190,7 +208,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         preffixLocal = 'z_offsetBase'
         if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
-            if Cmpi.rank==0: print("Offset value: ", offsetval, flush=True)
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset,offsetval,snears[nBase]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
@@ -1217,6 +1235,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
+    checkBaseNames(tb,tbox)
     snears, numBase = listSnear(tb, snears)
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
 
@@ -1257,17 +1276,16 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     for nBase in range(numBase):
         vmins.append(list(vminsLocal[nBase]))
         vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
-    
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
     # ONLY tb, no tbox
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snears, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
         if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
-        while len(vmins) < newLevelMax: vmins.append(vmins[-1]) # if newLevelMax > levelMax
-        vmins = vmins[:newLevelMax] # if newLevelMax < levelMax
-        levelMax = newLevelMax
-
+        for nBase in range(numBase):
+            while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[-1]) # if newLevelMax > levelMax
+            vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
+            levelMax = newLevelMax
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
