@@ -187,6 +187,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
 
         tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
+        if tbLocalTmp is None: tbLocalTmp = tbLocal
         C._initVars(tbLocalTmp,"cellN",1.)
         
         Cmpi.barrier()
