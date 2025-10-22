@@ -1989,7 +1989,7 @@ def _recoverBCs1(a, T, tol=1.e-11):
                 bb = C.breakConnectivity(b)
                 ids = numpy.array([], dtype=numpy.int32)
                 for bc in bb:
-                    ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+                    ids = numpy.concatenate([ids, C.identifyElements(hook, bc, tol)])
 
             # Cree les BCs
             ids0 = ids # keep ids for bcdata
