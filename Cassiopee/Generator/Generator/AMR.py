@@ -208,7 +208,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         preffixLocal = 'z_offsetBase'
         if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
-            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset,offsetval,snears[nBase]*2**no_offset), flush=True)
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset,offsetval,snears[nBase][0]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
@@ -216,7 +216,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
             iso[0]='%s%d_%d'%(preffixLocal,nBase,no_offset)
-            D_IBM._setSnear(iso,snears[nBase]*2**no_offset)
+            D_IBM._setSnear(iso,snears[nBase][0]*2**no_offset)
             C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase,no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal+=1
@@ -1258,9 +1258,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         snearsTbox, tmpRMV = listSnear(tbox, 1)
         vmins.extend(vminsTbox)
 
-    snearsTbTbox  = snears  + snearsTbox
-    numBase       = numBase + numTbox
-    
+    ##snears - includes 6 for SYM(CGNSBase_t)[-7] & double for *_sym in orig base
+    ##
+    snearEnd      = len(snears[:-6])//2
+    snearsTbTbox  = [snears[0:snearEnd], snearsTbox]
+    numBase       = numBase             + numTbox
+
     vminsLocal = numpy.ones((numBase,levelMax))
     for nBase in range(numBase):
         if not isinstance(vmins[nBase],list):
@@ -1294,7 +1297,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     minSnearsOrig = min(snears)
     if abs(hmin-min(snears))>__TOL__:
         for nBase in range(numBase):
-            snearMult = snearsTbTbox[nBase]/minSnearsOrig
+            snearMult = snearsTbTbox[nBase]//minSnearsOrig
             snearsTbTbox[nBase] = snearMult*hmin
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
@@ -1303,14 +1306,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     bbo = G.bbox(o)
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
-
     if toffset==None:
         offsetValues = []       
         for nBase in range(numBase):
             offsetprev       = 0.
             offsetValuesBase = [] 
             for no_adapt in range(len(vmins[nBase])):
-                hminLocal = snearsTbTbox[nBase]
+                hminLocal = snearsTbTbox[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                 if offsetloc < 0.99*dfarmax:
                     offsetValuesBase.append(offsetloc)
@@ -1323,6 +1325,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
+
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
