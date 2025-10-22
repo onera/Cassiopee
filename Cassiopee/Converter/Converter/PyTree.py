@@ -946,7 +946,7 @@ def _upgradeTree(t, uncompress=True, upgradeNGon=True):
     #Internal._correctBCElementNodes(t) # boundary connectivity
     #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
     #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
-    
+
     for z in Internal.getZones(t): _upgradeZone(z, uncompress, upgradeNGon)
 
     registerAllNames(t)
@@ -996,7 +996,7 @@ def _downgradeZone(z, upgradeNGon=True):
                 # sign faces if not signed
                 c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
                 if c is not None and c[1] is not None:
-                    _signNGonFaces(z) 
+                    _signNGonFaces(z)
                 #PE = Internal.getNodeFromName1(ngon, 'ParentElements')
                 #if PE is not None and PE[1] is not None:
                 #    Check._shiftParentElements(z, shift=+1)

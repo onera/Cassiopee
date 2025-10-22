@@ -932,7 +932,7 @@ class Handle:
                     zone[0].append((eltName,dvars[b[0]+'/'+z[0]+'/' + c[0] + '/ElementConnectivity']))
                 zones.append(zone)
         splitted_data = xcore.split_elements(zones)
-        
+
         splitted_a = Internal.copyTree(a)
         splitted_bases = Internal.getBases(splitted_a)
         i_zone = 0
