@@ -4595,9 +4595,9 @@ def _adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
     nFace = getNFaceNode(z)
     if nFace is None:
       nGon = getNGonNode(z)
-      offset = getNodeFromName(nGon, 'ElementStartOffset')
+      offset = getNodeFromName1(nGon, 'ElementStartOffset')
       ngonType = 4 if offset is not None else 3
-      rnGon = getNodeFromName(nGon, 'ElementRange')[1]
+      rnGon = getNodeFromName1(nGon, 'ElementRange')[1]
       nface = createNode('NFaceElements', 'Elements_t', parent=z,
                          value=numpy.array([23,0], dtype=E_NpyInt, order='F'))
 
@@ -4620,7 +4620,7 @@ def _adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
   if rmEmptyNFaceElements:
     for z in getZones(a):
       nFace = getNFaceNode(z)
-      cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
+      cnFace = getNodeFromName1(nFace, 'ElementConnectivity')[1]
       if cnFace.size == 0: _rmNodesByName(z, nFace[0])
 
   return None

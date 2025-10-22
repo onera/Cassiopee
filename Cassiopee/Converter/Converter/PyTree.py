@@ -947,30 +947,33 @@ def _upgradeTree(t, uncompress=True, oldcompress=False):
     #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
     #Internal._adaptSurfaceNGon(a)
 
-    # add NFACE from PE if missing
-    # change surface ngon to type A eventually
-    for z in Internal.getZones(t):
-        ngon = Internal.getNGonNode(z)
-        nface = Internal.getNFaceNode(z)
-        if ngon is not None:
-            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
-            #if PE is not None and PE[1] is not None:
-            #    Check._shiftParentElements(z, shift=-1)
-            if PE is not None and nface is None and PE[1] is not None: # NGon volumique
-                Internal._adaptPE2NFace(z)
-            if PE is None and nface is None and ngon[1] is not None: # NGon surfacique
-                Internal._adaptSurfaceNGon(z)
+    for z in Internal.getZones(t): _upgradeZone(z, uncompress)
 
     registerAllNames(t)
+    return None
+
+# upgrade zone (applique apres lecture)
+def _upgradeZone(z, uncompress=True):
+    # add NFACE from PE if missing
+    # change surface ngon to type A eventually
+    ngon = Internal.getNGonNode(z)
+    nface = Internal.getNFaceNode(z)
+    if ngon is not None:
+        PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+        #if PE is not None and PE[1] is not None:
+        #    Check._shiftParentElements(z, shift=-1)
+        if PE is not None and nface is None and PE[1] is not None: # NGon volumique
+            Internal._adaptPE2NFace(z)
+        if PE is None and nface is None: # NGon surfacique
+            c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
+            if c is not None and c[1] is not None:
+                Internal._adaptSurfaceNGon(z)
+
     if uncompress:
         try:
             import Compressor.PyTree as Compressor
-            if oldcompress:
-                Compressor._uncompressCartesian_old(t)
-                Compressor._uncompressAll_old(t)
-            else:
-                Compressor._uncompressCartesian(t)
-                Compressor._uncompressAll(t)
+            Compressor._uncompressCartesian(z)
+            Compressor._uncompressAll(z)
         except: pass
     return None
 

@@ -322,9 +322,8 @@ def _loadZones(a, fileName, znp, format=None):
     if isinstance(znp, list): znps = znp
     else: znps = [znp]
     _readPyTreeFromPaths(a, fileName, znps, format)
-    # decompression eventuelle
-    Compressor._uncompressCartesian(a)
-    Compressor._uncompressAll(a)
+    PyTree._upgradeZone(a, uncompress=True)
+
 
 # Fully load zoneBC_t and GridConnectivity_t of znp
 def _loadZoneBCs(a, fileName, znp, format=None):
@@ -802,9 +801,7 @@ class Handle:
         if loadVariables: skipTypes=None
         else: skipTypes=['FlowSolution_t']
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
-        # Decompression eventuelle
-        Compressor._uncompressCartesian(t)
-        Compressor._uncompressAll(t)
+        for z in Internal.getZones(t): PyTree._upgradeZone(z, uncompress=True)
         return t
 
     # strategy=strategie pour la distribution (match)
@@ -860,8 +857,7 @@ class Handle:
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format, skipTypes=skipTypes)
         _enforceProcNode(t)
         # Decompression eventuelle
-        Compressor._uncompressCartesian(t)
-        Compressor._uncompressAll(t)
+        for z in Internal.getZones(t): PyTree._upgradeZone(z, uncompress=True)
         return t
 
     def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
@@ -1087,9 +1083,7 @@ class Handle:
                     _loadZoneBCs(a, self.fileName, [zp], self.format)
                     _loadZoneExtras(a, self.fileName, znp, self.format)
                     _convert2PartialTree(Internal.getNodeFromPath(a, zp))
-        # decompression eventuelle
-        Compressor._uncompressCartesian(a)
-        Compressor._uncompressAll(a)
+        PyTree._upgradeZone(a, uncompress=True)
         return None
 
     # Charge toutes les BCs (avec BCDataSet) des zones de a
