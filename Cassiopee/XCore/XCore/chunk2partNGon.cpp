@@ -246,7 +246,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
       printf("Found signed faces\n");
   }
 
-  // make ParentElement
+  // make ParentElements
   std::unordered_map<E_Int, std::vector<E_Int>> PE;
 
   for (E_Int i = 0; i < ncells; i++) {

@@ -69,12 +69,17 @@ KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal
             'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
             'UserDefined']
 
-#import math
 __DEG2RAD__ = 0.017453292519943295 #math.pi/180.
 __RAD2DEG__ = 57.29577951308232    #180./math.pi
 
 # Elements dimension by elt no
-DIMELTS = [0,0,0,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,2,2,2,3,3]
+DIMELTS = [0,
+           0,0,1,1,2,2,2,2,2,3,
+           3,3,3,3,3,3,3,3,3,3,
+           3,3,3,1,2,2,2,2,3,3,
+           3,3,3,3,3,3,3,3,3,1,
+           2,2,2,2,3,3,3,3,3,3,
+           3,3,3,3,3,3]  
 
 #==============================================================================
 # -- is? --
@@ -2802,13 +2807,13 @@ def eltNo2EltName(eltno):
   return name, nnodes
 
 # Donne la dimension d'un element a partir de son no
-def dimFromEltNo(eltno):
-  if eltno == 2: return 0 # NODE
-  elif eltno >= 3 and eltno <= 4: return 1 # BAR
-  elif eltno >= 5 and eltno <= 6: return 2 # TRI
-  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
-  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
-  else: return 3
+#def dimFromEltNo(eltno):
+#  if eltno == 2: return 0 # NODE
+#  elif eltno >= 3 and eltno <= 4: return 1 # BAR
+#  elif eltno >= 5 and eltno <= 6: return 2 # TRI
+#  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
+#  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
+#  else: return 3
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)
 def range2Window(r):
@@ -3613,7 +3618,7 @@ def _groupByFamily(t, familyChilds=None, unique=False):
         else:
           e = -1
           for child in children:
-            if isName(child,getName(FamBC)) and isType(child,'Family_t'):
+            if isName(child,getName(FamBC)) and isType(child, 'Family_t'):
               setValue(child,getValue(FamBC))
               e = 0
               break
@@ -4222,7 +4227,7 @@ def setElementConnectivity2(z, array):
 def _setElementDim(z):
   GEl = getNodesFromType1(z, 'Elements_t')
   if GEl == []: return []
-  dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
+  dimElt = [DIMELTS[i[1][0]] for i in GEl]
   maxdim = max(dimElt)
   for c, GE in enumerate(GEl):
     if dimElt[c] == maxdim: GE[1][1] = 0
@@ -4581,7 +4586,7 @@ def _adaptNGon32NGon4(t, shiftPE=True):
   return None
 
 # -- adaptSurfaceNGon
-def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+def _adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
   """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
   to (B: NGON=polygon, NFACE=NULL), or vice versa.
   """
@@ -4610,7 +4615,7 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
 
   import Converter.PyTree as C
   import Converter
-  a = C.TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
+  C._TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
 
   if rmEmptyNFaceElements:
     for z in getZones(a):
@@ -4618,7 +4623,15 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
       cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
       if cnFace.size == 0: _rmNodesByName(z, nFace[0])
 
-  return a
+  return None
+
+def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  b = copyRef(a)
+  _adaptSurfaceNGon(b)
+  return b
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC

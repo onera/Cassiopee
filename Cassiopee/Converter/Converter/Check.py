@@ -1286,7 +1286,7 @@ def _cleanBEConnect(t):
 # Dans un ParentElement, shift les elements si pas deja le cas
 # shift=1: add nface shift if possible
 # shift=-1: sub nface shift if possible
-def _shiftParentElement(t, shift=1):
+def _shiftParentElements(t, shift=1):
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
         if zdim[0] == 'Unstructured' and zdim[3] == 'NGON':

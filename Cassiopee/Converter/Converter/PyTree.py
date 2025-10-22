@@ -941,10 +941,25 @@ def _upgradeTree(t, uncompress=True, oldcompress=False):
     Internal._correctPyTree(t, level=10) # force CGNS names
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
+
     #Internal._correctBCElementNodes(t) # boundary connectivity
     #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
-    #Converter.Check._shiftParentElement(t, shift=-1) # shift -nface in PE
+    #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
     #Internal._adaptSurfaceNGon(a)
+
+    # add NFACE from PE if missing
+    # change surface ngon to type A eventually
+    for z in Internal.getZones(t):
+        ngon = Internal.getNGonNode(z)
+        nface = Internal.getNFaceNode(z)
+        if ngon is not None:
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            #if PE is not None and PE[1] is not None:
+            #    Check._shiftParentElements(z, shift=-1)
+            if PE is not None and nface is None and PE[1] is not None: # NGon volumique
+                Internal._adaptPE2NFace(z)
+            if PE is None and nface is None and ngon[1] is not None: # NGon surfacique
+                Internal._adaptSurfaceNGon(z)
 
     registerAllNames(t)
     if uncompress:
