@@ -935,9 +935,10 @@ def _rmNodes(z, name):
     return None
 
 # Upgrade tree (applique apres lecture)
-def _upgradeTree(t, uncompress=True, oldcompress=False):
-    #Internal._adaptTypes(t)
-    _relaxCGNSProfile__(t)
+# uncompress: uncompress fields
+# upgrade: upgrade ngon for cassiopee (addface, surf typeA)
+def _upgradeTree(t, uncompress=True, upgradeNGon=True):
+    _relaxCGNSTypes__(t) # relax types imposed by CGNS
     Internal._correctPyTree(t, level=10) # force CGNS names
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
@@ -945,36 +946,64 @@ def _upgradeTree(t, uncompress=True, oldcompress=False):
     #Internal._correctBCElementNodes(t) # boundary connectivity
     #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
     #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
-    #Internal._adaptSurfaceNGon(a)
-
-    for z in Internal.getZones(t): _upgradeZone(z, uncompress)
+    
+    for z in Internal.getZones(t): _upgradeZone(z, uncompress, upgradeNGon)
 
     registerAllNames(t)
     return None
 
 # upgrade zone (applique apres lecture)
-def _upgradeZone(z, uncompress=True):
-    # add NFACE from PE if missing
-    # change surface ngon to type A eventually
-    ngon = Internal.getNGonNode(z)
-    nface = Internal.getNFaceNode(z)
-    if ngon is not None:
-        PE = Internal.getNodeFromName1(ngon, 'ParentElements')
-        #if PE is not None and PE[1] is not None:
-        #    Check._shiftParentElements(z, shift=-1)
-        if PE is not None and nface is None and PE[1] is not None: # NGon volumique
-            Internal._adaptPE2NFace(z)
-        if PE is None and nface is None: # NGon surfacique
-            c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
-            if c is not None and c[1] is not None:
-                Internal._adaptSurfaceNGon(z)
-
+# add NFACE from PE if missing
+# change surface ngon to type A eventually
+# uncompress fields
+def _upgradeZone(z, uncompress=True, upgradeNGon=True):
+    if upgradeNGon:
+        ngon = Internal.getNGonNode(z)
+        nface = Internal.getNFaceNode(z)
+        if ngon is not None:
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            #if PE is not None and PE[1] is not None:
+            #    Check._shiftParentElements(z, shift=-1)
+            if PE is not None and nface is None and PE[1] is not None: # NGon volumique
+                Internal._adaptPE2NFace(z)
+            if PE is None and nface is None: # NGon surfacique
+                c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
+                if c is not None and c[1] is not None:
+                    Internal._adaptSurfaceNGon(z)
     if uncompress:
         try:
             import Compressor.PyTree as Compressor
             Compressor._uncompressCartesian(z)
             Compressor._uncompressAll(z)
         except: pass
+    return None
+
+# downgrade tree (applique avant ecriture)
+def _downgradeTree(t, upgradeNGon=True):
+    Internal._adaptZoneNamesForSlash(t) # adapt zone name with slash
+    Internal._correctBaseZonesDim(t, splitBases=False) # correct base dim from zones
+    _forceCGNSTypes__(t) # force types imposed by CGNS
+    for z in Internal.getZones(t): _downgradeZone(z, upgradeNGon)
+    return None
+
+def _downgradeZone(z, upgradeNGon=True):
+    if upgradeNGon:
+        ngon = Internal.getNGonNode(z)
+        nface = Internal.getNFaceNode(z)
+        if ngon is not None:
+            dim = Internal.getZoneDim(z)
+            if dim[4] == 3:
+                # sign faces if not signed
+                c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
+                if c is not None and c[1] is not None:
+                    _signNGonFaces(z) 
+                #PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+                #if PE is not None and PE[1] is not None:
+                #    Check._shiftParentElements(z, shift=+1)
+            elif dim[4] == 2:
+                # change surface type to B
+                if nface is not None:
+                    Internal._adaptSurfaceNGon(z)
     return None
 
 # Hack pour les arrays en centres avec sentinelle - 1.79769e+308
@@ -1019,7 +1048,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None,
                        links=None, skipTypes=None, uncompress=True,
                        hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=4,
-                       oldcompress=False, readIntMode=0, api=1):
+                       upgrade=True, readIntMode=0, api=1):
     """Read a file and return a pyTree containing file data.
     Usage: convertFile2PyTree(fileName, format, options)"""
     if format is None:
@@ -1035,7 +1064,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         try:
             t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t, uncompress, oldcompress)
+            _upgradeTree(t, uncompress, upgrade)
             CAD = Internal.getNodeFromName1(t, 'CAD')
             if CAD is not None: # reload CAD
                 file = Internal.getNodeFromName1(CAD, 'file')
@@ -1053,40 +1082,40 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                 try:
                     t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
-                    _upgradeTree(t, uncompress, oldcompress)
+                    _upgradeTree(t, uncompress, upgrade)
                     return t
                 except: pass
             else: # adf par defaut
                 try:
                     t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
-                    _upgradeTree(t)
+                    _upgradeTree(t, uncompress, upgrade)
                     return t
                 except: pass
 
     elif format == 'bin_tau':
         t = Converter.converter.convertFile2PyTreeTau(fileName, 'bin_tau')
         t = Internal.createRootNode(children=t[2])
-        _upgradeTree(t, uncompress, oldcompress)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     elif format == 'bin_fsdm':
         t = Converter.converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
         t = Internal.createRootNode(children=t[2])
-        _upgradeTree(t, uncompress, oldcompress)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     elif format == 'unknown':
         try:
             t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t)
+            _upgradeTree(t, uncompress, upgrade)
             return t
         except: pass
         try:
             t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t)
+            _upgradeTree(t, uncompress, upgrade)
             return t
         except: pass
 
@@ -1099,7 +1128,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
         CTK.CADHOOK = hook
         t = OCC.meshAll(hook, hmax, hmax, hausd) # constant hmax
-        _upgradeTree(t)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     if format == 'bin_pickle':
@@ -1205,7 +1234,7 @@ def _forceR4PeriodicNodes__(t):
     return None
 
 # Force type of specific nodes as prescribed by v4 CGNS norm
-def _forceCGNSProfile__(t):
+def _forceCGNSTypes__(t):
     # CGNS version (R4)
     n = Internal.getNodeFromType1(t, "CGNSVersion_t")
     if n is not None: n[1] = n[1].astype(numpy.float32)
@@ -1229,7 +1258,7 @@ def _forceCGNSProfile__(t):
     return None
 
 # Relax type of specific nodes as prescribed by v4 CGNS norm
-def _relaxCGNSProfile__(t):
+def _relaxCGNSTypes__(t):
     if Internal.E_NpyInt == numpy.int32: return None
     # Rind_t cannot be forced to I4 internally
     zones = Internal.getZones(t)
@@ -1241,7 +1270,7 @@ def _relaxCGNSProfile__(t):
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',
-                       links=[]):
+                       links=[], upgrade=False):
     """Write a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
     if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
@@ -1251,9 +1280,7 @@ def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
         if format == 'unknown': format = 'bin_cgns'
     if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
         tp, ntype = Internal.node2PyTree(t)
-        Internal._adaptZoneNamesForSlash(tp)
-        Internal._correctBaseZonesDim(tp, splitBases=False)
-        _forceCGNSProfile__(tp)
+        _downgradeTree(tp, upgradeNGon=upgrade)
         Converter.converter.convertPyTree2File(tp[2], fileName, format, links, isize, rsize)
     elif format == 'bin_tau':
         tp, ntype = Internal.node2PyTree(t)
