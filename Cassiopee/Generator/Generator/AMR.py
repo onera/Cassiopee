@@ -763,9 +763,9 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
         idx_new += count
 
     # --- Ajout des nouveaux éléments à la zone ---
-    elt_nodes = Internal.getNodesFromType(a_hexa, "Elements_t")
-    last_id = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
-    zone = Internal.getZones(a_hexa)[0]
+    zone      = Internal.getZones(a_hexa)[0]
+    elt_nodes = Internal.getNodesFromType(zone, "Elements_t")
+    last_id   = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
 
     Internal.newElements(
         name=bcname,
@@ -897,16 +897,15 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                 adaptPass+=1
         if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
 
-    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
-    owners = XC.AdaptMesh_ExtractOwners(hookAM)
-    levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
+    o           = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
+    o           = Internal.getZones(o)[0]
+    owners      = XC.AdaptMesh_ExtractOwners(hookAM)
+    levels      = XC.AdaptMesh_ExtractCellLevels(hookAM)
     halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
-    neighbours = XC.AdaptMesh_ExtractNeighbours(hookAM)
-    cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)
-
-    cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
+    neighbours  = XC.AdaptMesh_ExtractNeighbours(hookAM)
+    cranges     = XC.AdaptMesh_ExtractCellRanges(hookAM)
+    cart_hexa   = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
     XC.AdaptMesh_Exit(hookAM)
-    # cart_hexa = Internal.getZones(cart_hexa)[0]
 
     zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
