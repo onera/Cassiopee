@@ -26,6 +26,10 @@ using namespace K_FLD;
 using namespace K_FUNC;
 using namespace std;
 
+// ============================================================================
+// Evaluates the orientation of two structured blocks. 
+// Returns -1 if the normals are reversed, 1 otherwise.
+// ============================================================================
 void K_COMPGEOM::rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int ind1,
   const E_Float* x1, const E_Float* y1, const E_Float* z1,
   const E_Int ni2, const E_Int nj2, const E_Int ind2,
@@ -201,8 +205,8 @@ void K_COMPGEOM::rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int in
 }
 
 // ============================================================================
-//   Compute the minimum squared distance between 2 blocks and return
-//   the corresponding cell indices
+// Compute the minimum squared distance between 2 blocks and return
+// the corresponding cell indices
 // ============================================================================
 void K_COMPGEOM::compMeanDist(const E_Int ni1, const E_Int nj1,
   const E_Float* x1, const E_Float* y1, const E_Float* z1,
