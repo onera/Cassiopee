@@ -1306,7 +1306,7 @@ def _shiftParentElements(t, shift=1):
                             nf = n.size//2
                             np = n-nf
                             PE[1] = numpy.where(np==-nf, 0, np)
-                            
+
     return None
 
 #===============================================================================

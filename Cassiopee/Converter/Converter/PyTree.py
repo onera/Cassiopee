@@ -1006,7 +1006,7 @@ def _downgradeZone(z, upgradeNGon=True):
             #    dim = 3
             #    off = Internal.getNodeFromName1(ngon, 'ElementStartOffset')
             #    if off is not None:
-            #        if off[1] is not None: 
+            #        if off[1] is not None:
             #            if off[1][1] == 2: dim = 2
             #    else:
             #        if ngon[1][0] == 2: dim = 2
