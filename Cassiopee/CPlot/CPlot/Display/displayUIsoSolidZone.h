@@ -178,7 +178,6 @@
   glVertex3d(x[n], y[n], z[n]);
  #endif
 
-  E_Int blank;
   double fmin, fmax;
   fmax = maxf[nofield]; fmin = minf[nofield];
   double deltai = MAX(fmax-fmin, ISOCUTOFF);
@@ -618,83 +617,88 @@
   else if (eltType == 10) // NGON
   {
     E_Int nf = connect[nc];
-    E_Int l, nd, c;
+    E_Int l, nd, c, j;
     float* surfp = zonep->surf[nc];
     float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    E_Int next, prev;
-    
+    E_Int prev, next, first, face;
+    E_Int elt, drawn, blank;
+    E_Int* ptrelt;
+    E_Int* ptrface; 
+
     if (zonep->blank == 0)
     {
       // Faces des elements 3D
-      c = 2;
-      glBegin(GL_TRIANGLES);      
-      for (i = 0; i < nf; i++)
+      if (zonep->ne != zonep->nelts2D)
       {
-        nd = connect[c]; 
-        if (nd == 3) // TRI
+        c = 2;
+        glBegin(GL_TRIANGLES);      
+        for (i = 0; i < nf; i++)
         {
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          glBegin(GL_TRIANGLES);
-          glNormal3f(surfx[i], surfy[i], surfz[i]);
-          PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3);
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      glBegin(GL_QUADS);
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd == 4) // QUAD
-        {
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          n4 = connect[c+4]-1;
-          glNormal3f(surfx[i], surfy[i], surfz[i]);
-          PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3); PLOTNGON(n4);    
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd > 4) // elt 3D
-        {
-          glBegin(GL_POLYGON);
-          glNormal3f(surfx[i], surfy[i], surfz[i]);
-          for (l = 0; l < nd; l++)
+          nd = connect[c]; 
+          if (nd == 3) // TRI
           {
-            n1 = connect[c+l+1]-1;
-            PLOTNGON(n1);
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            glBegin(GL_TRIANGLES);
+            glNormal3f(surfx[i], surfy[i], surfz[i]);
+            PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3);
           }
-          glEnd();
+          c += nd+1;
         }
-        c += nd+1;
+        glEnd();
+
+        c = 2;
+        glBegin(GL_QUADS);
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd == 4) // QUAD
+          {
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            n4 = connect[c+4]-1;
+            glNormal3f(surfx[i], surfy[i], surfz[i]);
+            PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3); PLOTNGON(n4);    
+          }
+          c += nd+1;
+        }
+        glEnd();
+
+        c = 2;
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd > 4) // elt 3D
+          {
+            glBegin(GL_POLYGON);
+            glNormal3f(surfx[i], surfy[i], surfz[i]);
+            for (l = 0; l < nd; l++)
+            {
+              n1 = connect[c+l+1]-1;
+              PLOTNGON(n1);
+            }
+            glEnd();
+          }
+          c += nd+1;
+        }
       }
 
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        E_Int elt = zonep->posElts2D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int nf = ptrelt[0];
-        E_Int drawn = 0;
-        E_Int j, first;
-
-        E_Int face = ptrelt[1]-1;
+        elt = zonep->posElts2D[i];
+        ptrelt = &connect[elt];
+        nf = ptrelt[0];
+        drawn = 0;
+        
+        face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
-        E_Int* ptrface = &connect[zonep->posFaces[face]];
+        ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; first = n1;
         n2 = ptrface[2]-1;
         PLOTNGON(n1);
@@ -728,101 +732,104 @@
     else // blanking
     {
       // Faces des elements 3D
-      c = 2;
-      glBegin(GL_TRIANGLES);
-      for (i = 0; i < nf; i++)
+      if (zonep->ne != zonep->nelts2D)
       {
-        nd = connect[c]; 
-        if (nd == 3) // TRI
+        c = 2;
+        glBegin(GL_TRIANGLES);
+        for (i = 0; i < nf; i++)
         {
-          blank = 0;
-          for (l = 0; l < nd; l++)
+          nd = connect[c]; 
+          if (nd == 3) // TRI
           {
-            n1 = connect[c+l+1]-1;
-            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-            { blank = 1; break; }
-          }
-          if (blank == 0)
-          {
-            n1 = connect[c+1]-1;
-            n2 = connect[c+2]-1;
-            n3 = connect[c+3]-1;
-            glNormal3f(surfx[i], surfy[i], surfz[i]);
-            PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3);
-          }
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      glBegin(GL_QUADS);
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c];
-        if (nd == 4) // QUAD
-        {
-          blank = 0;
-          for (l = 0; l < nd; l++)
-          {
-            n1 = connect[c+l+1]-1;
-            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-            { blank = 1; break; }
-          }
-          if (blank == 0)
-          {
-            n1 = connect[c+1]-1;
-            n2 = connect[c+2]-1;
-            n3 = connect[c+3]-1;
-            n4 = connect[c+4]-1;
-            glNormal3f(surfx[i], surfy[i], surfz[i]);
-            PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3); PLOTNGON(n4);
-          }
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c];
-        if (nd > 4) // elt 3D
-        {
-          blank = 0;
-          for (l = 0; l < nd; l++)
-          {
-            n1 = connect[c+l+1]-1;
-            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-            { blank = 1; break; }
-          }
-          if (blank == 0)
-          {
-            glBegin(GL_POLYGON);
-            glNormal3f(surfx[i], surfy[i], surfz[i]);
+            blank = 0;
             for (l = 0; l < nd; l++)
             {
               n1 = connect[c+l+1]-1;
-              PLOTNGON(n1);
+              if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+              { blank = 1; break; }
             }
-            glEnd();
+            if (blank == 0)
+            {
+              n1 = connect[c+1]-1;
+              n2 = connect[c+2]-1;
+              n3 = connect[c+3]-1;
+              glNormal3f(surfx[i], surfy[i], surfz[i]);
+              PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3);
+            }
           }
+          c += nd+1;
         }
-        c += nd+1;
+        glEnd();
+
+        c = 2;
+        glBegin(GL_QUADS);
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c];
+          if (nd == 4) // QUAD
+          {
+            blank = 0;
+            for (l = 0; l < nd; l++)
+            {
+              n1 = connect[c+l+1]-1;
+              if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+              { blank = 1; break; }
+            }
+            if (blank == 0)
+            {
+              n1 = connect[c+1]-1;
+              n2 = connect[c+2]-1;
+              n3 = connect[c+3]-1;
+              n4 = connect[c+4]-1;
+              glNormal3f(surfx[i], surfy[i], surfz[i]);
+              PLOTNGON(n1); PLOTNGON(n2); PLOTNGON(n3); PLOTNGON(n4);
+            }
+          }
+          c += nd+1;
+        }
+        glEnd();
+
+        c = 2;
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c];
+          if (nd > 4) // elt 3D
+          {
+            blank = 0;
+            for (l = 0; l < nd; l++)
+            {
+              n1 = connect[c+l+1]-1;
+              if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+              { blank = 1; break; }
+            }
+            if (blank == 0)
+            {
+              glBegin(GL_POLYGON);
+              glNormal3f(surfx[i], surfy[i], surfz[i]);
+              for (l = 0; l < nd; l++)
+              {
+                n1 = connect[c+l+1]-1;
+                PLOTNGON(n1);
+              }
+              glEnd();
+            }
+          }
+          c += nd+1;
+        }
       }
 
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        E_Int elt = zonep->posElts2D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int nf = ptrelt[0];
+        elt = zonep->posElts2D[i];
+        ptrelt = &connect[elt];
+        nf = ptrelt[0];
 
         blank = 0;
         for (E_Int j = 1; j <= nf; j++)
         {
-          E_Int face = ptrelt[1]-1;
-          E_Int* ptrface = &connect[zonep->posFaces[face]];
+          face = ptrelt[1]-1;
+          ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -833,15 +840,14 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          E_Int elt = zonep->posElts2D[i];
-          E_Int* ptrelt = &connect[elt];
-          E_Int nf = ptrelt[0];
-          E_Int drawn = 0;
-          E_Int j, first;
-
-          E_Int face = ptrelt[1]-1;
+          elt = zonep->posElts2D[i];
+          ptrelt = &connect[elt];
+          nf = ptrelt[0];
+          drawn = 0;
+          
+          face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          E_Int* ptrface = &connect[zonep->posFaces[face]];
+          ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           PLOTNGON(n1);

@@ -1288,24 +1288,25 @@ def _cleanBEConnect(t):
 # shift=-1: sub nface shift if possible
 def _shiftParentElements(t, shift=1):
     for z in Internal.getZones(t):
-        zdim = Internal.getZoneDim(z)
-        if zdim[0] == 'Unstructured' and zdim[3] == 'NGON':
-            PE = Internal.getNodesFromName(z, 'ParentElements')
-            if PE is not None:
+        ngon = Internal.getNGonNode(z)
+        if ngon is not None:
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
                 n = PE[1]
                 if n is not None:
-                    np = numpy.where(n, n==0, 1, n)
+                    np = n[n > 0]
                     emin = numpy.min(np)
                     if emin == 1:
                         if shift == 1:
-                            nf = np.size
-                            np = np+nf
-                            np = numpy.where(np, np==nf, 0, np)
+                            nf = n.size//2
+                            np = n+nf
+                            PE[1] = numpy.where(np==nf, 0, np)
                     else:
                         if shift == -1:
-                            nf = np.size
-                            np = np-nf
-                            np = numpy.where(np, np==-nf, 0, np)
+                            nf = n.size//2
+                            np = n-nf
+                            PE[1] = numpy.where(np==-nf, 0, np)
+
     return None
 
 #===============================================================================
