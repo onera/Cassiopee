@@ -429,11 +429,11 @@ void UnstructZone::compNorm()
 
     // Correction pour elements 2D (prise en compte d'un seul triangle)
     E_Int face, elt;
-    E_Int* ptrface;
+    E_Int* ptrface; E_Int* ptrelt;
     for (i = 0; i < nelts2D; i++)
     {
       elt = posElts2D[i];
-      E_Int* ptrelt = &zconnect[elt];
+      ptrelt = &zconnect[elt];
       nf = ptrelt[0];
 
       // barycentre de l'element

@@ -491,7 +491,7 @@ def createFonts():
 # ==============================================================================
 # Interactive legend
 def setPickerInLegend(legend):
-    for artist in legend.texts + legend.legendHandles:
+    for artist in legend.texts + legend.legend_handles:
         artist.set_picker(10) # 10 points tolerance
 
 # ==============================================================================

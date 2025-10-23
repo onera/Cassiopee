@@ -616,78 +616,83 @@
     float* surfx = surfp;
     float* surfy = surfx + nf;
     float* surfz = surfy + nf;
-    E_Int next;
+    E_Int next, elt, drawn, blank;
+    E_Int prev, j, first, face;
+    E_Int* ptrelt;
+    E_Int* ptrface;
 
     if (zonep->blank == 0)
     {
       // Faces des elements 3D
-      c = 2;
-      glBegin(GL_TRIANGLES);
-      for (i = 0; i < nf; i++)
+      if (zonep->ne != zonep->nelts2D)
       {
-        nd = connect[c]; 
-        if (nd == 3) // TRI
+        c = 2;
+        glBegin(GL_TRIANGLES);
+        for (i = 0; i < nf; i++)
         {
-          f = i;
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          PLOTTRI2;
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      glBegin(GL_QUADS);
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd == 4) // QUAD
-        {
-          f = i;
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          n4 = connect[c+4]-1;
-          PLOTQUAD2;
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd > 4) // Elt 3D
-        {
-          glNormal3f(surfx[i], surfy[i], surfz[i]);
-          glBegin(GL_POLYGON);
-          for (l = 0; l < nd; l++)
+          nd = connect[c]; 
+          if (nd == 3) // TRI
           {
-            n1 = connect[c+l+1]-1;
-            glVertex3d(x[n1], y[n1], z[n1]);
+            f = i;
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            PLOTTRI2;
           }
-          glEnd();
+          c += nd+1;
         }
-        c += nd+1;
+        glEnd();
+
+        c = 2;
+        glBegin(GL_QUADS);
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd == 4) // QUAD
+          {
+            f = i;
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            n4 = connect[c+4]-1;
+            PLOTQUAD2;
+          }
+          c += nd+1;
+        }
+        glEnd();
+
+        c = 2;
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd > 4) // Elt 3D
+          {
+            glNormal3f(surfx[i], surfy[i], surfz[i]);
+            glBegin(GL_POLYGON);
+            for (l = 0; l < nd; l++)
+            {
+              n1 = connect[c+l+1]-1;
+              glVertex3d(x[n1], y[n1], z[n1]);
+            }
+            glEnd();
+          }
+          c += nd+1;
+        }
       }
 
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
         glBegin(GL_POLYGON);
-        E_Int elt = zonep->posElts2D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int nf = ptrelt[0];
-        E_Int drawn = 0;
-        E_Int prev, j, first;
-
-        E_Int face = ptrelt[1]-1;
+        elt = zonep->posElts2D[i];
+        ptrelt = &connect[elt];
+        nf = ptrelt[0];
+        drawn = 0;
+        
+        face = ptrelt[1]-1;
         glNormal3f(surfx[face], surfy[face], surfz[face]);
         
-        E_Int* ptrface = &connect[zonep->posFaces[face]];
+        ptrface = &connect[zonep->posFaces[face]];
         n1 = ptrface[1]-1; n2 = ptrface[2]-1;
 
         face = ptrelt[2]-1;
@@ -724,81 +729,84 @@
     else // blanking
     {
       // Faces des elements 3D
-      c = 2;
-      glBegin(GL_TRIANGLES);
-      for (i = 0; i < nf; i++)
+      if (zonep->ne != zonep->nelts2D)
       {
-        nd = connect[c]; 
-        if (nd == 3) // TRI
+        c = 2;
+        glBegin(GL_TRIANGLES);
+        for (i = 0; i < nf; i++)
         {
-          f = i;
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          PLOTTRI2B;
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      glBegin(GL_QUADS);
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd == 4) // QUAD
-        {
-          f = i;
-          n1 = connect[c+1]-1;
-          n2 = connect[c+2]-1;
-          n3 = connect[c+3]-1;
-          n4 = connect[c+4]-1;
-          PLOTQUAD2B;
-        }
-        c += nd+1;
-      }
-      glEnd();
-
-      c = 2;
-      for (i = 0; i < nf; i++)
-      {
-        nd = connect[c]; 
-        if (nd > 4) // elt 3D
-        {
-          E_Int blank = 0;
-          for (l = 0; l < nd; l++)
+          nd = connect[c]; 
+          if (nd == 3) // TRI
           {
-            n1 = connect[c+l+1]-1;
-            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-            { blank = 1; break; }
+            f = i;
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            PLOTTRI2B;
           }
-          if (blank == 0)
+          c += nd+1;
+        }
+        glEnd();
+
+        c = 2;
+        glBegin(GL_QUADS);
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd == 4) // QUAD
           {
-            glNormal3f(surfx[i], surfy[i], surfz[i]);
-            glBegin(GL_POLYGON);
+            f = i;
+            n1 = connect[c+1]-1;
+            n2 = connect[c+2]-1;
+            n3 = connect[c+3]-1;
+            n4 = connect[c+4]-1;
+            PLOTQUAD2B;
+          }
+          c += nd+1;
+        }
+        glEnd();
+
+        c = 2;
+        for (i = 0; i < nf; i++)
+        {
+          nd = connect[c]; 
+          if (nd > 4) // elt 3D
+          {
+            blank = 0;
             for (l = 0; l < nd; l++)
             {
               n1 = connect[c+l+1]-1;
-              glVertex3d(x[n1], y[n1], z[n1]);
+              if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+              { blank = 1; break; }
             }
-            glEnd();
+            if (blank == 0)
+            {
+              glNormal3f(surfx[i], surfy[i], surfz[i]);
+              glBegin(GL_POLYGON);
+              for (l = 0; l < nd; l++)
+              {
+                n1 = connect[c+l+1]-1;
+                glVertex3d(x[n1], y[n1], z[n1]);
+              }
+              glEnd();
+            }
           }
+          c += nd+1;
         }
-        c += nd+1;
       }
 
       // Elements 2D
       for (i = 0; i < zonep->nelts2D; i++)
       {
-        E_Int elt = zonep->posElts2D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int nf = ptrelt[0];
+        elt = zonep->posElts2D[i];
+        ptrelt = &connect[elt];
+        nf = ptrelt[0];
 
-        E_Int blank = 0;
+        blank = 0;
         for (E_Int j = 1; j <= nf; j++)
         {
-          E_Int face = ptrelt[1]-1;
-          E_Int* ptrface = &connect[zonep->posFaces[face]];
+          face = ptrelt[1]-1;
+          ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1;
           n2 = ptrface[2]-1;
           if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
@@ -809,15 +817,14 @@
         if (blank == 0)
         {
           glBegin(GL_POLYGON);
-          E_Int elt = zonep->posElts2D[i];
-          E_Int* ptrelt = &connect[elt];
-          E_Int nf = ptrelt[0];
-          E_Int drawn = 0;
-          E_Int prev, j, first;
-
-          E_Int face = ptrelt[1]-1;
+          elt = zonep->posElts2D[i];
+          ptrelt = &connect[elt];
+          nf = ptrelt[0];
+          drawn = 0;
+          
+          face = ptrelt[1]-1;
           glNormal3f(surfx[face], surfy[face], surfz[face]);
-          E_Int* ptrface = &connect[zonep->posFaces[face]];
+          ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; first = n1;
           n2 = ptrface[2]-1;
           glVertex3d(x[n1], y[n1], z[n1]);
