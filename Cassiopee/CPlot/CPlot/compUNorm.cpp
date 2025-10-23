@@ -108,7 +108,6 @@
 //=============================================================================
 void UnstructZone::compNorm()
 {
-
   // Detecte si les normales sont presentes aux noeuds dans les champs
   E_Float* pnx = NULL; E_Float* pny = NULL; E_Float* pnz = NULL;
   if (eltType[0] == 2 || eltType[0] == 3) // TRI or QUAD car normale en vertex

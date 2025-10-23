@@ -953,20 +953,24 @@ def _upgradeTree(t, uncompress=True, upgradeNGon=True):
     return None
 
 # upgrade zone (applique apres lecture)
-# add NFACE from PE if missing
-# change surface ngon to type A eventually
+# for NGON, add NFACE from PE if missing
+# for NGON surf, force type A
 # uncompress fields
 def _upgradeZone(z, uncompress=True, upgradeNGon=True):
     if upgradeNGon:
         ngon = Internal.getNGonNode(z)
         nface = Internal.getNFaceNode(z)
         if ngon is not None:
+            # shift PE
             PE = Internal.getNodeFromName1(ngon, 'ParentElements')
-            #if PE is not None and PE[1] is not None:
-            #    Check._shiftParentElements(z, shift=-1)
-            if PE is not None and nface is None and PE[1] is not None: # NGon volumique
-                Internal._adaptPE2NFace(z)
-            if PE is None and nface is None: # NGon surfacique
+            if PE is not None and PE[1] is not None:
+                import Converter.Check as Check
+                Check._shiftParentElements(z, shift=-1)
+            # add nface if not present
+            if PE is not None and nface is None and PE[1] is not None:
+                Internal._adaptPE2NFace(z, remove=False)
+            # force ngon surf type A
+            if PE is None and nface is None: # NGon surfacique type B
                 c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
                 if c is not None and c[1] is not None:
                     Internal._adaptSurfaceNGon(z)
@@ -986,24 +990,32 @@ def _downgradeTree(t, upgradeNGon=True):
     for z in Internal.getZones(t): _downgradeZone(z, upgradeNGon)
     return None
 
+# for NGON surf, force type B (commente)
+# for NGON vol, force signed faces (commente)
+# for NGON PE, force shift
 def _downgradeZone(z, upgradeNGon=True):
     if upgradeNGon:
         ngon = Internal.getNGonNode(z)
         nface = Internal.getNFaceNode(z)
         if ngon is not None:
-            dim = Internal.getZoneDim(z)
-            if dim[4] == 3:
-                # sign faces if not signed
-                c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
-                if c is not None and c[1] is not None:
-                    _signNGonFaces(z)
-                #PE = Internal.getNodeFromName1(ngon, 'ParentElements')
-                #if PE is not None and PE[1] is not None:
-                #    Check._shiftParentElements(z, shift=+1)
-            elif dim[4] == 2:
-                # change surface type to B
-                if nface is not None:
-                    Internal._adaptSurfaceNGon(z)
+            # sign faces if not signed
+            #c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
+            #if c is not None and c[1] is not None: _signNGonFaces(z)
+            # change surface ngon to type B
+            #if nface is not None and nface[1] is not None and ngon[1] is not None:
+            #    dim = 3
+            #    off = Internal.getNodeFromName1(ngon, 'ElementStartOffset')
+            #    if off is not None:
+            #        if off[1] is not None: 
+            #            if off[1][1] == 2: dim = 2
+            #    else:
+            #        if ngon[1][0] == 2: dim = 2
+            #    if dim == 2: Internal._adaptSurfaceNGon(z) # force type B
+            # shift PE
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
+                import Converter.Check as Check
+                Check._shiftParentElements(z, shift=+1)
     return None
 
 # Hack pour les arrays en centres avec sentinelle - 1.79769e+308
@@ -1270,7 +1282,7 @@ def _relaxCGNSTypes__(t):
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',
-                       links=[], upgrade=False):
+                       links=[], upgrade=True):
     """Write a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
     if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
