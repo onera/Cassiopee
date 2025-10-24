@@ -324,7 +324,7 @@ def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
-    XRAYDIM1 = max(5000, min(50000, XRAYDIM1));
+    XRAYDIM1 = max(500, min(5000, XRAYDIM1)); ## XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn",1.)
 
     to = X.blankCells(to, bodies1, BM, blankingType='node_in',
@@ -1305,8 +1305,32 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     Cmpi.barrier()
 
     bbo = G.bbox(o)
+
+    dir_sym      = getSymmetryPlaneInfo__(tb,dim=dim)
+    tb_tboxLocal = Internal.copyTree(tb_tbox)
+    # adaptation of the mesh wrt to the bodies (finest level) and offsets
+    # only a part is returned per processor
+    baseSYM = Internal.getNodesFromName1(tb_tboxLocal,"SYM")
+    if baseSYM is not None:
+        ##Remove SYM Base & Zones - keep real closed tb
+        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, 'SYM', 'CGNSBase_t')
+        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, '*_sym*', 'Zone_t')
+
+    dfarmaxLocal = []
+    for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
+        bbTbLocal = G.bbox(tbLocal)
+        dfarmax   = 1e10
+        for i in range(dim):
+            if i+1 == dir_sym: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
+            else:              dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
+            if Cmpi.master: print(nBase,i,dfarmaxTmp,abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
+            dfarmax    = min(dfarmaxTmp,dfarmax)
+        dfarmaxLocal.append(dfarmax)
+    
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
+    if Cmpi.master:print(dfarmax,dfarmaxLocal,len(Internal.getBases(tb_tboxLocal)),numBase)
+    
     if toffset==None:
         offsetValues = []       
         for nBase in range(numBase):
@@ -1315,6 +1339,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             for no_adapt in range(len(vmins[nBase])):
                 hminLocal = snearsTbTbox[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
+                #if offsetloc < 0.99*dfarmaxLocal[nBase]:
                 if offsetloc < 0.99*dfarmax:
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
