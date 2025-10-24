@@ -25,20 +25,20 @@
 
 // Plot un triangle avec une normale par facette (pas de lissage)
 #define PLOTTRI2 glNormal3f(surfx[f], surfy[f], surfz[f]); \
-  glVertex3d(x[n1], y[n1], z[n1]);                        \
-  glVertex3d(x[n2], y[n2], z[n2]);                        \
+  glVertex3d(x[n1], y[n1], z[n1]);                         \
+  glVertex3d(x[n2], y[n2], z[n2]);                         \
   glVertex3d(x[n3], y[n3], z[n3]);
 
 // Fait un PLOTTRI avec blanking
 #define PLOTTRIB ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);   \
-  ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);               \
-  ret3 = _pref.blanking->f(this, n3, zonep->blank, zonet);               \
+  ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);                  \
+  ret3 = _pref.blanking->f(this, n3, zonep->blank, zonet);                  \
   if (ret1*ret2*ret3 != 0) { PLOTTRI; }
 
 // Fait un PLOTTRI2 avec blanking
 #define PLOTTRI2B ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet); \
-  ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);               \
-  ret3 = _pref.blanking->f(this, n3, zonep->blank, zonet);               \
+  ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);                 \
+  ret3 = _pref.blanking->f(this, n3, zonep->blank, zonet);                 \
   if (ret1*ret2*ret3 != 0) { PLOTTRI2; }
 
 // Plot un quad avec les normales aux vertex (lissage gouraud)
@@ -60,16 +60,16 @@
 
 // Plot un quad avec des coords de texture
 #define PLOTQUAD3 glNormal3f(surfx[n1], surfy[n1], surfz[n1]); \
-  glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
+  glTexCoord3f(0,0,0);                                         \
+  glVertex3d(x[n1], y[n1], z[n1]);                             \
   glNormal3f(surfx[n2], surfy[n2], surfz[n2]);            \
-  glTexCoord3f(1,0,0);                                     \
+  glTexCoord3f(1,0,0);                                    \
   glVertex3d(x[n2], y[n2], z[n2]);                        \
   glNormal3f(surfx[n3], surfy[n3], surfz[n3]);            \
-  glTexCoord3f(1,1,0);                                     \
+  glTexCoord3f(1,1,0);                                    \
   glVertex3d(x[n3], y[n3], z[n3]);                        \
   glNormal3f(surfx[n4], surfy[n4], surfz[n4]);            \
-  glTexCoord3f(0,1,0);                                     \
+  glTexCoord3f(0,1,0);                                    \
   glVertex3d(x[n4], y[n4], z[n4]);
 
 // Plot un hexa avec des coords de texture
@@ -83,67 +83,67 @@
   glTexCoord3f(1,1,0);                                          \
   glVertex3d(x[n3], y[n3], z[n3]);                              \
   glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                  \
-  glTexCoord3f(1,0,0);                                                  \
-  glVertex3d(x[n2], y[n2], z[n2]);                                      \
-  glNormal3f(surfx[n5], surfy[n5], surfz[n5]);                          \
-  glTexCoord3f(0,0,1);                                          \
-  glVertex3d(x[n5], y[n5], z[n5]);                            \
+  glTexCoord3f(1,0,0);                                          \
+  glVertex3d(x[n2], y[n2], z[n2]);                        \
+  glNormal3f(surfx[n5], surfy[n5], surfz[n5]);            \
+  glTexCoord3f(0,0,1);                                    \
+  glVertex3d(x[n5], y[n5], z[n5]);                        \
   glNormal3f(surfx[n6], surfy[n6], surfz[n6]);            \
-  glTexCoord3f(1,0,1);                                     \
+  glTexCoord3f(1,0,1);                                    \
   glVertex3d(x[n6], y[n6], z[n6]);                        \
   glNormal3f(surfx[n7], surfy[n7], surfz[n7]);            \
-  glTexCoord3f(1,1,1);                                     \
+  glTexCoord3f(1,1,1);                                    \
   glVertex3d(x[n7], y[n7], z[n7]);                        \
   glNormal3f(surfx[n8], surfy[n8], surfz[n8]);            \
-  glTexCoord3f(0,1,1);                                          \
-  glVertex3d(x[n8], y[n8], z[n8]);                                \
-  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                    \
-  glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
+  glTexCoord3f(0,1,1);                                    \
+  glVertex3d(x[n8], y[n8], z[n8]);                        \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);            \
+  glTexCoord3f(0,0,0);                                    \
+  glVertex3d(x[n1], y[n1], z[n1]);                        \
   glNormal3f(surfx[n2], surfy[n2], surfz[n2]);            \
-  glTexCoord3f(1,0,0);                                     \
+  glTexCoord3f(1,0,0);                                    \
   glVertex3d(x[n2], y[n2], z[n2]);                        \
   glNormal3f(surfx[n6], surfy[n6], surfz[n6]);            \
-  glTexCoord3f(1,0,1);                                     \
+  glTexCoord3f(1,0,1);                                    \
   glVertex3d(x[n6], y[n6], z[n6]);                        \
   glNormal3f(surfx[n5], surfy[n5], surfz[n5]);            \
-  glTexCoord3f(0,0,1);                                     \
-  glVertex3d(x[n5], y[n5], z[n5]);                             \
-  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);                   \
-  glTexCoord3f(0,1,0);                                          \
-  glVertex3d(x[n4], y[n4], z[n4]);                            \
+  glTexCoord3f(0,0,1);                                    \
+  glVertex3d(x[n5], y[n5], z[n5]);                        \
+  glNormal3f(surfx[n4], surfy[n4], surfz[n4]);            \
+  glTexCoord3f(0,1,0);                                    \
+  glVertex3d(x[n4], y[n4], z[n4]);                        \
   glNormal3f(surfx[n8], surfy[n8], surfz[n8]);            \
-  glTexCoord3f(0,1,1);                                     \
+  glTexCoord3f(0,1,1);                                    \
   glVertex3d(x[n8], y[n8], z[n8]);                        \
   glNormal3f(surfx[n7], surfy[n7], surfz[n7]);            \
-  glTexCoord3f(1,1,1);                                     \
+  glTexCoord3f(1,1,1);                                    \
   glVertex3d(x[n7], y[n7], z[n7]);                        \
   glNormal3f(surfx[n3], surfy[n3], surfz[n3]);            \
-  glTexCoord3f(1,1,0);                                     \
-  glVertex3d(x[n3], y[n3], z[n3]); \
-  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);                   \
-  glTexCoord3f(0,0,0);                                          \
-  glVertex3d(x[n1], y[n1], z[n1]);                            \
+  glTexCoord3f(1,1,0);                                    \
+  glVertex3d(x[n3], y[n3], z[n3]);                        \
+  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);            \
+  glTexCoord3f(0,0,0);                                    \
+  glVertex3d(x[n1], y[n1], z[n1]);                        \
   glNormal3f(surfx[n5], surfy[n5], surfz[n5]);            \
-  glTexCoord3f(0,0,1);                                     \
+  glTexCoord3f(0,0,1);                                    \
   glVertex3d(x[n5], y[n5], z[n5]);                        \
   glNormal3f(surfx[n8], surfy[n8], surfz[n8]);            \
-  glTexCoord3f(0,1,1);                                     \
+  glTexCoord3f(0,1,1);                                    \
   glVertex3d(x[n8], y[n8], z[n8]);                        \
   glNormal3f(surfx[n4], surfy[n4], surfz[n4]);            \
-  glTexCoord3f(0,1,0);                                     \
-  glVertex3d(x[n4], y[n4], z[n4]); \
-  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);                   \
-  glTexCoord3f(1,0,0);                                          \
-  glVertex3d(x[n2], y[n2], z[n2]);                            \
+  glTexCoord3f(0,1,0);                                    \
+  glVertex3d(x[n4], y[n4], z[n4]);                        \
+  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);            \
+  glTexCoord3f(1,0,0);                                    \
+  glVertex3d(x[n2], y[n2], z[n2]);                        \
   glNormal3f(surfx[n3], surfy[n3], surfz[n3]);            \
-  glTexCoord3f(1,1,0);                                     \
+  glTexCoord3f(1,1,0);                                    \
   glVertex3d(x[n3], y[n3], z[n3]);                        \
   glNormal3f(surfx[n7], surfy[n7], surfz[n7]);            \
-  glTexCoord3f(1,1,1);                                     \
+  glTexCoord3f(1,1,1);                                    \
   glVertex3d(x[n7], y[n7], z[n7]);                        \
   glNormal3f(surfx[n6], surfy[n6], surfz[n6]);            \
-  glTexCoord3f(1,0,1);                                     \
+  glTexCoord3f(1,0,1);                                    \
   glVertex3d(x[n6], y[n6], z[n6]);
 
 // Fait un plotquad avec blanking
@@ -620,6 +620,7 @@
     E_Int prev, j, first, face;
     E_Int* ptrelt;
     E_Int* ptrface;
+    E_Int na1, na2, nb1, nb2;
 
     if (zonep->blank == 0)
     {
@@ -686,17 +687,117 @@
         surfx = surfp;
         surfy = surfx + np;
         surfz = surfy + np;
+
+        // Find TRIs
         for (i = 0; i < zonep->nelts2D; i++)
         {
-          glBegin(GL_POLYGON);
+          glBegin(GL_TRIANGLES);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 3)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              n3 = na1;
+              if (na1 == n1) n3 = na2;
+              else if (na1 == n2) n3 = na2;
+              PLOTTRI;
+            }
+          }
+          glEnd();
+        }
+        // Find QUADS
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_QUADS);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 4)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              face = ptrelt[3]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              nb1 = ptrface[1]-1; nb2 = ptrface[2]-1;
+              if (na1 == n1) 
+              { 
+                n4 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na1 == n2) 
+              {
+                n3 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (na2 == n1) 
+              {
+                n4 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na2 == n2) 
+              {
+                n3 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (nb1 == n1)
+              {
+                n4 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else if (nb1 == n2) 
+              {
+                n3 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              else if (nb2 == n1) 
+              {
+                n4 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else // if (nb2 == n2) 
+              {
+                n3 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              PLOTQUAD;
+            }
+          }
+          glEnd();
+        }
+
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
+          if (nf == 3 || nf == 4) continue;
+          
+          glBegin(GL_POLYGON);
           drawn = 0;
-        
           face = ptrelt[1]-1;
           //glNormal3f(surfx[face], surfy[face], surfz[face]);
-        
           ptrface = &connect[zonep->posFaces[face]];
           n1 = ptrface[1]-1; n2 = ptrface[2]-1;
 
@@ -820,12 +921,114 @@
         surfx = surfp;
         surfy = surfx + np;
         surfz = surfy + np;
+        
+        // Find TRIs
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_TRIANGLES);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 3)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              n3 = na1;
+              if (na1 == n1) n3 = na2;
+              else if (na1 == n2) n3 = na2;
+              PLOTTRIB;
+            }
+          }
+          glEnd();
+        }
+
+        // Find QUADS
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_QUADS);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 4)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              face = ptrelt[3]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              nb1 = ptrface[1]-1; nb2 = ptrface[2]-1;
+              if (na1 == n1) 
+              { 
+                n4 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na1 == n2) 
+              {
+                n3 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (na2 == n1) 
+              {
+                n4 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na2 == n2) 
+              {
+                n3 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (nb1 == n1)
+              {
+                n4 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else if (nb1 == n2) 
+              {
+                n3 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              else if (nb2 == n1) 
+              {
+                n4 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else // if (nb2 == n2) 
+              {
+                n3 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              PLOTQUADB;
+            }
+          }
+          glEnd();
+        }
+
         for (i = 0; i < zonep->nelts2D; i++)
         {
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
-
+          if (nf == 3 || nf == 4) continue;
+          
           blank = 0;
           for (E_Int j = 1; j <= nf; j++)
           {
