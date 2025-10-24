@@ -64,11 +64,15 @@ void K_POST::compDivUnstruct3D(
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
   
   // Pre-compute element and facet offsets
   E_Int ntotFacets = 0;
   E_Int ntotElts = 0;
-  std::vector<E_Int> nfpe(nc);
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
 
@@ -76,17 +80,6 @@ void K_POST::compDivUnstruct3D(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
-    else
-    {
-      fprintf(stderr, "Error: in K_POST::compCurlUnstruct3D.\n");
-      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
-    }
     nepc[ic+1] = nepc[ic] + nelts;
     nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
     ntotFacets += nfpe[ic]*nelts;

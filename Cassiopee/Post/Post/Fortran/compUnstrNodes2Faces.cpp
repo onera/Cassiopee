@@ -20,7 +20,7 @@
 # include "Array/Array.h"
 # include <vector>
 
-/* Calcul des valeurs d un champ aux faces des elements a partir des 
+/* Calcul des valeurs d un champ aux faces des elements a partir des
    des valeurs aux noeuds.
    IN: cn: connectivite elts-noeuds
    IN: fieldn: champs aux noeuds
@@ -36,25 +36,16 @@ void K_POST::compUnstrNodes2Faces(
   K_ARRAY::extractVars(eltType, eltTypes);
 
   // Pre-compute number of facets per connectivity, nfpc
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
+
   std::vector<E_Int> nfpc(nc+1); nfpc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nfpe = 1;
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
-    else
-    {
-      fprintf(stderr, "Error: in K_POST::compUnstrNodes2Faces.\n");
-      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
-      exit(0);
-    }
-    nfpc[ic+1] = nfpc[ic] + nfpe*nelts;
+    nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;
   }
 
   // Compute field value at the center of each of the element's facet, from

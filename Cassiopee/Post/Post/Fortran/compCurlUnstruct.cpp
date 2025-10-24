@@ -63,11 +63,15 @@ void K_POST::compCurlUnstruct3D(
   E_Int nc = cn.getNConnect();
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
   
   // Pre-compute element and facet offsets
   E_Int ntotFacets = 0;
   E_Int ntotElts = 0;
-  std::vector<E_Int> nfpe(nc);
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
 
@@ -75,17 +79,6 @@ void K_POST::compCurlUnstruct3D(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
-    else
-    {
-      fprintf(stderr, "Error: in K_POST::compCurlUnstruct3D.\n");
-      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
-    }
     nepc[ic+1] = nepc[ic] + nelts;
     nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
     ntotFacets += nfpe[ic]*nelts;
@@ -392,19 +385,13 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
   E_Float& rotx, E_Float& roty, E_Float& rotz
 )
 {
-
-  E_Int nfpe, sizeFace, ind, ierr;
+  E_Int sizeFace, ind;
   E_Int nvpe = cn.getNfld();
 
-  if      (strcmp(eltType, "TETRA") == 0) nfpe = 4;
-  else if (strcmp(eltType, "PYRA")  == 0) nfpe = 5;
-  else if (strcmp(eltType, "PENTA") == 0) nfpe = 5;
-  else if (strcmp(eltType, "HEXA")  == 0) nfpe = 6;
-  else
-  {
-    fprintf(stderr, "Error: in K_POST::compMeanCurlOfUnstructCell.\n");
-    fprintf(stderr, "Unknown type of element, %s.\n", eltType);
-  }
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
 
   std::vector<std::vector<E_Int> > facets;
   ierr = K_CONNECT::getEVFacets(facets, eltType, false);
@@ -412,8 +399,8 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
   // allocate temp fields
   FldArrayI cnloc(1, nvpe);
   FldArrayF xtloc(nvpe), ytloc(nvpe), ztloc(nvpe);
-  FldArrayF snx(nfpe), sny(nfpe), snz(nfpe), surf(nfpe);
-  FldArrayF uintx(nfpe), uinty(nfpe), uintz(nfpe);
+  FldArrayF snx(nfpe[0]), sny(nfpe[0]), snz(nfpe[0]), surf(nfpe[0]);
+  FldArrayF uintx(nfpe[0]), uinty(nfpe[0]), uintz(nfpe[0]);
   FldArrayF vol(1);
 
   uintx.setAllValuesAtNull();
@@ -438,7 +425,7 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
   );
 
   // compute velocity components at interfaces
-  for (E_Int i = 0; i < nfpe; i++)
+  for (E_Int i = 0; i < nfpe[0]; i++)
   {
     sizeFace = facets[i].size();
     for (E_Int j = 0; j < sizeFace; j++)
@@ -454,17 +441,16 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
   }
 
   // compute mean curl
-  E_Float curlx = 0.0;
-  E_Float curly = 0.0;
-  E_Float curlz = 0.0;
-  for (E_Int i = 0; i < nfpe; i++)
+  rotx = 0.0; roty = 0.0; rotz = 0.0;
+
+  for (E_Int i = 0; i < nfpe[0]; i++)
   {
-    curlx += uinty[i]*snz[i] - uintz[i]*sny[i];
-    curly += uintz[i]*snx[i] - uintx[i]*snz[i];
-    curlz += uintx[i]*sny[i] - uinty[i]*snx[i];
+    rotx += uinty[i]*snz[i] - uintz[i]*sny[i];
+    roty += uintz[i]*snx[i] - uintx[i]*snz[i];
+    rotz += uintx[i]*sny[i] - uinty[i]*snx[i];
   }
 
-  rotx = -vol[0] * curlx;
-  roty = -vol[0] * curly;
-  rotz = -vol[0] * curlz;
+  rotx *= -vol[0];
+  roty *= -vol[0];
+  rotz *= -vol[0];
 }
