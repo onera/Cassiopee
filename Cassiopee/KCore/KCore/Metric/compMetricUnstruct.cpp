@@ -18,6 +18,7 @@
 */
 # include "metric.h"
 # include "Array/Array.h"
+#include "Connect/connect.h"
 
 //=============================================================================
 // Calcul du volume de toutes les cellules et des surfaces des interfaces
@@ -40,8 +41,12 @@ void K_METRIC::compMetricUnstruct(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
+
   E_Int ntotFacets = 0;
-  std::vector<E_Int> nfpe(nc);  // number of facets per element
   std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
   nepc[0] = 0; nfpc[0] = 0;
 
@@ -49,18 +54,6 @@ void K_METRIC::compMetricUnstruct(
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
-    else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
-    else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
-    else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
-    else
-    {
-      fprintf(stderr, "Error: in K_METRIC::compMetricUnstruct.\n");
-      fprintf(stderr, "Unknown type of element, %s.\n", eltTypes[ic]);
-      exit(0);
-    }
     nepc[ic+1] = nepc[ic] + nelts;
     nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
     ntotFacets += nfpe[ic]*nelts;
