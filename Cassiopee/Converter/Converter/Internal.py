@@ -2496,7 +2496,7 @@ def copyRef(node):
 
 # -- Copie un arbre ou un sous-arbre en copiant aussi les numpy.array
 def copyTree(node, order='F'):
-  """Fully copy a tree."""
+  """Full copy of a tree."""
   ret = isStdNode(node)
   if ret == -1:
     d = copyTree__(node, order=order)
@@ -2519,7 +2519,7 @@ def copyTree__(node, parent=None, order='F'):
 
 # -- Copie un noeud (pas de recursivite)
 def copyNode(node):
-  """Copy only this node (no recursion). Share children with node. """
+  """Copy only this node (no recursion). Share children with node."""
   ret = isStdNode(node)
   if ret == -1:
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
@@ -2572,13 +2572,15 @@ def merge(A, pathList=None):
   # check
   if pathList:
     for path in pathList:
-      if not isinstance(path,str): raise AttributeError("merge: pathList should be a list of strings.")
+      if not isinstance(path,str):
+        raise AttributeError("merge: pathList should be a list of strings.")
   tp = copyRef(A[0])
   if pathList is None: pathList = [None for tree in A[1:]]
   for path, tree in zip(pathList, A[1:]):
     if path: _append(tp, tree, path)
     else:
-      if tp[0] != tree[0]: raise AttributeError("merge: path is None, but root name are differents.")
+      if tp[0] != tree[0]:
+        raise AttributeError("merge: path is None, but root name are differents.")
       for child in tree[2]: _append(tp, child, tree[0])
   return tp
 
@@ -2731,6 +2733,7 @@ def pyTree2Node(t, type):
 # -- EltName2EltNo
 # Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
 def eltName2EltNo(name):
+  if name.endswith('*'): name = name[:-1]
   eltno, nnodes = ELTNAME2ELTINFO.get(name, ('UNKNOWN', -1))
   if name == 'MIXED':
     print('Warning: eltName2EltNo: MIXED elements not supported.')
@@ -2740,7 +2743,7 @@ def eltName2EltNo(name):
 # Convertit une liste de noms CGNS d'elt en nos CGNS d'elt et leurs nombres
 # de noeuds associes. Retourne deux listes
 def eltNames2EltNos(names):
-  if (isinstance(names, (list, tuple, numpy.ndarray)) and len(names) and
+  if (isinstance(names, (list, tuple)) and len(names) and
           isinstance(names[0], str)):
     names = ','.join(name for name in names)
   if len(names.split(',')) > 1:
@@ -2768,11 +2771,11 @@ def eltNos2EltNames(eltnos):
 
 # Donne la dimension d'un element a partir de son no
 def eltNo2Dim(eltno):
-  if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
-  else:
-    dim = -1
-    print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
-  return dim
+ if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
+ else:
+   dim = 3
+   print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
+ return dim
 
 # Return (Element name, number of nodes, dimensionality) given an Element number
 def eltNo2EltInfo(eltno):
