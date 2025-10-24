@@ -903,7 +903,7 @@ def reorder(a, order):
 
 
 def reorderAll(arrays, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     btype = 0

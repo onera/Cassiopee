@@ -1117,7 +1117,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   // Write Coordinates
   PyObject* gc = K_PYTREE::getNodeFromType1(zone, "GridCoordinates_t");
   char* coordsName = K_PYTREE::getNodeName(gc);
-  if (strcmp(coordsName, "GridCoordinates") == 0) coordsName = "Coordinates";
+  if (strcmp(coordsName, "GridCoordinates") == 0) strcpy(coordsName, "Coordinates");
   hid_t coord = H5Gcreate(ds, coordsName, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);

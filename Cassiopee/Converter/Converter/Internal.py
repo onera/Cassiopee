@@ -5,17 +5,17 @@ import fnmatch # unix wildcards
 import KCore.kcore as KCore
 from . import converter
 
-# INT size for numpys connectivities
+# INT size for numpy connectivities
 from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
-# Containeurs
+# Containers
 __GridCoordinates__ = 'GridCoordinates'
 __FlowSolutionNodes__ = 'FlowSolution'
 __FlowSolutionCenters__ = 'FlowSolution#Centers'
 
-# Pour les BCs non structurees (nommage de transition courant/derniere norme)
+# Boundary condition keywords for unstructured grids (nommage de transition courant/derniere norme)
 __ELEMENTRANGE__ = 'ElementRange' # ElementRange/PointRange
 __ELEMENTLIST__ = 'PointList' # ElementList/PointList
 __FACELIST__ = 'PointList' # FaceList/PointList
@@ -28,64 +28,99 @@ SEP1 = '\\'
 # Separateur intra-BCs (pour les exports getBCFaces et addBCFaces)
 SEP2 = '@'
 
-# other var names to CGNS var names
-name2CGNS = { \
-    'x'              :'CoordinateX'                   , \
-    'y'              :'CoordinateY'                   , \
-    'z'              :'CoordinateZ'                   , \
-    'x3d'            :'CoordinateX'                   , \
-    'y3d'            :'CoordinateY'                   , \
-    'z3d'            :'CoordinateZ'                   , \
-    'X'              :'CoordinateX'                   , \
-    'Y'              :'CoordinateY'                   , \
-    'Z'              :'CoordinateZ'                   , \
-    'ro'             :'Density'                       , \
-    'rou'            :'MomentumX'                     , \
-    'rov'            :'MomentumY'                     , \
-    'row'            :'MomentumZ'                     , \
-    'rovx'           :'MomentumX'                     , \
-    'rovy'           :'MomentumY'                     , \
-    'rovz'           :'MomentumZ'                     , \
-    'roe'            :'EnergyStagnationDensity'       , \
-    'roE'            :'EnergyStagnationDensity'       , \
-    'rok'            :'TurbulentEnergyKineticDensity' , \
-    'ronutilde'      :'TurbulentSANuTildeDensity'    , \
-    'roeps'          :'TurbulentDissipationDensity'   , \
-    'roomega'        :'TurbulentDissipationRateDensity', \
-    'mach'           :'Mach'                          , \
-    'psta'           :'Pressure'                      , \
-    'tsta'           :'Temperature'                   , \
-    'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
-    'walldistance'   :'TurbulentDistance'             , \
-    'wallglobalindex':'TurbulentDistanceIndex'        , \
+# Map variable names to their CGNS counterparts
+VARNAME2CGNS = {
+  'x'              : 'CoordinateX',
+  'y'              : 'CoordinateY',
+  'z'              : 'CoordinateZ',
+  'x3d'            : 'CoordinateX',
+  'y3d'            : 'CoordinateY',
+  'z3d'            : 'CoordinateZ',
+  'X'              : 'CoordinateX',
+  'Y'              : 'CoordinateY',
+  'Z'              : 'CoordinateZ',
+  'ro'             : 'Density',
+  'rou'            : 'MomentumX',
+  'rov'            : 'MomentumY',
+  'row'            : 'MomentumZ',
+  'rovx'           : 'MomentumX',
+  'rovy'           : 'MomentumY',
+  'rovz'           : 'MomentumZ',
+  'roe'            : 'EnergyStagnationDensity',
+  'roE'            : 'EnergyStagnationDensity',
+  'rok'            : 'TurbulentEnergyKineticDensity',
+  'ronutilde'      : 'TurbulentSANuTildeDensity',
+  'roeps'          : 'TurbulentDissipationDensity',
+  'roomega'        : 'TurbulentDissipationRateDensity',
+  'mach'           : 'Mach',
+  'psta'           : 'Pressure',
+  'tsta'           : 'Temperature',
+  'viscrapp'       : 'Viscosity_EddyMolecularRatio',
+  'walldistance'   : 'TurbulentDistance',
+  'wallglobalindex': 'TurbulentDistanceIndex',
 }
 
-# Known BCs
-KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
-            'BCFarfield', 'BCExtrapolate',
-            'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
-            'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
-            'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
-            'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
-            'UserDefined']
+# Known CGNS BC types
+KNOWNBCS = [
+  'BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
+  'BCFarfield', 'BCExtrapolate',
+  'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
+  'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
+  'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
+  'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
+  'UserDefined'
+]
 
-__DEG2RAD__ = 0.017453292519943295 #math.pi/180.
-__RAD2DEG__ = 57.29577951308232    #180./math.pi
+# Dictionary mapping an Element number to a tuple storing
+# (Element name, number of nodes, dimensionality). The number of nodes and the
+# dimensionality are set to -1 and 3, respectively, when they cannot be inferred
+# from the Element number alone (e.g., NGON, MIXED).
+# Note for TRI and QUAD: pour l'ordre 4, rien dans l'enumeration CGNS...
+ELTNO2ELTINFO = {
+  2: ('NODE', 1, 0),
+  3: ('BAR', 2, 1),
+  4: ('BAR_3', 3, 1),
+  24: ('BAR_4', 4, 1),
+  5: ('TRI', 3, 2),
+  6: ('TRI_6', 6, 2),
+  25: ('TRI_9', 9, 2),
+  26: ('TRI_10', 10, 2),
+  7: ('QUAD', 4, 2),
+  8: ('QUAD_8', 8, 2),
+  9: ('QUAD_9', 9, 2),
+  27: ('QUAD_12', 12, 2),
+  28: ('QUAD_16', 16, 2), # Attention ici, QUAD_16 par defaut mais cela pourrait etre QUAD_P4_16... Que faire ?
+  10: ('TETRA', 4, 3),
+  11: ('TETRA_10', 10, 3),
+  12: ('PYRA', 5, 3),
+  13: ('PYRA_14', 14, 3),
+  14: ('PENTA', 6, 3),
+  15: ('PENTA_15', 15, 3),
+  16: ('PENTA_18', 18, 3),
+  17: ('HEXA', 8, 3),
+  18: ('HEXA_20', 20, 3),
+  19: ('HEXA_27', 27, 3),
+  20: ('MIXED', -1, 3),
+  22: ('NGON', -1, 3),
+  23: ('NFACE', -1, 3)
+}
 
-# Elements dimension by elt no
-DIMELTS = [0,
-           0,0,1,1,2,2,2,2,2,3,
-           3,3,3,3,3,3,3,3,3,3,
-           3,3,3,1,2,2,2,2,3,3,
-           3,3,3,3,3,3,3,3,3,1,
-           2,2,2,2,3,3,3,3,3,3,
-           3,3,3,3,3,3]
+# Dictionary mapping an Element name to a tuple storing
+# (Element number, number of nodes). The number of nodes is set to -1 when it
+# cannot be inferred from the Element name alone (e.g., NGON, MIXED).
+ELTNAME2ELTINFO = {
+  eltInfo[0]: (eltNo, eltInfo[1]) for eltNo, eltInfo in ELTNO2ELTINFO.items()
+}
+
+__DEG2RAD__ = 0.017453292519943295 # math.pi/180.
+__RAD2DEG__ = 57.29577951308232    # 180./math.pi
+
 
 #==============================================================================
-# -- is? --
+# -- Test node equality --
 #==============================================================================
 
-# -- is node a top tree or something else?
+# -- is node a top tree?
 def isTopTree(node):
   """Return True if node corresponds to a top tree node (CGSNTree_t)."""
   if len(node) != 4: return False
@@ -97,7 +132,8 @@ def isTopTree(node):
 # Retourne -1 si node est un noeud standard de l'arbre
 # Retourne 0 si node est une liste de noeuds standards (meme vide)
 def isStdNode(node):
-  """Return 0 if node is a list of standard pyTree nodes, -1 if node is a standard pyTree node, -2 otherwise."""
+  """Return 0 if node is a list of standard pyTree nodes,
+  -1 if node is a standard pyTree node, -2 otherwise."""
   if not isinstance(node, list): return -2
   if len(node) == 0: return 0
   node0 = node[0]
@@ -671,7 +707,7 @@ def newElements(name='Elements', etype='UserDefined',
                 erange=None, eboundary=0, parent=None):
   """Create a new Elements node."""
   if isinstance(etype, int): etp = etype
-  else: etp, nnodes = eltName2EltNo(etype)
+  else: etp, _ = eltName2EltNo(etype)
   if parent is None:
     node = createNode(name, 'Elements_t', value=[etp,eboundary])
   else:
@@ -2692,6 +2728,14 @@ def pyTree2Node(t, type):
   else: node = t
   return node
 
+# -- EltName2EltNo
+# Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
+def eltName2EltNo(name):
+  eltno, nnodes = ELTNAME2ELTINFO.get(name, ('UNKNOWN', -1))
+  if name == 'MIXED':
+    print('Warning: eltName2EltNo: MIXED elements not supported.')
+  return eltno, nnodes
+
 # -- EltNames2EltNos
 # Convertit une liste de noms CGNS d'elt en nos CGNS d'elt et leurs nombres
 # de noeuds associes. Retourne deux listes
@@ -2704,63 +2748,14 @@ def eltNames2EltNos(names):
     return list(zip(*eltnos))
   else: return [[i] for i in eltName2EltNo(names)]
 
-# -- EltName2EltNo
-# Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
-def eltName2EltNo(name):
-  eltno = 0; nnodes = 0
-  if name == 'NODE':
-    eltno = 2; nnodes = 1
-  elif name[0:3] == 'BAR':
-    if len(name) == 3: nnodes = 2
-    else: nnodes = int(name[4:])
-    if nnodes == 2: eltno = 3
-    elif nnodes == 3: eltno = 4
-    elif nnodes == 4: eltno = 24
-  elif name[0:3] == 'TRI':
-    if len(name) == 3: nnodes = 3
-    else: nnodes = int(name[4:])
-    if nnodes == 3: eltno = 5
-    elif nnodes == 6: eltno = 6
-    elif nnodes == 9: eltno = 25   # D'apres l'enumeration CGNS
-    elif nnodes == 10: eltno = 26  #
-    # Pour l'ordre 4, rien dans l'enumeration CGNS...
-  elif name[0:4] == 'QUAD':
-    if len(name) == 4: nnodes = 4
-    else: nnodes = int(name[5:])
-    if nnodes == 4: eltno = 7
-    elif nnodes == 8:  eltno = 8
-    elif nnodes == 9:  eltno = 9
-    elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
-    elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ?
-    # Pour l'ordre 4, rien dans l'enumeration CGNS
-  elif name[0:5] == 'TETRA':
-    if len(name) == 5: nnodes = 4
-    else: nnodes = int(name[6:])
-    if nnodes == 4: eltno = 10
-    elif nnodes == 10: eltno = 11
-  elif name[0:4] == 'PYRA':
-    if len(name) == 4: nnodes = 5
-    else: nnodes = int(name[5:])
-    if nnodes == 5: eltno = 12
-    elif nnodes == 14: eltno = 13
-  elif name[0:5] == 'PENTA':
-    if len(name) == 5: nnodes = 6
-    else: nnodes = int(name[6:])
-    if nnodes == 6: eltno = 14
-    elif nnodes == 15: eltno = 15
-    elif nnodes == 18: eltno = 16
-  elif name[0:4] == 'HEXA':
-    if len(name) == 4: nnodes = 8
-    else: nnodes = int(name[5:])
-    if nnodes == 8: eltno = 17
-    elif nnodes == 20: eltno = 18
-    elif nnodes == 27: eltno = 19
-  elif name == 'MIXED':
-    print('Warning: eltName2EltNo: MIXED elements not supported.')
-    eltno = 20; nnodes = 1
-  elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
-  elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
-  return eltno, nnodes
+# -- EltNo2EltName
+# Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
+# associes
+def eltNo2EltName(eltno):
+  name, nnodes, _ = ELTNO2ELTINFO.get(eltno, ('UNKNOWN', -1, 3))
+  if eltno == 20:
+    print('Warning: eltNo2EltName: MIXED elements not supported.')
+  return name, nnodes
 
 # -- EltNos2EltNames
 # Convertit une liste de numeros CGNS d'elt en noms CGNS d'elt et leurs nombres
@@ -2771,49 +2766,22 @@ def eltNos2EltNames(eltnos):
     return list(zip(*eltnames))
   else: return [[i] for i in eltNo2EltName(eltnos)]
 
-# -- EltNo2EltName
-# Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
-# associes
-def eltNo2EltName(eltno):
-  name = 'UNKNOWN'; nnodes = 0
-  if eltno == 2: name = 'NODE'; nnodes = 1
-  elif eltno == 3: name = 'BAR'; nnodes = 2
-  elif eltno == 4: name = 'BAR_3'; nnodes = 3
-  elif eltno == 24: name = 'BAR_4'; nnodes = 4
-  elif eltno == 5: name = 'TRI'; nnodes = 3
-  elif eltno == 6: name = 'TRI_6'; nnodes = 6
-  elif eltno == 25: name = 'TRI_9'; nnodes = 9
-  elif eltno == 26: name = 'TRI_10'; nnodes = 10
-  elif eltno == 7: name = 'QUAD'; nnodes = 4
-  elif eltno == 8: name = 'QUAD_8'; nnodes = 8
-  elif eltno == 9: name = 'QUAD_9'; nnodes = 9
-  elif eltno == 27: name = 'QUAD_12'; nnodes = 12
-  elif eltno == 28: name = 'QUAD_16'; nnodes = 16
-  elif eltno == 10: name = 'TETRA'; nnodes = 4
-  elif eltno == 11: name = 'TETRA_10'; nnodes = 10
-  elif eltno == 12: name = 'PYRA'; nnodes = 5
-  elif eltno == 13: name = 'PYRA_14'; nnodes = 14
-  elif eltno == 14: name = 'PENTA'; nnodes = 6
-  elif eltno == 15: name = 'PENTA_15'; nnodes = 15
-  elif eltno == 16: name = 'PENTA_18'; nnodes = 18
-  elif eltno == 17: name = 'HEXA'; nnodes = 8
-  elif eltno == 18: name = 'HEXA_20'; nnodes = 20
-  elif eltno == 19: name = 'HEXA_27'; nnodes = 27
-  elif eltno == 20:
-    print('Warning: eltNo2EltName: MIXED elements not supported.')
-    name = 'MIXED'; nnodes = 1
-  elif eltno == 22: name = 'NGON'; nnodes = 1
-  elif eltno == 23: name = 'NFACE'; nnodes = 1
-  return name, nnodes
-
 # Donne la dimension d'un element a partir de son no
-#def dimFromEltNo(eltno):
-#  if eltno == 2: return 0 # NODE
-#  elif eltno >= 3 and eltno <= 4: return 1 # BAR
-#  elif eltno >= 5 and eltno <= 6: return 2 # TRI
-#  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
-#  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
-#  else: return 3
+def eltNo2Dim(eltno):
+ if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
+ else:
+   dim = -1
+   print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
+ return dim
+
+# Return (Element name, number of nodes, dimensionality) given an Element number
+def eltNo2EltInfo(eltno):
+  if eltno in ELTNO2ELTINFO:
+    name, nnodes, dim = ELTNO2ELTINFO[eltno]
+  else:
+    name, nnodes, dim = 'UNKNOWN', -1, 3
+    print(f"Warning: eltNo2EltInfo: Element '{eltno}' not supported.")
+  return name, nnodes, dim
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)
 def range2Window(r):
@@ -2842,10 +2810,9 @@ def clearList(list):
     if i != []: t.append(i)
   return t
 
-# -- Change a var name to a CGNS name
+# -- Change a variable name to a CGNS name
 def getCGNSName(v):
-  if v in name2CGNS: return name2CGNS[v]
-  else: return v
+  return VARNAME2CGNS.get(v, v)
 
 #==============================================================================
 # -- Conversion Arrays / Nodes --
@@ -3673,8 +3640,7 @@ def getZoneDim(zone):
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
         elif lc == 1:
           elt = c[0][1][0]
-          eltName,stype = eltNo2EltName(elt)
-          cellDim = DIMELTS[elt]
+          eltName, _, cellDim = eltNo2EltInfo(elt)
           if elt == 22 or elt == 23: # NGON or NFACE
             eltName = 'NGON'
             data = getNodeFromName1(c[0], 'ElementStartOffset')
@@ -3712,7 +3678,7 @@ def getZoneDim(zone):
             return [gtype, np, ne, 'NGON', cellDim]
           else: # BE/ME
             cellDim = 0
-            for i in c: cellDim = max(cellDim, DIMELTS[i[1][0]])
+            for i in c: cellDim = max(cellDim, eltNo2Dim(i[1][0]))
             eltNames = dict.fromkeys(eltNames, None)
             return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
@@ -4227,7 +4193,7 @@ def setElementConnectivity2(z, array):
 def _setElementDim(z):
   GEl = getNodesFromType1(z, 'Elements_t')
   if GEl == []: return []
-  dimElt = [DIMELTS[i[1][0]] for i in GEl]
+  dimElt = [eltNo2Dim(i[1][0]) for i in GEl]
   maxdim = max(dimElt)
   for c, GE in enumerate(GEl):
     if dimElt[c] == maxdim: GE[1][1] = 0
@@ -4240,10 +4206,11 @@ def getElementNodes(z):
   GEl = getNodesFromType1(z, 'Elements_t')
   for GE in GEl:
     elt = GE[1][0]
-    if DIMELTS[elt] == dim: out.append(GE)
-    elif DIMELTS[elt] > dim:
+    dimElt = eltNo2Dim(elt)
+    if dimElt == dim: out.append(GE)
+    elif dimElt > dim:
       out.clear()
-      dim = DIMELTS[elt]
+      dim = dimElt
       out.append(GE)
   return out
 
