@@ -2771,11 +2771,11 @@ def eltNos2EltNames(eltnos):
 
 # Donne la dimension d'un element a partir de son no
 def eltNo2Dim(eltno):
- if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
- else:
-   dim = 3
-   print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
- return dim
+  if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
+  else:
+    dim = 3
+    print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
+  return dim
 
 # Return (Element name, number of nodes, dimensionality) given an Element number
 def eltNo2EltInfo(eltno):
