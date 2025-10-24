@@ -202,6 +202,13 @@
   glColor3f(r, g, b);                                               \
   glVertex3d(x[n], y[n], z[n]);
   
+#define PLOTNGON2(n) r = f1[n]*deltai+0.5;                          \
+  g = f2[n]*deltai+0.5;                                             \
+  b = f3[n]*deltai+0.5;                                             \
+  glColor3f(r, g, b);                                               \
+  glNormal3f(surfx[n], surfy[n], surfz[n]);                         \
+  glVertex3d(x[n], y[n], z[n]);
+
   double deltai1 = MAX(ABS(fmax1), 1.e-6);
   deltai1 = MAX(deltai1, ABS(fmin1));
   double deltai2 = MAX(ABS(fmax2), 1.e-6);
@@ -710,44 +717,54 @@
       }
 
       // Elements 2D
-      for (i = 0; i < zonep->nelts2D; i++)
+      if (zonep->ne == zonep->nelts2D)
       {
-        glBegin(GL_POLYGON);
-        elt = zonep->posElts2D[i];
-        ptrelt = &connect[elt];
-        nf = ptrelt[0];
-        drawn = 0;
-        face = ptrelt[1]-1;
-        glNormal3f(surfx[face], surfy[face], surfz[face]);
-        ptrface = &connect[zonep->posFaces[face]];
-        n1 = ptrface[1]-1; first = n1;
-        n2 = ptrface[2]-1;
-        PLOTNGON(n1);
-        PLOTNGON(n2);
-        prev = n1; next = n2;
-        drawn++;
-        
-        // Cherche
-        while (drawn < nf)
+        surfx = surfp;
+        surfy = surfx + np;
+        surfz = surfy + np;
+
+        for (i = 0; i < zonep->nelts2D; i++)
         {
-          for (j = 2; j <= nf; j++)
+          glBegin(GL_POLYGON);
+          elt = zonep->posElts2D[i];
+          ptrelt = &connect[elt];
+          nf = ptrelt[0];
+          drawn = 0;
+          face = ptrelt[1]-1;
+          //glNormal3f(surfx[face], surfy[face], surfz[face]);
+          ptrface = &connect[zonep->posFaces[face]];
+          n1 = ptrface[1]-1; first = n1;
+          n2 = ptrface[2]-1;
+          PLOTNGON2(n1);
+          PLOTNGON2(n2);
+          prev = n1; next = n2;
+          drawn++;
+        
+          // Cherche
+          while (drawn < nf)
           {
-            face = ptrelt[j]-1;
-            ptrface = &connect[zonep->posFaces[face]];
-            n1 = ptrface[1]-1;
-            n2 = ptrface[2]-1;
-            if (n1 == next && n2 != prev)
-            { PLOTNGON(n2);
-              prev = n1; next = n2; drawn++; break; }
-            else if (n2 == next && n1 != prev)
-            { 
-              PLOTNGON(n1);
-              prev = n2; next = n1; drawn++; break; }
+            for (j = 2; j <= nf; j++)
+            {
+              face = ptrelt[j]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1;
+              n2 = ptrface[2]-1;
+              if (n1 == next && n2 != prev)
+              { PLOTNGON2(n2);
+                prev = n1; next = n2; drawn++; break; }
+              else if (n2 == next && n1 != prev)
+              { PLOTNGON2(n1);
+                prev = n2; next = n1; drawn++; break; }
+            }
+            if (j == nf+1) drawn++; // pour eviter les boucles infinies
           }
-          if (j == nf+1) drawn++; // pour eviter les boucles infinies
+          if (next != first) 
+          {
+            glNormal3f(surfx[first], surfy[first], surfz[first]);
+            glVertex3d(x[first], y[first], z[first]); // force close
+          }
+          glEnd();
         }
-        if (next != first) glVertex3d(x[first], y[first], z[first]); // force close
-        glEnd();
       }
     }
     else // blanking
@@ -820,64 +837,73 @@
       }
 
       // Elements 2D
-      for (i = 0; i < zonep->nelts2D; i++)
+      if (zonep->ne == zonep->nelts2D)
       {
-        elt = zonep->posElts2D[i];
-        ptrelt = &connect[elt];
-        nf = ptrelt[0];
+        surfx = surfp;
+        surfy = surfx + np;
+        surfz = surfy + np;
 
-        E_Int blank = 0;
-        for (E_Int j = 1; j <= nf; j++)
+        for (i = 0; i < zonep->nelts2D; i++)
         {
-          face = ptrelt[1]-1;
-          ptrface = &connect[zonep->posFaces[face]];
-          n1 = ptrface[1]-1;
-          n2 = ptrface[2]-1;
-          if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-          { blank = 1; break; }
-          if (_pref.blanking->f(this, n2, zonep->blank, zonet) == 0)
-          { blank = 1; break; }
-        }
-        if (blank == 0)
-        {
-          glBegin(GL_POLYGON);
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
-          drawn = 0;
-          
-          face = ptrelt[1]-1;
-          glNormal3f(surfx[face], surfy[face], surfz[face]);
-          ptrface = &connect[zonep->posFaces[face]];
-          n1 = ptrface[1]-1; first = n1;
-          n2 = ptrface[2]-1;
-          PLOTNGON(n1); 
-          PLOTNGON(n2);
-          prev = n1; next = n2;
-          drawn++;
-        
-          // Cherche
-          while (drawn < nf)
+
+          E_Int blank = 0;
+          for (E_Int j = 1; j <= nf; j++)
           {
-            for (j = 2; j <= nf; j++)
-            {
-              face = ptrelt[j]-1;
-              ptrface = &connect[zonep->posFaces[face]];
-              n1 = ptrface[1]-1;
-              n2 = ptrface[2]-1;
-              if (n1 == next && n2 != prev)
-              { 
-                PLOTNGON(n2);
-                prev = n1; next = n2; drawn++; break; }
-              else if (n2 == next && n1 != prev)
-              { 
-                PLOTNGON(n1);
-                prev = n2; next = n1; drawn++; break; }
-            }
-            if (j == nf+1) drawn++; // pour eviter les boucles infinies
+            face = ptrelt[1]-1;
+            ptrface = &connect[zonep->posFaces[face]];
+            n1 = ptrface[1]-1;
+            n2 = ptrface[2]-1;
+            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+            { blank = 1; break; }
+            if (_pref.blanking->f(this, n2, zonep->blank, zonet) == 0)
+            { blank = 1; break; }
           }
-          if (next != first) glVertex3d(x[first], y[first], z[first]); // force close
-          glEnd();
+          if (blank == 0)
+          {
+            glBegin(GL_POLYGON);
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            drawn = 0;
+          
+            face = ptrelt[1]-1;
+            //glNormal3f(surfx[face], surfy[face], surfz[face]);
+            ptrface = &connect[zonep->posFaces[face]];
+            n1 = ptrface[1]-1; first = n1;
+            n2 = ptrface[2]-1;
+            PLOTNGON2(n1); 
+            PLOTNGON2(n2);
+            prev = n1; next = n2;
+            drawn++;
+        
+            // Cherche
+            while (drawn < nf)
+            {
+              for (j = 2; j <= nf; j++)
+              {
+                face = ptrelt[j]-1;
+                ptrface = &connect[zonep->posFaces[face]];
+                n1 = ptrface[1]-1;
+                n2 = ptrface[2]-1;
+                if (n1 == next && n2 != prev)
+                { PLOTNGON2(n2);
+                  prev = n1; next = n2; drawn++; break; }
+                else if (n2 == next && n1 != prev)
+                { PLOTNGON2(n1);
+                prev = n2; next = n1; drawn++; break; }
+              }
+              if (j == nf+1) drawn++; // pour eviter les boucles infinies
+            }
+            if (next != first) 
+            {
+              glNormal3f(surfx[first], surfy[first], surfz[first]);
+              glVertex3d(x[first], y[first], z[first]); // force close
+            }
+            glEnd();
+          }
         }
       }
     }

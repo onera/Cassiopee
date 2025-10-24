@@ -990,14 +990,18 @@ def _downgradeTree(t, upgradeNGon=True):
     for z in Internal.getZones(t): _downgradeZone(z, upgradeNGon)
     return None
 
-# for NGON surf, force type B (commente)
-# for NGON vol, force signed faces (commente)
-# for NGON PE, force shift
+# for NGON3, force NGON4 (commented)
+# for NGON surf, force type B (commented)
+# for NGON vol, force signed faces (commented)
+# for NGON PE, force shift (active)
 def _downgradeZone(z, upgradeNGon=True):
     if upgradeNGon:
         ngon = Internal.getNGonNode(z)
         nface = Internal.getNFaceNode(z)
         if ngon is not None:
+            # force NGON4
+            #off = Internal.getNodeFromName1(ngon, 'ElementStartOffset')
+            #if off is None: Internal._adaptNGon32NGon4(z)
             # sign faces if not signed
             #c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
             #if c is not None and c[1] is not None: _signNGonFaces(z)

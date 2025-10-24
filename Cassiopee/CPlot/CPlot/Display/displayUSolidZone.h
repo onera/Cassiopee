@@ -681,49 +681,68 @@
       }
 
       // Elements 2D
-      for (i = 0; i < zonep->nelts2D; i++)
+      if (zonep->ne == zonep->nelts2D)
       {
-        glBegin(GL_POLYGON);
-        elt = zonep->posElts2D[i];
-        ptrelt = &connect[elt];
-        nf = ptrelt[0];
-        drawn = 0;
-        
-        face = ptrelt[1]-1;
-        glNormal3f(surfx[face], surfy[face], surfz[face]);
-        
-        ptrface = &connect[zonep->posFaces[face]];
-        n1 = ptrface[1]-1; n2 = ptrface[2]-1;
-
-        face = ptrelt[2]-1;
-        ptrface = &connect[zonep->posFaces[face]];
-        n3 = ptrface[1]-1; n4 = ptrface[2]-1;
-
-        if (n2 == n3 || n2 == n4)
-        { first = n1; prev = n1; next = n2; }
-        else { first = n2; prev = n2; next = n1; }
-
-        glVertex3d(x[prev], y[prev], z[prev]);
-        glVertex3d(x[next], y[next], z[next]);
-        drawn++;
-        
-        // Cherche
-        while (drawn < nf)
+        surfx = surfp;
+        surfy = surfx + np;
+        surfz = surfy + np;
+        for (i = 0; i < zonep->nelts2D; i++)
         {
-          for (j = 2; j <= nf; j++)
+          glBegin(GL_POLYGON);
+          elt = zonep->posElts2D[i];
+          ptrelt = &connect[elt];
+          nf = ptrelt[0];
+          drawn = 0;
+        
+          face = ptrelt[1]-1;
+          //glNormal3f(surfx[face], surfy[face], surfz[face]);
+        
+          ptrface = &connect[zonep->posFaces[face]];
+          n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+
+          face = ptrelt[2]-1;
+          ptrface = &connect[zonep->posFaces[face]];
+          n3 = ptrface[1]-1; n4 = ptrface[2]-1;
+
+          if (n2 == n3 || n2 == n4)
+          { first = n1; prev = n1; next = n2; }
+          else { first = n2; prev = n2; next = n1; }
+
+          glNormal3f(surfx[prev], surfy[prev], surfz[prev]);
+          glVertex3d(x[prev], y[prev], z[prev]);
+
+          glNormal3f(surfx[next], surfy[next], surfz[next]);
+          glVertex3d(x[next], y[next], z[next]);
+          drawn++;
+        
+          // Cherche
+          while (drawn < nf)
           {
-            face = ptrelt[j]-1;
-            ptrface = &connect[zonep->posFaces[face]];
-            n1 = ptrface[1]-1; n2 = ptrface[2]-1;
-            if (n1 == next && n2 != prev)
-            { glVertex3d(x[n2], y[n2], z[n2]); prev = n1; next = n2; drawn++; break; }
-            else if (n2 == next && n1 != prev)
-            { glVertex3d(x[n1], y[n1], z[n1]); prev = n2; next = n1; drawn++; break; }
+            for (j = 2; j <= nf; j++)
+            {
+              face = ptrelt[j]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              if (n1 == next && n2 != prev)
+              { 
+                glNormal3f(surfx[n2], surfy[n2], surfz[n2]);
+                glVertex3d(x[n2], y[n2], z[n2]); prev = n1; next = n2; drawn++; break; 
+              }
+              else if (n2 == next && n1 != prev)
+              {  
+                glNormal3f(surfx[n1], surfy[n1], surfz[n1]);
+                glVertex3d(x[n1], y[n1], z[n1]); prev = n2; next = n1; drawn++; break; 
+              }
+            }
+            if (j == nf+1) drawn++; // pour eviter les boucles infinies
           }
-          if (j == nf+1) drawn++; // pour eviter les boucles infinies
+          if (next != first) 
+          {
+            glNormal3f(surfx[first], surfy[first], surfz[first]);
+            glVertex3d(x[first], y[first], z[first]); // force close
+          }
+          glEnd();
         }
-        if (next != first) glVertex3d(x[first], y[first], z[first]); // force close
-        glEnd();
       }
     }
     else // blanking
@@ -796,62 +815,80 @@
       }
 
       // Elements 2D
-      for (i = 0; i < zonep->nelts2D; i++)
+      if (zonep->ne == zonep->nelts2D)
       {
-        elt = zonep->posElts2D[i];
-        ptrelt = &connect[elt];
-        nf = ptrelt[0];
-
-        blank = 0;
-        for (E_Int j = 1; j <= nf; j++)
+        surfx = surfp;
+        surfy = surfx + np;
+        surfz = surfy + np;
+        for (i = 0; i < zonep->nelts2D; i++)
         {
-          face = ptrelt[1]-1;
-          ptrface = &connect[zonep->posFaces[face]];
-          n1 = ptrface[1]-1;
-          n2 = ptrface[2]-1;
-          if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
-          { blank = 1; break; }
-          if (_pref.blanking->f(this, n2, zonep->blank, zonet) == 0)
-          { blank = 1; break; }
-        }
-        if (blank == 0)
-        {
-          glBegin(GL_POLYGON);
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
-          drawn = 0;
-          
-          face = ptrelt[1]-1;
-          glNormal3f(surfx[face], surfy[face], surfz[face]);
-          ptrface = &connect[zonep->posFaces[face]];
-          n1 = ptrface[1]-1; first = n1;
-          n2 = ptrface[2]-1;
-          glVertex3d(x[n1], y[n1], z[n1]);
-          glVertex3d(x[n2], y[n2], z[n2]);
-          prev = n1; next = n2;
-          drawn++;
-        
-          // Cherche
-          while (drawn < nf)
-          {
-            for (j = 2; j <= nf; j++)
-            {
-              face = ptrelt[j]-1;
-              ptrface = &connect[zonep->posFaces[face]];
-              n1 = ptrface[1]-1;
-              n2 = ptrface[2]-1;
-              if (n1 == next && n2 != prev)
-              { glVertex3d(x[n2], y[n2], z[n2]); prev = n1; next = n2; drawn++; break; }
-              else if (n2 == next && n1 != prev)
-              { glVertex3d(x[n1], y[n1], z[n1]); prev = n2; next = n1; drawn++; break; }
-            }
-            if (j == nf+1) drawn++; // pour eviter les boucles infinies
-          }
-          if (next != first) glVertex3d(x[first], y[first], z[first]); // force close
-          glEnd();
-        }
 
+          blank = 0;
+          for (E_Int j = 1; j <= nf; j++)
+          {
+            face = ptrelt[1]-1;
+            ptrface = &connect[zonep->posFaces[face]];
+            n1 = ptrface[1]-1;
+            n2 = ptrface[2]-1;
+            if (_pref.blanking->f(this, n1, zonep->blank, zonet) == 0)
+            { blank = 1; break; }
+            if (_pref.blanking->f(this, n2, zonep->blank, zonet) == 0)
+            { blank = 1; break; }
+          }
+          if (blank == 0)
+          {
+            glBegin(GL_POLYGON);
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            drawn = 0;
+          
+            face = ptrelt[1]-1;
+            //glNormal3f(surfx[face], surfy[face], surfz[face]);
+
+            ptrface = &connect[zonep->posFaces[face]];
+            n1 = ptrface[1]-1; first = n1;
+            n2 = ptrface[2]-1;
+            glNormal3f(surfx[n1], surfy[n1], surfz[n1]);
+            glVertex3d(x[n1], y[n1], z[n1]);
+            glNormal3f(surfx[n2], surfy[n2], surfz[n2]);
+            glVertex3d(x[n2], y[n2], z[n2]);
+            prev = n1; next = n2;
+            drawn++;
+        
+            // Cherche
+            while (drawn < nf)
+            {
+              for (j = 2; j <= nf; j++)
+              {
+                face = ptrelt[j]-1;
+                ptrface = &connect[zonep->posFaces[face]];
+                n1 = ptrface[1]-1;
+                n2 = ptrface[2]-1;
+                if (n1 == next && n2 != prev)
+                { 
+                  glNormal3f(surfx[n2], surfy[n2], surfz[n2]);
+                  glVertex3d(x[n2], y[n2], z[n2]); prev = n1; next = n2; drawn++; break; 
+                }
+                else if (n2 == next && n1 != prev)
+                { 
+                  glNormal3f(surfx[n1], surfy[n1], surfz[n1]);
+                  glVertex3d(x[n1], y[n1], z[n1]); prev = n2; next = n1; drawn++; break; 
+                }
+              }
+              if (j == nf+1) drawn++; // pour eviter les boucles infinies
+            }
+            if (next != first) 
+            { 
+              glNormal3f(surfx[first], surfy[first], surfz[first]);
+              glVertex3d(x[first], y[first], z[first]); // force close
+            }
+            glEnd();
+          }
+        }
       }
     }
   }
