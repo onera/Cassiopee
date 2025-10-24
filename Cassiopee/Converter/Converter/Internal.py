@@ -4345,8 +4345,8 @@ def _adaptPE2NFace(t, remove=True):
       createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
       if ngonType == 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
       else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
-
       if remove: _rmNodesByName(z, 'ParentElements')
+      _updateElementRange(z)
   return None
 
 # -- Adapte une connectivite NFACE en connectivite ParentElement
