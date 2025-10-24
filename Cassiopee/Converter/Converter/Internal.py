@@ -30,45 +30,45 @@ SEP2 = '@'
 
 # Map variable names to their CGNS counterparts
 VARNAME2CGNS = {
-    'x'              : 'CoordinateX',
-    'y'              : 'CoordinateY',
-    'z'              : 'CoordinateZ',
-    'x3d'            : 'CoordinateX',
-    'y3d'            : 'CoordinateY',
-    'z3d'            : 'CoordinateZ',
-    'X'              : 'CoordinateX',
-    'Y'              : 'CoordinateY',
-    'Z'              : 'CoordinateZ',
-    'ro'             : 'Density',
-    'rou'            : 'MomentumX',
-    'rov'            : 'MomentumY',
-    'row'            : 'MomentumZ',
-    'rovx'           : 'MomentumX',
-    'rovy'           : 'MomentumY',
-    'rovz'           : 'MomentumZ',
-    'roe'            : 'EnergyStagnationDensity',
-    'roE'            : 'EnergyStagnationDensity',
-    'rok'            : 'TurbulentEnergyKineticDensity',
-    'ronutilde'      : 'TurbulentSANuTildeDensity',
-    'roeps'          : 'TurbulentDissipationDensity',
-    'roomega'        : 'TurbulentDissipationRateDensity',
-    'mach'           : 'Mach',
-    'psta'           : 'Pressure',
-    'tsta'           : 'Temperature',
-    'viscrapp'       : 'Viscosity_EddyMolecularRatio',
-    'walldistance'   : 'TurbulentDistance',
-    'wallglobalindex': 'TurbulentDistanceIndex',
+  'x'              : 'CoordinateX',
+  'y'              : 'CoordinateY',
+  'z'              : 'CoordinateZ',
+  'x3d'            : 'CoordinateX',
+  'y3d'            : 'CoordinateY',
+  'z3d'            : 'CoordinateZ',
+  'X'              : 'CoordinateX',
+  'Y'              : 'CoordinateY',
+  'Z'              : 'CoordinateZ',
+  'ro'             : 'Density',
+  'rou'            : 'MomentumX',
+  'rov'            : 'MomentumY',
+  'row'            : 'MomentumZ',
+  'rovx'           : 'MomentumX',
+  'rovy'           : 'MomentumY',
+  'rovz'           : 'MomentumZ',
+  'roe'            : 'EnergyStagnationDensity',
+  'roE'            : 'EnergyStagnationDensity',
+  'rok'            : 'TurbulentEnergyKineticDensity',
+  'ronutilde'      : 'TurbulentSANuTildeDensity',
+  'roeps'          : 'TurbulentDissipationDensity',
+  'roomega'        : 'TurbulentDissipationRateDensity',
+  'mach'           : 'Mach',
+  'psta'           : 'Pressure',
+  'tsta'           : 'Temperature',
+  'viscrapp'       : 'Viscosity_EddyMolecularRatio',
+  'walldistance'   : 'TurbulentDistance',
+  'wallglobalindex': 'TurbulentDistanceIndex',
 }
 
 # Known CGNS BC types
 KNOWNBCS = [
-    'BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
-    'BCFarfield', 'BCExtrapolate',
-    'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
-    'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
-    'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
-    'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
-    'UserDefined'
+  'BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
+  'BCFarfield', 'BCExtrapolate',
+  'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
+  'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
+  'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
+  'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
+  'UserDefined'
 ]
 
 # Dictionary mapping an Element number to a tuple storing
@@ -77,39 +77,39 @@ KNOWNBCS = [
 # from the Element number alone (e.g., NGON, MIXED).
 # Note for TRI and QUAD: pour l'ordre 4, rien dans l'enumeration CGNS...
 ELTNO2ELTINFO = {
-    2: ('NODE', 1, 0),
-    3: ('BAR', 2, 1),
-    4: ('BAR_3', 3, 1),
-    24: ('BAR_4', 4, 1),
-    5: ('TRI', 3, 2),
-    6: ('TRI_6', 6, 2),
-    25: ('TRI_9', 9, 2),
-    26: ('TRI_10', 10, 2),
-    7: ('QUAD', 4, 2),
-    8: ('QUAD_8', 8, 2),
-    9: ('QUAD_9', 9, 2),
-    27: ('QUAD_12', 12, 2),
-    28: ('QUAD_16', 16, 2), # Attention ici, QUAD_16 par defaut mais cela pourrait etre QUAD_P4_16... Que faire ?
-    10: ('TETRA', 4, 3),
-    11: ('TETRA_10', 10, 3),
-    12: ('PYRA', 5, 3),
-    13: ('PYRA_14', 14, 3),
-    14: ('PENTA', 6, 3),
-    15: ('PENTA_15', 15, 3),
-    16: ('PENTA_18', 18, 3),
-    17: ('HEXA', 8, 3),
-    18: ('HEXA_20', 20, 3),
-    19: ('HEXA_27', 27, 3),
-    20: ('MIXED', -1, 3),
-    22: ('NGON', -1, 3),
-    23: ('NFACE', -1, 3)
+  2: ('NODE', 1, 0),
+  3: ('BAR', 2, 1),
+  4: ('BAR_3', 3, 1),
+  24: ('BAR_4', 4, 1),
+  5: ('TRI', 3, 2),
+  6: ('TRI_6', 6, 2),
+  25: ('TRI_9', 9, 2),
+  26: ('TRI_10', 10, 2),
+  7: ('QUAD', 4, 2),
+  8: ('QUAD_8', 8, 2),
+  9: ('QUAD_9', 9, 2),
+  27: ('QUAD_12', 12, 2),
+  28: ('QUAD_16', 16, 2), # Attention ici, QUAD_16 par defaut mais cela pourrait etre QUAD_P4_16... Que faire ?
+  10: ('TETRA', 4, 3),
+  11: ('TETRA_10', 10, 3),
+  12: ('PYRA', 5, 3),
+  13: ('PYRA_14', 14, 3),
+  14: ('PENTA', 6, 3),
+  15: ('PENTA_15', 15, 3),
+  16: ('PENTA_18', 18, 3),
+  17: ('HEXA', 8, 3),
+  18: ('HEXA_20', 20, 3),
+  19: ('HEXA_27', 27, 3),
+  20: ('MIXED', -1, 3),
+  22: ('NGON', -1, 3),
+  23: ('NFACE', -1, 3)
 }
 
 # Dictionary mapping an Element name to a tuple storing
 # (Element number, number of nodes). The number of nodes is set to -1 when it
 # cannot be inferred from the Element name alone (e.g., NGON, MIXED).
 ELTNAME2ELTINFO = {
-    eltInfo[0]: (eltNo, eltInfo[1]) for eltNo, eltInfo in ELTNO2ELTINFO.items()
+  eltInfo[0]: (eltNo, eltInfo[1]) for eltNo, eltInfo in ELTNO2ELTINFO.items()
 }
 
 __DEG2RAD__ = 0.017453292519943295 # math.pi/180.
