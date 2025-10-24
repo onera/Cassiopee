@@ -77,6 +77,7 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 #undef PLOTQUAD
 #undef PLOTQUAD2
 #undef PLOTNGON
+#undef PLOTNGON2
   double* f1 = zonep->f[nofield1];
   double* f2 = zonep->f[nofield2];
   double* f3 = zonep->f[nofield3];

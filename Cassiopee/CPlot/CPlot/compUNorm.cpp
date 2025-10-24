@@ -392,7 +392,7 @@ void UnstructZone::compNorm()
       
     if (ne != nelts2D)
     {
-      // NGON 3D
+      // NGON 3D - stored in faces
       float* surfp = new float[nf * 3];
       surf.push_back(surfp);
       float* surfx = surfp;
@@ -435,14 +435,18 @@ void UnstructZone::compNorm()
     }
 
     // Correction pour elements 2D (prise en compte d'un seul triangle)
+    // stored in nodes
     if (ne == nelts2D)
     {
-      float* surfp = new float[nf * 3];
+      float* surfp = new float[np * 3];
       surf.push_back(surfp);
       float* surfx = surfp;
-      float* surfy = surfx + nf;
-      float* surfz = surfy + nf;
-      
+      float* surfy = surfx + np;
+      float* surfz = surfy + np;
+      for (E_Int i = 0; i < np; i++) surfx[i] = 0.;
+      for (E_Int i = 0; i < np; i++) surfy[i] = 0.;
+      for (E_Int i = 0; i < np; i++) surfz[i] = 0.;
+
       for (i = 0; i < nelts2D; i++)
       {
         elt = posElts2D[i];
@@ -462,28 +466,38 @@ void UnstructZone::compNorm()
         inv = 1./(2.*nf);
         xc = xc*inv; yc = yc*inv; zc = zc*inv;
 
-        // face 1
-        face = ptrelt[1]-1;
-        ptrface = &zconnect[posFaces[face]];
-        n1 = ptrface[1]-1; n2 = ptrface[2]-1;
-        // face 2 
-        face = ptrelt[2]-1;
-        ptrface = &zconnect[posFaces[face]];
-        n3 = ptrface[1]-1; n4 = ptrface[2]-1;
+        for (E_Int j = 0; j < nf-1; j++)
+        {
+          // face 1
+          face = ptrelt[j+1]-1;
+          ptrface = &zconnect[posFaces[face]];
+          n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+          // face 2 
+          face = ptrelt[j+2]-1;
+          ptrface = &zconnect[posFaces[face]];
+          n3 = ptrface[1]-1; n4 = ptrface[2]-1;
 
-        if (n1 == n3 || n1 == n4)
-        { n3 = n1; n1 = n2; n2 = n3; } // swap n1 et n2 - signe normale
+          if (n1 == n3 || n1 == n4)
+          { n3 = n1; n1 = n2; n2 = n3; } // swap n1 et n2 - signe normale
 
-        x0 = x[n1]; y0 = y[n1]; z0 = z[n1];   
-        x1 = x[n2]; y1 = y[n2]; z1 = z[n2];                 
-        x2 = xc; y2 = yc; z2 = zc;                  
-        vx = (y1-y0)*(z2-z0)-(z1-z0)*(y2-y0);                
-        vy = (z1-z0)*(x2-x0)-(x1-x0)*(z2-z0);              
-        vz = (x1-x0)*(y2-y0)-(y1-y0)*(x2-x0);              
-        normi = invsqrt((float)(vx*vx+vy*vy+vz*vz));
-        vx = normi*vx; vy = normi*vy; vz = normi*vz;
-        face = ptrelt[1]-1; // stocke sur la premiere face
-        surfx[face] = vx; surfy[face] = vy; surfz[face] = vz;
+          x0 = x[n1]; y0 = y[n1]; z0 = z[n1];   
+          x1 = x[n2]; y1 = y[n2]; z1 = z[n2];                 
+          x2 = xc; y2 = yc; z2 = zc;
+          vx = (y1-y0)*(z2-z0)-(z1-z0)*(y2-y0);
+          vy = (z1-z0)*(x2-x0)-(x1-x0)*(z2-z0);
+          vz = (x1-x0)*(y2-y0)-(y1-y0)*(x2-x0);
+          normi = invsqrt((float)(vx*vx+vy*vy+vz*vz));
+          vx = normi*vx; vy = normi*vy; vz = normi*vz;
+          //face = ptrelt[1]-1; // stocke sur la premiere face
+          surfx[n1] += vx; surfy[n1] += vy; surfz[n1] += vz;
+          surfx[n2] += vx; surfy[n2] += vy; surfz[n2] += vz;
+        }
+      }
+      // renormalize
+      for (E_Int i = 0; i < np; i++) 
+      {
+        normi = invsqrt(surfx[i]*surfx[i]+surfy[i]*surfy[i]+surfz[i]*surfz[i]);
+        surfx[i] = normi*surfx[i]; surfy[i] = normi*surfy[i]; surfz[i] = normi*surfz[i];
       }
     }
   }
