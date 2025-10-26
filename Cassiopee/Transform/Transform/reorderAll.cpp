@@ -315,7 +315,7 @@ void K_TRANSFORM::graphPathSearch(E_Int nb_father, E_Int nb_cur,
                                   FldArrayI& tagOpp)
 {
   E_Int isOpp;
-  E_Int notvalid = 0;
+  //E_Int notvalid = 0;
 
   if ( nb_father != -1 )
   {

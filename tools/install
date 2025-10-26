@@ -18,3 +18,5 @@ echo 'Installing propre'
 cp propre "$INSTALLPATH"
 echo 'Installing locateSymbol'
 cp locateSymbol "$INSTALLPATH"
+echo 'Installing codeExtract'
+cp codeExtract "$INSTALLPATH"

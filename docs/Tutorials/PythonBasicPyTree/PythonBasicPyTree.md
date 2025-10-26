@@ -3,6 +3,8 @@
 This tutorial explores the data handled by all Cassiopee functions,
 called a *CGNS python tree* or shorter a *pytree*. This data is able to store the mesh coordinates, connectivities, fields and boundary conditions. It is conform to the CGNS standard document (https://cgns.org).
 
+Get the sample cgns file: XXXX
+
 ## Reading a pytree from a file and basic tree node management
 
 In this section, we will use the Converter module:
@@ -39,10 +41,11 @@ is the node name, the second is the node value and is numpy, the third is all li
 containing the child nodes and the last one is the node type. For example:
 
 ```python
-node = ['CoordinateX', numpyArray, [], 'DataArray_t']
+import numpy
+node = ['CoordinateX', numpy.array([0.,1.,2.], dtype=numpy.float64, order='F'), [], 'DataArray_t']
 ```
 
-You can of course use numpy functions on numpyArray (node[1]) as usual.
+You can of course use numpy functions on numpy array (node[1]) as usual.
 
 For example, change the X coordinate of the first point using numpy:
 ```python
@@ -69,30 +72,40 @@ For example:
 
 ```python
 import Generator.PyTree as G
+# create a structured grid
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
 ```
 The internal numpy is then accessible by 3 indices.
 ```python
+# get the CoordinateX node
 n = Internal.getNodeFromName(a, 'CoordinateX')
 print(n[1].shape)
 ```
 
 Elements grids are of given element types (TRI, TETRA, HEXA, ...) and store a connectivity:
 ```python
-import Generator.PyTree as G
-a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
+# create an TETRA grid
+a = G.cartTetra((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
 ```
 
 This type of zone can also store different element types.
+For example, create another grid with PENTA (prisms) and merge connectivities in a single multi-elements grid:
+
+```python
+# create a PENTA grid
+b = G.cartPenta((0,0,9), (1,1,1), (10,10,5))
+a = C.mergeConnectivity(a, b)
+Internal.printTree(a)
+```
 
 Polyedral grids (also called NGON) enables faces of arbitrary number of points
 and elements of arbitrary number of faces. Its is made of two connectivities,
 the NGON described face node indices and the NFACE describes face indices.
 
 ```python
-import Generator.PyTree as G
+# create a NGON grid
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
 ```
@@ -102,15 +115,52 @@ Internal.printTree(a)
 Boundary conditions can be added topologically (from indices or range) or 
 geometrically.
 
+On structured grids, add a wall for "imin" window:
+
+```python
+# add a BC on a structured grid
+a = G.cart((0,0,0), (1,1,1), (10,10,10))
+C._addBC2Zone(a, 'wall', 'BCWall', 'imin')
+Internal.printTree(a)
+```
+
+On element or ngon grids, add a wall defined geometrically:
+
+```python
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
+# define boundary geometry
+b = G.cartHexa((0,0,0), (1,1,1), (10,10,1))
+# add BC on unstructured grid
+C._addBC2Zone(a, 'wall', 'BCWall', subzone=b)
+Internal.printTree(a)
+```
+
 ## Fields
 
-In pytrees, you can add fields to any zones store in nodes. C.initVars enables
-to write formulas from other variables:
+In pytrees, you can add fields to any zones store in nodes or in centers. 
+C.initVars enables to write formulas from other variables:
+
 ```python
+# Init a node field
 C._initVars(a, '{nodes:Density}=1.')
+# Init a center field
 C._initVars(a, '{centers:Pressure}=3*{centers:CoordinateX}')
 Internal.printTree(a)
 C.convertPyTree2File(a, 'out.cgns')
 ```
 
+The "_" before initVars means that the function is applied "in place",
+that is without duplication. Without "_", the function returns a reference copy:
 
+```python
+b = C.initVars(a, '{VelocityX}=0.')
+```
+
+You can also initialize a conservative field from a dimensional or non dimensional state:
+
+```python
+import Initiator.Adim as Adim
+state = Adim.dim1(UInf=2.8, TInf=298., PInf=101325, LInf=12., alphaZ=1.)
+C._initVars(a, 'centers:Density', state[0])
+C._initVars(a, 'centers:MomentumX', state[1])
+```
