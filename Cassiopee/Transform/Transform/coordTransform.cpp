@@ -25,16 +25,6 @@ using namespace std;
 using namespace K_FUNC;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6homothety_(const E_Int& npts,
-                    const E_Float* x, const E_Float* y, const E_Float* z,
-                    const E_Float& xc, const E_Float& yc, const E_Float& zc,
-                    const E_Float& alpha,
-                    E_Float* xo, E_Float* yo, E_Float* zo);
-
-}
-
 // ============================================================================
 /* Contract python array describing a mesh */
 // ============================================================================
