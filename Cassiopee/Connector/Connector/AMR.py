@@ -28,7 +28,7 @@ TOL = 1.e-9
 OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./'):
     sym3D=False; forceAlignment=False;
-
+    Cmpi.trace('AMR prepare IBM...start', master=True)
     t_prep_start = time.perf_counter()
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     if frontTypeIP not in ["1","2"]:
@@ -255,6 +255,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             Internal._renameNode(t, "TurbulentDistanceForCFDComputation","TurbulentDistance")
 
     Internal._renameNode(t,'FlowSolution#Centers','FlisWallDistance')
+    Cmpi.trace('AMR prepare IBM...end', master=True)
     return t
 
 def computationDistancesNormals(t, tb, dim=3):
@@ -360,7 +361,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
         C._initVars(frontIP_C,'dist',distance_DP)
 
-    ip_pts = C.getAllFields(frontIP_C,loc='nodes')[0]
+    ip_pts = C.getAllFields(frontIP_C,loc='nodes', api=1)[0]
     ip_pts = Converter.convertArray2Node(ip_pts)
     ip_pts = [ip_pts]
 
@@ -368,7 +369,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
     bodies = []; listOfIBCTypes=[]
 
     for noz,zone in enumerate(Internal.getZones(tb)):
-        body = C.getFields(Internal.__GridCoordinates__,zone)
+        body = C.getFields(Internal.__GridCoordinates__, zone, api=1)
         body = Converter.convertArray2Tetra(body)
         body = Transform.join(body)
         bodies.append(body)
@@ -381,7 +382,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         wallpts = res[0]
         imagepts = res[1]
     elif frontTypeDP == "1":
-        frontDP = C.getFields(Internal.__GridCoordinates__,frontDP)
+        frontDP = C.getFields(Internal.__GridCoordinates__, frontDP, api=1)
         frontDP = Converter.convertArray2Tetra(frontDP)
         listOfSnearsLoc=[]
         listOfModelingHeightsLoc = []
@@ -923,7 +924,7 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
 
     list_suffix_datasets = [""]
     list_suffix_datasets.extend(range(1, N_IP_per_cell))
-    walldistance_volume_ip = Internal.getNodeFromName(z_IP,"TurbulentDistance")[1]
+    walldistance_volume_ip = Internal.getNodeFromName(z_IP, "TurbulentDistance")[1]
 
     zones = Internal.getZones(t) #always one single zone
     for i in range(N_IP_per_cell):
@@ -940,33 +941,21 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                   snears, dfars, loadBalancing, conformal, OutputAMRMesh,
                   localDir= fileName)"""
-    import time
-    startTime = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR Mesh Generation...start',flush=True)
+
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
                                   toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=False)
-    if Cmpi.rank==0: print('AMR Mesh Generation...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
-    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Generation: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
 
-    startTime   = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR Mesh Dist2Wal...start',flush=True)
-    if dim==2: tb2=T.addkplane(tb)
+    Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
+    if dim == 2: tb2 = T.addkplane(tb)
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
     del tb2
-    if Cmpi.rank==0: print('AMR Mesh Dist2Wall...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
-    if Cmpi.rank==0: print('Elapsed Time: AMR Mesh Dist2Wall: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    Cmpi.trace('AMR Mesh Dist2Walls...end', master=True)
 
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
-    startTime   = time.perf_counter_ns()
-    if Cmpi.rank==0: print('AMR prepare IBM...start',flush=True)
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir)
-    if Cmpi.rank==0: print('AMR prepare IBM...end',flush=True)
-    endTime     = time.perf_counter_ns(); elapsedTime = endTime-startTime; elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
-    if Cmpi.rank==0: print('Elapsed Time: AMR prepare IBM: %g [s] | %g [min] | %g [hr]'%(elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+
     if fileName is not None:
         Cmpi.convertPyTree2File(t_AMR, localDir+fileName)
         return None

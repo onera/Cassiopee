@@ -203,13 +203,14 @@ elif [ "$MAC" = "visio" ]; then
     export ELSAPROD=visio
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-dri.sh
+    module purge
     module load python/3.6.1
-    module unload $(module -t list 2>&1 | grep -i intel)
     module load gcc/4.8.1
     module load intel/17.0.4
     module load impi/17
-    # Nombre de threads
     export OMP_NUM_THREADS=16
+    export PYTHONEXE=python3
+    export PRODMODE=1
     
 elif [ "$MAC" = "visung_gcc" ]; then
 #----------------------------- visung_gcc -------------------------------------
@@ -296,7 +297,7 @@ elif [ "$MAC" = "spiro" ]; then
     alias inspxe-gui="/opt/tools/intel/oneapi/inspector/2021.2.0/bin64/inspxe-gui result"
     alias vtune="vtune -collect hotspots -result-dir result -quiet"
     export PYTHONEXE=python3
-    export PRODMODE=0
+    export PRODMODE=1
     unset I_MPI_FABRICS_LIST
     unset I_MPI_FABRICS
     unset I_MPI_TCP_NETMASK
@@ -350,11 +351,11 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    unset $(env | grep SLURM | cut -d'=' -f 1)
-    unset OMP_PLACES
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "juno_gpu" ]; then
 #----------------------------- juno gpu ------------------------------------
@@ -379,6 +380,30 @@ elif [ "$MAC" = "juno_coda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
+    source /opt/tools/Modules/init/bash
+    module purge
+    module load lapack/3.9.1-gnu831
+    module load occt/7.6.1-gnu831
+    module load fmt/8.1.1-gnu831 gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
+    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    module use /stck/rhea/juno_coda_v2025_08/modules/linux-rocky8-x86_64_v3
+    module load coda/2025.08.0-gnu12.1.0 fszoltanintegration/2025.08.0-gnu12.1.0 fsoversetblanking/2025.08.0-gnu12.1.0
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export ASAN_OPTIONS=verify_asan_link_order=false
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
+
+elif [ "$MAC" = "juno_coda2" ]; then
+#----------------------------- juno coda --------------------------------------
+    export ELSAPROD=juno_coda
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
     #. /etc/profile.d/modules-onera.sh
     export MODULEPATH=/stck/rhea/coda_modules:$MODULEPATH
     CASSIOPEESAVE=$CASSIOPEE
@@ -392,12 +417,12 @@ elif [ "$MAC" = "juno_coda" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    unset $(env | grep SLURM | cut -d'=' -f 1)
-    unset OMP_PLACES
     #export OMP_DISPLAY_ENV=VERBOSE
     export ASAN_OPTIONS=verify_asan_link_order=false
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    unset $(env | grep SLURM | cut -d'=' -f 1)
+    unset OMP_PLACES
 
 elif [ "$MAC" = "topaze" ]; then
 #----------------------------- topaze ccrt proc amd milan ---------------------
@@ -500,12 +525,13 @@ elif [ "$MAC" = "sator_coda" ]; then
     export OMP_NUM_THREADS=48
     source /opt/tools/Modules/init/bash
     module purge
+    module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
     module load fmt/8.1.1-gnu831 gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
     export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
     export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
     module use /tmp_user/sator/rhea/sator_coda_v2025_08/modules/linux-rocky8-x86_64_v3
-    module load coda/2025.08.0-gnu12.1.0 fszoltanintegration/2025.08.0-gnu12.1.0    
+    module load coda/2025.08.0-gnu12.1.0 fszoltanintegration/2025.08.0-gnu12.1.0 fsoversetblanking/2025.08.0-gnu12.1.0
     export OMP_PLACES=cores
     export PYTHONEXE=python3
     export PRODMODE=1

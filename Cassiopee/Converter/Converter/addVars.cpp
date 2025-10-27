@@ -88,47 +88,45 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
     else sizet = nt;
 
     E_Int fSize = f->getSize();
+    E_Int api = f->getApi();
     // Building array here
     if (res == 1) 
-      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, f->getApi());
+      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, api);
     else
     {
-      E_Int csize = cn->getSize()*cn->getNfld();
-      tpl = K_ARRAY::buildArray(sizet, fstring, fSize, cn->getSize(), -1, 
-                                eltType, false, csize);
-      E_Int* cnRef = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnRef, cn->begin(), cn->getSize()*cn->getNfld());
+      tpl = K_ARRAY::buildArray3(sizet, fstring, fSize,
+                                 *cn, eltType, false, api, true);
     }
+    FldArrayF* s;
+    K_ARRAY::getFromArray3(tpl, s);
 
-    E_Float* sp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF s(fSize, sizet, sp, true);
-
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
       for (E_Int i = 1; i <= nt; i++)
       {
-        E_Float* spi = s.begin(i);
+        E_Float* spi = s->begin(i);
         E_Float* fp = f->begin(i);
-#pragma omp for
+        #pragma omp for
         for (E_Int j = 0; j < fSize; j++) spi[j] = fp[j];
       }
       if (pos == -1) // on initialise que si c'est une nouvelle variable
       {
-        E_Float* spi = s.begin(nt+1);
+        E_Float* spi = s->begin(nt+1);
         if (K_STRING::cmp(name, "cellN") == 0 || 
             K_STRING::cmp(name, "cellNF") == 0)
         {
-#pragma omp for
+          #pragma omp for
           for (E_Int j = 0; j < fSize; j++) spi[j] = 1.;
         }
         else
         { 
-#pragma omp for
+          #pragma omp for
           for (E_Int j = 0; j < fSize; j++) spi[j] = 0.;
         }
       }
     }
     delete [] fstring;
+    RELEASESHAREDS(tpl, s);
   }
   else
   {
@@ -209,38 +207,38 @@ PyObject* K_CONVERTER::addVar(PyObject* self, PyObject* args)
     for (E_Int v = 0; v < sizevars; v++) delete vars[v];
     
     E_Int fSize = f->getSize();
+    E_Int api = f->getApi();
     // Building array here
     if (res == 1) 
-      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, f->getApi());
+      tpl = K_ARRAY::buildArray3(sizet, fstring, nil, njl, nkl, api);
     else
     {
-      E_Int csize = cn->getSize()*cn->getNfld();
-      tpl = K_ARRAY::buildArray(sizet, fstring, fSize, cn->getSize(), -1, eltType, false, csize);
-      E_Int* cnRef = K_ARRAY::getConnectPtr(tpl);
-      K_KCORE::memcpy__(cnRef, cn->begin(), cn->getSize()*cn->getNfld());
+      tpl = K_ARRAY::buildArray3(sizet, fstring, fSize,
+                                 *cn, eltType, false, api, true);
     }
-    E_Float* sp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF s(fSize, sizet, sp, true);
+    FldArrayF* s;
+    K_ARRAY::getFromArray3(tpl, s);
 
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
       for (E_Int i = 1; i <= sizet; i++)
       {
-        E_Float* spi = s.begin(i);
+        E_Float* spi = s->begin(i);
         E_Float* fp = f->begin(i);
-#pragma omp for
+        #pragma omp for
         for (E_Int j = 0; j < fSize; j++) spi[j] = fp[j];
       }
       E_Int sizepos1 = pos1.size();
       for (E_Int i = 0; i < sizepos1; i++)
       {
-        E_Float* spi = s.begin(pos1[i]);
+        E_Float* spi = s->begin(pos1[i]);
         E_Float* f2p = f2->begin(pos2[i]);
-#pragma omp for
+        #pragma omp for
         for (E_Int j = 0; j < fSize; j++) spi[j] = f2p[j];
       }
     }
     delete [] fstring;
+    RELEASESHAREDS(tpl, s);
     RELEASESHAREDB(res2, additional, f2, cn2);
   }
  

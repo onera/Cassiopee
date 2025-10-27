@@ -881,7 +881,7 @@ def chunk2part(dt):
     ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nface = I.getNFaceNode(z)
     nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 

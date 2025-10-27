@@ -26,14 +26,14 @@ discarded by left clicking on its name at top of frame or by pressing
 CTRL+c.
 
 The default settings of an applet can be modified in the preference file
-by right clicking on the applet name and chosing 'save'.
+by right clicking on the applet name [+] and chosing 'save'.
 Settings can be reset by chosing 'reset' in the menu.
 An applet can be pinned, meaning that it will automatically
 be opened at next restart.
 
-The graphical window is called the CPlot window. You can rotate
-your model using left mouse button. You can move your model
-using left mouse button. You can tilt the model by pressing
+The graphical window is called the CPlot window. In this window, 
+you can rotate your model using left mouse button. You can move your model
+using right mouse button. You can tilt the model by pressing
 CTRL+right mouse button. You can move the way your looking without
 modifying your position by pressing CTRL+left mouse button.
 View can be quickly centered by left double clicking.
@@ -67,13 +67,15 @@ Cassiopee:ToolBar
 
     - The save icon: click for quick save,
     - The undo icon: click for undo (only one level), 
-    - The delete block icon: click will delete selected blocks,
-    - The copy block icon: click will copy selected blocks,
+    - The reload current file: click will reload data from file,
+    - The export image icon: click to write current view to a image file,
     - The fit view icon: click to fit view to selection,
-    - The select all blocks icon: select all zones, 
+    - The duplicate zone icon: click will copy selected zones,
+    - The remove icon: click will delete selected zones,
     - The view deactivated zones icon: enables to view deactivated zones as ghost grids,
+    - The switch icon: active zone becomes inactive and conversely,
     - The main tree icon: force view on main tree.    
-
+    
 
 Cassiopee:Tree
 ---------------
@@ -87,19 +89,15 @@ This tab gathers applets related to pyTree management.
     'Suppr' key deletes selected node, CTRL+e extend the window size,
     CTRL+r shrink the window.
 
+    - **tkNodeEdit**: enables to edit pytree nodes.
+
     - **tkTreeOps**: enables to move selection to another base, reorder tree nodes and edit node values.
 
     - **tkCheckPyTree**: enables to check your pyTree with different level of checking (node conformity, zone names, boundary condition consistency...).
 
-    - **tkFilter**: enables to select/activate zones that match the filter rule. 
-    For filtering by name, you can use standard python regexp. 
-    For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
-    You can also filter zones by size (number of points), by multigrid level,
-    by affected processor, by Chimera priority, or by formula. With this,
-    you can specify a rule like '{Density}>0.1': zones that match the rule
-    for at least one grid point will be selected.
-
     - **tkFamily**: enables to create zone families or BC families.
+
+    - **tkCADFix**: enables basic CAD fixing if your data is loaded from a CAD file.
 
 Cassiopee:State
 ----------------
@@ -122,13 +120,25 @@ This menu gathers applets related to state modification.
     'FlowSolution' and 'FlowSolution#Centers' containers. If you want
     functions to operate on other containers, change their name here.
 
+    - **tkCamera**: enable to set camera.
+
+    - **tkFilter**: enables to select/activate zones that match the filter rule. 
+    For filtering by name, you can use standard python regexp. 
+    For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
+    You can also filter zones by size (number of points), by multigrid level,
+    by affected processor, by Chimera priority, or by formula. With this,
+    you can specify a rule like '{Density}>0.1': zones that match the rule
+    for at least one grid point will be selected.
+
+    - **tkFind**: find a given index in mesh.
+
+    - **tkProbe**: enable to probe points in field.
+
     - **tkRuler**: measure your distance on your model using this applet. 
     First click on model set first point, second click indicates the distance.
     Click again on 'Measure mode' to end.
 
-    - **tkFind**: find a given index in mesh.
 
-    
 Cassiopee:Edge
 -----------------
     
@@ -151,6 +161,8 @@ This menu gathers applets related to surface creation/modification.
 
     - **tkText**: create a text.
 
+    - **tkCADMesh**: controls surface CAD mesher parameters.
+
     - **tkFixer2**: fix gaps in surfaces. 
     This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on 'Fix gap in contour'. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on 'Fix gap in patches'.
 
@@ -158,11 +170,11 @@ This menu gathers applets related to surface creation/modification.
 
     - **tkSculpt**: very basic sculpting tool.
 
-    - **tkPaint**: change field values by painting.
+    - **tkMMGS**: surface remeshing using mmgs.
+    
+    - **tkCartWrap**: perform surface remeshing by projecting an octree on surface.
 
-    - **tkMapSurf**: perform surface remeshing by projecting an octree on surface.
-
-    - **tkFilterSurfs**: enables to filter or inflate a surface.
+    - **tkOffset**: enables to create offset surfaces.
 
     - **tkSurfaceWalk**: create meshes by walking on surfaces.
 
@@ -275,9 +287,9 @@ This menu gathers applets related to solvers.
 
     - **tkDist2Walls**: computes wall distance.
 
-    - **tkCassiopeeSolver**: export CGNS files suitable for Cartesian solver.
-
     - **tkElsaSolver**: export CGNS files suitable for elsAxdt.
+
+    - **tkFastSolver**: export CGNS files suitable for Fast solver.
 
 Cassiopee:Post
 ---------------
@@ -297,15 +309,16 @@ Cassiopee:Visu
 This menu gathers applets related to pyTree visualization.
 
     - **tkView**: perform view settings.
-    - **tkPlot**: perform 1D plot of data.
+    - **tkPlotXY**: perform 1D plot of data.
     - **tkSlice**: extract/view slices in mesh.
-    - **tkCelln**: enables to display the location of interpolated, 
+    - **tkIJK**: enables ijk views of structured grids.
+    - **tkCelln**: enables to display the location of interpolated. 
     blanked points described by a 'cellN' or 'cellNF' field.
     - **tkBackground**: add a background.
 
 Cassiopee:Render
 -----------------
-
+    - **tkRenderTree**: enables to set texture files in tree.
     - **tkRenderSet**: enables to chose the color and material of each zone.
     - **tkStereo**: enable the stereo anaglyph mode.
     - **tkEffects**: enable special effects for view such as shadow, DOF.

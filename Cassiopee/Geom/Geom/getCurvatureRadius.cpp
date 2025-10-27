@@ -48,14 +48,14 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   }
   if ( res == 1 && ( jm != 1 || km != 1 || im == 1 ) )
   {
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: structured array must be an i-array.");
     return NULL;
   }
   else if ( res == 2  )
   {
-    delete f; delete cn;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: not for unstructured arrays.");
     return NULL;
@@ -66,7 +66,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: can't find coordinates in array.");
     return NULL;
@@ -95,6 +95,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
     else rad[i] = 1./c;
   }
   PyObject* tpl = K_ARRAY::buildArray3(rad, "radius", npts, 1, 1, api);
-  delete f; delete radp;
+  delete radp;
+  RELEASESHAREDB(res, array, f, cn);  
   return tpl;
 }

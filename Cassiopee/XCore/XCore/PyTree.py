@@ -207,11 +207,11 @@ def loadAndSplitNGon(fileName):
     cy = I.getNodeFromName2(z, 'CoordinateY')[1]
     cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-    ngon = I.getNodeFromName2(z, 'NGonElements')
+    ngon = I.getNGonNode(z)
     ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nface = I.getNFaceNode(z)
     nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
@@ -282,7 +282,7 @@ def loadAndSplitNGon(fileName):
 
     for n, name in enumerate(solcNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray(name, value=solc[n], parent=cont)
 
     # add bcs
@@ -465,7 +465,7 @@ def splitConnex(m):
     for i in range(len(new_arrs)):
         z = I.createZoneNode("zone"+str(i), new_arrs[i])
         cont = I.createUniqueChild(z, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray('keep', value=new_ctags[i], parent=cont)
         cont = I.createUniqueChild(z, I.__FlowSolutionNodes__, 'FlowSolution_t')
         I.newDataArray('tag', value=new_ptags[i], parent=cont)
@@ -519,7 +519,7 @@ def icapsuleExtractMaster(IC):
     zm = I.createZoneNode("master", marr)
 
     cont = I.createUniqueChild(zm, I.__FlowSolutionCenters__, 'FlowSolution_t')
-    I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+    I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
     I.newDataArray("keep", value=ctag, parent=cont)
     return zm
 
@@ -532,7 +532,7 @@ def icapsuleExtractSlaves(IC):
         zs = I.createZoneNode("slave_"+str(i), sarrs[i])
 
         cont = I.createUniqueChild(zs, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray("keep", value=ctags[i], parent=cont)
 
         zones.append(zs)

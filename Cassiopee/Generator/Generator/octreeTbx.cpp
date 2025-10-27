@@ -275,7 +275,7 @@ E_Int K_GENERATOR::getNeighbourQuads2(
   E_Int nelts = cEV.getSize();
   /* 1 - creation du bbtree */
   typedef K_SEARCH::BoundingBox<2>  BBox2DType; 
-  std::vector<BBox2DType*> boxes(nelts);// a detruire a la fin
+  std::vector<BBox2DType*> boxes(nelts);
   K_FLD::FldArrayF bbox(nelts,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cEV, xt, yt, zt, bbox); 
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
@@ -314,11 +314,7 @@ E_Int K_GENERATOR::getNeighbourQuads2(
   }// fin et1
   }
 
-  for (E_Int et = 0; et < nelts; et++)
-  {
-    delete boxes[et];
-  }
-
+  for (E_Int et = 0; et < nelts; et++) delete boxes[et];
   delete bbtree;
   return 1;
 }
@@ -333,13 +329,13 @@ E_Int K_GENERATOR::getNeighbourQuads2(
 E_Int K_GENERATOR::getNeighbourHexas2(
   E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
   K_FLD::FldArrayI& cEV,
-  std::vector< std::vector<E_Int> >& nghbrs, E_Float mindh )
+  std::vector< std::vector<E_Int> >& nghbrs, E_Float mindh)
 {
   E_Float eps = 0.1*mindh;
   E_Int nelts = cEV.getSize();
   /* 1 - creation du bbtree */
   typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
-  std::vector<BBox3DType*> boxes(nelts);// a detruire a la fin
+  std::vector<BBox3DType*> boxes(nelts);
   K_FLD::FldArrayF bbox(nelts,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cEV, xt, yt, zt, bbox); 
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
@@ -348,7 +344,7 @@ E_Int K_GENERATOR::getNeighbourHexas2(
 
 #pragma omp parallel default(shared)
   {
-    E_Float minB0[3];  E_Float maxB0[3];
+    E_Float minB0[3]; E_Float maxB0[3];
 #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
@@ -361,7 +357,7 @@ E_Int K_GENERATOR::getNeighbourHexas2(
 
 #pragma omp parallel default(shared)
   {
-  E_Float minB[3];  E_Float maxB[3];
+  E_Float minB[3]; E_Float maxB[3];
   E_Int et2;
 #pragma omp for
   for (E_Int et1 = 0; et1 < nelts; et1++)
@@ -378,6 +374,8 @@ E_Int K_GENERATOR::getNeighbourHexas2(
     }// fin et2
   }// fin et1
   }
+
+  for (E_Int et = 0; et < nelts; et++) delete boxes[et];
   delete bbtree;
   return 1;
 }

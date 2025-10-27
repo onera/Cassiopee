@@ -22,27 +22,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6compmindist_( const E_Int& ni1, const E_Int& nj1,
-                       const E_Float* x1, const E_Float* y1,
-                       const E_Float* z1,
-                       const E_Int& ni2, const E_Int& nj2,
-                       const E_Float* x2, const E_Float* y2,
-                       const E_Float* z2,
-                       E_Int& ind1, E_Int& ind2, E_Float& dmin);
-
-  void k6rectifynormals_(const E_Int& ni1, const E_Int& nj1,
-                         const E_Int& ind1,
-                         const E_Float* x1, const E_Float* y1,
-                         const E_Float* z1,
-                         const E_Int& ni2, const E_Int& nj2,
-                         const E_Int& ind2,
-                         const E_Float* x2, const E_Float* y2,
-                         const E_Float* z2, const E_Float& distmin,
-                         E_Int& notvalid, E_Int& isopp);
-}
-
 //=============================================================================
 /* Redresseur de normales : etant donnee une liste de blocs paroi, oriente les
    blocs de telle sorte que les normales soient toutes dans le meme sens
@@ -202,13 +181,13 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
           posz2 = poszt[v2];
           FldArrayF* field2 = vectOfFields[v2];
 
-          k6compmindist_(ni1, nj1, field1->begin(posx1),
-                         field1->begin(posy1),
-                         field1->begin(posz1),
-                         ni2, nj2, field2->begin(posx2),
-                         field2->begin(posy2),
-                         field2->begin(posz2),
-                         ind1, ind2, dmin);
+          K_COMPGEOM::compMeanDist(ni1, nj1, 
+          field1->begin(posx1), field1->begin(posy1), field1->begin(posz1),
+          ni2, nj2, 
+          field2->begin(posx2), field2->begin(posy2), field2->begin(posz2),
+          ind1, ind2, dmin
+          );
+
           distMat(v1,v2+1) = dmin;
           distMat(v2,v1+1) = dmin;
           indMat(v1,v2+1) = ind1;
@@ -336,7 +315,7 @@ void K_TRANSFORM::graphPathSearch(E_Int nb_father, E_Int nb_cur,
                                   FldArrayI& tagOpp)
 {
   E_Int isOpp;
-  E_Int notvalid = 0;
+  //E_Int notvalid = 0;
 
   if ( nb_father != -1 )
   {
@@ -356,13 +335,12 @@ void K_TRANSFORM::graphPathSearch(E_Int nb_father, E_Int nb_cur,
     E_Int ind2 = rel(nb_cur, nb_father+1);
     E_Float dist = distMat(nb_father, nb_cur+1);
 
-    k6rectifynormals_(ni1, nj1, ind1, field1->begin(posx1),
-                      field1->begin(posy1),
-                      field1->begin(posz1),
-                      ni2, nj2, ind2, field2->begin(posx2),
-                      field2->begin(posy2),
-                      field2->begin(posz2),
-                      dist, notvalid, isOpp);
+    K_COMPGEOM::rectifyNormals(ni1, nj1, ind1, 
+      field1->begin(posx1), field1->begin(posy1), field1->begin(posz1),
+      ni2, nj2, ind2, 
+      field2->begin(posx2), field2->begin(posy2), field2->begin(posz2),
+      dist, isOpp
+    );
 
     tagOpp[nb_cur] = isOpp * tagOpp[nb_father];
   }

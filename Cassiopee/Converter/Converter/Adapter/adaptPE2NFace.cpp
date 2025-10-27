@@ -26,8 +26,8 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int api;
-  if (!PYPARSETUPLE_(args, O_ I_, &array, &api)) return NULL;
+  E_Int ngonType;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &ngonType)) return NULL;
 
   // Check numpy (parentElement)
   FldArrayI* cFE;
@@ -35,13 +35,13 @@ PyObject* K_CONVERTER::adaptPE2NFace(PyObject* self, PyObject* args)
 
   if (res == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "adaptPE2NFace: numpy is invalid.");
     return NULL;
   }
   
   FldArrayI cNFace, off; E_Int nelts;
-  if (api < 3) K_CONNECT::connectFE2NFace3(*cFE, cNFace, off, nelts);
+  if (ngonType <= 3) K_CONNECT::connectFE2NFace3(*cFE, cNFace, off, nelts);
   else K_CONNECT::connectFE2NFace4(*cFE, cNFace, off, nelts);
   
   RELEASESHAREDN(array, cFE);

@@ -33,7 +33,7 @@ D.DRIVER.instantiate({'P.1.2.0.y': 0.8})
 sketch1.writeCAD('out.step')
 mesh = sketch1.mesh(0.01, 0.01, 0.01)
 D.DRIVER._diff(sketch1, mesh)
-Converter.convertArrays2File(mesh, 'out.plt')
+Converter.convertArrays2File(mesh, 'dout.plt')
 
 # Build DOE
 #D.DRIVER.setDOE({'P.1.2.0.y': 0.1})

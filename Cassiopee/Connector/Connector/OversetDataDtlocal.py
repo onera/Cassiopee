@@ -135,7 +135,7 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                 noWallsInDnr = 0
                 walls = D.getCurvatureHeight(walls)
                 walls = C.convertArray2Tetra(walls, split="withBarycenters")
-                walls = C.getAllFields(walls,loc='nodes')
+                walls = C.getAllFields(walls,loc='nodes', api=1)
             donorSurfs.append(walls)
 
         # Zones receveuses : on determine les 1ers points paroi (centres ou noeuds)
@@ -154,8 +154,8 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             else: interpWallPts.append([])
 
     if noWallsInDnr == 1 or noWallsInRcv == 1: double_wall = 0 # on desactive le double wall
-    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    cellND = C.getField('cellN', zonesDnr)
+    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr, api=1)
+    cellND = C.getField('cellN', zonesDnr, api=1)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
     #---------------------------------------------------------------------------
@@ -204,8 +204,8 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
             interpPts = [];
             isdw = 0 # si double wall effectivement active, interpPts est une liste d'arrays
             if locR == 'nodes':
-                an = C.getFields(Internal.__GridCoordinates__, z)[0]
-                cellN = C.getField('cellN',z)[0]
+                an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+                cellN = C.getField('cellN', z, api=1)[0]
                 an = Converter.addVars([an,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []: # dw: liste d arrays
                     isdw = 1
@@ -216,9 +216,9 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
                     interpPts = Connector.getInterpolatedPoints__(an)
 
             elif locR == 'centers':
-                an = C.getFields(Internal.__GridCoordinates__, z)[0]
+                an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
                 ac = Converter.node2Center(an)
-                cellN = C.getField('centers:cellN',z)[0]
+                cellN = C.getField('centers:cellN', z, api=1)[0]
                 ac = Converter.addVars([ac,cellN])
                 if double_wall == 1 and interpWallPts[nozr] != []:# dw : liste d arrays
                     isdw = 1
@@ -386,7 +386,7 @@ def getTransfo(zdonor,zrcv):
     import KCore.Vector as Vector
     transfo = numpy.zeros(3,dtype=Internal.E_NpyInt)
 
-    a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]
+    a = C.getFields(Internal.__GridCoordinates__, zdonor, api=1)[0]
     ni = a[2]; nj=a[3]; nk=a[4]
 
     if (nk == 1): #2D
@@ -412,7 +412,7 @@ def getTransfo(zdonor,zrcv):
         mat_ = numpy.array([[a,b],
                             [c,d]])
 
-        a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
+        a = C.getFields(Internal.__GridCoordinates__, zrcv, api=1)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
@@ -492,7 +492,7 @@ def getTransfo(zdonor,zrcv):
                             [d,e,f],
                             [g,h,i]])
 
-        a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
+        a = C.getFields(Internal.__GridCoordinates__, zrcv, api=1)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni/2; j = nj/2; k = nk/2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)

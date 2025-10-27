@@ -69,9 +69,17 @@ KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal
             'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
             'UserDefined']
 
-#import math
 __DEG2RAD__ = 0.017453292519943295 #math.pi/180.
 __RAD2DEG__ = 57.29577951308232    #180./math.pi
+
+# Elements dimension by elt no
+DIMELTS = [0,
+           0,0,1,1,2,2,2,2,2,3,
+           3,3,3,3,3,3,3,3,3,3,
+           3,3,3,1,2,2,2,2,3,3,
+           3,3,3,3,3,3,3,3,3,1,
+           2,2,2,2,3,3,3,3,3,3,
+           3,3,3,3,3,3]
 
 #==============================================================================
 # -- is? --
@@ -2707,6 +2715,7 @@ def eltName2EltNo(name):
     else: nnodes = int(name[4:])
     if nnodes == 2: eltno = 3
     elif nnodes == 3: eltno = 4
+    elif nnodes == 4: eltno = 24
   elif name[0:3] == 'TRI':
     if len(name) == 3: nnodes = 3
     else: nnodes = int(name[4:])
@@ -2770,6 +2779,7 @@ def eltNo2EltName(eltno):
   if eltno == 2: name = 'NODE'; nnodes = 1
   elif eltno == 3: name = 'BAR'; nnodes = 2
   elif eltno == 4: name = 'BAR_3'; nnodes = 3
+  elif eltno == 24: name = 'BAR_4'; nnodes = 4
   elif eltno == 5: name = 'TRI'; nnodes = 3
   elif eltno == 6: name = 'TRI_6'; nnodes = 6
   elif eltno == 25: name = 'TRI_9'; nnodes = 9
@@ -2797,13 +2807,13 @@ def eltNo2EltName(eltno):
   return name, nnodes
 
 # Donne la dimension d'un element a partir de son no
-def dimFromEltNo(eltno):
-  if eltno == 2: return 0 # NODE
-  elif eltno >= 3 and eltno <= 4: return 1 # BAR
-  elif eltno >= 5 and eltno <= 6: return 2 # TRI
-  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
-  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
-  else: return 3
+#def dimFromEltNo(eltno):
+#  if eltno == 2: return 0 # NODE
+#  elif eltno >= 3 and eltno <= 4: return 1 # BAR
+#  elif eltno >= 5 and eltno <= 6: return 2 # TRI
+#  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
+#  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
+#  else: return 3
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)
 def range2Window(r):
@@ -3608,11 +3618,11 @@ def _groupByFamily(t, familyChilds=None, unique=False):
         else:
           e = -1
           for child in children:
-            if isName(child,getName(FamBC)) and isType(child,'Family_t'):
+            if isName(child,getName(FamBC)) and isType(child, 'Family_t'):
               setValue(child,getValue(FamBC))
               e = 0
               break
-          if e==-1: children.append(FamBC)
+          if e == -1: children.append(FamBC)
 
         nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
         setValue(bc, 'FamilySpecified')
@@ -3638,8 +3648,6 @@ def groupByFamily(t, familyChilds=None, unique=False):
 # EltsName: nom des elements (BAR, NODE, ..., NGON ou MULTI)
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
-  dimBE = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2, 'TETRA': 3,
-           'PYRA': 3, 'PENTA': 3, 'HEXA': 3}
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
   if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
@@ -3664,16 +3672,23 @@ def getZoneDim(zone):
         lc = len(c)
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
         elif lc == 1:
-          eltName,stype = eltNo2EltName(c[0][1][0])
-          if eltName in dimBE: cellDim = dimBE[eltName]
-          elif eltName in ['NGON', 'NFACE']:
+          elt = c[0][1][0]
+          eltName,stype = eltNo2EltName(elt)
+          cellDim = DIMELTS[elt]
+          if elt == 22 or elt == 23: # NGON or NFACE
             eltName = 'NGON'
-            data = getNodeFromName1(c[0], 'ElementConnectivity')
-            if data is not None and len(data)>0: datar = data[1]
-            if datar is not None and datar.size > 0:
-              if datar[0] == 1: cellDim = 1
-              elif datar[0] == 2: cellDim = 2
-          else: eltName = 'UNKNOWN'
+            data = getNodeFromName1(c[0], 'ElementStartOffset')
+            if data is not None: # NGON4
+              datar = data[1]
+              if datar is not None and len(datar)>1:
+                if datar[1] == 1: cellDim = 1
+                elif datar[1] == 2: cellDim = 2
+            else: # NGON3
+              data = getNodeFromName1(c[0], 'ElementConnectivity')
+              if data is not None and len(data)>0: datar = data[1]
+              if datar is not None and datar.size>0:
+                if datar[0] == 1: cellDim = 1
+                elif datar[0] == 2: cellDim = 2
           return [gtype, np, ne, eltName, cellDim]
         else: # lc >= 2:
           # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
@@ -3684,22 +3699,20 @@ def getZoneDim(zone):
             data = getNodeFromName1(NGONp, 'ElementStartOffset')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>1:
               if datar[1] == 1: cellDim = 1
               elif datar[1] == 2: cellDim = 2
               return [gtype, np, ne, 'NGON', cellDim]
-
             data = getNodeFromName1(NGONp, 'ElementConnectivity')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>0:
               if datar[0] == 1: cellDim = 1
               elif datar[0] == 2: cellDim = 2
-
             return [gtype, np, ne, 'NGON', cellDim]
           else: # BE/ME
             cellDim = 0
-            for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
+            for i in c: cellDim = max(cellDim, DIMELTS[i[1][0]])
             eltNames = dict.fromkeys(eltNames, None)
             return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
@@ -4214,7 +4227,7 @@ def setElementConnectivity2(z, array):
 def _setElementDim(z):
   GEl = getNodesFromType1(z, 'Elements_t')
   if GEl == []: return []
-  dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
+  dimElt = [DIMELTS[i[1][0]] for i in GEl]
   maxdim = max(dimElt)
   for c, GE in enumerate(GEl):
     if dimElt[c] == maxdim: GE[1][1] = 0
@@ -4223,11 +4236,30 @@ def _setElementDim(z):
 # -- Retourne une liste des noeuds Elements_t volumiques d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementNodes(z):
+  dim = 0; out = []
   GEl = getNodesFromType1(z, 'Elements_t')
-  out = []
   for GE in GEl:
-    if GE[1][1] == 0: out.append(GE)
+    elt = GE[1][0]
+    if DIMELTS[elt] == dim: out.append(GE)
+    elif DIMELTS[elt] > dim:
+      out.clear()
+      dim = DIMELTS[elt]
+      out.append(GE)
   return out
+
+# -- Retourne le noeud Element_t NGon si il existe
+def getNGonNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 22: return GE
+  return None
+
+# -- Retourne le noeud Elements_t NFace si il existe
+def getNFaceNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 23: return GE
+  return None
 
 # -- Retourne une liste des noeuds Elements_t de boundary d'une zone
 # Retourne [] si il n'y en a pas.
@@ -4300,28 +4332,28 @@ def _adaptPE2NFace(t, remove=True):
   """Creates NFaceElements nodes from ParentElements arrays in each zone."""
   zones = getZones(t)
   for z in zones:
-    NGON = getNodeFromName1(z, 'NGonElements')
+    NGON = getNGonNode(z)
     offset = getNodeFromName1(NGON, 'ElementStartOffset')
-    api = 3 if offset is not None else 2
-
+    ngonType = 4 if offset is not None else 3
     parentElt = getNodeFromName2(z, 'ParentElements')
     if parentElt is not None:
       cFE = parentElt[1]
-      cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+      cNFace, off, nelts = converter.adaptPE2NFace(cFE, ngonType)
       p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
       #p[1] = p[1].astype(numpy.int32) # force I4
       createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
       createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
-      if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+      if ngonType == 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
       else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
-
       if remove: _rmNodesByName(z, 'ParentElements')
+      _updateElementRange(z)
   return None
 
 # -- Adapte une connectivite NFACE en connectivite ParentElement
 # remove = True: detruit la connectivite NFace
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
+# if shiftPE=True, element numbers are shifted of nfaces
 def adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   tp = copyRef(t)
@@ -4350,7 +4382,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           node = getNodeFromName1(e, 'ElementRange')[1]
           nfaces = node[1]-node[0]+1
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNGon = cNGon.copy()
             cNGon = numpy.insert(cNGon, offset[:-1], offset[1:]-offset[:-1])
@@ -4360,17 +4392,17 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           noNFace = c
           cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNFace = cNFace.copy()
-            cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
+            cNFace = numpy.insert(numpy.abs(cNFace), offset[:-1], offset[1:]-offset[:-1])
       c += 1
 
     if cNFace is not None and NGON is not None and cNGon is not None:
       cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
+      if shiftPE: cFE = numpy.where(cFE==0, 0, cFE+nfaces)
       createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
     if remove: del z[2][noNFace]
-    if shiftPE: cFE[:] += nfaces
   return None
 
 def adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
@@ -4554,22 +4586,20 @@ def _adaptNGon32NGon4(t, shiftPE=True):
   return None
 
 # -- adaptSurfaceNGon
-def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+def _adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
   """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
   to (B: NGON=polygon, NFACE=NULL), or vice versa.
   """
   # add NFace node if necessary
   for z in getZones(a):
-    nFace = getNodeFromName(z, 'NFaceElements')
+    nFace = getNFaceNode(z)
     if nFace is None:
-      nGon = getNodeFromName(z, 'NGonElements')
-      offset = getNodeFromName(nGon, 'ElementStartOffset')
-      api = 3 if offset is not None else 2
-      rnGon = getNodeFromName(nGon, 'ElementRange')[1]
-
+      nGon = getNGonNode(z)
+      offset = getNodeFromName1(nGon, 'ElementStartOffset')
+      ngonType = 4 if offset is not None else 3
+      rnGon = getNodeFromName1(nGon, 'ElementRange')[1]
       nface = createNode('NFaceElements', 'Elements_t', parent=z,
-                         value=numpy.array([23,0],
-                                           dtype=E_NpyInt, order='F'))
+                         value=numpy.array([23,0], dtype=E_NpyInt, order='F'))
 
       value = numpy.array([rnGon[1]+1, rnGon[1]+1],
                           dtype=E_NpyInt, order='F')
@@ -4578,23 +4608,30 @@ def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
       value = numpy.array([], dtype=E_NpyInt, order='F')
       createNode('ElementConnectivity', 'DataArray_t',
                  parent=nface, value=value)
-      if api == 3:
+      if ngonType == 4:
         value = numpy.array([0], dtype=E_NpyInt, order='F')
       else: value =  numpy.array([], dtype=E_NpyInt, order='F')
-      createNode('ElementStartOffset', 'DataArray_t',
-                 parent=nface, value=value)
+      createNode('ElementStartOffset', 'DataArray_t', parent=nface, value=value)
 
   import Converter.PyTree as C
   import Converter
-  a = C.TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
+  C._TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
 
   if rmEmptyNFaceElements:
     for z in getZones(a):
-      nFace = getNodeFromName(z, 'NFaceElements')
-      cnFace = getNodeFromName(nFace, 'ElementConnectivity')[1]
-      if cnFace.size == 0: _rmNodesByName(z, 'NFaceElements')
+      nFace = getNFaceNode(z)
+      cnFace = getNodeFromName1(nFace, 'ElementConnectivity')[1]
+      if cnFace.size == 0: _rmNodesByName(z, nFace[0])
 
-  return a
+  return None
+
+def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  b = copyRef(a)
+  _adaptSurfaceNGon(b)
+  return b
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC

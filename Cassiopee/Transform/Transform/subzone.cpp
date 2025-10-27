@@ -1923,7 +1923,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       eidx++;
     }
 
-    // To fill fc2, continue populating parentElement by looping over all
+    // To fill fc2, continue populating ParentElements by looping over all
     // remaining faces
     // Convert faceList to an unordered_set for fast lookups
     std::unordered_set<E_Int> selectedFacesSet(faceList.begin(), faceList.end());

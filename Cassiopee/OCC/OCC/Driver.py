@@ -854,7 +854,7 @@ class Driver:
         mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
         return mesh2
 
-    # remesh input mesh to match nv points
+    # remesh input mesh to match nv points using refine
     def remesh(self, mesh, nv):
         import Generator
         nm = mesh[1].shape[1]
@@ -968,18 +968,32 @@ class Driver:
 
     def addAllCoefs(self):
         import itertools
-        ranges = []
+        ranges = []; size = 0
         for k in self.doeRange:
             ranges.append(range(k.size))
+            size += k.size
+        raf = size - size%Cmpi.size # seq reste a faire
 
         m = self.readSnaphot(0)
         nv = m[1].shape[1]
 
         for indexes in itertools.product(*ranges):
-            hashcode = self.getHash(indexes)
-            m = self.readSnaphot(hashcode)
-            m = self.remesh(m, nv)
-            self.addCoefs(hashcode, m)
+            hash = self.getHash(indexes)
+            if Cmpi.rank == hash%Cmpi.size and hash < raf:
+                m = self.readSnaphot(hash)
+                m = self.remesh(m, nv)
+                if Cmpi.rank == 0:
+                    self.addCoefs(hash, m)
+                    if Cmpi.size > 1: Cmpi.send(1, dest=1)
+                else:
+                    go = Cmpi.recv(source=Cmpi.rank-1)
+                    self.addCoefs(hash, m)
+                    if Cmpi.rank < Cmpi.size-1: Cmpi.send(Cmpi.rank+1, dest=Cmpi.rank+1)
+                Cmpi.barrier()
+            elif Cmpi.rank == 0 and hash >= raf:
+                m = self.readSnaphot(hash)
+                m = self.remesh(m, nv)
+                self.addCoefs(hash, m)
 
     def evalROM(self, coords):
         m = self.Phi @ coords

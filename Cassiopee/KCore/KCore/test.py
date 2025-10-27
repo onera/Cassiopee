@@ -3,7 +3,6 @@
 # arrays: testA, [outA], stdTestA, [outTestA]
 # pyTrees: testT, [outT], stdTestT, [outTestT]
 # objects: testO
-from __future__ import print_function
 import numpy, sys, os
 
 # global tolerance on float fields

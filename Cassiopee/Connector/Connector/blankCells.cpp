@@ -1140,6 +1140,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
                      cellns, posxb, posyb, poszb, unstrbF, cnb);
     for (E_Int is = 0; is < ns; is++)
     {
+      E_Int api = 1; // TODO
       E_Int ncells = cellns[is]->getSize();
       E_Int* fp = cellns[is]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
@@ -1147,7 +1148,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       tpl = K_ARRAY::buildArray3(*cellnout, cellNName,
-                                 nitc[is], njtc[is], nktc[is]);
+                                 nitc[is], njtc[is], nktc[is], api);
       delete cellns[is];
       PyList_Append(l, tpl);
       Py_DECREF(tpl);

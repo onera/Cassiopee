@@ -32,7 +32,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
     if loc != 'centers': loc = 'nodes'
 
     bodyZones = Internal.getZones(bodies)
-    bodiesa = C.getFields(Internal.__GridCoordinates__, bodyZones)
+    bodiesa = C.getFields(Internal.__GridCoordinates__, bodyZones, api=1)
     cellnba = [] # cellN localise au meme endroit que bodies
     varn = 'cellN'; varn2 = 'cellnf'
     for zb in bodyZones:
@@ -51,9 +51,9 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
     for i, z in enumerate(zones):
         if Internal.getZoneType(z)==2: orderedZones.append(i)
 
-    coords = C.getFields(Internal.__GridCoordinates__,zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=1)
     if loc == 'centers': flag = C.getField('centers:flag',zones)
-    else: flag = C.getField('flag',zones)
+    else: flag = C.getField('flag', zones, api=1)
 
     distances = Dist2Walls.distance2Walls(
         coords, bodiesa, flags=flag, cellnbodies=cellnba, type=type,
@@ -160,13 +160,13 @@ def _eikonalForZone(z,loc='nodes',algo=fim_old):
     locNode = False
     if loc == 'nodes': locNode = True
 
-    nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
+    nodes = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
     if locNode:
-        phi = C.getField('Phi',z)[0]
-        speed = C.getField('speed',z)[0]
+        phi = C.getField('Phi', z, api=1)[0]
+        speed = C.getField('speed', z, api=1)[0]
     else:
-        phi = C.getField('centers:Phi',z)[0]
-        speed = C.getField("centers:speed",z)[0]
+        phi = C.getField('centers:Phi', z, api=1)[0]
+        speed = C.getField('centers:speed', z, api=1)[0]
         nodes = Converter.node2Center(nodes)
     if phi == []:
         raise ValueError("Dist2Walls:_eikonalForZone: Phi variable not defined in zone.")

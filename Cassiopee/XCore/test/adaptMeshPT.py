@@ -12,10 +12,10 @@ C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
 Internal._adaptNGon32NGon4(a)
 
 normal2D = numpy.array([0.0,0.0,1.0])
-ngonelts = Internal.getNodeFromName(a, 'NGonElements')
+ngonelts = Internal.getNGonNode(a)
 ER = Internal.getNodeFromName(ngonelts, 'ElementRange')[1]
 nfaces = ER[1]
-nfaceselts = Internal.getNodeFromName(a, 'NFaceElements')
+nfaceselts = Internal.getNFaceNode(a)
 ER = Internal.getNodeFromName(nfaceselts, 'ElementRange')[1]
 ncells = ER[1]-ER[0]+1
 gcells = numpy.arange(0, ncells)

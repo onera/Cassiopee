@@ -155,16 +155,28 @@ void K_CONNECT::connectFE2NFace4(FldArrayI& cFE, FldArrayI& cNFace, FldArrayI& o
 {
   E_Int nf = cFE.getSize();
   E_Int* facesp1 = cFE.begin(1);
-  E_Int* facesp2 = cFE.begin(2);
+  E_Int* facesp2 = cFE.begin(2);  
 
   // Trouve le nbre d'elements (le max)
-  nelts = 0;
-  #pragma omp parallel for reduction(max:nelts)
+  E_Int neltsMin = E_MAXINT; E_Int neltsMax = 0;
   for (E_Int i = 0; i < nf; i++)
   {
     E_Int e1 = facesp1[i]; E_Int e2 = facesp2[i];
-    nelts = K_FUNC::E_max(nelts, e1, e2);
+    neltsMax = K_FUNC::E_max(neltsMax, e1, e2);
+    if (e1 > 0) neltsMin = K_FUNC::E_min(neltsMin, e1);
+    if (e2 > 0) neltsMin = K_FUNC::E_min(neltsMin, e2);
   }
+  if (neltsMin == nf+1) // shift
+  {
+    for (E_Int i = 0; i < nf; i++)
+    {
+      if (facesp1[i] > 0) facesp1[i] -= nf;
+      if (facesp2[i] > 0) facesp2[i] -= nf;
+    }
+    nelts = neltsMax - nf;
+  }
+  else nelts = neltsMax;
+  
   vector< vector<E_Int> > a(nelts); // stocke les faces pour chaque element
   for (E_Int i = 0; i < nelts; i++) a[i].reserve(6);
 

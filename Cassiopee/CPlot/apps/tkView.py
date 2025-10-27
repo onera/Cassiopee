@@ -396,7 +396,7 @@ def loadSlot():
     for p in pos:
         name = p[0]
         name = name.replace('isoScales[', '')
-        name = name[0:-2]
+        name = name[0:-1]
         out = [name]+p[1].tolist()
         scales.append(out)
         if scales != []: CPlot.setState(isoScales=scales)

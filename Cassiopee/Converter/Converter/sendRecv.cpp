@@ -22,9 +22,12 @@
 
 #ifdef _MPI
 # include "mpi.h"
-# include "mpi4py/mpi4py.h"
 #else
 #define MPI_Comm void
+#endif
+
+#ifdef _MPI4PY
+# include "mpi4py/mpi4py.h"
 #endif
 
 using namespace std;
@@ -33,15 +36,17 @@ using namespace std;
 //           GETNAME : PyObject -> string
 void getName(PyObject* obj, char* name)
 {
-    if (PyString_Check(obj)){
-        //printf("[i] str python2\n");
-        strcpy(name, PyString_AsString(obj));
-    }
+  if (PyString_Check(obj))
+  {
+    //printf("[i] str python2\n");
+    strcpy(name, PyString_AsString(obj));
+  }
 #if PY_VERSION_HEX >= 0x03000000
-    if (PyUnicode_Check(obj)){
-        //printf("[i] str python3\n");
-        strcpy(name, PyBytes_AsString(PyUnicode_AsUTF8String(obj))); 
-    }
+  if (PyUnicode_Check(obj))
+  {
+    //printf("[i] str python3\n");
+    strcpy(name, PyBytes_AsString(PyUnicode_AsUTF8String(obj))); 
+  }
 #endif
 }
 //==================================================
@@ -60,9 +65,11 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
 
 
     // Recuperation du communicateur
-#ifdef _MPI
+#if defined _MPI4PY
     void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
+#elif defined _MPI
+    MPI_Comm comm = MPI_COMM_WORLD;
 #endif
     
     // GESTION DU CAS ISEND(None)
@@ -73,7 +80,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         *bufToSend = 'n';
 
         // Envoi du buf presque vide
-#ifdef _MPI
+#if defined _MPI && defined _MPI4PY
         MPI_Request request;
         MPI_Isend(bufToSend, 1, MPI_CHAR, oppNode, 0, comm, &request);
         MPI_Request* crossRequest = new MPI_Request[1];
@@ -432,8 +439,8 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
         {
             #pragma omp single
             { 
-                // Placement du nb d'octets avant le buf
-                (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += intSize;
+              // Placement du nb d'octets avant le buf
+              (*(E_Int*)bufToSend) = tabOctets[i]; bufToSend += intSize;
             }
 
             char* buf = bigBuf[i];
@@ -442,12 +449,12 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
             #pragma omp for  
             for (E_Int j=0; j<tabOctets[i]; j++)
             {
-                bufToSend[j] = buf[j];
+              bufToSend[j] = buf[j];
             } 
 
             #pragma omp single
             {
-                bufToSend += tabOctets[i];
+              bufToSend += tabOctets[i];
             } 
         }
     }
@@ -478,7 +485,7 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     */
    
     // Envoi des donnees
-#ifdef _MPI
+#if defined _MPI
     MPI_Request request;
     MPI_Isend(initBufToSend, nOctetsTot, MPI_CHAR, oppNode, 0, comm, &request);
 #endif
@@ -486,11 +493,11 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     // Suppression des pointeurs (sauf celui de l'envoi)
     for (E_Int i=0; i < sizeDatas; i++)
     {
-        delete [] bigBuf[i];
+      delete [] bigBuf[i];
     }
     delete [] bigBuf;
 
-#ifdef _MPI
+#if defined _MPI
     MPI_Request* crossRequest = new MPI_Request[1];
     *crossRequest = request;
 #else
@@ -536,7 +543,7 @@ PyObject* K_CONVERTER::waitAll(PyObject* self, PyObject* args)
         packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
         
-#ifdef _MPI
+#if defined _MPI
         MPI_Request* request = (MPI_Request*)packet[0];
         MPI_Wait(request, MPI_STATUS_IGNORE);
         // Suppression du ptr de la requete
@@ -571,20 +578,22 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     if (!PYPARSETUPLE_(args, II_ O_, &node, &rank, &mpi4pyCom)) return NULL;
 
     // Recuperation du communicateur
-#ifdef _MPI
+#if defined _MPI4PY
     void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
+#elif defined _MPI
+    MPI_Comm comm = MPI_COMM_WORLD;
 #endif
 
     // get MPI status
-#ifdef _MPI
+#if defined _MPI
     MPI_Status status;
     MPI_Probe(node, 0, comm, &status);
 #endif
 
     // get number of elements
     int nOctetsTot=0; // flaw!!
-#ifdef _MPI
+#if defined _MPI
     MPI_Get_count(&status, MPI_CHAR, &nOctetsTot);
 #endif
 
@@ -596,7 +605,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
     constexpr E_Int intSize = sizeof(E_Int);
 
     // reception du buffer
-#ifdef _MPI
+#if defined _MPI
     MPI_Recv(recvBuf, nOctetsTot, MPI_CHAR, node, 0, comm, &status);
 #endif
 
@@ -684,7 +693,7 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             size                = intBuf[0]; buf+=intSize;
             E_Float* xCoords    = new E_Float[size];
             E_Float* xBuf       = (E_Float*) buf;
-            buf+=size*8;
+            buf += size*8;
 
             // Tableau des Y
             (*typeData)         = *buf;      buf+=1; if ((*typeData)!='f'){printf("[" SF_D_ "][RECV] Probleme de type pour Y (!=float)\n", rank); fflush(stdout);};
@@ -705,17 +714,17 @@ PyObject* K_CONVERTER::recv(PyObject* self, PyObject* args)
             // Remplissage parallele
             #pragma omp parallel
             {
-                #pragma omp for
-                for (E_Int i=0; i<size; i++) { indices[i] = indicesBuf[i];}
+              #pragma omp for
+              for (E_Int i=0; i<size; i++) { indices[i] = indicesBuf[i];}
 
-                #pragma omp for
-                for (E_Int i=0; i<size; i++) { xCoords[i] = xBuf[i];}
+              #pragma omp for
+              for (E_Int i=0; i<size; i++) { xCoords[i] = xBuf[i];}
 
-                #pragma omp for
-                for (E_Int i=0; i<size; i++) { yCoords[i] = yBuf[i];}
+              #pragma omp for
+              for (E_Int i=0; i<size; i++) { yCoords[i] = yBuf[i];}
             
-                #pragma omp for
-                for (E_Int i=0; i<size; i++) { zCoords[i] = zBuf[i];}
+              #pragma omp for
+              for (E_Int i=0; i<size; i++) { zCoords[i] = zBuf[i];}
             }
 
             // Transformation des donnees C en donnees Python

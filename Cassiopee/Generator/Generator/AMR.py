@@ -261,9 +261,10 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
     return o
 
 def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], dimPb=3):
-    # Récupération des données de connectivité
-    faces = Internal.getNodeFromName(a, "NGonElements")
-    vol_cells = Internal.getNodeFromName(a, "NFaceElements")
+    a = Internal.getZones(a)[0] # get first zone
+    # Recuperation des donnees de connectivite
+    faces = Internal.getNGonNode(a)
+    vol_cells = Internal.getNFaceNode(a)
 
     EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
     EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
@@ -349,17 +350,18 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
     return zone
 
 def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
-    faces = Internal.getNodeFromName(a,"NGonElements")
-    vol_cells = Internal.getNodeFromName(a,"NFaceElements")
+    a = Internal.getZones(a)[0] # get first zone
+    faces = Internal.getNGonNode(a)
+    vol_cells = Internal.getNFaceNode(a)
 
-    EC_volcells = Internal.getNodeFromName(vol_cells,"ElementConnectivity")[1]
-    EC_faces = Internal.getNodeFromName(faces,"ElementConnectivity")[1]
+    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
+    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
 
-    ER_volcells = Internal.getNodeFromName(vol_cells,"ElementRange")[1]
-    ER_faces = Internal.getNodeFromName(faces,"ElementRange")[1]
+    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
+    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
 
-    offset_volcells = Internal.getNodeFromName(vol_cells,"ElementStartOffset")[1]
-    offset_faces = Internal.getNodeFromName(faces,"ElementStartOffset")[1]
+    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
+    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
 
     length_volcells = offset_volcells[1:] - offset_volcells[:-1]
     length_faces = offset_faces[1:] - offset_faces[:-1]
@@ -421,8 +423,9 @@ def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[
     return zsnc_big_internal
 
 def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
-    faces = Internal.getNodeFromName(a, "NGonElements")
-    vol_cells = Internal.getNodeFromName(a, "NFaceElements")
+    a = Internal.getZones(a)[0] # get first zone
+    faces = Internal.getNGonNode(a)
+    #vol_cells = Internal.getNFaceNode(a)
 
     EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
     offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
@@ -479,27 +482,28 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
 
     return zone
 
-def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a,PL):
-    faces = Internal.getNodeFromName(a,"NGonElements")
-    vol_cells = Internal.getNodeFromName(a,"NFaceElements")
+def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a, PL):
+    a = Internal.getZones(a)[0] # get first zone
+    faces = Internal.getNGonNode(a)
+    vol_cells = Internal.getNFaceNode(a)
 
-    EC_volcells = Internal.getNodeFromName(vol_cells,"ElementConnectivity")[1]
-    EC_faces = Internal.getNodeFromName(faces,"ElementConnectivity")[1]
+    #EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
+    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
 
-    ER_volcells = Internal.getNodeFromName(vol_cells,"ElementRange")[1]
-    ER_faces = Internal.getNodeFromName(faces,"ElementRange")[1]
+    #ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
+    #ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
 
-    offset_volcells = Internal.getNodeFromName(vol_cells,"ElementStartOffset")[1]
-    offset_faces = Internal.getNodeFromName(faces,"ElementStartOffset")[1]
+    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
+    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
 
     length_volcells = offset_volcells[1:] - offset_volcells[:-1]
     length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = numpy.unique(length_volcells)
-    lens_faces = numpy.unique(length_faces)
+    #lens_vol = numpy.unique(length_volcells)
+    #lens_faces = numpy.unique(length_faces)
 
-    coordsx_a = Internal.getNodeFromName(a,"CoordinateX")[1]
-    coordsy_a = Internal.getNodeFromName(a,"CoordinateY")[1]
-    coordsz_a = Internal.getNodeFromName(a,"CoordinateZ")[1]
+    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
+    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
+    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
     nb_vertices_a = len(coordsx_a)
 
     len_new_faces = len(PL)
@@ -570,9 +574,9 @@ def createPseudoBCQuadNQuadIntra__(a, owners, levels, halo_levels, neighbours, c
 
 def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, cranges, dimPb=3):
     point_list_commpatch = []
-    zgc_nodes = Internal.getNodesFromType(a,"GridConnectivity1to1_t")
+    zgc_nodes = Internal.getNodesFromType(a, "GridConnectivity1to1_t")
     for zgc_node in zgc_nodes:
-        PL = Internal.getNodeFromName(zgc_node,"PointList")[1]
+        PL = Internal.getNodeFromName(zgc_node, "PointList")[1]
         point_list_commpatch.append(PL)
 
     point_list_small = []
@@ -604,7 +608,7 @@ def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, c
     return zone_nonconformal_between_procs
 
 def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
-    point0=None; point1=None;point2=None;point3=None
+    point0=None; point1=None; point2=None; point3=None
     unique, counts = numpy.unique(conn_2faces, return_counts=True)
     indices_count_2 = numpy.argwhere(counts==2)
     indices_count_2 = indices_count_2.reshape(2)
@@ -648,7 +652,7 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
     return [point0,point1,point2,point3]
 
 def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
-    point0=None; point1=None;point2=None;point3=None
+    point0=None; point1=None; point2=None; point3=None
     unique, counts = numpy.unique(conn_4faces, return_counts=True)
     index_count_4 = numpy.argwhere(counts==4)[0][0]
     indices_count_1 = numpy.argwhere(counts==1)
@@ -675,7 +679,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     elt1 = elt1[elt1!=elt0][0]
 
     point1 = corner_points[elt1]
-    pos_corner_in_elt1 = pos_corner_points[elt1]
+    #pos_corner_in_elt1 = pos_corner_points[elt1]
 
     point5 = list(set(conn_4faces[elt1])-set([point4,point8,point1]))[0]
 
@@ -683,7 +687,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     elt2 = elt2[elt2!=elt1][0]
 
     point2 = corner_points[elt2]
-    pos_corner_in_elt2 = pos_corner_points[elt2]
+    #pos_corner_in_elt2 = pos_corner_points[elt2]
 
     point6 = list(set(conn_4faces[elt2])-set([point5,point8,point2]))[0]
     elt3 = list(set([0,1,2,3])-set([elt0,elt1,elt2]))[0]
@@ -691,7 +695,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     return [point0,point1,point2,point3]
 
 def createEmptyQuadZone__():
-    zone = Internal.newZone(name="empty",zsize=[[0,0]],ztype="Unstructured")
+    zone = Internal.newZone(name="empty", zsize=[[0,0]], ztype="Unstructured")
     gc = Internal.newGridCoordinates(parent=zone)
     Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
     Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
@@ -700,8 +704,9 @@ def createEmptyQuadZone__():
     return zone
 
 def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
-    faces = Internal.getNodeFromName(a, "NGonElements")
-    vol_cells = Internal.getNodeFromName(a, "NFaceElements")
+    a = Internal.getZones(a)[0] # get first zone
+    faces = Internal.getNGonNode(a)
+    #vol_cells = Internal.getNFaceNode(a)
 
     EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
     offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
@@ -758,9 +763,9 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
         idx_new += count
 
     # --- Ajout des nouveaux éléments à la zone ---
-    elt_nodes = Internal.getNodesFromType(a_hexa, "Elements_t")
-    last_id = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
     zone = Internal.getZones(a_hexa)[0]
+    elt_nodes = Internal.getNodesFromType(zone, "Elements_t")
+    last_id = Internal.getNodeFromName(elt_nodes[-1], "ElementRange")[1][1]
 
     Internal.newElements(
         name=bcname,
@@ -773,8 +778,9 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
     return None
 
 def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
-    faces = Internal.getNodeFromName(a, "NGonElements")
-    vol_cells = Internal.getNodeFromName(a, "NFaceElements")
+    a = Internal.getZones(a)[0] # get first zone
+    faces = Internal.getNGonNode(a)
+    vol_cells = Internal.getNFaceNode(a)
 
     EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
     EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
@@ -892,20 +898,19 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
         if Cmpi.rank==0: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
+    o = Internal.getZones(o)[0]
     owners = XC.AdaptMesh_ExtractOwners(hookAM)
     levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
     halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
     neighbours = XC.AdaptMesh_ExtractNeighbours(hookAM)
     cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)
-
     cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
     XC.AdaptMesh_Exit(hookAM)
-    # cart_hexa = Internal.getZones(cart_hexa)[0]
 
     zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
-    _createBCNearMatch__(cart_hexa,zone_nonconformal)
+    _createBCNearMatch__(cart_hexa, zone_nonconformal)
     _createBCStandard__(cart_hexa, o)
     del o
 
@@ -959,7 +964,7 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
 # determine where the symmetry plane is by dir
 # 1 : xmin, 2 : ymin, 3 = zmin
 def getSymmetryPlaneInfo__(tb, dim=3):
-    baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
     dir_sym = 0
     if baseSYM is not None:
         symplane = []
@@ -1051,6 +1056,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./'):
+    Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
@@ -1115,4 +1121,5 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing)
+    Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)

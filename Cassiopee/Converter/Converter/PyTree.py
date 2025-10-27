@@ -935,23 +935,91 @@ def _rmNodes(z, name):
     return None
 
 # Upgrade tree (applique apres lecture)
-def _upgradeTree(t, uncompress=True, oldcompress=False):
-    #Internal._adaptTypes(t)
-    _relaxCGNSProfile__(t)
+# uncompress: uncompress fields
+# upgrade: upgrade ngon for cassiopee (addface, surf typeA)
+def _upgradeTree(t, uncompress=True, upgradeNGon=True):
+    _relaxCGNSTypes__(t) # relax types imposed by CGNS
     Internal._correctPyTree(t, level=10) # force CGNS names
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
+
+    #Internal._correctBCElementNodes(t) # boundary connectivity
+    #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
+    #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
+
+    for z in Internal.getZones(t): _upgradeZone(z, uncompress, upgradeNGon)
+
     registerAllNames(t)
+    return None
+
+# upgrade zone (applique apres lecture)
+# for NGON, add NFACE from PE if missing
+# for NGON surf, force type A
+# uncompress fields
+def _upgradeZone(z, uncompress=True, upgradeNGon=True):
+    if upgradeNGon:
+        ngon = Internal.getNGonNode(z)
+        nface = Internal.getNFaceNode(z)
+        if ngon is not None:
+            # shift PE
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
+                import Converter.Check as Check
+                Check._shiftParentElements(z, shift=-1)
+            # add nface if not present
+            if PE is not None and nface is None and PE[1] is not None:
+                Internal._adaptPE2NFace(z, remove=False)
+            # force ngon surf type A
+            if PE is None and nface is None: # NGon surfacique type B
+                c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
+                if c is not None and c[1] is not None:
+                    Internal._adaptSurfaceNGon(z)
     if uncompress:
         try:
             import Compressor.PyTree as Compressor
-            if oldcompress:
-                Compressor._uncompressCartesian_old(t)
-                Compressor._uncompressAll_old(t)
-            else:
-                Compressor._uncompressCartesian(t)
-                Compressor._uncompressAll(t)
+            Compressor._uncompressCartesian(z)
+            Compressor._uncompressAll(z)
         except: pass
+    return None
+
+# downgrade tree (applique avant ecriture)
+def _downgradeTree(t, upgradeNGon=True):
+    Internal._adaptZoneNamesForSlash(t) # adapt zone name with slash
+    Internal._correctBaseZonesDim(t, splitBases=False) # correct base dim from zones
+    _forceCGNSTypes__(t) # force types imposed by CGNS
+    for z in Internal.getZones(t): _downgradeZone(z, upgradeNGon)
+    return None
+
+# for NGON3, force NGON4 (commented)
+# for NGON surf, force type B (commented)
+# for NGON vol, force signed faces (commented)
+# for NGON PE, force shift (active)
+def _downgradeZone(z, upgradeNGon=True):
+    if upgradeNGon:
+        ngon = Internal.getNGonNode(z)
+        nface = Internal.getNFaceNode(z)
+        if ngon is not None:
+            # force NGON4
+            #off = Internal.getNodeFromName1(ngon, 'ElementStartOffset')
+            #if off is None: Internal._adaptNGon32NGon4(z)
+            # sign faces if not signed
+            #c = Internal.getNodeFromName1(nface, 'ElementConnectivity')
+            #if c is not None and c[1] is not None: _signNGonFaces(z)
+            # change surface ngon to type B
+            #if nface is not None and nface[1] is not None and ngon[1] is not None:
+            #    dim = 3
+            #    off = Internal.getNodeFromName1(ngon, 'ElementStartOffset')
+            #    if off is not None:
+            #        if off[1] is not None:
+            #            if off[1][1] == 2: dim = 2
+            #    else:
+            #        if ngon[1][0] == 2: dim = 2
+            #    if dim == 2: Internal._adaptSurfaceNGon(z) # force type B
+            # shift PE
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
+                import Converter.Check as Check
+                Check._shiftParentElements(z, shift=+1)
     return None
 
 # Hack pour les arrays en centres avec sentinelle - 1.79769e+308
@@ -996,7 +1064,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., skeletonData=None, dataShape=None,
                        links=None, skipTypes=None, uncompress=True,
                        hmax=0.0, hausd=1., grow=0.0, mergeTol=-1, occAlgo=4,
-                       oldcompress=False, readIntMode=0, api=1):
+                       upgrade=True, readIntMode=0, api=1):
     """Read a file and return a pyTree containing file data.
     Usage: convertFile2PyTree(fileName, format, options)"""
     if format is None:
@@ -1012,7 +1080,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         try:
             t = Converter.converter.convertFile2PyTree(fileName, format, skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t, uncompress, oldcompress)
+            _upgradeTree(t, uncompress, upgrade)
             CAD = Internal.getNodeFromName1(t, 'CAD')
             if CAD is not None: # reload CAD
                 file = Internal.getNodeFromName1(CAD, 'file')
@@ -1030,40 +1098,40 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                 try:
                     t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
-                    _upgradeTree(t, uncompress, oldcompress)
+                    _upgradeTree(t, uncompress, upgrade)
                     return t
                 except: pass
             else: # adf par defaut
                 try:
                     t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
                     t = Internal.createRootNode(children=t[2])
-                    _upgradeTree(t)
+                    _upgradeTree(t, uncompress, upgrade)
                     return t
                 except: pass
 
     elif format == 'bin_tau':
         t = Converter.converter.convertFile2PyTreeTau(fileName, 'bin_tau')
         t = Internal.createRootNode(children=t[2])
-        _upgradeTree(t, uncompress, oldcompress)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     elif format == 'bin_fsdm':
         t = Converter.converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
         t = Internal.createRootNode(children=t[2])
-        _upgradeTree(t, uncompress, oldcompress)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     elif format == 'unknown':
         try:
             t = Converter.converter.convertFile2PyTree(fileName, 'bin_adf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t)
+            _upgradeTree(t, uncompress, upgrade)
             return t
         except: pass
         try:
             t = Converter.converter.convertFile2PyTree(fileName, 'bin_hdf', skeletonData, dataShape, links, skipTypes, readIntMode)
             t = Internal.createRootNode(children=t[2])
-            _upgradeTree(t)
+            _upgradeTree(t, uncompress, upgrade)
             return t
         except: pass
 
@@ -1076,7 +1144,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
         CTK.CADHOOK = hook
         t = OCC.meshAll(hook, hmax, hmax, hausd) # constant hmax
-        _upgradeTree(t)
+        _upgradeTree(t, uncompress, upgrade)
         return t
 
     if format == 'bin_pickle':
@@ -1182,7 +1250,7 @@ def _forceR4PeriodicNodes__(t):
     return None
 
 # Force type of specific nodes as prescribed by v4 CGNS norm
-def _forceCGNSProfile__(t):
+def _forceCGNSTypes__(t):
     # CGNS version (R4)
     n = Internal.getNodeFromType1(t, "CGNSVersion_t")
     if n is not None: n[1] = n[1].astype(numpy.float32)
@@ -1206,7 +1274,7 @@ def _forceCGNSProfile__(t):
     return None
 
 # Relax type of specific nodes as prescribed by v4 CGNS norm
-def _relaxCGNSProfile__(t):
+def _relaxCGNSTypes__(t):
     if Internal.E_NpyInt == numpy.int32: return None
     # Rind_t cannot be forced to I4 internally
     zones = Internal.getZones(t)
@@ -1218,7 +1286,7 @@ def _relaxCGNSProfile__(t):
 # -- convertPyTree2File
 def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',
-                       links=[]):
+                       links=[], upgrade=True):
     """Write a pyTree to a file.
     Usage: convertPyTree2File(t, fileName, format, options)"""
     if t == []: print('Warning: convertPyTree2File: nothing to write.'); return
@@ -1228,9 +1296,7 @@ def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
         if format == 'unknown': format = 'bin_cgns'
     if format == 'bin_cgns' or format == 'bin_adf' or format == 'bin_hdf':
         tp, ntype = Internal.node2PyTree(t)
-        Internal._adaptZoneNamesForSlash(tp)
-        Internal._correctBaseZonesDim(tp, splitBases=False)
-        _forceCGNSProfile__(tp)
+        _downgradeTree(tp, upgradeNGon=upgrade)
         Converter.converter.convertPyTree2File(tp[2], fileName, format, links, isize, rsize)
     elif format == 'bin_tau':
         tp, ntype = Internal.node2PyTree(t)
@@ -1473,7 +1539,7 @@ def getFields(containerName, t, vars=None, api=1):
             if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
             elif api==2: array = Internal.convertDataNodes2Array2(out, dim, connects, loc)
             elif api==3: array = Internal.convertDataNodes2Array3(out, dim, connects, loc)
-            else: raise ValueError('getFields: unknow api.')
+            else: raise ValueError('getFields: unknown api.')
         else: array = []
         arrays.append(array)
     return arrays
@@ -1940,7 +2006,7 @@ def TZGF(t, locout, fieldName, F, *args):
 def _TZGF(t, locout, fieldName, F, *args):
     zones = Internal.getZones(t)
     for z in zones:
-        fa = getFields(fieldName, z)[0]
+        fa = getFields(fieldName, z, api=1)[0]
         if fa != []:
             if F is not None: fa = F(fa, *args)
             setFields([fa], z, locout)
@@ -1971,8 +2037,8 @@ def _TZA(t, locin, locout, F, Fc, *args):
     zones = Internal.getZones(t)
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args)
@@ -1984,7 +2050,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
                 fp = F(fc, *args)
                 setFields([fp], z, locout)
         elif locin == 'centers':
-            fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fa = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fa != []:
                 fp = Fc(fa, *args)
                 setFields([fp], z, locout)
@@ -1992,9 +2058,9 @@ def _TZA(t, locin, locout, F, Fc, *args):
             # Dans ce cas, on suppose que F ne change pas la localisation
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args1)
@@ -2016,8 +2082,8 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
     zones = Internal.getZones(t)
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 Converter._addVars([fc, fa]) # modifie fc
                 fp = F(fc, *args)
@@ -2029,8 +2095,8 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
                 fp = Fc(fc, *args)
                 setFields([fp], z, locout, writeDim)
         elif locin == 'centers':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 posx = KCore.isNamePresent(fa,'CoordinateX')
                 posy = KCore.isNamePresent(fa,'CoordinateY')
@@ -2066,9 +2132,9 @@ def _TZAGC(t, locin, locout, writeDim, F, Fc, *args):
         else: # both
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args1)
@@ -2127,8 +2193,8 @@ def _TZANC(t, locin, locout, F, Fc, *args):
     args1 = args[0:l]; args2 = args[l:]
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args)
@@ -2143,24 +2209,24 @@ def _TZANC(t, locin, locout, F, Fc, *args):
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fa = getFields(Internal.__FlowSolutionNodes__, zp)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
             if fa != []:
                 fa = Fc(fa, *args)
                 if locout == 'nodes': setFields([fa], z, 'nodes')
                 else:
                     zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                    fa = getFields(Internal.__FlowSolutionCenters__, zp)[0]
+                    fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
                     setFields([fa], z, 'centers')
 
         else: # both
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fb = getFields(Internal.__FlowSolutionNodes__, zp)[0]
+            fb = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args1)
@@ -2176,7 +2242,7 @@ def _TZANC(t, locin, locout, F, Fc, *args):
                 if Fc is not None: fb = Fc(fb, *args2)
                 setFields([fb], zp, 'nodes')
                 zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                fa = getFields(Internal.__FlowSolutionCenters__, zp)[0]
+                fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
                 setFields([fa], z, 'centers')
     return None
 
@@ -2202,9 +2268,9 @@ def TLAGC(t, F, *args):
     if nzones == 0: return tp
 
     for z in zones:
-        fc = getFields(Internal.__GridCoordinates__, z)[0]
-        fa = getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fb = getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fb = getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         allfc.append(fc); allfa.append(fa); allfb.append(fb)
 
     # Application par lot des noeuds
@@ -3451,8 +3517,8 @@ def _convertArray2Tetra(t, split='simple'):
     else:
         nodes = Internal.getZones(t)
         for z in nodes:
-            fieldn = getAllFields(z, 'nodes')[0]
-            fieldc = getAllFields(z, 'centers')[0]
+            fieldn = getAllFields(z, 'nodes', api=1)[0]
+            fieldc = getAllFields(z, 'centers', api=1)[0]
             if fieldc == []:
                 res = Converter.convertArray2Tetra1__(fieldn, split='withBarycenters')
                 z = setFields([res], z, 'nodes', writeDim=True)
@@ -3497,7 +3563,6 @@ def _convertArray2NGon(t, recoverBC=True, api=1):
             else: gbcs.append(getBCs(z, extrapFlow=False))
     else: _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
-    #_TZA1(t, 'both', 'nodes', True, Converter.convertArray2NGon)
     _TZAX(api, t, 'both', 'nodes', True, Converter.convertArray2NGon, api)
     Internal._fixNGon(t, api=api)
 
@@ -3568,7 +3633,7 @@ def _convertArray2Node(t):
 def convertTri2Quad(z, alpha=30.):
     """Convert a TRI zone to a QUAD zone.
     Usage: convertTri2Quad(z, angle)"""
-    a = getAllFields(z, 'nodes')
+    a = getAllFields(z, 'nodes', api=1)
     b, c = Converter.convertTri2Quad(a, alpha)
     z1 = convertArrays2ZoneNode(getZoneName('quad'), [b])
     z2 = convertArrays2ZoneNode(getZoneName('tri'), [c])
@@ -5069,7 +5134,7 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
         indicesE = indicesF
     if undefBC:
         ze = T.subzone(z, indicesE, type='faces')
-        zea = getFields('GridCoordinates', ze)[0]
+        zea = getFields('GridCoordinates', ze, api=1)[0]
         id0 = T.transform.splitSharpEdgesList(zea, indicesE, splitFactor)
         return id0
     else: return []
@@ -5488,7 +5553,7 @@ def _mergeBCs(z):
     BCs=[]; BCNames=[]; BCTypes=[]
     for i in alltypes:
         BCs.append(alltypes[i])
-        #BCNames.append('Merged'+i)
+        BCNames.append(i)
         BCTypes.append(i)
 
     _recoverBCs(z, (BCs,BCNames,BCTypes))
@@ -5743,7 +5808,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # else:
     #   if zoneType == 1: # Structured mesh
 
-    #     fields = getAllFields(zdonor, 'centers')[0]
+    #     fields = getAllFields(zdonor, 'centers', api=1)[0]
         if fields != []:
             # raise ValueError("extractBCMatch: Variable(s) not found:", variables)
 
@@ -6093,7 +6158,7 @@ def extractBCDataStruct__(z):
                     range0 = pr[1]
                     w = Internal.range2Window(range0)
                     imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
-                    coords = getFields(Internal.__GridCoordinates__,z)[0]
+                    coords = getFields(Internal.__GridCoordinates__,z, api=1)[0]
                     coords = T.subzone(coords, (imin,jmin,kmin), (imax,jmax,kmax))
                     info = [bcname, 'BCOverlap', bcdata, coords]
                     infos.append(info)
@@ -6114,7 +6179,7 @@ def extractBCDataStruct__(z):
             range0 = pr[1]
             w = Internal.range2Window(range0)
             imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
-            coords = getFields(Internal.__GridCoordinates__,z)[0]
+            coords = getFields(Internal.__GridCoordinates__,z, api=1)[0]
             coords = T.subzone(coords, (imin,jmin,kmin), (imax,jmax,kmax))
             info = [bcname, bctype, bcdata, coords]
             infos.append(info)
@@ -6347,7 +6412,7 @@ def node2Center(t, var='', accurate=0):
             zones = Internal.getZones(la[i])
             for z in zones:
                 (p, pos) = Internal.getParentOfNode(la[i], z)
-                fieldc = getFields(Internal.__FlowSolutionCenters__, z)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, z, api=1)
                 _deleteFlowSolutions__(z, 'centers')
                 _deleteZoneBC__(z)
                 _deleteGridConnectivity__(z)
@@ -6470,7 +6535,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
                 if ghost is None and useGhost:
                     a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[Internal.__FlowSolutionCenters__])
                 else: a = Internal.copyRef(t)
-                fieldc = getFields(Internal.__FlowSolutionCenters__, a)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, a, api=1)
                 fieldn = []
                 listVar = []
                 for i in fieldc:
@@ -6484,7 +6549,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
                 if ghost is None and useGhost:
                     a = Internal.rmGhostCells(a, a, 1, adaptBCs=0,
                                               modified=[listVar, Internal.__FlowSolutionCenters__])
-                fieldsc = getFields(Internal.__FlowSolutionNodes__, a)
+                fieldsc = getFields(Internal.__FlowSolutionNodes__, a, api=1)
 
         # destruction
         t = deleteFlowSolutions__(t, 'centers')
@@ -6565,8 +6630,8 @@ def node2ExtCenter(t, var=''):
             zones = Internal.getZones(la[i])
             for z in zones:
                 (p, pos) = Internal.getParentOfNode(la[i], z)
-                fieldn = getAllFields(z, loc='nodes')
-                fieldc = getFields(Internal.__FlowSolutionCenters__, z)
+                fieldn = getAllFields(z, loc='nodes', api=1)
+                fieldc = getFields(Internal.__FlowSolutionCenters__, z, api=1)
                 _deleteFlowSolutions__(z, 'centers')
                 _deleteZoneBC__(z)
                 _deleteGridConnectivity__(z)
@@ -6584,13 +6649,13 @@ def node2ExtCenter(t, var=''):
         return a
 
     elif var == Internal.__GridCoordinates__:
-        fieldn = getFields(Internal.__GridCoordinates__, a)
+        fieldn = getFields(Internal.__GridCoordinates__, a, api=1)
         fielde = Converter.node2ExtCenter(fieldn)
         setFields(fielde, a, 'nodes', writeDim=True)
         return a
 
     elif var == Internal.__FlowSolutionNodes__:
-        fieldn = getFields(Internal.__FlowSolutionNodes__, a)
+        fieldn = getFields(Internal.__FlowSolutionNodes__, a, api=1)
         fielde = Converter.node2ExtCenter(fieldn)
         setFields(fielde, a, 'nodes', writeDim=True)
         return a
@@ -7148,8 +7213,8 @@ def _addBCFaces(t, BCFaces):
 def createHook(a, function='None'):
     """Create a hook for a given function.
       Usage: hook = createHook(a, function)"""
-    if function == 'extractMesh': # growOfEps pas pret pour Array2
-        fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    if function == 'extractMesh':
+        fields = getFields(Internal.__GridCoordinates__, a, api=1) # because of growofeps
     else:
         fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if function == 'extractMesh' or function == 'adt':
@@ -7192,7 +7257,7 @@ def identifyNodes(hook, a, tol=1.e-11):
 def identifyFaces(hook, a, tol=1.e-11):
     """Find in a hook nearest points of face centers of a. return identified face indices.
     Usage: identifyFaces(hook, a)"""
-    fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol)
     else: return Converter.identifyFaces(hook, fields, tol)
 
@@ -7238,14 +7303,14 @@ def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
             varsC[nov] = vc
 
     zones = Internal.getZones(tRcv)
-    coordsR = getFields(Internal.__GridCoordinates__, zones, api=1)
+    coordsR = getFields(Internal.__GridCoordinates__, zones, api=3)
 
     if varsN != [] and hookN is not None:
-        fnodes = getFields(Internal.__FlowSolutionNodes__, tDnr, api=1)
+        fnodes = getFields(Internal.__FlowSolutionNodes__, tDnr, api=3)
         resn = Converter.identifySolutions(coordsR, fnodes, hookN, vars=varsN, tol=tol)
         setFields(resn, zones, 'nodes')
     if varsC != [] and hookC is not None:
-        fcenters = getFields(Internal.__FlowSolutionCenters__, tDnr, api=1)
+        fcenters = getFields(Internal.__FlowSolutionCenters__, tDnr, api=3)
         centersR = Converter.node2Center(coordsR)
         resc = Converter.identifySolutions(centersR, fcenters, hookC, vars=varsC, tol=tol)
         setFields(resc, zones, 'centers')
@@ -7263,7 +7328,7 @@ def nearestNodes(hook, a):
 def nearestFaces(hook, a):
     """Identify nearest face centers to a in hook. return identified face indices.
     Usage: nearestFaces(hook, a)"""
-    fields = getFields(Internal.__GridCoordinates__, a, api=1)
+    fields = getFields(Internal.__GridCoordinates__, a, api=3)
     if len(fields) == 1: return Converter.nearestFaces(hook, fields[0])
     else: return Converter.nearestFaces(hook, fields)
 
@@ -8090,7 +8155,7 @@ def _unsignNGonFaces(t):
     zones = Internal.getZones(t)
     isSigned = -1
     for z in zones:
-        n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+        n0 = Internal.getNFaceNode(z)
         if n0 is None: return None # not an NGon
         n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
         if n is None: return None # not an NGon v4
@@ -8113,7 +8178,7 @@ def resignNGonFaces(t):
 def _resignNGonFaces(t):
     """Resign NFACE connectivity in NGON zones and delete node `Signed`."""
     z = Internal.getZones(t)[0]
-    n0 = Internal.getNodeFromName1(z, 'NFaceElements')
+    n0 = Internal.getNFaceNode(z)
     if n0 is None: return None # not an NGon
     n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
     if n is None: return None # not an NGon v4

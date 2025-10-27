@@ -36,26 +36,26 @@ E_Int K_CONNECT::getEVFacets(std::vector<std::vector<E_Int> >& facets,
   E_Int ierr = 0;
   facets.clear();
 
-  if (K_STRING::cmp(eltType, "BAR") == 0)
+  if (K_STRING::cmp(eltType, "BAR") == 0 || K_STRING::cmp(eltType, "BAR*") == 0)
   {
     facets.push_back({1}); facets.push_back({2});
   }
-  else if (K_STRING::cmp(eltType, "TRI") == 0)
+  else if (K_STRING::cmp(eltType, "TRI") == 0 || K_STRING::cmp(eltType, "TRI*") == 0)
   {
     facets.push_back({1, 2}); facets.push_back({2, 3});
     facets.push_back({3, 1});
   }
-  else if (K_STRING::cmp(eltType, "QUAD") == 0)
+  else if (K_STRING::cmp(eltType, "QUAD") == 0 || K_STRING::cmp(eltType, "QUAD*") == 0)
   {
     facets.push_back({1, 2}); facets.push_back({2, 3});
     facets.push_back({3, 4}); facets.push_back({4, 1});
   }
-  else if (K_STRING::cmp(eltType, "TETRA") == 0)
+  else if (K_STRING::cmp(eltType, "TETRA") == 0 || K_STRING::cmp(eltType, "TETRA*") == 0)
   {
     facets.push_back({1, 3, 2}); facets.push_back({1, 2, 4});
     facets.push_back({2, 3, 4}); facets.push_back({3, 1, 4});
   }
-  else if (K_STRING::cmp(eltType, "PYRA") == 0)
+  else if (K_STRING::cmp(eltType, "PYRA") == 0 || K_STRING::cmp(eltType, "PYRA*") == 0)
   {
     facets.push_back({1, 4, 3, 2});
     if (allow_degenerated)
@@ -69,7 +69,7 @@ E_Int K_CONNECT::getEVFacets(std::vector<std::vector<E_Int> >& facets,
       facets.push_back({3, 4, 5}); facets.push_back({4, 1, 5});
     }
   }
-  else if (K_STRING::cmp(eltType, "PENTA") == 0)
+  else if (K_STRING::cmp(eltType, "PENTA") == 0 || K_STRING::cmp(eltType, "PENTA*") == 0)
   {
     facets.push_back({1, 2, 5, 4}); facets.push_back({2, 3, 6, 5});
     facets.push_back({3, 1, 4, 6});
@@ -82,7 +82,7 @@ E_Int K_CONNECT::getEVFacets(std::vector<std::vector<E_Int> >& facets,
       facets.push_back({1, 3, 2}); facets.push_back({4, 5, 6});
     }
   }
-  else if (K_STRING::cmp(eltType, "HEXA") == 0)
+  else if (K_STRING::cmp(eltType, "HEXA") == 0 || K_STRING::cmp(eltType, "HEXA*") == 0)
   {
     facets.push_back({1, 4, 3, 2}); facets.push_back({1, 2, 6, 5});
     facets.push_back({2, 3, 7, 6}); facets.push_back({3, 4, 8, 7});

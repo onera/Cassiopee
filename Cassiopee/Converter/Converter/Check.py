@@ -1111,8 +1111,7 @@ def _correctCGNSType(t):
 # Verifie:
 # si une zone a NGON+PE et pas de NFace
 # si il y a des connectivites multiples
-# ou une zone a NGON+PE et pas de NFace
-# les vertex referenes existent.
+# les vertex references existent pour element et ngon
 #==============================================================================
 def checkElementNodes(t):
     errors = []
@@ -1141,12 +1140,13 @@ def checkElementNodes(t):
 
             for iBE in iBEs: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
-                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None:
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        errors += [z, b, 'Element connectivity referenced unexisting vertices in zone %s.'%z[0]]
 
             #for iNFace in iNFaces: # check positive faces
             #    c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
@@ -1157,12 +1157,13 @@ def checkElementNodes(t):
 
             for iNGon in iNGons: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
-                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None:
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        errors += [z, b, 'NGON connectivity referenced unexisting vertices in zone %s.'%z[0]]
     return errors
 
 #==============================================================================
@@ -1172,6 +1173,7 @@ def checkElementNodes(t):
 #==============================================================================
 def _correctElementNodes(t):
     _correctBCElementNodes(t)
+    _cleanBEConnect(t)
     errors = checkElementNodes(t)
     le = len(errors)//3
     for e in range(le):
@@ -1184,7 +1186,7 @@ def _correctElementNodes(t):
             zones = C.breakConnectivity(zone)
             c = Internal.getNodePosition(zone, parent)
             parent[2][c] = zones[0]; parent[2] += zones[1:]
-        elif msg[0:6] == 'NFace':
+        elif msg[0:5] == 'NFace':
             # Look for PE
             PE = Internal.getNodeFromName2(zone, 'ParentElements')
             if PE is not None:
@@ -1195,7 +1197,6 @@ def _correctElementNodes(t):
 # Corrige des boundary connectivity qui sont a zero (GE[1][1])
 #===============================================================================
 def _correctBCElementNodes(t):
-    _cleanBEConnect(t)
     #_correctBC_PL2ER(t)
 
     zones = Internal.getZones(t)
@@ -1280,6 +1281,32 @@ def _cleanBEConnect(t):
                     elt_no = Internal.getValue(elt_t)[0]
                     if elt_no != 22 and elt_no != 23:
                         Internal._rmNodesFromName(z, elt_t[0])
+    return None
+
+# Dans un ParentElement, shift les elements si pas deja le cas
+# shift=1: add nface shift if possible
+# shift=-1: sub nface shift if possible
+def _shiftParentElements(t, shift=1):
+    for z in Internal.getZones(t):
+        ngon = Internal.getNGonNode(z)
+        if ngon is not None:
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
+                n = PE[1]
+                if n is not None:
+                    np = n[n > 0]
+                    emin = numpy.min(np)
+                    if emin == 1:
+                        if shift == 1:
+                            nf = n.size//2
+                            np = n+nf
+                            PE[1] = numpy.where(np==nf, 0, np)
+                    else:
+                        if shift == -1:
+                            nf = n.size//2
+                            np = n-nf
+                            PE[1] = numpy.where(np==-nf, 0, np)
+
     return None
 
 #===============================================================================

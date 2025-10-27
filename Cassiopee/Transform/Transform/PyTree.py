@@ -187,16 +187,16 @@ def _smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
     if fixedConstraints != []:
         c = []
         for z in fixedConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         fixedConstraints = c
     if projConstraints != []:
         c = []
         for z in projConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         projConstraints = c
     zones = Internal.getZones(t)
     coords = []
-    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
     coordsp = Transform.smooth(coords, eps, niter, type,
                                fixedConstraints, projConstraints, delta,
                                point, radius)
@@ -226,7 +226,7 @@ def deformNormals(t, alpha, niter=1):
 
 def _deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals."""
-    alphat = C.getField(alpha, t)
+    alphat = C.getField(alpha, t, api=1)
     res = C.TLAGC(t, Transform.deformNormals, alphat, niter, None, None)
     C.setFields(res[0], t, 'nodes')
     return None
@@ -243,12 +243,12 @@ def _deformPoint(a, xyz, dxdydz, depth, width):
 def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C.TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C._TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def controlPoints(a, N=(2,2,2)):
@@ -267,8 +267,8 @@ def freeForm(a, controlPoints):
 
 def _freeForm(a, controlPoints):
     """Compute free form deformation vector."""
-    array = C.getAllFields(a, 'nodes')
-    control = C.getAllFields(controlPoints, 'nodes')[0]
+    array = C.getAllFields(a, 'nodes', api=1)
+    control = C.getAllFields(controlPoints, 'nodes', api=1)[0]
     array = Transform.freeForm(array, control)
     C.setFields(array, a, 'nodes', writeDim=False)
     return None
@@ -285,9 +285,9 @@ def join(t, t2=None, tol=1.e-10):
         allBCInfos += C.extractBCInfo(t2)
     Internal._orderFlowSolution(nodes, loc='both')
 
-    fieldn = C.getAllFields(nodes, 'nodes')
+    fieldn = C.getAllFields(nodes, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(nodes, 'centers'):
+    for f in C.getAllFields(nodes, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.join(fieldn, arrayc=fieldc, tol=tol)
     if not isinstance(res[0], list): # join sans les centres
@@ -304,9 +304,9 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=Fals
     Usage: merge(t, sizeMax, dir, tol, alphaRef)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    fieldn = C.getAllFields(t, 'nodes')
+    fieldn = C.getAllFields(t, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(t, 'centers'):
+    for f in C.getAllFields(t, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.merge(fieldn, Ac=fieldc, sizeMax=sizeMax,
                           dir=dir, tol=tol, alphaRef=alphaRef)
@@ -382,7 +382,7 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
-        a2 = C.getAllFields(z2, 'nodes')[0]
+        a2 = C.getAllFields(z2, 'nodes', api=1)[0]
         C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
     return None
 
@@ -458,8 +458,13 @@ def oneovern(t, N):
 
 def _oneovern(t, N):
     """Take one over N points from mesh."""
+    centers = C.getAllFields(t, 'centers', api=1)
     C._TZA1(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
-    C._TZA1(t, 'centers', 'centers', False, Transform.oneovern, N, 0)
+    zones = Internal.getZones(t)
+    for c, z in enumerate(zones):
+        if centers[c] != []:
+            fc = Transform.oneovern(centers[c], N, 0)
+            C.setFields([fc], z, 'centers', False)
     _oneovernBC__(t, N)
     return None
 
@@ -1765,11 +1770,11 @@ def _reorderAll(t, dir=1):
     nofan=0; nofac=0
     for z in zones:
         # champs en noeuds
-        coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
-        fnz = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
+        fnz = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fnz == []: indirn.append(0)
         else: indirn.append(1); nofan += 1
-        fcz = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fcz = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fcz == []: indirc.append(0)
         else: indirc.append(1); nofac += 1
         fn.append(fnz); fc.append(fcz)
@@ -1960,9 +1965,9 @@ def _addkplane(t, N=1):
     """Add N k-plane(s) to a mesh."""
     zones = Internal.getZones(t)
     for z in zones:
-        nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fn = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        nodes = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fn = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         # Coordinates + fields located at nodes
         if fn != []:
             if nodes == []: nodes = fn
@@ -1989,9 +1994,9 @@ def projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
 def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     """Project points defined in arrays to surfaces according to the direction provided by vect."""
     zones = Internal.getZones(t1)
-    a1 = C.getAllFields(zones, loc='nodes')
+    a1 = C.getAllFields(zones, loc='nodes', api=1)
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2007,8 +2012,8 @@ def projectDir(t1, t2, dir, smooth=0, oriented=0):
 def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
     """Project a surface array onto surface arrays following dir."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectDir(a1, a2, dir, smooth, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2024,8 +2029,8 @@ def projectOrtho(t1, t2):
 def _projectOrtho(t1, t2): # t1 is modified
     """Project a surface t1 onto surface t2 orthogonally."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrtho(a1, a2)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2041,8 +2046,8 @@ def projectOrthoSmooth(t1, t2, niter=1):
 def _projectOrthoSmooth(t1, t2, niter=1): # t1 is modified
     """Project a surface array onto surface arrays following smoothed normals."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrthoSmooth(a1, a2, niter)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2058,8 +2063,8 @@ def projectRay(t1, t2, Pt):
 def _projectRay(t1, t2, Pt): # t1 is modified
     """Project a surface array onto surface arrays following rays."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectRay(a1, a2, Pt)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2540,7 +2545,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
     for i in range(len(zonesN)):
         z = zonesN[i]
         dim = Internal.getZoneDim(z)
-        a = C.getFields(Internal.__GridCoordinates__, z)[0]
+        a = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         zlist = []
         if NPart[i] > 1:
             if recoverBC: bcs = C.getBCs(z)
@@ -2684,7 +2689,7 @@ def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
 def splitCurvatureAngle(t, sensibility):
     """Split a curve following curvature angle.
     Usage: splitCurvatureAngle(t, sensibility)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureAngle(a, sensibility)
     zones = []
     for i in arrays:
@@ -2695,7 +2700,7 @@ def splitCurvatureAngle(t, sensibility):
 def splitConnexity(t):
     """Split zone into connex zones.
     Usage: splitConnexity(t)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitConnexity(a)
     zones = []
     for i in A:
@@ -2706,7 +2711,7 @@ def splitConnexity(t):
 def breakElements(t):
     """Break a NGON array in a set of arrays of BAR, TRI, ... elements.
     Usage: breakElements(t)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.breakElements(a)
     zones = []
     for i in A:
@@ -2729,7 +2734,7 @@ def _dual(t, extraPoints=1):
 def splitSharpEdges(t, alphaRef=30.):
     """Split zone into smooth zones.
     Usage: splitSharpEdges(t, alphaRef)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitSharpEdges(a, alphaRef)
     zones = []
     for i in A:
@@ -2740,7 +2745,7 @@ def splitSharpEdges(t, alphaRef=30.):
 def splitCurvatureRadius(t, Rs=100.):
     """Return the indices of the array where the curvature radius is low.
     Usage: splitCurvatureRadius(t, Rs)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureRadius(a, Rs)
     zones = []
     for i in arrays:
@@ -2768,7 +2773,7 @@ def splitMultiplePts3D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1; ksplit = -1
@@ -2871,7 +2876,7 @@ def splitMultiplePts2D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b,'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1
@@ -3006,7 +3011,7 @@ def splitMultiplePts(t, dim=3):
 def splitBAR(t, N, N2=-1):
     """Split a BAR at index N (start 0).
     Usage: splitBAR(t, N)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitBAR(a, N, N2)
     zones = []
     for i in A:
@@ -3017,7 +3022,7 @@ def splitBAR(t, N, N2=-1):
 def splitTBranches(t, tol=1.e-10):
     """Split a BAR at vertices where T-branches exist.
     Usage: splitTBranches(t, tol)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitTBranches(a, tol)
     zones = []
     for i in A:
@@ -3028,7 +3033,7 @@ def splitTBranches(t, tol=1.e-10):
 def splitTRI(t, idxList):
     """Split a TRI into several TRIs delimited by the input poly line.
     Usage: splitTRI(t, idxList)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitTRI(a, idxList)
     zones = []
     for i in A:
@@ -3039,7 +3044,7 @@ def splitTRI(t, idxList):
 def splitManifold(t):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitManifold(a)
     zones = []
     for i in A:
@@ -3051,8 +3056,8 @@ def _splitNGon(t, N, N2=-1, shift=1000):
     """Split a NGon putting result in a "part" field"""
     zones = Internal.getZones(t)
     for z in zones:
-        a1 = C.getAllFields(z, 'nodes')[0]
-        a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
+        a1 = C.getAllFields(z, 'nodes', api=1)[0]
+        a2 = C.getAllFields(z, 'centers', api=1)[0] # must contain "part" field
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
     return None

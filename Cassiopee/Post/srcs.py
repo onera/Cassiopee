@@ -135,36 +135,7 @@ else: cpp_srcs.append("Post/usurpStub.cpp")
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Post/Fortran/IntegStructF.for',
-            'Post/Fortran/IntegUnstrF.for',
-            'Post/Fortran/IntegNormStructF.for',
-            'Post/Fortran/IntegNormUnstrF.for',
-            'Post/Fortran/IntegNormProdStructF.for',
-            'Post/Fortran/IntegNormProdUnstrF.for',
-            'Post/Fortran/IntegMomentNormStructF.for',
-            'Post/Fortran/IntegMomentNormUnstrF.for',
-            'Post/Fortran/IntegMomentStructF.for',
-            'Post/Fortran/IntegMomentUnstrF.for',
-            'Post/Fortran/CompMeanCurlOfStructCellF.for',
-            'Post/Fortran/CompMeanCurlOfTetraCellF.for',
-            'Post/Fortran/CompInterfaceFieldF.for',
-            'Post/Fortran/CompUnstrNodes2FacesF.for',
-            'Post/Fortran/CompStructGradF.for',
-            'Post/Fortran/CompStructGrad2DF.for',
-            'Post/Fortran/CompStructGrad1DF.for',
-            'Post/Fortran/CompUnstrGradF.for',
-            'Post/Fortran/CompUnstrGrad2DF.for',
-            'Post/Fortran/CompUnstrGrad1DF.for',
-            'Post/Fortran/CompStructDivF.for',
-            'Post/Fortran/CompStructDiv2DF.for',
-            'Post/Fortran/CompUnstrDivF.for',
-            'Post/Fortran/CompUnstrDiv2DF.for',
-            'Post/Fortran/CompStructCurlF.for',
-            'Post/Fortran/CompStructCurl2DF.for',
-            'Post/Fortran/CompUnstrCurlF.for',
-            'Post/Fortran/CompUnstrCurl2DF.for',
-            'Post/zipper/ComputNormF.for',
-            'Post/zipper/ConstrConnectF.for']
+for_srcs = []
 
 f90_srcs = []
 if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
