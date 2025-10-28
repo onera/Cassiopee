@@ -106,6 +106,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                 z = C.convertArray2Tetra(z)
                 z = T.join(z)
                 bbz = G.bbox(z)
+                ## [TODO] this needs to be related to the hmin
                 # hausd is a length and must be adapted to the dimensions of each case
                 hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
                 hmax = hausd*1000
@@ -135,7 +136,9 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                         fixedConstraints = []
                     z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                     tbv2[2][nob][2] = Internal.getZones(z)
-
+    #Cmpi.convertPyTree2File(tb  ,'check_coarseSurf.cgns')
+    #Cmpi.convertPyTree2File(tbv2,'check_coarseSurfv2.cgns')
+    #exit()
     tbTmp = Internal.copyTree(tb)
     if tbv2 is not None: tbTmp = tbv2
 
@@ -310,7 +313,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
+def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to,'centers:indicatorTmp',0.)
 
@@ -324,19 +327,28 @@ def tagOutside__(o, tbTMP, dim=3, h_target=-1.):
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
-    XRAYDIM1 = max(500, min(5000, XRAYDIM1)); ## XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
+    if (noffsets is None) or (noffsets>2): XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
+    elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
+    elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
+    elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
+    ##XRAYDIM1 = max(500, min(5000, XRAYDIM1)); ## XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn",1.)
 
     to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                       XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                       cellNName='cellN')
+    if opt:
+        depthLocal = 0
+        if noffsets==0:   depthLocal=-2
+        elif noffsets==1: depthLocal=-1
+        if abs(depthLocal)>0: to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellN', loc='nodes')
     to = C.node2Center(to,["cellN"])
     C._initVars(to,"{centers:indicatorTmp}=({centers:cellN}>0)")
     C._rmVars(to, ["cellN","centers:cellN"])
     o = Internal.getZones(to)[0]
     return o
 
-def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
+def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to,'centers:indicatorTmp',0.)
 
@@ -363,9 +375,21 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10; XRAYDIM2 = int(L2/h_target)+10
-    XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
-    XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
-
+    #XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
+    #XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
+    if (noffsets is None) or (noffsets>2):
+        XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
+        XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
+    elif noffsets == 2:
+        XRAYDIM1 = max(1500, min(15000, XRAYDIM1)); #x3
+        XRAYDIM2 = max(1500, min(15000, XRAYDIM2))  #x3
+    elif noffsets == 1:
+        XRAYDIM1 = max(2500, min(25000, XRAYDIM1)); #x5
+        XRAYDIM2 = max(2500, min(25000, XRAYDIM2))  #x5
+    elif noffsets == 0:
+        XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
+        XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
+    
     C._initVars(to, "cellNOut",1.)
     C._initVars(to, "cellNIn",1.)
 
@@ -377,7 +401,12 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1.):
         to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                           XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                           cellNName='cellNOut')
-        to = X.setHoleInterpolatedPoints(to, depth=-1, cellNName='cellNOut', loc='nodes')
+        depthLocal = -1
+        if opt:
+            if noffsets==0:   depthLocal=-3
+            elif noffsets==1: depthLocal=-2
+
+        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellNOut', loc='nodes')
         C._initVars(to,'{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
 
     to = C.node2Center(to,["cellN"])
@@ -985,7 +1014,7 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, numTbox=0):
+def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0):
     from mpi4py import MPI
     from itertools import groupby
 
@@ -1044,11 +1073,11 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             while adapting:
                 C._initVars(o,'centers:indicator',0.)
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
-                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx)
+                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
                 for offsetlocTmp in offset_inside[0]:
-                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx)
+                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i)
                     C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
@@ -1323,13 +1352,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         for i in range(dim):
             if i+1 == dir_sym: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
             else:              dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
-            if Cmpi.master: print(nBase,i,dfarmaxTmp,abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
             dfarmax    = min(dfarmaxTmp,dfarmax)
-        dfarmaxLocal.append(dfarmax)
+        dfarmaxLocal.append(dfarmax-3*hmin_skel)
     
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
-    if Cmpi.master:print(dfarmax,dfarmaxLocal,len(Internal.getBases(tb_tboxLocal)),numBase)
     
     if toffset==None:
         offsetValues = []       
@@ -1339,8 +1366,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             for no_adapt in range(len(vmins[nBase])):
                 hminLocal = snearsTbTbox[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                #if offsetloc < 0.99*dfarmaxLocal[nBase]:
-                if offsetloc < 0.99*dfarmax:
+                if offsetloc < 0.99*dfarmaxLocal[nBase]:
+                    #if offsetloc < 0.99*dfarmax:
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             offsetValues.append(offsetValuesBase)
@@ -1361,6 +1388,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
     # only tb --> for blanking & tagging inside the geometry
-    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, numTbox=numTbox)
+    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
