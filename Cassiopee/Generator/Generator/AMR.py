@@ -87,6 +87,9 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
     snears, numBase = listSnear(tb, snears)
     if Cmpi.master: print('Generating list of offsets...start',flush=True)
 
+    minSnear=1e10
+    for snearLocal in range(len(snears)): minSnear=min(minSnear,snearLocal[0])
+
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
     listShiftBase = []
@@ -136,9 +139,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                         fixedConstraints = []
                     z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                     tbv2[2][nob][2] = Internal.getZones(z)
-    #Cmpi.convertPyTree2File(tb  ,'check_coarseSurf.cgns')
-    #Cmpi.convertPyTree2File(tbv2,'check_coarseSurfv2.cgns')
-    #exit()
+
     tbTmp = Internal.copyTree(tb)
     if tbv2 is not None: tbTmp = tbv2
 
@@ -172,18 +173,20 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         hj_core = (ymax_core-ymin_core)/(nj_core-1)
         hk_core = (zmax_core-zmin_core)/(nk_core-1)
         h_core = min(hi_core, hj_core)
-        if dim == 3: h_core = min(h_core, hk_core)
+        if dim == 3:
+            h_core = min(h_core, hk_core)
+            h_core = min(h_core, 8.*minSnear)
         if dim == 2:
             zmin = 0; zmax = 0
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
+            h_core = min(h_core, 16.*minSnear)
         
         # Do not extend the CartCore beyond the symmetry plane (symClose)
         if dir_sym > 0 and tbLocal[0] in listShiftBase:
             if   dir_sym == 1: xmin_core += delta2
             elif dir_sym == 2: ymin_core += delta2
             elif dir_sym == 3: zmin_core += delta2
-        
         # smaller and finer Cartesian core, bigger geometric factor
         XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
         XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
