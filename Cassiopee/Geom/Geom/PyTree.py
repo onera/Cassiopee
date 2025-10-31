@@ -294,12 +294,12 @@ def lineDrive(t, line):
     """Generate a surface mesh by using 1D array (defining a mesh)
     and following the curve defined in line.
     Usage: lineDrive(t, line)"""
-    al = C.getFields(Internal.__GridCoordinates__, line, api=1)
+    al = C.getFields(Internal.__GridCoordinates__, line, api=3)
     if len(al) == 1: al = al[0]
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC1(t, 'both', 'both', True, Geom.lineDrive,
+    return C.TZAGC3(t, 'both', 'both', True, Geom.lineDrive,
                     Geom.lineDrive, al, al2)
 
 def orthoDrive(t, line, mode=0):
@@ -319,8 +319,8 @@ def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     Usage: axisym(t, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
     # Attention en centres, les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=1)[0]
-    return C.TZAGC1(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
+    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=3)[0]
+    return C.TZAGC3(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
                     center, axis, angle, Ntheta, rmod,
                     center, axis, angle, Ntheta-1, rmod)
 

@@ -358,33 +358,24 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
     /* calcul de la connectivite */
     for (E_Int v = 1; v <= nvert0; v++)
     {
-      E_Int* cnv = cn->begin(v);
-      E_Int* cnv0 = cn0->begin(v);
-
       for (E_Int k = 0; k < nteta; k++)
         for (E_Int et = 0; et < nelts0; et++)
         {
           E_Int eti = et + k*nelts0;
-          cnv[eti] = cnv0[et] + k *npts0;
+          (*cn)(eti,v) = (*cn0)(et,v) + k*npts0;
         }
     }
 
     if (nvert == 4)
     {
-      E_Int* cnv = cn->begin(3);
-      E_Int* cnvp = cn->begin(2);
-      for (E_Int et = 0; et < nelts; et++) cnv[et] = cnvp[et]+npts0;
-      cnv = cn->begin(4);
-      cnvp = cn->begin(1);
-      for (E_Int et = 0; et < nelts; et++) cnv[et] = cnvp[et]+npts0;
+      for (E_Int et = 0; et < nelts; et++) (*cn)(et,3) = (*cn)(et,2)+npts0;
+      for (E_Int et = 0; et < nelts; et++) (*cn)(et,4) = (*cn)(et,1)+npts0;
     }
     else
     {
       for (E_Int v = nvert0+1; v <= nvert; v++)
       {
-        E_Int* cnv = cn->begin(v);
-        E_Int* cnvp = cn->begin(v-nvert0);
-        for (E_Int et = 0; et < nelts; et++) cnv[et] = cnvp[et]+npts0;
+        for (E_Int et = 0; et < nelts; et++) (*cn)(et,v) = (*cn)(et,v-nvert0)+npts0;
       }
     }
 

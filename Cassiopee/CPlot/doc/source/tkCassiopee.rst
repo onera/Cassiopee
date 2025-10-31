@@ -20,14 +20,16 @@ To call the application from shell::
 General guidelines
 ###################
     
-Each applet can be triggered from top menu **Apps** or
-by right clicking on a tab. It can be
-discarded by left clicking on its name at top of frame or by pressing
-CTRL+c.
+All applets can be triggered 
+by right clicking on a menu tab situated on the left.
+For instance, right clicking on the "State" menu, display
+available applets in this menu. 
+Once opened, an applet can be discarded by left clicking 
+on the [+] neat its name or by pressing CTRL+c.
 
-The default settings of an applet can be modified in the preference file
-by right clicking on the applet name [+] and chosing 'save'.
-Settings can be reset by chosing 'reset' in the menu.
+The default settings of an applet can be modified 
+by right clicking on the applet name [+] and choosing 'save'.
+Settings can be reset by choosing 'reset' in the menu.
 An applet can be pinned, meaning that it will automatically
 be opened at next restart.
 
@@ -58,12 +60,27 @@ structured zones by clicking on 'change displayed location'
 in the **CPlot** top menu.
 
 Selecting 'Quit' in **File** top menu exits cassiopee. You can
-also exits by pressing 'q' when in CPlot window.
+also exits by pressing 'q' when in CPlot window.  
+
+Customization
+---------------
+Open **State:tkPrefs** by right clicking on State menu.
+
+In this applet, you can set tkCassiopee global preferences:
+
+    - Display Info toggles on/off display informations.
+    - Background selects different colors for the display background.
+    - Undo toggles one level undo. Setting it to inactive can gain some memory.
+    - Selection enables different high-lights for selection (blue or alpha transparency).
+    - Ondrag bbox displays bbox istead of when rotating view.
+    - Envmap is the image used with environmental mapping shaders in render mode.<br>
+    - Export enables to set the image resolution when exporting.
+
 
 Cassiopee:ToolBar
 ------------------
 
-    The tool bar is situated just under the menu bar. It contains:
+The tool bar is situated just under the menu bar. It contains:
 
     - The save icon: click for quick save,
     - The undo icon: click for undo (only one level), 
@@ -80,7 +97,7 @@ Cassiopee:ToolBar
 Cassiopee:Tree
 ---------------
     
-This tab gathers applets related to pyTree management.
+This menu gathers applets related to pyTree management.
 
     - **tkTree**: enables the visualization of pyTrees as text trees.
     In tkTree window, left mouse button
@@ -141,7 +158,9 @@ This menu gathers applets related to state modification.
 
 Cassiopee:Edge
 -----------------
-    
+
+This menu gathers applets related to edge creation/modification.
+
     - **tkCanvas**: enables to create a canvas for mesh positioning or drawing. The position and size of the canvas can be modified.
 
     - **tkPoint**: enables to draw points.
@@ -267,6 +286,8 @@ creation/modification.
 Cassiopee:Motion
 ------------------
 
+This menu gathers applets related to motion definition.
+
     - **tkRigidMotion**: enables definition of rigid motions.
 
     - **tkTime**: manage time for motion visualization.
@@ -318,6 +339,9 @@ This menu gathers applets related to pyTree visualization.
 
 Cassiopee:Render
 -----------------
+
+This menu gathers applets related to advanced rendering options.
+
     - **tkRenderTree**: enables to set texture files in tree.
     - **tkRenderSet**: enables to chose the color and material of each zone.
     - **tkStereo**: enable the stereo anaglyph mode.
