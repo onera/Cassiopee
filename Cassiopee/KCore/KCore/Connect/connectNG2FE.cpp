@@ -34,28 +34,23 @@ using namespace K_FLD;
 //=============================================================================
 void K_CONNECT::connectNG2FE(FldArrayI& cNG, FldArrayI& cFE)
 {
-  // Acces non universel sur le ptrs
-  E_Int* nface = cNG.getNFace();
-  E_Int* indPH = cNG.getIndPH();
-  // Acces universel nbres de faces et d'elements
-  E_Int nfaces = cNG.getNFaces();
-  E_Int nelts = cNG.getNElts();
+  E_Int* nface = cNG.getNFace(); E_Int* indPH = cNG.getIndPH();
+  E_Int nfaces = cNG.getNFaces(); E_Int nelts = cNG.getNElts();
 
   // Connectivite faces->elts
   cFE.malloc(nfaces, 2); cFE.setAllValuesAtNull();
   E_Int* facesp1 = cFE.begin(1);
   E_Int* facesp2 = cFE.begin(2);
 
-  E_Int nf, face;
+  E_Int nf, fidx;
   for (E_Int i = 0; i < nelts; i++)
   {
-    // Acces universel element et
     E_Int* elt = cNG.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
     {
-      face = std::abs(elt[j])-1;
-      if (facesp1[face] == 0) facesp1[face] = i+1;
-      else facesp2[face] = i+1;
+      fidx = K_FUNC::E_abs(elt[j]) - 1;
+      if (facesp1[fidx] == 0) facesp1[fidx] = i+1;
+      else facesp2[fidx] = i+1;
     }
   }
 }

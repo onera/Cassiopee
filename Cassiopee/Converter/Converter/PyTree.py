@@ -1692,10 +1692,8 @@ def setFields(arrays, t, loc, writeDim=True):
         p = 0
         for v in vars:
             renamed = 0 # si le nom est change en nom CGNS = 1
-            if v in Internal.name2CGNS:
-                variable = Internal.name2CGNS[v]
-                if variable != v: renamed = 1
-            else: variable = v
+            variable = Internal.getCGNSName(v)
+            if variable != v: renamed = 1
             if (variable == 'CoordinateX' or variable == 'CoordinateY'
                     or variable == 'CoordinateZ') and loc == 'nodes':
                 coordNode = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
@@ -7825,7 +7823,7 @@ def breakConnectivity(t):
                     _deleteGridConnectivity__(zp)
                     GEl = Internal.getNodesFromType1(zp, 'Elements_t')
                     GE = Internal.getNodeFromName1(zp, connects[i][0])
-                    eltType, nf = Internal.eltNo2EltName(GE[1][0])
+                    eltType, _ = Internal.eltNo2EltName(GE[1][0])
                     # Nouveau nom de la zone
                     zp[0] = getZoneName(z[0]+'_'+eltType)
                     # Enleve toutes les connects volumiques a part la ieme
