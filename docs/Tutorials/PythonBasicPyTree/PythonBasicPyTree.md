@@ -1,7 +1,7 @@
 # CGNS Python tree basics
 
-This tutorial explores the data handled by all Cassiopee functions,
-called a *CGNS python tree* or shorter a *pytree*. This data is able to store the mesh coordinates, connectivities, fields and boundary conditions. It is conform to the CGNS standard document (https://cgns.org).
+This tutorial explores the handling of data through Cassiopee functions,
+called a *CGNS python tree* or shorter a *pytree*. The data can contain the mesh coordinates, connectivities, fields, and boundary conditions. It conforms to the latest CGNS standard (https://cgns.org).
 
 ## Reading a pytree from a file and basic tree node management
 
@@ -14,7 +14,7 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 ```
 
-Here we read a sample file and display the tree to screen:
+Here we read a sample file and display the tree to the screen:
 
 ```python
 # Read file
@@ -23,7 +23,7 @@ a = C.convertFile2PyTree("case.cgns")
 Internal.printTree(a)
 ```
 
-Here we get nodes of tree by their name or type:
+Here we get tree nodes from their name or type:
 
 ```python
 # get a node by name (first met)
@@ -37,15 +37,15 @@ n4 = Internal.getNodeFromName(n3, 'Density')
 ```
 
 Every tree node has the same structure and is a python list. The first element 
-is the node name, the second is the node value and is numpy, the third is all list
-containing the child nodes and the last one is the node type. For example:
+is the node name, the second is the node value and is in numpy, the third is all list
+containing the child nodes, and the last one is the node type; e.g.:
 
 ```python
 import numpy
 node = ['CoordinateX', numpy.array([0.,1.,2.], dtype=numpy.float64, order='F'), [], 'DataArray_t']
 ```
 
-You can of course use numpy functions on numpy array (node[1]) as usual.
+You can of course use numpy functions on numpy arrays (node[1]) as one would normally do.
 
 For example, change the X coordinate of the first point using numpy:
 ```python
@@ -66,7 +66,7 @@ Internal.printTree(node)
 #>    |_['myChild',array([2.0],dtype='float64'),[0 son],'DataArray_t']
 ```
 
-Internal offers other basic tree node management functions, such as specific node creations, node removal or node modifications.
+Internal offers other basic tree node management functions, such as specific node creations, node removal, or node modifications.
 
 You can save the modified pytree to a file with:
 ```python
@@ -74,8 +74,8 @@ You can save the modified pytree to a file with:
 C.convertPyTree2File(a, 'out.cgns')
 ```
 
-You can save at different formats, by changing the extension or forcing the format explicitely. 
-Neverthless, a lot of formats dont support all CGNS nodes such as boundary conditions. For example:
+You can also save it with different formats by changing the extension or by forcing the format explicitely. 
+Neverthless, it should be noted that a lot of formats don't support all of the CGNS nodes, such as the boundary conditions. For example:
 
 ```python
 # save pytree to tecplot format
@@ -86,9 +86,9 @@ C.convertPyTree2File(a, 'out.mesh', format='fmt_mesh')
 
 ## Mesh topologies
 
-The CGNS standard enables to store different mesh topotlogies: *structured* grids, *elements* grids and *polyedral* grids.
+The CGNS standard enables the storage of different mesh topologies: *structured* grids, *elements* grids, and *polyedral* grids.
 
-*Structured* grids are made of nixnjxnk points and dont need an explicit connectivity.
+*Structured* grids are made of $n_i \times n_j \times n_k$ points and don't need an explicit connectivity.
 Here, we use the Generator module to generate grids. For example:
 
 ```python
@@ -103,7 +103,7 @@ Internal.printTree(a)
 #>        |_['CoordinateY',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
 #>        |_['CoordinateZ',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
 ```
-The internal numpy can then be accessible by the 3 indices (i,j,k).
+The internal numpy can then be accessible through the 3 indices (i,j,k).
 ```python
 # get the CoordinateX node
 n = Internal.getNodeFromName(a, 'CoordinateX')
@@ -111,7 +111,7 @@ print(n[1].shape)
 #> (10, 10, 10)
 ```
 
-Elements grids are of given element types (TRI, TETRA, HEXA, ...) and store a connectivity:
+Element grids are of given element types (TRI, TETRA, HEXA, ...) and store a connectivity:
 ```python
 # create an TETRA zone
 a = G.cartTetra((0,0,0), (1,1,1), (10,10,10))
@@ -128,7 +128,7 @@ Internal.printTree(a)
 ```
 
 This type of zone can also store different element types.
-For example, create another grid with PENTA (prisms) and merge connectivities in a single multi-elements grid:
+For example, create another grid with PENTA (prisms) and merge the connectivities into a single multi-element grid:
 
 ```python
 # create a PENTA zone
@@ -150,8 +150,8 @@ Internal.printTree(a)
 #>        |_['ElementConnectivity',array(shape=(3888,),dtype='int32',order='F'),[0 son],'DataArray_t']
 ```
 
-Polyedral grids (also called NGON) enables faces of arbitrary number of points
-and elements of arbitrary number of faces. Its is made of two connectivities,
+Polyhedral grids (also known as NGONs) enabls faces of an arbitrary number of points
+and elements of an arbitrary number of faces. It contained two connectivities:
 the NGON described face node indices and the NFACE describes face indices.
 
 ```python
@@ -179,7 +179,7 @@ Internal.printTree(a)
 Boundary conditions can be added topologically (from indices or range) or 
 geometrically.
 
-On structured grids, add a wall for "imin" window:
+On structured grids, add a wall at the "imin" window:
 
 ```python
 # add a BC on a structured grid
@@ -197,7 +197,7 @@ Internal.printTree(a)
 #>            |_['PointRange',array(shape=(3, 2),dtype='int32',order='F'),[0 son],'IndexRange_t']
 ```
 
-On element or ngon grids, add a wall defined geometrically:
+On element or NGON grids, add a geometrically defined wall:
 
 ```python
 a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
@@ -225,8 +225,8 @@ Internal.printTree(a)
 
 ## Fields
 
-In pytrees, you can add fields to any zones store in nodes or in centers. 
-C.initVars enables to write formulas from other variables:
+In pytrees, you can add fields to any zone and store them either at the cell vertices (known as nodes) or at the cell centers (known as centers). 
+C.initVars support formula writing using other variables:
 
 ```python
 # Init a node field
@@ -237,13 +237,13 @@ C.convertPyTree2File(a, 'out.cgns')
 ```
 
 The "\_" before initVars means that the function is applied "in place",
-that is without duplication. Without "\_", the function returns a reference copy:
+that is to say without duplication. Without "\_", the function returns a reference copy:
 
 ```python
 b = C.initVars(a, '{VelocityX}=0.')
 ```
 
-You can also initialize a conservative field from a dimensional or non dimensional state:
+You can also initialize a conservative field from a dimensional or non-dimensional state:
 
 ```python
 import Initiator.Adim as Adim
