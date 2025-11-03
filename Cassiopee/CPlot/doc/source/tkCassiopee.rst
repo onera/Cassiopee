@@ -62,11 +62,6 @@ in the **CPlot** top menu.
 Selecting 'Quit' in **File** top menu exits cassiopee. You can
 also exits by pressing 'q' when in CPlot window.  
 
-.. Controls summary
-.. ------------------
-.. .. image:: _static/icon_keys_New.png
-..     :width: 150px
-
 Customization
 ---------------
 

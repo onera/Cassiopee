@@ -3,9 +3,9 @@
 This tutorial explores the data handled by all Cassiopee functions,
 called a *CGNS python tree* or shorter a *pytree*. This data is able to store the mesh coordinates, connectivities, fields and boundary conditions. It is conform to the CGNS standard document (https://cgns.org).
 
-Get the sample cgns file: XXXX
-
 ## Reading a pytree from a file and basic tree node management
+
+[Download the sample cgns file](case.cgns) 
 
 In this section, we will use the Converter module:
 
@@ -55,49 +55,99 @@ array = n1[1]
 array[0] = 0.1
 ```
 
+You can create nodes:
+```python
+# create a node specifying name, data types and value
+node = Internal.createNode('myNode', 'DataArray_t', value=[12.,14.,15.], children=[])
+# create a node and attach it to another node as a child
+child = Internal.createChild(node, 'myChild', 'DataArray_t', value=2.)
+Internal.printTree(node)
+#> ['myNode',array(shape=(3,),dtype='float64',order='F'),[1 son],'DataArray_t']
+#>    |_['myChild',array([2.0],dtype='float64'),[0 son],'DataArray_t']
+```
+
+Internal offers other basic tree node management functions, such as specific node creations, node removal or node modifications.
+
 You can save the modified pytree to a file with:
 ```python
 # save pytree to file
 C.convertPyTree2File(a, 'out.cgns')
 ```
 
-Internal offers other basic tree node management functions, such as node removal, node modification and node creation.
+You can save at different formats, by changing the extension or forcing the format explicitely. 
+Neverthless, a lot of formats dont support all CGNS nodes such as boundary conditions. For example:
+
+```python
+# save pytree to tecplot format
+C.convertPyTree2File(a, 'out.plt')
+# save pytree to inria mesh format
+C.convertPyTree2File(a, 'out.mesh', format='fmt_mesh')
+```
 
 ## Mesh topologies
 
 The CGNS standard enables to store different mesh topotlogies: *structured* grids, *elements* grids and *polyedral* grids.
 
 *Structured* grids are made of nixnjxnk points and dont need an explicit connectivity.
-For example:
+Here, we use the Generator module to generate grids. For example:
 
 ```python
 import Generator.PyTree as G
 # create a structured grid
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
+#> ['cart',array(shape=(3, 3),dtype='int32',order='F'),[2 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Structured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>        |_['CoordinateX',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>        |_['CoordinateY',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>        |_['CoordinateZ',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
 ```
-The internal numpy is then accessible by 3 indices.
+The internal numpy can then be accessible by the 3 indices (i,j,k).
 ```python
 # get the CoordinateX node
 n = Internal.getNodeFromName(a, 'CoordinateX')
 print(n[1].shape)
+#> (10, 10, 10)
 ```
 
 Elements grids are of given element types (TRI, TETRA, HEXA, ...) and store a connectivity:
 ```python
-# create an TETRA grid
+# create an TETRA zone
 a = G.cartTetra((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
+#> ['cartTetra',array(shape=(1, 3),dtype='int32',order='F'),[3 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Unstructured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>    |   |_['CoordinateX',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateY',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateZ',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |_['GridElements',array(shape=(2,),dtype='int32',order='F'),[2 sons],'Elements_t']
+#>        |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>        |_['ElementConnectivity',array(shape=(14580,),dtype='int32',order='F'),[0 son],'DataArray_t']
 ```
 
 This type of zone can also store different element types.
 For example, create another grid with PENTA (prisms) and merge connectivities in a single multi-elements grid:
 
 ```python
-# create a PENTA grid
+# create a PENTA zone
 b = G.cartPenta((0,0,9), (1,1,1), (10,10,5))
+# merge zones a and b into a multi-element zone
 a = C.mergeConnectivity(a, b)
 Internal.printTree(a)
+#> ['cartTetra',array(shape=(1, 3),dtype='int32',order='F'),[4 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Unstructured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>    |   |_['CoordinateX',array(shape=(1400,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateY',array(shape=(1400,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateZ',array(shape=(1400,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |_['GridElements',array(shape=(2,),dtype='int32',order='F'),[2 sons],'Elements_t']
+#>    |   |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>    |   |_['ElementConnectivity',array(shape=(14580,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>    |_['GridElements-2',array(shape=(2,),dtype='int32',order='F'),[2 sons],'Elements_t']
+#>        |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>        |_['ElementConnectivity',array(shape=(3888,),dtype='int32',order='F'),[0 son],'DataArray_t']
 ```
 
 Polyedral grids (also called NGON) enables faces of arbitrary number of points
@@ -108,6 +158,20 @@ the NGON described face node indices and the NFACE describes face indices.
 # create a NGON grid
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10))
 Internal.printTree(a)
+#> ['cartNGon',array(shape=(1, 3),dtype='int32',order='F'),[4 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Unstructured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>    |   |_['CoordinateX',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateY',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateZ',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |_['NGonElements',array(shape=(2,),dtype='int32',order='F'),[3 sons],'Elements_t']
+#>    |   |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>    |   |_['ElementConnectivity',array(shape=(12150,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>    |   |_['FaceIndex',array(shape=(2430,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>    |_['NFaceElements',array(shape=(2,),dtype='int32',order='F'),[3 sons],'Elements_t']
+#>        |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>        |_['ElementConnectivity',array(shape=(5103,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>        |_['ElementIndex',array(shape=(729,),dtype='int32',order='F'),[0 son],'DataArray_t']
 ```
 
 ## Boundary conditions
@@ -122,6 +186,15 @@ On structured grids, add a wall for "imin" window:
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 C._addBC2Zone(a, 'wall', 'BCWall', 'imin')
 Internal.printTree(a)
+#> ['cart.0',array(shape=(3, 3),dtype='int32',order='F'),[3 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Structured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>    |   |_['CoordinateX',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateY',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateZ',array(shape=(10, 10, 10),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |_['ZoneBC',None,[1 son],'ZoneBC_t']
+#>        |_['wall',array('b'BCWall'',dtype='|S1'),[1 son],'BC_t']
+#>            |_['PointRange',array(shape=(3, 2),dtype='int32',order='F'),[0 son],'IndexRange_t']
 ```
 
 On element or ngon grids, add a wall defined geometrically:
@@ -133,6 +206,21 @@ b = G.cartHexa((0,0,0), (1,1,1), (10,10,1))
 # add BC on unstructured grid
 C._addBC2Zone(a, 'wall', 'BCWall', subzone=b)
 Internal.printTree(a)
+#> ['cartHexa.0',array(shape=(1, 3),dtype='int32',order='F'),[5 sons],'Zone_t']
+#>    |_['ZoneType',array('b'Unstructured'',dtype='|S1'),[0 son],'ZoneType_t']
+#>    |_['GridCoordinates',None,[3 sons],'GridCoordinates_t']
+#>    |   |_['CoordinateX',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateY',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |   |_['CoordinateZ',array(shape=(1000,),dtype='float64',order='F'),[0 son],'DataArray_t']
+#>    |_['GridElements',array(shape=(2,),dtype='int32',order='F'),[2 sons],'Elements_t']
+#>    |   |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>    |   |_['ElementConnectivity',array(shape=(5832,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>    |_['cartHexa.1',array(shape=(2,),dtype='int32',order='F'),[2 sons],'Elements_t']
+#>    |   |_['ElementRange',array(shape=(2,),dtype='int32',order='F'),[0 son],'IndexRange_t']
+#>    |   |_['ElementConnectivity',array(shape=(324,),dtype='int32',order='F'),[0 son],'DataArray_t']
+#>    |_['ZoneBC',None,[1 son],'ZoneBC_t']
+#>        |_['wall.0',array('b'BCWall'',dtype='|S1'),[1 son],'BC_t']
+#>            |_['ElementRange',array(shape=(1, 2),dtype='int32',order='F'),[0 son],'IndexRange_t']
 ```
 
 ## Fields
@@ -145,12 +233,11 @@ C.initVars enables to write formulas from other variables:
 C._initVars(a, '{nodes:Density}=1.')
 # Init a center field
 C._initVars(a, '{centers:Pressure}=3*{centers:CoordinateX}')
-Internal.printTree(a)
 C.convertPyTree2File(a, 'out.cgns')
 ```
 
-The "_" before initVars means that the function is applied "in place",
-that is without duplication. Without "_", the function returns a reference copy:
+The "\_" before initVars means that the function is applied "in place",
+that is without duplication. Without "\_", the function returns a reference copy:
 
 ```python
 b = C.initVars(a, '{VelocityX}=0.')
