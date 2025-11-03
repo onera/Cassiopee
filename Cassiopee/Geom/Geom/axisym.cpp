@@ -98,7 +98,6 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   E_Float xc, yc, zc, nx, ny, nz, teta;
   E_Int nteta;
   PyObject* arrayR;
-
   if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ I_ O_,
                     &array, &xc, &yc, &zc, &nx, &ny, &nz, &teta, &nteta, &arrayR))
   {
@@ -358,7 +357,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
     /* calcul de la connectivite */
     for (E_Int v = 1; v <= nvert0; v++)
     {
-      for (E_Int k = 0; k < nteta; k++)
+      for (E_Int k = 0; k < nteta-1; k++)
         for (E_Int et = 0; et < nelts0; et++)
         {
           E_Int eti = et + k*nelts0;
