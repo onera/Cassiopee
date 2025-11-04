@@ -95,7 +95,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   PyObject* tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
   E_Int* cFE = K_NUMPY::getNumpyPtrI(tpl);
 
-  if (cNGon->begin()[0] > 2 && methodPE != 0)
+  if (cNGon->begin()[0] <= 2 && methodPE != 0)
   {
     printf("adaptNFace2PE: NGon connectivity is not 3D, defaulting to method 0 "
            "(geometric) in which all elements are assumed to be "
