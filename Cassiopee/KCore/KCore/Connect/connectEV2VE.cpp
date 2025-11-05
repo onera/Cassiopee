@@ -33,13 +33,14 @@ using namespace std;
 //=============================================================================
 void K_CONNECT::connectEV2VE(FldArrayI& cEV, vector< vector<E_Int> >& cVE)
 {
+  // Acces universel sur BE/ME
   E_Int nc = cEV.getNConnect();
-  E_Int npts = cVE.size(); // Nombre de points du maillage
 
+  E_Int npts = cVE.size(); // Nombre de points du maillage
   // Calcul du nombre d'elements attaches a chaque noeud
   FldArrayI nve(npts); nve.setAllValuesAtNull();
   E_Int* nvep = nve.begin();
-  E_Int vertex, eidx;
+  E_Int vertex;
   E_Int offset = 0; // decalage
 
   // Boucle sur toutes les connectivites pour pre-calculer la valence de
@@ -47,12 +48,14 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV, vector< vector<E_Int> >& cVE)
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cEV.getConnect(ic));
+    // Nbre elements de cette connectivite
     E_Int nelts = cm.getSize();
+    // Nombre de points par elements de cette connectivite
     E_Int nvpe = cm.getNfld();
 
-    for (E_Int i = 0; i < nelts; i++)
+    for (E_Int j = 1; j <= nvpe; j++)
     {
-      for (E_Int j = 1; j <= nvpe; j++)
+      for (E_Int i = 0; i < nelts; i++)
       {
         vertex = cm(i, j);
         nvep[vertex-1]++;
@@ -70,13 +73,12 @@ void K_CONNECT::connectEV2VE(FldArrayI& cEV, vector< vector<E_Int> >& cVE)
     E_Int nelts = cm.getSize();
     E_Int nvpe = cm.getNfld();
     
-    for (E_Int i = 0; i < nelts; i++)
+    for (E_Int j = 1; j <= nvpe; j++)
     {
-      eidx = offset + i;
-      for (E_Int j = 1; j <= nvpe; j++)
+      for (E_Int i = 0; i < nelts; i++)
       {
         vertex = cm(i, j);
-        cVE[vertex-1].push_back(eidx);
+        cVE[vertex-1].push_back(offset + i);
       }
     }
 
