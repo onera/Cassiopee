@@ -707,7 +707,7 @@ def getRenderTags__(z, renderTags):
         else: meshColor = Internal.getValue(rm)
         rm = Internal.getNodeFromName1(ri, 'MeshWidth') # Mesh overlay width
         if rm is None: meshWidth = 'None'
-        else: meshWidth = str(Internal.getValue(rm))       
+        else: meshWidth = str(Internal.getValue(rm))
         rm = Internal.getNodeFromName1(ri, 'ShaderParameters')
         if rm is None: shaderParameters = 'None:None'
         else:
