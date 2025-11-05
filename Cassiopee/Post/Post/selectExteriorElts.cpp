@@ -533,7 +533,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   }
   E_Int ntotElts = cumnepc[nc];
 
-  // Compute number of neighbouring elements of internal elements, that is the
+  // Compute number of neighbour elements of internal elements, that is the
   // number of faces per element, nfpe
   std::vector<E_Int> nfpe;
   E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
@@ -555,8 +555,8 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     offset[i] = new E_Int [nc];
   }
 
-  // Number of elements per connectivity of the new ME
-  // (uncompressed: same number of connectivities as the input ME)
+  // Number of elements per connectivity of the output ME
+  // ('tmp_' is uncompressed: same number of connectivities as the input ME)
   std::vector<E_Int> tmp_nepc2(nc, 0);
 
   #pragma omp parallel
@@ -608,7 +608,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
   // Compute the number of unique vertices and map vertex indices from full to
   // exterior connectivities
-  E_Int npts2 = 0;
+  // E_Int npts2 = 0;
   // E_Int offset = 0;
   // std::vector<E_Int> vindir(npts, 0);
 
@@ -652,7 +652,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     }
   }
 
-  // Compress the number of elements per connectivity
+  // Compress the number of elements per connectivity of the output ME
   std::vector<E_Int> nepc2(nc2);
   nc2 = 0;
   for (E_Int ic = 0; ic < nc; ic++)
@@ -661,7 +661,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   }
  
   // Build new connectivity
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, //npts2,
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, // soon npts2,
                                        nepc2, eltType2, false, api);
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
@@ -690,8 +690,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
   #pragma omp parallel
   {
-    E_Int ic2, off;
-    E_Int inde, indv, nelts, nvpe; //indv;
+    E_Int ic2, off, off2, inde, indv, nelts, nvpe; //indv;
     E_Int ithread = __CURRENT_THREAD__;
     E_Int* tindir = indir[ithread];
     E_Int* tneic = neic[ithread];
@@ -705,6 +704,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       #pragma omp for
       for (E_Int i = 0; i < npts; i++)
       {
+        // soon
         // indv = vindir[i];
         // if (indv > 0) f2p[indv-1] = fp[i];
         f2p[i] = fp[i];
@@ -713,7 +713,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
     // Connectivity
     ic2 = 0;
-    E_Int off2 = 0;
+    off2 = 0;
     for (E_Int ic = 0; ic < nc; ic++)
     {
       if (tmp_nepc2[ic] == 0) continue;
@@ -729,7 +729,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
         for (E_Int j = 1; j <= nvpe; j++)
         {
           indv = cm(inde, j) - 1;
-          cm2(off+i, j) = indv + 1;
+          cm2(off+i, j) = indv + 1; // soon vindir[indv];
         }
       }
       ic2++;
@@ -737,38 +737,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     }
   }
 
-  //   // for (E_Int ic = 0; ic < ntotElts; ic++) std::cout << "seen["<<ic<<"] = " << seen[ic] << std::endl;
-
-  //   E_Int ic2 = 0;
-  //   E_Int ne = 0;
-  //   offset = 0;
-  //   for (E_Int ic = 0; ic < nc; ic++)
-  //   {
-  //     if (tmp_nepc2[ic] == 0) continue;
-  //     FldArrayI& cm = *(cn.getConnect(ic));
-  //     FldArrayI& cm2 = *(cn2->getConnect(ic2));
-  //     E_Int nelts = cm.getSize();
-  //     E_Int nvpe = cm.getNfld();
-
-  //     #pragma omp for
-  //     for (E_Int i = 0; i < nepc[ic]; i++)
-  //     {
-  //       if (seen[i+offset] == 1)
-  //       {
-  //         for (E_Int j = 1; j <= nvpe; j++) 
-  //         {
-  //           indv = cm(i, j) - 1;
-  //           cm2(ne, j) = vindir[indv];
-  //           std::cout << "cm2(" << ne << ", " << j << ")" << cm2(ne, j) << std::endl;
-  //         }
-  //         ne++;
-  //       }
-  //     }
-  //     offset += nepc[ic];
-  //     ic2++;
-  //   }
-  // }
-
+  // Free memory
   for (E_Int i = 0; i < nthreads; i++)
   {
     delete [] indir[i];

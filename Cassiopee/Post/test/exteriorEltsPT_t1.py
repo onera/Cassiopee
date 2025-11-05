@@ -36,18 +36,16 @@ c = G.cartTetra((20,-3,0), (1,1,1), (5,9,1))
 a = C.mergeConnectivity([a, b, c], None, boundary=0)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(a, "gg.cgns")
-#test.testT(b, 2)
+test.testT(b, 2)
 
-# ME - 2D (all connected)
+# ME - 2D (all adjacent)
 a = G.cartTetra((0,0,0), (1,1,1), (10,10,1))
 b = G.cartHexa((9,-2,0), (1,1,1), (8,6,1))
 c = G.cartTetra((16,-3,0), (1,1,1), (5,9,1))
 a = C.mergeConnectivity([a, b, c], None, boundary=0)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(a, "gg.cgns")
-#test.testT(b, 3)
+test.testT(b, 3)
 
 # ME - 3D
 a = G.cartTetra((0,0,-4), (1,1,1), (10,10,8))
@@ -57,28 +55,25 @@ d = G.cartHexa((20,-2,-4), (1,1,1), (6,8,6))
 a = C.mergeConnectivity([a, b, c, d], None, boundary=0)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(b, "gg.cgns")
-#test.testT(b, 4)
+test.testT(b, 4)
 
 
-
+"""
 # NGon - 2D
 a = G.cartNGon((0,0,0), (1,1,1), (4,4,1), api=1)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(b, "gg.cgns")
-#test.testT(b, 10)
-exit()
+C.convertPyTree2File(b, "out.cgns")
+test.testT(b, 10)
 
 # NGon - 3D
-a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
+a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=1)
 _addVars(a)
-#b = P.exteriorElts(a)
-C.convertPyTree2File(a, "gg.cgns")
-#test.testT(b, 11)
+b = P.exteriorElts(a)
+test.testT(b, 11)
 
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(b, "gg.cgns")
-#test.testT(b, 12)
+test.testT(b, 12)
+"""
