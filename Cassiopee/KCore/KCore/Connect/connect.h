@@ -173,14 +173,6 @@ namespace K_CONNECT
      cVE doit deja etre alloue au nombre de noeuds. */
   void connectEV2VE(K_FLD::FldArrayI& cEV,
                     std::vector< std::vector<E_Int> >& cVE);
-  /* Change a Elts-Vertex connectivity to a Vertex-Elts connectivity.
-     Le format de stockage est de type CSR : le premier vecteur donne à
-     l'indice i la position dans le deuxième tableau de l'indice du 
-     premier element contenant le sommet i.
-     nv est le nombre de sommets definissant le maillage.
-   */
-  std::pair<std::vector<E_Int>,std::vector<E_Int> > 
-  connectEV2VE(K_FLD::FldArrayI& cEV);
 
   /* Change a Elts-Vertex connectivity to a Vertex-Vertex neighbours 
      connectivity.

@@ -60,6 +60,15 @@ E_Int K_CONNECT::connectEV2EENbrs(
   vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
   // Get vertex -> element connectivity
   vector<vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(cEV, cVE);
@@ -67,7 +76,7 @@ E_Int K_CONNECT::connectEV2EENbrs(
   // Boucle sur les connectivites pour remplir cEEN
   #pragma omp parallel default(shared) reduction(+:ierr)
   {
-    E_Int nmatch, ind, ind1, ind2, inei, nneis, nvpf, nelts, nvpe;
+    E_Int nmatch, ind0, ind1, ind2, eidx, n, nidx, nneis, nvpf, nelts, nvpe;
     vector<vector<E_Int> > facets;
  
     for (E_Int ic = 0; ic < nc; ic++)
@@ -80,38 +89,42 @@ E_Int K_CONNECT::connectEV2EENbrs(
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
-        vector<E_Int>& cEEN1 = cEEN[i];
+        eidx = cumnepc[ic] + i;
+        vector<E_Int>& cEEN1 = cEEN[eidx];
         cEEN1.reserve(nfpe[ic]);
 
-        // Loop over each facet of element i
+        // Loop over each facet of element eidx
         for (E_Int f = 0; f < nfpe[ic]; f++)
         {
           // Number of vertices per face
           nvpf = facets[f].size();
           // First vertex of that facet
-          ind = cm(i, facets[f][0]) - 1;
+          ind0 = cm(i, facets[f][0]) - 1;
 
           // Get all element indices sharing that vertex
-          const vector<E_Int>& cVE1 = cVE[ind];
+          const vector<E_Int>& cVE1 = cVE[ind0];
           nneis = cVE1.size();
 
           // Loop over all element sharing that vertex to determine the one 
           // with which this facet is shared
           for (E_Int v = 0; v < nneis; v++)
           {
-            inei = cVE1[v];
-            if (inei == i) continue;
+            nidx = cVE1[v];
+            // Skip elements belonging to another connectivity (shortcoming)
+            if (nidx < cumnepc[ic] || nidx >= cumnepc[ic] + nelts) continue;
+            if (nidx == eidx) continue;
+            n = nidx - cumnepc[ic];  // neighbour element index local to this conn.
             nmatch = 0;
             for (E_Int k = 0; k < nvpf; k++)
             {
               ind1 = cm(i, facets[f][k]);
-              for (E_Int n = 1; n <= nvpe; n++)
+              for (E_Int j = 1; j <= nvpe; j++)
               {
-                ind2 = cm(inei, n);
+                ind2 = cm(n, j);
                 if (ind1 == ind2) { nmatch++; break; }
               }
             }
-            if (nmatch == nvpf) { cEEN1.push_back(inei); break; }
+            if (nmatch == nvpf) { cEEN1.push_back(nidx); break; }
           }
         }
       }
@@ -141,6 +154,15 @@ E_Int K_CONNECT::connectEV2EENbrs(
   vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
   // Get vertex -> element connectivity
   vector<vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(cEV, cVE);
@@ -148,7 +170,7 @@ E_Int K_CONNECT::connectEV2EENbrs(
   // Boucle sur les connectivites pour remplir cEEN
   #pragma omp parallel default(shared) reduction(+:ierr)
   {
-    E_Int nmatch, ind, ind1, ind2, inei, nneis, nvpf, nelts, nvpe;
+    E_Int nmatch, ind0, ind1, ind2, eidx, n, nidx, nneis, nvpf, nelts, nvpe;
     vector<vector<E_Int> > facets;
  
     for (E_Int ic = 0; ic < nc; ic++)
@@ -161,42 +183,46 @@ E_Int K_CONNECT::connectEV2EENbrs(
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
-        vector<E_Int>& cEEN1 = cEEN[i];
+        eidx = cumnepc[ic] + i;
+        vector<E_Int>& cEEN1 = cEEN[eidx];
         cEEN1.reserve(nfpe[ic]);
-        vector<E_Int>& commonFace1 = commonFace[i];
+        vector<E_Int>& commonFace1 = commonFace[eidx];
         commonFace1.reserve(nfpe[ic]);
 
-        // Loop over each facet of element i
+        // Loop over each facet of element eidx
         for (E_Int f = 0; f < nfpe[ic]; f++)
         {
           // Number of vertices per face
           nvpf = facets[f].size();
           // First vertex of that facet
-          ind = cm(i, facets[f][0]) - 1;
+          ind0 = cm(i, facets[f][0]) - 1;
 
           // Get all element indices sharing that vertex
-          const vector<E_Int>& cVE1 = cVE[ind];
+          const vector<E_Int>& cVE1 = cVE[ind0];
           nneis = cVE1.size();
 
           // Loop over all element sharing that vertex to determine the one 
           // with which this facet is shared
           for (E_Int v = 0; v < nneis; v++)
           {
-            inei = cVE1[v];
-            if (inei == i) continue;
+            nidx = cVE1[v];
+            // Skip elements belonging to another connectivity (shortcoming)
+            if (nidx < cumnepc[ic] || nidx >= cumnepc[ic] + nelts) continue;
+            if (nidx == eidx) continue;
+            n = nidx - cumnepc[ic];  // neighbour element index local to this conn.
             nmatch = 0;
             for (E_Int k = 0; k < nvpf; k++)
             {
               ind1 = cm(i, facets[f][k]);
-              for (E_Int n = 1; n <= nvpe; n++)
+              for (E_Int j = 1; j <= nvpe; j++)
               {
-                ind2 = cm(inei, n);
+                ind2 = cm(n, j);
                 if (ind1 == ind2) { nmatch++; break; }
               }
             }
             if (nmatch == nvpf)
             {
-              cEEN1.push_back(inei); commonFace1.push_back(f);
+              cEEN1.push_back(nidx); commonFace1.push_back(f);
               break;
             }
           }

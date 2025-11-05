@@ -1010,6 +1010,8 @@ namespace K_POST
   PyObject* selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
                                      char* eltType, char* varString,
                                      E_Int posx, E_Int posy, E_Int posz);
+  PyObject* selectExteriorEltsME(FldArrayF& f, FldArrayI& cn, 
+                                 char* eltType, char* varString);
   PyObject* selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
                                    char* varString);
 

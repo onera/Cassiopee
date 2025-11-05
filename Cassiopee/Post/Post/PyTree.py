@@ -677,7 +677,7 @@ def exteriorElts(t):
 def _exteriorElts(t):
     """Exterior (border) elts of a mesh."""
     C._deleteFlowSolutions__(t, 'centers')
-    C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorElts)
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorElts)
     return None
 
 def exteriorEltsStructured(t, depth=1):
