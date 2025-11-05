@@ -6,22 +6,22 @@ switch (type)
   case 0:  //  nuage de pts quelconque
    for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
     {
-     indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-     noi       = shiftDonor;
+     indCoef = (pt_deb-ideb)*sizecoefs +  shiftCoef;
+     noi = shiftDonor;
      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
      {
-      ncfLoc = donorPts[noi];// nb de pts pour la formule
-      val = 0.;
-      for (E_Int kk = 1; kk <= ncfLoc; kk++)
-      {
-        indD0         = donorPts[noi+kk];
-        val += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[ne][indD0];
-      }
-      vectOfRcvFields[ne][noind] = val;
+        ncfLoc = donorPts[noi];// nb de pts pour la formule
+        val = 0.;
+        for (E_Int kk = 1; kk <= ncfLoc; kk++)
+        {
+          indD0 = donorPts[noi+kk];
+          val += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[ne][indD0];
+        }
+        vectOfRcvFields[ne][noind] = val;
 
-      sizecoefs = ncfLoc;
-      noi      += ncfLoc+1;
-      indCoef  += sizecoefs;
+        sizecoefs = ncfLoc;
+        noi += ncfLoc+1;
+        indCoef += sizecoefs;
      } //noind
     } //ne
     break;
@@ -31,7 +31,7 @@ switch (type)
     {
      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
      {
-      indD0  = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable
+      indD0  = donorPts[noind];  //car type 0 est toujours traite en dernier. Sinon noind pas valable
     
       vectOfRcvFields[ne][noind] = vectOfDnrFields[ne][indD0];
      }
@@ -42,9 +42,6 @@ switch (type)
    for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
     {
      indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-// #ifdef _OPENMP4
-//      #pragma omp simd
-// #endif
      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
      {
       ind000 = donorPts[noind];
@@ -66,7 +63,7 @@ switch (type)
       val += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[ne][ind011];
       val += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[ne][ind111];
       vectOfRcvFields[ne][noind] = val;
-      indCoef  += 8;
+      indCoef += 8;
      }
     }
     break;
@@ -74,10 +71,7 @@ switch (type)
   case 22:// O2CF 2D
     for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
     {
-    indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
+    indCoef = (pt_deb-ideb)*sizecoefs +  shiftCoef;
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       ind00 = donorPts[noind];
@@ -90,62 +84,55 @@ switch (type)
       val += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[ne][ind01];
       val += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[ne][ind11];
       vectOfRcvFields[ne][noind] = val;
-      indCoef  += 4;
+      indCoef += 4;
     }
    }
     break;
 
   case 3: // Lagrange O3
-   for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
+   for (E_Int ne = 0; ne < nvars_loc ; ne++)
    { 
-   indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
+      indCoef = (pt_deb-ideb)*sizecoefs + shiftCoef;
      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
      {
-      indD0 = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
-    
-      val=0.;
+        indD0 = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable    
+        val = 0.;
 
-      for (E_Int kk=0; kk<3; kk++)
-        for (E_Int jj=0; jj<3; jj++)
-          for (E_Int ii=0; ii<3; ii++)
-          {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-            val += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[ne][indD];
-          }
-      vectOfRcvFields[ne][noind] = val;
-      noi      += 1;
-      indCoef  += sizecoefs;
+        for (E_Int kk=0; kk<3; kk++)
+          for (E_Int jj=0; jj<3; jj++)
+            for (E_Int ii=0; ii<3; ii++)
+            {
+              indD = indD0 + ii + jj*imd + kk*imdjmd;
+              val += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfDnrFields[ne][indD];
+            }
+        vectOfRcvFields[ne][noind] = val;
+        noi += 1;
+        indCoef += sizecoefs;
      }
    }
    break;
       
   case 4: // Tetra O2
-   for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
+   for (E_Int ne = 0; ne < nvars_loc; ne++)
    {
-    indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
-    for (E_Int noind = pt_deb; noind < pt_fin; noind++)
-    {
-      indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+      indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
+      for (E_Int noind = pt_deb; noind < pt_fin; noind++)
+      {
+        indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
     // indD0 est le no de l elt, et les coefs sont aux noeuds
     
-      ind00 = ptrcnd[indD0*cnNfldD   ] -1;
-      ind01 = ptrcnd[indD0*cnNfldD +1] -1;
-      ind02 = ptrcnd[indD0*cnNfldD +2] -1;
-      ind03 = ptrcnd[indD0*cnNfldD +3] -1;
+        ind00 = ptrcnd[indD0*cnNfldD   ] -1;
+        ind01 = ptrcnd[indD0*cnNfldD +1] -1;
+        ind02 = ptrcnd[indD0*cnNfldD +2] -1;
+        ind03 = ptrcnd[indD0*cnNfldD +3] -1;
 
-      val  = ptrCoefs[ indCoef   ]*vectOfDnrFields[ne][ind00];
-      val += ptrCoefs[ indCoef +1]*vectOfDnrFields[ne][ind01];
-      val += ptrCoefs[ indCoef +2]*vectOfDnrFields[ne][ind02];
-      val += ptrCoefs[ indCoef +3]*vectOfDnrFields[ne][ind03];
+        val  = ptrCoefs[ indCoef   ]*vectOfDnrFields[ne][ind00];
+        val += ptrCoefs[ indCoef +1]*vectOfDnrFields[ne][ind01];
+        val += ptrCoefs[ indCoef +2]*vectOfDnrFields[ne][ind02];
+        val += ptrCoefs[ indCoef +3]*vectOfDnrFields[ne][ind03];
 
-      indCoef  += sizecoefs;
-      vectOfRcvFields[ne][noind]  = val;
+        indCoef += sizecoefs;
+        vectOfRcvFields[ne][noind]  = val;
       }
    }
    break;
@@ -156,22 +143,17 @@ switch (type)
     indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
-      indD0 = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
-    
-      val=0;
+      indD0 = donorPts[noind];  //car type 0 est toujours traite en dernier. Sinon noind pas valable    
+      val = 0;
       for (E_Int kk=0; kk<5; kk++)
         for (E_Int jj=0; jj<5; jj++)
           for (E_Int ii=0; ii<5; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-      
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfDnrFields[ne][indD];
           }
       vectOfRcvFields[ne][noind] = val;
-      indCoef  += 15;
+      indCoef += 15;
     }
    }
    break;

@@ -287,6 +287,7 @@ public:
   void codeFromRenderTag(Zone& z, char* tag, 
              float& colorR, float& colorG, float& colorB,
              E_Int& material, double& blending, E_Int& meshOverlay,
+             float& meshColorR, float& meshColorG, float& meshColorB, float& meshWidth,
              float& shaderParam1, float& shaderParam2);
   void getAllVars(std::vector<char*>& structVarString,
                   std::vector<char*>& unstrVarString,

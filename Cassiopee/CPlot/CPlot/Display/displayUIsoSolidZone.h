@@ -633,7 +633,8 @@
     E_Int prev, next, first, face;
     E_Int elt, drawn, blank;
     E_Int* ptrelt;
-    E_Int* ptrface; 
+    E_Int* ptrface;
+    E_Int na1, na2, nb1, nb2;
 
     if (zonep->blank == 0)
     {
@@ -702,14 +703,114 @@
         surfy = surfx + np;
         surfz = surfy + np;
 
+        // Find TRIs
         for (i = 0; i < zonep->nelts2D; i++)
         {
-          glBegin(GL_POLYGON);
+          glBegin(GL_TRIANGLES);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 3)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              n3 = na1;
+              if (na1 == n1) n3 = na2;
+              else if (na1 == n2) n3 = na2;
+              PLOTTRI;
+            }
+          }
+          glEnd();
+        }
+        // Find QUADS
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_QUADS);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 4)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              face = ptrelt[3]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              nb1 = ptrface[1]-1; nb2 = ptrface[2]-1;
+              if (na1 == n1) 
+              { 
+                n4 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na1 == n2) 
+              {
+                n3 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (na2 == n1) 
+              {
+                n4 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na2 == n2) 
+              {
+                n3 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (nb1 == n1)
+              {
+                n4 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else if (nb1 == n2) 
+              {
+                n3 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              else if (nb2 == n1) 
+              {
+                n4 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else // if (nb2 == n2) 
+              {
+                n3 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              PLOTQUAD;
+            }
+          }
+          glEnd();
+        }
+
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
           drawn = 0;
-        
+          if (nf == 3 || nf == 4) continue;
+          glBegin(GL_POLYGON);
+          
           face = ptrelt[1]-1;
           //glNormal3f(surfx[face], surfy[face], surfz[face]);
           ptrface = &connect[zonep->posFaces[face]];
@@ -843,11 +944,111 @@
         surfy = surfx + np;
         surfz = surfy + np;
 
+        // Find TRIs
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_TRIANGLES);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 3)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              n3 = na1;
+              if (na1 == n1) n3 = na2;
+              else if (na1 == n2) n3 = na2;
+              PLOTTRIB;
+            }
+          }
+          glEnd();
+        }
+        // Find QUADS
+        for (i = 0; i < zonep->nelts2D; i++)
+        {
+          glBegin(GL_QUADS);
+          for (i = 0; i < zonep->nelts2D; i++)
+          {
+            elt = zonep->posElts2D[i];
+            ptrelt = &connect[elt];
+            nf = ptrelt[0];
+            if (nf == 4)
+            {
+              face = ptrelt[1]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              n1 = ptrface[1]-1; n2 = ptrface[2]-1;
+              face = ptrelt[2]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              na1 = ptrface[1]-1; na2 = ptrface[2]-1;
+              face = ptrelt[3]-1;
+              ptrface = &connect[zonep->posFaces[face]];
+              nb1 = ptrface[1]-1; nb2 = ptrface[2]-1;
+              if (na1 == n1) 
+              { 
+                n4 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na1 == n2) 
+              {
+                n3 = na2;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (na2 == n1) 
+              {
+                n4 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n4) n3 = nb1;
+                else n3 = nb2;
+              }
+              else if (na2 == n2) 
+              {
+                n3 = na1;
+                if (nb1 != n1 && nb1 != n2 && nb1 != n3) n4 = nb1;
+                else n4 = nb2;
+              }
+              else if (nb1 == n1)
+              {
+                n4 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else if (nb1 == n2) 
+              {
+                n3 = nb2;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              else if (nb2 == n1) 
+              {
+                n4 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n4) n3 = na1;
+                else n3 = na2;
+              }
+              else // if (nb2 == n2) 
+              {
+                n3 = nb1;
+                if (na1 != n1 && na1 != n2 && na1 != n3) n4 = na1;
+                else n4 = na2;
+              }
+              PLOTQUADB;
+            }
+          }
+          glEnd();
+        }
+
         for (i = 0; i < zonep->nelts2D; i++)
         {
           elt = zonep->posElts2D[i];
           ptrelt = &connect[elt];
           nf = ptrelt[0];
+          if (nf == 3 || nf == 4) continue;
 
           blank = 0;
           for (E_Int j = 1; j <= nf; j++)

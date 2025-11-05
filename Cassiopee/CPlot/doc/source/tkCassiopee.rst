@@ -20,14 +20,16 @@ To call the application from shell::
 General guidelines
 ###################
     
-Each applet can be triggered from top menu **Apps** or
-by right clicking on a tab. It can be
-discarded by left clicking on its name at top of frame or by pressing
-CTRL+c.
+All applets can be triggered 
+by right clicking on a menu tab situated on the left.
+For instance, right clicking on the "State" menu, display
+available applets in this menu. 
+Once opened, an applet can be discarded by left clicking 
+on the [+] neat its name or by pressing CTRL+c.
 
-The default settings of an applet can be modified in the preference file
-by right clicking on the applet name [+] and chosing 'save'.
-Settings can be reset by chosing 'reset' in the menu.
+The default settings of an applet can be modified 
+by right clicking on the applet name [+] and choosing 'save'.
+Settings can be reset by choosing 'reset' in the menu.
 An applet can be pinned, meaning that it will automatically
 be opened at next restart.
 
@@ -58,12 +60,28 @@ structured zones by clicking on 'change displayed location'
 in the **CPlot** top menu.
 
 Selecting 'Quit' in **File** top menu exits cassiopee. You can
-also exits by pressing 'q' when in CPlot window.
+also exits by pressing 'q' when in CPlot window.  
+
+Customization
+---------------
+
+Open **State:tkPrefs** by right clicking on State menu.
+
+In this applet, you can set tkCassiopee global preferences:
+
+    - "Display Info" toggles on/off display informations.
+    - "Background" selects different colors for the display background.
+    - "Undo" toggles one level undo. Setting it to inactive can gain some memory.
+    - "Selection" enables different high-lights for selection (blue or alpha transparency).
+    - "Ondrag bbox" displays bbox istead of when rotating view.
+    - "Envmap" is the image used with environmental mapping shaders in render mode.<br>
+    - "Export" enables to set the image resolution when exporting.
+
 
 Cassiopee:ToolBar
 ------------------
 
-    The tool bar is situated just under the menu bar. It contains:
+The tool bar is situated just under the menu bar. It contains:
 
     - The save icon: click for quick save,
     - The undo icon: click for undo (only one level), 
@@ -80,14 +98,14 @@ Cassiopee:ToolBar
 Cassiopee:Tree
 ---------------
     
-This tab gathers applets related to pyTree management.
+This menu gathers applets related to pyTree management.
 
     - **tkTree**: enables the visualization of pyTrees as text trees.
-    In tkTree window, left mouse button
-    selects zone, right mouse button deactivates/activates zone,
-    double clicking on a node name enables to change its name,
-    'Suppr' key deletes selected node, CTRL+e extend the window size,
-    CTRL+r shrink the window.
+      In tkTree window, left mouse button
+      selects zone, right mouse button deactivates/activates zone,
+      double clicking on a node name enables to change its name,
+      'Suppr' key deletes selected node, CTRL+e extend the window size,
+      CTRL+r shrink the window.
 
     - **tkNodeEdit**: enables to edit pytree nodes.
 
@@ -105,43 +123,45 @@ Cassiopee:State
 This menu gathers applets related to state modification.
 
     - **tkState**: modify the global state of your pyTree (dimension, equations,...). 
-    Pressing 'Set state' save state in your pyTree.
+      Pressing 'Set state' save state in your pyTree.
 
     - **tkPrefs**: enables to change the mesh display style, the solid display style, ... 
-    You can add applets that open automatically
-    each time cassiopee starts in the 'Auto open field'. For instance:
-    'tkTree; tkBlock' will automatically open those two applets at next start.
-    Save your preferences.
+      You can add applets that open automatically
+      each time cassiopee starts in the 'Auto open field'. For instance:
+      'tkTree; tkBlock' will automatically open those two applets at next start.
+      Save your preferences.
 
     - **tkPerfo**: settings to simplify the display and set the number of threads.
 
     - **tkContainers**: change containers. 
-    By default, all functions work on 'GridCoordinates',
-    'FlowSolution' and 'FlowSolution#Centers' containers. If you want
-    functions to operate on other containers, change their name here.
+      By default, all functions work on 'GridCoordinates',
+      'FlowSolution' and 'FlowSolution#Centers' containers. If you want
+      functions to operate on other containers, change their name here.
 
     - **tkCamera**: enable to set camera.
 
     - **tkFilter**: enables to select/activate zones that match the filter rule. 
-    For filtering by name, you can use standard python regexp. 
-    For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
-    You can also filter zones by size (number of points), by multigrid level,
-    by affected processor, by Chimera priority, or by formula. With this,
-    you can specify a rule like '{Density}>0.1': zones that match the rule
-    for at least one grid point will be selected.
+      For filtering by name, you can use standard python regexp. 
+      For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
+      You can also filter zones by size (number of points), by multigrid level,
+      by affected processor, by Chimera priority, or by formula. With this,
+      you can specify a rule like '{Density}>0.1': zones that match the rule
+      for at least one grid point will be selected.
 
     - **tkFind**: find a given index in mesh.
 
     - **tkProbe**: enable to probe points in field.
 
     - **tkRuler**: measure your distance on your model using this applet. 
-    First click on model set first point, second click indicates the distance.
-    Click again on 'Measure mode' to end.
+      First click on model set first point, second click indicates the distance.
+      Click again on 'Measure mode' to end.
 
 
 Cassiopee:Edge
 -----------------
-    
+
+This menu gathers applets related to edge creation/modification.
+
     - **tkCanvas**: enables to create a canvas for mesh positioning or drawing. The position and size of the canvas can be modified.
 
     - **tkPoint**: enables to draw points.
@@ -164,7 +184,7 @@ This menu gathers applets related to surface creation/modification.
     - **tkCADMesh**: controls surface CAD mesher parameters.
 
     - **tkFixer2**: fix gaps in surfaces. 
-    This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on 'Fix gap in contour'. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on 'Fix gap in patches'.
+      This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on 'Fix gap in contour'. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on 'Fix gap in patches'.
 
     - **tkBoolean**: perform boolean operation between surfaces.
 
@@ -187,12 +207,12 @@ Cassiopee:Mesh
 This menu gathers applets related to mesh creation/modification.
 
     - **tkCells**: enables mesh cell modification (suppress/refine cells).
-    Click on a mode, then click on your mesh. Click again on the mode
-    button when done.
+      Click on a mode, then click on your mesh. Click again on the mode
+      button when done.
 
     - **tkStretch**: for structured grids, stretch, refine or uniformize the grid in given direction. 
-    For stretching, you must specify a grid step. 
-    This step is enforced where you have last clicked.
+      For stretching, you must specify a grid step. 
+      This step is enforced where you have last clicked.
 
     - **tkExtrusion**: create meshes by extrusion.
 
@@ -218,7 +238,7 @@ Cassiopee:Block
 This menu gathers applets related to block creation/modification.
 
     - **tkBlock**: enables basic block operations (remove, copy...).
-    
+
     Exterior faces returns the exterior faces of a zone as an unstructured
     zone. Close merge points in a mesh that are closer than epsilon, the
     resulting mesh connectivity is cleaned.
@@ -251,12 +271,12 @@ This menu gathers applets related to boundary conditions
 creation/modification.
 
     - **tkBC**: enables to set interactively the boundary conditions.
-    'View Mesh/BC' enables to visualize the boundary conditions
-    of a certain type. 'View undefined BC' shows boundary conditions
-    that are lacking. By clicking on BC, you can then set a
-    boundary to a certain type using the 'setBCWith' button.
-    'ConnectMatch' automatically computes the matching boundary condition
-    in your model.
+      'View Mesh/BC' enables to visualize the boundary conditions
+      of a certain type. 'View undefined BC' shows boundary conditions
+      that are lacking. By clicking on BC, you can then set a
+      boundary to a certain type using the 'setBCWith' button.
+      'ConnectMatch' automatically computes the matching boundary condition
+      in your model.
 
     - **tkChimera**: perform hole cutting, overlap optimization between overset grids.
 
@@ -266,6 +286,8 @@ creation/modification.
 
 Cassiopee:Motion
 ------------------
+
+This menu gathers applets related to motion definition.
 
     - **tkRigidMotion**: enables definition of rigid motions.
 
@@ -280,10 +302,10 @@ This menu gathers applets related to solvers.
     - **tkInit**: initialize solutions or wall distance.
 
     - **tkDistributor**: distributes blocks over processors. 
-    Enter the number of processors and the weight of communication cost relative to
-    solver cost per iteration. Click on 'Distribute tree'. Distribution stats
-    are available when clicking on stats. 'Set Proc Field' creates a field
-    in zones containing the attributed processor number for each zone.
+      Enter the number of processors and the weight of communication cost relative to
+      solver cost per iteration. Click on 'Distribute tree'. Distribution stats
+      are available when clicking on stats. 'Set Proc Field' creates a field
+      in zones containing the attributed processor number for each zone.
 
     - **tkDist2Walls**: computes wall distance.
 
@@ -313,19 +335,22 @@ This menu gathers applets related to pyTree visualization.
     - **tkSlice**: extract/view slices in mesh.
     - **tkIJK**: enables ijk views of structured grids.
     - **tkCelln**: enables to display the location of interpolated. 
-    blanked points described by a 'cellN' or 'cellNF' field.
+      blanked points described by a 'cellN' or 'cellNF' field.
     - **tkBackground**: add a background.
 
 Cassiopee:Render
 -----------------
+
+This menu gathers applets related to advanced rendering options.
+
     - **tkRenderTree**: enables to set texture files in tree.
     - **tkRenderSet**: enables to chose the color and material of each zone.
     - **tkStereo**: enable the stereo anaglyph mode.
     - **tkEffects**: enable special effects for view such as shadow, DOF.
     - **tkDemo**: rotate or move around your model automatically. Chose speed in slider.
     - **tkPovRay**: if povray is installed on your computer, you can use this applet to raytrace your scene using povray. 
-    Chose the name of your output (used for image and pov output), chose your background
-    and the size of output image, then click on 'Render scene'.
+      Chose the name of your output (used for image and pov output), chose your background
+      and the size of output image, then click on 'Render scene'.
     - **tkLuxRender**: exports file for LuxRender.
 
 For gurus

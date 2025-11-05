@@ -13,9 +13,7 @@ switch (type)
       vectOfRcvFields[2][noind] = vectOfDnrFields[2][indD0];
       vectOfRcvFields[3][noind] = vectOfDnrFields[3][indD0];
       vectOfRcvFields[4][noind] = vectOfDnrFields[4][indD0];
-      if (nvars_loc==6){
-	vectOfRcvFields[5][noind] = vectOfDnrFields[5][indD0];
-      }
+      if (nvars_loc==6){vectOfRcvFields[5][noind] = vectOfDnrFields[5][indD0];}
     }
     break;
   case 2: // Structure Lineaire O2 par tetra
@@ -85,17 +83,18 @@ switch (type)
       vectOfRcvFields[3][noind] = val3; //VelocityZ Pnt2
       vectOfRcvFields[4][noind] = val4; //Temperature Pnt2
 
-      if (nvars_loc==6){
-	val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind000];
-	val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind100];
-	val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind010];
-	val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind110];
-	val5 += ptrCoefs[ indCoef + 4 ]*vectOfDnrFields[5][ind001];
-	val5 += ptrCoefs[ indCoef + 5 ]*vectOfDnrFields[5][ind101];
-	val5 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[5][ind011];
-	val5 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[5][ind111];
+      if (nvars_loc==6)
+      {
+	      val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind000];
+	      val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind100];
+	      val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind010];
+	      val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind110];
+	      val5 += ptrCoefs[ indCoef + 4 ]*vectOfDnrFields[5][ind001];
+	      val5 += ptrCoefs[ indCoef + 5 ]*vectOfDnrFields[5][ind101];
+	      val5 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[5][ind011];
+	      val5 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[5][ind111];
 
-	vectOfRcvFields[5][noind] = val5; //TurbulentSANuTilde Pnt2
+	      vectOfRcvFields[5][noind] = val5; //TurbulentSANuTilde Pnt2
       }
       
       indCoef  += 8;
@@ -143,16 +142,15 @@ switch (type)
       vectOfRcvFields[3][noind] = val3; //VelocityZ Pnt2
       vectOfRcvFields[4][noind] = val4; //Temperature Pnt2
       
-      if (nvars_loc==6){
-	val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind00];
-	val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind10];
-	val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind01];
-	val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind11];
-
-	vectOfRcvFields[5][noind] = val5; //TurbulentSANuTilde Pnt2
+      if (nvars_loc==6)
+      {
+	      val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind00];
+	      val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind10];
+	      val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind01];
+	      val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind11];
+	      vectOfRcvFields[5][noind] = val5; //TurbulentSANuTilde Pnt2
       }
- 
-      indCoef  += 4;
+      indCoef += 4;
     }
     break;      
   default: ;

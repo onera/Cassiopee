@@ -452,7 +452,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
     if (posvarcr > -1 && posvarcd > -1) // cellNVariable exists and is transfered specifically
     {
       E_Int indR, type, nocf;
-      E_Int indD0, indD, i, j, k, ncfLoc;
+      E_Int indD0, indD, ncfLoc;
       E_Int noi = 0; // compteur sur le tableau d'indices donneur
       E_Int sizecoefs = 0;
       E_Float* cellNR = fieldsR[poscr];
@@ -654,7 +654,7 @@ PyObject* K_CONNECTOR::__setInterpTransfers(PyObject* self, PyObject* args)
     //printf("nbRcvPts %d %d %d %d %d \n", nbRcvPts , types[0], irac, pos, pos + 7 + nbRcvPts + nbDonPts );
 
     E_Int indR, type;
-    E_Int indD0, indD, i, j, k, ncfLoc;
+    E_Int indD0, indD, ncfLoc;
     E_Int noi = 0; // compteur sur le tableau d indices donneur
     E_Int sizecoefs = 0;
 
@@ -1065,7 +1065,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers(PyObject* self, PyObject* args)
 #endif
 
     E_Int indR, type;
-    E_Int indD0, indD, i, j, k, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
+    E_Int indD0, indD, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
 
     E_Float** vectOfRcvFields = RcvFields + (nvars+nvars_Pnt2)*(ithread-1);
     E_Float** vectOfDnrFields = DnrFields +  nvars*(ithread-1);
@@ -1655,7 +1655,7 @@ PyObject* K_CONNECTOR::___setInterpTransfers4GradP(PyObject* self, PyObject* arg
 #endif
 
     E_Int indR, type;
-    E_Int indD0, indD, i, j, k, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
+    E_Int indD0, indD, ncfLoc/*, nocf*/, indCoef, noi, sizecoefs, /*Nbchunk,*/ imd, jmd, imdjmd;
 
     vector<E_Float*> vectOfRcvFields(nvars);
     vector<E_Float*> vectOfDnrFields(nvars);

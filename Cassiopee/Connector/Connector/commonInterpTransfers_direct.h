@@ -23,7 +23,7 @@ E_Int max_thread = min(nvars , E_Int(__NUMTHREADS__));
 
   E_Float* ptrCoefs = donorCoefsF->begin();
   E_Int indR, type;
-  E_Int indD0, indD, i, j, k, ncfLoc;
+  E_Int indD0, indD, ncfLoc;
   E_Int noi = 0; // compteur sur le tableau d indices donneur
   E_Int sizecoefs = 0;
 

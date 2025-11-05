@@ -539,7 +539,7 @@ def _compressElements(t):
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, 0, 4)
             else:
-                (stype, net) = Internal.eltNo2EltName(eltno)
+                _, net = Internal.eltNo2EltName(eltno)
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, net, 3)
     return None

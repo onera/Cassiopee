@@ -346,7 +346,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       {
         E_Float* fp = f.begin(n);
         E_Float* f2p = f2->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nuniquePts; i++) f2p[i] = fp[i];
       }
 
@@ -360,7 +360,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nuniqueFaces; i++) indPG2[i] = indPG[i];
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int i = 0; i < nuniqueElts; i++) indPH2[i] = indPH[i];
       }
     }

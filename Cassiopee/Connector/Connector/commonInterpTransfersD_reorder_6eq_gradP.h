@@ -11,7 +11,7 @@ switch (type)
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.;
       for (E_Int kk = 1; kk <= ncfLoc; kk++)
       {
-        indD0         = donorPts[noi+kk];
+        indD0 = donorPts[noi+kk];
         val0 += ptrCoefs[ indCoef + kk-1]*vectOfGradDnrFields[0][indD0];
         val1 += ptrCoefs[ indCoef + kk-1]*vectOfGradDnrFields[1][indD0];
         val2 += ptrCoefs[ indCoef + kk-1]*vectOfGradDnrFields[2][indD0];
@@ -26,8 +26,8 @@ switch (type)
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
       sizecoefs = ncfLoc;
-      noi      += ncfLoc+1;
-      indCoef  += sizecoefs;
+      noi += ncfLoc+1;
+      indCoef += sizecoefs;
     }
     break;
 
@@ -120,7 +120,7 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      indCoef  += 8;
+      indCoef += 8;
     }
     break;
     
@@ -171,7 +171,7 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      indCoef  += 4;
+      indCoef += 4;
     }
     break;
 
@@ -179,16 +179,13 @@ switch (type)
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.;
 
       for (E_Int kk=0; kk<3; kk++)
         for (E_Int jj=0; jj<3; jj++)
           for (E_Int ii=0; ii<3; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfGradDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfGradDnrFields[1][indD];               
             val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+3]*ptrCoefs[ indCoef + kk+6]*vectOfGradDnrFields[2][indD];               
@@ -202,26 +199,22 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      noi      += 1;
-      indCoef  += sizecoefs;
+      noi += 1;
+      indCoef += sizecoefs;
     }
     break;
-     
 
   case 44: // Lagrange O4
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
-      indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
+      indD0 = donorPts[noind];  //car type 0 est toujours traité en dernier. Sinon noind pas valable
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.;
 
       for (E_Int kk=0; kk<4; kk++)
         for (E_Int jj=0; jj<4; jj++)
           for (E_Int ii=0; ii<4; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfGradDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfGradDnrFields[1][indD];               
             val2 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfGradDnrFields[2][indD];               
@@ -235,15 +228,12 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      noi      += 1;
-      indCoef  += sizecoefs;
+      noi += 1;
+      indCoef += sizecoefs;
     }
     break;
  
   case 4: // Tetra O2
-// #ifdef _OPENM4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
@@ -290,7 +280,7 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      indCoef  += sizecoefs;
+      indCoef += sizecoefs;
     }
     break;
 
@@ -298,16 +288,13 @@ switch (type)
   for (E_Int noind = pt_deb; noind < pt_fin; noind++)
   {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
-      k     = indD0/imdjmd;
-      j     = (indD0-k*imdjmd)/imd;
-      i     = (indD0-j*imd-k*imdjmd);
 
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.;
       for (E_Int kk=0; kk<5; kk++)
         for (E_Int jj=0; jj<5; jj++)
           for (E_Int ii=0; ii<5; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
 
             val0 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfGradDnrFields[0][indD];               
             val1 += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+5]*ptrCoefs[ indCoef + kk+10]*vectOfGradDnrFields[1][indD];               
@@ -322,7 +309,7 @@ switch (type)
       vectOfGradRcvFields[3][noind] = val3;
       vectOfGradRcvFields[4][noind] = val4;
       vectOfGradRcvFields[5][noind] = val5;
-      indCoef  += 15;
+      indCoef += 15;
   }
   break;
 

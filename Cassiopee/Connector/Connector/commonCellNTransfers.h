@@ -38,19 +38,16 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
       indD0 = donorPts[noi];
       cellNR[indR] = ptrCoefs[0]*cellND[indD0]*(2.-cellND[indD0]);     
       sizecoefs = 1;
-      noi+=1;
+      noi += 1;
       break;
       
     case 2: // Structure Lineaire O2 par tetra
       indD0 = donorPts[noind];
-      k = indD0/imdjmd;
-      j = (indD0-k*imdjmd)/imd;
-      i = (indD0-j*imd-k*imdjmd);
       for (E_Int kk=0; kk<2; kk++)
         for (E_Int jj=0; jj<2; jj++)
           for (E_Int ii=0; ii<2; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = inD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[nocf]*cellND[indD]*(2.-cellND[indD]);   
             nocf++;
           }
@@ -60,12 +57,10 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
     
     case 22:// O2CF 2D
       indD0 = donorPts[noind];
-      j = indD0/imd;
-      i = indD0-j*imd;
       for (E_Int jj=0; jj<2; jj++)
         for (E_Int ii=0; ii<2; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd;
+          indD = indD0 + ii + jj*imd;
           val += ptrCoefs[nocf]*cellND[indD]*(2.-cellND[indD]);   
           nocf++;
         }      
@@ -75,15 +70,11 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
       
     case 3: // Lagrange O3
       indD0 = donorPts[noind];
-      k = indD0/imdjmd;
-      j = (indD0-k*imdjmd)/imd;
-      i = (indD0-j*imd-k*imdjmd);
-
       for (E_Int kk=0; kk<3; kk++)
         for (E_Int jj=0; jj<3; jj++)
           for (E_Int ii=0; ii<3; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+3]*ptrCoefs[kk+6]*cellND[indD]*(2.-cellND[indD]);             
           }
       cellNR[indR]=val;
@@ -102,16 +93,26 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
       noi += 1;      
       break;
       
+    case 44: // Lagrange O4
+      indD0 = donorPts[noind];
+      for (E_Int kk=0; kk<4; kk++)
+        for (E_Int jj=0; jj<4; jj++)
+          for (E_Int ii=0; ii<4; ii++)
+          {
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
+            val += ptrCoefs[ii]*ptrCoefs[jj+4]*ptrCoefs[kk+8]*cellND[indD]*(2.-cellND[indD]);         
+          }
+      cellNR[indR]=val;
+      noi += 1;
+      break;
+
     case 5: // Lagrange O5
       indD0 = donorPts[noind];
-      k = indD0/imdjmd;
-      j = (indD0-k*imdjmd)/imd;
-      i = (indD0-j*imd-k*imdjmd);
       for (E_Int kk=0; kk<5; kk++)
         for (E_Int jj=0; jj<5; jj++)
           for (E_Int ii=0; ii<5; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+5]*ptrCoefs[kk+10]*cellND[indD]*(2.-cellND[indD]);         
           }
       cellNR[indR]=val;

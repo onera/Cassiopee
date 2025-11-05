@@ -362,6 +362,10 @@ void Data::replaceVolumetricZones()
         zn.material = z.material;
         zn.blending = z.blending;
         zn.meshOverlay = z.meshOverlay;
+        zn.meshColorR = z.meshColorR;
+        zn.meshColorG = z.meshColorG;
+        zn.meshColorB = z.meshColorB;
+        zn.meshWidth = z.meshWidth;
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
@@ -423,6 +427,10 @@ void Data::replaceVolumetricZones()
         zn.material = z.material;
         zn.blending = z.blending;
         zn.meshOverlay = z.meshOverlay;
+        zn.meshColorR = z.meshColorR;
+        zn.meshColorG = z.meshColorG;
+        zn.meshColorB = z.meshColorB;
+        zn.meshWidth = z.meshWidth;
         zn.shaderParam1 = z.shaderParam1;
         zn.shaderParam2 = z.shaderParam2;
 
