@@ -48,7 +48,7 @@ void DataDL::displayUMesh()
       break;
 
     case 1:
-      // Multicolor
+      // Multicolor sans fond
       ptrState->alpha = 0.5;
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -72,7 +72,7 @@ void DataDL::displayUMesh()
       break;
 
     case 4:
-      // Monocolor cyan + fond solide black
+      // Wires noir fins
       glEnable(GL_POLYGON_OFFSET_FILL);
       glEnable(GL_POLYGON_OFFSET_LINE);
       glPolygonOffset(1., 1.);
