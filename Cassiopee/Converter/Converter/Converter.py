@@ -17,24 +17,30 @@ from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
-__all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
-           'center2ExtCenter', 'center2Node', 'conformizeNGon',
-           'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node',
-           'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
-           'convertStrand2Penta', 'convertPenta2Strand',
-           'convertArrays2File', 'convertFile2Arrays', 'copy',
-           'createGlobalHook', 'createHook',
-           'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-           'createSockets', 'diffArrays', 'diffArraysGeom', 'isFinite', 'setNANValuesAt', 'extCenter2Node',
-           'extractVars', 'getIndexField',
-           'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
-           'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
-           'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen', 'magnitude',
-           'nearestElements', 'nearestFaces', 'nearestNodes', 'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
-           'normalize', '_normalize', 'randomizeVar', 'rmVars', 'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
-           'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__', 'mergeConnectivity',
-           'adaptSurfaceNGon',
-           '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements']
+__all__ = [
+    'array', 'getApi', 'addVars', '_addVars', 'addVars2',
+    'center2ExtCenter', 'center2Node', 'conformizeNGon',
+    'convertArray2Hexa', 'convertArray2NGon', 'convertArray2Node',
+    'convertArray2Tetra', 'convertBAR2Struct', 'convertTri2Quad',
+    'convertStrand2Penta', 'convertPenta2Strand',
+    'convertArrays2File', 'convertFile2Arrays', 'copy',
+    'createGlobalHook', 'createHook',
+    'createGlobalIndex', '_createGlobalIndex',
+    'recoverGlobalIndex', '_recoverGlobalIndex',
+    'createSockets', 'diffArrays', 'diffArraysGeom', 'isFinite',
+    'setNANValuesAt', 'extCenter2Node', 'extractVars', 'getIndexField',
+    'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue',
+    'getMeanValue', 'getMinValue', 'getNCells', 'getNPts', 'getValue',
+    'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
+    'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen',
+    'magnitude', 'nearestElements', 'nearestFaces', 'nearestNodes',
+    'node2Center', 'node2ExtCenter', 'normL0', 'normL2',
+    'normalize', '_normalize', 'randomizeVar', 'rmVars',
+    'send', 'setPartialFields', 'setValue', 'addGhostCellsNGon',
+    'checkFileType', 'convertHO2LO', 'convertLO2HO', 'convertExt2Format__',
+    'mergeConnectivity','adaptSurfaceNGon',
+    '_signNGonFaces', '_unsignNGonFaces', 'makeParentElements'
+]
 
 # -- Create an array --
 # Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
@@ -52,9 +58,8 @@ def arrayS(vars, ni, nj, nk, api=1):
     """Create a structured array.
     Usage: array(vars, ni, nj, nk)"""
     ni = int(ni); nj = int(nj); nk = int(nk)
-    vars = vars.replace(' ','')
-    l = len(vars)
-    if vars[l-1] == ',' or vars[0] == ',':
+    vars = vars.replace(' ', '')
+    if vars[-1] == ',' or vars[0] == ',':
         print("Warning: array: your var string is suspicious.")
     vl = vars.split(','); v = len(vl)
     if api == 1:
@@ -75,25 +80,23 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
     """Create a unstructured array.
     Usage: array(vars, npoints, nelts, eltType)"""
     npoints = int(npoints); nelts = int(nelts)
-    vars = vars.replace(' ','')
-    l = len(vars)
-    if vars[l-1] == ',' or vars[0] == ',':
+    vars = vars.replace(' ', '')
+    if vars.startswith(',') or vars.endswith(','):
         print("Warning: array: your var string is suspicious.")
     vl = vars.split(','); v = len(vl)
-    if eltType == 'NODE' or eltType == 'NODE*': nt = 1
-    elif eltType == 'BAR' or eltType == 'BAR*': nt = 2
-    elif eltType == 'TRI' or eltType == 'TRI*': nt = 3
-    elif eltType == 'QUAD' or eltType == 'QUAD*': nt = 4
-    elif eltType == 'TETRA' or eltType == 'TETRA*': nt = 4
-    elif eltType == 'PYRA' or eltType == 'PYRA*': nt = 5
-    elif eltType == 'PENTA' or eltType == 'PENTA*': nt = 6
-    elif eltType == 'HEXA' or eltType == 'HEXA*': nt = 8
-    elif eltType == 'NGON' or eltType == 'NGON*':
-        raise ValueError("array: this function doesnt work for NGONs.")
+    eltTypeN = eltType.replace('*', '')
+    if eltTypeN == 'NODE': nt = 1
+    elif eltTypeN == 'BAR': nt = 2
+    elif eltTypeN == 'TRI': nt = 3
+    elif eltTypeN == 'QUAD': nt = 4
+    elif eltTypeN == 'TETRA': nt = 4
+    elif eltTypeN == 'PYRA': nt = 5
+    elif eltTypeN == 'PENTA': nt = 6
+    elif eltTypeN == 'HEXA': nt = 8
     else:
-        raise ValueError("array: wrong element type: %s."%eltType)
+        raise ValueError("arrayNS: this function doesnt work for %s."%eltType)
 
-    if eltType[len(eltType)-1] == '*':
+    if eltType[-1] == '*':
         if api == 1:
             a = numpy.zeros((v, nelts), numpy.float64)
             for i in range(v):
@@ -377,7 +380,7 @@ def _addVars2__(a):
         for i in rest: a0[0] += ','+i[0]
         nfld = a0[1].shape[0]
         for i in rest: nfld += i[1].shape[0]
-        n = numpy.empty((nfld,a0[1].shape[1]), dtype=numpy.float64)
+        n = numpy.empty((nfld, a0[1].shape[1]), dtype=numpy.float64)
         nfld = a0[1].shape[0]
         for j in range(nfld):
             n[j,:] = a0[1][j,:]
@@ -599,29 +602,31 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
 
 # Initialisation par une formule par numpy
 def _initVarByEq__(a, eq):
+    pi = numpy.pi
     # Extrait les variables de a
+    replacements = {
+        'centers:': '',
+        'nodes:': '',
+        'minimum(': 'numpy.minimum(',
+        'maximum(': 'numpy.maximum(',
+        'cos(': 'numpy.cos(',
+        'cosh(': 'numpy.cosh(',
+        'sin(': 'numpy.sin(',
+        'sinh(': 'numpy.sinh(',
+        'sqrt(': 'numpy.sqrt(',
+        'log(': 'numpy.log(',
+        'tan(': 'numpy.tan(',
+        'atan(': 'numpy.atan(',
+        'exp(': 'numpy.exp(',
+        'degrees(': 'numpy.degrees(',
+        'arctan2(': 'numpy.arctan2(',
+        'logical_and(': 'numpy.logical_and(',
+    }
+
     varstring = a[0]
     vars = varstring.split(',')
-
-    eq = eq.replace('centers:', '')
-    eq = eq.replace('nodes:', '')
-
-    pi = numpy.pi
-    eq = eq.replace('minimum(', 'numpy.minimum(')
-    eq = eq.replace('maximum(', 'numpy.maximum(')
-    eq = eq.replace('cos(', 'numpy.cos(')
-    eq = eq.replace('cosh(', 'numpy.cosh(')
-    eq = eq.replace('sin(', 'numpy.sin(')
-    eq = eq.replace('sinh(', 'numpy.sinh(')
-    eq = eq.replace('sqrt(', 'numpy.sqrt(')
-    eq = eq.replace('log(', 'numpy.log(')
-    eq = eq.replace('tan(', 'numpy.tan(')
-    eq = eq.replace('atan(', 'numpy.atan(')
-    eq = eq.replace('exp(', 'numpy.exp(')
-    eq = eq.replace('degrees(', 'numpy.degrees(')
-    eq = eq.replace('arctan2(', 'numpy.arctan2(')
-    #eq = eq.replace('and(', 'numpy.logical_and(')
-    eq = eq.replace('logical_and(', 'numpy.logical_and(')
+    for instr, outstr in replacements.items():
+        eq = eq.replace(instr, outstr)
 
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')
@@ -704,52 +709,56 @@ def getIndexField(array):
     else:
         return getIndexField__(array)
 
-# Converti l'extension en nom de format
+# Convert a file extension into a file format
 def convertExt2Format__(fileName):
-    """Convertit un fichier en format suivant son extension."""
-    ext = os.path.splitext(fileName)
-    extension = ext[len(ext)-1]; extension = extension.lower()
-    if extension == '.plt': format = 'bin_tp'
-    elif extension == '.dat' or extension == '.tp': format = 'fmt_tp'
-    elif extension == '.v3d': format = 'bin_v3d'
-    elif extension == '.fv3d': format = 'fmt_v3d'
-    elif extension == '.vtk': format = 'bin_vtk'
-    elif extension == '.mesh': format = 'fmt_mesh'
-    elif extension == '.msh': format = 'fmt_gmsh'
-    elif extension == '.stl': format = 'fmt_stl'
-    elif extension == '.fstl': format = 'fmt_stl'
-    elif extension == '.bstl': format = 'bin_stl'
-    elif extension == '.selig': format = 'fmt_selig'
-    elif extension == '.gltf': format = 'bin_gltf'
-    elif extension == '.glb': format = 'bin_gltf'
-    elif extension == '.fig': format = 'fmt_xfig'
-    elif extension == '.svg': format = 'fmt_svg'
-    elif extension == '.pov': format = 'fmt_pov'
-    elif extension == '.cgns': format = 'bin_cgns'
-    elif extension == '.adf': format = 'bin_adf'
-    elif extension == '.hdf': format = 'bin_hdf'
-    elif extension == '.grid': format = 'bin_tau'
-    elif extension == '.h5': format = 'bin_fsdm'
-    elif extension == '.pickle': format = 'bin_pickle'
-    elif extension == '.df3': format = 'bin_df3'
-    elif extension == '.3ds': format = 'bin_3ds'
-    elif extension == '.ply': format = 'bin_ply'
-    elif extension == '.obj': format = 'fmt_obj'
-    elif extension == '.gts': format = 'fmt_gts'
-    elif extension == '.png': format = 'bin_png'
-    elif extension == '.jpg': format = 'bin_jpg'
-    elif extension == '.jpeg': format = 'bin_jpg'
-    elif extension == '.d': format = 'fmt_cedre'
-    elif extension == '.su2': format = 'fmt_su2'
-    elif extension == '.foam': format = 'fmt_foam'
-    elif extension == '.gbin': format = 'bin_plot3d'
-    elif extension == '.gfmt': format = 'fmt_plot3d'
-    elif extension == '.arc': format = 'bin_arc'
-    elif extension == '.iges' or extension == '.igs': format = 'fmt_iges'
-    elif extension == '.stp' or extension == '.step': format = 'fmt_step'
-    elif extension[0:4] == '.ref': format = 'bin_pickle'
-    else: format = 'unknown'
-    return format
+    """Convert a file extension into a file format."""
+    ext2Format = {
+        '.plt': 'bin_tp',
+        '.dat': 'fmt_tp',
+        '.tp': 'fmt_tp',
+        '.v3d': 'bin_v3d',
+        '.fv3d': 'fmt_v3d',
+        '.vtk': 'bin_vtk',
+        '.mesh': 'fmt_mesh',
+        '.msh': 'fmt_gmsh',
+        '.stl': 'fmt_stl',
+        '.fstl': 'fmt_stl',
+        '.bstl': 'bin_stl',
+        '.selig': 'fmt_selig',
+        '.gltf': 'bin_gltf',
+        '.glb': 'bin_gltf',
+        '.fig': 'fmt_xfig',
+        '.svg': 'fmt_svg',
+        '.pov': 'fmt_pov',
+        '.cgns': 'bin_cgns',
+        '.adf': 'bin_adf',
+        '.hdf': 'bin_hdf',
+        '.grid': 'bin_tau',
+        '.h5': 'bin_fsdm',
+        '.pickle': 'bin_pickle',
+        '.df3': 'bin_df3',
+        '.3ds': 'bin_3ds',
+        '.ply': 'bin_ply',
+        '.obj': 'fmt_obj',
+        '.gts': 'fmt_gts',
+        '.png': 'bin_png',
+        '.jpg': 'bin_jpg',
+        '.jpeg': 'bin_jpg',
+        '.d': 'fmt_cedre',
+        '.su2': 'fmt_su2',
+        '.foam': 'fmt_foam',
+        '.gbin': 'bin_plot3d',
+        '.gfmt': 'fmt_plot3d',
+        '.arc': 'bin_arc',
+        '.iges': 'fmt_iges',
+        '.igs': 'fmt_iges',
+        '.stp': 'fmt_step',
+        '.step': 'fmt_step',
+        '.ref': 'bin_pickle'
+    }
+    extension = os.path.splitext(fileName)[-1]
+    fmt = ext2Format.get(extension.lower(), 'unknown')
+    return fmt
 
 def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                        density=-1., zoneNames=None, BCFaces=None, BCFields=None,
@@ -845,12 +854,14 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             try:
                 return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays, api)
             except:
-                FORMATS = ['bin_ply', 'fmt_tp', 'fmt_v3d',
-                           'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
-                           'fmt_gmsh', 'bin_gmsh', 'fmt_stl',
-                           'bin_stl', 'bin_gltf',
-                           'fmt_xfig', 'fmt_svg', 'bin_3ds',
-                           'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc']
+                FORMATS = [
+                    'bin_ply', 'fmt_tp', 'fmt_v3d',
+                    'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
+                    'fmt_gmsh', 'bin_gmsh', 'fmt_stl',
+                    'bin_stl', 'bin_gltf',
+                    'fmt_xfig', 'fmt_svg', 'bin_3ds',
+                    'fmt_obj', 'fmt_gts' , 'fmt_pov', 'bin_arc'
+                ]
                 for fmt in FORMATS:
                     try:
                         a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
@@ -910,17 +921,17 @@ def diffArrays(arrays1, arrays2, arrays3=[], atol=1.e11, rtol=0.):
     else:
         return converter.diffArrays(arrays1, arrays2, atol, rtol)
 
-def diffArraysGeom(array1, array2, atol=1.e-10):
+def diffArraysGeom(array1, array2, atol=1.e-10, rtol=0.):
     """Diff arrays defining solutions, geometrically. Return the delta field."""
     if isinstance(array1[0], list):
         ret = []
         for c, a in enumerate(array1):
-            res = diffArraysGeom__(a, array2[c], atol)
+            res = diffArraysGeom__(a, array2[c], atol, rtol)
             if res is None: return None
             ret.append(res[0])
         return ret
     else:
-        return diffArraysGeom__(array1, array2, atol)
+        return diffArraysGeom__(array1, array2, atol, rtol)
 
 def diffArraysGeom__(array1, array2, atol=1.e-10, rtol=0.):
     hook = createHook(array1, 'nodes')
@@ -945,7 +956,7 @@ def diffArraysGeom__(array1, array2, atol=1.e-10, rtol=0.):
         pt2[:,:] = pt[:,ids[:]]
 
     array1[1] = pt2
-    ret2 = diffArrays([array1], [array2])  # TODO add tols
+    ret2 = diffArrays([array1], [array2], atol, rtol)
     freeHook(hook)
     return ret2
 

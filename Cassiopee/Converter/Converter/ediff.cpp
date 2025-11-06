@@ -64,14 +64,15 @@ PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
   PyObject* arrays1; PyObject* arrays2; PyObject* arrays3=NULL;
   E_Int narrays = 2;
   E_Float atol = 1.e-11, rtol = 0.;
-  
+
+  // Check different signatures
   if (!PYPARSETUPLE_(args, OO_, &arrays1, &arrays2))
   {
     PyErr_Clear();
-    if (!PYPARSETUPLE_(args, OO_ I_, &arrays1, &arrays2, &atol))
+    if (!PYPARSETUPLE_(args, OO_ R_, &arrays1, &arrays2, &atol))
     {
       PyErr_Clear();
-      if (!PYPARSETUPLE_(args, OO_ II_, &arrays1, &arrays2, &atol, &rtol))
+      if (!PYPARSETUPLE_(args, OO_ RR_, &arrays1, &arrays2, &atol, &rtol))
       {
         PyErr_Clear();
         if (PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3)) narrays = 3;
@@ -89,15 +90,17 @@ PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (narrays == 3 && PyList_Check(arrays3) == 0)
+  if (narrays == 3)
   {
-    PyErr_SetString(
-      PyExc_TypeError, 
-      "diffArrays: third argument must be a list.");
-    return NULL;
+    if (PyList_Check(arrays3) == 0)
+    {
+      PyErr_SetString(
+        PyExc_TypeError, 
+        "diffArrays: third argument must be a list.");
+      return NULL;
+    }
+    else if (PyList_Size(arrays3) == 0) narrays = 2;
   }
-
-  if (PyList_Size(arrays3) == 0) narrays = 2; 
 
   if (narrays == 2) // compares solution on the same grid
     return diff2(arrays1, arrays2, atol, rtol);

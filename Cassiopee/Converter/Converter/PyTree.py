@@ -6711,7 +6711,7 @@ def diffArraysGeom(A, B, removeCoordinates=True, atol=1.e-10, rtol=0.):
 
     for no in range(nz):
         # geometric diff
-        diffn, diffc = diffArraysGeom__(zones1[no], zones2[no], atol)
+        diffn, diffc = diffArraysGeom__(zones1[no], zones2[no], atol=atol, rtol=rtol)
         if diffn is None: return None # one array is different on coordinates
         # remplacement des solutions aux noeuds par diffn
         A1 = getAllFields(zones1[no], 'nodes', api=3); A1 = Internal.clearList(A1)
@@ -6737,7 +6737,7 @@ def diffArraysGeom(A, B, removeCoordinates=True, atol=1.e-10, rtol=0.):
     if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
     return t1
 
-def diffArraysGeom__(z1, z2, atol):
+def diffArraysGeom__(z1, z2, atol, rtol=0.):
     # compare nodes
     a1 = getFields(Internal.__GridCoordinates__, z1, api=3)[0]
     f1 = getFields(Internal.__FlowSolutionNodes__, z1, api=3)[0]
@@ -6745,7 +6745,7 @@ def diffArraysGeom__(z1, z2, atol):
     a2 = getFields(Internal.__GridCoordinates__, z2, api=3)[0]
     f2 = getFields(Internal.__FlowSolutionNodes__, z2, api=3)[0]
     if f2 != []: a2 = Converter.addVars2([a2,f2])
-    diffn = Converter.diffArraysGeom__(a1, a2)
+    diffn = Converter.diffArraysGeom__(a1, a2, atol, rtol)
     if diffn is None: return None, None
     # compare centers
     z1c = node2Center(z1)
@@ -6756,7 +6756,7 @@ def diffArraysGeom__(z1, z2, atol):
     a2 = getFields(Internal.__GridCoordinates__, z2c, api=3)[0]
     f2 = getFields(Internal.__FlowSolutionNodes__, z2c, api=3)[0]
     if f2 != []: a2 = Converter.addVars2([a2,f2])
-    diffc = Converter.diffArraysGeom__(a1, a2)
+    diffc = Converter.diffArraysGeom__(a1, a2, atol, rtol)
     return diffn, diffc
 
 # Check if all fields are finite (no NAN no INF)
