@@ -522,8 +522,9 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  // Compute total number of elements
-  std::vector<E_Int> nepc(nc), cumnepc(nc+1); cumnepc[0] = 0;
+  // Compute total number of elements across all connectivities, ntotElts
+  std::vector<E_Int> nepc(nc);
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;  // cumulative number of elts per conn.
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
@@ -543,15 +544,20 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   std::vector<std::vector<E_Int> > cEEN(ntotElts);
   K_CONNECT::connectEV2EENbrs(eltType, npts, cn, cEEN);
 
+  // Manual uniform chunks with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;
   E_Int net = ntotElts/nthreads+1;
+  // For each thread:
+  //  - indir: maps element indices from new to old ME
   E_Int** indir = new E_Int* [nthreads];
-  E_Int** neic = new E_Int* [nthreads];
+  //  - nextepc: number of exterior elements found in each connectivity
+  E_Int** nextepc = new E_Int* [nthreads];
+  //  - offset: cumulative number of exterior elements found in each connectivity
   E_Int** offset = new E_Int* [nthreads];
   for (E_Int i = 0; i < nthreads; i++)
   {
     indir[i] = new E_Int [net];
-    neic[i] = new E_Int [nc];
+    nextepc[i] = new E_Int [nc];
     offset[i] = new E_Int [nc];
   }
 
@@ -561,27 +567,31 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
   #pragma omp parallel
   {
-    E_Int e, nneis, ne = 0, ne2;
+    E_Int e;  // global element index
+    E_Int nneis;  // number of neighbours of element e
+    E_Int nextElts = 0;  // number of exterior elements found in all conn. of that thread
+    E_Int nextEltsIc;  // number of exterior elements found in a given conn. of that thread
     E_Int ithread = __CURRENT_THREAD__;
+    // Thread-related variables are prefixed with 't'
     E_Int* tindir = indir[ithread];
-    E_Int* tneic = neic[ithread];
+    E_Int* tnextepc = nextepc[ithread];
     std::vector<E_Int> ttmp_nepc2(nc, 0);
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
-      ne2 = 0;
+      nextEltsIc = 0;
       #pragma omp for
       for (E_Int i = 0; i < nepc[ic]; i++)
       {
         e = cumnepc[ic] + i;
         nneis = cEEN[e].size();
-        if (nneis != nfpe[ic])
+        if (nneis != nfpe[ic])  // exterior elements found
         {
-          tindir[ne] = i; ne++; ne2++;
+          tindir[nextElts] = i; nextElts++; nextEltsIc++;
           ttmp_nepc2[ic]++;
         }
       }
-      tneic[ic] = ne2;
+      tnextepc[ic] = nextEltsIc;
     }
 
     #pragma omp critical
@@ -590,7 +600,9 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     }
   }
 
-  // Compute thread offsets
+  // Compute thread element offsets in the output ME for each connectivity
+  // offset is a cumulative nextepc over all conns
+  // Used to build cm2 using multiple threads
   {
     E_Int* toffset = offset[0];
     for (E_Int ic = 0; ic < nc; ic++) toffset[ic] = 0;
@@ -598,41 +610,40 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   
   for (E_Int i = 1; i < nthreads; i++)
   {
+    E_Int* tnextepcm1 = nextepc[i-1];
     E_Int* toffset = offset[i];
-    E_Int* tneicm1 = neic[i-1];
     E_Int* toffsetm1 = offset[i-1];
-    for (E_Int ic = 0; ic < nc; ic++) toffset[ic] = toffsetm1[ic] + tneicm1[ic];
+    for (E_Int ic = 0; ic < nc; ic++)
+      toffset[ic] = toffsetm1[ic] + tnextepcm1[ic];
   }
 
+  // Compute the number of unique vertices, npts2, and map vertex indices from
+  // old to new connectivities
+  E_Int npts2 = 0;
+  std::vector<E_Int> vindir(npts, 0);
+
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    E_Int e, nneis, indv;
+    FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nvpe = cm.getNfld();
+    for (E_Int i = 0; i < nepc[ic]; i++)
+    {
+      e = cumnepc[ic] + i;
+      nneis = cEEN[e].size();
+      if (nneis != nfpe[ic])  // exterior elements found
+      {
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          indv = cm(i, j) - 1;
+          if (vindir[indv] == 0) vindir[indv] = ++npts2;
+        }
+      }
+    }
+  }
+
+  // Free memory
   cEEN.resize(0);
-
-  // Compute the number of unique vertices and map vertex indices from full to
-  // exterior connectivities
-  // E_Int npts2 = 0;
-  // E_Int offset = 0;
-  // std::vector<E_Int> vindir(npts, 0);
-
-  // for (E_Int ic = 0; ic < nc; ic++)
-  // {
-  //   FldArrayI& cm = *(cn.getConnect(ic));
-  //   E_Int nvpe = cm.getNfld();
-  //   for (E_Int i = 0; i < nepc[ic]; i++)
-  //   {
-  //     ind = offset + i;
-  //     if (seen[ind] < nvpe)
-  //     {
-  //       seen[ind] = 1; tmp_nepc2[ic]++;
-  //       for (E_Int j = 1; j <= nvpe; j++)
-  //       {
-  //         ind = cm(i, j) - 1;
-  //         if (vindir[ind] == 0) { vindir[ind] = ++npts2; }
-  //       }
-  //     }
-  //     else seen[ind] = 0; 
-      
-  //   }
-  //   offset += nepc[ic];
-  // }
 
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;
@@ -652,7 +663,8 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     }
   }
 
-  // Compress the number of elements per connectivity of the output ME
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior elements
   std::vector<E_Int> nepc2(nc2);
   nc2 = 0;
   for (E_Int ic = 0; ic < nc; ic++)
@@ -661,39 +673,19 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   }
  
   // Build new connectivity
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, // soon npts2,
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
                                        nepc2, eltType2, false, api);
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
-  // std::cout << "api = " << api << std::endl;
-  // std::cout << "nfld = " << nfld << std::endl;
-  // std::cout << "varString = " << varString << std::endl;
-  // std::cout << "ntotElts = " << ntotElts << std::endl;
-  // std::cout << "npts2 = " << npts << std::endl;
-  // std::cout << "nc2 = " << nc2 << std::endl;
-  // for (E_Int ic = 0; ic < nc; ic++) std::cout << "nfpe["<<ic<<"] = " << nfpe[ic] << std::endl;
-  // for (E_Int ic = 0; ic < nc; ic++) std::cout << "nepc["<<ic<<"] = " << nepc[ic] << std::endl;
-  // for (E_Int ic = 0; ic < nc2; ic++) std::cout << "nepc2["<<ic<<"] = " << nepc2[ic] << std::endl;
-  // std::cout << "eltType2 = " << eltType2 << std::endl;
-  // for (E_Int i = 0; i < nthreads; i++)
-  // {
-  //   E_Int* tneic = neic[i];
-  //   for (E_Int ic = 0; ic < nc; ic++)
-  //   std::cout << "neic["<<i<<"]["<<ic<<"] = " << tneic[ic] << std::endl;
-  // }
-  // for (E_Int i = 0; i < nthreads; i++)
-  // {
-  //   E_Int* toffset = offset[i];
-  //   for (E_Int ic = 0; ic < nc; ic++)
-  //   std::cout << "offset["<<i<<"]["<<ic<<"] = " << toffset[ic] << std::endl;
-  // }
 
   #pragma omp parallel
   {
-    E_Int ic2, off, off2, inde, indv, nelts, nvpe; //indv;
+    E_Int ic2, indv, inde, nelts, nvpe;
+    E_Int offR;  // cumulative element offset of a given conn. to Read from cm
+    E_Int offW;  // cumulative element offset of a given conn. to Write into cm2
     E_Int ithread = __CURRENT_THREAD__;
     E_Int* tindir = indir[ithread];
-    E_Int* tneic = neic[ithread];
+    E_Int* tnextepc = nextepc[ithread];
     E_Int* toffset = offset[ithread];
 
     // Fields
@@ -704,36 +696,34 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       #pragma omp for
       for (E_Int i = 0; i < npts; i++)
       {
-        // soon
-        // indv = vindir[i];
-        // if (indv > 0) f2p[indv-1] = fp[i];
-        f2p[i] = fp[i];
+        indv = vindir[i];
+        if (indv > 0) f2p[indv-1] = fp[i];
       }
     }
 
     // Connectivity
     ic2 = 0;
-    off2 = 0;
+    offR = 0;
     for (E_Int ic = 0; ic < nc; ic++)
     {
-      if (tmp_nepc2[ic] == 0) continue;
+      if (tmp_nepc2[ic] == 0) continue;  // no exterior elements in this conn, skip
       FldArrayI& cm = *(cn.getConnect(ic));
       FldArrayI& cm2 = *(cn2->getConnect(ic2));
-      nelts = tneic[ic];
-      off = toffset[ic];
+      nelts = tnextepc[ic];
+      offW = toffset[ic];
       nvpe = cm.getNfld();
 
       for (E_Int i = 0; i < nelts; i++)
       {
-        inde = tindir[i+off2];
+        inde = tindir[i+offR];
         for (E_Int j = 1; j <= nvpe; j++)
         {
           indv = cm(inde, j) - 1;
-          cm2(off+i, j) = indv + 1; // soon vindir[indv];
+          cm2(offW+i, j) = vindir[indv];
         }
       }
       ic2++;
-      off2 += nelts;
+      offR += nelts;
     }
   }
 
@@ -741,10 +731,10 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   for (E_Int i = 0; i < nthreads; i++)
   {
     delete [] indir[i];
-    delete [] neic[i];
+    delete [] nextepc[i];
     delete [] offset[i];
   }
-  delete [] indir; delete [] neic; delete [] offset;
+  delete [] indir; delete [] nextepc; delete [] offset;
 
   RELEASESHAREDU(tpl, f2, cn2);
   delete [] eltType2;
