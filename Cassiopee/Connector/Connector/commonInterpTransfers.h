@@ -30,14 +30,11 @@ switch (type)
       fieldR[indR] = ptrCoefs[0]*fieldD[indD0];      
     }
     sizecoefs = 1;
-    noi+=1;
+    noi += 1;
     break;
     
   case 2: // Structure Lineaire O2 par tetra
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int eq = eq_deb; eq < eq_fin; eq++)
     {
       E_Float* fieldR = vectOfRcvFields[eq];
@@ -47,7 +44,7 @@ switch (type)
         for (E_Int jj=0; jj<2; jj++)
           for (E_Int ii=0; ii<2; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[nocf]*fieldD[indD];
             nocf++;
           }
@@ -58,8 +55,6 @@ switch (type)
     
   case 22:// O2CF 2D
     indD0 = donorPts[noind];
-    j = indD0/imd;
-    i = indD0-j*imd;
     for (E_Int eq = eq_deb; eq < eq_fin; eq++)
     {
       E_Float* fieldR = vectOfRcvFields[eq];
@@ -68,7 +63,7 @@ switch (type)
       for (E_Int jj=0; jj<2; jj++)
         for (E_Int ii=0; ii<2; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd;
+          indD = indD0 + ii + jj*imd;
           val += ptrCoefs[nocf]*fieldD[indD];
           nocf++;
         }
@@ -79,9 +74,6 @@ switch (type)
 
   case 3: // Lagrange O3
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int eq = eq_deb; eq < eq_fin; eq++)
     {
       E_Float* fieldR = vectOfRcvFields[eq];
@@ -91,7 +83,7 @@ switch (type)
         for (E_Int jj=0; jj<3; jj++)
           for (E_Int ii=0; ii<3; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+3]*ptrCoefs[kk+6]*fieldD[indD];               
           }
       fieldR[indR]=val;
@@ -101,9 +93,6 @@ switch (type)
  
   case 44: // Lagrange O4
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int eq = eq_deb; eq < eq_fin; eq++)
     {
       E_Float* fieldR = vectOfRcvFields[eq];
@@ -113,7 +102,7 @@ switch (type)
         for (E_Int jj=0; jj<4; jj++)
           for (E_Int ii=0; ii<4; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+4]*ptrCoefs[kk+8]*fieldD[indD];               
           }
       fieldR[indR]=val;
@@ -141,9 +130,6 @@ switch (type)
       
   case 5: // Lagrange O5
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int eq = eq_deb; eq < eq_fin; eq++)
     {
       E_Float* fieldR = vectOfRcvFields[eq];
@@ -153,7 +139,7 @@ switch (type)
         for (E_Int jj=0; jj<5; jj++)
           for (E_Int ii=0; ii<5; ii++)
           {
-            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+5]*ptrCoefs[kk+10]*fieldD[indD];               
           }
       fieldR[indR] = val;

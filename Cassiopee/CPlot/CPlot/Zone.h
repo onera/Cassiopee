@@ -81,6 +81,8 @@ class Zone
     E_Int material; // material code (from tag)
     double blending; // blending (from tag)
     E_Int meshOverlay; // 1 if mesh must be overlaid (from tag)
+    float meshColorR, meshColorG, meshColorB; // mesh color (from tag)
+    float meshWidth; // width of mesh lines (from tag)
     float shaderParam1, shaderParam2; // shaders param (from tag)
                                   // default value is 1. (can vary in 0-2).
     double* texu; // pointe sur le champ u pour les textures

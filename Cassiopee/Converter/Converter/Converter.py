@@ -1008,10 +1008,17 @@ def getValue(array, ind):
         else: raise ValueError("getValue: too much values in index tuple.")
     else: index = ind
 
-    n = array[1]; nfld = n.shape[0]
-    v = []
-    for nf in range(nfld): v.append(n[nf, index])
-    return v
+    n = array[1]
+    if isinstance(n, list): # array3
+        nfld = len(n)
+        v = []
+        for nf in range(nfld): v.append(n[nf].ravel('k')[index])
+        return v
+    else: # array1
+        nfld = n.shape[0]
+        v = []
+        for nf in range(nfld): v.append(n[nf, index])
+        return v
 
 def setValue(array, ind, values):
     """Set the values in an array for a point of index ind or (i,j,k)...
@@ -1027,10 +1034,15 @@ def setValue(array, ind, values):
         else: raise ValueError("setValue: too much values in index tuple.")
     else: index = ind
     ar = array[1]
-    nf = ar.shape[0]
     nf2 = len(values)
-    if nf2 != nf: raise ValueError("setValue: values is badly dimensioned.")
-    ar[:, index] = values[:]
+    if isinstance(ar, list): # array3
+        nf = len(ar)
+        if nf2 != nf: raise ValueError("setValue: values is badly dimensioned.")
+        for v in range(nf): ar[v].ravel('k')[index] = values[v]
+    else:
+        nf = ar.shape[0]
+        if nf2 != nf: raise ValueError("setValue: values is badly dimensioned.")
+        ar[:, index] = values[:]
     return None
 
 def getArgMin(array, varName):

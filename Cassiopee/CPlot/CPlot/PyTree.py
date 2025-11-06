@@ -654,8 +654,9 @@ def isSelAFullBase(t, Nb, nzs):
 # Retourne les tags de render dans l'arbre, trie ainsi:
 # En premier, les zones structurees
 # En second, les zones non structurees
-# Un tag est de la forme color:material:blending:meshOverlay:shaderParameters,
-# si renderInfo n'est pas present, on retourne None:None:None:None:None.
+# Un tag est de la forme:
+# color:material:blending:meshOverlay:meshColor:meshWidth:shaderParameters,
+# si renderInfo n'est pas present, on retourne None:None:None:None:None:None:None.
 #==============================================================================
 def getRenderTags(t):
     """Return the render tags of zones."""
@@ -687,20 +688,26 @@ def getRenderTags(t):
 #==============================================================================
 def getRenderTags__(z, renderTags):
     ri = Internal.getNodeFromName1(z, '.RenderInfo')
-    if ri is None: renderTags.append('None:None:None:None:None:None')
+    if ri is None: renderTags.append('None:None:None:None:None:None:None:None')
     else:
-        rc = Internal.getNodeFromName1(ri, 'Color')
+        rc = Internal.getNodeFromName1(ri, 'Color') # Zone color
         if rc is None: color = 'None'
         else: color = Internal.getValue(rc)
-        rm = Internal.getNodeFromName1(ri, 'Material')
+        rm = Internal.getNodeFromName1(ri, 'Material') # Zone material
         if rm is None: material = 'None'
         else: material = Internal.getValue(rm)
-        rm = Internal.getNodeFromName1(ri, 'Blending')
+        rm = Internal.getNodeFromName1(ri, 'Blending') # Zone blending
         if rm is None: blending = 'None'
         else: blending = str(Internal.getValue(rm))
-        rm = Internal.getNodeFromName1(ri, 'MeshOverlay')
+        rm = Internal.getNodeFromName1(ri, 'MeshOverlay') # Mesh overlay on/off
         if rm is None: meshOverlay = 'None'
         else: meshOverlay = str(Internal.getValue(rm))
+        rm = Internal.getNodeFromName1(ri, 'MeshColor') # Mesh overlay color
+        if rm is None: meshColor = 'None'
+        else: meshColor = Internal.getValue(rm)
+        rm = Internal.getNodeFromName1(ri, 'MeshWidth') # Mesh overlay width
+        if rm is None: meshWidth = 'None'
+        else: meshWidth = str(Internal.getValue(rm))
         rm = Internal.getNodeFromName1(ri, 'ShaderParameters')
         if rm is None: shaderParameters = 'None:None'
         else:
@@ -712,25 +719,25 @@ def getRenderTags__(z, renderTags):
                     shaderParameters += str(v[i])
                     if i < lgt-1: shaderParameters += ':'
             else: shaderParameters = 'None:None'
-        renderTags.append(color+':'+material+':'+blending+':'+meshOverlay+':'+shaderParameters)
+        renderTags.append(color+':'+material+':'+blending+':'+meshOverlay+':'+meshColor+':'+meshWidth+':'+shaderParameters)
     return renderTags
 
 # -- addRender2Zone
 def addRender2Zone(t, material=None, color=None, blending=None,
-                   meshOverlay=None, shaderParameters=None):
+                   meshOverlay=None, meshColor=None, meshWidth=None,
+                   shaderParameters=None):
     """Add a renderInfo node to a zone node.
     Usage: addRender2Zone(zone, renderInfo)"""
     tp = Internal.copyRef(t)
     _addRender2Zone(tp, material, color, blending,
-                    meshOverlay, shaderParameters)
+                    meshOverlay, meshColor, meshWidth, shaderParameters)
     return tp
 
 def _addRender2Zone(a, material=None, color=None, blending=None,
-                    meshOverlay=None, shaderParameters=None):
+                    meshOverlay=None, meshColor=None, meshWidth=None,
+                    shaderParameters=None):
     """Add a renderInfo node to a zone node.
     Usage: addRender2Zone(zone, renderInfo)"""
-    if material is None and color is None and blending is None and meshOverlay is None and shaderParameters is None: return None
-
     zones = Internal.getZones(a)
     for z in zones:
 
@@ -747,6 +754,12 @@ def _addRender2Zone(a, material=None, color=None, blending=None,
 
         if meshOverlay is not None:
             Internal._createUniqueChild(ri, 'MeshOverlay', 'DataArray_t', value=meshOverlay)
+
+        if meshColor is not None:
+            Internal._createUniqueChild(ri, 'MeshColor', 'DataArray_t', value=meshColor)
+
+        if meshWidth is not None:
+            Internal._createUniqueChild(ri, 'MeshWidth', 'DataArray_t', value=meshWidth)
 
         if shaderParameters is not None:
             Internal._createUniqueChild(ri, 'ShaderParameters', 'DataArray_t', value=shaderParameters)

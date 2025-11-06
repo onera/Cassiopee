@@ -892,12 +892,16 @@ Set rendering informations in pyTree
     :type a: zone node
     :param material: material to set (in 'Solid', 'Flat', 'Glass', 'Chrome', 'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay', 'Cloud', 'Gooch', 'Sphere', 'Texmat')
     :type material: string
-    :param color: color to set (in 'White', 'Grey', ... or '#FFFF')
+    :param color: zone color to set (in 'White', 'Grey', ... or '#FFFF')
     :type color: string
     :param blending: opacity factor (in [0.,1.])
     :type blending: float
     :param meshOverlay: if 1 then overlay the mesh
     :type meshOverlay: 0 or 1
+    :param meshColor: mesh color (in 'White', 'Grey', ... or '#FFFF')
+    :param meshColor: string
+    :param meshWidth: mesh width in pixels
+    :param meshWidth: float
     :param shaderParameters: two float that parametrize shaders
     :type shaderParameters: list of two floats in [0.,2.]
 

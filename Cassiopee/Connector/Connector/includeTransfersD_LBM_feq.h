@@ -1,6 +1,5 @@
 E_Float Ro, Ux, Uy, Uz, ec;
 E_Float coef1, coef2, coef3, coef4, coef5, coef6;
-E_Float pp, t_from_lbm;
 
 E_Float one_3 = 1./3.;
 E_Float one_18= 1./18.;

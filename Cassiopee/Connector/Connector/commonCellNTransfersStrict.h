@@ -30,19 +30,16 @@ switch (type)
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     sizecoefs = 1;
-    noi+=1;
+    noi += 1;
     break;
     
   case 2: // Structure Lineaire O2 par tetra
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int kk=0; kk<2; kk++)
       for (E_Int jj=0; jj<2; jj++)
         for (E_Int ii=0; ii<2; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
           val *= cellND[indD]*(2.-cellND[indD]);   
           nocf++;
         }
@@ -54,12 +51,10 @@ switch (type)
     
   case 22:// O2CF 2D
     indD0 = donorPts[noind];
-    j = indD0/imd;
-    i = indD0-j*imd;
     for (E_Int jj=0; jj<2; jj++)
       for (E_Int ii=0; ii<2; ii++)
       {
-        indD = (i+ii)+(j+jj)*imd;
+        indD = indD0 + ii + jj*imd;
         val *= cellND[indD]*(2.-cellND[indD]);   
         nocf++;
       }      
@@ -69,16 +64,12 @@ switch (type)
     break;
     
   case 3: // Lagrange O3
-    indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
-    
+    indD0 = donorPts[noind];    
     for (E_Int kk=0; kk<3; kk++)
       for (E_Int jj=0; jj<3; jj++)
         for (E_Int ii=0; ii<3; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
           val *= cellND[indD]*(2.-cellND[indD]);             
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
@@ -98,18 +89,29 @@ switch (type)
     else cellNR[indR] = 0.;
     noi += 1;      
     break;
-    
+
+  case 44: // Lagrange O4
+    indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+    for (E_Int kk=0; kk<4; kk++)
+      for (E_Int jj=0; jj<4; jj++)
+        for (E_Int ii=0; ii<4; ii++)
+        {
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          val *= cellND[indD]*(2.-cellND[indD]);
+        }
+    if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
+    else cellNR[indR] = 0.;
+    noi += 1;
+    break;
+
   case 5: // Lagrange O5
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int kk=0; kk<5; kk++)
       for (E_Int jj=0; jj<5; jj++)
         for (E_Int ii=0; ii<5; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);         
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          val *= cellND[indD]*(2.-cellND[indD]);     
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;

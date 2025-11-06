@@ -379,7 +379,8 @@ void K_POST::compCurlUnstruct2D(
 //  Computation of the mean curl of a vector field (u,v,w) over an unstructured cell
 //  Only called in StreamRibbon.cpp for TETRA cells  
 // ============================================================================
-void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* eltType,
+void K_POST::compMeanCurlOfUnstructCell(
+  E_Int noet, FldArrayI& cn, const char* eltType,
   const E_Float* ux, const E_Float* uy, const E_Float* uz,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float& rotx, E_Float& roty, E_Float& rotz
@@ -394,7 +395,7 @@ void K_POST::compMeanCurlOfUnstructCell(E_Int noet, FldArrayI& cn, const char* e
   if (ierr != 0) return;
 
   std::vector<std::vector<E_Int> > facets;
-  ierr = K_CONNECT::getEVFacets(facets, eltType, false);
+  K_CONNECT::getEVFacets(facets, eltType, false);
 
   // allocate temp fields
   FldArrayI cnloc(1, nvpe);

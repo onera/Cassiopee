@@ -367,7 +367,7 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set all render properties.')
     B = TTK.Button(F, command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0)
-    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
+    BB = CTK.infoBulle(parent=B, text='Get properties from selected zone.')
     B.grid(row=0, column=1, sticky=TK.EW)
     F.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
 

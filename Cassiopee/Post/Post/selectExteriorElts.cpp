@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "post.h"
+# include "String/kstring.h"
 # include "Nuga/include/merge.h"
 
 using namespace K_FLD;
@@ -54,7 +55,7 @@ PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
   }
   else 
   {
-    tpl = selectExteriorEltsBasic(*f, *cn, eltType, varString);
+    tpl = selectExteriorEltsME(*f, *cn, eltType, varString);
   }
   RELEASESHAREDU(array, f, cn); 
   return tpl;
@@ -504,5 +505,249 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
   }
 
   RELEASESHAREDU(tpl, f2, cn2);
+  return tpl;
+}
+
+//=============================================================================
+// Recherche topologique des elements exterieurs utilisant la connectivite
+// EV2EENbrs
+//==============================================================================
+PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn, 
+                                       char* eltType, char* varString)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute total number of elements
+  std::vector<E_Int> nepc(nc), cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic] = nelts;
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+  E_Int ntotElts = cumnepc[nc];
+
+  // Compute number of neighbour elements of internal elements, that is the
+  // number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+
+  // Build the element -> neighbour elements connectivity
+  std::vector<std::vector<E_Int> > cEEN(ntotElts);
+  K_CONNECT::connectEV2EENbrs(eltType, npts, cn, cEEN);
+
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int net = ntotElts/nthreads+1;
+  E_Int** indir = new E_Int* [nthreads];
+  E_Int** neic = new E_Int* [nthreads];
+  E_Int** offset = new E_Int* [nthreads];
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    indir[i] = new E_Int [net];
+    neic[i] = new E_Int [nc];
+    offset[i] = new E_Int [nc];
+  }
+
+  // Number of elements per connectivity of the output ME
+  // ('tmp_' is uncompressed: same number of connectivities as the input ME)
+  std::vector<E_Int> tmp_nepc2(nc, 0);
+
+  #pragma omp parallel
+  {
+    E_Int e, nneis, ne = 0, ne2;
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Int* tindir = indir[ithread];
+    E_Int* tneic = neic[ithread];
+    std::vector<E_Int> ttmp_nepc2(nc, 0);
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      ne2 = 0;
+      #pragma omp for
+      for (E_Int i = 0; i < nepc[ic]; i++)
+      {
+        e = cumnepc[ic] + i;
+        nneis = cEEN[e].size();
+        if (nneis != nfpe[ic])
+        {
+          tindir[ne] = i; ne++; ne2++;
+          ttmp_nepc2[ic]++;
+        }
+      }
+      tneic[ic] = ne2;
+    }
+
+    #pragma omp critical
+    {
+      for (E_Int ic = 0; ic < nc; ic++) tmp_nepc2[ic] += ttmp_nepc2[ic];
+    }
+  }
+
+  // Compute thread offsets
+  {
+    E_Int* toffset = offset[0];
+    for (E_Int ic = 0; ic < nc; ic++) toffset[ic] = 0;
+  }
+  
+  for (E_Int i = 1; i < nthreads; i++)
+  {
+    E_Int* toffset = offset[i];
+    E_Int* tneicm1 = neic[i-1];
+    E_Int* toffsetm1 = offset[i-1];
+    for (E_Int ic = 0; ic < nc; ic++) toffset[ic] = toffsetm1[ic] + tneicm1[ic];
+  }
+
+  cEEN.resize(0);
+
+  // Compute the number of unique vertices and map vertex indices from full to
+  // exterior connectivities
+  // E_Int npts2 = 0;
+  // E_Int offset = 0;
+  // std::vector<E_Int> vindir(npts, 0);
+
+  // for (E_Int ic = 0; ic < nc; ic++)
+  // {
+  //   FldArrayI& cm = *(cn.getConnect(ic));
+  //   E_Int nvpe = cm.getNfld();
+  //   for (E_Int i = 0; i < nepc[ic]; i++)
+  //   {
+  //     ind = offset + i;
+  //     if (seen[ind] < nvpe)
+  //     {
+  //       seen[ind] = 1; tmp_nepc2[ic]++;
+  //       for (E_Int j = 1; j <= nvpe; j++)
+  //       {
+  //         ind = cm(i, j) - 1;
+  //         if (vindir[ind] == 0) { vindir[ind] = ++npts2; }
+  //       }
+  //     }
+  //     else seen[ind] = 0; 
+      
+  //   }
+  //   offset += nepc[ic];
+  // }
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType2[0] = '\0';
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (tmp_nepc2[ic] > 0)
+    {
+      nc2++;
+      if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, eltTypes[ic]);
+      }
+    }
+  }
+
+  // Compress the number of elements per connectivity of the output ME
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (tmp_nepc2[ic] > 0) { nepc2[nc2] = tmp_nepc2[ic]; nc2++; }
+  }
+ 
+  // Build new connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, // soon npts2,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  // std::cout << "api = " << api << std::endl;
+  // std::cout << "nfld = " << nfld << std::endl;
+  // std::cout << "varString = " << varString << std::endl;
+  // std::cout << "ntotElts = " << ntotElts << std::endl;
+  // std::cout << "npts2 = " << npts << std::endl;
+  // std::cout << "nc2 = " << nc2 << std::endl;
+  // for (E_Int ic = 0; ic < nc; ic++) std::cout << "nfpe["<<ic<<"] = " << nfpe[ic] << std::endl;
+  // for (E_Int ic = 0; ic < nc; ic++) std::cout << "nepc["<<ic<<"] = " << nepc[ic] << std::endl;
+  // for (E_Int ic = 0; ic < nc2; ic++) std::cout << "nepc2["<<ic<<"] = " << nepc2[ic] << std::endl;
+  // std::cout << "eltType2 = " << eltType2 << std::endl;
+  // for (E_Int i = 0; i < nthreads; i++)
+  // {
+  //   E_Int* tneic = neic[i];
+  //   for (E_Int ic = 0; ic < nc; ic++)
+  //   std::cout << "neic["<<i<<"]["<<ic<<"] = " << tneic[ic] << std::endl;
+  // }
+  // for (E_Int i = 0; i < nthreads; i++)
+  // {
+  //   E_Int* toffset = offset[i];
+  //   for (E_Int ic = 0; ic < nc; ic++)
+  //   std::cout << "offset["<<i<<"]["<<ic<<"] = " << toffset[ic] << std::endl;
+  // }
+
+  #pragma omp parallel
+  {
+    E_Int ic2, off, off2, inde, indv, nelts, nvpe; //indv;
+    E_Int ithread = __CURRENT_THREAD__;
+    E_Int* tindir = indir[ithread];
+    E_Int* tneic = neic[ithread];
+    E_Int* toffset = offset[ithread];
+
+    // Fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f.begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        // soon
+        // indv = vindir[i];
+        // if (indv > 0) f2p[indv-1] = fp[i];
+        f2p[i] = fp[i];
+      }
+    }
+
+    // Connectivity
+    ic2 = 0;
+    off2 = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      if (tmp_nepc2[ic] == 0) continue;
+      FldArrayI& cm = *(cn.getConnect(ic));
+      FldArrayI& cm2 = *(cn2->getConnect(ic2));
+      nelts = tneic[ic];
+      off = toffset[ic];
+      nvpe = cm.getNfld();
+
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        inde = tindir[i+off2];
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          indv = cm(inde, j) - 1;
+          cm2(off+i, j) = indv + 1; // soon vindir[indv];
+        }
+      }
+      ic2++;
+      off2 += nelts;
+    }
+  }
+
+  // Free memory
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    delete [] indir[i];
+    delete [] neic[i];
+    delete [] offset[i];
+  }
+  delete [] indir; delete [] neic; delete [] offset;
+
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   return tpl;
 }
