@@ -59,7 +59,7 @@ def arrayS(vars, ni, nj, nk, api=1):
     Usage: array(vars, ni, nj, nk)"""
     ni = int(ni); nj = int(nj); nk = int(nk)
     vars = vars.replace(' ', '')
-    if vars[-1] == ',' or vars[0] == ',':
+    if vars.startswith(',') or vars.endswith(','):
         print("Warning: array: your var string is suspicious.")
     vl = vars.split(','); v = len(vl)
     if api == 1:
