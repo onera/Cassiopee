@@ -41,7 +41,6 @@ static PyMethodDef Pyconverter [] =
   {"convertArrays2File", K_CONVERTER::convertArrays2File, METH_VARARGS},
   {"initVars", K_CONVERTER::initVars, METH_VARARGS},
   {"diffArrays", K_CONVERTER::diffArrays, METH_VARARGS},
-  {"diffArrays2", K_CONVERTER::diffArrays, METH_VARARGS},
   {"getArgMin", K_CONVERTER::getArgMin, METH_VARARGS},
   {"getArgMax", K_CONVERTER::getArgMax, METH_VARARGS},
   {"getMeanValue", K_CONVERTER::getMeanValue, METH_VARARGS},

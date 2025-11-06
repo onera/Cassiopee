@@ -60,7 +60,7 @@ def testA(arrays, number=1):
         if GEOMETRIC_DIFF:
             # geometrical check
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
-                ret = C.diffArrayGeom(arrays, old, atol=TOLERANCE)
+                ret = C.diffArraysGeom(arrays, old, atol=TOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
@@ -146,7 +146,7 @@ def testT(t, number=1):
             nXYZ = [Internal.getNodesFromName(old, "Coordinate" + ax) for ax in 'XYZ']
             nXYZ = [arr[0] if len(arr) else [] for arr in nXYZ]
             if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
-                ret = C.diffArrayGeom(t, old, atol=TOLERANCE)
+                ret = C.diffArraysGeom(t, old, atol=TOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '

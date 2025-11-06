@@ -61,15 +61,24 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
 {
-  PyObject* arrays1; PyObject* arrays2; PyObject* arrays3;
+  PyObject* arrays1; PyObject* arrays2; PyObject* arrays3=NULL;
   E_Int narrays = 2;
   E_Float atol = 1.e-11, rtol = 0.;
   
-  if (PYPARSETUPLE_(args, OO_, &arrays1, &arrays2)) {}
-  else if (PYPARSETUPLE_(args, OO_ I_, &arrays1, &arrays2, &atol)) {}
-  else if (PYPARSETUPLE_(args, OO_ II_, &arrays1, &arrays2, &atol, &rtol)) {}
-  else if (PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3)) narrays = 3;
-  else return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &arrays1, &arrays2))
+  {
+    PyErr_Clear();
+    if (!PYPARSETUPLE_(args, OO_ I_, &arrays1, &arrays2, &atol))
+    {
+      PyErr_Clear();
+      if (!PYPARSETUPLE_(args, OO_ II_, &arrays1, &arrays2, &atol, &rtol))
+      {
+        PyErr_Clear();
+        if (PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3)) narrays = 3;
+        else return NULL;
+      }
+    }
+  }
 
   // Check every arrays
   if (PyList_Check(arrays1) == 0 || PyList_Check(arrays2) == 0)

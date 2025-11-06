@@ -25,7 +25,7 @@ __all__ = ['array', 'getApi', 'addVars', '_addVars', 'addVars2',
            'convertArrays2File', 'convertFile2Arrays', 'copy',
            'createGlobalHook', 'createHook',
            'createGlobalIndex', '_createGlobalIndex', 'recoverGlobalIndex', '_recoverGlobalIndex',
-           'createSockets', 'diffArrays', 'diffArrayGeom', 'isFinite', 'setNANValuesAt', 'extCenter2Node',
+           'createSockets', 'diffArrays', 'diffArraysGeom', 'isFinite', 'setNANValuesAt', 'extCenter2Node',
            'extractVars', 'getIndexField',
            'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue', 'getMeanValue', 'getMinValue',
            'getNCells', 'getNPts', 'getValue', 'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
@@ -910,19 +910,19 @@ def diffArrays(arrays1, arrays2, arrays3=[], atol=1.e11, rtol=0.):
     else:
         return converter.diffArrays(arrays1, arrays2, atol, rtol)
 
-def diffArrayGeom(array1, array2, atol=1.e-10):
+def diffArraysGeom(array1, array2, atol=1.e-10):
     """Diff arrays defining solutions, geometrically. Return the delta field."""
     if isinstance(array1[0], list):
         ret = []
         for c, a in enumerate(array1):
-            res = diffArrayGeom__(a, array2[c], atol)
+            res = diffArraysGeom__(a, array2[c], atol)
             if res is None: return None
             ret.append(res[0])
         return ret
     else:
-        return diffArrayGeom__(array1, array2, atol)
+        return diffArraysGeom__(array1, array2, atol)
 
-def diffArrayGeom__(array1, array2, atol=1.e-10, rtol=0.):
+def diffArraysGeom__(array1, array2, atol=1.e-10, rtol=0.):
     hook = createHook(array1, 'nodes')
     ids = identifyNodes(hook, array2, tol=atol)
     if numpy.any(ids == -1):

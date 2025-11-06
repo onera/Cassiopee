@@ -49,7 +49,6 @@ namespace K_CONVERTER
   PyObject* convertArrays2Mask(PyObject* self, PyObject* args);
   PyObject* convertArray2Node(PyObject* self, PyObject* args);
   PyObject* diffArrays(PyObject* self, PyObject* args);
-  PyObject* diffArrays2(PyObject* self, PyObject* args);
   PyObject* convertDesFunction2Function(PyObject* self, PyObject* args);
   PyObject* getArgMin(PyObject* self, PyObject* args);
   PyObject* getArgMax(PyObject* self, PyObject* args);

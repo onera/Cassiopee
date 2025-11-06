@@ -5,27 +5,32 @@ from . import Distributed
 from . import converter
 
 # Acces a Distributed
-from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
+from .Distributed import (
+    readZones, _readZones, convert2PartialTree, _convert2PartialTree,
+    convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths,
+    writeNodesFromPaths, mergeGraph, splitGraph
+)
 
-__all__ = ['rank', 'size', 'master', 'KCOMM', 'COMM_WORLD', 'SUM',
-           'MIN', 'MAX', 'LAND',
-           'setCommunicator', 'barrier', 'send', 'isend', 'recv', 'requestWaitall',
-           'sendRecv', 'sendRecvC',
-           'bcast', 'Bcast', 'gather', 'Gather',
-           'reduce', 'Reduce', 'allreduce', 'Allreduce',
-           'bcastZone', 'gatherZones', 'allgatherZones',
-           'allgatherDict', 'allgatherDict2', 'allgatherTree',
-           'allgather', 'passNext', 'allgatherNext',
-           'getSizeOf',
-           'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
-           'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-           'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File',
-           'seq', 'print0', 'printA',
-           'createBboxDict', 'computeGraph', 'addXZones',
-           '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
-           'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
-           'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty',
-           'COMM_WORLD']
+__all__ = [
+    'rank', 'size', 'master',
+    'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
+    'setCommunicator', 'abort', 'barrier',
+    'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
+    'bcast', 'Bcast', 'gather', 'Gather',
+    'reduce', 'Reduce', 'allreduce', 'Allreduce',
+    'bcastZone', 'gatherZones', 'allgatherZones',
+    'allgatherDict', 'allgatherDict2', 'allgatherTree',
+    'allgather', 'passNext', 'allgatherNext',
+    'getSizeOf',
+    'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
+    'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
+    'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File',
+    'seq', 'print0', 'printA',
+    'createBboxDict', 'computeGraph', 'addXZones',
+    '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
+    'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty'
+]
 
 from mpi4py import MPI
 import numpy
@@ -58,6 +63,12 @@ def setCommunicator(com):
     KCOMM = com
     rank = KCOMM.rank
     size = KCOMM.size
+
+#==============================================================================
+# abort: terminate the entire MPI job immediately
+#==============================================================================
+def abort(errorcode=0):
+    KCOMM.Abort(errorcode)
 
 #==============================================================================
 # barrier
