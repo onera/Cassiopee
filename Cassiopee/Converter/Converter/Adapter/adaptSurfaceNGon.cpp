@@ -72,31 +72,25 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   if (nelts == 0) // INPUT is type B
   {
-    E_Int isNGon = c->getNGonType(); 
+    E_Int ngonType = c->getNGonType();
     E_Int nfacesA = 0;
     E_Int neltsA = nfaces;
     E_Int sizeNGonA = 0;
     E_Int sizeNFaceA = sizeNGon;
-    #ifdef PRINTINFO
-    printf("Info: adaptSurfaceNGon: convert type B to type A\n");
-    #endif
 
     // Initialize sizeNGonA & sizeNFaceA
     std::vector<E_Int> edge{0,0};
     Topology E;
     std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > ngonMapA;
     std::vector<std::pair<E_Int,E_Int> > ngonListA;
-    E_Int v1, v2;
 
     for (E_Int j = 0; j < nfaces; j++)
     {
       E_Int* face = c->getFace(j, sizeFace, ngon, indPG);
       for (E_Int i = 0; i < sizeFace; i++)
       {
-        v1 = face[i];
-        v2 = face[(i+1)%sizeFace];
-        edge[0] = E_min(v1,v2);
-        edge[1] = E_max(v1,v2);
+        edge[0] = face[i];
+        edge[1] = face[(i+1)%sizeFace];
         E.set(edge);
         // try to insert topological edge element (E) in ngonMapA
         auto res = ngonMapA.insert({E, nfacesA+1});
@@ -110,15 +104,15 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     }
 
     sizeNGonA = 2*nfacesA;
-    if (isNGon < 3) sizeNGonA = sizeNGonA+nfacesA;
+    if (ngonType < 3) sizeNGonA = sizeNGonA+nfacesA;
 
     // TYPE B
     #if PRINTINFO
     printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfaces, nelts);
     printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGon, sizeNFace);
     #endif
-    tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsA, nfacesA, 
-                               "NGON", sizeNGonA, sizeNFaceA, isNGon, false, 3);
+    tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsA, nfacesA, 
+                               "NGON", sizeNGonA, sizeNFaceA, ngonType, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
 
@@ -138,7 +132,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     indPGA[0] = 0;
     for (E_Int i = 0; i < nfacesA; i++)
     {
-      if (isNGon < 3) 
+      if (ngonType < 3) 
       {
         ngonA[shiftNGonA] = 2;
         if (i != nfacesA-1) indPGA[i+1] = indPGA[i]+3;
@@ -158,7 +152,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     {
       E_Int* face = c->getFace(j, sizeFace, ngon, indPG);
 
-      if (isNGon < 3) 
+      if (ngonType < 3) 
       {
         nfaceA[shiftNFaceA] = sizeFace;
         if (j != nfaces-1) indPHA[j+1] = indPHA[j]+sizeFace+1;
@@ -168,10 +162,8 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
 
       for (E_Int i = 0; i < sizeFace; i++)
       {
-        v1 = face[i];
-        v2 = face[(i+1)%sizeFace];
-        edge[0] = E_min(v1,v2);
-        edge[1] = E_max(v1,v2);
+        edge[0] = face[i];
+        edge[1] = face[(i+1)%sizeFace];
         E.set(edge);
         nfaceA[shiftNFaceA] = ngonMapA[E]; // get the unique E_Int ID of the face
         shiftNFaceA++;
@@ -194,7 +186,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
   }
   else // INPUT is type A
   {
-    E_Int isNGon = c->getNGonType(); 
+    E_Int ngonType = c->getNGonType();
     E_Int nfacesB = nelts;
     E_Int neltsB = 0;
     E_Int sizeNGonB = sizeNFace;
@@ -206,8 +198,8 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfaces, nelts);
     printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGon, sizeNFace);
     #endif
-    tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsB, nfacesB, 
-                               "NGON", sizeNGonB, sizeNFaceB, isNGon, false, 3);
+    tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsB, nfacesB, 
+                               "NGON", sizeNGonB, sizeNFaceB, ngonType, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
 
@@ -226,7 +218,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     for (E_Int k = 0; k < nelts; k++)
     {
       E_Int* elt = c->getElt(k, sizeElt, nface, indPH);
-      if (isNGon < 3) 
+      if (ngonType < 3) 
       {
         ngonB[shiftNGonB] = sizeElt;
         if (k != nelts-1) indPGB[k+1] = indPGB[k]+sizeElt+1;
