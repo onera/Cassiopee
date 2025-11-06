@@ -7,7 +7,7 @@ import numpy, sys, os
 
 # global tolerance on float fields
 TOLERANCE = 1.e-11  # absolute
-RELTOLERANCE = 0. #2.e-15  # relative
+RELTOLERANCE = 0. # relative
 
 # whether to diffArrays geometrically or topologically. default is topologically.
 GEOMETRIC_DIFF = False
