@@ -7,7 +7,7 @@ import numpy, sys, os
 
 # global tolerance on float fields
 TOLERANCE = 1.e-11  # absolute
-RELTOLERANCE = 2.e-15  # relative
+RELTOLERANCE = 0. #2.e-15  # relative
 
 # whether to diffArrays geometrically or topologically. default is topologically.
 GEOMETRIC_DIFF = False
@@ -60,35 +60,35 @@ def testA(arrays, number=1):
         if GEOMETRIC_DIFF:
             # geometrical check
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
-                ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
+                ret = C.diffArrayGeom(arrays, old, atol=TOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(arrays, old)
+                    ret = C.diffArrays(arrays, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(arrays, old)
+                ret = C.diffArrays(arrays, old,
+                                   atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(arrays, old)
+            ret = C.diffArrays(arrays, old, atol=TOLERANCE, rtol=RELTOLERANCE)
 
         isSuccessful = True
         varNames = list(dict.fromkeys(','.join(i[0] for i in ret).split(',')))
         nvarNames = len(varNames)
         l0 = [0. for _ in range(nvarNames)]
         l2 = [0. for _ in range(nvarNames)]
-        l0ref = [0. for _ in range(nvarNames)]
-        for i, j in zip(ret, old):
+        for i in ret:
             for v in i[0].split(','):
                 vidx = varNames.index(v)
                 l0[vidx] = max(l0[vidx], C.normL0(i, v))
                 l2[vidx] = max(l2[vidx], C.normL2(i, v))
-                l0ref[vidx] = max(l0ref[vidx], C.normL0(j, v[1:]))
 
         for vidx, v in enumerate(varNames):
-            if l0[vidx] > TOLERANCE + RELTOLERANCE*l0ref[vidx]:
+            if l0[vidx] > TOLERANCE:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0[vidx], l2[vidx]))
                 isSuccessful = False
 
@@ -146,19 +146,20 @@ def testT(t, number=1):
             nXYZ = [Internal.getNodesFromName(old, "Coordinate" + ax) for ax in 'XYZ']
             nXYZ = [arr[0] if len(arr) else [] for arr in nXYZ]
             if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
-                ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
+                ret = C.diffArrayGeom(t, old, atol=TOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(t, old)
+                    ret = C.diffArrays(t, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(t, old)
+                ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(t, old)
+            ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         C._fillMissingVariables(ret)
         mvars = C.getVarNames(ret)
         if len(mvars) > 0: mvars = mvars[0]

@@ -903,25 +903,28 @@ def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
                                      endian, colormap, dataFormat,
                                      znames, BCFaces)
 
-def diffArrays(arrays1, arrays2, arrays3=[]):
+def diffArrays(arrays1, arrays2, arrays3=[], atol=1.e11, rtol=0.):
     """Diff arrays defining solutions. Return the delta field."""
-    return converter.diffArrays(arrays1, arrays2, arrays3)
+    if arrays3 != []:
+        return converter.diffArrays(arrays1, arrays2, arrays3)
+    else:
+        return converter.diffArrays(arrays1, arrays2, atol, rtol)
 
-def diffArrayGeom(array1, array2, tol=1.e-10):
+def diffArrayGeom(array1, array2, atol=1.e-10):
     """Diff arrays defining solutions, geometrically. Return the delta field."""
     if isinstance(array1[0], list):
         ret = []
         for c, a in enumerate(array1):
-            res = diffArrayGeom__(a, array2[c], tol)
+            res = diffArrayGeom__(a, array2[c], atol)
             if res is None: return None
             ret.append(res[0])
         return ret
     else:
-        return diffArrayGeom__(array1, array2, tol)
+        return diffArrayGeom__(array1, array2, atol)
 
-def diffArrayGeom__(array1, array2, tol=1.e-10):
+def diffArrayGeom__(array1, array2, atol=1.e-10, rtol=0.):
     hook = createHook(array1, 'nodes')
-    ids = identifyNodes(hook, array2, tol=tol)
+    ids = identifyNodes(hook, array2, tol=atol)
     if numpy.any(ids == -1):
         print("ids", ids)
         freeHook(hook)
@@ -942,7 +945,7 @@ def diffArrayGeom__(array1, array2, tol=1.e-10):
         pt2[:,:] = pt[:,ids[:]]
 
     array1[1] = pt2
-    ret2 = diffArrays([array1], [array2])
+    ret2 = diffArrays([array1], [array2])  # TODO add tols
     freeHook(hook)
     return ret2
 
