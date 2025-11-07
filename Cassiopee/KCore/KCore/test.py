@@ -169,9 +169,8 @@ def testT(t, number=1):
         for v in mvars:
             l0 = C.normL0(ret, v)
             l2 = C.normL2(ret, v)
-            l0ref = 0. #C.normL0(old, v[1:])
-            if l0 > TOLERANCE + RELTOLERANCE*l0ref:
-                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
+            if l0 > TOLERANCE:
+                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0, l2))
                 isSuccessful = False
         return isSuccessful
 

@@ -846,6 +846,9 @@ E_Bool K_CONVERTER::searchField2(
           {
             if (isnan(f2p[ind])) hasNan = true;
             else if (isinf(f2p[ind])) hasInf = true;
+            // error = abs(current - ref) - rtol * abs(ref), element-wise
+            // error is compared to atol in KCore.test
+            // similar to numpy.isclose
             errorp[ind] = E_abs(f1p[ind] - f2p[ind]) - rtol*E_abs(f2p[ind]);
           }
         }
