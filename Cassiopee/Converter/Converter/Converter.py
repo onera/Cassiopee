@@ -602,11 +602,11 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
 
 # Initialisation par une formule par numpy
 def _initVarByEq__(a, eq):
-    pi = numpy.pi
-    # Extrait les variables de a
+    import re
+    varstring = a[0]
+    vars = varstring.split(',')
+
     replacements = {
-        'centers:': '',
-        'nodes:': '',
         'minimum(': 'numpy.minimum(',
         'maximum(': 'numpy.maximum(',
         'cos(': 'numpy.cos(',
@@ -616,17 +616,22 @@ def _initVarByEq__(a, eq):
         'sqrt(': 'numpy.sqrt(',
         'log(': 'numpy.log(',
         'tan(': 'numpy.tan(',
-        'atan(': 'numpy.atan(',
+        'atan(': 'numpy.arctan(',
+        'arctan(': 'numpy.arctan(',
+        'arctan2(': 'numpy.arctan2(',
         'exp(': 'numpy.exp(',
         'degrees(': 'numpy.degrees(',
-        'arctan2(': 'numpy.arctan2(',
         'logical_and(': 'numpy.logical_and(',
+        'pi': 'numpy.pi'
     }
 
-    varstring = a[0]
-    vars = varstring.split(',')
-    for instr, outstr in replacements.items():
-        eq = eq.replace(instr, outstr)
+    eq = eq.replace('centers:', '')
+    eq = eq.replace('nodes:', '')
+    # Only substitute dict key by its value if the key is a prefix and if it is
+    # not preceded by a full stop
+    for instr in sorted(replacements, key=len, reverse=True):
+        pattern = re.compile(rf'(?<!\.)\b{re.escape(instr)}')
+        eq = pattern.sub(replacements[instr], eq)
 
     # Split suivant ; si plusieurs formules sont definies
     eq = eq.split(';')
