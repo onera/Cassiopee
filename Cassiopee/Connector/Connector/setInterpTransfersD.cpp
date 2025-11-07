@@ -265,11 +265,12 @@ PyObject* K_CONNECTOR::_setInterpTransfersD( PyObject* self, PyObject* args )
     if (posvarcd > -1)
     {
       E_Int indR, type, nocf;
-      E_Int indD0, indD, i, j, k, ncfLoc;
+      E_Int indD0, indD, ncfLoc;
       E_Int noi = 0; // compteur sur le tableau d indices donneur
       E_Int sizecoefs = 0;
       E_Float* cellNR = fieldROut.begin(nvars);
       E_Float* cellND = fieldsD[poscd];
+      E_Float* ptrCoefs = donorCoefsF->begin();
       for (E_Int noind = 0; noind < nbRcvPts; noind++)
       {
         // adressage direct pour indR

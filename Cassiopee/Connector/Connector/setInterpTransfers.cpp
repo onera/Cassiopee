@@ -457,6 +457,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
       E_Int sizecoefs = 0;
       E_Float* cellNR = fieldsR[poscr];
       E_Float* cellND = fieldsD[poscd];
+      E_Float* ptrCoefs = donorCoefsF->begin();
       for (E_Int noind = 0; noind < nbRcvPts; noind++)
       {
         // adressage indirect pour indR

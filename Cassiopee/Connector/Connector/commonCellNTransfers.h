@@ -16,7 +16,8 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
   
   val = 0.;
   nocf = 0;
-  // - pas de cellule masquee, ni interpolee dans la molecule d interpolation, sauf si son cf associe est nul.
+
+  // - pas de cellule masquee, ni interpolee dans la molecule d'interpolation, sauf si son cf associe est nul.
   // - somme des cf = 1.
   // -----------------
   // cellN*(2-cellN) renvoie 0 si cellN = 0 ou 2 (pt masque ou interpolee) et 1 si cellN =1 (pt calcule)
@@ -34,7 +35,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
       noi += ncfLoc+1;
       break;
       
-    case 1:
+    case 1: // injection
       indD0 = donorPts[noi];
       cellNR[indR] = ptrCoefs[0]*cellND[indD0]*(2.-cellND[indD0]);     
       sizecoefs = 1;
@@ -51,7 +52,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
             val += ptrCoefs[nocf]*cellND[indD]*(2.-cellND[indD]);   
             nocf++;
           }
-      cellNR[indR]=val;
+      cellNR[indR] = val;
       noi += 1;
       break;
     
@@ -64,7 +65,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
           val += ptrCoefs[nocf]*cellND[indD]*(2.-cellND[indD]);   
           nocf++;
         }      
-      cellNR[indR]=val;
+      cellNR[indR] = val;
       noi += 1;
       break;
       
@@ -77,7 +78,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
             indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+3]*ptrCoefs[kk+6]*cellND[indD]*(2.-cellND[indD]);             
           }
-      cellNR[indR]=val;
+      cellNR[indR] = val;
       noi += 1;
       break;
       
@@ -86,10 +87,10 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
       // indD0 est le no de l elt, et les coefs sont aux noeuds
       for (E_Int nov = 1; nov <= 4; nov++)
       {
-        E_Int indv = ptrcnd[indD0*cnNfldD+nov-1]-1;
-        val += cellND[indv]*(2.-cellND[indv])*ptrCoefs[nov-1];        
-      }  
-      cellNR[indR]=val;      
+        indD = ptrcnd[indD0*cnNfldD+nov-1]-1;
+        val += cellND[indD]*(2.-cellND[indD])*ptrCoefs[nov-1];        
+      }
+      cellNR[indR] = val;      
       noi += 1;      
       break;
       
@@ -102,7 +103,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
             indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+4]*ptrCoefs[kk+8]*cellND[indD]*(2.-cellND[indD]);         
           }
-      cellNR[indR]=val;
+      cellNR[indR] = val;
       noi += 1;
       break;
 
@@ -115,7 +116,7 @@ for (E_Int noind = 0; noind < nbRcvPts; noind++)
             indD = indD0 + ii + jj*imd + kk*imdjmd;
             val += ptrCoefs[ii]*ptrCoefs[jj+5]*ptrCoefs[kk+10]*cellND[indD]*(2.-cellND[indD]);         
           }
-      cellNR[indR]=val;
+      cellNR[indR] = val;
       noi += 1;
       break;
       
