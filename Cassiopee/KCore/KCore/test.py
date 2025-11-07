@@ -84,7 +84,7 @@ def testA(arrays, number=1):
         for i in ret:
             for v in i[0].split(','):
                 vidx = varNames.index(v)
-                l0[vidx] = max(l0[vidx], C.normL0(i, v))
+                l0[vidx] = max(l0[vidx], C.getMaxValue(i, v))
                 l2[vidx] = max(l2[vidx], C.normL2(i, v))
 
         for vidx, v in enumerate(varNames):
@@ -167,7 +167,7 @@ def testT(t, number=1):
 
         isSuccessful = True
         for v in mvars:
-            l0 = C.normL0(ret, v)
+            l0 = C.getMaxValue(ret, v)
             l2 = C.normL2(ret, v)
             if l0 > TOLERANCE:
                 print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0, l2))
