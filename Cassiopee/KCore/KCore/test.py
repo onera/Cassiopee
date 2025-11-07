@@ -264,7 +264,7 @@ def checkObject_(objet, refObjet, reference):
             diff = numpy.abs(refObjet-objet)
             if (diff > TOLERANCE + RELTOLERANCE*numpy.abs(refObjet)).any():
                 print(f"DIFF: object value differs from {reference} "
-                      "(max. diff={numpy.max(diff):g}).")
+                      f"(max. diff={numpy.max(diff):g}).")
                 return False
     elif isinstance(refObjet, list): # liste
         for i, ai in enumerate(refObjet):
