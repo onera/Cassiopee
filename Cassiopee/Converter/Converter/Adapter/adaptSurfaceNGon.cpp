@@ -16,13 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+# include <unordered_map>
 # include "converter.h"
 
 using namespace K_FLD;
 using namespace K_FUNC;
 using namespace std;
 
-//define PRINTINFO
+# define PRINTINFO 0
 
 //=============================================================================
 /* Convert a surface NGon */
@@ -70,50 +72,49 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   if (nelts == 0) // INPUT is type B
   {
-    E_Int isNGon = c->getNGonType(); 
+    E_Int ngonType = c->getNGonType();
     E_Int nfacesA = 0;
     E_Int neltsA = nfaces;
     E_Int sizeNGonA = 0;
     E_Int sizeNFaceA = sizeNGon;
-    #ifdef PRINTINFO
-    printf("Info: adaptSurfaceNGon: convert type B to type A\n");
-    #endif
+
     // Initialize sizeNGonA & sizeNFaceA
-    std::set<vector<E_Int>> ngonSetsA;
     std::vector<E_Int> edge{0,0};
-    E_Int v1, v2;
+    Topology E;
+    std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > ngonMapA;
+    std::vector<std::pair<E_Int,E_Int> > ngonListA;
+
     for (E_Int j = 0; j < nfaces; j++)
     {
       E_Int* face = c->getFace(j, sizeFace, ngon, indPG);
-      for (E_Int i = 0; i < sizeFace-1; i++)
+      for (E_Int i = 0; i < sizeFace; i++)
       {
-        v1 = face[i];
-        v2 = face[i+1];
-        edge[0] = E_min(v1,v2);
-        edge[1] = E_max(v1,v2);
-        ngonSetsA.insert(edge);
+        edge[0] = face[i];
+        edge[1] = face[(i+1)%sizeFace];
+        E.set(edge);
+        // try to insert topological edge element (E) in ngonMapA
+        auto res = ngonMapA.insert({E, nfacesA+1});
+        if (res.second) // check insertion outcome
+        {
+          // if E was not already in ngonMapA, add the new bar face in ngonListA and increase nfacesA counter
+          ngonListA.push_back({edge[0], edge[1]});
+          nfacesA++;
+        }
       }
-      v1 = face[0];
-      v2 = face[sizeFace-1];
-      edge[0] = E_min(v1,v2);
-      edge[1] = E_max(v1,v2);
-      ngonSetsA.insert(edge);
     }
 
-    nfacesA = ngonSetsA.size();
     sizeNGonA = 2*nfacesA;
-    if (isNGon < 3) sizeNGonA = sizeNGonA+nfacesA;
+    if (ngonType < 3) sizeNGonA = sizeNGonA+nfacesA;
 
     // TYPE B
-    #ifdef PRINTINFO
-    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    #if PRINTINFO
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfaces, nelts);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGon, sizeNFace);
     #endif
-    tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsA, nfacesA, 
-                               "NGON", sizeNGonA, sizeNFaceA, isNGon, false, 3);
+    tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsA, nfacesA, 
+                               "NGON", sizeNGonA, sizeNFaceA, ngonType, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
-    // co->setNGonType(isNGon); // force NGonType
 
     E_Int* ngonA = co->getNGon();
     E_Int* nfaceA = co->getNFace();
@@ -121,64 +122,52 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     E_Int* indPHA = co->getIndPH();
 
     // TYPE A
-    #ifdef PRINTINFO
-    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfacesA, neltsA);
-    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGonA, sizeNFaceA);
+    #if PRINTINFO
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfacesA, neltsA);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGonA, sizeNFaceA);
     #endif
+
     // fill ngonA
     E_Int shiftNGonA = 0;
-    E_Int cptNGonA = 1;
     indPGA[0] = 0;
-    for (auto it : ngonSetsA) 
+    for (E_Int i = 0; i < nfacesA; i++)
     {
-      if (isNGon < 3) 
+      if (ngonType < 3) 
       {
         ngonA[shiftNGonA] = 2;
+        if (i != nfacesA-1) indPGA[i+1] = indPGA[i]+3;
         shiftNGonA++;
       }
-      ngonA[shiftNGonA] = it[0];
-      ngonA[shiftNGonA+1] = it[1];
-      shiftNGonA = shiftNGonA+2;
+      else indPGA[i+1] = indPGA[i]+2;
 
-      
-      if ((isNGon < 3 && cptNGonA == nfacesA) == false) indPGA[cptNGonA] = shiftNGonA;
-      cptNGonA++;
+      ngonA[shiftNGonA] = ngonListA[i].first;
+      ngonA[shiftNGonA+1] = ngonListA[i].second;
+      shiftNGonA += 2;
     }
 
     // fill nfaceA
     E_Int shiftNFaceA = 0;
-    E_Int facePos = 0;
     indPHA[0] = 0;
     for (E_Int j = 0; j < nfaces; j++)
     {
       E_Int* face = c->getFace(j, sizeFace, ngon, indPG);
-      std::vector<E_Int> faceA;
-      for (E_Int i = 0; i < sizeFace-1; i++)
-      {
-        v1 = face[i];
-        v2 = face[i+1];
-        edge[0] = E_min(v1,v2);
-        edge[1] = E_max(v1,v2);
-        auto pos = ngonSetsA.find(edge);
-        facePos = distance(ngonSetsA.begin(), pos);
-        faceA.push_back(facePos+1);
-      }
-      v1 = face[0];
-      v2 = face[sizeFace-1];
-      edge[0] = E_min(v1,v2);
-      edge[1] = E_max(v1,v2);
-      auto pos = ngonSetsA.find(edge);
-      facePos = distance(ngonSetsA.begin(), pos);
-      faceA.push_back(facePos+1);
 
-      if (isNGon < 3) 
+      if (ngonType < 3) 
       {
-        nfaceA[shiftNFaceA] = faceA.size();
+        nfaceA[shiftNFaceA] = sizeFace;
+        if (j != nfaces-1) indPHA[j+1] = indPHA[j]+sizeFace+1;
         shiftNFaceA++;
       }
-      for (size_t i = 0; i < faceA.size(); i++) nfaceA[i+shiftNFaceA] = faceA[i];
-      shiftNFaceA = shiftNFaceA+faceA.size();
-      if ((isNGon < 3 && j == nfaces-1) == false) indPHA[j+1] = shiftNFaceA;
+      else indPHA[j+1] = indPHA[j]+sizeFace;
+
+      for (E_Int i = 0; i < sizeFace; i++)
+      {
+        edge[0] = face[i];
+        edge[1] = face[(i+1)%sizeFace];
+        E.set(edge);
+        nfaceA[shiftNFaceA] = ngonMapA[E]; // get the unique E_Int ID of the face
+        shiftNFaceA++;
+      }
     }
 
     // set fields
@@ -197,63 +186,87 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
   }
   else // INPUT is type A
   {
-    E_Int isNGon = c->getNGonType(); 
+    E_Int ngonType = c->getNGonType();
     E_Int nfacesB = nelts;
     E_Int neltsB = 0;
     E_Int sizeNGonB = sizeNFace;
     E_Int sizeNFaceB = 0;
 
     // TYPE A
-    #ifdef PRINTINFO
+    #if PRINTINFO
     printf("Info: adaptSurfaceNGon: convert type A to type B\n");
-    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=%d, nbre d'elements=%d\n", nfaces, nelts);
-    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=%d, sizeNFace=%d\n", sizeNGon, sizeNFace);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfaces, nelts);
+    printf("Info: adaptSurfaceNGon: universel NGON (type A): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGon, sizeNFace);
     #endif
-    tpl = K_ARRAY::buildArray3(f->getNfld(), varString, f->getSize(), neltsB, nfacesB, 
-                               "NGON", sizeNGonB, sizeNFaceB, isNGon, false, 3);
+    tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsB, nfacesB, 
+                               "NGON", sizeNGonB, sizeNFaceB, ngonType, false, 3);
     K_FLD::FldArrayF* fo; K_FLD::FldArrayI* co;
     K_ARRAY::getFromArray3(tpl, fo, co);
-    // co->setNGonType(isNGon); // force NGonType
 
     E_Int* ngonB = co->getNGon();
     E_Int* indPGB = co->getIndPG(); 
 
     // TYPE B
-    #ifdef PRINTINFO
-    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=%d, nbre d'elements=%d\n", nfacesB, neltsB);
-    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=%d, sizeNFace=%d\n", sizeNGonB, sizeNFaceB);
+    #if PRINTINFO
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): nbre de faces=" SF_D_ ", nbre d'elements=" SF_D_ "\n", nfacesB, neltsB);
+    printf("Info: adaptSurfaceNGon: universel NGON (type B): sizeNGon=" SF_D_ ", sizeNFace=" SF_D_ "\n", sizeNGonB, sizeNFaceB);
     #endif
-    // fill indPGB & ngonB
-    E_Int shift = 0;
+
+    // fill ngonB
+    E_Int shiftNGonB = 0;
     indPGB[0] = 0;
     for (E_Int k = 0; k < nelts; k++)
     {
       E_Int* elt = c->getElt(k, sizeElt, nface, indPH);
-      std::vector<E_Int> faceB;
-      for (E_Int i = 0; i < sizeElt-1; i++)
+      if (ngonType < 3) 
       {
-        E_Int* face = c->getFace(elt[i]-1, sizeFace, ngon, indPG); // Faces are bar types (two vertices per face)
-        if (faceB.size() < 1)
-        {
-          faceB.push_back(face[0]);
-          faceB.push_back(face[1]);
-        }
-        else if (face[0]-1 == faceB[faceB.size()-1])
-          faceB.push_back(face[1]);
-        else
-          faceB.insert(faceB.begin(), face[1]);
+        ngonB[shiftNGonB] = sizeElt;
+        if (k != nelts-1) indPGB[k+1] = indPGB[k]+sizeElt+1;
+        shiftNGonB++;
+      }
+      else indPGB[k+1] = indPGB[k]+sizeElt;
+
+      // First, reorder the first three vertices
+      // Then, simply add new vertices based on the last entry
+      E_Int* face1 = c->getFace(elt[0]-1, sizeFace, ngon, indPG);
+      E_Int* face2 = c->getFace(elt[1]-1, sizeFace, ngon, indPG);
+
+      if (face1[0] == face2[0])
+      {
+        ngonB[shiftNGonB+0] = face1[1];
+        ngonB[shiftNGonB+1] = face1[0];
+        ngonB[shiftNGonB+2] = face2[1];
+        shiftNGonB += 3;
+      }
+      else if (face1[1] == face2[1])
+      {
+        ngonB[shiftNGonB+0] = face1[0];
+        ngonB[shiftNGonB+1] = face1[1];
+        ngonB[shiftNGonB+2] = face2[0];
+        shiftNGonB += 3;
+      }
+      else if (face1[1] == face2[0])
+      {
+        ngonB[shiftNGonB+0] = face1[0];
+        ngonB[shiftNGonB+1] = face1[1];
+        ngonB[shiftNGonB+2] = face2[1];
+        shiftNGonB += 3;
+      }
+      else
+      {
+        ngonB[shiftNGonB+0] = face1[1];
+        ngonB[shiftNGonB+1] = face1[0];
+        ngonB[shiftNGonB+2] = face2[0];
+        shiftNGonB += 3;
       }
 
-      if (isNGon < 3) 
+      for (E_Int i = 2; i < sizeElt-1; i++)
       {
-        ngonB[shift] = faceB.size();
-        shift++;
+          E_Int* face = c->getFace(elt[i]-1, sizeFace, ngon, indPG);
+          if (face[0] == ngonB[shiftNGonB-1]) ngonB[shiftNGonB] = face[1];
+          else ngonB[shiftNGonB] = face[0];
+          shiftNGonB++;
       }
-      
-      for (size_t i = 0; i < faceB.size(); i++) ngonB[i+shift] = faceB[i];
-
-      shift = shift+faceB.size();
-      if ((isNGon < 3 && k == nelts-1) == false) indPGB[k+1] = shift;
     }
 
     // set fields
