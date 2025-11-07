@@ -101,7 +101,7 @@ void K_POST::compInitialStep(
     E_Int posy = posyu[noblk0];
     E_Int posz = poszu[noblk0];
 
-    E_Int npts = field->getSize();
+    //E_Int npts = field->getSize();
     E_Int noet = indi[0];
     E_Int indA = cnEV(noet,1)-1;
     E_Int indB = cnEV(noet,2)-1;

@@ -242,7 +242,7 @@ void K_POST::computeUnstrIntersectionWithPlane(
   FldArrayF& intersectPts, FldArrayF& volOfIntersectPts)
 {
   E_Int nfld = field.getNfld();
-  E_Int nnodes = field.getSize();
+  //E_Int nnodes = field.getSize();
   E_Int nelts = connect.getSize();
   E_Int sizeMax = 6*nelts;
   E_Int nfpe = 4; //TETRA

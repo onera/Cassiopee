@@ -292,6 +292,8 @@ def buildCPlotArrays(a, topTree=[]):
                 else:
                     # dont call in ME for now because exteriorElts not working on ME
                     if ',' not in dimz[3]: P._exteriorElts(z)
+                    # code when exteriorElts is ok
+                    # P._exteriorElts(z)
 
     if __FIELD__ == '__all__':
         arrays = C.getAllFields(ap, 'nodes', api=3)

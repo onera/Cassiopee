@@ -87,7 +87,7 @@ void Data::superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor)
       r2 = r2*255.; g2 = g2*255.; b2 = b2*255.;
       r = (int)r2; g = (int)g2; b = (int)b2;
       
-      r1 = (uint8_t)r;  g1 = (uint8_t)g;  b1 = (uint8_t)b;  
+      r1 = (uint8_t)r; g1 = (uint8_t)g; b1 = (uint8_t)b;  
       
       //printf("%d %d %d ; ", r1,g1,b1);
       im2[3*i+j*w3] = r1;
@@ -150,7 +150,7 @@ void Data::gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double 
         r3 = (uint8_t)im2[3*(i+1) + j*w3];
         r4 = (uint8_t)im2[3*i + (j-1)*w3];
         r5 = (uint8_t)im2[3*i + (j+1)*w3];
-        rmoy = (uint8_t)(r1 + eps*(r2+r3+r4+r5-4*r1));
+        rmoy = (uint8_t)(r1 + eps*(r2+r3+r4+r5-4.*r1));
         im1[3*i+j*w3] = (char)rmoy;
 
         g1 = (uint8_t)im2[3*i + j*w3+1];
@@ -158,7 +158,7 @@ void Data::gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double 
         g3 = (uint8_t)im2[3*(i+1) + j*w3+1];
         g4 = (uint8_t)im2[3*i + (j-1)*w3+1];
         g5 = (uint8_t)im2[3*i + (j+1)*w3+1];
-        gmoy = (uint8_t)(g1 + eps*(g2+g3+g4+g5-4*g1));
+        gmoy = (uint8_t)(g1 + eps*(g2+g3+g4+g5-4.*g1));
         im1[3*i+j*w3+1] = (char)gmoy;
 
         b1 = (uint8_t)im2[3*i + j*w3+2];
@@ -239,17 +239,201 @@ void Data::sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
   for (E_Int i = 0; i < w*h*3; i++)
   {
     v1 = (uint8_t)im1[i];
-    if (v1 > threshold) { 
+    if (v1 > threshold) 
+    { 
       vv = amount*(double)v1;
       val = (int)vv; 
       v1 = (uint8_t)im3[i];
       val += (int)v1; 
       if (val > 255) val = 255;
-      im2[i] = (uint8_t)val; }
+      im2[i] = (uint8_t)val; 
+    }
     else im2[i] = im3[i];
   }
   
   free(im3);
+}
+
+//============================================================================
+// directional local blur (FXAA)
+//============================================================================
+// IN: im1: w x h
+// OUT: im2 : w x h deja alloue
+//=============================================================================
+void Data::localBlur(E_Int w, E_Int h, char* im1, char* im2)
+{
+  E_Int ind, ind1, ind2, ind3, ind4, edge;
+  E_Int w3 = 3*w;
+  uint8_t rc, gc, bc, rnw, gnw, bnw;
+  uint8_t rne, gne, bne, rsw, gsw, bsw, rse, gse, bse;
+  double co = 1./255.;
+  double r, g, b;
+  double lumc, lumnw, lumne, lumsw, lumse, ldiff;
+  double dirx, diry, rangeMin, rangeMax, range, thresold;
+  double dirReduce, rcpDirMin;
+
+#define FXAA_EDGE_THRESHOLD_MIN (1./8.)
+#define FXAA_EDGE_THRESHOLD (1./16.)
+#define FXAA_REDUCE_MIN   (1.0/ 128.0)
+#define FXAA_REDUCE_MUL   (1.0 / 8.0)
+#define FXAA_SPAN_MAX     8.0
+
+  for (E_Int j = 1; j < h-1; j++)
+    for (E_Int i = 1; i < w-1; i++)
+    {
+      ind = 3*(i-1) + (j-1)*w3;
+      rnw = (uint8_t)im1[ind];
+      gnw = (uint8_t)im1[ind+1];
+      bnw = (uint8_t)im1[ind+2];
+      ind = 3*(i+1) + (j-1)*w3;
+      rne = (uint8_t)im1[ind];
+      gne = (uint8_t)im1[ind+1];
+      bne = (uint8_t)im1[ind+2];
+      ind = 3*(i-1) + (j+1)*w3;
+      rsw = (uint8_t)im1[ind];
+      gsw = (uint8_t)im1[ind+1];
+      bsw = (uint8_t)im1[ind+2];
+      ind = 3*(i+1) + (j+1)*w3;
+      rse = (uint8_t)im1[ind];
+      gse = (uint8_t)im1[ind+1];
+      bse = (uint8_t)im1[ind+2];
+      ind = 3*i + j*w3;
+      rc = (uint8_t)im1[ind];
+      gc = (uint8_t)im1[ind+1];
+      bc = (uint8_t)im1[ind+2];
+      
+      // le detecteur est la luminance
+      r = rc*co; g = gc*co; b = bc*co;
+      lumc = 0.299*r + 0.587*g + 0.114*b;
+      r = rnw*co; g = gnw*co; b = bnw*co;
+      lumnw = 0.299*r + 0.587*g + 0.114*b;
+      r = rne*co; g = gne*co; b = bne*co;
+      lumne = 0.299*r + 0.587*g + 0.114*b;
+      r = rsw*co; g = gsw*co; b = bsw*co;
+      lumsw = 0.299*r + 0.587*g + 0.114*b;
+      r = rse*co; g = gse*co; b = bse*co;
+      lumse = 0.299*r + 0.587*g + 0.114*b;
+
+      rangeMin = std::min(lumc, lumnw);
+      rangeMin = std::min(rangeMin, lumne);
+      rangeMin = std::min(rangeMin, lumsw);
+      rangeMin = std::min(rangeMin, lumse);
+
+      rangeMax = std::max(lumc, lumnw);
+      rangeMax = std::max(rangeMax, lumne);
+      rangeMax = std::max(rangeMax, lumsw);
+      rangeMax = std::max(rangeMax, lumse);
+      
+      range = rangeMax - rangeMin; // delta lumen
+      //printf("%d %d = %g\n", i, j, range);
+
+      if (range < rangeMax*0.8)
+      {
+        // no treatment
+        ind = 3*i + j*w3;
+        im2[ind] = im1[ind];
+        im2[ind+1] = im1[ind+1];
+        im2[ind+2] = im1[ind+2];
+      }
+      else
+      {
+        dirx = -(lumnw + lumne) + (lumsw + lumse); // gradient
+        diry =  (lumnw + lumsw) - (lumne + lumse);
+        dirx = std::abs(dirx);
+        diry = diry;
+
+        // find edge direction
+        edge = 1;
+        if (diry >= 0 && dirx > diry && dirx > 1.3*diry) edge = 0;
+        else if (diry > dirx && diry > 1.3*dirx) edge = 2;
+        else if (diry < 0 && dirx > -diry && dirx > -1.3*diry) edge = 3;
+
+        // basic blending in ortho edge dir
+        if (edge == 0)
+        {
+          ind1 = 3*i + (j-1)*w3;
+          ind2 = 3*i + (j+1)*w3;
+        }
+        else if (edge == 1)
+        {
+          ind1 = 3*(i+1) + (j-1)*w3;
+          ind2 = 3*(i-1) + (j+1)*w3;
+        }
+        else if (edge == 2)
+        {
+          ind1 = 3*(i+1) + j*w3;
+          ind2 = 3*(i-1) + j*w3;
+        }
+        else
+        {
+          ind1 = 3*(i+1) + (j+1)*w3;
+          ind2 = 3*(i-1) + (j-1)*w3;
+        }
+        b = 0.5; // blend
+        ind = 3*i + j*w3;
+        im2[ind] = b*im1[ind]+(1.-b)*0.5*(im1[ind1]+im1[ind2]);
+        im2[ind+1] = b*im1[ind+1]+(1.-b)*0.5*(im1[ind1+1]+im1[ind2+1]);
+        im2[ind+2] = b*im1[ind+2]+(1.-b)*0.5*(im1[ind1+2]+im1[ind2+2]);
+        //im2[ind] = 1.;
+        //im2[ind+1] = 0.;
+        //im2[ind+2] = 0.;
+        //im2[ind] = im1[ind];
+        //im2[ind+1] = im1[ind+1];
+        //im2[ind+2] = im1[ind+2];
+      }
+      /*
+      dirReduce = (lumnw + lumne + lumsw + lumse)*(0.25 * FXAA_REDUCE_MUL);
+      dirReduce = std::max(dirReduce, FXAA_REDUCE_MIN);
+      rcpDirMin = 1.0 / (std::min(std::abs(dirx), std::abs(diry)) + dirReduce);
+
+      dirx = dirx * rcpDirMin;
+      diry = diry * rcpDirMin;
+
+      thresold = rangeMax*FXAA_EDGE_THRESHOLD;
+      thresold = std::max(thresold, FXAA_EDGE_THRESHOLD_MIN);
+
+      if (range <  std::max(FXAA_EDGE_THRESHOLD_MIN, rangeMax*FXAA_EDGE_THRESHOLD)) 
+      { 
+        dirx = -(lumnw + lumne) + (lumsw + lumse);
+        diry =  (lumnw + lumsw) - (lumne + lumse);
+      
+        float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) *
+                          (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);
+        rcpDirMin = 1.0 / (min(abs(dirx), abs(diry)) + dirReduce);
+        dir = min(vec2(FXAA_SPAN_MAX, FXAA_SPAN_MAX),
+              max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX),
+              dir * rcpDirMin)) * inverseVP;
+        vec3 rgbA = 0.5 * (
+        texture2D(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+        texture2D(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+        vec3 rgbB = rgbA * 0.5 + 0.25 * (
+        texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +
+        texture2D(tex, fragCoord * inverseVP + dir * 0.5).xyz);
+
+        float lumaB = dot(rgbB, luma);
+        if ((lumaB < lumaMin) || (lumaB > lumaMax))
+          color = vec4(rgbA, texColor.a);
+        else
+          color = vec4(rgbB, texColor.a);
+      return color;
+      */
+
+    }
+
+    //float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));
+    //float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
+
+    //vec2 dir;
+    //dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
+    //dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+
+    //float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * 0.25 * 0.5, 1.0 / 128.0);
+    //float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
+    //dir = clamp(dir * rcpDirMin, -inverseResolution, inverseResolution);
+
+    //vec3 result1 = texture(screenTexture, TexCoords + dir * (1.0 / 3.0 - 0.5)).rgb;
+    //vec3 result2 = texture(screenTexture, TexCoords + dir * (2.0 / 3.0 - 0.5)).rgb;
+    //vec3 finalColor = (result1 + result2) * 0.5;
 }
 
 //============================================================================

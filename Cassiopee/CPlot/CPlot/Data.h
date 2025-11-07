@@ -552,6 +552,7 @@ public:
                  double alpha, double beta);
   void sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
                     E_Int radius, E_Int threshold);
+  void localBlur(E_Int w, E_Int h, char* im1, char* im2);
   void specPostProcess(char* in, E_Int ni, E_Int nj, float* depth, char* out);
   FILE* fopenw(const char* path, const char* mode);                                                              
   void exportFile();
