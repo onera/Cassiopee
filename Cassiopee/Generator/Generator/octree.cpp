@@ -22,7 +22,6 @@
 # include "Nuga/include/BbTree.h"
 # include "Search/OctreeNode.h"
 # include "Nuga/include/ArrayAccessor.h"
-#include <iomanip>
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;

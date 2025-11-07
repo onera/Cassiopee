@@ -13,8 +13,6 @@ from . import iconics
 import os, os.path
 import re, fnmatch
 
-# Set this to suppress CPlot firewalls (fixNGon, breakConnect) and enables direct v4
-FIREWALL = True
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
 #==============================================================================
