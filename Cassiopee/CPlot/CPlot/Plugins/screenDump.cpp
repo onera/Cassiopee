@@ -523,15 +523,13 @@ void Data::dumpWindow()
     { 
       exportWidth = (exportWidth/2)*2;
       exportHeight = (exportHeight/2)*2; // doit etre pair
-      antialiasing = 0; // 1
+      antialiasing = 1; // 1
     }
     else if (ptrState->offscreen == 1) // osmesa
     { 
-      exportWidth = (exportWidth/2)*2;
-      exportHeight = (exportHeight/2)*2; // doit etre pair
-      antialiasing = 0; // 2
+      antialiasing = 2; // 2
     }
-
+    
     if (antialiasing == 1) // SSAA
     {
       // get image X2
