@@ -277,7 +277,7 @@ def setMeshOverlay():
         WIDGETS['meshFrame'].grid(row=1, column=0, columnspan=2)
     else:
         WIDGETS['meshFrame'].grid_remove()
-    
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')

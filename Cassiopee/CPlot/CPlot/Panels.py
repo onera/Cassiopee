@@ -1246,7 +1246,7 @@ def openRenderPanel():
         RENDERPANEL.columnconfigure(7, weight=0) # Mesh color
         RENDERPANEL.columnconfigure(8, weight=0) # Mesh width
         RENDERPANEL.columnconfigure(9, weight=0) # scrollbar
-        
+
         RENDERPANEL.rowconfigure(0, weight=0)
         RENDERPANEL.rowconfigure(1, weight=0)
         RENDERPANEL.rowconfigure(2, weight=1)
@@ -1381,7 +1381,7 @@ def openRenderPanel():
         label8.grid(row=0, column=7, sticky=TK.EW)
         label9 = TTK.Label(RENDERPANEL, text='Mesh Width')
         label9.grid(row=0, column=8, sticky=TK.EW)
-        
+
         # -- Filters --
         B = TK.Entry(RENDERPANEL, textvariable=VARS[9], background='White', width=40)
         B.bind('<KeyRelease>', filterZones)
