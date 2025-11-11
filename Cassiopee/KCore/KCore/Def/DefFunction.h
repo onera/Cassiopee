@@ -178,14 +178,13 @@ inline void E_swap(E_Int a, E_Int b)
 /** Equality test with given accuracy */
 inline
 E_Bool fEqual(E_Float lhs, E_Float rhs, 
-                 E_Float precision=K_CONST::E_CUTOFF)
+              E_Float precision=K_CONST::E_CUTOFF)
 {
   E_Float t = lhs - rhs;
   return (t >= -precision && t <= precision) ? true : false;
 }   
 
-
-/** Equality test with given accuracy */
+/** Equality to 0 test with given accuracy */
 inline
 E_Bool fEqualZero(E_Float lhs, E_Float precision=K_CONST::E_CUTOFF)
 {
@@ -199,9 +198,9 @@ inline
 E_Float sqrDistance (const InputIterator1 i1, const InputIterator2 i2, 
                      E_Int dim)
 {
-  InputIterator1  p1(i1);
-  InputIterator2  p2(i2);
-  E_Float         result = 0.;
+  InputIterator1 p1(i1);
+  InputIterator2 p2(i2);
+  E_Float result = 0.;
 
   for (E_Int i = 0; i < dim; ++i)
   {
@@ -219,9 +218,8 @@ diff (InputIterator1 x, InputIterator2 y, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i) 
   {
-     *(z+i) = *(x+i) - *(y+i); 
+    *(z+i) = *(x+i) - *(y+i); 
   }
-
   return z + dim;
 }
 
@@ -231,9 +229,8 @@ diff (InputIterator1 x, InputIterator2 y, E_Int stride, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i)
   {
-     *(z+i) = *(x+i*stride) - *(y+i*stride);
+    *(z+i) = *(x+i*stride) - *(y+i*stride);
   }
-
   return z + dim;
 }
 
@@ -243,8 +240,7 @@ inline InputIterator3
 sum (InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i) + *(y+i);
-
+    *(z+i) = *(x+i) + *(y+i);
   return z + dim;
 }
 
@@ -254,8 +250,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b;
-
+    *(z+i) = *(x+i)*a + *(y+i)*b;
   return z + dim;
 }
 
@@ -265,8 +260,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator2 c, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
-
+    *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
   return z + dim;
 }
 
@@ -276,8 +270,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i);
-
+    *(z+i) = *(x+i)*a + *(y+i);
   return z + dim;
 }
 
@@ -288,7 +281,6 @@ inline
 E_Float sqrNorm(InputIterator it)
 {
   E_Float result = 0.;
-
   for (E_Int i = 0; i < dim; ++i)
   { result += (*it) * (*it); it++; }
   return result;
@@ -309,9 +301,9 @@ template <>
 inline
 void crossProduct<3> (const E_Float* x, const E_Float* y, E_Float* z) 
 {
-   z[0] = x[1]*y[2] - x[2]*y[1];
-   z[1] = x[2]*y[0] - x[0]*y[2];
-   z[2] = x[0]*y[1] - x[1]*y[0];
+  z[0] = x[1]*y[2] - x[2]*y[1];
+  z[1] = x[2]*y[0] - x[0]*y[2];
+  z[2] = x[0]*y[1] - x[1]*y[0];
 }
 
 // | u1 v1 w1 |

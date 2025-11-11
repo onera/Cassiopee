@@ -266,12 +266,8 @@ Plaster::__cartesian
   else
     return; // error because not handled yet...
 
-  //std::cout << "cart : div" << std::endl;
-
   dx /= ni;
   dy /= nj;
-
-  //std::cout << "cart : norma" << std::endl;
 
   for (E_Int k = 0; k < 3; ++k)
   {
@@ -279,11 +275,7 @@ Plaster::__cartesian
     Xj[k] *= dy;
   }
 
-  //std::cout << "cart : norma 1" << std::endl;
-
   cart.reserve(3, ni*nj);
-
-  //std::cout << "reserved" << std::endl;
 
   for (E_Int j = 0; j < nj; ++j)
   {
@@ -295,7 +287,6 @@ Plaster::__cartesian
       cart.pushBack(Pi, Pi+3);
     }
   }
-  //std::cout << "ok cart" << std::endl;
 }
 
 ///
@@ -303,7 +294,7 @@ void
 Plaster::__smooth
 (std::vector<E_Float>& z, E_Int ni, E_Float bump_factor, E_Float tol)
 {
-  if (bump_factor == 0.)
+  if (K_FUNC::fEqualZero(bump_factor))
     __smooth_1(z, ni, tol);
   else
     __smooth_2(z, ni, tol);
@@ -314,19 +305,18 @@ void
 Plaster::__smooth_1
 (std::vector<E_Float>& z, E_Int ni, E_Float tol)
 {
-  E_Int               iter(0), iterMax(5000);
-  E_Int               indH, indB, indD, indG;
-  E_Int               NBPOINTS(E_Int(z.size())), ind, J;
-  E_Float             threshold(tol), dMax, d, q;
-  bool                carry_on(true);
-  bool_vector_type    processed(NBPOINTS, false);
+  E_Int iter(0), iterMax(5000);
+  E_Int indH, indB, indD, indG;
+  E_Int NBPOINTS(E_Int(z.size())), ind, J;
+  E_Float threshold(tol), dMax, d, q;
+  bool carry_on(true);
+  bool_vector_type processed(NBPOINTS, false);
   
   // Reset nodes to be computed to 0.
   for (E_Int i = 0; i < NBPOINTS; ++i)
   {
     processed[i] = (z[i] != -NUGA::FLOAT_MAX);
-    if (!processed[i])
-      z[i] = 0.;
+    if (!processed[i]) z[i] = 0.;
   }
 
   while (carry_on)
@@ -363,12 +353,12 @@ void
 Plaster::__smooth_2
 (std::vector<E_Float>& z, E_Int ni, E_Float tol)
 {
-  E_Int               iter(0), iterMax(5000);
-  E_Int               indH, indB, indD, indG, indH2, indB2, indD2, indG2;
-  E_Int               NBPOINTS(E_Int(z.size())), ind, J;
-  E_Float             threshold(tol), dMax, d, q;
-  bool                carry_on(true);
-  bool_vector_type    processed(NBPOINTS, false);
+  E_Int iter(0), iterMax(5000);
+  E_Int indH, indB, indD, indG, indH2, indB2, indD2, indG2;
+  E_Int NBPOINTS(E_Int(z.size())), ind, J;
+  E_Float threshold(tol), dMax, d, q;
+  bool carry_on(true);
+  bool_vector_type processed(NBPOINTS, false);
 
    E_Float zh, zb, zg, zd, k(0.333333), k1(1.+k);
   
@@ -385,8 +375,7 @@ Plaster::__smooth_2
 
     for (ind = 0; ind < NBPOINTS; ++ind)
     {
-      if (processed[ind])
-        continue;
+      if (processed[ind]) continue;
 
       J = ind % (ni);
 
@@ -505,16 +494,16 @@ Plaster::__bumpPlaster
   bump_factor = std::max(bump_factor, -1.); // factor must be in [-1., 1.]
   bump_factor = std::min(bump_factor, 1.);
 
-  if (bump_factor == 0.) return;
+  if (K_FUNC::fEqualZero(bump_factor)) return;
 
-  const E_Float BUMP_ANGLE_MAX =  1.5 * NUGA::PI_4; //3PI/8
+  const E_Float BUMP_ANGLE_MAX = 1.5 * NUGA::PI_4; //3PI/8
   E_Float ta = ::tan(bump_factor * BUMP_ANGLE_MAX);
 
   std::vector<E_Int> oonodes;
   oonodes.insert(oonodes.end(), onodes.begin(), onodes.end());
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> pA(plaster2D);
-  K_SEARCH::KdTree<>  tree(pA, oonodes);
+  K_SEARCH::KdTree<> tree(pA, oonodes);
 
   int_set_type inodes;
   __getPlasterBoundary(mask, ni, false/*inside*/, inodes);
@@ -552,18 +541,18 @@ Plaster::__mask
 (const K_FLD::FloatArray& pos2D, const K_FLD::FloatArray& plaster2D,
  const K_FLD::IntArray& connectT3, NUGA::bool_vector_type& mask)
 {
-  const E_Int                       NB_POINTS(plaster2D.cols());
-  E_Int                             S;
-  std::vector<E_Int>                T3s;
-  const E_Float                     *P, *P0, *P1, *P2;
-  K_FLD::IntArray::const_iterator   pS;
+  const E_Int NB_POINTS(plaster2D.cols());
+  E_Int S;
+  std::vector<E_Int> T3s;
+  const E_Float *P, *P0, *P1, *P2;
+  K_FLD::IntArray::const_iterator pS;
 
-  typedef K_SEARCH::BoundingBox<2>  BBox2DType;
+  typedef K_SEARCH::BoundingBox<2> BBox2DType;
 
   mask.clear();
   mask.resize(NB_POINTS, true);
 
-  if (pos2D.cols() == 0)     return;
+  if (pos2D.cols() == 0) return;
   if (connectT3.cols() == 0) return;
   if (plaster2D.cols() == 0) return;
 

@@ -1468,12 +1468,10 @@ namespace K_MESH
     E_Float L = ::sqrt(NUGA::sqrDistance(Q0, Q1, DIM));
     if (tol_is_absolute)
     {
-      if (L > EPSILON)
-        tol1 /= L;
+      if (L > EPSILON) tol1 /= L;
     }
 
-    if (min_d > tol1 * L)
-      return false;
+    if (min_d > tol1 * L) return false;
     else if (!coincident) // The line intersect the plane at a unique point (3D case only)
     {
       u0  = lambda;
@@ -1487,8 +1485,8 @@ namespace K_MESH
       E_Int Xcount = 0;
       E_Float Xu[] = {NUGA::FLOAT_MAX, NUGA::FLOAT_MAX};
 
-      E_Float        dum0, dum1;
-      E_Bool         ovlap;
+      E_Float dum0, dum1;
+      E_Bool ovlap;
       const E_Float* pP[] = {P0, P1, P2};
 
       for (E_Int i = 0; (i < NB_NODES) && (Xcount < 2); ++i)
@@ -1503,7 +1501,7 @@ namespace K_MESH
             tx = i<<2;
             break;
           }
-          if ((u0 == 0.) || (u0 == 1.))                    // Just sharing a node.
+          if (K_FUNC::fEqualZero(u0) || K_FUNC::fEqualZero(u0 - 1.))  // Just sharing a node.
             continue;
           if ((Xcount == 1) && (::fabs(Xu[0] - u0) < eps)) // Already taken into account.
             continue;

@@ -40,7 +40,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ TRRRR_ I_,
                     &listFields, &coefa, &coefb, &coefc, &coefd, &order))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check every array in listFields
@@ -51,9 +51,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (fEqualZero(coefa) == true &&
-      fEqualZero(coefb) == true &&
-      fEqualZero(coefc) == true) 
+  if (fEqualZero(coefa) && fEqualZero(coefb) && fEqualZero(coefc)) 
   {
     PyErr_SetString(
       PyExc_TypeError, 

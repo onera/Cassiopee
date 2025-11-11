@@ -35,7 +35,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ I_ SSS_,
                     &zone, &ibctype, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
   {
-      return NULL;
+    return NULL;
   }
   vector<PyArrayObject*> hook;
   E_Int im, jm, km, cnSize, cnNfld;
@@ -47,9 +47,9 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
     cn, cnSize, cnNfld, eltType, hook, GridCoordinates, 
     FlowSolutionNodes, FlowSolutionCenters);
 
-  if ( res != 1 ) 
+  if (res != 1)
   {
-    if ( res == 2 )
+    if (res == 2)
     { 
       delete [] eltType; delete [] varString;
       RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
@@ -76,13 +76,13 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  E_Float* ptrCellNIBC  = fields[poscellni];
+  E_Float* ptrCellNIBC = fields[poscellni];
   E_Float* ptrCellNChim = fields[poscellnc];
   //E_Float* ptrCellNFront = fields[poscellnf];
-  E_Int imc = K_FUNC::E_max(1,im-1);
-  E_Int jmc = K_FUNC::E_max(1,jm-1);
-  E_Int kmc = K_FUNC::E_max(1,km-1);
-  E_Int ncells =  imc*jmc*kmc;
+  E_Int imc = K_FUNC::E_max(1, im-1);
+  E_Int jmc = K_FUNC::E_max(1, jm-1);
+  E_Int kmc = K_FUNC::E_max(1, km-1);
+  E_Int ncells = imc*jmc*kmc;
 #pragma omp parallel default(shared)
   {
 #pragma omp for 
@@ -94,7 +94,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
 
       if (cellNChim == 1.)
       {
-        if ( cellNIBC == 0 ) cellNChim = -3.;//~ blanked
+        if (cellNIBC == 0) cellNChim = -3.;//~ blanked
       }
       else if (cellNChim == 2.)
       {
@@ -104,10 +104,10 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
       }
       else if (cellNChim == 0.)
       {
-        if ( cellNIBC == 1 ) cellNIBC = -3.;//~ blanked
+        if (cellNIBC == 1.) cellNIBC = -3.; //~ blanked
       }
 
-      // c est commente : on suppose que les corps IBM n intersectent pas les corps Chimere
+      // c'est commente : on suppose que les corps IBM n'intersectent jamais les corps Chimere
       // if ( cellNFront != 0.)
       // {
       //   if (cellNIBC == -3.) cellNFront = 0.;

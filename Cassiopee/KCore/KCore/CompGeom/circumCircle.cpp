@@ -41,7 +41,7 @@ E_Float K_COMPGEOM::circumCircleRadius(E_Float& p1x, E_Float& p1y, E_Float& p1z,
 
   // Aire du triangle
   E_Float A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2;
-  if (K_FUNC::fEqualZero(A, 1.e-15) == true) return 0.;
+  if (K_FUNC::fEqualZero(A, 1.e-15)) return 0.;
   E_Float R = sqrt(a2*b2*c2 / A);
   return R;
 }
@@ -62,7 +62,7 @@ E_Float K_COMPGEOM::inscribedCircleRadius(
   E_Float peri = a+b+c;
   E_Float aire = compTriangleArea(a, b, c);
 
-  if (K_FUNC::fEqualZero(peri) == true) return 0.;
+  if (K_FUNC::fEqualZero(peri)) return 0.;
   else return 2 * aire / peri;
 }
 
@@ -85,7 +85,7 @@ E_Int K_COMPGEOM::circumCircle(E_Float* p1, E_Float* p2, E_Float* p3,
   E_Float c2 = xc*xc + yc*yc + zc*zc;
 
   E_Float A = 2*b2*c2 + 2*c2*a2 + 2*a2*b2 - a2*a2 - b2*b2 - c2*c2;
-  if ( K_FUNC::fEqualZero(A, 1.e-15) == true) 
+  if ( K_FUNC::fEqualZero(A, 1.e-15)) 
   { R = 0.; pc[0] = 0; pc[1] = 0; pc[2] = 0; return -1; }
 
   R = sqrt(a2*b2*c2 / A);
@@ -109,13 +109,13 @@ E_Int K_COMPGEOM::circumCircle(E_Float* p1, E_Float* p2, E_Float* p3,
  
   E_Float l = (p3[0]-pc[0])*(p3[0]-pc[0]) + (p3[1]-pc[1])*(p3[1]-pc[1]) +
     (p3[2]-pc[2])*(p3[2]-pc[2]);
-  if (K_FUNC::fEqualZero(l - R*R, 1.e-10) == true) return 0;
+  if (K_FUNC::fEqualZero(l - R*R, 1.e-10)) return 0;
   
   pc[0] = 0.5*(p1[0]+p2[0]) - alpha*tx;
   pc[1] = 0.5*(p1[1]+p2[1]) - alpha*ty;
   pc[2] = 0.5*(p1[2]+p2[2]) - alpha*tz;
   l = (p3[0]-pc[0])*(p3[0]-pc[0]) + (p3[1]-pc[1])*(p3[1]-pc[1]) +
     (p3[2]-pc[2])*(p3[2]-pc[2]);
-  if (K_FUNC::fEqualZero(l - R*R, 1.e-10) == true) return 0;
+  if (K_FUNC::fEqualZero(l - R*R, 1.e-10)) return 0;
   return -1;
 }

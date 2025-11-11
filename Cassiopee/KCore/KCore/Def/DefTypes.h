@@ -87,7 +87,7 @@
 
 ///-
 
-#define E_EPSILON         1.e-12
+#define E_EPSILON 1.e-12
 
 ///-
 

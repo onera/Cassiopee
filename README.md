@@ -19,4 +19,4 @@ Computational Fluid Dynamics pre- and post-processing python modules.
 
 - [On windows](https://github.com/onera/Cassiopee/blob/dev/docs/developers/Install/msys2.md)
 
-- [On linux ubuntu](https://github.com/onera/Cassiopee/dev/docs/developers/Install/ubuntu.md)
+- [On linux ubuntu](https://github.com/onera/Cassiopee/blob/dev/docs/developers/Install/ubuntu.md)

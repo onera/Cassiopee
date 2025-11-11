@@ -52,20 +52,19 @@ E_Int K_COMPGEOM::intersect2Segments(E_Float* ps1a, E_Float* ps1b,
         fEqualZero(perp(v,w)) == false) return 0;
     E_Float du = dot(u,u);
     E_Float dv = dot(v,v);
-    if (fEqualZero(du) == true && 
-        fEqualZero(dv) == true)
+    if (fEqualZero(du) && fEqualZero(dv))
     {
       if (fEqualZero(dist(ps1a,ps2a)) == false) return 0;
       pi0[0] = ps1a[0]; pi0[1] = ps1a[1]; pi0[2] = ps1a[2];
       return 1;
     }
-    if (fEqualZero(du) == true)
+    if (fEqualZero(du))
     {
       if (inSegment(ps1a, ps2a, ps2b) == 0) return 0;
       pi0[0] = ps1a[0]; pi0[1] = ps1a[1]; pi0[2] = ps1a[2];
       return 1;
     }
-    if (fEqualZero(dv) == true)
+    if (fEqualZero(dv))
     {
       if (inSegment(ps2a, ps1a, ps1b) == 0) return 0;
       pi0[0] = ps2a[0]; pi0[1] = ps2a[1]; pi0[2] = ps2a[2];

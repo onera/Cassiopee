@@ -323,9 +323,7 @@ void eraseDoublePts(E_Int sizeIni, E_Int nfld,
       dy = globalTab(i,2) - globalTab(j,2);
       dz = globalTab(i,3) - globalTab(j,3);
       
-      if ( fEqualZero(dx) == true && 
-           fEqualZero(dy) == true &&
-           fEqualZero(dz) == true )
+      if ( fEqualZero(dx) && fEqualZero(dy) && fEqualZero(dz))
       {
         found = true;
         break;
