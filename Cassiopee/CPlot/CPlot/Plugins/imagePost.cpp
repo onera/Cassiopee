@@ -264,9 +264,9 @@ void getRGB(E_Int w, E_Int h, char* im, double x, double y, double& r, double& g
   r = 0.0; g = 0.0; b = 0.0;
 
   i = E_Int(x);
-  i = std::max(i, 0); i = std::min(i, w-1);
+  i = K_FUNC::E_max(i, 0); i = K_FUNC::E_min(i, w-1);
   j = E_Int(y);
-  j = std::max(j, 0); j = std::min(j, h-1);
+  j = K_FUNC::E_max(j, 0); j = K_FUNC::E_min(j, h-1);
   ind = 3*i + j*3*w;
   cfx = x-i; cfx1 = 1.-cfx;
   cfy = y-j; cfy1 = 1.-cfy;
@@ -278,9 +278,9 @@ void getRGB(E_Int w, E_Int h, char* im, double x, double y, double& r, double& g
   r += cfx1*cfy1*rl; g += cfx1*cfy1*gl; b += cfx1*cfy1*bl;
 
   ip1 = i+1;
-  ip1 = std::max(ip1, 0); ip1 = std::min(ip1, w-1);
+  ip1 = K_FUNC::E_max(ip1, 0); ip1 = K_FUNC::E_min(ip1, w-1);
   jp1 = j+1;
-  jp1 = std::max(jp1, 0); jp1 = std::min(jp1, h-1);
+  jp1 = K_FUNC::E_max(jp1, 0); jp1 = K_FUNC::E_min(jp1, h-1);
   
   ind = 3*ip1 + j*3*w;
   rl = (uint8_t)im[ind];

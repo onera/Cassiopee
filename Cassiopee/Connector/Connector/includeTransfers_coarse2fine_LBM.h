@@ -8,10 +8,10 @@ E_Float taug_f = ipt_param_realR[NoR][LBM_TAUG];
 E_Int flag_psi = 0;
 E_Int nb_dist    = ipt_param_intR[NoR][NEQ_LBM];
 E_Int coll_model = ipt_param_intR[NoR][LBM_COLL_MODEL];
-if ( coll_model==4 ) flag_psi = 1;
+if (coll_model == 4) flag_psi = 1;
 
-E_Int shift_macro = 0;
-E_Int shift_sij   = 5;
+//E_Int shift_macro = 0;
+//E_Int shift_sij   = 5;
 E_Int shift_psi   = 11;
 E_Int shift_q     = 17;
 
@@ -211,8 +211,8 @@ else if (nb_dist==27)
   E_Float w4 = 1. / 216.;
 
   E_Float vit, vit2, vit3, vit4;
-  E_Float herm, herm2, herm3, herm4, herm_alt, herm2_alt, herm3_alt, herm4_alt;
-  E_Float herm_alt2, herm2_alt2, herm3_alt2, herm4_alt2, herm_alt3, herm2_alt3, herm3_alt3, herm4_alt3;
+  E_Float herm, herm2, herm3, herm4, herm_alt, herm2_alt, herm3_alt;
+  E_Float herm_alt2, herm2_alt2, herm3_alt2, herm_alt3, herm2_alt3, herm3_alt3;
   E_Float Ro, Ux, Uy, Uz, ec;
   E_Float axxy, axxz, axyy, axzz, ayzz, ayyz, axyz;
   E_Float axxyy, axxzz, ayyzz, axyzz, axyyz, axxyz;
