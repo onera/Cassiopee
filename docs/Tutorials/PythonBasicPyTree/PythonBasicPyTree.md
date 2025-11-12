@@ -49,7 +49,7 @@ import numpy
 node = ['CoordinateX', numpy.array([0.,1.,2.], dtype=numpy.float64, order='F'), [], 'DataArray_t']
 ```
 
-Of course, numpy functions on numpy arrays (node[1]) as one would normally do.
+Of course, numpy operations can be performed on the node value (node[1]).
 
 For example, change the X coordinate of the first point using numpy:
 ```python
@@ -87,7 +87,7 @@ C.convertPyTree2File(a, 'out.plt')
 C.convertPyTree2File(a, 'out.mesh', format='fmt_mesh')
 ```
 
-Pleas note that some CGNS nodes (e.g., boundary conditions) are not supported by certain formats.
+Please note that some CGNS nodes (e.g., boundary conditions) are not supported by certain formats.
 
 ## Mesh topologies
 
