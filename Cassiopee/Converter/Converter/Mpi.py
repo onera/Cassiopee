@@ -1,20 +1,29 @@
 # Interface pour MPI
 
 import os, timeit, sys
-from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
+from .Distributed import (
+    _readZones, _convert2PartialTree, _convert2SkeletonTree,
+    _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
+)
 from . import PyTree as C
 from . import Internal
 from . import Distributed
 
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
-    if int(os.environ['MPIRUN'])>0:
+    if int(os.environ['MPIRUN']) > 0:
         try: from .Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
         SUM = 0; MAX = 0; MIN = 0; LAND = 0
-        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        from .Distributed import (
+            setProc, _setProc, getProc, getProcDict,
+            getProperty, getPropertyDict, convertFile2SkeletonTree,
+            computeGraph, splitGraph, mergeGraph, readZones, writeZones,
+            convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        )
+        def abort(errorcode=0): os._exit(errorcode)
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
@@ -40,7 +49,8 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
-        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertFile2PyTree(fileName, format=None, proc=None):
+            return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
@@ -62,7 +72,13 @@ else: # try import (may fail - core or hang)
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
         SUM = 0; MAX = 0; MIN = 0; LAND = 0
-        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        from .Distributed import (
+            setProc, _setProc, getProc, getProcDict,
+            getProperty, getPropertyDict, convertFile2SkeletonTree,
+            computeGraph, splitGraph, mergeGraph, readZones, writeZones,
+            convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        )
+        def abort(errorcode=0): os._exit(errorcode)
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
@@ -88,7 +104,8 @@ else: # try import (may fail - core or hang)
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
-        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertFile2PyTree(fileName, format=None, proc=None):
+            return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
