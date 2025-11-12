@@ -4501,7 +4501,7 @@ def _recoverBCs1(a, T, tol=1.e-11):
         except: continue
         indicesF = indicesF[0]
         hook = createHook(f, 'elementCenters')
-        
+
         for c in range(len(BCs)):
             b = BCs[c]
             if b == []:
