@@ -23,7 +23,7 @@ a = C.convertFile2PyTree("case.cgns")
 Internal.printTree(a)
 ```
 
-Tree nodes can be retrived from their names or types:
+Tree nodes can be retrieved from their names or types:
 
 ```python
 # get a node by name (first met)
