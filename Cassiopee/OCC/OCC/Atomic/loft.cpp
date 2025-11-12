@@ -35,6 +35,7 @@
 #include "Geom_BSplineSurface.hxx"
 #include "Geom_Surface.hxx"
 #include "Geom_Curve.hxx"
+#include "occ_gordon.h"
 
 //=====================================================================
 // Loft
@@ -74,44 +75,33 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
   else // loft with guides
   {
     Standard_Real firstParam, lastParam;
+    std::vector<Handle (Geom_Curve)> ucurves;
+    std::vector<Handle (Geom_Curve)> vcurves;
 
-    std::vector< Handle(Geom_BSplineCurve) > curves;
-    
+    // Get curves from profiles
     for (E_Int i = 0; i < nprofiles; i++)
     {
       PyObject* noO = PyList_GetItem(listProfiles, i);
       E_Int no = PyInt_AsLong(noO);
       const TopoDS_Edge& E = TopoDS::Edge(edges(no));
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
-      Handle(Geom_BSplineCurve) bsplineCurve = Handle(Geom_BSplineCurve)::DownCast(baseCurve);
-      if (!bsplineCurve.IsNull())
-      {
-        curves.push_back(bsplineCurve);
-      }
+      ucurves.push_back(baseCurve);
     }
-    size_t size = curves.size();
-    if (size == 2)
+
+    // Get curves from guides
+    for (E_Int i = 0; i < nguides; i++)
     {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());      
-      newshp = new TopoDS_Shape(F);
+      PyObject* noO = PyList_GetItem(listGuides, i);
+      E_Int no = PyInt_AsLong(noO);
+      const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+      Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
+      vcurves.push_back(baseCurve);
     }
-    else if (size == 3)
-    {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());
-      newshp = new TopoDS_Shape(F);
-    }
-    else if (size == 4)
-    {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], curves[3], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());
-      newshp = new TopoDS_Shape(F);
-    }
-  
+
+    Handle(Geom_BSplineSurface) surf;
+    surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4);
+    TopoDS_Face F = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
+    newshp = new TopoDS_Shape(F);
   }
 
   // Rebuild the hook

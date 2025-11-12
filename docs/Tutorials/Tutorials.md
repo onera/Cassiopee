@@ -6,7 +6,7 @@ Cassiopee tutorials.
 
 - [CGNS python tree basics](https://github.com/onera/Cassiopee/blob/dev/docs/Tutorials/PythonBasicPyTree/PythonBasicPyTree.md)
 
-## GUIs
+<!-- ## GUIs -->
 
 <!-- - [kcgnsview](https://github.com/onera/Cassiopee/blob/dev/docs/Tutorials/Kcgnsview/Kcgnsview.md) -->
 

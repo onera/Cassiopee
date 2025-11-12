@@ -1,7 +1,7 @@
 # CGNS Python tree basics
 
 This tutorial explores the handling of data through Cassiopee functions within a structure referred to as a *CGNS Python tree* (abbreviated as *pytree*).
-The data may include mesh coordinates, connectivity data, field values, and boundary conditions. It conforms to the [latest CGNS standard](https://cgns.org).
+The data may include mesh coordinates, connectivity data, field values, and boundary conditions. It conforms to the [CGNS standard](https://cgns.org).
 
 ## Reading a pytree from a file and basic tree node management
 

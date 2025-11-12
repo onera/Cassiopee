@@ -878,6 +878,8 @@ def _deleteChimeraInfo__(a):
 def _deleteSolverNodes__(a):
     Internal._rmNodesByName(a, ':elsA#Hybrid') # elsA
     Internal._rmNodesByName(a, '.Solver#ownData') # Fast
+    Internal._rmNodesByName(a, 'maia#Renumbering') # Sonics
+    Internal._rmNodesByType(a, 'ZoneSubRegion_t') # Sonics
     return None
 
 # -- deleteEmptyZones
@@ -1350,7 +1352,6 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
         # > Write Tree Data except Data in Filter
         SkeletonTree = Internal.copyRef(t)
         for path in Filter:
-            #print(path)
             Node = Internal.getNodeFromPath(SkeletonTree, path)
             Node[1] = None
         # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -4500,10 +4501,9 @@ def _recoverBCs1(a, T, tol=1.e-11):
         except: continue
         indicesF = indicesF[0]
         hook = createHook(f, 'elementCenters')
-
+        
         for c in range(len(BCs)):
             b = BCs[c]
-
             if b == []:
                 raise ValueError("_recoverBCs: boundary is probably ill-defined.")
             # Break BC connectivity si necessaire
@@ -4520,7 +4520,6 @@ def _recoverBCs1(a, T, tol=1.e-11):
                 ids = numpy.array([], dtype=Internal.E_NpyInt)
                 for bc in bb:
                     ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
-
             # Cree les BCs
             ids0 = ids # keep ids for bcdata
             ids  = ids[ids > -1]
@@ -5257,6 +5256,7 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
 # IN: extrapFlow: if True, get the BCDataSet field
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
+    #connects = Internal.getElementNodes(z)
     connects = Internal.getNodesFromType1(z, "Elements_t")
     zdim = Internal.getZoneDim(z)
     if zdim[0] == 'Unstructured': ztype = zdim[3]
@@ -5307,7 +5307,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
         loc = Internal.getNodeFromName1(i, 'GridLocation')
         if loc is not None: # GridLocation present
             val = Internal.getValue(loc)
-            if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
+            if val == 'FaceCenter' or val == 'CellCenter' or val == 'EdgeCenter': # Face list (BE ou NGON)
                 faceList = r[1]
                 rf = Internal.getElementRange(z, type='NGON')
                 if rf is not None and rf[0] != 1: # decalage possible du NGON
@@ -5319,7 +5319,6 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
                         return getBC2__(i, z, T, res, extrapFlow=extrapFlow)
                     else:
                         zp = T.subzone(z, faceList, type='faces') # BE
-
                 zp[0] = z[0]+Internal.SEP1+i[0]
                 _deleteZoneBC__(zp)
                 _deleteGridConnectivity__(zp)
@@ -5752,8 +5751,8 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # On verifie que gc donne le raccord dans zdonor
     # ==============================================
     # print("================================================")
-    # print("zdonor :", zdonor[0])
-    # print("gc : ", gc[0])
+    # print("zdonor:", zdonor[0])
+    # print("gc: ", gc[0])
     # if Internal.getValue(gc) != zdonor[0]:
     # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
@@ -5834,7 +5833,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
             if sizeR != sizeD:
                 fldD = None
                 indR = None
-                print("Warning: extractBCMatch: Not a coincident match: ", gc[0])
+                print("Warning: extractBCMatch: not a coincident match: ", gc[0])
                 return [indR,fldD]
 
             niR = dimzR[1]-1
