@@ -59,7 +59,7 @@ AR = Dist.getAR()
 env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
                   LIBPATH=additionalLibPaths+libraryDirs,
                   LIBS=libraries+additionalLibs,
-                  CPPPATH=["OCC"]+additionalIncludePaths+includeDirs,
+                  CPPPATH=["OCC", "OCC/Gordon"]+additionalIncludePaths+includeDirs,
                   SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
                   LINKFLAGS=Dist.getLinkArgs(),
                   ENV=Dist.getEnvForScons())

@@ -50,6 +50,7 @@ static PyMethodDef Pyocc [] =
   {"addCircle", K_OCC::addCircle, METH_VARARGS},
   {"addSpline", K_OCC::addSpline, METH_VARARGS},
   {"addArc", K_OCC::addArc, METH_VARARGS},
+  {"addGordonSurface", K_OCC::addGordonSurface, METH_VARARGS},
 
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},

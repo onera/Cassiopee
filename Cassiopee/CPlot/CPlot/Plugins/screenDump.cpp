@@ -527,7 +527,7 @@ void Data::dumpWindow()
     }
     else if (ptrState->offscreen == 1) // osmesa
     { 
-      antialiasing = 2; // 2
+      antialiasing = 0; // 2 a mettre
     }
     
     if (antialiasing == 1) // SSAA

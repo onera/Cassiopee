@@ -1,3 +1,5 @@
+GORDON = True
+
 import glob
 import os
 
@@ -51,6 +53,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/addSquare.cpp',
         'OCC/Atomic/addSpline.cpp',
         'OCC/Atomic/addArc.cpp',
+        'OCC/Atomic/addGordonSurface.cpp',
 
         'OCC/Atomic/meshEdge.cpp',
         'OCC/Atomic/meshEdge2.cpp',
@@ -84,6 +87,20 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/getOppData.cpp',
         'OCC/Atomic/identifyTags.cpp']
 
+if GORDON:
+    srcs += [
+        'OCC/Gordon/BSplineAlgorithms.cpp',
+        'OCC/Gordon/CurveNetworkSorter.cpp',  
+        'OCC/Gordon/Error.cpp',                 
+        'OCC/Gordon/InterpolateCurveNetwork.cpp',  
+        'OCC/Gordon/PointsToBSplineInterpolation.cpp',
+        'OCC/Gordon/BSplineApproxInterp.cpp', 
+        'OCC/Gordon/CurvesToSurface.cpp', 
+        'OCC/Gordon/GordonSurfaceBuilder.cpp',
+        'OCC/Gordon/IntersectBSplines.cpp',
+        'OCC/Gordon/occ_gordon.cpp']
+
+#====================================================================================
 import KCore.Dist as Dist
 allMods = Dist.getOCCModules()
 
