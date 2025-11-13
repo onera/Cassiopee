@@ -212,11 +212,11 @@ PyObject* K_CPLOT::getState(PyObject* self, PyObject* args)
     }
     else return Py_BuildValue("[idd]",0,0.,0.);
   }
-  else if (K_STRING::cmp(mode, "colormap1") == 0) // colormap-color1
+  else if (K_STRING::cmp(mode, "colormapC1") == 0) // colormap-color1
     return Py_BuildValue("(ddd)", d->ptrState->colormapR1, d->ptrState->colormapG1, d->ptrState->colormapB1);
-  else if (K_STRING::cmp(mode, "colormap2") == 0) // colormap-color2
+  else if (K_STRING::cmp(mode, "colormapC2") == 0) // colormap-color2
     return Py_BuildValue("(ddd)", d->ptrState->colormapR2, d->ptrState->colormapG2, d->ptrState->colormapB2);
-  else if (K_STRING::cmp(mode, "colormap3") == 0) // colormap-color3
+  else if (K_STRING::cmp(mode, "colormapC3") == 0) // colormap-color3
     return Py_BuildValue("(ddd)", d->ptrState->colormapR3, d->ptrState->colormapG3, d->ptrState->colormapB3);
   else if (K_STRING::cmp(mode, "colormapC") == 0) // colormap-array
   {
