@@ -97,6 +97,8 @@ namespace K_OCC
   PyObject* scale(PyObject* self, PyObject* args);
   PyObject* rotate(PyObject* self, PyObject* args);
 
+  PyObject* intersectEdgeFace(PyObject* self, PyObject* args);
+
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);
 }

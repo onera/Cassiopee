@@ -18,7 +18,7 @@ grid1.P[1][2][0].y.range = [0, 5]
 D.Eq(epaisseur.s, grid1.P[1][2][0].x.s)
 
 # Create profile
-spline1 = D.Spline3( grid1, mesh=naca, name='spline1' )
+spline1 = D.Spline3(grid1, mesh=naca, name='spline1')
 
 # Create sketch 1
 sketch1 = D.Sketch([spline1], name='sketch1')

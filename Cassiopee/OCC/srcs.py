@@ -84,6 +84,8 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/scale.cpp',
         'OCC/Atomic/rotate.cpp',
 
+        'OCC/Atomic/intersectEdgeFace.cpp',
+
         'OCC/Atomic/getOppData.cpp',
         'OCC/Atomic/identifyTags.cpp']
 

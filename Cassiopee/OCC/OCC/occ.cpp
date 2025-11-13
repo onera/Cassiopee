@@ -98,6 +98,8 @@ static PyMethodDef Pyocc [] =
   {"scale", K_OCC::scale, METH_VARARGS},
   {"rotate", K_OCC::rotate, METH_VARARGS},
 
+  {"intersectEdgeFace", K_OCC::intersectEdgeFace, METH_VARARGS},
+
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
   {"identifyTags", K_OCC::identifyTags, METH_VARARGS},
 
