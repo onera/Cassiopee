@@ -56,7 +56,7 @@ PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
   }
   else 
   {
-    tpl = selectExteriorEltsME2_NOMP(*f, *cn, eltType, varString);
+    tpl = selectExteriorEltsME_NOMP(*f, *cn, eltType, varString);
   }
   RELEASESHAREDU(array, f, cn); 
   return tpl;
@@ -905,7 +905,7 @@ PyObject* K_POST::selectExteriorEltsME2_NOMP(FldArrayF& f, FldArrayI& cn,
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  E_Int nextElts = 0, npts2 = 0;
+  E_Int npts2 = 0;
   E_Int ic2, indv, inde, nelts, nvpe, offR, nvpf;
 
   // Compute number of faces per element, nfpe
@@ -928,7 +928,7 @@ PyObject* K_POST::selectExteriorEltsME2_NOMP(FldArrayF& f, FldArrayI& cn,
   // Use a face map to build a face mask and eliminate internal faces
   std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
   std::vector<std::vector<E_Int> > facets;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
+  std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > faceMap;
   Topology F;
   std::vector<E_Int> face; face.reserve(4);
   E_Int fidx, faceOffset;
@@ -973,7 +973,7 @@ PyObject* K_POST::selectExteriorEltsME2_NOMP(FldArrayF& f, FldArrayI& cn,
   //  - vindir: maps vertex indices from old to new connectivities
   std::vector<E_Int> vindir(npts, 0);
   //  - indir: maps element indices from new to old ME
-  std::vector<E_Int> indir(ntotElts);
+  std::vector<E_Int> indir; indir.reserve(ntotElts/3);  // ballpark
   // Number of exterior elements found in each old connectivity
   std::vector<E_Int> nextepc(nc, 0);
 
@@ -992,7 +992,7 @@ PyObject* K_POST::selectExteriorEltsME2_NOMP(FldArrayF& f, FldArrayI& cn,
         fidx = faceOffset + i*nfpe[ic] + f;  // global face index
         if (faceMask[fidx] == 1)  // element has an exterior face: it is an exterior element
         {
-          indir[nextElts] = i; nextElts++; nextepc[ic]++;
+          indir.push_back(i); nextepc[ic]++;
 
           for (E_Int j = 1; j <= nvpe; j++)
           {
