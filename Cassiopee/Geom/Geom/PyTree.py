@@ -30,6 +30,13 @@ def naca(e, N=101, sharpte=True):
     if isinstance(e, str): zname ='NACA'+e
     return C.convertArrays2ZoneNode(zname, [a])
 
+def profile(name=None):
+    """Create a wing profile mesh."""
+    if name is None: return Geom.profile()
+    else:
+        a = Geom.profile(name) 
+        return C.convertArrays2ZoneNode(name, [a])
+
 def line(P1, P2, N=100):
     """Create a line of N points. Usage: line( (x1,y1,z1), (x2,y2,z2), N )"""
     a = Geom.line(P1, P2, N)
@@ -479,11 +486,13 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     return z0, z1, z2
 
 def getUVFromIJ(t):
+    """Return uv of structured surface."""
     tp = Internal.copyRef(t)
     _getUVFromIJ(tp)
     return tp
 
 def _getUVFromIJ(a):
+    """Return uv of structured surface."""
     zones = Internal.getZones(a)
     for z in zones:
         C._initVars(z, '_u_=0.')
@@ -502,5 +511,6 @@ def _getUVFromIJ(a):
     return None
 
 def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
+    """Offset a surface."""
     import Geom.Offset
     return Geom.Offset.offsetSurface(a, offset, pointsPerUnitLength, algo, dim)

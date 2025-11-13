@@ -50,7 +50,6 @@ void gk_find_frequent_itemsets(int ntrans, ssize_t *tranptr, int *tranind,
                                 int ntrans, int *transids),
         void *stateptr)
 {
-  ssize_t i;
   gk_csr_t *mat, *pmat;
   isparams_t params;
   int *pattern;
