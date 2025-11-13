@@ -816,8 +816,8 @@ Greens = [ 0.968627, 0.988235, 0.960784,
            0.000000, 0.266667, 0.105882]
 
 #========================================================================
-Colormaps = {16: Viridis, 17: Viridis, 18: Inferno, 19: Inferno, 
-             20: Magma, 21: Magma, 22: Plasma, 23: Plasma, 
+Colormaps = {16: Viridis, 17: Viridis, 18: Inferno, 19: Inferno,
+             20: Magma, 21: Magma, 22: Plasma, 23: Plasma,
              24: Jet, 25: Jet, 26: Greys, 27: Greys, 30: Greens, 31: Greens}
 
 #========================================================================

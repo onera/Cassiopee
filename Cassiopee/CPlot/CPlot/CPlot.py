@@ -322,7 +322,7 @@ def filterColormap(values):
         colormapC = ColorMaps.Magma
         colormap = 10+shift
     elif colormap == 22 or colormap == 23: # Plasma
-        colormapC = ColorMaps.Plasma        
+        colormapC = ColorMaps.Plasma
         colormap = 10+shift
     elif colormap == 24 or colormap == 25: # Jet
         colormapC = ColorMaps.Jet
@@ -344,7 +344,7 @@ def filterColormap(values):
         colormapC2 = convertRGB2String(colormapC2)
     if not isinstance(colormapC1, str):
         colormapC3 = convertRGB2String(colormapC3)
-    
+
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
 # when colormap is 10 or 11 from getState, return the correct colormap from colormapC
