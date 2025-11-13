@@ -58,7 +58,7 @@ def profile(name=None):
     import KCore.installPath
     t = C.convertFile2PyTree(KCore.installPath.libPath+"/../UIUCAirfoils.cgns")
     bases = Internal.getBases(t)
-    if name is None: 
+    if name is None:
         # print a dictionary
         for b in bases:
             for z in Internal.getZones(b):

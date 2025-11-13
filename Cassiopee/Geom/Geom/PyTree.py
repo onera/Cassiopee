@@ -34,7 +34,7 @@ def profile(name=None):
     """Create a wing profile mesh."""
     if name is None: return Geom.profile()
     else:
-        a = Geom.profile(name) 
+        a = Geom.profile(name)
         return C.convertArrays2ZoneNode(name, [a])
 
 def line(P1, P2, N=100):
