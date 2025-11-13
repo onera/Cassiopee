@@ -20,4 +20,3 @@ for i in range(N):
     ret = OCC.occ.intersectEdgeFace(hook, [i+1], [1])
     print(ret)
 #OCC.occ.writeCAD(hook, "out.step", "fmt_step")
-
