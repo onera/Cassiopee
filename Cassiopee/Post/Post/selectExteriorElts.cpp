@@ -19,6 +19,7 @@
 # include "post.h"
 # include "String/kstring.h"
 # include "Nuga/include/merge.h"
+#include <unordered_map>
 
 using namespace K_FLD;
 
@@ -55,7 +56,7 @@ PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
   }
   else 
   {
-    tpl = selectExteriorEltsME(*f, *cn, eltType, varString);
+    tpl = selectExteriorEltsME2_NOMP(*f, *cn, eltType, varString);
   }
   RELEASESHAREDU(array, f, cn); 
   return tpl;
@@ -585,7 +586,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       {
         e = cumnepc[ic] + i;
         nneis = cEEN[e].size();
-        if (nneis != nfpe[ic])  // exterior elements found
+        if (nneis != nfpe[ic])  // exterior element found
         {
           tindir[nextElts] = i; nextElts++; nextEltsIc++;
           ttmp_nepc2[ic]++;
@@ -736,6 +737,349 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   }
   delete [] indir; delete [] nextepc; delete [] offset;
 
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  return tpl;
+}
+
+//=============================================================================
+// Recherche topologique des elements exterieurs utilisant la connectivite
+// EV2EENbrs (no multi-threading)
+//==============================================================================
+PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn, 
+                                            char* eltType, char* varString)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  E_Int e, nneis, nextElts = 0;
+  E_Int npts2 = 0;
+  E_Int ic2, indv, inde, nelts, nvpe, offR;
+
+  // Compute total number of elements across all connectivities, ntotElts
+  std::vector<E_Int> nepc(nc);
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;  // cumulative number of elts per conn.
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nepc[ic] = nelts;
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+  E_Int ntotElts = cumnepc[nc];
+
+  // Compute number of neighbour elements of internal elements, that is the
+  // number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+
+  // Build the element -> neighbour elements connectivity
+  std::vector<std::vector<E_Int> > cEEN(ntotElts);
+  K_CONNECT::connectEV2EENbrs(eltType, npts, cn, cEEN);
+
+  // Indirection tables
+  //  - vindir: maps vertex indices from old to new connectivities
+  std::vector<E_Int> vindir(npts, 0);
+  //  - indir: maps element indices from new to old ME
+  std::vector<E_Int> indir(ntotElts);
+  // Number of exterior elements found in each old connectivity
+  std::vector<E_Int> nextepc(nc, 0);
+
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nvpe = cm.getNfld();
+    for (E_Int i = 0; i < nepc[ic]; i++)
+    {
+      e = cumnepc[ic] + i;    // global element index
+      nneis = cEEN[e].size(); // number of neighbours of element e
+      if (nneis != nfpe[ic])  // exterior element found
+      {
+        indir[nextElts] = i; nextElts++; nextepc[ic]++;
+
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          indv = cm(i, j) - 1;
+          if (vindir[indv] == 0) vindir[indv] = ++npts2;
+        }
+      }
+    }
+  }
+
+  // Free memory
+  cEEN.resize(0);
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType2[0] = '\0';
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextepc[ic] > 0)
+    {
+      nc2++;
+      if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, eltTypes[ic]);
+      }
+    }
+  }
+
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior elements
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextepc[ic] > 0) { nepc2[nc2] = nextepc[ic]; nc2++; }
+  }
+ 
+  // Build new connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  // Copy fields
+  for (E_Int n = 1; n <= nfld; n++)
+  {
+    E_Float* fp = f.begin(n);
+    E_Float* f2p = f2->begin(n);
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      indv = vindir[i];
+      if (indv > 0) f2p[indv-1] = fp[i];
+    }
+  }
+
+  // Copy connectivity
+  ic2 = 0;
+  offR = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    nelts = nextepc[ic];
+    if (nelts == 0) continue;  // no exterior elements in this conn, skip
+    FldArrayI& cm = *(cn.getConnect(ic));
+    FldArrayI& cm2 = *(cn2->getConnect(ic2));
+    nvpe = cm.getNfld();
+
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      inde = indir[i+offR];
+      for (E_Int j = 1; j <= nvpe; j++)
+      {
+        indv = cm(inde, j) - 1;
+        cm2(i, j) = vindir[indv];
+      }
+    }
+    ic2++;
+    offR += nelts;
+  }
+
+  // Free memory
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  return tpl;
+}
+
+//=============================================================================
+// Recherche topologique des elements exterieurs utilisant le hashing des faces
+//=============================================================================
+PyObject* K_POST::selectExteriorEltsME2_NOMP(FldArrayF& f, FldArrayI& cn, 
+                                             char* eltType, char* varString)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  E_Int nextElts = 0, npts2 = 0;
+  E_Int ic2, indv, inde, nelts, nvpe, offR, nvpf;
+
+  // Compute number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+  
+  // Compute total number of elements and faces across all connectivities
+  E_Int ntotElts = 0, ntotFaces = 0;
+  std::vector<E_Int> nepc(nc);
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nepc[ic] = nelts;
+    ntotFaces += nelts*nfpe[ic];
+    ntotElts += nelts;
+  }
+
+  // Use a face map to build a face mask and eliminate internal faces
+  std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
+  std::vector<std::vector<E_Int> > facets;
+  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
+  Topology F;
+  std::vector<E_Int> face; face.reserve(4);
+  E_Int fidx, faceOffset;
+
+  faceOffset = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nvpe = cm.getNfld();
+    ierr = K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+    if (ierr != 0) return NULL;
+  
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      // Loop over each facet of this element
+      for (E_Int f = 0; f < nfpe[ic]; f++)
+      {
+        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+        nvpf = facets[f].size();  // number of vertices per face
+        // Fill face and insert in map
+        face.clear();
+        for (E_Int j = 0; j < nvpf; j++) face.push_back(cm(i, facets[f][j]));
+        F.set(face);
+        auto res = faceMap.insert(std::make_pair(F, fidx));
+        if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
+        else
+        {
+          // duplicate: this face and the one found in the map are interior faces
+          faceMask[fidx] = 0;
+          faceMask[res.first->second] = 0;
+        }
+      }
+    }
+    faceOffset += nelts*nfpe[ic];
+  }
+
+  faceMap.clear(); faceMap.rehash(0);
+  facets.clear(); facets.shrink_to_fit();
+
+  // Indirection tables
+  //  - vindir: maps vertex indices from old to new connectivities
+  std::vector<E_Int> vindir(npts, 0);
+  //  - indir: maps element indices from new to old ME
+  std::vector<E_Int> indir(ntotElts);
+  // Number of exterior elements found in each old connectivity
+  std::vector<E_Int> nextepc(nc, 0);
+
+  faceOffset = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nvpe = cm.getNfld();
+
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      // Loop over each facet of this element
+      for (E_Int f = 0; f < nfpe[ic]; f++)
+      {
+        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+        if (faceMask[fidx] == 1)  // element has an exterior face: it is an exterior element
+        {
+          indir[nextElts] = i; nextElts++; nextepc[ic]++;
+
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            indv = cm(i, j) - 1;
+            if (vindir[indv] == 0) vindir[indv] = ++npts2;
+          }
+          break;
+        }
+      }
+    }
+    faceOffset += nelts*nfpe[ic];
+  }
+
+  faceMask.clear(); faceMask.shrink_to_fit();
+  
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType2[0] = '\0';
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextepc[ic] > 0)
+    {
+      nc2++;
+      if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, eltTypes[ic]);
+      }
+    }
+  }
+  
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior elements
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextepc[ic] > 0) { nepc2[nc2] = nextepc[ic]; nc2++; }
+  }
+ 
+  // Build new connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  // Copy fields
+  for (E_Int n = 1; n <= nfld; n++)
+  {
+    E_Float* fp = f.begin(n);
+    E_Float* f2p = f2->begin(n);
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      indv = vindir[i];
+      if (indv > 0) f2p[indv-1] = fp[i];
+    }
+  }
+
+  // Copy connectivity
+  ic2 = 0;
+  offR = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    nelts = nextepc[ic];
+    if (nelts == 0) continue;  // no exterior elements in this conn, skip
+    FldArrayI& cm = *(cn.getConnect(ic));
+    FldArrayI& cm2 = *(cn2->getConnect(ic2));
+    nvpe = cm.getNfld();
+
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      inde = indir[i+offR];
+      for (E_Int j = 1; j <= nvpe; j++)
+      {
+        indv = cm(inde, j) - 1;
+        cm2(i, j) = vindir[indv];
+      }
+    }
+    ic2++;
+    offR += nelts;
+  }
+
+  // Free memory
   RELEASESHAREDU(tpl, f2, cn2);
   delete [] eltType2;
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];

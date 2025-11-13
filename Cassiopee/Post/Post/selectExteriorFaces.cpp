@@ -1552,3 +1552,202 @@ short K_POST::exteriorFacesBasic(E_Int nfaces, E_Int nvertex,
   connect.reAllocMat(cc, nvertex);
   return 1;
 }
+
+//=============================================================================
+// Recherche topologique des faces exterieures utilisant le hashing des faces
+//=============================================================================
+PyObject* K_POST::selectExteriorFacesME_NOMP(char* varString, FldArrayF& f,
+                                             FldArrayI& cn, char* eltType)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  E_Int nextFaces = 0, npts2 = 0;
+  E_Int ic2, indv, inde, nelts, nvpe, offR, nvpf;
+
+  // Compute number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+  
+  // Compute total number of faces across all connectivities
+  E_Int ntotFaces = 0;
+  std::vector<E_Int> nepc(nc);
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nepc[ic] = nelts;
+    ntotFaces += nelts*nfpe[ic];
+  }
+
+  // Use a face map to build a face mask and eliminate internal faces
+  std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
+  std::vector<std::vector<E_Int> > facets;
+  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
+  Topology F;
+  std::vector<E_Int> face; face.reserve(4);
+  E_Int fidx, faceOffset;
+
+  faceOffset = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nvpe = cm.getNfld();
+    K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+  
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      // Loop over each facet of this element
+      for (E_Int f = 0; f < nfpe[ic]; f++)
+      {
+        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+        nvpf = facets[f].size();  // number of vertices per face
+        // Fill face and insert in map
+        face.clear();
+        for (E_Int j = 0; j < nvpf; j++) face.push_back(cm(i, facets[f][j]));
+        F.set(face);
+        auto res = faceMap.insert(std::make_pair(F, fidx));
+        if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
+        else
+        {
+          // duplicate: this face and the one found in the map are interior faces
+          faceMask[fidx] = 0;
+          faceMask[res.first->second] = 0;
+        }
+      }
+    }
+    faceOffset += nelts*nfpe[ic];
+  }
+
+  faceMap.clear(); faceMap.rehash(0);
+
+  // Indirection tables
+  //  - vindir: maps vertex indices from old to new connectivities
+  std::vector<E_Int> vindir(npts, 0);
+  //  - indir: maps face indices from new to old ME
+  std::vector<E_Int> indir(ntotFaces);
+  // Number of exterior faces found for a given number of vertices per face, nvpf
+  std::vector<E_Int> nextfpcOrig(nc, 0);
+  std::vector<E_Int> nextfpc(5, 0);
+
+  faceOffset = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    nvpe = cm.getNfld();
+    K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      // Loop over each facet of this element
+      for (E_Int f = 0; f < nfpe[ic]; f++)
+      {
+        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+        if (faceMask[fidx] == 1)  // exterior face found
+        {
+          nvpf = facets[f].size();
+          indir[nextFaces] = i; nextFaces++;
+          nextfpc[nvpf]++; nextfpcOrig[ic]++;
+
+          for (E_Int j = 0; j < nvpf; j++)
+          {
+            indv = cm(i, facets[f][j]) - 1;
+            if (vindir[indv] == 0) vindir[indv] = ++npts2;
+          }
+        }
+      }
+    }
+    faceOffset += nelts*nfpe[ic];
+  }
+
+  faceMask.clear(); faceMask.shrink_to_fit();
+  facets.clear(); facets.shrink_to_fit();
+  
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  char* tmpEltType;
+  eltType2[0] = '\0';
+  for (size_t ic = 1; ic < nextfpc.size(); ic++)  // from BAR (1) to QUAD (4)
+  {
+    if (nextfpc[ic] > 0)
+    {
+      nc2++;
+      if (ic == 1) tmpEltType = "NODE";
+      else if (ic == 2) tmpEltType = "BAR";
+      else if (ic == 3) tmpEltType = "TRI";
+      else tmpEltType = "QUAD";
+      if (eltType2[0] == '\0') strcpy(eltType2, tmpEltType);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, tmpEltType);
+      }
+    }
+  }
+
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior elements
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextfpc[ic] > 0) { nepc2[nc2] = nextfpcOrig[ic]; nc2++; }
+  }
+ 
+  // Build new connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  // Copy fields
+  for (E_Int n = 1; n <= nfld; n++)
+  {
+    E_Float* fp = f.begin(n);
+    E_Float* f2p = f2->begin(n);
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      indv = vindir[i];
+      if (indv > 0) f2p[indv-1] = fp[i];
+    }
+  }
+
+  // Copy connectivity
+  ic2 = 0;
+  offR = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (nextfpcOrig[ic] == 0) continue;  // no exterior faces in this conn, skip
+    FldArrayI& cm = *(cn.getConnect(ic));
+    FldArrayI& cm2 = *(cn2->getConnect(ic2));
+    nvpe = cm.getNfld();
+
+    for (E_Int i = 0; i < nextfpcOrig[ic]; i++)
+    {
+      inde = indir[i+offR];
+      for (E_Int j = 1; j <= nvpe; j++)
+      {
+        indv = cm(inde, j) - 1;
+        cm2(i, j) = vindir[indv];
+      }
+    }
+    ic2++;
+    offR += nextfpc[ic];
+  }
+
+  // Free memory
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  return tpl;
+}
