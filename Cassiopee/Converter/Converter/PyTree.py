@@ -5181,7 +5181,8 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
             gcl = Internal.getNodeFromType(zbc, 'GridLocation_t')
             PL = Internal.getNodeFromName(zbc, 'PointList')
             if PL is not None:
-                if Internal.getValue(gcl) == 'FaceCenter':
+                val = Internal.getValue(gcl)
+                if val == 'FaceCenter' or val == 'CellCenter' or val == 'EdgeCenter':
                     PL = PL[1]
                     PL = PL.ravel("k")
                     zp = Internal.copyRef(z)

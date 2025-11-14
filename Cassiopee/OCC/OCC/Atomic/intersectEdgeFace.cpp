@@ -38,7 +38,7 @@
 #include "BRepAlgoAPI_Section.hxx"
 
 //=====================================================================
-// Loft
+// intersect edges with faces
 //=====================================================================
 PyObject* K_OCC::intersectEdgeFace(PyObject* self, PyObject* args)
 {
@@ -64,7 +64,7 @@ PyObject* K_OCC::intersectEdgeFace(PyObject* self, PyObject* args)
     builder1.Add(compound1, E);
   }
   
-  // Get faces and add to compund2
+  // Get faces and add to compound2
   BRep_Builder builder2;
   TopoDS_Compound compound2;
   builder2.MakeCompound(compound2);

@@ -148,7 +148,7 @@ void AllocateKWayPartitionMemory(ctrl_t *ctrl, graph_t *graph)
 /**************************************************************************/
 void ComputeKWayPartitionParams(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, j, k, l, nvtxs, ncon, nparts, nbnd, mincut, me, other;
+  idx_t i, j, k, nvtxs, ncon, nparts, nbnd, mincut, me, other;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *pwgts, *where, *bndind, *bndptr;
 
   nparts = ctrl->nparts;

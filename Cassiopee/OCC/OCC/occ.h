@@ -84,7 +84,6 @@ namespace K_OCC
 
   PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* fixShape(PyObject* self, PyObject* args);
-  PyObject* trimFaces(PyObject* self, PyObject* args);
   PyObject* sewing(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
   PyObject* fillHole(PyObject* self, PyObject* args);
@@ -98,6 +97,8 @@ namespace K_OCC
   PyObject* rotate(PyObject* self, PyObject* args);
 
   PyObject* intersectEdgeFace(PyObject* self, PyObject* args);
+  PyObject* trimFaces(PyObject* self, PyObject* args);
+  PyObject* boolean(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);
