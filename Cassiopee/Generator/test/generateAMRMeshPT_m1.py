@@ -23,10 +23,11 @@ t = G_AMR.generateAMRMesh(tb, levelMax=3, vmins=[[5,5]], dim=dimPb, check=False,
 if Cmpi.rank == 0: test.testT(t,1)
 else: test.testT(t,12)
 #Cmpi.convertPyTree2File(t,'check_m1_2D.cgns')
+
 # 3D
 a = D.sphere((0.,0.,0.),0.1)
 dimPb = 3
-D_IBM._setSnear(a, 0.1)
+D_IBM._setSnear(a, 0.5)
 D_IBM._setIBCType(a,"Musker")
 D_IBM._setDfar(a, 5.)
 

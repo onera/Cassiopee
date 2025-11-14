@@ -322,7 +322,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None):
+def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to,'centers:indicatorTmp',0.)
 
@@ -337,7 +337,7 @@ def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None):
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
     ##[Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
-    if (noffsets is None) or (noffsets>2): XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
+    if (noffsets is None) or (noffsets>2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
     elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
     elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
     elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
@@ -358,7 +358,7 @@ def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None):
     o = Internal.getZones(to)[0]
     return o
 
-def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None):
+def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to,'centers:indicatorTmp',0.)
 
@@ -389,7 +389,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     #XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
     #XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
     ## Pull request note: causes regressions in the mesh generation
-    if (noffsets is None) or (noffsets>2):
+    if (noffsets is None) or (noffsets>2) or coarseXray:
         XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
         XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
     elif noffsets == 2:
@@ -1030,6 +1030,12 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     from mpi4py import MPI
     from itertools import groupby
 
+    coarseXray = False
+    bbtb = G.bbox(tb)
+    lenMax = 0.0
+    for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
+    if lenMax/hmin<100: coarseXray = True
+
     numBase = len(Internal.getZones(tb))
     o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
@@ -1085,12 +1091,12 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             while adapting:
                 C._initVars(o,'centers:indicator',0.)
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
-                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i)
+                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
                 ## Pull request note: tagOutside causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
                 for offsetlocTmp in offset_inside[0]:
-                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i)
+                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
@@ -1273,7 +1279,8 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', NumMinDxLarge=1, tbox=None, vminsTbox=None, tbv2=None):
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None):
+    NumMinDxLarge=1
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
