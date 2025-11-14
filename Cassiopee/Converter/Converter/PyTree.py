@@ -5257,7 +5257,6 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
 # IN: extrapFlow: if True, get the BCDataSet field
 # IN: shift: if not 0, shift BC of index for structured grids only
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
-    #connects = Internal.getElementNodes(z)
     connects = Internal.getNodesFromType1(z, "Elements_t")
     zdim = Internal.getZoneDim(z)
     if zdim[0] == 'Unstructured': ztype = zdim[3]

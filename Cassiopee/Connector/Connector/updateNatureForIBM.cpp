@@ -68,7 +68,7 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
   E_Int poscellni = K_ARRAY::isNamePresent("cellNIBC", varString);      
   E_Int poscellnc = K_ARRAY::isNamePresent("cellNChim", varString);      
   E_Int poscellnf = K_ARRAY::isNamePresent("cellNFront", varString);      
-  if ( poscellni == -1 || poscellnf == -1 || poscellnc == -1)
+  if (poscellni == -1 || poscellnf == -1 || poscellnc == -1)
   {
     RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
     PyErr_SetString(PyExc_TypeError,
@@ -92,19 +92,19 @@ PyObject* K_CONNECTOR::_updateNatureForIBM(PyObject* self, PyObject* args)
       E_Float& cellNIBC = ptrCellNIBC[ind];
       //E_Float& cellNFront = ptrCellNFront[ind];
 
-      if (cellNChim == 1.)
+      if (K_FUNC::fEqualZero(cellNChim - 1.))
       {
-        if (cellNIBC == 0) cellNChim = -3.;//~ blanked
+        if (K_FUNC::fEqualZero(cellNIBC)) cellNChim = -3.;//~ blanked
       }
-      else if (cellNChim == 2.)
+      else if (K_FUNC::fEqualZero(cellNChim - 2.))
       {
-        if (cellNIBC == 1.) cellNIBC = 3.;//not a donor
-        else if (cellNIBC == 2.) cellNIBC = -3.;
-        else if (cellNIBC == 0.) cellNChim = -3.;// ~ blanked
+        if (K_FUNC::fEqualZero(cellNIBC - 1.)) cellNIBC = 3.;//not a donor
+        else if (K_FUNC::fEqualZero(cellNIBC - 2.)) cellNIBC = -3.;
+        else if (K_FUNC::fEqualZero(cellNIBC)) cellNChim = -3.;// ~ blanked
       }
-      else if (cellNChim == 0.)
+      else if (K_FUNC::fEqualZero(cellNChim))
       {
-        if (cellNIBC == 1.) cellNIBC = -3.; //~ blanked
+        if (K_FUNC::fEqualZero(cellNIBC - 1.)) cellNIBC = -3.; //~ blanked
       }
 
       // c'est commente : on suppose que les corps IBM n'intersectent jamais les corps Chimere

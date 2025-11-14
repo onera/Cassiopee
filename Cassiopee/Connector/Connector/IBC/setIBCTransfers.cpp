@@ -729,7 +729,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   E_Float* wOut  = vectOfRcvFields[3];// w
   E_Float* tOut  = vectOfRcvFields[4];// temperature
 
-
   E_Float* varSAOut = NULL;
   
   //---------------------------------
@@ -1298,12 +1297,11 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         indexlinelets[ noind + ideb ] = imax;
       }
 
-
       // }
       // Fill nutilde in linelets
 
       // Test Mixing-length
-      for ( E_Int iline = 0 ; iline < nbptslinelets; iline++)
+      for (E_Int iline = 0 ; iline < nbptslinelets; iline++)
       {
         for (E_Int noind = 0; noind < ifin-ideb; noind++)
         {
@@ -1546,72 +1544,71 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #    include "IBC/nutilde_Ferrari_adim.h"
 #endif
     if (nvars == 6)
-      {
-        // Newton pour mut
+    {
+      // Newton pour mut
 #if NUTILDE_FERRARI == 0
-#       include "IBC/nutildeSA_Newton.h"
+#     include "IBC/nutildeSA_Newton.h"
 #endif
-        // mise a jour des variable
+      // mise a jour des variable
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-        for (E_Int noind = 0; noind < ifin-ideb; noind++)
-    {
-      E_Int indR = rcvPts[noind+ideb];
-
-      // For Post (tOut temperature du point image en entree, pt corrige en sortie)
-
-      twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
-      densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
-      pressPtr[noind+ideb]= press_vec[noind ];
-
-      // Mise a jour pt corrige
-      roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
-      uOut[indR]     = ucible_vec[noind];
-      vOut[indR]     = vcible_vec[noind];
-      wOut[indR]     = wcible_vec[noind];
-      tOut[indR]     = tcible_vec[noind];
-      varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
-
-      vxPtr[noind+ideb] = uOut[indR];
-      vyPtr[noind+ideb] = vOut[indR];
-      vzPtr[noind+ideb] = wOut[indR];
-
-      // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
-    }
-      }
-    else //5eq
+      for (E_Int noind = 0; noind < ifin-ideb; noind++)
       {
-        // mise a jour des variables
+        E_Int indR = rcvPts[noind+ideb];
+
+        // For Post (tOut temperature du point image en entree, pt corrige en sortie)
+
+        twall = tOut[indR] + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+        densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+        pressPtr[noind+ideb]= press_vec[noind ];
+
+        // Mise a jour pt corrige
+        roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+        uOut[indR]     = ucible_vec[noind];
+        vOut[indR]     = vcible_vec[noind];
+        wOut[indR]     = wcible_vec[noind];
+        tOut[indR]     = tcible_vec[noind];
+        varSAOut[indR] = aa_vec[noind]*sign_vec[noind]*uext_vec[noind];  //nutilde*signibc
+
+        vxPtr[noind+ideb] = uOut[indR];
+        vyPtr[noind+ideb] = vOut[indR];
+        vzPtr[noind+ideb] = wOut[indR];
+
+        // printf("OUT WALL LAW: %f %f %f %f\n",uOut[indR],vOut[indR],wOut[indR],varSAOut[indR]);
+      }
+    }
+    else //5eq
+    {
+      // mise a jour des variables
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-        for (E_Int noind = 0; noind < ifin-ideb; noind++)
-    {
-      E_Int indR = rcvPts[noind+ideb];
+      for (E_Int noind = 0; noind < ifin-ideb; noind++)
+      {
+        E_Int indR = rcvPts[noind+ideb];
 
-      // For Post (tOut temperature du point image)
-      twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
-      densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
-      pressPtr[noind+ideb]= press_vec[noind ];
+        // For Post (tOut temperature du point image)
+        twall = tOut[indR]  + 0.5*pow(Pr,one_third)/(cv*gamma)*(uext_vec[noind]*uext_vec[noind]); // Crocco-Busemann
+        densPtr[noind+ideb] = press_vec[noind ]/twall*cvgaminv;
+        pressPtr[noind+ideb]= press_vec[noind ];
 
-      roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
-      uOut[indR]     = ucible_vec[noind];
-      vOut[indR]     = vcible_vec[noind];
-      wOut[indR]     = wcible_vec[noind];
-      tOut[indR]     = tcible_vec[noind];
+        roOut[indR]    = press_vec[noind ]/tcible_vec[noind]*cvgaminv;
+        uOut[indR]     = ucible_vec[noind];
+        vOut[indR]     = vcible_vec[noind];
+        wOut[indR]     = wcible_vec[noind];
+        tOut[indR]     = tcible_vec[noind];
 
-      vxPtr[noind+ideb] = uOut[indR];
-      vyPtr[noind+ideb] = vOut[indR];
-      vzPtr[noind+ideb] = wOut[indR];
+        vxPtr[noind+ideb] = uOut[indR];
+        vyPtr[noind+ideb] = vOut[indR];
+        vzPtr[noind+ideb] = wOut[indR];
 
-    }
       }
-
+    }
   } 
     }      
   else if (bctype == 7) // loi de paroi adh paroi rotation
-    {
+  {
 #   include "IBC/pointer.h" 
 
       E_Int err  = 0;
@@ -1711,7 +1708,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
 #    include "IBC/commonPohlhausenLaw_cible.h"
 
-      if (nvars == 6)
+  if (nvars == 6)
   {
     // mise a jour des variables
 #ifdef _OPENMP4
@@ -1740,7 +1737,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
       }
   }
-      else //5eq
+  else //5eq
   {
     // mise a jour des variable
 #ifdef _OPENMP4
@@ -1780,7 +1777,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-      for (E_Int noind = 0; noind < ifin-ideb; noind++)
+  for (E_Int noind = 0; noind < ifin-ideb; noind++)
   {
     //E_Int indR = rcvPts[noind];
     E_Int indR = rcvPts[noind+ideb];
@@ -1799,7 +1796,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
 #    include "IBC/commonThwaitesLaw_cible.h"
 
-      if (nvars == 6)
+  if (nvars == 6)
   {
     // mise a jour des variables
 #ifdef _OPENMP4
@@ -1828,7 +1825,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
       }
   }
-      else //5eq
+  else //5eq
   {
     // mise a jour des variable
 #ifdef _OPENMP4
@@ -1857,7 +1854,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
   }
     }//bctype
   else if (bctype == 10) // loi de paroi Mafzal
-    {
+  {
 #   include "IBC/pointer.h"
 
       E_Float MafzalMode = 3; // param_real[ MAFZAL_MODE ];
@@ -1871,7 +1868,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-      for (E_Int noind = 0; noind < ifin-ideb; noind++)
+  for (E_Int noind = 0; noind < ifin-ideb; noind++)
   {
     //E_Int indR = rcvPts[noind];
     E_Int indR = rcvPts[noind+ideb];
@@ -1902,7 +1899,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-      for (E_Int noind = 0; noind < ifin-ideb; noind++)
+  for (E_Int noind = 0; noind < ifin-ideb; noind++)
   {
     utau0 = utauOri_vec[noind];
     utauOri_vec[noind] = utau_vec[noind];
@@ -1923,7 +1920,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #else
 #    include "IBC/nutilde_Ferrari_adim_Mafzal.h"
 #endif
-      if (nvars == 6)
+  if (nvars == 6)
   {
     // Newton pour mut
 #if NUTILDE_FERRARI == 0
@@ -1934,7 +1931,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #pragma omp simd
 #endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
-      {
+    {
         E_Int indR = rcvPts[noind+ideb];
 
         // For Post (tOut temperature du point image en entree, pt corrige en sortie)
@@ -1955,7 +1952,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
         vzPtr[noind+ideb] = wOut[indR];
       }
   }
-      else //5eq
+  else //5eq
   {
     // mise a jour des variable
 #ifdef _OPENMP4
@@ -2001,7 +1998,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 #ifdef _OPENMP4
 #pragma omp simd
 #endif
-      for (E_Int noind = 0; noind < ifin-ideb; noind++)
+  for (E_Int noind = 0; noind < ifin-ideb; noind++)
   {
     E_Int indR = rcvPts[noind+ideb];
 
@@ -2039,7 +2036,7 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
 
       if( (alphasbeta_linePtr[ ideb ] != 0.0) || ideb == ifin)   {init=0;}
 
-      if(init)
+  if(init)
   {
 
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
@@ -2497,7 +2494,6 @@ E_Int K_CONNECTOR::setIBCTransfersCommonVar2(
       return 0;
     }
 
- WireMeshSkip:
   return 1;
 }
 
@@ -3627,9 +3623,9 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self
                     &pyArrayGradzxP, &pyArrayGradzyP, &pyArrayGradzzP,
                     &loc,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   vector<PyArrayObject*> hook;
 
@@ -3808,7 +3804,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersForPressureGradientsOrder2(PyObject* self
       gradzxP[noind+ideb] = vectOfRcvFields[6][indR];
       gradzyP[noind+ideb] = vectOfRcvFields[9][indR];
       gradzzP[noind+ideb] = vectOfRcvFields[12][indR];
-      }
+    }
   }
 
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
@@ -3909,103 +3905,96 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
   char* eltTypeR; char* eltTypeD;
   //codage general (lent ;-) )
   if (compact == 0)
-    {// recupere les champs du donneur (nodes)
-      // std::cout << "coucou PAS COMPACT" << std::endl;
-      E_Int cnSizeD;
-      char* varStringD;
-      vector<E_Int> locsD;
-      vector<E_Int*> cnd;
-      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+  { // recupere les champs du donneur (nodes)
+    E_Int cnSizeD;
+    char* varStringD;
+    vector<E_Int> locsD;
+    vector<E_Int*> cnd;
+    E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
                                          fieldsD, locsD, imd, jmd, kmd,
                                          cnd, cnSizeD, cnNfldD,
                                          eltTypeD, hook,
                                          GridCoordinates,
                                          FlowSolutionNodes, FlowSolutionCenters);
 
-      // printf("%s\n", varStringD);
+    if (cnd.size() > 0) ptrcnd = cnd[0];
 
-      if (cnd.size() > 0) ptrcnd = cnd[0];
-
-      meshtype = resd; // 1: structure, 2: non structure
-      // recupere les champs du receveur
-      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
-      char* varStringR; vector<E_Int> locsR;
-      vector<E_Int*> cnr;
-      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+    meshtype = resd; // 1: structure, 2: non structure
+    // recupere les champs du receveur
+    E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+    char* varStringR; vector<E_Int> locsR;
+    vector<E_Int*> cnr;
+    K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
                             fieldsR, locsR, imr, jmr, kmr,
                             cnr, cnSizeR, cnNfldR, eltTypeR, hook,
                             GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
 
-      // printf("%s\n", varStringR);
+    // -- no check (perfo) --
+    // Transferts
+    // Types valides: 2, 3, 4, 5
+    E_Int posvr, posvd;
 
-
-      // -- no check (perfo) --
-      // Transferts
-      // Types valides: 2, 3, 4, 5
-      E_Int posvr, posvd;
-
-      // Extrait les positions des variables a transferer
-      E_Int nfoundvar = 0;
-      if (PyList_Check(pyVariables) != 0)
-  {
-    int nvariables = PyList_Size(pyVariables);
-    if (nvariables > 0)
-      {
-        for (int i = 0; i < nvariables; i++)
+    // Extrait les positions des variables a transferer
+    E_Int nfoundvar = 0;
+    if (PyList_Check(pyVariables) != 0)
     {
-      PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-      if (PyString_Check(tpl0))
-        {
-          char* varname = PyString_AsString(tpl0);
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);
-          if (posvr != -1)
+      E_Int nvariables = PyList_Size(pyVariables);
+      if (nvariables > 0)
       {
-        vectOfRcvFields[nfoundvar]= fieldsR[posvr];
-        vectOfDnrFields[nfoundvar]= fieldsD[posvd];
-        nfoundvar += 1;
-      }
-        }
+        for (E_Int i = 0; i < nvariables; i++)
+        {
+          PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+          if (PyString_Check(tpl0))
+          {
+            char* varname = PyString_AsString(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            posvr = K_ARRAY::isNamePresent(varname, varStringR);
+            if (posvr != -1)
+            {
+              vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+              vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+              nfoundvar += 1;
+            }
+          }
           #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(tpl0))
-        {
-          const char* varname = PyUnicode_AsUTF8(tpl0);
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);
-          if (posvr != -1)
-      {
-        vectOfRcvFields[nfoundvar]= fieldsR[posvr];
-        vectOfDnrFields[nfoundvar]= fieldsD[posvd];
-        nfoundvar += 1;
-      }
-        }
+          else if (PyUnicode_Check(tpl0))
+          {
+            const char* varname = PyUnicode_AsUTF8(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            posvr = K_ARRAY::isNamePresent(varname, varStringR);
+            if (posvr != -1)
+            {
+              vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+              vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+              nfoundvar += 1;
+            }
+          }
           #endif
-      else
+        else
         {
           PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
         }
-
-    }
       }
+    }
   }
 
-      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+  delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
 
-    }
+  }
 
   // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
   else
-    {
-      // std::cout << "coucou COMPACT" << std::endl;
-      # include "getfromzonecompact.h"
-      for (E_Int eq = 0; eq < nvars; eq++)
   {
-    vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
-    vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
-  }
+    // std::cout << "coucou COMPACT" << std::endl;
+    # include "getfromzonecompact.h"
+    for (E_Int eq = 0; eq < nvars; eq++)
+    {
+      vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+      vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
     }
+  }
 
-    # include "commonInterpTransfers_indirect.h"
+  # include "commonInterpTransfers_indirect.h"
 
   # pragma omp parallel default(shared)
   {
@@ -4024,7 +4013,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
     E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
     // pts traitees par thread
     if (ithread <= r)
-      { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+    { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
     else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
     E_Float cvgam = cv*(gamma-1.);
@@ -4036,15 +4025,15 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP(PyObject* self, PyObject* args)
     #pragma omp simd
     #endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
-      {
-        E_Int indR = rcvPts[noind+ideb];
+    {
+      E_Int indR = rcvPts[noind+ideb];
         
-        pressure[noind+ideb] = vectOfRcvFields[0][indR];
+      pressure[noind+ideb] = vectOfRcvFields[0][indR];
 
-        gradxP[noind+ideb] = vectOfRcvFields[1][indR];
-        gradyP[noind+ideb] = vectOfRcvFields[2][indR];
-        gradzP[noind+ideb] = vectOfRcvFields[3][indR];
-      }
+      gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+      gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+      gradzP[noind+ideb] = vectOfRcvFields[3][indR];
+    }
 
   } // Fin zone // omp
   // sortie
@@ -4098,9 +4087,9 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
                     &pyArrayGradzxP, &pyArrayGradzyP, &pyArrayGradzzP,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   vector<PyArrayObject*> hook;
 
@@ -4167,102 +4156,98 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
   char* eltTypeR; char* eltTypeD;
   //codage general (lent ;-) )
   if (compact == 0)
-    {// recupere les champs du donneur (nodes)
-      // std::cout << "coucou PAS COMPACT" << std::endl;
-      E_Int cnSizeD;
-      char* varStringD;
-      vector<E_Int> locsD;
-      vector<E_Int*> cnd;
-      E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
-                                         fieldsD, locsD, imd, jmd, kmd,
-                                         cnd, cnSizeD, cnNfldD,
-                                         eltTypeD, hook,
-                                         GridCoordinates,
-                                         FlowSolutionNodes, FlowSolutionCenters);
+  {// recupere les champs du donneur (nodes)
+    E_Int cnSizeD;
+    char* varStringD;
+    vector<E_Int> locsD;
+    vector<E_Int*> cnd;
+    E_Int resd = K_PYTREE::getFromZone(zoneD, 0, 0, varStringD,
+                                        fieldsD, locsD, imd, jmd, kmd,
+                                        cnd, cnSizeD, cnNfldD,
+                                        eltTypeD, hook,
+                                        GridCoordinates,
+                                        FlowSolutionNodes, FlowSolutionCenters);
 
-      if (cnd.size() > 0) ptrcnd = cnd[0];
+    if (cnd.size() > 0) ptrcnd = cnd[0];
 
-      meshtype = resd; // 1: structure, 2: non structure
-      // recupere les champs du receveur
-      E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
-      char* varStringR; vector<E_Int> locsR;
-      vector<E_Int*> cnr;
-      K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
-                            fieldsR, locsR, imr, jmr, kmr,
-                            cnr, cnSizeR, cnNfldR, eltTypeR, hook,
-                            GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
+    meshtype = resd; // 1: structure, 2: non structure
+    // recupere les champs du receveur
+    E_Int imr, jmr, kmr, cnSizeR, cnNfldR;
+    char* varStringR; vector<E_Int> locsR;
+    vector<E_Int*> cnr;
+    K_PYTREE::getFromZone(zoneR, 0, loc, varStringR,
+                          fieldsR, locsR, imr, jmr, kmr,
+                          cnr, cnSizeR, cnNfldR, eltTypeR, hook,
+                          GridCoordinates, FlowSolutionNodes, FlowSolutionCenters);
 
-      // -- no check (perfo) --
-      // Transferts
-      // Types valides: 2, 3, 4, 5
-      E_Int posvr, posvd;
+    // -- no check (perfo) --
+    // Transferts
+    // Types valides: 2, 3, 4, 5
+    E_Int posvr, posvd;
 
-      // Extrait les positions des variables a transferer
-      E_Int nfoundvar = 0;
-      if (PyList_Check(pyVariables) != 0)
-  {
-    int nvariables = PyList_Size(pyVariables);
-    if (nvariables > 0)
-      {
-        for (int i = 0; i < nvariables; i++)
+    // Extrait les positions des variables a transferer
+    E_Int nfoundvar = 0;
+    if (PyList_Check(pyVariables) != 0)
     {
-      PyObject* tpl0 = PyList_GetItem(pyVariables, i);
-      if (PyString_Check(tpl0))
-        {
-          char* varname = PyString_AsString(tpl0);
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);
-          if (posvr != -1)
+      E_Int nvariables = PyList_Size(pyVariables);
+      if (nvariables > 0)
       {
-        vectOfRcvFields[nfoundvar]= fieldsR[posvr];
-        vectOfDnrFields[nfoundvar]= fieldsD[posvd];
-        nfoundvar += 1;
-      }
-        }
+        for (E_Int i = 0; i < nvariables; i++)
+        {
+          PyObject* tpl0 = PyList_GetItem(pyVariables, i);
+          if (PyString_Check(tpl0))
+          {
+            char* varname = PyString_AsString(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            posvr = K_ARRAY::isNamePresent(varname, varStringR);
+            if (posvr != -1)
+            {
+              vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+              vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+              nfoundvar += 1;
+            }
+          }
 #if PY_VERSION_HEX >= 0x03000000
-      else if (PyUnicode_Check(tpl0))
-        {
-          const char* varname = PyUnicode_AsUTF8(tpl0);
-          posvd = K_ARRAY::isNamePresent(varname, varStringD);
-          posvr = K_ARRAY::isNamePresent(varname, varStringR);
-          if (posvr != -1)
-      {
-        vectOfRcvFields[nfoundvar]= fieldsR[posvr];
-        vectOfDnrFields[nfoundvar]= fieldsD[posvd];
-        nfoundvar += 1;
-      }
-        }
+          else if (PyUnicode_Check(tpl0))
+          {
+            const char* varname = PyUnicode_AsUTF8(tpl0);
+            posvd = K_ARRAY::isNamePresent(varname, varStringD);
+            posvr = K_ARRAY::isNamePresent(varname, varStringR);
+            if (posvr != -1)
+            {
+              vectOfRcvFields[nfoundvar]= fieldsR[posvr];
+              vectOfDnrFields[nfoundvar]= fieldsD[posvd];
+              nfoundvar += 1;
+            }
+          }
 #endif
-      else
-        {
-          PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+          else
+          {
+            PyErr_Warn(PyExc_Warning, "_setIBCTransfers: variable must be a string. Skipped.");
+          }
         }
-
-    }
       }
-  }
-
-      delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
-
     }
+
+    delete [] varStringR; delete [] varStringD; delete [] eltTypeR; delete [] eltTypeD;
+
+  }
 
   // les variables a transferes sont compactes: on recuperes uniquement la premiere et la taille
   else
-    {
-      // std::cout << "coucou COMPACT" << std::endl;
-# include "getfromzonecompact.h"
-      for (E_Int eq = 0; eq < nvars; eq++)
   {
-    vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
-    vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
-  }
+# include "getfromzonecompact.h"
+    for (E_Int eq = 0; eq < nvars; eq++)
+    {
+      vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+      vectOfDnrFields[eq]= iptroD + eq*ndimdxD;
     }
+  }
 
 # include "commonInterpTransfers_indirect.h"
 
-#    pragma omp parallel default(shared)
+# pragma omp parallel default(shared)
   {
-
     //indice loop pour paralelisation omp
     E_Int ideb, ifin;
 #ifdef _OPENMP
@@ -4277,7 +4262,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
     E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
     // pts traitees par thread
     if (ithread <= r)
-      { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+    { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
     else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
     E_Float cvgam = cv*(gamma-1.);
@@ -4292,28 +4277,27 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP2(PyObject* self, PyObject* args)
 #pragma omp simd
 #endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
-      {
-  E_Int indR = rcvPts[noind+ideb];
+    {
+      E_Int indR = rcvPts[noind+ideb];
      
-  pressure[noind+ideb] = vectOfRcvFields[0][indR];
+      pressure[noind+ideb] = vectOfRcvFields[0][indR];
 
-  gradxP[noind+ideb] = vectOfRcvFields[1][indR];
-  gradyP[noind+ideb] = vectOfRcvFields[2][indR];
-  gradzP[noind+ideb] = vectOfRcvFields[3][indR];
+      gradxP[noind+ideb] = vectOfRcvFields[1][indR];
+      gradyP[noind+ideb] = vectOfRcvFields[2][indR];
+      gradzP[noind+ideb] = vectOfRcvFields[3][indR];
 
-  gradxxP[noind+ideb] = vectOfRcvFields[4][indR];
-  gradxyP[noind+ideb] = vectOfRcvFields[7][indR];
-  gradxzP[noind+ideb] = vectOfRcvFields[10][indR];
+      gradxxP[noind+ideb] = vectOfRcvFields[4][indR];
+      gradxyP[noind+ideb] = vectOfRcvFields[7][indR];
+      gradxzP[noind+ideb] = vectOfRcvFields[10][indR];
 
-  gradyxP[noind+ideb] = vectOfRcvFields[5][indR];
-  gradyyP[noind+ideb] = vectOfRcvFields[8][indR];
-  gradyzP[noind+ideb] = vectOfRcvFields[11][indR];
+      gradyxP[noind+ideb] = vectOfRcvFields[5][indR];
+      gradyyP[noind+ideb] = vectOfRcvFields[8][indR];
+      gradyzP[noind+ideb] = vectOfRcvFields[11][indR];
 
-  gradzxP[noind+ideb] = vectOfRcvFields[6][indR];
-  gradzyP[noind+ideb] = vectOfRcvFields[9][indR];
-  gradzzP[noind+ideb] = vectOfRcvFields[12][indR];
-      }
-
+      gradzxP[noind+ideb] = vectOfRcvFields[6][indR];
+      gradzyP[noind+ideb] = vectOfRcvFields[9][indR];
+      gradzzP[noind+ideb] = vectOfRcvFields[12][indR];
+    }
   } // Fin zone // omp
   // sortie
   RELEASESHAREDZ(hook, (char*)NULL, (char*)NULL);
@@ -4370,9 +4354,9 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   vector<PyArrayObject*> hook;
 
@@ -4434,37 +4418,37 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
   iptgradR = K_PYTREE::getValueAF(t, hook);
 
   // get type
-  t =  K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
-  type =  K_PYTREE::getValueS(t, s, hook);
+  t = K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
+  type = K_PYTREE::getValueS(t, s, hook);
   // get dims zone receveuse
-  d  =  K_PYTREE::getValueAI(zoneR, s0, s1, hook);
+  d = K_PYTREE::getValueAI(zoneR, s0, s1, hook);
 
-  if  (K_STRING::cmp(type, s, "Structured") == 0)
-    {
-      E_Int shift = 0; if(loc == 1) shift = 3;
-      if (s0 == 1) { ndimdxR= d[0+shift]; }
-      else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift]; } 
-      else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; } 
-    }
+  if (K_STRING::cmp(type, s, "Structured") == 0)
+  {
+    E_Int shift = 0; if(loc == 1) shift = 3;
+    if (s0 == 1) { ndimdxR= d[0+shift]; }
+    else if (s0 == 2) { ndimdxR= d[0+shift]*d[1+shift]; } 
+    else if (s0 == 3) { ndimdxR= d[0+shift]*d[1+shift]*d[2+shift]; } 
+  }
   else // non structure
-    {
-      ndimdxR= d[0]* d[1]; // npoint, nelements
-    }
+  {
+    ndimdxR= d[0]* d[1]; // npoint, nelements
+  }
   //##############################
 
   for (E_Int eq = 0; eq < nvars; eq++)
-    {
-      vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
-    }
+  {
+    vectOfRcvFields[eq]= iptroR + eq*ndimdxR;
+  }
 
   for (E_Int eq = 0; eq < nvars_grad; eq++)
-    {
-      vectOfGradRcvFields[eq]= iptgradR + eq*ndimdxR;
-    }
+  {
+    vectOfGradRcvFields[eq]= iptgradR + eq*ndimdxR;
+  }
 
   // # include "commonInterpTransfers_indirect.h"
 
-#    pragma omp parallel default(shared)
+# pragma omp parallel default(shared)
   {
 
     //indice loop pour paralelisation omp
@@ -4481,7 +4465,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
     E_Int r = nbRcvPts - chunk*Nbre_thread_actif;
     // pts traitees par thread
     if (ithread <= r)
-      { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
+    { ideb = (ithread-1)*(chunk+1); ifin = ideb + (chunk+1); }
     else { ideb = (chunk+1)*r+(ithread-r-1)*chunk; ifin = ideb + chunk; }
 
     E_Float cvgam = cv*(gamma-1.);
@@ -4490,13 +4474,13 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP3(PyObject* self, PyObject* args)
 #pragma omp simd
 #endif
     for (E_Int noind = 0; noind < ifin-ideb; noind++)
-      {
-  E_Int indR = rcvPts[noind+ideb];
+    {
+      E_Int indR = rcvPts[noind+ideb];
 
-  gradxP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[0][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[3][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
-  gradyP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[1][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[4][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
-  gradzP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[5][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
-      }
+      gradxP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[0][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[3][indR])*cvgam)/alpha + gradxP[noind+ideb]*(alpha-1.)/alpha;
+      gradyP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[1][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[4][indR])*cvgam)/alpha + gradyP[noind+ideb]*(alpha-1.)/alpha;
+      gradzP[noind+ideb] = ((vectOfRcvFields[4][indR]*vectOfGradRcvFields[2][indR]+vectOfRcvFields[0][indR]*vectOfGradRcvFields[5][indR])*cvgam)/alpha + gradzP[noind+ideb]*(alpha-1.)/alpha;
+    }
 
   } // Fin zone // omp
   // sortie
@@ -4529,9 +4513,9 @@ PyObject* K_CONNECTOR::_setIBCTransfers4GradP4(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyArrayGradxP_new, &pyArrayGradyP_new, &pyArrayGradzP_new,
                     &pyArrayGradxP, &pyArrayGradyP, &pyArrayGradzP))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   FldArrayF* gradxPressF; FldArrayF* gradyPressF; FldArrayF* gradzPressF;
   E_Int okGxP = K_NUMPY::getFromNumpyArray(pyArrayGradxP, gradxPressF);
@@ -4749,7 +4733,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE(PyObject* self, PyObject* args)
       E_Int nvariables = PyList_Size(pyVariables);
       if (nvariables > 0)
       {
-        for (int i = 0; i < nvariables; i++)
+        for (E_Int i = 0; i < nvariables; i++)
         {
           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
           if (PyString_Check(tpl0))
@@ -4950,14 +4934,12 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args
                     &pyArrayGradxW, &pyArrayGradyW, &pyArrayGradzW,
                     &bctype    , &loc       , &vartype   , &compact   ,&gamma, &cv, &muS, &Cs, &Ts, &alpha,
                     &GridCoordinates,  &FlowSolutionNodes, &FlowSolutionCenters))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   vector<PyArrayObject*> hook;
-
   //E_Int bcType = E_Int(bctype);
-
   E_Int nvars;
   E_Int varType = E_Int(vartype);
 
@@ -5067,7 +5049,7 @@ PyObject* K_CONNECTOR::_setIBCTransfers4FULLTBLE2(PyObject* self, PyObject* args
       E_Int nvariables = PyList_Size(pyVariables);
       if (nvariables > 0)
       {
-        for (int i = 0; i < nvariables; i++)
+        for (E_Int i = 0; i < nvariables; i++)
         {
           PyObject* tpl0 = PyList_GetItem(pyVariables, i);
           if (PyString_Check(tpl0))
@@ -5235,7 +5217,7 @@ PyObject* K_CONNECTOR::_WM_getVal2tc(PyObject* self, PyObject* args)
   vector<PyArrayObject*> hook;
 
   // recupere les champs du donneur (nodes)
-  E_Int imdjmd, imd, jmd, kmd, ndimdxR, meshtype;
+  E_Int imd, jmd, kmd, ndimdxR, meshtype;
   E_Float* iptroR;
 
   /*--------------------------------------*/
@@ -5282,12 +5264,12 @@ PyObject* K_CONNECTOR::_WM_getVal2tc(PyObject* self, PyObject* args)
   iptroR = K_PYTREE::getValueAF(t, hook);
 
   // get type
-  t =  K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
-  type =  K_PYTREE::getValueS(t, s, hook);
+  t = K_PYTREE::getNodeFromName1(zoneR, "ZoneType");
+  type = K_PYTREE::getValueS(t, s, hook);
   // get dims zone receveuse
-  d  =  K_PYTREE::getValueAI(zoneR, s0, s1, hook);
+  d = K_PYTREE::getValueAI(zoneR, s0, s1, hook);
 
-  if  (K_STRING::cmp(type, s, "Structured") == 0)
+  if (K_STRING::cmp(type, s, "Structured") == 0)
   {
     E_Int shift = 0; if(loc == 1) shift = 3;
     if (s0 == 1) { ndimdxR= d[0+shift]; }
@@ -5375,9 +5357,9 @@ PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
                     &pyArrayvelz_new, &pyArraytemp_new, &pyArraysanu_new,
                     &pyArraydens    , &pyArrayvelx    , &pyArrayvely    ,
                     &pyArrayvelz    , &pyArraytemp    , &pyArraysanu    ))
-    {
-      return NULL;
-    }
+  {
+    return NULL;
+  }
 
   FldArrayF* densF; FldArrayF* velxF; FldArrayF* velyF;
   FldArrayF* velzF; FldArrayF* tempF; FldArrayF* sanuF;
@@ -5413,7 +5395,6 @@ PyObject* K_CONNECTOR::_WM_setVal2tc(PyObject* self, PyObject* args)
 
 # pragma omp parallel default(shared)
   {
-
     //indice loop pour paralelisation omp
     E_Int ideb, ifin;
 #ifdef _OPENMP

@@ -236,9 +236,9 @@ In pytrees, fields can be added to any zone and stored either at the cell vertic
 `C.initVars` supports formula writing using other variables:
 
 ```python
-# Init a node field
+# init a node field
 C._initVars(a, '{nodes:Density}=1.')
-# Init a center field
+# init a center field
 C._initVars(a, '{centers:Pressure}=3*{centers:CoordinateX}')
 C.convertPyTree2File(a, 'out.cgns')
 ```
@@ -258,4 +258,17 @@ state = Adim.dim1(UInf=2.8, TInf=298., PInf=101325, LInf=12., alphaZ=1.)
 C._initVars(a, 'centers:Density', state[0])
 C._initVars(a, 'centers:MomentumX', state[1])
 ```
+
+## Visualizing pyTrees
+Finaly, you can visualize pytrees stored in files.
+For visualising only tree, without loading data, you can use:
+```shell
+kcgnsview case.cgns
+```
+If you want to visualize tree, meshes and solution, you can use:
+```shell
+cassiopee case.cgns
+```
+How to open applets and use graphical user interface are described in
+[tkCassiopee documentation](https://onera.github.io/Cassiopee/current/doc/tkCassiopee.html#general-guidelines).
 
