@@ -253,16 +253,21 @@ class Entity:
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
             OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
+        elif self.type == "polyline":
+            s = len(self.P)
+            n = numpy.zeros((3,s), dtype=numpy.float64)
+            for c, p in enumerate(self.P): n[:,c] = p.v()
+            OCC.occ.addSpline(self.hook, n, 0, 1)
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0)
+            OCC.occ.addSpline(self.hook, n, 0, 3)
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 1)
+            OCC.occ.addSpline(self.hook, n, 1, 3)
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -288,7 +293,7 @@ class Entity:
             mesh = Transform.deform(mesh, ['dx','dy','dz'])
 
             # spline from approximated point
-            OCC.occ.addSpline(self.hook, mesh[1], 1)
+            OCC.occ.addSpline(self.hook, mesh[1], 1, 3)
 
         elif self.type == "circle":
             OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
@@ -323,7 +328,11 @@ class Entity:
 def Line(P1, P2, name=None):
     return Entity([P1, P2], type="line", name=name)
 
-# spline from parmaetric control points
+# polyline from list of parametric points
+def Polyline(Points, name=None):
+    return Entity(Points, type="polyline", name=name)
+
+# spline from parametric control points
 def Spline1(CPs, name=None):
     return Entity(CPs, type="spline1", name=name)
 
@@ -458,12 +467,15 @@ class Surface():
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
-            OCC.occ.loft(self.hook, [i for i in range(1,len(hooks)+1)], [])
+            edgeList = [i for i in range(1, len(self.sketches)+1)]
+            OCC.occ.loft(self.hook, edgeList, [])
         elif self.type == "revolve":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
-            OCC.occ.revolve(self.hook, [1], self.data['center'], self.data['axis'], self.data['angle'])
+            nedges = OCC.getNbEdges(self.hook)
+            edgeList = [i for i in range(1, nedges+1)]
+            OCC.occ.revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
         elif self.type == "compound":
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
@@ -472,7 +484,9 @@ class Surface():
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
-            self.hook = OCC.occ.fillHole(self.hook, [i for i in range(1,len(hooks)+1)], [], self.data['continuity'])
+            nedges = OCC.getNbEdges(self.hook)
+            edgeList = [i for i in range(1, nedges+1)]
+            self.hook = OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
