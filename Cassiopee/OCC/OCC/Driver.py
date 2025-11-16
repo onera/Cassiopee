@@ -178,14 +178,14 @@ class Grid:
         self.dy = Xf[1]-Xo[1]
         self.dz = Xf[2]-Xo[2]
         # parameters
-        self.P = [[[Point((self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), name="P.%d.%d.%d"%(i,j,k)) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
+        self.P = [[[Point((self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), name="%s.P.%d.%d.%d"%(self.name, i,j,k)) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
         # register
         DRIVER.registerGrid(self)
 
     # return value
     def v(self, T):
         (i,j,k) = T
-        return (self.P[i,j,k].x.v, self.P[i,j,k].y.v, self.P[i,j,k].z.v)
+        return (self.P[i][j][k].x.v, self.P[i][j],[k].y.v, self.P[i][j][k].z.v)
 
     def print(self, shift=0):
         for k in range(self.nk):
@@ -486,7 +486,7 @@ class Surface():
             self.hook = OCC.occ.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
-            self.hook = OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
+            OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
@@ -515,27 +515,28 @@ class Surface():
         faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList)
         return faces
 
-def loft(listSketches=[], name="loft"):
+def Loft(listSketches=[], name="loft"):
     """Create a loft surface from sketches."""
     return Surface(listSketches=listSketches, name=name, type="loft")
 
-def revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
+def Revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
     """Create a revolution surface from a sketch."""
     return Surface(listSketches=[sketch],
                    data={'center':center, 'axis':axis, 'angle':angle},
                    name=name, type="revolve")
 
-def compound(listSurfaces=[], name="compound"):
+def Compound(listSurfaces=[], name="compound"):
     """Create a compound surface from a list of surfaces."""
-    return None # a faire
+    return Surface(listSurfaces=listSurfaces,
+                   name=name, type="compound")
 
-def fill(sketch, continuity=0, name="fill"):
+def Fill(sketch, continuity=0, name="fill"):
     """Create a surface that fill a sketch."""
     return Surface(listSketches=[sketch],
                    data={'continuity':continuity},
                    name=name, type="fill")
 
-def boolean(listSurfaces=[], name="boolean"):
+def Boolean(listSurfaces=[], name="boolean"):
     return None # a faire
 
 #============================================================
@@ -622,6 +623,12 @@ class Driver:
         """Register equation."""
         self.equations["EQUATION%04d"%self.equationCount] = eq
         self.equationCount += 1
+        # all concerned Scalar are tagged as free parameters
+        symbolsInEq = eq.s.free_symbols
+        for s in symbolsInEq:
+            scalar = self.scalars2[s]
+            if scalar.range is None: 
+                scalar.range = [-999.99, 999.99] # range ajustable
 
     def print(self):
         """Print registered entities."""
@@ -646,6 +653,7 @@ class Driver:
         for s in self.scalars:
             mu = self.scalars[s]
             if mu.isFree(): params.append(mu.s)
+        params.reverse() # reverse order to solve for explicit variables
         print('SOLVE: params=', params)
 
         # get equations, sub fixed params
@@ -691,10 +699,17 @@ class Driver:
     def instantiate(self, paramValues):
         """Instantiate all from given paramValues."""
         # set freeParams
+        error = False
         for f in self.freeParams:
-            self.scalars2[f].v = paramValues[f.name]
-            print('SET: fixed', f, 'to', paramValues[f.name])
-
+            if f.name not in paramValues:
+                print("Error: instantiate: you should specify: ", f.name)
+                error = True
+            else:
+                self.scalars2[f].v = paramValues[f.name]
+                print('SET: fixed', f, 'to', paramValues[f.name])
+        
+        if error: raise ValueError("instantiate: stopping.")
+        
         # set other vars with solution
         soli = self.solution.copy()
         for k in soli:

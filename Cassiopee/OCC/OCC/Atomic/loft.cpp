@@ -55,8 +55,8 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
   if (nguides == 0) // loft without guides
   { 
     // Use opencascade BRepOffsetAPI_ThruSections
-    BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*preserveOrientation=*/1);
-    loftBuilder.SetContinuity(GeomAbs_C2);
+    BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*pres3d=*/1.e-6);
+    //loftBuilder.SetContinuity(GeomAbs_C2);
     //loftBuilder.SetSmoothing(True);
 
     // Get Profiles and add to builder
