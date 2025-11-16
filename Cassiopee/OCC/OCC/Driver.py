@@ -627,7 +627,7 @@ class Driver:
         symbolsInEq = eq.s.free_symbols
         for s in symbolsInEq:
             scalar = self.scalars2[s]
-            if scalar.range is None: 
+            if scalar.range is None:
                 scalar.range = [-999.99, 999.99] # range ajustable
 
     def print(self):
@@ -707,9 +707,9 @@ class Driver:
             else:
                 self.scalars2[f].v = paramValues[f.name]
                 print('SET: fixed', f, 'to', paramValues[f.name])
-        
+
         if error: raise ValueError("instantiate: stopping.")
-        
+
         # set other vars with solution
         soli = self.solution.copy()
         for k in soli:
