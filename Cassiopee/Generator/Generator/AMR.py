@@ -136,6 +136,9 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
 # Generates an isotropic skeleton mesh to be adapted then by AMR
 def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octreeMode=0):
     surfaces=[]; dfarList=[]; snearsList=[]
+    # this clips the upper limit on the number of offset level to the input value. Important for tests & devs.
+    # This is an expert expert parameter & should be used with caution
+    forceUpperLimitOffset = False
 
     # list of dfars
     bodies = Internal.getZones(tb)
@@ -160,7 +163,8 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
             levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
-            levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+            if forceUpperLimitOffset: levelSkel = levelSkel
+            else:                     levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
 
             dfarloc = dfars[c]
             snearloc = 2**levelSkel*snears[c]
@@ -190,20 +194,35 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
         valsym = 0.5*(zmin+zmax)
     if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym-__TOL__),strict=1)
 
-    # adapt the mesh to get a single refinement level - uniform grid
-    refined=True
-    G._getVolumeMap(o)
-    volminAll = C.getMinValue(o,"centers:vol")
-    tol_vol = 1e-2*volminAll
-    while refined:
-        C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
-        if C.getMaxValue(o,"centers:indicator")==1.:
-            o = G.adaptOctree(o, 'centers:indicator', balancing=1)
-            G._getVolumeMap(o)
-        else:
-            refined=False
-            break
-    C._rmVars(o, ['centers:indicator','centers:vol'])
+    if forceUpperLimitOffset:
+        if Cmpi.master:
+            box = G.bbox(o)
+            nCellsCartesian_x = int((box[3]-box[0])/snearsList[0])
+            nCellsCartesian_y = int((box[4]-box[1])/snearsList[0])
+            nCellsCartesian_z = int((box[5]-box[2])/snearsList[0])
+            o = G.cart((box[0],box[1],box[2]), (snearsList[0],snearsList[0],snearsList[0]), (nCellsCartesian_x+1, nCellsCartesian_y+1,nCellsCartesian_z+1))
+            C.convertPyTree2File(o, 'octreeTmpToBeDeleted.cgns')
+        Cmpi.barrier()
+        o = C.convertFile2PyTree('octreeTmpToBeDeleted.cgns')
+        Cmpi.barrier()
+    else:
+
+        # adapt the mesh to get a single refinement level - uniform grid
+        refined=True
+        G._getVolumeMap(o)
+        volminAll = C.getMinValue(o,"centers:vol")
+        tol_vol = 1e-2*volminAll
+        while refined:
+            Cmpi.barrier()
+            C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
+            if C.getMaxValue(o,"centers:indicator")==1.:
+                Cmpi.barrier()
+                o = G.adaptOctree(o, 'centers:indicator', balancing=1)
+                G._getVolumeMap(o)
+            else:
+                refined=False
+                break
+        C._rmVars(o, ['centers:indicator','centers:vol'])
 
     if dim==2: T._addkplane(o)
     o = C.convertArray2NGon(o)
