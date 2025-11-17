@@ -281,10 +281,10 @@ class Entity:
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        ind = i+j*ni+k*ni*nj
-                        cp[1][0,ind] = grid.P[i][j][k].x.v
-                        cp[1][1,ind] = grid.P[i][j][k].y.v
-                        cp[1][2,ind] = grid.P[i][j][k].z.v
+                        ind = i+j*ni+k*ni*nj                        
+                        cp[1][0,ind] = grid.xo + i*grid.dx
+                        cp[1][1,ind] = grid.yo + j*grid.dy
+                        cp[1][2,ind] = grid.zo + k*grid.dz
                         cp[1][3,ind] = grid.P[i][j][k].x.v - grid.xo - i*grid.dx
                         cp[1][4,ind] = grid.P[i][j][k].y.v - grid.yo - j*grid.dy
                         cp[1][5,ind] = grid.P[i][j][k].z.v - grid.zo - k*grid.dz
@@ -355,9 +355,10 @@ def Arc(P1, P2, P3, name=None):
 #============================================================
 class Sketch():
     """Define a parametric sketch from a list of entities."""
-    def __init__(self, listEntities=[], name="sketch"):
+    def __init__(self, listEntities=[], name=None):
         # name
-        self.name = getName(name)
+        if name is not None: self.name = name
+        else: self.name = getName("sketch")
         # dependant entities
         self.entities = listEntities
         # type
@@ -389,7 +390,7 @@ class Sketch():
     # update the CAD from parameters
     def update(self):
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
+        self.hook = OCC.occ.createEmptyCAD('sketch.step', 'fmt_step')
         hooks = []
         for e in self.entities: hooks.append(e.hook)
         self.hook = OCC.occ.mergeCAD(hooks)
@@ -409,6 +410,9 @@ class Sketch():
         for e in self.entities:
             print(" "*shift, e.name)
             e.print(shift+4)
+        for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
+            print(" "*shift, e.name)
+            e.print(shift+4)
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
@@ -422,15 +426,20 @@ class Sketch():
 #============================================================
 class Surface():
     """Define a parametric surface."""
-    def __init__(self, listSketches=[], listSurfaces=[], data={}, name="surface", type="loft"):
+    def __init__(self, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, name=None, type="loft"):
         # name
-        self.name = getName(name)
+        if name is not None: self.name = name
+        else: self.name = getName("surface")
         # type
         self.type = type
         # dependant sketches
         self.sketches = listSketches
+        # optional sketches
+        self.sketches2 = listSketches2
         # dependant surfaces
         self.surfaces = listSurfaces
+        # optional surfaces
+        self.surfaces2 = listSurfaces2
         # optional data
         self.data = data
         # hook
@@ -462,13 +471,20 @@ class Surface():
     def update(self):
         """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
+        self.hook = OCC.occ.createEmptyCAD('surface.step', 'fmt_step')
         if self.type == "loft":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
+            n1 = len(self.sketches)
+            edgeList = [i for i in range(1, n1+1)]
+            print("edges=", edgeList)
+            # optional guides
+            for e in self.sketches2: hooks.append(e.hook)
+            n2 = n1 + len(self.sketches2)
+            guideList = [i for i in range(n1+1, n2+1)]
+            print("guides=", guideList)
             self.hook = OCC.occ.mergeCAD(hooks)
-            edgeList = [i for i in range(1, len(self.sketches)+1)]
-            OCC.occ.loft(self.hook, edgeList, [])
+            OCC.occ.loft(self.hook, edgeList, guideList)
         elif self.type == "revolve":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -487,6 +503,10 @@ class Surface():
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
             OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
+        elif self.type == "mergeEdges": # for debug
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
@@ -496,6 +516,9 @@ class Surface():
     def print(self, shift=0):
         """Print surface information."""
         for e in self.sketches:
+            print(" "*shift, e.name)
+            e.print(shift+4)
+        for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
             print(" "*shift, e.name)
             e.print(shift+4)
 
@@ -515,9 +538,10 @@ class Surface():
         faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList)
         return faces
 
-def Loft(listSketches=[], name="loft"):
+def Loft(listSketches=[], listGuides=[], name="loft"):
     """Create a loft surface from sketches."""
-    return Surface(listSketches=listSketches, name=name, type="loft")
+    return Surface(listSketches=listSketches, listSketches2=listGuides, 
+                   name=name, type="loft")
 
 def Revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
     """Create a revolution surface from a sketch."""
@@ -538,6 +562,10 @@ def Fill(sketch, continuity=0, name="fill"):
 
 def Boolean(listSurfaces=[], name="boolean"):
     return None # a faire
+
+def MergeEdges(listSketches=[], name="mergeEdges"):
+    """Merge edges. Not a surface."""
+    return Surface(listSketches=listSketches, type="mergeEdges")
 
 #============================================================
 class Eq:

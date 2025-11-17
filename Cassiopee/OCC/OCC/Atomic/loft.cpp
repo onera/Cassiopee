@@ -56,7 +56,7 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
   { 
     // Use opencascade BRepOffsetAPI_ThruSections
     BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*pres3d=*/1.e-6);
-    //loftBuilder.SetContinuity(GeomAbs_C2);
+    loftBuilder.SetContinuity(GeomAbs_C2);
     //loftBuilder.SetSmoothing(True);
 
     // Get Profiles and add to builder
@@ -66,6 +66,8 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       E_Int no = PyInt_AsLong(noO);
       const TopoDS_Edge& E = TopoDS::Edge(edges(no));
       TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
+      Standard_Boolean isClosed = BRep_Tool::IsClosed(W);
+      if (isClosed) printf("Warning: close wire may fail loft.\n");
       loftBuilder.AddWire(W);
     }
     loftBuilder.Build();

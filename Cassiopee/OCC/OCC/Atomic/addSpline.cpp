@@ -106,7 +106,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
       E_Float knot = cp.Value(i).Distance(lastP)/totalLen + lastKnot;
       knots.SetValue(i, knot);
 
-      printf("%d: knot=%g, mult=%g\n", i, knots(i), mults(i));
+      printf(SF_D_ ": knot=%f, mult=%d\n", i, knots(i), mults(i));
 
       lastKnot = knot;
       lastP = cp.Value(i);

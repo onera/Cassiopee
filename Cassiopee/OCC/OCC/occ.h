@@ -83,6 +83,7 @@ namespace K_OCC
   PyObject* areEdgeIdentical(PyObject* self, PyObject* args);
 
   PyObject* splitFaces(PyObject* self, PyObject* args);
+  PyObject* splitEdge(PyObject* self, PyObject* args);
   PyObject* fixShape(PyObject* self, PyObject* args);
   PyObject* sewing(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
