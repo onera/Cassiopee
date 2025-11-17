@@ -238,6 +238,100 @@ E_Int K_CONNECT::connectEV2EENbrs(
 }
 
 //=============================================================================
+// Same algo as in connectEV2EENbrs but only returns the number of neighbours
+//=============================================================================
+E_Int K_CONNECT::connectEV2NNbrs(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<E_Int>& cENN
+)
+{
+  // Number of face per element for each connectivity
+  vector<E_Int> nfpe;
+  E_Int ierr = getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return ierr;
+
+  E_Int nc = cEV.getNConnect();
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+  // Boucle sur les connectivites pour remplir cENN
+  #pragma omp parallel default(shared) reduction(+:ierr)
+  {
+    E_Int nmatch, ind0, ind1, ind2, eidx, n, nidx, nneis, nvpf, nelts, nvpe;
+    vector<vector<E_Int> > facets;
+ 
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+      ierr += getEVFacets(facets, eltTypes[ic], true);
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        eidx = cumnepc[ic] + i;
+        cENN[eidx] = 0;
+
+        // Loop over each facet of element eidx
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          // Number of vertices per face
+          nvpf = facets[f].size();
+          // First vertex of that facet
+          ind0 = cm(i, facets[f][0]) - 1;
+
+          // Get all element indices sharing that vertex
+          const vector<E_Int>& cVE1 = cVE[ind0];
+          nneis = cVE1.size();
+
+          // Loop over all element sharing that vertex to determine the one 
+          // with which this facet is shared
+          for (E_Int v = 0; v < nneis; v++)
+          {
+            nidx = cVE1[v];
+            // Skip elements belonging to another connectivity (shortcoming)
+            if (nidx < cumnepc[ic] || nidx >= cumnepc[ic] + nelts) continue;
+            if (nidx == eidx) continue;
+            n = nidx - cumnepc[ic];  // neighbour element index local to this conn.
+            nmatch = 0;
+            for (E_Int k = 0; k < nvpf; k++)
+            {
+              ind1 = cm(i, facets[f][k]);
+              for (E_Int j = 1; j <= nvpe; j++)
+              {
+                ind2 = cm(n, j);
+                if (ind1 == ind2) { nmatch++; break; }
+              }
+            }
+            if (nmatch == nvpf) { cENN[eidx]++; break; }
+          }
+        }
+      }
+    }
+  }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  if (ierr == 0) ierr = 1; // duct tape because success should be 0, not 1
+  else ierr = 0;
+  return ierr;
+}
+
+//=============================================================================
 /* Recherche de l'element voisin (PENTA ou HEXA) contenant aussi la facette 
    QUAD ABCD dans cEEN */
 //=============================================================================

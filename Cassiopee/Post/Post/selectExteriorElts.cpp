@@ -56,7 +56,7 @@ PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
   }
   else 
   {
-    tpl = selectExteriorEltsME_NOMP(*f, *cn, eltType, varString);
+    tpl = selectExteriorEltsME(*f, *cn, eltType, varString);
   }
   RELEASESHAREDU(array, f, cn); 
   return tpl;
@@ -511,7 +511,7 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
 
 //=============================================================================
 // Recherche topologique des elements exterieurs utilisant la connectivite
-// EV2EENbrs
+// EV2NNbrs
 //==============================================================================
 PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn, 
                                        char* eltType, char* varString)
@@ -541,13 +541,13 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
   if (ierr != 0) return NULL;
 
-  // Build the element -> neighbour elements connectivity
-  std::vector<std::vector<E_Int> > cEEN(ntotElts);
-  K_CONNECT::connectEV2EENbrs(eltType, npts, cn, cEEN);
+  // Build the element -> number of neighbour elements connectivity
+  std::vector<E_Int> cENN(ntotElts);
+  K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
 
   // Manual uniform chunks with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;
-  E_Int net = ntotElts/nthreads+1;
+  E_Int net = ntotElts/nthreads+1; // TODO shaky given the multiple conn.
   // For each thread:
   //  - indir: maps element indices from new to old ME
   E_Int** indir = new E_Int* [nthreads];
@@ -566,8 +566,12 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   // ('tmp_' is uncompressed: same number of connectivities as the input ME)
   std::vector<E_Int> tmp_nepc2(nc, 0);
 
+  // In a first pass, tag vertex indices that belong to exterior elements
+  std::vector<E_Int> vindir(npts, 0);
+
   #pragma omp parallel
   {
+    E_Int indv;
     E_Int e;  // global element index
     E_Int nneis;  // number of neighbours of element e
     E_Int nextElts = 0;  // number of exterior elements found in all conn. of that thread
@@ -580,18 +584,29 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
+      FldArrayI& cm = *(cn.getConnect(ic));
+      E_Int nvpe = cm.getNfld();
       nextEltsIc = 0;
-      #pragma omp for
+
+      #pragma omp for schedule(static)
       for (E_Int i = 0; i < nepc[ic]; i++)
       {
         e = cumnepc[ic] + i;
-        nneis = cEEN[e].size();
+        nneis = cENN[e];
         if (nneis != nfpe[ic])  // exterior element found
         {
           tindir[nextElts] = i; nextElts++; nextEltsIc++;
           ttmp_nepc2[ic]++;
+
+          // Tag vertices as exterior vertices
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            indv = cm(i, j) - 1;
+            if (vindir[indv] == 0) vindir[indv] = 1;
+          }
         }
       }
+
       tnextepc[ic] = nextEltsIc;
     }
 
@@ -600,6 +615,11 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       for (E_Int ic = 0; ic < nc; ic++) tmp_nepc2[ic] += ttmp_nepc2[ic];
     }
   }
+
+  // Transform the exterior vertex mask of zeros and ones into a vertex map
+  // from old to new connectivities, and get the number of unique exterior
+  // vertices, npts2
+  E_Int npts2 = K_CONNECT::prefixSum(vindir);
 
   // Compute thread element offsets in the output ME for each connectivity
   // offset is a cumulative nextepc over all conns
@@ -618,33 +638,8 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       toffset[ic] = toffsetm1[ic] + tnextepcm1[ic];
   }
 
-  // Compute the number of unique vertices, npts2, and map vertex indices from
-  // old to new connectivities
-  E_Int npts2 = 0;
-  std::vector<E_Int> vindir(npts, 0);
-
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    E_Int e, nneis, indv;
-    FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nvpe = cm.getNfld();
-    for (E_Int i = 0; i < nepc[ic]; i++)
-    {
-      e = cumnepc[ic] + i;
-      nneis = cEEN[e].size();
-      if (nneis != nfpe[ic])  // exterior elements found
-      {
-        for (E_Int j = 1; j <= nvpe; j++)
-        {
-          indv = cm(i, j) - 1;
-          if (vindir[indv] == 0) vindir[indv] = ++npts2;
-        }
-      }
-    }
-  }
-
   // Free memory
-  cEEN.resize(0);
+  cENN.clear(); cENN.shrink_to_fit();
 
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;
@@ -713,7 +708,6 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       nelts = tnextepc[ic];
       offW = toffset[ic];
       nvpe = cm.getNfld();
-
       for (E_Int i = 0; i < nelts; i++)
       {
         inde = tindir[i+offR];
@@ -745,7 +739,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
 //=============================================================================
 // Recherche topologique des elements exterieurs utilisant la connectivite
-// EV2EENbrs (no multi-threading)
+// EV2NNbrs (no multi-threading) et le hashing des faces
 //==============================================================================
 PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn, 
                                             char* eltType, char* varString)
@@ -779,9 +773,9 @@ PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn,
   E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
   if (ierr != 0) return NULL;
 
-  // Build the element -> neighbour elements connectivity
-  std::vector<std::vector<E_Int> > cEEN(ntotElts);
-  K_CONNECT::connectEV2EENbrs(eltType, npts, cn, cEEN);
+  // Build the element -> number of neighbour elements connectivity
+  std::vector<E_Int> cENN(ntotElts);
+  K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
 
   // Indirection tables
   //  - vindir: maps vertex indices from old to new connectivities
@@ -798,7 +792,7 @@ PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn,
     for (E_Int i = 0; i < nepc[ic]; i++)
     {
       e = cumnepc[ic] + i;    // global element index
-      nneis = cEEN[e].size(); // number of neighbours of element e
+      nneis = cENN[e];        // number of neighbours of element e
       if (nneis != nfpe[ic])  // exterior element found
       {
         indir[nextElts] = i; nextElts++; nextepc[ic]++;
@@ -813,7 +807,7 @@ PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn,
   }
 
   // Free memory
-  cEEN.resize(0);
+  cENN.clear(); cENN.shrink_to_fit();
 
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;
@@ -831,6 +825,98 @@ PyObject* K_POST::selectExteriorEltsME_NOMP(FldArrayF& f, FldArrayI& cn,
         strcat(eltType2, eltTypes[ic]);
       }
     }
+  }
+
+  // Hash faces if the input connectivity is a ME to remove elements bordering
+  // adjacent connectivities (could not be detected with the previous algo).
+  if (nc > 1)
+  {
+    // // Compute total (not necessarily unique) number of faces of the new ME
+    // E_Int ntotFaces2 = 0;
+    // for (E_Int ic = 0; ic < nc; ic++) ntotFaces2 += nextepc[ic]*nfpe[ic];
+
+    // // Use a face map to build a face mask and eliminate internal faces
+    // std::vector<E_Int> faceMask(ntotFaces2);  // 0: interior, 1: exterior
+    // std::vector<std::vector<E_Int> > facets;
+    // // djb2 noticeably faster than Jenkins
+    // std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > faceMap;
+    // Topology F;
+    // std::vector<E_Int> face; face.reserve(4);
+    // E_Int fidx, faceOffset, nvpf;
+
+    // faceOffset = 0;
+    // offR = 0;
+    // for (E_Int ic = 0; ic < nc; ic++)
+    // {
+    //   nelts = nextepc[ic];  // restrict to exterior elements previously found
+    //   if (nelts == 0) continue;  // no exterior elements in this conn, skip
+
+    //   K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    //   nvpe = cm.getNfld();
+    //   ierr = K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+    //   if (ierr != 0) return NULL;
+    
+    //   for (E_Int i = 0; i < nelts; i++)
+    //   {
+    //     inde = indir[i+offR];
+    //     // Loop over each facet of this element
+    //     for (E_Int f = 0; f < nfpe[ic]; f++)
+    //     {
+    //       fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+    //       nvpf = facets[f].size();  // number of vertices per face
+    //       // Fill face and insert in map
+    //       face.clear();
+    //       for (E_Int j = 0; j < nvpf; j++) face.push_back(cm(i, facets[f][j]));
+    //       F.set(face);
+    //       auto res = faceMap.insert(std::make_pair(F, fidx));
+    //       if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
+    //       else
+    //       {
+    //         // duplicate: this face and the one found in the map are interior faces
+    //         faceMask[fidx] = 0;
+    //         faceMask[res.first->second] = 0;
+    //       }
+    //     }
+    //   }
+    //   faceOffset += nelts*nfpe[ic];
+    //   offR += nelts;
+    // }
+
+    // faceMap.clear(); faceMap.rehash(0);
+    // facets.clear(); facets.shrink_to_fit();
+
+    // // Loop a second time over all exterior elements found: if all faces are
+    // // internal faces, it was a false positive, ie, an internal element
+    // // bordering two BEs.
+    // E_Int intFaceCounter;
+    // faceOffset = 0;
+    // offR = 0;
+    // for (E_Int ic = 0; ic < nc; ic++)
+    // {
+    //   nelts = nextepc[ic];
+    //   if (nelts == 0) continue;
+    //   K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    //   nvpe = cm.getNfld();
+
+    //   for (E_Int i = 0; i < nelts; i++)
+    //   {
+    //     inde = indir[i+offR];
+    //     intFaceCounter = 0;
+    //     // Loop over each facet of this element
+    //     for (E_Int f = 0; f < nfpe[ic]; f++)
+    //     {
+    //       fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+    //       if (faceMask[fidx] == 1) break; // element has an exterior face: it is an exterior element
+    //       intFaceCounter++;
+    //     }
+    //     if (intFaceCounter == nfpe[ic]) { indir[i+offR] = -1; nextepc[ic]--; }
+    //     // TODO what about vertex indirection, compressing indir due to change in nextepc
+    //   }
+    //   faceOffset += nelts*nfpe[ic];
+    //   offR += nelts;
+    // }
+
+    // faceMask.clear(); faceMask.shrink_to_fit();
   }
 
   // Compress the number of elements per connectivity of the output ME, ie,
