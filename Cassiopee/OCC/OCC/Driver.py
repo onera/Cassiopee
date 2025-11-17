@@ -281,7 +281,7 @@ class Entity:
             for k in range(nk):
                 for j in range(nj):
                     for i in range(ni):
-                        ind = i+j*ni+k*ni*nj                        
+                        ind = i+j*ni+k*ni*nj
                         cp[1][0,ind] = grid.xo + i*grid.dx
                         cp[1][1,ind] = grid.yo + j*grid.dy
                         cp[1][2,ind] = grid.zo + k*grid.dz
@@ -540,7 +540,7 @@ class Surface():
 
 def Loft(listSketches=[], listGuides=[], name="loft"):
     """Create a loft surface from sketches."""
-    return Surface(listSketches=listSketches, listSketches2=listGuides, 
+    return Surface(listSketches=listSketches, listSketches2=listGuides,
                    name=name, type="loft")
 
 def Revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
