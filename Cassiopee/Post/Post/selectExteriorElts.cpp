@@ -546,7 +546,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
   // Manual uniform chunks with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;
-  E_Int net = ntotElts/nthreads+1; // TODO shaky given the multiple conn.
+  E_Int net = ntotElts/nthreads + nc;
   // For each thread:
   //  - indir: maps element indices from new to old ME
   E_Int** indir = new E_Int* [nthreads];
