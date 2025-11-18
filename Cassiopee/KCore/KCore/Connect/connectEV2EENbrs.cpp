@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <string.h>
 #include "String/kstring.h"
-#include <unordered_map>
 
 using namespace K_FLD;
 using namespace std;

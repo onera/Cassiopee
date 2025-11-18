@@ -45,7 +45,6 @@ c = G.cartTetra((16,-3,0), (1,1,1), (5,9,1))
 a = C.mergeConnectivity([a, b, c], None, boundary=0)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(b, "out.cgns")
 test.testT(b, 3)
 
 # ME - 3D
@@ -56,7 +55,6 @@ d = G.cartHexa((20,-2,-4), (1,1,1), (6,8,6))
 a = C.mergeConnectivity([a, b, c, d], None, boundary=0)
 _addVars(a)
 b = P.exteriorElts(a)
-#C.convertPyTree2File(b, "out.cgns")
 test.testT(b, 4)
 
 
