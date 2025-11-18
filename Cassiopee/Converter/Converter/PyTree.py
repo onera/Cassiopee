@@ -5564,7 +5564,7 @@ def isXZone(zone):
 
 # Extract fields on all match connectivities
 def extractAllBCMatch(t, varList=None):
-    zones    = Internal.getZones(t)
+    zones = Internal.getZones(t)
     allMatch = {}
 
     for z in zones:
@@ -5576,14 +5576,13 @@ def extractAllBCMatch(t, varList=None):
                 gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
             for gc in gcs:
-                zname  = Internal.getValue(gc)
+                zname = Internal.getValue(gc)
                 zdonor = Internal.getNodeFromName2(t, zname)
 
                 # Extraction BCMatch pour la zone donneuse
-                [indR,fldD]  = extractBCMatch(zdonor, gc, dim, varList)
-                key          = z[0]+"/"+gc[0]
+                [indR,fldD] = extractBCMatch(zdonor, gc, dim, varList)
+                key = z[0]+"/"+gc[0]
                 if fldD is not None: allMatch[key] = [indR,fldD]
-
     return allMatch
 
 def computeBCMatchField(z, allMatch, variables=None):
@@ -5666,7 +5665,6 @@ def computeBCMatchField(z, allMatch, variables=None):
                 if nind2 != nind1: # il y a des indices presents plusieurs fois
 
                     shift = 0
-
                     for key in allMatch:
                         if key.split("/")[0] == z[0]:
                             [indR,fldD] = allMatch[key]
@@ -5674,7 +5672,7 @@ def computeBCMatchField(z, allMatch, variables=None):
                             ncount = numpy.zeros(indR.size, dtype=Internal.E_NpyInt)
 
                             for i in range(indR.size):
-                                indx      = indIndir[i+shift]
+                                indx = indIndir[i+shift]
                                 ncount[i] = indCount[indx]
 
                             allCount[key] = ncount
@@ -5750,9 +5748,6 @@ def computeBCMatchField(z, allMatch, variables=None):
 def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # On verifie que gc donne le raccord dans zdonor
     # ==============================================
-    # print("================================================")
-    # print("zdonor:", zdonor[0])
-    # print("gc: ", gc[0])
     # if Internal.getValue(gc) != zdonor[0]:
     # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
@@ -5763,7 +5758,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     if dim[0] == 'Structured': zoneType=1
     else:
         zoneType = 2; eltName = dim[3]
-        if eltName=='NGON': pass
+        if eltName == 'NGON': pass
         else: raise ValueError("extractBCMatch: not yet implemented for basic elements.")
 
     fields = []

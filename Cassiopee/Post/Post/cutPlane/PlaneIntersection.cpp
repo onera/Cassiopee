@@ -558,9 +558,9 @@ void K_POST::searchUnstrIntersectForSegment(
           {
             E_Float cellNA = field(indA, posc);
             E_Float cellNB = field(indB, posc);
-            if (cellNA == 0. || cellNB == 0.) intersectPts(cnt, posc) = 0.;
+            if (K_FUNC::fEqualZero(cellNA) || K_FUNC::fEqualZero(cellNB)) intersectPts(cnt, posc) = 0.;
             else intersectPts(cnt, posc) = k1*cellNA + k*cellNB;
-//               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
+//          intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
 
           volOfIntersectPts[cnt] = cellVol;
@@ -733,9 +733,9 @@ void K_POST::searchStructIntersectForSegment(
           {
             E_Float cellNA = field(indA, posc);
             E_Float cellNB = field(indB, posc);
-            if (cellNA == 0. || cellNB == 0.) intersectPts(cnt, posc) = 0.;
+            if (K_FUNC::fEqualZero(cellNA) || K_FUNC::fEqualZero(cellNB)) intersectPts(cnt, posc) = 0.;
             else intersectPts(cnt, posc) = k1*cellNA + k*cellNB;
-//               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
+//          intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
           
           K_METRIC::compVolOfStructCell3D(

@@ -70,7 +70,12 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       if (isClosed) printf("Warning: close wire may fail loft.\n");
       loftBuilder.AddWire(W);
     }
-    loftBuilder.Build();
+    try { loftBuilder.Build(); }
+    catch (...) 
+    {  
+      PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
+      return NULL; 
+    }
     const TopoDS_Shape& loftedSurface = loftBuilder.Shape();
     newshp = new TopoDS_Shape(loftedSurface);
   }
@@ -101,7 +106,12 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
     }
 
     Handle(Geom_BSplineSurface) surf;
-    surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4);
+    try { surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4); }
+    catch (...)
+    {
+      PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
+      return NULL;
+    }
     TopoDS_Face F = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
     newshp = new TopoDS_Shape(F);
   }

@@ -322,7 +322,7 @@ void K_DISTRIBUTOR2::genetic(
       nbItWithFail = 0;
     }
     E_Int nbSurvivors = 0;
-    if (bestEval == 0.) break;
+    if (K_FUNC::fEqualZero(bestEval)) break;
     for (E_Int j = 1; j <= sizeOfPopulation; j++)
     {
       if (K_NOISE::stdRand(&idum) > bestEval/evalp[j-1])

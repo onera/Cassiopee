@@ -519,16 +519,17 @@ void Data::dumpWindow()
     
     char* buffer; char* buffer2;
     E_Int antialiasing = 0;
-    printf("exportAA=%d\n", ptrState->exportAA);
-    if (ptrState->offscreen == 0 || ptrState->offscreen == 2) // only for direct or FBO rendering with no compositing
+    if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 4) // only for direct or FBO rendering
     { 
       exportWidth = (exportWidth/2)*2;
       exportHeight = (exportHeight/2)*2; // doit etre pair
-      antialiasing = 1; // 1
+      if (ptrState->exportAA == 1)
+        antialiasing = 1; // SSAA
     }
-    else if (ptrState->offscreen == 1) // osmesa
+    else if (ptrState->offscreen == 1 || ptrState->offscreen == 6) // osmesa
     { 
-      antialiasing = 0; // 2 a mettre
+      if (ptrState->exportAA == 1)
+        antialiasing = 2; // FXAA
     }
     
     if (antialiasing == 1) // SSAA

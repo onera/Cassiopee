@@ -111,9 +111,9 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
     zmin = K_FUNC::E_min(zmin, z[i]);
     zmax = K_FUNC::E_max(zmax, z[i]);
   }
-  E_Float dx = xmax-xmin; if (dx == 0.) { dx = 1.; xmin = 0; } else dx = 1./dx;
-  E_Float dy = ymax-ymin; if (dy == 0.) { dy = 1.; ymin = 0; } else dy = 1./dy;
-  E_Float dz = zmax-zmin; if (dz == 0.) { dz = 1.; zmin = 0; } else dz = 1./dz;
+  E_Float dx = xmax-xmin; if (K_FUNC::fEqualZero(dx)) { dx = 1.; xmin = 0; } else dx = 1./dx;
+  E_Float dy = ymax-ymin; if (K_FUNC::fEqualZero(dy)) { dy = 1.; ymin = 0; } else dy = 1./dy;
+  E_Float dz = zmax-zmin; if (K_FUNC::fEqualZero(dz)) { dz = 1.; zmin = 0; } else dz = 1./dz;
   
   for (E_Int i = 0; i < npts; i++)
   {

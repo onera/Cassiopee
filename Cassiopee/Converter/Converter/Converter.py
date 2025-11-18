@@ -759,7 +759,9 @@ def convertExt2Format__(fileName):
         '.igs': 'fmt_iges',
         '.stp': 'fmt_step',
         '.step': 'fmt_step',
-        '.ref': 'bin_pickle'
+        '.ref': 'bin_pickle',
+        '.ref1': 'bin_pickle',
+        '.ref2': 'bin_pickle'
     }
     extension = os.path.splitext(fileName)[-1]
     fmt = ext2Format.get(extension.lower(), 'unknown')
