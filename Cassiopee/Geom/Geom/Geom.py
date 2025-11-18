@@ -51,6 +51,38 @@ def naca(e, N=101, sharpte=True):
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)
 
+def profile(name=None):
+    """Create a wing profile mesh."""
+    import Converter.PyTree as C
+    import Converter.Internal as Internal
+    import KCore.installPath
+    t = C.convertFile2PyTree(KCore.installPath.libPath+"/../UIUCAirfoils.cgns")
+    bases = Internal.getBases(t)
+    if name is None:
+        # print a dictionary
+        for b in bases:
+            for z in Internal.getZones(b):
+                print("%s/%s\n"%(b[0],z[0]))
+        return None
+    name = name.split('/')
+    if len(name) == 1:
+        # print a dictionary
+        b = Internal.getNodeFromName1(t, name[0])
+        if b is not None:
+            for z in Internal.getZones(b):
+                print("%s/%s\n"%(b[0],z[0]))
+        return None
+    if len(name) != 2:
+        raise ValueError('profile: name must be base/name.')
+    b = Internal.getNodeFromName1(t, name[0])
+    if b is None:
+        raise ValueError('profile: base name not found.')
+    z = Internal.getNodeFromName1(b, name[1])
+    if z is None:
+        raise ValueError('profile: zone name not found.')
+    a = C.getAllFields(z, 'nodes', api=1)[0]
+    return a
+
 def line(P1, P2, N=100):
     """Create a line of N points. 
     Usage: a = line((x1,y1,z1), (x2,y2,z2), N)"""
@@ -936,6 +968,7 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
 
 # Init _u_ et _v_ from i,j (struct surface)
 def getUVFromIJ(a):
+    """Return uv of structured surface."""
     import Converter
     a = Converter.initVars(a, '_u_', 0.)
     a = Converter.initVars(a, '_v_', 0.)

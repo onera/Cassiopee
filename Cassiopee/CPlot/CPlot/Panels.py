@@ -255,6 +255,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - scotch (see XCore/scotch/LICENSE).\n"
     myText += " - MMGs (see Generator/MMGS/LICENSE).\n"
     myText += " - opencascade (see opencascade/LICENSE_LGPL_21.txt).\n"
+    myText += " - occ_gordon (see OCC/Gordon/LICENSE).\n"
     myText += " - xatlas (see Geom/xatlas/LICENCE).\n"
     myText += " - zstd (see Compressor/zstd/LICENCE).\n"
     myText += " - fpc (see Compressor/fpc.cpp).\n"

@@ -178,14 +178,14 @@ class Grid:
         self.dy = Xf[1]-Xo[1]
         self.dz = Xf[2]-Xo[2]
         # parameters
-        self.P = [[[Point((self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), name="P.%d.%d.%d"%(i,j,k)) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
+        self.P = [[[Point((self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), name="%s.P.%d.%d.%d"%(self.name, i,j,k)) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
         # register
         DRIVER.registerGrid(self)
 
     # return value
     def v(self, T):
         (i,j,k) = T
-        return (self.P[i,j,k].x.v, self.P[i,j,k].y.v, self.P[i,j,k].z.v)
+        return (self.P[i][j][k].x.v, self.P[i][j],[k].y.v, self.P[i][j][k].z.v)
 
     def print(self, shift=0):
         for k in range(self.nk):
@@ -253,16 +253,21 @@ class Entity:
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
             OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
+        elif self.type == "polyline":
+            s = len(self.P)
+            n = numpy.zeros((3,s), dtype=numpy.float64)
+            for c, p in enumerate(self.P): n[:,c] = p.v()
+            OCC.occ.addSpline(self.hook, n, 0, 1)
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0)
+            OCC.occ.addSpline(self.hook, n, 0, 3)
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 1)
+            OCC.occ.addSpline(self.hook, n, 1, 3)
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -277,9 +282,9 @@ class Entity:
                 for j in range(nj):
                     for i in range(ni):
                         ind = i+j*ni+k*ni*nj
-                        cp[1][0,ind] = grid.P[i][j][k].x.v
-                        cp[1][1,ind] = grid.P[i][j][k].y.v
-                        cp[1][2,ind] = grid.P[i][j][k].z.v
+                        cp[1][0,ind] = grid.xo + i*grid.dx
+                        cp[1][1,ind] = grid.yo + j*grid.dy
+                        cp[1][2,ind] = grid.zo + k*grid.dz
                         cp[1][3,ind] = grid.P[i][j][k].x.v - grid.xo - i*grid.dx
                         cp[1][4,ind] = grid.P[i][j][k].y.v - grid.yo - j*grid.dy
                         cp[1][5,ind] = grid.P[i][j][k].z.v - grid.zo - k*grid.dz
@@ -288,7 +293,7 @@ class Entity:
             mesh = Transform.deform(mesh, ['dx','dy','dz'])
 
             # spline from approximated point
-            OCC.occ.addSpline(self.hook, mesh[1], 1)
+            OCC.occ.addSpline(self.hook, mesh[1], 1, 3)
 
         elif self.type == "circle":
             OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
@@ -323,7 +328,11 @@ class Entity:
 def Line(P1, P2, name=None):
     return Entity([P1, P2], type="line", name=name)
 
-# spline from parmaetric control points
+# polyline from list of parametric points
+def Polyline(Points, name=None):
+    return Entity(Points, type="polyline", name=name)
+
+# spline from parametric control points
 def Spline1(CPs, name=None):
     return Entity(CPs, type="spline1", name=name)
 
@@ -346,9 +355,10 @@ def Arc(P1, P2, P3, name=None):
 #============================================================
 class Sketch():
     """Define a parametric sketch from a list of entities."""
-    def __init__(self, listEntities=[], name="sketch"):
+    def __init__(self, listEntities=[], name=None):
         # name
-        self.name = getName(name)
+        if name is not None: self.name = name
+        else: self.name = getName("sketch")
         # dependant entities
         self.entities = listEntities
         # type
@@ -380,7 +390,7 @@ class Sketch():
     # update the CAD from parameters
     def update(self):
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
+        self.hook = OCC.occ.createEmptyCAD('sketch.step', 'fmt_step')
         hooks = []
         for e in self.entities: hooks.append(e.hook)
         self.hook = OCC.occ.mergeCAD(hooks)
@@ -400,6 +410,9 @@ class Sketch():
         for e in self.entities:
             print(" "*shift, e.name)
             e.print(shift+4)
+        for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
+            print(" "*shift, e.name)
+            e.print(shift+4)
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
@@ -413,15 +426,20 @@ class Sketch():
 #============================================================
 class Surface():
     """Define a parametric surface."""
-    def __init__(self, listSketches=[], listSurfaces=[], data={}, name="surface", type="loft"):
+    def __init__(self, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, name=None, type="loft"):
         # name
-        self.name = getName(name)
+        if name is not None: self.name = name
+        else: self.name = getName("surface")
         # type
         self.type = type
         # dependant sketches
         self.sketches = listSketches
+        # optional sketches
+        self.sketches2 = listSketches2
         # dependant surfaces
         self.surfaces = listSurfaces
+        # optional surfaces
+        self.surfaces2 = listSurfaces2
         # optional data
         self.data = data
         # hook
@@ -453,17 +471,27 @@ class Surface():
     def update(self):
         """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('unknown.step', 'fmt_step')
+        self.hook = OCC.occ.createEmptyCAD('surface.step', 'fmt_step')
         if self.type == "loft":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
+            n1 = len(self.sketches)
+            edgeList = [i for i in range(1, n1+1)]
+            print("edges=", edgeList)
+            # optional guides
+            for e in self.sketches2: hooks.append(e.hook)
+            n2 = n1 + len(self.sketches2)
+            guideList = [i for i in range(n1+1, n2+1)]
+            print("guides=", guideList)
             self.hook = OCC.occ.mergeCAD(hooks)
-            OCC.occ.loft(self.hook, [i for i in range(1,len(hooks)+1)], [])
+            OCC.occ.loft(self.hook, edgeList, guideList)
         elif self.type == "revolve":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
-            OCC.occ.revolve(self.hook, [1], self.data['center'], self.data['axis'], self.data['angle'])
+            nedges = OCC.getNbEdges(self.hook)
+            edgeList = [i for i in range(1, nedges+1)]
+            OCC.occ.revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
         elif self.type == "compound":
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
@@ -472,7 +500,13 @@ class Surface():
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
-            self.hook = OCC.occ.fillHole(self.hook, [i for i in range(1,len(hooks)+1)], [], self.data['continuity'])
+            nedges = OCC.getNbEdges(self.hook)
+            edgeList = [i for i in range(1, nedges+1)]
+            OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
+        elif self.type == "mergeEdges": # for debug
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
@@ -482,6 +516,9 @@ class Surface():
     def print(self, shift=0):
         """Print surface information."""
         for e in self.sketches:
+            print(" "*shift, e.name)
+            e.print(shift+4)
+        for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
             print(" "*shift, e.name)
             e.print(shift+4)
 
@@ -501,28 +538,34 @@ class Surface():
         faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList)
         return faces
 
-def loft(listSketches=[], name="loft"):
+def Loft(listSketches=[], listGuides=[], name="loft"):
     """Create a loft surface from sketches."""
-    return Surface(listSketches=listSketches, name=name, type="loft")
+    return Surface(listSketches=listSketches, listSketches2=listGuides,
+                   name=name, type="loft")
 
-def revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
+def Revolve(sketch, center=(0,0,0), axis=(0,0,1), angle=360., name="revolve"):
     """Create a revolution surface from a sketch."""
     return Surface(listSketches=[sketch],
                    data={'center':center, 'axis':axis, 'angle':angle},
                    name=name, type="revolve")
 
-def compound(listSurfaces=[], name="compound"):
+def Compound(listSurfaces=[], name="compound"):
     """Create a compound surface from a list of surfaces."""
-    return None # a faire
+    return Surface(listSurfaces=listSurfaces,
+                   name=name, type="compound")
 
-def fill(sketch, continuity=0, name="fill"):
+def Fill(sketch, continuity=0, name="fill"):
     """Create a surface that fill a sketch."""
     return Surface(listSketches=[sketch],
                    data={'continuity':continuity},
                    name=name, type="fill")
 
-def boolean(listSurfaces=[], name="boolean"):
+def Boolean(listSurfaces=[], name="boolean"):
     return None # a faire
+
+def MergeEdges(listSketches=[], name="mergeEdges"):
+    """Merge edges. Not a surface."""
+    return Surface(listSketches=listSketches, type="mergeEdges")
 
 #============================================================
 class Eq:
@@ -608,6 +651,12 @@ class Driver:
         """Register equation."""
         self.equations["EQUATION%04d"%self.equationCount] = eq
         self.equationCount += 1
+        # all concerned Scalar are tagged as free parameters
+        symbolsInEq = eq.s.free_symbols
+        for s in symbolsInEq:
+            scalar = self.scalars2[s]
+            if scalar.range is None:
+                scalar.range = [-999.99, 999.99] # range ajustable
 
     def print(self):
         """Print registered entities."""
@@ -632,6 +681,7 @@ class Driver:
         for s in self.scalars:
             mu = self.scalars[s]
             if mu.isFree(): params.append(mu.s)
+        params.reverse() # reverse order to solve for explicit variables
         print('SOLVE: params=', params)
 
         # get equations, sub fixed params
@@ -677,9 +727,16 @@ class Driver:
     def instantiate(self, paramValues):
         """Instantiate all from given paramValues."""
         # set freeParams
+        error = False
         for f in self.freeParams:
-            self.scalars2[f].v = paramValues[f.name]
-            print('SET: fixed', f, 'to', paramValues[f.name])
+            if f.name not in paramValues:
+                print("Error: instantiate: you should specify: ", f.name)
+                error = True
+            else:
+                self.scalars2[f].v = paramValues[f.name]
+                print('SET: fixed', f, 'to', paramValues[f.name])
+
+        if error: raise ValueError("instantiate: stopping.")
 
         # set other vars with solution
         soli = self.solution.copy()

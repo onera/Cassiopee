@@ -99,6 +99,7 @@ def integNorm(t, var=''):
 
 #==============================================================================
 def integNormProduct(t, vector=[]):
+    """Integral of fields product normal."""
     if t is not None:
         ret = P.integNormProduct(t, vector)
     else:
@@ -110,6 +111,7 @@ def integNormProduct(t, vector=[]):
 
 #==============================================================================
 def integMoment(t, center=(0.,0.,0.), vector=[]):
+    """Integral of moments."""
     if t is not None:
         ret = P.integMoment(t, center, vector)
     else:
@@ -121,6 +123,7 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
 
 #==============================================================================
 def integMomentNorm(t, center=(0.,0.,0.), var=''):
+    """Integral of moments."""
     if t is not None:
         ret = P.integMomentNorm(t, center, var)
     else:

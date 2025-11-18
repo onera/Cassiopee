@@ -106,7 +106,7 @@ if [ "$MAC" = "ld" ]; then
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     ncpu=$((ncpu + 1))
     export OMP_NUM_THREADS=$ncpu
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
@@ -161,7 +161,7 @@ elif [ "$MAC" = "ubuntu" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     ulimit -s 8192 # for ASAN
@@ -174,7 +174,7 @@ elif [ "$MAC" = "ubuntu-jax" ]; then
     export PYTHONEXE=python3
     export PRODMODE=0
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     ulimit -s 8192 # for ASAN
@@ -351,7 +351,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
@@ -392,7 +392,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
@@ -418,7 +418,7 @@ elif [ "$MAC" = "juno_coda2" ]; then
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     #export OMP_DISPLAY_ENV=VERBOSE
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
@@ -513,7 +513,7 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
@@ -536,7 +536,7 @@ elif [ "$MAC" = "sator_coda" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
@@ -559,7 +559,7 @@ elif [ "$MAC" = "sator_coda2" ]; then
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 

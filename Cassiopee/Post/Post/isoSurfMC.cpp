@@ -21,14 +21,14 @@
                                                                                  else alpha = (value-f0)/df;                                  \
                                                                                  alpha1 = 1.-alpha;                                           \
                                                                                  for (E_Int j = 1; j <= nfld; j++)                            \
-                                                                                   {  val   = alpha1*f(ind0, j)+alpha*f(ind1, j);             \
+                                                                                 {  val   = alpha1*f(ind0, j)+alpha*f(ind1, j);               \
                                                                                     fisos(npt, j + ithread*nfld) = val;                       \
-                                                                                   }                                                          \
+                                                                                 }                                                            \
                                                                                  if (poscellN != 0)                                           \
-                                                                                   { if (f(ind0, poscellN) == 0. || f(ind1, poscellN) == 0.)  \
+                                                                                 { if (K_FUNC::fEqualZero(f(ind0, poscellN)) || K_FUNC::fEqualZero(f(ind1, poscellN)))  \
                                                                                        fisos(npt, poscellN + ithread*nfld) = 0.; }            \
-                                                                                 npt++;                                                       \
-                                                                                 map_cifi[npt] = 0;      }                                   \
+                                                                                  npt++;                                                      \
+                                                                                  map_cifi[npt] = 0; }                                        \
 // Build an isoSurf in a volume hexa mesh by marching cube
 
 # include "post.h"

@@ -11,11 +11,9 @@ P1 = D.Point( (0,0,0), name='P1' )
 P2 = D.Point( (1,0,0), name='P2' )
 
 P3 = D.Point( (1.5,1,0), name='P3' )
-P3.y.range = [0,1]
 D.Eq(P3.y.s, hauteur.s)
 
 P4 = D.Point( (2.5,1,0), name='P4' )
-P4.y.range = [0,1]
 D.Eq(P4.y.s, hauteur.s)
 
 P5 = D.Point( (3,0,0), name='P5' )
@@ -38,13 +36,13 @@ sketch1 = D.Sketch([spline1, line1, line2, line3], name='sketch1')
 
 # solve
 D.DRIVER.solve2()
-D.DRIVER.instantiate({'P4.y': 0.5})
+D.DRIVER.instantiate({'hauteur': 0.5})
 
 sketch1.writeCAD('out.step')
 
 import CPlot, time
 for i in range(50):
-    D.DRIVER.instantiate({'P4.y': 0.3+i/100.})
+    D.DRIVER.instantiate({'hauteur': 0.3+i/100.})
     mesh = sketch1.mesh(0.01, 0.01, 0.01)
     CPlot.display(mesh)
     time.sleep(0.5)

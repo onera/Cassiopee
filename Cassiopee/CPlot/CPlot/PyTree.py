@@ -52,7 +52,7 @@ def display(t,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export="None", exportResolution="None",
+            export="None", exportResolution="None", exportAA=1,
             location="unchanged",
             frameBuffer=-1,
             offscreen=0,
@@ -79,7 +79,7 @@ def display(t,
                   bgColor, backgroundFile,
                   shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                   stereo, stereoDist, panorama,
-                  export, exportResolution,
+                  export, exportResolution, exportAA,
                   zoneNames, renderTags, frameBuffer, offscreen,
                   posCamList, posEyeList, dirCamList)
 
@@ -113,7 +113,7 @@ def displayRaw(t,
                shadow=-1, lightOffset=(-999,-999),
                dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
                stereo=-1, stereoDist=-1., panorama=0,
-               export="None", exportResolution="None",
+               export="None", exportResolution="None", exportAA=-1,
                location="unchanged",
                frameBuffer=-1,
                offscreen=0):
@@ -132,7 +132,7 @@ def displayRaw(t,
                   bgColor, backgroundFile,
                   shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                   stereo, stereoDist, panorama,
-                  export, exportResolution,
+                  export, exportResolution, exportAA,
                   zoneNames, renderTags, frameBuffer, offscreen)
 
 #==============================================================================
@@ -320,6 +320,7 @@ def setState(dim=-1,
              simplifyOnDrag=-1,
              export="None",
              exportResolution="None",
+             exportAA=-1,
              continuousExport=-1,
              envmap="None", message="None",
              stereo=-1, stereoDist=-1.,
@@ -348,8 +349,8 @@ def setState(dim=-1,
                    sobelThreshold, sharpenPower, ssaoPower,
                    ghostifyDeactivatedZones, edgifyActivatedZones,
                    edgifyDeactivatedZones, simplifyOnDrag,
-                   export, exportResolution, continuousExport,
-                   envmap, message,
+                   export, exportResolution, exportAA,
+                   continuousExport, envmap, message,
                    stereo, stereoDist,
                    cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize,
@@ -946,8 +947,7 @@ def colormap2Style(colormapName, light=0):
     return style
 
 def style2Colormap(style):
-    light = 0
-    if style//2 - style*0.5 != 0.: light = 1
+    light = style % 2
     if style == 0 or style == 1: colormap = 'Blue2Red'
     elif style == 2 or style == 3: colormap = 'BiColorRGB'
     elif style == 4 or style == 5: colormap = 'BiColorHSV'
@@ -963,6 +963,9 @@ def style2Colormap(style):
     elif style == 28 or style == 29: colormap = 'NiceBlue'
     elif style == 30 or style == 31: colormap = 'Greens'
     return colormap, light
+
+def getFilteredColormap():
+    return CPlot.getFilteredColormap()
 
 #==============================================================================
 # loadView from slot

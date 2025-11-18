@@ -253,7 +253,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
               if ( fp[indTab[noi]] >= 0 ) nplus++;
               if ( fp[indTab[noi]] <= 0 ) nmoins++;
             }
-            if ( nplus == 0 || nmoins == 0 || sumCellN == 0.) tagcp[indcell] = 0;// PAS DE CHANGEMENT DE SIGNE DS LA CELLULE                 
+            if (nplus == 0 || nmoins == 0 || K_FUNC::fEqualZero(sumCellN)) tagcp[indcell] = 0;// PAS DE CHANGEMENT DE SIGNE DS LA CELLULE                 
           }
     }
     tagS.push_back(tagS1);
@@ -286,7 +286,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
           if ( fp[indv] >= 0 ) nplus++;
           if ( fp[indv] <= 0 ) nmoins++;
         }
-        if ( nplus == 0 || nmoins == 0 || sumCellN == 0.) // PAS DE CHANGEMENT DE SIGNE DS LA CELLULE OU TS LES SOMMETS SONT MASQUES
+        if (nplus == 0 || nmoins == 0 || K_FUNC::fEqualZero(sumCellN)) // PAS DE CHANGEMENT DE SIGNE DS LA CELLULE OU TS LES SOMMETS SONT MASQUES
           tagcp[indcell] = 0;
       }
     }

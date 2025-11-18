@@ -217,6 +217,8 @@ Actions
     :type export: string
     :param exportResolution: resolution for export ("1920x1080")
     :type exportResolution: string
+    :param exportAA: antialiasing for export (0)
+    :type exportAA: 1 or 2
     :param zoneNames: optional list of zone names (same size as arrays, struct zones, then unstruct zones)
     :type zoneNames: list of strings
     :param renderTags: optional list of render tags (same size as arrays, struct zones, then unstruct zones)

@@ -36,11 +36,17 @@
 
 //=====================================================================
 // Add a spline to CAD hook
+// method=0; chord length parametrization from control points
+// method=1; interpolation of given points
+// method=2; uniform parametrization
+// degree: degree of spline
 //=====================================================================
 PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* opc; E_Int method = 0;
-  if (!PYPARSETUPLE_(args, OO_ I_, &hook, &opc, &method)) return NULL;
+  PyObject* hook; PyObject* opc; E_Int method = 0; E_Int degree = 3;
+  if (!PYPARSETUPLE_(args, OO_ II_, &hook, &opc, &method, &degree)) return NULL;
+
+  printf("INFO: addSpline: method=%d, degree=%d\n", method, degree);
 
   GETSHAPE;
   GETMAPSURFACES;
@@ -65,14 +71,14 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
 
   TopoDS_Edge edge;
 
-  if (method == 0) // linear knots
+  if (method == 0) // chord length parametrization
   {
-    // compute total length and copy control points
+    // compute total length of control points
     std::vector<gp_Pnt>::const_iterator iter;
     gp_Pnt lastP(x[0], y[0], z[0]);
     E_Float totalLen = 0.;
     TColgp_Array1OfPnt cp(1, ncp);
-    for (E_Int i = 1; i <= ncp; i++) 
+    for (E_Int i = 1; i <= ncp; i++)
     {
       gp_Pnt p(x[i-1],y[i-1],z[i-1]);
       E_Float segLen = p.Distance(lastP);
@@ -81,24 +87,31 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
       lastP = p;
     }
 
+    if (ncp == 2) degree = 1;
+    else if (ncp == 3) degree = 2;
+
+    E_Int nk = ncp - degree +1;
+
     // compute knots
-    TColStd_Array1OfReal knots(1, ncp);
-    TColStd_Array1OfInteger mults(1, ncp);
+    TColStd_Array1OfReal knots(1, nk);
+    TColStd_Array1OfInteger mults(1, nk);
   
     E_Float lastKnot = 0.;
     lastP.SetCoord(x[0], y[0], z[0]);
-    for (E_Int i = 1; i <= ncp; ++i) 
+    for (E_Int i = 1; i <= nk; i++)
     {
-      if (i == 1 || i == ncp) mults.SetValue(i, 2);
+      if (i == 1 || i == nk) mults.SetValue(i, degree+1);
       else mults.SetValue(i, 1);
 
       E_Float knot = cp.Value(i).Distance(lastP)/totalLen + lastKnot;
       knots.SetValue(i, knot);
 
+      printf(SF_D_ ": knot=%f, mult=%d\n", i, knots(i), mults(i));
+
       lastKnot = knot;
       lastP = cp.Value(i);
     }
-    Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, 1, false);
+    Handle(Geom_BSplineCurve) spline = new Geom_BSplineCurve(cp, knots, mults, degree, false);
     edge = BRepBuilderAPI_MakeEdge(spline);
   }
   else if (method == 1) // approximation through points
@@ -124,7 +137,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     spline->SetNotPeriodic();
     edge = BRepBuilderAPI_MakeEdge(spline);
 
-    // Get control points
+    // Get control points back
     /*
     TColgp_Array1OfPnt poles = spline->Poles();
     for (Standard_Integer i = poles.Lower(); i <= poles.Upper(); ++i) 
@@ -149,28 +162,45 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
       std::cout << "Multiplicity " << i << ": " << mults.Value(i) << std::endl;
     }*/
   }
-  else if (method == 3)
+  else if (method == 2) // quasi uniform
   {
-    // a terminer: modele pour imposer les points et les tangentes
-    Handle(TColgp_HArray1OfPnt) points = new TColgp_HArray1OfPnt(1, 3);
-    points->SetValue(1, gp_Pnt(0, 0, 0));      // Fixed point
-    points->SetValue(2, gp_Pnt(5, 5, 0));      // Tangency constraint
-    points->SetValue(3, gp_Pnt(10, 0, 0));     // Free point
+    TColgp_Array1OfPnt cp(1, ncp);
+    for (E_Int i = 1; i <= ncp; i++)
+    {
+      gp_Pnt p(x[i-1],y[i-1],z[i-1]);
+      cp.SetValue(i, p);
+    }
 
-    TColgp_Array1OfVec tangents(1, 3);
-    tangents.SetValue(1, gp_Vec(1, 0, 0));     // Tangent at fixed point
-    tangents.SetValue(2, gp_Vec(0, 1, 0));     // Tangent at middle point
-    tangents.SetValue(3, gp_Vec(0, 0, 0));     // No constraint
+    // compute knots
+    if (ncp == 2) degree = 1;
+    else if (ncp == 3) degree = 2;
 
-    Handle(TColStd_HArray1OfBoolean) tangentFlags = new TColStd_HArray1OfBoolean(1, 3);
-    tangentFlags->SetValue(1, Standard_True);  // Enforce tangent
-    tangentFlags->SetValue(2, Standard_True);  // Enforce tangent
-    tangentFlags->SetValue(3, Standard_False); // No constraint
+    E_Int nk = ncp - degree +1;
 
-    GeomAPI_Interpolate interpolator(points, Standard_False, 1e-6);
-    interpolator.Load(tangents, tangentFlags, Standard_True);
-    interpolator.Perform();
-    Handle(Geom_BSplineCurve) constrainedSpline = interpolator.Curve();
+    TColStd_Array1OfReal knots(1, nk);
+    TColStd_Array1OfInteger mults(1, nk);
+
+    for (E_Int i = 1; i <= nk; i++)
+    {
+      knots(i) = (i-1)*1./(nk-1);
+      mults(i) = 1; 
+    }
+    mults(1) = degree+1;
+    mults(nk) = degree+1;
+    
+    for (E_Int i = 1; i <= nk; i++)
+      printf("%d: knot=%g, mult=%d\n", i, knots(i), mults(i));
+
+    Handle(Geom_BSplineCurve) spline =
+      new Geom_BSplineCurve(cp, knots, mults, degree);
+    edge = BRepBuilderAPI_MakeEdge(spline);
+  }
+  else
+  {
+    RELEASESHAREDN(opc, pc);
+    PyErr_SetString(PyExc_TypeError,
+                    "addSpline: invalid method.");
+    return NULL;
   }
 
   // Rebuild a single compound

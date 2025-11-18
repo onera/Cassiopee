@@ -10,7 +10,7 @@ import KCore.Vector as Vector
 from . import ColorMaps
 
 import os.path
-import time
+import time, numpy
 from sys import version_info
 
 __timeStep__ = 0.01
@@ -56,7 +56,7 @@ def display(arrays,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export="None", exportResolution="None",
+            export="None", exportResolution="None", exportAA=-1,
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0,
             posCamList=None, posEyeList=None, dirCamList=None):
@@ -79,8 +79,8 @@ def display(arrays,
                                    posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                                    shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                                    stereo, stereoDist, panorama,
-                                   export, exportResolution, zoneNames, renderTags,
-                                   frameBuffer, offscreen,
+                                   export, exportResolution, exportAA,
+                                   zoneNames, renderTags, frameBuffer, offscreen,
                                    posCamList, posEyeList, dirCamList)
             __slot__ = 1
         else:
@@ -94,8 +94,8 @@ def display(arrays,
                                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                                      shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                                      stereo, stereoDist, panorama,
-                                     export, exportResolution, zoneNames, renderTags,
-                                     frameBuffer, offscreen,
+                                     export, exportResolution, exportAA,
+                                     zoneNames, renderTags, frameBuffer, offscreen,
                                      posCamList, posEyeList, dirCamList)
         return
     from . import cplot
@@ -112,8 +112,8 @@ def display(arrays,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                      shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                      stereo, stereoDist, panorama,
-                     export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen,
+                     export, exportResolution, exportAA,
+                     zoneNames, renderTags, frameBuffer, offscreen,
                      posCamList, posEyeList, dirCamList)
     else:
         displayAgain__(arrays, dim, mode, scalarField, vectorField1,
@@ -126,7 +126,7 @@ def display(arrays,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                        stereo, stereoDist, panorama,
-                       export, exportResolution,
+                       export, exportResolution, exportAA,
                        zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
 
@@ -299,43 +299,77 @@ def resetKeyboard():
     from . import cplot
     return cplot.resetKeyboard()
 
+# convert r,g,b in [0,1] to hexa color string
+def convertRGB2String(T):
+    """Convert r,g,b tuple to hexa color string."""
+    r,g,b = T
+    a1 = int(r*255.)
+    a2 = int(g*255.)
+    a3 = int(b*255.)
+    return f"#{a1:02X}{a2:02X}{a3:02X}"
+
 # Ajoute des colormaps indirectes
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
+    shift = colormap % 2
     if colormap == 16 or colormap == 17: # Viridis
         colormapC = ColorMaps.Viridis
-        if colormap == 16: colormap = 10
-        elif colormap == 17: colormap = 11
+        colormap = 10+shift
     elif colormap == 18 or colormap == 19: # Inferno
         colormapC = ColorMaps.Inferno
-        if colormap == 18: colormap = 10
-        elif colormap == 19: colormap = 11
+        colormap = 10+shift
     elif colormap == 20 or colormap == 21: # Magma
         colormapC = ColorMaps.Magma
-        if colormap == 20: colormap = 10
-        elif colormap == 21: colormap = 11
+        colormap = 10+shift
     elif colormap == 22 or colormap == 23: # Plasma
         colormapC = ColorMaps.Plasma
-        if colormap == 22: colormap = 10
-        elif colormap == 23: colormap = 11
+        colormap = 10+shift
     elif colormap == 24 or colormap == 25: # Jet
-        colormapC = ColorMaps.Jet2
-        if colormap == 24: colormap = 10
-        elif colormap == 25: colormap = 11
+        colormapC = ColorMaps.Jet
+        colormap = 10+shift
     elif colormap == 26 or colormap == 27: # Greys
         colormapC = ColorMaps.Greys
-        if colormap == 26: colormap = 10
-        elif colormap == 27: colormap = 11
+        colormap = 10+shift
     elif colormap == 28 or colormap == 29: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
-        if colormap == 28: colormap = 6
-        elif colormap == 29: colormap = 7
-    elif colormap == 30 or colormap == 31: # Greys
+        colormap = 6+shift
+    elif colormap == 30 or colormap == 31: # Greens
         colormapC = ColorMaps.Greens
-        if colormap == 30: colormap = 10
-        elif colormap == 31: colormap = 11
+        colormap = 10+shift
+
+    # if colormapC are given in rgb, convert to hexa string
+    if not isinstance(colormapC1, str):
+        colormapC1 = convertRGB2String(colormapC1)
+    if not isinstance(colormapC2, str):
+        colormapC2 = convertRGB2String(colormapC2)
+    if not isinstance(colormapC1, str):
+        colormapC3 = convertRGB2String(colormapC3)
 
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
+
+# when colormap is 10 or 11 from getState, return the correct colormap from colormapC
+def getFilteredColormap():
+    colormap = getState("colormap")
+    if colormap != 10 and colormap != 11: return colormap
+    if colormap == 10: shift = 0
+    else: shift = 1
+    colormapC = getState("colormapC")
+    CC = numpy.array([colormapC[i] for i in range(0,5)])
+    C1 = numpy.array([ColorMaps.Jet[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 24+shift
+    C1 = numpy.array([ColorMaps.Magma[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 20+shift
+    C1 = numpy.array([ColorMaps.Inferno[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 18+shift
+    C1 = numpy.array([ColorMaps.Viridis[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 16+shift
+    C1 = numpy.array([ColorMaps.Plasma[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 22+shift
+    C1 = numpy.array([ColorMaps.Greys[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 26+shift
+    C1 = numpy.array([ColorMaps.Greens[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 30+shift
+    return colormap
 
 def setState(dim=-1,
              mode=-1,
@@ -380,6 +414,7 @@ def setState(dim=-1,
              simplifyOnDrag=-1,
              export="None",
              exportResolution="None",
+             exportAA=-1,
              continuousExport=-1,
              envmap="None", message="None",
              stereo=-1, stereoDist=-1.,
@@ -414,9 +449,8 @@ def setState(dim=-1,
                    sobelThreshold, sharpenPower, ssaoPower,
                    ghostifyDeactivatedZones, edgifyActivatedZones,
                    edgifyDeactivatedZones, simplifyOnDrag,
-                   export, exportResolution, continuousExport,
-                   envmap, message,
-                   stereo, stereoDist,
+                   export, exportResolution, exportAA, continuousExport,
+                   envmap, message, stereo, stereoDist,
                    cursor, gridSize, timer, selectionStyle,
                    activateShortCuts, billBoards, billBoardSize,
                    materials, bumpMaps, frameBuffer, offscreen)
@@ -779,7 +813,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                  shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                  stereo, stereoDist, panorama,
-                 export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                 export, exportResolution, exportAA,
+                 zoneNames, renderTags, frameBuffer, offscreen,
                  posCamList, posEyeList, dirCamList):
     global __slot__
     import threading
@@ -802,7 +837,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                               bgColor, backgroundFile,
                               shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                               stereo, stereoDist, panorama,
-                              export, exportResolution,
+                              export, exportResolution, exportAA,
                               zoneNames, renderTags, frameBuffer, offscreen,
                               posCamList, posEyeList, dirCamList), {})
     else: # python3 - daemon
@@ -819,7 +854,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                               bgColor, backgroundFile,
                               shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                               stereo, stereoDist, panorama,
-                              export, exportResolution,
+                              export, exportResolution, exportAA,
                               zoneNames, renderTags, frameBuffer, offscreen,
                               posCamList, posEyeList, dirCamList), {}, daemon=daemon)
     a.start()
@@ -835,7 +870,8 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                    stereo, stereoDist, panorama,
-                   export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                   export, exportResolution, exportAA,
+                   zoneNames, renderTags, frameBuffer, offscreen,
                    posCamList, posEyeList, dirCamList):
     if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
@@ -851,7 +887,7 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                        stereo, stereoDist, panorama,
-                       export, exportResolution, zoneNames, renderTags,
-                       frameBuffer, offscreen,
+                       export, exportResolution, exportAA,
+                       zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
     time.sleep(__timeStep__)

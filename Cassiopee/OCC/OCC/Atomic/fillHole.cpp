@@ -41,17 +41,9 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   PyObject* hook; PyObject* listEdges; PyObject* listFaces; E_Int continuity;
   if (!PYPARSETUPLE_(args, OOO_ I_, &hook, &listEdges, &listFaces, &continuity)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
+  GETSHAPE;
+  GETMAPEDGES;
 
-  // get top shape
-  TopoDS_Shape* shp = (TopoDS_Shape*)packet[0];
-  TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  //TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
   E_Int nEdges = edges.Extent();
 
   // get edges and make a wire
@@ -161,18 +153,17 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
     }
   }
 
-
   // Add face to shape
   //ShapeBuild_ReShape reshaper;
   //reshaper.Add(F); // no add
   //TopoDS_Shape shc = reshaper.Apply(*shp);
 
-  TopoDS_Shape* newshp = NULL; 
+  TopoDS_Shape* newshp = NULL;
 
   TopoDS_Compound shc;
   BRep_Builder aBuilder;
   aBuilder.MakeCompound(shc);
-  aBuilder.Add(shc, *shp);
+  aBuilder.Add(shc, *shape);
   aBuilder.Add(shc, F); // How can I check face orientation?
   
   // a posteriori continuity improvement - no success for now (unnecessary?)
@@ -190,20 +181,9 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
     newshp = new TopoDS_Shape(shc);
 
   // export
-  delete shp;
-  
-  // Export
-  packet[0] = newshp;
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
+  delete shape;
+  SETSHAPE(newshp);
+
   printf("INFO: after fillHole: Nb edges=%d\n", se->Extent());
   printf("INFO: after fillHole: Nb faces=%d\n", sf->Extent());
 

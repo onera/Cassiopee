@@ -327,7 +327,7 @@ void K_CONNECTOR::modifyCellNWithPriority(
 #pragma omp for schedule(dynamic)
     for (E_Int ind1 = 0; ind1 < ncells1; ind1++)
     {
-      if (celln1[ind1] != 0.)
+      if (K_FUNC::fEqualZero(celln1[ind1]) == false)
       {
         // Recherche de la cellule d'interpolation
         x = xc1[ind1]; y = yc1[ind1]; z = zc1[ind1];
@@ -344,10 +344,10 @@ void K_CONNECTOR::modifyCellNWithPriority(
           E_Int extrapB = 0;
           FldArrayI indTab;
           K_LOC::fromExtCenters2StdCenters(nie2, nje2, nke2, indi[0], type, indTab, extrapB);
-          if ( type == 1 ) 
+          if (type == 1) 
           {
             E_Int indloc = indTab[0] + indTab[1]*ni2+ indTab[2]*ni2nj2; 
-            if (celln2[indloc] != 0. && celln2[indloc] != 2.)
+            if (K_FUNC::fEqualZero(celln2[indloc]) == false && K_FUNC::fEqualZero(celln2[indloc] - 2.) == false)
             {
               interpCells11[ind1] = indloc;
               if (prio1 > prio2) tag1[ind1] = 1;     
@@ -362,7 +362,7 @@ void K_CONNECTOR::modifyCellNWithPriority(
                 for (E_Int ic = 0; ic < type; ic++)
                 {
                   E_Int indloc = indTab[ic] + indTab[jc]* ni2 + indTab[kc]*ni2nj2;             
-                  if (celln2[indloc] == 0. || celln2[indloc] == 2.) {isvalid = 0; break;}
+                  if (K_FUNC::fEqualZero(celln2[indloc]) || K_FUNC::fEqualZero(celln2[indloc] - 2.)) {isvalid = 0; break;}
                   indic[count] = indloc;
                   count++;
                 }
@@ -396,14 +396,14 @@ void K_CONNECTOR::modifyCellNWithPriority(
 #pragma omp for schedule(dynamic)
     for (E_Int ind2 = 0; ind2 < ncells2; ind2++)
     {
-      if (celln2[ind2] != 0.)
+      if (K_FUNC::fEqualZero(celln2[ind2]) == false)
       {
         // Recherche de la cellule d'interpolation
         x = xc2[ind2]; y = yc2[ind2]; z = zc2[ind2];
         voli = 0.; type = 0; noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
                                                1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType, nature, penalty);
-        if (found<=0 && isDW == 1)
+        if (found <= 0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
                                                  1, 2, 3, 0, voli, indi, cf, type, noblk, interpType, nature, penalty, constraint);
@@ -413,10 +413,10 @@ void K_CONNECTOR::modifyCellNWithPriority(
           E_Int extrapB = 0;
           FldArrayI indTab;
           K_LOC::fromExtCenters2StdCenters(nie1, nje1, nke1, indi[0], type, indTab, extrapB);    
-          if ( type == 1 ) 
+          if (type == 1) 
           {
             E_Int indloc = indTab[0] + indTab[1]*ni1+ indTab[2]*ni1nj1; 
-            if (celln1[indloc] != 0. && celln1[indloc] != 2.)
+            if (K_FUNC::fEqualZero(celln1[indloc]) == false && K_FUNC::fEqualZero(celln1[indloc] - 2.) == false)
             {
               interpCells21[ind2] = indloc;
               if (prio2 > prio1) tag2[ind2] = 1;
@@ -431,7 +431,7 @@ void K_CONNECTOR::modifyCellNWithPriority(
                 for (E_Int ic = 0; ic < type; ic++)
                 {
                   E_Int indloc = indTab[ic] + indTab[jc]* ni1 + indTab[kc]*ni1nj1;
-                  if ( celln1[indloc] == 0. || celln1[indloc] == 2 ) {isvalid = 0; break;}
+                  if (K_FUNC::fEqualZero(celln1[indloc]) || K_FUNC::fEqualZero(celln1[indloc] - 2.)) {isvalid = 0; break;}
                   indic[count] = indloc;
                   count++;
                 }
@@ -575,7 +575,7 @@ void K_CONNECTOR::compareInterpCells(
 #pragma omp for schedule(dynamic)
     for (E_Int ind1 = 0; ind1 < ncells1; ind1++)
     {
-      if (celln1[ind1] != 0.)
+      if (K_FUNC::fEqualZero(celln1[ind1]) == false)
       {
         volc1 = K_FUNC::E_abs(vol1[ind1]);
 
@@ -595,10 +595,10 @@ void K_CONNECTOR::compareInterpCells(
           FldArrayI indTab;
           FldArrayI indic(8); indic.setAllValuesAt(-1);
           K_LOC::fromExtCenters2StdCenters(nie2, nje2, nke2, indi[0], type, indTab, extrapB);  
-          if ( type == 1 ) 
+          if (type == 1) 
           {
             E_Int indloc = indTab[0] + indTab[1]*ni2+ indTab[2]*ni2nj2; 
-            if (celln2[indloc] != 0. && celln2[indloc] != 2.)
+            if (K_FUNC::fEqualZero(celln2[indloc]) == false && K_FUNC::fEqualZero(celln2[indloc] - 2.) == false)
             {
               interpCells11[ind1] = indloc;
               volc2 = vol2[indloc];
@@ -614,7 +614,7 @@ void K_CONNECTOR::compareInterpCells(
                 for (E_Int ic = 0; ic < type; ic++)
                 {
                   E_Int indloc = indTab[ic] + indTab[jc]* ni2 + indTab[kc]*ni2nj2;
-                  if (celln2[indloc] == 0. || celln2[indloc] == 2) {isvalid = 0; break;}
+                  if (K_FUNC::fEqualZero(celln2[indloc]) || K_FUNC::fEqualZero(celln2[indloc] - 2.)) {isvalid = 0; break;}
                   indic[count] = indloc;
                   count++;
                 }
@@ -652,7 +652,7 @@ void K_CONNECTOR::compareInterpCells(
 #pragma omp for schedule(dynamic)
     for (E_Int ind2 = 0; ind2 < ncells2; ind2++)
     {
-      if (celln2[ind2] != 0.)
+      if (K_FUNC::fEqualZero(celln2[ind2]) == false)
       {
         volc2 = K_FUNC::E_abs(vol2[ind2]);
 
@@ -661,21 +661,21 @@ void K_CONNECTOR::compareInterpCells(
         E_Float voli = 0.; E_Int type = 0; E_Int noblk = 0;
         found = K_INTERP::getInterpolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
                                                1, 2, 3, 0, voli, indi, cf, tmpIndi, tmpCf, type, noblk);
-        if ( found <= 0 && isDW == 1)
+        if (found <= 0 && isDW == 1)
         {
           found = K_INTERP::getExtrapolationCell(x, y, z, interpData1, extCenters1, &nie1, &nje1, &nke1, NULL,
                                                  1, 2, 3, 0, voli, indi, cf, type, noblk, interpType, nature, penalty, constraint);
         }
-        if ( found > 0 )//ind2 interpolable de blk1
+        if (found > 0)//ind2 interpolable de blk1
         {
           E_Int extrapB = 0;
           FldArrayI indTab;
           FldArrayI indic(8);
           K_LOC::fromExtCenters2StdCenters(nie1, nje1, nke1, indi[0], type, indTab, extrapB);
-          if ( type == 1 ) 
+          if (type == 1) 
           {
             E_Int indloc = indTab[0] + indTab[1]*ni1+ indTab[2]*ni1nj1; 
-            if (celln1[indloc] != 0. && celln1[indloc] != 2.)
+            if (K_FUNC::fEqualZero(celln1[indloc]) == false && K_FUNC::fEqualZero(celln1[indloc] - 2.) == false)
             {
               interpCells21[ind2] = indloc;
               volc1 = vol1[indloc];
@@ -691,7 +691,7 @@ void K_CONNECTOR::compareInterpCells(
                 for (E_Int ic = 0; ic < type; ic++)
                 {
                   E_Int indloc = indTab[ic] + indTab[jc]* ni1 + indTab[kc]*ni1nj1;
-                  if (celln1[indloc] == 0. || celln1[indloc] == 2) {isvalid = 0; break;}
+                  if (K_FUNC::fEqualZero(celln1[indloc]) || K_FUNC::fEqualZero(celln1[indloc] - 2.)) {isvalid = 0; break;}
                   indic[count] = indloc;
                   count++;
                 }
@@ -740,7 +740,7 @@ void K_CONNECTOR::modifyCellnForDonorCells(FldArrayI& tag1, E_Float* celln1,
           for (E_Int no = 1; no <= 8; no++)
           {
             E_Int indi2 = interpCells1(ind1,no);
-            if ( indi2 == -1) goto nextind;
+            if (indi2 == -1) goto nextind;
             tag2p[indi2] = 0;
           }
         }

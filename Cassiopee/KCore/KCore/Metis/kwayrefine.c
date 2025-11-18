@@ -148,7 +148,7 @@ void AllocateKWayPartitionMemory(ctrl_t *ctrl, graph_t *graph)
 /**************************************************************************/
 void ComputeKWayPartitionParams(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, j, k, l, nvtxs, ncon, nparts, nbnd, mincut, me, other;
+  idx_t i, j, k, nvtxs, ncon, nparts, nbnd, mincut, me, other;
   idx_t *xadj, *vwgt, *adjncy, *adjwgt, *pwgts, *where, *bndind, *bndptr;
 
   nparts = ctrl->nparts;
@@ -561,7 +561,7 @@ void ComputeKWayBoundary(ctrl_t *ctrl, graph_t *graph, idx_t bndtype)
 /*************************************************************************/
 void ComputeKWayVolGains(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, ii, j, k, l, nvtxs, nparts, me, other, pid; 
+  idx_t i, ii, j, k, nvtxs, nparts, me, other; 
   idx_t *xadj, *vsize, *adjncy, *adjwgt, *where, 
         *bndind, *bndptr, *ophtable;
   vkrinfo_t *myrinfo, *orinfo;

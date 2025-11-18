@@ -6,16 +6,15 @@ import Converter
 
 # Create a parameter
 epaisseur = D.Scalar(12., name='epaisseur')
-epaisseur.range = [10,15]
+epaisseur.range = [0, 5, 0.1]
 
 # discrete profile
 naca = Geom.naca(12, N=51)
 bbox = Generator.bbox(naca)
 
 # Create parameter grid
-grid1 = D.Grid(bbox[0:3], bbox[3:], N=(3,3,1))
-grid1.P[1][2][0].y.range = [0, 5, 0.1]
-D.Eq(epaisseur.s, grid1.P[1][2][0].x.s)
+grid1 = D.Grid(bbox[0:3], bbox[3:], N=(3,3,1), name="grid1")
+D.Eq(epaisseur.s, grid1.P[1][2][0].y.s)
 
 # Create parametric profile
 spline1 = D.Spline3( grid1, mesh=naca, name='spline1' )
@@ -29,14 +28,14 @@ D.DRIVER.solve2()
 
 # instantiate a CAD from free parameters
 # then mesh and get sensibilities
-D.DRIVER.instantiate({'P.1.2.0.y': 0.8})
+D.DRIVER.instantiate({'epaisseur': 0.8})
 sketch1.writeCAD('out.step')
 mesh = sketch1.mesh(0.01, 0.01, 0.01)
 D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'dout.plt')
 
 # Build DOE
-#D.DRIVER.setDOE({'P.1.2.0.y': 0.1})
+#D.DRIVER.setDOE({'epaisseur': 0.1})
 D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
 D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
@@ -61,12 +60,12 @@ Converter.convertArrays2File(m, 'reread2.plt')
 # instantiate CADs, mesh and display
 import CPlot, time
 for i in range(20):
-    D.DRIVER.instantiate({'P.1.2.0.y': 0.3+i/50.})
+    D.DRIVER.instantiate({'epaisseur': 0.3+i/50.})
     mesh = sketch1.mesh(0.01, 0.01, 0.01)
     CPlot.display(mesh)
     time.sleep(0.5)
 
 # build dmesh
-mesh1 = D.DRIVER.dmesh(sketch1, mesh, ['P.1.2.0.y'], 0.1)
-mesh2 = D.DRIVER.dmesh(sketch1, mesh1, ['P.1.2.0.y'], 0.1)
+mesh1 = D.DRIVER.dmesh(sketch1, mesh, ['epaisseur'], 0.1)
+mesh2 = D.DRIVER.dmesh(sketch1, mesh1, ['epaisseur'], 0.1)
 Converter.convertArrays2File(mesh+mesh1+mesh2, 'out.plt')

@@ -878,6 +878,8 @@ def _deleteChimeraInfo__(a):
 def _deleteSolverNodes__(a):
     Internal._rmNodesByName(a, ':elsA#Hybrid') # elsA
     Internal._rmNodesByName(a, '.Solver#ownData') # Fast
+    Internal._rmNodesByName(a, 'maia#Renumbering') # Sonics
+    Internal._rmNodesByType(a, 'ZoneSubRegion_t') # Sonics
     return None
 
 # -- deleteEmptyZones
@@ -1350,7 +1352,6 @@ def convertPyTree2FilePartial(t, fileName, comm, Filter, ParallelHDF=False,
         # > Write Tree Data except Data in Filter
         SkeletonTree = Internal.copyRef(t)
         for path in Filter:
-            #print(path)
             Node = Internal.getNodeFromPath(SkeletonTree, path)
             Node[1] = None
         # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -4496,7 +4497,6 @@ def _recoverBCs1(a, T, tol=1.e-11):
 
         for c in range(len(BCs)):
             b = BCs[c]
-
             if b == []:
                 raise ValueError("_recoverBCs: boundary is probably ill-defined.")
             # Break BC connectivity si necessaire
@@ -4513,7 +4513,6 @@ def _recoverBCs1(a, T, tol=1.e-11):
                 ids = numpy.array([], dtype=Internal.E_NpyInt)
                 for bc in bb:
                     ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
-
             # Cree les BCs
             ids0 = ids # keep ids for bcdata
             ids  = ids[ids > -1]
@@ -5175,7 +5174,8 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
             gcl = Internal.getNodeFromType(zbc, 'GridLocation_t')
             PL = Internal.getNodeFromName(zbc, 'PointList')
             if PL is not None:
-                if Internal.getValue(gcl) == 'FaceCenter':
+                val = Internal.getValue(gcl)
+                if val == 'FaceCenter' or val == 'CellCenter' or val == 'EdgeCenter':
                     PL = PL[1]
                     PL = PL.ravel("k")
                     zp = Internal.copyRef(z)
@@ -5300,7 +5300,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
         loc = Internal.getNodeFromName1(i, 'GridLocation')
         if loc is not None: # GridLocation present
             val = Internal.getValue(loc)
-            if val == 'FaceCenter' or val == 'CellCenter': # Face list (BE ou NGON)
+            if val == 'FaceCenter' or val == 'CellCenter' or val == 'EdgeCenter': # Face list (BE ou NGON)
                 faceList = r[1]
                 rf = Internal.getElementRange(z, type='NGON')
                 if rf is not None and rf[0] != 1: # decalage possible du NGON
@@ -5312,7 +5312,6 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
                         return getBC2__(i, z, T, res, extrapFlow=extrapFlow)
                     else:
                         zp = T.subzone(z, faceList, type='faces') # BE
-
                 zp[0] = z[0]+Internal.SEP1+i[0]
                 _deleteZoneBC__(zp)
                 _deleteGridConnectivity__(zp)
@@ -5558,7 +5557,7 @@ def isXZone(zone):
 
 # Extract fields on all match connectivities
 def extractAllBCMatch(t, varList=None):
-    zones    = Internal.getZones(t)
+    zones = Internal.getZones(t)
     allMatch = {}
 
     for z in zones:
@@ -5570,14 +5569,13 @@ def extractAllBCMatch(t, varList=None):
                 gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
             for gc in gcs:
-                zname  = Internal.getValue(gc)
+                zname = Internal.getValue(gc)
                 zdonor = Internal.getNodeFromName2(t, zname)
 
                 # Extraction BCMatch pour la zone donneuse
-                [indR,fldD]  = extractBCMatch(zdonor, gc, dim, varList)
-                key          = z[0]+"/"+gc[0]
+                [indR,fldD] = extractBCMatch(zdonor, gc, dim, varList)
+                key = z[0]+"/"+gc[0]
                 if fldD is not None: allMatch[key] = [indR,fldD]
-
     return allMatch
 
 def computeBCMatchField(z, allMatch, variables=None):
@@ -5660,7 +5658,6 @@ def computeBCMatchField(z, allMatch, variables=None):
                 if nind2 != nind1: # il y a des indices presents plusieurs fois
 
                     shift = 0
-
                     for key in allMatch:
                         if key.split("/")[0] == z[0]:
                             [indR,fldD] = allMatch[key]
@@ -5668,7 +5665,7 @@ def computeBCMatchField(z, allMatch, variables=None):
                             ncount = numpy.zeros(indR.size, dtype=Internal.E_NpyInt)
 
                             for i in range(indR.size):
-                                indx      = indIndir[i+shift]
+                                indx = indIndir[i+shift]
                                 ncount[i] = indCount[indx]
 
                             allCount[key] = ncount
@@ -5744,9 +5741,6 @@ def computeBCMatchField(z, allMatch, variables=None):
 def extractBCMatch(zdonor, gc, dimzR, variables=None):
     # On verifie que gc donne le raccord dans zdonor
     # ==============================================
-    # print("================================================")
-    # print("zdonor :", zdonor[0])
-    # print("gc : ", gc[0])
     # if Internal.getValue(gc) != zdonor[0]:
     # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
 
@@ -5757,7 +5751,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     if dim[0] == 'Structured': zoneType=1
     else:
         zoneType = 2; eltName = dim[3]
-        if eltName=='NGON': pass
+        if eltName == 'NGON': pass
         else: raise ValueError("extractBCMatch: not yet implemented for basic elements.")
 
     fields = []
@@ -5827,7 +5821,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
             if sizeR != sizeD:
                 fldD = None
                 indR = None
-                print("Warning: extractBCMatch: Not a coincident match: ", gc[0])
+                print("Warning: extractBCMatch: not a coincident match: ", gc[0])
                 return [indR,fldD]
 
             niR = dimzR[1]-1
@@ -6656,7 +6650,7 @@ def node2ExtCenter(t, var=''):
 #==============================================================================
 # diff 2 pyTrees
 #==============================================================================
-def diffArrays(A, B, removeCoordinates=True):
+def diffArrays(A, B, removeCoordinates=True, atol=1.e-11, rtol=0.):
     """Compute the difference of two pyTrees, topologically."""
     t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
     zones1 = Internal.getZones(t1)
@@ -6675,7 +6669,7 @@ def diffArrays(A, B, removeCoordinates=True):
             if parent is not None: del parent[2][d]
 
         if A1 != [] and A2 != []:
-            diff = Converter.diffArrays(A1, A2)
+            diff = Converter.diffArrays(A1, A2, atol=atol, rtol=rtol)
             setFields(diff, zones1[no], 'nodes')
 
         # centres
@@ -6687,24 +6681,24 @@ def diffArrays(A, B, removeCoordinates=True):
             if parent is not None: del parent[2][d]
 
         if A1 != [] and A2 != []:
-            diff = Converter.diffArrays(A1, A2)
+            diff = Converter.diffArrays(A1, A2, atol=atol, rtol=rtol)
             setFields(diff, zones1[no], 'centers')
     if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
     return t1
 
-def diffArrayGeom(A, B, tol=1.e-10, removeCoordinates=True):
+def diffArraysGeom(A, B, removeCoordinates=True, atol=1.e-10, rtol=0.):
     """Compute the difference of two pyTrees, geometrically."""
     t1 = Internal.copyRef(A); t2 = Internal.copyRef(B)
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     nz = len(zones1)
     if nz != len(zones2):
-        raise ValueError("diffArrays: different number of zones"
+        raise ValueError("diffArraysGeom: different number of zones"
                          "(A=%d; B=%d)."%(nz,len(zones2)))
 
     for no in range(nz):
         # geometric diff
-        diffn, diffc = diffArrayGeom__(zones1[no], zones2[no], tol)
+        diffn, diffc = diffArraysGeom__(zones1[no], zones2[no], atol=atol, rtol=rtol)
         if diffn is None: return None # one array is different on coordinates
         # remplacement des solutions aux noeuds par diffn
         A1 = getAllFields(zones1[no], 'nodes', api=3); A1 = Internal.clearList(A1)
@@ -6730,7 +6724,7 @@ def diffArrayGeom(A, B, tol=1.e-10, removeCoordinates=True):
     if removeCoordinates: t1 = rmNodes(t1, Internal.__GridCoordinates__)
     return t1
 
-def diffArrayGeom__(z1, z2, tol):
+def diffArraysGeom__(z1, z2, atol, rtol=0.):
     # compare nodes
     a1 = getFields(Internal.__GridCoordinates__, z1, api=3)[0]
     f1 = getFields(Internal.__FlowSolutionNodes__, z1, api=3)[0]
@@ -6738,7 +6732,7 @@ def diffArrayGeom__(z1, z2, tol):
     a2 = getFields(Internal.__GridCoordinates__, z2, api=3)[0]
     f2 = getFields(Internal.__FlowSolutionNodes__, z2, api=3)[0]
     if f2 != []: a2 = Converter.addVars2([a2,f2])
-    diffn = Converter.diffArrayGeom__(a1, a2)
+    diffn = Converter.diffArraysGeom__(a1, a2, atol, rtol)
     if diffn is None: return None, None
     # compare centers
     z1c = node2Center(z1)
@@ -6749,7 +6743,7 @@ def diffArrayGeom__(z1, z2, tol):
     a2 = getFields(Internal.__GridCoordinates__, z2c, api=3)[0]
     f2 = getFields(Internal.__FlowSolutionNodes__, z2c, api=3)[0]
     if f2 != []: a2 = Converter.addVars2([a2,f2])
-    diffc = Converter.diffArrayGeom__(a1, a2)
+    diffc = Converter.diffArraysGeom__(a1, a2, atol, rtol)
     return diffn, diffc
 
 # Check if all fields are finite (no NAN no INF)

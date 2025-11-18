@@ -346,7 +346,7 @@ def display(t, dim=-1,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export='None', exportResolution='None',
+            export='None', exportResolution='None', exportAA=-1,
             location='unchanged',
             mainTree=1):
     """Display pyTrees.
@@ -368,7 +368,7 @@ def display(t, dim=-1,
                bgColor, backgroundFile,
                shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                stereo, stereoDist, panorama,
-               export, exportResolution,
+               export, exportResolution, exportAA,
                zoneNames, renderTags)
     if mainTree == 1 and __MAINTREE__ <= 0:
         __MAINTREE__ = 1
@@ -1890,7 +1890,7 @@ def getOnlineDoc():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('https://cassiopee.onera.fr/Userguide.html')
+        webbrowser.open('https://onera.github.io/Cassiopee/current')
     except:
         TXT.insert('START', 'Can not open online documentation.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1900,8 +1900,8 @@ def getOnlineDoc():
 def getOnlineForum():
     try:
         import webbrowser
-        TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!forum/cassiopee-community')
+        TXT.insert('START', 'Opening online issues.\n')
+        webbrowser.open('https://github.com/onera/Cassiopee/discussions')
     except:
         TXT.insert('START', 'Can not open online forum.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1912,7 +1912,7 @@ def getOnlineTutorials():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online tutorials.\n')
-        webbrowser.open('https://cassiopee.onera.fr/Tutorials/Tutorials.html')
+        webbrowser.open('https://github.com/onera/Cassiopee/blob/dev/docs/Tutorials/Tutorials.md')
     except:
         TXT.insert('START', 'Can not open online tutorials.\n')
         TXT.insert('START', 'Error: ', 'Error')

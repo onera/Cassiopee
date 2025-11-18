@@ -53,9 +53,19 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
       return NULL;
     }
     posvar++;
+
+    E_Int fsize = f->getSize();
+    if (fsize == 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      char error[256];
+      sprintf(error, "getArgMin: array for variable %s is empty.", varName);
+      PyErr_SetString(PyExc_TypeError, error);
+      return NULL;
+    }
    
     E_Float* fp = f->begin(posvar);
-    E_Int fsize = f->getSize();
+    E_Int nfld = f->getNfld();
     E_Int ind = 0;
     E_Float minVal = K_CONST::E_MAX_FLOAT;
 
@@ -74,29 +84,21 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
     }
 
     // Build return
-    FldArrayF field(1, f->getNfld());
+    FldArrayF field(1, nfld);
     field.setAllValuesAtNull();
 
-    for (E_Int n = 1; n <= f->getNfld(); n++) field(0, n) = (*f)(ind, n);
+    for (E_Int n = 1; n <= nfld; n++) field(0, n) = (*f)(ind, n);
 
     RELEASESHAREDB(res, array, f, cn);
 
     PyObject* l = PyList_New(0);
 
-#ifdef E_DOUBLEREAL
-  for (E_Int i = 0; i < field.getNfld(); i++)
-  {
-    PyObject* tpl = Py_BuildValue("d", field(0, i+1));
-    PyList_Append(l, tpl); Py_DECREF(tpl);
-  }
-#else
-  for (E_Int i = 0; i < field.getNfld(); i++)
-  {
-    PyObject* tpl = Py_BuildValue("f", field(0, i+1));
-    PyList_Append(l, tpl); Py_DECREF(tpl);
-  }
-#endif
-  return l;
+    for (E_Int i = 0; i < nfld; i++)
+    {
+      PyObject* tpl = Py_BuildValue(R_, field(0, i+1));
+      PyList_Append(l, tpl); Py_DECREF(tpl);
+    }
+    return l;
   }
   else 
   {
@@ -136,9 +138,19 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
       return NULL;
     }
     posvar++;
+
+    E_Int fsize = f->getSize();
+    if (fsize == 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      char error[256];
+      sprintf(error, "getArgMax: array for variable %s is empty.", varName);
+      PyErr_SetString(PyExc_TypeError, error);
+      return NULL;
+    }
    
     E_Float* fp = f->begin(posvar);
-    E_Int fsize = f->getSize();
+    E_Int nfld = f->getNfld();
     E_Int ind = 0;
     E_Float maxVal = -K_CONST::E_MAX_FLOAT;
 
@@ -157,28 +169,20 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
     }
 
     // Build return
-    FldArrayF field(1, f->getNfld());
+    FldArrayF field(1, nfld);
     field.setAllValuesAtNull();
 
-    for (E_Int n = 1; n <= f->getNfld(); n++) field(0, n) = (*f)(ind, n);
+    for (E_Int n = 1; n <= nfld; n++) field(0, n) = (*f)(ind, n);
 
     RELEASESHAREDB(res, array, f, cn);
 
     PyObject* l = PyList_New(0);
 
-#ifdef E_DOUBLEREAL
-    for (E_Int i = 0; i < field.getNfld(); i++)
+    for (E_Int i = 0; i < nfld; i++)
     {
-      PyObject* tpl = Py_BuildValue("d", field(0, i+1));
+      PyObject* tpl = Py_BuildValue(R_, field(0, i+1));
       PyList_Append(l, tpl); Py_DECREF(tpl);
     }
-#else
-    for (E_Int i = 0; i < field.getNfld(); i++)
-    {
-      PyObject* tpl = Py_BuildValue("f", field(0, i+1));
-      PyList_Append(l, tpl); Py_DECREF(tpl);
-    }
-#endif
     return l;
   }
   else
@@ -219,22 +223,25 @@ PyObject* K_CONVERTER::getMeanValue(PyObject* self, PyObject* args)
     }
     posvar++;
 
-    E_Float* fp = f->begin(posvar);
     E_Int fsize = f->getSize();
+    if (fsize == 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      char error[256];
+      sprintf(error, "getArgMean: array for variable %s is empty.", varName);
+      PyErr_SetString(PyExc_TypeError, error);
+      return NULL;
+    }
+
+    E_Float* fp = f->begin(posvar);
     E_Float meanVal = 0.;
 
 #pragma omp parallel for default(shared) reduction(+:meanVal) 
     for (E_Int i = 0; i < fsize; i++) meanVal += fp[i];
 
     meanVal = meanVal / E_Float(fsize);
-
     RELEASESHAREDB(res, array, f, cn);
-  
-#ifdef E_DOUBLEREAL
-    return Py_BuildValue("d", meanVal);
-#else
-    return Py_BuildValue("f", meanVal);
-#endif 
+    return Py_BuildValue(R_, meanVal);
   }
   else 
   {
@@ -275,8 +282,17 @@ PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
     }
     posvar++;
 
-    E_Float* fp = f->begin(posvar);
     E_Int fsize = f->getSize();
+    if (fsize == 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      char error[256];
+      sprintf(error, "getMeanRangeValue: array for variable %s is empty.", varName);
+      PyErr_SetString(PyExc_TypeError, error);
+      return NULL;
+    }
+
+    E_Float* fp = f->begin(posvar);
     E_Float meanVal = 0.;
     
     std::vector<E_Float> vals;
@@ -292,12 +308,7 @@ PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
     meanVal = meanVal / E_Float(1+sz2-sz1);
 
     RELEASESHAREDB(res, array, f, cn);
-  
-#ifdef E_DOUBLEREAL
-    return Py_BuildValue("d", meanVal);
-#else
-    return Py_BuildValue("f", meanVal);
-#endif 
+    return Py_BuildValue(R_, meanVal);
   }
   else 
   {

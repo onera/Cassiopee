@@ -273,7 +273,7 @@ public:
              E_Int edgifyActivatedZones, 
              E_Int edgifyDeactivatedZones,
              E_Int shadow, E_Int dof,
-             char* exportFile, char* exportResolution);
+             char* exportFile, char* exportResolution, E_Int exportAA);
   void rgb2hsv(float r, float g, float b, float& h, float& s, float& v);
   void hsv2rgb(float h, float s, float v, float& r, float& g, float& b);
   void colorString2RGB(char* color, float& colorR, float& colorG, float& colorB);
