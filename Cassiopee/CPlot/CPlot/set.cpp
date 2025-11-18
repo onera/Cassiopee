@@ -47,7 +47,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   int simplifyOnDrag;
   int stereo; E_Float stereoDist;
   int cursor;
-  char* exportFile; char* exportResolution;
+  char* exportFile; char* exportResolution; int exportAA;
   char* envmap; char* message;
   PyObject* isoScales; PyObject* billBoards; 
   PyObject* materials; PyObject* bumpMaps;
@@ -60,7 +60,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   char* backgroundFile;
   E_Float billBoardSize;
   if (!PyArg_ParseTuple(args, 
-	    "iOOiiiiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)d(dd)isiiddidddiiiississidi(ii)iiiOdOOii",
+	    "iOOiiiiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)d(dd)isiiddidddiiiissiissidi(ii)iiiOdOOii",
         &dim, &modeObject, &scalarFieldObject, 
         &vectorField1, &vectorField2, &vectorField3,
         &displayBB, &displayInfo, &displayIsoLegend,
@@ -80,8 +80,8 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
         &sobelThreshold, &sharpenPower, &ssaoPower,
         &ghostifyDeactivatedZones, &edgifyActivatedZones,
         &edgifyDeactivatedZones, &simplifyOnDrag,
-        &exportFile, &exportResolution, &continuousExport,
-        &envmap, &message,
+        &exportFile, &exportResolution, &exportAA,
+        &continuousExport, &envmap, &message,
         &stereo, &stereoDist, &cursor,
         &gridSizeI, &gridSizeJ, &timer, &selectionStyle,
         &activateShortCuts, &billBoards, &billBoardSize, 
@@ -107,7 +107,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
                        niso, isoEdges, isoScales, bgColor, backgroundFile,
                        ghostifyDeactivatedZones, edgifyActivatedZones,
                        edgifyDeactivatedZones,
-                       shadow, dof, exportFile, exportResolution);
+                       shadow, dof, exportFile, exportResolution, exportAA);
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;
   if (K_STRING::cmp(envmap, "None") != 0)

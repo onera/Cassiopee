@@ -833,7 +833,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              E_Int edgifyActivatedZones,
                              E_Int edgifyDeactivatedZones,
                              E_Int shadow, E_Int dof,
-                             char* exportFile, char* exportResolution)
+                             char* exportFile, char* exportResolution, E_Int exportAA)
 {
   if (xcam != -999) _view.xcam = xcam;
   if (ycam != -999) _view.ycam = ycam;
@@ -1070,6 +1070,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
       ptrState->exportHeight = h;
     }
   }
+
+  if (exportAA != -1) ptrState->exportAA = exportAA;
 
   if (strcmp(exportFile, "None") != 0)
   {

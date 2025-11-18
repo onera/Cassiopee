@@ -519,6 +519,7 @@ void Data::dumpWindow()
     
     char* buffer; char* buffer2;
     E_Int antialiasing = 0;
+    printf("exportAA=%d\n", ptrState->exportAA);
     if (ptrState->offscreen == 0 || ptrState->offscreen == 2) // only for direct or FBO rendering with no compositing
     { 
       exportWidth = (exportWidth/2)*2;

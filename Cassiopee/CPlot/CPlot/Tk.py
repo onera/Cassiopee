@@ -346,7 +346,7 @@ def display(t, dim=-1,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export='None', exportResolution='None',
+            export='None', exportResolution='None', exportAA=-1,
             location='unchanged',
             mainTree=1):
     """Display pyTrees.
@@ -368,7 +368,7 @@ def display(t, dim=-1,
                bgColor, backgroundFile,
                shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                stereo, stereoDist, panorama,
-               export, exportResolution,
+               export, exportResolution, exportAA,
                zoneNames, renderTags)
     if mainTree == 1 and __MAINTREE__ <= 0:
         __MAINTREE__ = 1
