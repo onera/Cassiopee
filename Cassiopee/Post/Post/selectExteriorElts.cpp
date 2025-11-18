@@ -19,7 +19,6 @@
 # include "post.h"
 # include "String/kstring.h"
 # include "Nuga/include/merge.h"
-#include <unordered_map>
 
 using namespace K_FLD;
 

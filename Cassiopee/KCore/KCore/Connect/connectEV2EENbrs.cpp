@@ -45,7 +45,7 @@ using namespace std;
 //         Sort candidates and count number of occurences of each. If greater
 //         than 3 in 3D, 2 in 2D, 1 in 1D, then self and candidate share a face.
 //=============================================================================
-E_Int K_CONNECT::connectEV2EENbrs2(
+E_Int K_CONNECT::connectEV2EENbrs(
   const char* eltType, E_Int nv, 
   FldArrayI& cEV,
   vector<vector<E_Int> >& cEEN
