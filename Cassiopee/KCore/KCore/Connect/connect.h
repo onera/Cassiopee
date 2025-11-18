@@ -195,10 +195,13 @@ namespace K_CONNECT
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
                          std::vector< std::vector<E_Int> >& cEEN,
                          std::vector< std::vector<E_Int> >& commonFace);
+  E_Int connectEV2EENbrs2(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
+                          std::vector< std::vector<E_Int> >& cEEN);
   // Same as connectEV2EENbrs but only returns the number of neighbours
   E_Int connectEV2NNbrs(const char* eltType, E_Int nv, FldArrayI& cEV,
                         std::vector<E_Int>& cENN);
-    
+  E_Int connectEV2NNbrs2(const char* eltType, E_Int nv, FldArrayI& cEV,
+                         std::vector<E_Int>& cENN);  
 
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Faces->Vertex. L'indice des faces est global, soit : nof + nelt*nfaces

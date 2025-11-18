@@ -543,7 +543,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
 
   // Build the element -> number of neighbour elements connectivity
   std::vector<E_Int> cENN(ntotElts);
-  K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
+  K_CONNECT::connectEV2NNbrs2(eltType, npts, cn, cENN);
 
   // Manual uniform chunks with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;

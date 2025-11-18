@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <string.h>
 #include "String/kstring.h"
+#include <unordered_map>
 
 using namespace K_FLD;
 using namespace std;
@@ -329,6 +330,207 @@ E_Int K_CONNECT::connectEV2NNbrs(
   if (ierr == 0) ierr = 1; // duct tape because success should be 0, not 1
   else ierr = 0;
   return ierr;
+}
+
+//=============================================================================
+// Change a Elts-Vertex connectivity to a Element-Element neighbours 
+// connectivity.
+// IN: cEV: Elts-Vertex connectivity. For each elt, give vertices index.
+// IN: nv: nombre de noeuds dans le maillage
+// IN: eltType: type d'element (TRI, QUAD,...)
+// OUT: cEEN: Elts-Element neighbours connectivity. For each element, 
+// give the element index of its neighbours.
+// cEEN doit deja etre alloue au nombre d'elements.
+// Retourne 0 (echec), 1 (succes)
+// ! Marche pour les maillages non structures BE et ME
+// ! Marche uniquement pour les maillage conformes
+// ! Warning: par definition, un voisin a une facette commune avec un elt
+//   Algo: for each mesh element, fill a list of neighbour element candidates
+//         gotten from the cVE connectivity (incl. diagonal ones and self).
+//         Sort candidates and count number of occurences of each. If greater
+//         than 3 in 3D, 2 in 2D, 1 in 1D, then self and candidate share a face.
+//=============================================================================
+E_Int K_CONNECT::connectEV2EENbrs2(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<vector<E_Int> >& cEEN
+)
+{
+  E_Int nc = cEV.getNConnect();
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Get dimensionality
+  E_Int dim = 3;
+  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
+  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 ||
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+  #pragma omp parallel default(shared)
+  {
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis;
+    std::vector<E_Int> candidates; candidates.reserve(64);
+ 
+    // Loop over all connectivities to fill cEEN
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
+        eidx = cumnepc[ic] + i;
+        vector<E_Int>& cEENi = cEEN[eidx]; cEENi.reserve(8);
+        
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
+
+        // Remove eidx from candidates and sort
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
+
+        // Count occurrences and append if >= dim
+        prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
+          {
+            if (noccs >= dim) cEENi.push_back(ind);
+            prev = ind;
+            noccs = 1;
+          }
+        }
+
+        // Catch last candidate
+        if (noccs >= dim) cEENi.push_back(candidates[nneis-1]);
+      }
+    }
+  }
+
+  return 1;  // success
+}
+
+//=============================================================================
+// Same algo as in connectEV2EENbrs2 but only returns the number of neighbours
+//=============================================================================
+E_Int K_CONNECT::connectEV2NNbrs2(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<E_Int>& cENN
+)
+{
+  E_Int nc = cEV.getNConnect();
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Get dimensionality
+  E_Int dim = 3;
+  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
+  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
+  else if (strcmp(eltTypes[0], "TRI") == 0 ||
+           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+  #pragma omp parallel default(shared)
+  {
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis, count;
+    std::vector<E_Int> candidates; candidates.reserve(64);
+ 
+    // Loop over all connectivities to fill cENN
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
+        eidx = cumnepc[ic] + i;
+        
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
+
+        // Remove eidx from candidates
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
+
+        // Count occurrences
+        count = 0; prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
+          {
+            if (noccs >= dim) count++;
+            prev = ind;
+            noccs = 1;
+          }
+        }
+
+        // Catch last candidate
+        if (noccs >= dim) count++;
+        cENN[eidx] = count;
+      }
+    }
+  }
+
+  return 1;  // success
 }
 
 //=============================================================================

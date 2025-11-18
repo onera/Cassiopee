@@ -1588,9 +1588,10 @@ PyObject* K_POST::selectExteriorFacesME_NOMP(char* varString, FldArrayF& f,
   // Use a face map to build a face mask and eliminate internal faces
   std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
   std::vector<std::vector<E_Int> > facets;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
-  Topology F;
-  std::vector<E_Int> face; face.reserve(4);
+  TopologyOpt F;
+  std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > faceMap;
+  faceMap.reserve(ntotFaces);
+  E_Int face[5];
   E_Int fidx, faceOffset;
 
   faceOffset = 0;
@@ -1609,9 +1610,8 @@ PyObject* K_POST::selectExteriorFacesME_NOMP(char* varString, FldArrayF& f,
         fidx = faceOffset + i*nfpe[ic] + f;  // global face index
         nvpf = facets[f].size();  // number of vertices per face
         // Fill face and insert in map
-        face.clear();
-        for (E_Int j = 0; j < nvpf; j++) face.push_back(cm(i, facets[f][j]));
-        F.set(face);
+        for (E_Int j = 0; j < nvpf; j++) face[j] = cm(i, facets[f][j]);
+        F.set(face, nvpf);
         auto res = faceMap.insert(std::make_pair(F, fidx));
         if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
         else
@@ -1674,7 +1674,7 @@ PyObject* K_POST::selectExteriorFacesME_NOMP(char* varString, FldArrayF& f,
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;
   char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
-  char* tmpEltType;
+  const char* tmpEltType;
   eltType2[0] = '\0';
   for (size_t ic = 1; ic < nextfpc.size(); ic++)  // from BAR (1) to QUAD (4)
   {
