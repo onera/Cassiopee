@@ -94,7 +94,7 @@ def display(arrays,
                                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                                      shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                                      stereo, stereoDist, panorama,
-                                     export, exportResolution, exportAA, 
+                                     export, exportResolution, exportAA,
                                      zoneNames, renderTags, frameBuffer, offscreen,
                                      posCamList, posEyeList, dirCamList)
         return
