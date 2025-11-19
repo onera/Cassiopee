@@ -69,7 +69,7 @@ def createColormap(ctype='Blue2Red', colormapC1=None, colormapC2=None, colormapC
                   (0.50,[0,1,0]),
                   (0.75,[1,1,0]),
                   (1.00,[1,0,0])]
-        
+
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(ctype, colors)
     return cmap
 
@@ -99,16 +99,16 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, discrete=False, 
 
     if cmap is None:
         cmap = CPlot.getState('colormap')
-        if cmap in [2,3,4,5]: 
+        if cmap in [2,3,4,5]:
             ctype = 'BiColor' # BiColorRGB & BiColorHSV
             colormapC1 = CPlot.getState('colormapC1')
             colormapC2 = CPlot.getState('colormapC2')
-        elif cmap in [6,7,8,9]: 
+        elif cmap in [6,7,8,9]:
             ctype = 'TriColor' # TriColorRGB & TriColorHSV
             colormapC1 = CPlot.getState('colormapC1')
             colormapC2 = CPlot.getState('colormapC2')
             colormapC3 = CPlot.getState('colormapC3')
-        elif cmap in [10,11,12,13]: 
+        elif cmap in [10,11,12,13]:
             ctype = 'MultiColor' # MultiColorRGB & MultiColorHSV
             colormapC = CPlot.getState('colormapC')
             colormapC = ColorMaps.export2MatplotLib2(colormapC)
@@ -119,7 +119,7 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, discrete=False, 
     elif isinstance(cmap, list):
         ctype = 'MultiColor'
         colormapC = cmap
-    
+
     cmap = createColormap(ctype, colormapC1=colormapC1, colormapC2=colormapC2, colormapC3=colormapC3, colormapC=colormapC)
 
     if levels is None:
@@ -183,7 +183,7 @@ def createSubPlot(img='.decorator.png', figsize=None, dpi=None, title=None, box=
     if isinstance(img, str): img = getImage(img)
     sh = img.shape
     winx, winy = sh[1], sh[0]
- 
+
     # kwargs arguments
     fontsize = kwargs.get('fontsize', 12.)
     labelsize = kwargs.get('labelsize', 10.)

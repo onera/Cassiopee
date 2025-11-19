@@ -18,13 +18,13 @@ ylim = [0.5, 1.0] # ymin, ymax
 posCam, posEye, dirCam, viewAngle, exportResolution = Decorator.getInfo2DMode(xlim, ylim, zplane, ppw)
 
 CPlot.display(a, mode='Scalar', scalarField='F',
-    isoScales=['F',25,0.5,1.9], 
-    colormap=0, # Default Blue2Red colorbar
-    export=CPlot.decorator, # Plot.decorator = '.decorator.png'
-    offscreen=offscreen, 
-    viewAngle=viewAngle,
-    posCam=posCam, posEye=posEye, dirCam=dirCam,
-    exportResolution=exportResolution)
+              isoScales=['F',25,0.5,1.9],
+              colormap=0, # Default Blue2Red colorbar
+              export=CPlot.decorator, # Plot.decorator = '.decorator.png'
+              offscreen=offscreen,
+              viewAngle=viewAngle,
+              posCam=posCam, posEye=posEye, dirCam=dirCam,
+              exportResolution=exportResolution)
 
 CPlot.finalizeExport(offscreen)
 
