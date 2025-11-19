@@ -35,7 +35,7 @@
 /* Define a chained integer list */
 struct chain_int 
 {
-  E_Int      value;
+  E_Int value;
   chain_int* next;
 };
 

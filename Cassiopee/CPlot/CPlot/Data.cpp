@@ -377,6 +377,7 @@ void Data::initState()
   strcpy(ptrState->exportFile, "CPlot");
   ptrState->exportWidth = -1;
   ptrState->exportHeight = -1;
+  ptrState->exportAA = 0;
   ptrState->continuousExport = 0;
   ptrState->ptrFile = NULL;
   ptrState->context = NULL;
