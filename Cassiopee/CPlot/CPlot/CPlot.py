@@ -313,28 +313,28 @@ def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
     shift = colormap % 2
     if colormap == 16 or colormap == 17: # Viridis
-        colormapC = ColorMaps.Viridis
+        colormapC = ColorMaps.cmapDict['Viridis']
         colormap = 10+shift
     elif colormap == 18 or colormap == 19: # Inferno
-        colormapC = ColorMaps.Inferno
+        colormapC = ColorMaps.cmapDict['Inferno']
         colormap = 10+shift
     elif colormap == 20 or colormap == 21: # Magma
-        colormapC = ColorMaps.Magma
+        colormapC = ColorMaps.cmapDict['Magma']
         colormap = 10+shift
     elif colormap == 22 or colormap == 23: # Plasma
-        colormapC = ColorMaps.Plasma
+        colormapC = ColorMaps.cmapDict['Plasma']
         colormap = 10+shift
     elif colormap == 24 or colormap == 25: # Jet
-        colormapC = ColorMaps.Jet
+        colormapC = ColorMaps.cmapDict['Jet']
         colormap = 10+shift
     elif colormap == 26 or colormap == 27: # Greys
-        colormapC = ColorMaps.Greys
+        colormapC = ColorMaps.cmapDict['Greys']
         colormap = 10+shift
     elif colormap == 28 or colormap == 29: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
         colormap = 6+shift
     elif colormap == 30 or colormap == 31: # Greens
-        colormapC = ColorMaps.Greens
+        colormapC = ColorMaps.cmapDict['Greens']
         colormap = 10+shift
 
     # if colormapC are given in rgb, convert to hexa string
