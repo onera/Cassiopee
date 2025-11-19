@@ -124,11 +124,7 @@ E_Int K_CONNECT::connectEV2EENbrs(
                 if (ind1 == ind2) { nmatch++; break; }
               }
             }
-            if (nmatch == nvpf)
-            {
-              cEEN1.push_back(nidx);
-              break;
-            }
+            if (nmatch == nvpf) { cEEN1.push_back(nidx); break; }
           }
         }
       }
