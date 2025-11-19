@@ -1,0 +1,60 @@
+import KCore.Dist as Dist
+from KCore.config import *
+import os
+#==============================================================================
+# Roms requires:
+# C++ compiler
+# Numpy
+# KCore
+#==============================================================================
+
+# Get prefix from command line
+prefix = ARGUMENTS.get('prefix', '')
+installPath = Dist.getInstallPath(prefix)
+
+# Get compilers from Distutils ================================================
+(cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
+
+# Python ======================================================================
+(pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = Dist.checkPython()
+
+# Test if numpy exists =======================================================
+(numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
+
+# Test if kcore exists =======================================================
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+
+# Setting libraryDirs and libraries ===========================================
+libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
+libraries = ["kcore"]
+(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+libraryDirs += paths; libraries += libs
+
+# Env =========================================================================
+import srcs
+if Dist.getSystem()[0] == 'mingw': tools = ['mingw']
+else: tools = None
+AR = Dist.getAR()
+env = Environment(tools=tools, CC=cc, CXX=cxx, AR=AR, CPPFLAGS=[],
+                  LIBPATH=additionalLibPaths+libraryDirs,
+                  LIBS=libraries+additionalLibs,
+                  CPPPATH=["Roms"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir],
+                  SHLIBSUFFIX=so_ext, SHLIBPREFIX='',
+                  LINKFLAGS=Dist.getLinkArgs(),
+                  ENV=Dist.getEnvForScons())
+env.Replace(CXXFLAGS=Dist.getCppArgs()+['-D_USE_MATH_DEFINES'])
+env.Replace(CFLAGS=Dist.getCArgs())
+
+ELSAPROD = os.environ.get('ELSAPROD', 'x86_r8')
+env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
+
+#==============================================================================
+
+myMod = env.StaticLibrary('roms', source=srcs.cpp_srcs)
+
+modDir = 'build/'+ELSAPROD
+dp1 = env.Install(modDir, myMod)
+
+env.Alias(target="install", source=[dp1])

@@ -3,11 +3,10 @@ from setuptools import setup, Extension
 import os
 
 #=============================================================================
-# Modeler requires:
-# ELSAPROD variable defined in environment
+# Roms requires:
 # C++ compiler
 # Numpy
-# KCore, Converter, Generator, Transform
+# KCore, Compressor
 #=============================================================================
 
 # Write setup.cfg file
@@ -22,45 +21,24 @@ from KCore.config import *
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
 
-# Test if open-cascade is already installed ==================================
-(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths,
-                                                   additionalIncludePaths)
-
-import srcs
-if srcs.TIGL and not OCCPresent:
-    print("Warning: open cascade not found on your system. Modeler.Tigl not installed.")
-    os._exit(0)
-
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
-libraries = ["kcore", "modeler", "modeler"]
+libraries = ["kcore", "roms"]
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 
-if OCCPresent:
-    libraryDirs += [OCCLibDir]
-    includeDirs += [OCCIncDir]
-
-libOCC = Dist.getOCCModules()
-if OCCPresent and Dist.getSystem()[0] == 'mingw':
-    libOCC = [i+".dll" for i in libOCC]
-if OCCPresent: libraries += libOCC + libOCC
-
 import srcs
-if srcs.TIXI: libraries += ["curl", "xml2", "xslt"]
-if srcs.TIGL: libraries += ["boost_system", "boost_filesystem", "boost_date_time"]
-#if srcs.TIGL: libraries += ["boost_filesystem-mt", "boost_date_time-mt"]
 
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(
-    Extension('Modeler.modeler',
-              sources=['Modeler/modeler.cpp'],
-              include_dirs=["Modeler"]+additionalIncludePaths+includeDirs,
+    Extension('Roms.roms',
+              sources=['Roms/roms.cpp'],
+              include_dirs=["Roms"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
               extra_compile_args=Dist.getCppArgs(),
@@ -69,12 +47,12 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name="Modeler",
+    name="Roms",
     version="4.1",
-    description="Modeler module.",
+    description="Roms module.",
     author="ONERA",
     url="https://cassiopee.onera.fr",
-    packages=['Modeler', 'Modeler.CPACS'],
+    packages=['Roms'],
     package_dir={"":"."},
     ext_modules=listExtensions
 )
