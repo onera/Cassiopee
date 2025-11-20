@@ -52,7 +52,7 @@ setup(
     description="Roms module.",
     author="ONERA",
     url="https://cassiopee.onera.fr",
-    packages=['Roms'],
+    packages=['Roms', 'Roms.DB', 'Roms.LA'],
     package_dir={"":"."},
     ext_modules=listExtensions
 )

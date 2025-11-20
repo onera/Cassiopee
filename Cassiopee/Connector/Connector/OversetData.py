@@ -1318,8 +1318,7 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                                 cellNOrphan = Converter.array('cellN#Orphan', nextraploc, 1, 1)
                                 cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
                                 C._setPartialFields(z, [cellNOrphan], [listExtrap], loc=locR)
-                            '''
-                            '''
+
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
                 # direct: on stocke dans aR
