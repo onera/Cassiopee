@@ -269,14 +269,14 @@ def computationDistancesNormals(t, tb, dim=3):
     return t
 
 def extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir='./'):
-    if Cmpi.rank == 0:
+    if Cmpi.master:
         C._deleteEmptyZones(frontIP_gath)
         frontIP_gath = T.join(frontIP_gath)
         frontIP_gath = C.convertArray2Tetra(frontIP_gath)
         frontIP_gath = G.close(frontIP_gath)
         frontIP_gath[0] = "frontIP_gath"
         if dim ==3 and sym3D:
-            print("Symmetry of frontIP gathered"%Cmpi.rank)
+            print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
             # symmetry plane xz
             point = (0.0,0.0,0.0)
             vector1 = (1.0,0.0,0.0)

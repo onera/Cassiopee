@@ -23,8 +23,6 @@ D_IBM._setIBCType(tb,"Musker")
 
 tbox= None
 
-opt   = False
-
 t_AMR = G_AMR.generateAMRMesh(tb=tb, toffset=None, levelMax=levelMax, vmins=vmins, dim=dim,
                               check=True, opt=False, octreeMode=1, tbox=tbox, localDir=LOCAL)
 test.testT(t_AMR,1)

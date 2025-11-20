@@ -24,11 +24,7 @@ def vminsInputCheck(vminsIN, numBaseTMP, levelMaxTMP):
         if not isinstance(vminsTMP[0],list): vminsTMP=[vminsTMP] # vmin = [] --> vmin = [[]]
 
         # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
-        isDone = False
-        while not isDone:
-            numSublists = sum(1 for item in vminsTMP if isinstance(item, list))
-            if numSublists<numBaseTMP: vminsTMP.append(vminsTMP[0])
-            else: isDone=True
+        while len(vminsTMP) < numBaseTMP: vminsTMP.append(vminsTMP[-1])
     else:
         ## vmin = 10
         vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
@@ -41,7 +37,8 @@ def _addItemDict(d, key, value):
     else:
         d[key] = [value]
     return None
-def listSnear(tb,snears):
+
+def getListSnear(tb,snears):
     # List of snears
     if not isinstance(snears, list):
         snearsList=[]
@@ -124,6 +121,11 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                     fixedConstraints = []
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
+
+        ##[Temp. Patch] - This need to be generalized.
+        ## tbv2: tb version 2 - it is tb with an small extrusion outward of the calc. domain to guarantee a correct offset for the near body offsets.
+        ## This is a (very) temporary fix & is intended to be replaced with a more suitable approach after extensive testing.
+        ## Current use: 3D symmetric cases & needed for the CRM case 1 of the HLPW5.
         if tbv2 is not None:
             for nob in range(len(tbv2[2])):
                 if Internal.getType(tbv2[2][nob])=='CGNSBase_t':
@@ -322,7 +324,10 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def tagOutside__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
+def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
+    # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
+    # It tags the inside of the bodies as cellN=0 and then multuiplies the indicator. i.e. the parts inside the body will be zero.
+
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to,'centers:indicatorTmp',0.)
 
@@ -1094,9 +1099,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
-                ## Pull request note: tagOutside causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
+                ## Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
                 for offsetlocTmp in offset_inside[0]:
-                    o = tagOutside__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
+                    o = tagOutsideBody__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
@@ -1295,7 +1300,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     if baseSYM: isSymLocal = True
 
     checkBaseNames(tb,tbox)
-    snears, numBase = listSnear(tb, snears)
+    snears, numBase = getListSnear(tb, snears)
     snearsFlat = [x[0] for x in snears]
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
 
@@ -1315,7 +1320,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         else:
             vminsTbox=vminsInputCheck(vminsTbox, numTbox, levelMax)
         Cmpi.barrier()
-        snearsTbox, tmpRMV = listSnear(tbox, 1)
+        snearsTbox, tmpRMV = getListSnear(tbox, 1)
         vmins.extend(vminsTbox)
 
     snearEnd = len(snears)

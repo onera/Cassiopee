@@ -10,7 +10,7 @@ LOCAL      = test.getLocal()
 snear      = 0.001
 dFar       = 10
 levelMax   = 20
-vmins      = [15,14,14,10,11,5,4]
+vmins      = [[15,14,14,10,11,5,4]]
 vminsTbox  = [[5,5]]
 dim        = 2
 
