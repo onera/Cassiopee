@@ -431,7 +431,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     return None
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
-                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                         order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                          interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None,model="Euler"):
 
     prefixIBCD ='IBCD_'
@@ -461,7 +461,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
     #-------------------------------------------
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                          nature=nature, method=method, interpDataType=interpDataType,\
+                                          nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                           hook=hook, dim=dim)
     if resInterp is not None:
         # Bilan
@@ -1312,11 +1312,14 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
                             if verbose == 3: # force cellN#Orphan=-2
+                                listExtrap = resInterp[4][noz]
                                 if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
                                     C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}"%(loc,loc))
-                                cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
+                                cellNOrphan = Converter.array('cellN#Orphan', nextraploc, 1, 1)
                                 cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
-                                C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
+                                C._setPartialFields(z, [cellNOrphan], [listExtrap], loc=locR)
+                            '''
+                            '''
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
                 # direct: on stocke dans aR
