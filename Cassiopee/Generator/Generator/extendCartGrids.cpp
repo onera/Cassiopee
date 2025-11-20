@@ -125,6 +125,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Int* ext4 = extension.begin(4);
   E_Int* ext5 = extension.begin(5);
   E_Int* ext6 = extension.begin(6);
+
+  if(optimized !=-1 )
+  {
   E_Int ret;
   E_Float xp, yp, zp, dx, dy, dz;
   E_Float s1, s2; // surface de la facette initiale et surface de facette projetee
@@ -1055,6 +1058,14 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       // fin test facette k = kmax           
       //end:;
     }// pour ts les elts
+  }
+  }
+  else// optimised=-1
+  {
+    for (E_Int v = 0; v < nzones; v++)
+      { ext1[v]=2; ext2[v]=2; ext3[v]=2; ext4[v]=2;
+        if(dim !=2) {ext5[v]=2; ext6[v]=2;}
+      }
   }
 
   PyObject* l = PyList_New(0); 
