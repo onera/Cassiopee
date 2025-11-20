@@ -7,14 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy
 
-#import matplotlib.cbook as cbook
-#import matplotlib.patches as patches
-#import matplotlib.colors as mplcolors
-#from matplotlib import cm
-#from matplotlib.colors import ListedColormap, LinearSegmentedColormap
-
-dpi = 100.
-
 #==========================================================
 def setBatch(batch=True):
     """Set batch mode for matplotlib."""
@@ -22,52 +14,63 @@ def setBatch(batch=True):
     else: matplotlib.use('TkAgg') # avec serveur X
 
 #==========================================================
-def createColormap(type='Blue2Red'):
+def getInfo2DMode(xlim, ylim, zplane, ppw):
+    """Toggle 2D mode for CPlot display."""
+    xmin, xmax = xlim
+    ymin, ymax = ylim
+    cx = (xmax+xmin)/2.
+    cy = (ymax+ymin)/2.
+    width = xmax-xmin
+    height = ymax-ymin
+    pph = int((ppw*height)/width) # pixels per height
+
+    D = max(width, height) # focal length = distance between posCam and posEye
+    viewAngle = 2*numpy.arctan(height/(2*D)) # camera's vertical angle of view based on focal length
+    viewAngle *= 180./numpy.pi
+
+    posCam = (cx, cy, zplane+D)
+    posEye = (cx, cy, zplane)
+    dirCam = (0., 1., 0.)
+    exportResolution="%dx%d"%(ppw, pph)
+
+    return posCam, posEye, dirCam, viewAngle, exportResolution
+
+#==========================================================
+def createColormap(ctype='Blue2Red', colormapC1=None, colormapC2=None, colormapC3=None, colormapC=None, colors=None):
     """Create colormap."""
-    if type == 'Blue2Red':
-        colors = [(0.00,[0,0,1]),
-                  (0.25,[0,1,1]),
-                  (0.50,[0,1,0]),
-                  (0.75,[1,1,0]),
-                  (1.00,[1,0,0])]
-    elif type == 'BiColorRGB':
-        c1 = CPlot.getState('colormapC1')
-        c2 = CPlot.getState('colormapC2')
-        colors = [(0.00,[c1[0],c1[1],c1[2]]),
-                  (1.00,[c2[0],c2[1],c2[2]])]
-    elif type == 'BiColorHSV':
-        c1 = CPlot.getState('colormapC1')
-        c2 = CPlot.getState('colormapC2')
-        colors = [(0.00,[c1[0],c1[1],c1[2]]),
-                  (1.00,[c2[0],c2[1],c2[2]])]
-    elif type == 'TriColorRGB':
-        c1 = CPlot.getState('colormapC1')
-        c2 = CPlot.getState('colormapC2')
-        c3 = CPlot.getState('colormapC3')
+
+    if ctype in ['Jet', 'Magma', 'Inferno', 'Viridis', 'Plasma', 'Diverging', 'Greys', 'Greens']:
+        colors = ColorMaps.export2MatplotLib2(ColorMaps.cmapDict[ctype])
+    elif ctype == 'NiceBlue':
+        c1 = matplotlib.colors.to_rgba('#000000')
+        c2 = matplotlib.colors.to_rgba('#FFFFFF')
+        c3 = matplotlib.colors.to_rgba('#0061A5')
         colors = [(0.00,[c1[0],c1[1],c1[2]]),
                   (0.50,[c3[0],c3[1],c3[2]]),
                   (1.00,[c2[0],c2[1],c2[2]])]
-    elif type == 'TriColorHSV':
-        c1 = CPlot.getState('colormapC1')
-        c2 = CPlot.getState('colormapC2')
-        c3 = CPlot.getState('colormapC3')
+    elif ctype == 'BiColor':
+        c1 = colormapC1
+        c2 = colormapC2
+        colors = [(0.00,[c1[0],c1[1],c1[2]]),
+                  (1.00,[c2[0],c2[1],c2[2]])]
+    elif ctype == 'TriColor':
+        c1 = colormapC1
+        c2 = colormapC2
+        c3 = colormapC3
         colors = [(0.00,[c1[0],c1[1],c1[2]]),
                   (0.50,[c3[0],c3[1],c3[2]]),
                   (1.00,[c2[0],c2[1],c2[2]])]
-    elif type == 'MultiColorRGB':
-        colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
-    elif type == 'MultiColorHSV':
-        colors = ColorMaps.export2MatplotLib2(CPlot.getState('colormapC'))
-    elif type == 'Diverging':
-        colors = ColorMaps.export2MatplotLib2(ColorMaps.Diverging)
+    elif ctype == 'MultiColor':
+        colors = colormapC
     else: # Blue2Red par defaut
+        ctype = 'Blue2Red'
         colors = [(0.00,[0,0,1]),
                   (0.25,[0,1,1]),
                   (0.50,[0,1,0]),
                   (0.75,[1,1,0]),
                   (1.00,[1,0,0])]
 
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list('Blue2Red', colors)
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(ctype, colors)
     return cmap
 
 #==========================================================
@@ -79,39 +82,65 @@ def createColormap(type='Blue2Red'):
 # IN: title: color bar title
 # IN: discrete: True if discrete color map
 #==========================================================
-def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.3f', discrete=True,
-                   fontSize=20, color="black", location="right", pad=0.):
+def createColorBar(fig, ax, levels=None, title=None, cmap=None, discrete=False, location='right', size='3%', pad=0.5, **kwargs):
     """Create a color bar."""
+
+    ctype = 'Blue2Red'
+    colormapC = None
+    colormapC1 = kwargs.get('colormapC1', '#000000')
+    if isinstance(colormapC1, str):
+        colormapC1 = matplotlib.colors.to_rgba(colormapC1)
+    colormapC2 = kwargs.get('colormapC2', '#FFFFFF')
+    if isinstance(colormapC2, str):
+        colormapC2 = matplotlib.colors.to_rgba(colormapC2)
+    colormapC3 = kwargs.get('colormapC3', '#777777')
+    if isinstance(colormapC3, str):
+        colormapC3 = matplotlib.colors.to_rgba(colormapC3)
+
     if cmap is None:
         cmap = CPlot.getState('colormap')
-        if cmap == 0 or cmap == 1: # primaire
-            cmap = createColormap('Blue2Red')
-        elif cmap == 2 or cmap == 3: # primaire
-            cmap = createColormap('BiColorRGB')
-        elif cmap == 4 or cmap == 5: # primaire
-            cmap = createColormap('BiColorHSV')
-        elif cmap == 6 or cmap == 7: # primaire
-            cmap = createColormap('TriColorRGB')
-        elif cmap == 8 or cmap == 9: # primaire
-            cmap = createColormap('TriColorHSV')
-        elif cmap == 10 or cmap == 11: # primaire
-            cmap = createColormap('MultiColorRGB')
-        elif cmap == 12 or cmap == 13: # primaire
-            cmap = createColormap('MultiColorHSV')
-        elif cmap == 14 or cmap == 15: # primaire
-            cmap = createColormap('Diverging')
-        else: # default
-            cmap = createColormap('Blue2Red')
-    elif isinstance(cmap, str): cmap = createColormap(cmap)
+        if cmap in [2,3,4,5]:
+            ctype = 'BiColor' # BiColorRGB & BiColorHSV
+            colormapC1 = CPlot.getState('colormapC1')
+            colormapC2 = CPlot.getState('colormapC2')
+        elif cmap in [6,7,8,9]:
+            ctype = 'TriColor' # TriColorRGB & TriColorHSV
+            colormapC1 = CPlot.getState('colormapC1')
+            colormapC2 = CPlot.getState('colormapC2')
+            colormapC3 = CPlot.getState('colormapC3')
+        elif cmap in [10,11,12,13]:
+            ctype = 'MultiColor' # MultiColorRGB & MultiColorHSV
+            colormapC = CPlot.getState('colormapC')
+            colormapC = ColorMaps.export2MatplotLib2(colormapC)
+        elif cmap in [14,15]: ctype = 'Diverging'
+        else: ctype = 'Blue2Red'
+    elif isinstance(cmap, str):
+        ctype = cmap
+    elif isinstance(cmap, list):
+        ctype = 'MultiColor'
+        colormapC = cmap
+
+    cmap = createColormap(ctype, colormapC1=colormapC1, colormapC2=colormapC2, colormapC3=colormapC3, colormapC=colormapC)
 
     if levels is None:
         levels = CPlot.getState('isoScale')
         if levels[0] <= 2: levels[0] = 3
 
+    # kwargs arguments
+    extend = kwargs.get('extend', 'neither') # 'neither', 'both', 'min', 'max'
+    extendrect = kwargs.get('extendrect', True)
+    fontsize = kwargs.get('fontsize', 12)
+    labelsize = kwargs.get('labelsize', 10)
+    titlepad = kwargs.get('titlepad', 12)
+    labelFormat = kwargs.get('labelFormat', '%.2f')
+    nticks = kwargs.get('nticks', 5)
+
+    if discrete: # adapt levels[0] if necessary
+        while (levels[0]-1)%(nticks-1) != 0: levels[0] += 1
+
     # Nombre de separation sur la barre
-    Ns = min(levels[0], 10)
-    cbar_ticks = numpy.linspace(levels[1], levels[2], levels[0])
     nlevels = numpy.linspace(levels[1], levels[2], levels[0])
+    cticks = numpy.linspace(levels[1], levels[2], nticks)
 
     if discrete:
         norm = matplotlib.colors.BoundaryNorm(nlevels, cmap.N)
@@ -120,27 +149,25 @@ def createColorBar(fig, ax, levels=None, title=None, cmap=None, valueFormat='%0.
         norm = matplotlib.colors.Normalize(levels[1], levels[2], clip=True)
         cset = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
-    fontdict = {'fontsize':fontSize}
     from mpl_toolkits.axes_grid1 import make_axes_locatable
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes(location, size="2%", pad=pad)
+    cax = divider.append_axes(location, size=size, pad=pad)
     if location == "top" or location == "bottom": orientation = "horizontal"
     else: orientation = "vertical"
-    cbar = fig.colorbar(cset, format=valueFormat, ticks=cbar_ticks, cax=cax, orientation=orientation)
+    cbar = fig.colorbar(cset, format=labelFormat, ticks=cticks, cax=cax, orientation=orientation, extendrect=extendrect, extend=extend)
 
     # Regle les marqueurs de la barre
-    cbar.ax.tick_params(which='major', length=4., width=0.5, color=color, labelsize=fontSize)
-    cbar.ax.tick_params(labelcolor=color)
+    cbar.ax.tick_params(which='major', labelsize=labelsize)
 
     # Titre de la barre
-    if title is not None:
-        cbar.ax.set_title(title, fontdict=fontdict, color=color, pad=0.15*dpi)
+    if title is not None: cbar.ax.set_title(title, fontsize=fontsize, pad=titlepad)
 
     fig.subplots_adjust(wspace=0.)
     return cbar
 
 #==========================================================
 # Return a numpy image from a file
+#==========================================================
 def getImage(fileName):
     """Read image from file."""
     img = plt.imread(fileName)
@@ -151,18 +178,55 @@ def getImage(fileName):
 # IN: img: image or image file name
 # OUT: fig, ax: figure and axes
 #==========================================================
-def createSubPlot(img='.decorator.png', title=None, box=False):
-    """Create a sub plot figure."""
+def createSubPlot(img='.decorator.png', figsize=None, dpi=None, title=None, box=False, xlim=[], ylim=[], **kwargs):
+    """Create a subplot figure."""
     if isinstance(img, str): img = getImage(img)
     sh = img.shape
-    win = (sh[1], sh[0])
-    fig, ax = plt.subplots(figsize=(win[0]/float(dpi), win[1]/float(dpi)), dpi=dpi)
-    ax.imshow(img, animated=True, aspect=1)
-    # Axes vides
-    #ax.plot([], [], 'o', ms=8., mfc='None')
-    if box: ax.set(xticks=[], yticks=[])
-    else: ax.set_axis_off()
-    if title is not None: ax.set_title(title)
+    winx, winy = sh[1], sh[0]
+
+    # kwargs arguments
+    fontsize = kwargs.get('fontsize', 12.)
+    labelsize = kwargs.get('labelsize', 10.)
+    interpolation = kwargs.get('interpolation', 'none')
+
+    extent = None
+    if xlim != [] and ylim != []: extent = xlim+ylim
+
+    if figsize is None:
+        figsize = (8, 8*winy/winx) # automatic figsize setting based on image ratio
+
+    if dpi is None:
+        dpi = winx/figsize[0] # automatic dpi setting based on the image actual size
+
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+    ax.imshow(img, animated=True, aspect=1., extent=extent, interpolation=interpolation)
+    if extent is not None: ax.set(xlim=xlim, ylim=ylim)
+
+    if box:
+        if extent is not None: # xlim and ylim are defined
+            xlabel = kwargs.get('xlabel', 'x')
+            xlabelpad = kwargs.get('xlabelpad', 11.)
+            ax.set_xlabel(xlabel, fontsize=fontsize, labelpad=xlabelpad)
+
+            ylabel = kwargs.get('ylabel', 'y')
+            ylabelpad = kwargs.get('ylabelpad', 11.)
+            ax.set_ylabel(ylabel, fontsize=fontsize, labelpad=ylabelpad)
+
+            ax.tick_params(which='major', labelsize=labelsize)
+        else:
+            boxColor = kwargs.get('boxColor', 'black')
+            boxLineWidth = kwargs.get('boxLineWidth', 1.)
+            ax.set(xticks=[], yticks=[])
+            for spine in ax.spines.values():
+                spine.set_linewidth(boxLineWidth)
+                spine.set_color(boxColor)
+    else:
+        ax.set_axis_off()
+
+    if title is not None:
+        titlepad = kwargs.get('titlepad', 12.)
+        ax.set_title(title, fontsize=fontsize, pad=titlepad)
+
     return fig, ax
 
 #==========================================================
@@ -181,10 +245,10 @@ def createText(ax, posx=0, posy=0, text='', size=20, color="black",
 #==========================================================
 # Save current figure to fileName
 #==========================================================
-def savefig(fileName, pad=0.):
+def savefig(fileName, pad=0., dpi='figure', **kwargs):
     """Save current figure in a file."""
     print("Write %s"%fileName)
-    plt.savefig(fileName, dpi=dpi, bbox_inches='tight', pad_inches=pad)
+    plt.savefig(fileName, dpi=dpi, bbox_inches='tight', pad_inches=pad, **kwargs)
 
 #==========================================================
 # Show current fig
@@ -192,6 +256,13 @@ def savefig(fileName, pad=0.):
 def show():
     """Show current figure."""
     plt.show()
+
+#==========================================================
+# Close all figures
+#==========================================================
+def closeAll():
+    """Close all figures."""
+    plt.close('all')
 
 #==============================================================
 # Change xyz (3D) to image position (written by Luis Bernardos)
