@@ -20,15 +20,15 @@ def vminsInputCheck(vminsIN, numBaseTMP, levelMaxTMP):
     vminsTMP = copy.deepcopy(vminsIN)
     # list of vminsTMP
     if isinstance(vminsTMP,list):
-        ## vmin = [] & vmin =[[],[]] for 3 bases
+        # vmin = [] & vmin =[[],[]] for 3 bases
         if not isinstance(vminsTMP[0],list): vminsTMP=[vminsTMP] # vmin = [] --> vmin = [[]]
 
         # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
         while len(vminsTMP) < numBaseTMP: vminsTMP.append(vminsTMP[-1])
     else:
-        ## vmin = 10
+        # vmin = 10
         vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
-        vminsTMP = vminsTMP.tolist() ##needed
+        vminsTMP = vminsTMP.tolist() # needed
     return vminsTMP
 
 def _addItemDict(d, key, value):
@@ -109,7 +109,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                 z = C.convertArray2Tetra(z)
                 z = T.join(z)
                 bbz = G.bbox(z)
-                ## [TODO] this needs to be related to the hmin
+                # [TODO] this needs to be related to the hmin
                 # hausd is a length and must be adapted to the dimensions of each case
                 hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
                 hmax = hausd*1000
@@ -122,10 +122,10 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
 
-        ##[Temp. Patch] - This need to be generalized.
-        ## tbv2: tb version 2 - it is tb with an small extrusion outward of the calc. domain to guarantee a correct offset for the near body offsets.
-        ## This is a (very) temporary fix & is intended to be replaced with a more suitable approach after extensive testing.
-        ## Current use: 3D symmetric cases & needed for the CRM case 1 of the HLPW5.
+        #[Temp. Patch] - This need to be generalized.
+        # tbv2: tb version 2 - it is tb with an small extrusion outward of the calc. domain to guarantee a correct offset for the near body offsets.
+        # This is a (very) temporary fix & is intended to be replaced with a more suitable approach after extensive testing.
+        # Current use: 3D symmetric cases & needed for the CRM case 1 of the HLPW5.
         if tbv2 is not None:
             for nob in range(len(tbv2[2])):
                 if Internal.getType(tbv2[2][nob])=='CGNSBase_t':
@@ -185,7 +185,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             zmin = 0; zmax = 0
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
-            ## Pull request note: h_core may cause regressions in the mesh generation
+            # Pull request note: h_core may cause regressions in the mesh generation
             h_core = min(h_core, 16.*minSnear)
         
         # Do not extend the CartCore beyond the symmetry plane (symClose)
@@ -216,8 +216,10 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         t = C.newPyTree(["BASE",Internal.getZones(b)])
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
         C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        ##Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
 
+        # all body offsets are prefaced by 'z_offsetBase' - only the zone name
+        # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         preffixLocal = 'z_offsetBase'
         if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
@@ -257,8 +259,8 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
         levelSkel = levelSkelInput 
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
-            ## Pull request note: levelSkelLoc causes regressions in the mesh generation
-            levelSkelLoc = int(math.log2(dfars[c]/snears[c]))
+            # Pull request note: levelSkelLoc causes regressions in the mesh generation
+            levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
             #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
             if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
             dfarloc      = dfars[c]
@@ -341,12 +343,12 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
-    ##[Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
+    # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
     if (noffsets is None) or (noffsets>2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
     elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
     elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
     elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
-    ##XRAYDIM1 = max(500, min(5000, XRAYDIM1)); ## XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
+    # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn",1.)
 
     to = X.blankCells(to, bodies1, BM, blankingType='node_in',
@@ -390,10 +392,10 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10; XRAYDIM2 = int(L2/h_target)+10
-    ##[Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
-    #XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
-    #XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
-    ## Pull request note: causes regressions in the mesh generation
+    # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
+    # XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
+    # XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
+    # Pull request note: causes regressions in the mesh generation
     if (noffsets is None) or (noffsets>2) or coarseXray:
         XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
         XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
@@ -418,6 +420,8 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
         to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                           XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                           cellNName='cellNOut')
+        # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
+        # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
         depthLocal = -1
         if opt:
             if noffsets==0:   depthLocal=-3
@@ -1083,22 +1087,27 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     noffsets        = max(noffsetBase)
     for i in range(noffsets-1, -1,-1):
         if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        for nBase in range(1+min(1,numTbox)): #0:IBM body; 1:tbox
+        for nBase in range(1+min(1,numTbox)): #nBase = 0(IBM), 1(tbox - if it exists))
+            # if i (offset) is greater than the num. offset for nBase - we continue to the next offset number
             if i > noffsetBase[nBase]-1: continue
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
-            offsetloc = offset_zonesNew[nBase][i][0]
+            offsetloc = offset_zonesNew[nBase][i][0] # as all offset at this level have the same snear we just take the first one in the list
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
             hx        = hminLocal# * 2**i
             adaptPass = 0
             adapting  = True
             while adapting:
                 C._initVars(o,'centers:indicator',0.)
+                # loop through the offsets in the list for base=nBase and offset level=i
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
+                    # body offset: tag the region between the body & the offset
+                    # tbox offset: tage the region enclosed by the offset
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
-                ## Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
+                # Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
                 for offsetlocTmp in offset_inside[0]:
+                    # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
                     o = tagOutsideBody__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
                     C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
@@ -1134,6 +1143,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
     XC.AdaptMesh_Exit(hookAM)
 
+    # BCs
     zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
     zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
@@ -1288,10 +1298,19 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
+    # NumMinDxLarge : min. number of cells at the largest Deltax between the first refinement & the domain boundary conditions
+    # e.g. NumMinDxLarge = 1
+    #      |   |   |
+    #      |   |---|
+    #      |   |   |
+    # e.g. NumMinDxLarge = 2
+    #      |   |   |   |
+    #      |   |   |---|
+    #      |   |   |   |
     if NumMinDxLarge<1:
         if Cmpi.master: print("NumMinDxLarge - the min. num. of cells in any direction for the max. Dx - cannot be less than 1. Setting NumMinDxLarge to at least 1.", flush=True)
         NumMinDxLarge=1
-    NumMinDxLarge+=1
+    NumMinDxLarge+=1 # we add one as the check later on is on nodes & not cells.
 
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
     isSymLocal = False
@@ -1303,6 +1322,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
 
     # list of vmins
+    # This section::
+    # ================== SECTION START ==================
+    # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
     vmins=vminsInputCheck(vmins, numBase, levelMax)
 
     snearsTbox = []
@@ -1321,10 +1343,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         snearsTbox, tmpRMV = getListSnear(tbox, 1)
         vmins.extend(vminsTbox)
 
+    # add the tbox snear parameters
     snearEnd = len(snears)
     if isSymLocal: snearEnd = -1
     snearsTbTbox = snears[0:snearEnd]
     if snearsTbox: snearsTbTbox.extend(snearsTbox)
+
     numBase = numBase + numTbox
     vminsLocal = numpy.ones((numBase,levelMax))
     for nBase in range(numBase):
@@ -1341,9 +1365,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     for nBase in range(numBase):
         vmins.append(list(vminsLocal[nBase]))
         vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
+    # ================== SECTION END  ==================
+
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
-    # ONLY tb, no tboxq
+    # ONLY tb, no tbox
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
         if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
@@ -1356,6 +1382,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
+    # Modifies the snears such that they are always a multiple of the smallest snear
+    # Needed to quarantee a smooth transition of the flow field
     minSnearsOrig = min(snearsFlat)
     if abs(hmin-minSnearsOrig)>__TOL__:
         for nBase in range(numBase):
@@ -1374,10 +1402,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     baseSYM = Internal.getNodesFromName1(tb_tboxLocal,"SYM")
     if baseSYM:
-        ##Remove SYM Base & Zones - keep real closed tb
+        # Remove SYM Base & Zones - keep real closed tb
         tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, 'SYM', 'CGNSBase_t')
         tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, '*_sym*', 'Zone_t')
 
+    # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
+    # The min of this becomes the dfar max.
     dfarmaxLocal = []
     for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
         bbTbLocal = G.bbox(tbLocal)
@@ -1387,7 +1417,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             else:              dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
             dfarmax    = min(dfarmaxTmp,dfarmax)
         dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
-    
+
+    # Old dfar max calc. Stays here in case it is needed in the future
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
     
@@ -1399,7 +1430,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             for no_adapt in range(len(vmins[nBase])):
                 hminLocal = snearsTbTbox[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                ## Pull request note: the line below causes regressions in the mesh generation
+                # Pull request note: the line below causes regressions in the mesh generation
                 if offsetloc < 0.99*dfarmaxLocal[nBase]:
                     #if offsetloc < 0.99*dfarmax:
                     offsetValuesBase.append(offsetloc)
@@ -1409,7 +1440,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                 raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %s which is larger than the max allowable distance of %s. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase])) 
             offsetValues.append(offsetValuesBase)
-        #generate list of offsets
+        # generate list of offsets
 
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
@@ -1421,7 +1452,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM:
-        ##Remove SYM Base & Zones - keep real closed tb
+        # Remove SYM Base & Zones - keep real closed tb
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     Cmpi.barrier()
