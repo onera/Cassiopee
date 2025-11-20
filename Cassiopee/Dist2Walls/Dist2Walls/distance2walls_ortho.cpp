@@ -382,6 +382,7 @@ void K_DIST2WALLS::computeOrthoDist(
   }
 
   /* Compute the distance with orthogonal projection */
+  E_Float hmax=dTarget;
   #pragma omp parallel
   {
     E_Float pt[3];
@@ -396,6 +397,12 @@ void K_DIST2WALLS::computeOrthoDist(
     E_Float* xw; E_Float* yw; E_Float* zw; E_Float* cellnw;
     E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
 
+#ifdef _OPENMP
+  E_Int tid = omp_get_thread_num();
+#else
+  E_Int tid  = 1;
+#endif
+
     for (E_Int v = 0; v < nzones; v++)
     {
       E_Float* xt = fields[v]->begin(posx);
@@ -405,8 +412,15 @@ void K_DIST2WALLS::computeOrthoDist(
       E_Int npts = distances[v]->getSize();
       E_Int isFlagged = false;
       E_Float* flagp = NULL;
-      if (posflag[v] > 0)
-      {
+
+      E_Float dhx =abs(xt[1]-xt[0]);
+      if (dhx > hmax && dTarget < 999.) continue;
+
+#ifdef _OPENMP
+      E_Float time0 = omp_get_wtime();
+#endif
+      if (posflag[v] > 0 )
+      { 
         flagp = fields[v]->begin(posflag[v]);
         isFlagged = true;
       }
@@ -430,6 +444,10 @@ void K_DIST2WALLS::computeOrthoDist(
           #include "algoOrtho.h"
         }
       }
+#ifdef _OPENMP
+      E_Float time1 = omp_get_wtime() - time0;
+      if(tid==0 && dTarget < 999.) {printf("calcul distance zone No: %d ; Nombre total zone: %d; size zone: %d; th: %d , dx= %f , cpu= %f , micros/pts= %f \n", v, nzones, npts, tid, dhx, time1, time1*1.e6/float(npts)); }
+#endif
     }
   }
 
@@ -438,6 +456,10 @@ void K_DIST2WALLS::computeOrthoDist(
   {
     for (E_Int v = 0; v < nzones; v++)
     {
+        E_Float* xt = fields[v]->begin(posx);
+        E_Float dhx =abs(xt[1]-xt[0]);
+        if (dhx > hmax && dTarget < 999.) continue;
+
         E_Float* distancep = distances[v]->begin();
         E_Int npts = distances[v]->getSize();
         #pragma omp for
