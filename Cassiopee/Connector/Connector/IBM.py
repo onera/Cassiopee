@@ -493,7 +493,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
         setInterpDataAndSetInterpTransfer__(t, tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
-    
+
     #===================
     # STEP 5 : BUILD FRONT
     #===================
@@ -508,7 +508,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
         setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, extrap=extrap, order=order, cartesian=cartesian, corner=False)
 
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
-    
+
     #===================
     # STEP 6 : INTERP DATA IBM
     #===================
@@ -528,7 +528,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
                       tbFilament=tbFilament, frontWMM=frontWMM)
 
     if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
-    
+
     #===================
     # STEP 7 : INIT IBM
     #===================
@@ -555,7 +555,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t, to=None,
                             yy  = r[l]*numpy.cos( theta[l] )                                            #  |
                             zz  = r[l]*numpy.sin( theta[l] )                                            #  |
                             r[l]= yy; theta[l] = zz                                                     #  |
-                                                                                                        #__
+                            #__
 
     if isinstance(tc_out, str):
         tcp = Compressor.compressCartesian(tc)
