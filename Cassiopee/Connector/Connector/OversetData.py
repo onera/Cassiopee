@@ -996,7 +996,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
 
     ##Moving IBM
-    timeMotion = Internal.getNodeByName(z,'TimeMotion')
+    timeMotion = Internal.getNodeByName(z, 'TimeMotion')
     if timeMotion:
         zsr[2].append(['CoordinateX_PC#Init',coordsPC[1][0,:], [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PC#Init',coordsPC[1][1,:], [], 'DataArray_t'])
@@ -2553,10 +2553,10 @@ def oversetCellRatio__(aR, topTreeD):
                             field[1][0,noind] = cr
                         zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
                         # parentr[2][dr] = zr
-    #
-    C._rmVars(tR,'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c etait ds l arbre avant
-    C._rmVars(tR,'vol')
-    C._rmVars(tD,'vol')
+
+    C._rmVars(tR, 'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c'etait ds l arbre avant
+    C._rmVars(tR, 'vol')
+    C._rmVars(tD, 'vol')
     return tR
 
 #===============================================================================

@@ -76,7 +76,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     posxi = K_ARRAY::isCoordinateXPresent(structVarString[i]);
     posyi = K_ARRAY::isCoordinateYPresent(structVarString[i]);
     poszi = K_ARRAY::isCoordinateZPresent(structVarString[i]);
-    if ( posxi == -1 || posyi == -1 || poszi == -1)
+    if (posxi == -1 || posyi == -1 || poszi == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "extendCartGrids: arrays must contain coordinates.");
@@ -126,7 +126,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   E_Int* ext5 = extension.begin(5);
   E_Int* ext6 = extension.begin(6);
 
-  if (optimized != -1)
+  if (optimized == 0 || optimized == 1)
   {
     E_Int ret;
     E_Float xp, yp, zp, dx, dy, dz;
@@ -224,7 +224,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
             }
             // goto faceimax2;
           }
-        }// fin parcours de ts les elts intersectant 
+        }// fin parcours de ts les elts intersectants
         // fin test facette i = 1
         //faceimax2:;
 
@@ -1060,7 +1060,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
       }// pour ts les elts
     }
   }
-  else // optimised = -1
+  else // optimised == -1
   {
     for (E_Int v = 0; v < nzones; v++)
     { 
