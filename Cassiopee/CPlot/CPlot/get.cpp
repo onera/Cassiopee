@@ -551,7 +551,6 @@ PyObject* K_CPLOT::getMouseState(PyObject* self, PyObject* args)
   float posY = d->ptrState->currentMousePosY;
   float posZ = d->ptrState->currentMousePosZ;
   E_Int mouseButton = d->ptrState->currentMouseButton;
-  //printf("%f %f %f\n", posX, posY, posZ);
   PyObject* tpl = Py_BuildValue("lddd", mouseButton, posX, posY, posZ);
   return tpl;
 }

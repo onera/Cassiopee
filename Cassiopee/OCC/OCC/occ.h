@@ -94,6 +94,7 @@ namespace K_OCC
   PyObject* mergeEdges(PyObject* self, PyObject* args);
   
   PyObject* loft(PyObject* self, PyObject* args);
+  PyObject* sweep(PyObject* self, PyObject* args);
   PyObject* revolve(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);

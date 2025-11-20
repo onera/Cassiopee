@@ -95,6 +95,7 @@ static PyMethodDef Pyocc [] =
   {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
   
   {"loft", K_OCC::loft, METH_VARARGS},
+  {"sweep", K_OCC::sweep, METH_VARARGS},
   {"revolve", K_OCC::revolve, METH_VARARGS},
 
   {"translate", K_OCC::translate, METH_VARARGS},
