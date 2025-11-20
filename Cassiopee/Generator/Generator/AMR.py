@@ -1054,25 +1054,23 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     offset_inside      = [Internal.getZones(tb)]
     noffsetBase        = []
 
-    sortDicOffsetIBM = {}
+    sortDicOffsetIBM  = {}
+    sortDicOffsetTbox = {}
+    newOffsetsTbox    = []
     for i in offset_zones:
-        if 'Tbox' in i[0]: continue
-        hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-        _addItemDict(sortDicOffsetIBM,hminLocal,i[0])
+        if 'Tbox' in i[0]:
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
+            _addItemDict(sortDicOffsetTbox, hminLocal, i[0])
+        else:
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
+            _addItemDict(sortDicOffsetIBM, hminLocal, i[0])
     newOffsetsIBM = []
     for snearLocal in sortDicOffsetIBM:
         tmpOffset = []
         for tt in sortDicOffsetIBM[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
         newOffsetsIBM.append(tmpOffset)
 
-    sortDicOffsetTbox = {}
-    newOffsetsTbox = []
     if numTbox > 0:
-        for i in offset_zones:
-            if 'Tbox' not in i[0]: continue
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict(sortDicOffsetTbox,hminLocal,i[0])
-
         for snearLocal in sortDicOffsetTbox:
             tmpOffset = []
             for tt in sortDicOffsetTbox[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
