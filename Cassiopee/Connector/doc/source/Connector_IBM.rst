@@ -30,15 +30,12 @@ List of functions
    <!--Connector.IBM._smoothImageFrontBackward-->
    <!--Connector.IBM.gatherFront-->
    <!--Connector.IBM.doInterp-->
-   <!--Connector.IBM.doInterp2-->
-   <!--Connector.IBM.doInterp3-->
    <!--Connector.IBM._extractIBMInfo_param-->
    <!--Connector.IBM.extractIBMInfo-->
    <!--Connector.IBM.extractIBMInfo2-->
 
    <!--Connector.IBM.getAllIBMPoints-->
    <!--Connector.IBM.prepareIBMData-->
-   <!--Connector.IBM.prepareIBMData2-->
    <!--Connector.IBM.createWallAdapt-->
    <!--Connector.IBM.createIBMWZones-->
    <!--Connector.IBM._computeKcurvParameter-->

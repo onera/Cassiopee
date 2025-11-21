@@ -584,7 +584,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
 # 2nd PI
 def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
-                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                          order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                           interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
@@ -621,14 +621,14 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     if interpPts is not None:
         resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                              nature=nature, method=method, interpDataType=interpDataType,\
+                                              nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                               hook=hook, dim=dim)
     else:
         resInterp = None
 
     if interpPts2 is not None:
         resInterp2 = Connector.setInterpData__(interpPts2, arraysD, order=order, penalty=penalty, \
-                                               nature=nature, method=method, interpDataType=interpDataType,\
+                                               nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                                hook=hook, dim=dim)
     else:
         resInterp2 = None
