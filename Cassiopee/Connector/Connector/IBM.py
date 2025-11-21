@@ -168,7 +168,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     if optimized == 1 and order != 2:
         if order != 2: raise ValueError('prepareIBMData: order > 2 for Chimera transfers only applies for conservative IBMs (optimized = -1).')
-            
+
     ## Note: cartesian = True is left as an input argument to avoid regressing  during the non-regression test.
     ##       In the near future the ref. values for the non-regression tests will be updated with cartesian=True.
     ##       At this point, cartesian=True input argument can be deleted.
@@ -285,9 +285,9 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
 
     if optimized == -1: # conservative IBM
         setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
-    else: 
+    else:
         Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
-        
+
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
 
     #===================
@@ -355,7 +355,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
                           verbose=True, check=False, twoFronts=False, cartesian=True,
                           yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                           extrusion='cart'):
-    
+
     import time as python_time
 
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
@@ -432,7 +432,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
     Cmpi.barrier()
     _redispatch__(t=t)
     if verbose: printTimeAndMemory__('blank by IBC bodies', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
-    
+
     #===================
     # STEP 4 : INTERP DATA CHIM
     #===================
@@ -446,7 +446,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
 
     if optimized == -1: # conservative IBM
         setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
-    else: 
+    else:
         Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
@@ -526,7 +526,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
 
 def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
                         depth=2, IBCType=1, verbose=True,
-                        check=False, twoFronts=False, cartesian=True, optimized=1, order=2, nature=1, extrap=1, 
+                        check=False, twoFronts=False, cartesian=True, optimized=1, order=2, nature=1, extrap=1,
                         yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
 
     import time as python_time
@@ -594,12 +594,12 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
 
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
         Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, dim=dimPb, itype='abutting', order=order, cartesian=cartesian)
-        
+
     if optimized == -1: # conservative IBM
         setInterpDataAndSetInterpTransfer__(t,tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, order=order, extrap=extrap, cartesian=cartesian, corner=True)
-    else: 
+    else:
         Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
-        
+
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
 
     #===================
@@ -1349,9 +1349,9 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFront
 
     C._initVars(t,'{centers:cellNIBCDnr}=minimum(2.,abs({centers:cellNIBC}))')
     C._initVars(t,'{centers:cellNIBC}=maximum(0.,{centers:cellNIBC})') # vaut -3, 0, 1, 2, 3 initialement
-    
+
     if optimized == -1:
-        for z in Internal.getZones(t):    
+        for z in Internal.getZones(t):
             tmp = Internal.getNodeFromName(z,'cellNIBC')[1]
             tmp[tmp >= 2.5] = 1.5
 
@@ -1386,7 +1386,7 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFront
 
         # propager cellNVariable='cellNFront'
         Xmpi._setInterpTransfers(t, tc, variables=['cellNFront'], cellNVariable='cellNFront', compact=0)
-        
+
     if twoFronts:
         C._cpVars(t,'centers:cellNFront_2',tc,'cellNFront_2')
         Xmpi._setInterpTransfers(t, tc, variables=['cellNFront_2'], cellNVariable='cellNFront_2', compact=0)
@@ -1466,7 +1466,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
         nature = 0
         extrap = 0
         print("_setInterpDataIBM: conservative IBM (optimized = -1): locally forcing nature = 0 and extrap = 0.")
-        
+
     for zc in Internal.getZones(tc):
         proc = Cmpi.getProc(zc)
         if proc == -1: Cmpi._setProc(zc, 0)
@@ -4464,7 +4464,7 @@ def _buildConservativeFlux(t, tc, verbose=0):
                         Internal.createUniqueChild(Prop, 'FluxFaces', 'DataArray_t', value=tab)
 
 #=============================================================================
-# modif cellN coin pour interpoler uniquemement les cellules "coin" 
+# modif cellN coin pour interpoler uniquemement les cellules "coin"
 # donneuse en nature=0
 #=============================================================================
 def _correctCellNCorner(t, tc, dim=3, verbose=0):
