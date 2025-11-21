@@ -21,7 +21,6 @@ import Generator.AMR as G_AMR
 import Generator.Generator as Generator
 import os, sys, time,copy,math
 import numpy
-from mpi4py import MPI
 from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 TOL = 1.e-9
@@ -438,7 +437,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
                 break
         if isIBMPointInBox(bbo, imagepts)[0] == False:
             raise ValueError("Moving the points has not worked. Exiting..")
-            MPI.COMM_WORLD.Abort(1);
+            Cmpi.abort(errorcode=1)
 
     wallpts  = Converter.extractVars(wallpts,  ['CoordinateX','CoordinateY','CoordinateZ'])
     imagepts = Converter.extractVars(imagepts, ['CoordinateX','CoordinateY','CoordinateZ'])
@@ -476,7 +475,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
             dictOfImagePtsByIBCName[ibcTypeL] = [imagePtsL]
     else:
         raise ValueError("The function connector.getIBMPtsWith/WithoutFront has not worked properly.")
-        MPI.COMM_WORLD.Abort(1);
+        Cmpi.abort(errorcode=1)
     return dictOfTargetPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
 
 def isIBMPointInBox(bbox, coords):
@@ -735,7 +734,7 @@ def checkRelativeOffset(ip_pts, wallpts, imagepts, forceAlignment=False, localDi
 
         if not forceAlignment:
             raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points. Max offset on rank %d = %g"%(Cmpi.rank,numpy.max(offsetcheck)))
-            MPI.COMM_WORLD.Abort(1);
+            Cmpi.abort(errorcode=1)
     return array_check
 
 def checkCoincidentPoints(ip_pts, imagepts):
@@ -755,7 +754,7 @@ def checkCoincidentPoints(ip_pts, imagepts):
 
     if array_check.size !=0:
         raise ValueError("ATTENTION!!!!!!! coincident integration and donor points rank %d = " %Cmpi.rank,numpy.min(donorPointIntegrationPointDist))
-        MPI.COMM_WORLD.Abort(1);
+        Cmpi.abort(errorcode=1)
     return
 
 def getBodiesForWallDistanceComputation(tb2):
@@ -836,7 +835,7 @@ def computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP):
         quadratureType = "GaussLobatto"
     else:
         raise ValueError("Unkown discretization type; options are: FV, DG or DGSEM.")
-        MPI.COMM_WORLD.Abort(1);
+        Cmpi.abort(errorcode=1)
 
     coordsX = Internal.getNodeFromName(t,"CoordinateX")[1]
     coordsY = Internal.getNodeFromName(t,"CoordinateY")[1]
