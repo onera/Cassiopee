@@ -50,6 +50,8 @@ namespace K_OCC
   PyObject* addEllipse(PyObject* self, PyObject* args);
   PyObject* addSpline(PyObject* self, PyObject* args);
   PyObject* addArc(PyObject* self, PyObject* args);
+  PyObject* addSuperEllipse(PyObject* self, PyObject* args);
+  
   PyObject* addGordonSurface(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);

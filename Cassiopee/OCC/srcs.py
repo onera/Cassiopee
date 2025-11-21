@@ -54,6 +54,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/addSquare.cpp',
         'OCC/Atomic/addSpline.cpp',
         'OCC/Atomic/addArc.cpp',
+        'OCC/Atomic/addSuperEllipse.cpp',
         'OCC/Atomic/addGordonSurface.cpp',
 
         'OCC/Atomic/meshEdge.cpp',

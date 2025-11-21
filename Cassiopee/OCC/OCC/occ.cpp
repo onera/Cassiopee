@@ -51,6 +51,8 @@ static PyMethodDef Pyocc [] =
   {"addEllipse", K_OCC::addEllipse, METH_VARARGS},
   {"addSpline", K_OCC::addSpline, METH_VARARGS},
   {"addArc", K_OCC::addArc, METH_VARARGS},
+  {"addSuperEllipse", K_OCC::addSuperEllipse, METH_VARARGS},
+  
   {"addGordonSurface", K_OCC::addGordonSurface, METH_VARARGS},
 
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
