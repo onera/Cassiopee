@@ -49,7 +49,7 @@ class DataBase:
                    ("descp", "TEXT"),
                    ("reference", "TEXT"),
                    ("variables", "TEXT")]
-        
+
         for p in self.parameters:
             columns += [("%s"%p, "REAL")]
 
@@ -64,7 +64,7 @@ class DataBase:
         Compressor._compressAll(tp) # lossless
         C.convertPyTree2File(tp, cgnsName)
         return None
-    
+
     # insert a sample in data base
     def register(self, id, descp, parameters, ref=None, variables=[], data=None):
         if len(parameters) != len(self.parameters):
@@ -114,7 +114,7 @@ class DataBase:
                 ZT = Internal.getNodeFromType1(z, 'ZoneType_t')
                 FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
                 z[2] = [ZT]
-                z[2] += FS 
+                z[2] += FS
             Compressor._compressAll(tp) # lossless
             C.convertPyTree2File(tp, cgnsName)
 
@@ -123,7 +123,7 @@ class DataBase:
         self.cursor.execute('SELECT * FROM %s'%self.name)
         q = self.cursor.fetchall()
         return q
-    
+
     # return a query
     def query(self, com=None):
         if com is None:
@@ -162,16 +162,16 @@ class DataBase:
                 t = Internal.merge([tref, t])
             ts.append(t)
         return ts
-    
+
     def fetchParam(self, q):
-        # build param vector 
+        # build param vector
         nparam = len(q[0])-4
         nrows = len(q)
         param = numpy.zeros((nrows,nparam), dtype=numpy.float64)
         for c, r in enumerate(q):
             param[c,:] = r[4:]
         return param
-    
+
     def fetchMatrix(self, q, variable):
         # build param vector
         nparam = len(q[0])-4
