@@ -518,6 +518,7 @@ def checkBCRanges(t, ntype):
     zones = Internal.getZones(t)
     for z in zones:
         dim = Internal.getZoneDim(z)
+        if dim[0] != 'Structured': continue  # pas de check en non structure
         bcs = Internal.getNodesFromType1(z, ctype)
         for bc in bcs:
             nodes = Internal.getNodesFromType1(bc, ntype)
@@ -594,6 +595,7 @@ def checkDonorRanges(t, ntype):
                 if donors != []:
                     if all([Internal.getType(d) == 'Zone_t' for d in donors]):
                         dim = Internal.getZoneDim(donors[0])
+                        if dim[0] != 'Structured': continue  # pas de check en non structure
                         r = Internal.getElementRange(donors[0], type="NGON")
                         if r is not None: nfaces = r[1]-r[0]+1
                         else: nfaces = 0

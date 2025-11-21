@@ -1687,7 +1687,7 @@ def setFields(arrays, t, loc, writeDim=True):
             # un array * ne peut pas etre mis en nodes
             if loc == 'nodes' and len(a) == 4:
                 elt = a[3]
-                if elt[len(elt)-1] == '*':
+                if elt[-1] == '*':
                     print('Warning: setFields: %s array is not set.'%elt)
                     vars = []
         p = 0
@@ -3190,7 +3190,7 @@ def _cpVars__(z1, var1, z2, var2):
             z2[2].append([Internal.__FlowSolutionCenters__, None, [], 'FlowSolution_t'])
             f = Internal.getNodeFromName1(z2, Internal.__FlowSolutionCenters__)
             Internal._createUniqueChild(f, 'GridLocation', 'GridLocation_t', 'CellCenter')
-        h = z2[2][len(z2[2])-1]
+        h = z2[2][-1]
     else:
         h = place2
     var2s = var2.split(':')
@@ -3755,7 +3755,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=None, eleme
     zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
     if zoneGC == []:
         z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
-        zoneGC = z[2][len(z[2])-1]
+        zoneGC = z[2][-1]
     else:
         zoneGC = zoneGC[0]
     # Cree le noeud de GC
@@ -3773,7 +3773,7 @@ def _addFamilyOfStageGC__(z, bndName, bndType2, typeZone=0, faceList=None, eleme
                 if st == "": st = i[0]
                 else: st = st+","+i[0]
         Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=st)
-    info = zoneGC[2][len(zoneGC[2])-1]
+    info = zoneGC[2][-1]
 
     if typeZone == 0: # STRUCTURED
         if pointRange == []: raise ValueError("_addFamilyOfStageGC__: pointRange is empty.")
@@ -3854,14 +3854,13 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         zoneGC = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
         if zoneGC is None:
             z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
-            zoneGC = z[2][len(z[2])-1]
+            zoneGC = z[2][-1]
         # Cree le noeud de GC1-1
         if isinstance(zoneDonor, str): v = zoneDonor
         else: v = zoneDonor[0]
         Internal._createChild(zoneGC, bndName, 'GridConnectivity1to1_t', value=v)
 
-        l = len(zoneGC[2])
-        info = zoneGC[2][l-1]
+        info = zoneGC[2][-1]
 
         if typeR == 0:
             r = Internal.window2Range(wrange)
@@ -3899,16 +3898,14 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
         if zoneGC == []:
             Internal._createChild(z, 'ZoneGridConnectivity', 'ZoneGridConnectivity_t', value=None)
-            zoneGC = z[2][len(z[2])-1]
+            zoneGC = z[2][-1]
         else:
             zoneGC = zoneGC[0]
         if isinstance(zoneDonor, str): v = zoneDonor
         else: v = zoneDonor[0]
         Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
 
-        l = len(zoneGC[2])
-
-        info = zoneGC[2][l-1]
+        info = zoneGC[2][-1]
         r = Internal.window2Range(wrange)
         info[2].append(['PointRange', r, [], 'IndexRange_t'])
         Internal.createChild(info, 'GridConnectivityType', 'GridConnectivityType_t', 'Abutting')
@@ -3917,7 +3914,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
 
         # Nearmatch: rajoute les noeuds PointRangeDonor et Transform en UserDefinedData
         info[2].append(['UserDefinedData', None, [], 'UserDefinedData_t'])
-        l = len(info[2])-1; info = info[2][l]
+        info = info[2][-1]
         dd = Internal.window2Range(rangeDonor)
         info[2].append(['PointRangeDonor', dd, [], 'DataArray_t'])
         size = len(trirac); o = numpy.zeros((size), dtype=Internal.E_NpyInt)
@@ -3933,7 +3930,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
         if zoneGC == []:
             z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
-            zoneGC = z[2][len(z[2])-1]
+            zoneGC = z[2][-1]
         else:
             zoneGC = zoneGC[0]
 
@@ -3948,7 +3945,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
             for i in zoneDonor:
                 if isinstance(i,str):
                     isp = i.split(":")
-                    if len(isp)==1: dnrZoneNames.append(i)
+                    if len(isp) == 1: dnrZoneNames.append(i)
                     else:
                         if isp[0]=='FamilySpecified': dnrZoneNames.append(isp[1])
 
@@ -3960,7 +3957,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
 
         Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
 
-        info = zoneGC[2][len(zoneGC[2])-1]
+        info = zoneGC[2][-1]
         d = numpy.ones((3,1), dtype=Internal.E_NpyInt)
         c = numpy.ones((3,1), dtype=numpy.float64)
         r = Internal.window2Range(wrange)
@@ -3970,7 +3967,7 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         info[2].append(['InterpolantsDonor', c, [], 'DataArray_t'])
         if rangeDonor == 'doubly_defined':
             info[2].append(['UserDefinedData', None, [], 'UserDefinedData_t'])
-            l = len(info[2])-1; info = info[2][l]
+            info = info[2][-1]
             dd = numpy.ones((1), dtype=Internal.E_NpyInt)
             info[2].append(['doubly_defined', dd, [], 'DataArray_t'])
 
@@ -3982,12 +3979,11 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
         zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
         if zoneBC == []:
             z[2].append(['ZoneBC', None, [], 'ZoneBC_t'])
-            zoneBC = z[2][len(z[2])-1]
+            zoneBC = z[2][-1]
         else: zoneBC = zoneBC[0]
         # Cree le noeud de BC
         Internal._createChild(zoneBC, bndName, 'BC_t', value=bndType1)
-        l = len(zoneBC[2])
-        info = zoneBC[2][l-1]
+        info = zoneBC[2][-1]
         r = Internal.window2Range(wrange)
         info[2].append(['PointRange', r, [], 'IndexRange_t'])
 
@@ -4032,14 +4028,13 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
         zoneGC = Internal.getNodeFromType1(z, 'ZoneGridConnectivity_t')
         if zoneGC is None:
             z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
-            zoneGC = z[2][len(z[2])-1]
+            zoneGC = z[2][-1]
 
         if isinstance(zoneDonor, str): v = zoneDonor
         else: v = zoneDonor[0]
         Internal._createChild(zoneGC, bndName, 'GridConnectivity_t', value=v)
 
-        l = len(zoneGC[2])
-        info = zoneGC[2][l-1]
+        info = zoneGC[2][-1]
         Internal.createChild(info, 'GridLocation', 'GridLocation_t', 'FaceCenter')
         if isinstance(faceList, numpy.ndarray): r = faceList
         else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
@@ -4061,7 +4056,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     #   zoneGC = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
     #   if zoneGC == []:
     #     z[2].append(['ZoneGridConnectivity', None, [], 'ZoneGridConnectivity_t'])
-    #     zoneGC = z[2][len(z[2])-1]
+    #     zoneGC = z[2][-1]
     #   else:
     #     zoneGC = zoneGC[0]
     #   # Cree le noeud de GC
@@ -4082,8 +4077,7 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
     #     v = numpy.fromstring(st, 'c')
     #     zoneGC[2].append([bndName, v, [], 'GridConnectivity_t'])
 
-        # l = len(zoneGC[2])
-        # info = zoneGC[2][l-1]
+        # info = zoneGC[2][-1]
         # v = numpy.fromstring('FaceCenter', 'c')
         # info[2].append(['GridLocation', v, [], 'GridLocation_t'])
         # if isinstance(faceList, numpy.ndarray): r = faceList
@@ -4106,13 +4100,12 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
         zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
         if zoneBC == []:
             z[2].append(['ZoneBC', None, [], 'ZoneBC_t'])
-            zoneBC = z[2][len(z[2])-1]
+            zoneBC = z[2][-1]
         else: zoneBC = zoneBC[0]
 
         # Cree le noeud de BC
         Internal._createChild(zoneBC, bndName, 'BC_t', value=bndType1)
-        l = len(zoneBC[2])
-        info = zoneBC[2][l-1]
+        info = zoneBC[2][-1]
         Internal.createChild(info, 'GridLocation', 'GridLocation_t', 'FaceCenter')
         if isinstance(faceList, numpy.ndarray): r = faceList
         else: r = numpy.array(faceList, dtype=Internal.E_NpyInt)
@@ -6928,7 +6921,7 @@ def addState2Node__(a, state, value):
 
         if H == []:
             a[2].append(['FlowEquationSet', None, [], 'FlowEquationSet_t'])
-            H = a[2][len(a[2])-1]
+            H = a[2][-1]
     else:
         H = []
         for n in a[2]:
@@ -6936,7 +6929,7 @@ def addState2Node__(a, state, value):
 
         if H == []:
             a[2].append(['ReferenceState', None, [], 'ReferenceState_t'])
-            H = a[2][len(a[2])-1]
+            H = a[2][-1]
 
     # EquationDimension
     if state == 'EquationDimension':
