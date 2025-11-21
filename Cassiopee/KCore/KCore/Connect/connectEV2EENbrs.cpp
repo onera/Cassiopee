@@ -52,16 +52,9 @@ E_Int K_CONNECT::connectEV2EENbrs(
 )
 {
   E_Int nc = cEV.getNConnect();
-  vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   // Get dimensionality
-  E_Int dim = 3;
-  if (K_STRING::cmp(eltTypes[0], 4, "NODE") == 0) dim = 0;
-  else if (K_STRING::cmp(eltTypes[0], 3, "BAR") == 0) dim = 1;
-  else if (K_STRING::cmp(eltTypes[0], 3, "TRI") == 0 ||
-           K_STRING::cmp(eltTypes[0], 4, "QUAD") == 0) dim = 2;
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  E_Int dim = K_CONNECT::getDimME(eltType);
   
   // Compute cumulative number of elements per connectivity (offsets)
   std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
@@ -251,16 +244,9 @@ E_Int K_CONNECT::connectEV2NNbrs(
 )
 {
   E_Int nc = cEV.getNConnect();
-  vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   // Get dimensionality
-  E_Int dim = 3;
-  if (K_STRING::cmp(eltTypes[0], 4, "NODE") == 0) dim = 0;
-  else if (K_STRING::cmp(eltTypes[0], 3, "BAR") == 0) dim = 1;
-  else if (K_STRING::cmp(eltTypes[0], 3, "TRI") == 0 ||
-           K_STRING::cmp(eltTypes[0], 4, "QUAD") == 0) dim = 2;
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  E_Int dim = K_CONNECT::getDimME(eltType);
 
   // Compute cumulative number of elements per connectivity (offsets)
   std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;

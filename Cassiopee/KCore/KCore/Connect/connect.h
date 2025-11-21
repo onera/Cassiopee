@@ -159,6 +159,11 @@ namespace K_CONNECT
   /*----------------------------------*/
   /* - Connectivite element basique - */
   /*----------------------------------*/
+  // Get dimensionality of a BE/ME connectivity based on its element types
+  // Shall ultimately be moved to FldArrayI once _ngon=0 means BE/ME
+  E_Int getDimME(const char* eltType);
+  E_Int getDimME(std::vector<char*> eltTypes);
+
   // Get the number of facets per element type of a Multiple Element
   // connectivity. If expandToLowerDim is set to True, 'faces' of 1D and 2D
   // elements are vertices and edges, respectively.

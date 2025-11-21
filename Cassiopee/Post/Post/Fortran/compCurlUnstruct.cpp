@@ -29,15 +29,7 @@ E_Int K_POST::computeCurlUnstruct(
   E_Float* rotx, E_Float* roty, E_Float* rotz
 )
 {
-  // Get ME mesh dimensionality from the first element type
-  E_Int dim = 3;
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
-  if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 or
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-
+  E_Int dim = K_CONNECT::getDimME(eltType);
   if (dim == 2)
   {
     compCurlUnstruct2D(cn, eltType, xt, yt, zt, ux, uy, uz, rotx, roty, rotz);
