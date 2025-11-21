@@ -57,10 +57,10 @@ E_Int K_CONNECT::connectEV2EENbrs(
 
   // Get dimensionality
   E_Int dim = 3;
-  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 ||
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  if (K_STRING::cmp(eltTypes[0], 4, "NODE") == 0) dim = 0;
+  else if (K_STRING::cmp(eltTypes[0], 3, "BAR") == 0) dim = 1;
+  else if (K_STRING::cmp(eltTypes[0], 3, "TRI") == 0 ||
+           K_STRING::cmp(eltTypes[0], 4, "QUAD") == 0) dim = 2;
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   
   // Compute cumulative number of elements per connectivity (offsets)
@@ -256,10 +256,10 @@ E_Int K_CONNECT::connectEV2NNbrs(
 
   // Get dimensionality
   E_Int dim = 3;
-  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 ||
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+  if (K_STRING::cmp(eltTypes[0], 4, "NODE") == 0) dim = 0;
+  else if (K_STRING::cmp(eltTypes[0], 3, "BAR") == 0) dim = 1;
+  else if (K_STRING::cmp(eltTypes[0], 3, "TRI") == 0 ||
+           K_STRING::cmp(eltTypes[0], 4, "QUAD") == 0) dim = 2;
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 
   // Compute cumulative number of elements per connectivity (offsets)
