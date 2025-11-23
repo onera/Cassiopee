@@ -297,3 +297,15 @@ div.code-block-caption {
 #myBtn {
     box-shadow: none;
 }
+
+.icon {
+  height: 30px;
+  vertical-align: middle;
+  border: none;
+  padding-bottom: 2px;
+}
+
+.image-reference img {
+    border: 5px solid black;
+    border-radius: 8px;
+}
