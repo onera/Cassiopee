@@ -181,7 +181,7 @@ def replace(t, nob, noz, zone):
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
-    
+
     CPlot.cplotm.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
