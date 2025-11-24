@@ -1,7 +1,7 @@
 # Parametric CAD driver
 import OCC
 import sympy
-import numpy, re, itertools        
+import numpy, re, itertools
 import Converter.Mpi as Cmpi
 
 #============================================================
@@ -777,7 +777,7 @@ class Driver:
         for s in soli:
             for f in self.freeParams:
                 soli[s] = soli[s].subs(f, paramValues[f.name])
-                  
+
         # check validity for ranges
         for s in soli:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
@@ -793,7 +793,7 @@ class Driver:
         for s in soli:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
                 params[self.scalars2[s].name] = self.scalars2[s].v
-        
+
         for e in self.inequations:
             ret = self.inequations[e].s.subs(params)
             if ret: print('SET: => ineq is valid')
@@ -804,7 +804,7 @@ class Driver:
 
         # return True if valid in range and inequation constraints
         return valid
-    
+
     # diff (finite difference) of free parameters on discrete mesh
     # if freevars is None, derivate for all free parameters else derivate for given parameters
     def _diff(self, entity, mesh, freeParams=None, deps=1.e-6):
