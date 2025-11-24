@@ -127,6 +127,8 @@ E_Int K_CONNECT::connectEV2EENbrs(
             if (nmatch == nvpf) { cEEN1.push_back(nidx); break; }
           }
         }
+
+        std::sort(cEEN1.begin(), cEEN1.end());
       }
     }
   }
@@ -227,6 +229,8 @@ E_Int K_CONNECT::connectEV2EENbrs(
             }
           }
         }
+
+        std::sort(cEEN1.begin(), cEEN1.end());
       }
     }
   }
