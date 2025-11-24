@@ -129,7 +129,7 @@ class DataBase:
 
         # get date
         now = datetime.datetime.now()
-        dateString = now.strftime("%Y-%m-%dT%H:%M:%S") 
+        dateString = now.strftime("%Y-%m-%dT%H:%M:%S")
 
         # register in sql
         com = f'REPLACE INTO {self.name}'
@@ -160,7 +160,7 @@ class DataBase:
                 z[2] += FS
             if tol <= 0: Compressor._compressAll(tp) # lossless
             else:
-                Compressor._compressFields(tp, tol=tol, ctype=0) # approx 
+                Compressor._compressFields(tp, tol=tol, ctype=0) # approx
                 Compressor._compressAll(tp) # lossless
             C.convertPyTree2File(tp, cgnsName)
 
