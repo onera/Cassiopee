@@ -71,7 +71,7 @@ then
     sed -i 's/Intersector.Intersector/Intersector/g' build/Intersector.html
     cp build/Intersector.html $DEST
     cp build/Intersector.pdf $DEST
-    cp -rf source/images $DEST/
+    cp build/_images/* $DEST/_images
 fi
 
 # Copie des release Notes

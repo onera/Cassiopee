@@ -375,14 +375,14 @@ Main Functions
 
     * a clipped polygonal surface (NGON format) where all the hidden surface parts have been removed, when output_type=2
 
-    .. image:: images/xcelln_conf.jpg
-      :width: 24%
-    .. image:: images/xcelln_mode0.jpg
-      :width: 24%
-    .. image:: images/xcelln_mode1.jpg
-      :width: 24%
-    .. image:: images/xcelln_mode2.jpg
-      :width: 24%
+    .. image:: _static/xcelln_conf.jpg
+      :width: 21%
+    .. image:: _static/xcelln_mode0.jpg
+      :width: 21%
+    .. image:: _static/xcelln_mode1.jpg
+      :width: 21%
+    .. image:: _static/xcelln_mode2.jpg
+      :width: 21%
 
     *From left to right: Sphere made of 2 overset patches, results with output_type=0,1 and 2 displayed for the non-prioritized patch.*
 
@@ -409,12 +409,12 @@ Main Functions
     * priorisation and computation is done between components only : not between zones of the same base.
     * wall boundaries are considered whatever the priorisation:
 
-    .. image:: images/xcelln_prior_conf.jpg
-      :width: 30%
-    .. image:: images/xcelln_prior1.jpg
-      :width: 30%
-    .. image:: images/xcelln_prior2.jpg
-      :width: 30%
+    .. image:: _static/xcelln_prior_conf.jpg
+      :width: 28%
+    .. image:: _static/xcelln_prior1.jpg
+      :width: 28%
+    .. image:: _static/xcelln_prior2.jpg
+      :width: 28%
 
     *Example of wall treatment on the fuselage/collar zone of a CRM configuration when output_type is 2: if the collar is prioritized (middle) or not (right), the part of the fuselage falling inside the wing is clipped.*
     

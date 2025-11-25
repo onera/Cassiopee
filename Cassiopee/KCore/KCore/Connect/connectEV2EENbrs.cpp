@@ -28,22 +28,22 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/*
-  Change a Elts-Vertex connectivity to a Element-Element neighbours 
-  connectivity. 
-  IN: cEV: Elts-Vertex connectivity. For each elt, give vertices index.
-  IN: nv: nombre de noeuds dans le maillage
-  IN: eltType: type d'element (TRI, QUAD,...)
-  OUT: cEEN: Elts-Element neighbours connectivity. For each element, 
-  give the element index of its neighbours.
-  cEEN doit deja etre alloue au nombre d'elements.
-  Retourne 0 (echec), 1 (succes)
-  ! Marche pour les maillages non structures a elements basiques
-  ! Marche uniquement pour les maillage conformes
-  ! Warning: par definition, un voisin a une facette commune avec un elt
-  Algo: pour chaque facette d'un element, on cherche a la matcher a un
-  voisin. 
-*/
+// Change a Elts-Vertex connectivity to a Element-Element neighbours 
+// connectivity.
+// IN: cEV: Elts-Vertex connectivity. For each elt, give vertices index.
+// IN: nv: nombre de noeuds dans le maillage
+// IN: eltType: type d'element (TRI, QUAD,...)
+// OUT: cEEN: Elts-Element neighbours connectivity. For each element, 
+// give the element index of its neighbours.
+// cEEN doit deja etre alloue au nombre d'elements.
+// Retourne 0 (echec), 1 (succes)
+// ! Marche pour les maillages non structures BE et ME
+// ! Marche uniquement pour les maillage conformes
+// ! Warning: par definition, un voisin a une facette commune avec un elt
+//   Algo: for each mesh element, fill a list of neighbour element candidates
+//         gotten from the cVE connectivity (incl. diagonal ones and self).
+//         Sort candidates and count number of occurences of each. If greater
+//         than 3 in 3D, 2 in 2D, 1 in 1D, then self and candidate share a face.
 //=============================================================================
 E_Int K_CONNECT::connectEV2EENbrs(
   const char* eltType, E_Int nv, 
@@ -51,15 +51,11 @@ E_Int K_CONNECT::connectEV2EENbrs(
   vector<vector<E_Int> >& cEEN
 )
 {
-  // Number of face per element for each connectivity
-  vector<E_Int> nfpe;
-  E_Int ierr = getNFPE(nfpe, eltType, true);
-  if (ierr != 0) return ierr;
-
   E_Int nc = cEV.getNConnect();
-  vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Get dimensionality
+  E_Int dim = K_CONNECT::getDimME(eltType);
+  
   // Compute cumulative number of elements per connectivity (offsets)
   std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
@@ -73,71 +69,70 @@ E_Int K_CONNECT::connectEV2EENbrs(
   vector<vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(cEV, cVE);
 
-  // Boucle sur les connectivites pour remplir cEEN
-  #pragma omp parallel default(shared) reduction(+:ierr)
+  #pragma omp parallel default(shared)
   {
-    E_Int nmatch, ind0, ind1, ind2, eidx, n, nidx, nneis, nvpf, nelts, nvpe;
-    vector<vector<E_Int> > facets;
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis;
+    std::vector<E_Int> candidates; candidates.reserve(64);
  
+    // Loop over all connectivities to fill cEEN
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cEV.getConnect(ic));
       nelts = cm.getSize();
       nvpe = cm.getNfld();
-      ierr += getEVFacets(facets, eltTypes[ic], true);
 
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
         eidx = cumnepc[ic] + i;
-        vector<E_Int>& cEEN1 = cEEN[eidx];
-        cEEN1.reserve(nfpe[ic]);
-
-        // Loop over each facet of element eidx
-        for (E_Int f = 0; f < nfpe[ic]; f++)
+        vector<E_Int>& cEENi = cEEN[eidx]; cEENi.reserve(8);
+        
+        for (E_Int j = 1; j <= nvpe; j++)
         {
-          // Number of vertices per face
-          nvpf = facets[f].size();
-          // First vertex of that facet
-          ind0 = cm(i, facets[f][0]) - 1;
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
 
-          // Get all element indices sharing that vertex
-          const vector<E_Int>& cVE1 = cVE[ind0];
-          nneis = cVE1.size();
+        // Remove eidx from candidates and sort
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
 
-          // Loop over all element sharing that vertex to determine the one 
-          // with which this facet is shared
-          for (E_Int v = 0; v < nneis; v++)
+        // Count occurrences and append if >= dim
+        prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
           {
-            nidx = cVE1[v];
-            // Skip elements belonging to another connectivity (shortcoming)
-            if (nidx < cumnepc[ic] || nidx >= cumnepc[ic] + nelts) continue;
-            if (nidx == eidx) continue;
-            n = nidx - cumnepc[ic];  // neighbour element index local to this conn.
-            nmatch = 0;
-            for (E_Int k = 0; k < nvpf; k++)
-            {
-              ind1 = cm(i, facets[f][k]);
-              for (E_Int j = 1; j <= nvpe; j++)
-              {
-                ind2 = cm(n, j);
-                if (ind1 == ind2) { nmatch++; break; }
-              }
-            }
-            if (nmatch == nvpf) { cEEN1.push_back(nidx); break; }
+            if (noccs >= dim) cEENi.push_back(prev);
+            prev = ind;
+            noccs = 1;
           }
         }
+
+        // Check last candidate
+        if (noccs >= dim) cEENi.push_back(prev);
       }
     }
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-  if (ierr == 0) ierr = 1; // duct tape because success should be 0, not 1
-  else ierr = 0;
-  return ierr;
+  return 1;  // success
 }
 
-// identique mais retourne aussi le no local de la face commune
+//=============================================================================
+// Identique mais retourne aussi le no local de la face commune
+// Algo: pour chaque facette d'un element, on cherche a la matcher a un voisin.
+// ! Marche pour les maillages non structures BE uniquement
+//=============================================================================
 E_Int K_CONNECT::connectEV2EENbrs(
   const char* eltType, E_Int nv, 
   FldArrayI& cEV,
@@ -227,6 +222,8 @@ E_Int K_CONNECT::connectEV2EENbrs(
             }
           }
         }
+
+        std::sort(cEEN1.begin(), cEEN1.end());
       }
     }
   }
@@ -235,6 +232,92 @@ E_Int K_CONNECT::connectEV2EENbrs(
   if (ierr == 0) ierr = 1; // duct tape because success should be 0, not 1
   else ierr = 0;
   return ierr;
+}
+
+//=============================================================================
+// Same algo as in connectEV2EENbrs but only returns the number of neighbours
+//=============================================================================
+E_Int K_CONNECT::connectEV2NNbrs(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<E_Int>& cENN
+)
+{
+  E_Int nc = cEV.getNConnect();
+
+  // Get dimensionality
+  E_Int dim = K_CONNECT::getDimME(eltType);
+
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+  #pragma omp parallel default(shared)
+  {
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis, count;
+    std::vector<E_Int> candidates; candidates.reserve(64);
+ 
+    // Loop over all connectivities to fill cENN
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
+        eidx = cumnepc[ic] + i;
+        
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
+
+        // Remove eidx from candidates
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
+
+        // Count occurrences
+        count = 0; prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
+          {
+            if (noccs >= dim) count++;
+            prev = ind;
+            noccs = 1;
+          }
+        }
+
+        // Catch last candidate
+        if (noccs >= dim) count++;
+        cENN[eidx] = count;
+      }
+    }
+  }
+
+  return 1;  // success
 }
 
 //=============================================================================

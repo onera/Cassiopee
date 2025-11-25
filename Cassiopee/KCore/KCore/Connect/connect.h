@@ -159,6 +159,11 @@ namespace K_CONNECT
   /*----------------------------------*/
   /* - Connectivite element basique - */
   /*----------------------------------*/
+  // Get dimensionality of a BE/ME connectivity based on its element types
+  // Shall ultimately be moved to FldArrayI once _ngon=0 means BE/ME
+  E_Int getDimME(const char* eltType);
+  E_Int getDimME(std::vector<char*> eltTypes);
+
   // Get the number of facets per element type of a Multiple Element
   // connectivity. If expandToLowerDim is set to True, 'faces' of 1D and 2D
   // elements are vertices and edges, respectively.
@@ -191,11 +196,13 @@ namespace K_CONNECT
      l'element initial. Maillages conformes.
   */
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
-                         std::vector< std::vector<E_Int> >& cEEN);
+                         std::vector<std::vector<E_Int> >& cEEN);
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
-                         std::vector< std::vector<E_Int> >& cEEN,
-                         std::vector< std::vector<E_Int> >& commonFace);
-    
+                         std::vector<std::vector<E_Int> >& cEEN,
+                         std::vector<std::vector<E_Int> >& commonFace);
+  // Same as connectEV2EENbrs but only returns the number of neighbours
+  E_Int connectEV2NNbrs(const char* eltType, E_Int nv, FldArrayI& cEV,
+                        std::vector<E_Int>& cENN); 
 
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Faces->Vertex. L'indice des faces est global, soit : nof + nelt*nfaces
@@ -514,5 +521,11 @@ namespace K_CONNECT
   void build_face_neighbourhood(std::vector<E_Int> &, std::vector<E_Int> &,
     std::vector<E_Int> &);
   E_Int colorConnexParts(E_Int *, E_Int *, E_Int, E_Int *);
+
+  /* Miscellenous */
+  // Perform an exclusive prefix sum on an array that is a mask comprised solely
+  // of zeros and ones. Return the total number of ones, that is the total number
+  // of tagged elements.
+  E_Int prefixSum(std::vector<E_Int>& a);
 }
 #endif
