@@ -7,7 +7,7 @@
 #   0001.cgns (key data)
 
 import sqlite3
-import os, numpy
+import os, numpy, time, datetime
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Filter as Filter
@@ -35,20 +35,25 @@ class DataBase:
 
     # open sql data base
     def open(self):
+        """Open sql db."""
         self.db = sqlite3.connect('%s/%s.sql'%(self.dirName,self.name))
+        self.db.execute("PRAGMA journal_mode=WAL;")
         self.cursor = self.db.cursor()
         return self.cursor
 
     # close sql db
     def close(self):
+        """Close the db."""
         self.db.close()
 
     # create sql table
     def createTable(self):
+        """Create the table."""
         columns = [("id", "INTEGER PRIMARY KEY"),
-                   ("descp", "TEXT"),
-                   ("reference", "TEXT"),
-                   ("variables", "TEXT")]
+                   ("descp", "TEXT"), # description
+                   ("date", "TEXT"), # date of insertion
+                   ("reference", "TEXT"), # reference mesh name
+                   ("variables", "TEXT")] # variables list (comma separated)
 
         for p in self.parameters:
             columns += [("%s"%p, "REAL")]
@@ -65,8 +70,22 @@ class DataBase:
         C.convertPyTree2File(tp, cgnsName)
         return None
 
+    def concurrentExecute(self, com1, com2):
+        """Enables multiple tries to commit to db."""
+        for i in range(5):  # retry up to 5 times
+            try:
+                self.cursor.execute("BEGIN;")
+                self.cursor.execute(com1, com2)
+                self.db.commit()
+            except sqlite3.OperationalError as e:
+                if "locked" in str(e).lower():
+                    time.sleep(0.5)  # wait before retry
+                else:
+                    print("DataBase: commit failed.")
+
     # insert a sample in data base
-    def register(self, id, descp, parameters, ref=None, variables=[], data=None):
+    def register(self, descp, parameters, ref=None, variables=[], data=None, tol=-1.):
+        """Register data in db."""
         if len(parameters) != len(self.parameters):
             raise ValueError("register: must have all parameters: "+str(self.paramters))
         if ref is None: ref = "ref1"
@@ -81,19 +100,42 @@ class DataBase:
         if data is not None:
             if isinstance(data, numpy.ndarray):
                 data = ['data', data, [], 'DataArray_t']
+                vars = ['data']
             elif isinstance(data, list):
                 if Internal.typeOfNode(data) == -1:
                     raise ValueError("register: data is invalid.")
-                vars = C.getVarNames(data)
+                vars = C.getVarNames(data, excludeXYZ=True)
                 if variables == []: variables = vars[0]
             else:
                 raise ValueError("register: data is invalid.")
+            varString = ''
+            for v in variables: varString += v+','
+            if len(varString) > 2: varString = varString[:-1]
+
+        # check if parameters already exists in db
+        # and return id
+        com = ''
+        for p in parameters:
+            com += "%s = %g AND "%(p, parameters[p])
+        if len(com) >= 4: com = com[:-4]
+        com1 = 'SELECT * FROM %s WHERE '%self.name
+        com1 = com1+com
+        self.cursor.execute(com1)
+        q = self.cursor.fetchall()
+        if q != []:
+            id = q[0][0]
+        else:
+            id = self.cursor.lastrowid+1
+
+        # get date
+        now = datetime.datetime.now()
+        dateString = now.strftime("%Y-%m-%dT%H:%M:%S")
 
         # register in sql
         com = f'REPLACE INTO {self.name}'
-        com += '(id, descp, reference, variables'
-        com2 = ' VALUES (?, ?, ?, ?'
-        com3 = [id, descp, ref, varString]
+        com += '(id, descp, date, reference, variables'
+        com2 = ' VALUES (?, ?, ?, ?, ?'
+        com3 = [id, descp, dateString, ref, varString]
         for p in self.parameters:
             com += ', '+p
             com2 += ', ?'
@@ -102,8 +144,9 @@ class DataBase:
             else: raise ValueError("register: parameter %s not found in input."%p)
         com += ')'
         com2 += ')'
-        self.cursor.execute(com+com2, com3)
-        self.db.commit()
+        self.concurrentExecute(com+com2, com3)
+        #self.cursor.execute(com+com2, com3)
+        #self.db.commit()
 
         # register fields cgns
         if data is not None:
@@ -115,7 +158,10 @@ class DataBase:
                 FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
                 z[2] = [ZT]
                 z[2] += FS
-            Compressor._compressAll(tp) # lossless
+            if tol <= 0: Compressor._compressAll(tp) # lossless
+            else:
+                Compressor._compressFields(tp, tol=tol, ctype=0) # approx
+                Compressor._compressAll(tp) # lossless
             C.convertPyTree2File(tp, cgnsName)
 
     # get catalog
@@ -126,6 +172,7 @@ class DataBase:
 
     # return a query
     def query(self, com=None):
+        """Return a query."""
         if com is None:
             # query catalog
             self.cursor.execute('SELECT * FROM %s'%self.name)
@@ -144,10 +191,11 @@ class DataBase:
     # mode=1: list of FS
     # mode=2: one tree + multiple FS (not implemented)
     def fetchTree(self, q, mode=0):
+        """Fetch a query and return tree."""
         ts = []; tref = None; refn = None
         for r in q:
             id = r[0]
-            ref = r[2]
+            ref = r[3]
             if refn is None: refn = ref
             if ref != refn:
                 ref = refn; tref = None
@@ -164,17 +212,18 @@ class DataBase:
         return ts
 
     def fetchParam(self, q):
+        """Fetch a query and return param vector."""
         # build param vector
-        nparam = len(q[0])-4
+        nparam = len(q[0])-5
         nrows = len(q)
         param = numpy.zeros((nrows,nparam), dtype=numpy.float64)
         for c, r in enumerate(q):
-            param[c,:] = r[4:]
+            param[c,:] = r[5:]
         return param
 
     def fetchMatrix(self, q, variable):
+        """Fetch a query and return matrix."""
         # build param vector
-        nparam = len(q[0])-4
         nrows = len(q)
         matrix = None
 

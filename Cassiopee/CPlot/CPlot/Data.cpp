@@ -51,7 +51,7 @@ Data::Data(CPlotState* ptState)
   _shadowMap = 0;
   _texColormap = 0;
   _texColormapType = -1;
-  _texColormapMinMax= -1;
+  _texColormapMinMax = -1;
   for (E_Int i = 0; i < 16; i++) _bias[i] = 0.;
   _bias[0] = 0.5; _bias[5]= 0.5; _bias[10] = 0.5; _bias[12] = 0.5;
   _bias[13] = 0.5; _bias[14] = 0.5; _bias[15] = 1.;

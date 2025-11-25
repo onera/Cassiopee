@@ -396,6 +396,7 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
     except: pass
     return connector.setDoublyDefinedBC(z, cellN, listOfInterpZones,
                                         listOfCelln, winrange, depth)
+
 #===============================================================================
 # Calcul les donneurs et coefs d interpolation pour une zone receveuse
 # a partir d'une liste de zones donneuses. Si plusieurs candidats possibles
@@ -528,6 +529,7 @@ def _getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated cells around cells of celln
     equal to 0."""
     return connector._getOversetHolesInterpCellCenters(zc, depth, dir, cellNName)
+
 #-----------------------------------------------------------------------------
 # Retourne le celln modifie des noeuds interpoles au voisinage des pts masques
 # IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)

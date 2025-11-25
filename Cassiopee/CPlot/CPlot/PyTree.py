@@ -164,8 +164,7 @@ def add(t, nob, noz, zone):
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
 
-    from . import cplot
-    cplot.add(array, (nzs, nzu), zoneName, renderTag)
+    CPlot.cplotm.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
 def replace(t, nob, noz, zone):
@@ -182,8 +181,8 @@ def replace(t, nob, noz, zone):
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
-    from . import cplot
-    cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
+
+    CPlot.cplotm.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
 def display1D(t, slot=0, gridPos=(0,0), gridSize=(-1,-1),
