@@ -23,50 +23,6 @@
 /* Hash functions */
 // Template parameter is a topology struct (see topologyMapping.h), unless
 // otherwise stated
-// CantorPairingHash: Cantor pairing function (works for pairs of ints)
-template <typename T>
-struct CantorPairingHash
-{
-  std::size_t operator()(const T& key) const
-  {
-    std::size_t x = key.p_[0];
-    if (key.n_ == 1) return x;
-    std::size_t y = key.p_[1];
-    return (x*x + 3*x + 2*x*y + y + y*y)/2;
-  }
-};
-
-// XieSymmPairingHash: Xie symmetric pairing function (works for pairs of ints)
-// https://arxiv.org/pdf/2105.10752.pdf
-template <typename T>
-struct XieSymmPairingHash
-{
-  std::size_t operator()(const T& key) const
-  {
-    std::size_t x = key.p_[0];
-    if (key.n_ == 1) return x;
-    std::size_t y = key.p_[1];
-    std::size_t a = x+y+1;
-    return (a*a - a%2)/4 + std::min(x, y);
-  }
-};
-
-// SimpleHash: simple hash function using bitwise XOR
-template <typename T>
-struct SimpleHash
-{
-  std::size_t operator()(const T& key) const
-  {
-    std::hash<E_Int> hasher;
-    std::size_t hash = 0;
-    for (const E_Int value : key.p_)
-    {
-      hash ^= hasher(value);
-    }
-    return hash;
-  }
-};
-
 // BernsteinHash: Bernstein djb2 hash function
 template <typename T>
 struct BernsteinHash
@@ -74,9 +30,9 @@ struct BernsteinHash
   std::size_t operator()(const T& key) const
   {
     std::size_t hash = 5381;
-    for (const E_Int value : key.p_)
+    for (std::size_t i = 0; i < key.n_; i++)
     {
-      hash = ((hash << 5) + hash) + value;
+      hash = ((hash << 5) + hash) + (std::size_t)key.p_[i];
     }
     return hash;
   }
@@ -90,9 +46,9 @@ struct FowlerNollVoHash
   std::size_t operator()(const T& key) const
   {
     std::size_t hash = 0x811c9dc5; // 32-bit offset basis
-    for (const E_Int value : key.p_)
+    for (std::size_t i = 0; i < key.n_; i++)
     {
-      hash = (value ^ hash) * 0x9e3779b9;
+      hash = ((std::size_t)key.p_[i] ^ hash) * 0x9e3779b9;
     }
     return hash;
   }
@@ -117,9 +73,9 @@ struct JenkinsHash
   std::size_t operator()(const T& key) const
   {
     std::size_t hash = 0;
-    for (const E_Int value : key.p_)
+    for (std::size_t i = 0; i < key.n_; i++)
     {
-      hash += value;
+      hash += (std::size_t)key.p_[i];
       hash += hash << 10;
       hash ^= hash >> 6;
     }
