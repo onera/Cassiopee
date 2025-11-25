@@ -33,10 +33,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     if frontTypeIP not in ["1","2"]:
         raise ValueError("FrontTypeIP not implemented: only frontTypeIP==\"1\" and \"2\" are implemented in parallel.")
+        Cmpi.abort(errorcode=1)
 
     frontTypeDP = IBM_parameters["donor points"]["front type"]
     if frontTypeDP not in ["1","2"]:
         raise ValueError("FrontTypeDP not implemented: only frontTypeDP==\"1\" and \"2\" are implemented in parallel.")
+        Cmpi.abort(errorcode=1)
 
     if frontTypeDP == "1":
         depth_DP = IBM_parameters["donor points"]["depth DonorPoints"]
@@ -52,13 +54,13 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             IBM_parameters["integration points"]["depth IntegrationPoints"] = 0
             depth_IP = 0
 
+    # VPM = volume penalization method - primarily used by Universidad Politécnica de Madrid (UPM)
     if "method" in IBM_parameters["IBM type"].keys():
         if IBM_parameters["IBM type"]["method"] == "VPM":
             VPM = True
 
-    if "use different front for different BCs" not in IBM_parameters["integration points"]:
-        different_front_flag = True
-    else:
+    different_front_flag = True
+    if "use different front for different BCs" in IBM_parameters["integration points"]::
         different_front_flag = IBM_parameters["integration points"]["use different front for different BCs"]
 
     if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
@@ -84,8 +86,6 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     #tb2_pre = T.join(tb2)
     #tb2_pre = G.close(tb2_pre)
     #tb2_pre = C.newPyTree(["unstr", tb2_pre])
-    t_prep_end = time.perf_counter()
-    t_wdist_start = time.perf_counter()
 
     # Distance to IBCs (all IBCs)
     varnames = C.getVarNames(t,loc="nodes")[0]
@@ -116,9 +116,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     Cmpi.trace(">>> Blanking [end]  ", master=True, cpu=False)
 
     print('Rank: %d :: Nb of Cartesian grids=%d.'%(Cmpi.rank,len(Internal.getZones(t))), flush=True)
-    npts = 0
+    Nzones = len(Internal.getZones(t))
+    Nzones = Cmpi.allreduce(Nzones)
     NCells = Cmpi.getNCells(t)
-    if Cmpi.master: print('Final number of cells=%5.4f millions.'%(NCells*1e-6), flush=True)
+    if Cmpi.master:
+        print('Total number of zones=%d.'%Nzones, flush=True)
+        print('Final number of cells=%5.4f millions.'%(NCells*1e-6), flush=True)
     C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
 
     zbcs=[]; bctypes=[]; bcnames=[]
@@ -159,8 +162,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if node[0] != "GridElements": Internal._rmNode(frontIP_gath,node)
     Cmpi.trace("Gathering front IP [end]  ", master=True, cpu=False)
 
-    if Cmpi.master and check:
-        print("Exporting frontIP..")
+    if Cmpi.master and check:        
+        print("Exporting frontIP..", flush=True)
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
 
@@ -650,7 +653,6 @@ def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
             if famName is not None:
                 if Internal.getValue(famName)=='IBMWall':
                     namebc = bc[0]
-                    print(namebc)
                     ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
                     for i in range(N_IP_per_face):
                         dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t',parent=ibcdataset)
