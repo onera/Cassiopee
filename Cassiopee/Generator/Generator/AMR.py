@@ -139,7 +139,7 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
     # This clips the upper limit on the number of offset level to the input value. Important for tests & devs.
     # This is an expert expert parameter & should be used with (a lot of) caution.
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
-    forceUpperLimitOffset = True
+    forceUpperLimitOffset = False
 
     # list of dfars
     bodies = Internal.getZones(tb)
