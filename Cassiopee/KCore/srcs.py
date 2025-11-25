@@ -74,6 +74,7 @@ cpp_srcs = [
     'KCore/CompGeom/param.cpp',
     'KCore/CompGeom/onedmap.cpp',
     'KCore/CompGeom/interp.cpp',
+    'KCore/Connect/getDimME.cpp',
     'KCore/Connect/getNFPE.cpp',
     'KCore/Connect/getEVFacets.cpp',
     'KCore/Connect/connectEV2VE.cpp',

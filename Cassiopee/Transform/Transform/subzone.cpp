@@ -1408,11 +1408,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     vector<vector<vector<E_Int> > > facetspc(nc);
 
     // Get dimensionality
-    E_Int dim = 3;
-    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-    else if (strcmp(eltTypes[0], "TRI") == 0 ||
-             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+    E_Int dim = K_CONNECT::getDimME(eltTypes);
 
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
@@ -1792,11 +1788,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     vector<vector<vector<E_Int> > > facetspc(nc);
 
     // Get dimensionality
-    E_Int dim = 3;
-    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-    else if (strcmp(eltTypes[0], "TRI") == 0 ||
-             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+    E_Int dim = K_CONNECT::getDimME(eltTypes);
 
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
