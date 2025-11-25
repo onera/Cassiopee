@@ -50,6 +50,7 @@ def getListSnear(tb,snears):
                 if n is not None: snearsTmp[c] = Internal.getValue(n)*1.
             snearsList.append(snearsTmp)
     else:
+        bodies = Internal.getZones(tb)
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
     snears = snearsList
     tbTMP = Internal.copyTree(tb)
@@ -59,19 +60,21 @@ def getListSnear(tb,snears):
     return snears, numBase
 
 def checkBaseNames(tb,tbox):
-    from mpi4py import MPI
+    # check consistency of base names in tb and tbox
+    # check that tb does not have base names that repeat
+    # check that the tb and tbox do not have the same names
     baseNameListLocal = []
     for b in Internal.getBases(tb):
         if b[0] in baseNameListLocal:
             raise ValueError('Tb must have bases with distinct names. Exiting...')
-            MPI.COMM_WORLD.Abort(1);
+            Cmpi.abort(errorcode=1)
         else:
             baseNameListLocal.append(b[0])
     if tbox is not None:
         for b in Internal.getBases(tbox):
             if b[0] in baseNameListLocal:
                 raise ValueError('Tb and Tbox have a base with the same name. Tbox must have base names that are distinct to those found in tb. Exiting...')
-                MPI.COMM_WORLD.Abort(1);
+                Cmpi.abort(errorcode=1)
             else:
                 baseNameListLocal.append(b[0])
     return None
@@ -261,7 +264,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
             surfaces.append(z)
             # Pull request note: levelSkelLoc causes regressions in the mesh generation
             levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
-            #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
+            #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
             if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
             dfarloc      = dfars[c]
             snearloc     = 2**levelSkel*snears[c]
@@ -355,6 +358,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
                       XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                       cellNName='cellN')
     if opt:
+        ## needed - see comment in tagInsideOffset
         depthLocal = 0
         if noffsets==0:   depthLocal=-2
         elif noffsets==1: depthLocal=-1
@@ -1061,13 +1065,18 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     sortDicOffsetIBM  = {}
     sortDicOffsetTbox = {}
     newOffsetsTbox    = []
+    # combine zones with the same snear
     for i in offset_zones:
+        # dict={snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
         if 'Tbox' in i[0]:
             hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
             _addItemDict(sortDicOffsetTbox, hminLocal, i[0])
         else:
             hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
             _addItemDict(sortDicOffsetIBM, hminLocal, i[0])
+
+    # newOffsetsIBM=[[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
+    # corresponding for tbox also
     newOffsetsIBM = []
     for snearLocal in sortDicOffsetIBM:
         tmpOffset = []
@@ -1083,8 +1092,8 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
 
     noffsetBase     = [len(newOffsetsIBM), len(newOffsetsTbox)]
     offset_zonesNew = [newOffsetsIBM, newOffsetsTbox]
-    offset_name     = ['IBM body', 'tbox']
-    noffsets        = max(noffsetBase)
+    offset_name     = ['IBM body', 'tbox'] # for I/O purposes only
+    noffsets        = max(noffsetBase) # max offset for all the bases
     for i in range(noffsets-1, -1,-1):
         if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
         for nBase in range(1+min(1,numTbox)): #nBase = 0(IBM), 1(tbox - if it exists))
@@ -1312,13 +1321,21 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         NumMinDxLarge=1
     NumMinDxLarge+=1 # we add one as the check later on is on nodes & not cells.
 
+    # check to see if the sym bases have snear?
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
     isSymLocal = False
-    if baseSYM: isSymLocal = True
+    if baseSYM:
+        zoneTmp = Internal.getZones(baseSYM)
+        if Internal.getNodeFromName(baseSYM, 'snear'):
+            isSymLocal = True
 
     checkBaseNames(tb,tbox)
+
+    # snears & numBase for the input tb only.
+    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
+    # NumBase is only the num. of 'real' bodies
     snears, numBase = getListSnear(tb, snears)
-    snearsFlat = [x[0] for x in snears]
+    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
 
     # list of vmins
@@ -1339,6 +1356,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             vminsTbox = vminsTbox.tolist()
         else:
             vminsTbox=vminsInputCheck(vminsTbox, numTbox, levelMax)
+
         Cmpi.barrier()
         snearsTbox, tmpRMV = getListSnear(tbox, 1)
         vmins.extend(vminsTbox)
@@ -1369,7 +1387,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     # levelSkel: initial refinement level of the skeleton octree
     # might be tuned
-    # ONLY tb, no tbox
+    # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
         if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
@@ -1384,9 +1402,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
+    # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
     minSnearsOrig = min(snearsFlat)
     if abs(hmin-minSnearsOrig)>__TOL__:
         for nBase in range(numBase):
+            # we only check the first zone of each base as CODA (currently)
+            # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
             snearMult = snearsTbTbox[nBase][0]//minSnearsOrig
             snearsTbTbox[nBase] = [snearMult*hmin]
 
@@ -1397,17 +1418,17 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     bbo = G.bbox(o)
 
     dir_sym      = getSymmetryPlaneInfo__(tb,dim=dim)
-    tb_tboxLocal = Internal.copyTree(tb_tbox)
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    baseSYM = Internal.getNodesFromName1(tb_tboxLocal,"SYM")
+    tb_tboxLocal = Internal.copyTree(tb_tbox)
     if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb
+        # Remove SYM Base & Zones - keep real closed tb & tbox
         tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, 'SYM', 'CGNSBase_t')
         tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, '*_sym*', 'Zone_t')
 
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
-    # The min of this becomes the dfar max.
+    # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
+    # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
     dfarmaxLocal = []
     for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
         bbTbLocal = G.bbox(tbLocal)
@@ -1432,16 +1453,17 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                 # Pull request note: the line below causes regressions in the mesh generation
                 if offsetloc < 0.99*dfarmaxLocal[nBase]:
-                    #if offsetloc < 0.99*dfarmax:
+                    #if offsetloc < 0.99*dfarmax: # for old dfar max cal. Stays here in case it is needed in the future
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             if not offsetValuesBase:
                 no_adapt = 0
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %s which is larger than the max allowable distance of %s. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase])) 
+                raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
+                Cmpi.abort(errorcode=1)
             offsetValues.append(offsetValuesBase)
-        # generate list of offsets
 
+        # generate list of offsets
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2)
@@ -1450,11 +1472,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM:
         # Remove SYM Base & Zones - keep real closed tb
         tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+
     Cmpi.barrier()
     # only tb --> for blanking & tagging inside the geometry
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox)
