@@ -59,9 +59,8 @@ def profile(name=None):
     import KCore.installPath
     prodname = os.getenv("ELSAPROD")
     libpath = KCore.installPath.libPath
-    libpath = libpath.split(os.sep)
-    pos = libpath.index(prodname)
-    filepath = os.path.join(os.sep.join(libpath[:pos+1]), "UIUCAirfoils.cgns")
+    pos = libpath.rfind(prodname)
+    filepath = os.path.join(libpath[:pos], prodname, "UIUCAirfoils.cgns")
     t = C.convertFile2PyTree(filepath)
     bases = Internal.getBases(t)
     if name is None:
