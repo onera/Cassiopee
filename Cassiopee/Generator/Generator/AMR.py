@@ -164,8 +164,7 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
             levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
-            if forceUpperLimitOffset: levelSkel = levelSkel
-            else:                     levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+            if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
 
             dfarloc = dfars[c]
             snearloc = 2**levelSkel*snears[c]
