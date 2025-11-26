@@ -3167,7 +3167,7 @@ Adapt NGON meshes
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Internal.adaptNFace2PE(t, remove=True, shiftPE=False)
+.. py:function:: Converter.Internal.adaptNFace2PE(t, remove=False, shiftPE=False)
 
     Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE). 
 
