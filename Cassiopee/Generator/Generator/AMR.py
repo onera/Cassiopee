@@ -10,18 +10,17 @@ import Dist2Walls.PyTree as DTW
 import Post.PyTree as P
 import XCore.PyTree as XC
 from . import PyTree as G
-import os, numpy, math
-import time as ktime
+import os, numpy, math, time
 
 __TOL__ = 1e-9
 
-def vminsInputCheck(vminsIN, numBaseTMP, levelMaxTMP):
+def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
     import copy
     vminsTMP = copy.deepcopy(vminsIN)
     # list of vminsTMP
     if isinstance(vminsTMP,list):
         # vmin = [] & vmin =[[],[]] for 3 bases
-        if not isinstance(vminsTMP[0],list): vminsTMP=[vminsTMP] # vmin = [] --> vmin = [[]]
+        if not isinstance(vminsTMP[0],list): vminsTMP = [vminsTMP] # vmin = [] --> vmin = [[]]
 
         # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
         while len(vminsTMP) < numBaseTMP: vminsTMP.append(vminsTMP[-1])
@@ -31,17 +30,20 @@ def vminsInputCheck(vminsIN, numBaseTMP, levelMaxTMP):
         vminsTMP = vminsTMP.tolist() # needed
     return vminsTMP
 
-def _addItemDict(d, key, value):
+# Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
+#                 Leaving it here temporarily - no certainty that it wont be used elsewhere.
+#                 If by June 2026 it is not used elsewhere make definite move to adaptMesh__
+def _addItemDict__(d, key, value):
     if key in d:
         d[key].append(value)
     else:
         d[key] = [value]
     return None
 
-def getListSnear(tb,snears):
+def getListSnear__(tb,snears):
     # List of snears
     if not isinstance(snears, list):
-        snearsList=[]
+        snearsList = []
         for baseTmp in Internal.getBases(tb):
             bodies    = Internal.getZones(baseTmp)
             snearsTmp = [snears*1.]*len(bodies)
@@ -54,12 +56,12 @@ def getListSnear(tb,snears):
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
     snears = snearsList
     tbTMP = Internal.copyTree(tb)
-    baseSYM = Internal.getNodesFromName1(tbTMP,"SYM")
+    baseSYM = Internal.getNodesFromName1(tbTMP, "SYM")
     if baseSYM: tbTMP = Internal.rmNodesByNameAndType(tbTMP, 'SYM', 'CGNSBase_t')
     numBase = len(Internal.getBases(tbTMP))
     return snears, numBase
 
-def checkBaseNames(tb,tbox):
+def checkBaseNames__(tb,tbox):
     # check consistency of base names in tb and tbox
     # check that tb does not have base names that repeat
     # check that the tb and tbox do not have the same names
@@ -85,15 +87,15 @@ def checkBaseNames(tb,tbox):
 # returns a tree toffset
 def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None):
     import Geom.IBM as D_IBM
-    if offsetValues==[]: return []
+    if offsetValues == []: return []
     numBase = len(Internal.getBases(tb))
-    if Cmpi.rank==0: print('Generating list of offsets...start',flush=True)
+    if Cmpi.master: print('Generating list of offsets...start', flush=True)
 
     minSnear=1e10
-    for snearLocal in snears: minSnear=min(minSnear,snearLocal[0])
+    for snearLocal in snears: minSnear = min(minSnear, snearLocal[0])
 
-    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
-    baseSYM = Internal.getNodesFromName1(tb,"SYM")
+    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
     listShiftBase = []
     if baseSYM is not None:
         # Keep only the real closed tb
@@ -106,7 +108,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
     numBase = len(Internal.getBases(tb))
     if opt and dim == 3:
         for nob in range(len(tb[2])):
-            if Internal.getType(tb[2][nob])=='CGNSBase_t':
+            if Internal.getType(tb[2][nob]) == 'CGNSBase_t':
                 z = Internal.getZones(tb[2][nob])
                 z = C.convertArray2Tetra(z)
                 z = T.join(z)
@@ -115,7 +117,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                 # hausd is a length and must be adapted to the dimensions of each case
                 hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
                 hmax = hausd*1000
-                if Cmpi.master: print(hausd, hmax, flush=True)
+                if Cmpi.master:
+                    print('Remeshing (tb) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
                 # exteriorFaces currently crashes if the surface is closed
                 try:
                     fixedConstraints = P.exteriorFaces(z)
@@ -130,7 +133,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         # Current use: 3D symmetric cases & needed for the CRM case 1 of the HLPW5.
         if tbv2 is not None:
             for nob in range(len(tbv2[2])):
-                if Internal.getType(tbv2[2][nob])=='CGNSBase_t':
+                if Internal.getType(tbv2[2][nob]) == 'CGNSBase_t':
                     z = Internal.getZones(tbv2[2][nob])
                     z = C.convertArray2Tetra(z)
                     z = T.join(z)
@@ -138,7 +141,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                     # hausd is a length and must be adapted to the dimensions of each case
                     hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
                     hmax = hausd*1000
-                    if Cmpi.master: print(hausd, hmax, flush=True)
+                    if Cmpi.master:
+                        print('Remeshing aux. temp. (tbv2) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
                     # exteriorFaces currently crashes if the surface is closed
                     try:
                         fixedConstraints = P.exteriorFaces(z)
@@ -151,7 +155,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
     if tbv2 is not None: tbTmp = tbv2
 
     t_offset = C.newPyTree()
-    no_offsetGlobal=0
+    no_offsetGlobal = 0
     for nBase, tbLocal in enumerate(Internal.getBases(tb)):
         BB = G.bbox(tbLocal)
         ni = 150; nj = 150; nk = 150
@@ -159,7 +163,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
 
         offsetValMin = min(offsetValues[nBase])
         offsetValMax = max(offsetValues[nBase])
-        alpha=1.1
+        alpha = 1.1
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
         xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
@@ -198,45 +202,45 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         # smaller and finer Cartesian core, bigger geometric factor
         XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
         XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-        b = G.cartRx3(XC0, XC1, (h_core,h_core,h_core), XF0, XF1, (1.3,1.3,1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
+        b = G.cartRx3(XC0, XC1, (h_core, h_core, h_core), XF0, XF1, (1.3, 1.3, 1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
 
         tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
         if tbLocalTmp is None: tbLocalTmp = tbLocal
-        C._initVars(tbLocalTmp,"cellN",1.)
-
-        Cmpi.barrier()
-        t0 = ktime.time()
+        C._initVars(tbLocalTmp, "cellN", 1.)
+        
+        t0 = time.perf_counter()
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
-        Cmpi.barrier()
-        if Cmpi.rank == 0: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0],nBase,(ktime.time()-t0)), flush=True)
-
+        tElapse = time.perf_counter()-t0
+        tElapse = Cmpi.allreduce(tElapse, op=MAX)
+        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nBase, tElapse), flush=True)
+        
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
         # required for blankCells as a closed set of surfaces
         bodies = [tbLocalTmp]; nbodies = 1
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
-        t = C.newPyTree(["BASE",Internal.getZones(b)])
+        t = C.newPyTree(["BASE", Internal.getZones(b)])
         X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
-        C._initVars(t,'{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
+        C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
 
         # all body offsets are prefaced by 'z_offsetBase' - only the zone name
         # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         preffixLocal = 'z_offsetBase'
-        if nBase>=numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
+        if nBase >= numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
         for no_offset, offsetval in enumerate(offsetValues[nBase]):
-            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset,offsetval,snears[nBase][0]*2**no_offset), flush=True)
-            iso = P.isoSurfMC(t, 'TurbulentDistance',offsetval)
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nBase][0]*2**no_offset), flush=True)
+            iso = P.isoSurfMC(t, 'TurbulentDistance', offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
             iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
-            iso[0]='%s%d_%d'%(preffixLocal,nBase,no_offset)
-            D_IBM._setSnear(iso,snears[nBase][0]*2**no_offset)
-            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase,no_offset))
+            iso[0]='%s%d_%d'%(preffixLocal, nBase, no_offset)
+            D_IBM._setSnear(iso, snears[nBase][0]*2**no_offset)
+            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase, no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
-            no_offsetGlobal+=1
+            no_offsetGlobal += 1
     return t_offset
 
 # Generates an isotropic skeleton mesh to be adapted then by AMR
@@ -280,8 +284,8 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     # SYMMETRY - select only cells from one side
     #
     # determine where the symmetry plane is
-    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
-    [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(o)
+    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
+    [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(o)
     if dir_sym == 1:
         coordsym = 'CoordinateX'
         valsym = 0.5*(xmin+xmax)
@@ -291,7 +295,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     elif dir_sym == 3:
         coordsym = 'CoordinateZ'
         valsym = 0.5*(zmin+zmax)
-    if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym-__TOL__),strict=1)
+    if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym, valsym-__TOL__), strict=1)
 
     if forceUpperLimitOffset:
         box = G.bbox(o)
@@ -306,20 +310,20 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
         o = G.cart((box[0],box[1],box[2]), (dxdydz_local, dxdydz_local, dz_local), (nCellsCartesian_x+1, nCellsCartesian_y+1,nCellsCartesian_z+1))
     else:
         # adapt the mesh to get a single refinement level - uniform grid
-        refined=True
+        refined = True
         G._getVolumeMap(o)
-        volminAll = C.getMinValue(o,"centers:vol")
+        volminAll = C.getMinValue(o, "centers:vol")
         tol_vol = 1e-2*volminAll
         while refined:
-            C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
-            if C.getMaxValue(o,"centers:indicator") > 1.-__TOL__:
+            C._initVars(o, '{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
+            if C.getMaxValue(o, "centers:indicator") > 1.-__TOL__:
                 o = G.adaptOctree(o, 'centers:indicator', balancing=1)
                 G._getVolumeMap(o)
             else:
                 break
-        C._rmVars(o, ['centers:indicator','centers:vol'])
+        C._rmVars(o, ['centers:indicator', 'centers:vol'])        
 
-    if dim==2: T._addkplane(o)
+    if dim == 2: T._addkplane(o)
     o = C.convertArray2NGon(o)
     o = G.close(o)
     _addPhysicalBCs__(o, tb, dim=dim)
@@ -332,25 +336,25 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     # It tags the inside of the bodies as cellN=0 and then multuiplies the indicator. i.e. the parts inside the body will be zero.
 
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
-    C._initVars(to,'centers:indicatorTmp',0.)
+    C._initVars(to, 'centers:indicatorTmp', 0.)
 
-    if dim==2: tbTMP = T.addkplane(tbTMP)
+    if dim == 2: tbTMP = T.addkplane(tbTMP)
     bodies1 = [Internal.getZones(tbTMP)]
     bb1 = G.bbox(tbTMP)
     L1 = max(bb1[3]-bb1[0], bb1[4]-bb1[1])
     if dim == 3: L1 = max(L1, bb1[5]-bb1[2])
 
-    BM = numpy.ones((1,1),dtype=Internal.E_NpyInt)
+    BM = numpy.ones((1,1), dtype=Internal.E_NpyInt)
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
     XRAYDIM1 = int(L1/h_target)+10;
     # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
-    if (noffsets is None) or (noffsets>2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
+    if (noffsets is None) or (noffsets > 2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
     elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
     elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
     elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
-    C._initVars(to, "cellNIn",1.)
+    C._initVars(to, "cellNIn", 1.)
 
     to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                       XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
@@ -358,23 +362,23 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     if opt:
         ## needed - see comment in tagInsideOffset
         depthLocal = 0
-        if noffsets==0:   depthLocal=-2
-        elif noffsets==1: depthLocal=-1
-        if abs(depthLocal)>0: to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellN', loc='nodes')
+        if noffsets == 0:   depthLocal = -2
+        elif noffsets == 1: depthLocal = -1
+        if abs(depthLocal) > 0: to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellN', loc='nodes')
     to = C.node2Center(to,["cellN"])
-    C._initVars(to,"{centers:indicatorTmp}=({centers:cellN}>0)")
+    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0)")
     C._rmVars(to, ["cellN","centers:cellN"])
     o = Internal.getZones(to)[0]
     return o
 
 def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
-    to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
-    C._initVars(to,'centers:indicatorTmp',0.)
+    to = C.newPyTree(["OCTREE"]); to[2][1][2] = Internal.getZones(o)
+    C._initVars(to, 'centers:indicatorTmp', 0.)
 
-    isTbox=False
+    isTbox = False
     if offset1 is None:
-        offset1=Internal.copyTree(offset2)
-        isTbox=True
+        offset1 = Internal.copyTree(offset2)
+        isTbox = True
 
     if dim==2:
         offset1 = T.addkplane(offset1)
@@ -382,7 +386,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1
     bodies2 = [Internal.getZones(offset2)] # tag for refinement inside of offset2
 
-    BM = numpy.ones((1,1),dtype=Internal.E_NpyInt)
+    BM = numpy.ones((1,1), dtype=Internal.E_NpyInt)
 
     bb1 = G.bbox(offset1)
     bb2 = G.bbox(offset2)
@@ -398,7 +402,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     # XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
     # XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
     # Pull request note: causes regressions in the mesh generation
-    if (noffsets is None) or (noffsets>2) or coarseXray:
+    if (noffsets is None) or (noffsets > 2) or coarseXray:
         XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
         XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
     elif noffsets == 2:
@@ -410,14 +414,14 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     elif noffsets == 0:
         XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
         XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
-
-    C._initVars(to, "cellNOut",1.)
-    C._initVars(to, "cellNIn",1.)
+    
+    C._initVars(to, "cellNOut", 1.)
+    C._initVars(to, "cellNIn", 1.)
 
     to = X.blankCells(to, bodies2, BM, blankingType='node_in',
                       XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                       cellNName='cellNIn')
-    if isTbox: C._initVars(to,'{cellN}=({cellNIn}<1)')
+    if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
         to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                           XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
@@ -426,20 +430,20 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
         # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
         depthLocal = -1
         if opt:
-            if noffsets==0:   depthLocal=-3
-            elif noffsets==1: depthLocal=-2
+            if noffsets == 0:   depthLocal = -3
+            elif noffsets == 1: depthLocal = -2
 
         to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellNOut', loc='nodes')
-        C._initVars(to,'{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
+        C._initVars(to, '{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
 
-    to = C.node2Center(to,["cellN"])
-    C._initVars(to,"{centers:indicatorTmp}=({centers:cellN}>0.)")
+    to = C.node2Center(to, ["cellN"])
+    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0.)")
     #
     G._getVolumeMap(to)
     vol_target = h_target**dim * 1.01 # add a tolerance
-    C._initVars(to,"{centers:indicatorTmp}={centers:indicatorTmp}*({centers:vol}>%g)"%(vol_target))
+    C._initVars(to, "{centers:indicatorTmp}={centers:indicatorTmp}*({centers:vol}>%g)"%(vol_target))
     #
-    C._rmVars(to, ["cellN","cellNIn","cellNOut","centers:cellN","centers:vol","centers:h"])
+    C._rmVars(to, ["cellN", "cellNIn", "cellNOut", "centers:cellN", "centers:vol", "centers:h"])
     o = Internal.getZones(to)[0]
     return o
 
@@ -532,79 +536,6 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
     Internal.newElements("GridElements", etype=7, econnectivity=flattened_faces, erange=[1, n_faces], eboundary=0, parent=zone)
     return zone
 
-def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
-    a = Internal.getZones(a)[0] # get first zone
-    faces = Internal.getNGonNode(a)
-    vol_cells = Internal.getNFaceNode(a)
-
-    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-
-    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-
-    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-
-    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-    length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = numpy.unique(length_volcells)
-    lens_faces = numpy.unique(length_faces)
-    coordsx_a = Internal.getNodeFromName(a,"CoordinateX")[1]
-    coordsy_a = Internal.getNodeFromName(a,"CoordinateY")[1]
-    coordsz_a = Internal.getNodeFromName(a,"CoordinateZ")[1]
-    nb_vertices_a = len(coordsx_a)
-
-    if len(indices_owners) == 0:
-        indices_owners = range(len(length_volcells))
-
-    if dimPb == 3: n_smallfaces = 4
-    else: n_smallfaces = 2
-
-    list_bigface = []
-    for index_volume in indices_owners:
-        stride = cranges[index_volume]
-        stride_offset = numpy.cumsum(stride)
-        idx_vol_init = offset_volcells[index_volume]
-
-        idx_sides = []
-        for i in range(6):
-            if stride[i] == n_smallfaces:
-                idx_sides.append(i)
-        if idx_sides != []:
-            for idx_side in idx_sides:
-                indices_faces = []
-                start_idx = stride_offset[idx_side-1] if idx_side>0 else 0
-                for i in range(start_idx,stride_offset[idx_side]):
-                    face = EC_volcells[idx_vol_init+i]
-                    indices_faces.append(face)
-                conn_Nfaces = numpy.zeros((n_smallfaces,4),dtype=Internal.E_NpyInt)
-                for i,idx_face in enumerate(indices_faces):
-                    idx_face_init = offset_faces[idx_face-1]
-                    len_face = length_faces[idx_face-1]
-
-                    if len_face != 4:
-                        indices_face_5nodes = findFifthNode__(idx_face,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,coordsz_a)
-                    k = 0
-                    for j in range(len_face):
-                        if len_face==4 or (len_face!=4 and not j in indices_face_5nodes):
-                            conn_Nfaces[i][k] = EC_faces[idx_face_init+j]
-                            k+=1
-                if dimPb == 3: [point0,point1,point2,point3] = reorderNodesInCanonicalOrderForBigFace3D(conn_Nfaces)
-                else: [point0,point1,point2,point3] = reorderNodesInCanonicalOrderForBigFace2D(conn_Nfaces)
-                list_bigface.append([point0,point1,point2,point3])
-
-    len_new_faces = len(list_bigface)
-    flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
-
-    zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a,len_new_faces,0]],ztype="Unstructured")
-    gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
-    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gcBI)
-    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gcBI)
-    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gcBI)
-    Internal.newElements(name="GridElements", etype=7, econnectivity=flat_list_bigfaces, erange=[1, len_new_faces], eboundary=0, parent=zsnc_big_internal)
-    return zsnc_big_internal
-
 def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
     a = Internal.getZones(a)[0] # get first zone
     faces = Internal.getNGonNode(a)
@@ -665,53 +596,7 @@ def createQuadSurfaceFromNgonPointListSmallFace__(a, PL):
 
     return zone
 
-def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a, PL):
-    a = Internal.getZones(a)[0] # get first zone
-    faces = Internal.getNGonNode(a)
-    vol_cells = Internal.getNFaceNode(a)
-
-    #EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-
-    #ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-    #ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-
-    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-
-    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-    length_faces = offset_faces[1:] - offset_faces[:-1]
-    #lens_vol = numpy.unique(length_volcells)
-    #lens_faces = numpy.unique(length_faces)
-
-    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-    nb_vertices_a = len(coordsx_a)
-
-    len_new_faces = len(PL)
-    len_EC_faces = len(PL)*4
-    new_EC_ngon_faces = numpy.zeros(len_EC_faces,dtype=Internal.E_NpyInt)
-    idx_new = 0
-    for idx in PL:
-        idx_face_init = offset_faces[idx-1]
-        len_face = length_faces[idx-1]
-        if len_face !=4:
-            indices_face_5nodes = findFifthNode__(idx,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,coordsz_a)
-        for i in range(len_face):
-            if len_face==4 or (len_face!=4 and not i in indices_face_5nodes):
-                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init+i]
-                idx_new += 1
-
-    zone = Internal.newZone(name="Zone",zsize=[[nb_vertices_a,len_new_faces,0]],ztype="Unstructured")
-    gc = Internal.newGridCoordinates(parent=zone)
-    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gc)
-    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gc)
-    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gc)
-    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=new_EC_ngon_faces, erange=[1, len_new_faces], eboundary=0, parent=zone)
-    return zone
-
-def findFifthNode__(idx,offset_faces,length_faces,EC_faces,coordsx_a,coordsy_a,coordsz_a):
+def findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a):
     idx_face_init = offset_faces[idx-1]
     len_face = length_faces[idx-1]
     EC_ngon_faces = EC_faces[idx_face_init:idx_face_init+len_face]
@@ -832,10 +717,10 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
         tmp = point1
         point1 = point3
         point3 = tmp
-    return [point0,point1,point2,point3]
+    return [point0, point1, point2, point3]
 
 def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
-    point0=None; point1=None; point2=None; point3=None
+    point0 = None; point1 = None; point2 = None; point3 = None
     unique, counts = numpy.unique(conn_4faces, return_counts=True)
     index_count_4 = numpy.argwhere(counts==4)[0][0]
     indices_count_1 = numpy.argwhere(counts==1)
@@ -846,7 +731,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     corner_points = []
     pos_corner_points = []
     for EC in conn_4faces:
-        pos8 = numpy.where(EC == point8)[0][0]
+        pos8 = numpy.where(EC==point8)[0][0]
         pos_corner_point = (pos8 + 2) % 4
         pos_corner_points.append(pos_corner_point)
         corner_points.append(EC[pos_corner_point])
@@ -864,7 +749,7 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     point1 = corner_points[elt1]
     #pos_corner_in_elt1 = pos_corner_points[elt1]
 
-    point5 = list(set(conn_4faces[elt1])-set([point4,point8,point1]))[0]
+    point5 = list(set(conn_4faces[elt1])-set([point4, point8, point1]))[0]
 
     elt2 = numpy.where(conn_4faces==point5)[0]
     elt2 = elt2[elt2!=elt1][0]
@@ -873,9 +758,9 @@ def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
     #pos_corner_in_elt2 = pos_corner_points[elt2]
 
     point6 = list(set(conn_4faces[elt2])-set([point5,point8,point2]))[0]
-    elt3 = list(set([0,1,2,3])-set([elt0,elt1,elt2]))[0]
-    point3 = list(set(conn_4faces[elt3])-set([point6,point7,point8]))[0]
-    return [point0,point1,point2,point3]
+    elt3 = list(set([0, 1, 2, 3])-set([elt0, elt1, elt2]))[0]
+    point3 = list(set(conn_4faces[elt3])-set([point6, point7, point8]))[0]
+    return [point0, point1, point2, point3]
 
 def createEmptyQuadZone__():
     zone = Internal.newZone(name="empty", zsize=[[0,0]], ztype="Unstructured")
@@ -960,63 +845,11 @@ def _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype):
     C._addBC2Zone(zone, bcname, bctype, elementRange=[last_id + 1, last_id + len(PL)])
     return None
 
-def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
-    a = Internal.getZones(a)[0] # get first zone
-    faces = Internal.getNGonNode(a)
-    vol_cells = Internal.getNFaceNode(a)
-
-    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-
-    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-
-    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-
-    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-    length_faces = offset_faces[1:] - offset_faces[:-1]
-    lens_vol = numpy.unique(length_volcells)
-    lens_faces = numpy.unique(length_faces)
-
-    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-    nb_vertices_a = len(coordsx_a)
-
-    len_new_faces = len(PL)
-    len_EC_faces = len(PL) * 4
-    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
-    idx_new = 0
-    for idx in PL:
-        idx_face_init = offset_faces[idx - 1]
-        len_face = length_faces[idx - 1]
-        if len_face != 4:
-            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-        for i in range(len_face):
-            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
-                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init + i]
-                idx_new += 1
-
-    elts = Internal.getNodesFromType(a_hexa, "Elements_t")
-    maxElt = Internal.getNodeFromName(elts[-1], "ElementRange")[1][1]
-    zones = Internal.getZones(a_hexa)
-    Internal.newElements(
-        name=bcname,
-        etype=7,
-        econnectivity=new_EC_ngon_faces,
-        erange=[maxElt + 1, maxElt + len_new_faces],
-        eboundary=0,
-        parent=zones[0]
-    )
-    C._addBC2Zone(zones[0], bcname, bctype, elementRange=[maxElt + 1, maxElt + len_new_faces])
-    return None
-
 def _createBCNearMatch__(a_hexa, bcnearmatch):
     z = Internal.getZones(a_hexa)
-    if Internal.getValue(bcnearmatch)[0][1]>0:
+    if Internal.getValue(bcnearmatch)[0][1] > 0:
         f = P.exteriorFaces(z[0])
-        hook = C.createHook(f,"elementCenters")
+        hook = C.createHook(f, "elementCenters")
         ids = C.identifyElements(hook, bcnearmatch, tol=__TOL__)
 
         ids = ids[ids[:] > -1]
@@ -1029,23 +862,20 @@ def _createBCNearMatch__(a_hexa, bcnearmatch):
     return None
 
 def _createBCStandard__(a_hexa, a):
-    nodes_bcs = Internal.getNodesFromType(a,"BC_t")
+    nodes_bcs = Internal.getNodesFromType(a, "BC_t")
     for node_bc in nodes_bcs:
         bctype = Internal.getValue(node_bc)
         bcname = Internal.getName(node_bc)
-        PL = Internal.getNodeFromName(node_bc,"PointList")[1]
+        PL = Internal.getNodeFromName(node_bc, "PointList")[1]
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
 def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0):
-    from mpi4py import MPI
-    from itertools import groupby
-
     coarseXray = False
     bbtb = G.bbox(tb)
     lenMax = 0.0
     for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
-    if lenMax/hmin<100: coarseXray = True
+    if lenMax/hmin < 100: coarseXray = True
 
     numBase = len(Internal.getZones(tb))
     o, res = XC.loadAndSplitNGon(fileSkeleton)
@@ -1054,7 +884,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     gfaces = res[6]
     comm = res[1]
     if dim == 3: normal2D=None
-    else: normal2D = numpy.array([0.0,0.0,1.0])
+    else: normal2D = numpy.array([0.0, 0.0, 1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
     offset_zones       = Internal.getZones(toffset)
     offset_inside      = [Internal.getZones(tb)]
@@ -1068,10 +898,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
         # dict={snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
         if 'Tbox' in i[0]:
             hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict(sortDicOffsetTbox, hminLocal, i[0])
+            _addItemDict__(sortDicOffsetTbox, hminLocal, i[0])
         else:
             hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict(sortDicOffsetIBM, hminLocal, i[0])
+            _addItemDict__(sortDicOffsetIBM, hminLocal, i[0])
 
     # newOffsetsIBM=[[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
     # corresponding for tbox also
@@ -1135,7 +965,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     XC.AdaptMesh_Adapt(hookAM)
                     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                     o = Internal.getZones(o)[0]
-                    if Cmpi.rank==0: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
+                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
     if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
@@ -1181,9 +1011,8 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
         maxElt = max(maxElt, m)
     # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
     nebb = neb
-    node = Internal.createUniqueChild(z, bndName, 'Elements_t', value=[eltType,nebb])
-    Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
-                               value=[maxElt+1,maxElt+neb])
+    node = Internal.createUniqueChild(z, bndName, 'Elements_t', value=[eltType, nebb])
+    Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t', value=[maxElt+1, maxElt+neb])
     oldc = Internal.getNodeFromName2(zbc, 'ElementConnectivity')[1]
     newc = numpy.copy(oldc)
     hook = C.createHook(z, 'nodes')
@@ -1196,13 +1025,10 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
         info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType)
     else: # familyspecified
         info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType1)
-        Internal.createUniqueChild(info, 'FamilyName', 'FamilyName_t',
-                                   value=bndType2)
+        Internal.createUniqueChild(info, 'FamilyName', 'FamilyName_t',value=bndType2)
 
-    Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t',
-                               value='FaceCenter')
-    Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t',
-                               value=numpy.array([[maxElt+1,maxElt+neb]]))
+    Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
+    Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
     return None
 
 # determine where the symmetry plane is by dir
@@ -1214,12 +1040,12 @@ def getSymmetryPlaneInfo__(tb, dim=3):
         symplane = []
         for zsym in Internal.getZones(baseSYM):
             if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
-        [xmin,ymin,zmin,xmax,ymax,zmax] = G.bbox(symplane)
+        [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
         if abs(xmax-xmin) < __TOL__:
             dir_sym=1;
         elif abs(ymax-ymin) < __TOL__:
             dir_sym=2;
-        elif abs(zmax-zmin) < __TOL__ and dim==3:
+        elif abs(zmax-zmin) < __TOL__ and dim == 3:
             dir_sym=3;
     return dir_sym
 
@@ -1237,59 +1063,61 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
     extFaces = P.exteriorFaces(z_ngon)
     extFaces = T.splitSharpEdges(extFaces, 80.)
 
-    zbc_xmin=[]; zbc_xmax=[]; zbc_ymin=[]; zbc_ymax=[]; zbc_zmin=[]; zbc_zmax=[]
+    zbc_xmin = []; zbc_xmax = [];
+    zbc_ymin = []; zbc_ymax = [];
+    zbc_zmin = []; zbc_zmax = []
     for e in extFaces:
         bbe = G.bbox(e)
         xmine = bbe[0]; ymine = bbe[1]; zmine = bbe[2]
         xmaxe = bbe[3]; ymaxe = bbe[4]; zmaxe = bbe[5]
         dx = xmaxe-xmine; dy = ymaxe-ymine; dz = zmaxe-zmine
-        if dx < __TOL__ and abs(xmine-xmin)<__TOL__: zbc_xmin.append(e)
-        elif dx < __TOL__ and abs(xmaxe-xmax)<__TOL__: zbc_xmax.append(e)
-        elif dy < __TOL__ and abs(ymine-ymin)<__TOL__: zbc_ymin.append(e)
-        elif dy < __TOL__ and abs(ymaxe-ymax)<__TOL__: zbc_ymax.append(e)
-        elif dz < __TOL__ and abs(zmine-zmin)<__TOL__: zbc_zmin.append(e)
-        elif dz < __TOL__ and abs(zmaxe-zmax)<__TOL__: zbc_zmax.append(e)
+        if dx < __TOL__ and abs(xmine-xmin) < __TOL__: zbc_xmin.append(e)
+        elif dx < __TOL__ and abs(xmaxe-xmax) < __TOL__: zbc_xmax.append(e)
+        elif dy < __TOL__ and abs(ymine-ymin) < __TOL__: zbc_ymin.append(e)
+        elif dy < __TOL__ and abs(ymaxe-ymax) < __TOL__: zbc_ymax.append(e)
+        elif dz < __TOL__ and abs(zmine-zmin) < __TOL__: zbc_zmin.append(e)
+        elif dz < __TOL__ and abs(zmaxe-zmax) < __TOL__: zbc_zmax.append(e)
 
-    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0]='xmin'
-    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0]='xmax'
-    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0]='ymin'
-    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0]='ymax'
-    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0]='zmin'
-    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0]='zmax'
-    if dir_sym==1:
+    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0] = 'xmin'
+    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0] = 'xmax'
+    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0] = 'ymin'
+    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0] = 'ymax'
+    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0] = 'zmin'
+    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0] = 'zmax'
+    if dir_sym == 1:
         zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
         C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_xmax)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_xmax)
     else:
         zbc_xmin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_xmax)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmax)
 
-    if dir_sym==2:
+    if dir_sym == 2:
         zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_ymax)
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_ymax)
 
     else:
         zbc_ymin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_ymax)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymax)
 
-    if dim==2:
+    if dim == 2:
         zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
         zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmin)
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmax)
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmax)
     else:
-        if dir_sym==3:
+        if dir_sym == 3:
             zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-            C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane",subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_zmax)
+            C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"     , subzone=zbc_zmax)
 
         else:
             zbc_zmin[0] = C.getZoneName("BCFarfield")
-            C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield',"BCFarfield",subzone=zbc_zmax)
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmax)
 
     return None
 
@@ -1327,12 +1155,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         if Internal.getNodeFromName(baseSYM, 'snear'):
             isSymLocal = True
 
-    checkBaseNames(tb,tbox)
+    checkBaseNames__(tb,tbox)
 
     # snears & numBase for the input tb only.
     # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     # NumBase is only the num. of 'real' bodies
-    snears, numBase = getListSnear(tb, snears)
+    snears, numBase = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
 
@@ -1340,7 +1168,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # This section::
     # ================== SECTION START ==================
     # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
-    vmins=vminsInputCheck(vmins, numBase, levelMax)
+    vmins=vminsInputCheck__(vmins, numBase, levelMax)
 
     snearsTbox = []
     numTbox    = 0
@@ -1353,10 +1181,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             vminsTbox = numpy.ones((numTbox,levelMax))*5
             vminsTbox = vminsTbox.tolist()
         else:
-            vminsTbox=vminsInputCheck(vminsTbox, numTbox, levelMax)
+            vminsTbox=vminsInputCheck__(vminsTbox, numTbox, levelMax)
 
         Cmpi.barrier()
-        snearsTbox, tmpRMV = getListSnear(tbox, 1)
+        snearsTbox, tmpRMV = getListSnear__(tbox, 1)
         vmins.extend(vminsTbox)
 
     # add the tbox snear parameters
@@ -1366,7 +1194,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     if snearsTbox: snearsTbTbox.extend(snearsTbox)
 
     numBase = numBase + numTbox
-    vminsLocal = numpy.ones((numBase,levelMax))
+    vminsLocal = numpy.ones((numBase, levelMax))
     for nBase in range(numBase):
         if not isinstance(vmins[nBase],list):
             vminsLocal[nBase][:] = vmins[nBase][:]
@@ -1388,7 +1216,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
-        if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax,newLevelMax), flush=True)
+        if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax, newLevelMax), flush=True)
         for nBase in range(numBase):
             while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
             vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
@@ -1402,7 +1230,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # Needed to quarantee a smooth transition of the flow field
     # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
     minSnearsOrig = min(snearsFlat)
-    if abs(hmin-minSnearsOrig)>__TOL__:
+    if abs(hmin-minSnearsOrig) > __TOL__:
         for nBase in range(numBase):
             # we only check the first zone of each base as CODA (currently)
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
@@ -1415,7 +1243,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     bbo = G.bbox(o)
 
-    dir_sym      = getSymmetryPlaneInfo__(tb,dim=dim)
+    dir_sym      = getSymmetryPlaneInfo__(tb, dim=dim)
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     tb_tboxLocal = Internal.copyTree(tb_tbox)
@@ -1434,7 +1262,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         for i in range(dim):
             if i+1 == dir_sym: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
             else:              dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
-            dfarmax    = min(dfarmaxTmp,dfarmax)
+            dfarmax    = min(dfarmaxTmp, dfarmax)
         dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
 
     # Old dfar max calc. Stays here in case it is needed in the future
@@ -1480,3 +1308,179 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
+
+
+
+# ORIG F.Basile files - kept 'just in case'
+#def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
+#    a = Internal.getZones(a)[0] # get first zone
+#    faces = Internal.getNGonNode(a)
+#    vol_cells = Internal.getNFaceNode(a)
+#
+#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
+#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
+#
+#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
+#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
+#
+#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
+#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
+#
+#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
+#    length_faces = offset_faces[1:] - offset_faces[:-1]
+#    lens_vol = numpy.unique(length_volcells)
+#    lens_faces = numpy.unique(length_faces)
+#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
+#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
+#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
+#    nb_vertices_a = len(coordsx_a)
+#
+#    if len(indices_owners) == 0:
+#        indices_owners = range(len(length_volcells))
+#
+#    if dimPb == 3: n_smallfaces = 4
+#    else: n_smallfaces = 2
+#
+#    list_bigface = []
+#    for index_volume in indices_owners:
+#        stride = cranges[index_volume]
+#        stride_offset = numpy.cumsum(stride)
+#        idx_vol_init = offset_volcells[index_volume]
+#
+#        idx_sides = []
+#        for i in range(6):
+#            if stride[i] == n_smallfaces:
+#                idx_sides.append(i)
+#        if idx_sides != []:
+#            for idx_side in idx_sides:
+#                indices_faces = []
+#                start_idx = stride_offset[idx_side-1] if idx_side>0 else 0
+#                for i in range(start_idx,stride_offset[idx_side]):
+#                    face = EC_volcells[idx_vol_init+i]
+#                    indices_faces.append(face)
+#                conn_Nfaces = numpy.zeros((n_smallfaces,4), dtype=Internal.E_NpyInt)
+#                for i,idx_face in enumerate(indices_faces):
+#                    idx_face_init = offset_faces[idx_face-1]
+#                    len_face = length_faces[idx_face-1]
+#
+#                    if len_face != 4:
+#                        indices_face_5nodes = findFifthNode__(idx_face, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
+#                    k = 0
+#                    for j in range(len_face):
+#                        if len_face == 4 or (len_face != 4 and not j in indices_face_5nodes):
+#                            conn_Nfaces[i][k] = EC_faces[idx_face_init+j]
+#                            k+=1
+#                if dimPb == 3: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace3D(conn_Nfaces)
+#                else: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace2D(conn_Nfaces)
+#                list_bigface.append([point0, point1, point2, point3])
+#
+#    len_new_faces = len(list_bigface)
+#    flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
+#
+#    zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces,0]], ztype="Unstructured")
+#    gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
+#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gcBI)
+#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gcBI)
+#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gcBI)
+#    Internal.newElements(name="GridElements", etype=7, econnectivity=flat_list_bigfaces, erange=[1, len_new_faces], eboundary=0, parent=zsnc_big_internal)
+#    return zsnc_big_internal
+#
+#def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a, PL):
+#    a = Internal.getZones(a)[0] # get first zone
+#    faces = Internal.getNGonNode(a)
+#    vol_cells = Internal.getNFaceNode(a)
+#
+#    #EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
+#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
+#
+#    #ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
+#    #ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
+#
+#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
+#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
+#
+#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
+#    length_faces = offset_faces[1:] - offset_faces[:-1]
+#    #lens_vol = numpy.unique(length_volcells)
+#    #lens_faces = numpy.unique(length_faces)
+#
+#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
+#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
+#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
+#    nb_vertices_a = len(coordsx_a)
+#
+#    len_new_faces = len(PL)
+#    len_EC_faces = len(PL)*4
+#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
+#    idx_new = 0
+#    for idx in PL:
+#        idx_face_init = offset_faces[idx-1]
+#        len_face = length_faces[idx-1]
+#        if len_face !=4:
+#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
+#        for i in range(len_face):
+#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
+#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init+i]
+#                idx_new += 1
+#
+#    zone = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces, 0]], ztype="Unstructured")
+#    gc = Internal.newGridCoordinates(parent=zone)
+#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gc)
+#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gc)
+#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gc)
+#    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=new_EC_ngon_faces, erange=[1, len_new_faces], eboundary=0, parent=zone)
+#    return zone
+#
+#def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
+#    a = Internal.getZones(a)[0] # get first zone
+#    faces = Internal.getNGonNode(a)
+#    vol_cells = Internal.getNFaceNode(a)
+#
+#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
+#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
+#
+#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
+#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
+#
+#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
+#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
+#
+#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
+#    length_faces = offset_faces[1:] - offset_faces[:-1]
+#    lens_vol = numpy.unique(length_volcells)
+#    lens_faces = numpy.unique(length_faces)
+#
+#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
+#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
+#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
+#    nb_vertices_a = len(coordsx_a)
+#
+#    len_new_faces = len(PL)
+#    len_EC_faces = len(PL) * 4
+#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
+#    idx_new = 0
+#    for idx in PL:
+#        idx_face_init = offset_faces[idx - 1]
+#        len_face = length_faces[idx - 1]
+#        if len_face != 4:
+#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
+#        for i in range(len_face):
+#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
+#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init + i]
+#                idx_new += 1
+#
+#    elts = Internal.getNodesFromType(a_hexa, "Elements_t")
+#    maxElt = Internal.getNodeFromName(elts[-1], "ElementRange")[1][1]
+#    zones = Internal.getZones(a_hexa)
+#    Internal.newElements(
+#        name=bcname,
+#        etype=7,
+#        econnectivity=new_EC_ngon_faces,
+#        erange=[maxElt + 1, maxElt + len_new_faces],
+#        eboundary=0,
+#        parent=zones[0]
+#    )
+#    C._addBC2Zone(zones[0], bcname, bctype, elementRange=[maxElt + 1, maxElt + len_new_faces])
+#    return None
+#
+#

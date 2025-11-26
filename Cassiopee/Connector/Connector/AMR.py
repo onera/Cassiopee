@@ -22,7 +22,7 @@ import Generator.Generator as Generator
 import os, sys, time, copy, math, numpy
 from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
-TOL = 1.e-9
+__TOL__ = 1e-9
 
 OPT = True # distance aux noeuds uniquement - a valider !!!
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./', forceAlignment=False):
@@ -91,7 +91,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if "TurbulentDistance" not in varnames:
         Cmpi.trace(">>> Wall distance nodes [start]", master=True, cpu=False)
         if different_front_flag == True: #True is default
-            tb_WD = getBodiesForWallDistanceComputation(tb2)
+            tb_WD = getBodiesForWallDistanceComputation__(tb2)
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
         else: #False
@@ -108,7 +108,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         else:
             Cmpi.trace(">>> Wall distance nodes : skipped - dist2wall is in input PyTree ", master=True, cpu=False)
 
-    # blanking
+    # Blanking
     Cmpi.trace(">>> Blanking [start]", master=True, cpu=False)
     C._initVars(t, 'cellN', 1.)
     t = X_IBM.blankByIBCBodies(t, tb2_pre, 'nodes', 3)
@@ -116,7 +116,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
 
     print('Rank: %d :: Nb of Cartesian grids=%d.'%(Cmpi.rank, len(Internal.getZones(t))), flush=True)
     Nzones = len(Internal.getZones(t))
-    Nzones = Cmpi.allreduce(Nzones)
+    Nzones = Cmpi.allreduce(Nzones, op=SUM)
     NCells = Cmpi.getNCells(t)
     if Cmpi.master:
         print('Total number of zones=%d.'%Nzones, flush=True)
@@ -157,7 +157,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     frontIP_gath = C.newPyTree(["frontIP", frontIP_gath])
     frontIP_gath = T.join(frontIP_gath)
     frontIP_gath = G.close(frontIP_gath)
-    for node in Internal.getNodesFromType(frontIP_gath,"Elements_t"):
+    for node in Internal.getNodesFromType(frontIP_gath, "Elements_t"):
         if node[0] != "GridElements": Internal._rmNode(frontIP_gath, node)
     Cmpi.trace("Gathering front IP [end]  ", master=True, cpu=False)
 
@@ -171,7 +171,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     for elt_t in Internal.getNodesFromType(f_pytree, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(f_pytree, elt_t)
-    _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames)
+    _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
@@ -179,7 +179,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if f != []:
         f = f[0]
         hook = C.createHook(f,"elementCenters")
-        ids = C.identifyElements(hook, frontIP_gath, tol=TOL)
+        ids = C.identifyElements(hook, frontIP_gath, tol=__TOL__)
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
@@ -188,10 +188,10 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             frontIP = T.subzone(f, ids_IBMWall, type='elements')
             dimfrontIP = numpy.sum(Internal.getValue(frontIP)[0])
         else:
-            frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank,zsize=[[0,0]], ztype="Unstructured")
+            frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
             dimfrontIP = 0
     else:
-        frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank,zsize=[[0,0]], ztype="Unstructured")
+        frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
         dimfrontIP = 0
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [end]  ", master=True, cpu=False)
 
@@ -207,28 +207,28 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if dimfrontIP>0:
             if IBM_parameters["spatial discretization"]["type"] == "FV":
                 Cmpi.trace(" Computing normals via project ortho [start]", master=False, cpu=False)
-                _computeNormalsViaProjectOrtho(frontIP, tb2)
+                _computeNormalsViaProjectOrtho__(frontIP, tb2)
                 Cmpi.trace(" Computing normals via project ortho [end]  ", master=False, cpu=False)
                 frontIP_C = C.node2Center(frontIP)
                 Internal._rmNodesByType(frontIP_C, "Elements_t")
             elif IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
-                frontIP_C = computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP)
-                frontIP_C = computeNormalsForDG(frontIP_C, tb2)
-
+                frontIP_C = computeSurfaceQuadraturePoints__(t, IBM_parameters, frontIP)
+                frontIP_C = computeNormalsForDG__(frontIP_C, tb2)
+                
             Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
             ip_pts, image_pts, wall_pts = extractIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir=localDir)
             Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
             Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
-            _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters)
+            _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters)
             Cmpi.trace(" Adding IBCDatasets [end]  ", master=False, cpu=False)
     else:
-        if dimfrontIP>0: _addIBC2Zone(t, f, frontIP)
+        if dimfrontIP>0: _addIBC2Zone__(t, f, frontIP)
 
     C._rmVars(t,['cellNFront'])
 
     if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
-        _computeTurbulentDistanceForDG(t, tb2, IBM_parameters)
+        _computeTurbulentDistanceForDG__(t, tb2, IBM_parameters)
     for z in Internal.getZones(t): Cmpi._setProc(z, Cmpi.rank)
 
     if IBM_parameters["spatial discretization"]["type"] == "FV":
@@ -255,17 +255,17 @@ def computationDistancesNormals(t, tb, dim=3):
     X._applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN')
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')
     Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', sameName=1, sameBase=1, dim=dim, itype='chimera', order=2, cartesian=False)
-    varsn=["gradxTurbulentDistance",'gradyTurbulentDistance','gradzTurbulentDistance']
+    varsn=["gradxTurbulentDistance", 'gradyTurbulentDistance', 'gradzTurbulentDistance']
 
     # A COMPARER !!
     if OPT: t = P.computeGrad(t, 'TurbulentDistance')
     else: P._computeGrad2(t, 'centers:TurbulentDistance', ghostCells=True, withCellN=False)
 
     for v in varsn: C._cpVars(t, 'centers:'+v, tc, v)
-    C._cpVars(t,'centers:cellNChim',tc,'cellNChim')
+    C._cpVars(t, 'centers:cellNChim', tc, 'cellNChim')
     Xmpi._setInterpTransfers(t, tc, variables=varsn, cellNVariable='cellNChim', compact=0, type='ID')
-    for v in varsn: t = C.center2Node(t,'centers:'+v)
-    if not OPT: t = C.center2Node(t,'centers:TurbulentDistance')
+    for v in varsn: t = C.center2Node(t, 'centers:'+v)
+    if not OPT: t = C.center2Node(t, 'centers:TurbulentDistance')
     return t
 
 def extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir='./'):
@@ -343,7 +343,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
         C._initVars(frontIP_C, 'dist', distance_DP)
 
-    ip_pts = C.getAllFields(frontIP_C,loc='nodes', api=1)[0]
+    ip_pts = C.getAllFields(frontIP_C, loc='nodes', api=1)[0]
     ip_pts = Converter.convertArray2Node(ip_pts)
     ip_pts = [ip_pts]
 
@@ -413,44 +413,50 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
                 isWrite4 = 1
 
             if check:
-                if isWrite3 > 0: C.convertPyTree2File(tLocal3, localDir+'projection3_Proc_%d.cgns'%Cmpi.rank)
-                if isWrite4 > 0: C.convertPyTree2File(tLocal4, localDir+'projection4_Proc_%d.cgns'%Cmpi.rank)
+                print("Rank: %d :: Writing projection files..."%Cmpi.rank, flush=True)
+                if isWrite3 > 0:
+                    print("Rank: %d :: projection 3 file..."%Cmpi.rank, flush=True)
+                    C.convertPyTree2File(tLocal3, localDir+'projection3_Proc_%d.cgns'%Cmpi.rank)
+                if isWrite4 > 0:
+                    print("Rank: %d :: projection 4 file..."%Cmpi.rank, flush=True)
+                    C.convertPyTree2File(tLocal4, localDir+'projection4_Proc_%d.cgns'%Cmpi.rank)
                 #if Cmpi.allreduce(isWrite3, op=Cmpi.MAX) > 0: Cmpi.convertPyTree2File(tLocal3, localDir+'projection3.cgns')
                 #if Cmpi.allreduce(isWrite4, op=Cmpi.MAX) > 0: Cmpi.convertPyTree2File(tLocal4, localDir+'projection4.cgns')
 
             del tLocal3
             del tLocal4
-
-        imagepts = moveIBMPoints(ip_pts, imagepts, wallpts, varsn, 1e-8)
+            
+        imagepts = moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, 1e-8)
     # Check if any of the image points lays outside the bbox. In this case we modify it.
-    if isIBMPointInBox(bbo,imagepts)[0] == False:
+    if isIBMPointInBox__(bbo,imagepts)[0] == False:
         print("Rank: %d :: Warning: At least one donor point lays outside the bbox. The point is being moved closer to the wall..."%Cmpi.rank, flush=True)
-        list_ids_outside_box = isIBMPointInBox(bbo, imagepts)[1]
+        list_ids_outside_box = isIBMPointInBox__(bbo, imagepts)[1]
         epsilon = 0.9
         while (epsilon >= 0.1):
             print("Rank: %d :: Moving the badly located image point at epsilon %.2f %% of the initial distance from the wall."%(Cmpi.rank, epsilon), flush=True)
             imagepts2correct = copy.deepcopy(imagepts)
-            imagepts_modified = moveIBMPoints(ip_pts, imagepts2correct, wallpts, varsn, epsilon, list_ids_outside_box, tb)
+            imagepts_modified = moveIBMPoints__(ip_pts, imagepts2correct, wallpts, varsn, epsilon, list_ids_outside_box, tb)
 
-            if isIBMPointInBox(bbo, imagepts_modified)[0] == False:
+            if isIBMPointInBox__(bbo, imagepts_modified)[0] == False:
                 epsilon = epsilon - 0.1
             else:
                 imagepts = imagepts_modified
                 break
-        if isIBMPointInBox(bbo, imagepts)[0] == False:
+        if isIBMPointInBox__(bbo, imagepts)[0] == False:
             raise ValueError("Moving the points has not worked. Exiting..")
             Cmpi.abort(errorcode=1)
 
     wallpts  = Converter.extractVars(wallpts,  ['CoordinateX','CoordinateY','CoordinateZ'])
     imagepts = Converter.extractVars(imagepts, ['CoordinateX','CoordinateY','CoordinateZ'])
     ip_pts   = Converter.extractVars(ip_pts,   ['CoordinateX','CoordinateY','CoordinateZ'])
-    array_check = checkRelativeOffset(ip_pts[0][1], wallpts[0][1], imagepts[0][1], forceAlignment, localDir=localDir)
+    array_check = checkRelativeOffset__(ip_pts[0][1], wallpts[0][1], imagepts[0][1], forceAlignment, localDir=localDir)
 
     if array_check.size != 0 and forceAlignment==True:
-        wallpts = moveWallPoints(ip_pts, imagepts, wallpts, array_check, tb, localDir=localDir)
-    checkCoincidentPoints(ip_pts[0][1], imagepts[0][1])
+        wallpts = moveWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, localDir=localDir)
+    _checkCoincidentPoints__(ip_pts[0][1], imagepts[0][1])
 
     if check:
+        print("Rank: %d :: Writing IBM tecplot files..."%Cmpi.rank, flush=True)
         Converter.convertArrays2File(ip_pts  , localDir+"targetPts_proc%s.plt" %Cmpi.rank)
         Converter.convertArrays2File(wallpts , localDir+"wallPts_proc%s.plt" %Cmpi.rank)
         Converter.convertArrays2File(imagepts, localDir+"imagePts_proc%s.plt" %Cmpi.rank)
@@ -480,7 +486,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         Cmpi.abort(errorcode=1)
     return dictOfTargetPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
 
-def isIBMPointInBox(bbox, coords):
+def isIBMPointInBox__(bbox, coords):
 
     xmin = bbox[0]; ymin = bbox[1]; zmin = bbox[2]
     xmax = bbox[3]; ymax = bbox[4]; zmax = bbox[5]
@@ -499,7 +505,7 @@ def isIBMPointInBox(bbox, coords):
 
     return out, list_ids_outside_box
 
-def moveWallPoints(ip_pts, imagepts, wallpts, array_check, tb, localDir='./'):
+def moveWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, localDir='./'):
     nb_image_pts = imagepts[0][1][0].size
 
     zsize = numpy.empty((1,3), E_NpyInt, order='F')
@@ -528,7 +534,7 @@ def moveWallPoints(ip_pts, imagepts, wallpts, array_check, tb, localDir='./'):
     f_wall.close()
     return wallpts
 
-def moveIBMPoints(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_box=None, tb=None):
+def moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_box=None, tb=None):
 
     nb_image_pts = imagepts[0][1][0].size
     if indices_outside_box is None:
@@ -568,7 +574,7 @@ def moveIBMPoints(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_box
 
     return imagepts
 
-def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
+def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     for z in Internal.getZones(t):
         if z is not None:
@@ -578,7 +584,7 @@ def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
             for nobc, zbc in enumerate(zbcs):
                 hook = C.createHook(f,"elementCenters")
                 # Indices of the elements of f corresponding to the elements of zbc
-                ids = C.identifyElements(hook, zbc, tol=TOL)
+                ids = C.identifyElements(hook, zbc, tol=__TOL__)
                 len_ids = Internal.getValue(f)[0][1]
                 ids = ids[ids[:] > -1] - 1
                 ids = ids.tolist()
@@ -609,7 +615,7 @@ def _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames):
     if meshgen == "AMR": f_pytree[2][1][2] = [f]
     return None
 
-def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
+def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
         N_IP_per_face = 1
@@ -626,10 +632,8 @@ def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
     list_suffix_datasets.extend(range(1, N_IP_per_face))
 
     for z in Internal.getZones(t):
-
         hook = C.createHook(f, 'elementCenters')
         if IBM_parameters["spatial discretization"]["type"] == "FV":
-
             for nobc,ibc in enumerate(list(ip_pts.values())):
                 if ibc!=[[]]:
                     coords_IBC_x = Converter.extractVars(ibc,["CoordinateX"])[0][1][0]
@@ -640,22 +644,22 @@ def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
                     Internal.newDataArray('CoordinateX', value=coords_IBC_x, parent=gc)
                     Internal.newDataArray('CoordinateY', value=coords_IBC_y, parent=gc)
                     Internal.newDataArray('CoordinateZ', value=coords_IBC_z, parent=gc)
-                    ids = C.identifyNodes(hook, zibc, tol=TOL)
+                    ids = C.identifyNodes(hook, zibc, tol=__TOL__)
                     ids = ids[ids[:] > -1]
                     ids = ids.tolist()
                     ids = [ids[i]-1 for i in range(len(ids))]
                     zf = T.subzone(f,ids, type='elements')
                     G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zf)
 
-        for bc in Internal.getNodesFromType(z,'BC_t'):
-            famName = Internal.getNodeFromName(bc,'FamilyName')
+        for bc in Internal.getNodesFromType(z, 'BC_t'):
+            famName = Internal.getNodeFromName(bc, 'FamilyName')
             if famName is not None:
                 if Internal.getValue(famName)=='IBMWall':
                     namebc = bc[0]
-                    ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t',parent=bc,value='Null')
+                    ibcdataset=Internal.createNode('BCDataSet','BCDataSet_t', parent=bc,value='Null')
                     for i in range(N_IP_per_face):
-                        dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t',parent=ibcdataset)
-                        wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t',parent=ibcdataset)
+                        dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
+                        wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
 
                         coordsPD = Converter.extractVars(image_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                         coordsPW = Converter.extractVars(wall_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
@@ -677,20 +681,21 @@ def _addIBCDatasets(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
 
     return None
 
-def getMinimumSpacing(t, dim, snear=1e-1):
+def getMinimumSpacing__(t, dim, snear=1e-1):
     G._getVolumeMap(t)
     vol = Internal.getNodeFromName(t, "vol")[1]
     locsize = (vol/snear)**(1./float(dim))
     return min(locsize)
 
-def computeDistance_IP_DP_front42_nonAdaptive(t, Reynolds, yplus_target, Lref, dim, snear=1e-2):
+def computeDistance_IP_DP_front42_nonAdaptive__(t, Reynolds, yplus_target, Lref, dim, snear=1e-2):
+    # not used currently - not sure what it does... need to look into it
     distance_IP = D_IBM.computeModelisationHeight(Re=Reynolds, yplus=yplus_target, L=Lref)
-    locsize = getMinimumSpacing(t, dim, snear)
+    locsize = getMinimumSpacing__(t, dim, snear)
     distance_DP = distance_IP+2*(dim**0.5)*locsize
     distance_DP = min(Cmpi.allgather(distance_DP))
     return distance_IP, distance_DP
 
-def checkRelativeOffset(ip_pts, wallpts, imagepts, forceAlignment=False, localDir="./"):
+def checkRelativeOffset__(ip_pts, wallpts, imagepts, forceAlignment=False, localDir="./"):
     x_wall = wallpts[0]
     y_wall = wallpts[1]
     z_wall = wallpts[2]
@@ -716,28 +721,28 @@ def checkRelativeOffset(ip_pts, wallpts, imagepts, forceAlignment=False, localDi
 
     epsDonorPointOffset = 1e-6
     offsetcheck = ( (x_offsetPointLocation - x_image)**2 + (y_offsetPointLocation - y_image)**2 + (z_offsetPointLocation - z_image)**2 )**0.5
-    array_check =  numpy.where(offsetcheck>(epsDonorPointOffset * donorPointWallPointDist))[0]
+    array_check =  numpy.where(offsetcheck > (epsDonorPointOffset * donorPointWallPointDist))[0]
     print("Rank: %d :: Check not aligned points: size array=%d"%(Cmpi.rank,array_check.size), flush=True)
     if array_check.size!=0:
         #if forceAlignment:
-        print("Rank: %d :: ATTENTION!!!!!!! Max offset on rank = %g"%(Cmpi.rank,numpy.max(offsetcheck)), flush=True)
-        f_wall   = open(localDir+"wall_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
-        f_target = open(localDir+"target_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
-        f_image  = open(localDir+"image_misaligned_before_proc%s.dat" %Cmpi.rank,"w")
+        print("Rank: %d :: ATTENTION!!!!!!! Max offset on rank = %g"%(Cmpi.rank, numpy.max(offsetcheck)), flush=True)
+        f_wall   = open(localDir+"wall_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
+        f_target = open(localDir+"target_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
+        f_image  = open(localDir+"image_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
         for i in range(array_check.size):
-            f_wall.write("%f %f %f\n" %(x_wall[array_check[i]],y_wall[array_check[i]],z_wall[array_check[i]]))
-            f_target.write("%f %f %f\n" %(x_intp[array_check[i]],y_intp[array_check[i]],z_intp[array_check[i]]))
-            f_image.write("%f %f %f\n" %(x_image[array_check[i]],y_image[array_check[i]],z_image[array_check[i]]))
+            f_wall.write("%f %f %f\n" %(x_wall[array_check[i]], y_wall[array_check[i]], z_wall[array_check[i]]))
+            f_target.write("%f %f %f\n" %(x_intp[array_check[i]], y_intp[array_check[i]], z_intp[array_check[i]]))
+            f_image.write("%f %f %f\n" %(x_image[array_check[i]], y_image[array_check[i]], z_image[array_check[i]]))
         f_wall.close()
         f_target.close()
         f_image.close()
 
         if not forceAlignment:
-            raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points. Max offset on rank %d = %g"%(Cmpi.rank,numpy.max(offsetcheck)))
+            raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points. Max offset on rank %d = %g"%(Cmpi.rank, numpy.max(offsetcheck)))
             Cmpi.abort(errorcode=1)
     return array_check
 
-def checkCoincidentPoints(ip_pts, imagepts):
+def _checkCoincidentPoints__(ip_pts, imagepts):
 
     x_image = imagepts[0]
     y_image = imagepts[1]
@@ -757,7 +762,7 @@ def checkCoincidentPoints(ip_pts, imagepts):
         Cmpi.abort(errorcode=1)
     return
 
-def getBodiesForWallDistanceComputation(tb2):
+def getBodiesForWallDistanceComputation__(tb2):
     zones_tb = Internal.getZones(tb2)
     zones_tb_WD = []
     for z_tb in zones_tb:
@@ -771,7 +776,7 @@ def getBodiesForWallDistanceComputation(tb2):
     tb_WD = C.newPyTree(["tbWD", zones_tb_WD])
     return tb_WD
 
-def _computeNormalsViaProjectOrtho(front, tb2):
+def _computeNormalsViaProjectOrtho__(front, tb2):
 
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
     front_centers = C.node2Center(front)
@@ -796,18 +801,18 @@ def _computeNormalsViaProjectOrtho(front, tb2):
     Internal.newDataArray(varsn[2], value=dirz0, parent=FS)
     return None
 
-def _addIBC2Zone(t, f, frontIP):
+def _addIBC2Zone__(t, f, frontIP):
     for z in Internal.getZones(t):
         hook = C.createHook(f, 'elementCenters')
-        ids = C.identifyElements(hook, frontIP, tol=TOL)
+        ids = C.identifyElements(hook, frontIP, tol=__TOL__)
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids = [ids[i]-1 for i in range(len(ids))]
-        zf = T.subzone(f,ids, type='elements')
+        zf = T.subzone(f, ids, type='elements')
         G_AMR._addBC2Zone(z, "IBMWall", "FamilySpecified:IBMWall", zf)
     return None
 
-def computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP):
+def computeSurfaceQuadraturePoints__(t, IBM_parameters, frontIP):
     zones = Internal.getZones(t)
     f = P.exteriorFaces(zones[0])
     dims_f = Internal.getZoneDim(f)
@@ -816,11 +821,11 @@ def computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP):
             Internal._rmNode(f, elt_t)
 
     hook = C.createHook(f, 'elementCenters')
-    ids = C.identifyElements(hook, frontIP, tol=TOL)
+    ids = C.identifyElements(hook, frontIP, tol=__TOL__)
     ids = ids[ids[:] > -1]
     ids = ids.tolist()
     ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
-    zf = T.subzone(f,ids_IBMWall, type='elements')
+    zf = T.subzone(f, ids_IBMWall, type='elements')
     G_AMR._addBC2Zone__(zones[0], 'IBMWall0', 'FamilySpecified:IBMWall',zf)
 
     ## Computation of the surface quadrature points
@@ -861,7 +866,7 @@ def computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP):
             pos_third = (pos_second-1)
             pos_fourth = (pos_third-1)
         connectivity_IBMFace[[0,1,2,3]] = connectivity_IBMFace[[pos_first, pos_second, pos_third, pos_fourth]]
-        nodalData = numpy.hstack([coordsX[connectivity_IBMFace].reshape(4,1),coordsY[connectivity_IBMFace].reshape(4,1),coordsZ[connectivity_IBMFace].reshape(4,1)])
+        nodalData = numpy.hstack([coordsX[connectivity_IBMFace].reshape(4,1), coordsY[connectivity_IBMFace].reshape(4,1), coordsZ[connectivity_IBMFace].reshape(4,1)])
         quadPoints_surf_location[i:i+N_IP_per_face,:] = interpolationMatrix.dot(nodalData)
 
 
@@ -876,7 +881,7 @@ def computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP):
     Internal.newDataArray('CoordinateZ', value=quadPoints_surf_location[:,2], parent=gc)
     return z_IP
 
-def computeNormalsForDG(z_IP, tb):
+def computeNormalsForDG__(z_IP, tb):
     wall_Points = T.projectOrtho(z_IP, tb)
     x_wallPoints = Internal.getNodeFromName(wall_Points, "CoordinateX")[1]
     y_wallPoints = Internal.getNodeFromName(wall_Points, "CoordinateY")[1]
@@ -895,7 +900,7 @@ def computeNormalsForDG(z_IP, tb):
     dirx0 = dirx0/dirn
     diry0 = diry0/dirn
     dirz0 = dirz0/dirn
-    varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
+    varsn = ['gradxTurbulentDistance', 'gradyTurbulentDistance', 'gradzTurbulentDistance']
     #varsn = ["nx","ny","nz"]
     FS = Internal.newFlowSolution(name='FlowSolution', gridLocation='Vertex', parent=z_IP)
     Internal.newDataArray(varsn[0], value=dirx0, parent=FS)
@@ -903,7 +908,7 @@ def computeNormalsForDG(z_IP, tb):
     Internal.newDataArray(varsn[2], value=dirz0, parent=FS)
     return z_IP
 
-def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
+def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
 
     degree = IBM_parameters["spatial discretization"]["degree"]
     if IBM_parameters["spatial discretization"]["type"] == "DG":
@@ -929,7 +934,7 @@ def _computeTurbulentDistanceForDG(t, tb, IBM_parameters):
     N_IP = N_IP_per_cell * N_volume_cells
     quadPoints_vol_location = numpy.empty((N_IP,3))
     for i,j in zip(range(0,N_IP,N_IP_per_cell), range(N_volume_cells)):
-        nodalData = numpy.hstack([coordsX[GE_EC[j]-1].reshape(8,1),coordsY[GE_EC[j]-1].reshape(8,1),coordsZ[GE_EC[j]-1].reshape(8,1)])
+        nodalData = numpy.hstack([coordsX[GE_EC[j]-1].reshape(8,1), coordsY[GE_EC[j]-1].reshape(8,1), coordsZ[GE_EC[j]-1].reshape(8,1)])
         quadPoints_vol_location[i:i+N_IP_per_cell,:] = interpolationMatrix.dot(nodalData)
 
 
@@ -963,7 +968,7 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
 
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
-                                  toffset=None, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
+                                  toffset=toffset, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=loadBalancing, tbox=tbox, vminsTbox=vminsTbox, tbv2=tbv2)
 
     Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
