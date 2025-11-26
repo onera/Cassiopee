@@ -487,7 +487,7 @@ class Surface():
                 self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
         if self.type == "loftSet":
             hooks = []
-            for e in self.sketches: 
+            for e in self.sketches:
                 hooks.append(e.hook)
             n = len(self.sketches)
             out = []
@@ -530,10 +530,10 @@ class Surface():
         elif self.type == "union":
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
-                n1 += OCC.getNbFaces(e.hook) 
+                n1 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             for e in self.surfaces2:
-                n2 += OCC.getNbFaces(e.hook) 
+                n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
@@ -542,10 +542,10 @@ class Surface():
         elif self.type == "inter":
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
-                n1 += OCC.getNbFaces(e.hook) 
+                n1 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             for e in self.surfaces2:
-                n2 += OCC.getNbFaces(e.hook) 
+                n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
@@ -554,10 +554,10 @@ class Surface():
         elif self.type == "sub":
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
-                n1 += OCC.getNbFaces(e.hook) 
+                n1 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             for e in self.surfaces2:
-                n2 += OCC.getNbFaces(e.hook) 
+                n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
@@ -1004,7 +1004,7 @@ class Driver:
         valid = self.instantiate(pt)
         if valid: return pt
         else: return self.walkDOE()
-    
+
     # walk DOE1, instantiate, parallel CFD but sequential on parameters
     def walkDOE1(self):
         if Cmpi.rank == 0:
@@ -1016,7 +1016,7 @@ class Driver:
     # walk DOE2, instantiate, parallel tasks (no on proc 0)
     def walkDOE2(self):
         if Cmpi.rank == 0:
-            if Cmpi.size > 1: 
+            if Cmpi.size > 1:
                 free = Cmpi.recv()
                 pt = self.walkDOE()
                 if pt is None:
@@ -1029,7 +1029,7 @@ class Driver:
             else:
                 pt = self.walkDOE()
                 return pt
-            
+
         else:
             Cmpi.isend(Cmpi.rank, dest=0, tag=1) # i am free
             pt = Cmpi.recv(source=0) # wait for task
