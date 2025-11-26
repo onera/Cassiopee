@@ -312,11 +312,10 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
         tol_vol = 1e-2*volminAll
         while refined:
             C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
-            if C.getMaxValue(o,"centers:indicator")==1.:
+            if C.getMaxValue(o,"centers:indicator") > 1.-__TOL__:
                 o = G.adaptOctree(o, 'centers:indicator', balancing=1)
                 G._getVolumeMap(o)
             else:
-                refined=False
                 break
         C._rmVars(o, ['centers:indicator','centers:vol'])
 
