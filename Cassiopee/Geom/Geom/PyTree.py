@@ -34,8 +34,11 @@ def profile(name=None):
     """Create a wing profile mesh."""
     if name is None: return Geom.profile()
     else:
-        a = Geom.profile(name)
-        return C.convertArrays2ZoneNode(name, [a])
+        name1 = name.split('/')
+        if len(name1) == 1: return Geom.profile(name)
+        else:
+            a = Geom.profile(name)
+            return C.convertArrays2ZoneNode(name, [a])
 
 def line(P1, P2, N=100):
     """Create a line of N points. Usage: line( (x1,y1,z1), (x2,y2,z2), N )"""

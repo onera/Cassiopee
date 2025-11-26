@@ -23,9 +23,8 @@ D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
 # Build DOE
-D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
-D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
+D.DRIVER.walkDOE3(sketch1, 0.01, 0.01, 0.01)
 
 # reread one snaphsot from DOE file
 m = D.DRIVER.readSnaphot(0)
