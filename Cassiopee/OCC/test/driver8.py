@@ -27,9 +27,8 @@ sketch1 = D.Sketch('sketch1', [spline1])
 D.DRIVER.solve2()
 
 # Build DOE
-D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
-D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
+D.DRIVER.walkDOE3(sketch1, 0.01, 0.01, 0.01)
 
 # read snapshots as matrix
 #F = D.DRIVER.readAllSnapshots()
