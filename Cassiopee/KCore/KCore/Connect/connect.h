@@ -514,8 +514,8 @@ namespace K_CONNECT
                          std::vector<E_Int>& ind);
 
   /* ngon tools */
-  E_Int check_open_cells(K_FLD::FldArrayI &cn, E_Int *is_cell_open);
-  E_Int check_overlapping_cells(K_FLD::FldArrayI &cn);
+  E_Int checkOpenCells(K_FLD::FldArrayI &cn, E_Int *isEltOpen);
+  E_Int checkOverlappingCells(K_FLD::FldArrayI &cn);
   E_Int orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
     K_FLD::FldArrayI &cn);
   E_Int build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,

@@ -1122,7 +1122,7 @@ void K_INTERP::getBestDonor(
           volElt);
         vol += volElt;
       }
-      vol = vol * 1./float(ENbrs.size());
+      vol /= float(ENbrs.size());
       realVol = vol;
       // On penalise la cellule si elle a des voisins de cellN != 1 et si elle est sur le bord
       if (penalty == 1)
