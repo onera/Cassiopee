@@ -1,4 +1,4 @@
-# - addSquircle (array) -
+# - addSuperEllipse (array) -
 import OCC
 
 hook = OCC.occ.createEmptyCAD("empty.stp", "fmt_step")
