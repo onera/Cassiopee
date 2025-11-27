@@ -248,8 +248,8 @@ namespace K_CONNECT
   */
   E_Int reorderUnstruct2D(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, E_Int dir);
 
- /* Reorder the vertex indices of a ME connectivity such that each facet normal
-    is pointing outward. */
+ /* Reorder the vertex indices of a 3D ME connectivity such that each facet
+    normal is pointing outward. */
   E_Int reorderUnstruct3D(const char* varString, K_FLD::FldArrayF& f, 
                           K_FLD::FldArrayI& cn, const char* eltType);
 

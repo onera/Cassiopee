@@ -20,14 +20,14 @@ test.testT(a,1)
 a = G.cartTetra((0,0,0), (1,1,1), (8,9,1))
 C._initVars(a, '{Density}={CoordinateX}**2+2*{CoordinateY}')
 C._initVars(a, '{centers:F}={centers:CoordinateX}')
-a = T.reorder(a)
+a = T.reorder(a, (-1,))
 test.testT(a,2)
 
 # reorder a QUAD mesh
 a = G.cartHexa((0,0,0), (1,1,1), (8,9,1))
 C._initVars(a, '{Density}={CoordinateX}**2+2*{CoordinateY}')
 C._initVars(a, '{centers:F}={centers:CoordinateX}')
-a = T.reorder(a)
+a = T.reorder(a, (-1,))
 test.testT(a,3)
 
 # reorder a NGON mesh: sphere case
