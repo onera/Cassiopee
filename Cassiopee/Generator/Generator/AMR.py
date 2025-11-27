@@ -86,9 +86,8 @@ def checkBaseNames(tb,tbox):
 def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None):
     import Geom.IBM as D_IBM
     if offsetValues==[]: return []
-
-    snears, numBase = listSnear(tb, snears)
-    if Cmpi.master: print('Generating list of offsets...start',flush=True)
+    numBase = len(Internal.getBases(tb))
+    if Cmpi.rank==0: print('Generating list of offsets...start',flush=True)
 
     minSnear=1e10
     for snearLocal in snears: minSnear=min(minSnear,snearLocal[0])
@@ -157,7 +156,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         BB = G.bbox(tbLocal)
         ni = 150; nj = 150; nk = 150
         XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
-        
+
         offsetValMin = min(offsetValues[nBase])
         offsetValMax = max(offsetValues[nBase])
         alpha=1.1
@@ -174,7 +173,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         xmax_core = BB[3]+delta2
         ymax_core = BB[4]+delta2
         zmax_core = BB[5]+delta2
-        
+
         if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
         else: ni_core = 61; nj_core = 61; nk_core = 61
         hi_core = (xmax_core-xmin_core)/(ni_core-1)
@@ -190,7 +189,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             hk_core = 0.
             # Pull request note: h_core may cause regressions in the mesh generation
             h_core = min(h_core, 16.*minSnear)
-        
+
         # Do not extend the CartCore beyond the symmetry plane (symClose)
         if dir_sym > 0 and tbLocal[0] in listShiftBase:
             if   dir_sym == 1: xmin_core += delta2
@@ -204,13 +203,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
         if tbLocalTmp is None: tbLocalTmp = tbLocal
         C._initVars(tbLocalTmp,"cellN",1.)
-        
+
         Cmpi.barrier()
         t0 = ktime.time()
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         Cmpi.barrier()
         if Cmpi.rank == 0: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0],nBase,(ktime.time()-t0)), flush=True)
-        
+
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
         # required for blankCells as a closed set of surfaces
@@ -242,7 +241,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
 
 # Generates an isotropic skeleton mesh to be adapted then by AMR
 def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode=0):
-    surfaces=[]; dfarList=[]; snearsList=[]
+    surfaces=[]; dfarList=[]; snearsList=[]; levelSkelList=[]
     # This clips the upper limit on the number of offset level to the input value. Important for tests & devs.
     # This is an expert expert parameter & should be used with (a lot of) caution.
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
@@ -259,7 +258,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
         if len(bodies) != len(dfars): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
     levelSkelInput = levelSkel
     for c, z in enumerate(bodies):
-        levelSkel = levelSkelInput 
+        levelSkel = levelSkelInput
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
             # Pull request note: levelSkelLoc causes regressions in the mesh generation
@@ -412,7 +411,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     elif noffsets == 0:
         XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
         XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
-    
+
     C._initVars(to, "cellNOut",1.)
     C._initVars(to, "cellNIn",1.)
 
@@ -1442,12 +1441,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # Old dfar max calc. Stays here in case it is needed in the future
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
     if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
-    
+
     if toffset==None:
-        offsetValues = []       
+        offsetValues = []
         for nBase in range(numBase):
             offsetprev       = 0.
-            offsetValuesBase = [] 
+            offsetValuesBase = []
             for no_adapt in range(len(vmins[nBase])):
                 hminLocal = snearsTbTbox[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]

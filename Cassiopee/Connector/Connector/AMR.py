@@ -159,7 +159,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if node[0] != "GridElements": Internal._rmNode(frontIP_gath,node)
     Cmpi.trace("Gathering front IP [end]  ", master=True, cpu=False)
 
-    if Cmpi.master and check:        
+    if Cmpi.master and check:
         print("Exporting frontIP..")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
@@ -171,7 +171,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             Internal._rmNode(f_pytree,elt_t)
     _recoverBoundaryConditions(t, f_pytree, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
-    
+
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
     f = Internal.getZones(f_pytree)
     if f != []:
@@ -192,7 +192,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank,zsize=[[0,0]],ztype="Unstructured")
         dimfrontIP = 0
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [end]  ", master=True, cpu=False)
-    
+
     if VPM == False:
         Cmpi.trace(" Extracting front of the donor points [start]", master=True, cpu=False)
         if frontTypeDP=="1":
@@ -212,7 +212,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             elif IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
                 frontIP_C = computeSurfaceQuadraturePoints(t, IBM_parameters, frontIP)
                 frontIP_C = computeNormalsForDG(frontIP_C, tb2)
-                
+
             Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
             ip_pts, image_pts, wall_pts = extractIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir=localDir)
             Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
@@ -380,13 +380,13 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         if len(res)>3:
             allWallPts = res[0]
             allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
-            
+
             allInterpPts = res[1]
             allInterpPts = Converter.extractVars(allInterpPts,['CoordinateX','CoordinateY','CoordinateZ'])
-            
+
             allCorrectedPts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             nzonesR         = len(allInterpPts)
-            
+
             nameZone = ['IBM', 'Wall', 'Image']
             tLocal3   = C.newPyTree(nameZone)
             tLocal4   = C.newPyTree(nameZone)
@@ -402,23 +402,23 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
                 type_4     = numpy.count_nonzero(arrayLocal==4)
                 if type_3>0: X_IBM._prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
                 if type_4>0: X_IBM._prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
-        
+
             if outputProjection3[0] and check:
                 tLocal3  = X_IBM._writeOutputProject__(outputProjection3, tLocal3)
                 isWrite3 = 1
             if outputProjection4[0] and check:
                 tLocal4  = X_IBM._writeOutputProject__(outputProjection4, tLocal4)
                 isWrite4 = 1
-        
+
             if check:
                 if isWrite3>0: C.convertPyTree2File(tLocal3, localDir+'projection3_Proc_%d.cgns'%Cmpi.rank)
                 if isWrite4>0: C.convertPyTree2File(tLocal4, localDir+'projection4_Proc_%d.cgns'%Cmpi.rank)
                 #if Cmpi.allreduce(isWrite3, op=Cmpi.MAX) > 0: Cmpi.convertPyTree2File(tLocal3, localDir+'projection3.cgns')
                 #if Cmpi.allreduce(isWrite4, op=Cmpi.MAX) > 0: Cmpi.convertPyTree2File(tLocal4, localDir+'projection4.cgns')
-        
+
             del tLocal3
             del tLocal4
-            
+
         imagepts = moveIBMPoints(ip_pts, imagepts, wallpts, varsn, 1e-8)
     # Check if any of the image points lays outside the bbox. In this case we modify it.
     if isIBMPointInBox(bbo,imagepts)[0] == False:
