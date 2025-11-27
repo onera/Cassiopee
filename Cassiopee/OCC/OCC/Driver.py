@@ -1,4 +1,4 @@
-# Parametric CAD driver
+# Parametric Driver
 import OCC
 import sympy
 import numpy, re, itertools
@@ -202,7 +202,6 @@ class Grid:
 #============================================================
 # Entities
 #============================================================
-
 class Entity:
     """Define a parametric entity"""
     def __init__(self, name=None, listP=[], type=None, mesh=None):
@@ -475,14 +474,37 @@ class Surface():
             for e in self.sketches: hooks.append(e.hook)
             n1 = len(self.sketches)
             edgeList = [i for i in range(1, n1+1)]
-            print("edges=", edgeList)
             # optional guides
             for e in self.sketches2: hooks.append(e.hook)
             n2 = n1 + len(self.sketches2)
             guideList = [i for i in range(n1+1, n2+1)]
-            print("guides=", guideList)
             self.hook = OCC.occ.mergeCAD(hooks)
             OCC.occ.loft(self.hook, edgeList, guideList)
+            if 'close' in self.data and self.data['close']:
+                h0 = hooks[0]; h1 = hooks[-1]
+                OCC.occ.fillHole(h0, [1], [], 0)
+                OCC.occ.fillHole(h1, [1], [], 0)
+                self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
+        if self.type == "loftSet":
+            hooks = []
+            for e in self.sketches:
+                hooks.append(e.hook)
+            n = len(self.sketches)
+            out = []
+            for i in range(1,n):
+                h0 = hooks[i-1]
+                h1 = hooks[i]
+                hook = OCC.occ.mergeCAD(hooks)
+                OCC.occ.loft(hook, [1,2])
+                out.append(hook)
+            if len(out) > 1:
+                self.hook = OCC.occ.mergeCAD(out)
+            else: self.hook = out[0]
+            if 'close' in self.data and self.data['close']:
+                h0 = hooks[0]; h1 = hooks[-1]
+                OCC.occ.fillHole(h0, [1], [], 0)
+                OCC.occ.fillHole(h1, [1], [], 0)
+                self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
         elif self.type == "revolve":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -490,7 +512,7 @@ class Surface():
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
             OCC.occ.revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
-        elif self.type == "compound":
+        elif self.type == "merge":
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
@@ -505,6 +527,42 @@ class Surface():
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.occ.mergeCAD(hooks)
+        elif self.type == "union":
+            hooks = []; n1 = 0; n2 = 0
+            for e in self.surfaces:
+                n1 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            for e in self.surfaces2:
+                n2 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            rev1 = self.data.get('rev1',1)
+            rev2 = self.data.get('rev2',1)
+            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
+        elif self.type == "inter":
+            hooks = []; n1 = 0; n2 = 0
+            for e in self.surfaces:
+                n1 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            for e in self.surfaces2:
+                n2 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            rev1 = self.data.get('rev1',1)
+            rev2 = self.data.get('rev2',1)
+            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
+        elif self.type == "sub":
+            hooks = []; n1 = 0; n2 = 0
+            for e in self.surfaces:
+                n1 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            for e in self.surfaces2:
+                n2 += OCC.getNbFaces(e.hook)
+                hooks.append(e.hook)
+            self.hook = OCC.occ.mergeCAD(hooks)
+            rev1 = self.data.get('rev1',1)
+            rev2 = self.data.get('rev2',1)
+            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
@@ -536,10 +594,15 @@ class Surface():
         faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList)
         return faces
 
-def Loft(name="loft", listSketches=[], listGuides=[]):
+def Loft(name="loft", listSketches=[], listGuides=[], close=True):
     """Create a loft surface from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft")
+                   type="loft", data={'close':close})
+
+def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True):
+    """Create a set of loft surfaces from sketches."""
+    return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
+                   type="loft", data={'close':close})
 
 def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360.):
     """Create a revolution surface from a sketch."""
@@ -547,10 +610,10 @@ def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360
                    data={'center':center, 'axis':axis, 'angle':angle},
                    type="revolve")
 
-def Compound(name="compound", listSurfaces=[]):
+def Merge(name="compound", listSurfaces=[]):
     """Create a compound surface from a list of surfaces."""
     return Surface(name=name, listSurfaces=listSurfaces,
-                   type="compound")
+                   type="merge")
 
 def Fill(name="fill", sketch=None, continuity=0):
     """Create a surface that fill a sketch."""
@@ -558,8 +621,23 @@ def Fill(name="fill", sketch=None, continuity=0):
                    data={'continuity':continuity},
                    type="fill")
 
-def Boolean(name="boolean", listSurfaces=[]):
-    return None # a faire
+def Union(name="union", listSurfaces1=[], listSurfaces2=[]):
+    """Boolean union."""
+    return Surface(name=name, listSurfaces=listSurfaces1,
+                   listSurfaces2=listSurfaces2,
+                   type="union")
+
+def Sub(name="sub", listSurfaces1=[], listSurfaces2=[]):
+    """Boolean difference."""
+    return Surface(name=name, listSurfaces=listSurfaces1,
+                   listSurfaces2=listSurfaces2,
+                   type="sub")
+
+def Inter(name="inter", listSurfaces1=[], listSurfaces2=[]):
+    """Boolean intersection."""
+    return Surface(name=name, listSurfaces=listSurfaces1,
+                   listSurfaces2=listSurfaces2,
+                   type="inter")
 
 def MergeEdges(name="mergeEdges", listSketches=[]):
     """Merge edges. Not a surface."""
@@ -627,11 +705,12 @@ class Driver:
         # updated by solve
         self.solution = None # solution of system in sympy symbols
         self.params = None # all model params in sympy symbols
-        self.freeParams = None # all model free params in sympy symbols (order)
+        self.freeParams = None # all model free params in sympy symbols (set order)
         # DOE
         self.doeFileName = 'doe.hdf'
-        self.doeRange = [] # list param->discretized range
-        self.doeSize = [] # list param->size of discretization
+        self.doeRange = [] # list free param->discretized range
+        self.doeSize = [] # list free param->size of discretization
+        self.iter = None # itertools iterator on DOE
         # ROM
         self.romFileName = 'rom.hdf'
         self.K = 0 # reduced dimension
@@ -696,15 +775,14 @@ class Driver:
         for k in self.equations: print(k)
 
     def update(self):
-        """Update allfrom parameters."""
+        """Update all entities from parameters."""
         for k in self.edges: self.edges[k].update()
         for k in self.sketches: self.sketches[k].update()
         for k in self.surfaces: self.surfaces[k].update()
 
     def solve2(self):
         """Solve equations to get free parameters."""
-
-        # get free params
+        # get params
         params = []
         for s in self.scalars:
             mu = self.scalars[s]
@@ -723,8 +801,15 @@ class Driver:
         print('SOLVE: eqs=', equations)
 
         # solve([eq0,eq1], [x0,x1])
-        solution = sympy.solve(equations, params)
+        solution = sympy.solve(equations, params, dict=True)
         print('SOLVE: sol=', solution)
+        if len(solution) == 0:
+            print('SOLVE: no solution')
+        elif len(solution) > 1:
+            print('SOLVE: many solutions, taking first')
+            solution = solution[0]
+        else:
+            solution = solution[0]
 
         # number of free vars
         nparams = len(params)
@@ -734,10 +819,10 @@ class Driver:
         print("SOLVE: neqs=", neqs)
         print("SOLVE: free params=", nd)
 
-        # who is free at the end?
+        # who is free and valid at the end?
         freeParams = params[:]
         for s in solution:
-            if solution[s].is_Float:
+            if solution[s].is_Float or solution[s].is_Integer or solution[s].is_Rational:
                 print('SOLVE: fixed', s, 'to', solution[s])
                 self.scalars2[s].v = solution[s]
                 if self.scalars2[s].check(): print('=> valid')
@@ -748,11 +833,12 @@ class Driver:
         self.solution = solution
         self.params = params
         self.freeParams = freeParams
+
         return solution, freeParams
 
     # instantiation of free parameters
     # IN: paramValues: dict of free parameters given values
-    # OUT: True if valid, False if invalid
+    # OUT: return True if valid, False if invalid
     def instantiate(self, paramValues):
         """Instantiate all from given paramValues."""
 
@@ -766,7 +852,7 @@ class Driver:
                 error = True
             else:
                 self.scalars2[f].v = paramValues[f.name]
-                print('SET: fixed', f, 'to', paramValues[f.name])
+                print('SET: fixed', f, '=', paramValues[f.name])
                 if self.scalars2[f].check(): print('SET: => valid')
                 else: print('SET: => invalid'); valid = False
 
@@ -781,7 +867,7 @@ class Driver:
         # check validity for ranges
         for s in soli:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
-                print('SET: fixed', s, 'to', soli[s])
+                print('SET: fixed', s, '=', soli[s])
                 self.scalars2[s].v = soli[s]
                 if self.scalars2[s].check(): print('SET: => valid')
                 else: print('SET: => invalid'); valid = False
@@ -794,10 +880,10 @@ class Driver:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
                 params[self.scalars2[s].name] = self.scalars2[s].v
 
-        for e in self.inequations:
+        for c, e in enumerate(self.inequations):
             ret = self.inequations[e].s.subs(params)
-            if ret: print('SET: => ineq is valid')
-            else: print("SET: => ineq is invalid"); valid = False
+            if ret: print('SET: => ineq %d is valid'%c)
+            else: print("SET: => ineq %d is invalid"%c); valid = False
 
         # update geometries
         self.update()
@@ -868,7 +954,7 @@ class Driver:
         return None
 
     # set DOE deltas for free parameters
-    # it is better to set them in scalar.range
+    # It is better to set them in scalar.range
     # IN: dict of deltas for each desired free parameter
     # OUT: arange dict
     def setDOE(self, deltas={}):
@@ -876,7 +962,7 @@ class Driver:
         self.doeRange = []; self.doeSize = []
         for f in self.freeParams: # give order
             p = self.scalars2[f]
-            if len(p.range) == 3: # disc given
+            if len(p.range) == 3: # disc given in range
                 self.doeRange.append(numpy.arange(p.range[0], p.range[1], p.range[2]))
                 self.doeSize.append(p.range[2])
             else: # set to 2 points
@@ -892,8 +978,66 @@ class Driver:
                     self.doeSize[c] = deltas[k]
         return None
 
-    # walk DOE, append snapshots to file, parallel
-    def walkDOE(self, entity, hmin, hmax, hausd):
+    # walk DOE (iterateur), instantiate
+    # return the next valid free parameters point
+    def walkDOE(self):
+        if self.iter is None:
+            # set range
+            self.setDOE()
+            # create iterator
+            ranges = []; size = 0
+            for k in self.doeRange:
+                ranges.append(range(k.size))
+                size += k.size
+            self.iter = itertools.product(*ranges)
+        # iterate
+        try:
+            p = next(self.iter)
+        except:
+            return None # end of DOE
+        # compute parametric point
+        pt = {}
+        for c, s in enumerate(self.freeParams):
+            pt[self.scalars2[s].name] = p[c]
+        # instantiate
+        print("DOE: Checking point ", pt)
+        valid = self.instantiate(pt)
+        if valid: return pt
+        else: return self.walkDOE()
+
+    # walk DOE1, instantiate, parallel CFD but sequential on parameters
+    def walkDOE1(self):
+        if Cmpi.rank == 0:
+            pt = self.walkDOE()
+        else:
+            pt = self.walkDOE()
+        return pt
+
+    # walk DOE2, instantiate, parallel tasks (no on proc 0)
+    def walkDOE2(self):
+        if Cmpi.rank == 0:
+            if Cmpi.size > 1:
+                free = Cmpi.recv()
+                pt = self.walkDOE()
+                if pt is None:
+                    for i in range(1,Cmpi.size):
+                        Cmpi.isend(None, dest=i)
+                    return None
+                else:
+                    Cmpi.isend(pt, dest=free)
+                    return 1
+            else:
+                pt = self.walkDOE()
+                return pt
+
+        else:
+            Cmpi.isend(Cmpi.rank, dest=0, tag=1) # i am free
+            pt = Cmpi.recv(source=0) # wait for task
+        return pt
+
+    # walk DOE, instantiate, mesh, append snapshots to file, parallel
+    def walkDOE3(self, entity, hmin, hmax, hausd):
+        self.setDOE()
         ranges = []; size = 0
         for k in self.doeRange:
             ranges.append(range(k.size))
@@ -927,19 +1071,7 @@ class Driver:
                 mesh = entity.mesh(hmin, hmax, hausd)
                 self.addSnapshot(hash, mesh)
 
-    # instantiate entity, perform one step
-    def walkDOE2(self, entity, counter=None):
-        if counter is None:
-            ranges = []; size = 0
-            for k in self.doeRange:
-                ranges.append(range(k.size))
-                size += k.size
-            counter = itertools.product(*ranges)
-        next(counter)
-        return True
-
-
-    # IN: list of indexes for each param
+    # IN: list of indexes (i,j,k,...) one for each param
     # OUT: single hash integer (flatten)
     def getHash(self, indexes):
         hash = 0
@@ -982,7 +1114,7 @@ class Driver:
         else: m = mesh
         return m
 
-    # DOE in file
+    # DOE in file (to be replaced by DB)
     def createDOE(self, fileName):
         self.doeFileName = fileName
         if Cmpi.rank > 0: return None
@@ -994,7 +1126,7 @@ class Driver:
         Converter.PyTree.convertPyTree2File(t, self.doeFileName)
         return None
 
-    # add snapshot to file
+    # add snapshot to file (to be replaced by DB)
     def addSnapshot(self, hashcode, msh):
         import Converter.Distributed as Distributed
         import Transform, Converter
@@ -1005,7 +1137,7 @@ class Driver:
         print("ADD: snapshot %d added."%hashcode, flush=True)
         return None
 
-    # read a snapshot, return an mesh array
+    # read a snapshot, return a mesh array (to be replaced by DB)
     def readSnaphot(self, hashcode):
         import Converter.Distributed as Distributed
         nodes = Distributed.readNodesFromPaths(self.doeFileName, ['CGNSTree/Snapshots/%05d'%hashcode])
@@ -1037,7 +1169,7 @@ class Driver:
             F[:,hash] = m[:]
         return F
 
-    # ROM
+    # ROM (Model)
     def writeROM(self, fileName):
         self.romFileName = fileName
         if Cmpi.rank > 0: return None
