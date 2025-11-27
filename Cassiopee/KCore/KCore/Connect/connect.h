@@ -246,8 +246,12 @@ namespace K_CONNECT
      IN/OUT: cEV: connectivite elt/vertex TRI
      IN: dir: +1 ou -1
   */
-  E_Int reorderQuadTriField(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, 
-                            E_Int dir);
+  E_Int reorderUnstruct2D(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, E_Int dir);
+
+ /* Reorder the vertex indices of a 3D ME connectivity such that each facet
+    normal is pointing outward. */
+  E_Int reorderUnstruct3D(const char* varString, K_FLD::FldArrayF& f, 
+                          K_FLD::FldArrayI& cn, const char* eltType);
 
   /* 
      Creation de la connectivite Elements -> Noeuds

@@ -28,6 +28,16 @@ namespace K_MATH
   extern const E_Float PI;
   extern const E_Float SMALL;
 
+  // Compute the dot product of two vectors
+  inline void dot(
+    const E_Float a1, const E_Float a2, const E_Float a3,
+    const E_Float b1, const E_Float b2, const E_Float b3,
+    E_Float& res
+  )
+  {
+    res = a1 * b1 + a2 * b2 + a3 * b3;
+  }
+
   inline E_Float dot(const E_Float* a, const E_Float* b, const E_Int n)
   {
     E_Float res = 0.0;
