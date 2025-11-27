@@ -29,7 +29,7 @@ class DataBase:
         self.parameters = parameters
         if not os.path.exists(self.dirName): os.mkdir(self.dirName)
         # column name list
-        self.columns = ['id','descp','date','reference','variables']+parameters                
+        self.columns = ['id','descp','date','reference','variables']+parameters
         # pointer on sql db
         self.db = None
         self.cursor = None
@@ -182,7 +182,7 @@ class DataBase:
         q = self.cursor.fetchall()
         columnNames = [info[1] for info in q]
         return columnNames
-    
+
     # return a query
     def query(self, com=None):
         """Return a query."""
@@ -197,7 +197,7 @@ class DataBase:
         self.cursor.execute(com1)
         q = self.cursor.fetchall()
         return q
-    
+
     # return True if parameters exist
     def exist(self, point=None):
         com = ''
@@ -283,7 +283,7 @@ class DataBase:
                 matrix = numpy.zeros((nrows,nf), dtype=numpy.float64)
             matrix[c,:] = p[1].ravel('k')
         return matrix
-    
+
     # delete rows corresponding to q
     def delete(self, q):
         """Delete queries from data base."""
@@ -292,7 +292,7 @@ class DataBase:
             com1 = 'DELETE FROM %s WHERE '%self.name
             com = 'id = %d AND descp = "%s" AND date = "%s" AND reference = "%s" AND variables = "%s"'%(r[0],r[1],r[2],r[3],r[4])
             for c in range(5, len(r)):
-                com += ' AND %s = %g'%(self.columns[c],r[c]) 
+                com += ' AND %s = %g'%(self.columns[c],r[c])
             com1 = com1+com+';'
             self.cursor.execute(com1)
             # remove file
