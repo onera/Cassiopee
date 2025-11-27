@@ -121,6 +121,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     }
     else  // BE/ME
     {
+      E_Int dim = K_CONNECT::getDimME(eltType);
       tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
       K_ARRAY::getFromArray3(tpl, f2, cn2);
       if (dim == 2)

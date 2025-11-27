@@ -166,10 +166,10 @@ Basic operations
     same direction. If order is set to (1,), all elements are oriented as element 0. If order is (-1,), all elements are oriented
     in the opposite sense of element 0.
 
-    For a 3D NGON mesh, element normals are pointing outward when setting order to (1,) and inward when setting order to (-1,).
-
     For a 3D unstructured grid (TETRA, PYRA, PENTA, HEXA), element normals must be pointing outward by definition such that the
     argument order can be left as None.
+
+    3D NGON grids are not supported yet.
    
     Exists also as an in-place version (_reorder) which modifies a and returns None.
    
