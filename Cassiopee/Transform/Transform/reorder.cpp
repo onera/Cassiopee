@@ -41,7 +41,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     return NULL;
   }
   E_Int size = PyTuple_Size(order);
-  PyObject* tpl;
+  PyObject *tpl, *tplo;
 
   // Check array
   E_Int im, jm, km;
@@ -57,9 +57,9 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
   {
     if (size == 3)
     {
-      tpl = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tpl);
-      tpl = PyTuple_GetItem(order, 1); oj = PyLong_AsLong(tpl);
-      tpl = PyTuple_GetItem(order, 2); ok = PyLong_AsLong(tpl);
+      tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+      tplo = PyTuple_GetItem(order, 1); oj = PyLong_AsLong(tplo);
+      tplo = PyTuple_GetItem(order, 2); ok = PyLong_AsLong(tplo);
     }
     else
     {
@@ -86,7 +86,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     {
       if (size == 1)
       {
-        tpl = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tpl);
+        tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
       }
       else
       {
@@ -123,7 +123,24 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     {
       tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
       K_ARRAY::getFromArray3(tpl, f2, cn2);
-      K_CONNECT::reorderUnstruct(varString, *f2, *cn2, eltType);
+      if (dim == 2)
+      {
+        if (size == 1)
+        {
+          tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+        }
+        else
+        {
+          PyErr_SetString(PyExc_TypeError,
+                          "reorder: order tuple must be (1,) or (-1,) for TRI or QUAD.");
+          return NULL;
+        }
+        K_CONNECT::reorderUnstruct2D(*f2, *cn2, E_Int(oi));
+      }
+      else if (dim == 3)
+      {
+        K_CONNECT::reorderUnstruct3D(varString, *f2, *cn2, eltType);
+      }
       RELEASESHAREDU(tpl, f2, cn2);
       RELEASESHAREDU(array, f, cn);
       return tpl;

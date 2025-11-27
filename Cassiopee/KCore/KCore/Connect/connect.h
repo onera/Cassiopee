@@ -240,10 +240,18 @@ namespace K_CONNECT
     E_Int indA, E_Int indB, E_Int indC, E_Int indD, 
     K_FLD::FldArrayI& cEV, std::vector<E_Int>& cEEN);
 
+  /* Reorder un TRI array suivant dir (+1 ou -1)
+     Les triangles sont tous orientes de la meme facon.
+     IN: f: field
+     IN/OUT: cEV: connectivite elt/vertex TRI
+     IN: dir: +1 ou -1
+  */
+  E_Int reorderUnstruct2D(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, E_Int dir);
+
  /* Reorder the vertex indices of a ME connectivity such that each facet normal
     is pointing outward. */
-  E_Int reorderUnstruct(const char* varString, FldArrayF& f, 
-                        FldArrayI& cn, const char* eltType);
+  E_Int reorderUnstruct3D(const char* varString, K_FLD::FldArrayF& f, 
+                          K_FLD::FldArrayI& cn, const char* eltType);
 
   /* 
      Creation de la connectivite Elements -> Noeuds
