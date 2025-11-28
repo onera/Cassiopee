@@ -971,7 +971,7 @@ class Driver:
         for f in self.freeParams: # give order
             p = self.scalars2[f]
             if len(p.range) == 3: # disc given in range
-                self.doeRange.append(numpy.arange(p.range[0], p.range[1], p.range[2]))
+                self.doeRange.append(numpy.arange(p.range[0], p.range[1]+1.e-12, p.range[2]))
                 self.doeSize.append(p.range[2])
             else: # set to 2 points
                 self.doeRange.append(numpy.linspace(p.range[0], p.range[1], 2))
@@ -982,7 +982,7 @@ class Driver:
             for c, f in enumerate(self.freeParams):
                 if self.scalars2[f].name == k:
                     p = self.scalars2[f]
-                    self.doeRange[c] = numpy.arange(p.range[0], p.range[1], deltas[k])
+                    self.doeRange[c] = numpy.arange(p.range[0], p.range[1]+1.e-12, deltas[k])
                     self.doeSize[c] = deltas[k]
         return None
 
@@ -1013,8 +1013,10 @@ class Driver:
         if valid:
             if self.db is not None:
                 exist = self.db.exist(pt)
-                if exist: return pt
-                else: return self.walkDOE()
+                if not exist: return pt
+                else:
+                    print("DOE: => Already in db. Skipped.") 
+                    return self.walkDOE()
             else: return pt
         else: return self.walkDOE()
 
