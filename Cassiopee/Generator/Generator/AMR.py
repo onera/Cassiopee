@@ -211,7 +211,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         t0 = time.perf_counter()
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
-        tElapse = Cmpi.allreduce(tElapse, op=MAX)
+        tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
         if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nBase, tElapse), flush=True)
         
         C._initVars(b,"cellN",1.)

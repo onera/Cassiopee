@@ -59,7 +59,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             VPM = True
 
     different_front_flag = True
-    if "use different front for different BCs" in IBM_parameters["integration points"]::
+    if "use different front for different BCs" in IBM_parameters["integration points"]:
         different_front_flag = IBM_parameters["integration points"]["use different front for different BCs"]
 
     if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
@@ -116,7 +116,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
 
     print('Rank: %d :: Nb of Cartesian grids=%d.'%(Cmpi.rank, len(Internal.getZones(t))), flush=True)
     Nzones = len(Internal.getZones(t))
-    Nzones = Cmpi.allreduce(Nzones, op=SUM)
+    Nzones = Cmpi.allreduce(Nzones, op=Cmpi.SUM)
     NCells = Cmpi.getNCells(t)
     if Cmpi.master:
         print('Total number of zones=%d.'%Nzones, flush=True)
