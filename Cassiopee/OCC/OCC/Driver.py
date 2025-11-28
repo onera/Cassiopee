@@ -1015,7 +1015,7 @@ class Driver:
                 exist = self.db.exist(pt)
                 if not exist: return pt
                 else:
-                    print("DOE: => Already in db. Skipped.") 
+                    print("DOE: => Already in db. Skipped.")
                     return self.walkDOE()
             else: return pt
         else: return self.walkDOE()

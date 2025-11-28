@@ -350,7 +350,7 @@ class DataBase:
     # monitor: write string to a log file monitor.txt
     def monitor(self, text):
         """Write text to log file in db."""
-        logName = self.dirName+'/monitor.txt'    
+        logName = self.dirName+'/monitor.txt'
         now = datetime.datetime.now()
         dateString = now.strftime("%Y-%m-%dT%H:%M:%S")
         fp = open(logName, "a")
