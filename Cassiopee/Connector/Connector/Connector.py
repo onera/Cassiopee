@@ -519,7 +519,7 @@ def writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCell
 # IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
 # IN: depth: nb de rangees de cellules interpolees
 #-----------------------------------------------------------------------------
-def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN', 
+def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN',
                                        indices=None, BCField=None):
     """Set cellN=2 for the fringe of interpolated cells around cells of celln
     equal to 0."""
