@@ -70,5 +70,8 @@ else
     [ $? != 0 ] && exit 1;
 fi
 
+# copy scripts
+cp Roms/kdb "$INSTALLPATH"
+
 # Check installation
 python test/t1.py

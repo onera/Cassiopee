@@ -19,26 +19,29 @@ import Converter.Filter as Filter
 import Compressor.PyTree as Compressor
 
 class DataBase:
-    def __init__(self, name, parameters):
-        if name[-3:] == ".db": name = name[-3:]
+    def __init__(self, name, parameters=None):
+        if name[-3:] == ".db": name = name[:-3]
         # database name
         self.name = name
         # directory name
         self.dirName = name+'.db'
-        # parameters name list
-        self.parameters = parameters
         if not os.path.exists(self.dirName): os.mkdir(self.dirName)
-        # column name list
-        self.columns = ['id','descp','date','reference','variables']+parameters
         # pointer on sql db
         self.db = None
         self.cursor = None
         if os.path.exists("%s/%s.sql"%(self.dirName, self.name)):
             self.open()
+            p = self.queryColumnNames()[5:]
+            self.parameters = p
         else:
+            if parameters is None:
+                raise ValueError("DataBase: can not create data base with no parameters.")    
+            self.parameters = parameters
             self.open()
             self.createTable()
-        print("DataBase: creating %s"%self.dirName)
+            print("DataBase: creating %s"%self.dirName)
+        # column name list
+        self.columns = ['id','descp','date','reference','variables']+self.parameters
 
     # open sql data base
     def open(self):
