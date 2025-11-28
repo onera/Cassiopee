@@ -119,7 +119,6 @@ def _connectMatchNGon(z, tol=1.e-6):
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
 
-    #print(Cmpi.rank, 'has ', z[0])
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -189,19 +188,89 @@ def _connectMatchNGon(z, tol=1.e-6):
     return None
 
 #==============================================================================
+# setHoleInterpolatedPoints
+# NGON, centered cellN, depth=1
+# BCMatch must be set in t
+#==============================================================================
+def _setHoleInterpolatedPoints(t):
+    """Set cellN=2 around cellN=0."""
+
+    # Compute graph of match
+    procDict = Cmpi.getProcDict(t)
+    graph = Cmpi.computeGraph(t, type='match', procDict=procDict)
+
+    zones = Internal.getZones(t)
+    export = {}
+
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and dim[3] == 'NGON':
+            # adaptation needed by actual setHoleInterpolatedPoints
+            Internal._adaptNGon42NGon3(z)
+            Internal._adaptNFace2PE(z, remove=False)
+
+            # get face values
+            GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            for gc in GCs:
+                donor = Internal.getValue(gc)
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointList
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
+                fld = Converter.converter.extractBCMatchNG(z, PL, ['cellN'],
+                                                           Internal.__GridCoordinates__,
+                                                           Internal.__FlowSolutionNodes__,
+                                                           Internal.__FlowSolutionCenters__)
+                oppNode = procDict[donor]
+                n = [donor, z[0], fld, PLD.ravel('k')]
+                if oppNode not in export: export[oppNode] = [n]
+                else: export[oppNode] += [n]
+
+    # sendrecv
+    recvDatas = Cmpi.sendRecv(export, graph)
+
+    # Mean on faces (we must find the opposite face from donor name)
+    indices = {}; BCField = {}
+    for i in recvDatas:
+        for n in recvDatas[i]:
+            # donor is supposed to have a unique matching match
+            (donor, source, fld, PLD) = n
+            z = Internal.getNodeFromName2(t, donor)
+            zn = z[0]
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Unstructured' and dim[3] == 'NGON':
+                fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, ['cellN'],
+                                                               Internal.__GridCoordinates__,
+                                                               Internal.__FlowSolutionNodes__,
+                                                               Internal.__FlowSolutionCenters__)
+            if zn not in indices: indices[zn] = PLD
+            else: indices[zn] = numpy.concatenate((indices[zn], PLD))
+            if zn not in BCField: BCField[zn] = fld1[1][0].ravel('k')
+            else: BCField[zn] = numpy.concatenate((BCField[zn], fld1[1][0].ravel('k')))
+
+    for z in zones:
+        zn = z[0]
+        f = C.getField('centers:cellN', z, api=1)[0]
+        if f != []:
+            if zn in indices: inds = indices[zn]
+            else: inds = None
+            if zn in BCField: bcf = BCField[zn]
+            else: bcf = None
+
+            centers = connector.getOversetHolesInterpCellCenters(f, 1, 0, 'cellN', inds, bcf)
+            C.setFields([centers], z, 'centers')
+
+    return None
+
+#==============================================================================
 def giveName2Window(p, zname, zopp):
     if p[0] == p[1]:
         if p[0] == 1: pos = zname+'_imin_'+zopp
         else: pos = zname+'_imax_'+zopp
-
     elif p[2] == p[3]:
         if p[2] == 1: pos = zname+'_jmin_'+zopp
         else: pos = zname+'_jmax_'+zopp
-
     elif p[4] == p[5]:
         if p[4] == 1: pos = zname+'_kmin_'+zopp
         else: pos = zname+'_kmax_'+zopp
-
     return pos
 
 #==============================================================================
@@ -1033,7 +1102,6 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
     datas = {}; destDatas = None
 
     return None
-
 
 #==============================================================================
 def __setInterpTransfers_WireModel(zones, zonesD, vars, dtloc, param_int, param_real, type_transfert, nitrun,

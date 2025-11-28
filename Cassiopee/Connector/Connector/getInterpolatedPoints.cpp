@@ -1,4 +1,3 @@
-#define OPT_VERSION
 /*
     Copyright 2013-2025 Onera.
 
@@ -29,7 +28,7 @@ using namespace std;
    IN/OUT: cellN: -1, point masque, 0, point interpole, 1, point normal.*/
 //=============================================================================
 void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
-  E_Int depth,  FldArrayI& connect,
+  E_Int depth, FldArrayI& connect,
   FldArrayI& blankedCells,
   FldArrayI& cellN)
 {
@@ -74,7 +73,7 @@ void K_CONNECTOR::searchMaskInterpolatedNodesUnstr(
     }
   }
   for (E_Int ind = 0; ind < nvert; ind++)
-  {if (tag[ind] == 1) cellN[ind] = 0;}
+  { if (tag[ind] == 1) cellN[ind] = 0; }
   return;
 }
 
@@ -715,11 +714,11 @@ void K_CONNECTOR::searchMaskInterpolatedCellsStructOpt(E_Int imc, E_Int jmc, E_I
     else // 3D losange
     {
       // Nombre d'indices en fonction de la profondeur
-      if (depth==2) 
+      if (depth == 2) 
       {
         nindices = 33;
       }
-      else if (depth==3) 
+      else if (depth == 3) 
       {
         nindices = 87;
       }
@@ -1119,9 +1118,6 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
   E_Int npts = field->getSize();
   E_Int api = field->getApi();
 
-  // =================================================
-  // ============= VERSION DEV OPTIMISEE =============
-  #ifdef OPT_VERSION
   if (res == 1)
   {
     E_Float* cellNp_tmp;
@@ -1159,8 +1155,8 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     FldArrayI cellNatFld(npts); cellNatFld.setAllValuesAt(1);
     for (E_Int ind = 0; ind < npts; ind++)
     {
-      if (cellNp[ind] == 2.) { blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-      else if (cellNp[ind] == 0.) { blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+      if (K_FUNC::fEqualZero(cellNp[ind] - 2.)) { blankedCells[ind] = 0; cellNatFld[ind] = 0;}
+      else if (K_FUNC::fEqualZero(cellNp[ind])) { blankedCells[ind] = -1; cellNatFld[ind] = -1;}
     }
     // WARNING: NGON is array1 type here !!! 
     if (K_STRING::cmp(eltType, "NGON") == 0) cn->setNGonType(1);
@@ -1177,55 +1173,6 @@ PyObject* K_CONNECTOR::getOversetHolesInterpNodes(PyObject* self, PyObject* args
     delete field; delete cn;
     return tpl;
   }
-  // ============= FIN VERSION DEV OPTIMISEE =============
-  // =====================================================
-
-  // =============================================
-  // ============= VERSION ORIGINALE =============
-  #else
-
-  FldArrayI blankedCells(npts); blankedCells.setAllValuesAt(1);
-  FldArrayI cellNatFld(npts); cellNatFld.setAllValuesAt(1);
-  for (E_Int ind = 0; ind < npts; ind++)
-  {
-    if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-    else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
-  }
-  if (res == 1)
-  {
-    searchMaskInterpolatedCellsStruct(im, jm, km, depth, dir, blankedCells, cellNatFld);
-    for (E_Int ind = 0; ind < npts; ind++)
-    {
-      if (cellNatFld[ind] == 0) cellNp[ind] = 2.;
-      else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
-    }
-
-    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, im, jm, km);
-    delete field; return tpl;
-  }
-  else
-  {
-    if ( K_STRING::cmp(eltType,"NGON")==0)
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "getOversetHolesInterpNodes: not implemented for NGON zones.");
-      delete field; delete cn; return NULL;
-    }
-    searchMaskInterpolatedNodesUnstr(depth, *cn, blankedCells, cellNatFld);
-    for (E_Int ind = 0; ind < npts; ind++)
-    {
-      if (cellNatFld[ind] == 0) cellNp[ind] = 2.;
-      else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
-    }
-
-    PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
-    RELEASESHAREDB(res, array, field, cn);
-    return tpl;
-  }
-
-  #endif
-  // ============= FIN VERSION ORIGINALE =============
-  // =================================================
 }
 
 //=============================================================================
@@ -1330,7 +1277,7 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpNodes(PyObject* self, PyObject* arg
 //=============================================================================
 /* Determine les centres interpoles a partir du cellN
    Si le celln contient des pts masques, alors les points interpoles autour
-   sont construits */
+   sont construits [structure seulement] */
 //=============================================================================
 PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObject* args)
 {
@@ -1374,12 +1321,12 @@ PyObject* K_CONNECTOR::_getOversetHolesInterpCellCenters(PyObject* self, PyObjec
   if (dir == 2 && depth > 3 && km > 1)
   {
     printf("WARNING: _getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
-    dir=1;
+    dir = 1;
   }
   if (dir == 2 && depth == 1)
   {
     printf("WARNING: _getOversetHolesInterpCellCenters: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
-    dir=1;
+    dir = 1;
   }
 
   E_Int posc;
@@ -1436,8 +1383,10 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   PyObject *centersArray;
   E_Int depth; E_Int dir;
   char* cellNName;
-  if (!PYPARSETUPLE_(args, O_ II_ S_,
-                     &centersArray, &depth, &dir, &cellNName))
+  PyObject* bindices; PyObject* bfield;
+  if (!PYPARSETUPLE_(args, O_ II_ S_ OO_,
+                     &centersArray, &depth, &dir, &cellNName,
+                     &bindices, &bfield))
   {
     return NULL;
   }
@@ -1448,6 +1397,7 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
                     "getOversetHolesInterpCellCenters: dir must be 0, 1 or 2.");
     return NULL;
   }
+
   /*--------------------------------------------------*/
   /* Extraction des infos sur le domaine a interpoler */
   /*--------------------------------------------------*/
@@ -1469,12 +1419,12 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   if (dir == 2 && depth>3 && km>1)
   {
     printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth>3 and 3D are incompatibles. Force dir=1.\n");
-    dir=1;
+    dir = 1;
   }
   if (dir == 2 && depth == 1)
   {
     printf("WARNING: getOversetHolesInterpCellCenters: dir=2, depth=1 and 3D are incompatibles. Force dir=1.\n");
-    dir=1;
+    dir = 1;
   }
 
   E_Int posc;
@@ -1491,11 +1441,19 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
   }
   posc++;
   E_Float* cellNp = field->begin(posc);
-  /* Fin des verifs */
+  
+  // face fields : face index, face field=cellN
+  FldArrayI* binds=NULL; FldArrayF* bf=NULL;
+  if (bindices != Py_None && bfield != Py_None)
+  {
+    K_NUMPY::getFromNumpyArray(bindices, binds);
+    K_NUMPY::getFromNumpyArray(bfield, bf);
+  }
+
   E_Int ncells = field->getSize();
   E_Int api = field->getApi();
 
-  if (res == 1)
+  if (res == 1) // structure
   {
     E_Float* cellNp_tmp;
     FldArrayF cellN_tmp(ncells);
@@ -1526,23 +1484,42 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
     delete field;
     return tpl;
   }
-  else
+  else // non structure
   {
     FldArrayI blankedCells(ncells); blankedCells.setAllValuesAt(1);
     FldArrayI cellNatFld(ncells); cellNatFld.setAllValuesAt(1);
     for (E_Int ind = 0; ind < ncells; ind++)
     {
-      if (cellNp[ind] == 2.){ blankedCells[ind] = 0; cellNatFld[ind] = 0;}
-      else if (cellNp[ind] == 0.){ blankedCells[ind] = -1; cellNatFld[ind] = -1;}
+      if (K_FUNC::fEqualZero(cellNp[ind] - 2.)){ blankedCells[ind] = 0; cellNatFld[ind] = 0; }
+      else if (K_FUNC::fEqualZero(cellNp[ind])){ blankedCells[ind] = -1; cellNatFld[ind] = -1; }
     }
+
     if (K_STRING::cmp(eltType, "NGON*") == 0)
       searchMaskInterpolatedCellsNGON(depth, *cn, blankedCells, cellNatFld);
     else
       searchMaskInterpolatedCellsUnstr(eltType, depth, *cn, blankedCells, cellNatFld);
+
     for (E_Int ind = 0; ind < ncells; ind++)
     {
       if (cellNatFld[ind] == 0) cellNp[ind] = 2.;
       else if (cellNatFld[ind] == -1) cellNp[ind] = 0.;
+    }
+
+    // modify from bc field only for ngon and depth=1
+    if (binds != NULL && bf != NULL && K_STRING::cmp(eltType, "NGON*") == 0 && depth == 1)
+    {
+      // build cFE connectivity
+      E_Int* bindsp = binds->begin();
+      E_Float* bfp = bf->begin(1); 
+      K_FLD::FldArrayI cFE;
+      K_CONNECT::connectNG2FE(*cn, cFE);
+      E_Int indF, indE;
+      for (E_Int i = 0; i < binds->getSize(); i++)
+      {
+        indF = bindsp[i];
+        indE = cFE(indF, 1)-1;
+        if (K_FUNC::fEqualZero(bfp[i]) && K_FUNC::fEqualZero(cellNp[indE] - 1.)) cellNp[indE] = 2;
+      }
     }
 
     PyObject* tpl =  K_ARRAY::buildArray3(*field, varString, *cn, eltType, api);
@@ -1636,9 +1613,9 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
 #pragma omp for
   for (E_Int i = 0; i < nptsTot; i++)
   {
-    if ( cellNp[i] == 2. )
+    if ( K_FUNC::fEqualZero(cellNp[i] - 2.) )
     {
-        sizeLoc[ithread] += 1;
+      sizeLoc[ithread] += 1;
     }
   }
  }
@@ -1676,7 +1653,7 @@ PyObject* K_CONNECTOR::getInterpolatedPointsZ(PyObject* self, PyObject* args)
     #pragma omp for
     for (E_Int i = 0; i < nptsTot; i++)
     {
-      if ( cellNp[i] == 2. )
+      if ( K_FUNC::fEqualZero(cellNp[i] - 2.) )
       {
         indicesInterp[noi] = i;
         coordX[noi] = xp[i];
@@ -1738,7 +1715,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   E_Int c=0;
   for (E_Int ind=0; ind < npts; ind++)
   {
-    if (cellnp[ind] == 2.)
+    if (K_FUNC::fEqualZero(cellnp[ind] - 2.))
     {
       for (E_Int eq = 1; eq <= nfld; eq++) (*fout)(c,eq) = (*f)(ind,eq);
       (*fout)(c,nfldOut) = E_Float(ind);
