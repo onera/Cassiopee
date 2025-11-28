@@ -35,7 +35,7 @@ class DataBase:
             self.parameters = p
         else:
             if parameters is None:
-                raise ValueError("DataBase: can not create data base with no parameters.")    
+                raise ValueError("DataBase: can not create data base with no parameters.")
             self.parameters = parameters
             self.open()
             self.createTable()
