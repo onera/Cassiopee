@@ -47,7 +47,7 @@ struct edge {
     p1_ = std::max(p0, p1);
   }
 
-  bool operator<(const edge &a) const
+  E_Bool operator<(const edge &a) const
   {
     return (p0_ < a.p0_) || (p0_ == a.p0_ && p1_ < a.p1_);
   }
@@ -69,7 +69,7 @@ E_Int checkOpenCell(
   for (E_Int i = 0; i < nf; i++)
   {
     fidx = elt[i] - 1;
-    E_Int *face = cn.getFace(fidx, nv, ngon, indPG);
+    E_Int* face = cn.getFace(fidx, nv, ngon, indPG);
     for (E_Int j = 0; j < nv; j++)
     {
       v0 = face[j];
@@ -131,10 +131,10 @@ E_Int K_CONNECT::checkOverlappingCells(K_FLD::FldArrayI &cn)
 
   for (E_Int i = 0; i < nelts; i++)
   {
-    E_Int* face = cn.getElt(i, nf, nface, indPH);
+    E_Int* elt = cn.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
     {
-      E_Int fidx = face[j];
+      E_Int fidx = elt[j];
       f2e[fidx].push_back(i);
     }
   }
@@ -162,7 +162,7 @@ void K_CONNECT::build_face_neighbourhood
   neighbour.resize(pgs.size(), -1);
   std::map<edge, std::pair<std::pair<E_Int, E_Int>, std::pair<E_Int, E_Int> > > EM;
   E_Int nf = xpgs.size() - 1;
-  E_Int start, end, nv, n0, n1;
+  E_Int start, end, nv, n0, n1, pg0, pg1, s0, s1, ni, nj;
 
   for (E_Int i = 0; i < nf; i++)
   {
@@ -170,12 +170,12 @@ void K_CONNECT::build_face_neighbourhood
     end = xpgs[i+1];
     nv = end - start;
 
-    E_Int* pn = &pgs[start];
+    E_Int* face = &pgs[start];
     for (E_Int j = 0; j < nv; j++)
     {
-      n0 = pn[j];
-      if (j+1 == nv) n1 = pn[0];
-      else n1 = pn[j+1];
+      n0 = face[j];
+      if (j+1 == nv) n1 = face[0];
+      else n1 = face[j+1];
 
       edge E(n0, n1);
       auto search = EM.find(E);
@@ -197,15 +197,15 @@ void K_CONNECT::build_face_neighbourhood
 
   for (auto &elem : EM)
   {
-    E_Int pg0 = elem.second.first.first;
-    E_Int n0 = elem.second.first.second;
-    E_Int pg1 = elem.second.second.first;
-    E_Int n1 = elem.second.second.second;
+    pg0 = elem.second.first.first;
+    n0 = elem.second.first.second;
+    pg1 = elem.second.second.first;
+    n1 = elem.second.second.second;
 
     if (pg1 == -1 || pg1 == E_IDX_NONE) continue;
 
-    E_Int s0 = xpgs[pg0];
-    E_Int s1 = xpgs[pg1];
+    s0 = xpgs[pg0];
+    s1 = xpgs[pg1];
 
     neighbour[s0 + n0] = pg1;
     neighbour[s1 + n1] = pg0;
@@ -217,14 +217,16 @@ void K_CONNECT::build_face_neighbourhood
 
   for (E_Int i = 0; i < nf; i++)
   {
-    E_Int start = xpgs[i];
-    E_Int end = xpgs[i+1];
-    E_Int stride = end-start;
-    E_Int *pn = &pgs[start];
-    for (E_Int j = 0; j < stride; j++)
+    start = xpgs[i];
+    end = xpgs[i+1];
+    nv = end - start;
+    E_Int* face = &pgs[start];
+    for (E_Int j = 0; j < nv; j++)
     {
-      E_Int ni = pn[j];
-      E_Int nj = pn[(j+1)%stride];
+      ni = face[j];
+      if (j+1 == nv) nj = face[0];
+      else nj = face[j+1];
+      nj = face[(j+1)%nv];
       E.set(ni, nj);
       auto it = edge_to_count.find(E);
       if (it == edge_to_count.end()) edge_to_count.insert(std::make_pair(E, 1));
@@ -234,15 +236,16 @@ void K_CONNECT::build_face_neighbourhood
 
   for (E_Int i = 0; i < nf; i++)
   {
-    E_Int start = xpgs[i];
-    E_Int end = xpgs[i+1];
-    E_Int stride = end-start;
-    E_Int *pn = &pgs[start];
-    E_Int *pk = &neighbour[start];
-    for (E_Int j = 0; j < stride; j++)
+    start = xpgs[i];
+    end = xpgs[i+1];
+    nv = end - start;
+    E_Int* face = &pgs[start];
+    E_Int* pk = &neighbour[start];
+    for (E_Int j = 0; j < nv; j++)
     {
-      E_Int ni = pn[j];
-      E_Int nj = pn[(j+1)%stride];
+      ni = face[j];
+      if (j+1 == nv) nj = face[0];
+      else nj = face[j+1];
       E.set(ni, nj);
       if (edge_to_count[E] != 2) pk[j] = -1;
     }
@@ -250,18 +253,18 @@ void K_CONNECT::build_face_neighbourhood
 }
 
 static
-E_Int get_orientation(E_Int *pn, E_Int stride, E_Int ni, E_Int nj,
+E_Int get_orientation(E_Int *face, E_Int nv, E_Int ni, E_Int nj,
   E_Int *same_orient)
 {
   *same_orient = 0;
-  for (E_Int i = 0; i < stride; i++)
+  for (E_Int i = 0; i < nv; i++)
   {
-    if (pn[i] == ni && pn[(i+1)%stride] == nj)
+    if (face[i] == ni && face[(i+1)%nv] == nj)
     {
       *same_orient = 1;
       return 0;
     }
-    if (pn[i] == nj && pn[(i+1)%stride] == ni)
+    if (face[i] == nj && face[(i+1)%nv] == ni)
     {
       *same_orient = 0;
       return 0;
@@ -311,7 +314,7 @@ void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs,
     processed[K] = 1;
 
     E_Int* elt = &pgs[xpgs[K]];
-    E_Int stride = xpgs[K+1]-xpgs[K];
+    E_Int nf = xpgs[K+1] - xpgs[K];
 
     for (E_Int i = xpgs[K]; i < xpgs[K+1]; i++)
     {
@@ -323,10 +326,10 @@ void K_CONNECT::reversi_connex(E_Int *pgs, E_Int *xpgs, E_Int npgs,
       k = l = -1;
       E_Int *pnn = &pgs[xpgs[nei]];
       E_Int sn = xpgs[nei+1] - xpgs[nei];
-      get_boundary(elt, stride, pnn, sn, &k, &l);
+      get_boundary(elt, nf, pnn, sn, &k, &l);
 
       E_Int ni = elt[k];
-      E_Int nj = elt[(k+1)%stride];
+      E_Int nj = elt[(k+1)%nf];
 
       E_Int reverse = 2;
       get_orientation(pnn, sn, ni, nj, &reverse);
@@ -359,7 +362,7 @@ E_Int _orient_boundary
   E_Int seed = -1;
   E_Int refPG = -1;
   E_Int refIdx = -1;
-  E_Int nf, fidx, cid, local_idx;
+  E_Int nf, fidx, cid, localIdx;
 
   while (++seed < nelts)
   { 
@@ -374,14 +377,14 @@ E_Int _orient_boundary
     
     E_Int* elt = cn.getElt(cid, nf, nface, indPH);
     refPG = -1;
-    local_idx = -1;
+    localIdx = -1;
     for (E_Int j = 0; j < nf; j++)
     {
       fidx = elt[j]-1;
       if (fflags[fidx] == EXTERNAL)
       {
         refPG = fidx;
-        local_idx = j;
+        localIdx = j;
         break;
       }
     }
@@ -410,7 +413,10 @@ E_Int _orient_boundary
     // Compute cvol, the volume of seed.
     // If cvol > 0, orientation of all faces including refPG, is outwards
     // Otherwise, set orientation of refPG to -1.
-    K_METRIC::compute_cell_volume(cid, cn, x, y, z, cvol, local_idx);
+    K_METRIC::compute_cell_volume(
+      cid, cn, ngon, nface, indPG, indPH,
+      x, y, z, cvol, localIdx
+    );
 
     if (K_FUNC::E_abs(cvol) < DSMALL) continue;
     
@@ -436,7 +442,7 @@ E_Int _orient_boundary
 static
 void extract_nface_of_kept_pgs(
   K_FLD::FldArrayI &cn,
-  const std::vector<bool> &kept_pgs,
+  const std::vector<E_Bool> &kept_pgs,
   std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj, std::vector<E_Int> &cells
 )
 {
@@ -550,16 +556,16 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   flag_and_get_external_faces(cn, fflags, efaces);
 
   // extract external faces connectivity
+  E_Int nv;
   std::vector<E_Int> fadj;
   std::vector<E_Int> xadj(1, 0);
   for (E_Int i = 0; i < nfaces; i++)
   {
     if (fflags[i] == EXTERNAL)
     {
-      E_Int stride = -1;
-      E_Int *pn = cn.getFace(i, stride, ngon, indPG);
-      xadj.push_back(stride);
-      for (E_Int j = 0; j < stride; j++) fadj.push_back(pn[j]);
+      E_Int* face = cn.getFace(i, nv, ngon, indPG);
+      xadj.push_back(nv);
+      for (E_Int j = 0; j < nv; j++) fadj.push_back(face[j]);
     }
   }
 
@@ -588,7 +594,7 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
     // extract nconnex nface-ngon for separate orientation
     for (E_Int color = 0; color < nconnex; color++)
     {
-      std::vector<bool> keep_pgs(nfaces, false);
+      std::vector<E_Bool> keep_pgs(nfaces, false);
       for (E_Int i = 0; i < nefaces; i++)
       {
         keep_pgs[efaces[i]] = (colors[i] == color);
@@ -600,9 +606,11 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
       std::vector<E_Int> cflags;
       flag_marked_external_cells(cn, cells, fflags, cflags);
 
-      ret |= _orient_boundary(cn, x, y, z, (E_Int)cells.size(), 
-        &fadj[0], &xadj[0], nefaces, &fneighbours[0], &efaces[0], forient, cflags,
-        fflags, &cells[0]);
+      ret |= _orient_boundary(
+        cn, x, y, z, (E_Int)cells.size(), 
+        &fadj[0], &xadj[0], nefaces, &fneighbours[0], &efaces[0],
+        forient, cflags, fflags, &cells[0]
+      );
     }
   }
   else
@@ -616,42 +624,38 @@ E_Int K_CONNECT::orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
   }
   
   // Apply orientation
-  //E_Int nrev = 0;
   for (E_Int i = 0; i < nefaces; i++)
   {
     if (forient[i] == -1)
     {
-      E_Int face = efaces[i]; // 0-based
-      E_Int stride = -1;
-      E_Int *pn = cn.getFace(face, stride, ngon, indPG);
-      std::reverse(pn+1, pn+stride);
-      //nrev++;
+      E_Int fidx = efaces[i]; // 0-based
+      E_Int* face = cn.getFace(fidx, nv, ngon, indPG);
+      std::reverse(face + 1, face + nv);
     }
   }
-  //printf("Orient_boundary(): flipped " SF_D_ " faces\n", nrev);
 
   return ret;
 }
 
 static
-void build_cell_neighbourhood(K_FLD::FldArrayI &cn, std::vector<E_Int>& neighbours,
+void build_cell_neighbourhood(
+  K_FLD::FldArrayI &cn, std::vector<E_Int>& neighbours,
   std::vector<E_Int> &xadj)
 {
+  E_Int *nface = cn.getNFace(); E_Int *indPH = cn.getIndPH();
   E_Int nfaces = cn.getNFaces();
   E_Int nelts = cn.getNElts();
-  E_Int *indPH = cn.getIndPH();
-  E_Int *nface = cn.getNFace();
 
   xadj.resize(nelts+1);
   xadj[0] = 0;
 
   // TODO(Imad): this is a safe resize
-  E_Int *ptr = &xadj[0]+1;
+  E_Int nf;
+  E_Int *ptr = &xadj[0] + 1;
   for (E_Int i = 0; i < nelts; i++)
   {
-    E_Int stride = -1;
-    cn.getElt(i, stride, nface, indPH);
-    *ptr++ = stride;
+    cn.getElt(i, nf, nface, indPH);
+    *ptr++ = nf;
   }
 
   for (E_Int i = 0; i < nelts; i++) xadj[i+1] += xadj[i];
@@ -666,16 +670,15 @@ void build_cell_neighbourhood(K_FLD::FldArrayI &cn, std::vector<E_Int>& neighbou
   {
     for (E_Int i = 0; i < nelts; i++)
     {
-      E_Int stride = -1;
-      E_Int* elt = cn.getElt(i, stride, nface, indPH);
-      E_Int* pn = &neighbours[xadj[i]];
-      for (E_Int j = 0; j < stride; j++)
+      E_Int* elt = cn.getElt(i, nf, nface, indPH);
+      E_Int* face = &neighbours[xadj[i]];
+      for (E_Int j = 0; j < nf; j++)
       {
-        E_Int face = elt[j]-1;
-        E_Int &nei = neigh[face];
-        E_Int &Kn = pn[j];
+        E_Int fidx = elt[j]-1;
+        E_Int &nei = neigh[fidx];
+        E_Int &Kn = face[j];
         if (nei != -1 && nei != i) Kn = nei;
-        neigh[face] = i;
+        neigh[fidx] = i;
       }
     }
   }
@@ -692,7 +695,7 @@ E_Int K_CONNECT::build_parent_elements_ngon(
   E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
   E_Int nelts = cn.getNElts();
   
-  E_Int nf;
+  E_Int nf, nv;
   std::vector<E_Int> neighbours, xadj;
   build_cell_neighbourhood(cn, neighbours, xadj);
   std::vector<E_Int> exPH(nelts, -1);
@@ -700,11 +703,11 @@ E_Int K_CONNECT::build_parent_elements_ngon(
   for (E_Int i = 0; i < nelts; i++)
   {
     E_Int* elt = cn.getElt(i, nf, nface, indPH);
-    E_Int* pn = &neighbours[xadj[i]];
+    E_Int* face = &neighbours[xadj[i]];
 
     for (E_Int j = 0; j < nf; j++)
     {
-      if (pn[j] == -1)
+      if (face[j] == -1)
       {
         owner[elt[j]-1] = i;
         exPH[i] = elt[j];
@@ -736,24 +739,22 @@ E_Int K_CONNECT::build_parent_elements_ngon(
       processed[cell] = 1;
 
       // build faces neighbourhood based on shared edges' nodes order
-      E_Int stride = -1;
-      E_Int* elt = cn.getElt(cell, stride, nface, indPH);
+      E_Int* elt = cn.getElt(cell, nf, nface, indPH);
       std::vector<E_Int> oids;
-      std::vector<E_Int> orient(stride, 1);
+      std::vector<E_Int> orient(nf, 1);
       std::vector<E_Int> pgs;
       std::vector<E_Int> xpgs(1, 0);
-      for (E_Int i = 0; i < stride; i++)
+
+      for (E_Int i = 0; i < nf; i++)
       {
-        E_Int face = elt[i];
-        E_Int np = -1;
-        E_Int *pn = cn.getFace(face-1, np, ngon, indPG);
-        for (E_Int j = 0; j < np; j++) pgs.push_back(pn[j]);
-        xpgs.push_back(np);
-        oids.push_back(face);
+        E_Int fidx = elt[i];
+        E_Int *face = cn.getFace(fidx-1, nv, ngon, indPG);
+        for (E_Int j = 0; j < nv; j++) pgs.push_back(face[j]);
+        xpgs.push_back(nv);
+        oids.push_back(fidx);
       }
 
-      for (E_Int i = 0; i < stride; i++)
-        xpgs[i+1] += xpgs[i];
+      for (E_Int i = 0; i < nf; i++) xpgs[i+1] += xpgs[i];
 
       std::vector<E_Int> PGneighbours(pgs.size());
       build_face_neighbourhood(pgs, xpgs, PGneighbours);
@@ -789,36 +790,34 @@ E_Int K_CONNECT::build_parent_elements_ngon(
       assert(iref != -1);
 
       // set orientation of face if prescribed
-      if (revers)
-        orient[iref] = -1;
+      if (revers) orient[iref] = -1;
 
       // all connected faces must follow the orientation of the reference face
-      reversi_connex(&pgs[0], &xpgs[0], stride, &PGneighbours[0], iref, orient);
+      reversi_connex(&pgs[0], &xpgs[0], nf, &PGneighbours[0], iref, orient);
 
       // set the owner and neighbour of the faces
-      E_Int *pn = &neighbours[xadj[cell]];
-      for (E_Int i = 0; i < stride; i++) 
+      E_Int *face = &neighbours[xadj[cell]];
+      for (E_Int i = 0; i < nf; i++) 
       {
-        E_Int face = elt[i];
-        E_Int nei = pn[i];
+        E_Int fidx = elt[i];
+        E_Int nei = face[i];
         assert(nei < nelts && nei >= -1);
 
-        owner[face-1] = cell;
-        neigh[face-1] = nei;
+        owner[fidx-1] = cell;
+        neigh[fidx-1] = nei;
 
         if (nei == -1) continue;
 
         // set the reference face for neighbour
-        exPH[nei] = -face;
+        exPH[nei] = -fidx;
 
         if (orient[i] == -1)
         {
-          std::swap(owner[face-1], neigh[face-1]);
-          exPH[nei] = face;
+          std::swap(owner[fidx-1], neigh[fidx-1]);
+          exPH[nei] = fidx;
         }
 
-        if (!processed[nei])
-          cpool.push(nei);
+        if (!processed[nei]) cpool.push(nei);
       }
     }
   }

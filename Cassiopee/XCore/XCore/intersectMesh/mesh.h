@@ -227,7 +227,7 @@ struct IMesh {
     void flag_and_get_external_faces(std::vector<E_Int> &fflags,
         std::vector<E_Int> &efaces);
     
-    void extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
+    void extract_nface_of_kept_pgs(const std::vector<E_Bool> &kept_pgs,
         std::vector<E_Int> &NFACE, std::vector<E_Int> &cxadj,
         std::vector<E_Int> &cells);
     

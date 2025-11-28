@@ -179,87 +179,78 @@ void K_METRIC::compute_cell_center_and_volume(
 // Assumes closed cell
 // Does not assume faces pointing outwards: volume might be negative
 void K_METRIC::compute_cell_volume(
-  E_Int cell, K_FLD::FldArrayI &cn, E_Float *x, E_Float *y,
-  E_Float *z, E_Float &vol, E_Int refIdx
+  E_Int cell, K_FLD::FldArrayI &cn,
+  E_Int* ngon, E_Int* nface, E_Int* indPG, E_Int* indPH,
+  E_Float *x, E_Float *y, E_Float *z, E_Float &vol, E_Int refIdx
 )
 {
-  E_Int *nface = cn.getNFace();
-  E_Int *indPH = cn.getIndPH();
-  E_Int *ngon = cn.getNGon();
-  E_Int *indPG = cn.getIndPG();
-
   // Orient the faces coherently
   std::vector<E_Int> NGON;
   std::vector<E_Int> INDPG(1, 0);
-  E_Int stride = -1;
-  E_Int *pf = cn.getElt(cell, stride, nface, indPH); 
+  E_Int nf, nv;
+  E_Int* elt = cn.getElt(cell, nf, nface, indPH); 
   
-  for (E_Int i = 0; i < stride; i++)
+  for (E_Int i = 0; i < nf; i++)
   {
-    E_Int face = pf[i]-1;
-    E_Int np = -1;
-    E_Int *pn = cn.getFace(face, np, ngon, indPG);
-    INDPG.push_back(np);
-    for (E_Int j = 0; j < np; j++) NGON.push_back(pn[j]);
+    E_Int fidx = elt[i] - 1;
+    E_Int* face = cn.getFace(fidx, nv, ngon, indPG);
+    INDPG.push_back(nv);
+    for (E_Int j = 0; j < nv; j++) NGON.push_back(face[j]);
   }
 
-  for (E_Int i = 0; i < stride; i++)
-    INDPG[i+1] += INDPG[i];
+  for (E_Int i = 0; i < nf; i++) INDPG[i+1] += INDPG[i];
 
   // Fix orientation of first face
-  std::vector<E_Int> orient(stride);
+  std::vector<E_Int> orient(nf);
   orient[refIdx] = 1;
   std::vector<E_Int> neis(NGON.size());
   K_CONNECT::build_face_neighbourhood(NGON, INDPG, neis);
-  K_CONNECT::reversi_connex(&NGON[0], &INDPG[0], stride, &neis[0], refIdx, orient);
+  K_CONNECT::reversi_connex(&NGON[0], &INDPG[0], nf, &neis[0], refIdx, orient);
 
   // Apply orientation in local NGON
-  for (E_Int i = 0; i < stride; i++)
+  for (E_Int i = 0; i < nf; i++)
   {
     if (orient[i] == -1)
     {
       E_Int start = INDPG[i];
-      E_Int np = INDPG[i+1] - start;
-      E_Int *pn = &NGON[start];
-      std::reverse(pn+1, pn+np);
+      nv = INDPG[i+1] - start;
+      E_Int* face = &NGON[start];
+      std::reverse(face + 1, face + nv);
     }
   }
 
   // Compute faces area and center
-  std::vector<E_Float> faceAreas(3*stride, 0.0);
-  std::vector<E_Float> faceCenters(3*stride, 0.0);
+  std::vector<E_Float> faceAreas(3*nf, 0.0);
+  std::vector<E_Float> faceCenters(3*nf, 0.0);
 
-  for (E_Int i = 0; i < stride; i++)
+  for (E_Int i = 0; i < nf; i++)
   {
-    E_Int face = pf[i]-1;
+    E_Int fidx = elt[i]-1;
     E_Float *fa = &faceAreas[3*i];
     E_Float *fc = &faceCenters[3*i];
-    E_Int np = INDPG[i+1]-INDPG[i];
-    E_Int *pn = &NGON[INDPG[i]];
-    K_METRIC::compute_face_center_and_area(face, np, pn, x, y, z, fc, fa);
+    nv = INDPG[i+1] - INDPG[i];
+    E_Int* face = &NGON[INDPG[i]];
+    K_METRIC::compute_face_center_and_area(fidx, nv, face, x, y, z, fc, fa);
   }
 
   // Estimate cell centroid as average of face centers
-  E_Float cc[3] = {0,0,0};
-  for (E_Int i = 0; i < stride; i++)
+  E_Float cc[3] = {0., 0., 0.};
+  for (E_Int i = 0; i < nf; i++)
   {
     E_Float *fc = &faceCenters[3*i];
-    for (E_Int j = 0; j < 3; j++)
-      cc[j] += fc[j];
+    for (E_Int j = 0; j < 3; j++) cc[j] += fc[j];
   }
-  for (E_Int i = 0; i < 3; i++)
-    cc[i] /= stride;
+  for (E_Int i = 0; i < 3; i++) cc[i] /= E_Float(nf);
 
   // Compute cell volume
   vol = 0.0;
-
-  for (E_Int i = 0; i < stride; i++)
+  for (E_Int i = 0; i < nf; i++)
   {
     E_Float *fa = &faceAreas[3*i];
     E_Float *fc = &faceCenters[3*i];
     
     // Compute 3*face-pyramid volume contribution
-    E_Float d[3] = {fc[0]-cc[0], fc[1]-cc[1], fc[2]-cc[2]};
+    E_Float d[3] = { fc[0] - cc[0], fc[1] - cc[1], fc[2] - cc[2] };
     //E_Float pyr3Vol = K_MATH::dot(fa, fc, 3);
     E_Float pyr3Vol = K_MATH::dot(fa, d, 3);
 
@@ -279,7 +270,7 @@ void compute_volumes(
 {
   E_Int *nface = cn.getNFace(); E_Int *ngon = cn.getNGon();
   E_Int *indPH = cn.getIndPH(); E_Int *indPG = cn.getIndPG();
-  E_Int ncells = cn.getNElts();
+  E_Int nelts = cn.getNElts();
   E_Int nfaces = cn.getNFaces();
 
   // Compute face areas and centers
@@ -296,7 +287,7 @@ void compute_volumes(
   }
 
   // Estimate cell centers as average of face centers
-  std::vector<E_Float> cC(3*ncells, 0);
+  std::vector<E_Float> cC(3*nelts, 0);
   for (E_Int i = 0; i < nfaces; i++)
   {
     E_Float *fc = &fC[3*i];
@@ -315,7 +306,7 @@ void compute_volumes(
     for (E_Int j = 0; j < 3; j++) cc[j] += fc[j];
   }
 
-  for (E_Int i = 0; i < ncells; i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
     E_Int stride = -1;
     cn.getElt(i, stride, nface, indPH);
@@ -323,7 +314,7 @@ void compute_volumes(
     for (E_Int j = 0; j < 3; j++) cc[j] /= stride;
   }
 
-  for (E_Int i = 0; i < ncells; i++) vols[i] = 0.0;
+  for (E_Int i = 0; i < nelts; i++) vols[i] = 0.0;
 
   for (E_Int i = 0; i < nfaces; i++)
   {
@@ -346,7 +337,7 @@ void compute_volumes(
     vols[nei] += pyr3vol;
   }
 
-  for (E_Int i = 0; i < ncells; i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
     vols[i] *= K_CONST::ONE_THIRD;
     if (vols[i] < 0.0)
@@ -362,22 +353,23 @@ E_Int K_METRIC::compVolNGonImad(
   K_FLD::FldArrayI &cn, E_Float *vols
 )
 {
-  E_Int *nface = cn.getNFace(); E_Int *indPH = cn.getIndPH();
-  E_Int ncells = cn.getNElts();
+  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
+  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
+  E_Int nelts = cn.getNElts();
 
   E_Int ierr = 0;  // error index
-  E_Int nf, stride;
+  E_Int nf;
   
   // Unsign NFACE
-  for (E_Int i = 0; i < ncells; i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
-    E_Int *elt = cn.getElt(i, nf, nface, indPH);
+    E_Int* elt = cn.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
       if (elt[j] < 0) elt[j] = -elt[j];
   }
 
   // Check mesh
-  std::vector<E_Int> isEltOpen(ncells, 0);
+  std::vector<E_Int> isEltOpen(nelts, 0);
   E_Int bad_faces = K_CONNECT::checkOverlappingCells(cn);
   E_Int bad_cells = K_CONNECT::checkOpenCells(cn, &isEltOpen[0]);
 
@@ -392,7 +384,7 @@ E_Int K_METRIC::compVolNGonImad(
   else
   {
     // Compute closed cells volumes
-    for (E_Int i = 0; i < ncells; i++)
+    for (E_Int i = 0; i < nelts; i++)
     {
       if (isEltOpen[i])
       {
@@ -401,7 +393,10 @@ E_Int K_METRIC::compVolNGonImad(
           "Warning: Cell " SF_D_ " is not closed. Setting its volume to zero\n", i);
         continue;
       }
-      K_METRIC::compute_cell_volume(i, cn, x, y, z, vols[i]);
+      K_METRIC::compute_cell_volume(
+        i, cn, ngon, nface, indPG, indPH,
+        x, y, z, vols[i]
+      );
       if (vols[i] < 0.0) vols[i] = -vols[i];
     }
     ierr = 2;
@@ -434,28 +429,28 @@ void K_METRIC::compute_cell_centers_and_vols(
 )
 {
   E_Int *nface = cn.getNFace(); E_Int *indPH = cn.getIndPH();
-  E_Int ncells = cn.getNElts();
+  E_Int nelts = cn.getNElts();
   E_Int nfaces = cn.getNFaces();
   
   E_Float *vols;
   if (volumes) vols = volumes;
-  else vols = (E_Float *)malloc(ncells * sizeof(E_Float)); 
+  else vols = (E_Float *)malloc(nelts * sizeof(E_Float)); 
 
   // Estimate cell centers as average of face centers
-  std::vector<E_Float> cEst(3*ncells, 0);
+  std::vector<E_Float> cEst(3*nelts, 0);
   for (E_Int i = 0; i < nfaces; i++)
   {
     E_Float *fc = &fcenters[3*i];
     E_Float *cE;
     
     E_Int own = owner[i];
-    assert(own >= 0 && own < ncells);
+    assert(own >= 0 && own < nelts);
     cE = &cEst[3*own];
 
     for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
 
     E_Int nei = neigh[i];
-    assert(nei >= -1 && nei < ncells);
+    assert(nei >= -1 && nei < nelts);
     if (nei == -1) continue;
     
     cE = &cEst[3*nei];
@@ -463,7 +458,7 @@ void K_METRIC::compute_cell_centers_and_vols(
     for (E_Int j = 0; j < 3; j++) cE[j] += fc[j];
   }
 
-  for (E_Int i = 0; i < ncells; i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
     E_Int stride = -1;
     cn.getElt(i, stride, nface, indPH);
@@ -472,10 +467,10 @@ void K_METRIC::compute_cell_centers_and_vols(
       cE[j] /= stride;
   }
 
-  memset(vols, 0, ncells*sizeof(E_Float));
-  memset(cx,   0, ncells*sizeof(E_Float));
-  memset(cy,   0, ncells*sizeof(E_Float));
-  memset(cz,   0, ncells*sizeof(E_Float));
+  memset(vols, 0, nelts*sizeof(E_Float));
+  memset(cx,   0, nelts*sizeof(E_Float));
+  memset(cy,   0, nelts*sizeof(E_Float));
+  memset(cz,   0, nelts*sizeof(E_Float));
 
   for (E_Int i = 0; i < nfaces; i++)
   {
@@ -484,7 +479,7 @@ void K_METRIC::compute_cell_centers_and_vols(
     E_Float pyr3vol, pc[3], *cE, d[3];
 
     E_Int own = owner[i];
-    assert(own >= 0 && own < ncells);
+    assert(own >= 0 && own < nelts);
     cE = &cEst[3*own];
     for (E_Int j = 0; j < 3; j++) d[j] = fc[j]-cE[j];
     pyr3vol = K_MATH::dot(fa, d, 3);
@@ -495,7 +490,7 @@ void K_METRIC::compute_cell_centers_and_vols(
     vols[own] += pyr3vol;
 
     E_Int nei = neigh[i];
-    assert(nei >= -1 && nei < ncells);
+    assert(nei >= -1 && nei < nelts);
     if (nei == -1) continue;
 
     cE = &cEst[3*nei];
@@ -508,7 +503,7 @@ void K_METRIC::compute_cell_centers_and_vols(
     vols[nei] += pyr3vol;
   }
 
-  for (E_Int i = 0; i < ncells; i++)
+  for (E_Int i = 0; i < nelts; i++)
   {
     E_Float coeff = 1.0/vols[i];
     cx[i] *= coeff;
