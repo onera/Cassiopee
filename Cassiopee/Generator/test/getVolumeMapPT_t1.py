@@ -77,8 +77,7 @@ c = G.cartHexa((0.8,0.,0.), (0.1,0.1,0.2), (4,1,1))
 d = G.cartHexa((0.4,-0.9,0.), (0.1,0.1,0.2), (1,1,12))
 a = C.mergeConnectivity([a, b, c, d], None)
 #G._getVolumeMap(a)
-C.convertPyTree2File(a, 'coucou1.cgns')
-#test.testT(t,11)
+#test.testT(a,11)
 
 # --- ME ---
 # 2D unstructured ME: tri-quad-tri
@@ -90,8 +89,7 @@ c = G.cartTetra((0.8,0.,0.), (0.1,0.1,0.2), (5,10,1))
 d = G.cartTetra((0.4,-0.9,0.), (0.1,0.1,0.2), (5,10,1))
 a = C.mergeConnectivity([a, b, c, d], None)
 #G._getVolumeMap(a)
-C.convertPyTree2File(a, 'coucou2.cgns')
-#test.testT(t,12)
+#test.testT(a,12)
 
 # 3D unstructured ME: tetra - pyra
 #                       |      |
@@ -102,6 +100,5 @@ c = G.cartPenta((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 d = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.mergeConnectivity([a, b, c, d], None)
 #G._getVolumeMap(a)
-C.convertPyTree2File(a, 'coucou3.cgns')
-#test.testT(t,13)
+#test.testT(a,13)
 """
