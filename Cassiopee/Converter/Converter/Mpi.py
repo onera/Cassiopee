@@ -1,20 +1,29 @@
 # Interface pour MPI
 
 import os, timeit, sys
-from .Distributed import _readZones, _convert2PartialTree, _convert2SkeletonTree, _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
+from .Distributed import (
+    _readZones, _convert2PartialTree, _convert2SkeletonTree,
+    _readPyTreeFromPaths, mergeGraph, splitGraph, isZoneSkeleton__
+)
 from . import PyTree as C
 from . import Internal
 from . import Distributed
 
 if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
-    if int(os.environ['MPIRUN'])>0:
+    if int(os.environ['MPIRUN']) > 0:
         try: from .Mpi4py import *
         except: raise ImportError("Converter:Mpi: requires mpi4py module.")
     else:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
         SUM = 0; MAX = 0; MIN = 0; LAND = 0
-        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, writeZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        from .Distributed import (
+            setProc, _setProc, getProc, getProcDict,
+            getProperty, getPropertyDict, convertFile2SkeletonTree,
+            computeGraph, splitGraph, mergeGraph, readZones, writeZones,
+            convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        )
+        def abort(errorcode=0): os._exit(errorcode)
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
@@ -40,7 +49,8 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
-        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertFile2PyTree(fileName, format=None, proc=None):
+            return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
@@ -62,7 +72,13 @@ else: # try import (may fail - core or hang)
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
         SUM = 0; MAX = 0; MIN = 0; LAND = 0
-        from .Distributed import setProc, _setProc, getProc, getProcDict, getProperty, getPropertyDict, convertFile2SkeletonTree, computeGraph, splitGraph, mergeGraph, readZones, convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        from .Distributed import (
+            setProc, _setProc, getProc, getProcDict,
+            getProperty, getPropertyDict, convertFile2SkeletonTree,
+            computeGraph, splitGraph, mergeGraph, readZones, writeZones,
+            convert2PartialTree, convert2SkeletonTree, readPyTreeFromPaths
+        )
+        def abort(errorcode=0): os._exit(errorcode)
         def barrier(): return
         def bcast(a, root=0): return a
         def Bcast(a, root=0): return a
@@ -88,7 +104,8 @@ else: # try import (may fail - core or hang)
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
-        def convertFile2PyTree(fileName, format=None, proc=None): return C.convertFile2PyTree(fileName, format)
+        def convertFile2PyTree(fileName, format=None, proc=None):
+            return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
         def addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return Internal.copyRef(t)
         def _addXZones(t, graph, variables=None, noCoordinates=False, cartesian=False, subr=True, keepOldNodes=True, zoneGC=True): return None
@@ -105,7 +122,7 @@ else: # try import (may fail - core or hang)
         print("Warning: Converter:Mpi: mpi4py is not available. Sequential behaviour.")
 
 # Store state for trace
-TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': True, 'cpu': True }
+TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': True, 'cpu': True, 'master': True }
 
 #==============================================================================
 # IN: t: full/loaded skel/partial
@@ -212,12 +229,13 @@ def isFinite(t, var=None):
 # Trace memory and cpu time.
 # if cpu=True, write cpu time ellapsed from previous trace call.
 # if mem=True, write node used memory
-# if reset, empty log
+# if reset is true, empty log
 # if filename="stdout", write to screen, else write in file filename
+# if master=True, only master write output and max is performed on mem and time.
 # if method is present: Rss(0), tracemalloc(1), heap(2), VmRss(3), Resident(4)
-# a noter: 1 counts only memory allocated by python and not the one allocated in pure C.
-# a noter: trace default arguments are defined in TRACESTATE (line 96)
-def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, method=None):
+# note: 1 counts only memory allocated by python and not the one allocated in pure C.
+# note: trace default arguments are defined in TRACESTATE (line 96)
+def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, method=None, master=None):
     """Write a trace of cpu and memory in a file or to stdout for current node."""
     global TRACESTATE
     msg = text
@@ -226,6 +244,9 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
         TRACESTATE['fileName'] = fileName
     if mem is not None: TRACESTATE['mem'] = mem
     if cpu is not None: TRACESTATE['cpu'] = cpu
+    if master is not None: TRACESTATE['master'] = master
+
+    dt = 0.; tot = 0.; peak = -1
 
     if TRACESTATE['mem'] and TRACESTATE['method'] == 1:
         import tracemalloc
@@ -238,7 +259,10 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
             t = timeit.default_timer()
             dt = t - TRACESTATE['prevFullTime']
             TRACESTATE['prevFullTime'] = t
-        msg += ' [%g secs]'%dt
+        hours = int(dt // 3600)
+        minutes = int((dt % 3600) // 60)
+        seconds = (dt % 60)
+        msg += ' [%g hr %g min %g sec]'%(hours, minutes, seconds)
     if TRACESTATE['mem']:
         tot = 0.; peak = -1
         if TRACESTATE['method'] == 0: # Rss in smaps
@@ -288,6 +312,15 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
             for ts in s:
                 tot += int(ts.split()[1])
 
+    if TRACESTATE['master']: # reduction
+        a = allgather((dt, tot))
+        dt = 0.; tot = 0.
+        for i in a:
+            dt = max(dt, i[0]); tot = max(tot, i[1])
+
+    # build msg
+    if TRACESTATE['cpu']: msg += ' [%g secs]'%dt
+    if TRACESTATE['mem']:
         if peak == -1: # peak is not known
             if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)
             elif tot > 1000.: msg += '[%f MB]'%(tot/1000.)
@@ -299,14 +332,21 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
     msg += '\n'
 
     if TRACESTATE['fileName'] == "stdout":
-        print('%d: %s'%(rank, msg))
-        sys.stdout.flush()
-    else: # dans des fichiers par processes
-        fileName = TRACESTATE['fileName'].split('.')
-        if '%' in fileName[0]: fileName[0] = fileName[0]%rank
-        else: fileName[0] += '%03d'%rank
-        if len(fileName) == 1: fileName[0] += '.out'
-        fileName = '.'.join(s for s in fileName)
+        if TRACESTATE['master']:
+            if rank == 0:
+                print('%d: %s'%(rank, msg))
+                sys.stdout.flush()
+        else:
+            print('%d: %s'%(rank, msg))
+            sys.stdout.flush()
+
+    else: # dans des fichiers par processes si pas master ou dans un seul si master
+        if not TRACESTATE['master']:
+            fileName = TRACESTATE['fileName'].split('.')
+            if '%' in fileName[0]: fileName[0] = fileName[0]%rank
+            else: fileName[0] += '%03d'%rank
+            if len(fileName) == 1: fileName[0] += '.out'
+            fileName = '.'.join(s for s in fileName)
         if reset: f = open(fileName, "w")
         else: f = open(fileName, "a")
         f.write(msg)

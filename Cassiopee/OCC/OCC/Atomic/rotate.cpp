@@ -48,7 +48,6 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
   gp_Dir direction(xaxis, yaxis, zaxis);
   gp_Ax1 axis(center, direction);
 
-  //printf("angle=%g\n", angle);
   angle = angle * M_PI / 180.;
   gp_Trsf myTrsf;
   myTrsf.SetRotation(axis, angle); 
@@ -63,7 +62,6 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
   }
   else
   {
-    E_Int nfaces = PyList_Size(listFaces);
     // Build a compound
     BRep_Builder builder;
     TopoDS_Compound shc;
@@ -72,6 +70,7 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
     std::vector<E_Int> nos(nf);
     for (E_Int i = 0; i < nf; i++) nos[i] = -1;
     
+    E_Int nfaces = PyList_Size(listFaces);
     for (E_Int no = 0; no < nfaces; no++)
     {
       PyObject* noFaceO = PyList_GetItem(listFaces, no);
@@ -80,6 +79,7 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
       const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
       builder.Add(shc, F);
     }
+
     BRepBuilderAPI_Transform myTransform(shc, myTrsf);
     TopoDS_Shape tShape = myTransform.Shape();
 

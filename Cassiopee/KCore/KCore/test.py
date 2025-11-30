@@ -3,11 +3,11 @@
 # arrays: testA, [outA], stdTestA, [outTestA]
 # pyTrees: testT, [outT], stdTestT, [outTestT]
 # objects: testO
-from __future__ import print_function
 import numpy, sys, os
 
 # global tolerance on float fields
-TOLERANCE = 1.e-11
+TOLERANCE = 1.e-11  # absolute
+RELTOLERANCE = 0. # relative
 
 # whether to diffArrays geometrically or topologically. default is topologically.
 GEOMETRIC_DIFF = False
@@ -60,19 +60,21 @@ def testA(arrays, number=1):
         if GEOMETRIC_DIFF:
             # geometrical check
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
-                ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
+                ret = C.diffArraysGeom(arrays, old, atol=TOLERANCE, rtol=RELTOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(arrays, old)
+                    ret = C.diffArrays(arrays, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(arrays, old)
+                ret = C.diffArrays(arrays, old,
+                                   atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(arrays, old)
+            ret = C.diffArrays(arrays, old, atol=TOLERANCE, rtol=RELTOLERANCE)
 
         isSuccessful = True
         varNames = list(dict.fromkeys(','.join(i[0] for i in ret).split(',')))
@@ -82,8 +84,9 @@ def testA(arrays, number=1):
         for i in ret:
             for v in i[0].split(','):
                 vidx = varNames.index(v)
-                l0[vidx] = max(l0[vidx], C.normL0(i, v))
-                l2[vidx] = max(l2[vidx], C.normL2(i, v))
+                if C.getNPts(i) > 0:
+                    l0[vidx] = max(l0[vidx], C.getMaxValue(i, v))
+                    l2[vidx] = max(l2[vidx], C.normL2(i, v))
 
         for vidx, v in enumerate(varNames):
             if l0[vidx] > TOLERANCE:
@@ -144,31 +147,33 @@ def testT(t, number=1):
             nXYZ = [Internal.getNodesFromName(old, "Coordinate" + ax) for ax in 'XYZ']
             nXYZ = [arr[0] if len(arr) else [] for arr in nXYZ]
             if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
-                ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
+                ret = C.diffArraysGeom(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(t, old)
+                    ret = C.diffArrays(t, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(t, old)
+                ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(t, old)
+            ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         C._fillMissingVariables(ret)
         mvars = C.getVarNames(ret)
         if len(mvars) > 0: mvars = mvars[0]
         else: mvars = []
 
         isSuccessful = True
-        for v in mvars:
-            l0 = C.normL0(ret, v)
-            l2 = C.normL2(ret, v)
-            if l0 > TOLERANCE:
-                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
-                isSuccessful = False
+        if C.getNPts(ret) > 0:
+            for v in mvars:
+                l0 = C.getMaxValue(ret, v)
+                l2 = C.normL2(ret, v)
+                if l0 > TOLERANCE:
+                    print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0, l2))
+                    isSuccessful = False
         return isSuccessful
 
 def outT(t, number=1):
@@ -238,7 +243,7 @@ def checkObject_(objet, refObjet, reference):
             return False
     elif isinstance(refObjet, (float, numpy.float32, numpy.float64)):
         diff = abs(refObjet-objet)
-        if diff > TOLERANCE:
+        if diff > TOLERANCE + RELTOLERANCE*abs(refObjet):
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
             return False
     elif isinstance(refObjet, dict):
@@ -259,9 +264,9 @@ def checkObject_(objet, refObjet, reference):
                 return False
         else:
             diff = numpy.abs(refObjet-objet)
-            diff = (diff < TOLERANCE)
-            if not diff.all():
-                print("DIFF: object value differs from "+reference+'.')
+            if (diff > TOLERANCE + RELTOLERANCE*numpy.abs(refObjet)).any():
+                print(f"DIFF: object value differs from {reference} "
+                      f"(max. diff={numpy.max(diff):g}).")
                 return False
     elif isinstance(refObjet, list): # liste
         for i, ai in enumerate(refObjet):

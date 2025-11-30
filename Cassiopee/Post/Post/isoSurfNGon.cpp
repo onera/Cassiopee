@@ -322,7 +322,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     alpha = alpha/nthreads;
     //printf("ntri=" SF_D_ ", ntri moyen par thread=" SF_D_ "\n", int(alpha*nthreads),int(alpha));
     //fflush(stdout);
-    if (alpha == 0.)
+    if (K_FUNC::fEqualZero(alpha))
     {
       delete [] npts2; delete [] ntris2;
       fiso.malloc(0,nfld);

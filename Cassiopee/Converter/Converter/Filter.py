@@ -322,9 +322,8 @@ def _loadZones(a, fileName, znp, format=None):
     if isinstance(znp, list): znps = znp
     else: znps = [znp]
     _readPyTreeFromPaths(a, fileName, znps, format)
-    # decompression eventuelle
-    Compressor._uncompressCartesian(a)
-    Compressor._uncompressAll(a)
+    PyTree._upgradeZone(a, uncompress=True, upgradeNGon=True)
+
 
 # Fully load zoneBC_t and GridConnectivity_t of znp
 def _loadZoneBCs(a, fileName, znp, format=None):
@@ -799,17 +798,14 @@ class Handle:
                 paths.append(Internal.getPath(t, z))
             else: Internal._rmNode(t, z)
 
-        if loadVariables: skipTypes=None
-        else: skipTypes=['FlowSolution_t']
+        #if loadVariables: skipTypes=None
+        #else: skipTypes=['FlowSolution_t']
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths)
-        # Decompression eventuelle
-        Compressor._uncompressCartesian(t)
-        Compressor._uncompressAll(t)
+        for z in Internal.getZones(t): PyTree._upgradeZone(z, uncompress=True, upgradeNGon=True)
         return t
 
     # strategy=strategie pour la distribution (match)
     # algorithm=type d'algorithme pour la distribution
-    # cartesian=si True, decompresse les blocs lus (supposes Cartesien)
     # loadVariables=True, charge toutes les variables sinon ne charge que les coords
     def loadAndDistribute(self, strategy=None, algorithm='graph', loadVariables=True):
         """Load and distribute zones."""
@@ -860,8 +856,7 @@ class Handle:
         if paths != []: _readPyTreeFromPaths(t, self.fileName, paths, self.format, skipTypes=skipTypes)
         _enforceProcNode(t)
         # Decompression eventuelle
-        Compressor._uncompressCartesian(t)
-        Compressor._uncompressAll(t)
+        for z in Internal.getZones(t): PyTree._upgradeZone(z, uncompress=True, upgradeNGon=True)
         return t
 
     def distributedLoadAndSplitSkeleton(self, NParts=None, NProc=Cmpi.size):
@@ -893,7 +888,6 @@ class Handle:
                     eltName, nb_nodes_per_elt = Internal.eltNo2EltName(c[1][0])
                     rg = Internal.getNodeFromName(c, 'ElementRange')
                     nb_elts = rg[1][1]
-                    #print(f"number of elements : {nb_elts}, element type name : {eltName}, number of nodes per element : {nb_nodes_per_elt}")
                     nb_loc_elts = nb_elts // Cmpi.size
                     reste_elts = nb_elts % Cmpi.size
                     if Cmpi.rank < reste_elts:
@@ -921,10 +915,8 @@ class Handle:
                                                                    [beg_verts],[1],[nb_loc_verts], [1], [nb_verts]]
                 f[b[0]+'/'+z[0]+'/GridCoordinates/CoordinateZ'] = [[0], [1], [nb_loc_verts], [1],
                                                                    [beg_verts],[1],[nb_loc_verts], [1], [nb_verts]]
-        #print(f"f = {f}",flush=True)
         dvars = readNodesFromFilter(self.fileName, f)
-        #print(f"dvars : {dvars}")
-        # Mis en donne par zone pour le decoupeur :
+        # Mis en donne par zone pour le decoupeur:
         zones = []
         for b in bases:
             for z in Internal.getZones(b):
@@ -939,9 +931,7 @@ class Handle:
                     eltName, nb_nodes_per_elt = Internal.eltNo2EltName(c[1][0])
                     zone[0].append((eltName,dvars[b[0]+'/'+z[0]+'/' + c[0] + '/ElementConnectivity']))
                 zones.append(zone)
-        #print(f"zones = {zones}")
         splitted_data = xcore.split_elements(zones)
-        #print(f"splitted data : {splitted_data}",flush=True)
 
         splitted_a = Internal.copyTree(a)
         splitted_bases = Internal.getBases(splitted_a)
@@ -1087,9 +1077,7 @@ class Handle:
                     _loadZoneBCs(a, self.fileName, [zp], self.format)
                     _loadZoneExtras(a, self.fileName, znp, self.format)
                     _convert2PartialTree(Internal.getNodeFromPath(a, zp))
-        # decompression eventuelle
-        Compressor._uncompressCartesian(a)
-        Compressor._uncompressAll(a)
+        PyTree._upgradeZone(a, uncompress=True, upgradeNGon=True)
         return None
 
     # Charge toutes les BCs (avec BCDataSet) des zones de a

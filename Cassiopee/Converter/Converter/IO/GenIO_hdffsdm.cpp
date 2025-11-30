@@ -36,7 +36,7 @@ E_Int newIndex2(E_Int index,
   }
   if (b == -1)
   {
-    printf("Error: tauwrite: PL index out of range: " SF_D_ "\n", index);
+    printf("Error: fsdmwrite: PL index out of range: " SF_D_ "\n", index);
     return 0;
   }
 
@@ -147,7 +147,7 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
     npy_dim_vals[0] = size2;
     tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
     mid = H5S_ALL;
-    // bct always int_32
+    // bct always int32
     int32_t* bct2 = new int32_t [size2];
     H5Dread(did, tid, mid, sid, H5P_DEFAULT, bct2);
     H5Dclose(did); H5Gclose(gid);
@@ -795,8 +795,8 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 
   // Create GridElements
   E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; 
-  E_Int ntri=0; E_Int nquad=0;
-  E_Int npoly3d=0; E_Int npoly2d=0;
+  //E_Int ntri=0; E_Int nquad=0;
+  //E_Int npoly3d=0; E_Int npoly2d=0;
   /*
   hid_t* chids = HDF.getChildren(uc);
   E_Int nchildren = 0;
@@ -864,7 +864,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     createGridElements(id, 5, "Tri3", istart, GE, ncells, bct, size, tagmap);
     PyList_Append(children4, GE); Py_DECREF(GE);
     istart += ncells;
-    ntri = ncells;
+    //ntri = ncells;
     H5Gclose(id);
   }
 
@@ -874,7 +874,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     createGridElements(id, 7, "Quad4", istart, GE, ncells, bct, size, tagmap);
     PyList_Append(children4, GE); Py_DECREF(GE);
     istart += ncells;
-    nquad = ncells;
+    //nquad = ncells;
     H5Gclose(id);
   }
 
@@ -886,82 +886,61 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     PyList_Append(children4, NGON); Py_DECREF(NGON);
     PyList_Append(children4, NFACE); Py_DECREF(NFACE);
     istart += ncells+nfaces;
-    npoly3d = ncells;
+    //npoly3d = ncells;
     n3dcells += ncells;
     H5Gclose(id);
   }
-
-  /*
-  while (id != -1)
-  {
-    id = chids[c]; char* name = names[c]; c++;
-    if (name)
-    {
-      if (strcmp(name, "Hexa8") == 0) 
-      { 
-        createGridElements(id, 17, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        nhexa = ncells;
-        n3dcells += ncells;
-      }
-      else if (strcmp(name, "Prism6") == 0) 
-      { 
-        createGridElements(id, 14, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        npenta = ncells;
-        n3dcells += ncells;
-      }
-      else if (strcmp(name, "Tetra4") == 0) 
-      { 
-        createGridElements(id, 10, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        ntetra = ncells;
-        n3dcells += ncells;
-      }
-      else if (strcmp(name, "Pyra5") == 0) 
-      { 
-        createGridElements(id, 12, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        npyra = ncells;
-        n3dcells += ncells;
-      }
-      else if (strcmp(name, "Tri3") == 0)
-      { 
-        createGridElements(id, 5, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        ntri = ncells;
-      }
-      else if (strcmp(name, "Quad4") == 0) 
-      { 
-        createGridElements(id, 7, name, istart, GE, ncells, bct, size, tagmap);
-        PyList_Append(children4, GE); Py_DECREF(GE);
-        istart += ncells;
-        nquad = ncells;
-      }
-      else if (strcmp(name, "Poly3D") == 0) 
-      { 
-        PyObject* NGON; PyObject* NFACE; E_Int nfaces;
-        createGridElementsNGon(id, istart, nvertex, NGON, NFACE, nfaces, ncells);
-        PyList_Append(children4, NGON); Py_DECREF(NGON);
-        PyList_Append(children4, NFACE); Py_DECREF(NFACE);
-        istart += ncells+nfaces;
-        npoly3d = ncells;
-        n3dcells += ncells;
-      }
-    }
-  }
-  */
 
   pp4[1] = n3dcells;
 
   // Add zoneBC
   if (size > 0)
   {
+    // Try to read BC types (BCFamilyNames)
+    std::vector<char*> bcTypes;
+    char tmp[256]; char* name = NULL;
+    if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/NamesOfCellAttributeValues", H5P_DEFAULT) > 0)
+    {
+      hid_t gid = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/NamesOfCellAttributeValues", H5P_DEFAULT);
+      hid_t gid2 = H5Gopen(gid, "CADGroupID", H5P_DEFAULT);
+      for (const auto& pair : tagmap) // for each tag
+      {
+        E_Int tag = pair.first; // tag
+        sprintf(tmp, SF_D_, tag);
+        if (H5Aexists(gid2, tmp))
+        {
+          hid_t aid = H5Aopen_by_name(gid2, ".", tmp, H5P_DEFAULT, H5P_DEFAULT);
+          hid_t atype = H5Aget_type(aid);
+          E_Int asize = H5Tget_size(atype);
+          name = new char [asize+1];
+          H5Aread(aid, atype, name);
+          name[asize] = '\0';
+          H5Aclose(aid);
+        }
+        else
+        {
+          sprintf(tmp, "BCType" SF_D_, tag);
+          E_Int asize = strlen(tmp);
+          name = new char [asize+1];
+          strcpy(name, tmp);
+        }
+        bcTypes.push_back(name);
+      }
+      H5Gclose(gid2); H5Gclose(gid);
+    }
+    else
+    {
+      for (const auto& pair : tagmap) // for each tag
+      {
+        E_Int tag = pair.first; // tag
+        sprintf(tmp, "BCType" SF_D_, tag);
+        E_Int asize = strlen(tmp);
+        name = new char [asize+1];
+        strcpy(name, tmp);
+        bcTypes.push_back(name);
+      }
+    }
+
     // Create ZoneBC
     PyObject* children9 = PyList_New(0);
     PyObject* nzbc = Py_BuildValue("[sOOs]", "ZoneBC", Py_None, children9, "ZoneBC_t");
@@ -970,11 +949,13 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     // Build BCs
     char bcname[256]; char bctype[256];
     size_t offset = ntetra + nhexa + npenta + npyra;
+    E_Int count = 0;
     for (const auto& pair : tagmap) // for each tag
     {
       E_Int tag = pair.first; // tag
       E_Int nfaces = pair.second; // nbre de faces pour ce tag
       //printf("tag " SF_D_ " is set " SF_D_ " times.\n", tag, nfaces);
+      count += 1;
       if (nfaces == 0) continue;
       // Create BC_t for tag
       PyObject* children10 = PyList_New(0);
@@ -1014,7 +995,8 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       PyList_Append(children10, gl); Py_DECREF(gl);
       // Create BC FamilyName
       PyObject* children13 = PyList_New(0);
-      sprintf(bctype, "BCType" SF_D_, tag);
+      strcpy(bctype, bcTypes[count-1]);
+      //sprintf(bctype, "BCType" SF_D_, tag);
       npy_dim_vals[0] = strlen(bctype);
       PyArrayObject* r13 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
       char* pp13 = (char*)PyArray_DATA(r13);
@@ -1023,7 +1005,33 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       PyList_Append(children10, famName); Py_DECREF(famName);
     }
     delete [] bct;
-  }  
+
+    // Try to read BC types and add it in families
+    if (bcTypes.size() > 0)
+    {
+      count = 0;
+      char tmp[256]; char name[256];
+      for (const auto& pair : tagmap) // for each tag
+      {
+        PyObject* children01 = PyList_New(0);
+        //sprintf(tmp, "BCType" SF_D_, tag);
+        strcpy(tmp, bcTypes[count]);
+        PyObject* famt = Py_BuildValue("[sOOs]", tmp, Py_None, children01, "Family_t");
+        PyList_Append(children3, famt); Py_DECREF(famt);
+
+        PyObject* children02 = PyList_New(0);
+        strcpy(name, "UserDefined");
+        npy_dim_vals[0] = strlen(name);
+        PyArrayObject* r = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+        char* pp = (char*)PyArray_DATA(r);
+        K_STRING::cpy(pp, name, npy_dim_vals[0], false);
+        PyObject* fam = Py_BuildValue("[sOOs]", "FamilyBC", r, children02, "FamilyBC_t");
+        PyList_Append(children01, fam); Py_DECREF(fam);
+        count += 1;
+      }
+      for (size_t i = 0; i < bcTypes.size(); i++) delete [] bcTypes[i];
+    }
+  }
 
   // Close nodes
   H5Gclose(uc);
@@ -1074,7 +1082,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   }
   if (zones.size() > 1)
   {
-    printf("Warning: tauwrite: only first zone is written.\n");
+    printf("Warning: fsdmwrite: only first zone is written.\n");
   }
   if (zones.size() == 0) return 0;
     
@@ -1107,10 +1115,22 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   hid_t ds = H5Gcreate(uc, "Datasets", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Write Coordinates
+  const char* defaultCoordsName = "Coordinates";
   PyObject* gc = K_PYTREE::getNodeFromType1(zone, "GridCoordinates_t");
   char* coordsName = K_PYTREE::getNodeName(gc);
-  if (strcmp(coordsName, "GridCoordinates") == 0) coordsName = "Coordinates";
-  hid_t coord = H5Gcreate(ds, coordsName, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  char* tmpCoordsName;
+  if (strcmp(coordsName, "GridCoordinates") == 0)
+  {
+    tmpCoordsName = new char[strlen(defaultCoordsName) + 1];
+    strcpy(tmpCoordsName, defaultCoordsName);
+  }
+  else
+  {
+    tmpCoordsName = new char[strlen(coordsName) + 1];
+    strcpy(tmpCoordsName, coordsName);
+  }
+  hid_t coord = H5Gcreate(ds, tmpCoordsName, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  delete [] tmpCoordsName;
   dims[0] = 1;
   did = H5Screate_simple(1, dims, NULL);
 #ifdef E_DOUBLEINT
@@ -1543,7 +1563,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
 #endif
     H5Gclose(gid);
   }
-  if (ntri > 9) // TRI
+  if (ntri > 0) // TRI
   {
     gid = H5Gcreate(uc, "Tri3", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     dims[0] = 1;
@@ -2246,14 +2266,25 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   // Name of cell attribute values
   gid = H5Gcreate(uc, "NamesOfCellAttributeValues", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   gid2 = H5Gcreate(gid, "CADGroupID", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  char bcname2[256];
   for (size_t i = 0; i < BCs.size(); i++)
   {
     char* bcname = K_PYTREE::getNodeName(BCs[i]);
+    E_Int asize = strlen(bcname);
+    strcpy(bcname2, bcname);
+    // search for familyName_t if any
+    PyObject* node = K_PYTREE::getNodeFromType1(BCs[i], "FamilyName_t");
+    if (node != NULL)
+    {
+      bcname = K_PYTREE::getValueS(node, asize, hook);
+      for (E_Int i = 0; i < asize; i++) bcname2[i] = bcname[i];
+      bcname2[asize] = '\0';
+    }
     did = H5Screate(H5S_SCALAR); 
-    tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen(bcname)+1);
+    tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, asize+1);
     sprintf(name, "%zu", i+1);
     aid = H5Acreate(gid2, name, tid, did, H5P_DEFAULT, H5P_DEFAULT);
-    H5Awrite(aid, tid, bcname);
+    H5Awrite(aid, tid, bcname2);
     H5Aclose(aid); H5Sclose(did); H5Tclose(tid);
   }
   H5Gclose(gid2); H5Gclose(gid);

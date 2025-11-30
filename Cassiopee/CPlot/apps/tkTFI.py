@@ -179,7 +179,7 @@ def OTFI():
         CTK.setCursor(0, WIDGETS['o'])
         return
 
-    coords = C.getFields(Internal.__GridCoordinates__, a)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, a, api=1)[0]
 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt = coords[2]
@@ -260,8 +260,8 @@ def HOTFI():
 
     CTK.setCursor(2, WIDGETS['ho'])
 
-    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
-    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
+    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0], api=1)[0]
+    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1], api=1)[0]
 
     optWeight = 0; optOffset = 0; optScore = 1.e6
     Nt2 = coords2[2]
@@ -325,9 +325,9 @@ def TRITFI():
         CTK.TXT.insert('START', 'TRI TFI takes 3 contours.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
-    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
-    coords3 = C.getFields(Internal.__GridCoordinates__, zones[2])[0]
+    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0], api=1)[0]
+    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1], api=1)[0]
+    coords3 = C.getFields(Internal.__GridCoordinates__, zones[2], api=1)[0]
 
     [m1,m2,m3] = trimesh(coords1, coords2, coords3)
     if m1 == 0:
@@ -379,8 +379,8 @@ def MONO2TFI():
         CTK.TXT.insert('START', 'MONO2 TFI takes 2 contours.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
-    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0])[0]
-    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1])[0]
+    coords1 = C.getFields(Internal.__GridCoordinates__, zones[0], api=1)[0]
+    coords2 = C.getFields(Internal.__GridCoordinates__, zones[1], api=1)[0]
 
     [m] = mono2mesh(coords1, coords2)
     if isinstance(m, str):

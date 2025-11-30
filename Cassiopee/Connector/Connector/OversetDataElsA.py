@@ -141,8 +141,8 @@ def _setDistInterpolations(a, parallelDatas=[], depth=2, double_wall=0,
                 zones = Internal.getZones(bases[nob])
                 for noz in range(len(zones)):
                     z = zones[noz]
-                    zn = C.getFields(Internal.__GridCoordinates__,z)[0]
-                    cellN = C.getField('centers:cellN', z)[0]
+                    zn = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+                    cellN = C.getField('centers:cellN', z, api=1)[0]
                     interpolationZonesNameD[oppZone].append(z[0])
                     interpolationZonesD[oppZone].append(zn)
                     interpolationCellnD[oppZone].append(cellN)
@@ -292,12 +292,12 @@ def _setSeqInterpolations(a, depth=2, double_wall=0, storage='inverse', prefixFi
             if Internal.getNodeFromName1(z,'TempPeriodicZone') is not None: break
 
             # calcul d'arrays contenant les coefficients d'interpolation et les indices des cellules donneuses
-            zn = C.getFields(Internal.__GridCoordinates__, z)[0]
+            zn = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
             nirc = Internal.getZoneDim(z)[1]-1; njrc = Internal.getZoneDim(z)[2]-1; nkrc = Internal.getZoneDim(z)[3]-1
             if writeInFile == 1: listZoneDim[ZonesId[z[0]]]=[nirc,njrc,nkrc]
             # calcul des cellules d interpolations et des coefficients d interpolations
             zc = Converter.node2Center(zn)
-            cellN = C.getField('centers:cellN',z)[0] # celln aux centres des cellules
+            cellN = C.getField('centers:cellN', z, api=1)[0] # celln aux centres des cellules
             if writeInFile == 1:
                 listCellN[ZonesId[z[0]]]=C.getField('centers:cellN',z, api=3)[0]#cellN[1]
             zc = Converter.addVars([zc,cellN]); del cellN
@@ -534,7 +534,7 @@ def directChimeraTransfer__(t, variables, locinterp):
         parent1,d1 = Internal.getParentOfNode(tp,z)
         lRcvArrays = []
         for i in variables:
-            f = C.getField(i,z)[0]
+            f = C.getField(i, z, api=1)[0]
             if f != []: lRcvArrays.append(f)
         if lRcvArrays != []: rcvArray = Converter.addVars(lRcvArrays)
         # Les interpolations sont stockees dans les noeuds ZoneSubRegion_t
@@ -559,7 +559,7 @@ def directChimeraTransfer__(t, variables, locinterp):
                 zdonor = Internal.getNodesFromType1(zdonors,'Zone_t')[0]
                 lDonorArrays = []
                 for i in variables:
-                    f = C.getField(i,zdonor)[0]
+                    f = C.getField(i, zdonor, api=1)[0]
                     if f !=[]: lDonorArrays.append(f)
                 if lDonorArrays != []: donorArray = Converter.addVars(lDonorArrays)
                 # dimensions de la grille d interpolation
@@ -597,12 +597,12 @@ def getInterpolationDomains__(bases, nob0, noz0, zn0, surfacest=[],
             nodes = Internal.getNodesFromType1(bases[nob], 'Zone_t')
             for noz in range(len(nodes)):
                 zname = nodes[noz][0]; intersect = 1
-                zn = C.getFields(Internal.__GridCoordinates__,nodes[noz])[0]
+                zn = C.getFields(Internal.__GridCoordinates__, nodes[noz], api=1)[0]
                 if intersectionDict is not None:
                     if zname not in intersectionDict: intersect = 0
 
                 if intersect == 1:
-                    cellN = C.getField('centers:cellN', nodes[noz])[0]
+                    cellN = C.getField('centers:cellN', nodes[noz], api=1)[0]
                     donorName = nodes[noz][0]
                     dupzoneinfo = Internal.getNodeFromName1(nodes[noz],'TempPeriodicZone')
                     isper = 0
@@ -623,12 +623,12 @@ def getInterpolationDomains__(bases, nob0, noz0, zn0, surfacest=[],
                 for noz in range(len(nodes)):
                     if (noz != noz0):
                         zname = nodes[noz][0]; intersect = 1
-                        zn = C.getFields(Internal.__GridCoordinates__,nodes[noz])[0]
+                        zn = C.getFields(Internal.__GridCoordinates__, nodes[noz], api=1)[0]
                         if intersectionDict is not None:
                             if zname not in intersectionDict: intersect = 0
 
                         if intersect == 1:
-                            cellN = C.getField('centers:cellN', nodes[noz])[0]
+                            cellN = C.getField('centers:cellN', nodes[noz], api=1)[0]
                             donorName = nodes[noz][0]
                             dupzoneinfo = Internal.getNodeFromName1(nodes[noz],'TempPeriodicZone')
                             if dupzoneinfo is not None:
@@ -683,8 +683,8 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
         # Ces champs sont stockes dans un array unique donorArray
         lDonorArrays = []
         for i in variables:
-            f = C.getField(i,zdonor)[0]
-            if f !=[]:
+            f = C.getField(i, zdonor, api=1)[0]
+            if f != []:
                 # Passage du maillage donneur en centres etendus
                 if mesh == 'extended': lDonorArrays.append(Converter.center2ExtCenter(f))
                 else: lDonorArrays.append(f)
@@ -730,7 +730,7 @@ def inverseChimeraTransfer__(t, variables, locinterp='centers', mesh='extended')
                                             z = zr; break
                                     lRcvArrays = []
                                     for i in variables:
-                                        f = C.getField(i,z)[0]
+                                        f = C.getField(i, z, api=1)[0]
                                         if f !=[]: lRcvArrays.append(f)
                                     if lRcvArrays != []: rcvArray = Converter.addVars(lRcvArrays)
                                     else:
@@ -845,7 +845,7 @@ def _chimeraCellRatio__(t):
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
-        volR = C.getField('centers:vol',zr)[0][1]
+        volR = C.getField('centers:vol', zr, api=1)[0][1]
         for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
@@ -887,11 +887,11 @@ def _chimeraCellRatio__(t):
                 zr = Internal.getNodesFromType1(zreceivers,'Zone_t')
                 if zr != []:
                     zr = zr[0]
-                    volR = C.getField('centers:vol',zr)[0][1]
-                    ListVolD = Internal.getNodesFromName2(s,"InterpolantsVol")
+                    volR = C.getField('centers:vol', zr, api=1)[0][1]
+                    ListVolD = Internal.getNodesFromName2(s, "InterpolantsVol")
                     if ListVolD != []:
                         ListVolD = ListVolD[0][1]
-                        ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
+                        ListRcv = Internal.getNodesFromName1(s, 'PointListDonor')[0][1]
                         nindI = ListRcv.size
                         if nindI > 0:
                             field = Converter.array('cellRatio',nindI,1,1)
@@ -943,7 +943,7 @@ def _chimeraDonorAspect__(t):
                 nindI = ListRcv.size
                 #
                 if nindI > 0:
-                    edgeRatio = C.getField('centers:EdgeRatio',zd)[0][1]
+                    edgeRatio = C.getField('centers:EdgeRatio', zd, api=1)[0][1]
                     field = Converter.array('donorAspect',nindI,1,1)
                     for noind in range(nindI):
                         indD = ListDnr[noind]
@@ -966,7 +966,7 @@ def _chimeraDonorAspect__(t):
         nidc = max(dimsD[1]-1,1)
         njdc = max(dimsD[2]-1,1)
         nidcnjdc = nidc*njdc
-        edgeRatio = C.getField('centers:EdgeRatio',zd)[0][1]
+        edgeRatio = C.getField('centers:EdgeRatio', zd, api=1)[0][1]
         for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)

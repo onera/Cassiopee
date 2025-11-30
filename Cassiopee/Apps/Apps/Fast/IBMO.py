@@ -871,7 +871,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                     zrname = zonesRIBC[nozr][0]
                     interpPtsBB = Generator.BB(allInterpPts[nozr])
                     for z in zones:
-                        bba = C.getFields('GridCoordinates', z)[0]
+                        bba = C.getFields('GridCoordinates', z, api=1)[0]
                         if Generator.bboxIntersection(interpPtsBB,bba,isBB=True):
                             zname = z[0]
                             popp = Cmpi.getProc(z)

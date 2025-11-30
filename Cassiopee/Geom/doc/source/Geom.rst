@@ -40,6 +40,7 @@ List of functions
    Geom.polyline
    Geom.circle
    Geom.naca
+   Geom.profile
    Geom.spline
    Geom.nurbs
    Geom.bezier
@@ -262,6 +263,29 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
     * `Creation of a NACA0012 (pyTree) <Examples/Geom/nacaPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/nacaPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.profile(name=None)
+
+    Create a wing profile of given name. 
+    The name must be of type "series/profile".
+    If name is not provided, list available profiles.
+
+    :param name: profile name
+    :type name: string of type "series/profile"
+    :return: a profile
+    :rtype: one array/zone (1D STRUCT)
+
+    *Example of use:*
+
+    * `Creation of a profile (array) <Examples/Geom/profile.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/profile.py
+
+    * `Creation of a profile (pyTree) <Examples/Geom/profilePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/profilePT.py
 
 ---------------------------------------
 

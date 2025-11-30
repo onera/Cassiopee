@@ -94,14 +94,14 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   vector<E_Float> ptC1(nfld); vector<E_Float> ptD1(nfld);
   vector<E_Float> ptA2(nfld); vector<E_Float> ptB2(nfld);
   vector<E_Float> ptC2(nfld); vector<E_Float> ptD2(nfld);
-  vector< vector<E_Int> > cEEN(nelts);
-  K_CONNECT::connectEV2EENbrs(eltType0, npts, *cn, cEEN); 
+  vector<vector<E_Int> > cEEN(nelts);
 
   E_Float alphamin = 180.-alpref; E_Float alphamax = 180.+alpref;
   E_Int nop = 0; E_Int noe = 0;
   E_Int found1 = 0; E_Int found2 = 1;
   if (type == 2) // BAR
   {
+    K_CONNECT::connectEV2EENbrs(eltType0, npts, *cn, cEEN); 
     E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2);
     FldArrayI* cne = new FldArrayI(0,1);// NODE
 
@@ -147,6 +147,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   }
   else if ( type == 3 ) // TRI 
   {
+    K_CONNECT::connectEV2EENbrs(eltType0, npts, *cn, cEEN); 
     E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3);
     FldArrayI* cne = new FldArrayI(nelts, 2);// BAR
     E_Int* cne1 = cne->begin(1); E_Int* cne2 = cne->begin(2);
@@ -212,6 +213,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   }
   else if (type == 4) //QUAD
   {
+    K_CONNECT::connectEV2EENbrs(eltType0, npts, *cn, cEEN); 
     E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3); E_Int* cn4 = cn->begin(4);
     FldArrayI* cne = new FldArrayI(nelts,2);// BAR
     E_Int* cne1 = cne->begin(1); E_Int* cne2 = cne->begin(2);
@@ -281,17 +283,17 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
   }
   else // NGON
   {
+    // connectivite element/elements voisins cEEN
+    FldArrayI cFE;
+    K_CONNECT::connectNG2FE(*cn, cFE);
+    K_CONNECT::connectFE2EENbrs(cFE, cEEN);
+    
     E_Int* cnp = cn->begin();       // connectivite NGON
     E_Int sizeFN = cnp[1];         // taille de la connectivite face/noeuds
     nelts = cnp[sizeFN+2];         // nombre d elements
     // connectivite element/faces
     E_Int* ptrEF = cnp+sizeFN+4;
-    // connectivite element/elements voisins cEEN
-    FldArrayI cFE;
-    K_CONNECT::connectNG2FE(*cn, cFE);
-    vector< vector<E_Int> > cEEN(nelts);
-    K_CONNECT::connectFE2EENbrs(cFE, cEEN);
-    
+
     // tableau des positions des elts dans la connectivite
     FldArrayI pos; K_CONNECT::getPosElts(*cn, pos);
     // tableau des positions des faces dans la connectivite

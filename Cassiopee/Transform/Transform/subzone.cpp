@@ -1294,7 +1294,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     vector<E_Int> edge(2);
     std::pair<E_Int, E_Bool> initEdge(-1, false);
     TopologyOpt E;
-    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, BernsteinHash<TopologyOpt> > edgeMap;
 
     // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
@@ -1408,11 +1408,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     vector<vector<vector<E_Int> > > facetspc(nc);
 
     // Get dimensionality
-    E_Int dim = 3;
-    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-    else if (strcmp(eltTypes[0], "TRI") == 0 ||
-             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+    E_Int dim = K_CONNECT::getDimME(eltTypes);
 
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
@@ -1639,7 +1635,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     vector<E_Int> edge(2);
     std::pair<E_Int, E_Bool> initEdge(-1, false);
     TopologyOpt E;
-    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, BernsteinHash<TopologyOpt> > edgeMap;
 
     // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
@@ -1792,11 +1788,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     vector<vector<vector<E_Int> > > facetspc(nc);
 
     // Get dimensionality
-    E_Int dim = 3;
-    if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-    else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-    else if (strcmp(eltTypes[0], "TRI") == 0 ||
-             strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+    E_Int dim = K_CONNECT::getDimME(eltTypes);
 
     // Compute total number of faces and fill facets of ME
     E_Int nfacesTot = 0;
@@ -1842,7 +1834,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       FaceAttrs(E_Int ic, E_Int eidx, E_Int fidx, E_Int glbFidx):
         ic_(ic), eidx_(eidx), fidx_(fidx), glbFidx_(glbFidx) {}
     };
-    //std::unordered_map<TopologyOpt, FaceAttrs, JenkinsHash<TopologyOpt> > faceMap;
+    //std::unordered_map<TopologyOpt, FaceAttrs, BernsteinHash<TopologyOpt> > faceMap;
     std::map<TopologyOpt, FaceAttrs> faceMap; // std::map for reproducibility
 
     // Loop over all faces to extract and fill the indirection table
@@ -1923,7 +1915,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       eidx++;
     }
 
-    // To fill fc2, continue populating parentElement by looping over all
+    // To fill fc2, continue populating ParentElements by looping over all
     // remaining faces
     // Convert faceList to an unordered_set for fast lookups
     std::unordered_set<E_Int> selectedFacesSet(faceList.begin(), faceList.end());

@@ -28,364 +28,296 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/*
-  Change a Elts-Vertex connectivity to a Element-Element neighbours 
-  connectivity. 
-  IN: cEV: Elts-Vertex connectivity. For each elt, give vertices index.
-  IN: nv: nombre de noeuds dans le maillage
-  IN: eltType: type d'element (TRI, QUAD,...)
-  OUT: cEEN: Elts-Element neighbours connectivity. For each element, 
-  give the element index of its neighbours.
-  cEEN doit deja etre alloue au nombre d'elements.
-  Retourne 0 (echec), 1 (succes)
-  ! Marche pour les maillages non structures a elements basiques
-  ! Marche uniquement pour les maillage conformes
-  ! Warning: par definition, un voisin a une facette commune avec un elt
-  Algo: pour chaque facette d'un element, on cherche a la matcher a un
-  voisin. 
-*/
+// Change a Elts-Vertex connectivity to a Element-Element neighbours 
+// connectivity.
+// IN: cEV: Elts-Vertex connectivity. For each elt, give vertices index.
+// IN: nv: nombre de noeuds dans le maillage
+// IN: eltType: type d'element (TRI, QUAD,...)
+// OUT: cEEN: Elts-Element neighbours connectivity. For each element, 
+// give the element index of its neighbours.
+// cEEN doit deja etre alloue au nombre d'elements.
+// Retourne 0 (echec), 1 (succes)
+// ! Marche pour les maillages non structures BE et ME
+// ! Marche uniquement pour les maillage conformes
+// ! Warning: par definition, un voisin a une facette commune avec un elt
+//   Algo: for each mesh element, fill a list of neighbour element candidates
+//         gotten from the cVE connectivity (incl. diagonal ones and self).
+//         Sort candidates and count number of occurences of each. If greater
+//         than 3 in 3D, 2 in 2D, 1 in 1D, then self and candidate share a face.
 //=============================================================================
-E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv, 
-                                  FldArrayI& cEV,
-                                  vector< vector<E_Int> >& cEEN)
+E_Int K_CONNECT::connectEV2EENbrs(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<vector<E_Int> >& cEEN
+)
 {
-  // Acces universel sur BE/ME
   E_Int nc = cEV.getNConnect();
-  // Acces universel aux eltTypes
-  vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
-  // Number of elements and node per element for each connectivity
-  vector<E_Int> nelts(nc);
-  vector<E_Int> nvertex(nc);
-  // Number of face per element and node per face for each connectivity
-  vector<E_Int> nfpe(nc);
-  vector<E_Int> nnpf(nc);
-  vector<vector<E_Int> > f(nc);
-
-  E_Int ierr = 1; // error index, 1 is nominal
-
-  // Boucle sur toutes les connectivites pour remplir face et pre-calculer
-  // le nombre de faces connectees a chaque noeud
+  // Get dimensionality
+  E_Int dim = K_CONNECT::getDimME(eltType);
+  
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    FldArrayI& cm = *(cEV.getConnect(ic));
-    char* eltTypConn = eltTypes[ic];
-    nelts[ic] = cm.getSize();
-    nvertex[ic] = cm.getNfld(); // nb de noeuds par element
-
-    if (ierr == 0) continue; // error - skip the rest of the connectivities
-    if (nelts[ic] == 0) ierr = 0;
-  
-    // Tableau de facettes (conforme a CGNS)
-    if (K_STRING::cmp(eltTypConn, "BAR") == 0 || 
-             K_STRING::cmp(eltTypConn, "BAR*") == 0)
-    {
-      nfpe[ic] = 2; nnpf[ic] = 1;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; 
-      f[ic][1 + 0*nfpe[ic]] = 2;
-    }
-    else if (K_STRING::cmp(eltTypConn, "TRI") == 0 || 
-        K_STRING::cmp(eltTypConn, "TRI*") == 0)
-    {
-      nfpe[ic] = 3; nnpf[ic] = 2;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1;
-    }
-    else if (K_STRING::cmp(eltTypConn, "QUAD") == 0 || 
-             K_STRING::cmp(eltTypConn, "QUAD*") == 0)
-    {
-      nfpe[ic] = 4; nnpf[ic] = 2;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 4;
-      f[ic][3 + 0*nfpe[ic]] = 4; f[ic][3 + 1*nfpe[ic]] = 1;
-    }
-    else if (K_STRING::cmp(eltTypConn, "TETRA") == 0 || 
-             K_STRING::cmp(eltTypConn, "TETRA*") == 0)
-    {
-      nfpe[ic] = 4; nnpf[ic] = 3;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2; f[ic][0 + 2*nfpe[ic]] = 3;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 4;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 4;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 1; f[ic][3 + 2*nfpe[ic]] = 4;
-    }
-    else if (K_STRING::cmp(eltTypConn, "PYRA") == 0 || 
-             K_STRING::cmp(eltTypConn, "PYRA*") == 0)
-    {
-      nfpe[ic] = 5; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 5; f[ic][1 + 3*nfpe[ic]] = 1;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 5; f[ic][2 + 3*nfpe[ic]] = 2;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 5; f[ic][3 + 3*nfpe[ic]] = 3;
-      f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 1; f[ic][4 + 2*nfpe[ic]] = 5; f[ic][4 + 3*nfpe[ic]] = 4;
-    }
-    else if (K_STRING::cmp(eltTypConn, "PENTA") == 0 || 
-             K_STRING::cmp(eltTypConn, "PENTA*") == 0)
-    {
-      nfpe[ic] = 5; nnpf[ic] = 4; // TRI degen
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2; f[ic][0 + 2*nfpe[ic]] = 5; f[ic][0 + 3*nfpe[ic]] = 4;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1; f[ic][2 + 2*nfpe[ic]] = 4; f[ic][2 + 3*nfpe[ic]] = 6;
-      f[ic][3 + 0*nfpe[ic]] = 1; f[ic][3 + 1*nfpe[ic]] = 3; f[ic][3 + 2*nfpe[ic]] = 2; f[ic][3 + 3*nfpe[ic]] = 1;
-      f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 6; f[ic][4 + 3*nfpe[ic]] = 4;
-    }
-    else if (K_STRING::cmp(eltTypConn, "HEXA") == 0 || 
-             K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
-    {
-      nfpe[ic] = 6; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 7; f[ic][2 + 3*nfpe[ic]] = 6;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 8; f[ic][3 + 3*nfpe[ic]] = 7;
-      f[ic][4 + 0*nfpe[ic]] = 1; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 8; f[ic][4 + 3*nfpe[ic]] = 4;
-      f[ic][5 + 0*nfpe[ic]] = 5; f[ic][5 + 1*nfpe[ic]] = 6; f[ic][5 + 2*nfpe[ic]] = 7; f[ic][5 + 3*nfpe[ic]] = 8;
-    }
-    else ierr = 0;
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-  if (ierr == 0) return ierr;
-
-  // Elts voisin d'un noeud
-  vector< vector<E_Int> > cVE(nv);
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(cEV, cVE);
 
-  // Boucle sur toutes les connectivites pour remplir cEEN1
-  for (E_Int ic = 0; ic < nc; ic++)
+  #pragma omp parallel default(shared)
   {
-    FldArrayI& cm = *(cEV.getConnect(ic));
-
-#pragma omp parallel for default(shared) if (nelts[ic] > __MIN_SIZE_MEAN__)  
-    for (E_Int et = 0; et < nelts[ic]; et++)
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis;
+    std::vector<E_Int> candidates; candidates.reserve(64);
+ 
+    // Loop over all connectivities to fill cEEN
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      E_Int match, ind, ind1, ind2, eltVoisin, node;
-      vector<E_Int>& cEEN1 = cEEN[et];
-      cEEN1.reserve(nfpe[ic]);
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
 
-      // pour chaque facette de l'element et
-      for (E_Int ff = 0; ff < nfpe[ic]; ff++)
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
       {
-        // Prend le premier noeud de la facette
-        ind = cm(et, f[ic][ff + 0*nfpe[ic]])-1;
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
+        eidx = cumnepc[ic] + i;
+        vector<E_Int>& cEENi = cEEN[eidx]; cEENi.reserve(8);
         
-        // Pour les facettes degen
-        //if (f[ff + 0*nfpe[ic]] == f[ff + (nnpf[ic]-1)*nfpe[ic]]) nnpfmatch = nnpf[ic]-1;
-        //else nnpfmatch = nnpf[ic];
-
-        // Recupere tous les elts ayant ce noeud
-        const vector<E_Int>& cVE1 = cVE[ind];
-
-        // Parcourt tout ses voisins pour savoir lequel a la facette
-        // en commun
-        for (size_t v = 0; v < cVE1.size(); v++)
+        for (E_Int j = 1; j <= nvpe; j++)
         {
-          eltVoisin = cVE1[v];
-          if (eltVoisin != et)
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
+
+        // Remove eidx from candidates and sort
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
+
+        // Count occurrences and append if >= dim
+        prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
           {
-            match = 0;
-            for (E_Int k = 0; k < nnpf[ic]; k++)
-            {
-              ind1 = cm(et, f[ic][ff + k*nfpe[ic]]);
-              for (node = 1; node <= nvertex[ic]; node++)
-              {
-                ind2 = cm(eltVoisin, node);
-                if (ind1 == ind2) { match++; break; }
-              }
-            }
-            if (match == nnpf[ic]) { cEEN1.push_back(eltVoisin); goto next; }
+            if (noccs >= dim) cEENi.push_back(prev);
+            prev = ind;
+            noccs = 1;
           }
         }
-        next: ;
+
+        // Check last candidate
+        if (noccs >= dim) cEENi.push_back(prev);
       }
     }
   }
 
+  return 1;  // success
+}
+
+//=============================================================================
+// Identique mais retourne aussi le no local de la face commune
+// Algo: pour chaque facette d'un element, on cherche a la matcher a un voisin.
+// ! Marche pour les maillages non structures BE uniquement
+//=============================================================================
+E_Int K_CONNECT::connectEV2EENbrs(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<vector<E_Int> >& cEEN,
+  vector<vector<E_Int> >& commonFace
+)
+{
+  // Number of face per element for each connectivity
+  vector<E_Int> nfpe;
+  E_Int ierr = getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return ierr;
+
+  E_Int nc = cEV.getNConnect();
+  vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
+  K_CONNECT::connectEV2VE(cEV, cVE);
+
+  // Boucle sur les connectivites pour remplir cEEN
+  #pragma omp parallel default(shared) reduction(+:ierr)
+  {
+    E_Int nmatch, ind0, ind1, ind2, eidx, n, nidx, nneis, nvpf, nelts, nvpe;
+    vector<vector<E_Int> > facets;
+ 
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
+      ierr += getEVFacets(facets, eltTypes[ic], true);
+
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        eidx = cumnepc[ic] + i;
+        vector<E_Int>& cEEN1 = cEEN[eidx];
+        cEEN1.reserve(nfpe[ic]);
+        vector<E_Int>& commonFace1 = commonFace[eidx];
+        commonFace1.reserve(nfpe[ic]);
+
+        // Loop over each facet of element eidx
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          // Number of vertices per face
+          nvpf = facets[f].size();
+          // First vertex of that facet
+          ind0 = cm(i, facets[f][0]) - 1;
+
+          // Get all element indices sharing that vertex
+          const vector<E_Int>& cVE1 = cVE[ind0];
+          nneis = cVE1.size();
+
+          // Loop over all element sharing that vertex to determine the one 
+          // with which this facet is shared
+          for (E_Int v = 0; v < nneis; v++)
+          {
+            nidx = cVE1[v];
+            // Skip elements belonging to another connectivity (shortcoming)
+            if (nidx < cumnepc[ic] || nidx >= cumnepc[ic] + nelts) continue;
+            if (nidx == eidx) continue;
+            n = nidx - cumnepc[ic];  // neighbour element index local to this conn.
+            nmatch = 0;
+            for (E_Int k = 0; k < nvpf; k++)
+            {
+              ind1 = cm(i, facets[f][k]);
+              for (E_Int j = 1; j <= nvpe; j++)
+              {
+                ind2 = cm(n, j);
+                if (ind1 == ind2) { nmatch++; break; }
+              }
+            }
+            if (nmatch == nvpf)
+            {
+              cEEN1.push_back(nidx); commonFace1.push_back(f);
+              break;
+            }
+          }
+        }
+
+        std::sort(cEEN1.begin(), cEEN1.end());
+      }
+    }
+  }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  if (ierr == 0) ierr = 1; // duct tape because success should be 0, not 1
+  else ierr = 0;
   return ierr;
 }
 
-// identique mais retourne aussi le no local de la face commune
-E_Int K_CONNECT::connectEV2EENbrs(const char* eltType, E_Int nv, 
-                                  FldArrayI& cEV,
-                                  vector< vector<E_Int> >& cEEN,
-                                  vector< vector<E_Int> >& commonFace)
+//=============================================================================
+// Same algo as in connectEV2EENbrs but only returns the number of neighbours
+//=============================================================================
+E_Int K_CONNECT::connectEV2NNbrs(
+  const char* eltType, E_Int nv, 
+  FldArrayI& cEV,
+  vector<E_Int>& cENN
+)
 {
-  // Acces universel sur BE/ME
   E_Int nc = cEV.getNConnect();
-  // Acces universel aux eltTypes
-  vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
-  // Number of elements and node per element for each connectivity
-  vector<E_Int> nelts(nc);
-  vector<E_Int> nvertex(nc);
-  // Number of face per element and node per face for each connectivity
-  vector<E_Int> nfpe(nc);
-  vector<E_Int> nnpf(nc);
-  vector<vector<E_Int> > f(nc);
+  // Get dimensionality
+  E_Int dim = K_CONNECT::getDimME(eltType);
 
-  E_Int ierr = 1; // error index, 1 is nominal
-
-  // Boucle sur toutes les connectivites pour remplir face et pre-calculer
-  // le nombre de faces connectees a chaque noeud
+  // Compute cumulative number of elements per connectivity (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    FldArrayI& cm = *(cEV.getConnect(ic));
-    char* eltTypConn = eltTypes[ic];
-    nelts[ic] = cm.getSize();
-    nvertex[ic] = cm.getNfld(); // nb de noeuds par element
-
-    if (ierr == 0) continue; // error - skip the rest of the connectivities
-    if (nelts[ic] == 0) ierr = 0;
-  
-    // Tableau de facettes (conforme a CGNS)
-    if (K_STRING::cmp(eltTypConn, "TRI") == 0 || 
-        K_STRING::cmp(eltTypConn, "TRI*") == 0)
-    {
-      nfpe[ic] = 3; nnpf[ic] = 2;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1;
-    }
-    else if (K_STRING::cmp(eltTypConn, "QUAD") == 0 || 
-             K_STRING::cmp(eltTypConn, "QUAD*") == 0)
-    {
-      nfpe[ic] = 4; nnpf[ic] = 2;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 4;
-      f[ic][3 + 0*nfpe[ic]] = 4; f[ic][3 + 1*nfpe[ic]] = 1;
-    }
-    else if (K_STRING::cmp(eltTypConn, "TETRA") == 0 || 
-             K_STRING::cmp(eltTypConn, "TETRA*") == 0)
-    {
-      nfpe[ic] = 4; nnpf[ic] = 3;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2; f[ic][0 + 2*nfpe[ic]] = 3;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 4;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 4;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 1; f[ic][3 + 2*nfpe[ic]] = 4;
-    }
-    else if (K_STRING::cmp(eltTypConn, "HEXA") == 0 || 
-             K_STRING::cmp(eltTypConn, "HEXA*") == 0) 
-    {
-      nfpe[ic] = 6; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 7; f[ic][2 + 3*nfpe[ic]] = 6;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 8; f[ic][3 + 3*nfpe[ic]] = 7;
-      f[ic][4 + 0*nfpe[ic]] = 1; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 8; f[ic][4 + 3*nfpe[ic]] = 4;
-      f[ic][5 + 0*nfpe[ic]] = 5; f[ic][5 + 1*nfpe[ic]] = 6; f[ic][5 + 2*nfpe[ic]] = 7; f[ic][5 + 3*nfpe[ic]] = 8;
-    }
-    else if (K_STRING::cmp(eltTypConn, "BAR") == 0 || 
-             K_STRING::cmp(eltTypConn, "BAR*") == 0)
-    {
-      nfpe[ic] = 2; nnpf[ic] = 1;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; 
-      f[ic][1 + 0*nfpe[ic]] = 2;
-    }
-    else if (K_STRING::cmp(eltTypConn, "PYRA") == 0 || 
-             K_STRING::cmp(eltTypConn, "PYRA*") == 0)
-    {
-      nfpe[ic] = 5; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 4; f[ic][0 + 2*nfpe[ic]] = 3; f[ic][0 + 3*nfpe[ic]] = 2;
-      f[ic][1 + 0*nfpe[ic]] = 1; f[ic][1 + 1*nfpe[ic]] = 2; f[ic][1 + 2*nfpe[ic]] = 5; f[ic][1 + 3*nfpe[ic]] = 1;
-      f[ic][2 + 0*nfpe[ic]] = 2; f[ic][2 + 1*nfpe[ic]] = 3; f[ic][2 + 2*nfpe[ic]] = 5; f[ic][2 + 3*nfpe[ic]] = 2;
-      f[ic][3 + 0*nfpe[ic]] = 3; f[ic][3 + 1*nfpe[ic]] = 4; f[ic][3 + 2*nfpe[ic]] = 5; f[ic][3 + 3*nfpe[ic]] = 3;
-      f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 1; f[ic][4 + 2*nfpe[ic]] = 5; f[ic][4 + 3*nfpe[ic]] = 4;
-    }
-    else if (K_STRING::cmp(eltTypConn, "PENTA") == 0 || 
-             K_STRING::cmp(eltTypConn, "PENTA*") == 0)
-    {
-      nfpe[ic] = 5; nnpf[ic] = 4;
-      f[ic].reserve(nfpe[ic] * nnpf[ic]);
-      f[ic][0 + 0*nfpe[ic]] = 1; f[ic][0 + 1*nfpe[ic]] = 2; f[ic][0 + 2*nfpe[ic]] = 5; f[ic][0 + 3*nfpe[ic]] = 4;
-      f[ic][1 + 0*nfpe[ic]] = 2; f[ic][1 + 1*nfpe[ic]] = 3; f[ic][1 + 2*nfpe[ic]] = 6; f[ic][1 + 3*nfpe[ic]] = 5;
-      f[ic][2 + 0*nfpe[ic]] = 3; f[ic][2 + 1*nfpe[ic]] = 1; f[ic][2 + 2*nfpe[ic]] = 4; f[ic][2 + 3*nfpe[ic]] = 6;
-      f[ic][3 + 0*nfpe[ic]] = 1; f[ic][3 + 1*nfpe[ic]] = 3; f[ic][3 + 2*nfpe[ic]] = 2; f[ic][3 + 3*nfpe[ic]] = 1;
-      f[ic][4 + 0*nfpe[ic]] = 4; f[ic][4 + 1*nfpe[ic]] = 5; f[ic][4 + 2*nfpe[ic]] = 6; f[ic][4 + 3*nfpe[ic]] = 4;
-    }
-    else ierr = 0;
+    K_FLD::FldArrayI& cm = *(cEV.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-  if (ierr == 0) return ierr;
-
-  // Elts voisin d'un noeud
-  vector< vector<E_Int> > cVE(nv);
+  // Get vertex -> element connectivity
+  vector<vector<E_Int> > cVE(nv);
   K_CONNECT::connectEV2VE(cEV, cVE);
 
-  // Boucle sur toutes les connectivites pour remplir cEEN1
-  for (E_Int ic = 0; ic < nc; ic++)
+  #pragma omp parallel default(shared)
   {
-    FldArrayI& cm = *(cEV.getConnect(ic));
-
-#pragma omp parallel for default(shared) if (nelts[ic] > __MIN_SIZE_MEAN__)  
-    for (E_Int et = 0; et < nelts[ic]; et++)
+    E_Int nelts, nvpe, eidx, n, ind, prev, noccs, nneis, count;
+    std::vector<E_Int> candidates; candidates.reserve(64);
+ 
+    // Loop over all connectivities to fill cENN
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      E_Int match, ind, ind1, ind2, eltVoisin, node;
-      vector<E_Int>& cEEN1 = cEEN[et];
-      cEEN1.reserve(nfpe[ic]);
-      vector<E_Int>& commonFace1 = commonFace[et];
-      commonFace1.reserve(nfpe[ic]);
+      FldArrayI& cm = *(cEV.getConnect(ic));
+      nelts = cm.getSize();
+      nvpe = cm.getNfld();
 
-      // pour chaque facette de l'element et
-      for (E_Int ff = 0; ff < nfpe[ic]; ff++)
+      #pragma omp for
+      for (E_Int i = 0; i < nelts; i++)
       {
-        // Prend le premier noeud de la facette
-        ind = cm(et, f[ic][ff + 0*nfpe[ic]])-1;
+        // Fill vector of neighbour element candidates
+        // (incl. diagonal ones and self)
+        candidates.clear();
+        eidx = cumnepc[ic] + i;
         
-        // Pour les facettes degen
-        //if (f[ff + 0*nfpe[ic]] == f[ff + (nnpf[ic]-1)*nfpe[ic]]) nnpfmatch = nnpf[ic]-1;
-        //else nnpfmatch = nnpf[ic];
-
-        // Recupere tous les elts ayant ce noeud
-        const vector<E_Int>& cVE1 = cVE[ind];
-
-        // Parcourt tout ses voisins pour savoir lequel a la facette
-        // en commun
-        for (size_t v = 0; v < cVE1.size(); v++)
+        for (E_Int j = 1; j <= nvpe; j++)
         {
-          eltVoisin = cVE1[v];
-          if (eltVoisin != et)
+          n = cm(i, j);
+          const auto& cVEn = cVE[n-1];
+          candidates.insert(candidates.end(), cVEn.begin(), cVEn.end());
+        }
+
+        // Remove eidx from candidates
+        candidates.erase(
+          std::remove(candidates.begin(), candidates.end(), eidx),
+          candidates.end()
+        );
+        std::sort(candidates.begin(), candidates.end());
+
+        // Count occurrences
+        count = 0; prev = -1; noccs = 0;
+        nneis = candidates.size();
+        for (E_Int e = 0; e < nneis; e++)
+        {
+          ind = candidates[e];
+          if (ind == prev) noccs++;
+          else
           {
-            match = 0;
-            for (E_Int k = 0; k < nnpf[ic]; k++)
-            {
-              ind1 = cm(et, f[ic][ff + k*nfpe[ic]]);
-              for (node = 1; node <= nvertex[ic]; node++)
-              {
-                ind2 = cm(eltVoisin, node);
-                if (ind1 == ind2) { match++; break; }
-              }
-            }
-            if (match == nnpf[ic]) 
-            { 
-              cEEN1.push_back(eltVoisin);
-              commonFace1.push_back(ff); // common face
-              goto next; 
-            }
+            if (noccs >= dim) count++;
+            prev = ind;
+            noccs = 1;
           }
         }
-        next: ;
+
+        // Catch last candidate
+        if (noccs >= dim) count++;
+        cENN[eidx] = count;
       }
     }
   }
 
-  return ierr;
+  return 1;  // success
 }
 
 //=============================================================================

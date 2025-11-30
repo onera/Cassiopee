@@ -21,7 +21,7 @@ except: isMpi = False
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
-regError = re.compile("|".join(['Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation', 'ERROR: AddressSanitizer']), re.UNICODE)
+regError = re.compile("|".join(['Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation', 'ERROR: AddressSanitizer', 'getFromArray', 'incoherency']), re.UNICODE)
 regLeakError = re.compile('ERROR: LeakSanitizer')
 separator = ':'
 separatorl = separator+' '

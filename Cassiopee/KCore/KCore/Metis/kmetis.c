@@ -102,11 +102,9 @@ SIGTHROW:
 /*************************************************************************/
 idx_t MlevelKWayPartitioning(ctrl_t *ctrl, graph_t *graph, idx_t *part)
 {
-  idx_t i, j, objval=0, curobj=0, bestobj=0;
+  idx_t i, objval=0, curobj=0, bestobj=0;
   real_t curbal=0.0, bestbal=0.0;
   graph_t *cgraph;
-  int status;
-
 
   for (i=0; i<ctrl->ncuts; i++) {
     cgraph = CoarsenGraph(ctrl, graph);

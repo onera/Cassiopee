@@ -36,16 +36,16 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ IIII_ R_,
                     &Array, &ArrayW, &ordern, &N, &orderm, &M, &density))
   {
-      return NULL;
+    return NULL;
   }
 
-  if (ordern < 1 )
+  if (ordern < 1)
   {
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: order N must be >= 1.");
     return NULL;
   }
-  if (orderm < 1 )
+  if (orderm < 1)
   {
     PyErr_SetString(PyExc_ValueError,
                     "nurbs: order M must be >= 1.");
@@ -53,10 +53,8 @@ PyObject* K_GEOM::nurbs(PyObject* self, PyObject* args)
   }
 
   E_Int im, jm, km;
-
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-
   E_Int imw, jmw, kmw;
 
   FldArrayF* fw; FldArrayI* cnw;

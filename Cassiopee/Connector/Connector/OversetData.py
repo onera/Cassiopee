@@ -431,7 +431,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     return None
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
-                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                         order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                          interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None,model="Euler"):
 
     prefixIBCD ='IBCD_'
@@ -450,8 +450,8 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
             bcName=ibcType[1]
             prefixIBCD += bcName+'_'
 
-    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    cellND  = C.getField('cellN', zonesDnr); arraysD = Converter.addVars([arraysD,cellND])
+    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr, api=1)
+    cellND  = C.getField('cellN', zonesDnr, api=1); arraysD = Converter.addVars([arraysD, cellND])
 
     if model != "Euler" and bcType == -1: bcType = 3
 
@@ -461,7 +461,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
     #-------------------------------------------
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                          nature=nature, method=method, interpDataType=interpDataType,\
+                                          nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                           hook=hook, dim=dim)
     if resInterp is not None:
         # Bilan
@@ -584,7 +584,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
 # 2nd PI
 def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
-                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                          order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                           interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
@@ -607,8 +607,8 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
             prefixIBCD += bcName+'_'
             prefixIBC2D += bcName+'_'
 
-    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    cellND  = C.getField('cellN', zonesDnr); arraysD = Converter.addVars([arraysD,cellND])
+    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr, api=1)
+    cellND  = C.getField('cellN', zonesDnr, api=1); arraysD = Converter.addVars([arraysD,cellND])
     model = "Euler"
     a = Internal.getNodeFromName2(zonesDnr[0], 'model')
     if a is not None: model = Internal.getValue(a)
@@ -621,14 +621,14 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     if interpPts is not None:
         resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                              nature=nature, method=method, interpDataType=interpDataType,\
+                                              nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                               hook=hook, dim=dim)
     else:
         resInterp = None
 
     if interpPts2 is not None:
         resInterp2 = Connector.setInterpData__(interpPts2, arraysD, order=order, penalty=penalty, \
-                                               nature=nature, method=method, interpDataType=interpDataType,\
+                                               nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                                hook=hook, dim=dim)
     else:
         resInterp2 = None
@@ -996,7 +996,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
 
     ##Moving IBM
-    timeMotion = Internal.getNodeByName(z,'TimeMotion')
+    timeMotion = Internal.getNodeByName(z, 'TimeMotion')
     if timeMotion:
         zsr[2].append(['CoordinateX_PC#Init',coordsPC[1][0,:], [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PC#Init',coordsPC[1][1,:], [], 'DataArray_t'])
@@ -1200,8 +1200,8 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
     zonesRcv = Internal.getZones(aR); nzonesRcv = len(zonesRcv)
     zonesDnr = Internal.getZones(aD); nzonesDnr = len(zonesDnr)
 
-    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr)
-    cellND = C.getField('cellN', zonesDnr)
+    arraysD = C.getFields(Internal.__GridCoordinates__, zonesDnr, api=1)
+    cellND = C.getField('cellN', zonesDnr, api=1)
     arraysD = Converter.addVars([arraysD,cellND])
     cellND = []
 
@@ -1244,15 +1244,15 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             #-------------------------------------------
             interpPts = []
             if locR == 'nodes':
-                an = C.getFields(Internal.__GridCoordinates__, z)[0]
-                cellN = C.getField('cellN', z)[0]
+                an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+                cellN = C.getField('cellN', z, api=1)[0]
                 an = Converter.addVars([an,cellN])
                 interpPts = Connector.getInterpolatedPoints__(an)
 
             elif locR == 'centers':
-                an = C.getFields(Internal.__GridCoordinates__, z)[0]
+                an = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
                 ac = Converter.node2Center(an)
-                cellN = C.getField('centers:cellN',z)[0]
+                cellN = C.getField('centers:cellN', z, api=1)[0]
                 ac = Converter.addVars([ac,cellN])
                 interpPts = Connector.getInterpolatedPoints__(ac)
 
@@ -1312,11 +1312,13 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
                             if verbose == 3: # force cellN#Orphan=-2
+                                listExtrap = resInterp[4][noz]
                                 if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
                                     C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}"%(loc,loc))
-                                cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
+                                cellNOrphan = Converter.array('cellN#Orphan', nextraploc, 1, 1)
                                 cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
-                                C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
+                                C._setPartialFields(z, [cellNOrphan], [listExtrap], loc=locR)
+
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
                 # direct: on stocke dans aR
@@ -1399,12 +1401,12 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
             for zdnrname in intersectionDict[zr[0]]:
                 zdnr = allDnrCells[zdnrname]
                 if zdnr != []:
-                    ad = C.getFields(Internal.__GridCoordinates__,zdnr)[0]
+                    ad = C.getFields(Internal.__GridCoordinates__, zdnr, api=1)[0]
                     arraysD.append(ad)
                     listOfIndicesDnrOrig.append(allIndicesDnrOrig[zdnrname])
                     donorZoneNames.append(zdnrname)
             nzonesDnr = len(arraysD)
-            interpPtsA = C.getFields(Internal.__GridCoordinates__,interpPts)[0]
+            interpPtsA = C.getFields(Internal.__GridCoordinates__, interpPts, api=1)[0]
 
             resInterp = connector.setInterpDataCons(interpPtsA, arraysD, indicesRcvOrig, listOfIndicesDnrOrig)
             if resInterp is not None:
@@ -2477,8 +2479,8 @@ def oversetCellRatio__(aR, topTreeD):
                     subRegions.append(s)
         subRegions2 = []
         # parentr,dr = Internal.getParentOfNode(tR,zr)
-        volNR = C.getField('vol',zr)[0][1]
-        volCR = C.getField('centers:vol',zr)[0][1]
+        volNR = C.getField('vol', zr, api=1)[0][1]
+        volCR = C.getField('centers:vol', zr, api=1)[0][1]
         for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
@@ -2496,7 +2498,7 @@ def oversetCellRatio__(aR, topTreeD):
                 zd = Internal.getNodesFromType1(zdonors,'Zone_t')
                 if zd == []: raise ValueError("oversetInfo: donor zone %s not found."%zdnrname)
                 else: zd = zd[0]
-                volDnr = C.getField('vol',zd)[0][1]
+                volDnr = C.getField('vol', zd, api=1)[0][1]
                 ListDnr = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
 
                 nindI = ListDnr.size
@@ -2521,7 +2523,7 @@ def oversetCellRatio__(aR, topTreeD):
                 if idn != []: # la subRegion decrit des interpolations
                     subRegions.append(s)
         subRegions2 = []
-        volDnr = C.getField('vol',zd)[0][1]
+        volDnr = C.getField('vol', zd, api=1)[0][1]
         for s in subRegions:
             zoneRole = Internal.getNodesFromName2(s,'ZoneRole')[0]
             zoneRole = Internal.getValue(zoneRole)
@@ -2536,14 +2538,14 @@ def oversetCellRatio__(aR, topTreeD):
                     location = Internal.getNodesFromName1(s, 'GridLocation')
                     if location != []: location = Internal.getValue(location[0])
                     locr = 'nodes'; volRcv = []
-                    if location == 'CellCenter': locr = 'centers'; volRcv = C.getField('centers:vol',zr)[0][1]
-                    else: volRcv = C.getField('vol',zr)[0][1]
-                    ListRcv = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
-                    ListDnr = Internal.getNodesFromName1(s,'PointList')[0][1]
+                    if location == 'CellCenter': locr = 'centers'; volRcv = C.getField('centers:vol', zr, api=1)[0][1]
+                    else: volRcv = C.getField('vol', zr, api=1)[0][1]
+                    ListRcv = Internal.getNodesFromName1(s, 'PointListDonor')[0][1]
+                    ListDnr = Internal.getNodesFromName1(s, 'PointList')[0][1]
                     #
                     nindI = ListDnr.size
                     if nindI > 0:
-                        field = Converter.array('cellRatio',nindI,1,1)
+                        field = Converter.array('cellRatio', nindI, 1, 1)
                         for noind in range(nindI):
                             voldl = volDnr[0,ListDnr[noind]]
                             volrl = volRcv[0,ListRcv[noind]]
@@ -2551,10 +2553,10 @@ def oversetCellRatio__(aR, topTreeD):
                             field[1][0,noind] = cr
                         zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
                         # parentr[2][dr] = zr
-    #
-    C._rmVars(tR,'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c etait ds l arbre avant
-    C._rmVars(tR,'vol')
-    C._rmVars(tD,'vol')
+
+    C._rmVars(tR, 'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c'etait ds l arbre avant
+    C._rmVars(tR, 'vol')
+    C._rmVars(tD, 'vol')
     return tR
 
 #===============================================================================
@@ -2598,7 +2600,7 @@ def oversetDonorAspect__(aR, topTreeD):
                 zd = Internal.getNodesFromType1(zdonors,'Zone_t')
                 if zd == []: raise ValueError("oversetInfo: donor zone %s not found."%zdnrname)
                 else: zd = zd[0]
-                ER = C.getField('EdgeRatio', zd)[0][1]
+                ER = C.getField('EdgeRatio', zd, api=1)[0][1]
                 ListDnr = Internal.getNodesFromName1(s,'PointListDonor')[0][1]
                 ListRcv = Internal.getNodesFromName1(s,'PointList')[0][1]
                 nindI = ListDnr.size
@@ -2682,11 +2684,11 @@ def cellN2OversetHoles(t, append=False):
     zones = Internal.getZones(a)
     for z in zones:
         # First find cellN
-        cellN = C.getField('cellN', z)[0] # cellN en noeud
+        cellN = C.getField('cellN', z, api=1)[0] # cellN en noeud
         loc = 'nodes'
         if cellN == []:
             loc = 'centers'
-            cellN = C.getField('centers:cellN', z)[0] # cellN en centres
+            cellN = C.getField('centers:cellN', z, api=1)[0] # cellN en centres
         if cellN != []:
             cellN = cellN[1]
             cellN = cellN.reshape(cellN.size, order='F' )
@@ -3894,7 +3896,7 @@ def _setIBCTransfers4FULLTBLE2(aR, topTreeD, variables=[], cellNVariable='',
 def getTransfo(zdonor, zrcv):
 
     transfo = numpy.zeros(3, dtype=numpy.int32)
-    a = C.getFields(Internal.__GridCoordinates__, zdonor)[0]
+    a = C.getFields(Internal.__GridCoordinates__, zdonor, api=1)[0]
     ni = a[2]; nj=a[3]; nk=a[4]
 
     if nk == 1: #2D
@@ -3917,7 +3919,7 @@ def getTransfo(zdonor, zrcv):
         mat_ = numpy.array([[a,b],
                             [c,d]])
 
-        a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
+        a = C.getFields(Internal.__GridCoordinates__, zrcv, api=1)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)
@@ -3979,7 +3981,7 @@ def getTransfo(zdonor, zrcv):
                             [d,e,f],
                             [g,h,i]])
 
-        a = C.getFields(Internal.__GridCoordinates__, zrcv)[0]
+        a = C.getFields(Internal.__GridCoordinates__, zrcv, api=1)[0]
         ni = a[2]; nj=a[3]; nk=a[4]
         i = ni//2; j = nj//2; k = nk//2
         ip1 = max(i+1,ni-1); jp1 = max(j+1,nj-1); kp1 = max(k+1,nk-1)

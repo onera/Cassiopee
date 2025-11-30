@@ -114,7 +114,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3], dir3[3], dir4[3];
   E_Float inverse1=0, inverse2, rad1, rad2, rad3, rad4, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
+  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1=0, pos2=0;
   E_Int /*tA,*/ tB, tC /*tD*/;
   E_Int maillesEcrasees = 0;
   E_Int maillesInversees = 0;

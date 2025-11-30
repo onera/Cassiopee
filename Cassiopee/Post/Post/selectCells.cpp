@@ -820,7 +820,7 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   PyObject* tag; E_Int flag;
   if (!PYPARSETUPLE_(args, O_ I_, &tag, &flag))
   {
-      return NULL;
+    return NULL;
   }
 
   // Extract tag (centers)
@@ -852,21 +852,20 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
 
   E_Int nelts = f2->getSize();
-  printf("nelts=" SF_D_ "\n", nelts);
   E_Float* tagp = f2->begin(); 
   E_Float oneEps = 1.-1.e-10;
 
   // Compte les tag > 1-eps
   E_Int nthreads = __NUMTHREADS__;
   E_Int* nb = new E_Int [nthreads];
-  E_Int* pos = new E_Int[nthreads];
+  E_Int* pos = new E_Int [nthreads];
   for (E_Int i = 0; i < nthreads; i++) nb[i] = 0;
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
     E_Int t = __CURRENT_THREAD__;
 
-#pragma omp for
+    #pragma omp for
     for (E_Int i = 0; i < nelts; i++)
     {
       if (tagp[i] > oneEps) nb[t]++;
@@ -876,18 +875,17 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   // allocate
   E_Int size = 0;
   for (E_Int i = 0; i < nthreads; i++) { pos[i] = size; size += nb[i]; }
-  printf("size = " SF_D_ "\n", size);
 
   PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1, 0);
   E_Int* ind = K_NUMPY::getNumpyPtrI(o);
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
     E_Int t = __CURRENT_THREAD__;
     E_Int c = 0;
     E_Int* ptr = ind+pos[t];
 
-#pragma omp for
+    #pragma omp for
     for (E_Int i = 0; i < nelts; i++)
     {
       if (tagp[i] > oneEps) { ptr[c] = i; c++; }

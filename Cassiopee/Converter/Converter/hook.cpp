@@ -584,30 +584,30 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     K_INTERP::InterpAdt* adt=NULL;
     if (center == Py_None || axis == Py_None)
     {
-        // Adt sur les coordonnees cartesiennes
-        adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no], isBuilt);
+      // Adt sur les coordonnees cartesiennes
+      adt = new K_INTERP::InterpAdt(
+      fields[no]->getSize(), 
+      fields[no]->begin(posxs[no]),
+      fields[no]->begin(posys[no]),
+      fields[no]->begin(poszs[no]),
+      a2[no], a3[no], a4[no], isBuilt);
     }
     else
     {
-        // Adt sur les coordonnees cylindriques
-        E_Float centerX, centerY, centerZ;
-        E_Float axisX, axisY, axisZ;
-        PYPARSETUPLE_(center, RRR_, &centerX, &centerY, &centerZ);
-        PYPARSETUPLE_(axis, RRR_, &axisX, &axisY, &axisZ);
-        adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no],
-        centerX, centerY, centerZ,
-        axisX, axisY, axisZ, thetaShift, depth,
-        isBuilt);
+      // Adt sur les coordonnees cylindriques
+      E_Float centerX, centerY, centerZ;
+      E_Float axisX, axisY, axisZ;
+      PYPARSETUPLE_(center, RRR_, &centerX, &centerY, &centerZ);
+      PYPARSETUPLE_(axis, RRR_, &axisX, &axisY, &axisZ);
+      adt = new K_INTERP::InterpAdt(
+      fields[no]->getSize(), 
+      fields[no]->begin(posxs[no]),
+      fields[no]->begin(posys[no]),
+      fields[no]->begin(poszs[no]),
+      a2[no], a3[no], a4[no],
+      centerX, centerY, centerZ,
+      axisX, axisY, axisZ, thetaShift, depth,
+      isBuilt);
     }
 
     if (isBuilt == 1) interpDatas.push_back(adt);

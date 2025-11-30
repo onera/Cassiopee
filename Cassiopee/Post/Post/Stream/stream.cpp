@@ -27,14 +27,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6compmeanlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
-                                   E_Int& indC, E_Int& indD, 
-                                   E_Float* xt, E_Float* yt, E_Float* zt, 
-                                   E_Float& meanl);  
-}
-
 //=============================================================================
 /* Calcul du pas "de temps" initial pour le calcul de la ligne de courant
    noblk demarre a 1 */
@@ -109,15 +101,17 @@ void K_POST::compInitialStep(
     E_Int posy = posyu[noblk0];
     E_Int posz = poszu[noblk0];
 
-    E_Int npts = field->getSize();
+    //E_Int npts = field->getSize();
     E_Int noet = indi[0];
     E_Int indA = cnEV(noet,1)-1;
     E_Int indB = cnEV(noet,2)-1;
     E_Int indC = cnEV(noet,3)-1;
     E_Int indD = cnEV(noet,4)-1;
 
-    k6compmeanlengthoftetracell_( npts, indA, indB, indC, indD, 
-                                 field->begin(posx), field->begin(posy), field->begin(posz), l0);
+    K_METRIC::compMeanLengthOfTetraCell(indA, indB, indC, indD, 
+      field->begin(posx), field->begin(posy), field->begin(posz), l0
+    );
+
     u0 = 0.;
     for (E_Int v = 1; v <= 4; v++)
     {

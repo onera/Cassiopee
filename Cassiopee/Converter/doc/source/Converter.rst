@@ -1881,7 +1881,7 @@ Array / PyTree common manipulations
 Array / PyTree analysis
 ------------------------------------
 
-.. py:function:: Converter.diffArrays(a, b, removeCoordinates=True)
+.. py:function:: Converter.diffArrays(a, b, removeCoordinates=True, atol=1.e-11, rtol=0.)
 
     Given a solution in a and a solution in b, both defined on the same mesh, 
     return the differences.
@@ -1892,6 +1892,10 @@ Array / PyTree analysis
     :type b: [list of arrays] or [pyTree, base, zone, list of zones]
     :param removeCoordinates: if True, remove original coordinates (pyTree)
     :type removeCoordinates: boolean
+    :param atol: absolute tolerance
+    :type atol: float
+    :param rtol: relative tolerance
+    :type rtol: float
     :rtype: Identical to input 1
 
     *Example of use:*
@@ -2057,7 +2061,7 @@ Array / PyTree analysis
 
 .. py:function:: Converter.normL0(a, var)
 
-    Return the L0 norm of field 'var' on input.
+    Return the infinite norm of field 'var' on input.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

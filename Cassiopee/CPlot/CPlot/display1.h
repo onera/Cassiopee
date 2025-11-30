@@ -11,7 +11,7 @@
   E_Float xcam, ycam, zcam, xeye, yeye, zeye, dirx, diry, dirz, isoEdges;
   E_Float stereoDist, viewAngle, vectorScale, vectorDensity;
   int vectorNormalize, vectorShowSurface, vectorShape, vectorProjection;
-  char* exportFile; char* exportResolution;
+  char* exportFile; char* exportResolution; int exportAA;
   PyObject* zoneNamesObject;
   PyObject* renderTagsObject;
   PyObject* isoScales;
@@ -20,7 +20,7 @@
   E_Float lightOffsetX, lightOffsetY;
   E_Float dofPower, gamma; int toneMapping;
   PyObject* posCamList; PyObject* posEyeList; PyObject* dirCamList; // only for ODS
-  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissOOiiOOO",
+  if (!PyArg_ParseTuple(args, "OiOOOOOiiiiiiiddiiiiisssOidO(ii)(ddd)(ddd)(ddd)disi(dd)iddiidissiOOiiOOO",
                         &arrays, &dim, &modeObject, &scalarFieldObject,
                         &vectorFieldObject1, &vectorFieldObject2, &vectorFieldObject3,
                         &displayBB, &displayInfo, &displayIsoLegend,
@@ -37,7 +37,7 @@
                         &shadow, &lightOffsetX, &lightOffsetY,
                         &dof, &dofPower, &gamma, &toneMapping, 
                         &stereo, &stereoDist, &panorama,
-                        &exportFile, &exportResolution, 
+                        &exportFile, &exportResolution, &exportAA,
                         &zoneNamesObject, &renderTagsObject,
                         &frameBuffer, &offscreen,
                         &posCamList, &posEyeList, &dirCamList))

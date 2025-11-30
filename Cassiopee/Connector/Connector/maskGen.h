@@ -205,16 +205,6 @@ if (dbg_switch && sz)
       _coordT4.getEntry(t4[3], Nl);
      
       ret = K_MESH::Tetrahedron::is_inside(Ni, Nj, Nk, Nl, pt);
-
-#ifdef DEBUG_MASK
-      if (dbg_switch && Ni[0] == 0 && Ni[2] == 0.4)
-      {
-        std::cout << "Ni " << Ni[0] << " " << Ni[1] << " " << Ni[2] << std::endl;
-        std::cout << "Nj " << Nj[0] << " " << Nj[1] << " " << Nj[2] << std::endl;
-        std::cout << "Nk " << Nk[0] << " " << Nk[1] << " " << Nk[2] << std::endl;
-        std::cout << "Nl " << Nl[0] << " " << Nl[1] << " " << Nl[2] << std::endl;
-      }
-#endif
     }
     
     return ret;

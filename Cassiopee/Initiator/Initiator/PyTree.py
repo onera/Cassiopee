@@ -38,8 +38,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
         eq = Internal.getNodeFromName(t, 'GoverningEquations')
         state = Internal.getNodeFromName(t, 'ReferenceState')
         if state is None: raise ValueError("initConst: no reference state and no argument.")
-        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
-                 'EnergyStagnationDensity']
+        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity']
         if eq is not None and Internal.getValue(eq) == 'NSTurbulent':
             vars0 += ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity', 'TurbulentDissipationDensity']
         for v in vars0:
@@ -57,8 +56,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
             elif loc == 'centers':
                 a = Converter.node2Center(a)
                 a = Initiator.initConst(a, adim, MInf, alphaZ, alphaY, ReInf)
-                a = Converter.rmVars(a,
-                                     ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+                a = Converter.rmVars(a, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                 z = C.setFields([a], z, 'centers')
             else:
                 raise ValueError("initConst: wrong location: %s."%loc)
@@ -269,21 +267,21 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
     nodes2 = Internal.getZones(t2)
     for c, z1 in enumerate(nodes):
         if loc == 'centers':
-            a1 = C.getAllFields(z1, 'centers')[0]
-            x1 = C.getFields(Internal.__GridCoordinates__, z1)[0]
+            a1 = C.getAllFields(z1, 'centers', api=1)[0]
+            x1 = C.getFields(Internal.__GridCoordinates__, z1, api=1)[0]
             x1 = Converter.node2Center(x1)
             a1 = Converter.addVars([x1, a1])
             z2 = nodes2[c]
-            a2 = C.getAllFields(z2, 'centers')[0]
-            x2 = C.getFields(Internal.__GridCoordinates__, z2)[0]
+            a2 = C.getAllFields(z2, 'centers', api=1)[0]
+            x2 = C.getFields(Internal.__GridCoordinates__, z2, api=1)[0]
             x2 = Converter.node2Center(x2)
             a2 = Converter.addVars([x2, a2])
             ret = Initiator.overlayField(a1, a2, MInf)
             C.setFields([ret], z1, 'centers')
         else:
-            a1 = C.getAllFields(z1, 'nodes')[0]
+            a1 = C.getAllFields(z1, 'nodes', api=1)[0]
             z2 = nodes2[c]
-            a2 = C.getAllFields(z2, 'nodes')[0]
+            a2 = C.getAllFields(z2, 'nodes', api=1)[0]
             ret = Initiator.overlayField(a1, a2, MInf)
             C.setFields([ret], z1, 'nodes')
     return None

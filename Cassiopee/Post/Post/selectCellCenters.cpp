@@ -251,7 +251,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 
   // Selection
   PyObject* l = PyList_New(0);
-  PyObject* tpl;
+  PyObject* tpl=NULL;
 
   if (strcmp(eltType, "NGON") != 0) // tous les elements sauf NGON
   {

@@ -1,3 +1,4 @@
+# - prepAMRFull (pyTree) -
 import Converter.PyTree as C
 import Geom.IBM as D_IBM
 import Connector.AMR as X_AMR
@@ -39,9 +40,9 @@ D_IBM._setDfar(tb, dFar)
 X_AMR.prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, OutputAMRMesh=True, check=False, localDir=LOCAL, fileName='tIBM.cgns')
 
 tAMR = C.convertFile2PyTree(LOCAL+'tAMRMesh.cgns')
-test.testT(tAMR,1)
+test.testT(tAMR, 1)
 del tAMR
 
 tIBM = C.convertFile2PyTree(LOCAL+'tIBM.cgns')
-test.testT(tIBM,2)
+test.testT(tIBM, 2)
 del tIBM

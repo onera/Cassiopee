@@ -43,8 +43,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
   E_Int npts = f->getSize();
   if (res != 1 && res != 2)
   {
-    PyErr_SetString(PyExc_TypeError, 
-                    "normL0: invalid array." );
+    PyErr_SetString(PyExc_TypeError, "normL0: invalid array." );
     return NULL;
   }
 
@@ -79,7 +78,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
       for (E_Int i = istart; i < iend; i++)
       {
         celln = (fc[i] == 0.) ? 0. : 1.; 
-        fmax[ithread] = E_max(fmax[ithread], fv[i]) * celln;
+        fmax[ithread] = E_max(fmax[ithread], E_abs(fv[i])) * celln;
       }
     }
   }
@@ -93,7 +92,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
       if (ithread == nthreads-1) iend = npts;
       for (E_Int i = istart; i < iend; i++)
       {
-        fmax[ithread] = E_max(fmax[ithread], fv[i]);
+        fmax[ithread] = E_max(fmax[ithread], E_abs(fv[i]));
       }
     }
   }
@@ -102,12 +101,7 @@ PyObject* K_CONVERTER::normL0(PyObject* self, PyObject* args)
   delete [] fmax;
 
   RELEASESHAREDB(res, array, f, cn);
-  
-#ifdef E_DOUBLEREAL
-  return Py_BuildValue("d", L0err);
-#else
-  return Py_BuildValue("f", L0err);
-#endif    
+  return Py_BuildValue(R_, L0err);
 }
 
 //=============================================================================
@@ -169,10 +163,5 @@ PyObject* K_CONVERTER::normL2(PyObject* self, PyObject* args)
   if (npts != 0) L2err = sqrt(L2err / npts);
   
   RELEASESHAREDB(res, array, f, cn);
-  
-#ifdef E_DOUBLEREAL
-  return Py_BuildValue("d", L2err);
-#else
-  return Py_BuildValue("f", L2err);
-#endif
+  return Py_BuildValue(R_, L2err);
 }

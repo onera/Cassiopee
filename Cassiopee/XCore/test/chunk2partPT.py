@@ -34,11 +34,11 @@ for z in Internal.getZones(distTree):
     cy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
     cz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
 
-    ngon = Internal.getNodeFromName2(z, 'NGonElements')
+    ngon = Internal.getNGonNode(z)
     ngonc = Internal.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = Internal.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = Internal.getNodeFromName2(z, 'NFaceElements')
+    nface = Internal.getNFaceNode(z)
     nfacec = Internal.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = Internal.getNodeFromName1(nface, 'ElementStartOffset')[1]
 

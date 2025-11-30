@@ -49,7 +49,7 @@ def extractBCOfType(t,bndType):
                 GridLoc = Internal.getValue(GridLoc)
                 if PL is not None and GridLoc=='FaceCenter':
                     PL = Internal.getValue(PL)[0].tolist() # list of elements
-                    array = C.getFields(Internal.__GridCoordinates__, zp)[0]
+                    array = C.getFields(Internal.__GridCoordinates__, zp, api=1)[0]
                     array = Transform.transform.subzoneElements(array, PL)
                     res.append(C.convertArrays2ZoneNode(bc[0],[array]))
         # connect 1to1
@@ -60,7 +60,7 @@ def extractBCOfType(t,bndType):
                 GridLoc = Internal.getValue(GridLoc)
                 if PL is not None and GridLoc=='FaceCenter':
                     PL = Internal.getValue(PL)[0].tolist() # list of elements
-                    array = C.getFields(Internal.__GridCoordinates__, zp)[0]
+                    array = C.getFields(Internal.__GridCoordinates__, zp, api=1)[0]
                     array = Transform.transform.subzoneElements(array, PL)
                     res.append(C.convertArrays2ZoneNode(gc[0],[array]))
     return res
@@ -266,7 +266,7 @@ def prepare(t_case, t, tskel, check=False):
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -274,8 +274,8 @@ def prepare(t_case, t, tskel, check=False):
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)[0]
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)[0]
+            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts, api=1)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts, api=1)[0]
             ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
             imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -680,7 +680,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -688,8 +688,8 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)[0]
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)[0]
+            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts, api=1)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts, api=1)[0]
             ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
             imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -1989,7 +1989,7 @@ def _recoverBCs1(a, T, tol=1.e-11):
                 bb = C.breakConnectivity(b)
                 ids = numpy.array([], dtype=numpy.int32)
                 for bc in bb:
-                    ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+                    ids = numpy.concatenate([ids, C.identifyElements(hook, bc, tol)])
 
             # Cree les BCs
             ids0 = ids # keep ids for bcdata

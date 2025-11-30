@@ -225,7 +225,7 @@ void K_COMPGEOM::evalNurbs(E_Float t, FldArrayF& x,
   {
     E_Float* Bk = B.begin(k);
     E_Float* Bk1 = B.begin(k-1);
-    for(E_Int i = 0 ; i <= n ; i++) 
+    for (E_Int i = 0 ; i <= n ; i++) 
     {
       C1num = t - x[i];
       C1den = x[i+k-1] - x[i];

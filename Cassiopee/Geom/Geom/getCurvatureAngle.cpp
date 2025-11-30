@@ -33,7 +33,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float dirVect[3];
-  dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
+  dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
@@ -53,7 +53,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDB(res, array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: can't find coordinates in array.");
       return NULL;
@@ -62,7 +62,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 
     if (res == 1 && (jm != 1 || km != 1))
     {
-      delete f;
+      RELEASESHAREDB(res, array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
       return NULL;
@@ -70,7 +70,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
     if ( (res == 2 && (strcmp(eltType, "BAR") != 0)))// ||
       if ((res == 2 && (strcmp(eltType, "TRI") != 0)))
       {
-        delete f; delete cn;
+        RELEASESHAREDB(res, array, f, cn);
         PyErr_SetString(PyExc_TypeError,
                         "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
         return NULL;
@@ -99,7 +99,7 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngleForBar(sizef, xt, yt, zt, *cn, dirVect, angle);
       tpl = K_ARRAY::buildArray3(*an, "angle", *cn, eltType, api);
-      delete an; delete cn;
+      delete an;
     }
     else if (res == 2 && strcmp(eltType, "TRI") == 0)
     {
@@ -111,11 +111,11 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       if (ret == 1)
       {
         tpl = K_ARRAY::buildArray3(*an, "angle1,angle2,angle3", *cn, eltType, api);
-        delete an; delete cn;
+        delete an;
       }
     }
 
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     return tpl;
   }
   else

@@ -87,7 +87,7 @@ E_Int K_SORT::pivoting(E_Int bg, E_Int bd, FldArrayF& coord, FldArrayF& norm2)
   {
     while (l <= bd && norm2p[l] <= piv) l++;
     while (r >=  0 && norm2p[r] > piv) r--;
-    if ( l < r )
+    if (l < r)
     {
       // swap norm(indr) and norm(indl)
       tmp = norm2p[r];
@@ -147,8 +147,7 @@ void K_SORT::removeDoublePoints(FldArrayF& vectOfPoints, FldArrayF& norm2)
     found = false;
    
     j = i-1; 
-    while (j >=0 && 
-           K_FUNC::fEqualZero(norm2p[i]-norm2p[j], 1.e-6) == true)
+    while (j >=0 && K_FUNC::fEqualZero(norm2p[i]-norm2p[j], 1.e-6))
     {
       dx = vx[i] - vx[j];
       dy = vy[i] - vy[j];

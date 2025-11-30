@@ -268,25 +268,23 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi); posht.push_back(poshi); posct.push_back(posci);
   }
   /*-------------------- Fin des verifs --------------------------------------*/
-  E_Int nfld = fEX->getNfld(); E_Int npts = fEX->getSize();
-  E_Int nelts = cnEX->getSize(); E_Int nvert = cnEX->getNfld();
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varStringEX, npts, nelts, -1, "NODE");
-  E_Float* fcpEX = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fcEX(npts, nfld, fcpEX, true); fcEX = *fEX;
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cno(nelts, nvert, cnnp, true); cno = *cnEX;
+  E_Int api = fEX->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*fEX, varStringEX, *cnEX, "NODE", api);
+  FldArrayF* fcEX;
+  K_ARRAY::getFromArray3(tpl, fcEX);
 
-  changeWallEX(fcEX.getSize(), fcEX.begin(posxEX), fcEX.begin(posyEX), fcEX.begin(poszEX),
-               fcEX.begin(posind1), fcEX.begin(posind2), fcEX.begin(posdir), fcEX.begin(posnode), 
+  changeWallEX(fcEX->getSize(), fcEX->begin(posxEX), fcEX->begin(posyEX), fcEX->begin(poszEX),
+               fcEX->begin(posind1), fcEX->begin(posind2), fcEX->begin(posdir), fcEX->begin(posnode), 
                im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
                imc, jmc, kmc, fc->begin(posxc), fc->begin(posyc), fc->begin(poszc), fc->begin(poscc),
                f1->getSize(), f1->begin(posindw), f1->begin(posdir1), f1->begin(posdir2), f1->begin(posdir3),f1->begin(poshw),
                posxt, posyt, poszt, posht, posct, cnt, unstrF, planarTol);
-            
-  RELEASESHAREDU(arrayEX,fEX,cnEX);
-  RELEASESHAREDS(arrayNodes,f);
-  RELEASESHAREDS(arrayCenters,fc);
-  RELEASESHAREDU(firstWallCenters,f1, cn1);
+
+  RELEASESHAREDS(tpl, fcEX);
+  RELEASESHAREDU(arrayEX, fEX, cnEX);
+  RELEASESHAREDS(arrayNodes, f);
+  RELEASESHAREDS(arrayCenters, fc);
+  RELEASESHAREDU(firstWallCenters, f1, cn1);
   for (E_Int iu = 0; iu < nu; iu++)
     RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
   return tpl;

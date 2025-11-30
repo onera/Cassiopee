@@ -23,11 +23,347 @@
 #include <math.h>
 
 using namespace K_FLD;
+using namespace K_FUNC;
 using namespace std;
 
+// ============================================================================
+// Evaluates the orientation of two structured blocks. 
+// Returns -1 if the normals are reversed, 1 otherwise.
+// ============================================================================
+void K_COMPGEOM::rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int ind1,
+  const E_Float* x1, const E_Float* y1, const E_Float* z1,
+  const E_Int ni2, const E_Int nj2, const E_Int ind2,
+  const E_Float* x2, const E_Float* y2, const E_Float* z2,
+  const E_Float distmin,
+  E_Int& isopp)
+{
+  E_Int i1, j1, i2, j2;
+  E_Int im1, im2, jm1, jm2, ip1, ip2, jp1, jp2;
+  E_Int ind1p, ind2p;
+  E_Int ind11, ind12, ind13, ind14;
+  E_Int ind21, ind22, ind23, ind24;
+  E_Float eps, ps1, ps2, ps3, psmin, matchTol;
+  E_Float x13, y13, z13, x24, y24, z24;
+  E_Float x11p, y11p, z11p, x22p, y22p, z22p;
+  E_Float n1x, n1y, n1z, n2x, n2y, n2z;
+  E_Float v1x, v1y, v1z, v2x, v2y, v2z;
+  E_Float norm1, norm2, norm, norm1p, norm2p, normp;
+  E_Int isclassical;
+
+  isopp = 1;
+  isclassical = 0;
+
+  eps = 1.e-12;
+  matchTol = 1.e-12;
+  psmin = 0.1; // minimum value to avoid considering blocks orthogonal
+
+  j1 = ind1 / ni1 + 1;
+  i1 = ind1 - (j1 - 1) * ni1 + 1;
+  j2 = ind2 / ni2 + 1;
+  i2 = ind2 - (j2 - 1) * ni2 + 1;
+
+  // A1B1C1D1 indices
+  im1 = i1 - 1;
+  ip1 = i1;
+  jm1 = j1 - 1;
+  jp1 = j1;
+  if (i1 == ni1) {im1 = ni1 - 2; ip1 = ni1 - 1;}
+  if (j1 == nj1) {jm1 = nj1 - 2; jp1 = nj1 - 1;}
+
+  ind11 = im1 + jm1 * ni1; // A1 (i,j)
+  ind12 = ip1 + jm1 * ni1; // B1 (i+1,j)
+  ind13 = ip1 + jp1 * ni1; // C1 (i+1,j+1)
+  ind14 = im1 + jp1 * ni1; // D1 (i,j+1)
+
+  // A1C1 
+  x13 = x1[ind13] - x1[ind11];
+  y13 = y1[ind13] - y1[ind11];
+  z13 = z1[ind13] - z1[ind11];
+
+  // B1D1 
+  x24 = x1[ind14] - x1[ind12];
+  y24 = y1[ind14] - y1[ind12];
+  z24 = z1[ind14] - z1[ind12];
+
+  // A1C1 x B1D1 -> n1
+  n1x = y13 * z24 - y24 * z13;
+  n1y = x24 * z13 - x13 * z24;
+  n1z = x13 * y24 - x24 * y13;
+  norm1 = n1x * n1x + n1y * n1y + n1z * n1z;
+
+  // A2B2C2D2 indices
+  im2 = i2 - 1;
+  ip2 = i2;
+  jm2 = j2 - 1;
+  jp2 = j2;
+  if (i2 == ni2) {im2 = ni2 - 2; ip2 = ni2 - 1;}
+  if (j2 == nj2) {jm2 = nj2 - 2; jp2 = nj2 - 1;}
+
+  ind21 = im2 + jm2 * ni2; // A2 (i,j)
+  ind22 = ip2 + jm2 * ni2; // B2 (i+1,j)
+  ind23 = ip2 + jp2 * ni2; // C2 (i+1,j+1)
+  ind24 = im2 + jp2 * ni2; // D2 (i,j+1)
+
+  // A2C2 
+  x13 = x2[ind23] - x2[ind21];
+  y13 = y2[ind23] - y2[ind21];
+  z13 = z2[ind23] - z2[ind21];
+
+  // B2D2 
+  x24 = x2[ind24] - x2[ind22];
+  y24 = y2[ind24] - y2[ind22];
+  z24 = z2[ind24] - z2[ind22];
+
+  // A2C2 x B2D2 -> n2  
+  n2x = y13 * z24 - y24 * z13;
+  n2y = x24 * z13 - x13 * z24;
+  n2z = x13 * y24 - x24 * y13;
+  norm2 = n2x * n2x + n2y * n2y + n2z * n2z;
+
+  // dot product normalized (ps1): compare cell normal orientation
+  norm = 1. / sqrt(norm1 * norm2);
+  ps1 = (n1x * n2x + n1y * n2y + n1z * n2z) * norm;
+
+  if (distmin > matchTol) // if far enough, classical test is sufficient
+  {
+    if (ps1 < -eps) isopp = -1;
+    return;
+  }
+
+  ind1p = -1;
+  ind2p = -1;
+
+  // classify ind1: edge vs interior/corner
+  if (i1 == 1 && j1 != 1 && j1 != nj1) ind1p = ind1 + 1;
+  else if (i1 == ni1 && j1 != 1 && j1 != nj1) ind1p = ind1 - 1;
+  else if (j1 == 1 && i1 != 1 && i1 != ni1) ind1p = ind1 + ni1;
+  else if (j1 == nj1 && i1 != 1 && i1 != ni1) ind1p = ind1 - ni1;
+  else isclassical = 1; // interior or corner point
+
+  // classify ind2: edge vs interior/corner
+  if (i2 == 1 && j2 != 1 && j2 != nj2) ind2p = ind2 + 1;
+  else if (i2 == ni2 && j2 != 1 && j2 != nj2) ind2p = ind2 - 1;
+  else if (j2 == 1 && i2 != 1 && i2 != ni2) ind2p = ind2 + ni2;
+  else if (j2 == nj2 && i2 != 1 && i2 != ni2) ind2p = ind2 - ni2;
+  else isclassical = 1; // interior or corner point 
+
+  if (isclassical == 1)
+  {
+    if (ps1 < -eps) isopp = -1;
+    return;
+  }
+
+  // edge-specific refined test
+
+  // A1A1p
+  x11p = x1[ind1p] - x1[ind1];
+  y11p = y1[ind1p] - y1[ind1];
+  z11p = z1[ind1p] - z1[ind1];
+  norm1p = x11p * x11p + y11p * y11p + z11p * z11p;
+
+  // A1A1p x n1 -> v1
+  v1x = y11p * n1z - z11p * n1y;
+  v1y = z11p * n1x - x11p * n1z;
+  v1z = x11p * n1y - y11p * n1x;
+
+  // A2A2p
+  x22p = x2[ind2p] - x2[ind2];
+  y22p = y2[ind2p] - y2[ind2];
+  z22p = z2[ind2p] - z2[ind2];
+  norm2p = x22p * x22p + y22p * y22p + z22p * z22p;
+
+  // A2A2p x n2 -> v2
+  v2x = y22p * n2z - z22p * n2y;
+  v2y = z22p * n2x - x22p * n2z;
+  v2z = x22p * n2y - y22p * n2x;
+
+  // dot product normalized (ps2): compare edge tangent alignment
+  normp = 1. / sqrt(norm1p * norm2p);
+  ps2 = (x11p * x22p + y11p * y22p + z11p * z22p) * normp;
+
+  // dot product normalized (ps3): compare edge normal orientation
+  ps3 = v1x * v2x + v1y * v2y + v1z * v2z;
+  ps3 = ps3 * norm * normp;
+
+  if ((ps1 > eps && ps2 > eps) || (ps1 < eps && ps2 < eps))
+  {
+    if (E_abs(ps3) > psmin)
+    {
+      if (ps3 < -eps) isopp = -1;
+    }
+    else
+    {
+      if (ps1 < -eps) isopp = -1;
+    }
+  }
+  else
+  {
+    if (ps1 < -eps) isopp = -1;
+  }
+
+  return;
+}
+
+// ============================================================================
+// Compute the minimum squared distance between 2 blocks and return
+// the corresponding cell indices
+// ============================================================================
+void K_COMPGEOM::compMeanDist(const E_Int ni1, const E_Int nj1,
+  const E_Float* x1, const E_Float* y1, const E_Float* z1,
+  const E_Int ni2, const E_Int nj2,
+  const E_Float* x2, const E_Float* y2, const E_Float* z2,
+  E_Int& ind1s, E_Int& ind2s, E_Float& dmin)
+{
+  E_Int ind1, ind2;
+  E_Float dist;
+  E_Float x10, y10, z10;
+  E_Float x20, y20, z20;
+  E_Int ind11, ind12, ind13, ind14, ind21, ind22, ind23, ind24;
+
+  ind11 = 0; //imin,jmin
+  ind12 = (ni1-1); //imax,jmin
+  ind13 = (nj1-1)*ni1; //imin,jmax
+  ind14 = (ni1-1) + (nj1-1)*ni1; //imax,jmax
+
+  ind21 = 0; //imin,jmin
+  ind22 = (ni2-1); //imax,jmin
+  ind23 = (nj2-1)*ni2; //imin,jmax
+  ind24 = (ni2-1) + (nj2-1)*ni2; //imax,jmax
+
+  E_Int cornerIndices1[4] = { ind11, ind12, ind13, ind14 };
+  E_Int cornerIndices2[4] = { ind21, ind22, ind23, ind24 };
+
+  dmin = K_CONST::E_MAX_FLOAT;
+
+  // distance between non-corner points
+  for (E_Int j1 = 0; j1 < nj1; j1++)
+  {
+    for (E_Int i1 = 0; i1 < ni1; i1++)
+    {
+      ind1 = i1 + j1 * ni1;
+
+      if (ind1 == ind11 || ind1 == ind12 || 
+          ind1 == ind13 || ind1 == ind14) continue; // skip corners
+
+      x10 = x1[ind1];
+      y10 = y1[ind1];
+      z10 = z1[ind1];
+
+      for (E_Int j2 = 0; j2 < nj2; j2++)
+      {
+        for (E_Int i2 = 0; i2 < ni2; i2++)
+        {
+          ind2 = i2 + j2 * ni2;
+
+          if (ind2 == ind21 || ind2 == ind22 ||
+              ind2 == ind23 || ind2 == ind24) continue; // skip corners
+
+          x20 = x2[ind2];
+          y20 = y2[ind2];
+          z20 = z2[ind2];
+
+          dist = (x20-x10)*(x20-x10) + 
+                 (y20-y10)*(y20-y10) + 
+                 (z20-z10)*(z20-z10);
+
+          if (dist < dmin)
+          {
+            dmin = dist;
+            ind1s = ind1;
+            ind2s = ind2;
+
+            // zero distance
+            if (dist < 1.e-12) return;
+          }
+        }
+      }
+    }
+  }
+
+  // distance between points of block 1 and corners of block 2
+  for (E_Int j1 = 0; j1 < nj1; j1++)
+  {
+    for (E_Int i1 = 0; i1 < ni1; i1++)
+    {
+      ind1 = i1 + j1 * ni1;
+
+      if (ind1 == ind11 || ind1 == ind12 || 
+          ind1 == ind13 || ind1 == ind14) continue; // skip corners
+
+      x10 = x1[ind1];
+      y10 = y1[ind1];
+      z10 = z1[ind1];
+
+      for (E_Int k = 0; k < 4; k++)
+      {
+        ind2 = cornerIndices2[k];
+
+        x20 = x2[ind2];
+        y20 = y2[ind2];
+        z20 = z2[ind2];
+
+        dist = (x20-x10)*(x20-x10) + 
+               (y20-y10)*(y20-y10) + 
+               (z20-z10)*(z20-z10);
+
+        if (dist < dmin)
+        {
+          dmin = dist;
+          ind1s = ind1;
+          ind2s = ind2;
+
+          // zero distance
+          if (dist < 1.e-12) return;
+        }
+      }
+    }
+  }
+
+  // distance between points of block 2 and corners of block 1
+  for (E_Int j2 = 0; j2 < nj2; j2++)
+  {
+    for (E_Int i2 = 0; i2 < ni2; i2++)
+    {
+      ind2 = i2 + j2 * ni2;
+
+      if (ind2 == ind21 || ind2 == ind22 ||
+        ind2 == ind23 || ind2 == ind24) continue; // skip corners
+
+      x20 = x2[ind2];
+      y20 = y2[ind2];
+      z20 = z2[ind2];
+
+      for (E_Int k = 0; k < 4; k++)
+      {
+        ind1 = cornerIndices1[k];
+
+        x10 = x1[ind1];
+        y10 = y1[ind1];
+        z10 = z1[ind1];
+
+        dist = (x20-x10)*(x20-x10) + 
+               (y20-y10)*(y20-y10) + 
+               (z20-z10)*(z20-z10);
+
+        if (dist < dmin)
+        {
+          dmin = dist;
+          ind1s = ind1;
+          ind2s = ind2;
+
+          // zero distance
+          if (dist < 1.e-12) return;
+        }
+      }
+    }
+  }
+  
+  return;
+}
+
 //===========================================================================
-/* Calcul de l'aire d un triangle ABC a partir des longueurs de ses 3 cotes
-   par la formule de Heron */
+// Calcul de l'aire d un triangle ABC a partir des longueurs de ses 3 cotes
+// par la formule de Heron
 //===========================================================================
 E_Float K_COMPGEOM::compTriangleArea(
   const E_Float a, const E_Float b, const E_Float c

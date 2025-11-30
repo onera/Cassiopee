@@ -68,27 +68,34 @@ void Data::colorString2RGB(char* color, float& colorR, float& colorG, float& col
 //=============================================================================
 void Data::codeFromRenderTag(Zone& z, char* tag, 
                              float& colorR, float& colorG, float& colorB,
-                             E_Int& material, double& blending, E_Int& meshOverlay,
+                             E_Int& material, double& blending, 
+                             E_Int& meshOverlay,
+                             float& meshColorR, float& meshColorG, float& meshColorB,
+                             float& meshWidth,
                              float& shaderParam1, float& shaderParam2)
 {
   colorR = -1.; colorG = -1.; colorB = -1.; material = -1; blending = -1.;
-  meshOverlay = 0; shaderParam1 = 1.; shaderParam2 = 1.;
+  meshOverlay = 0; meshColorR = -1.; meshColorG = -1.; meshColorB = -1.; meshWidth = -1.;
+  shaderParam1 = 1.; shaderParam2 = 1.;
 
   if (tag == NULL) return;
-  E_Int c = tag[0];
   char color[256];
+  char meshColor[256];
   char mat[256];
   char temp[256];
   E_Int isoColor = 0;
   E_Int l;
 
-  // Get color
-  E_Int i = 0;
+  E_Int c = tag[0];
+  E_Int i = 0; // counter o tag
+  
+  // Get zone color (part1)
+  E_Int j = 0;
   while (c != '\0' && c != ':')
   {
-    color[i] = c; i++; c = tag[i];
+    color[j] = c; j++; i++; c = tag[i];
   }
-  color[i] = '\0';
+  color[j] = '\0';
   if (K_STRING::cmp(color, "Iso") == 0)
   {
     isoColor = 1; l = 0;
@@ -110,8 +117,8 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
     color[l] = '\0';
   }
 
-  // Get Material
-  E_Int j = 0;
+  // Get Material (part 2)
+  j = 0;
   if (c == '\0') // material missing
     strcpy(mat, "None");
   else
@@ -124,7 +131,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
     mat[j] = '\0';
   }
 
-  // Get blending
+  // Get blending (part 3)
   j = 0;
   {
     i++; c = tag[i];
@@ -136,7 +143,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   }
   if (K_STRING::cmp(temp, "None") != 0) blending = atof(temp);
   
-  // Get meshOverlay
+  // Get meshOverlay (part 4)
   j = 0;
   {
     i++; c = tag[i];
@@ -148,7 +155,30 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   }
   if (K_STRING::cmp(temp, "None") != 0) meshOverlay = atoi(temp);
 
-  // Get shader parameters
+  // Get mesh color (part 5)
+  j = 0;
+  {
+    i++; c = tag[i];
+    while (c != '\0' && c != ':')
+    {
+      meshColor[j] = c; j++; i++; c = tag[i];
+    }
+    meshColor[j] = '\0';
+  }
+
+  // Get mesh width (part 6)
+  j = 0;
+  {
+    i++; c = tag[i];
+    while (c != '\0' && c != ':')
+    {
+      temp[j] = c; j++; i++; c = tag[i];
+    }
+    temp[j] = '\0';
+  }
+  if (K_STRING::cmp(temp, "None") != 0) meshWidth = atof(temp);
+
+  // Get shader parameters (part 7 & 8)
   j = 0;
   {
     i++; c = tag[i];
@@ -172,7 +202,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   if (K_STRING::cmp(temp, "None") != 0) shaderParam2 = atof(temp);
   //printf("shader parameters: %f %f\n", shaderParam1, shaderParam2);
 
-  // Analyse couleur
+  // Analyse zone color
   if (isoColor == 0) 
   {
     colorString2RGB(color, colorR, colorG, colorB);
@@ -182,7 +212,7 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
     colorR = 1.; colorG = 0.; colorB = 0.;
     for (E_Int n = 0; n < z.nfield; n++)
     {
-      if (K_STRING::cmp(z.varnames[n], color) == 0) { colorR = -n-2; break;}
+      if (K_STRING::cmp(z.varnames[n], color) == 0) { colorR = -n-2; break; }
     }
   }
 
@@ -201,5 +231,10 @@ void Data::codeFromRenderTag(Zone& z, char* tag,
   else if (K_STRING::cmp(mat, "Cloud") == 0) material = 11;
   else if (K_STRING::cmp(mat, "Gooch") == 0) material = 12;
   else if (K_STRING::cmp(mat, "Flat") == 0) material = 13;
-  else if (K_STRING::cmp(mat, "Texmat") == 0) material = 14;  
+  else if (K_STRING::cmp(mat, "Texmat") == 0) material = 14;
+  
+  // Analyse mesh color
+  if (K_STRING::cmp(meshColor, "None") != 0)
+    colorString2RGB(meshColor, meshColorR, meshColorG, meshColorB);
+  
 }

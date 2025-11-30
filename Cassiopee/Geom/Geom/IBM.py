@@ -141,8 +141,9 @@ def getMinimumCartesianSpacing(t):
 # Creation of a case with a symmetry plane
 #==============================================================================
 def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
-    import Converter.Mpi as Cmpi
-    if dir_sym not in [1,2,3]: raise ValueError('The symmetry direction %d is not supported. Must be 1(x), 2(y), or 3(z). Exiting...'%dir_sym)
+    if dir_sym not in [1,2,3]:
+        raise ValueError('The symmetry direction %d is not supported. Must be '
+                         '1(x), 2(y), or 3(z). Exiting...'%dir_sym)
     base   = Internal.getNodeFromName(t, bodySymName)
     minval = C.getMinValue(base, ['CoordinateX', 'CoordinateY','CoordinateZ'])
     minval = minval[dir_sym-1]
@@ -156,19 +157,22 @@ def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
 def _symetrizeBody(base, dir_sym=2, symPlane=(0.,0.,0.)):
     import Transform.PyTree as T
     zones = Internal.getZones(base)
-    C._initVars(zones,'centers:cellN',1.)
+    C._initVars(zones, 'centers:cellN', 1.)
     if dir_sym == 2:
-        v1 = (1,0,0); v2=(0,0,1)
+        v1 = (1,0,0); v2 =(0,0,1)
     elif dir_sym == 1:
-        v1 = (0,1,0); v2=(0,0,1)
+        v1 = (0,1,0); v2 =(0,0,1)
     elif dir_sym == 3:
-        v1 = (1,0,0); v2=(0,1,0)
+        v1 = (1,0,0); v2 =(0,1,0)
 
-    zones_dup = T.symetrize(zones,symPlane,v1, v2)
+    zones_dup = T.symetrize(zones, symPlane, v1, v2)
     for z in zones_dup: z[0] += '_sym'
-    T._reorder(zones_dup,(-1,2,3))
-    C._initVars(zones_dup,'centers:cellN',0.)
-    base[2]+= zones_dup
+    dim = Internal.getZoneDim(zones_dup[0])
+    if dim[0] == 'Structured': order = (-1, 2, 3)
+    else: order = (-1,)
+    T._reorder(zones_dup, order)
+    C._initVars(zones_dup, 'centers:cellN', 0.)
+    base[2] += zones_dup
     return None
 
 def _addSymPlane(tb, snear_sym, dir_sym=2, midPlane=0):

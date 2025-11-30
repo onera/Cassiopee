@@ -530,7 +530,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     for (auto &face : NFACE)
       face = face + firstFace;
   
-  // make local ParentElement
+  // make local ParentElements
 
   std::unordered_map<E_Int, std::vector<E_Int>> lPE;
 

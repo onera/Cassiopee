@@ -225,7 +225,8 @@ namespace K_CONVERTER
   void tagDefinedBC3D(E_Int posd, E_Int im, E_Int jm, E_Int km,
                       K_FLD::FldArrayF& f, K_FLD::FldArrayI& wins);
   // Methods for diffArrays
-  PyObject* diff2(PyObject* arrays1, PyObject* arrays2);
+  PyObject* diff2(PyObject* arrays1, PyObject* arrays2,
+                  E_Float atol=1.e-11, E_Float rtol=0.);
   PyObject* diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arrays3);
 
   E_Int checkRecognisedFormat(char* format);
@@ -240,7 +241,8 @@ namespace K_CONVERTER
                       std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
                       E_Int posx1, E_Int posy1, E_Int posz1,
                       E_Int posx2, E_Int posy2, E_Int posz2,
-                      E_Bool coordPresent);
+                      E_Bool coordPresent,
+                      E_Float atol=1.e-11, E_Float rtol=0.);
 
   /* Functions for detectEmptyBC */
   void detectEmptyBCrec(std::vector<E_Int*>& win,

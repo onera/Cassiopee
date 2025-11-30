@@ -36,14 +36,8 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
   PyObject* hook; PyObject* listFaces;
   if (!PYPARSETUPLE_(args, OO_, &hook, &listFaces)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
+  GETSHAPE;
+  GETMAPSURFACES;
 
   TopoDS_Shape* shp = NULL;
   if (listFaces == Py_None)
@@ -118,20 +112,8 @@ PyObject* K_OCC::mergeFaces(PyObject* self, PyObject* args)
     newshp = new TopoDS_Shape(sewer.SewedShape());
   }
 
-  // export
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
-  
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
+  delete shape;
+  SETSHAPE(newshp);
   
   printf("INFO: after mergeFaces: Nb edges=%d\n", se->Extent());
   printf("INFO: after mergeFaces: Nb faces=%d\n", sf->Extent());

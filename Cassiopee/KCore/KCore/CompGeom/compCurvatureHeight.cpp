@@ -216,12 +216,12 @@ void K_COMPGEOM::compCurvatureHeightForTRIQUAD(
   E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
   FldArrayI& cn, E_Float* hmaxt)
 {
-  E_Int ind, indm, indp, voisinsE1Size, voisinsE2Size;
+  E_Int indm, indp, voisinsE1Size, voisinsE2Size;
   vector< vector<E_Int> > cVVN(npts); K_CONNECT::connectEV2VNbrs(cn, cVVN);
   vector< vector<E_Int> > cVE(npts); K_CONNECT::connectEV2VE(cn, cVE);
   E_Float l1x, l1y, l1z, l2x, l2y, l2z, sx, sy, sz, s, c, hmaxl;
   E_Float eps = 1.e-10;
-  for (ind = 0; ind < npts; ind++)
+  for (E_Int ind = 0; ind < npts; ind++)
   {
     hmaxl = 0.;
     vector<E_Int>& voisinsN = cVVN[ind];//indices demarrent a 1

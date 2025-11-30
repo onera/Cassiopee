@@ -1,10 +1,7 @@
 import OCC
 import OCC.PyTree
 import OCC.occ as occ
-import Converter
 import Converter.PyTree as C
-import Generator
-import Generator.PyTree as GP
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
 import numpy as np
@@ -64,11 +61,11 @@ hmsh = XOR.createHMesh(t, 0)
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 # Get BC points
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS)
@@ -76,11 +73,10 @@ wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS)
 occ.linkNodes2CAD( c, wall_face_ids, hook, hx, hy, hz, ncadid )
 
 # Mettre a jour des variables
-t = C.setFields(hx,t, 'nodes')
-t = C.setFields(hy,t, 'nodes')
-t = C.setFields(hz,t, 'nodes')
-t = C.setFields(ncadid,t, 'nodes')
-
+t = C.setFields(hx, t, 'nodes')
+t = C.setFields(hy, t, 'nodes')
+t = C.setFields(hz, t, 'nodes')
+t = C.setFields(ncadid, t, 'nodes')
 
 #-------------------------------------------
 # updateFcadidFromNcadid
@@ -108,8 +104,8 @@ Internal._rmNodesByName(t, 'rid')
 #-------------------------------------------
 # Get input data
 z = Internal.getZones(t)
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 fcadid = Internal.getChildFromName(Internal.getNodeFromName(z, 'CADData'), 'fcadid')[1]
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS, None)
 
@@ -124,19 +120,19 @@ t = C.setFields(ncadid, t, 'nodes')
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 occ.linkNodes2CAD(c, wall_face_ids, hook, hx, hy, hz, ncadid)
 
 # Mettre a jour des variables
-t = C.setFields(hx,t, 'nodes')
-t = C.setFields(hy,t, 'nodes')
-t = C.setFields(hz,t, 'nodes')
-t = C.setFields(ncadid,t, 'nodes')
+t = C.setFields(hx, t, 'nodes')
+t = C.setFields(hy, t, 'nodes')
+t = C.setFields(hz, t, 'nodes')
+t = C.setFields(ncadid, t, 'nodes')
 
-test.testT(t,1)
+test.testT(t, 1)
 #C.convertPyTree2File(t, 'out.cgns')

@@ -894,14 +894,14 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
     if (cellNp != NULL)
     {
       sum = 0.;
-      if ( dim == 3)
+      if (dim == 3)
       {
         for (E_Int kk = 0; kk < 2; kk++)
           for (E_Int jj = 0; jj < 2; jj++)
             for (E_Int ii = 0; ii < 2; ii++)
             {
               E_Int ind = (ic + ii) + (jc + jj)*ni + (kc+kk)*ni*nj;
-              if (nature == 1) locCellN[icell] = 1.-(cellNp[ind]-1.);
+              if (nature == 1) locCellN[icell] = 1.-K_FUNC::E_abs(cellNp[ind]-1.);
               else if (nature == 0) locCellN[icell] = K_FUNC::E_min(1.,cellNp[ind]);
               sum += locCellN[icell];
               icell++;
@@ -913,7 +913,6 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
           for (E_Int ii = 0; ii < 2; ii++)
           {
             E_Int ind = (ic + ii) + (jc + jj)*ni;
-            // if (nature == 1) locCellN[icell] = 1.-(cellNp[ind]-1.);
             if (nature == 1) locCellN[icell] = 1.-K_FUNC::E_abs(cellNp[ind]-1.);
             else if (nature == 0) locCellN[icell] = K_FUNC::E_min(1.,cellNp[ind]);
             sum += locCellN[icell];

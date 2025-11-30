@@ -380,6 +380,23 @@ typedef struct {
                       E_Float& xp, E_Float& yp, E_Float& zp,
                       E_Bool& in, E_Float& dist2);
 
+  /* Calcule la distance minimale entre deux blocs structurés 
+     et retourne les indices correspondants */
+  void compMeanDist(const E_Int ni1, const E_Int nj1,
+    const E_Float* x1, const E_Float* y1, const E_Float* z1,
+    const E_Int ni2, const E_Int nj2,
+    const E_Float* x2, const E_Float* y2, const E_Float* z2,
+    E_Int& ind1s, E_Int& ind2s, E_Float& dmin);
+
+  /* Analyse l'orientation de deux blocs structurés. 
+     Retourne -1 si les normales sont inversées, 1 sinon */
+  void rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int ind1,
+    const E_Float* x1, const E_Float* y1, const E_Float* z1,
+    const E_Int ni2, const E_Int nj2, const E_Int ind2,
+    const E_Float* x2, const E_Float* y2, const E_Float* z2,
+    const E_Float distmin,
+    E_Int& isopp);
+
   /* Calcul de l'aire d'un triangle ABC a partir des longueurs a, b et c
      de ses trois cotes (formule de Heron). 
      Retourne 0. si triangle degenere */

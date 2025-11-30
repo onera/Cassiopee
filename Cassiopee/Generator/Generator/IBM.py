@@ -437,7 +437,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
     elif dim[3] == 'HEXA': dimPb = 3
 
     if ext == 1: ext = 2
-    a = C.getFields(Internal.__GridCoordinates__, o)[0]
+    a = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
     zones = Generator.generator.octree2Struct(a, [vmin])
     c = 1
     for noz in range(len(zones)):
@@ -628,7 +628,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
     if ext == -1: return zones
 
     if ext > 0:
-        coords = C.getFields(Internal.__GridCoordinates__, zones,api=3)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
         coords,rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
@@ -775,7 +775,7 @@ def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         o = Internal.getZones(to)[0]
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o, 'octree.cgns')
-    return o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry
+    return o, parento, tbOneOver, tbF1, tbOneOverF1, [symmetry, dir_sym, X_SYM]
 
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
@@ -788,9 +788,9 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
 
-    o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
-                                                                           tbox=tbox, snearsf=snearsf, check=check, to=to,
-                                                                           expand=expand, octreeMode=octreeMode)
+    o, parento, tbOneOver, tbF1, tbOneOverF1, infoSym = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
+                                                                          tbox=tbox, snearsf=snearsf, check=check, to=to,
+                                                                          expand=expand, octreeMode=octreeMode)
 
     # Split octree
     bb = G.bbox(o)
@@ -814,14 +814,13 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     # Keep F1 regions - for F1 & F42 synergy
     if tbF1:
-        tbbBTmp         = G.BB(tbF1)
+        tbbBTmp = G.BB(tbF1)
         interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
         for kk in interDict_scale:
             for kkk in interDict_scale[kk]:
-                z=Internal.getNodeFromName(t, kkk)
+                z = Internal.getNodeFromName(t, kkk)
                 Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
                 Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
-                node=Internal.getNodeFromName(t, kkk)
 
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
@@ -837,11 +836,11 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         test.printMem(">>> cart grids --> rectilinear grids [inside]")
         tbb = G.BB(t)
 
-        if dimPb==2:
+        if dimPb == 2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
-            tbOneOver=T.addkplane(tbOneOver)
-            tbOneOver=T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            tbOneOver = T.addkplane(tbOneOver)
+            tbOneOver = T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ## RECTILINEAR REGION
         tzones2  = Internal.copyTree(tbb)
@@ -851,11 +850,11 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                 granularityLocal = 0
                 if Internal.getNodeByName(checkOneOver, 'granularity'):
                     granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
-                oneoverX         = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
-                oneoverY         = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
-                oneoverZ         = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
+                oneoverX = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
+                oneoverY = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
+                oneoverZ = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
                 ## Select regions that need to be coarsened
-                if granularityLocal==1:
+                if granularityLocal == 1:
                     C._initVars(tzones2, 'cellNOneOver', 1.)
                     X_IBM._blankByIBCBodies(tzones2, i, 'nodes', dimPb, cellNName='cellNOneOver')
 
@@ -866,7 +865,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                                 T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
                                 ### Avoid a zone to be coarsened twice
                                 listDone.append(z[0])
-                elif granularityLocal==0:
+                elif granularityLocal == 0:
                     interDict_scale = X.getIntersectingDomains(G.BB(i), tbb)
                     ## Avoid a zone to be coarsened twice
                     for j in interDict_scale:
@@ -880,7 +879,8 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     test.printMem(">>> cart grids --> rectilinear grids [end]")
 
-    if symmetry==0: extBnd = 0
+    symmetry, dir_sym, X_SYM = infoSym
+    if symmetry == 0: extBnd = 0
     else: extBnd = ext-1 # nb de ghost cells = ext-1
     if ext > 0:
         zones = Internal.getZones(t)
@@ -1069,8 +1069,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 0, 2)
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 1, 0, 2) # CB
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 2, 0, 2) # CB
@@ -1083,8 +1083,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
             to = C.newPyTree(['Base',o])
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             indic = C.getField("centers:cellN",to)[0]
-            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = Converter.initVars(indic, 'indicator', 0.)
+            octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+            indic = Converter.initVars(indic, 'indicator', 0., api=1)
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0,0,1)
             indic = Converter.extractVars(indic, ["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1096,8 +1096,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o, "centers:indicator", 0.)
             cellN = C.getField("centers:cellN", to)[0]
-            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = C.getField("centers:indicator", o)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+            indic = C.getField("centers:indicator", o, api=1)[0]
             indic = Converter.addVars([indic,cellN])
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1109,8 +1109,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Converter.addVars([indic,cellN])
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1123,8 +1123,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Converter.addVars([indic,cellN])
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 6)
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)

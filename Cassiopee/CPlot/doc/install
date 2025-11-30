@@ -86,6 +86,8 @@ then
     sed -i 's/CPlot.pdf/Decorator.pdf/g' build/Decorator.html
     cp build/Decorator.html $DEST
     
+    cp build/_images/*png $DEST/_images
+    
     cp build/CPlot.pdf $DEST
     cp build/tkCassiopee.pdf $DEST
     cp build/tkPlotXY.pdf $DEST

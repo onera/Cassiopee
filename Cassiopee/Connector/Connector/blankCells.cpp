@@ -1140,6 +1140,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
                      cellns, posxb, posyb, poszb, unstrbF, cnb);
     for (E_Int is = 0; is < ns; is++)
     {
+      E_Int api = 1; // TODO
       E_Int ncells = cellns[is]->getSize();
       E_Int* fp = cellns[is]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
@@ -1147,7 +1148,7 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       tpl = K_ARRAY::buildArray3(*cellnout, cellNName,
-                                 nitc[is], njtc[is], nktc[is]);
+                                 nitc[is], njtc[is], nktc[is], api);
       delete cellns[is];
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
@@ -1981,7 +1982,7 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
   listOfInterpolatedPoints.reAlloc(n);
   // Search for sign of delta expansion in i and j directions
   iP = listOfInterpolatedPoints.begin();
-  if ( type == 0 )
+  if (type == 0)
   {
     if (elevationDir == 2 ) // 2D
     {
@@ -1989,18 +1990,18 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
-          if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN+1] == -1) diri[i] = 1;
         }
-        else if ( indN == imc-1 )
+        else if ( indN == imc-1)
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
         }
         else
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
-          else if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
+          else if (cellNt[indN+1] == -1) diri[i] = 1;
         }
       }
     }
@@ -2011,11 +2012,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
           if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
-        else if ( indN == imc-1)
+        else if (indN == imc-1)
         {
           if (cellNt[indN-1] == -1 ) diri[i] = -1;
         }
@@ -2025,11 +2026,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
           else if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
 
-        if ( indN-imc < 0 )
+        if (indN-imc < 0)
         {
           if (cellNt[indN+imc] == -1 ) dirj[i] = 1;
         }
-        else if ( indN+imc > ncells)
+        else if (indN+imc > ncells)
         {
           if (cellNt[indN-imc] == -1 ) dirj[i] = -1;
         }

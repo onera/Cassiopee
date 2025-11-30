@@ -126,7 +126,7 @@ def getFirstPointsInfo0__(z, wallRanges, loc='nodes', ghostCells=False):
 # Coordonnees + dir1 + dir2 + dir3 + curvature height
 #------------------------------------------------------------------------------
 def getFirstPointsInfo__(z, wallRanges, loc='nodes', ghostCells=False):
-    coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
     wallsc = getFirstPointsInfo0__(coords, wallRanges, loc, ghostCells)
     # calcul de la hauteur de courbure
     hmax = Geom.getCurvatureHeight(wallsc)
@@ -259,7 +259,7 @@ def extractDoubleWallInfo__(t):
         for z1 in zones1:
             surfs = getExtCenterSurfaces__(z1, wallBndIndicesN[nob][noz])
             if surfs != []:
-                surfs = C.getAllFields(surfs, loc='nodes')
+                surfs = C.getAllFields(surfs, loc='nodes', api=1)
                 #surfs = T.merge(surfs)
                 surfs = Converter.convertArray2Hexa(surfs)
                 surfs = Transform.join(surfs)
@@ -353,7 +353,7 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
         walls1 = T.reorder(walls1, (1,))
 
         D._getCurvatureHeight(walls1)
-        surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+        surfaceCenters1 = C.getAllFields(walls1, 'nodes', api=1) # array with __GridCoordinates__ + __FlowSolutionNodes_
         if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s_to_%s.plt'%(familyBC2, familyBC1))
 
     # STEP2 : project surfaces of mismatch2 (a2c (domain) and firstWallCenters2 (wall))
@@ -369,8 +369,8 @@ def _changeWall2(t, tc, listOfMismatch1, listOfMismatch2, familyBC1, familyBC2, 
 
                 z2c = Internal.getNodeFromPath(tc, name[0])
                 if z2c is not None:
-                    a2c = C.getFields(Internal.__GridCoordinates__, z2c)[0]
-                    cellN = C.getField('cellN', z2c)[0]
+                    a2c = C.getFields(Internal.__GridCoordinates__, z2c, api=1)[0]
+                    cellN = C.getField('cellN', z2c, api=1)[0]
                     a2c = Converter.addVars([a2c,cellN]) # array at centers with cellN
                     if check: Converter.convertArrays2File(a2c, 'surfaceCenters2_%s_to_%s_rank%d.plt'%(familyBC2, familyBC1, Cmpi.rank))
 
@@ -408,7 +408,7 @@ def getProjSurfaceForDoubleWall(t, listOfMismatch1, familyBC1, check=False):
     walls1 = T.reorder(walls1, (1,))
 
     D._getCurvatureHeight(walls1)
-    surfaceCenters1 = C.getAllFields(walls1, 'nodes') # array with __GridCoordinates__ + __FlowSolutionNodes_
+    surfaceCenters1 = C.getAllFields(walls1, 'nodes', api=1) # array with __GridCoordinates__ + __FlowSolutionNodes_
     if check and Cmpi.rank==0: Converter.convertArrays2File(surfaceCenters1, 'surfaceCenters1_%s.plt'%(familyBC1))
 
     return surfaceCenters1

@@ -26,11 +26,20 @@ configDict = installBase.installDict
 key = ''
 # prod est tout d'abord cherche dans le dictionnaire
 if prod is not None:
-    prod = prod.replace('_i8', '').replace('_DBG', '').split('_b-')[0]
+    prod = prod.replace('_i8', '').replace('_DBG', '')
+    # check if machine contains a branch name and if so, remove it from the prod
+    # this cannot be detected using the ELSAPROD alone as the prefix '_b-' is
+    # replaced with '_' in Envs/sh_Cassiopee_local
+    mac = os.getenv("MACHINE")
+    if mac is not None:
+        mac = mac.replace('_i8', '').replace('_DBG', '').split('_b-')
+        if len(mac) == 2:
+            branchName = mac[1]
+            prod = prod.replace('_' + branchName, '')
     if prod in configDict: key = prod
 
 if key == '': # not found in install base
-    print("Warning: %s were found in KCore/installBase.py."%(prod))
+    print("Warning: %s not found in KCore/installBase.py."%(prod))
     print("Warning: using default compilers and options.")
     print("Warning: to change that, add a block in KCore/installBase.py.")
     key = 'default'

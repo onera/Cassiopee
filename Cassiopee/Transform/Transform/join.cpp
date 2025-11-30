@@ -829,32 +829,32 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI& cn1,
       E_Float* f1n = f1.begin(n);
       E_Float* f2n = f2.begin(n);
       E_Float* fn = f->begin(n);
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts1; i++) fn[i] = f1n[i];
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
     }
 
     // Copie des connectivites (add offset to all elements of the second
     // connectivity and correct outside the parallel block)
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN1; i++) ngon[i] = ngon1[i];
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeFN2; i++) ngon[i+sizeFN1] = ngon2[i] + npts1;
 
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeEF1; i++) nface[i] = nface1[i];
-    #pragma omp for
+    #pragma omp for nowait
     for (E_Int i = 0; i < sizeEF2; i++) nface[i+sizeEF1] = nface2[i] + nfaces1;
 
     if (ngonType == 2 || ngonType == 3)
     {
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nfaces1; i++) indPG[i] = indPG1[i];
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nfaces2; i++) indPG[i+nfaces1] = indPG2[i] + nfaces1;
 
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nelts1; i++) indPH[i] = indPH1[i];
         #pragma omp for
         for (E_Int i = 0; i < nelts2; i++) indPH[i+nelts1] = indPH2[i] + nelts1;
