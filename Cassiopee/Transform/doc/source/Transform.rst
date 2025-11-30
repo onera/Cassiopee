@@ -149,29 +149,34 @@ Basic operations
 
 ---------------------------------------
 
-.. py:function:: Transform.reorder(a, dest) 
+.. py:function:: Transform.reorder(a, order) 
 
     .. A1.O0.D1
       
     For a structured grid, change the (i,j,k) ordering of a. 
-    If you set dest=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
+    If you set order=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
     will be equivalent to go along i direction of initial mesh.
    
     The transformation can be equivalently described by a matrix M, filled with
     a single non-zero value per line and column (equal to -1 or 1).
-    Then, dest=(desti,destj,destk) means: 
-    M[abs(desti),1]=sign(desti); M[abs(destj),2]=sign(destj); M[abs(destk),3]=sign(destk).
+    Then, order=(orderi, orderj, orderk) means: 
+    M[abs(orderi),1]=sign(orderi); M[abs(orderj),2]=sign(orderj); M[abs(orderk),3]=sign(orderk).
 
-    For an unstructured 2D grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the 
-    same direction. If dest is set to (1,), all elements are oriented as element 0. If dest is (-1,), all elements are oriented
+    For a 2D unstructured grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the 
+    same direction. If order is set to (1,), all elements are oriented as element 0. If order is (-1,), all elements are oriented
     in the opposite sense of element 0.
+
+    For a 3D unstructured grid (TETRA, PYRA, PENTA, HEXA), element normals must be pointing outward by definition such that the
+    argument order can be left as None.
+
+    3D NGON grids are not supported yet.
    
     Exists also as an in-place version (_reorder) which modifies a and returns None.
    
     :param a: initial mesh
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
-    :param dest: integers specifying transformation
-    :type dest: 3-tuple of signed integers or a tuple of a single 1 or -1
+    :param order: integers specifying transformation
+    :type order: 3-tuple of signed integers or a tuple of a single 1 or -1 or None
     :return: a reoriented mesh
     :rtype: identical to input
 

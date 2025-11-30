@@ -1698,7 +1698,7 @@ def _reorderGC__(t, order):
     return None
 
 # Reorder the numbering of t. t and toptree are modified
-def reorder(t, order, topTree=[]):
+def reorder(t, order=None, topTree=[]):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
     a = Internal.copyRef(t)
@@ -1706,7 +1706,8 @@ def reorder(t, order, topTree=[]):
     return a
 
 # If topTree is given, must be used in place!
-def _reorder(t, order, topTree=[]):
+def _reorder(t, order=None, topTree=[]):
+    if order is None: order = tuple()
     if len(order) == 3: _reorderStruct__(t, order, topTree)
     else: _reorderUnstruct__(t, order)
     return None
@@ -1750,7 +1751,7 @@ def _reorderUnstruct__(t, order):
 # reorder all zones to get the same orientation of the normals
 #=============================================================
 def reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     tp = Internal.copyRef(t)
@@ -1758,7 +1759,7 @@ def reorderAll(t, dir=1):
     return tp
 
 def _reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     C._fillMissingVariables(t)

@@ -23,7 +23,7 @@ __TOL__ = 1e-9
 def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
     if offsetValues==[]: return []
 
-    if Cmpi.rank==0: print('Generating list of offsets...start',flush=True)
+    if Cmpi.master: print('Generating list of offsets...start',flush=True)
 
     dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
     baseSYM = Internal.getNodesFromName1(tb,"SYM")
@@ -43,7 +43,7 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
                 # hausd is a length and must be adapted to the dimensions of each case
                 hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
                 hmax = hausd*1000
-                if Cmpi.rank == 0: print(hausd, hmax, flush=True)
+                if Cmpi.master: print(hausd, hmax, flush=True)
                 # exteriorFaces currently crashes if the surface is closed
                 try:
                     fixedConstraints = P.exteriorFaces(z)
@@ -136,6 +136,10 @@ def generateListOfOffsets__(tb, offsetValues=[], dim=3, opt=False):
 # Generates an isotropic skeleton mesh to be adapted then by AMR
 def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octreeMode=0):
     surfaces=[]; dfarList=[]; snearsList=[]
+    # This clips the upper limit on the number of offset level to the input value. Important for tests & devs.
+    # This is an expert expert parameter & should be used with (a lot of) caution.
+    # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
+    forceUpperLimitOffset = False
 
     # list of dfars
     bodies = Internal.getZones(tb)
@@ -160,7 +164,7 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
             levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c]))
-            levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+            if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
 
             dfarloc = dfars[c]
             snearloc = 2**levelSkel*snears[c]
@@ -190,20 +194,32 @@ def generateSkeletonMesh__(tb, snears=0.01, dfars=10., dim=3, levelSkel=7, octre
         valsym = 0.5*(zmin+zmax)
     if dir_sym > 0: o = P.selectCells(o,'{%s}>%g'%(coordsym,valsym-__TOL__),strict=1)
 
-    # adapt the mesh to get a single refinement level - uniform grid
-    refined=True
-    G._getVolumeMap(o)
-    volminAll = C.getMinValue(o,"centers:vol")
-    tol_vol = 1e-2*volminAll
-    while refined:
-        C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
-        if C.getMaxValue(o,"centers:indicator")==1.:
-            o = G.adaptOctree(o, 'centers:indicator', balancing=1)
-            G._getVolumeMap(o)
-        else:
-            refined=False
-            break
-    C._rmVars(o, ['centers:indicator','centers:vol'])
+    if forceUpperLimitOffset:
+        box = G.bbox(o)
+        dxdydz_local      = min(snearsList)
+        nCellsCartesian_x = int((box[3]-box[0])/dxdydz_local)
+        nCellsCartesian_y = int((box[4]-box[1])/dxdydz_local)
+        nCellsCartesian_z = 1
+        dz_local          = box[5]-box[2]
+        if dim == 3:
+            nCellsCartesian_z = int((box[5]-box[2])/dxdydz_local)
+            dz_local          = dxdydz_local
+        o = G.cart((box[0],box[1],box[2]), (dxdydz_local, dxdydz_local, dz_local), (nCellsCartesian_x+1, nCellsCartesian_y+1,nCellsCartesian_z+1))
+    else:
+        # adapt the mesh to get a single refinement level - uniform grid
+        refined=True
+        G._getVolumeMap(o)
+        volminAll = C.getMinValue(o,"centers:vol")
+        tol_vol = 1e-2*volminAll
+        while refined:
+            C._initVars(o,'{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
+            if C.getMaxValue(o,"centers:indicator")==1.:
+                o = G.adaptOctree(o, 'centers:indicator', balancing=1)
+                G._getVolumeMap(o)
+            else:
+                refined=False
+                break
+        C._rmVars(o, ['centers:indicator','centers:vol'])
 
     if dim==2: T._addkplane(o)
     o = C.convertArray2NGon(o)

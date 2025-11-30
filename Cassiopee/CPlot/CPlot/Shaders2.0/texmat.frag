@@ -22,9 +22,9 @@ void main (void)
   vec3 N = normalize(Nv);
   if (hasBump == 1)
   {
-      vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
-      N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
-      N = normalize(N);
+    vec4 D = texture2D(Texbump0, vec2((color.r-0.5)*2., (color.g-0.5)*2.));
+    N += 2.5*vec3( (D.r-0.5)*2., (D.g-0.5)*2., (D.b-0.5)*2. );
+    N = normalize(N);
   }
   vec3 E = normalize(-P);
   vec3 L = normalize(gl_LightSource[0].position.xyz-P);
@@ -42,26 +42,26 @@ void main (void)
         
   if (shadow > 0)
   {
-  // Coords -> texCoords
-  vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
-  vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
+    // Coords -> texCoords
+    vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
+    vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
 
-  // Used to lower moire pattern and self-shadowing
-  //shadowCoordinateW.z -= 0.00001;
-  shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
+    // Used to lower moire pattern and self-shadowing
+    //shadowCoordinateW.z -= 0.00001;
+    shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
 
-  // Z buffer du point dans la texture rendu du pt de vue de la lumiere
-  float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
-  float s = shadowCoordinateW.s;
-  float t = shadowCoordinateW.t;      
-  if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-  {
-    //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
-    if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
-    else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
-    else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+    // Z buffer du point dans la texture rendu du pt de vue de la lumiere
+    float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
+    float s = shadowCoordinateW.s;
+    float t = shadowCoordinateW.t;      
+    if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
+    {
+      //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+      if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
+      else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
+      else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
+    }
   }
-}
 
   gl_FragColor = shadowValue * col;
   gl_FragColor.a = col2.a * blend;

@@ -6,7 +6,6 @@ import os
 # Modeler requires:
 # ELSAPROD variable defined in environment
 # C++ compiler
-# Fortran compiler: defined in config.py
 # Numpy
 # KCore, Converter, Generator, Transform
 #=============================================================================
@@ -39,8 +38,6 @@ if prod is None: prod = 'xx'
 libraryDirs = ["build/"+prod, kcoreLibDir]
 includeDirs = [numpyIncDir, kcoreIncDir]
 libraries = ["kcore", "modeler", "modeler"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
-libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
 libraryDirs += paths; libraries += libs
 

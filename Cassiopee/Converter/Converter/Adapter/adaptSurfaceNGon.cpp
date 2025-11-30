@@ -81,7 +81,7 @@ PyObject* K_CONVERTER::adaptSurfaceNGon(PyObject* self, PyObject* args)
     // Initialize sizeNGonA & sizeNFaceA
     std::vector<E_Int> edge{0,0};
     Topology E;
-    std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > ngonMapA;
+    std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > ngonMapA;
     std::vector<std::pair<E_Int,E_Int> > ngonListA;
 
     for (E_Int j = 0; j < nfaces; j++)

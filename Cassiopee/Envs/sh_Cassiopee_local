@@ -303,6 +303,7 @@ elif [ "$MAC" = "spiro" ]; then
     unset I_MPI_TCP_NETMASK
     unset I_MPI_PMI_LIBRARY
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno" ]; then
@@ -330,6 +331,7 @@ elif [ "$MAC" = "juno" ]; then
     unset I_MPI_PMI_LIBRARY
     unset I_MPI_HYDRA_BOOTSTRAP_EXEC_EXTRA_ARGS I_MPI_HYDRA_BOOTSTRAP HYDRA_BOOTSTRAP
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno_gcc" ]; then
@@ -355,6 +357,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno_gpu" ]; then
@@ -372,6 +375,7 @@ elif [ "$MAC" = "juno_gpu" ]; then
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda" ]; then
@@ -396,6 +400,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "juno_coda2" ]; then
@@ -422,6 +427,7 @@ elif [ "$MAC" = "juno_coda2" ]; then
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
+    export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
 elif [ "$MAC" = "topaze" ]; then

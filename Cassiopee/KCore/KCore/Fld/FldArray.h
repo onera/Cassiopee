@@ -165,6 +165,7 @@ class FldArray
     inline E_Int getApi() { if (_compact == false) return 3; else return 1; }
 
     /** Get dimensionality, NGon and ME. */
+    // For ME, see K_CONNECT::getDimME.
     inline E_Int getDim(char* eltType=NULL);
     /** Get number of elements, NGon and ME. */
     inline E_Int getNElts();

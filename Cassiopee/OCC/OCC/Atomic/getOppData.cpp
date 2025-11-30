@@ -114,7 +114,7 @@ PyObject* K_OCC::getOppData(PyObject* self, PyObject* args)
   std::vector<E_Int> vertexIdxR; // keeps track of vertex index of receiver face
   TopologyOpt E;
   std::vector<E_Int> elt(nvpe);
-  std::unordered_set<TopologyOpt, JenkinsHash<TopologyOpt> > eltSet;
+  std::unordered_set<TopologyOpt, BernsteinHash<TopologyOpt> > eltSet;
   
   // Insert edge vertices first
   vertexInsOrder.reserve(fac*size); // ballpark

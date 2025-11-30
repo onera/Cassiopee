@@ -90,6 +90,7 @@ PyObject* K_OCC::splitEdge(PyObject* self, PyObject* args)
   }
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
 
+  delete shape;
   SETSHAPE(newshp);
 
   printf("INFO: after split: Nb edges=%d\n", se->Extent());

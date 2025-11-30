@@ -4352,13 +4352,13 @@ def _adaptPE2NFace(t, remove=True):
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
 # if shiftPE=True, element numbers are shifted of nfaces
-def adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+def adaptNFace2PE(t, remove=False, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   tp = copyRef(t)
   _adaptNFace2PE(tp, remove, methodPE, shiftPE)
   return tp
 
-def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+def _adaptNFace2PE(t, remove=False, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   zones = getZones(t)
   for z in zones:

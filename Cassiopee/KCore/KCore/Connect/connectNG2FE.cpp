@@ -16,28 +16,22 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "Connect/connect.h"
 
-using namespace K_FLD;
-
 //=============================================================================
-/* Change a NGON connectivity cNG where are stored two connectivities:
-  cFV=face/vertex connectivity
-  cEF=elt/face connectivity
-  into a face/element connectivity.
-  IN: cNG: connectivite NGON conforme
-  OUT: cFE: face/elts connectivity
-  if a face has not 2 neighbouring elements, its value is 0.
-  cFE est dimensionne par cette routine.
+/* Fill a Face-Element connectivity from an NGON connectivity.
+  IN: cNG: NGON connectivity (conformal mesh)
+  OUT: cFE: Face-Element connectivity. If a face has 1 neighbour element only,
+            the second index value is 0.
+  Size of cFE set in this routine.
  */
 //=============================================================================
-void K_CONNECT::connectNG2FE(FldArrayI& cNG, FldArrayI& cFE)
+void K_CONNECT::connectNG2FE(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& cFE)
 {
   E_Int* nface = cNG.getNFace(); E_Int* indPH = cNG.getIndPH();
   E_Int nfaces = cNG.getNFaces(); E_Int nelts = cNG.getNElts();
 
-  // Connectivite faces->elts
+  // Face-Element connectivity
   cFE.malloc(nfaces, 2); cFE.setAllValuesAtNull();
   E_Int* facesp1 = cFE.begin(1);
   E_Int* facesp2 = cFE.begin(2);

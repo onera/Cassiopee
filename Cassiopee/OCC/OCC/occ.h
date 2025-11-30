@@ -47,8 +47,11 @@ namespace K_OCC
   PyObject* addSquare(PyObject* self, PyObject* args);
   PyObject* addLine(PyObject* self, PyObject* args);
   PyObject* addCircle(PyObject* self, PyObject* args);
+  PyObject* addEllipse(PyObject* self, PyObject* args);
   PyObject* addSpline(PyObject* self, PyObject* args);
   PyObject* addArc(PyObject* self, PyObject* args);
+  PyObject* addSuperEllipse(PyObject* self, PyObject* args);
+  
   PyObject* addGordonSurface(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
@@ -90,7 +93,10 @@ namespace K_OCC
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
   PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* mergeEdges(PyObject* self, PyObject* args);
+  
   PyObject* loft(PyObject* self, PyObject* args);
+  PyObject* sweep(PyObject* self, PyObject* args);
   PyObject* revolve(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);

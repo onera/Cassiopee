@@ -99,11 +99,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   // Get dimensionality
-  E_Int dim = 3;
-  E_Int nvf0; cn.getFace(0, nvf0, ngon, indPG);
-  if (nvf0 == 1) dim = 1;
-  else if (nvf0 == 2) dim = 2;
-  //std::cout<<"dim: " << dim << std::endl;
+  E_Int dim = cn.getDim();
   
   // --- 1. Points ---
   // 1a. Identify orphan points, ie, initialise indirection table for use in 1b
@@ -581,7 +577,8 @@ E_Int K_CONNECT::V_identifyDirtyFacesNGon(
 
   // Face map to eliminate duplicates and collapsed faces
   Topology F;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
+  std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > faceMap;
+  faceMap.reserve(nfaces);
   
   if (rmDegeneratedFaces && dim > 1)
   {
@@ -606,7 +603,7 @@ E_Int K_CONNECT::V_identifyDirtyFacesNGon(
         }
         indirPG[i] = res.first->second;
         // Flip sign of degenerated faces
-        if (F.isDegen_) indirPG[i] *= -1;
+        if (F.isDegen_) indirPG[i] = -indirPG[i];
       }
     }
   }
@@ -652,7 +649,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsNGon(
 
   // Element map to eliminate duplicates
   Topology E;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > eltMap;
+  std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > eltMap;
+  eltMap.reserve(nelts);
 
   if (rmDegeneratedElts && dim > 0)
   {
@@ -677,7 +675,7 @@ E_Int K_CONNECT::V_identifyDirtyElementsNGon(
         }
         indirPH[i] = res.first->second;
         // Flip sign of degenerated elements
-        if (E.isDegen_) indirPH[i] *= -1;
+        if (E.isDegen_) indirPH[i] = -indirPH[i];
       }
     }
   }
@@ -717,29 +715,19 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Int nc = cn.getNConnect();
   E_Int vidx;
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   // Get dimensionality
-  E_Int dim = 3;
-  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 ||
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
-  for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
-  
-  //for (E_Int ic = 0; ic < nc; ic++) std::cout<<"eltType: " << eltTypes[ic] << std::endl;
-  //std::cout<<"dim: " << dim << std::endl;
+  E_Int dim = K_CONNECT::getDimME(eltType);
 
   // Compute total number of elements
-  E_Int neltsTot = 0;
+  E_Int ntotElts = 0;
   std::vector<E_Int> nepc(nc); // initial number of elements per connectivity
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     nepc[ic] = nelts;
-    neltsTot += nelts;
+    ntotElts += nelts;
   }
   
   // --- 1. Points ---
@@ -831,13 +819,13 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   }
 
   // --- 2. Identify dirty elements topologically ---
-  E_Int nuniqueEltsTot = neltsTot;
+  E_Int ntotUniqueElts = ntotElts;
   std::vector<E_Int> indirPH, nuniqueElts;
   if (rmDirtyElts)
   {
-    nuniqueEltsTot = K_CONNECT::V_identifyDirtyElementsME(
-        dim, cn, indirPH, nuniqueElts, neltsTot, rmDegeneratedElts);
-    if (nuniqueEltsTot == neltsTot) rmDuplicatedElts = false;
+    ntotUniqueElts = K_CONNECT::V_identifyDirtyElementsME(
+        dim, cn, indirPH, nuniqueElts, ntotElts, rmDegeneratedElts);
+    if (ntotUniqueElts == ntotElts) rmDuplicatedElts = false;
   }
   else
   {
@@ -848,8 +836,8 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       nuniqueElts[ic] = cm.getSize();
     }
   }
-  //std::cout<<"neltsTot: " << neltsTot << std::endl;
-  //std::cout<<"nuniqueEltsTot: " << nuniqueEltsTot << std::endl;
+  //std::cout<<"ntotElts: " << ntotElts << std::endl;
+  //std::cout<<"ntotUniqueElts: " << ntotUniqueElts << std::endl;
 
   // --- 3. Reindex & Compress connectivities ---
   if (rmDirtyElts)
@@ -926,29 +914,30 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
 
 E_Int K_CONNECT::V_identifyDirtyElementsME(
   E_Int dim, FldArrayI& cn, std::vector<E_Int>& indir,
-  std::vector<E_Int>& nuniqueElts, E_Int neltsTot,
+  std::vector<E_Int>& nuniqueElts, E_Int ntotElts,
   E_Bool rmDegeneratedElts
 )
 {
   E_Int nc = cn.getNConnect();
-  E_Int nuniqueEltsTot = 0;
+  E_Int ntotUniqueElts = 0;
   // Compute total number of elements if not provided
-  if (neltsTot == 0)
+  if (ntotElts == 0)
   {
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cn.getConnect(ic));
       E_Int nelts = cm.getSize();
-      neltsTot += nelts;
+      ntotElts += nelts;
     }
   }
-  indir.clear(); indir.resize(neltsTot);
+  indir.clear(); indir.resize(ntotElts);
   nuniqueElts.clear(); nuniqueElts.resize(nc);
 
   // Element map to eliminate duplicates
   E_Int elOffset = 0;
   TopologyOpt E;
-  std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > eltMap;
+  std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > eltMap;
+  eltMap.reserve(ntotElts);
 
   if (rmDegeneratedElts && dim > 0)
   {
@@ -985,7 +974,7 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       }
       elOffset += nelts;
       nuniqueElts[ic] -= 1;
-      nuniqueEltsTot += nuniqueElts[ic];
+      ntotUniqueElts += nuniqueElts[ic];
     }
   }
   else
@@ -1016,8 +1005,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       }
       elOffset += nelts;
       nuniqueElts[ic] -= 1;
-      nuniqueEltsTot += nuniqueElts[ic];
+      ntotUniqueElts += nuniqueElts[ic];
     }
   }
-  return nuniqueEltsTot;
+  return ntotUniqueElts;
 }

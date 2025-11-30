@@ -150,14 +150,9 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
       else // ME
       {
         E_Int nc = cn->getNConnect();
-        std::vector<char*> eltTypes;
-        K_ARRAY::extractVars(eltType, eltTypes);
 
-        // Get ME mesh dimensionality from the first element type
-        E_Int dim = 3;
-        if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-        else if (strcmp(eltTypes[0], "TRI") == 0 or
-                 strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+        // Get dimensionality
+        E_Int dim = K_CONNECT::getDimME(eltType);
         
         if (dim == 1)
         {
@@ -227,8 +222,6 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
             snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol
           );
         }
-
-        for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       }
       
       RELEASESHAREDS(tpl, f2);

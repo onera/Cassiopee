@@ -185,9 +185,7 @@ def _computeGrad2(t, var, withCellN=True):
 
     # Compute graph of match
     procDict = Cmpi.getProcDict(t)
-    #print(Cmpi.rank, procDict)
     graph = Cmpi.computeGraph(t, type='match', procDict=procDict)
-    #print(Cmpi.rank, 'graph', graph, flush=True)
 
     zones = Internal.getZones(t)
     export = {}

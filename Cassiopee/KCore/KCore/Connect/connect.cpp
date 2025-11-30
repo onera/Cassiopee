@@ -29,7 +29,7 @@ using namespace std;
    IN: et0: numero de l'element considere dans cFNEF: demarre a 0 
    IN: vert0: pt de et0, de face0 dont on cherche l'image ds et0: demarre a 1
    IN: face0: numero de la face a laquelle appartient le pt vert0: demarre a 1
-   IN: vertices: liste des vertices candidats de la face 
+   IN: vertices: liste des vertices candidats de la face opposee 
    OUT: vert1: pt image: demarre a 1
 */
 //=============================================================================
@@ -46,40 +46,38 @@ E_Int K_CONNECT::image(E_Int vert0, E_Int face0, E_Int et0,
                        vector<E_Int>& vertices, FldArrayI& cNG,
                        E_Int* ngon, E_Int* nface, E_Int* indPG, E_Int* indPH)
 {
-  E_Int vert, vertm, vertp, nv, nfacesl;
-  E_Int* elem0 = cNG.getElt(et0, nfacesl, nface, indPH); // pointeur sur l'element et0 dans cNG
-  // selectionne les faces de l'element autre que face0
-  vector<E_Int> faces;
+  E_Int nv, nf;
+  // vertm: indice du point precedent vert0 pour la face adjacente a face0
+  // vertp: indice du point suivant vert0 pour la face adjacente a face0
+  E_Int vertm = -1, vertp = -1;
+  E_Int* elt = cNG.getElt(et0, nf, nface, indPH);
   
-  for (E_Int i = 0; i < nfacesl; i++)
+  for (E_Int i = 0; i < nf; i++)
   {
-    if (elem0[i] != face0) faces.push_back(elem0[i]-1);
-  }
-  
-  for (size_t nof = 0; nof < faces.size(); nof++)
-  {
-    E_Int* face = cNG.getFace(faces[nof], nv, ngon, indPG);
+    // Iterate over faces other than face0
+    if (elt[i] == face0) continue;
+
+    E_Int* face = cNG.getFace(elt[i]-1, nv, ngon, indPG);
     // recherche du pt vert0
-    for (E_Int nov = 0; nov < nv; nov++)
+    for (E_Int v = 0; v < nv; v++)
     {
-      vert = face[nov]; // indice du point
-      vertm = -1; vertp = -1; // vertm : indice du point precedent, vertp : indice du point suivant
-      if (vert == vert0)
+      if (face[v] == vert0)
       {
-        if (nov == 0) vertm = face[nv-1];
-        else vertm = face[nov-1];
-        if (nov == nv-1) vertp = face[0];
-        else vertp = face[nov+1];
+        if (v == 0) vertm = face[nv-1];
+        else vertm = face[v-1];
+        if (v == nv-1) vertp = face[0];
+        else vertp = face[v+1];
         goto fin;
       }
     }
   }
   fin:;
-  // recherche du bon candidat: 
-  for (size_t nov = 0; nov < vertices.size(); nov++)
+
+  // recherche lequel de vertm ou vertp appartient a la face opposee
+  for (size_t v = 0; v < vertices.size(); v++)
   {
-    if (vertices[nov] == vertm) return vertm;
-    else if (vertices[nov] == vertp) return vertp;
+    if (vertices[v] == vertm) return vertm;
+    else if (vertices[v] == vertp) return vertp;
   }
   return -1;
 }

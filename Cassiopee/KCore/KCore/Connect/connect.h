@@ -159,6 +159,11 @@ namespace K_CONNECT
   /*----------------------------------*/
   /* - Connectivite element basique - */
   /*----------------------------------*/
+  // Get dimensionality of a BE/ME connectivity based on its element types
+  // Shall ultimately be moved to FldArrayI once _ngon=0 means BE/ME
+  E_Int getDimME(const char* eltType);
+  E_Int getDimME(std::vector<char*> eltTypes);
+
   // Get the number of facets per element type of a Multiple Element
   // connectivity. If expandToLowerDim is set to True, 'faces' of 1D and 2D
   // elements are vertices and edges, respectively.
@@ -241,8 +246,12 @@ namespace K_CONNECT
      IN/OUT: cEV: connectivite elt/vertex TRI
      IN: dir: +1 ou -1
   */
-  E_Int reorderQuadTriField(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, 
-                            E_Int dir);
+  E_Int reorderUnstruct2D(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, E_Int dir);
+
+ /* Reorder the vertex indices of a 3D ME connectivity such that each facet
+    normal is pointing outward. */
+  E_Int reorderUnstruct3D(const char* varString, K_FLD::FldArrayF& f, 
+                          K_FLD::FldArrayI& cn, const char* eltType);
 
   /* 
      Creation de la connectivite Elements -> Noeuds

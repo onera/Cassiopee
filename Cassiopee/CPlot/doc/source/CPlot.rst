@@ -90,36 +90,181 @@ Contents
 Keys in CPlot window
 ---------------------------
 
-    Keys must be pressed when CPlot window is active.
+Keys must be pressed when CPlot window is active.
 
-    + **f**: fit view to data.
-    + **Ctrl+f**: switch between full screen and windowed mode.
-    + **Left/right Arrows** or **mouse drag**: rotate model.
-    + **Up/down Arrows** or **mouse drag**: rotate model.
-    + **Ctrl + Up/down Arrows** or **mouse wheel**: zoom in and out
-    + **Shift + Arrows** or **right mouse drag**: translate model.
-    + **Ctrl + Arrows** or **Ctrl + right mouse drag**: tilt model.
+|pad-html| |pad-latex| |iconKeys| Rotate the view. |br-html| |br-latex|
+|iconCtrl| + |iconKeysUp| Zoom in/out. |br-html| |br-latex|
+|iconCtrl| + |iconKeysLeft| Tilt the view. |br-html| |br-latex|
+|iconShift| + |iconKeys| Translate the view. |br-html| |br-latex| |br-html| |br-latex|
 
-    + **Shift + left mouse click**: select zone.
-    + **Shift + Ctrl + left mouse click**: multiple select.
-    + **Ctrl + left mouse click**: Accurate select (click on nearest mesh node)
-    + **Shift + right mouse click**: deactivate (hide) zone.
-    + **Shift + double left mouse click**: center view on clicked point.
+|iconLeftClick| + |iconMove| Rotate the view. |br-html| |br-latex|
+|iconRightClick| + |iconMove| Translate the view. |br-html| |br-latex|
+|iconScroll| Zoom in/out. |br-html| |br-latex| |br-html| |br-latex|
 
-    + **1** or **Shift+1**: toggle between mesh/solid modes.
-    + **2** or **Shift+2**: display fields (switch variable - next and previous).
-    + **3**: set render mode.
-    + **Space bar**: toggle select all zones.
-    + **\< \>**: toggle ambiguous selections.
-    + **m** or **M**: toggle between 2D and 3D mode.
-    + **z** or **Z**: select zones one by one.
-    + **a** or **A**: activate(show)/deactivate(hide) a selected zone.
-    + **l**: look for selected zone.
-    + **i** or **I** or **Ctrl+i** or **Ctrl+I**: change displayed i plane (structured zones).
-    + **j** or **J** or **Ctrl+j** or **Ctrl+J**: change displayed j plane.
-    + **k** or **K** or **Ctrl+k** or **Ctrl+K**: change displayed k plane.
-    + **q**: quit.
-    
+|iconCtrl| + |iconLeftClick| Select one zone at a time (on the graphics window or in tkTree) and place the cursor exactly on a mesh point. |br-html| |br-latex|
+|iconCtrl| + |iconDoubleLeftClick| Center the view on a mesh point. |br-html| |br-latex|
+|iconCtrl| + |iconLeftClick| + |iconMove| Change the point of view. |br-html| |br-latex|
+|iconCtrl| + |iconRightClick| + |iconMove| Tilt the view. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconShift| + |iconLeftClick| Select one zone at a time (on the graphics window or in tkTree). |br-html| |br-latex|
+|iconShift| + |iconRightClick| Deactivate (hide) or reactivate (show) one zone (on the graphics window or in tkTree). |br-html| |br-latex|
+|iconShift| + |iconLeftClick| + |iconMove| Enable multiple selections. |br-html| |br-latex|
+|iconShift| + |iconRightClick| + |iconMove| Enable multiple deactivations. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconShift| + |iconCtrl| + |iconLeftClick| Select multiple zones (on the graphics window or in tkTree). |br-html| |br-latex|
+Note: when clicking in tkTree, you may click on a zone name, a base name or on "tree".
+|iconShift| + |iconLeftClick| on a base name will select all the zones of the base.
+|iconShift| + |iconRightClick| on a base name will activate/deactivate all the zones of the base. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconA| Deactivate the selected zones. |br-html| |br-latex|
+|iconShift| + |iconA| Reactivate (show) the last deactivated zones. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconZ| Select the next active zone. |br-html| |br-latex|
+|iconShift| + |iconZ| Select the previous active zone. |br-html| |br-latex| |br-html| |br-latex|
+
+|icon1| Toggle between Mesh and Solid mode. |br-html| |br-latex|
+|iconShift| + |icon1| Activate the mesh render mode, or activate the previous render mode (Mesh, Solid or Render). |br-html| |br-latex| |br-html| |br-latex|
+
+|icon2| Activate the scalar mode and display the first scalar field, or display the next scalar field. |br-html| |br-latex|
+|iconShift| + |icon2| Activate the scalar mode and display the last scalar field, or display the previous scalar field. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconQ| Quit the application. |br-html| |br-latex|
+|iconR| Reload the current file (Warning: the file must be located in the directory in which Cassiopée was opened). |br-html| |br-latex|
+|iconL| Look for active zones. |br-html| |br-latex|
+|iconM| Modify the view (2D/3D). |br-html| |br-latex|
+|iconC| Change the render style (Note: only works for mesh and solid render modes). |br-html| |br-latex|
+|iconF| Fit the view. |br-html| |br-latex|
+|iconCtrl| + |iconF| Enter or exit full-screen mode. |br-html| |br-latex|
+|iconSpace| Select or unselect all zones. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconI| Activate the I/J/K mode and display the first I plane, or display the next I plane. |br-html| |br-latex|
+|iconJ| Activate the I/J/K mode and display the first J plane, or display the next J plane. |br-html| |br-latex|
+|iconK| Activate the I/J/K mode and display the first K plane, or display the next K plane. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconShift| + |iconI| Activate the I/J/K mode and display the last I plane, or display the previous I plane. |br-html| |br-latex|
+|iconShift| + |iconJ| Activate the I/J/K mode and display the last J plane, or display the previous J plane. |br-html| |br-latex|
+|iconShift| + |iconK| Activate the I/J/K mode and display the last K plane, or display the previous K plane. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconCtrl| + |iconI| Close the I/J/K mode for I. |br-html| |br-latex|
+|iconCtrl| + |iconJ| Close the I/J/K mode for J. |br-html| |br-latex|
+|iconCtrl| + |iconK| Close the I/J/K mode for K. |br-html| |br-latex| |br-html| |br-latex|
+
+|iconShift| + |iconCtrl| + |iconI| Hide I planes (Note: use |iconI| to reactivate them). |br-html| |br-latex|
+|iconShift| + |iconCtrl| + |iconJ| Hide J planes (Note: use |iconJ| to reactivate them). |br-html| |br-latex|
+|iconShift| + |iconCtrl| + |iconK| Hide K planes (Note: use |iconK| to reactivate them).
+
+.. |iconKeys| image:: _static/icon_keys_New.png
+   :height: 30px
+   :class: icon
+
+.. |iconKeysUp| image:: _static/icon_keys_Up.png
+   :height: 30px
+   :class: icon
+
+.. |iconKeysLeft| image:: _static/icon_keys_Left.png
+   :height: 30px
+   :class: icon
+
+.. |iconCtrl| image:: _static/icon_ctrl.png
+   :height: 30px
+   :class: icon
+
+.. |iconShift| image:: _static/icon_shift.png
+   :height: 30px
+   :class: icon
+
+.. |iconLeftClick| image:: _static/icon_leftClick.png
+   :height: 30px
+   :class: icon
+
+.. |iconRightClick| image:: _static/icon_rightClick.png
+   :height: 30px
+   :class: icon
+
+.. |iconDoubleLeftClick| image:: _static/icon_doubleLeftClick.png
+   :height: 30px
+   :class: icon
+
+.. |iconMove| image:: _static/icon_move.png
+   :height: 30px
+   :class: icon
+
+.. |iconScroll| image:: _static/icon_scroll.png
+   :height: 30px
+   :class: icon
+
+.. |iconA| image:: _static/icon_A.png
+   :height: 30px
+   :class: icon
+
+.. |iconZ| image:: _static/icon_Z.png
+   :height: 30px
+   :class: icon
+
+.. |icon1| image:: _static/icon_1.png
+   :height: 30px
+   :class: icon
+
+.. |icon2| image:: _static/icon_2.png
+   :height: 30px
+   :class: icon
+
+.. |iconQ| image:: _static/icon_Q.png
+   :height: 30px
+   :class: icon
+
+.. |iconR| image:: _static/icon_R.png
+   :height: 30px
+   :class: icon
+
+.. |iconL| image:: _static/icon_L.png
+   :height: 30px
+   :class: icon
+
+.. |iconM| image:: _static/icon_M.png
+   :height: 30px
+   :class: icon
+
+.. |iconC| image:: _static/icon_C.png
+   :height: 30px
+   :class: icon
+
+.. |iconF| image:: _static/icon_F.png
+   :height: 30px
+   :class: icon
+
+.. |iconSpace| image:: _static/icon_space.png
+   :height: 30px
+   :class: icon
+
+.. |iconI| image:: _static/icon_I.png
+   :height: 30px
+   :class: icon
+
+.. |iconJ| image:: _static/icon_J.png
+   :height: 30px
+   :class: icon
+
+.. |iconK| image:: _static/icon_K.png
+   :height: 30px
+   :class: icon
+
+.. |br-html| raw:: html
+
+   <br>
+
+.. |br-latex| raw:: latex
+
+   \\
+
+.. |pad-html| raw:: html
+
+   <span style="display:inline-block; width:44px;"></span>
+
+.. |pad-latex| raw:: latex
+
+   \hspace*{47.5px}
+
 ---------------------------------------------------------------------------
 
 Actions

@@ -48,8 +48,11 @@ static PyMethodDef Pyocc [] =
   {"addSquare", K_OCC::addSquare, METH_VARARGS},
   {"addLine", K_OCC::addLine, METH_VARARGS},
   {"addCircle", K_OCC::addCircle, METH_VARARGS},
+  {"addEllipse", K_OCC::addEllipse, METH_VARARGS},
   {"addSpline", K_OCC::addSpline, METH_VARARGS},
   {"addArc", K_OCC::addArc, METH_VARARGS},
+  {"addSuperEllipse", K_OCC::addSuperEllipse, METH_VARARGS},
+  
   {"addGordonSurface", K_OCC::addGordonSurface, METH_VARARGS},
 
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
@@ -91,7 +94,10 @@ static PyMethodDef Pyocc [] =
   {"fillHole", K_OCC::fillHole, METH_VARARGS},
   {"addFillet", K_OCC::addFillet, METH_VARARGS},
   {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
+  {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
+  
   {"loft", K_OCC::loft, METH_VARARGS},
+  {"sweep", K_OCC::sweep, METH_VARARGS},
   {"revolve", K_OCC::revolve, METH_VARARGS},
 
   {"translate", K_OCC::translate, METH_VARARGS},
