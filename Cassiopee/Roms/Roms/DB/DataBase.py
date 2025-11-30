@@ -1,4 +1,4 @@
-# Manage base of data
+# Manage base of CFD data
 
 # DataBase sumary:
 # name <dir>
@@ -19,26 +19,29 @@ import Converter.Filter as Filter
 import Compressor.PyTree as Compressor
 
 class DataBase:
-    def __init__(self, name, parameters):
-        if name[-3:] == ".db": name = name[-3:]
+    def __init__(self, name, parameters=None):
+        if name[-3:] == ".db": name = name[:-3]
         # database name
         self.name = name
         # directory name
         self.dirName = name+'.db'
-        # parameters name list
-        self.parameters = parameters
         if not os.path.exists(self.dirName): os.mkdir(self.dirName)
-        # column name list
-        self.columns = ['id','descp','date','reference','variables']+parameters
         # pointer on sql db
         self.db = None
         self.cursor = None
         if os.path.exists("%s/%s.sql"%(self.dirName, self.name)):
             self.open()
+            p = self.queryColumnNames()[5:]
+            self.parameters = p
         else:
+            if parameters is None:
+                raise ValueError("DataBase: can not create data base with no parameters.")
+            self.parameters = parameters
             self.open()
             self.createTable()
-        print("DataBase: creating %s"%self.dirName)
+            print("DataBase: creating %s"%self.dirName)
+        # column name list
+        self.columns = ['id','descp','date','reference','variables']+self.parameters
 
     # open sql data base
     def open(self):
@@ -68,6 +71,7 @@ class DataBase:
 
     # create reference (all without fields)
     def registerReference(self, t, name):
+        """Write reference file used for coordinates and connectivity."""
         cgnsName = self.dirName+'/%s'%name+'.cgns'
         tp = Internal.copyRef(t)
         Internal._rmNodesFromType(tp, 'FlowSolution_t')
@@ -131,7 +135,7 @@ class DataBase:
         if q != []: id = q[0][0]
         else: id = self.cursor.lastrowid+1
 
-        # get date
+        # get current date
         now = datetime.datetime.now()
         dateString = now.strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -157,11 +161,46 @@ class DataBase:
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             tp = Internal.copyRef(data)
             zones = Internal.getZones(tp)
+            dcoords = None
             for z in zones:
+                # Coordinates
+                FC = Internal.getNodeFromType1(z, 'GridCoordinates_t')
+                if FC is not None:
+                    # check reference if possible
+                    refCgnsName = self.dirName+'/%s'%ref+'.cgns'
+                    refFC = None
+                    if os.path.exists(refCgnsName): # of if ref=None
+                        refFC = Filter.readNodesFromPaths(refCgnsName, ['%s/%s'%(Internal.getPath(tp,z),FC[0])])[0]
+                        for i in Internal.getNodesFromType1(refFC, 'DataArray_t'):
+                            Compressor._unpackNode(i)
+                    if refFC is not None:
+                        px = Internal.getNodeFromName1(FC, 'CoordinateX')
+                        refx = Internal.getNodeFromName1(refFC, 'CoordinateX')
+                        py = Internal.getNodeFromName1(FC, 'CoordinateY')
+                        refy = Internal.getNodeFromName1(refFC, 'CoordinateY')
+                        pz = Internal.getNodeFromName1(FC, 'CoordinateZ')
+                        refz = Internal.getNodeFromName1(refFC, 'CoordinateZ')
+                        dx = px[1] - refx[1]
+                        dy = py[1] - refy[1]
+                        dz = pz[1] - refz[1]
+                        retx = numpy.allclose(dx, 0., atol=1.e-10)
+                        rety = numpy.allclose(dy, 0., atol=1.e-10)
+                        retz = numpy.allclose(dz, 0., atol=1.e-10)
+                        if retx == False or rety == False or retz == False:
+                            dxn = Internal.newDataArray('dx', dx)
+                            dyn = Internal.newDataArray('dy', dy)
+                            dzn = Internal.newDataArray('dz', dz)
+                            dcoords = [dxn,dyn,dzn]
+                # Fields
                 ZT = Internal.getNodeFromType1(z, 'ZoneType_t')
                 FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
-                z[2] = [ZT]
-                z[2] += FS
+                z[2] = []
+                if ZT is not None: z[2] += [ZT]
+                if FS is not None: z[2] += FS
+                if dcoords is not None:
+                    # add dx,dy,dz to flow solution
+                    b = Internal.getNodeFromType1(z, 'FlowSolution_t')
+                    if b is not None: b[2] += dcoords
             if tol <= 0: Compressor._compressAll(tp) # lossless
             else:
                 Compressor._compressFields(tp, tol=tol, ctype=0) # approx
@@ -198,7 +237,7 @@ class DataBase:
         q = self.cursor.fetchall()
         return q
 
-    # return True if parameters exist
+    # return True if parameters exist in db
     def exist(self, point=None):
         com = ''
         if point is not None:
@@ -235,6 +274,17 @@ class DataBase:
             t = C.convertFile2PyTree(cgnsName)
             if mode == 0:
                 t = Internal.merge([tref, t])
+                for z in Internal.getZones(t):
+                    dx = Internal.getNodeFromName2(z, 'dx')
+                    dy = Internal.getNodeFromName2(z, 'dy')
+                    dz = Internal.getNodeFromName2(z, 'dz')
+                    if dx is not None and dy is not None and dz is not None:
+                        px = Internal.getNodeFromName2(z, 'CoordinateX')
+                        px = px + dx
+                        py = Internal.getNodeFromName2(z, 'CoordinateX')
+                        py = py + dy
+                        pz = Internal.getNodeFromName2(z, 'CoordinateX')
+                        pz = pz + dz
             ts.append(t)
         return ts
 
@@ -299,3 +349,13 @@ class DataBase:
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             os.remove(cgnsName)
+
+    # monitor: write string to a log file monitor.txt
+    def monitor(self, text):
+        """Write text to log file in db."""
+        logName = self.dirName+'/monitor.txt'
+        now = datetime.datetime.now()
+        dateString = now.strftime("%Y-%m-%dT%H:%M:%S")
+        fp = open(logName, "a")
+        fp.write(dateString+':'+text)
+        fp.close()

@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+import Roms.DB.DataBase as DataBase
+import Converter.PyTree as C
+import sys
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("kdb: wrong arguments.")
+        print("kdb: usage: kdb <name.db>")
+        sys.exit(1)
+
+    # argument 1 is the data base name
+    baseName = sys.argv[1]
+    
+    # argument 2 is the command
+    if len(sys.argv) == 3: com = sys.argv[2]
+    else: com = None
+
+    db = DataBase.DataBase(baseName)
+
+    # catalog
+    if com is None:
+        # liste rows in db and print them
+        
+        print('='*9*len(db.columns))
+        txt = ''
+        for i in db.columns:
+            txt += str(i)[0:8].ljust(9)
+        print(txt)
+        print('='*9*len(db.columns))
+            
+        q = db.query()
+        for r in q:
+            #txt = str(r[0]).ljust(5),r[1].ljust(10), r[2].ljust(10), r[3].ljust(5)
+            txt = ''
+            for i in r:
+                txt += str(i)[0:8].ljust(9)
+            print(txt)
+            
+    else:
+        # fetch one id
+        id = int(com)
+        q = db.query("id = %d"%id)
+        t = db.fetchTree(q)
+        C.convertPyTree2File(t[0], 'out.cgns')
+
+    db.close()

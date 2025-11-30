@@ -191,7 +191,7 @@ def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
             _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
     return None
 
-def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
+def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN', indices=None, BCField=None):
     """Set interpolated points cellN=2 around cellN=0 points."""
     if depth == 0: return celln
     try: import Converter
@@ -214,7 +214,7 @@ def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN'):
             celln = getOversetHolesInterpCellCenters__(celln, -depth, dir, cellNName)
             celln = Converter.initVars(celln,
                                        '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-        else: celln = getOversetHolesInterpCellCenters__(celln, depth, dir, cellNName)
+        else: celln = getOversetHolesInterpCellCenters__(celln, depth, dir, cellNName, indices, BCField)
     return celln
 
 #------------------------------------------------------------------------------
@@ -519,10 +519,11 @@ def writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCell
 # IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
 # IN: depth: nb de rangees de cellules interpolees
 #-----------------------------------------------------------------------------
-def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
+def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN',
+                                       indices=None, BCField=None):
     """Set cellN=2 for the fringe of interpolated cells around cells of celln
     equal to 0."""
-    return connector.getOversetHolesInterpCellCenters(zc, depth, dir, cellNName)
+    return connector.getOversetHolesInterpCellCenters(zc, depth, dir, cellNName, indices, BCField)
 
 # version getFromArray2: ne marche qu en structure
 def _getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
