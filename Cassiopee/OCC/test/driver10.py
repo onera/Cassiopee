@@ -47,10 +47,10 @@ D.DRIVER.instantiate({'length': 10})
 surface.writeCAD('out.step')
 
 import CPlot, time
-pt = D.DRIVER.walkDOE()
-while pt is not None:
-    D.DRIVER.instantiate(pt)
+point = D.DRIVER.walkDOE()
+while point is not None:
+    D.DRIVER.instantiate(point)
     mesh = surface.mesh(0.1, 0.1, 0.1)
     CPlot.display(mesh)
-    pt = D.DRIVER.walkDOE()
+    point = D.DRIVER.walkDOE()
     time.sleep(0.5)

@@ -26,7 +26,7 @@ using namespace K_FLD;
 // ============================================================================
 PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
 {
-  E_Int oi=1, oj=1, ok=1;
+  E_Int oi = 1, oj = 1, ok = 1;
   PyObject* array; PyObject* order;
   if (!PYPARSETUPLE_(args, OO_, &array, &order))
   {
@@ -65,6 +65,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "reorder: order tuple must be of size 3, eg, (1,2,3).");
+      RELEASESHAREDS(array, f);
       return NULL;
     }
   
@@ -92,6 +93,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
       {
         PyErr_SetString(PyExc_TypeError,
                         "reorder: order tuple must be (1,) or (-1,) for NGONs.");
+        RELEASESHAREDU(array, f, cn);
         return NULL;
       }
   
@@ -134,6 +136,8 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
         {
           PyErr_SetString(PyExc_TypeError,
                           "reorder: order tuple must be (1,) or (-1,) for TRI or QUAD.");
+          RELEASESHAREDU(tpl, f2, cn2);
+          RELEASESHAREDU(array, f, cn);
           return NULL;
         }
         K_CONNECT::reorderUnstruct2D(*f2, *cn2, E_Int(oi));

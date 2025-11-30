@@ -1294,7 +1294,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     vector<E_Int> edge(2);
     std::pair<E_Int, E_Bool> initEdge(-1, false);
     TopologyOpt E;
-    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, BernsteinHash<TopologyOpt> > edgeMap;
 
     // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
@@ -1635,7 +1635,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     vector<E_Int> edge(2);
     std::pair<E_Int, E_Bool> initEdge(-1, false);
     TopologyOpt E;
-    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+    std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, BernsteinHash<TopologyOpt> > edgeMap;
 
     // Loop over all faces to extract
     for (E_Int i = 0; i < n; i++)
@@ -1834,7 +1834,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
       FaceAttrs(E_Int ic, E_Int eidx, E_Int fidx, E_Int glbFidx):
         ic_(ic), eidx_(eidx), fidx_(fidx), glbFidx_(glbFidx) {}
     };
-    //std::unordered_map<TopologyOpt, FaceAttrs, JenkinsHash<TopologyOpt> > faceMap;
+    //std::unordered_map<TopologyOpt, FaceAttrs, BernsteinHash<TopologyOpt> > faceMap;
     std::map<TopologyOpt, FaceAttrs> faceMap; // std::map for reproducibility
 
     // Loop over all faces to extract and fill the indirection table

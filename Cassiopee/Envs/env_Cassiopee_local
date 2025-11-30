@@ -29,6 +29,7 @@ fi
 if [[ "$MACHINE" == juno* ]]; then
     echo "unsetenv SLURM*" >> /tmp/.vars.csh
     echo "unsetenv OMP_PLACES" >> /tmp/.vars.csh
+    echo "setenv SLURM_CONF_SERVER 10.33.131.11:6817" >> /tmp/.vars.csh
 fi
 
 exit

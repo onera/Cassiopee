@@ -296,6 +296,8 @@ class Entity:
             OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
         elif self.type == "arc":
             OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
+        elif self.type == "superellipse":
+            OCC.occ.addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -344,6 +346,10 @@ def Spline3(name=None, PGrid=None, mesh=None):
 # circle from parametric center and radius
 def Circle(name=None, C=(0.,0.,0.), R=1.):
     return Entity(name, [C, R], type="circle")
+
+# superellipse from parametric center and R1, R2
+def SuperEllipse(name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36):
+    return Entity(name, [C, R1, R2, N, samples], type="superellipse")
 
 # arc from 3 parametric points
 def Arc(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), P3=(0.,0.,0.)):
@@ -615,6 +621,10 @@ def Merge(name="compound", listSurfaces=[]):
     return Surface(name=name, listSurfaces=listSurfaces,
                    type="merge")
 
+def MergeEdges(name="mergeEdges", listSketches=[]):
+    """Merge edges. Not a surface."""
+    return Surface(name=name, listSketches=listSketches, type="mergeEdges")
+
 def Fill(name="fill", sketch=None, continuity=0):
     """Create a surface that fill a sketch."""
     return Surface(name=name, listSketches=[sketch],
@@ -638,10 +648,6 @@ def Inter(name="inter", listSurfaces1=[], listSurfaces2=[]):
     return Surface(name=name, listSurfaces=listSurfaces1,
                    listSurfaces2=listSurfaces2,
                    type="inter")
-
-def MergeEdges(name="mergeEdges", listSketches=[]):
-    """Merge edges. Not a surface."""
-    return Surface(name=name, listSketches=listSketches, type="mergeEdges")
 
 #============================================================
 class Eq:
@@ -692,6 +698,8 @@ class Driver:
         self.scalars2 = {} # symbol -> scalar
         self.points = {} # points
         self.grids = {} # grids
+        # db
+        self.db = None # optional db
         # all entities
         self.edges = {} # edges
         self.sketches = {} # wires
@@ -963,7 +971,7 @@ class Driver:
         for f in self.freeParams: # give order
             p = self.scalars2[f]
             if len(p.range) == 3: # disc given in range
-                self.doeRange.append(numpy.arange(p.range[0], p.range[1], p.range[2]))
+                self.doeRange.append(numpy.arange(p.range[0], p.range[1]+1.e-12, p.range[2]))
                 self.doeSize.append(p.range[2])
             else: # set to 2 points
                 self.doeRange.append(numpy.linspace(p.range[0], p.range[1], 2))
@@ -974,7 +982,7 @@ class Driver:
             for c, f in enumerate(self.freeParams):
                 if self.scalars2[f].name == k:
                     p = self.scalars2[f]
-                    self.doeRange[c] = numpy.arange(p.range[0], p.range[1], deltas[k])
+                    self.doeRange[c] = numpy.arange(p.range[0], p.range[1]+1.e-12, deltas[k])
                     self.doeSize[c] = deltas[k]
         return None
 
@@ -987,7 +995,7 @@ class Driver:
             # create iterator
             ranges = []; size = 0
             for k in self.doeRange:
-                ranges.append(range(k.size))
+                ranges.append(k)
                 size += k.size
             self.iter = itertools.product(*ranges)
         # iterate
@@ -1002,7 +1010,14 @@ class Driver:
         # instantiate
         print("DOE: Checking point ", pt)
         valid = self.instantiate(pt)
-        if valid: return pt
+        if valid:
+            if self.db is not None:
+                exist = self.db.exist(pt)
+                if not exist: return pt
+                else:
+                    print("DOE: => Already in db. Skipped.")
+                    return self.walkDOE()
+            else: return pt
         else: return self.walkDOE()
 
     # walk DOE1, instantiate, parallel CFD but sequential on parameters

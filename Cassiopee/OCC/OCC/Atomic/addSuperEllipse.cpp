@@ -29,7 +29,6 @@
 #include "BRepBuilderAPI_MakeFace.hxx"
 #include "gp_Ax2.hxx"
 #include "gp_Dir.hxx"
-#include "Geom2dAPI_Interpolate.hxx"
 #include "TColgp_Array1OfPnt.hxx"
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
