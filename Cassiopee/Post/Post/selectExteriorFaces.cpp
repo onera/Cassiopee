@@ -823,14 +823,13 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
   // Les vertices sont mappes pour calculer leur table d'indirection sachant 
   // que leur nombre n'est pas connu a priori et qu'ils ne sont pas parcourus
   // dans l'ordre.
-  std::unordered_map<E_Int, E_Int> vertexMap;
+  std::unordered_map<E_Int, E_Int> vertexMap; vertexMap.reserve(npts);
   // Les aretes sont hashees pour determiner le nombre unique d'aretes et
   // construire la nouvelle connectivite 2D
   vector<E_Int> edge(2);
   std::pair<E_Int, E_Bool> initEdge(-1, false);
-  //TopologyOpt E; std::map<TopologyOpt, std::pair<E_Int, E_Bool> > edgeMap;
-  //Topology E; std::unordered_map<Topology, std::pair<E_Int, E_Bool>, JenkinsHash<Topology> > edgeMap;
-  TopologyOpt E; std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, JenkinsHash<TopologyOpt> > edgeMap;
+  TopologyOpt E;
+  std::unordered_map<TopologyOpt, std::pair<E_Int, E_Bool>, BernsteinHash<TopologyOpt> > edgeMap;
 
   for (E_Int i = 0; i < nfaces; i++)
   {
@@ -1004,16 +1003,14 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
   // Les vertices sont mappes pour calculer leur table d'indirection sachant 
   // que leur nombre n'est pas connu a priori et qu'ils ne sont pas parcourus
   // dans l'ordre.
-  std::unordered_map<E_Int, E_Int > vertexMap;
+  std::unordered_map<E_Int, E_Int > vertexMap; vertexMap.reserve(npts);
   // Les aretes sont hashees pour determiner le nombre unique d'aretes et
   // ainsi construire les "elements" de la nouvelle connectivite 1D
   E_Int nedgesExt = 0;
   vector<E_Int> edge(2);
   vector<E_Int> exteriorEdges;
   TopologyOpt E;
-  std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > edgeMap;
-  //Topology E;
-  //std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > edgeMap;
+  std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > edgeMap;
 
 
   for (E_Int i = 0; i < nfaces; i++)
