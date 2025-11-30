@@ -150,14 +150,9 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
       else // ME
       {
         E_Int nc = cn->getNConnect();
-        std::vector<char*> eltTypes;
-        K_ARRAY::extractVars(eltType, eltTypes);
 
-        // Get ME mesh dimensionality from the first element type
-        E_Int dim = 3;
-        if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-        else if (strcmp(eltTypes[0], "TRI") == 0 or
-                 strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
+        // Get dimensionality
+        E_Int dim = K_CONNECT::getDimME(eltType);
         
         if (dim == 1)
         {
@@ -200,28 +195,23 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
         }
         else if (dim == 3)
         {
+          // Number of facets per element
+          std::vector<E_Int> nfpe;
+          E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+          if (ierr != 0)
+          {
+            RELEASESHAREDS(tpl, f2);
+            RELEASESHAREDU(array, f, cn);
+            return NULL;
+          }
+          
           // Compute total number of facets
-          E_Int nfpe;
           E_Int ntotFacets = 0;
           for (E_Int ic = 0; ic < nc; ic++)
           {
             K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
             E_Int nelts = cm.getSize();
-            if (strcmp(eltTypes[ic], "TRI") == 0) nfpe = 1;
-            else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe = 1;
-            else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe = 4;
-            else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe = 5;
-            else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe = 5;
-            else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe = 6;
-            else
-            {
-              PyErr_SetString(PyExc_ValueError,
-                              "getVolumeMap: Unknown type of element.");
-              RELEASESHAREDS(tpl, f2);
-              RELEASESHAREDU(array, f, cn);
-              return NULL;
-            }
-            ntotFacets += nfpe*nelts;
+            ntotFacets += nfpe[ic]*nelts;
           }
           
           FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
@@ -232,8 +222,6 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
             snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol
           );
         }
-
-        for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       }
       
       RELEASESHAREDS(tpl, f2);

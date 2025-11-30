@@ -2495,7 +2495,7 @@ class IBM(Common):
                         zrname = self.zonesRIBC[nozr][0]
                         interpPtsBB = Generator.BB(allInterpPts[nozr])
                         for z in zones:
-                            bba = C.getFields('GridCoordinates', z)[0]
+                            bba = C.getFields('GridCoordinates', z, api=1)[0]
                             if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
@@ -2515,7 +2515,7 @@ class IBM(Common):
                             zrname = self.zonesRIBC[nozr][0]
                             interpPtsBB2 = Generator.BB(allInterpPts2[nozr])
                             for z in zones:
-                                bba = C.getFields('GridCoordinates', z)[0]
+                                bba = C.getFields('GridCoordinates', z, api=1)[0]
                                 if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                     zname = z[0]
                                     popp  = Cmpi.getProc(z)

@@ -431,7 +431,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     return None
 
 def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nodes', \
-                         order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                         order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                          interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None,model="Euler"):
 
     prefixIBCD ='IBCD_'
@@ -461,7 +461,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
     #-------------------------------------------
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                          nature=nature, method=method, interpDataType=interpDataType,\
+                                          nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                           hook=hook, dim=dim)
     if resInterp is not None:
         # Bilan
@@ -584,7 +584,7 @@ def _setIBCDataForZone__(z, zonesDnr, correctedPts, wallPts, interpPts, loc='nod
 
 # 2nd PI
 def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpPts2=None, loc='nodes', \
-                          order=2, penalty=0, nature=0, method='lagrangian', storage='direct',\
+                          order=2, penalty=0, nature=0, extrap=1, method='lagrangian', storage='direct',\
                           interpDataType=1, hook=None, dim=3, bcType=-1, ReferenceState=None):
 
     prefixIBCD ='IBCD_'
@@ -621,14 +621,14 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
     # resInterp = [rcvInd1D,donorInd1D,donorType,coefs,extrap,orphan, EXdirs]
     if interpPts is not None:
         resInterp = Connector.setInterpData__(interpPts, arraysD, order=order, penalty=penalty, \
-                                              nature=nature, method=method, interpDataType=interpDataType,\
+                                              nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                               hook=hook, dim=dim)
     else:
         resInterp = None
 
     if interpPts2 is not None:
         resInterp2 = Connector.setInterpData__(interpPts2, arraysD, order=order, penalty=penalty, \
-                                               nature=nature, method=method, interpDataType=interpDataType,\
+                                               nature=nature, extrap=extrap, method=method, interpDataType=interpDataType,\
                                                hook=hook, dim=dim)
     else:
         resInterp2 = None
@@ -996,7 +996,7 @@ def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bc
         zsr[2].append(['gradzVelocityZ' , gradzVelocityZNP , [], 'DataArray_t'])
 
     ##Moving IBM
-    timeMotion = Internal.getNodeByName(z,'TimeMotion')
+    timeMotion = Internal.getNodeByName(z, 'TimeMotion')
     if timeMotion:
         zsr[2].append(['CoordinateX_PC#Init',coordsPC[1][0,:], [], 'DataArray_t'])
         zsr[2].append(['CoordinateY_PC#Init',coordsPC[1][1,:], [], 'DataArray_t'])
@@ -1312,11 +1312,13 @@ def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                                 index = resInterp[4][noz][noi]
                                 resInterp[4][noz][noi] = indcells[index]
                             if verbose == 3: # force cellN#Orphan=-2
+                                listExtrap = resInterp[4][noz]
                                 if Internal.getNodeFromName2(z, 'cellN#Orphan') is None:
                                     C._initVars(z, "{%s:cellN#Orphan} = {%s:cellN}"%(loc,loc))
-                                cellNOrphan = Converter.array('cellN#Orphan', listOrphan.size, 1, 1)
+                                cellNOrphan = Converter.array('cellN#Orphan', nextraploc, 1, 1)
                                 cellNOrphan = Converter.initVars(cellNOrphan, 'cellN#Orphan', -2.)
-                                C._setPartialFields(z, [cellNOrphan], [listOrphan], loc=locR)
+                                C._setPartialFields(z, [cellNOrphan], [listExtrap], loc=locR)
+
                 #----------------------------------
                 # Etape 3: Stockage dans l'arbre
                 # direct: on stocke dans aR
@@ -2551,10 +2553,10 @@ def oversetCellRatio__(aR, topTreeD):
                             field[1][0,noind] = cr
                         zr = C.setPartialFields(zr, [field], [ListRcv],loc=locr)
                         # parentr[2][dr] = zr
-    #
-    C._rmVars(tR,'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c etait ds l arbre avant
-    C._rmVars(tR,'vol')
-    C._rmVars(tD,'vol')
+
+    C._rmVars(tR, 'centers:vol') # faut il la detruire ou non ? pas de test leger pour savoir si c'etait ds l arbre avant
+    C._rmVars(tR, 'vol')
+    C._rmVars(tD, 'vol')
     return tR
 
 #===============================================================================

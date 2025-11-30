@@ -31,7 +31,7 @@
 // ==========================================================================
 ///+ Basic types
 
-// Essai de trouve si long long existe (8 octets)
+// Essai pour trouver si long long existe (8 octets)
 #ifdef LLONG_MAX
   #define E_LONG long long
 //int64_t
@@ -47,6 +47,7 @@
   #else
     #define E_PCM_FLOAT sizeof(E_Float)
   #endif
+  #define E_MAXFLOAT 1.797693134862315e308
 #else
   typedef float E_Float;
   #ifdef E_MPI
@@ -54,6 +55,7 @@
   #else
     #define E_PCM_FLOAT sizeof(E_Float)
   #endif
+  #define E_MAXFLOAT 3.4028235e38
 #endif
 
 // Int (int or long long)
@@ -68,6 +70,7 @@
   #endif
   #define E_NPY_INT NPY_INT64 
   #define E_IDX_NONE E_Int(9223372036854775807)
+  #define E_MAXINT 9223372036854775807 // Max for signed int64
 #else
   typedef int E_Int;
   typedef int E_Bool;
@@ -79,11 +82,12 @@
   #endif
   #define E_NPY_INT NPY_INT
   #define E_IDX_NONE 2147483647
+  #define E_MAXINT 2147483647 // Max for signed int32
 #endif
 
 ///-
 
-#define E_EPSILON         1.e-12
+#define E_EPSILON 1.e-12
 
 ///-
 

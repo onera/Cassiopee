@@ -1160,8 +1160,8 @@ def _addOppFaceData2Face(z, zOpp, ptList, rgEdge):
 
     # Add missing opposite vertices to current
     # NB: the first `nptsEdge` points in 'Opp' should be skipped
-    coords = C.getFields('coords', z)
-    coordsOpp = C.getFields('coords', zOpp)
+    coords = C.getFields('coords', z, api=1)
+    coordsOpp = C.getFields('coords', zOpp, api=1)
     coordsv = Internal.getValue(coords[0])
     coordsOppv = Internal.getValue(coordsOpp[0])
     coords[0][1] = numpy.hstack((coordsv, coordsOppv[:,nptsEdge:]))

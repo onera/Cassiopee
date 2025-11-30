@@ -47,7 +47,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
 
   if (res2 == 2)
   {
-    delete f2; delete cn2;
+    RELEASESHAREDU(arrayLine, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "lineGenerate: driving curve must be structured.");
     return NULL;

@@ -51,7 +51,7 @@ Data::Data(CPlotState* ptState)
   _shadowMap = 0;
   _texColormap = 0;
   _texColormapType = -1;
-  _texColormapMinMax= -1;
+  _texColormapMinMax = -1;
   for (E_Int i = 0; i < 16; i++) _bias[i] = 0.;
   _bias[0] = 0.5; _bias[5]= 0.5; _bias[10] = 0.5; _bias[12] = 0.5;
   _bias[13] = 0.5; _bias[14] = 0.5; _bias[15] = 1.;
@@ -377,6 +377,7 @@ void Data::initState()
   strcpy(ptrState->exportFile, "CPlot");
   ptrState->exportWidth = -1;
   ptrState->exportHeight = -1;
+  ptrState->exportAA = 0;
   ptrState->continuousExport = 0;
   ptrState->ptrFile = NULL;
   ptrState->context = NULL;
@@ -833,7 +834,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              E_Int edgifyActivatedZones,
                              E_Int edgifyDeactivatedZones,
                              E_Int shadow, E_Int dof,
-                             char* exportFile, char* exportResolution)
+                             char* exportFile, char* exportResolution, E_Int exportAA)
 {
   if (xcam != -999) _view.xcam = xcam;
   if (ycam != -999) _view.ycam = ycam;
@@ -1070,6 +1071,8 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
       ptrState->exportHeight = h;
     }
   }
+
+  if (exportAA != -1) ptrState->exportAA = exportAA;
 
   if (strcmp(exportFile, "None") != 0)
   {

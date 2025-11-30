@@ -592,7 +592,7 @@ def createZoneStdElementsFilter(elmt, zone_path, hdf_filter):
     distrib_elmt = I.getVal(getDistribution(elmt, 'Element'))
     dn_elmt      = distrib_elmt[1] - distrib_elmt[0]
 
-    name, elmt_npe = I.eltNo2EltName(elmt[1][0]) # nbre de vertex de l'element
+    _, elmt_npe = I.eltNo2EltName(elmt[1][0]) # nbre de vertex de l'element
 
     DSMMRYElmt = [[0                       ], [1], [dn_elmt*elmt_npe], [1]]
     DSFILEElmt = [[distrib_elmt[0]*elmt_npe], [1], [dn_elmt*elmt_npe], [1]]
@@ -881,7 +881,7 @@ def chunk2part(dt):
     ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nface = I.getNFaceNode(z)
     nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 

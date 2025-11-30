@@ -1,7 +1,6 @@
 E_Int ind000,ind100,ind010,ind110, ind001,ind101,ind011,ind111;
 E_Int ind00 ,ind10 ,ind01 ,ind11, ind02,ind03;
 E_Float val0, val1, val2, val3, val4, val5;
-//printf("TYPE=%d",type);
 switch (type)
 {
   case 1:
@@ -15,15 +14,10 @@ switch (type)
       vectOfRcvFields[nvars+2][indR] = vectOfDnrFields[2][indD0];
       vectOfRcvFields[nvars+3][indR] = vectOfDnrFields[3][indD0];
       vectOfRcvFields[nvars+4][indR] = vectOfDnrFields[4][indD0];
-      if (nvars_loc==6){
-	vectOfRcvFields[nvars+5][indR] = vectOfDnrFields[5][indD0];
-      }
+      if (nvars_loc==6){ vectOfRcvFields[nvars+5][indR] = vectOfDnrFields[5][indD0]; }
     }
     break;
   case 2: // Structure Lineaire O2 par tetra
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indR   = rcvPts[noind];
@@ -88,27 +82,24 @@ switch (type)
       vectOfRcvFields[nvars+3][indR] = val3; //VelocityZ Pnt2
       vectOfRcvFields[nvars+4][indR] = val4; //Temperature Pnt2
 
-      if (nvars_loc==6){
-	val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind000];
-	val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind100];
-	val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind010];
-	val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind110];
-	val5 += ptrCoefs[ indCoef + 4 ]*vectOfDnrFields[5][ind001];
-	val5 += ptrCoefs[ indCoef + 5 ]*vectOfDnrFields[5][ind101];
-	val5 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[5][ind011];
-	val5 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[5][ind111];
-
-	vectOfRcvFields[nvars+5][indR] = val5; //TurbulentSANuTilde Pnt2
+      if (nvars_loc==6)
+      {
+	      val5  = ptrCoefs[ indCoef     ]*vectOfDnrFields[5][ind000];
+	      val5 += ptrCoefs[ indCoef + 1 ]*vectOfDnrFields[5][ind100];
+	      val5 += ptrCoefs[ indCoef + 2 ]*vectOfDnrFields[5][ind010];
+	      val5 += ptrCoefs[ indCoef + 3 ]*vectOfDnrFields[5][ind110];
+	      val5 += ptrCoefs[ indCoef + 4 ]*vectOfDnrFields[5][ind001];
+	      val5 += ptrCoefs[ indCoef + 5 ]*vectOfDnrFields[5][ind101];
+	      val5 += ptrCoefs[ indCoef + 6 ]*vectOfDnrFields[5][ind011];
+	      val5 += ptrCoefs[ indCoef + 7 ]*vectOfDnrFields[5][ind111];
+	      vectOfRcvFields[nvars+5][indR] = val5; //TurbulentSANuTilde Pnt2
       }
       
-      indCoef  += 8;
+      indCoef += 8;
     }
     break;
     
   case 22:// O2CF 2D
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indR  = rcvPts[noind];

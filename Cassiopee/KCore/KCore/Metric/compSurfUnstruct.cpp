@@ -18,6 +18,7 @@
 */
 # include "metric.h"
 # include "Array/Array.h"
+#include "Connect/connect.h"
 
 //=============================================================================
 // Calcul des normales pour un maillage Multi-Elements.
@@ -35,41 +36,39 @@ void K_METRIC::compSurfUnstruct(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
+
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nfpe;  // number of facets per element
     E_Int nfpc;  // number of facets per connectivity
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
-      nfpe = 1;
       compTriSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "QUAD") == 0)
     {
-      nfpe = 1;
       compQuadSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "TETRA") == 0)
     {
-      nfpe = 4;
       compTetraSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "PYRA") == 0)
     {
-      nfpe = 5;
       compPyraSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "PENTA") == 0)
     {
-      nfpe = 5;
       compPentaSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "HEXA") == 0)
     {
-      nfpe = 6;
       compHexaSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else
@@ -80,7 +79,7 @@ void K_METRIC::compSurfUnstruct(
     }
 
     // Increment the face offset
-    nfpc = nfpe*nelts;
+    nfpc = nfpe[ic]*nelts;
     fctOffset += nfpc;
   }
 

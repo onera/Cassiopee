@@ -3,14 +3,14 @@ import OCC.Driver as D
 import Converter
 
 # Create a parameter
-radius = D.Scalar(1., name='radius')
+radius = D.Scalar('radius', 1.)
 radius.range = [0.1, 10, 0.3]
 
 # Create parametric circle
-circle1 = D.Circle( (0,0,0), radius, name='circle1' )
+circle1 = D.Circle('circle1', (0,0,0), radius)
 
 # Create parametric sketch
-sketch1 = D.Sketch([circle1], name='sketch1')
+sketch1 = D.Sketch('sketch1', [circle1])
 
 # solve for free parameters
 D.DRIVER.solve2()
@@ -23,9 +23,8 @@ D.DRIVER._diff(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'out.plt')
 
 # Build DOE
-D.DRIVER.setDOE()
 D.DRIVER.createDOE('doe.hdf')
-D.DRIVER.walkDOE(sketch1, 0.01, 0.01, 0.01)
+D.DRIVER.walkDOE3(sketch1, 0.01, 0.01, 0.01)
 
 # reread one snaphsot from DOE file
 m = D.DRIVER.readSnaphot(0)

@@ -87,7 +87,7 @@ void Data::superSample(E_Int w, E_Int h, char* im1, char* im2, E_Int factor)
       r2 = r2*255.; g2 = g2*255.; b2 = b2*255.;
       r = (int)r2; g = (int)g2; b = (int)b2;
       
-      r1 = (uint8_t)r;  g1 = (uint8_t)g;  b1 = (uint8_t)b;  
+      r1 = (uint8_t)r; g1 = (uint8_t)g; b1 = (uint8_t)b;  
       
       //printf("%d %d %d ; ", r1,g1,b1);
       im2[3*i+j*w3] = r1;
@@ -150,7 +150,7 @@ void Data::gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double 
         r3 = (uint8_t)im2[3*(i+1) + j*w3];
         r4 = (uint8_t)im2[3*i + (j-1)*w3];
         r5 = (uint8_t)im2[3*i + (j+1)*w3];
-        rmoy = (uint8_t)(r1 + eps*(r2+r3+r4+r5-4*r1));
+        rmoy = (uint8_t)(r1 + eps*(r2+r3+r4+r5-4.*r1));
         im1[3*i+j*w3] = (char)rmoy;
 
         g1 = (uint8_t)im2[3*i + j*w3+1];
@@ -158,7 +158,7 @@ void Data::gaussianBlur(E_Int w, E_Int h, char* im1, char* im2, E_Int r, double 
         g3 = (uint8_t)im2[3*(i+1) + j*w3+1];
         g4 = (uint8_t)im2[3*i + (j-1)*w3+1];
         g5 = (uint8_t)im2[3*i + (j+1)*w3+1];
-        gmoy = (uint8_t)(g1 + eps*(g2+g3+g4+g5-4*g1));
+        gmoy = (uint8_t)(g1 + eps*(g2+g3+g4+g5-4.*g1));
         im1[3*i+j*w3+1] = (char)gmoy;
 
         b1 = (uint8_t)im2[3*i + j*w3+2];
@@ -239,17 +239,317 @@ void Data::sharpenImage(E_Int w, E_Int h, char* im1, char* im2, double amount,
   for (E_Int i = 0; i < w*h*3; i++)
   {
     v1 = (uint8_t)im1[i];
-    if (v1 > threshold) { 
+    if (v1 > threshold) 
+    { 
       vv = amount*(double)v1;
       val = (int)vv; 
       v1 = (uint8_t)im3[i];
       val += (int)v1; 
       if (val > 255) val = 255;
-      im2[i] = (uint8_t)val; }
+      im2[i] = (uint8_t)val; 
+    }
     else im2[i] = im3[i];
   }
   
   free(im3);
+}
+
+// return rgb for x, y coordinates in (w,h)
+void getRGB(E_Int w, E_Int h, char* im, double x, double y, double& r, double& g, double& b)
+{
+  E_Int i, j, ind, ip1, jp1;
+  double co = 1./255.;
+  double cfx, cfx1, cfy, cfy1;
+  double rl, gl, bl;
+  r = 0.0; g = 0.0; b = 0.0;
+
+  i = E_Int(x);
+  i = K_FUNC::E_max(i, 0); i = K_FUNC::E_min(i, w-1);
+  j = E_Int(y);
+  j = K_FUNC::E_max(j, 0); j = K_FUNC::E_min(j, h-1);
+  ind = 3*i + j*3*w;
+  cfx = x-i; cfx1 = 1.-cfx;
+  cfy = y-j; cfy1 = 1.-cfy;
+
+  rl = (uint8_t)im[ind];
+  gl = (uint8_t)im[ind+1];
+  bl = (uint8_t)im[ind+2];
+  rl = rl*co; gl = gl*co; bl = bl*co;
+  r += cfx1*cfy1*rl; g += cfx1*cfy1*gl; b += cfx1*cfy1*bl;
+
+  ip1 = i+1;
+  ip1 = K_FUNC::E_max(ip1, 0); ip1 = K_FUNC::E_min(ip1, w-1);
+  jp1 = j+1;
+  jp1 = K_FUNC::E_max(jp1, 0); jp1 = K_FUNC::E_min(jp1, h-1);
+  
+  ind = 3*ip1 + j*3*w;
+  rl = (uint8_t)im[ind];
+  gl = (uint8_t)im[ind+1];
+  bl = (uint8_t)im[ind+2];
+  rl = rl*co; gl = gl*co; bl = bl*co;
+  r += cfx*cfy1*rl; g += cfx*cfy1*gl; b += cfx*cfy1*bl;
+
+  ind = 3*ip1 + jp1*3*w;
+  rl = (uint8_t)im[ind];
+  gl = (uint8_t)im[ind+1];
+  bl = (uint8_t)im[ind+2];
+  rl = rl*co; gl = gl*co; bl = bl*co;
+  r += cfx*cfy*rl; g += cfx*cfy*gl; b += cfx*cfy*bl;
+
+  ind = 3*i + jp1*3*w;
+  rl = (uint8_t)im[ind];
+  gl = (uint8_t)im[ind+1];
+  bl = (uint8_t)im[ind+2];
+  rl = rl*co; gl = gl*co; bl = bl*co;
+  r += cfx1*cfy*rl; g += cfx1*cfy*gl; b += cfx1*cfy*bl;
+}
+
+// return luma for x,y coordinates in (w,h)
+double getLuma(E_Int w, E_Int h, char* im, double x, double y)
+{
+  double r, g, b, luma;
+  getRGB(w, h, im, x, y, r, g, b);
+  luma = 0.299*r + 0.587*g + 0.114*b;
+  luma = std::sqrt(luma);
+  return luma;
+}
+
+//============================================================================
+// directional local blur (FXAA)
+//============================================================================
+// IN: im1: w x h
+// OUT: im2 : w x h deja alloue
+// from T. Lottes - nvidia
+//=============================================================================
+void Data::localBlur(E_Int w, E_Int h, char* im1, char* im2)
+{
+  E_Int ind;
+  E_Int w3 = 3*w;
+  double r, g, b;
+  double lumC, lumNW, lumNE, lumSW, lumSE, threshold;
+  double lumN, lumS, lumE, lumW;
+  double rangeMin, rangeMax, range;
+  double uvx, uvy, uv1x, uv1y, uv2x, uv2y;
+  double lumEnd1, lumEnd2;
+  double offsetx, offsety;
+  double gradient1, gradient2, distance1, distance2, distanceFinal;
+  double lumNS, lumEW, lumSWNW, lumSESW;
+  double lumSENE, lumNENW;
+  double lum1, lum2, edgeHorizontal, edgeVertical;
+  bool isHorizontal, is1Steepest, reached1, reached2, reachedBoth;
+  bool correctVariation, isDirection1;
+  double gradientScaled, stepLength, lumMean;
+  double subPixelOffsetFinal, finalUvx, finalUvy;
+  double subPixelOffset2, subPixelOffset1, lumAverage;
+  double finalOffset, edgeLength, pixelOffset;
+
+#define EDGE_THRESHOLD_MIN 0.0312
+#define EDGE_THRESHOLD_MAX 0.125
+#define SUBPIXEL_QUALITY 0.75
+  static double QUALITY[12] = {1., 1., 1., 1., 1., 1.5, 2., 2., 2., 2., 4., 8.};
+  E_Int ITERATIONS = 12;
+
+  for (E_Int j = 1; j < h-1; j++)
+    for (E_Int i = 1; i < w-1; i++)
+    {
+      uvx = i*1.; uvy = j*1.;
+      lumC = getLuma(w, h, im1, uvx, uvy);
+      lumW = getLuma(w, h, im1, uvx-1, uvy);
+      lumE = getLuma(w, h, im1, uvx+1, uvy);
+      lumN = getLuma(w, h, im1, uvx, uvy+1);
+      lumS = getLuma(w, h, im1, uvx, uvy-1);
+
+      lumNE = getLuma(w, h, im1, uvx+1, uvy+1);
+      lumSE = getLuma(w, h, im1, uvx+1, uvy-1);
+      lumNW = getLuma(w, h, im1, uvx-1, uvy+1);
+      lumSW = getLuma(w, h, im1, uvx-1, uvy-1);
+
+      rangeMin = std::min(lumC, lumN);
+      rangeMin = std::min(rangeMin, lumS);
+      rangeMin = std::min(rangeMin, lumE);
+      rangeMin = std::min(rangeMin, lumW);
+
+      rangeMax = std::max(lumC, lumN);
+      rangeMax = std::max(rangeMax, lumS);
+      rangeMax = std::max(rangeMax, lumE);
+      rangeMax = std::max(rangeMax, lumW);
+      range = rangeMax - rangeMin; // delta luma
+
+      threshold = rangeMax*EDGE_THRESHOLD_MAX;
+      threshold = std::max(EDGE_THRESHOLD_MIN, threshold);
+      if (range < threshold)
+      {
+        // no treatment
+        ind = 3*i + j*w3;
+        im2[ind] = im1[ind];
+        im2[ind+1] = im1[ind+1];
+        im2[ind+2] = im1[ind+2];
+      }
+      else
+      {
+        // edge horiz/vert detection
+        lumNS = lumN + lumS;
+        lumEW = lumE + lumW;
+
+        lumSWNW = lumSW + lumNW;
+        lumSESW = lumSE + lumSW;
+        lumSENE = lumSE + lumNE;
+        lumNENW = lumNE + lumNW;
+
+        edgeHorizontal = std::abs(-2.0*lumE + lumSWNW) + std::abs(-2.0*lumC + lumNS )*2.0 + std::abs(-2.0*lumW + lumSENE);
+        edgeVertical = std::abs(-2.0*lumN + lumNENW) + std::abs(-2.0*lumC + lumEW)*2.0 + std::abs(-2.0*lumS + lumSESW);
+        
+        isHorizontal = (edgeHorizontal >= edgeVertical);
+
+        // luma values in ortho direction
+        lum1 = isHorizontal ? lumS : lumW;
+        lum2 = isHorizontal ? lumN : lumE;
+
+        // Compute gradients
+        gradient1 = lum1 - lumC;
+        gradient2 = lum2 - lumC;
+
+        is1Steepest = std::abs(gradient1) >= std::abs(gradient2);
+        gradientScaled = 0.25*std::max(std::abs(gradient1),std::abs(gradient2));
+        stepLength = 1.;
+
+        // Average luma in ortho edge direction
+        lumMean = 0.0;
+
+        if (is1Steepest)
+        {
+          stepLength = -stepLength;
+          lumMean = 0.5*(lum1 + lumC);
+        } 
+        else
+        {
+          lumMean = 0.5*(lum2 + lumC);
+        }
+
+        // Shift UV in the correct direction by half a pixel
+        if (isHorizontal)
+        {
+          uvy += stepLength*0.5;
+        } 
+        else 
+        {
+          uvx += stepLength*0.5;
+        }
+
+        // Compute offset in ortho edge direction
+        offsetx = isHorizontal ? 1.0 : 0.0;
+        offsety = isHorizontal ? 0.0 : 1.0;
+        
+        uv1x = uvx - offsetx;
+        uv1y = uvy - offsety;
+        uv2x = uvx + offsetx;
+        uv2y = uvy + offsety;
+        
+        lumEnd1 = getLuma(w, h, im1, uv1x, uv1y);
+        lumEnd2 = getLuma(w, h, im1, uv2x, uv2y);
+        lumEnd1 -= lumMean;
+        lumEnd2 -= lumMean;
+
+        // check edge end
+        reached1 = std::abs(lumEnd1) >= gradientScaled;
+        reached2 = std::abs(lumEnd2) >= gradientScaled;
+        reachedBoth = reached1 && reached2;
+
+        if (!reached1)
+        {
+          uv1x -= offsetx;
+          uv1y -= offsety;
+        }
+        if (!reached2)
+        {
+          uv2x += offsetx;
+          uv2y += offsety;
+        }   
+
+        if (!reachedBoth)
+        {
+          for (E_Int i = 0; i < ITERATIONS; i++)
+          {
+            if (!reached1)
+            {
+              lumEnd1 = getLuma(w, h, im1, uv1x, uv1y);
+              lumEnd1 -= lumMean;
+            }
+            if (!reached2)
+            {
+              lumEnd2 = getLuma(w, h, im1, uv2x, uv2y);
+              lumEnd2 -= lumMean;
+            }
+            reached1 = std::abs(lumEnd1) >= gradientScaled;
+            reached2 = std::abs(lumEnd2) >= gradientScaled;
+            reachedBoth = reached1 && reached2;
+
+            if (!reached1)
+            {
+              uv1x -= offsetx * QUALITY[i];
+              uv1y -= offsety * QUALITY[i];
+            }
+            if (!reached2)
+            {
+              uv2x += offsetx * QUALITY[i];
+              uv2y += offsety * QUALITY[i];
+            }
+
+            if (reachedBoth) { break; }
+          }
+        }
+
+        // Compute the distances to each extremity of the edge
+        distance1 = isHorizontal ? (uvx - uv1x) : (uvy - uv1y);
+        distance2 = isHorizontal ? (uv2x - uvx) : (uv2y - uvy);
+        isDirection1 = distance1 < distance2;
+        distanceFinal = std::min(distance1, distance2);
+        edgeLength = (distance1 + distance2);
+        pixelOffset = -distanceFinal / edgeLength + 0.5; // entre 0. et 0.5
+        //pixelOffset = 0.25;
+
+        // If the luma at center is smaller than at its neighbour, the delta luma at each end should be positive (same variation).
+        // (in the direction of the closer side of the edge.)
+        correctVariation = ((isDirection1 ? lumEnd1 : lumEnd2) < 0.0) != (lumC < lumMean);
+        finalOffset = correctVariation ? pixelOffset : 0.0;
+        
+        // Weighted average of the luma over the 3x3 neighborhood
+        lumAverage = (1.0/12.0) * (2.0 * (lumNS + lumEW) + lumSWNW + lumSENE);
+        subPixelOffset1 = std::abs(lumAverage - lumC)/range;
+        subPixelOffset1 = std::max(subPixelOffset1, 0.);
+        subPixelOffset1 = std::min(subPixelOffset1, 1.);
+      
+        subPixelOffset2 = (-2.0*subPixelOffset1 + 3.0) * subPixelOffset1*subPixelOffset1;
+        subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
+
+        finalOffset = std::max(finalOffset, subPixelOffsetFinal);
+        
+        // Compute the final UV
+        uvx = i*1.; uvy = j*1.;
+        finalUvx = uvx; finalUvy = uvy;
+
+        //finalOffset = 0.5; // DBX
+        //finalUvx += finalOffset * stepLength;
+        //finalUvy += finalOffset * stepLength;
+        //finalOffset = 0.5*finalOffset;
+      
+        if (isHorizontal)
+        {
+          finalUvy += finalOffset * stepLength;
+        } 
+        else 
+        {
+          finalUvx += finalOffset * stepLength;
+        }
+
+        // Read the color at the new UV coordinates, and use it.
+        getRGB(w, h, im1, finalUvx, finalUvy, r, g, b);
+        ind = 3*i + j*w3;
+        im2[ind] = 255.*r;
+        im2[ind+1] = 255.*g;
+        im2[ind+2] = 255.*b;
+      }
+    }
 }
 
 //============================================================================

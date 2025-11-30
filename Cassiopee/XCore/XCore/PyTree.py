@@ -207,11 +207,11 @@ def loadAndSplitNGon(fileName):
     cy = I.getNodeFromName2(z, 'CoordinateY')[1]
     cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-    ngon = I.getNodeFromName2(z, 'NGonElements')
+    ngon = I.getNGonNode(z)
     ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nface = I.getNFaceNode(z)
     nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 

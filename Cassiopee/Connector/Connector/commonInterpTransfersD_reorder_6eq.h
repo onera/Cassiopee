@@ -11,7 +11,7 @@ switch (type)
       val0=0.; val1=0.; val2=0.; val3=0.; val4=0.; val5=0.;
       for (E_Int kk = 1; kk <= ncfLoc; kk++)
       {
-        indD0         = donorPts[noi+kk];
+        indD0 = donorPts[noi+kk];
         val0 += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[0][indD0];
         val1 += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[1][indD0];
         val2 += ptrCoefs[ indCoef + kk-1]*vectOfDnrFields[2][indD0];
@@ -26,15 +26,15 @@ switch (type)
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
       sizecoefs = ncfLoc;
-      noi      += ncfLoc+1;
-      indCoef  += sizecoefs;
+      noi += ncfLoc+1;
+      indCoef += sizecoefs;
     }
     break;
 
   case 1:
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
-      indD0  = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+      indD0 = donorPts[noind];  //car type 0 est toujours traité en dernier. Sinon noind pas valable
     
       vectOfRcvFields[0][noind] = vectOfDnrFields[0][indD0];
       vectOfRcvFields[1][noind] = vectOfDnrFields[1][indD0];
@@ -46,9 +46,6 @@ switch (type)
     break;
     
   case 2: // Structure Lineaire O2 par tetra
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       ind000 = donorPts[noind];
@@ -120,14 +117,11 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      indCoef  += 8;
+      indCoef += 8;
     }
     break;
     
   case 22:// O2CF 2D
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       ind00 = donorPts[noind];
@@ -171,7 +165,7 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      indCoef  += 4;
+      indCoef += 4;
     }
     break;
 
@@ -199,8 +193,8 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      noi      += 1;
-      indCoef  += sizecoefs;
+      noi += 1;
+      indCoef += sizecoefs;
     }
     break;
    
@@ -229,15 +223,12 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      noi      += 1;
-      indCoef  += sizecoefs;
+      noi += 1;
+      indCoef += sizecoefs;
     }
     break;
    
   case 4: // Tetra O2
-// #ifdef _OPENM4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
@@ -284,7 +275,7 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      indCoef  += sizecoefs;
+      indCoef += sizecoefs;
     }
     break;
 
@@ -313,7 +304,7 @@ switch (type)
       vectOfRcvFields[3][noind] = val3;
       vectOfRcvFields[4][noind] = val4;
       vectOfRcvFields[5][noind] = val5;
-      indCoef  += 15;
+      indCoef += 15;
   }
   break;
 

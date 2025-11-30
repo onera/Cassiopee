@@ -30,8 +30,8 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
 {
   PyObject* arrayNF; PyObject* arrayNG;  
   E_Int nfaces; E_Int nelts;
-  E_Int methodPE(0);
-  PyObject* arrayX; PyObject* arrayY; PyObject* arrayZ; 
+  E_Int methodPE = 0;
+  PyObject* arrayX; PyObject* arrayY; PyObject* arrayZ;
 
   if (!PYPARSETUPLE_(args, OOOO_ O_ III_, &arrayNF,  &arrayNG, 
                      &arrayX, &arrayY, &arrayZ, 
@@ -95,11 +95,17 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
   PyObject* tpl = K_NUMPY::buildNumpyArray(nfaces, 2, 1, 1);
   E_Int* cFE = K_NUMPY::getNumpyPtrI(tpl);
 
-  bool is_3D = (cNGon->begin()[0] > 2);
-  if (!is_3D) methodPE = 0;
-
-  if (methodPE == 0) // GEOMETRIC APPROACH => assume all cells are centroid-star-shaped.
+  if (cNGon->begin()[0] <= 2 && methodPE != 0)
   {
+    printf("adaptNFace2PE: NGon connectivity is not 3D, defaulting to method 0 "
+           "(geometric) in which all elements are assumed to be "
+           "centroid-star-shaped.");
+    methodPE = 0;
+  }
+
+  if (methodPE == 0) 
+  {
+    // GEOMETRIC APPROACH => assume all cells are centroid-star-shaped.
     E_Int* facesp1 = cFE;
     E_Int* facesp2 = cFE + nfaces;
 
@@ -339,7 +345,7 @@ PyObject* K_CONVERTER::adaptNFace2PE(PyObject* self, PyObject* args)
       RELEASESHAREDN(arrayX, coordX);
       RELEASESHAREDN(arrayY, coordY);
       PyErr_SetString(PyExc_TypeError, 
-                      "adaptNFace2PE: method 2: failed to reorient external faces.");
+                      "adaptNFace2PE: method 1: failed to reorient external faces.");
       return NULL;
     }
 

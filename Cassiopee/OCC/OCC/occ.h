@@ -47,8 +47,12 @@ namespace K_OCC
   PyObject* addSquare(PyObject* self, PyObject* args);
   PyObject* addLine(PyObject* self, PyObject* args);
   PyObject* addCircle(PyObject* self, PyObject* args);
+  PyObject* addEllipse(PyObject* self, PyObject* args);
   PyObject* addSpline(PyObject* self, PyObject* args);
   PyObject* addArc(PyObject* self, PyObject* args);
+  PyObject* addSuperEllipse(PyObject* self, PyObject* args);
+  
+  PyObject* addGordonSurface(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
@@ -82,19 +86,26 @@ namespace K_OCC
   PyObject* areEdgeIdentical(PyObject* self, PyObject* args);
 
   PyObject* splitFaces(PyObject* self, PyObject* args);
+  PyObject* splitEdge(PyObject* self, PyObject* args);
   PyObject* fixShape(PyObject* self, PyObject* args);
-  PyObject* trimFaces(PyObject* self, PyObject* args);
   PyObject* sewing(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
   PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* mergeEdges(PyObject* self, PyObject* args);
+  
   PyObject* loft(PyObject* self, PyObject* args);
+  PyObject* sweep(PyObject* self, PyObject* args);
   PyObject* revolve(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);
   PyObject* scale(PyObject* self, PyObject* args);
   PyObject* rotate(PyObject* self, PyObject* args);
+
+  PyObject* intersectEdgeFace(PyObject* self, PyObject* args);
+  PyObject* trimFaces(PyObject* self, PyObject* args);
+  PyObject* boolean(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);

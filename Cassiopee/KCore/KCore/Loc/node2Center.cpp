@@ -111,7 +111,7 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
         ind3 = ind2+1;
 
         for (E_Int n = 1; n <= nv; n++)
-            FCenter(ind,n) = 0.25*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n));
+          FCenter(ind,n) = 0.25*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n));
       }
     }
   }
@@ -140,8 +140,8 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
         ind7 = ind6 + 1;
 
         for (E_Int n = 1; n <= nv; n++)
-            FCenter(ind,n) = 0.125*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n)+
-                                    FNode(ind4,n)+FNode(ind5,n)+FNode(ind6,n)+FNode(ind7,n));
+          FCenter(ind,n) = 0.125*(FNode(ind0,n)+FNode(ind1,n)+FNode(ind2,n)+FNode(ind3,n)+
+                                  FNode(ind4,n)+FNode(ind5,n)+FNode(ind6,n)+FNode(ind7,n));
       }
     }
   }
@@ -240,26 +240,26 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
               ind0 = i;
               ind1 = i+1;
               somme = cellNpn[ind0]+cellNpn[ind1];
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[i] = 0.;
-              else if (cellNpn[ind0] == 2. || cellNpn[ind1] == 2.)
+              else if (K_FUNC::fEqualZero(cellNpn[ind0] - 2.) || K_FUNC::fEqualZero(cellNpn[ind1] - 2.))
                 cellNpc[i] = 2.;
               else
                 cellNpc[i] = 1.;
             }
             // i = 0
             somme = cellNpn[0]+cellNpn[1];
-            if (somme == 0.)
+            if (K_FUNC::fEqualZero(somme))
               cellNpc[0] = 0.;
-            else if (somme == 4.)
+            else if (K_FUNC::fEqualZero(somme - 4.))
               cellNpc[0] = 2.;
             else
               cellNpc[0] = 1.;
             // i = imc-1
             somme = cellNpn[imc-1]+cellNpn[imc];
-            if (somme == 0.)
+            if (K_FUNC::fEqualZero(somme))
               cellNpc[imc-1] = 0.;
-            else if (somme == 4.)
+            else if (K_FUNC::fEqualZero(somme - 4.))
               cellNpc[imc-1] = 2.;
             else
               cellNpc[imc-1] = 1.;
@@ -288,9 +288,10 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
-              else if (cellNpn[ind0] == 2. || cellNpn[ind1] == 2. || cellNpn[ind2] == 2. || cellNpn[ind3] == 2.)
+              else if (K_FUNC::fEqualZero(cellNpn[ind0] - 2.) || K_FUNC::fEqualZero(cellNpn[ind1] - 2.) || 
+                       K_FUNC::fEqualZero(cellNpn[ind2] - 2.) || K_FUNC::fEqualZero(cellNpn[ind3] - 2.))
                 cellNpc[ind] = 2.;
               else
                 cellNpc[ind] = 1.;
@@ -309,9 +310,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
-              else if (somme == 8.)
+              else if (K_FUNC::fEqualZero(somme - 8.))
                 cellNpc[ind] = 2.;
               else
                 cellNpc[ind] = 1.;
@@ -326,9 +327,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
-              else if (somme == 8.)
+              else if (K_FUNC::fEqualZero(somme - 8.))
                 cellNpc[ind] = 2.;
               else
                 cellNpc[ind] = 1.;
@@ -347,9 +348,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
-              else if (somme == 8.)
+              else if (K_FUNC::fEqualZero(somme - 8.))
                 cellNpc[ind] = 2.;
               else
                 cellNpc[ind] = 1.;
@@ -364,9 +365,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
-              else if (somme == 8.)
+              else if (K_FUNC::fEqualZero(somme - 8.))
                 cellNpc[ind] = 2.;
               else
                 cellNpc[ind] = 1.;
@@ -403,7 +404,7 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
               somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-              if (somme == 0.)
+              if (K_FUNC::fEqualZero(somme))
                 cellNpc[ind] = 0.;
               else
               {
@@ -435,9 +436,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;
@@ -457,9 +458,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;
@@ -486,9 +487,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;
@@ -508,9 +509,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;
@@ -537,9 +538,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;
@@ -559,9 +560,9 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
 
                 somme = cellNpn[ind0]+cellNpn[ind1]+cellNpn[ind2]+cellNpn[ind3]+cellNpn[ind4]+cellNpn[ind5]+cellNpn[ind6]+cellNpn[ind7];
 
-                if (somme == 0.)
+                if (K_FUNC::fEqualZero(somme))
                   cellNpc[ind] = 0.;
-                else if (somme == 16.)
+                else if (K_FUNC::fEqualZero(somme - 16.))
                   cellNpc[ind] = 2.;
                 else
                   cellNpc[ind] = 1.;

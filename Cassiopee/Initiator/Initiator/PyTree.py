@@ -38,8 +38,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
         eq = Internal.getNodeFromName(t, 'GoverningEquations')
         state = Internal.getNodeFromName(t, 'ReferenceState')
         if state is None: raise ValueError("initConst: no reference state and no argument.")
-        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ',
-                 'EnergyStagnationDensity']
+        vars0 = ['Density', 'MomentumX', 'MomentumY', 'MomentumZ', 'EnergyStagnationDensity']
         if eq is not None and Internal.getValue(eq) == 'NSTurbulent':
             vars0 += ['TurbulentSANuTildeDensity', 'TurbulentEnergyKineticDensity', 'TurbulentDissipationDensity']
         for v in vars0:
@@ -57,8 +56,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
             elif loc == 'centers':
                 a = Converter.node2Center(a)
                 a = Initiator.initConst(a, adim, MInf, alphaZ, alphaY, ReInf)
-                a = Converter.rmVars(a,
-                                     ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+                a = Converter.rmVars(a, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                 z = C.setFields([a], z, 'centers')
             else:
                 raise ValueError("initConst: wrong location: %s."%loc)

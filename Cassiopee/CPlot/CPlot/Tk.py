@@ -13,9 +13,6 @@ from . import iconics
 import os, os.path
 import re, fnmatch
 
-# Set this to suppress CPlot firewalls (fixNGon, breakConnect) and enables direct v4
-FIREWALL = False
-
 #==============================================================================
 # Variables globales partagees entre toutes les apps tk
 #==============================================================================
@@ -290,24 +287,23 @@ def buildCPlotArrays(a, topTree=[]):
         for z in Internal.getZones(ap):
             dimz = Internal.getZoneDim(z)
             if dimz[0] == 'Unstructured' and dimz[4] == 3:
-                # dont call in ME for now because exteriorElts not working on ME
-                if ',' not in dimz[3]: P._exteriorElts(z)
-
-    if FIREWALL: api = 1
-    else: api = 3
+                if dimz[3] == "NGON":
+                    P._exteriorFaces(z)
+                else:
+                    P._exteriorElts(z)
 
     if __FIELD__ == '__all__':
-        arrays = C.getAllFields(ap, 'nodes', api=api)
+        arrays = C.getAllFields(ap, 'nodes', api=3)
     elif __FIELD__ == '__none__':
-        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=api)
+        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=3)
     else:
-        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=api)
+        arrays = C.getFields(Internal.__GridCoordinates__, ap, api=3)
         v = __FIELD__.split(':')
         if len(v) == 2: v = v[1]
         else: v = __FIELD__
-        arrays2 = C.getField(v, ap, api=api)
-        for i, b in enumerate(arrays):
-            if b != []: Converter._addVars([arrays[i], b])
+        arrays2 = C.getField(v, ap, api=3)
+        for i, b in enumerate(arrays2):
+            if b != []: arrays = Converter.addVars([arrays[i], b])
 
     return arrays
 
@@ -347,7 +343,7 @@ def display(t, dim=-1,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export='None', exportResolution='None',
+            export='None', exportResolution='None', exportAA=-1,
             location='unchanged',
             mainTree=1):
     """Display pyTrees.
@@ -369,7 +365,7 @@ def display(t, dim=-1,
                bgColor, backgroundFile,
                shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                stereo, stereoDist, panorama,
-               export, exportResolution,
+               export, exportResolution, exportAA,
                zoneNames, renderTags)
     if mainTree == 1 and __MAINTREE__ <= 0:
         __MAINTREE__ = 1
@@ -498,8 +494,6 @@ def showSelectionInTkTree(event=None):
 def upgradeTree(t):
     Internal.autoSetContainers(t)
     Internal._correctPyTree(t, level=0) # version node
-    #t = Internal.correctPyTree(t, level=9) # connectivity
-    if FIREWALL: Internal._fixNGon(t) # suppressed in v4
     try:
         if C.isNamePresent(t, 'CoordinateX') <= 0: C._addVars(t, 'CoordinateX')
         if C.isNamePresent(t, 'CoordinateY') <= 0: C._addVars(t, 'CoordinateY')
@@ -1893,7 +1887,7 @@ def getOnlineDoc():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('https://cassiopee.onera.fr/Userguide.html')
+        webbrowser.open('https://onera.github.io/Cassiopee/current')
     except:
         TXT.insert('START', 'Can not open online documentation.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1903,8 +1897,8 @@ def getOnlineDoc():
 def getOnlineForum():
     try:
         import webbrowser
-        TXT.insert('START', 'Opening online documentation.\n')
-        webbrowser.open('https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!forum/cassiopee-community')
+        TXT.insert('START', 'Opening online issues.\n')
+        webbrowser.open('https://github.com/onera/Cassiopee/discussions')
     except:
         TXT.insert('START', 'Can not open online forum.\n')
         TXT.insert('START', 'Error: ', 'Error')
@@ -1915,7 +1909,7 @@ def getOnlineTutorials():
     try:
         import webbrowser
         TXT.insert('START', 'Opening online tutorials.\n')
-        webbrowser.open('https://cassiopee.onera.fr/Tutorials/Tutorials.html')
+        webbrowser.open('https://github.com/onera/Cassiopee/blob/dev/docs/Tutorials/Tutorials.md')
     except:
         TXT.insert('START', 'Can not open online tutorials.\n')
         TXT.insert('START', 'Error: ', 'Error')

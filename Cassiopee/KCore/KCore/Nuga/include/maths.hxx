@@ -355,7 +355,7 @@ inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const 
   NUGA::crossProduct<3>(ray2, n, nj);
 
   double alpha = angle_measure(ni, nj, Pi/*E0*/, E1);
-  if (alpha == 2.*NUGA::PI) return true;
+  if (K_FUNC::fEqualZero(alpha - 2.*NUGA::PI)) return true;
 
   n[0] *= alpha;
   n[1] *= alpha;

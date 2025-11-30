@@ -24,8 +24,8 @@ switch (type)
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
       sizecoefs = ncfLoc;
-      noi      += ncfLoc+1;
-      indCoef  += sizecoefs;
+      noi += ncfLoc+1;
+      indCoef += sizecoefs;
     }
     break;
 
@@ -44,9 +44,6 @@ switch (type)
     break;
     
   case 2: // Structure Lineaire O2 par tetra
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indR   = rcvPts[noind];
@@ -110,14 +107,11 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2; //VelocityY
       vectOfRcvFields[shiftv+3][indR] = val3; //VelocityZ
       vectOfRcvFields[shiftv+4][indR] = val4; //Temperature
-      indCoef  += 8;
+      indCoef += 8;
     }
     break;
     
   case 22:// O2CF 2D
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indR  = rcvPts[noind];
@@ -155,7 +149,7 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2;
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
-      indCoef  += 4;
+      indCoef += 4;
     }
     break;
 
@@ -183,7 +177,7 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2;
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
-      indCoef  += sizecoefs;
+      indCoef += sizecoefs;
     }
     break;
  
@@ -210,15 +204,12 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2;
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
-      indCoef  += sizecoefs;
+      indCoef += sizecoefs;
     }
     break;
 
      
   case 4: // Tetra O2
-// #ifdef _OPENMP4
-//     #pragma omp simd
-// #endif
     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
     {
       indR  = rcvPts[noind];
@@ -255,7 +246,7 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2;
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
-      indCoef  += sizecoefs;
+      indCoef += sizecoefs;
     }
     break;
       
@@ -282,7 +273,7 @@ switch (type)
       vectOfRcvFields[shiftv+2][indR] = val2;
       vectOfRcvFields[shiftv+3][indR] = val3;
       vectOfRcvFields[shiftv+4][indR] = val4;
-      indCoef  += 15;
+      indCoef += 15;
     }
     break;
       

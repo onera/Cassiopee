@@ -1,3 +1,5 @@
+GORDON = True
+
 import glob
 import os
 
@@ -48,9 +50,12 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/addBox.cpp',
         'OCC/Atomic/addLine.cpp',
         'OCC/Atomic/addCircle.cpp',
+        'OCC/Atomic/addEllipse.cpp',
         'OCC/Atomic/addSquare.cpp',
         'OCC/Atomic/addSpline.cpp',
         'OCC/Atomic/addArc.cpp',
+        'OCC/Atomic/addSuperEllipse.cpp',
+        'OCC/Atomic/addGordonSurface.cpp',
 
         'OCC/Atomic/meshEdge.cpp',
         'OCC/Atomic/meshEdge2.cpp',
@@ -66,24 +71,45 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/getFaceArea.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
 
-        'OCC/Atomic/splitter.cpp',
+        'OCC/Atomic/splitFaces.cpp',
+        'OCC/Atomic/splitEdge.cpp',
         'OCC/Atomic/fix.cpp',
-        'OCC/Atomic/trim.cpp',
         'OCC/Atomic/sewing.cpp',
         'OCC/Atomic/removeFaces.cpp',
         'OCC/Atomic/fillHole.cpp',
         'OCC/Atomic/addFillet.cpp',
         'OCC/Atomic/mergeFaces.cpp',
+        'OCC/Atomic/mergeEdges.cpp',
+
         'OCC/Atomic/loft.cpp',
+        'OCC/Atomic/sweep.cpp',
         'OCC/Atomic/revolve.cpp',
 
         'OCC/Atomic/translate.cpp',
         'OCC/Atomic/scale.cpp',
         'OCC/Atomic/rotate.cpp',
 
+        'OCC/Atomic/intersectEdgeFace.cpp',
+        'OCC/Atomic/trim.cpp',
+        'OCC/Atomic/boolean.cpp',
+
         'OCC/Atomic/getOppData.cpp',
         'OCC/Atomic/identifyTags.cpp']
 
+if GORDON:
+    srcs += [
+        'OCC/Gordon/BSplineAlgorithms.cpp',
+        'OCC/Gordon/CurveNetworkSorter.cpp',
+        'OCC/Gordon/Error.cpp',
+        'OCC/Gordon/InterpolateCurveNetwork.cpp',
+        'OCC/Gordon/PointsToBSplineInterpolation.cpp',
+        'OCC/Gordon/BSplineApproxInterp.cpp',
+        'OCC/Gordon/CurvesToSurface.cpp',
+        'OCC/Gordon/GordonSurfaceBuilder.cpp',
+        'OCC/Gordon/IntersectBSplines.cpp',
+        'OCC/Gordon/occ_gordon.cpp']
+
+#====================================================================================
 import KCore.Dist as Dist
 allMods = Dist.getOCCModules()
 

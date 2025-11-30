@@ -1,6 +1,6 @@
 #! /bin/bash
 
-## If mutliple Cassiopee & Fast executables are required at the same time (e.g. test various long developments) various Dist directories are required.
+## If multiple Cassiopee & Fast executables are required at the same time (e.g. test various long developments) various Dist directories are required.
 ## This scripts copies the $CASSIOPEE/Dist directory to a new location called $CASIOP/Dist. To access the each set of executables one only needs to set
 ## the correct cassiopee directory and load the correct ELSAPROD.
 

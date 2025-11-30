@@ -711,10 +711,10 @@ or in a zone node of a CGNS/python tree (pyTree).</p>
 <li><p>a continuous blanking information (any val in [0,1] based on the ratio of the visible part of the cell), when output_type=1</p></li>
 <li><p>a clipped polygonal surface (NGON format) where all the hidden surface parts have been removed, when output_type=2</p></li>
 </ul>
-<a class="reference internal image-reference" href="_images/xcelln_conf.jpg"><img alt="_images/xcelln_conf.jpg" src="_images/xcelln_conf.jpg" style="width: 24%;" /></a>
-<a class="reference internal image-reference" href="_images/xcelln_mode0.jpg"><img alt="_images/xcelln_mode0.jpg" src="_images/xcelln_mode0.jpg" style="width: 24%;" /></a>
-<a class="reference internal image-reference" href="_images/xcelln_mode1.jpg"><img alt="_images/xcelln_mode1.jpg" src="_images/xcelln_mode1.jpg" style="width: 24%;" /></a>
-<a class="reference internal image-reference" href="_images/xcelln_mode2.jpg"><img alt="_images/xcelln_mode2.jpg" src="_images/xcelln_mode2.jpg" style="width: 24%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_conf.jpg"><img alt="_images/xcelln_conf.jpg" src="_images/xcelln_conf.jpg" style="width: 21%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_mode0.jpg"><img alt="_images/xcelln_mode0.jpg" src="_images/xcelln_mode0.jpg" style="width: 21%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_mode1.jpg"><img alt="_images/xcelln_mode1.jpg" src="_images/xcelln_mode1.jpg" style="width: 21%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_mode2.jpg"><img alt="_images/xcelln_mode2.jpg" src="_images/xcelln_mode2.jpg" style="width: 21%;" /></a>
 <p><em>From left to right: Sphere made of 2 overset patches, results with output_type=0,1 and 2 displayed for the non-prioritized patch.</em></p>
 <p>When output_type is 0 or 1, a &#8216;xcelln&#8217; field is added to each zone of the PyTree.
 When output_type is 2, the fields defined at center are transferred in the output mesh.</p>
@@ -738,9 +738,9 @@ When output_type is 2, the fields defined at center are transferred in the outpu
 <li><p>priorisation and computation is done between components only : not between zones of the same base.</p></li>
 <li><p>wall boundaries are considered whatever the priorisation:</p></li>
 </ul>
-<a class="reference internal image-reference" href="_images/xcelln_prior_conf.jpg"><img alt="_images/xcelln_prior_conf.jpg" src="_images/xcelln_prior_conf.jpg" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="_images/xcelln_prior1.jpg"><img alt="_images/xcelln_prior1.jpg" src="_images/xcelln_prior1.jpg" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="_images/xcelln_prior2.jpg"><img alt="_images/xcelln_prior2.jpg" src="_images/xcelln_prior2.jpg" style="width: 30%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_prior_conf.jpg"><img alt="_images/xcelln_prior_conf.jpg" src="_images/xcelln_prior_conf.jpg" style="width: 28%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_prior1.jpg"><img alt="_images/xcelln_prior1.jpg" src="_images/xcelln_prior1.jpg" style="width: 28%;" /></a>
+<a class="reference internal image-reference" href="_images/xcelln_prior2.jpg"><img alt="_images/xcelln_prior2.jpg" src="_images/xcelln_prior2.jpg" style="width: 28%;" /></a>
 <p><em>Example of wall treatment on the fuselage/collar zone of a CRM configuration when output_type is 2: if the collar is prioritized (middle) or not (right), the part of the fuselage falling inside the wing is clipped.</em></p>
 <p><em>Example of use:</em></p>
 <ul class="simple">
@@ -1486,12 +1486,10 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Intersector/getOverlappingFaces.py">agglomerateCellsWithSpecifiedFaces (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOverlappingFaces (array) -</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">I</span>
 <span class="kn">import</span> <span class="nn">Intersector</span> <span class="k">as</span> <span class="nn">XOR</span>
-<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
 <span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
 
 <span class="n">t1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
@@ -1503,21 +1501,17 @@ If 2 cells share 2 polygons that are connected (sharing an edge) and their dihed
 <span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">t</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 
 <span class="c1">#test 2 : volume/surface</span>
-
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-<span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">t</span><span class="p">],</span> <span class="s2">&quot;out1.plt&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out1.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -2237,12 +2231,10 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Intersector/getOverlappingFaces.py">getOverlappingFaces (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOverlappingFaces (array) -</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">I</span>
 <span class="kn">import</span> <span class="nn">Intersector</span> <span class="k">as</span> <span class="nn">XOR</span>
-<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
 <span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
 
 <span class="n">t1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
@@ -2254,21 +2246,17 @@ Each hierarchical zone is referring to a zone in the original Pytree <cite>t</ci
 <span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
 <span class="c1"># create a list of polygon list (t1), one list per zone</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">t</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 
 <span class="c1">#test 2 : volume/surface</span>
-
 <span class="n">t2</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorFaces</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">convertNGON2DToNGON3D</span><span class="p">(</span><span class="n">t2</span><span class="p">)</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">getOverlappingFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">RTOL</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">amax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-<span class="n">t</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">t</span><span class="p">],</span> <span class="s2">&quot;out1.plt&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">XOR</span><span class="o">.</span><span class="n">agglomerateCellsWithSpecifiedFaces</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out1.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">

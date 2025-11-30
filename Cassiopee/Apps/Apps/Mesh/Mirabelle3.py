@@ -248,7 +248,7 @@ def _reportBCMatchs(zo, zi, t, dir0):
     for bc in bcs:
         (oppBlock, rnge, donor, trf, periodic) = T.getBCMatchData__(bc)
         donorWin = donor
-        print("Adding bcmatch", getWinDir(rnge), oppBlock, donorWin)
+        print("Adding bcmatch", getWinDir(rnge), oppBlock)
 
         C._addBC2Zone(zo, 'match1', 'BCMatch', getWinDir(rnge),
                       zoneDonor=oppBlock, rangeDonor=donorWin, trirac=trf)

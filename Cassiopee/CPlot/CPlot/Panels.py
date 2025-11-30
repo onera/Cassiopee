@@ -22,6 +22,9 @@ ERRORWINDOW = None
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
              'Cloud', 'Gooch', 'Sphere', 'Texmat']
+# Colors
+COLORS = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
+          'Orange', 'Brown', 'Magenta', 'Custom>']
 # global VARS for RENDER panel
 VARS = []
 # global VARS for ACTIVATION panel
@@ -252,6 +255,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     myText += " - scotch (see XCore/scotch/LICENSE).\n"
     myText += " - MMGs (see Generator/MMGS/LICENSE).\n"
     myText += " - opencascade (see opencascade/LICENSE_LGPL_21.txt).\n"
+    myText += " - occ_gordon (see OCC/Gordon/LICENSE).\n"
     myText += " - xatlas (see Geom/xatlas/LICENCE).\n"
     myText += " - zstd (see Compressor/zstd/LICENCE).\n"
     myText += " - fpc (see Compressor/fpc.cpp).\n"
@@ -843,6 +847,12 @@ def updateRenderPanel():
                 rt = Internal.getNodeFromName1(ri, 'MeshOverlay')
                 if rt is not None: meshOverlay = str(Internal.getValue(rt))
                 else: meshOverlay = '0'
+                rt = Internal.getNodeFromName1(ri, 'MeshColor')
+                if rt is not None: meshColor = Internal.getValue(rt)
+                else: meshColor = 'None'
+                rt = Internal.getNodeFromName1(ri, 'MeshWidth')
+                if rt is not None: meshWidth = "%5.2f"%(Internal.getValue(rt))
+                else: meshWidth = "%5.2f"%(1.)
                 rt = Internal.getNodeFromName1(ri, 'ShaderParameters')
                 if rt is not None:
                     v = rt[1]
@@ -853,9 +863,10 @@ def updateRenderPanel():
             else:
                 material = 'None'; color = 'None'
                 blending = "%5.2f"%(1.); meshOverlay = '0'
+                meshColor = 'None'; meshWidth = "%5.2f"%(1.)
                 param1 = "%5.2f"%(1.); param2 = "%5.2f"%(1.)
 
-            data = [zoneName, material, color, blending, meshOverlay, param1, param2]
+            data = [zoneName, material, color, blending, param1, param2, meshOverlay, meshColor, meshWidth]
             ret = False
             if CTK.matchString(filter, zoneName):
                 for i, d in enumerate(data):
@@ -875,8 +886,9 @@ def renderSelect(event=None):
         for i in sel: myset.add(i)
 
     # setter values
-    material = None; color = None; blending = None;
-    meshOverlay = None; shader1 = None; shader2 = None
+    material = None; color = None; blending = None
+    meshOverlay = None; meshColor = None; meshWidth = None
+    shader1 = None; shader2 = None
 
     # select les zones dans CPlot
     CPlot.unselectAllZones()
@@ -1014,6 +1026,13 @@ def setColorVar(l):
         l = ret[1]
     VARS[1].set(l)
 
+def setMeshColorVar(l):
+    if l == 'Custom>':
+        import tkinter.colorchooser as tkColorChooser
+        ret = tkColorChooser.askcolor()
+        l = ret[1]
+    VARS[10].set(l)
+
 def updateVarNameList(event=None):
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
@@ -1025,8 +1044,7 @@ def updateVarNameList(event=None):
         vars = C.getVarNames(CTK.t[2][nob][2][noz], excludeXYZ=True)
     m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
-    allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
-               'Orange', 'Brown', 'Magenta', 'Custom>']
+    allvars = COLORS
     if len(vars) > 0:
         for v in vars[0]: allvars.append('Iso:'+v)
     for i in allvars:
@@ -1038,13 +1056,23 @@ def updateVarNameList2(event=None):
         zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
         zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
-    allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
-               'Orange', 'Brown', 'Magenta', 'Custom>']
+    allvars = COLORS
     if len(zvars) > 0:
         for v in zvars[0]: allvars.append('Iso:'+v)
-
     if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
+
+def updateMeshColorList(event=None):
+    m = WIDGETS['meshColors'].children['menu']
+    m.delete(0, TK.END)
+    allvars = COLORS
+    for i in allvars:
+        m.add_command(label=i, command=lambda v=VARS[1],l=i:setMeshColorVar(l))
+
+def updateMeshColorList2(event=None):
+    allvars = COLORS
+    if 'colors' in WIDGETS:
+        WIDGETS['meshColors']['values'] = allvars
 
 def setMaterial(event=None):
     nzs = CPlot.getSelectedZones()
@@ -1094,7 +1122,7 @@ def setBlend(event=None):
     updateRenderPanel()
     CPlot.render()
 
-def setMesh(event=None):
+def setMeshOverlay(event=None):
     nzs = CPlot.getSelectedZones()
     if nzs == []: return
     for nz in nzs:
@@ -1109,6 +1137,38 @@ def setMesh(event=None):
         if meshOverlay == 0: meshOverlay = 1
         else: meshOverlay = 0
         a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshOverlay=meshOverlay)
+        CTK.replace(CTK.t, nob, noz, a)
+    CTK.TKTREE.updateApp()
+    updateRenderPanel()
+    CPlot.render()
+
+def setMeshColor(event=None):
+    nzs = CPlot.getSelectedZones()
+    color = VARS[10].get()
+    if color == 'Custom>':
+        import tkinter.colorchooser as tkColorChooser
+        ret = tkColorChooser.askcolor()
+        color = ret[1]
+    VARS[10].set(color)
+    if nzs == []: return
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshColor=color)
+        CTK.replace(CTK.t, nob, noz, a)
+    CTK.TKTREE.updateApp()
+    updateRenderPanel()
+    reselect(0)
+    CPlot.render()
+
+def setMeshWidth(event=None):
+    nzs = CPlot.getSelectedZones()
+    val = float(VARS[11].get())
+    if nzs == []: return
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshWidth=val)
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
     updateRenderPanel()
@@ -1181,10 +1241,13 @@ def openRenderPanel():
         RENDERPANEL.columnconfigure(1, weight=1) # material
         RENDERPANEL.columnconfigure(2, weight=1) # Color
         RENDERPANEL.columnconfigure(3, weight=0) # blend
-        RENDERPANEL.columnconfigure(4, weight=0) # Mesh
-        RENDERPANEL.columnconfigure(5, weight=0) # shader param1
-        RENDERPANEL.columnconfigure(6, weight=0) # shader param2
-        RENDERPANEL.columnconfigure(7, weight=0) # scrollbar
+        RENDERPANEL.columnconfigure(4, weight=0) # shader param1
+        RENDERPANEL.columnconfigure(5, weight=0) # shader param2
+        RENDERPANEL.columnconfigure(6, weight=0) # Mesh overlay
+        RENDERPANEL.columnconfigure(7, weight=0) # Mesh color
+        RENDERPANEL.columnconfigure(8, weight=0) # Mesh width
+        RENDERPANEL.columnconfigure(9, weight=0) # scrollbar
+
         RENDERPANEL.rowconfigure(0, weight=0)
         RENDERPANEL.rowconfigure(1, weight=0)
         RENDERPANEL.rowconfigure(2, weight=1)
@@ -1198,10 +1261,10 @@ def openRenderPanel():
         #RENDERPANEL.protocol("WM_DELETE_WINDOW", _deleteRenderWindow)
         #RENDERPANEL.bind("<Destroy>", _destroyRenderWindow)
         scrollbar = TTK.Scrollbar(RENDERPANEL, orient=TK.VERTICAL, width=10)
-        scrollbar.grid(sticky=TK.NSEW, row=2, column=7)
+        scrollbar.grid(sticky=TK.NSEW, row=2, column=9)
         WIDGETS['scrollbar'] = scrollbar
         myLists = []
-        for i in range(7):
+        for i in range(9):
             if i == 0: # I cant find another way of setting constant in lambda functions
                 # ZoneName listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
@@ -1233,26 +1296,40 @@ def openRenderPanel():
                                      background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(3, event))
             elif i == 4:
-                # Mesh listbox
+                # Shader param1 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                      yscrollcommand=lambda *args: yscrolli(4,*args),
                                      width=4,
                                      background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(4, event))
             elif i == 5:
-                # Shader param1 listbox
+                # shader param2 listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                      yscrollcommand=lambda *args: yscrolli(5,*args),
                                      width=4,
                                      background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(5, event))
             elif i == 6:
-                # shader param2 listbox
+                # Mesh overlay listbox
                 myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
                                      yscrollcommand=lambda *args: yscrolli(6,*args),
                                      width=4,
                                      background='white', exportselection=1)
                 myList.bind('<Double-Button>', lambda event: fitZone(6, event))
+            elif i == 7:
+                # Mesh color listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                     yscrollcommand=lambda *args: yscrolli(7,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
+                myList.bind('<Double-Button>', lambda event: fitZone(7, event))
+            elif i == 8:
+                # Mesh width listbox
+                myList = TTK.Listbox(RENDERPANEL, selectmode=TK.EXTENDED,
+                                     yscrollcommand=lambda *args: yscrolli(8,*args),
+                                     width=4,
+                                     background='white', exportselection=1)
+                myList.bind('<Double-Button>', lambda event: fitZone(8, event))
 
             myList.grid(sticky=TK.NSEW, row=2, column=i)
             myList.bind('<<ListboxSelect>>', renderSelect)
@@ -1267,7 +1344,7 @@ def openRenderPanel():
         V = TK.StringVar(RENDERPANEL); V.set('White'); VARS.append(V)
         # -2- Blend
         V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
-        # -3- Mesh
+        # -3- Mesh overlay
         V = TK.IntVar(RENDERPANEL); V.set('0'); VARS.append(V)
         # -4- Shader Param1
         V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
@@ -1281,6 +1358,10 @@ def openRenderPanel():
         V = TK.StringVar(RENDERPANEL); V.set('Shader2.'); VARS.append(V)
         # -9- Filter zone name string
         V = TK.StringVar(RENDERPANEL); V.set(''); VARS.append(V)
+        # -10- Mesh Color
+        V = TK.StringVar(RENDERPANEL); V.set('White'); VARS.append(V)
+        # -11- Mesh Width
+        V = TK.StringVar(RENDERPANEL); V.set('1.'); VARS.append(V)
 
         # -- labels --
         label1 = TTK.Label(RENDERPANEL, text='Base/Zone')
@@ -1291,17 +1372,21 @@ def openRenderPanel():
         label3.grid(row=0, column=2, sticky=TK.EW)
         label4 = TTK.Label(RENDERPANEL, text='Blend')
         label4.grid(row=0, column=3, sticky=TK.EW)
-        label5 = TTK.Label(RENDERPANEL, text='Mesh')
-        label5.grid(row=0, column=4, sticky=TK.EW)
         label6 = TTK.Label(RENDERPANEL, text='Shader 1')
-        label6.grid(row=0, column=5, sticky=TK.EW)
+        label6.grid(row=0, column=4, sticky=TK.EW)
         label7 = TTK.Label(RENDERPANEL, text='Shader 2')
-        label7.grid(row=0, column=6, sticky=TK.EW)
+        label7.grid(row=0, column=5, sticky=TK.EW)
+        label5 = TTK.Label(RENDERPANEL, text='Mesh')
+        label5.grid(row=0, column=6, sticky=TK.EW)
+        label8 = TTK.Label(RENDERPANEL, text='Mesh Color')
+        label8.grid(row=0, column=7, sticky=TK.EW)
+        label9 = TTK.Label(RENDERPANEL, text='Mesh Width')
+        label9.grid(row=0, column=8, sticky=TK.EW)
 
         # -- Filters --
         B = TK.Entry(RENDERPANEL, textvariable=VARS[9], background='White', width=40)
         B.bind('<KeyRelease>', filterZones)
-        B.grid(row=3, column=0, columnspan=7, sticky=TK.EW)
+        B.grid(row=3, column=0, columnspan=9, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, text='Filter zones by this regexp.')
 
         # -- Setters --
@@ -1316,7 +1401,7 @@ def openRenderPanel():
         B = TTK.OptionMenu(RENDERPANEL, VARS[0], *MATERIALS, command=setMaterial)
         B.grid(row=1, column=1, sticky=TK.EW)
 
-        # color setter
+        # zone color setter
         F = TTK.Frame(RENDERPANEL, borderwidth=0)
         F.columnconfigure(0, weight=1)
         if ttk is None:
@@ -1341,18 +1426,12 @@ def openRenderPanel():
         B.grid(row=1, column=3, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, textVariable=VARS[6])
 
-        # Mesh setter (toggle)
-        #B = TTK.Button(RENDERPANEL, text="Toggle", command=setMesh)
-        B = TTK.Checkbutton(RENDERPANEL, variable=VARS[3], command=setMesh)
-        B.grid(row=1, column=4, sticky=TK.EW)
-        BB = CTK.infoBulle(parent=B, text="Toggle mesh overlay")
-
         # shader param1 setter
         B = TTK.Scale(RENDERPANEL, from_=0, to=100, orient=TK.HORIZONTAL,
                       command=setShaderParameter1, showvalue=0, borderwidth=1, value=100)
         WIDGETS['shader1'] = B
         WIDGETS['shader1'].set(50)
-        B.grid(row=1, column=5, sticky=TK.EW)
+        B.grid(row=1, column=4, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, textVariable=VARS[7])
 
         # shaderparam2 setter
@@ -1360,8 +1439,39 @@ def openRenderPanel():
                       command=setShaderParameter2, showvalue=0, borderwidth=1, value=100)
         WIDGETS['shader2'] = B
         WIDGETS['shader2'].set(50)
-        B.grid(row=1, column=6, sticky=TK.EW)
+        B.grid(row=1, column=5, sticky=TK.EW)
         BB = CTK.infoBulle(parent=B, textVariable=VARS[8])
+
+        # mesh overlay setter (toggle)
+        #B = TTK.Button(RENDERPANEL, text="Toggle", command=setMeshOverlay)
+        B = TTK.Checkbutton(RENDERPANEL, variable=VARS[3], command=setMeshOverlay)
+        B.grid(row=1, column=6, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text="Toggle mesh overlay")
+
+        # mesh color setter
+        F = TTK.Frame(RENDERPANEL, borderwidth=0)
+        F.columnconfigure(0, weight=1)
+        if ttk is None:
+            B = TK.OptionMenu(F, VARS[10], '', command=setMeshColor)
+            B.grid(sticky=TK.EW)
+            F.bind('<Enter>', updateMeshColorList)
+            F.grid(row=1, column=7, sticky=TK.EW)
+            WIDGETS['meshColors'] = B
+        else:
+            B = ttk.Combobox(F, textvariable=VARS[10],
+                             values=[], state='readonly', height=11)
+            B.bind('<<ComboboxSelected>>', setMeshColor)
+            B.grid(sticky=TK.EW)
+            F.bind('<Enter>', updateMeshColorList2)
+            F.grid(row=1, column=7, sticky=TK.EW)
+            WIDGETS['meshColors'] = B
+
+        # mesh width setter
+        B = TTK.Entry(RENDERPANEL, textvariable=VARS[11], background='White', width=10)
+        B.grid(row=1, column=8, sticky=TK.EW)
+        BB = CTK.infoBulle(parent=B, text='Width of mesh lines.')
+        B.bind('<Return>', setMeshWidth)
+        WIDGETS['meshWidth'] = B
 
     else:
         # trick pour avoir la fenetre au premier plan

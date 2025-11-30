@@ -458,8 +458,13 @@ def oneovern(t, N):
 
 def _oneovern(t, N):
     """Take one over N points from mesh."""
+    centers = C.getAllFields(t, 'centers', api=1)
     C._TZA1(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
-    C._TZA1(t, 'centers', 'centers', False, Transform.oneovern, N, 0)
+    zones = Internal.getZones(t)
+    for c, z in enumerate(zones):
+        if centers[c] != []:
+            fc = Transform.oneovern(centers[c], N, 0)
+            C.setFields([fc], z, 'centers', False)
     _oneovernBC__(t, N)
     return None
 
@@ -1693,7 +1698,7 @@ def _reorderGC__(t, order):
     return None
 
 # Reorder the numbering of t. t and toptree are modified
-def reorder(t, order, topTree=[]):
+def reorder(t, order=None, topTree=[]):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
     a = Internal.copyRef(t)
@@ -1701,7 +1706,8 @@ def reorder(t, order, topTree=[]):
     return a
 
 # If topTree is given, must be used in place!
-def _reorder(t, order, topTree=[]):
+def _reorder(t, order=None, topTree=[]):
+    if order is None: order = tuple()
     if len(order) == 3: _reorderStruct__(t, order, topTree)
     else: _reorderUnstruct__(t, order)
     return None
@@ -1745,7 +1751,7 @@ def _reorderUnstruct__(t, order):
 # reorder all zones to get the same orientation of the normals
 #=============================================================
 def reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     tp = Internal.copyRef(t)
@@ -1753,7 +1759,7 @@ def reorderAll(t, dir=1):
     return tp
 
 def _reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     C._fillMissingVariables(t)
@@ -2540,7 +2546,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
     for i in range(len(zonesN)):
         z = zonesN[i]
         dim = Internal.getZoneDim(z)
-        a = C.getFields(Internal.__GridCoordinates__, z)[0]
+        a = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         zlist = []
         if NPart[i] > 1:
             if recoverBC: bcs = C.getBCs(z)

@@ -1982,7 +1982,7 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
   listOfInterpolatedPoints.reAlloc(n);
   // Search for sign of delta expansion in i and j directions
   iP = listOfInterpolatedPoints.begin();
-  if ( type == 0 )
+  if (type == 0)
   {
     if (elevationDir == 2 ) // 2D
     {
@@ -1990,18 +1990,18 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
-          if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN+1] == -1) diri[i] = 1;
         }
-        else if ( indN == imc-1 )
+        else if ( indN == imc-1)
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
         }
         else
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
-          else if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
+          else if (cellNt[indN+1] == -1) diri[i] = 1;
         }
       }
     }
@@ -2012,11 +2012,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
           if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
-        else if ( indN == imc-1)
+        else if (indN == imc-1)
         {
           if (cellNt[indN-1] == -1 ) diri[i] = -1;
         }
@@ -2026,11 +2026,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
           else if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
 
-        if ( indN-imc < 0 )
+        if (indN-imc < 0)
         {
           if (cellNt[indN+imc] == -1 ) dirj[i] = 1;
         }
-        else if ( indN+imc > ncells)
+        else if (indN+imc > ncells)
         {
           if (cellNt[indN-imc] == -1 ) dirj[i] = -1;
         }

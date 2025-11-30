@@ -30,6 +30,16 @@ def naca(e, N=101, sharpte=True):
     if isinstance(e, str): zname ='NACA'+e
     return C.convertArrays2ZoneNode(zname, [a])
 
+def profile(name=None):
+    """Create a wing profile mesh."""
+    if name is None: return Geom.profile()
+    else:
+        name1 = name.split('/')
+        if len(name1) == 1: return Geom.profile(name)
+        else:
+            a = Geom.profile(name)
+            return C.convertArrays2ZoneNode(name, [a])
+
 def line(P1, P2, N=100):
     """Create a line of N points. Usage: line( (x1,y1,z1), (x2,y2,z2), N )"""
     a = Geom.line(P1, P2, N)
@@ -195,7 +205,7 @@ def surface(f, N=100):
 def getLength(t):
     """Return the length of 1D array(s) defining a mesh.
     Usage: getLength(t)"""
-    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=3)
     return Geom.getLength(coords)
 
 def getDistantIndex(t, ind, l):
@@ -214,29 +224,29 @@ def getNearestPointIndex(t, pointList):
 def getCurvatureHeight(t):
     """Return the curvature height for each point.
     Usage: getCurvatureHeight(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureHeight)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureHeight)
 
 def _getCurvatureHeight(t):
     """Return the curvature height for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureHeight)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureHeight)
 
 def getCurvatureRadius(t):
     """Return the curvature radius for each point.
     Usage: getCurvatureRadius(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureRadius)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureRadius)
 
 def _getCurvatureRadius(t):
     """Return the curvature radius for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureRadius)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureRadius)
 
 def getCurvatureAngle(t):
     """Return the curvature angle for each point.
     Usage: getCurvatureAngle(t)"""
-    return C.TZGC1(t, 'nodes', True, Geom.getCurvatureAngle)
+    return C.TZGC3(t, 'nodes', True, Geom.getCurvatureAngle)
 
 def _getCurvatureAngle(t):
     """Return the curvature angle for each point."""
-    return C._TZGC1(t, 'nodes', False, Geom.getCurvatureAngle)
+    return C._TZGC3(t, 'nodes', False, Geom.getCurvatureAngle)
 
 def getSharpestAngle(t):
     """Return the sharpest angle for each point of a surface based on the sharpest angle
@@ -294,12 +304,12 @@ def lineDrive(t, line):
     """Generate a surface mesh by using 1D array (defining a mesh)
     and following the curve defined in line.
     Usage: lineDrive(t, line)"""
-    al = C.getFields(Internal.__GridCoordinates__, line, api=1)
+    al = C.getFields(Internal.__GridCoordinates__, line, api=3)
     if len(al) == 1: al = al[0]
     al2 = Converter.node2Center(al)
     # Attention les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    return C.TZAGC1(t, 'both', 'both', True, Geom.lineDrive,
+    return C.TZAGC3(t, 'both', 'both', True, Geom.lineDrive,
                     Geom.lineDrive, al, al2)
 
 def orthoDrive(t, line, mode=0):
@@ -319,8 +329,8 @@ def axisym(t, center, axis, angle=360., Ntheta=360, rmod=None):
     Usage: axisym(t, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
     # Attention en centres, les coord. des centres ne sont pas justes! mais
     # elles ne sont pas utilisees dans la fonction
-    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=1)[0]
-    return C.TZAGC1(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
+    if rmod is not None: rmod = C.getFields(Internal.__GridCoordinates__, rmod, api=3)[0]
+    return C.TZAGC3(t, 'both', 'both', True, Geom.axisym, Geom.axisym,
                     center, axis, angle, Ntheta, rmod,
                     center, axis, angle, Ntheta-1, rmod)
 
@@ -479,11 +489,13 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     return z0, z1, z2
 
 def getUVFromIJ(t):
+    """Return uv of structured surface."""
     tp = Internal.copyRef(t)
     _getUVFromIJ(tp)
     return tp
 
 def _getUVFromIJ(a):
+    """Return uv of structured surface."""
     zones = Internal.getZones(a)
     for z in zones:
         C._initVars(z, '_u_=0.')
@@ -502,5 +514,6 @@ def _getUVFromIJ(a):
     return None
 
 def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
+    """Offset a surface."""
     import Geom.Offset
     return Geom.Offset.offsetSurface(a, offset, pointsPerUnitLength, algo, dim)

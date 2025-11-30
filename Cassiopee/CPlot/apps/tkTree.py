@@ -905,7 +905,7 @@ class Node:
             val = pid[1]
             connectType = val[0]; boundary = val[1]
             v = 'Connectivity of type '
-            name, nnodes = Internal.eltNo2EltName(connectType)
+            name, _ = Internal.eltNo2EltName(connectType)
             v += name
 
             if boundary > 0: v += ' (boundary)'

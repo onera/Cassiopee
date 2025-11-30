@@ -10,13 +10,16 @@ import CPlot.iconics as iconics
 
 # local widgets list
 WIDGETS = {}; VARS = []
-# Supprime: light, smoke
+
 MATERIALS = ['Solid', 'Flat', 'Glass', 'Chrome',
              'Metal', 'Wood', 'Marble', 'Granite', 'Brick', 'XRay',
              'Cloud', 'Gooch', 'Sphere', 'Texmat']
 
+COLORS = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
+          'Orange', 'Brown', 'Magenta', 'Custom>']
+
 #==============================================================================
-# Appele quand une couleur est selectionnee (optionMenu)
+# Appele quand une zone color est selectionnee (optionMenu)
 def setColorVar(l):
     if l == 'Custom>':
         import tkinter.colorchooser as tkColorChooser
@@ -25,7 +28,7 @@ def setColorVar(l):
     VARS[1].set(l)
 
 #==============================================================================
-# Appele quand une couleur est selectionnee (combobox)
+# Appele quand une zone color est selectionnee (combobox)
 def setColorVar2(event=None):
     l = VARS[1].get()
     if l == 'Custom>':
@@ -35,7 +38,26 @@ def setColorVar2(event=None):
         VARS[1].set(l)
 
 #==============================================================================
-# Cree la liste des couleurs + variables (optionMenu)
+# Appele quand une mesh color est selectionnee (optionMenu)
+def setMeshColorVar(l):
+    if l == 'Custom>':
+        import tkinter.colorchooser as tkColorChooser
+        ret = tkColorChooser.askcolor()
+        l = ret[1]
+    VARS[7].set(l)
+
+#==============================================================================
+# Appele quand une mesh color est selectionnee (combobox)
+def setMeshColorVar2(event=None):
+    l = VARS[7].get()
+    if l == 'Custom>':
+        import tkinter.colorchooser as tkColorChooser
+        ret = tkColorChooser.askcolor()
+        l = ret[1]
+        VARS[7].set(l)
+
+#==============================================================================
+# Cree la liste des zone colors + variables (optionMenu)
 #==============================================================================
 def updateVarNameList(event=None):
     if CTK.t == []: return
@@ -45,15 +67,14 @@ def updateVarNameList(event=None):
         zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
     m = WIDGETS['colors'].children['menu']
     m.delete(0, TK.END)
-    allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
-               'Orange', 'Brown', 'Magenta', 'Custom>']
+    allvars = COLORS
     if len(zvars) > 0:
         for v in zvars[0]: allvars.append('Iso:'+v)
     for i in allvars:
         m.add_command(label=i, command=lambda v=VARS[1],l=i:setColorVar(l))
 
 #==============================================================================
-# Cree la liste des couleurs + variables (combobox)
+# Cree la liste des zone colors + variables (combobox)
 #==============================================================================
 def updateVarNameList2(event=None):
     if CTK.t == []: return
@@ -61,14 +82,32 @@ def updateVarNameList2(event=None):
         zvars = C.getVarNames(CTK.dt, excludeXYZ=True, mode=1)
     else:
         zvars = C.getVarNames(CTK.t, excludeXYZ=True, mode=1)
-    allvars = ['White', 'Black', 'Grey', 'Blue', 'Red', 'Green', 'Yellow',
-               'Orange', 'Brown', 'Magenta', 'Custom>']
+    allvars = COLORS
     if len(zvars) > 0:
         for v in zvars[0]: allvars.append('Iso:'+v)
-
     if 'colors' in WIDGETS:
         WIDGETS['colors']['values'] = allvars
 
+#==============================================================================
+# Cree la liste des mesh colors (optionMenu)
+#==============================================================================
+def updateMeshColorList(event=None):
+    m = WIDGETS['meshColors'].children['menu']
+    m.delete(0, TK.END)
+    allvars = COLORS
+    for i in allvars:
+        m.add_command(label=i, command=lambda v=VARS[1],l=i:setMeshColorVar(l))
+
+#==============================================================================
+# Cree la liste des mesh colors (combobox)
+#==============================================================================
+def updateMeshColorList2(event=None):
+    allvars = COLORS
+    if 'colors' in WIDGETS:
+        WIDGETS['meshColors']['values'] = allvars
+
+#==============================================================================
+# set zone material
 #==============================================================================
 def setMaterial():
     if CTK.t == []: return
@@ -92,6 +131,8 @@ def setMaterial():
     CPlot.render()
 
 #==============================================================================
+# set zone color
+#==============================================================================
 def setColor():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
@@ -114,6 +155,55 @@ def setColor():
     CPlot.render()
 
 #==============================================================================
+# set mesh color
+#==============================================================================
+def setMeshColor():
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    color = VARS[7].get()
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshColor=color)
+        CTK.replace(CTK.t, nob, noz, a)
+    CTK.TKTREE.updateApp()
+    Panels.updateRenderPanel()
+    CPlot.render()
+
+#==============================================================================
+# set mesh width
+#==============================================================================
+def setMeshWidth(event=None):
+    if CTK.t == []: return
+    if CTK.__MAINTREE__ <= 0:
+        CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    width = VARS[8].get()
+    width = float(width)
+    nzs = CPlot.getSelectedZones()
+    if nzs == []:
+        CTK.TXT.insert('START', 'Selection is empty.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error'); return
+    CTK.saveTree()
+
+    for nz in nzs:
+        nob = CTK.Nb[nz]+1
+        noz = CTK.Nz[nz]
+        a = CPlot.addRender2Zone(CTK.t[2][nob][2][noz], meshWidth=width)
+        CTK.replace(CTK.t, nob, noz, a)
+    CTK.TKTREE.updateApp()
+    Panels.updateRenderPanel()
+    CPlot.render()
+
+#==============================================================================
 def setAll():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
@@ -123,9 +213,11 @@ def setAll():
     color = VARS[1].get()
     blending = WIDGETS['blending'].get() / 100.
     VARS[6].set('Blending [%.2f].'%blending)
-    meshOverlay = VARS[3].get()
     shaderParameter2 = (WIDGETS['param2'].get()) / 50.
     shaderParameter1 = (WIDGETS['param1'].get()) / 50.
+    meshOverlay = VARS[3].get()
+    meshColor = VARS[7].get()
+    meshWidth = VARS[8].get()
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -141,6 +233,11 @@ def setAll():
                                  blending=blending,
                                  shaderParameters=[shaderParameter1,
                                                    shaderParameter2])
+        if meshOverlay == "1":
+            CPlot._addRender2Zone(a,
+                                  meshOverlay=meshOverlay,
+                                  meshColor=meshColor,
+                                  meshWidth=meshWidth)
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TKTREE.updateApp()
     Panels.updateRenderPanel()
@@ -176,6 +273,11 @@ def setMeshOverlay():
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
     meshOverlay = VARS[3].get()
+    if meshOverlay == "1":
+        WIDGETS['meshFrame'].grid(row=1, column=0, columnspan=2)
+    else:
+        WIDGETS['meshFrame'].grid_remove()
+
     nzs = CPlot.getSelectedZones()
     if nzs == []:
         CTK.TXT.insert('START', 'Selection is empty.\n')
@@ -221,10 +323,6 @@ def setShaderParameter(event=None):
     CPlot.render()
 
 #==============================================================================
-#def setBlending(event=None):
-#    VARS[6].set('Blending [%.2f]'%(WIDGETS['blending'].get() / 100.))
-
-#==============================================================================
 def getData():
     if CTK.t == []: return
     nzs = CPlot.getSelectedZones()
@@ -252,6 +350,17 @@ def getData():
         if n is not None:
             val = Internal.getValue(n)
             VARS[3].set(val)
+            if val == "1": WIDGETS['meshFrame'].grid(row=1, column=0, columnspan=2)
+            else: WIDGETS['meshFrame'].grid_remove()
+        n = Internal.getNodeFromPath(zone, '.RenderInfo/MeshColor')
+        if n is not None:
+            val = Internal.getValue(n)
+            VARS[7].set(val)
+        n = Internal.getNodeFromPath(zone, '.RenderInfo/MeshWidth')
+        if n is not None:
+            val = Internal.getValue(n)
+            val = str(val)
+            VARS[8].set(val)
         n = Internal.getNodeFromPath(zone, '.RenderInfo/ShaderParameters')
         if n is not None:
             val = Internal.getValue(n)
@@ -299,6 +408,10 @@ def createApp(win):
     V = TK.StringVar(win); V.set('Shader parameter 2.'); VARS.append(V)
     # -6- Blending info bulle
     V = TK.StringVar(win); V.set('Blending.'); VARS.append(V)
+    # -7- Mesh color
+    V = TK.StringVar(win); V.set('Black'); VARS.append(V)
+    # -8- Mesh width
+    V = TK.StringVar(win); V.set('1'); VARS.append(V)
 
     # - set Blending -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
@@ -313,30 +426,69 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Add underlaying mesh.')
     B.grid(row=0, column=1, sticky=TK.EW)
 
+    # - set mesh color -
+    F2 = TTK.Frame(Frame, borderwidth=0)
+    F2.columnconfigure(0, weight=1)
+    F2.columnconfigure(1, weight=1)
+    B = TTK.Button(F2, text="Mesh Color", command=setMeshColor)
+    B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set the color of mesh lines.')
+
+    F = TTK.Frame(F2, borderwidth=0)
+    F.columnconfigure(0, weight=1)
+
+    if ttk is None:
+        B = TK.OptionMenu(F, VARS[7], '')
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateMeshColorList)
+        F.grid(row=0, column=1, sticky=TK.EW)
+        WIDGETS['meshColors'] = B
+    else:
+        B = ttk.Combobox(F, textvariable=VARS[7],
+                         values=[], state='readonly', height=11)
+        B.bind('<<ComboboxSelected>>', setMeshColorVar2)
+        B.grid(sticky=TK.EW)
+        F.bind('<Enter>', updateMeshColorList2)
+        F.grid(row=0, column=1, sticky=TK.EW)
+        WIDGETS['meshColors'] = B
+    #F2.grid(row=1, column=0, columnspan=2)
+    WIDGETS['meshFrame'] = F2
+
+    # - set mesh width -
+    B = TTK.Button(F2, text="Mesh Width", command=setMeshWidth)
+    B.grid(row=1, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Set the width of mesh lines.')
+
+    B = TTK.Entry(F2, textvariable=VARS[8], background='White', width=10)
+    B.grid(row=1, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Width of mesh lines.')
+    B.bind('<Return>', setMeshWidth)
+    WIDGETS['meshWidth'] = B
+
     # - set shader parameter 1 & 2-
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
                   command=setShaderParameter, showvalue=0, borderwidth=1, value=50)
     WIDGETS['param1'] = B
-    B.grid(row=1, column=0, sticky=TK.EW)
+    B.grid(row=2, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
 
     # - set shader parameter 2 -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
                   command=setShaderParameter, showvalue=0, borderwidth=1, value=50)
     WIDGETS['param2'] = B
-    B.grid(row=1, column=1, sticky=TK.EW)
+    B.grid(row=2, column=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[5])
 
     # - set Material -
     B = TTK.Button(Frame, text="Set Material", command=setMaterial)
-    B.grid(row=2, column=0, sticky=TK.EW)
+    B.grid(row=3, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set the material render property.')
     B = TTK.OptionMenu(Frame, VARS[0], *MATERIALS)
-    B.grid(row=2, column=1, sticky=TK.EW)
+    B.grid(row=3, column=1, sticky=TK.EW)
 
     # - set Color -
     B = TTK.Button(Frame, text="Set Color", command=setColor)
-    B.grid(row=3, column=0, sticky=TK.EW)
+    B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Set the color render property.')
 
     F = TTK.Frame(Frame, borderwidth=0)
@@ -346,7 +498,7 @@ def createApp(win):
         B = TK.OptionMenu(F, VARS[1], '')
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList)
-        F.grid(row=3, column=1, sticky=TK.EW)
+        F.grid(row=4, column=1, sticky=TK.EW)
         WIDGETS['colors'] = B
     else:
         B = ttk.Combobox(F, textvariable=VARS[1],
@@ -354,7 +506,7 @@ def createApp(win):
         B.bind('<<ComboboxSelected>>', setColorVar2)
         B.grid(sticky=TK.EW)
         F.bind('<Enter>', updateVarNameList2)
-        F.grid(row=3, column=1, sticky=TK.EW)
+        F.grid(row=4, column=1, sticky=TK.EW)
         WIDGETS['colors'] = B
 
     # - set all properties -
@@ -367,9 +519,9 @@ def createApp(win):
     BB = CTK.infoBulle(parent=B, text='Set all render properties.')
     B = TTK.Button(F, command=getData,
                    image=iconics.PHOTO[8], padx=0, pady=0)
-    BB = CTK.infoBulle(parent=B, text='Get data from selected zone.')
+    BB = CTK.infoBulle(parent=B, text='Get properties from selected zone.')
     B.grid(row=0, column=1, sticky=TK.EW)
-    F.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    F.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
 
 #==============================================================================
 # Called to display widgets

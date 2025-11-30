@@ -62,5 +62,5 @@ out_foam/
 chm000*
 out.step
 *.swp
-
+*.db
 tools/MigrationSVN

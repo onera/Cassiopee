@@ -39,4 +39,5 @@ env_Cassiopee* text
 
 *.png binary
 *.jpeg binary
+*.jpg binary
 *.gif binary

@@ -6,9 +6,9 @@ E_Float taug_f = ipt_param_realR[NoD][LBM_TAUG];
 E_Float taug_c = ipt_param_realR[NoR][LBM_TAUG];
 
 E_Int flag_psi = 0;
-E_Int nb_dist    = ipt_param_intR[NoR][NEQ_LBM];
+E_Int nb_dist = ipt_param_intR[NoR][NEQ_LBM];
 E_Int coll_model = ipt_param_intR[NoR][LBM_COLL_MODEL];
-if ( coll_model==4 ) flag_psi = 1;
+if (coll_model == 4) flag_psi = 1;
 
 //E_Int shift_macro = 0;
 //E_Int shift_sij   = 5;
@@ -220,7 +220,7 @@ else if (nb_dist == 27)
     E_Float eq1, eq2, eq3, eq4, eq5, eq6, eq7, eq8, eq9, eq10;
     E_Float eq11, eq12, eq13, eq14, eq15, eq16, eq17, eq18, eq19;
     E_Float eq20, eq21, eq22, eq23, eq24, eq25, eq26, eq27;
-    E_Float corr_xx, corr_yy, corr_zz, corr_x, corr_y, corr_z, psi, psi_b, psi_alt;
+    E_Float corr_xx, corr_yy, corr_zz, corr_x, corr_y, corr_z, psi, psi_b;
 
     E_Float offeq1, offeq2, offeq3, offeq4, offeq5, offeq6, offeq7, offeq8, offeq9, offeq10;
     E_Float offeq11, offeq12, offeq13, offeq14, offeq15, offeq16, offeq17, offeq18, offeq19;

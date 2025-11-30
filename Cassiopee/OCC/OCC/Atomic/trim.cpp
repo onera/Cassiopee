@@ -32,7 +32,7 @@
 #include "BRepAlgoAPI_Cut.hxx"
 
 //=====================================================================
-// Fix the full shape
+// Trim faces
 //=====================================================================
 PyObject* K_OCC::trimFaces(PyObject* self, PyObject* args)
 {

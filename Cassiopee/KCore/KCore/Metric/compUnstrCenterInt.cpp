@@ -18,6 +18,7 @@
 */
 # include "metric.h"
 # include "Array/Array.h"
+#include "Connect/connect.h"
 
 //=============================================================================
 // Calcul des centres des interfaces pour des mailles non structurees.
@@ -36,17 +37,19 @@ void K_METRIC::compUnstructCenterInt(
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
+  // Number of facets per element
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  if (ierr != 0) return;
+
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    E_Int nfpe;  // number of facets per element
     E_Int nfpc;  // number of facets per connectivity
 
     if (strcmp(eltTypes[ic], "TRI") == 0)
     {
-      nfpe = 1;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, pos;
@@ -65,7 +68,7 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3];
 
-          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
@@ -74,8 +77,6 @@ void K_METRIC::compUnstructCenterInt(
     }
     else if (strcmp(eltTypes[ic], "QUAD") == 0)
     {
-      nfpe = 1;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, ind4, pos;
@@ -95,7 +96,7 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3]; y4 = yt[ind4];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
 
-          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
@@ -104,8 +105,6 @@ void K_METRIC::compUnstructCenterInt(
     }
     else if (strcmp(eltTypes[ic], "TETRA") == 0)
     {
-      nfpe = 4;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, ind4, pos;
@@ -126,7 +125,7 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
           
           // facette 123
-          pos = fctOffset + i * nfpe;
+          pos = fctOffset + i * nfpe[ic];
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
@@ -153,8 +152,6 @@ void K_METRIC::compUnstructCenterInt(
     }
     else if (strcmp(eltTypes[ic], "PYRA") == 0)
     {
-      nfpe = 5;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, ind4, ind5, pos;
@@ -176,7 +173,7 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4]; z5 = zt[ind5];
 
           // facette 1234 : quad
-          pos = fctOffset + i * nfpe;
+          pos = fctOffset + i * nfpe[ic];
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
@@ -209,8 +206,6 @@ void K_METRIC::compUnstructCenterInt(
     }
     else if (strcmp(eltTypes[ic], "HEXA") == 0)
     {
-      nfpe = 6;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8, pos;
@@ -240,7 +235,7 @@ void K_METRIC::compUnstructCenterInt(
           z5 = zt[ind5]; z6 = zt[ind6]; z7 = zt[ind7]; z8 = zt[ind8];
 
           // facette 1234
-          pos = fctOffset + i * nfpe;
+          pos = fctOffset + i * nfpe[ic];
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
@@ -279,8 +274,6 @@ void K_METRIC::compUnstructCenterInt(
     }
     else if (strcmp(eltTypes[ic], "PENTA") == 0)
     {
-      nfpe = 5;
-
       #pragma omp parallel
       {
         E_Int ind1, ind2, ind3, ind4, ind5, ind6, pos;
@@ -308,7 +301,7 @@ void K_METRIC::compUnstructCenterInt(
           z4 = zt[ind4]; z5 = zt[ind5]; z6 = zt[ind6];
 
           // facette triangle 1 : 123
-          pos = fctOffset + i * nfpe;
+          pos = fctOffset + i * nfpe[ic];
           xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
           yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
           zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
@@ -347,7 +340,7 @@ void K_METRIC::compUnstructCenterInt(
     }
 
     // Increment the face offset
-    nfpc = nfpe*nelts;
+    nfpc = nfpe[ic]*nelts;
     fctOffset += nfpc;
   }
 

@@ -212,14 +212,16 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
     strcpy(z.renderTag, zoneTags);
     codeFromRenderTag(z, z.renderTag, z.colorR, z.colorG, z.colorB, 
                       z.material, z.blending, z.meshOverlay, 
+                      z.meshColorR, z.meshColorG, z.meshColorB, z.meshWidth,
                       z.shaderParam1, z.shaderParam2);
   }
   else
   {
     strcpy(z.renderTag, "None:None:None:None");
     z.colorR = -1; z.colorG = -1; z.colorB = -1; z.material = -1;
-    z.blending = -1.; z.meshOverlay = 0; z.shaderParam1 = 1.;
-    z.shaderParam2 = 1.;
+    z.blending = -1.; z.meshOverlay = 0;
+    z.meshColorR = -1.; z.meshColorG = -1.; z.meshColorB = -1.; z.meshWidth = -1.; 
+    z.shaderParam1 = 1.; z.shaderParam2 = 1.;
   }
 
   // Calcul les normales
@@ -477,14 +479,16 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     strcpy(z.renderTag, zoneTags);
     codeFromRenderTag(z, z.renderTag, z.colorR, z.colorG, z.colorB, 
                       z.material, z.blending, z.meshOverlay, 
+                      z.meshColorR, z.meshColorG, z.meshColorB, z.meshWidth,
                       z.shaderParam1, z.shaderParam2);
   }
   else
   {
-    strcpy(z.renderTag, "None:None:None:None");
+    strcpy(z.renderTag, "None:None:None:None:None:None:None:None");
     z.colorR = -1.; z.colorG = -1.; z.colorB = -1.; z.material = -1;
-    z.blending = -1.; z.meshOverlay = 0; z.shaderParam1 = 1.;
-    z.shaderParam2 = 1.;
+    z.blending = -1.; z.meshOverlay = 0; 
+    z.meshColorR = -1.; z.meshColorG = -1.; z.meshColorB = -1.; z.meshWidth = -1.;
+    z.shaderParam1 = 1.; z.shaderParam2 = 1.;
   }
 
   /* Explore connectivities */

@@ -35,6 +35,7 @@
 #include "Geom_BSplineSurface.hxx"
 #include "Geom_Surface.hxx"
 #include "Geom_Curve.hxx"
+#include "occ_gordon.h"
 
 //=====================================================================
 // Loft
@@ -54,7 +55,7 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
   if (nguides == 0) // loft without guides
   { 
     // Use opencascade BRepOffsetAPI_ThruSections
-    BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*preserveOrientation=*/1);
+    BRepOffsetAPI_ThruSections loftBuilder(/*isSolid=*/false, /*is ruled=*/true, /*pres3d=*/1.e-6);
     loftBuilder.SetContinuity(GeomAbs_C2);
     //loftBuilder.SetSmoothing(True);
 
@@ -65,53 +66,54 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       E_Int no = PyInt_AsLong(noO);
       const TopoDS_Edge& E = TopoDS::Edge(edges(no));
       TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
+      Standard_Boolean isClosed = BRep_Tool::IsClosed(W);
+      if (isClosed) printf("Warning: close wire may fail loft.\n");
       loftBuilder.AddWire(W);
     }
-    loftBuilder.Build();
+    try { loftBuilder.Build(); }
+    catch (...) 
+    {  
+      PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
+      return NULL; 
+    }
     const TopoDS_Shape& loftedSurface = loftBuilder.Shape();
     newshp = new TopoDS_Shape(loftedSurface);
   }
   else // loft with guides
   {
     Standard_Real firstParam, lastParam;
+    std::vector<Handle (Geom_Curve)> ucurves;
+    std::vector<Handle (Geom_Curve)> vcurves;
 
-    std::vector< Handle(Geom_BSplineCurve) > curves;
-    
+    // Get curves from profiles
     for (E_Int i = 0; i < nprofiles; i++)
     {
       PyObject* noO = PyList_GetItem(listProfiles, i);
       E_Int no = PyInt_AsLong(noO);
       const TopoDS_Edge& E = TopoDS::Edge(edges(no));
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
-      Handle(Geom_BSplineCurve) bsplineCurve = Handle(Geom_BSplineCurve)::DownCast(baseCurve);
-      if (!bsplineCurve.IsNull())
-      {
-        curves.push_back(bsplineCurve);
-      }
+      ucurves.push_back(baseCurve);
     }
-    size_t size = curves.size();
-    if (size == 2)
+
+    // Get curves from guides
+    for (E_Int i = 0; i < nguides; i++)
     {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());      
-      newshp = new TopoDS_Shape(F);
+      PyObject* noO = PyList_GetItem(listGuides, i);
+      E_Int no = PyInt_AsLong(noO);
+      const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+      Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
+      vcurves.push_back(baseCurve);
     }
-    else if (size == 3)
+
+    Handle(Geom_BSplineSurface) surf;
+    try { surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4); }
+    catch (...)
     {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());
-      newshp = new TopoDS_Shape(F);
+      PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
+      return NULL;
     }
-    else if (size == 4)
-    {
-      GeomFill_BSplineCurves filler(curves[0], curves[1], curves[2], curves[3], GeomFill_CoonsStyle);
-      Handle(Geom_BSplineSurface) surface = filler.Surface();
-      TopoDS_Face F = BRepBuilderAPI_MakeFace(surface, Precision::Confusion());
-      newshp = new TopoDS_Shape(F);
-    }
-  
+    TopoDS_Face F = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
+    newshp = new TopoDS_Shape(F);
   }
 
   // Rebuild the hook

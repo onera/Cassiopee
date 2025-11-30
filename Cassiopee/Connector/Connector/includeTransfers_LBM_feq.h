@@ -88,7 +88,7 @@ if (nb_dist == 19)
     vectOfRcvFields[shift_q + 8][indR] = feq;
 
     // Q 9
-    E_Float psi_alt = 0.;
+    //E_Float psi_alt = 0.;
     E_Float vit2 = -Ux + Uy;
     E_Float herm_alt = -coef1 + coef2 - coef4 - coef5;
     E_Float feq_alt = Ro * w3 * (1. + vit2 * (3. + 4.5 * vit2) - 1.5 * ec - 4.5 * herm_alt);

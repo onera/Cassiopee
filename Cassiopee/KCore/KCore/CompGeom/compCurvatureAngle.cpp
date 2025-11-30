@@ -143,8 +143,6 @@ void K_COMPGEOM::compCurvatureAngleForBar(
   
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(cn, cVE);
-  E_Int* cn1 = cn.begin(1);
-  E_Int* cn2 = cn.begin(2);
   for (i = 0; i < npts; i++)
   {
     ind = i;
@@ -153,10 +151,10 @@ void K_COMPGEOM::compCurvatureAngleForBar(
     {
       e1 = cVE[i][0];
       e2 = cVE[i][1];
-      ind1 = cn1[e1]-1;
-      ind2 = cn2[e1]-1;
-      ind3 = cn1[e2]-1;
-      ind4 = cn2[e2]-1;
+      ind1 = cn(e1,1)-1;
+      ind2 = cn(e1,2)-1;
+      ind3 = cn(e2,1)-1;
+      ind4 = cn(e2,2)-1;
       if (ind == ind1 && ind == ind4)
       {
         indp = ind2;
@@ -183,8 +181,8 @@ void K_COMPGEOM::compCurvatureAngleForBar(
     else if (s == 1)
     {
       e1 = cVE[i][0];
-      ind1 = cn1[e1]-1;
-      ind2 = cn2[e1]-1;
+      ind1 = cn(e1,1)-1;
+      ind2 = cn(e1,2)-1;
       indp = ind1;
       indm = ind2;
     }
@@ -263,23 +261,19 @@ E_Int K_COMPGEOM::compCurvatureAngleForTri(
   vector< vector<E_Int> > cEEN(nelts);
   K_CONNECT::connectEV2EENbrs("TRI", npts, cn, cEEN);
 
-  E_Int* cn1 = cn.begin(1);
-  E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3);
-
   for (E_Int elt1 = 0; elt1 < nelts; elt1++)
   {
     vector<E_Int>& eltVoisins = cEEN[elt1];//liste des tri voisins de elts
     E_Int nvoisins = eltVoisins.size();
-    ind1 = cn1[elt1]-1;
-    ind2 = cn2[elt1]-1;
-    ind3 = cn3[elt1]-1;
+    ind1 = cn(elt1,1)-1;
+    ind2 = cn(elt1,2)-1;
+    ind3 = cn(elt1,3)-1;
     for (E_Int n = 0; n < nvoisins; n++ )
     {
       E_Int elt2 = eltVoisins[n];//indice de l element voisin 
-      ind4 = cn1[elt2]-1;
-      ind5 = cn2[elt2]-1;
-      ind6 = cn3[elt2]-1;
+      ind4 = cn(elt2,1)-1;
+      ind5 = cn(elt2,2)-1;
+      ind6 = cn(elt2,3)-1;
       ind = ind1;
       inda = ind2;
       indp = ind5;

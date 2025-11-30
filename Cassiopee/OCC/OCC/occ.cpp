@@ -48,8 +48,12 @@ static PyMethodDef Pyocc [] =
   {"addSquare", K_OCC::addSquare, METH_VARARGS},
   {"addLine", K_OCC::addLine, METH_VARARGS},
   {"addCircle", K_OCC::addCircle, METH_VARARGS},
+  {"addEllipse", K_OCC::addEllipse, METH_VARARGS},
   {"addSpline", K_OCC::addSpline, METH_VARARGS},
   {"addArc", K_OCC::addArc, METH_VARARGS},
+  {"addSuperEllipse", K_OCC::addSuperEllipse, METH_VARARGS},
+  
+  {"addGordonSurface", K_OCC::addGordonSurface, METH_VARARGS},
 
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},
   {"getNbEdges", K_OCC::getNbEdges, METH_VARARGS},
@@ -83,20 +87,27 @@ static PyMethodDef Pyocc [] =
   {"areEdgeIdentical", K_OCC::areEdgeIdentical, METH_VARARGS},
 
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
+  {"splitEdge", K_OCC::splitEdge, METH_VARARGS},
   {"fixShape", K_OCC::fixShape, METH_VARARGS},
-  {"trimFaces", K_OCC::trimFaces, METH_VARARGS},
   {"sewing", K_OCC::sewing, METH_VARARGS},
   {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
   {"fillHole", K_OCC::fillHole, METH_VARARGS},
   {"addFillet", K_OCC::addFillet, METH_VARARGS},
   {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
+  {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
+  
   {"loft", K_OCC::loft, METH_VARARGS},
+  {"sweep", K_OCC::sweep, METH_VARARGS},
   {"revolve", K_OCC::revolve, METH_VARARGS},
 
   {"translate", K_OCC::translate, METH_VARARGS},
   {"scale", K_OCC::scale, METH_VARARGS},
   {"rotate", K_OCC::rotate, METH_VARARGS},
 
+  {"intersectEdgeFace", K_OCC::intersectEdgeFace, METH_VARARGS},
+  {"trimFaces", K_OCC::trimFaces, METH_VARARGS},
+  {"boolean", K_OCC::boolean, METH_VARARGS},
+  
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
   {"identifyTags", K_OCC::identifyTags, METH_VARARGS},
 
