@@ -22,4 +22,3 @@ a = G.cartNGon((0,0,0), (1,1,1), (3,5,7), api=3)
 a = G.getVolumeMap(a, method=0)
 vol = Internal.getNodeFromName(a, 'vol')[1]
 test.testO(vol, 2)
-
