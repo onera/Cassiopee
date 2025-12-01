@@ -544,7 +544,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   std::vector<E_Int> cENN(ntotElts);
   K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
 
-  // Manual uniform chunks with at most 'net' elements per thread
+  // Uniform chunks (schedule: static) with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;
   E_Int net = ntotElts/nthreads + nc;
   // For each thread:

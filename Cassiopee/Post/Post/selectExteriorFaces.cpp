@@ -1563,46 +1563,36 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
   std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
-  E_Int nextFaces = 0;
-  E_Int ic2, inde, offR;
-
   // Compute number of faces per element, nfpe
   std::vector<E_Int> nfpe;
+  std::vector<E_Int> cumnfpc(nc+1); cumnfpc[0] = 0;  // cumulative number of faces per conn.
   E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
   if (ierr != 0) return NULL;
   
   // Compute total number of faces across all connectivities
-  E_Int ntotFaces = 0;
-  std::vector<E_Int> nepc(nc);
   for (E_Int ic = 0; ic < nc; ic++)
   {
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
-    nepc[ic] = nelts;
-    ntotFaces += nelts*nfpe[ic];
+    cumnfpc[ic+1] = cumnfpc[ic] + nelts*nfpe[ic];
   }
+  E_Int ntotFaces = cumnfpc[nc];
 
   std::cout << "ntotFaces = " << ntotFaces << std::endl;
 
-  // In a first pass, tag vertex indices that belong to exterior elements
-  E_Int indv;
-  std::vector<E_Int> vindir(npts, 0);
-
-  // Use a face map to build a face mask and eliminate internal faces
+  // Hash faces: if a face is only visited once it is an external face
   std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
-  std::vector<std::vector<E_Int> > facets;
   TopologyOpt F;
   std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > faceMap;
   faceMap.reserve(ntotFaces);
   E_Int face[5];
-  E_Int fidx, faceOffset;
 
-  faceOffset = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
+    E_Int nelts, nvpf, fidx;
     K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    E_Int nelts = cm.getSize();
-    E_Int nvpe = cm.getNfld();
+    nelts = cm.getSize();
+    std::vector<std::vector<E_Int> > facets;
     K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
   
     for (E_Int i = 0; i < nelts; i++)
@@ -1610,22 +1600,13 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
       // Loop over each facet of this element
       for (E_Int f = 0; f < nfpe[ic]; f++)
       {
-        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
-        E_Int nvpf = facets[f].size();  // number of vertices per face
+        fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+        nvpf = facets[f].size();  // number of vertices per facet
         // Fill face and insert in map
         for (E_Int j = 0; j < nvpf; j++) face[j] = cm(i, facets[f][j]);
         F.set(face, nvpf);
         auto res = faceMap.insert(std::make_pair(F, fidx));
-        if (res.second)
-        {
-          // first occurence of that face: tag as exterior
-          faceMask[fidx] = 1;
-          // Tag vertices as exterior vertices
-          for (E_Int j = 0; j < nvpf; j++)
-          {
-            indv = cm(i, facets[f][j]) - 1;
-            vindir[indv] = 1;
-          }
+        if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
         else
         {
           // duplicate: this face and the one found in the map are interior faces
@@ -1634,35 +1615,69 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
         }
       }
     }
-    faceOffset += nelts*nfpe[ic];
   }
 
+  // Free memory
   faceMap.clear(); faceMap.rehash(0);
-  for (E_Int i = 0; i < ntotFaces; i++)
-  {
-    if (i%10 == 0) std::cout << "faceMask["<<i<<"] = ";
-    std::cout << faceMask[i] << ", ";
-    if (i%10 == 9) std::cout << std::endl;
-  }
-  std::cout << std::endl;
 
-  // Indirection tables
-  //  - indir: maps face indices from new to old ME
-  std::vector<E_Int> indir(ntotFaces);
-  // Number of exterior faces found for a given number of vertices per face, nvpf
-  std::vector<E_Int> nextfpcOrig(nc, 0);
-  std::vector<E_Int> nextfpc(5, 0);
+  // for (E_Int i = 0; i < ntotFaces; i++)
+  // {
+  //   if (i%10 == 0) std::cout << "faceMask["<<i<<"] = ";
+  //   std::cout << faceMask[i] << ", ";
+  //   if (i%10 == 9) std::cout << std::endl;
+  // }
+  // std::cout << std::endl;
+
+  // There is a total 4 possible conns: NODE, BAR, TRI and QUAD
+  const E_Int nbuckets = 4;
+  // Uniform chunks (schedule: static) with at most 'nfc' faces per thread
+  const E_Int nthreads = __NUMTHREADS__;
+  // E_Int nfc = ntotFaces/nthreads + nc;
+  // Thread-related arrays are prefixed with 't'. For each thread:
+  //  - tindir: maps face indices from new to old ME
+  // E_Int** tindir = new E_Int* [nthreads];
+  //  - tnextfpc: number of exterior faces found in each *output* connectivity
+  E_Int** tnextfpc = new E_Int* [nthreads];
+  //  - toffset: cumulative number of exterior faces found in each *output*
+  //             connectivity
+  E_Int** toffset = new E_Int* [nthreads];
+  for (E_Int tid = 0; tid < nthreads; tid++)
+  {
+    // tindir[tid] = new E_Int [nfc];
+    tnextfpc[tid] = new E_Int [nbuckets];
+    toffset[tid] = new E_Int [nbuckets];
+  }
+
+  // Number of exterior faces found in each connectivity (for all threads)
+  std::vector<E_Int> nextfpc(nc, 0);
+  // Number of faces per connectivity of the output ME
+  // ('tmp_' is uncompressed: out of the 4 possible conns - NODE, BAR, TRI and
+  //                          QUAD -, some will be empty)
+  
+  std::vector<E_Int> tmp_nfpc2(nbuckets, 0);
+
+  // In a first pass, tag vertex indices that belong to exterior faces
+  std::vector<E_Int> vindir(npts, 0);
 
   #pragma omp parallel
   {
-    E_Int nelts, nvpe, nvpf;
-    E_Int faceOffset = 0;
+    E_Int nelts, nvpf, fidx, indv;
+    E_Int nextFaces = 0;  // number of exterior faces found in all conn. of that thread
+    E_Int nextFacesIc;  // number of exterior faces found in a given conn. of that thread
+    std::vector<std::vector<E_Int> > facets;
+
+    // Local thread-related arrays are prefixed with 'loc_t'
+    E_Int tid = __CURRENT_THREAD__;
+    // E_Int* loc_tindir = tindir[tid];
+    E_Int* loc_tnextfpc = tnextfpc[tid];
+    std::vector<E_Int> loc_ttmp_nfpc2(nbuckets, 0);
+
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       nelts = cm.getSize();
-      nvpe = cm.getNfld();
       K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+      nextFacesIc = 0;
 
       #pragma omp for schedule(static)
       for (E_Int i = 0; i < nelts; i++)
@@ -1670,40 +1685,74 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
         // Loop over each facet of this element
         for (E_Int f = 0; f < nfpe[ic]; f++)
         {
-          fidx = faceOffset + i*nfpe[ic] + f;  // global face index
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
           if (faceMask[fidx] == 1)  // exterior face found
           {
-            nvpf = facets[f].size();
-            indir[nextFaces] = i; nextFaces++; // TODO
-            nextfpc[nvpf]++; nextfpcOrig[ic]++;
+            nvpf = facets[f].size();  // number of vertices per face
+            // loc_tindir[nextFaces] = fidx;
+            nextFaces++; nextFacesIc++;
+            loc_ttmp_nfpc2[nvpf-1]++;  // from NODE (0) to QUAD (3)
+            // Tag vertices of that faces as exterior vertices
+            for (E_Int j = 0; j < nvpf; j++)
+            {
+              indv = cm(i, facets[f][j]) - 1;
+              vindir[indv] = 1;
+            }
           }
         }
       }
-      faceOffset += nelts*nfpe[ic];
+      loc_tnextfpc[ic] = nextFacesIc;
+    }
+
+    #pragma omp critical
+    {
+      for (E_Int ic = 0; ic < nbuckets; ic++) tmp_nfpc2[ic] += loc_ttmp_nfpc2[ic];
     }
   }
 
-  for (E_Int ic = 0; ic < nc; ic++) std::cout << "nextfpcOrig["<<ic<<"] = " << nextfpcOrig[ic] << std::endl;
-  for (E_Int ic = 0; ic < 5; ic++) std::cout << "nextfpc["<<ic<<"] = " << nextfpc[ic] << std::endl;
+  for (E_Int ic = 0; ic < nbuckets; ic++) std::cout << "tmp_nfpc2["<<ic<<"] = " << tmp_nfpc2[ic] << std::endl;
   
   // Transform the exterior vertex mask of zeros and ones into a vertex map
   // from old to new connectivities, and get the number of unique exterior
   // vertices, npts2
   E_Int npts2 = K_CONNECT::prefixSum(vindir);
 
+  // Compute thread face offsets in the output ME for each connectivity
+  // toffset is a cumulative tnextfpc over all **threads**
+  // Used to build cm2 using multiple threads
+  {
+    E_Int* loc_toffset = toffset[0];
+    for (E_Int ic = 0; ic < nbuckets; ic++) loc_toffset[ic] = 0;
+  }
+  
+  for (E_Int tid = 1; tid < nthreads; tid++)
+  {
+    E_Int* tnextfpcm1 = tnextfpc[tid-1];
+    E_Int* loc_toffset = toffset[tid];
+    E_Int* toffsetm1 = toffset[tid-1];
+    for (E_Int ic = 0; ic < nbuckets; ic++)
+      loc_toffset[ic] = toffsetm1[ic] + tnextfpcm1[ic];
+  }
+
+  // Update number of exterior faces found in each connectivity (for all threads)
+  for (E_Int ic = 0; ic < nc; ic++)
+    for (E_Int tid = 0; tid < nthreads; tid++) 
+      nextfpc[ic] += tnextfpc[tid][ic];
+
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;
+  std::map<E_Int, E_Int> outConnId;  // map nvpf-1 to 'ic' in output ME
   char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
   const char* tmpEltType;
   eltType2[0] = '\0';
-  for (size_t ic = 1; ic < 5; ic++)  // from BAR (1) to QUAD (4)
+  for (E_Int ic = 0; ic < nbuckets; ic++)  // from NODE (0) to QUAD (3)
   {
-    if (nextfpc[ic] > 0)
+    if (tmp_nfpc2[ic] > 0)
     {
-      nc2++;
-      if (ic == 1) tmpEltType = "NODE";
-      else if (ic == 2) tmpEltType = "BAR";
-      else if (ic == 3) tmpEltType = "TRI";
+      outConnId[ic] = nc2; nc2++;
+      if (ic == 0) tmpEltType = "NODE";
+      else if (ic == 1) tmpEltType = "BAR";
+      else if (ic == 2) tmpEltType = "TRI";
       else tmpEltType = "QUAD";
       if (eltType2[0] == '\0') strcpy(eltType2, tmpEltType);
       else
@@ -1712,35 +1761,42 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
         strcat(eltType2, tmpEltType);
       }
     }
+
   }
 
   std::cout << "eltType2 = " << eltType2 << std::endl;
   std::cout << "nc2 = " << nc2 << std::endl;
 
-  // Compress the number of elements per connectivity of the output ME, ie,
-  // drop connectivities containing no exterior elements
-  std::vector<E_Int> nepc2(nc2);
+  // Compress the number of faces per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior faces
+  std::vector<E_Int> nfpc2(nc2);
   nc2 = 0;
-  for (E_Int ic = 0; ic < nc; ic++)
+  for (E_Int ic = 0; ic < nbuckets; ic++)
   {
-    if (nextfpcOrig[ic] > 0) { nepc2[nc2] = nextfpcOrig[ic]; nc2++; }
+    if (tmp_nfpc2[ic] > 0) { nfpc2[nc2] = tmp_nfpc2[ic]; nc2++; }
   }
 
   std::cout << "npts2 = " << npts2 << std::endl;
-  for (E_Int ic = 0; ic < nc; ic++) std::cout << "nepc2["<<ic<<"] = " << nepc2[ic] << std::endl;
+  for (E_Int ic = 0; ic < nc; ic++) std::cout << "nfpc2["<<ic<<"] = " << nfpc2[ic] << std::endl;
  
-  // Build new connectivity
+  // Build new connectivity (containing a max. 2 BE conns)
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
-                                       nepc2, eltType2, false, api);
+                                       nfpc2, eltType2, false, api);
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
 
-  FldArrayI *cm20 = cn2->getConnect(0), *cm21 = NULL;
-  if (nc2 == 2) cm21 = cn2->getConnect(1);
+  std::vector<FldArrayI*> cm2s(nc2); cm2s[0] = cn2->getConnect(0);
+  if (nc2 == 2) cm2s[1] = cn2->getConnect(1);
 
   #pragma omp parallel
   {
-    E_Int indv;
+    E_Int ic2, indv, indf, nelts, fidx, nvpf;
+    E_Int tid = __CURRENT_THREAD__;
+    // E_Int* loc_tindir = tindir[tid];
+    // E_Int* loc_tnextfpc = tnextfpc[tid];
+    E_Int* loc_toffset = toffset[tid];
+    std::vector<std::vector<E_Int> > facets;
+
     // Copy fields
     for (E_Int n = 1; n <= nfld; n++)
     {
@@ -1755,41 +1811,39 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
     }
 
     // Copy connectivity
-  }
-
-  ic2 = 0;
-  offR = 0;
-
-  E_Int faceOffset = 0;
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-    nelts = cm.getSize();
-    nvpe = cm.getNfld();
-    K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
-
-    for (E_Int i = 0; i < nelts; i++)
+    std::vector<E_Int> extfCmpt(nbuckets, 0);  // number of ext faces found
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      E_Int indv;
-      // Loop over each facet of this element
-      for (E_Int f = 0; f < nfpe[ic]; f++)
-      {
-        fidx = faceOffset + i*nfpe[ic] + f;  // global face index
-        if (faceMask[fidx] == 1)  // exterior face
-        {
-          nvpf = facets[f].size();
-          indir[nextFaces] = i; nextFaces++;
-          nextfpc[nvpf]++; nextfpcOrig[ic]++;
+      if (nextfpc[ic] == 0) continue;  // no exterior elements in this input conn., skip
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
 
-          for (E_Int j = 0; j < nvpf; j++)
+      #pragma omp for schedule(static)
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Loop over each facet of this element
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+          if (faceMask[fidx] == 1)  // exterior face
           {
-            indv = cm(i, facets[f][j]) - 1;
-            if (vindir[indv] == 0) vindir[indv] = ++npts2;
+            nvpf = facets[f].size();
+            ic2 = outConnId[nvpf-1];
+            std::cout << "ic2 = " << ic2 << std::endl;
+            indf = loc_toffset[nvpf-1] + extfCmpt[nvpf-1];
+            std::cout << "indf = " << indf << std::endl;
+            for (E_Int j = 0; j < nvpf; j++)
+            {
+              indv = cm(i, facets[f][j]) - 1;
+              std::cout << "indv = " << indv << std::endl;
+              (*cn2->getConnect(ic2))(indf, j) = vindir[indv];
+            }
+            extfCmpt[nvpf-1]++;
           }
         }
       }
     }
-    faceOffset += nelts*nfpe[ic];
   }
 
   std::cout << "Done Copy connectivity" << std::endl;
