@@ -51,18 +51,20 @@ State, Edge, Surf, &#8230;).</p>
 </section>
 <section id="general-guidelines">
 <h1>General guidelines</h1>
-<p>Each applet can be triggered from top menu <strong>Apps</strong> or
-by right clicking on a tab. It can be
-discarded by left clicking on its name at top of frame or by pressing
-CTRL+c.</p>
-<p>The default settings of an applet can be modified in the preference file
-by right clicking on the applet name and chosing &#8216;save&#8217;.
-Settings can be reset by chosing &#8216;reset&#8217; in the menu.
+<p>All applets can be triggered
+by right clicking on a menu tab situated on the left.
+For instance, right clicking on the &#8220;State&#8221; menu, display
+available applets in this menu.
+Once opened, an applet can be discarded by left clicking
+on the [+] neat its name or by pressing CTRL+c.</p>
+<p>The default settings of an applet can be modified
+by right clicking on the applet name [+] and choosing &#8216;save&#8217;.
+Settings can be reset by choosing &#8216;reset&#8217; in the menu.
 An applet can be pinned, meaning that it will automatically
 be opened at next restart.</p>
-<p>The graphical window is called the CPlot window. You can rotate
-your model using left mouse button. You can move your model
-using left mouse button. You can tilt the model by pressing
+<p>The graphical window is called the CPlot window. In this window,
+you can rotate your model using left mouse button. You can move your model
+using right mouse button. You can tilt the model by pressing
 CTRL+right mouse button. You can move the way your looking without
 modifying your position by pressing CTRL+left mouse button.
 View can be quickly centered by left double clicking.</p>
@@ -82,47 +84,56 @@ structured zones by clicking on &#8216;change displayed location&#8217;
 in the <strong>CPlot</strong> top menu.</p>
 <p>Selecting &#8216;Quit&#8217; in <strong>File</strong> top menu exits cassiopee. You can
 also exits by pressing &#8216;q&#8217; when in CPlot window.</p>
+<section id="customization">
+<h2>Customization</h2>
+<p>Open <strong>State:tkPrefs</strong> by right clicking on State menu.</p>
+<p>In this applet, you can set tkCassiopee global preferences:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>&#8220;Display Info&#8221; toggles on/off display informations.</p></li>
+<li><p>&#8220;Background&#8221; selects different colors for the display background.</p></li>
+<li><p>&#8220;Undo&#8221; toggles one level undo. Setting it to inactive can gain some memory.</p></li>
+<li><p>&#8220;Selection&#8221; enables different high-lights for selection (blue or alpha transparency).</p></li>
+<li><p>&#8220;Ondrag bbox&#8221; displays bbox istead of when rotating view.</p></li>
+<li><p>&#8220;Envmap&#8221; is the image used with environmental mapping shaders in render mode.&lt;br&gt;</p></li>
+<li><p>&#8220;Export&#8221; enables to set the image resolution when exporting.</p></li>
+</ul>
+</div></blockquote>
+</section>
 <section id="cassiopee-toolbar">
 <h2>Cassiopee:ToolBar</h2>
+<p>The tool bar is situated just under the menu bar. It contains:</p>
 <blockquote>
-<div><p>The tool bar is situated just under the menu bar. It contains:</p>
-<ul class="simple">
+<div><ul class="simple">
 <li><p>The save icon: click for quick save,</p></li>
 <li><p>The undo icon: click for undo (only one level),</p></li>
-<li><p>The delete block icon: click will delete selected blocks,</p></li>
-<li><p>The copy block icon: click will copy selected blocks,</p></li>
+<li><p>The reload current file: click will reload data from file,</p></li>
+<li><p>The export image icon: click to write current view to a image file,</p></li>
 <li><p>The fit view icon: click to fit view to selection,</p></li>
-<li><p>The select all blocks icon: select all zones,</p></li>
+<li><p>The duplicate zone icon: click will copy selected zones,</p></li>
+<li><p>The remove icon: click will delete selected zones,</p></li>
 <li><p>The view deactivated zones icon: enables to view deactivated zones as ghost grids,</p></li>
+<li><p>The switch icon: active zone becomes inactive and conversely,</p></li>
 <li><p>The main tree icon: force view on main tree.</p></li>
 </ul>
 </div></blockquote>
 </section>
 <section id="cassiopee-tree">
 <h2>Cassiopee:Tree</h2>
-<p>This tab gathers applets related to pyTree management.</p>
+<p>This menu gathers applets related to pyTree management.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>tkTree</strong>: enables the visualization of pyTrees as text trees.</p></li>
-</ul>
-<p>In tkTree window, left mouse button
+<li><p><strong>tkTree</strong>: enables the visualization of pyTrees as text trees.
+In tkTree window, left mouse button
 selects zone, right mouse button deactivates/activates zone,
 double clicking on a node name enables to change its name,
 &#8216;Suppr&#8217; key deletes selected node, CTRL+e extend the window size,
-CTRL+r shrink the window.</p>
-<ul class="simple">
+CTRL+r shrink the window.</p></li>
+<li><p><strong>tkNodeEdit</strong>: enables to edit pytree nodes.</p></li>
 <li><p><strong>tkTreeOps</strong>: enables to move selection to another base, reorder tree nodes and edit node values.</p></li>
 <li><p><strong>tkCheckPyTree</strong>: enables to check your pyTree with different level of checking (node conformity, zone names, boundary condition consistency&#8230;).</p></li>
-<li><p><strong>tkFilter</strong>: enables to select/activate zones that match the filter rule.</p></li>
-</ul>
-<p>For filtering by name, you can use standard python regexp.
-For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
-You can also filter zones by size (number of points), by multigrid level,
-by affected processor, by Chimera priority, or by formula. With this,
-you can specify a rule like &#8216;{Density}&gt;0.1&#8217;: zones that match the rule
-for at least one grid point will be selected.</p>
-<ul class="simple">
 <li><p><strong>tkFamily</strong>: enables to create zone families or BC families.</p></li>
+<li><p><strong>tkCADFix</strong>: enables basic CAD fixing if your data is loaded from a CAD file.</p></li>
 </ul>
 </div></blockquote>
 </section>
@@ -131,35 +142,37 @@ for at least one grid point will be selected.</p>
 <p>This menu gathers applets related to state modification.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>tkState</strong>: modify the global state of your pyTree (dimension, equations,&#8230;).</p></li>
-</ul>
-<p>Pressing &#8216;Set state&#8217; save state in your pyTree.</p>
-<ul class="simple">
-<li><p><strong>tkPrefs</strong>: enables to change the mesh display style, the solid display style, &#8230;</p></li>
-</ul>
-<p>You can add applets that open automatically
+<li><p><strong>tkState</strong>: modify the global state of your pyTree (dimension, equations,&#8230;).
+Pressing &#8216;Set state&#8217; save state in your pyTree.</p></li>
+<li><p><strong>tkPrefs</strong>: enables to change the mesh display style, the solid display style, &#8230;
+You can add applets that open automatically
 each time cassiopee starts in the &#8216;Auto open field&#8217;. For instance:
 &#8216;tkTree; tkBlock&#8217; will automatically open those two applets at next start.
-Save your preferences.</p>
-<ul class="simple">
+Save your preferences.</p></li>
 <li><p><strong>tkPerfo</strong>: settings to simplify the display and set the number of threads.</p></li>
-<li><p><strong>tkContainers</strong>: change containers.</p></li>
-</ul>
-<p>By default, all functions work on &#8216;GridCoordinates&#8217;,
+<li><p><strong>tkContainers</strong>: change containers.
+By default, all functions work on &#8216;GridCoordinates&#8217;,
 &#8216;FlowSolution&#8217; and &#8216;FlowSolution#Centers&#8217; containers. If you want
-functions to operate on other containers, change their name here.</p>
-<ul class="simple">
-<li><p><strong>tkRuler</strong>: measure your distance on your model using this applet.</p></li>
-</ul>
-<p>First click on model set first point, second click indicates the distance.
-Click again on &#8216;Measure mode&#8217; to end.</p>
-<ul class="simple">
+functions to operate on other containers, change their name here.</p></li>
+<li><p><strong>tkCamera</strong>: enable to set camera.</p></li>
+<li><p><strong>tkFilter</strong>: enables to select/activate zones that match the filter rule.
+For filtering by name, you can use standard python regexp.
+For instance, Zone.[5-12] will filter zones between Zone.5 and Zone.12.
+You can also filter zones by size (number of points), by multigrid level,
+by affected processor, by Chimera priority, or by formula. With this,
+you can specify a rule like &#8216;{Density}&gt;0.1&#8217;: zones that match the rule
+for at least one grid point will be selected.</p></li>
 <li><p><strong>tkFind</strong>: find a given index in mesh.</p></li>
+<li><p><strong>tkProbe</strong>: enable to probe points in field.</p></li>
+<li><p><strong>tkRuler</strong>: measure your distance on your model using this applet.
+First click on model set first point, second click indicates the distance.
+Click again on &#8216;Measure mode&#8217; to end.</p></li>
 </ul>
 </div></blockquote>
 </section>
 <section id="cassiopee-edge">
 <h2>Cassiopee:Edge</h2>
+<p>This menu gathers applets related to edge creation/modification.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><strong>tkCanvas</strong>: enables to create a canvas for mesh positioning or drawing. The position and size of the canvas can be modified.</p></li>
@@ -177,15 +190,14 @@ Click again on &#8216;Measure mode&#8217; to end.</p>
 <div><ul class="simple">
 <li><p><strong>tkBasicSurfs</strong>: create basic surfaces (sphere, tetra, &#8230;)</p></li>
 <li><p><strong>tkText</strong>: create a text.</p></li>
-<li><p><strong>tkFixer2</strong>: fix gaps in surfaces.</p></li>
-</ul>
-<p>This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on &#8216;Fix gap in contour&#8217;. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on &#8216;Fix gap in patches&#8217;.</p>
-<ul class="simple">
+<li><p><strong>tkCADMesh</strong>: controls surface CAD mesher parameters.</p></li>
+<li><p><strong>tkFixer2</strong>: fix gaps in surfaces.
+This applet enables manual closure of holes in surfaces. Select the contour of your hole, then click on &#8216;Fix gap in contour&#8217;. You can bump the generated surface using the slider. This applet enables also automatic closure of all holes in a model. You must set surfaces defining a component into one zone, then click on &#8216;Fix gap in patches&#8217;.</p></li>
 <li><p><strong>tkBoolean</strong>: perform boolean operation between surfaces.</p></li>
 <li><p><strong>tkSculpt</strong>: very basic sculpting tool.</p></li>
-<li><p><strong>tkPaint</strong>: change field values by painting.</p></li>
-<li><p><strong>tkMapSurf</strong>: perform surface remeshing by projecting an octree on surface.</p></li>
-<li><p><strong>tkFilterSurfs</strong>: enables to filter or inflate a surface.</p></li>
+<li><p><strong>tkMMGS</strong>: surface remeshing using mmgs.</p></li>
+<li><p><strong>tkCartWrap</strong>: perform surface remeshing by projecting an octree on surface.</p></li>
+<li><p><strong>tkOffset</strong>: enables to create offset surfaces.</p></li>
 <li><p><strong>tkSurfaceWalk</strong>: create meshes by walking on surfaces.</p></li>
 <li><p><strong>tkProjection</strong>: project a surface on another surface.</p></li>
 </ul>
@@ -196,16 +208,12 @@ Click again on &#8216;Measure mode&#8217; to end.</p>
 <p>This menu gathers applets related to mesh creation/modification.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>tkCells</strong>: enables mesh cell modification (suppress/refine cells).</p></li>
-</ul>
-<p>Click on a mode, then click on your mesh. Click again on the mode
-button when done.</p>
-<ul class="simple">
-<li><p><strong>tkStretch</strong>: for structured grids, stretch, refine or uniformize the grid in given direction.</p></li>
-</ul>
-<p>For stretching, you must specify a grid step.
-This step is enforced where you have last clicked.</p>
-<ul class="simple">
+<li><p><strong>tkCells</strong>: enables mesh cell modification (suppress/refine cells).
+Click on a mode, then click on your mesh. Click again on the mode
+button when done.</p></li>
+<li><p><strong>tkStretch</strong>: for structured grids, stretch, refine or uniformize the grid in given direction.
+For stretching, you must specify a grid step.
+This step is enforced where you have last clicked.</p></li>
 <li><p><strong>tkExtrusion</strong>: create meshes by extrusion.</p></li>
 <li><p><strong>tkTetraMesher</strong>: create tetra meshes.</p></li>
 <li><p><strong>tkTFI</strong>: create meshes by transfinite interpolation.</p></li>
@@ -254,15 +262,13 @@ Structured zones are reordered by exchanging i- and j- numerotation.</p>
 creation/modification.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>tkBC</strong>: enables to set interactively the boundary conditions.</p></li>
-</ul>
-<p>&#8216;View Mesh/BC&#8217; enables to visualize the boundary conditions
+<li><p><strong>tkBC</strong>: enables to set interactively the boundary conditions.
+&#8216;View Mesh/BC&#8217; enables to visualize the boundary conditions
 of a certain type. &#8216;View undefined BC&#8217; shows boundary conditions
 that are lacking. By clicking on BC, you can then set a
 boundary to a certain type using the &#8216;setBCWith&#8217; button.
 &#8216;ConnectMatch&#8217; automatically computes the matching boundary condition
-in your model.</p>
-<ul class="simple">
+in your model.</p></li>
 <li><p><strong>tkChimera</strong>: perform hole cutting, overlap optimization between overset grids.</p></li>
 <li><p><strong>tkIBC</strong>: create data for immersed boundary conditions.</p></li>
 <li><p><strong>tkExtractBC</strong>: extract a certain type of BC to a zone.</p></li>
@@ -271,6 +277,7 @@ in your model.</p>
 </section>
 <section id="cassiopee-motion">
 <h2>Cassiopee:Motion</h2>
+<p>This menu gathers applets related to motion definition.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><strong>tkRigidMotion</strong>: enables definition of rigid motions.</p></li>
@@ -284,16 +291,14 @@ in your model.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><strong>tkInit</strong>: initialize solutions or wall distance.</p></li>
-<li><p><strong>tkDistributor</strong>: distributes blocks over processors.</p></li>
-</ul>
-<p>Enter the number of processors and the weight of communication cost relative to
+<li><p><strong>tkDistributor</strong>: distributes blocks over processors.
+Enter the number of processors and the weight of communication cost relative to
 solver cost per iteration. Click on &#8216;Distribute tree&#8217;. Distribution stats
 are available when clicking on stats. &#8216;Set Proc Field&#8217; creates a field
-in zones containing the attributed processor number for each zone.</p>
-<ul class="simple">
+in zones containing the attributed processor number for each zone.</p></li>
 <li><p><strong>tkDist2Walls</strong>: computes wall distance.</p></li>
-<li><p><strong>tkCassiopeeSolver</strong>: export CGNS files suitable for Cartesian solver.</p></li>
 <li><p><strong>tkElsaSolver</strong>: export CGNS files suitable for elsAxdt.</p></li>
+<li><p><strong>tkFastSolver</strong>: export CGNS files suitable for Fast solver.</p></li>
 </ul>
 </div></blockquote>
 </section>
@@ -317,27 +322,30 @@ in zones containing the attributed processor number for each zone.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><strong>tkView</strong>: perform view settings.</p></li>
-<li><p><strong>tkPlot</strong>: perform 1D plot of data.</p></li>
+<li><p><strong>tkPlotXY</strong>: perform 1D plot of data.</p></li>
 <li><p><strong>tkSlice</strong>: extract/view slices in mesh.</p></li>
-<li><p><strong>tkCelln</strong>: enables to display the location of interpolated,</p></li>
+<li><p><strong>tkIJK</strong>: enables ijk views of structured grids.</p></li>
+<li><p><strong>tkCelln</strong>: enables to display the location of interpolated.
+blanked points described by a &#8216;cellN&#8217; or &#8216;cellNF&#8217; field.</p></li>
+<li><p><strong>tkBackground</strong>: add a background.</p></li>
 </ul>
-<p>blanked points described by a &#8216;cellN&#8217; or &#8216;cellNF&#8217; field.
-- <strong>tkBackground</strong>: add a background.</p>
 </div></blockquote>
 </section>
 <section id="cassiopee-render">
 <h2>Cassiopee:Render</h2>
+<p>This menu gathers applets related to advanced rendering options.</p>
 <blockquote>
 <div><ul class="simple">
+<li><p><strong>tkRenderTree</strong>: enables to set texture files in tree.</p></li>
 <li><p><strong>tkRenderSet</strong>: enables to chose the color and material of each zone.</p></li>
 <li><p><strong>tkStereo</strong>: enable the stereo anaglyph mode.</p></li>
 <li><p><strong>tkEffects</strong>: enable special effects for view such as shadow, DOF.</p></li>
 <li><p><strong>tkDemo</strong>: rotate or move around your model automatically. Chose speed in slider.</p></li>
-<li><p><strong>tkPovRay</strong>: if povray is installed on your computer, you can use this applet to raytrace your scene using povray.</p></li>
+<li><p><strong>tkPovRay</strong>: if povray is installed on your computer, you can use this applet to raytrace your scene using povray.
+Chose the name of your output (used for image and pov output), chose your background
+and the size of output image, then click on &#8216;Render scene&#8217;.</p></li>
+<li><p><strong>tkLuxRender</strong>: exports file for LuxRender.</p></li>
 </ul>
-<p>Chose the name of your output (used for image and pov output), chose your background
-and the size of output image, then click on &#8216;Render scene&#8217;.
-- <strong>tkLuxRender</strong>: exports file for LuxRender.</p>
 </div></blockquote>
 </section>
 </section>
@@ -363,6 +371,7 @@ will appear in this menu.</p>
     <ul>
 <li><a class="reference internal" href="#">Preamble</a></li>
 <li><a class="reference internal" href="#general-guidelines">General guidelines</a><ul>
+<li><a class="reference internal" href="#customization">Customization</a></li>
 <li><a class="reference internal" href="#cassiopee-toolbar">Cassiopee:ToolBar</a></li>
 <li><a class="reference internal" href="#cassiopee-tree">Cassiopee:Tree</a></li>
 <li><a class="reference internal" href="#cassiopee-state">Cassiopee:State</a></li>

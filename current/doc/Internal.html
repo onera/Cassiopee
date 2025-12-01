@@ -265,7 +265,7 @@ list of pyTree nodes that are the children of this node.</p>
 <td><p>Copy a tree sharing node values.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.copyTree" title="Converter.Internal.copyTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyTree</span></code></a></p></td>
-<td><p>Fully copy a tree.</p></td>
+<td><p>Full copy of a tree.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.copyValue" title="Converter.Internal.copyValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.copyValue</span></code></a></p></td>
 <td><p>Copy the value of nodes specified by byName or byType string.</p></td>
@@ -5956,7 +5956,7 @@ If parent is not None, attach it to parent node.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.Internal.adaptNFace2PE">
-<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNFace2PE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">adaptNFace2PE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shiftPE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Adapts a NGON mesh to create ParentElements arrays from NFaceElements nodes in each zone. Exists also as in-place (_adaptNFace2PE).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

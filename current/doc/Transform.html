@@ -69,7 +69,7 @@ possible. In particular, splitting a mesh does not maintain the grid connectivit
 <td><p>Reorder the numerotation of mesh.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Transform.reorderAll" title="Transform.reorderAll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.reorderAll</span></code></a></p></td>
-<td><p>Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).</p></td>
+<td><p>Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Transform.makeCartesianXYZ" title="Transform.makeCartesianXYZ"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.makeCartesianXYZ</span></code></a></p></td>
 <td><p>Reorder a Cartesian mesh in order to get i,j,k aligned with X,Y,Z.</p></td>
@@ -280,23 +280,26 @@ possible. In particular, splitting a mesh does not maintain the grid connectivit
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Transform.reorder">
-<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">reorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">reorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>For a structured grid, change the (i,j,k) ordering of a.
-If you set dest=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
+If you set order=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
 will be equivalent to go along i direction of initial mesh.</p>
 <p>The transformation can be equivalently described by a matrix M, filled with
 a single non-zero value per line and column (equal to -1 or 1).
-Then, dest=(desti,destj,destk) means:
-M[abs(desti),1]=sign(desti); M[abs(destj),2]=sign(destj); M[abs(destk),3]=sign(destk).</p>
-<p>For an unstructured 2D grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the
-same direction. If dest is set to (1,), all elements are oriented as element 0. If dest is (-1,), all elements are oriented
+Then, order=(orderi, orderj, orderk) means:
+M[abs(orderi),1]=sign(orderi); M[abs(orderj),2]=sign(orderj); M[abs(orderk),3]=sign(orderk).</p>
+<p>For a 2D unstructured grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the
+same direction. If order is set to (1,), all elements are oriented as element 0. If order is (-1,), all elements are oriented
 in the opposite sense of element 0.</p>
+<p>For a 3D unstructured grid (TETRA, PYRA, PENTA, HEXA), element normals must be pointing outward by definition such that the
+argument order can be left as None.</p>
+<p>3D NGON grids are not supported yet.</p>
 <p>Exists also as an in-place version (_reorder) which modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; initial mesh</p></li>
-<li><p><strong>dest</strong> (<em>3-tuple</em><em> of </em><em>signed integers</em><em> or </em><em>a tuple</em><em> of </em><em>a single 1</em><em> or </em><em>-1</em>) &#8211; integers specifying transformation</p></li>
+<li><p><strong>order</strong> (<em>3-tuple</em><em> of </em><em>signed integers</em><em> or </em><em>a tuple</em><em> of </em><em>a single 1</em><em> or </em><em>-1</em><em> or </em><em>None</em>) &#8211; integers specifying transformation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

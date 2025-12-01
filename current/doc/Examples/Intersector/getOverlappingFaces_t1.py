@@ -1,7 +1,7 @@
+# - getOverlappingFaces (array) -
 import Generator as G
 import Transform as T
 import Converter as C
-import Converter as I
 import Intersector as XOR
 import KCore.test as test
 import Post as P
@@ -17,18 +17,12 @@ t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
 res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
 
 # create a list of polygon list (t1), one list per zone
+t, o = XOR.agglomerateCellsWithSpecifiedFaces(t1, res[0])
+test.testA(t, 1)
 
-t = XOR.agglomerateCellsWithSpecifiedFaces(t1, res[0])
-
-test.testA(t,1)
-
-#test 2 : volume/surface
-
+# test 2 : volume/surface
 t2 = P.exteriorFaces(t2)
 t2 = XOR.convertNGON2DToNGON3D(t2)
-
 res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)
-
-t = XOR.agglomerateCellsWithSpecifiedFaces(t1, res[0])
-
-test.testA(t,2)
+t, o = XOR.agglomerateCellsWithSpecifiedFaces(t1, res[0])
+test.testA(t, 2)
