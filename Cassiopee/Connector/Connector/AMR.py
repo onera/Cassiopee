@@ -161,7 +161,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if node[0] != "GridElements": Internal._rmNode(frontIP_gath, node)
     Cmpi.trace("Gathering front IP [end]  ", master=True, cpu=False)
 
-    if Cmpi.master and check:        
+    if Cmpi.master and check:
         print("Exporting frontIP..", flush=True)
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
@@ -214,7 +214,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             elif IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
                 frontIP_C = computeSurfaceQuadraturePoints__(t, IBM_parameters, frontIP)
                 frontIP_C = computeNormalsForDG__(frontIP_C, tb2)
-                
+
             Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
             ip_pts, image_pts, wall_pts = extractIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir=localDir)
             Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
@@ -381,10 +381,10 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         if len(res) > 3:
             allWallPts = res[0]
             allWallPts = Converter.extractVars(allWallPts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
-            
+
             allInterpPts = res[1]
             allInterpPts = Converter.extractVars(allInterpPts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
-            
+
             allCorrectedPts = Converter.extractVars(ip_pts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
             nzonesR         = len(allInterpPts)
 
@@ -404,7 +404,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
 
                 if type_3 > 0: X_IBM._prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
                 if type_4 > 0: X_IBM._prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
-        
+
             if outputProjection3[0] and check:
                 tLocal3  = X_IBM._writeOutputProject__(outputProjection3, tLocal3)
                 isWrite3 = 1
@@ -425,7 +425,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
 
             del tLocal3
             del tLocal4
-            
+
         imagepts = moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, 1e-8)
     # Check if any of the image points lays outside the bbox. In this case we modify it.
     if isIBMPointInBox__(bbo,imagepts)[0] == False:

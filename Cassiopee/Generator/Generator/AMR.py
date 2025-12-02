@@ -207,13 +207,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
         if tbLocalTmp is None: tbLocalTmp = tbLocal
         C._initVars(tbLocalTmp, "cellN", 1.)
-        
+
         t0 = time.perf_counter()
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
         tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
         if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nBase, tElapse), flush=True)
-        
+
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
         # required for blankCells as a closed set of surfaces
@@ -321,7 +321,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
                 G._getVolumeMap(o)
             else:
                 break
-        C._rmVars(o, ['centers:indicator', 'centers:vol'])        
+        C._rmVars(o, ['centers:indicator', 'centers:vol'])
 
     if dim == 2: T._addkplane(o)
     o = C.convertArray2NGon(o)
@@ -414,7 +414,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     elif noffsets == 0:
         XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
         XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
-    
+
     C._initVars(to, "cellNOut", 1.)
     C._initVars(to, "cellNIn", 1.)
 
