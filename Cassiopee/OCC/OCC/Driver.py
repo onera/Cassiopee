@@ -961,6 +961,11 @@ class Driver:
 
         return None
 
+    # connect driver to db
+    def connect(self, db):
+        """Connect driver to db."""
+        self.db = db
+
     # set DOE deltas for free parameters
     # It is better to set them in scalar.range
     # IN: dict of deltas for each desired free parameter
