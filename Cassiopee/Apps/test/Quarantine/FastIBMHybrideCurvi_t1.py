@@ -12,7 +12,6 @@ import Connector.PyTree as X
 import Converter.Internal as Internal
 import numpy as np
 import KCore.test as test
-test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 

@@ -9,7 +9,6 @@ import Converter.Internal as Internal
 import Connector.ToolboxIBM as IBM
 import KCore.test as test
 import numpy
-test.TOLERANCE = 1.e-8
 
 N = 41
 a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,N))

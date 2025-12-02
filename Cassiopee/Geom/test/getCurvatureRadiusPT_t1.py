@@ -3,8 +3,6 @@ import Geom.PyTree as D
 import Converter.PyTree as C
 import KCore.test as test
 
-test.TOLERANCE = 1.e-6
-
 # cercle
 a = D.circle((0,0,0), 1, 10, 0, 10)
 a = D.getCurvatureRadius(a)
