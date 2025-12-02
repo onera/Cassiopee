@@ -226,7 +226,6 @@ void K_CONNECT::build_face_neighbourhood
       ni = face[j];
       if (j+1 == nv) nj = face[0];
       else nj = face[j+1];
-      nj = face[(j+1)%nv];
       E.set(ni, nj);
       auto it = edge_to_count.find(E);
       if (it == edge_to_count.end()) edge_to_count.insert(std::make_pair(E, 1));

@@ -8,7 +8,6 @@ import KCore.test as test
 # method=1
 a = G.cartNGon((0,0,0), (1,1,1), (3,5,7))
 a = G.getVolumeMap(a, method=1)
-C.convertPyTree2File(a, 'out.cgns')
 test.testT(a, 1)
 
 # method=0, api 1
