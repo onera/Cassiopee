@@ -21,7 +21,7 @@ class POD(Model):
         t[2][1][2].append(node)
         C.convertPyTree2File(t, self.fileName)
         return None
-    
+
     # build Phi from matrix M keeping K modes with svd
     def buildSvd(self, A, W, K=-1):
         # build modes
@@ -41,5 +41,5 @@ class POD(Model):
                 coords[i] = c0
             node = ["%05d"%i, coords, [], 'coeffs_t']
             Filter.writeNodesFromPaths(self.fileName, 'CGNSTree/POD', node)
-        
+
         return Phi, S, Vt

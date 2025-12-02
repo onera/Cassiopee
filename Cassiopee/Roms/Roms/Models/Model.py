@@ -15,9 +15,9 @@ class Model:
 
     def load(self):
         return None
-    
+
     def save(self):
         return None
-    
+
     def build(self):
         return None

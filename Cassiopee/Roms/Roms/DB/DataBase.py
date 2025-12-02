@@ -368,11 +368,11 @@ class DataBase:
     # mode=1: vertical
     def print(self, q, mode=0):
         """Print query to screen."""
-        
+
         if mode == 0: # horizontal
             print(len(q),'entries.')
             print('='*9*len(self.columns))
-        
+
             txt = ''; txt2 = ''
             for c, i in enumerate(self.columns):
                 if c != 3 and c != 4:
