@@ -194,7 +194,7 @@ def getNPts(a):
 
 def getNCells(a):
     """Return the number of cells in t."""
-    ncells = C.getNPts(a)
+    ncells = C.getNCells(a)
     ncells = allreduce(ncells, op=SUM)
     return ncells
 
