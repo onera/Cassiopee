@@ -5,8 +5,6 @@ import Connector.PyTree as X
 import Geom.PyTree as D
 import Post.PyTree as P
 import Dist2Walls.PyTree as DTW
-import Transform.PyTree as T
-import Initiator.PyTree as I
 import Converter.Internal as Internal
 import Connector.ToolboxIBM as IBM
 import KCore.test as test

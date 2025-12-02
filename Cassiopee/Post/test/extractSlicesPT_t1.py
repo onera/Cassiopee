@@ -3,7 +3,6 @@ import Converter.PyTree as C
 import Post.Rotor as PR
 import KCore.test as test
 import math
-test.TOLERANCE=1.e-8
 
 Mtip = 0.6462; MU = 0.4
 CHORD = 0.14; AR = 2.1
