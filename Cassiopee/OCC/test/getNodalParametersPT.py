@@ -1,4 +1,4 @@
-# - getNodalParameters - 
+# - getNodalParameters -
 import OCC
 import OCC.PyTree
 import OCC.occ as occ
