@@ -1,5 +1,5 @@
 # test driver
-import OCC.Driver as D
+import Roms.Driver as D
 
 # Create parameters implicitely
 line1 = D.Line('line1', (0,0,0), (0,1,0))

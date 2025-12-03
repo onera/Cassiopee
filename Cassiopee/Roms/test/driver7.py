@@ -1,8 +1,6 @@
 # driver: parametric revolve surface
-import OCC.Driver as D
-import Geom
+import Roms.Driver as D
 import Converter
-import Generator
 
 # Create parameter
 epaisseur = D.Scalar('epaisseur', 1.)
