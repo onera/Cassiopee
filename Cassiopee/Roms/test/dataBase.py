@@ -47,7 +47,7 @@ print(db.exist(points[0]))
 print(points)
 
 # fetch matrix
-matrix = db.fetchMatrix(q, variable='Pressure')
+matrix = db.fetchMatrix(q, variables=['Pressure'])
 print(matrix)
 
 # delete query

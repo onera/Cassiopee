@@ -1,5 +1,5 @@
 # driver: parametric sketch from lines
-import OCC.Driver as D
+import Roms.Driver as D
 
 # Create parameters
 hauteur = D.Scalar('hauteur', 1.)

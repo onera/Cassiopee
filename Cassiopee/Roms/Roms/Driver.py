@@ -1,8 +1,8 @@
 # Parametric Driver
-import OCC
 import sympy
 import numpy, re, itertools
 import Converter.Mpi as Cmpi
+import OCC
 
 #============================================================
 # name server for creating entities with unique names
@@ -249,22 +249,22 @@ class Entity:
     def update(self):
         self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
         if self.type == "line":
-            OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
+            OCC._addLine(self.hook, self.P[0].v(), self.P[1].v())
         elif self.type == "polyline":
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0, 1)
+            OCC._addSpline(self.hook, n, 0, 1)
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0, 3)
+            OCC._addSpline(self.hook, n, 0, 3)
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 1, 3)
+            OCC._addSpline(self.hook, n, 1, 3)
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -290,14 +290,14 @@ class Entity:
             mesh = Transform.deform(mesh, ['dx','dy','dz'])
 
             # spline from approximated point
-            OCC.occ.addSpline(self.hook, mesh[1], 1, 3)
+            OCC._addSpline(self.hook, mesh[1], 1, 3)
 
         elif self.type == "circle":
-            OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
+            OCC._addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
         elif self.type == "arc":
-            OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
+            OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         elif self.type == "superellipse":
-            OCC.occ.addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
+            OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -308,7 +308,7 @@ class Entity:
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
-        OCC.occ.writeCAD(self.hook, fileName, format)
+        OCC.writeCAD(self.hook, fileName, format)
 
     # mesh sketch
     def mesh(self, hmin, hmax, hausd):
@@ -960,6 +960,11 @@ class Driver:
         self.instantiate(d)
 
         return None
+
+    # connect driver to db
+    def connect(self, db):
+        """Connect driver to db."""
+        self.db = db
 
     # set DOE deltas for free parameters
     # It is better to set them in scalar.range

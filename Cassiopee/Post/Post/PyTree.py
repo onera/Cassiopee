@@ -2157,6 +2157,18 @@ def isoSurf(t, var, value, vars=None, split='simple'):
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
+
+    # #FIREWALL ME (to be suppressed when ME isosurf)
+    zones2 = []
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and ',' in dim[3]:
+            zs = C.breakConnectivity(z)
+            zones2 += zs
+        else: zones2.append(z)
+    zones = zones2
+    # fin firewall
+
     for z in zones:
         if vars is None: array = C.getAllFields(z, 'nodes', api=1)[0]
         else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc, api=1)[0]
@@ -2191,6 +2203,18 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
+
+    # #FIREWALL ME (to be suppressed when ME isosurf)
+    zones2 = []
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and ',' in dim[3]:
+            zs = C.breakConnectivity(z)
+            zones2 += zs
+        else: zones2.append(z)
+    zones = zones2
+    # fin firewall
+
     for z in zones:
         purge = False
         if Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) is None: purge=True

@@ -1,9 +1,7 @@
 # - initWissocq (array) -
 import Generator as G
-import Converter as C
 import Initiator as I
 import KCore.test as test
-test.TOLERANCE=1.e-10
 
 NI = 200; NJ = 200
 HI = 1./(NI-1); HJ = 1./(NJ-1)

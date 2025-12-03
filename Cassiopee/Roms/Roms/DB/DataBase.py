@@ -21,6 +21,7 @@ import Compressor.PyTree as Compressor
 class DataBase:
     def __init__(self, name, parameters=None):
         if name[-3:] == ".db": name = name[:-3]
+        if name[-4:] == ".db/": name = name[:-4]
         # database name
         self.name = name
         # directory name
@@ -94,7 +95,7 @@ class DataBase:
                     print("DataBase: commit failed.")
 
     # insert a sample in data base
-    def register(self, descp, point, ref=None, variables=[], data=None, tol=-1.):
+    def register(self, descp, point, ref=None, variables=[], data=None, compressionTol=None):
         """Register data in db."""
         if len(point) != len(self.parameters):
             raise ValueError("register: must have all parameters: "+str(self.parameters))
@@ -201,9 +202,9 @@ class DataBase:
                     # add dx,dy,dz to flow solution
                     b = Internal.getNodeFromType1(z, 'FlowSolution_t')
                     if b is not None: b[2] += dcoords
-            if tol <= 0: Compressor._compressAll(tp) # lossless
+            if compressionTol is None: Compressor._compressAll(tp) # lossless
             else:
-                Compressor._compressFields(tp, tol=tol, ctype=0) # approx
+                Compressor._compressFields(tp, tol=compressionTol, ctype=0) # approx
                 Compressor._compressAll(tp) # lossless
             C.convertPyTree2File(tp, cgnsName)
 
@@ -312,11 +313,12 @@ class DataBase:
         return out
 
     # fetch all parameters of q as a matrix
-    def fetchMatrix(self, q, variable):
+    def fetchMatrix(self, q, variables):
         """Fetch a query and return matrix."""
         # build param vector
         nrows = len(q)
         matrix = None
+        nv = len(variables)
 
         for c, r in enumerate(q):
             id = r[0]
@@ -324,14 +326,15 @@ class DataBase:
             h = Filter.Handle(cgnsName)
             a = h.loadSkeleton()
             #h._loadZonesWoVars(a)
-            h._loadVariables(a, var=[variable])
+            h._loadVariables(a, var=variables)
             zones = Internal.getZones(a)
             z = zones[0]
-            p = Internal.getNodeFromName(z, variable)
-            nf = p[1].size
-            if matrix is None:
-                matrix = numpy.zeros((nrows,nf), dtype=numpy.float64)
-            matrix[c,:] = p[1].ravel('k')
+            for x, v in enumerate(variables):
+                p = Internal.getNodeFromName(z, v)
+                nf = p[1].size
+                if matrix is None:
+                    matrix = numpy.zeros((nrows,nf*nv), dtype=numpy.float64)
+                matrix[c,x*nf:] = p[1].ravel('k')
         return matrix
 
     # delete rows corresponding to q
@@ -359,3 +362,36 @@ class DataBase:
         fp = open(logName, "a")
         fp.write(dateString+':'+text)
         fp.close()
+
+    # print query to screen
+    # mode=0: horizontal
+    # mode=1: vertical
+    def print(self, q, mode=0):
+        """Print query to screen."""
+
+        if mode == 0: # horizontal
+            print(len(q),'entries.')
+            print('='*9*len(self.columns))
+
+            txt = ''; txt2 = ''
+            for c, i in enumerate(self.columns):
+                if c != 3 and c != 4:
+                    txt += str(i)[0:8].ljust(9)
+                else: txt2 += str(i)[0:8].ljust(9)
+            print(txt+txt2)
+
+            print('='*9*len(self.columns))
+            for r in q:
+                txt = ''; txt2 = ''
+                for c, i in enumerate(r):
+                    if c != 3 and c != 4:
+                        txt += str(i)[0:8].ljust(9)
+                    else: txt2 += str(i)[0:8].ljust(9)
+                print(txt+txt2)
+        else: # vertical
+            print(len(q),'entries.')
+            for c, i in enumerate(self.columns):
+                txt = str(i)[0:9].ljust(10)+ '|'
+                for r in q:
+                    txt += str(r[c])[0:10].ljust(11) + '|'
+                print(txt)

@@ -1,6 +1,6 @@
 # - addSquare (array) -
 import OCC
 
-hook = OCC.occ.createEmptyCAD("empty.stp", "fmt_step")
-OCC.occ.addSquare(hook, (0,0,0), (1,0,0), (1,1,0), (0,1,0), False)
-OCC.occ.writeCAD(hook, "out.step", "fmt_step")
+hook = OCC.createEmptyCAD()
+OCC._addSquare(hook, (0,0,0), (1,0,0), (1,1,0), (0,1,0))
+OCC.writeCAD(hook, "out.step")

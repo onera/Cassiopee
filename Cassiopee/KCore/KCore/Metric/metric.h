@@ -341,8 +341,11 @@ namespace K_METRIC
   E_Int compVolNGonImad(E_Float *x, E_Float *y, E_Float *z,
     K_FLD::FldArrayI &cn, E_Float *cellVols);
 
-  void compute_cell_volume(E_Int, K_FLD::FldArrayI &, E_Float *, E_Float *,
-    E_Float *, E_Float &, E_Int refIdx=0);
+  void compute_cell_volume(
+    E_Int, K_FLD::FldArrayI &,
+    E_Int *, E_Int *, E_Int *, E_Int *,
+    E_Float *, E_Float *, E_Float *, E_Float &, E_Int refIdx=0
+  );
   
   void compute_face_centers_and_areas(K_FLD::FldArrayI &cn, E_Float *x,
     E_Float *y, E_Float *z, E_Float *fcenters, E_Float *fareas);

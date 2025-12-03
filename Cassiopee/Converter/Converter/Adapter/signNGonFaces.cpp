@@ -80,7 +80,7 @@ PyObject* K_CONVERTER::signNGonFaces(PyObject* self, PyObject* args)
 
 
   // Check mesh
-  ret = K_CONNECT::check_overlapping_cells(*cn);
+  ret = K_CONNECT::checkOverlappingCells(*cn);
   if (ret == 1) {
     PyErr_SetString(PyExc_ValueError,
                     "signNGonFaces: non-valid mesh.");

@@ -6,9 +6,7 @@ import Post.PyTree as P
 import KCore.test as test
 
 ni = 11; nj = 11
-
 def f1(x,y): return 2*x + y
-
 def f2(x,y): return 3*x*y + 4
 
 # STRUCT 2D
