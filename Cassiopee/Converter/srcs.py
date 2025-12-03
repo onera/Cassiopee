@@ -37,6 +37,7 @@ cpp_srcs = [
     'Converter/convertHexa2Tetra.cpp',
     'Converter/convertPrism2Tetra.cpp',
     'Converter/convertPyra2Tetra.cpp',
+    'Converter/convertArray2Tetra.cpp',
     'Converter/convertNGon2TetraBary.cpp',
     'Converter/convertArray2TetraBary.cpp',
     'Converter/convertHO2LO.cpp',
