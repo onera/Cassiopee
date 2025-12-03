@@ -1333,7 +1333,7 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
 
         elif t == 'TETRA' or t == 'TRI' or t == 'NODE':
             if arrayC == []: return array
-            else: return [array,arrayC]
+            else: return [array, arrayC]
 
         elif t == 'NGON':
             if arrayC == []: return converter.convertNGon2TetraBary(array)
@@ -1346,7 +1346,8 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
         elif t == 'TETRA*' or t == 'TRI*' or t == 'NODE*':
             return array
         else:
-            raise TypeError("convertArray2Tetra: with split='withBarycenters', type of element is not taken into account: %s."%t)
+            raise TypeError("convertArray2Tetra: with split='withBarycenters', "
+                            "type of element is not taken into account: %s."%t)
     else:
         raise TypeError("convertArray2Tetra: type of split unknown: %s."%split)
 
@@ -1369,24 +1370,29 @@ def convertArray2Hexa1__(array):
     if isinstance(sub, str): t = sub
     else: t = 'STRUCT'
     if t == 'STRUCT': return converter.convertStruct2Hexa(array)
-    elif t == 'HEXA' or t == 'QUAD' or t == 'BAR' or t == 'NODE':
-        return array
-    elif t == 'HEXA*' or t == 'QUAD*' or t == 'BAR*' or t == 'NODE*':
-        return array
-    elif t == 'TRI' or t == 'TETRA' or t == 'PENTA':
-        return converter.convertUnstruct2Hexa(array)
     elif t == 'NGON':
         try: import Transform as T
         except: raise ImportError("convertArray2Hexa: requires Transform for NGONs.")
         tmp = T.breakElements(array)
+        tmp = T.reorder(tmp)
         brd = []
         for i in tmp:
             if i[3] != 'NGON': brd.append(convertArray2Hexa1__(i))
         brd = T.join(brd)
         return brd
-    elif t == 'TRI*' or t == 'TETRA*' or t == 'PENTA*':
-        return converter.convertUnstruct2Hexa(array)
-    else: raise TypeError("convertArray2Hexa: type of element is not taken into account: %s."%t)
+    else:
+        group1 = ['NODE', 'BAR', 'QUAD', 'HEXA']
+        group2 = ['TRI', 'TETRA', 'PENTA']
+        eltNames = t.split(',')
+        eltNames = [eltName[:-1] for eltName in eltNames if eltName.endswith('*')]
+        
+        if not all(eltName in group1 + group2 for eltName in eltNames):
+            raise TypeError("convertArray2Hexa: at least one element type is "
+                            "not supported in: '{t}'.")
+        elif all(eltName in group1 for eltName in eltNames):
+            return array
+        else:
+            return converter.convertUnstruct2Hexa(array)
 
 # -- convert arrays(s) to hexa
 def convertArray2Hexa(array):

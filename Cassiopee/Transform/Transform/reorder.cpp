@@ -63,7 +63,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     }
     else
     {
-      PyErr_SetString(PyExc_TypeError,
+      PyErr_SetString(PyExc_ValueError,
                       "reorder: order tuple must be of size 3, eg, (1,2,3).");
       RELEASESHAREDS(array, f);
       return NULL;
@@ -91,7 +91,7 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
       }
       else
       {
-        PyErr_SetString(PyExc_TypeError,
+        PyErr_SetString(PyExc_ValueError,
                         "reorder: order tuple must be (1,) or (-1,) for NGONs.");
         RELEASESHAREDU(array, f, cn);
         return NULL;
@@ -128,13 +128,20 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
       K_ARRAY::getFromArray3(tpl, f2, cn2);
       if (dim == 2)
       {
-        if (size == 1)
+        if (size == 0)
+        {
+          PyErr_WarnEx(PyExc_UserWarning,
+                       "reorder: order tuple should be (1,) or (-1,) for TRI "
+                       "or QUAD. Setting order to (1,)", 1);
+          oi = 1;
+        }
+        else if (size == 1)
         {
           tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
         }
         else
         {
-          PyErr_SetString(PyExc_TypeError,
+          PyErr_SetString(PyExc_ValueError,
                           "reorder: order tuple must be (1,) or (-1,) for TRI or QUAD.");
           RELEASESHAREDU(tpl, f2, cn2);
           RELEASESHAREDU(array, f, cn);

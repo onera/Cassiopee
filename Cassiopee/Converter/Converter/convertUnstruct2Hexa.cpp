@@ -46,13 +46,12 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
 
   // Acces universel sur BE/ME
   E_Int nc = cnl->getNConnect();
-  // Acces universel aux eltTypes
   vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
   E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
   E_Int nelts, loc = 0;
-  vector<E_Int> neltsConn(nc);
+  vector<E_Int> nepc(nc);
   E_Bool center = false;
 
   // Boucle sur toutes les connectivites pour determiner les types des
@@ -81,7 +80,7 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
     }
 
     if (strchr(eltTypConn,'*') != NULL) loc += 1;
-    neltsConn[ic] = cm.getSize();
+    nepc[ic] = cm.getSize();
   }
 
   if (loc != 0 and loc != nc)
@@ -94,7 +93,7 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   else if (loc == nc) center = true;
 
   // Build empty ME connectivity
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, neltsConn,
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nepc,
                                        eltType2.c_str(), center, api);
   FldArrayF* f2; FldArrayI* cnl2;
   K_ARRAY::getFromArray3(tpl, f2, cnl2);

@@ -881,9 +881,10 @@ def split(a, dir, index):
         a2 = subzone(a, (1,1,index), (ni,nj,nk))
     return a1, a2
 
-def reorder(a, order):
+def reorder(a, order=None):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
+    if order is None: order = tuple()
     if isinstance(a[0], list):
         b = []
         for i in a:
