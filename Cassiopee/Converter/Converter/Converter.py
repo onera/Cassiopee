@@ -1385,7 +1385,7 @@ def convertArray2Hexa1__(array):
         group2 = ['TRI', 'TETRA', 'PENTA']
         eltNames = t.split(',')
         eltNames = [eltName[:-1] for eltName in eltNames if eltName.endswith('*')]
-        
+
         if not all(eltName in group1 + group2 for eltName in eltNames):
             raise TypeError("convertArray2Hexa: at least one element type is "
                             "not supported in: '{t}'.")
