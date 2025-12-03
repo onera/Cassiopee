@@ -156,20 +156,23 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
         
         if (dim == 1)
         {
-          K_FLD::FldArrayI& cm = *(cn->getConnect(0)); // TODO
-          E_Int nelts = cm.getSize();
-          E_Int* cn1 = cn->begin(1);
-          E_Int* cn2 = cn->begin(2);
-          E_Int ind1, ind2;
-          E_Float dx, dy, dz;
-          for (E_Int i = 0; i < nelts; i++)
+          E_Int offset = 0;
+          for (E_Int ic = 0; ic < nc; ic++)
           {
-            ind1 = cn1[i] - 1; 
-            ind2 = cn2[i] - 1;
-            dx = xt[ind2] - xt[ind1];
-            dy = yt[ind2] - yt[ind1];
-            dz = zt[ind2] - zt[ind1];
-            vol[i] = sqrt(dx*dx + dy*dy + dz*dz);
+            K_FLD::FldArrayI& cm = *(cn->getConnect(ic)); // TODO
+            E_Int nelts = cm.getSize();
+            E_Int ind1, ind2;
+            E_Float dx, dy, dz;
+            for (E_Int i = 0; i < nelts; i++)
+            {
+              ind1 = cm(i, 1) - 1; 
+              ind2 = cm(i, 2) - 1;
+              dx = xt[ind2] - xt[ind1];
+              dy = yt[ind2] - yt[ind1];
+              dz = zt[ind2] - zt[ind1];
+              vol[i+offset] = std::sqrt(dx*dx + dy*dy + dz*dz);
+            }
+            offset += nelts;
           }
         }
         else if (dim == 2)
