@@ -886,9 +886,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
     if dim == 3: normal2D=None
     else: normal2D = numpy.array([0.0, 0.0, 1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
-    offset_zones       = Internal.getZones(toffset)
-    offset_inside      = [Internal.getZones(tb)]
-    noffsetBase        = []
+    offset_zones = Internal.getZones(toffset)
+    offset_inside = [Internal.getZones(tb)]
+    noffsetBase = []
 
     sortDicOffsetIBM  = {}
     sortDicOffsetTbox = {}
@@ -918,10 +918,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             newOffsetsTbox.append(tmpOffset)
         offset_inside.append(None)
 
-    noffsetBase     = [len(newOffsetsIBM), len(newOffsetsTbox)]
+    noffsetBase = [len(newOffsetsIBM), len(newOffsetsTbox)]
     offset_zonesNew = [newOffsetsIBM, newOffsetsTbox]
-    offset_name     = ['IBM body', 'tbox'] # for I/O purposes only
-    noffsets        = max(noffsetBase) # max offset for all the bases
+    offset_name = ['IBM body', 'tbox'] # for I/O purposes only
+    noffsets = max(noffsetBase) # max offset for all the bases
     for i in range(noffsets-1, -1,-1):
         if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
         for nBase in range(1+min(1,numTbox)): #nBase = 0(IBM), 1(tbox - if it exists))
@@ -1124,7 +1124,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 # Generation of the AMR mesh for IBMs
 # MAIN FUNCTION
-# opt = True : for offset surface generation if it takes too long (depending on the resolution of tb)
+# opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None):
