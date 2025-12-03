@@ -669,12 +669,12 @@ def _bboxOfCells(t):
 def getVolumeMap(t, method=0):
     """Return the volume map in an array.
     Usage: getVolumeMap(t)"""
-    return C.TZGC1(t, 'centers', True, Generator.getVolumeMap, method)
+    return C.TZGC3(t, 'centers', True, Generator.getVolumeMap, method)
 
 def _getVolumeMap(t, method=0):
     """Return the volume map in an array.
     Usage: _getVolumeMap(t)"""
-    return C._TZGC1(t, 'centers', False, Generator.getVolumeMap, method)
+    return C._TZGC3(t, 'centers', False, Generator.getVolumeMap, method)
 
 def getFaceCentersAndAreas(t):
     fcenters = []
@@ -728,10 +728,10 @@ def getCellCenters(t, fc, fa, own=None, nei=None):
 def getNormalMap(t):
     """Return the map of surface normals in an array.
     Usage: getNormalMap(t)"""
-    return C.TZGC1(t, 'centers', True, Generator.getNormalMap)
+    return C.TZGC3(t, 'centers', True, Generator.getNormalMap)
 
 def _getNormalMap(t):
-    return C._TZGC1(t, 'centers', False, Generator.getNormalMap)
+    return C._TZGC3(t, 'centers', False, Generator.getNormalMap)
 
 def getSmoothNormalMap(t, niter=2, eps=0.4):
     """Return the map of smoothed and non-normalized surface normals in an array.
