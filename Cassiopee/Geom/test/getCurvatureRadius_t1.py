@@ -3,8 +3,6 @@ import Geom as D
 import Transform as T
 import KCore.test as test
 
-test.TOLERANCE = 1.e-6
-
 # ligne : courbure infinie
 a = D.line((0,0,0), (1,0,0), 3)
 rad = D.getCurvatureRadius(a)

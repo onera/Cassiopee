@@ -1,8 +1,8 @@
 # Parametric Driver
-import OCC
 import sympy
 import numpy, re, itertools
 import Converter.Mpi as Cmpi
+import OCC
 
 #============================================================
 # name server for creating entities with unique names
