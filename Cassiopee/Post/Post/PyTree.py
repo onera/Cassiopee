@@ -2158,7 +2158,7 @@ def isoSurf(t, var, value, vars=None, split='simple'):
     var, loc = Internal.fixVarName(var)
     ret = []
 
-    # firewall ME (to be suppressed when ME isosurf)
+    # #FIREWALL ME (to be suppressed when ME isosurf)
     zones2 = []
     for z in zones:
         dim = Internal.getZoneDim(z)
@@ -2204,7 +2204,7 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
     var, loc = Internal.fixVarName(var)
     ret = []
 
-    # firewall ME (to be suppressed when ME isosurf)
+    # #FIREWALL ME (to be suppressed when ME isosurf)
     zones2 = []
     for z in zones:
         dim = Internal.getZoneDim(z)

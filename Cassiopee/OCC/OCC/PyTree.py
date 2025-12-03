@@ -952,6 +952,7 @@ def _projectOnFaces(hook, t, faceList=None):
 # deviation of mesh to CAD, add deviation field to t
 # from center position
 def _meshDeviation(hook, t):
+    """Measure deviation from mesh to CAD."""
     FACES = Internal.getNodeFromName1(t, 'FACES')
     zones = Internal.getZones(FACES)
     for z in zones:

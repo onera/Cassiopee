@@ -132,7 +132,8 @@ def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
 # OUT: adapted mesh
 #------------------------------------------------------------------------------
 def adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False):
-    return adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
+    """Adapt an HEXA conformal mesh."""
+    return adaptMesh__(a, indicator=indicator, hook=hook, dim=dim, conformize=conformize, splitInfos=None)
 
 def adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None):
     import XCore.PyTree as XC
@@ -174,10 +175,12 @@ def adaptMesh__(a, indicator="indicator", hook=None, dim=3, conformize=False, sp
 # splitInfos is only compatible with NGON !!!
 # otherwise a is modified & converted into a NGON v4 !!
 def createHook4AdaptMesh(a, dim=3, splitInfos=None):
+    """Create hook for adaptMesh."""
     a2 = Internal.copyRef(a)
     return _createHook4AdaptMesh(a2, dim=dim, splitInfos=splitInfos)
 
 def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
+    """Create hook for adaptMesh."""
     import XCore.PyTree as XC
     from mpi4py import MPI # for MPI_Init
     z = Internal.getZones(a)[0]
@@ -220,6 +223,7 @@ def _createHook4AdaptMesh(a, dim=3, splitInfos=None):
     return hook
 
 def freeHook4AdaptMesh(hook):
+    """Free hook for adaptMesh."""
     import XCore.PyTree as XC
     XC.AdaptMesh_Exit(hook)
     return None
