@@ -52,15 +52,15 @@ def getUniqueName(proposedName, server):
 #============================================================
 # from arrays, export tree
 def exportEdges(edges):
-        t = C.newPyTree(['EDGES'])
-        b = Internal.getNodeFromName1(t, 'EDGES')
-        for c, e in enumerate(edges):
-            z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+    t = C.newPyTree(['EDGES'])
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for c, e in enumerate(edges):
+        z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
-            b[2].append(z)
-        return t
+        b[2].append(z)
+    return t
 
 #============================================================
 class Scalar:

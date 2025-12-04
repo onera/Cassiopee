@@ -121,7 +121,7 @@ class DataBase:
     def register(self, descp, point, ref=None, data=None, compressionTol=None):
         """Register data in db."""
         if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
-        
+
         if len(point) != len(self.parameters):
             raise ValueError("register: must have all parameters: "+str(self.parameters))
         if ref is None: ref = "None"
@@ -224,12 +224,12 @@ class DataBase:
                     if ZT is not None: z[2] += [ZT]
                     if FS1 is not None: z[2] += [FS1]
                     if FS2 is not None: z[2] += [FS2]
-                
+
                     # attach dx in any case
                     if dcoords is not None:
                         if FS1 is None:
                             Internal.newFlowSolution(Internal.__FlowSolutionNodes__, 'Vertex', parent=z)
-                            FS1 = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) 
+                            FS1 = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
                         # add dx,dy,dz to flow solution
                         FS1[2] += dcoords
             if compressionTol is None: Compressor._compressAll(tp) # lossless
@@ -281,7 +281,7 @@ class DataBase:
 
     # return True if parameters exist in db
     def exist(self, point=None):
-        if point is not None: 
+        if point is not None:
             q = self.query(point)
             if q == []: return False
             else: return True
@@ -353,7 +353,7 @@ class DataBase:
         pt0 = None
         pt1 = None
         matrix = None
-        
+
         for c, r in enumerate(q): # columns : parametric points
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
@@ -377,7 +377,7 @@ class DataBase:
                 sizetot = 0
                 pt0 = numpy.zeros((nv,nz), dtype=numpy.int32)
                 pt1 = numpy.zeros((nv,nz), dtype=numpy.int32)
-        
+
                 for x, v in enumerate(variables):
                     v = v.split(':')
                     if len(v) == 2: v = v[1]
@@ -388,7 +388,7 @@ class DataBase:
                         pt0[x,n] = sizetot
                         sizetot += nf
                         pt1[x,n] = sizetot
-                        
+
             for x, v in enumerate(variables): # rows : field variables
                 v = v.split(':')
                 if len(v) == 2: v = v[1]
@@ -406,7 +406,7 @@ class DataBase:
     def delete(self, q):
         """Delete queries from data base."""
         if self.mode == 'r': raise ValueError('register: can not delete in read only mode.')
-        
+
         for c, r in enumerate(q):
             # remove row in sql
             com1 = 'DELETE FROM %s WHERE '%self.name
@@ -420,7 +420,7 @@ class DataBase:
             # remove file
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
-            os.remove(cgnsName)        
+            os.remove(cgnsName)
 
     # monitor: write string to a log file monitor.txt
     def monitor(self, text):
@@ -467,4 +467,3 @@ class DataBase:
                 for r in q:
                     txt += str(r[c])[0:size-1].ljust(size) + '|'
                 print(txt)
-            

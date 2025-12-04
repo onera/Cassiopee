@@ -21,6 +21,6 @@ class Model:
 
     def build(self):
         return None
-    
+
     def instantiate(self):
         return None
