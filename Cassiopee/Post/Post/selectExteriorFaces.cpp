@@ -1837,7 +1837,8 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
             {
               indv = cm(i, facets[f][j]) - 1;
               std::cout << "indv = " << indv << std::endl;
-              (*cn2->getConnect(ic2))(indf, j) = vindir[indv];
+              (*(cm2s[ic2]))(indf, j) = vindir[indv];
+              std::cout << "(*(cm2s[ic2]))(indf, j) = " << (*(cm2s[ic2]))(indf, j) << std::endl;
             }
             extfCmpt[nvpf-1]++;
           }
