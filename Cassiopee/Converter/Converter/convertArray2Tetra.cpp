@@ -134,14 +134,6 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
   char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH]; eltType2[0] = '\0';
   if (dim == 2) strcpy(eltType2, "TRI");
   else strcpy(eltType2, "TETRA");
-  std::cout << "nfld = " << nfld << std::endl;
-  std::cout << "npts = " << npts << std::endl;
-  std::cout << "nelts2 = " << nelts2 << std::endl;
-  std::cout << "eltType = " << eltType << std::endl;
-  std::cout << "eltType2 = " << eltType2 << std::endl;
-  std::cout << "api = " << api << std::endl;
-  std::cout << "varString = " << varString << std::endl;
-  std::cout << "dim = " << dim << std::endl;
 
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts2,
                                        eltType2, false, api);
@@ -437,4 +429,114 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
   RELEASESHAREDU(tpl, f2, cn2);
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   return tpl;
+}
+
+//=============================================================================
+/* Determination du prisme ayant le sommet de plus petit indice en bas a gauche
+   diag vaut -1 si deuxieme min est I2 ou I6
+   diag vaut 1 si deuxieme min est I3 ou I5
+ */
+//=============================================================================
+void K_CONVERTER::buildSortedPrism(E_Int elt, FldArrayI& cn, E_Int& diag,
+                                   E_Int* indir)
+{
+  // Determination de indmin
+  E_Int indmin = cn(elt,1);
+  E_Int imin = 1;
+  E_Int ind;
+  for (E_Int i = 2; i <= 6; i++)
+  {
+    ind = cn(elt,i);
+    if (ind < indmin)
+    {
+      indmin = ind;
+      imin = i;
+    }
+  }
+  switch (imin)
+  {
+    case 1 :
+      indir[0] = 1;
+      indir[1] = 2;
+      indir[2] = 3;
+      indir[3] = 4;
+      indir[4] = 5;
+      indir[5] = 6;
+      break;
+
+    case 2 : 
+      indir[0] = 2;
+      indir[1] = 3;
+      indir[2] = 1;
+      indir[3] = 5;
+      indir[4] = 6;
+      indir[5] = 4;
+      break;
+
+    case 3 : 
+      indir[0] = 3;
+      indir[1] = 1;
+      indir[2] = 2;
+      indir[3] = 6;
+      indir[4] = 4;
+      indir[5] = 5;
+      break;
+
+    case 4 : 
+      indir[0] = 4;
+      indir[1] = 6;
+      indir[2] = 5;
+      indir[3] = 1;
+      indir[4] = 3;
+      indir[5] = 2;
+      break;
+
+    case 5 : 
+      indir[0] = 5;
+      indir[1] = 4;
+      indir[2] = 6;
+      indir[3] = 2;
+      indir[4] = 1;
+      indir[5] = 3;
+      break;
+
+    case 6 : 
+      indir[0] = 6;
+      indir[1] = 5;
+      indir[2] = 4;
+      indir[3] = 3;
+      indir[4] = 2;
+      indir[5] = 1;
+      break;
+
+    default ://erreur de codage
+      printf("Error: code error in function buildSortedPrism.\n");
+      diag = 0;
+      return;
+  }
+  //determination de l indice min sur la 3eme facette quad
+  // soit I2, I6, I3, I5 
+  E_Int indI2 = cn(elt,indir[1]);
+  E_Int indI3 = cn(elt,indir[2]);
+  E_Int indI5 = cn(elt,indir[4]);
+  E_Int indI6 = cn(elt,indir[5]);
+  
+  indmin = indI2;
+  diag = -1;
+
+  if (indI6 < indmin)
+  {
+    indmin = indI6;
+    diag = -1;
+  } 
+  if (indI3 < indmin) 
+  {
+    indmin = indI3;
+    diag = 1;
+  }
+  if (indI5 < indmin)
+  {
+    indmin = indI5;
+    diag = 1;
+  }
 }

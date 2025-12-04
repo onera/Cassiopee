@@ -61,7 +61,6 @@ namespace K_CONVERTER
   PyObject* isFinite(PyObject* self, PyObject* args);
   PyObject* setNANValuesAt(PyObject* self, PyObject* args);
   PyObject* convertBAR2Struct(PyObject* self, PyObject* args);
-  PyObject* convertStruct2Tetra(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertStruct2Hexa(PyObject* self, PyObject* args);
@@ -69,9 +68,6 @@ namespace K_CONVERTER
   PyObject* convertHexa2Struct(PyObject* self, PyObject* args);
   PyObject* convertUnstruct2NGon(PyObject* self, PyObject* args);
   PyObject* convertUnstruct2Hexa(PyObject* self, PyObject* args);
-  PyObject* convertHexa2Tetra(PyObject* self, PyObject* args);
-  PyObject* convertPenta2Tetra(PyObject* self, PyObject* args);
-  PyObject* convertPyra2Tetra(PyObject* self, PyObject* args);
   PyObject* convertNGon2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertMix2BE(PyObject* self, PyObject* args);
   PyObject* convertNGon2TetraBaryBoth(PyObject* self, PyObject* args);
