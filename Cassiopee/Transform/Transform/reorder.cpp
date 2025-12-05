@@ -85,16 +85,22 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
     FldArrayI* cn2;
     if (strncmp(eltType, "NGON", 4) == 0)
     {
-      if (size == 1)
+      if (size == 0)
       {
-        tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+        PyErr_WarnEx(PyExc_UserWarning,
+                      "reorder: order tuple should be (1,) or (-1,) for NGON. "
+                      "Setting order to (1,)", 1);
+        oi = 1;
       }
       else
       {
-        PyErr_SetString(PyExc_ValueError,
-                        "reorder: order tuple must be (1,) or (-1,) for NGONs.");
-        RELEASESHAREDU(array, f, cn);
-        return NULL;
+        if (size > 1)
+        {
+          PyErr_WarnEx(PyExc_UserWarning,
+                        "reorder: order tuple should be (1,) or (-1,) for NGON. "
+                        "Selecting first element of the tuple.", 1);
+        }
+        tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
       }
   
       // check si le NGON est surfacique
@@ -135,17 +141,15 @@ PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
                        "or QUAD. Setting order to (1,)", 1);
           oi = 1;
         }
-        else if (size == 1)
-        {
-          tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
-        }
         else
         {
-          PyErr_SetString(PyExc_ValueError,
-                          "reorder: order tuple must be (1,) or (-1,) for TRI or QUAD.");
-          RELEASESHAREDU(tpl, f2, cn2);
-          RELEASESHAREDU(array, f, cn);
-          return NULL;
+          if (size > 1)
+          {
+            PyErr_WarnEx(PyExc_UserWarning,
+                         "reorder: order tuple should be (1,) or (-1,) for TRI "
+                         "or QUAD. Selecting first element of the tuple.", 1);
+          }
+          tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
         }
         K_CONNECT::reorderUnstruct2D(*f2, *cn2, E_Int(oi));
       }

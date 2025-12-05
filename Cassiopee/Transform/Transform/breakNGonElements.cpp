@@ -446,7 +446,7 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
     }
 
     // Build new ME connectivity
-    // if (nc2 > 1) api = 3;
+    if (nc2 > 1) api = 3;
     tpl = K_ARRAY::buildArray3(nfld, varString, nptsME,
                                nepc2, eltType2, false, api);
     FldArrayF* f2; FldArrayI* cn2;
