@@ -233,8 +233,7 @@ namespace K_CONVERTER
                                 E_Int ni, E_Int nj, E_Int nk);
 
   // Method for prismatic conversion
-  void buildSortedPrism(E_Int elt, K_FLD::FldArrayI& cn, E_Int& diag,
-                        E_Int* indir);
+  void buildSortedPrism(const std::vector<E_Int>& vertices, E_Int* indir, E_Int& diag);
   // Method for diffArrays
   E_Bool searchField2(K_FLD::FldArrayF& f1,
                       K_FLD::FldArrayF& error,

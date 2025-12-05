@@ -147,11 +147,11 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
       FldArrayI& cm = *(cn->getConnect(ic));
       FldArrayI& cm2 = *(cn2->getConnect(ic));
       E_Int nelts = cm.getSize();
+      E_Int nvpe = cm.getNfld();
       E_Int offset = cumnepc[ic];
 
       if (!convConn[ic])  // simple copy
       {
-        E_Int nvpe = cm.getNfld();
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
           for (E_Int j = 1; j <= nvpe; j++) cm2(i+offset,j) = cm(i,j);
@@ -241,8 +241,9 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
       }
       else if (K_STRING::cmp(eltTypes[ic], "PENTA") == 0)
       {
-        E_Int cnt, i1, i2, i3, i4, i5, i6, diag;
+        E_Int cnt, diag = 0;
         E_Int indir[6];
+        std::vector<E_Int> vertices(6);
 
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
@@ -250,59 +251,56 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
           /* determination du prisme tourne: imin -> pt 1
             determination du second point min sur la facette quad opposee: diag
             retour du tableau d'indirection I1I2I3I4I5I6 */
-          diag = 0;
-          buildSortedPrism(i, cm, diag, indir);
-        
-          i1 = indir[0]; i2 = indir[1];
-          i3 = indir[2]; i4 = indir[3];
-          i5 = indir[4]; i6 = indir[5];
+          for (E_Int v = 0; v < 6; v++) vertices[v] = cm(i,v+1);
+          buildSortedPrism(vertices, indir, diag);
+
           if (diag == -1) //config 2-6
           {
             // build tetras: I1I2I3I6,I1I2I6I5,I1I5I6I4 
             // t1: I1I2I3I6
             cnt = 3*i + offset;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i2);
-            cm2(cnt,3) = cm(i,i3);
-            cm2(cnt,4) = cm(i,i6);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[1]);
+            cm2(cnt,3) = cm(i,indir[2]);
+            cm2(cnt,4) = cm(i,indir[5]);
 
             // t2: I1I2I6I5
             cnt = 3*i+1;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i2);
-            cm2(cnt,3) = cm(i,i6);
-            cm2(cnt,4) = cm(i,i5);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[1]);
+            cm2(cnt,3) = cm(i,indir[5]);
+            cm2(cnt,4) = cm(i,indir[4]);
 
             // t3: I1I5I6I4
             cnt = 3*i+2;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i5);
-            cm2(cnt,3) = cm(i,i6);
-            cm2(cnt,4) = cm(i,i4);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[4]);
+            cm2(cnt,3) = cm(i,indir[5]);
+            cm2(cnt,4) = cm(i,indir[3]);
           }
-          else if (diag == 1)//config 3-5
+          else // (diag = 1) config 3-5
           {
             // build tetras: I1I2I3I5, I1I5I3I6, I1I5I6I4
             // t1: I1I2I3I5
             cnt = 3*i + offset;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i2);
-            cm2(cnt,3) = cm(i,i3);
-            cm2(cnt,4) = cm(i,i5);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[1]);
+            cm2(cnt,3) = cm(i,indir[2]);
+            cm2(cnt,4) = cm(i,indir[4]);
 
             // t2: I1I5I3I6
             cnt = 3*i+1;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i5);
-            cm2(cnt,3) = cm(i,i3);
-            cm2(cnt,4) = cm(i,i6);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[4]);
+            cm2(cnt,3) = cm(i,indir[2]);
+            cm2(cnt,4) = cm(i,indir[5]);
 
             // t3: I1I5I6I4
             cnt = 3*i+2;
-            cm2(cnt,1) = cm(i,i1);
-            cm2(cnt,2) = cm(i,i5);
-            cm2(cnt,3) = cm(i,i6);
-            cm2(cnt,4) = cm(i,i4);
+            cm2(cnt,1) = cm(i,indir[0]);
+            cm2(cnt,2) = cm(i,indir[4]);
+            cm2(cnt,3) = cm(i,indir[5]);
+            cm2(cnt,4) = cm(i,indir[3]);
           }
         }
       }
@@ -437,22 +435,24 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
    diag vaut 1 si deuxieme min est I3 ou I5
  */
 //=============================================================================
-void K_CONVERTER::buildSortedPrism(E_Int elt, FldArrayI& cn, E_Int& diag,
-                                   E_Int* indir)
+void K_CONVERTER::buildSortedPrism(const std::vector<E_Int>& vertices,
+                                   E_Int* indir, E_Int& diag)
 {
   // Determination de indmin
-  E_Int indmin = cn(elt,1);
+  E_Int indmin = vertices[0];
   E_Int imin = 1;
   E_Int ind;
-  for (E_Int i = 2; i <= 6; i++)
+
+  for (E_Int j = 1; j < 6; j++)
   {
-    ind = cn(elt,i);
+    ind = vertices[j];
     if (ind < indmin)
     {
       indmin = ind;
-      imin = i;
+      imin = j + 1;
     }
   }
+
   switch (imin)
   {
     case 1 :
@@ -516,10 +516,10 @@ void K_CONVERTER::buildSortedPrism(E_Int elt, FldArrayI& cn, E_Int& diag,
   }
   //determination de l indice min sur la 3eme facette quad
   // soit I2, I6, I3, I5 
-  E_Int indI2 = cn(elt,indir[1]);
-  E_Int indI3 = cn(elt,indir[2]);
-  E_Int indI5 = cn(elt,indir[4]);
-  E_Int indI6 = cn(elt,indir[5]);
+  E_Int indI2 = vertices[indir[1]-1];
+  E_Int indI3 = vertices[indir[2]-1];
+  E_Int indI5 = vertices[indir[4]-1];
+  E_Int indI6 = vertices[indir[5]-1];
   
   indmin = indI2;
   diag = -1;
