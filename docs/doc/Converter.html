@@ -3497,7 +3497,7 @@ Always checks the validity of input mesh. Raises error if mesh is invalid.</p>
 <h3>Array / PyTree analysis</h3>
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.diffArrays">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">diffArrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeCoordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">diffArrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeCoordinates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Given a solution in a and a solution in b, both defined on the same mesh,
 return the differences.</p>
 <dl class="field-list simple">
@@ -3506,6 +3506,8 @@ return the differences.</p>
 <li><p><strong>a</strong> (<em>[</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data 1</p></li>
 <li><p><strong>b</strong> (<em>[</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data 2</p></li>
 <li><p><strong>removeCoordinates</strong> (<em>boolean</em>) &#8211; if True, remove original coordinates (pyTree)</p></li>
+<li><p><strong>atol</strong> (<em>float</em>) &#8211; absolute tolerance</p></li>
+<li><p><strong>rtol</strong> (<em>float</em>) &#8211; relative tolerance</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>

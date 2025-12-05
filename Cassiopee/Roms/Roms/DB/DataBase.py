@@ -8,8 +8,9 @@
 
 # vocabulary:
 # query(sqlstring) -> return a query (list of full sql data)
+# query(point) -> return query for given parametric point
 # fetch(query) -> return real data corresponding to query
-# point: a dict of parameter names/value (as in DOE)
+# parametric point: a dict of parameter names/value (as in DOE)
 
 import sqlite3
 import os, numpy, time, datetime
@@ -19,13 +20,30 @@ import Converter.Filter as Filter
 import Compressor.PyTree as Compressor
 
 class DataBase:
-    def __init__(self, name, parameters=None):
-        if name[-3:] == ".db": name = name[:-3]
+    def __init__(self, name, parameters=None, mode="a"):
+        # mode
+        if mode == 'a': # enable read/write
+            self.mode = 'a'
+        elif mode == 'r': # read only
+            self.mode = 'w'
+        elif mode == 'w': # start anew
+            self.mode == 'w'
+        else: raise ValueError('DataBase: invalid mode.')
         # database name
+        if name[-3:] == ".db": name = name[:-3]
+        if name[-4:] == ".db/": name = name[:-4]
         self.name = name
         # directory name
         self.dirName = name+'.db'
-        if not os.path.exists(self.dirName): os.mkdir(self.dirName)
+        if not os.path.exists(self.dirName):
+            if mode == 'w':
+                import shutil
+                shutil.rmtree(self.dirName)
+                os.mkdir(self.dirName)
+            elif mode == 'r':
+                raise ValueError('DataBase: can not open file for reading.')
+            else:
+                os.mkdir(self.dirName)
         # pointer on sql db
         self.db = None
         self.cursor = None
@@ -72,6 +90,7 @@ class DataBase:
     # create reference (all without fields)
     def registerReference(self, t, name):
         """Write reference file used for coordinates and connectivity."""
+        if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
         cgnsName = self.dirName+'/%s'%name+'.cgns'
         tp = Internal.copyRef(t)
         Internal._rmNodesFromType(tp, 'FlowSolution_t')
@@ -94,19 +113,20 @@ class DataBase:
                     print("DataBase: commit failed.")
 
     # insert a sample in data base
-    def register(self, descp, point, ref=None, variables=[], data=None, tol=-1.):
+    # IN: descp: description string
+    # IN: point: parametric point (dict)
+    # IN: ref: reference mesh if your sample has the same topology
+    # IN: data: the tree, zone, date
+    # IN: compressionTol: if None: lossless else comrpession accuracy
+    def register(self, descp, point, ref=None, data=None, compressionTol=None):
         """Register data in db."""
+        if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
+
         if len(point) != len(self.parameters):
             raise ValueError("register: must have all parameters: "+str(self.parameters))
-        if ref is None: ref = "ref1"
+        if ref is None: ref = "None"
 
-        if isinstance(variables, list):
-            varString = ''
-            for v in variables: varString += ','+v
-        elif isinstance(variables, str):
-            varString = variables
-        else: raise ValueError("register: variables must be a string or a list of strings.")
-
+        varString = ''
         if data is not None:
             if isinstance(data, numpy.ndarray):
                 data = ['data', data, [], 'DataArray_t']
@@ -115,7 +135,9 @@ class DataBase:
                 if Internal.typeOfNode(data) == -1:
                     raise ValueError("register: data is invalid.")
                 vars = C.getVarNames(data, excludeXYZ=True)
-                if variables == []: variables = vars[0]
+                variables = vars[0]
+                if ref != "None" and Internal.getNodeFromName(data, 'CoordinateX') is not None:
+                    variables += ['dx', 'dy', 'dz']
             else:
                 raise ValueError("register: data is invalid.")
             varString = ''
@@ -156,20 +178,19 @@ class DataBase:
         #self.cursor.execute(com+com2, com3)
         #self.db.commit()
 
-        # register fields cgns
+        # register dcoords/fields cgns
         if data is not None:
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             tp = Internal.copyRef(data)
             zones = Internal.getZones(tp)
-            dcoords = None
             for z in zones:
-                # Coordinates
+                dcoords = None
                 FC = Internal.getNodeFromType1(z, 'GridCoordinates_t')
-                if FC is not None:
+                if FC is not None: # if coordinates in zone
                     # check reference if possible
                     refCgnsName = self.dirName+'/%s'%ref+'.cgns'
                     refFC = None
-                    if os.path.exists(refCgnsName): # of if ref=None
+                    if os.path.exists(refCgnsName): # ok if ref=None
                         refFC = Filter.readNodesFromPaths(refCgnsName, ['%s/%s'%(Internal.getPath(tp,z),FC[0])])[0]
                         for i in Internal.getNodesFromType1(refFC, 'DataArray_t'):
                             Compressor._unpackNode(i)
@@ -183,27 +204,37 @@ class DataBase:
                         dx = px[1] - refx[1]
                         dy = py[1] - refy[1]
                         dz = pz[1] - refz[1]
-                        retx = numpy.allclose(dx, 0., atol=1.e-10)
-                        rety = numpy.allclose(dy, 0., atol=1.e-10)
-                        retz = numpy.allclose(dz, 0., atol=1.e-10)
-                        if retx == False or rety == False or retz == False:
-                            dxn = Internal.newDataArray('dx', dx)
-                            dyn = Internal.newDataArray('dy', dy)
-                            dzn = Internal.newDataArray('dz', dz)
-                            dcoords = [dxn,dyn,dzn]
+                        #retx = numpy.allclose(dx, 0., atol=1.e-10)
+                        #rety = numpy.allclose(dy, 0., atol=1.e-10)
+                        #retz = numpy.allclose(dz, 0., atol=1.e-10)
+                        #if retx == False or rety == False or retz == False:
+                        dxn = Internal.newDataArray('dx', dx)
+                        dyn = Internal.newDataArray('dy', dy)
+                        dzn = Internal.newDataArray('dz', dz)
+                        dcoords = [dxn,dyn,dzn]
+
                 # Fields
                 ZT = Internal.getNodeFromType1(z, 'ZoneType_t')
-                FS = Internal.getNodesFromType1(z, 'FlowSolution_t')
-                z[2] = []
-                if ZT is not None: z[2] += [ZT]
-                if FS is not None: z[2] += FS
-                if dcoords is not None:
-                    # add dx,dy,dz to flow solution
-                    b = Internal.getNodeFromType1(z, 'FlowSolution_t')
-                    if b is not None: b[2] += dcoords
-            if tol <= 0: Compressor._compressAll(tp) # lossless
+                FS1 = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+                FS2 = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+
+                # if ref, clean zone and attach only fields and dcoords
+                if ref != "None":
+                    z[2] = []
+                    if ZT is not None: z[2] += [ZT]
+                    if FS1 is not None: z[2] += [FS1]
+                    if FS2 is not None: z[2] += [FS2]
+
+                    # attach dx in any case
+                    if dcoords is not None:
+                        if FS1 is None:
+                            Internal.newFlowSolution(Internal.__FlowSolutionNodes__, 'Vertex', parent=z)
+                            FS1 = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
+                        # add dx,dy,dz to flow solution
+                        FS1[2] += dcoords
+            if compressionTol is None: Compressor._compressAll(tp) # lossless
             else:
-                Compressor._compressFields(tp, tol=tol, ctype=0) # approx
+                Compressor._compressFields(tp, tol=compressionTol, ctype=0) # approx
                 Compressor._compressAll(tp) # lossless
             C.convertPyTree2File(tp, cgnsName)
 
@@ -230,33 +261,35 @@ class DataBase:
             self.cursor.execute('SELECT * FROM %s'%self.name)
             rows = self.cursor.fetchall()
             return rows
-        # query com
-        com1 = 'SELECT * FROM %s WHERE '%self.name
-        com1 = com1+com
-        self.cursor.execute(com1)
-        q = self.cursor.fetchall()
-        return q
+        elif isinstance(com, str): # sql string command
+            # query com
+            com1 = 'SELECT * FROM %s WHERE '%self.name
+            com1 = com1+com
+            self.cursor.execute(com1)
+            q = self.cursor.fetchall()
+            return q
+        elif isinstance(com, dict): # parametric point query
+            com1 = ''
+            for p in com:
+                com1 += "%s <= %g+1.e-10 AND %s >= %g-1.e-10 AND "%(p, com[p], p, com[p])
+            if len(com1) >= 4: com1 = com1[:-4]
+            com2 = 'SELECT * FROM %s WHERE '%self.name
+            com1 = com2+com1
+            self.cursor.execute(com1)
+            q = self.cursor.fetchall()
+            return q
 
     # return True if parameters exist in db
     def exist(self, point=None):
-        com = ''
         if point is not None:
-            for p in point:
-                com += "%s = %g AND "%(p, point[p])
-        if len(com) >= 4: com = com[:-4]
-        com1 = 'SELECT * FROM %s WHERE '%self.name
-        com1 = com1+com
-        self.cursor.execute(com1)
-        q = self.cursor.fetchall()
-        if q == []: return False
-        else: return True
+            q = self.query(point)
+            if q == []: return False
+            else: return True
+        else: return False
 
     # load sample from query
     # return list of trees
-    # mode=0: liste of trees
-    # mode=1: list of FS
-    # mode=2: one tree + multiple FS (not implemented)
-    def fetchTree(self, q, mode=0):
+    def fetchTree(self, q):
         """Fetch a query and return tree."""
         ts = []; tref = None; refn = None
         for r in q:
@@ -266,13 +299,13 @@ class DataBase:
             if ref != refn:
                 ref = refn; tref = None
             # load ref mesh
-            if tref is None and mode == 0:
+            if ref != "None" and tref is None:
                 cgnsName = self.dirName+'/%s'%ref+'.cgns'
                 tref = C.convertFile2PyTree(cgnsName)
             # load data
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             t = C.convertFile2PyTree(cgnsName)
-            if mode == 0:
+            if tref is not None:
                 t = Internal.merge([tref, t])
                 for z in Internal.getZones(t):
                     dx = Internal.getNodeFromName2(z, 'dx')
@@ -280,16 +313,16 @@ class DataBase:
                     dz = Internal.getNodeFromName2(z, 'dz')
                     if dx is not None and dy is not None and dz is not None:
                         px = Internal.getNodeFromName2(z, 'CoordinateX')
-                        px = px + dx
-                        py = Internal.getNodeFromName2(z, 'CoordinateX')
-                        py = py + dy
-                        pz = Internal.getNodeFromName2(z, 'CoordinateX')
-                        pz = pz + dz
+                        px[1] += dx[1]
+                        py = Internal.getNodeFromName2(z, 'CoordinateY')
+                        py[1] += dy[1]
+                        pz = Internal.getNodeFromName2(z, 'CoordinateZ')
+                        pz[1] += dz[1]
             ts.append(t)
         return ts
 
     # fetch all parameters as a vector
-    def fetchParam(self, q):
+    def fetchParams(self, q):
         """Fetch a query and return param vector."""
         # build param vector
         nparam = len(q[0])-5
@@ -300,7 +333,7 @@ class DataBase:
         return param
 
     # fetch all parameters of q as a point dict of DOE
-    def fetchPoint(self, q):
+    def fetchPoints(self, q):
         """Fetch a query and return points."""
         out = []
         for r in q:
@@ -312,39 +345,78 @@ class DataBase:
         return out
 
     # fetch all parameters of q as a matrix
-    def fetchMatrix(self, q, variable):
-        """Fetch a query and return matrix."""
-        # build param vector
-        nrows = len(q)
+    def fetchMatrix(self, q, variables):
+        """Fetch a query and return a matrix."""
+        # sizes
+        nq = len(q) # number of parametric points
+        nv = len(variables) # number of variables
+        pt0 = None
+        pt1 = None
         matrix = None
 
-        for c, r in enumerate(q):
+        for c, r in enumerate(q): # columns : parametric points
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             h = Filter.Handle(cgnsName)
             a = h.loadSkeleton()
-            #h._loadZonesWoVars(a)
-            h._loadVariables(a, var=[variable])
+            h._loadVariables(a, var=variables)
+            #vars = h.getVariables()
             zones = Internal.getZones(a)
-            z = zones[0]
-            p = Internal.getNodeFromName(z, variable)
-            nf = p[1].size
-            if matrix is None:
-                matrix = numpy.zeros((nrows,nf), dtype=numpy.float64)
-            matrix[c,:] = p[1].ravel('k')
+            nz = len(zones)
+            # Check that variables have been loaded
+            for v in variables:
+                v = v.split(':')
+                if len(v) == 2: v = v[1]
+                else: v = v[0]
+                for z in zones:
+                    p = Internal.getNodeFromName(z, v)
+                    if p is None:
+                        raise ValueError('fetchMatrix; variable not found in data set.')
+
+            if pt0 is None:
+                sizetot = 0
+                pt0 = numpy.zeros((nv,nz), dtype=numpy.int32)
+                pt1 = numpy.zeros((nv,nz), dtype=numpy.int32)
+
+                for x, v in enumerate(variables):
+                    v = v.split(':')
+                    if len(v) == 2: v = v[1]
+                    else: v = v[0]
+                    for n, z in enumerate(zones):
+                        p = Internal.getNodeFromName(z, v)
+                        nf = p[1].size
+                        pt0[x,n] = sizetot
+                        sizetot += nf
+                        pt1[x,n] = sizetot
+
+            for x, v in enumerate(variables): # rows : field variables
+                v = v.split(':')
+                if len(v) == 2: v = v[1]
+                else: v = v[0]
+                for n, z in enumerate(zones): # rows : field variables per zone
+                    p = Internal.getNodeFromName(z, v)
+                    nf = p[1].size
+                    if matrix is None:
+                        matrix = numpy.zeros((sizetot, nq), dtype=numpy.float64)
+                        #matrix[:,:] = 1.
+                    matrix[pt0[x,n]:pt1[x,n], c] = p[1].ravel('k')
         return matrix
 
     # delete rows corresponding to q
     def delete(self, q):
         """Delete queries from data base."""
+        if self.mode == 'r': raise ValueError('register: can not delete in read only mode.')
+
         for c, r in enumerate(q):
             # remove row in sql
             com1 = 'DELETE FROM %s WHERE '%self.name
-            com = 'id = %d AND descp = "%s" AND date = "%s" AND reference = "%s" AND variables = "%s"'%(r[0],r[1],r[2],r[3],r[4])
-            for c in range(5, len(r)):
-                com += ' AND %s = %g'%(self.columns[c],r[c])
+            #com = 'id = %d AND descp = "%s" AND date = "%s" AND reference = "%s" AND variables = "%s"'%(r[0],r[1],r[2],r[3],r[4])
+            #for c in range(5, len(r)):
+            #    com += ' AND %s >= %g-1.e-10 AND %s <= %g+1.e-10'%(self.columns[c],r[c], self.columns[c],r[c])
+            com = 'id = %d'%r[0]
             com1 = com1+com+';'
             self.cursor.execute(com1)
+            self.db.commit()
             # remove file
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
@@ -359,3 +431,39 @@ class DataBase:
         fp = open(logName, "a")
         fp.write(dateString+':'+text)
         fp.close()
+
+    # print query to screen
+    # mode=0: horizontal
+    # mode=1: vertical
+    def print(self, q, mode=0):
+        """Print query to screen."""
+        if mode == 0: # horizontal
+            print(len(q),'entries.')
+            size = 15
+            print('='*size*len(self.columns))
+
+            txt = ''; txt2 = ''
+            for c, i in enumerate(self.columns):
+                if c != 3 and c != 4:
+                    txt += str(i)[0:size-1].ljust(size)
+                else: txt2 += str(i)[0:size-1].ljust(size)
+            print(txt+txt2)
+
+            print('='*size*len(self.columns))
+            for r in q:
+                txt = ''; txt2 = ''
+                for c, i in enumerate(r):
+                    if c != 3 and c != 4:
+                        txt += str(i)[0:size-1].ljust(size)
+                    else: txt2 += str(i)[0:size-1].ljust(size)
+                print(txt+txt2)
+        else: # vertical
+            print(len(q),'entries.')
+            if len(q) == 1: size = 80
+            elif len(q) == 2: size = 40
+            else: size = 15
+            for c, i in enumerate(self.columns):
+                txt = str(i)[0:12-1].ljust(12)+ '|'
+                for r in q:
+                    txt += str(r[c])[0:size-1].ljust(size) + '|'
+                print(txt)

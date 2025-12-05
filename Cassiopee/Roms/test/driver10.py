@@ -1,8 +1,5 @@
 # driver: parametric boolean
-import OCC.Driver as D
-import Geom
-import Converter
-import Generator
+import Roms.Driver as D
 
 # Create parameter
 length = D.Scalar('length', 12.)

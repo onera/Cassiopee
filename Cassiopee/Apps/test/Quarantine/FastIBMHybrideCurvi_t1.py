@@ -7,13 +7,11 @@ import Converter.PyTree as C
 import Initiator.PyTree as Initiator
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Geom.IBM    as IBM
+import Geom.IBM as IBM
 import Connector.PyTree as X
 import Converter.Internal as Internal
-import math
 import numpy as np
 import KCore.test as test
-test.TOLERANCE = 1.e-6
 
 LOCAL = test.getLocal()
 
@@ -146,7 +144,7 @@ test.testT(t2, 9)
 nit = 100; time = 0.
 for it in range(nit):
     FastS._compute(t_final, metrics, it, tc_final)
-    if it%25==0:
+    if it%25 == 0:
         FastS.displayTemporalCriteria(t_final, metrics, it)
 
 #C.convertPyTree2File(t_final, 'restart.cgns')

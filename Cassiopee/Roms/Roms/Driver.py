@@ -1,8 +1,9 @@
 # Parametric Driver
-import OCC
-import sympy
-import numpy, re, itertools
+import sympy, numpy, re, itertools
 import Converter.Mpi as Cmpi
+import Converter.PyTree as C
+import Converter.Internal as Internal
+import OCC
 
 #============================================================
 # name server for creating entities with unique names
@@ -45,6 +46,21 @@ def getUniqueName(proposedName, server):
         c = 1
     server[proposedName] = c
     return (proposedName+str(c), server)
+
+#============================================================
+# Helpers
+#============================================================
+# from arrays, export tree
+def exportEdges(edges):
+    t = C.newPyTree(['EDGES'])
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for c, e in enumerate(edges):
+        z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)
+        b[2].append(z)
+    return t
 
 #============================================================
 class Scalar:
@@ -247,24 +263,24 @@ class Entity:
         OCC.occ.freeHook(self.hook)
 
     def update(self):
-        self.hook = OCC.occ.createEmptyCAD("unknown.stp", "fmt_step")
+        self.hook = OCC.createEmptyCAD()
         if self.type == "line":
-            OCC.occ.addLine(self.hook, self.P[0].v(), self.P[1].v())
+            OCC._addLine(self.hook, self.P[0].v(), self.P[1].v())
         elif self.type == "polyline":
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0, 1)
+            OCC._addSpline(self.hook, n, 0, 1)
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 0, 3)
+            OCC._addSpline(self.hook, n, 0, 3)
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
-            OCC.occ.addSpline(self.hook, n, 1, 3)
+            OCC._addSpline(self.hook, n, 1, 3)
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -290,14 +306,14 @@ class Entity:
             mesh = Transform.deform(mesh, ['dx','dy','dz'])
 
             # spline from approximated point
-            OCC.occ.addSpline(self.hook, mesh[1], 1, 3)
+            OCC._addSpline(self.hook, mesh[1], 1, 3)
 
         elif self.type == "circle":
-            OCC.occ.addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
+            OCC._addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
         elif self.type == "arc":
-            OCC.occ.addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
+            OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
         elif self.type == "superellipse":
-            OCC.occ.addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
+            OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -308,9 +324,9 @@ class Entity:
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
-        OCC.occ.writeCAD(self.hook, fileName, format)
+        OCC.writeCAD(self.hook, fileName, format)
 
-    # mesh sketch
+    # mesh entity, return arrays
     def mesh(self, hmin, hmax, hausd):
         edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         return edges
@@ -393,10 +409,10 @@ class Sketch():
     # update the CAD from parameters
     def update(self):
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('sketch.step', 'fmt_step')
+        self.hook = OCC.createEmptyCAD('sketch.step')
         hooks = []
         for e in self.entities: hooks.append(e.hook)
-        self.hook = OCC.occ.mergeCAD(hooks)
+        self.hook = OCC.mergeCAD(hooks)
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
         OCC._translate(self.hook, self.P[0].v())
@@ -419,12 +435,22 @@ class Sketch():
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
-        OCC.occ.writeCAD(self.hook, fileName, format)
+        OCC.writeCAD(self.hook, fileName, format)
 
     # mesh sketch
     def mesh(self, hmin, hmax, hausd):
         edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         return edges
+
+    # Compute a rmesh for reference mesh that is topologically equivalent (same names)
+    # copy distributions
+    def rmesh(self, refMesh, hmin, hmax, hausd):
+        import Geom, Generator
+        mesh = self.mesh(hmin, hmax, hausd)
+        for c, i in enumerate(refMesh):
+            d = Geom.getDistribution(i)
+            mesh[c] = Generator.map(mesh[c], d)
+        return mesh
 
 #============================================================
 class Surface():
@@ -474,7 +500,7 @@ class Surface():
     def update(self):
         """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
-        self.hook = OCC.occ.createEmptyCAD('surface.step', 'fmt_step')
+        self.hook = OCC.createEmptyCAD('surface.step')
         if self.type == "loft":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -484,12 +510,12 @@ class Surface():
             for e in self.sketches2: hooks.append(e.hook)
             n2 = n1 + len(self.sketches2)
             guideList = [i for i in range(n1+1, n2+1)]
-            self.hook = OCC.occ.mergeCAD(hooks)
-            OCC.occ.loft(self.hook, edgeList, guideList)
+            self.hook = OCC.mergeCAD(hooks)
+            OCC._loft(self.hook, edgeList, guideList)
             if 'close' in self.data and self.data['close']:
                 h0 = hooks[0]; h1 = hooks[-1]
-                OCC.occ.fillHole(h0, [1], [], 0)
-                OCC.occ.fillHole(h1, [1], [], 0)
+                OCC._fillHole(h0, [1], [], 0)
+                OCC._fillHole(h1, [1], [], 0)
                 self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
         if self.type == "loftSet":
             hooks = []
@@ -500,24 +526,24 @@ class Surface():
             for i in range(1,n):
                 h0 = hooks[i-1]
                 h1 = hooks[i]
-                hook = OCC.occ.mergeCAD(hooks)
-                OCC.occ.loft(hook, [1,2])
+                hook = OCC.mergeCAD(hooks)
+                OCC._loft(hook, [1,2])
                 out.append(hook)
             if len(out) > 1:
-                self.hook = OCC.occ.mergeCAD(out)
+                self.hook = OCC.mergeCAD(out)
             else: self.hook = out[0]
             if 'close' in self.data and self.data['close']:
                 h0 = hooks[0]; h1 = hooks[-1]
-                OCC.occ.fillHole(h0, [1], [], 0)
-                OCC.occ.fillHole(h1, [1], [], 0)
+                OCC._fillHole(h0, [1], [], 0)
+                OCC._fillHole(h1, [1], [], 0)
                 self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
         elif self.type == "revolve":
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
+            self.hook = OCC.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
-            OCC.occ.revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
+            OCC._revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
         elif self.type == "merge":
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
@@ -528,7 +554,7 @@ class Surface():
             self.hook = OCC.occ.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
-            OCC.occ.fillHole(self.hook, edgeList, [], self.data['continuity'])
+            OCC._fillHole(self.hook, edgeList, [], self.data['continuity'])
         elif self.type == "mergeEdges": # for debug
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -544,7 +570,7 @@ class Surface():
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
             rev2 = self.data.get('rev2',1)
-            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
+            OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
         elif self.type == "inter":
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -556,7 +582,7 @@ class Surface():
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
             rev2 = self.data.get('rev2',1)
-            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
+            OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
         elif self.type == "sub":
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -568,7 +594,7 @@ class Surface():
             self.hook = OCC.occ.mergeCAD(hooks)
             rev1 = self.data.get('rev1',1)
             rev2 = self.data.get('rev2',1)
-            OCC.occ.boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
+            OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
 
         # global positionning
         OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
@@ -587,9 +613,9 @@ class Surface():
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
         """Export to CAD file."""
-        OCC.occ.writeCAD(self.hook, fileName, format)
+        OCC.writeCAD(self.hook, fileName, format)
 
-    # mesh surface
+    # mesh surface, return arrays
     def mesh(self, hmin, hmax, hausd):
         """Mesh surface."""
         edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
@@ -961,6 +987,11 @@ class Driver:
 
         return None
 
+    # connect driver to db
+    def connect(self, db):
+        """Connect driver to db."""
+        self.db = db
+
     # set DOE deltas for free parameters
     # It is better to set them in scalar.range
     # IN: dict of deltas for each desired free parameter
@@ -1118,16 +1149,6 @@ class Driver:
         Converter._initVars(mesh, '{dz0} = {dy0}*%g'%deps)
         mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
         return mesh2
-
-    # remesh input mesh to match nv points using refine
-    def remesh(self, mesh, nv):
-        import Generator
-        nm = mesh[1].shape[1]
-        if nm != nv:
-            power = (nv-1)*1./(nm-1)
-            m = Generator.refine(mesh, power, dir=1)
-        else: m = mesh
-        return m
 
     # DOE in file (to be replaced by DB)
     def createDOE(self, fileName):

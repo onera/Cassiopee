@@ -1,9 +1,9 @@
 # - getVolumeMap (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import KCore.test as T
+import KCore.test as test
 
-# Test 3D structure
+# 3D structured
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,3))
 a = C.addBC2Zone(a, 'wall1','BCWall','jmin')
 a = C.addBC2Zone(a, 'match1','BCMatch','imin',a,'imax',[1,2,3])
@@ -13,44 +13,44 @@ t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,1)
+test.testT(t,1)
 
-# Test 2D structure
+# 2D structured
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,2)
+test.testT(t,2)
 
-# Test 2d non-structure hexa
+# 2D unstructured quad
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,3)
+test.testT(t,3)
 
-# Test 3d non-structure hexa
+# 3D unstructured hexa
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,4)
+test.testT(t,4)
 
-# Test 2d non-structure tri
+# 2D unstructured tri
 a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,5)
+test.testT(t,5)
 
-# Test 3d non-structure tetra
+# 3D unstructured tetra
 a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,6)
+test.testT(t,6)

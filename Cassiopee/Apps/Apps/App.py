@@ -2,7 +2,7 @@
 # Data oriented
 # One method: run
 
-__version__ = '3.1'
+__version__ = '4.1'
 __author__ = "Stephanie Peron, Christophe Benoit, Thomas Renaud, Ivan Mary"
 
 import Converter.PyTree as C

@@ -68,7 +68,7 @@ E_Int IMesh::orient_skin(E_Int normal_direction)
     if (nconnex > 1) {
         // extract nconnex nface-ngon for separate orientation
         for (E_Int color = 0; color < nconnex; color++) {
-            std::vector<bool> keep_pgs(nf, false);
+            std::vector<E_Bool> keep_pgs(nf, false);
             for (E_Int i = 0; i < nefaces; i++) {
                 keep_pgs[efaces[i]] = (colors[i] == color);
             }
@@ -131,7 +131,7 @@ void IMesh::flag_and_get_external_faces(std::vector<E_Int> &fflags,
     }
 }
 
-void IMesh::extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
+void IMesh::extract_nface_of_kept_pgs(const std::vector<E_Bool> &kept_pgs,
     std::vector<E_Int> &NFACE, std::vector<E_Int> &xadj,
     std::vector<E_Int> &cells)
 {

@@ -1,8 +1,7 @@
 # driver: parametric profile in parallel
-import OCC.Driver as D
+import Roms.Driver as D
 import Geom
 import Generator
-import Converter
 
 # Create a parameter
 epaisseur = D.Scalar('epaisseur', 12.)

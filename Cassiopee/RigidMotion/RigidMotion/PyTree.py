@@ -399,6 +399,7 @@ def _moveZone__(z, time):
 
 # Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates
 def copyGridInit2Grid(t):
+    """Copy GridCoordinates#Init to GridCoordinates."""
     tp = Internal.copyRef(t)
     _copyGridInit2Grid(tp)
     return tp
@@ -423,6 +424,7 @@ def _copyGridInit2Grid(t):
 # si mode=0, ne recopie que si TimeMotion est present
 # si mode=1, recopie toujours
 def copyGrid2GridInit(t, mode=0):
+    """Copy GridCoordinates to GridCoordinates#Init."""
     tp = Internal.copyRef(t)
     _copyGrid2GridInit(tp, mode)
     return tp
