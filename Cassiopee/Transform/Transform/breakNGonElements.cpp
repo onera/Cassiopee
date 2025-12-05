@@ -158,7 +158,7 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
 
   #pragma omp parallel
   {
-    E_Int nf, nvpe;
+    E_Int nv, nf, nvpe;
     std::vector<E_Int> verticesf;  // candidats aux sommets images
 
     // Local thread-related arrays are prefixed with 'loc_t'
@@ -204,7 +204,8 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
           if (vert4 == -1) goto ngonLabel;
 
           // Vertex order may have changed - update cEVNGon
-          cEVNGon[i] = {vert1, vert2, vert3, vert4};
+          vertices[0] = vert1; vertices[1] = vert2; vertices[2] = vert3;
+          vertices[3] = vert4;
           loc_tindir[2].push_back(i);
         }
         else goto ngonLabel;  // 2D polygon with more than 4 faces
@@ -226,8 +227,9 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
         }
 
         // Vertex order may have changed - update cEVNGon
-        cEVNGon[i] = {vert1, vert2, vert3, vert4};
         for (E_Int v = 0; v < nvpe; v++) vMaskME[vertices[v]-1] = 1;
+        vertices[0] = vert1; vertices[1] = vert2; vertices[2] = vert3;
+        vertices[3] = vert4;
         loc_tindir[3].push_back(i);
       }
       else if (nf == 5)  // PENTA, PYRA or NGon
@@ -266,11 +268,12 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
           if (vert5 == -1) goto ngonLabel;
 
           // Vertex order may have changed - update cEVNGon
-          cEVNGon[i] = {vert1, vert2, vert3, vert4, vert5};
           for (E_Int v = 0; v < nvpe; v++) vMaskME[vertices[v]-1] = 1;
+          vertices[0] = vert1; vertices[1] = vert2; vertices[2] = vert3;
+          vertices[3] = vert4; vertices[4] = vert5;
           loc_tindir[4].push_back(i);
         }
-        else // PENTA
+        else if (nbnodes == 18) // PENTA
         {
           E_Int fidx, vert6 = -1;
           for (E_Int j = 0; j < nf; j++)
@@ -304,10 +307,12 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
           }
 
           // Vertex order may have changed - update cEVNGon
-          cEVNGon[i] = {vert1, vert2, vert3, vert4, vert5, vert6};
           for (E_Int v = 0; v < nvpe; v++) vMaskME[vertices[v]-1] = 1;
+          vertices[0] = vert1; vertices[1] = vert2; vertices[2] = vert3;
+          vertices[3] = vert4; vertices[4] = vert5; vertices[5] = vert6;
           loc_tindir[5].push_back(i);
         }
+        else goto ngonLabel;  // 5-faced polygon that is not a PYRA nor a PENTA
       }
       else if (nf == 6) // HEXA
       {
@@ -339,14 +344,21 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
         if (vert8 == -1) goto ngonLabel;
         
         // Vertex order may have changed - update cEVNGon
-        cEVNGon[i] = {vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8};
         for (E_Int v = 0; v < nvpe; v++) vMaskME[vertices[v]-1] = 1;
+        vertices[0] = vert1; vertices[1] = vert2; vertices[2] = vert3;
+        vertices[3] = vert4; vertices[4] = vert5; vertices[5] = vert6;
+        vertices[6] = vert7; vertices[7] = vert8;
         loc_tindir[6].push_back(i);
       }
       else  // element remains an NGon
       {
         ngonLabel:;
         tsizeEF2[tid] += nf + shift;
+        for (E_Int j = 0; j < nf; j++)
+        {
+          E_Int* face = cNG.getFace(elt[j]-1, nv, ngon, indPG);
+          for (E_Int v = 0; v < nv; v++) vMaskNG[face[v]-1] = 1;
+        }
         loc_tindir[0].push_back(i);
       }
     }
@@ -417,6 +429,7 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
       nc2++;
     }
 
+    std::cout << "api = " << api << std::endl;
     std::cout << "eltType2 = " << eltType2 << std::endl;
     std::cout << "nc2 = " << nc2 << std::endl;
     std::cout << "nptsME = " << nptsME << std::endl;
@@ -433,8 +446,9 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
     }
 
     // Build new ME connectivity
-    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsME,
-                                         nepc2, eltType2, false, api);
+    // if (nc2 > 1) api = 3;
+    tpl = K_ARRAY::buildArray3(nfld, varString, nptsME,
+                               nepc2, eltType2, false, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray3(tpl, f2, cn2);
 
@@ -466,17 +480,17 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
         FldArrayI& cm2 = *(cn2->getConnect(ic2));
         nvpe = cm2.getNfld();
         std::vector<E_Int>& loc_tindirIc = loc_tindir[ic];
-        loc_nelts = (E_Int)loc_tindirIc.size();
+        loc_nelts = loc_tindirIc.size();
         offW = loc_toffset[ic];
 
         for (E_Int i = 0; i < loc_nelts; i++)
         {
           eidx = loc_tindirIc[i];  // global element index
           const std::vector<E_Int>& vertices = cEVNGon[eidx];
-          for (E_Int j = 1; j <= nvpe; j++)
+          for (E_Int j = 0; j < nvpe; j++)
           {
-            ind = vertices[j-1] - 1;
-            cm2(offW+i, j) = vMaskME[ind];
+            ind = vertices[j] - 1;
+            cm2(offW+i, j+1) = vMaskME[ind];
           }
         }
         ic2++;
@@ -504,13 +518,13 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
       {
         eidx = loc_tindirNG[e];  // global element index
         E_Int* elt = cNG.getElt(eidx, nf, nface, indPH);
-
         for (E_Int j = 0; j < nf; j++)
         {
           fidx = elt[j] - 1;
           auto resF = fMapNG.insert({fidx, nfaces2});
           if (resF.first->second == nfaces2)  // first time this face is encountered
           {
+            cNG.getFace(fidx, nv, ngon, indPG);
             sizeFN2 += nv + shift;
             nfaces2++;
           }
@@ -520,9 +534,9 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
 
     // Build new NGon connectivity
     E_Int nelts2 = tmp_nepc2[0];
-    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsNG, nelts2,
-                                         nfaces2, "NGON", sizeFN2, sizeEF2,
-                                         ngonType, false, api);
+    tpl = K_ARRAY::buildArray3(nfld, varString, nptsNG, nelts2,
+                               nfaces2, "NGON", sizeFN2, sizeEF2,
+                               ngonType, false, api);
     FldArrayF* f2; FldArrayI* cn2;
     K_ARRAY::getFromArray3(tpl, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
