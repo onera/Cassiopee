@@ -45,9 +45,11 @@ sketch1 = D.Sketch('sketch1', [line1, line2, line3, line4])
 
 # solve
 solution, freevars = D.DRIVER.solve2()
+
 D.DRIVER.instantiate({'P3.x': 3, 'hauteur': 1.})
 
 sketch1.writeCAD('out.step')
+
 
 import CPlot, time
 for i in range(50):

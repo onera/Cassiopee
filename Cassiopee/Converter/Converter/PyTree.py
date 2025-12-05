@@ -2168,7 +2168,7 @@ def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
     _TZAGC(tp, locin, locout, writeDim, F, Fc, *args)
     return tp
 
-# -- TZANC
+# -- TZANCX
 # Traitement effectue pour tous les champs + coord. memes pour les centres.
 # Dans ce cas, on passe le champ aux centres en noeuds, on applique F,
 # et on repasse le champ en centres
@@ -2181,19 +2181,19 @@ def TZAGC(t, locin, locout, writeDim, F, Fc, *args):
 # dans le cas both.
 # La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
 # centres.
-def TZANC(t, locin, locout, F, Fc, *args):
+def TZANCX(api, t, locin, locout, F, Fc, *args):
     tp = Internal.copyRef(t)
-    _TZANC(tp, locin, locout, F, Fc, *args)
+    _TZANCX(api, tp, locin, locout, F, Fc, *args)
     return tp
 
-def _TZANC(t, locin, locout, F, Fc, *args):
+def _TZANCX(api, t, locin, locout, F, Fc, *args):
     zones = Internal.getZones(t)
     l = len(args)//2
     args1 = args[0:l]; args2 = args[l:]
     for z in zones:
         if locin == 'nodes':
-            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args)
@@ -2208,24 +2208,24 @@ def _TZANC(t, locin, locout, F, Fc, *args):
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fa = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, zp, api=api)[0]
             if fa != []:
                 fa = Fc(fa, *args)
                 if locout == 'nodes': setFields([fa], z, 'nodes')
                 else:
                     zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                    fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
+                    fa = getFields(Internal.__FlowSolutionCenters__, zp, api=api)[0]
                     setFields([fa], z, 'centers')
 
         else: # both
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
-            fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
-            fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fc = getFields(Internal.__GridCoordinates__, z, api=api)[0]
+            fa = getFields(Internal.__FlowSolutionNodes__, z, api=api)[0]
             zp = Internal.copyRef(z)
             _deleteFlowSolutions__(zp, 'nodes')
             zp = center2Node(zp, Internal.__FlowSolutionCenters__)
-            fb = getFields(Internal.__FlowSolutionNodes__, zp, api=1)[0]
+            fb = getFields(Internal.__FlowSolutionNodes__, zp, api=api)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = F(f, *args1)
@@ -2241,7 +2241,7 @@ def _TZANC(t, locin, locout, F, Fc, *args):
                 if Fc is not None: fb = Fc(fb, *args2)
                 setFields([fb], zp, 'nodes')
                 zp = node2Center(zp, Internal.__FlowSolutionNodes__)
-                fa = getFields(Internal.__FlowSolutionCenters__, zp, api=1)[0]
+                fa = getFields(Internal.__FlowSolutionCenters__, zp, api=api)[0]
                 setFields([fa], z, 'centers')
     return None
 
@@ -3511,8 +3511,9 @@ def _convertArray2Tetra(t, split='simple'):
     _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
     if split == 'simple':
-        _TZANC(t, 'both', 'both', Converter.convertArray2Tetra,
-               Converter.convertArray2Tetra, split, split)
+        api = 1
+        _TZANCX(api, t, 'both', 'both', Converter.convertArray2Tetra,
+                Converter.convertArray2Tetra, split, split)
     else:
         nodes = Internal.getZones(t)
         for z in nodes:

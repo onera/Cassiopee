@@ -61,7 +61,6 @@ namespace K_CONVERTER
   PyObject* isFinite(PyObject* self, PyObject* args);
   PyObject* setNANValuesAt(PyObject* self, PyObject* args);
   PyObject* convertBAR2Struct(PyObject* self, PyObject* args);
-  PyObject* convertStruct2Tetra(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertStruct2Hexa(PyObject* self, PyObject* args);
@@ -69,12 +68,10 @@ namespace K_CONVERTER
   PyObject* convertHexa2Struct(PyObject* self, PyObject* args);
   PyObject* convertUnstruct2NGon(PyObject* self, PyObject* args);
   PyObject* convertUnstruct2Hexa(PyObject* self, PyObject* args);
-  PyObject* convertHexa2Tetra(PyObject* self, PyObject* args);
-  PyObject* convertPenta2Tetra(PyObject* self, PyObject* args);
-  PyObject* convertPyra2Tetra(PyObject* self, PyObject* args);
   PyObject* convertNGon2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertMix2BE(PyObject* self, PyObject* args);
   PyObject* convertNGon2TetraBaryBoth(PyObject* self, PyObject* args);
+  PyObject* convertArray2Tetra(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertHO2LO(PyObject* self, PyObject* args);
@@ -230,6 +227,10 @@ namespace K_CONVERTER
   PyObject* diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arrays3);
 
   E_Int checkRecognisedFormat(char* format);
+
+  // Convert structured to tetra
+  PyObject* convertStruct2Tetra(const char* varString, FldArrayF* f,
+                                E_Int ni, E_Int nj, E_Int nk);
 
   // Method for prismatic conversion
   void buildSortedPrism(E_Int elt, K_FLD::FldArrayI& cn, E_Int& diag,

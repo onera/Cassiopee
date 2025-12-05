@@ -1,7 +1,7 @@
 # - getVolumeMap (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
-import KCore.test as T
+import KCore.test as test
 
 # 3D structured
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,3))
@@ -13,7 +13,7 @@ t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,1)
+test.testT(t,1)
 
 # 2D structured
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
@@ -21,7 +21,7 @@ t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,2)
+test.testT(t,2)
 
 # 2D unstructured quad
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
@@ -29,7 +29,7 @@ t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,3)
+test.testT(t,3)
 
 # 3D unstructured hexa
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
@@ -37,7 +37,7 @@ t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,4)
+test.testT(t,4)
 
 # 2D unstructured tri
 a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
@@ -45,7 +45,7 @@ t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,5)
+test.testT(t,5)
 
 # 3D unstructured tetra
 a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
@@ -53,4 +53,4 @@ t = C.newPyTree(['Base']); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.initVars(t,'Density',2.); t = C.initVars(t,'centers:cellN',1.)
 t = G.getVolumeMap(t)
-T.testT(t,6)
+test.testT(t,6)
