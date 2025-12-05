@@ -2712,7 +2712,7 @@ def splitConnexity(t):
 def breakElements(t):
     """Break a NGON array in a set of arrays of BAR, TRI, ... elements.
     Usage: breakElements(t)"""
-    a = C.getAllFields(t, 'nodes', api=1)
+    a = C.getAllFields(t, 'nodes', api=3)
     A = Transform.breakElements(a)
     zones = []
     for i in A:
