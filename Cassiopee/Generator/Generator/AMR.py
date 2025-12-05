@@ -323,6 +323,23 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
                 break
         C._rmVars(o, ['centers:indicator', 'centers:vol'])
 
+    while(C.getNCells(o) < Cmpi.size):
+        # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
+        # yields procs with 0 cells. This is a safeguard to avoid this.
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("======================== Background Mesh Mod.! ========================", flush=True)
+            print("======= The background has been divided due to Nmpi > Ncells!!  =======", flush=True)
+            print("=== The background has been divided due to Nmpi [%d]> Ncells [%d]!! ==="%(Cmpi.size, C.getNCells(o)), flush=True)
+            print("=======================================================================", flush=True)
+        G._getVolumeMap(o)
+        volminAll = C.getMinValue(o, "centers:vol")/2.
+        tol_vol = 1e-2*volminAll
+        C._initVars(o, '{centers:indicator}=({centers:vol}>%g)'%(volminAll+tol_vol))
+        o = G.adaptOctree(o, 'centers:indicator', balancing=1)
+        levelSkel -= 1
+
     if dim == 2: T._addkplane(o)
     o = C.convertArray2NGon(o)
     o = G.close(o)
@@ -934,6 +951,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
             adaptPass = 0
             adapting  = True
             while adapting:
+                Ncells = Cmpi.getNCells(o)
                 C._initVars(o,'centers:indicator',0.)
                 # loop through the offsets in the list for base=nBase and offset level=i
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
@@ -961,10 +979,14 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     f = Internal.getNodeFromName(o, 'indicator')[1]
                     REF = f.astype(dtype=Internal.E_NpyInt)
                     XC.AdaptMesh_AssignRefData(hookAM, REF)
-                    if loadBalancing: XC.AdaptMesh_LoadBalance(hookAM)
+                    # [TODO] check if 4 cells is a global limit
+                    # it was found that at least 4 cells are required if not the PT-Scotch partitioning can have partitions with 0 cells. This is empirical and subject to change as the sample
+                    # size of the test cases increases
+                    if loadBalancing and Ncells//Cmpi.size>3: XC.AdaptMesh_LoadBalance(hookAM)
                     XC.AdaptMesh_Adapt(hookAM)
                     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                     o = Internal.getZones(o)[0]
+                    # Cmpi.convertPyTree2File(o,'check_loadBalancingFix%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
                     if Cmpi.master: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
@@ -1225,6 +1247,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+
+    # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
+    #Ncells = C.getNCells(o)
+    #if Ncells < Cmpi.size:
+    #    raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
+    #    Cmpi.abort(errorcode=1)
 
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
