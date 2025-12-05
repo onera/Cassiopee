@@ -13,8 +13,8 @@ vmins      = [[6,6]]
 vminsTbox  = [[5,5]]
 dim        = 3
 
-a = D.sphere((0,0,0), 0.5, 100)
-b = D.cylinder((1.5,0,-0.5), 0.5, 1., N=20, ntype='QUAD')
+a = D.sphere((0,0,0), 0.5, 20)
+b = D.cylinder((1.5,0,-0.5), 0.5, 1., N=10, ntype='QUAD')
 tb = C.newPyTree(["BODYSPHERE",a, 'BODYCYL',b])
 D_IBM._setSnear(tb,snear)
 D_IBM._setDfar(tb,dFar)
