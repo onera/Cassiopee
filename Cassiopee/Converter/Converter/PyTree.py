@@ -3542,7 +3542,7 @@ def convertArray2Hexa(t):
 def _convertArray2Hexa(t):
     _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
-    _TZA3(t, 'both', 'nodes', True, Converter.convertArray2Hexa)
+    _TZA1(t, 'both', 'nodes', True, Converter.convertArray2Hexa)
     return None
 
 # -- convertArray2NGon
