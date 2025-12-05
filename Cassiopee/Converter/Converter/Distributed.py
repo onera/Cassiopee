@@ -26,7 +26,7 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 # Lit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
 #==============================================================================
 def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1,
-                       dataShape=None, skipTypes=None, com=None):
+                       dataShape=None, skipTypes=None, com=None, readIntMode=0):
     """Read nodes from file given their paths."""
     if format is None: format = Converter.convertExt2Format__(fileName)
     if not isinstance(paths, list): p = [paths]
@@ -35,7 +35,7 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
     if skipTypes is not None and isinstance(skipTypes, str): skipTypes = [skipTypes]
     if skipTypes is not None and isinstance(skipTypes, (str, tuple)): skipTypes = [skipTypes]
 
-    ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, 0, dataShape, skipTypes, com)
+    ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, com)
     if not isinstance(paths, list): return ret[0]
     else: return ret
 
@@ -44,15 +44,15 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
 # et complete t
 #==============================================================================
 def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
-                        dataShape=None, skipTypes=None, com=None):
+                        dataShape=None, skipTypes=None, com=None, readIntMode=0):
     """Read nodes from file given their path and complete t."""
     tp = Internal.copyRef(t)
-    _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, dataShape, skipTypes, com)
+    _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, dataShape, skipTypes, com, readIntMode)
     return tp
 
 def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
-                         dataShape=None, skipTypes=None, com=None):
-    nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, dataShape, skipTypes, com)
+                         dataShape=None, skipTypes=None, com=None, readIntMode=0):
+    nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, dataShape, skipTypes, com, readIntMode)
     if not isinstance(paths, list): nodes = [nodes]; paths = [paths]
     if len(paths) != len(nodes):
         print("Warning: readPyTreeFromPaths: some paths can not be loaded. Nothing added to pyTree.")
