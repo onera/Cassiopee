@@ -9,8 +9,6 @@ import KCore.test as test
 a = G.cartTetra((0,0,0), (1,1.,1), (20,2,1))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 b = P.exteriorFaces(a)
-C.convertPyTree2File(b, 'out.cgns')
-exit()
 test.testT(b, 1)
 
 # test faces interieures au sens strict :
