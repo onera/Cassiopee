@@ -989,7 +989,8 @@ namespace K_POST
                                PyObject* Indices);
 
   PyObject* selectExteriorFacesME(char* varString, FldArrayF& f,    
-                                  FldArrayI& cn, char* eltType);                         
+                                  FldArrayI& cn, char* eltType,
+                                  PyObject* indices);                         
 
   PyObject* selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
                                       FldArrayI& cn,

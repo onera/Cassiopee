@@ -229,7 +229,8 @@ def checkObject_(objet, refObjet, reference):
         elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
               isinstance(objet, (numpy.float32, numpy.float64))): pass
         else:
-            print("DIFF: object type differs from "+reference+'.')
+            print(f"DIFF: object type differs from {reference}."
+                  f"current: {type(objet)}, ref: {type(refObjet)}.")
             return False
     # autres tests
     if isinstance(refObjet, bool):
@@ -254,13 +255,14 @@ def checkObject_(objet, refObjet, reference):
             if not ret: return False
     elif isinstance(refObjet, numpy.ndarray): # array
         if refObjet.shape != objet.shape:
-            print("DIFF: object shape differs from "+reference+'.')
+            print(f"DIFF: object shape differs from {reference}. "
+                  f"current: {objet.shape}, ref: {refObjet.shape}.")
             return False
         if refObjet.dtype == 'S1' or objet.dtype == 'S1':
             if refObjet.dtype != objet.dtype:
-                print("DIFF: object type differs from "+reference+'.')
+                print(f"DIFF: object type differs from {reference}.")
             if not numpy.all(refObjet == objet):
-                print("DIFF: object string differs from "+reference+'.')
+                print(f"DIFF: object string differs from {reference}.")
                 return False
         else:
             diff = numpy.abs(refObjet-objet)
