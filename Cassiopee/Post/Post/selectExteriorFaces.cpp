@@ -253,7 +253,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
         for (n = 0; n < ni*nj; n++) fnv[n] = fv[n];
       }
     
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -279,7 +279,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
           }
       }
       
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -294,7 +294,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       if (boolIndir)
       {
         // k = 0 followed by k=nk
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -302,7 +302,8 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indint = i+j*ni1+nintij;
             indirp[noint] = indint;
           }
-        #pragma omp for
+
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -317,7 +318,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < ni; i++)
           { 
@@ -327,6 +328,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
       
       ne = 2*ni1nj1;
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -343,7 +345,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < ni; i++)
           {
@@ -353,7 +355,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
 
       ne = 2*ni1nj1 + ni1*nk1;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -369,7 +371,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         // j = 0 followed by j=nj
         ne = 2*ni1nj1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -378,7 +380,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indirp[noint] = indint;
           }
         ne = 2*ni1nj1 + ni1*nk1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -393,7 +395,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < nj; i++)
           { 
@@ -403,7 +405,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
 
       ne = 2*(ni1nj1 + ni1*nk1);
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < nj1; i++)
         {
@@ -420,7 +422,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < nj; i++)
           { 
@@ -430,7 +432,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
       
       ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < nj1; i++)
         {
@@ -446,7 +448,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         // i = 0 followed by i=ni
         ne = 2*(ni1nj1 + ni1*nk1);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int j = 0; j < nj1; j++)
           {
@@ -455,7 +457,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indirp[noint] = indint;
           }
         ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int j = 0; j < nj1; j++)
           {
@@ -466,23 +468,31 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
     }
 
+    if (boolIndir)
+    {
+      PyList_Append(indices, indir); Py_DECREF(indir);
+    }
+
     // Clean connectivity
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType,
-                                   *fnodes, *connect);
-
-    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString,
-                                          *connect, newEltType, api);
-    RELEASESHAREDU(tpl, fnodes, connect);
-    if (boolIndir)
     {
-      PyList_Append(indices, indir); Py_DECREF(indir);
+      PyObject* tpl2 = K_CONNECT::V_cleanConnectivityME(
+        posx, posy, posz, varString,
+        *fnodes, *connect, newEltType, 1.e-12,
+        true, true, true, false, false
+      );
+      RELEASESHAREDU(tpl, fnodes, connect);
+      Py_DECREF(tpl);
+      return tpl2;
     }
-    return tpl2;
+    else
+    {
+      RELEASESHAREDU(tpl, fnodes, connect);
+      return tpl;
+    }
   }
   return NULL;
 }
