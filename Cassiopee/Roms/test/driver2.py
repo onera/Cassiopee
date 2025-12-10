@@ -2,28 +2,28 @@
 import Roms.Driver as D
 
 # Create parameters
-hauteur = D.Scalar('hauteur', 1.)
-hauteur.range = [0,1]
+hauteur = D.Scalar('hauteur')
+hauteur.range = [0, 1, 0.1]
 
-largeur = D.Scalar('largeur', 1.)
-largeur.range = [0,2]
+largeur = D.Scalar('largeur')
+largeur.range = [0, 2, 0.1]
 
 # equation
-D.Eq(largeur.s, 2*hauteur.s)
+D.Eq(largeur, 2*hauteur)
 
 # Create point
 P1 = D.Point('P1', (0,0,0))
-D.Eq(P1.x.s, 0.)
-D.Eq(P1.y.s, 0.)
+D.Eq(P1.x, 0.)
+D.Eq(P1.y, 0.)
 
 P2 = D.Point('P2', (1,0,0))
-D.Eq(P2.x.s, P1.x.s + largeur.s)
+D.Eq(P2.x, P1.x + largeur)
 
 P3 = D.Point('P3', (1,1,0))
 P3.x.range = [-5,5]
 P4 = D.Point('P4', (0,1,0))
-D.Eq(P3.y.s, P4.y.s)
-D.Eq(P3.y.s, P1.y.s + hauteur.s)
+D.Eq(P3.y, P4.y)
+D.Eq(P3.y, P1.y + hauteur)
 
 # Create lines
 line1 = D.Line('line1', P1, P2)
@@ -49,7 +49,6 @@ solution, freevars = D.DRIVER.solve2()
 D.DRIVER.instantiate({'P3.x': 3, 'hauteur': 1.})
 
 sketch1.writeCAD('out.step')
-
 
 import CPlot, time
 for i in range(50):

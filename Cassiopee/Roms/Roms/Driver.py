@@ -63,17 +63,19 @@ def exportEdges(edges):
     return t
 
 #============================================================
-class Scalar:
+class Scalar( sympy.core.symbol.Symbol ):
     """Define a parametric scalar"""
-    def __init__(self, name=None, value=0.):
-        # name
-        if name is not None: self.name = name
-        else: self.name = getName("scalar")
-        # Id pour unicite
-        self.id = name
+    def __new__(cls, name=None, value=0., **assumptions):
+        if name is None: name = getName("scalar")
+        obj = sympy.core.symbol.Symbol.__new__(cls, name, **assumptions)
+        return obj
 
-        # symbol sympy
-        self.s = sympy.Symbol(self.id)
+    def __init__(self, name=None, value=0.):
+        # scalar name is symbol name
+        self.name = super().name
+
+        # symbol sympy: self by derivation
+
         # instantiated value
         self.v = value
         # range
@@ -87,7 +89,7 @@ class Scalar:
 
     # print content
     def print(self, shift=0):
-        print(" "*shift, "id", self.id)
+        #print(" "*shift, "name", self.name)
         print(" "*shift, "value", self.v)
         if self.range is not None:
             print(" "*shift, "range", self.range)
@@ -693,7 +695,7 @@ class Eq:
         out = ''; vars = []
         for s in segments:
             if s in DRIVER.scalars:
-                id = DRIVER.scalars[s].id
+                id = DRIVER.scalars[s].name
                 out += id
                 vars.append(id)
             else: out += s
@@ -721,7 +723,6 @@ class Driver:
     def __init__(self):
         # all parameters
         self.scalars = {} # id -> scalar
-        self.scalars2 = {} # symbol -> scalar
         self.points = {} # points
         self.grids = {} # grids
         # db
@@ -754,8 +755,7 @@ class Driver:
 
     def registerScalar(self, s):
         """Register parametric scalar."""
-        self.scalars[s.id] = s # id -> scalar
-        self.scalars2[s.s] = s # symbol -> scalar
+        self.scalars[s.name] = s # name -> scalar
 
     def registerPoint(self, p):
         """Register parametric point."""
@@ -784,7 +784,7 @@ class Driver:
         # all concerned Scalar are tagged as free parameters
         symbols = eq.s.free_symbols
         for s in symbols:
-            scalar = self.scalars2[s]
+            scalar = self.scalars[s.name]
             if scalar.range is None:
                 scalar.range = [-999.99, 999.99] # range ajustable
 
@@ -795,7 +795,7 @@ class Driver:
         # all concerned Scalar are tagged as free parameters
         symbols = eq.s.free_symbols
         for s in symbols:
-            scalar = self.scalars2[s]
+            scalar = self.scalars[s.name]
             if scalar.range is None:
                 scalar.range = [-999.99, 999.99] # range ajustable
 
@@ -820,7 +820,7 @@ class Driver:
         params = []
         for s in self.scalars:
             mu = self.scalars[s]
-            if mu.isFree(): params.append(mu.s)
+            if mu.isFree(): params.append(mu)
         params.reverse() # reverse order to solve for explicit variables
         print('SOLVE: params=', params)
 
@@ -831,7 +831,7 @@ class Driver:
             equations.append(eq.s)
             for s in self.scalars:
                 mu = self.scalars[s]
-                if not mu.isFree(): eq.s.subs(mu.s, mu.v)
+                if not mu.isFree(): eq.s.subs(mu, mu.v)
         print('SOLVE: eqs=', equations)
 
         # solve([eq0,eq1], [x0,x1])
@@ -858,8 +858,8 @@ class Driver:
         for s in solution:
             if solution[s].is_Float or solution[s].is_Integer or solution[s].is_Rational:
                 print('SOLVE: fixed', s, 'to', solution[s])
-                self.scalars2[s].v = solution[s]
-                if self.scalars2[s].check(): print('=> valid')
+                self.scalars[s.name].v = solution[s]
+                if self.scalars[s.name].check(): print('=> valid')
                 else: print('=> invalid')
             freeParams.remove(s)
         print('SOLVE: free vars=', freeParams)
@@ -885,9 +885,9 @@ class Driver:
                 print("Error: instantiate: you should specify: ", f.name)
                 error = True
             else:
-                self.scalars2[f].v = paramValues[f.name]
+                self.scalars[f.name].v = paramValues[f.name]
                 print('SET: fixed', f, '=', paramValues[f.name])
-                if self.scalars2[f].check(): print('SET: => valid')
+                if self.scalars[f.name].check(): print('SET: => valid')
                 else: print('SET: => invalid'); valid = False
 
         if error: raise ValueError("instantiate: stopping.")
@@ -902,20 +902,21 @@ class Driver:
         for s in soli:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
                 print('SET: fixed', s, '=', soli[s])
-                self.scalars2[s].v = soli[s]
-                if self.scalars2[s].check(): print('SET: => valid')
+                self.scalars[s.name].v = soli[s]
+                if self.scalars[s.name].check(): print('SET: => valid')
                 else: print('SET: => invalid'); valid = False
             else: print('SET: some variables were not instantiated'); valid = False
 
         # Check validity for inequations
         params = {}
-        for f in paramValues: params[f] = paramValues[f]
+        for f in paramValues: params[self.scalars[f]] = paramValues[f]
         for s in soli:
             if soli[s].is_Float or soli[s].is_Integer or soli[s].is_Rational:
-                params[self.scalars2[s].name] = self.scalars2[s].v
+                params[s] = self.scalars[s.name].v
 
         for c, e in enumerate(self.inequations):
             ret = self.inequations[e].s.subs(params)
+            #ret = self.inequations[e].s.evalf()
             if ret: print('SET: => ineq %d is valid'%c)
             else: print("SET: => ineq %d is invalid"%c); valid = False
 
@@ -940,11 +941,11 @@ class Driver:
         elif isinstance(freeParams, str): # free param given by name
             listVars = []
             for f in self.freeParams:
-                if self.scalars2[f].name == freeParams: listVars.append(f)
+                if self.scalars[f.name].name == freeParams: listVars.append(f)
         elif isinstance(freeParams, list): # suppose list of names
             listVars = []
             for f in self.freeParams:
-                if self.scalars2[f].name in freeParams: listVars.append(f)
+                if self.scalars[f.name].name in freeParams: listVars.append(f)
         else:
             raise TypeError("diff: incorrect freevars.")
 
@@ -954,7 +955,7 @@ class Driver:
             # free vars value dict
             d = {}
             for q in self.freeParams:
-                d[q.name] = self.scalars2[q].v
+                d[q.name] = self.scalars[q.name].v
             d[f.name] += deps
 
             print("DIFF on: ", f.name)
@@ -982,7 +983,7 @@ class Driver:
         # remet le hook original
         d = {}
         for q in self.freeParams:
-            d[q.name] = self.scalars2[q].v
+            d[q.name] = self.scalars[q.name].v
         self.instantiate(d)
 
         return None
@@ -1000,7 +1001,7 @@ class Driver:
         # set default
         self.doeRange = []; self.doeSize = []
         for f in self.freeParams: # give order
-            p = self.scalars2[f]
+            p = self.scalars[f.name]
             if len(p.range) == 3: # disc given in range
                 self.doeRange.append(numpy.arange(p.range[0], p.range[1]+1.e-12, p.range[2]))
                 self.doeSize.append(p.range[2])
@@ -1011,8 +1012,8 @@ class Driver:
         # set dictionary (optional)
         for k in deltas: # free param names
             for c, f in enumerate(self.freeParams):
-                if self.scalars2[f].name == k:
-                    p = self.scalars2[f]
+                if self.scalars[f.name].name == k:
+                    p = self.scalars[f.name]
                     self.doeRange[c] = numpy.arange(p.range[0], p.range[1]+1.e-12, deltas[k])
                     self.doeSize[c] = deltas[k]
         return None
@@ -1037,9 +1038,12 @@ class Driver:
         # compute parametric point
         pt = {}
         for c, s in enumerate(self.freeParams):
-            pt[self.scalars2[s].name] = p[c]
+            pt[self.scalars[s.name].name] = p[c]
         # instantiate
-        print("DOE: Checking point ", pt)
+        st = "DOE: Checking point: { "
+        for k in pt: st += k+' = %g '%pt[k]
+        st += ' }'
+        print(st, flush=True)
         valid = self.instantiate(pt)
         if valid:
             if self.db is not None:
@@ -1097,7 +1101,7 @@ class Driver:
             for c, f in enumerate(self.freeParams):
                 val = self.doeRange[c][indexes[c]]
                 f = self.freeParams[c]
-                p = self.scalars2[f]
+                p = self.scalars[f.name]
                 values[p.name] = val
             if Cmpi.rank == hash%Cmpi.size and hash < raf:
                 # instantiate and mesh
@@ -1123,7 +1127,7 @@ class Driver:
         hash = 0
         for c, i in enumerate(indexes):
             if c == 0: hash = i
-            else: hash += i * self.doeSize[c-1]
+            else: hash += i*self.doeSize[c-1]
         return hash
 
     # IN: hash
@@ -1149,6 +1153,16 @@ class Driver:
         Converter._initVars(mesh, '{dz0} = {dy0}*%g'%deps)
         mesh2 = Transform.deform(mesh, ['dx0','dy0','dz0'])
         return mesh2
+
+    # remesh input mesh to match nv points using refine
+    def remesh(self, mesh, nv):
+        import Generator
+        nm = mesh[1].shape[1]
+        if nm != nv:
+            power = (nv-1)*1./(nm-1)
+            m = Generator.refine(mesh, power, dir=1)
+        else: m = mesh
+        return m
 
     # DOE in file (to be replaced by DB)
     def createDOE(self, fileName):

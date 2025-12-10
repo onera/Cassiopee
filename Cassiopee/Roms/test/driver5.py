@@ -3,7 +3,7 @@ import Roms.Driver as D
 import Converter
 
 # Create a parameter
-radius = D.Scalar('radius', 1.)
+radius = D.Scalar('radius')
 radius.range = [0.1, 10, 0.3]
 
 # Create parametric circle

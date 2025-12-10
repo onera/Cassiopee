@@ -2,8 +2,8 @@
 import Roms.Driver as D
 
 # Create parameter
-hauteur = D.Scalar('hauteur', 1.)
-hauteur.range = [0,1]
+hauteur = D.Scalar('hauteur')
+hauteur.range = [0, 1, 0.1]
 
 # Create points
 P1 = D.Point('P1', (0,0,0))
@@ -11,10 +11,10 @@ P1 = D.Point('P1', (0,0,0))
 P2 = D.Point('P2', (1,0,0))
 
 P3 = D.Point('P3', (1.5,1,0))
-D.Eq(P3.y.s, hauteur.s)
+D.Eq(P3.y, hauteur)
 
 P4 = D.Point('P4', (2.5,1,0))
-D.Eq(P4.y.s, hauteur.s)
+D.Eq(P4.y, hauteur)
 
 P5 = D.Point('P5', (3,0,0))
 
@@ -37,7 +37,6 @@ sketch1 = D.Sketch('sketch1', [spline1, line1, line2, line3])
 # solve
 D.DRIVER.solve2()
 D.DRIVER.instantiate({'hauteur': 0.5})
-
 sketch1.writeCAD('out.step')
 
 import CPlot, time

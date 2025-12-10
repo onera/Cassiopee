@@ -5,8 +5,8 @@ import Converter
 import Generator
 
 # Create parameter
-epaisseur = D.Scalar('epaisseur', 12.)
-epaisseur.range = [10, 15]
+epaisseur = D.Scalar('epaisseur')
+epaisseur.range = [10, 15, 1.]
 
 # discrete profile
 naca = Geom.naca(12, N=51)
@@ -14,7 +14,7 @@ bbox = Generator.bbox(naca)
 
 # Create grid
 grid1 = D.Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
-D.Eq(epaisseur.s, grid1.P[1][2][0].y.s)
+D.Eq(epaisseur, grid1.P[1][2][0].y)
 
 # Create profile
 spline1 = D.Spline3('spline1', grid1, mesh=naca)
@@ -25,7 +25,6 @@ sketch1 = D.Sketch('sketch1', [spline1])
 # Create sketch 2
 sketch2 = D.Sketch('sketch2', [spline1])
 sketch2.position.z.v = 1.
-#sketch2.rotAngle.v = 1. # cause trouble
 sketch2.update()
 
 # surface

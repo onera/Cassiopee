@@ -953,7 +953,7 @@ def _addGordonSurface(hook, ucurves, vcurves):
 
 def _revolve(hook, edges, C, axis, angle):
     """Revolve edges to create surface."""
-    occ.revolve(hook, C, axis, angle)
+    occ.revolve(hook, edges, C, axis, angle)
 
 def _sweep(hook, profiles, paths):
     """Sweep profiles along paths."""
