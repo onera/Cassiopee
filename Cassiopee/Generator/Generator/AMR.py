@@ -12,7 +12,7 @@ import XCore.PyTree as XC
 from . import PyTree as G
 import os, numpy, math, time
 
-__TOL__ = 1e-9
+__TOL__ = 1.0e-9
 
 def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
     import copy
@@ -88,20 +88,20 @@ def checkBaseNames__(tb,tbox):
 def cleanOffset__(offsetTmp):
     ## Get estimates of the edges of the surface mesh
     a = G.bboxOfCells(offsetTmp)
-    values2print=[]
+    values2print = []
     for var in ['x', 'y', 'z']:
-        C._initVars(a,'{centers:edge_%s}=abs({centers:%smax}-{centers:%smin})'%(var, var, var))
-        C._initVars(a,'{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}+0'%(var,var,__TOL__,var))
+        C._initVars(a, '{centers:edge_%s}=abs({centers:%smax}-{centers:%smin})'%(var, var, var))
+        C._initVars(a, '{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}+0'%(var, var, __TOL__, var))
         for z in Internal.getZones(a):
             val = Internal.getNodeFromName(z, 'edge_'+var)[1]
             positive = val[val > __TOL__]
             if positive.any(): values2print.append([positive.mean(), positive.min(), positive.max()])
     minVal   = numpy.array(values2print[:3])[:, 1]
     meanVal  = numpy.array(values2print[:3])[:, 0]
-    closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6)
+    closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6) # 0.975 & 0.025 are partially 'arbitrary' - TODO: better choice of weights
     if Cmpi.master: print('Offset: Close value:: %g'%closeVal, flush=True)
-    Internal._rmNodesFromType(offsetTmp,"FlowSolution_t")
-    Internal._rmNodesFromType(offsetTmp,"UserDefinedData_t")
+    Internal._rmNodesFromType(offsetTmp, "FlowSolution_t")
+    Internal._rmNodesFromType(offsetTmp, "UserDefinedData_t")
     offsetTmp = G.close(offsetTmp, closeVal)
     return offsetTmp
 
@@ -569,7 +569,7 @@ def createQuadSurfaceFromNgonPointListBigFace__(a, cranges, indices_owners=[], d
                 conn_Nfaces = numpy.concatenate((conn_Nfaces_quad, conn_Nfaces_non_quad))
 
                 # Reconstitution du gros quadrangle
-                reorder = reorderNodesInCanonicalOrderForBigFace3D if dimPb == 3 else reorderNodesInCanonicalOrderForBigFace2D
+                reorder = reorderNodesInCanonicalOrderForBigFace3D__ if dimPb == 3 else reorderNodesInCanonicalOrderForBigFace2D__
                 big_faces.append(reorder(conn_Nfaces))
     # Flatten et finalisation
     flattened_faces = numpy.array([pt for quad in big_faces for pt in quad], dtype=Internal.E_NpyInt)
@@ -722,7 +722,7 @@ def createPseudoBCQuadNQuadInter__(a, owners, levels, halo_levels, neighbours, c
     zone_nonconformal_between_procs = T.join(zsnc_big_MPI, zsnc_small_MPI)
     return zone_nonconformal_between_procs
 
-def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
+def reorderNodesInCanonicalOrderForBigFace2D__(conn_2faces):
     point0=None; point1=None; point2=None; point3=None
     unique, counts = numpy.unique(conn_2faces, return_counts=True)
     indices_count_2 = numpy.argwhere(counts==2)
@@ -766,7 +766,7 @@ def reorderNodesInCanonicalOrderForBigFace2D(conn_2faces):
         point3 = tmp
     return [point0, point1, point2, point3]
 
-def reorderNodesInCanonicalOrderForBigFace3D(conn_4faces):
+def reorderNodesInCanonicalOrderForBigFace3D__(conn_4faces):
     point0 = None; point1 = None; point2 = None; point3 = None
     unique, counts = numpy.unique(conn_4faces, return_counts=True)
     index_count_4 = numpy.argwhere(counts==4)[0][0]
