@@ -89,13 +89,13 @@ def cleanOffset__(offsetTmp):
     ## Get estimates of the edges of the surface mesh
     a = G.bboxOfCells(offsetTmp)
     values2print=[]
-    for var in ['x','y', 'z']:
+    for var in ['x', 'y', 'z']:
         C._initVars(a,'{centers:edge_%s}=abs({centers:%smax}-{centers:%smin})'%(var, var, var))
         C._initVars(a,'{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}+0'%(var,var,__TOL__,var))
         for z in Internal.getZones(a):
             val = Internal.getNodeFromName(z, 'edge_'+var)[1]
             positive = val[val > __TOL__]
-            values2print.append([positive.mean(), positive.min(), positive.max()])
+            if positive.any(): values2print.append([positive.mean(), positive.min(), positive.max()])
     minVal   = numpy.array(values2print[:3])[:, 1]
     meanVal  = numpy.array(values2print[:3])[:, 0]
     closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6)
@@ -255,10 +255,10 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nBase, no_offset))
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
             iso = cleanOffset__(offsetTmp=iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nBase, no_offset))
-            Cmpi.barrier()
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
+            #Cmpi.barrier()
             #iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
             iso[0]='%s%d_%d'%(preffixLocal, nBase, no_offset)
