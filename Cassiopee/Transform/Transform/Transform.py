@@ -1709,9 +1709,9 @@ def dual(array, extraPoints=1):
     except: # NODE forcement
         return array
 
-    if isinstance(array[0], list):
+    if isinstance(a[0], list):
         out = []
-        for i in array:
+        for i in a:
             out.append(transform.dualNGon(i, extraPoints))
         return out
     else: return transform.dualNGon(a, extraPoints)
