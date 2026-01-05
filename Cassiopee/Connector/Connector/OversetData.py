@@ -1388,7 +1388,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
     for zd in Internal.getZones(aD):
         hookD = C.createHook(zd,'elementCenters')
         zdnr = P.selectCells(zd,'({centers:cellN}>0.)*({centers:cellN}<2.)>0.')
-        zdnr = C.convertArray2NGon(zdnr); zdnr = G.close(zdnr)
+        zdnr = C.convertArray2NGon(zdnr)
 
         allDnrCells[zd[0]]=zdnr; allDnrZones[zd[0]]=zd
         indicesDnrOrig = C.identifyElements(hookD,zdnr)

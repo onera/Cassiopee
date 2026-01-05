@@ -5,9 +5,9 @@ import Intersector as XOR
 import Post as P
 
 t1 = G.cart((0,0,0), (1,1,1), (10,10,10))
-t1 = C.convertArray2NGon(t1); t1 = G.close(t1)
+t1 = C.convertArray2NGon(t1)
 t2 = G.cart((1.,0,0), (1,1,1), (10,10,10))
-t2 = C.convertArray2NGon(t2); t2 = G.close(t2)
+t2 = C.convertArray2NGon(t2)
 
 # test 1 : volume/volume
 res = XOR.getOverlappingFaces(t1, t2, RTOL=0.05, amax=0.1)

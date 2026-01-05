@@ -284,7 +284,6 @@ def exteriorFacesForOneArray__(a, indices):
         try:
             import Generator
             a = Converter.convertArray2NGon(a)
-            a = Generator.close(a)
         except: pass
     return post.exteriorFaces(a, indices)
 

@@ -342,7 +342,6 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
 
     if dim == 2: T._addkplane(o)
     o = C.convertArray2NGon(o)
-    o = G.close(o)
     _addPhysicalBCs__(o, tb, dim=dim)
     Internal._adaptNGon32NGon4(o)
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
