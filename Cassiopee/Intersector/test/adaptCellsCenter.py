@@ -1,7 +1,6 @@
 # - adapts a cells with respect to b points (array) -
 import Intersector as XOR
 import Converter as C
-import Converter.Internal as Internal
 import Generator as G
 import numpy
 
