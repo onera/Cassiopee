@@ -628,6 +628,19 @@ def frontFaces(t, tagName):
             C.setFields([fp], z, 'nodes')
     return tp
 
+def exteriorVertices(t, indices=None):
+    """Exterior vertices of a mesh.
+    Usage: exteriorVertices(t, indices)"""
+    tp = Internal.copyRef(t)
+    _exteriorVertices(tp, indices)
+    return tp
+
+def _exteriorVertices(t, indices=None):
+    C._deleteZoneBC__(t)
+    C._deleteFlowSolutions__(t, 'centers')
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorVertices, indices)
+    return None
+
 def interiorFaces(t, strict=0):
     """Interior faces of an array. The argument strict equal to 1 means
     that interior faces with only interior nodes are taken into account.

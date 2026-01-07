@@ -40,6 +40,7 @@ namespace K_POST
   PyObject* selectCells3(PyObject* self, PyObject* args);
   PyObject* selectCellCenters(PyObject* self, PyObject* args);
   PyObject* selectCellCentersBoth(PyObject* self, PyObject* args);
+  PyObject* selectExteriorVertices(PyObject* self, PyObject* args);
   PyObject* selectInteriorFaces(PyObject* self, PyObject* args);
   PyObject* selectExteriorFaces(PyObject* self, PyObject* args);
   PyObject* selectExteriorFacesStructured(PyObject* self, PyObject* args);
@@ -980,6 +981,19 @@ namespace K_POST
                           E_Int& nin, E_Int& njn, E_Int& nkn);
 
 // ************************************************************************** //
+  PyObject* exteriorVerticesStructured(char* varString, FldArrayF& f,
+                                    E_Int ni, E_Int nj, E_Int nk,
+                                    PyObject* Indices);
+  PyObject* selectExteriorVerticesNGon2D(char* varString, FldArrayF& f,
+                                         FldArrayI& cn,
+                                         PyObject* Indices);
+  PyObject* selectExteriorVerticesNGon3D(char* varString, FldArrayF& f,
+                                         FldArrayI& cn,
+                                         PyObject* Indices);
+  PyObject* selectExteriorVerticesME(char* varString, FldArrayF& f,    
+                                     FldArrayI& cn, char* eltType,
+                                     PyObject* indices);                         
+
   PyObject* exteriorFacesStructured(char* varString, FldArrayF& f,
                                     E_Int ni, E_Int nj, E_Int nk,
                                     PyObject* Indices);

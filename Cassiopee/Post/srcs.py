@@ -16,6 +16,7 @@ cpp_srcs = [
     "Post/refineButterfly.cpp",
     "Post/selectCells.cpp",
     "Post/selectCellCenters.cpp",
+    "Post/selectExteriorVertices.cpp",
     "Post/selectInteriorFaces.cpp",
     "Post/selectExteriorFaces.cpp",
     "Post/selectExteriorFacesStructured.cpp",

@@ -59,6 +59,7 @@ List of functions
 
     Post.selectCells
     Post.selectCells2
+    Post.exteriorVertices
     Post.interiorFaces
     Post.exteriorFaces
     Post.exteriorFacesStructured
@@ -609,6 +610,32 @@ Solution selection
 
     .. literalinclude:: ../build/Examples/Post/selectCells2PT.py
 
+-----------------------------------------
+
+.. py:function:: Post.exteriorVertices(a, indices=None)
+
+    Select the exterior vertices of a mesh, and return them in a single 
+    unstructured NODE zone. If indices=[], the indices of the original exterior 
+    vertices are returned.
+
+    Exists also as in place version (_exteriorVertices) that modifies a and return None.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param indices: indices of original exterior vertices
+    :type indices: list of integers
+    :rtype: zone
+
+    *Example of use:*
+
+    * `Select exterior vertices (array) <Examples/Post/exteriorVertices.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/exteriorVertices.py
+
+    * `Select exterior vertices (pyTree) <Examples/Post/exteriorVerticesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Post/exteriorVerticesPT.py
+        
 ---------------------------------------
 
 .. py:function:: Post.interiorFaces(a, strict=0)
@@ -641,6 +668,8 @@ Solution selection
     indices of the original exterior faces are returned.
     For structured grids, indices are the global index containing i faces, then j faces, then k faces, starting from 0.
     For NGON grids, indices are the NGON face indices, starting from 1.
+
+    Exists also as in place version (_exteriorFaces) that modifies a and return None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -683,6 +712,8 @@ Solution selection
 .. py:function:: Post.exteriorElts(a)
 
     Select the exterior elements of a mesh, that is the first border fringe of cells.
+
+    Exists also as in place version (_exteriorElts) that modifies a and return None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]

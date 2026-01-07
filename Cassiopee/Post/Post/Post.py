@@ -7,22 +7,25 @@ import numpy
 try: import Converter
 except ImportError: raise ImportError("Post: requires Converter module.")
 
-__all__ = ['coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
-           'computeGrad', 'computeGrad2', 'computeGradLSQ',
-           'computeDiv', 'computeDiv2', 'computeIndicatorField',
-           'computeIndicatorFieldForBounds', 'computeIndicatorValue',
-           'computeNormCurl', 'computeNormGrad', 'computeVariables',
-           'computeVariables2', '_computeVariables2',
-           'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
-           'enforceIndicatorNearBodies', 'exteriorElts', 'exteriorEltsStructured',
-           'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
-           'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
-           'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
-           'isoSurfMC', 'perlinNoise', 'projectCloudSolution',
-           'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
-           'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
-           'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
-           'growOfEps__','computeIndicatorField_AMR']
+__all__ = [
+    'coarsen', 'computeCurl', 'computeDiff', 'computeExtraVariable',
+    'computeGrad', 'computeGrad2', 'computeGradLSQ',
+    'computeDiv', 'computeDiv2', 'computeIndicatorField',
+    'computeIndicatorFieldForBounds', 'computeIndicatorValue',
+    'computeNormCurl', 'computeNormGrad', 'computeVariables',
+    'computeVariables2', '_computeVariables2',
+    'enforceIndicatorForCoarsestLevel', 'enforceIndicatorForFinestLevel',
+    'enforceIndicatorNearBodies',
+    'exteriorVertices', 'exteriorElts', 'exteriorEltsStructured',
+    'exteriorFaces', 'exteriorFacesStructured', 'extractMesh', 'extractPlane',
+    'extractPoint', 'frontFaces', 'integ', 'integMoment', 'integMomentNorm',
+    'integNorm', 'integNormProduct', 'interiorFaces', 'isoLine', 'isoSurf',
+    'isoSurfMC', 'perlinNoise', 'projectCloudSolution',
+    'refine', 'renameVars', 'selectCells', 'selectCells2', 'selectCells3',
+    'sharpEdges', 'silhouette', 'slice', 'streamLine', 'streamLine2',
+    'streamRibbon', 'streamRibbon2', 'streamSurf', 'usurp', 'zip', 'zipper',
+    'growOfEps__','computeIndicatorField_AMR'
+]
 
 #==============================================================================
 # Add two layers to surface arrays
@@ -237,6 +240,20 @@ def refine__(a, indic, w):
     if indic is not None: return post.refine(a, indic) # linear
     else: return post.refineButterfly(a, w) # butterfly
 
+#==============================================================================
+# Return an unstructured NODE array of exterior vertices
+#==============================================================================
+def exteriorVertices(a, indices=None):
+    """Exterior vertices of an array.
+    Usage: exteriorVertices(a, indices)"""
+    if isinstance(a[0], list):
+        b = []
+        for i in a:
+            b.append(post.exteriorVertices(i, indices))
+        return b
+    else:
+        return post.exteriorVertices(a, indices)
+    
 def interiorFaces(a, strict=0):
     """Interior faces of an array a. The argument strict equal to 1 means
     that interior faces with only interior nodes are taken into account.

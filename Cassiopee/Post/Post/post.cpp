@@ -41,6 +41,7 @@ static PyMethodDef Pypost [] =
   {"selectCells3", K_POST::selectCells3, METH_VARARGS},
   {"selectCellCenters", K_POST::selectCellCenters, METH_VARARGS},
   {"selectCellCentersBoth", K_POST::selectCellCentersBoth, METH_VARARGS},
+  {"exteriorVertices", K_POST::selectExteriorVertices, METH_VARARGS},
   {"interiorFaces", K_POST::selectInteriorFaces, METH_VARARGS},
   {"exteriorFaces", K_POST::selectExteriorFaces, METH_VARARGS},
   {"exteriorFacesStructured", K_POST::selectExteriorFacesStructured, METH_VARARGS},
