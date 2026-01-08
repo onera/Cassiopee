@@ -85,7 +85,27 @@ def checkBaseNames__(tb,tbox):
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
-def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None):
+def cleanOffset__(offsetTmp):
+    ## Get estimates of the edges of the surface mesh
+    a = G.bboxOfCells(offsetTmp)
+    values2print=[]
+    for var in ['x','y', 'z']:
+        C._initVars(a,'{centers:edge_%s}=abs({centers:%smax}-{centers:%smin})'%(var, var, var))
+        C._initVars(a,'{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}+0'%(var,var,__TOL__,var))
+        for z in Internal.getZones(a):
+            val = Internal.getNodeFromName(z, 'edge_'+var)[1]
+            positive = val[val > __TOL__]
+            values2print.append([positive.mean(), positive.min(), positive.max()])
+    minVal   = numpy.array(values2print[:3])[:, 1]
+    meanVal  = numpy.array(values2print[:3])[:, 0]
+    closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6)
+    if Cmpi.master: print('Offset: Close value:: %g'%closeVal, flush=True)
+    Internal._rmNodesFromType(offsetTmp,"FlowSolution_t")
+    Internal._rmNodesFromType(offsetTmp,"UserDefinedData_t")
+    offsetTmp = G.close(offsetTmp, closeVal)
+    return offsetTmp
+
+def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None, blankCellsAlgo='xray'):
     import Geom.IBM as D_IBM
     if offsetValues == []: return []
     numBase = len(Internal.getBases(tb))
@@ -220,7 +240,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         bodies = [tbLocalTmp]; nbodies = 1
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
         t = C.newPyTree(["BASE", Internal.getZones(b)])
-        X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+        else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
 
@@ -234,7 +255,11 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            iso = G.close(iso, tol=1.e-6)
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nBase, no_offset))
+            iso = cleanOffset__(offsetTmp=iso)
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nBase, no_offset))
+            Cmpi.barrier()
+            #iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
             iso[0]='%s%d_%d'%(preffixLocal, nBase, no_offset)
             D_IBM._setSnear(iso, snears[nBase][0]*2**no_offset)
@@ -347,7 +372,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
+def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multuiplies the indicator. i.e. the parts inside the body will be zero.
 
@@ -372,9 +397,11 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn", 1.)
 
-    to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
-                      cellNName='cellN')
+    if dim ==2 or blankCellsAlgo == 'xray':to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                                                             XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
+                                                             cellNName='cellN')
+    else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellN')
+    
     if opt:
         ## needed - see comment in tagInsideOffset
         depthLocal = 0
@@ -387,7 +414,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     o = Internal.getZones(to)[0]
     return o
 
-def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False):
+def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     to = C.newPyTree(["OCTREE"]); to[2][1][2] = Internal.getZones(o)
     C._initVars(to, 'centers:indicatorTmp', 0.)
 
@@ -434,14 +461,18 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     C._initVars(to, "cellNOut", 1.)
     C._initVars(to, "cellNIn", 1.)
 
-    to = X.blankCells(to, bodies2, BM, blankingType='node_in',
-                      XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
-                      cellNName='cellNIn')
+    if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies2, BM, blankingType='node_in',
+                                                               XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                                               cellNName='cellNIn')
+    else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
+    
     if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
-        to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                          XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
-                          cellNName='cellNOut')
+        if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                                                                   XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                                                   cellNName='cellNOut')
+        else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
+
         # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
         # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
         depthLocal = -1
@@ -886,7 +917,7 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0):
+def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
     coarseXray = False
     bbtb = G.bbox(tb)
@@ -957,13 +988,13 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
                     # body offset: tag the region between the body & the offset
                     # tbox offset: tage the region enclosed by the offset
-                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
+                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
                 # Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
                 for offsetlocTmp in offset_inside[0]:
                     # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
-                    o = tagOutsideBody__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray)
+                    o = tagOutsideBody__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                     C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
@@ -986,7 +1017,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     XC.AdaptMesh_Adapt(hookAM)
                     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                     o = Internal.getZones(o)[0]
-                    # Cmpi.convertPyTree2File(o,'check_loadBalancingFix%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
+                    #Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
                     if Cmpi.master: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
                     adaptPass+=1
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
@@ -1149,7 +1180,8 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None):
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None,
+                    blankCellsAlgo='xray'):
     NumMinDxLarge=1
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1320,7 +1352,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         # generate list of offsets
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2)
+        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
     Cmpi.barrier()
 
@@ -1333,13 +1365,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     Cmpi.barrier()
     # only tb --> for blanking & tagging inside the geometry
-    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox)
+    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
 
 
-# ORIG F.Basile files - kept 'just in case'
+# ORIG F.Basile files - kept 'just in case' - TO BE DELETED AFTER [06/2026]
 #def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
 #    a = Internal.getZones(a)[0] # get first zone
 #    faces = Internal.getNGonNode(a)
