@@ -91,7 +91,7 @@ def cleanOffset__(offsetTmp):
     values2print = []
     for var in ['x', 'y', 'z']:
         C._initVars(a, '{centers:edge_%s}=abs({centers:%smax}-{centers:%smin})'%(var, var, var))
-        C._initVars(a, '{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}+0'%(var, var, __TOL__, var))
+        C._initVars(a, '{centers:edge_%s}=({centers:edge_%s}>%g)*{centers:edge_%s}'%(var, var, __TOL__, var))
         for z in Internal.getZones(a):
             val = Internal.getNodeFromName(z, 'edge_'+var)[1]
             positive = val[val > __TOL__]
@@ -397,9 +397,9 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn", 1.)
 
-    if dim ==2 or blankCellsAlgo == 'xray':to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                                                             XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
-                                                             cellNName='cellN')
+    if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                                                               XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
+                                                               cellNName='cellN')
     else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellN')
     
     if opt:
