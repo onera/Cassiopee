@@ -401,7 +401,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
                                                                XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                                                cellNName='cellN')
     else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellN')
-    
+
     if opt:
         ## needed - see comment in tagInsideOffset
         depthLocal = 0
@@ -465,7 +465,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
                                                                XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
                                                                cellNName='cellNIn')
     else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
-    
+
     if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
         if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
