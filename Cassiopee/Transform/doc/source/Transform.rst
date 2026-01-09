@@ -780,7 +780,7 @@ Mesh transformation
 Mesh splitting and merging
 --------------------------
 
-.. py:function:: Transform.subzone(a, minIndex, maxIndex=None, type=None)
+.. py:function:: Transform.subzone(a, minIndex, maxIndex=None, type=None, dimOut=-1)
 
     .. A1.O0.D0
     
@@ -794,6 +794,10 @@ Mesh splitting and merging
 
          b = T.subzone(a, [1,2,...])
 
+    Extract a subzone composed of 2D faces from a 3D unstructured mesh a, where the vertex list of the subzone must be specified (indices start at 1)::
+
+         b = T.subzone(a, [1,2,...], dimOut=2)
+
     Extract a subzone of an unstructured mesh providing the indices of elements (index starts at 0)::
 
          b = T.subzone(a, [0,1,...], type='elements')
@@ -806,11 +810,13 @@ Mesh splitting and merging
     :param a: input data
     :type  a: array or zone
     :param minIndex: (imin,jmin,kmin) for a structured grid, list of indices otherwise
-    :type  minIndex:  3-tuple of integers
+    :type  minIndex: 3-tuple of integers
     :param maxIndex: (imax,jmax,kmax) for a structured grid, None otherwise
-    :type  maxIndex:  3-tuple of integers
+    :type  maxIndex: 3-tuple of integers
     :param type: type of subzone to perform (None, 'elements', 'faces')
     :type  type: None or string
+    :param dimOut: dimension of the output unstructured connectivity when type is None (-1 means same as the intput)
+    :type  dimOut: integer
     :return: subzoned mesh
     :rtype: identical to a
 

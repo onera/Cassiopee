@@ -625,13 +625,13 @@ def subzoneGCStruct__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 
-def subzone(t, minIndex, maxIndex=None, type=None):
+def subzone(t, minIndex, maxIndex=None, type=None, dimOut=-1):
     """Take a subzone of mesh.
     Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
-    if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
+    if maxIndex is None: return subzoneUnstruct__(t, minIndex, type, dimOut)
     else: return subzoneStruct__(t, minIndex, maxIndex)
 
-def subzoneUnstruct__(t, indices, type):
+def subzoneUnstruct__(t, indices, type, dimOut=-1):
     tp = Internal.copyRef(t)
     nodes = Internal.getZones(tp)
     for z in nodes:
@@ -641,7 +641,7 @@ def subzoneUnstruct__(t, indices, type):
         fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fa != []: fc = Converter.addVars([fc, fa])
         if fb == []: # no flow sol at centers
-            nodes = Transform.subzone(fc, indices, type=type)
+            nodes = Transform.subzone(fc, indices, type=type, dimOut=dimOut)
             C.setFields([nodes], z, 'nodes')
         else:
             if dimz[0] == 'Structured': # faceList as global indices of structured interfaces
