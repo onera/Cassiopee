@@ -29,4 +29,3 @@ test.testA([b], 4)
 a = G.cartHexa((0,0,0), (1,1,1), (10,20,1))
 b = T.subzone(a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 19, 20], type='nodes', dimOut=1)
 test.testA([b], 5)
-

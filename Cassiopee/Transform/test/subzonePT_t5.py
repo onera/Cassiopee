@@ -72,4 +72,3 @@ t = C.newPyTree(['Base',1]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
 t = T.subzone(t, [1, 2, 3, 4], dimOut=0)
 test.testT(t,5)
-
