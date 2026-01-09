@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -409,7 +409,7 @@ namespace DELAUNAY
     rho1_2 = std::max(hmin2/_alpha2, rho1_2); //fixme
     rho2_2 = std::max(hmin2/_alpha2, rho2_2); //fixme
 
-    E_Float q = 1. - ::sqrt(rho1_2/rho2_2);
+    E_Float q = 1. - sqrt(rho1_2/rho2_2);
     E_Float rho2_2c = rho2_2*(1.-q*q); // reduce the largest according to q
 
     E_Float h1_2 = _alpha2*rho1_2;
@@ -574,8 +574,8 @@ namespace DELAUNAY
     
     E_Float P0[2], P1[2];
     
-    E_Float h0 = ::sqrt(1./lambda0);
-    E_Float h1 = ::sqrt(1./lambda1);
+    E_Float h0 = sqrt(1./lambda0);
+    E_Float h1 = sqrt(1./lambda1);
     //E_Float Pix = parent_type::_pos(0,Ni);
     //E_Float Piy = parent_type::_pos(1,Ni);
 
@@ -621,7 +621,7 @@ namespace DELAUNAY
 
     if (k02 <= 1. && k12 <= 1.) return; //smaller than hmax
     
-    E_Float KMAX2 = (1. + ::sqrt(2.));
+    E_Float KMAX2 = (1. + sqrt(2.));
     KMAX2 *= KMAX2;
         
     if (k02 > 1.1 && k02 < KMAX2) D(0,0) *= k02;

@@ -260,15 +260,20 @@ C._initVars(a, 'centers:MomentumX', state[1])
 ```
 
 ## Visualizing pyTrees
-Finaly, you can visualize pytrees stored in files.
-For visualising only tree, without loading data, you can use:
-```shell
+
+Finally, CGNS pyTrees can be written to disk for visualization.
+To inspect the tree and its metadata without loading the array data, you can use:
+
+```sh
 kcgnsview case.cgns
 ```
-If you want to visualize tree, meshes and solution, you can use:
-```shell
+
+To visualize the tree, mesh and solution fields, please run:
+
+```sh
 cassiopee case.cgns
 ```
-How to open applets and use graphical user interface are described in
+
+To open applets and use the graphical user interface, please refer to the 
 [tkCassiopee documentation](https://onera.github.io/Cassiopee/current/doc/tkCassiopee.html#general-guidelines).
 

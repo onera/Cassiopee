@@ -738,6 +738,7 @@ def convertExt2Format__(fileName):
         '.cgns': 'bin_cgns',
         '.adf': 'bin_adf',
         '.hdf': 'bin_hdf',
+        '.mod': 'bin_hdf',
         '.grid': 'bin_tau',
         '.h5': 'bin_fsdm',
         '.pickle': 'bin_pickle',
@@ -1276,21 +1277,11 @@ def adaptSurfaceNGon(array):
 def convertArray2Tetra1__(array, arrayC=[], split='simple'):
     try: sub = array[3]
     except: raise TypeError("convertArray2Tetra: arg must be an array.")
-
     if isinstance(sub, str): t = sub
     else: t = 'STRUCT'
+
     if split == 'simple': # no points added
-        if t == 'STRUCT':
-            return converter.convertStruct2Tetra(array)
-        elif t == 'HEXA' or t == 'QUAD':
-            return converter.convertHexa2Tetra(array)
-        elif t == 'PENTA':
-            return converter.convertPenta2Tetra(array)
-        elif t == 'PYRA':
-            return converter.convertPyra2Tetra(array)
-        elif t == 'TETRA' or t == 'TRI' or t == 'NODE' or t == 'BAR':
-            return array
-        elif t == 'NGON':
+        if t == 'NGON':
             try: import Transform as T
             except: raise ImportError("convertArray2Tetra: requires Transform for NGONs.")
             tmp = T.breakElements(array)
@@ -1301,54 +1292,46 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
                     brd.append(convertArray2Tetra1__(i, split="withBarycenters"))
             brd = T.join(brd)
             return brd
-        elif t == 'HEXA*' or t == 'QUAD*':
-            tmp = center2Node(array)
-            tmp = converter.convertHexa2Tetra(tmp)
-            return node2Center(tmp)
-        elif t == 'PENTA*':
-            tmp = center2Node(array)
-            tmp = converter.convertPenta2Tetra(tmp)
-            return node2Center(tmp)
-        elif t == 'PYRA*':
-            tmp = center2Node(array)
-            tmp = converter.convertPyra2Tetra(tmp)
-            return node2Center(tmp)
-        elif t == 'TETRA*' or t == 'TRI*' or t == 'NODE*' or t == 'BAR*':
-            return array
         else:
-            raise TypeError("convertArray2Tetra: type of element is not taken into account: %s."%t)
+            eltNames = t.split(',')
+            center = any(eltName.endswith('*') for eltName in eltNames)
+            if center:
+                tmp = center2Node(array)
+                tmp = converter.convertArray2Tetra(tmp)
+                return node2Center(tmp)
+            else:
+                return converter.convertArray2Tetra(array)
 
     elif split == 'withBarycenters': # new points added at centers of elements and faces
         if t == 'STRUCT':
-            if arrayC == []:
-                return converter.convertStruct2TetraBary(array)
-            else:
-                return converter.convertStruct2TetraBaryBoth(array, arrayC)
-
-        elif t == 'HEXA' or t == 'QUAD' or t == 'PENTA' or t == 'PYRA' or t == 'BAR':
-            if arrayC == []:
-                return converter.convertArray2TetraBary(array)
-            else:
-                return converter.convertArray2TetraBaryBoth(array, arrayC)
-
-        elif t == 'TETRA' or t == 'TRI' or t == 'NODE':
-            if arrayC == []: return array
-            else: return [array,arrayC]
-
+            if arrayC == []: return converter.convertStruct2TetraBary(array)
+            else: return converter.convertStruct2TetraBaryBoth(array, arrayC)
         elif t == 'NGON':
             if arrayC == []: return converter.convertNGon2TetraBary(array)
-            else:
-                return converter.convertNGon2TetraBaryBoth(array, arrayC)
-        elif t == 'HEXA*' or t == 'PENTA*' or t == 'PYRA*' or t == 'BAR*':
-            tmp = center2Node(array)
-            tmp =  converter.convertArray2TetraBary(tmp)
-            return node2Center(tmp)
-        elif t == 'TETRA*' or t == 'TRI*' or t == 'NODE*':
-            return array
+            else: return converter.convertNGon2TetraBaryBoth(array, arrayC)
         else:
-            raise TypeError("convertArray2Tetra: with split='withBarycenters', type of element is not taken into account: %s."%t)
-    else:
-        raise TypeError("convertArray2Tetra: type of split unknown: %s."%split)
+            group1 = ['NODE', 'TRI', 'TETRA']
+            group2 = ['BAR', 'QUAD', 'PYRA', 'PENTA', 'HEXA']
+            eltNames = t.split(',')
+            center = any(eltName.endswith('*') for eltName in eltNames)
+            eltNamesN = [eltName.replace('*', '') for eltName in eltNames]
+            if not all(eltName in group1 + group2 for eltName in eltNamesN):
+                raise TypeError("convertArray2Tetra: at least one element type "
+                                f"is not supported in: '{t}'.")
+
+            if all(eltName in group1 for eltName in eltNamesN):
+                if center or arrayC == []: return array
+                else: return [array, arrayC]
+
+            if center:
+                tmp = center2Node(array)
+                tmp =  converter.convertArray2TetraBary(tmp)
+                return node2Center(tmp)
+            else:
+                if arrayC == []:
+                    return converter.convertArray2TetraBary(array)
+                else:
+                    return converter.convertArray2TetraBaryBoth(array, arrayC)
 
 # -- Convert array(s) to tetra
 def convertArray2Tetra(array, split='simple'):
@@ -1384,9 +1367,18 @@ def convertArray2Hexa1__(array):
             if i[3] != 'NGON': brd.append(convertArray2Hexa1__(i))
         brd = T.join(brd)
         return brd
-    elif t == 'TRI*' or t == 'TETRA*' or t == 'PENTA*':
-        return converter.convertUnstruct2Hexa(array)
-    else: raise TypeError("convertArray2Hexa: type of element is not taken into account: %s."%t)
+    else:
+        group1 = ['NODE', 'BAR', 'QUAD', 'HEXA']
+        group2 = ['TRI', 'TETRA', 'PENTA']
+        eltNames = t.split(',')
+        eltNames = [eltName.replace('*', '') for eltName in eltNames]
+        if not all(eltName in group1 + group2 for eltName in eltNames):
+            raise TypeError("convertArray2Hexa: at least one element type is "
+                            f"not supported in: '{t}'.")
+        elif all(eltName in group1 for eltName in eltNames):
+            return array
+        else:
+            return converter.convertUnstruct2Hexa(array)
 
 # -- convert arrays(s) to hexa
 def convertArray2Hexa(array):

@@ -46,7 +46,7 @@ setup(
     name="Initiator",
     version="4.1",
     description="Initiator for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Initiator'],
     ext_modules=[Extension('Initiator.initiator',

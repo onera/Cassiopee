@@ -2,7 +2,7 @@
 import Converter as C
 import Post as P
 import Generator as G
-import KCore.test as T
+import KCore.test as test
 
 # cas 3D hexa
 ni = 30; nj = 40; nk = 3
@@ -11,7 +11,7 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 1)
+test.testA([p], 1)
 
 # cas 3D tetra
 ni = 30; nj = 40; nk = 3
@@ -20,7 +20,7 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 2)
+test.testA([p], 2)
 #
 # cas 3D penta
 ni = 30; nj = 40; nk = 3
@@ -29,7 +29,7 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 3)
+test.testA([p], 3)
 #
 # cas 2D QUAD
 ni = 30; nj = 40; nk = 1
@@ -38,7 +38,7 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 4)
+test.testA([p], 4)
 
 # cas 2D tri
 ni = 30; nj = 40; nk = 1
@@ -47,7 +47,7 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 5)
+test.testA([p], 5)
 
 # cas 3D NGON
 ni = 30; nj = 40; nk = 3
@@ -56,4 +56,4 @@ m = C.initVars(m, '{veloX}=2*{x}+{x}*{y}')
 m = C.initVars(m, '{veloY}=4*{y}')
 m = C.initVars(m, '{veloZ}={x}*{y}+{z}*{z}')
 p = P.computeDiv(m, ['veloX','veloY','veloZ'])
-T.testA([p], 6)
+test.testA([p], 6)

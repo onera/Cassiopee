@@ -14,7 +14,6 @@ a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))
 d = G.cart((1,0.,0.), (1,1,1),(2,1,1))
 a = G.addNormalLayers(a, d)
 a = C.convertArray2NGon(a)
-a = G.close(a)
 #C.convertPyTree2File(a,'prism.tp')
 
 cv0 = numpy.empty((1,), dtype=I.E_NpyInt)

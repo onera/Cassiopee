@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -110,7 +110,7 @@ E_Int __swap_edges(std::vector<std::pair<E_Int, E_Int> >& sapwE, K_FLD::IntArray
   void drawElements(const char* fname, const char* filefmt, const K_FLD::FloatArray& coord,
                     const K_FLD::IntArray& connect, const std::vector<T3> & elts, bool localid = false, std::vector<E_Int>* colors=0);
   ///
-  void draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, double tol, E_Int what, K_FLD::IntArray& out);
+  void draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Float tol, E_Int what, K_FLD::IntArray& out);
 
 #endif
   

@@ -1,12 +1,11 @@
 # driver: parametric profile in parallel
-import OCC.Driver as D
+import Roms.Driver as D
 import Geom
 import Generator
-import Converter
 
 # Create a parameter
-epaisseur = D.Scalar('epaisseur', 12.)
-epaisseur.range = [10,15]
+epaisseur = D.Scalar('epaisseur')
+epaisseur.range = [10, 15]
 
 # discrete profile
 naca = Geom.naca(12, N=51)
@@ -15,20 +14,20 @@ bbox = Generator.bbox(naca)
 # Create parameter grid
 grid1 = D.Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
 grid1.P[1][2][0].y.range = [0, 5, 0.1]
-D.Eq(epaisseur.s, grid1.P[1][2][0].x.s)
+D.Eq(epaisseur, grid1.P[1][2][0].y)
 
 # Create parametric profile
 spline1 = D.Spline3('spline1', grid1, mesh=naca)
 
 # Create parametric sketch
-sketch1 = D.Sketch('sketch1', [spline1])
+sketch1 = D.Sketch('sketch1', [spline1], h=[0.01,0.01,0.01])
 
 # solve for free parameters
-D.DRIVER.solve2()
+D.DRIVER.solve()
 
 # Build DOE
 D.DRIVER.createDOE('doe.hdf')
-D.DRIVER.walkDOE3(sketch1, 0.01, 0.01, 0.01)
+D.DRIVER.walkDOE3(sketch1)
 
 # read snapshots as matrix
 #F = D.DRIVER.readAllSnapshots()

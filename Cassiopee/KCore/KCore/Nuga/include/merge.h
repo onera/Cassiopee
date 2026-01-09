@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -50,9 +50,9 @@ inline void stable_unique_values
 struct triplet_t
 {
   triplet_t()=default;
-  triplet_t(double id, E_Int iNi, E_Int iNj):d(id), Ni(iNi), Nj(iNj){}
+  triplet_t(E_Float id, E_Int iNi, E_Int iNj):d(id), Ni(iNi), Nj(iNj){}
 
-  double d; E_Int Ni, Nj;
+  E_Float d; E_Int Ni, Nj;
 };
 
 inline bool lower_than(const triplet_t& p1, const triplet_t& p2)
@@ -287,7 +287,7 @@ __merge_omp
 
   E_Int id, Fi, Fj;
   size_t i, j, osz;
-  double d2;
+  E_Float d2;
 
   // loop on target nodes and get all moving nodes in sphere of radius tol.
 #pragma omp parallel shared(tsz, moving_tree, palma, utarget, tol, palma_thrd, dist2_thrd, onodes_thrd) private (i, j, id, osz, Fi, Fj, d2) default(none)
@@ -401,7 +401,7 @@ __merge_omp
 
 //   E_Int id, Fi, Fj;
 //   size_t i, j, osz, c;
-//   double d2;
+//   E_Float d2;
 
 //   // loop on target nodes and get all moving nodes in sphere of radius tol.
 // #pragma omp parallel shared(tsz, moving_tree, palma, utarget, tol, palma_thrd, dist2_thrd, onodes_thrd, NB_CHUNKS, ibeg, iend) private (c, i, j, id, osz, Fi, Fj, d2) default(none)
@@ -523,7 +523,7 @@ __merge
       continue;
     }
     
-    double TOLi = ::sqrt(nodal_metric2[Fi]) * RTOL;
+    E_Float TOLi = sqrt(nodal_metric2[Fi]) * RTOL;
 
     moving_tree.getInSphere(Fi, TOLi, onodes, dist2);
     osz = onodes.size();
@@ -537,7 +537,7 @@ __merge
         continue;
       }
 
-      double TOLj2 = nodal_metric2[Fj] * RTOL * RTOL;
+      E_Float TOLj2 = nodal_metric2[Fj] * RTOL * RTOL;
 
       if (TOLj2 < dist2[j])
       {
@@ -622,7 +622,7 @@ __merge_omp
   {
     E_Int id, Fi, Fj;
     size_t i, j, osz;
-    double d2, TOLi, TOLj2;
+    E_Float d2, TOLi, TOLj2;
 
     id = __CURRENT_THREAD__;
 
@@ -635,11 +635,10 @@ __merge_omp
       assert (Fi >= 0 && (size_t)Fi < nodal_metric2.size());
       if (nodal_metric2[Fi] == NUGA::FLOAT_MAX)
       {
-        //std::cout << "wrong TOLi" << std::endl;
         continue;
       }
     
-      TOLi = ::sqrt(nodal_metric2[Fi]) * RTOL;
+      TOLi = sqrt(nodal_metric2[Fi]) * RTOL;
 
       moving_tree.getInSphere(Fi, TOLi, onodes_thrd[id], dist2_thrd[id]);
     

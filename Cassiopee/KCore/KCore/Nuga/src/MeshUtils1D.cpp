@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -67,7 +67,7 @@ MeshUtils1D::compute_iso_metric
     pS = connect.col(i);
     Ni = *pS;
     Nj = *(pS+1);
-    L = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
+    L = sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
     metric[Ni] += L;
     metric[Nj] += L;
     ++count[Ni];

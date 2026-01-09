@@ -8,9 +8,7 @@ import numpy as np
 import sys
 import KCore.test as test
 
-test.TOLERANCE = 1.e-9
-
-#import Ael.Quantum      as KDG
+#import Ael.Quantum as KDG
 
 # get args
 ifile='hammer.iges'
@@ -40,7 +38,6 @@ t = XOR.extrudeSurf(t, layer_height=height, nlayers=nlays, strategy=1)
 
 # put back BCs
 C._recoverBCs(t, (BCs, BCNames, BCTypes), tol=1.e-6)
-
 
 # Initialisation hx, hy, hz, ncadid
 Internal.__FlowSolutionNodes__ = 'CADData'
@@ -126,7 +123,6 @@ t = C.setFields(ncadid, t, 'nodes')
 # interpolateHMeshNodalField
 #-------------------------------------------
 t = XOR.interpolateHMeshNodalField(t, hmsh, ['u', 'v'])
-
 
 #-------------------------------------------
 # getNodalParameters

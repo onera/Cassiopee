@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -63,8 +63,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
   {
     void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
-    MPI_Info info   = MPI_INFO_NULL;
-    E_Int ret       = H5Pset_fapl_mpio(fapl, comm, info);
+    MPI_Info info = MPI_INFO_NULL;
+    H5Pset_fapl_mpio(fapl, comm, info);
    }
 #endif
 
@@ -715,7 +715,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
     MPI_Info info   = MPI_INFO_NULL;
-    E_Int ret       = H5Pset_fapl_mpio(fapl, comm, info);
+    H5Pset_fapl_mpio(fapl, comm, info);
   }
 #endif
    
@@ -1613,11 +1613,11 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
 {
   /* ***************************************************** */
   /* Declaration */
-  int       n, dst_ndims;
-  hsize_t   dst_dim_vals[L3C_MAX_DIMS];
-  hid_t     /*yid,tid,*/mid;
-  hssize_t  dst_size;
-  herr_t    stat;
+  int n, dst_ndims;
+  hsize_t dst_dim_vals[L3C_MAX_DIMS];
+  hid_t /*yid,tid,*/mid;
+  hssize_t dst_size;
+  herr_t stat;
   
   dst_size  = 1;
   dst_ndims = 0;

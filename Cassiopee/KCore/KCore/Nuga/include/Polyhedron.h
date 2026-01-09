@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -324,19 +324,18 @@ namespace K_MESH
         fluxVec[0] += o * nds[0];
         fluxVec[1] += o * nds[1];
         fluxVec[2] += o * nds[2];
-
       }
 
       return 0;
 
     }
 
-    double fluxnorm(const K_FLD::FloatArray& crd, const E_Int* orient, bool normalize)
+    E_Float fluxnorm(const K_FLD::FloatArray& crd, const E_Int* orient, bool normalize)
     {
-      double fluxvec[3];
+      E_Float fluxvec[3];
       flux(crd, orient, fluxvec);
 
-      E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+      E_Float f = sqrt(NUGA::sqrNorm<3>(fluxvec));
 
       if (normalize)
       {
@@ -965,7 +964,7 @@ namespace K_MESH
         pK = connectT3.col(i);
 
         K_MESH::Triangle::normal(crd, pK, Normi);
-        E_Float l2 = ::sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
+        E_Float l2 = sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
 
         if (::fabs(l2 - 1.) >= EPSILON) continue;  // DEGEN : not a good quality triangulation
 
@@ -1390,9 +1389,9 @@ namespace K_MESH
       return has_bfl;
     }
 
-    double Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE = NUGA::ISO_MIN) const
+    E_Float Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE = NUGA::ISO_MIN) const
     {
-      double val = (MTYPE == NUGA::ISO_MIN) ? NUGA::FLOAT_MAX : 0.;
+      E_Float val = (MTYPE == NUGA::ISO_MIN) ? NUGA::FLOAT_MAX : 0.;
 
       for (E_Int i = 0; i < _nb_faces; ++i)
       {
@@ -1406,7 +1405,7 @@ namespace K_MESH
 
         if (MTYPE == NUGA::ISO_MIN) val = std::min(val, Lmin2);
         else if (MTYPE == NUGA::ISO_MAX) val = std::max(val, Lmax2);
-        else val += (::sqrt(Lmin2) + ::sqrt(Lmax2));
+        else val += (sqrt(Lmin2) + sqrt(Lmax2));
       }
 
       if (MTYPE == NUGA::ISO_MEAN)
@@ -1419,17 +1418,16 @@ namespace K_MESH
       return val;
     }
 
-    double Lref2(const std::vector<E_Float>& nodal_tol2) const
+    E_Float Lref2(const std::vector<E_Float>& nodal_tol2) const
     {
-      double val = NUGA::FLOAT_MAX;
+      E_Float val = NUGA::FLOAT_MAX;
       for (E_Int i = 0; i < _nb_faces; ++i)
       {
         E_Int PGi = *(_faces + i) - 1;
         const E_Int* nodes = _pgs->get_facets_ptr(PGi);
         E_Int nb_nodes = _pgs->stride(PGi);
 
-        double L2r = K_MESH::Polygon::Lref2(nodes, nb_nodes, nodal_tol2, -1);
-
+        E_Float L2r = K_MESH::Polygon::Lref2(nodes, nb_nodes, nodal_tol2, -1);
         val = std::min(val, L2r);
       }
       return val;
@@ -1539,7 +1537,7 @@ namespace K_MESH
 
     ///
     template<typename TriangulatorType>
-    E_Int volume(const K_FLD::FloatArray& crd, const E_Int* orient, double& v, TriangulatorType& t)
+    E_Int volume(const K_FLD::FloatArray& crd, const E_Int* orient, E_Float& v, TriangulatorType& t)
     {
       v = { -NUGA::FLOAT_MAX };
 
@@ -1560,7 +1558,7 @@ namespace K_MESH
         }
       }
 
-      double G[3];
+      E_Float G[3];
       metrics(aT3, v, G);
 
       return 0;
@@ -1654,7 +1652,7 @@ namespace K_MESH
         }
         else //try again if star-shaped
         {
-          double G[3];
+          E_Float G[3];
           Polygon::iso_barycenter<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, 1, G);
           bool is_star_shaped = Polygon::is_star_shaping<3>(G, crd, nodes, nb_nodes, 1);
           if (is_star_shaped)
@@ -2189,7 +2187,7 @@ namespace K_MESH
             v[j] = crd.col(pN[2] - 1)[j] - crd.col(pN[0] - 1)[j];
           }
 
-          E_Float norm = ::sqrt(NUGA::sqrCross<3>(u, v));
+          E_Float norm = sqrt(NUGA::sqrCross<3>(u, v));
           E_Float h = det / norm;
 
           s = zSIGN(h, tolerance);

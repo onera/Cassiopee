@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -425,14 +425,14 @@ inline void GeomAlgo<K_MESH::Triangle>::get_swapE
     q21 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Ni), pos.col(Nj), pos.col(Nk)) : K_MESH::Triangle::qualityG<2>(pos.col(Ni), pos.col(Nj), pos.col(Nk));
     q22 = (ROWS == 3) ? K_MESH::Triangle::qualityG<3>(pos.col(Ni), pos.col(Nk), pos.col(Nl)) : K_MESH::Triangle::qualityG<2>(pos.col(Ni), pos.col(Nk), pos.col(Nl));
 
-    double qmin0 = MIN2(q11,q12); 
-    double rmin = (qmin0 == 0.) ? NUGA::FLOAT_MAX : MIN2(q21, q22) / qmin0;
+    E_Float qmin0 = MIN2(q11,q12); 
+    E_Float rmin = (qmin0 == 0.) ? NUGA::FLOAT_MAX : MIN2(q21, q22) / qmin0;
 
     if (rmin < 1.) //worst cannot get even worst
       continue;
 
-    double qmax0 = MAX(q11,q12); 
-    double rmax = (qmax0 == 0.) ? NUGA::FLOAT_MAX : MAX(q21, q22) / qmax0;
+    E_Float qmax0 = MAX(q11,q12); 
+    E_Float rmax = (qmax0 == 0.) ? NUGA::FLOAT_MAX : MAX(q21, q22) / qmax0;
 
     // We want the quality improvement for the total
     // But if the worst improves much than the best deteriorates, it s OK

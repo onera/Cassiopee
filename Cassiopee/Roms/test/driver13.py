@@ -1,12 +1,10 @@
-# driver: parametric boolean
-import OCC.Driver as D
-import Geom
-import Converter
-import Generator
+# driver: parametric boolean + dmesh
+import Roms.Driver as D
+import Converter.PyTree as C
 
 # Create parameter
-length = D.Scalar('length', 12.)
-length.range = [1, 15, 1]
+length = D.Scalar('length')
+length.range = [3., 5., 0.1]
 
 # Create sketch 1
 circle1 = D.Circle('circle1', (0,0,0), 1.)
@@ -26,7 +24,7 @@ sketch3 = D.Sketch('sketch3', [circle3])
 # Create sketch 4
 circle4 = D.Circle('circle4', (0,0,1), 0.5)
 sketch4 = D.Sketch('sketch4', [circle4])
-D.Eq(circle4.P[0].z.s, length.s)
+D.Eq(circle4.P[0].z, length)
 
 # surface2
 surface2 = D.Loft('surface2', [sketch3, sketch4])
@@ -38,19 +36,25 @@ surface2.position.z.v = 2.
 
 # surface finale
 #surface = D.Merge('surface', listSurfaces=[surface1,surface2])
-surface = D.Union('surface', listSurfaces1=[surface1], listSurfaces2=[surface2])
+surface = D.Union('surface', listSurfaces1=[surface1], listSurfaces2=[surface2], h=[0.1,0.1,0.1])
 
 # test
-D.DRIVER.solve2()
-D.DRIVER.instantiate({'length': 10})
+D.DRIVER.solve()
+D.DRIVER.instantiate({'length': 4.})
+#surface.writeCAD('out.step')
+m = surface.MeshAsReference()
+#C.convertPyTree2File(m, 'out.cgns')
 
-surface.writeCAD('out.step')
-
-import CPlot, time
+import CPlot.PyTree as CPlot, time
 point = D.DRIVER.walkDOE()
+i = 0
 while point is not None:
     D.DRIVER.instantiate(point)
-    mesh = surface.mesh(0.1, 0.1, 0.1)
-    CPlot.display(mesh)
+    #mesh = surface.Mesh()
+    m = surface.Dmesh()
+    C.convertPyTree2File(m, 'out%02d.cgns'%i)
+    CPlot.display(m)
     point = D.DRIVER.walkDOE()
     time.sleep(0.5)
+    i += 1
+print("done", flush=True)

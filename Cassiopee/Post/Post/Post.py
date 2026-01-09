@@ -284,7 +284,6 @@ def exteriorFacesForOneArray__(a, indices):
         try:
             import Generator
             a = Converter.convertArray2NGon(a)
-            a = Generator.close(a)
         except: pass
     return post.exteriorFaces(a, indices)
 
@@ -971,7 +970,7 @@ def isoSurf(array, var, value, split='simple'):
 
 #==============================================================================
 def isoSurfMC(array, var, value, split='simple'):
-    """Compute an isoSurf correponding to value of field 'var' in
+    """Compute an isoSurf corresponding to value of field 'var' in
     volume arrays.
     Usage: isoSurfMC(array, 'Density', 1.2)"""
     try: import Transform

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -42,11 +42,11 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   //
   E_Float normal[3], MINQUAL{ ZERO_M }, BADQUAL_RTOL{ 0.25 }; //bad qual => we need to make it vanish => has to fall into spike/hat/small so big tol..
   K_MESH::Triangle::normal(crd.col(N0), crd.col(N1), crd.col(N2), normal);
-  E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+  E_Float l2 = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   //
   bool normal_failure = !(::fabs(l2 - 1.) < EPSILON);
   
-  double q = K_MESH::Triangle::qualityG<3>(crd.col(N0), crd.col(N1), crd.col(N2));
+  E_Float q = K_MESH::Triangle::qualityG<3>(crd.col(N0), crd.col(N1), crd.col(N2));
   bool good_qual = (q > MINQUAL);
 
   std::pair<E_Float, E_Int> palma[3];
@@ -65,10 +65,6 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   E_Float& Lbase2 = palma[2].first;
   //E_Float& Lmin2 = palma[0].first;
 
-  /*std::cout << "Lmin : " << ::sqrt(palma[0].first) << std::endl;
-  std::cout << "Lmax : " << ::sqrt(palma[2].first) << std::endl;
-  std::cout << " ratio : " << ::sqrt(palma[0].first / palma[2].first) << std::endl;*/
-
   E_Float lambda;
   E_Float d = K_MESH::Edge::edgePointMinDistance<3>(crd.col(N[(n + 1) % 3]), crd.col(N[(n + 2) % 3]), crd.col(Ntop), lambda);
   if (!normal_failure && (d*d > tol2) && good_qual) return OK;
@@ -80,9 +76,6 @@ SwapperT3::eDegenType SwapperT3::degen_type2(const K_FLD::FloatArray& crd, E_Int
   // the factor 4 is for implicit small : if the projected point cut in 2 pieces smaller than tol <=> Lbase < 2* tol
   if (Lbase2 < 4.*tol2)
     return SMALL;
-
-  //assert(lambda >= -1.e-15 && lambda <= 1. + 1.e-15);
-  //std::cout << "lambda : " << lambda << std::endl;
 
   if ( (lambda < lambdac) || (lambda*lambda*Lbase2 < tol2) )
   {
@@ -404,7 +397,7 @@ void SwapperT3::edit_T3_caracs(const K_FLD::FloatArray& crd, E_Int* pN)
       himin = n;
     }
     
-    E_Float d = ::sqrt(NUGA::sqrDistance(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), 3));
+    E_Float d = sqrt(NUGA::sqrDistance(crd.col(pN[n]), crd.col(pN[(n + 1) % 3]), 3));
     
     if (d < Lmin)
     {

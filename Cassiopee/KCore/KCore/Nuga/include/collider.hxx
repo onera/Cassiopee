@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -255,7 +255,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
                      std::vector<E_Int>& is_x1/*1-based w negval for abutt*/,
                      std::vector<E_Int>& is_x2/*1-based w negval for abutt*/,
                      E_Float RTOL, 
-                     double ps_min = 0.99/*overlap criterion*/,bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
+                     E_Float ps_min=0.99/*overlap criterion*/, bool swap = true, const E_Float* norm2 = nullptr) //norm2 when right direction is known upon entry
 {
   is_x1.clear();
   is_x2.clear();
@@ -315,8 +315,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
     for (E_Int n=0; n < nb_nodes;++n)
       Lref = MIN(Lref, L(0,nodes[n]-1));
 
-    E_Float abstol = MAX(ZERO_M, RTOL*::sqrt(Lref));
-    //std::cout << "compute_overlap for VOL : " << abstol << std::endl;
+    E_Float abstol = MAX(ZERO_M, RTOL*sqrt(Lref));
     for (j = 0; (j < cands2.size()); ++j)
     {
       E_Int J = cands2[j];
@@ -327,7 +326,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const ngon_unit& PGs1,
       if (norm2 == nullptr)
         ELT2::template normal<crd_t, 3>(crd2, nodes2, nb_nodes2, 1, n2);
       
-      double ps = NUGA::dot<3>(n1,n2);
+      E_Float ps = NUGA::dot<3>(n1,n2);
       if (::fabs(ps) < ps_min) continue;
       
       // Polygons pairs are now roughly overlapping/parallel : important in order to have a relevant result when using simplicial_colliding with Triangle::overlap
@@ -422,11 +421,9 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
     for (E_Int n=0; n < nb_nodes;++n)
       Lref = MIN(Lref, L(0,nodes[n]-1));
 
-    E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
+    E_Float abstol = MAX(EPSILON, RTOL*sqrt(Lref));
     E_Float u00, u01, u10, u11;
     E_Bool overlap = false;
-
-    //std::cout << abstol << std::endl;
     
     for (j = 0; (j < cands2.size()); ++j)
     {
@@ -451,7 +448,7 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
         E_Float d1[3], d2[3];
         NUGA::diff<3>(crd1.col(nodes[1]),  crd1.col(nodes[0]),  d1);
         NUGA::diff<3>(crd2.col(nodes2[1]), crd2.col(nodes2[0]), d2);
-        double ps = NUGA::dot<3>(d1,d2);
+        E_Float ps = NUGA::dot<3>(d1,d2);
 
         if (ps < 0.) // ABUTTING
         {
@@ -470,12 +467,12 @@ void compute_overlap(const K_FLD::FloatArray& crd1, const K_FLD::IntArray& edges
 
 ///
 template <typename aelt_t, typename bound_mesh_t>
-bool get_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool only_first_found);
+bool get_colliding(const aelt_t& e1, const bound_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, E_Float RTOL, bool only_first_found);
 
 /// Polygon vs polyLine impl.
 template <> inline
 bool get_colliding<NUGA::aPolygon, edge_mesh_t>
-(const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
+(const NUGA::aPolygon& ae1, const edge_mesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, E_Float RTOL, bool first_found)
 {
  
   bool hasX(false);
@@ -483,20 +480,20 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
   // reduce mask to candidates
   edge_mesh_t lmask(mask_bit, cands, idx_start);
 
-  double normal1[3];
+  E_Float normal1[3];
   ae1.normal<3>(normal1);
-  const double * plane_pt = ae1.m_crd.col(0); // choosing first node
+  const E_Float* plane_pt = ae1.m_crd.col(0); // choosing first node
 
 #ifdef DEBUG_XCELLN
   //medith::write("cutter_front_before_projection", lmask.crd, lmask.cnt);
 #endif
 
-  double l21 = ae1.Lref2();
-  double l22 = lmask.Lref2();//compute it before proj
-  double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
+  E_Float l21 = ae1.Lref2();
+  E_Float l22 = lmask.Lref2();//compute it before proj
+  E_Float ATOL(RTOL * sqrt(std::min(l21, l22)));
 
   // project candidates on e1's plane => 2D problem
-  STACK_ARRAY(double, lmask.crd.cols(), signed_dists);
+  STACK_ARRAY(E_Float, lmask.crd.cols(), signed_dists);
   for (int i = 0; i < lmask.crd.cols(); ++i)
   {
     // orthogonal projection on a plane (projection dir is the normal to the plane)
@@ -512,28 +509,23 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
     int e1 = lmask.cnt(0, i);
     int e2 = lmask.cnt(1, i);
 
-    double z1 = signed_dists[e1];
-    double z2 = signed_dists[e2];
+    E_Float z1 = signed_dists[e1];
+    E_Float z2 = signed_dists[e2];
 
     if (z1*z2 < 0.) continue; // means crossing 
 
-    double mz = std::min(::fabs(z1), ::fabs(z2));
+    E_Float mz = std::min(::fabs(z1), ::fabs(z2));
     keep[i] = (mz < ATOL);
   }
 
   K_CONNECT::keep<bool> pred(keep);
   K_CONNECT::IdTool::compress(cands, pred);
 
-  if (cands.empty())
-    return false;
+  if (cands.empty()) return false;
 
   lmask.compress(keep);
 
   // close enough so go to 2D for real test
-
-#ifdef DEBUG_XCELLN
-  //medith::write("cutter_front_projected", lmask.crd, lmask.cnt);
-#endif
 
   // compute collision between e1 and each candidate until founding one collision
 
@@ -623,7 +615,7 @@ bool get_colliding<NUGA::aPolygon, edge_mesh_t>
 /// Polyhedron vs surface impl.
 template <> inline
 bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
-(const NUGA::aPolyhedron<UNKNOWN>& ae1, const pg_smesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, double RTOL, bool first_found)
+(const NUGA::aPolyhedron<UNKNOWN>& ae1, const pg_smesh_t& mask_bit, std::vector<E_Int>& cands, E_Int idx_start, E_Float RTOL, bool first_found)
 {
   bool hasX(false);
 
@@ -635,9 +627,9 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   medith::write("lmask", lmask.crd, lmask.cnt);
 #endif
 
-  //double l21 = ae1.Lref2();
-  //double l22 = lmask.Lref2(cands, idx_start);
-  //double ATOL(RTOL * ::sqrt(std::min(l21, l22)));
+  //E_Float l21 = ae1.Lref2();
+  //E_Float l22 = lmask.Lref2(cands, idx_start);
+  //E_Float ATOL(RTOL * sqrt(std::min(l21, l22)));
 
   // compute collision between e1 and each candidate until founding one collision
 
@@ -646,8 +638,7 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
   //ae1.triangulate(dt);
   //ae1.cvx_triangulate(ae1.m_crd);
 
-  double Lref21 = ae1.Lref2();
-  
+  E_Float Lref21 = ae1.Lref2();
 
   // (b. projection for 2D)
 
@@ -662,9 +653,9 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
 
     K_MESH::Polygon e2 = lmask.element(cands[j] - idx_start);
 
-    double Lref22 = e2.Lref2(lmask.crd);
+    E_Float Lref22 = e2.Lref2(lmask.crd);
 
-    double abstol = RTOL * ::sqrt(std::min(Lref21, Lref22));
+    E_Float abstol = RTOL * sqrt(std::min(Lref21, Lref22));
 
     //do not pass the tol as we use here a predicate
     E_Int t1, t2;
@@ -702,7 +693,7 @@ bool get_colliding<NUGA::aPolyhedron<UNKNOWN>, pg_smesh_t>
 /// Vertex vs surface impl.
 template <> inline
 bool get_colliding<vertex, pg_smesh_t>
-(const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, double ARTOL, bool first_found_dummy)
+(const vertex& pt, const pg_smesh_t& surface, std::vector<E_Int>& cands, E_Int idx_start, E_Float ARTOL, bool first_found_dummy)
 {
   cands.clear();
   if (surface.ncells() == 0) return false;
@@ -711,7 +702,7 @@ bool get_colliding<vertex, pg_smesh_t>
 
   if (ARTOL < 0.)// relative
   {
-    double Lref = ::sqrt(pt.val2);
+    E_Float Lref = sqrt(pt.val2);
     ARTOL *= -Lref;
   }
 
@@ -729,7 +720,7 @@ bool get_colliding<vertex, pg_smesh_t>
 }
 /// above wrapper for list of vertices : returns indir 'pt to faces'
 inline void get_colliding
-(const std::vector<vertex>& pts, const pg_smesh_t& surface, double ARTOL, eMetricType mtype, std::vector<std::vector<E_Int>>& pt_to_elt)
+(const std::vector<vertex>& pts, const pg_smesh_t& surface, E_Float ARTOL, eMetricType mtype, std::vector<std::vector<E_Int>>& pt_to_elt)
 {
   pt_to_elt.clear();
   if (surface.ncells() == 0) return;
@@ -774,15 +765,15 @@ inline void get_colliding
         const E_Float * P2 = surface.crd.col(T[2]);
 
         bool interfere, inside;
-        double d = K_MESH::Triangle::minDistanceToPoint(P0, P1, P2, pts[i].vec, UV, interfere, inside);
+        E_Float d = K_MESH::Triangle::minDistanceToPoint(P0, P1, P2, pts[i].vec, UV, interfere, inside);
         if (!interfere) continue;
 
         // check PG is not too far
-        double TOLi = ARTOL;
+        E_Float TOLi = ARTOL;
         if (ARTOL < 0.) // relative
         {
-          double PGLref2 = PG.Lref2(surface.crd);// (surface.nodal_metric2);
-          TOLi *= -::sqrt(std::min(pts[i].val2, PGLref2));
+          E_Float PGLref2 = PG.Lref2(surface.crd);// (surface.nodal_metric2);
+          TOLi *= -sqrt(std::min(pts[i].val2, PGLref2));
         }
 
         if (d >= TOLi) continue;
@@ -801,7 +792,6 @@ void compute(const mesh_t1& m1, const mesh_t2& m2,
   std::vector<bool>& is_x1, std::vector<bool>& is_x2, E_Float RTOL = ZERO_M,
   bool roughly_by_bbox = false)
 {
-  //
   is_x1.resize(m1.ncells(), 0);
   is_x2.resize(m2.ncells(), 0);
 

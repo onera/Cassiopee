@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,7 +23,6 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
-#include "BRepPrimAPI_MakeSphere.hxx"
 #include "BRep_Builder.hxx"
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
@@ -188,8 +187,8 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     mults(1) = degree+1;
     mults(nk) = degree+1;
     
-    for (E_Int i = 1; i <= nk; i++)
-      printf("%d: knot=%g, mult=%d\n", i, knots(i), mults(i));
+    //for (E_Int i = 1; i <= nk; i++)
+    //  printf("%d: knot=%g, mult=%d\n", i, knots(i), mults(i));
 
     Handle(Geom_BSplineCurve) spline =
       new Geom_BSplineCurve(cp, knots, mults, degree);

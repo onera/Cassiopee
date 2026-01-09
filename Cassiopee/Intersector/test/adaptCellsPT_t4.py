@@ -12,11 +12,9 @@ a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))
 d = G.cart((1,0.,0.), (1,1,1),(2,1,1))
 a = G.addNormalLayers(a, d)
 a = C.convertArray2NGon(a)
-a = G.close(a)
 
 b = G.cart((0.2,0.2,-0.5), (0.01,0.01,0.01),(5,5,5))
 b = C.convertArray2NGon(b)
-b = G.close(b)
 
 #C.convertPyTree2File(a,'nonreg_prism.cgns')
 #C.convertPyTree2File(b,'nonreg_prism_source.cgns')

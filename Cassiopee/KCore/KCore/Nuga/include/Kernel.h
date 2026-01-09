@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -153,14 +153,14 @@ public:
  size_type _Nmatch;
 #ifdef E_TIME
 public:
-  double inval_time;
-  double remesh_time;
-  double cavity_time;
-  double init_cavity_time;
-  double sorting_bound_time;
-  double fix_cavity_time;
-  double _base_time;
-  double _append_time;
+  E_Float inval_time;
+  E_Float remesh_time;
+  E_Float cavity_time;
+  E_Float init_cavity_time;
+  E_Float sorting_bound_time;
+  E_Float fix_cavity_time;
+  E_Float _base_time;
+  E_Float _append_time;
 #endif
 
 };

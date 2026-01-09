@@ -45,7 +45,7 @@ setup(
     name="Transform",
     version="4.1",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Transform'],
     ext_modules=[Extension('Transform.transform',

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,7 +52,7 @@ E_Float Tetrahedron::quality(const K_FLD::FloatArray& crd, E_Float* Vol)
   E_Float S(.0), V;
   E_Int i0, i1, i2;
   const E_Float *p0, *p1, *p2, *p3;
-  E_Float Q=12.*::sqrt(1.5);
+  E_Float Q=12.*sqrt(1.5);
     
   for (int i=0; i<4; i++)
   {
@@ -76,7 +76,7 @@ E_Float Tetrahedron::quality(const K_FLD::FloatArray& crd, E_Float* Vol)
   
   *Vol = V =::fabs(volume(p0, p1, p2, p3));
   
-  return Q*V/(::sqrt(Lmax2)*S);
+  return Q*V/(sqrt(Lmax2)*S);
 }
 
 ///

@@ -6,7 +6,7 @@ import Converter as C
 a = D.naca(12.)
 
 # Naca serie 4 by name
-b = D.naca('0012', N=301, sharpte=1)
+b = D.naca('0012', N=31, sharpte=1)
 
 # Naca serie 5 by name
 c = D.naca('23012', N=301, sharpte=1)

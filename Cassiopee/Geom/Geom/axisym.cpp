@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -292,9 +292,6 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
   */
 
   E_Float tetai, rm=1.;
-  //printf("xc,yc,zc %f %f %f\n", xrC, yrC, zrC);
-  //printf("axis0 %f %f %f\n", om0x,om0y,om0z);
-  //printf("axis1 %f %f %f\n", om1x,om1y,om1z);
   E_Float omx, omy, omz, X, Y;
   for (E_Int k = 0; k < nteta; k++)
   {
@@ -306,8 +303,6 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
       tetai = atan2(Y, X);
       if (tetai < 0) tetai = 2*pi+tetai;
       rm = sqrt(omx*omx+omy*omy+omz*omz); // r(teta) factor
-      //printf("%d -  tetai=%f, r=%f\n", k, tetai, rm);
-      //tetai = k*dteta;
     }
     else tetai = k*dteta;
     k6axisym(npts0, xt0, yt0, zt0, xc, yc, zc, nx, ny, nz, tetai, rm,

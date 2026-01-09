@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -28,7 +28,7 @@ using namespace K_FUNC;
 //=============================================================================
 /* Add a separation line to a geometry */
 //=============================================================================
-PyObject* K_GEOM::addSeparationLineMesh(PyObject* self, PyObject* args)
+PyObject* K_GEOM::addSeparationLine(PyObject* self, PyObject* args)
 {
   E_Float d, x, y, z, x2, y2, z2;
   E_Int i, ind;

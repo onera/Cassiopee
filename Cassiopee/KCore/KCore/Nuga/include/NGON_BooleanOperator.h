@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -1426,7 +1426,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
     std::cout << pcentroids(0,i) << "/" << pcentroids(1,i) << "/" << pcentroids(2,i) << std::endl;
     std::cout << pcentroids2(0,i) << "/" << pcentroids2(1,i) << "/" << pcentroids2(2,i) << std::endl;
     
-    E_Float d = ::sqrt(NUGA::sqrDistance(pcentroids.col(i), pcentroids2.col(i), 3));
+    E_Float d = sqrt(NUGA::sqrDistance(pcentroids.col(i), pcentroids2.col(i), 3));
     
   }*/
   
@@ -1506,7 +1506,7 @@ E_Int NGON_BOOLEAN_CLASS::volume_and_centroid_coefficients
     acuG[1] /= vcumul;
     acuG[2] /= vcumul;
     
-    E_Float d = ::sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(rec_PHi), 3));
+    E_Float d = sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(rec_PHi), 3));
     if (d > EPSILON)
       std::cout << "barycenter calulation is inconsistent" << std::endl;
 #endif
@@ -1686,7 +1686,7 @@ E_Int NGON_BOOLEAN_CLASS::conservative_transfer
     E_Float recGx = rec_centroids(0, reci);
     E_Float recGy = rec_centroids(1, reci);
     E_Float recGz = rec_centroids(2, reci);
-    E_Float d = ::sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(reci), 3));
+    E_Float d = sqrt(NUGA::sqrDistance(acuG, rec_centroids.col(reci), 3));
     dmax = (d > dmax) ? d: dmax;
     assert (d < EPSILON);
 #endif
@@ -4072,7 +4072,7 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
     NUGA::crossProduct<3>(normals.col(K0), normals.col(Ki), nk);
     E_Float s2 = NUGA::sqrNorm<3>(nk);
     E_Float c = NUGA::dot<3>(normals.col(K0), normals.col(Ki));
-    E_Float alpha = ::atan2(::sqrt(s2), c); 
+    E_Float alpha = ::atan2(sqrt(s2), c); 
     //alpha = NUGA::PI + alpha;
     std::cout << "alpha : " << alpha << std::endl;
     std::cout << std::endl;  
@@ -4169,13 +4169,8 @@ E_Int NGON_BOOLEAN_CLASS::__sort_T3_sharing_an_edge
       o << "sorted_on_edge_" << E0 << "_" << E1 << ".mesh";
       medith::write(o.str().c_str(), coord, sorted_cnt, "TRI", 0, &colors);
 
-      std::cout << "DMIN : " << ::sqrt(dmin) << std::endl;
+      std::cout << "DMIN : " << sqrt(dmin) << std::endl;
     }
-    /*{
-      std::ostringstream o;
-      o << "Wsorted_on_edge_" << E0 << "_" << E1 << ".mesh";
-      TRI_debug::write_wired(o.str().c_str(), coord, connectT3, normals, 0, &keep,true);
-    }*/
   }
 #endif
 
@@ -5071,7 +5066,7 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
   std::vector<bool> freeze(connectT3.cols(), false);
 
   // reorder pair per quality, putting also worst quality triangle first in each pair
-  std::vector<std::pair<double, std::pair<E_Int, E_Int>>> q_to_pairs;
+  std::vector<std::pair<E_Float, std::pair<E_Int, E_Int>>> q_to_pairs;
   for (auto& p : faultyT3_pairs)
   {
     E_Int K1 = p.first;
@@ -5117,7 +5112,7 @@ bool NGON_BOOLEAN_CLASS::__fix_degen_for_turning_left
   //
   for (auto& q2p : q_to_pairs)
   {
-    //double q     = q2p.first;
+    //E_Float q = q2p.first;
     E_Int worstK = q2p.second.first;
     E_Int K2     = q2p.second.second;
 

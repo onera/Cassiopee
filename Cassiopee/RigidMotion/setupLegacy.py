@@ -47,7 +47,7 @@ setup(
     name="RigidMotion",
     version="4.1",
     description="Rigid motion module.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['RigidMotion'],
     ext_modules=[Extension('RigidMotion.rigidMotion',

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -21,12 +21,12 @@
 // ============================================================================
 // Etant donnes n champs definis aux noeuds d une grille 3D, 
 // calcul des champs aux centres des interfaces de la grille  
-// fint = 0.25*(fa+fb+fc+fd)
+// fint1 = 0.25*(fa+fb+fc+fd)
 // ============================================================================
 void K_POST::compIntField(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Int nfld, const E_Float* f,
-  E_Float* fint
+  E_Float* fint1
 )
 {
   E_Int ninj = ni * nj;
@@ -74,7 +74,7 @@ void K_POST::compIntField(
 
       for (E_Int eq = 0; eq < nfld; eq++)
       {
-        fint[li * nfld + eq] = K_CONST::ONE_FOURTH *(
+        fint1[li * nfld + eq] = K_CONST::ONE_FOURTH *(
           f[l1 * nfld + eq] + f[l2 * nfld + eq] +
           f[l3 * nfld + eq] + f[l4 * nfld + eq]
         );
@@ -95,7 +95,7 @@ void K_POST::compIntField(
 
       for (E_Int eq = 0; eq < nfld; eq++)
       {
-        fint[lj * nfld + eq] = K_CONST::ONE_FOURTH *
+        fint1[lj * nfld + eq] = K_CONST::ONE_FOURTH *
           (f[l1 * nfld + eq] + f[l2 * nfld + eq] +
           f[l3 * nfld + eq] + f[l4 * nfld + eq]);
       }
@@ -115,7 +115,7 @@ void K_POST::compIntField(
 
       for (E_Int eq = 0; eq < nfld; eq++)
       {
-        fint[lk * nfld + eq] = K_CONST::ONE_FOURTH *
+        fint1[lk * nfld + eq] = K_CONST::ONE_FOURTH *
           (f[l1 * nfld + eq] + f[l2 * nfld + eq] +
           f[l3 * nfld + eq] + f[l4 * nfld + eq]);
       }

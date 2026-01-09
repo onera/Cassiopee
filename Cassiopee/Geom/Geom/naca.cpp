@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,18 +20,6 @@
 
 using namespace std;
 using namespace K_FLD;
-
-extern "C"
-{
-  void k6naca2_(const E_Float& e, E_Int& N,
-                E_Float* x, E_Float* y, E_Float* z);
-  void k6nacas4g_(E_Int& im, E_Int& ip, E_Int& it, E_Int& sharpte,
-                  E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
-  void k6nacas5g_(E_Int& il, E_Int& ip, E_Int& iq, E_Int& it, E_Int& sharpte,
-                  E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
-  void k6nacas4m_(E_Int& im, E_Int& ip, E_Int& ith, E_Int& it, E_Int& ii, E_Int& sharpte,
-                  E_Int& npt, E_Float* x, E_Float* y, E_Float* z, E_Float* xl);
-}
 
 /*
   naca avec fermeture de Van Rouzaud
@@ -499,7 +487,7 @@ void k6nacas4m(E_Int im, E_Int ip, E_Int ith,
 // ============================================================================
 /* Create a naca profile line of N points */
 // ============================================================================
-PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
+PyObject* K_GEOM::naca(PyObject* self, PyObject* args)
 {
   E_Int N; E_Float e;
   E_Int im, ip, it, ith, iq, sharpte;
@@ -531,7 +519,7 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     E_Int n = E_Int(N);
     FldArrayF coord(N, 3);
     coord.setAllValuesAtNull();
-    k6naca2_(e, n, coord.begin(1), coord.begin(2), coord.begin(3));
+    k6naca2(e, n, coord.begin(1), coord.begin(2), coord.begin(3));
     coord.reAllocMat(n, 3);
     tpl = K_ARRAY::buildArray3(coord, "x,y,z", n, 1, 1, api);
   }
@@ -566,22 +554,39 @@ PyObject* K_GEOM::nacaMesh(PyObject* self, PyObject* args)
     if (im > -0.5 && ip > -0.5 && ith > -0.5 && it > -0.5 && iq > -0.5)
     {
       // iq used as ii
-      k6nacas4m_(im, ip, ith, it, iq, sharpte,
-                 npt, x, y , z, xl.begin());
+      k6nacas4m(im, ip, ith, it, iq, sharpte,
+                npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && iq > -0.5 && it > -0.5)
     {
       // im used as il
-      k6nacas5g_(im, ip, iq, it, sharpte,
-                 npt, x, y , z, xl.begin());
+      k6nacas5g(im, ip, iq, it, sharpte,
+                npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && it > -0.5)
     {
-      k6nacas4g_(im, ip, it, sharpte,
-                 npt, x, y , z, xl.begin());
+      k6nacas4g(im, ip, it, sharpte,
+                npt, x, y , z, xl.begin());
     }
-    coord.reAllocMat(N, 3);
-    tpl = K_ARRAY::buildArray3(coord, "x,y,z", N, 1, 1, api);
+    // change numerotation
+    FldArrayF coord2(2*npt, 3);
+    E_Float* x2 = coord2.begin(1);
+    E_Float* y2 = coord2.begin(2);
+    E_Float* z2 = coord2.begin(3);
+    for (E_Int i = 0; i < npt; i++)
+    {
+      x2[i] = x[npt-1-i];
+      y2[i] = y[npt-1-i];
+      z2[i] = z[npt-1-i];
+    }
+    for (E_Int i = 0; i < npt; i++)
+    {
+      x2[i+npt] = x[2*npt-3-i];
+      y2[i+npt] = y[2*npt-3-i];
+      z2[i+npt] = z[2*npt-3-i];
+    }
+    coord2.reAllocMat(N, 3);
+    tpl = K_ARRAY::buildArray3(coord2, "x,y,z", N, 1, 1, api);
   }
 
   return tpl;

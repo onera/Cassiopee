@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,6 @@
 #define EPSILON      1.e-12
 
 #define Vector_t     std::vector
-#define SQRT         std::sqrt
 
 #define SIGN(a) ((a < -ZERO_M) ? -1 : ((a > ZERO_M) ? 1 : 0))  
 

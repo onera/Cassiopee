@@ -3,45 +3,75 @@ import Roms.DB.DataBase as DataBase
 import Converter.PyTree as C
 import sys
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("kdb: wrong arguments.")
-        print("kdb: usage: kdb <name.db>")
-        sys.exit(1)
-
-    # argument 1 is the data base name
-    baseName = sys.argv[1]
+def usage():
+    print("kdb: list: kdb -l <name.db> (e.g. kdb -l Local.db)")
+    print("kdb: query: kdb -q <name.db> <query> ")
+    print("kdb: query verbose: kdb -qv <name.db> <query> ")
+    print("kdb: fetch: kdb -f <name.db> <query> \n ")
+    print("kdb: join: kdb -j <name1.db> <name2.db> \n ")
     
-    # argument 2 is the command
-    if len(sys.argv) == 3: com = sys.argv[2]
-    else: com = None
+    print("<query> needs to be enclosed by \"\"")
+    print("Examples of <query>:")
+    print("‣ kdb -q Local.db \"id\" ; query all ids")
+    print("‣ kdb -q Local.db \"id<10\" ; where id is the number of the case in the database")
+    print("‣ kdb -q Local.db \"AoA<10 AND Mach=0.3\" ; where AoA & Mach are parameters in the dabatase")
+    
+    sys.exit(1)
 
+if __name__ == "__main__":
+    if len(sys.argv) < 2 or len(sys.argv) > 4:
+        print("kdb: wrong arguments.")
+        usage()
+
+    # argument 1 must be the command (-q or -f or -l)
+    com = sys.argv[1]
+    if com not in ['-q', '-qv', '-f', '-l', '-h', '-j']:
+        print("kdb: invalid command.")
+        exit(1)
+    
+    # argument 2 must be the data base name    
+    if len(sys.argv) >= 3: baseName = sys.argv[2]
+    else: baseName = None
+
+    # argument 3 must be the sql query
+    if len(sys.argv) >= 4: query = sys.argv[3]
+    else: query = None
+    
+    flagsLocal = ['-f', '-q', '-qv']
+    if com in flagsLocal:
+        if baseName is None:
+            print("kdb: baseName is missing.")
+            exit(1)
+        if query is None:
+            print("kdb: query is missing.")
+            exit(1)
+
+    if com == '-h':
+        usage()            
+
+    # open db
     db = DataBase.DataBase(baseName)
 
-    # catalog
-    if com is None:
-        # liste rows in db and print them
-        
-        print('='*9*len(db.columns))
-        txt = ''
-        for i in db.columns:
-            txt += str(i)[0:8].ljust(9)
-        print(txt)
-        print('='*9*len(db.columns))
-            
+    if com == '-l': # list
         q = db.query()
-        for r in q:
-            #txt = str(r[0]).ljust(5),r[1].ljust(10), r[2].ljust(10), r[3].ljust(5)
-            txt = ''
-            for i in r:
-                txt += str(i)[0:8].ljust(9)
-            print(txt)
-            
-    else:
-        # fetch one id
-        id = int(com)
-        q = db.query("id = %d"%id)
+        db.print(q, mode=0)
+    elif com == '-q': # query
+        q = db.query(query)
+        db.print(q, mode=1)
+    elif com == '-qv': # verbose query
+        q = db.query(query)
+        db.print(q, mode=1, fullListVar=True)
+    elif com == '-f': # fetch
+        q = db.query(query)
         t = db.fetchTree(q)
-        C.convertPyTree2File(t[0], 'out.cgns')
-
+        for c, ti in enumerate(t):
+            id = q[c][0]
+            C.convertPyTree2File(ti, 'out%05d.cgns'%id)
+    elif com == '-j': # join
+        baseName2 = query
+        db2 = DataBase.DataBase(baseName2, mode="r")
+        db.join(db2)
+        db2.close()
+    
+    # close db
     db.close()

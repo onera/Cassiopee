@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -469,7 +469,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       {
         //regarder si dh > snear ? 
         snear = K_FUNC::E_min(snears[v], snear);
-        if (dh > snear-tol && dh != snear) found = 1;
+        if (dh-tol > snear && dh != snear) found = 1;
       }
       indicesBB.clear();
     }

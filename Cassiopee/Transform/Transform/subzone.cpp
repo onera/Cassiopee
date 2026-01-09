@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -168,7 +168,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
                     "subzone: cannot be used on a structured array.");
     RELEASESHAREDS(array, f); return NULL;
   }
-  if (strcmp(eltType,"NGON") == 0)
+  if (strcmp(eltType, "NGON") == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: type='nodes' not implemented for a NGON array.");

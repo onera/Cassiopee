@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -21,6 +21,11 @@
 #include <limits.h>
 #include <stdint.h>
 
+// E_ADOLC set by compilation option
+#ifdef E_ADOLC
+#include <adolc/adolc.h>
+#endif
+
 // ==========================================================================
 #ifndef _KCORE_DEF_DEFTYPES_H_
 #define _KCORE_DEF_DEFTYPES_H_
@@ -34,14 +39,15 @@
 // Essai pour trouver si long long existe (8 octets)
 #ifdef LLONG_MAX
   #define E_LONG long long
-//int64_t
-//long long
+  //#define E_LONG int64_t
 #else
   #define E_LONG long
 #endif
 
 #ifdef E_DOUBLEREAL
+  #ifndef E_ADOLC
   typedef double E_Float;
+  #endif
   #ifdef E_MPI
     #define E_PCM_FLOAT MPI_DOUBLE
   #else
@@ -90,6 +96,10 @@
 #define E_EPSILON 1.e-12
 
 ///-
+
+#ifdef E_ADOLC
+typedef adouble E_Float;
+#endif
 
 #endif
 // ===== Def/DefTypes.h === Last line ===

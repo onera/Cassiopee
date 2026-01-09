@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -326,14 +326,8 @@ TRI_Conformizer<DIM>::__split_Elements
         //try again with a normalized contour
         K_SEARCH::BBox2D box;
         box.compute(pi);
-        double dX = box.maxB[0] - box.minB[0];
-        double dY = box.maxB[1] - box.minB[1];
-
-        /*{
-          K_FLD::FloatArray tmp(pi);
-          tmp.resize(3, tmp.cols(), 0.);
-          medith::write("contour_init.mesh", tmp, ci2, "BAR");
-        }*/
+        E_Float dX = box.maxB[0] - box.minB[0];
+        E_Float dY = box.maxB[1] - box.minB[1];
 
         for (int u = 0; u < pi.cols(); ++u)
         {
@@ -341,15 +335,7 @@ TRI_Conformizer<DIM>::__split_Elements
           pi(1, u) = (pi(1, u) - box.minB[1]) / dY;
         }
 
-        /*{
-          K_FLD::FloatArray tmp(pi);
-          tmp.resize(3, tmp.cols(), 0.);
-          medith::write("contour_norma.mesh", tmp, ci2, "BAR");
-        }*/
-
         err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, false/*i.e. try to force all edge*/, true/*i.e silent also last it*/);
-        //if (err == 0)
-        //  std::cout << " found " << std::endl;
       }
       if (err != 0)
         err = __iterative_run(mesher, pi, ci2, hnodes, data, lnids, true/*i.e. ignore unforceable edges*/, mode.silent_errors/*i.e output last it error eventually*/);
@@ -1748,14 +1734,14 @@ TRI_Conformizer<DIM>::__simplify_and_clean
 #ifdef DEBUG_TRI_CONFORMIZER
 template <short DIM>
 void
-TRI_Conformizer<DIM>::draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, double tol, E_Int what, K_FLD::IntArray& out)
+TRI_Conformizer<DIM>::draw(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect, E_Float tol, E_Int what, K_FLD::IntArray& out)
 {
   // OK=0, HAT = 1, SPIKE = 2, SMALL = 4, BADQUAL = 5
   
   out.clear();
 
-  double MINQUAL{ 1.e-3 };
-  double tol2 = tol * tol;
+  E_Float MINQUAL{ 1.e-3 };
+  E_Float tol2 = tol * tol;
 
   for (E_Int i = 0; i < connect.cols(); ++i)
   {
@@ -2106,9 +2092,9 @@ TRI_Conformizer<DIM>::drawElements
   if (localid)
     NUGA::MeshTool::compact_to_mesh(coord1, cOut, newIDs);
   
-  //E_Float d01 = ::sqrt(dist2(coord1.col(0), coord1.col(1)));
-  //E_Float d03 = ::sqrt(dist2(coord1.col(0), coord1.col(3)));
-  //E_Float d13 = ::sqrt(dist2(coord1.col(1), coord1.col(3)));
+  //E_Float d01 = sqrt(dist2(coord1.col(0), coord1.col(1)));
+  //E_Float d03 = sqrt(dist2(coord1.col(0), coord1.col(3)));
+  //E_Float d13 = sqrt(dist2(coord1.col(1), coord1.col(3)));
   //std::cout << "distances : " << d01 << " " << d03 << " " << d13 << std::endl;
       
   medith::write(fname, coord1, cOut, "TRI", 0, colors);

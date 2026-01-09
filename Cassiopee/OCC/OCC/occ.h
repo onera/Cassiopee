@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,6 +52,7 @@ namespace K_OCC
   PyObject* addArc(PyObject* self, PyObject* args);
   PyObject* addSuperEllipse(PyObject* self, PyObject* args);
   
+  PyObject* addSplineSurface(PyObject* self, PyObject* args);
   PyObject* addGordonSurface(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -58,7 +58,7 @@ PyObject* K_POST::selectExteriorFaces(PyObject* self, PyObject* args)
       if (dim == 2) tpl = selectExteriorFacesNGon2D(varString, *f, *cn, indices);
       else tpl = selectExteriorFacesNGon3D(varString, *f, *cn, indices);
     }
-    else tpl = exteriorFacesBasic(varString, *f, *cn, eltType, indices);
+    else tpl = selectExteriorFacesME(varString, *f, *cn, eltType, indices);
     RELEASESHAREDU(array, f, cn); 
   }
   else
@@ -253,7 +253,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
         for (n = 0; n < ni*nj; n++) fnv[n] = fv[n];
       }
     
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -279,7 +279,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
           }
       }
       
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -294,7 +294,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       if (boolIndir)
       {
         // k = 0 followed by k=nk
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -302,7 +302,8 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indint = i+j*ni1+nintij;
             indirp[noint] = indint;
           }
-        #pragma omp for
+
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -317,7 +318,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < ni; i++)
           { 
@@ -327,6 +328,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
       
       ne = 2*ni1nj1;
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -343,7 +345,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < ni; i++)
           {
@@ -353,7 +355,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
 
       ne = 2*ni1nj1 + ni1*nk1;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
@@ -369,7 +371,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         // j = 0 followed by j=nj
         ne = 2*ni1nj1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -378,7 +380,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indirp[noint] = indint;
           }
         ne = 2*ni1nj1 + ni1*nk1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int i = 0; i < ni1; i++)
           {
@@ -393,7 +395,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < nj; i++)
           { 
@@ -403,7 +405,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
 
       ne = 2*(ni1nj1 + ni1*nk1);
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < nj1; i++)
         {
@@ -420,7 +422,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         E_Float* fv = f.begin(nv);
         E_Float* fnv = fnodes->begin(nv);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 0; j < nk; j++)
           for (E_Int i = 0; i < nj; i++)
           { 
@@ -430,7 +432,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
       
       ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nk1; j++)
         for (E_Int i = 0; i < nj1; i++)
         {
@@ -446,7 +448,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       {
         // i = 0 followed by i=ni
         ne = 2*(ni1nj1 + ni1*nk1);
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int j = 0; j < nj1; j++)
           {
@@ -455,7 +457,7 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
             indirp[noint] = indint;
           }
         ne = 2*(ni1nj1 + ni1*nk1) + nj1*nk1;
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 0; k < nk1; k++)
           for (E_Int j = 0; j < nj1; j++)
           {
@@ -466,23 +468,31 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
       }
     }
 
+    if (boolIndir)
+    {
+      PyList_Append(indices, indir); Py_DECREF(indir);
+    }
+
     // Clean connectivity
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
     E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
     if (posx != 0 && posy != 0 && posz != 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 
-                                   1.e-12, newEltType,
-                                   *fnodes, *connect);
-
-    PyObject* tpl2 = K_ARRAY::buildArray3(*fnodes, varString,
-                                          *connect, newEltType, api);
-    RELEASESHAREDU(tpl, fnodes, connect);
-    if (boolIndir)
     {
-      PyList_Append(indices, indir); Py_DECREF(indir);
+      PyObject* tpl2 = K_CONNECT::V_cleanConnectivityME(
+        posx, posy, posz, varString,
+        *fnodes, *connect, newEltType, 1.e-12,
+        true, true, true, false, false
+      );
+      RELEASESHAREDU(tpl, fnodes, connect);
+      Py_DECREF(tpl);
+      return tpl2;
     }
-    return tpl2;
+    else
+    {
+      RELEASESHAREDU(tpl, fnodes, connect);
+      return tpl;
+    }
   }
   return NULL;
 }
@@ -1548,4 +1558,333 @@ short K_POST::exteriorFacesBasic(E_Int nfaces, E_Int nvertex,
   fnodes.reAllocMat(cf, nfld);
   connect.reAllocMat(cc, nvertex);
   return 1;
+}
+
+//=============================================================================
+// Recherche topologique des faces exterieures utilisant le hashing des faces
+//=============================================================================
+PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
+                                        FldArrayI& cn, char* eltType,
+                                        PyObject* indices)
+{
+  if (K_STRING::cmp(eltType, "NODE") == 0) return NULL;
+  
+  // Numpy of indices of exterior faces
+  E_Bool boolIndir = false;
+  if (indices != Py_None) boolIndir = true;
+  PyObject* indicesFaces = NULL;
+  E_Int* indicesf = NULL;
+
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  std::vector<E_Int> cumnfpc(nc+1); cumnfpc[0] = 0;  // cumulative number of faces per conn.
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+  
+  // Compute total number of faces across all connectivities
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    cumnfpc[ic+1] = cumnfpc[ic] + nelts*nfpe[ic];
+  }
+  E_Int ntotFaces = cumnfpc[nc];
+
+  // Hash faces: if a face is only visited once it is an external face
+  std::vector<E_Int> faceMask(ntotFaces);  // 0: interior, 1: exterior
+  TopologyOpt F;
+  std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > faceMap;
+  faceMap.reserve(ntotFaces);
+  E_Int face[5];
+
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    E_Int nelts, nvpf, fidx;
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    nelts = cm.getSize();
+    std::vector<std::vector<E_Int> > facets;
+    K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+  
+    for (E_Int i = 0; i < nelts; i++)
+    {
+      // Loop over each facet of this element
+      for (E_Int f = 0; f < nfpe[ic]; f++)
+      {
+        fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+        nvpf = facets[f].size();  // number of vertices per facet
+        // Fill face and insert in map
+        for (E_Int j = 0; j < nvpf; j++) face[j] = cm(i, facets[f][j]);
+        F.set(face, nvpf);
+        auto res = faceMap.insert(std::make_pair(F, fidx));
+        if (res.second) faceMask[fidx] = 1;  // first occurence of that face: tag as exterior
+        else
+        {
+          // duplicate: this face and the one found in the map are interior faces
+          faceMask[fidx] = 0;
+          faceMask[res.first->second] = 0;
+        }
+      }
+    }
+  }
+
+  // Free memory
+  faceMap.clear(); faceMap.rehash(0);
+
+  // There is a total 4 possible conns: NODE, BAR, TRI and QUAD
+  const E_Int nbuckets = 4;
+  // Uniform chunks (schedule: static) with at most 'nfc' faces per thread
+  const E_Int nthreads = __NUMTHREADS__;
+  // Thread-related arrays are prefixed with 't'. For each thread:
+  //  - tnextfpc: number of exterior faces found in each *input* connectivity
+  E_Int** tnextfpc = new E_Int* [nthreads];
+  //  - toffset: cumulative number of exterior faces found in each *output*
+  //             connectivity
+  E_Int** toffset = new E_Int* [nthreads+1];
+  for (E_Int tid = 0; tid < nthreads; tid++)
+  {
+    tnextfpc[tid] = new E_Int [nbuckets];
+    toffset[tid] = new E_Int [nbuckets];
+    for (E_Int ic = 0; ic < nbuckets; ic++) toffset[tid][ic] = 0;
+  }
+  toffset[nthreads] = new E_Int [nbuckets];
+  for (E_Int ic = 0; ic < nbuckets; ic++) toffset[nthreads][ic] = 0;
+
+  // Number of exterior faces found in each *output* connectivity
+  // (for all threads)
+  std::vector<E_Int> nextfpc(nc, 0);
+  // Number of faces per connectivity of the output ME
+  // ('tmp_' is uncompressed: out of the 4 possible conns - NODE, BAR, TRI and
+  //                          QUAD -, some will necessarily be empty)
+  std::vector<E_Int> tmp_nfpc2(nbuckets, 0);
+
+  // In a first pass, tag vertex indices that belong to exterior faces
+  std::vector<E_Int> vindir(npts, 0);
+
+  #pragma omp parallel
+  {
+    E_Int nelts, nvpf, fidx, indv;
+    E_Int nextFaces = 0;  // number of exterior faces found in all conn. of that thread
+    E_Int nextFacesIc;  // number of exterior faces found in a given conn. of that thread
+    std::vector<std::vector<E_Int> > facets;
+
+    // Local thread-related arrays are prefixed with 'loc_t'
+    E_Int tid = __CURRENT_THREAD__;
+    E_Int* loc_tnextfpc = tnextfpc[tid];
+    E_Int* loc_toffset = toffset[tid+1];
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+      nextFacesIc = 0;
+
+      #pragma omp for schedule(static)
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Loop over each facet of this element
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+          if (faceMask[fidx] == 1)  // exterior face found
+          {
+            nvpf = facets[f].size();  // number of vertices per face
+            nextFaces++; nextFacesIc++;
+            loc_toffset[nvpf-1]++;  // from NODE (0) to QUAD (3)
+            // Tag vertices of that faces as exterior vertices
+            for (E_Int j = 0; j < nvpf; j++)
+            {
+              indv = cm(i, facets[f][j]) - 1;
+              vindir[indv] = 1;
+            }
+          }
+        }
+      }
+      loc_tnextfpc[ic] = nextFacesIc;
+    }
+
+    #pragma omp critical
+    {
+      // Update number of exterior faces found in each input connectivity,
+      // nextfpc, and in each output connectivity, tmp_nfpc2
+      for (E_Int ic = 0; ic < nc; ic++) nextfpc[ic] += loc_tnextfpc[ic];
+      for (E_Int ic = 0; ic < nbuckets; ic++) tmp_nfpc2[ic] += loc_toffset[ic];
+    }
+  }
+
+  // Compute thread face offsets in the output ME for each connectivity
+  // Used to build cm2 using multiple threads
+  for (E_Int tid = 1; tid < nthreads+1; tid++)
+    for (E_Int ic = 0; ic < nbuckets; ic++)
+      toffset[tid][ic] += toffset[tid-1][ic];
+
+  // Transform the exterior vertex mask of zeros and ones into a vertex map
+  // from old to new connectivities, and get the number of unique exterior
+  // vertices, npts2
+  E_Int npts2 = K_CONNECT::prefixSum(vindir);
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  std::map<E_Int, E_Int> outConnId;  // map (nvpf-1) to 'ic' in output ME
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  const char* tmpEltType;
+  eltType2[0] = '\0';
+  for (E_Int ic = 0; ic < nbuckets; ic++)  // from NODE (0) to QUAD (3)
+  {
+    if (tmp_nfpc2[ic] > 0)
+    {
+      outConnId[ic] = nc2; nc2++;
+      if (ic == 0) tmpEltType = "NODE";
+      else if (ic == 1) tmpEltType = "BAR";
+      else if (ic == 2) tmpEltType = "TRI";
+      else tmpEltType = "QUAD";
+      if (eltType2[0] == '\0') strcpy(eltType2, tmpEltType);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, tmpEltType);
+      }
+    }
+  }
+  if (nc2 > 1) api = 3;
+
+  // Compress the number of faces per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior faces
+  E_Int ntotUniqueFaces = 0;
+  std::vector<E_Int> nfpc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nbuckets; ic++)
+  {
+    if (tmp_nfpc2[ic] > 0)
+    {
+      nfpc2[nc2] = tmp_nfpc2[ic]; nc2++;
+      ntotUniqueFaces += tmp_nfpc2[ic];
+    }
+  }
+
+  if (ntotUniqueFaces == 0)  // can only happen for a closed 1D contour
+  {
+		// Free memory
+	  for (E_Int i = 0; i < nthreads; i++)
+	  {
+	    delete [] tnextfpc[i];
+	    delete [] toffset[i];
+	  }
+	  delete [] toffset[nthreads];
+	  delete [] tnextfpc; delete [] toffset;
+	
+	  //RELEASESHAREDU(tpl, f2, cn2);
+	  delete [] eltType2;
+	  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+		return NULL;
+  }
+
+  if (boolIndir)
+  {
+    indicesFaces = K_NUMPY::buildNumpyArray(ntotUniqueFaces, 1, 1, 0);
+    indicesf = K_NUMPY::getNumpyPtrI(indicesFaces);
+  }
+
+  // Build new connectivity (containing a max. 2 BE conns)
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                       nfpc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  std::vector<FldArrayI*> cms2(nc2);
+  for (E_Int ic = 0; ic < nc2; ic++) cms2[ic] = cn2->getConnect(ic);
+
+  #pragma omp parallel
+  {
+    E_Int ic2, indv, indf, nelts, fidx, nvpf;
+    E_Int tid = __CURRENT_THREAD__;
+    E_Int* loc_toffset = toffset[tid];
+    std::vector<std::vector<E_Int> > facets;
+
+    // Copy fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f.begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for nowait
+      for (E_Int i = 0; i < npts; i++)
+      {
+        indv = vindir[i];
+        if (indv > 0) f2p[indv-1] = fp[i];
+      }
+    }
+
+    // Copy connectivity
+    std::vector<E_Int> extfCmpt(nbuckets, 0);  // number of ext faces found
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      if (nextfpc[ic] == 0) continue;  // no exterior elements in this input conn., skip
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      nelts = cm.getSize();
+      K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+
+      #pragma omp for schedule(static)
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Loop over each facet of this element
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+          if (faceMask[fidx] == 1)  // exterior face
+          {
+            nvpf = facets[f].size();
+            ic2 = outConnId[nvpf-1];
+            indf = loc_toffset[nvpf-1] + extfCmpt[nvpf-1];
+            for (E_Int j = 1; j <= nvpf; j++)
+            {
+              indv = cm(i, facets[f][j-1]) - 1;
+              (*cms2[ic2])(indf, j) = vindir[indv];
+            }
+            extfCmpt[nvpf-1]++;
+          }
+        }
+      }
+    }
+  }
+
+  if (boolIndir)
+  {
+    E_Int fidx, k = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+      E_Int nelts = cm.getSize();
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+          if (faceMask[fidx] == 1) { indicesf[k] = fidx+1; k++; }
+        }
+      }
+    }
+
+    PyList_Append(indices, indicesFaces); Py_DECREF(indicesFaces);
+  }
+
+  // Free memory
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    delete [] tnextfpc[i];
+    delete [] toffset[i];
+  }
+  delete [] toffset[nthreads];
+  delete [] tnextfpc; delete [] toffset;
+
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+
+  return tpl;
 }

@@ -4256,7 +4256,7 @@ def volume(t, fieldname=None):
         if fldname is not None: xcelln = C.getField(fldname, z)
         if xcelln is not None: xcelln = xcelln[0]
 
-        z = C.convertArray2NGon(z); z = G.close(z)
+        z = C.convertArray2NGon(z)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         v += XOR.volume(m, xcelln)
     return v

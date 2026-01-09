@@ -61,7 +61,7 @@ setup(
     name="KCore",
     version="4.1",
     description="Core for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['KCore'],
     ext_modules=extensions

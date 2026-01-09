@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -231,7 +231,7 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
 {
   char* fileName; char* format; 
-  E_Int maxFloatSize; E_Int maxDepth; E_Int readIntMode; 
+  E_Int maxFloatSize; E_Int maxDepth; E_Int readIntMode;
   PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
   if (!PYPARSETUPLE_(args, S_ O_ S_ III_ OOO_,
                      &fileName, &paths, &format, 

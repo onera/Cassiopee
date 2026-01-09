@@ -45,6 +45,7 @@
 #include <string.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 typedef struct {
    int fd;
