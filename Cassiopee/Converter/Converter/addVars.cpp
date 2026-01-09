@@ -332,19 +332,17 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
         if (center || strchr(eltType0, '*') != NULL) center0 = true;
       }
     }
-    // else if (
-    //   res != res0 || 
-    //   (res == 1 && (ni0 != ni || nj0 != nj || nk0 != nk)) ||
-    //   (res == 2 && (center0 && nelts != nelts0) || (!center0 && npts != npts0))
-    // )
-    // {
-    //   printf("Warning: addVars: arrays must be defined on the same grid. "
-    //          "Array " SF_D_ " skipped...\n", l+1);
-    //   arrMask[l] = false;
-    //   std::cout << res << " " << npts << " " << nelts << " " << eltType << std::endl;
-    //   std::cout << res0 << " " << npts0 << " " << nelts0 << " " << eltType0 <<  std::endl;
-    //   continue;
-    // }
+    else if (
+      res != res0 || 
+      (res == 1 && (ni0 != ni || nj0 != nj || nk0 != nk)) ||
+      (res == 2 && ((center0 && nelts != nelts0) || (!center0 && npts != npts0)))
+    )
+    {
+      printf("Warning: addVars: arrays must be defined on the same grid. "
+             "Array " SF_D_ " skipped...\n", l+1);
+      arrMask[l] = false;
+      continue;
+    }
 
     // This array is valid
     arrMask[l] = true;
@@ -401,12 +399,6 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   FldArrayF* f2;
   if (res0 == 1)
   {
-    std::cout << "nfld2 = " << nfld2 << std::endl;
-    std::cout << "varString2 = " << varString2 << std::endl;
-    std::cout << "ni0 = " << ni0 << std::endl;
-    std::cout << "nj0 = " << nj0 << std::endl;
-    std::cout << "nk0 = " << nk0 << std::endl;
-    std::cout << "api = " << api << std::endl;
     tpl = K_ARRAY::buildArray3(nfld2, varString2, ni0, nj0, nk0, api);
   }
   else
