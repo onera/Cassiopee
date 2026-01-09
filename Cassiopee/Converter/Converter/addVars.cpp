@@ -295,57 +295,81 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   // Extraction du nombre total de variables pour chaque arrays 
   // et verification
   E_Int res, res0 = -1;
-  E_Int npts, nfld, api, nelts, sizeConnect, ni, nj, nk;
+  E_Int npts, nfld, api, nelts, ni, nj, nk;
   E_Int sizelocal = 0, nvar = 0;
   E_Int npts0 = -1, ni0 = -1, nj0 = -1, nk0 = -1, nelts0 = -1;
   E_Int iarr0 = -1;  // index of the first valid array
-  E_Bool center, center0 = false;
+  E_Bool center0 = false;
   char* eltType0 = new char[K_ARRAY::VARSTRINGLENGTH];
   eltType0[0] = '\0';
-  E_Bool arrMask[n];
+  E_Bool arrValid[n];
 
   for (E_Int l = 0; l < n; l++)
   {
     array = PyList_GetItem(arrays, l);
-    res = K_ARRAY::getInfoFromArray(array, varString,
-                                    ni, nj, nk, npts, nelts, 
-                                    sizeConnect, eltType);
-    center = (npts > 0 && nelts > 0) && (npts == nelts);
+    res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
-    if (res != 1 && res != 2)
+    if (res == 1)
     {
-      printf("Warning: addVars: array is invalid. Array " SF_D_ " skipped...\n", l+1);
-      arrMask[l] = false;
-      continue;
+      if (res0 == -1)
+      {
+        arrValid[l] = true;
+        iarr0 = l; res0 = res;
+        ni0 = ni; nj0 = nj; nk0 = nk; npts0 = ni0*nj0*nk0;
+      }
+      else if (ni0 != ni || nj0 != nj || nk0 != nk)
+      {
+        printf("Warning: addVars: arrays must be defined on the same grid. "
+             "Array " SF_D_ " skipped...\n", l+1);
+        arrValid[l] = false;
+        RELEASESHAREDS(array, f);
+        continue;
+      }
+      else arrValid[l] = true;  // valid array
     }
-    else if (res0 == -1)
+    else if (res == 2)
     {
-      arrMask[l] = true;
-      iarr0 = l;
-      res0 = res;
-      if (res == 1) { ni0 = ni; nj0 = nj; nk0 = nk; npts0 = ni0*nj0*nk0; }
+      npts = f->getSize();
+      if (K_STRING::cmp(eltType, 4, "NGON") == 0) nelts = cn->getNElts();
       else
       {
-        npts0 = npts; nelts0 = nelts;
-        strcpy(eltType0, eltType);
-        std::cout << npts0 << " " << nelts0 << " " << eltType << std::endl;
-        if (center || strchr(eltType0, '*') != NULL) center0 = true;
+        // Compute total number of elements
+        E_Int nc = cn->getNConnect();
+        nelts = 0;
+        for (E_Int ic = 0; ic < nc; ic++)
+        {
+          K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+          nelts += cm.getSize();
+        }
       }
-    }
-    else if (
-      res != res0 || 
-      (res == 1 && (ni0 != ni || nj0 != nj || nk0 != nk)) ||
-      (res == 2 && ((center0 && nelts != nelts0) || (!center0 && npts != npts0)))
-    )
-    {
-      printf("Warning: addVars: arrays must be defined on the same grid. "
+      E_Bool center = false; //npts == nelts; TODO
+
+      if (res0 == -1)
+      {
+        arrValid[l] = true;
+        iarr0 = l; res0 = res;
+        npts0 = npts; nelts0 = nelts;        
+        strcpy(eltType0, eltType);
+        if (center || strchr(eltType0, '*') != NULL) center0 = true;
+
+        std::cout << npts0 << " " << nelts0 << " " << eltType << std::endl;
+      }
+      else if ((center0 && nelts != nelts0) || (!center0 && npts != npts0))
+      {
+        printf("Warning: addVars: arrays must be defined on the same grid. "
              "Array " SF_D_ " skipped...\n", l+1);
-      arrMask[l] = false;
+        arrValid[l] = false;
+        RELEASESHAREDU(array, f, cn);
+        continue;
+      }
+      else arrValid[l] = true;  // valid array
+    }
+    else
+    {
+      printf("Warning: addVars: array is invalid. Array " SF_D_ " skipped...\n", l+1);
+      arrValid[l] = false;
       continue;
     }
-
-    // This array is valid
-    arrMask[l] = true;
 
     // Selectionne les variables non communes
     K_ARRAY::extractVars(varString, varStrings);
@@ -353,7 +377,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     sizelocal = varStrings.size();
     for (E_Int j = 0; j < sizelocal; j++)
     {
-      sizevars  = vars.size();
+      sizevars = vars.size();
       localj = varStrings[j];
       E_Bool exist = false;
       for (E_Int i = 0; i < sizevars; i++)
@@ -370,10 +394,11 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
       else delete [] localj;
     }
     varStrings.clear();
+    RELEASESHAREDB(res, array, f, cn);
   }
 
   E_Int nvalidArrs = 0;
-  for (E_Int l = 0; l < n; l++) nvalidArrs += (E_Int)arrMask[l];
+  for (E_Int l = 0; l < n; l++) nvalidArrs += (E_Int)arrValid[l];
   if (nvalidArrs == 0)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -416,7 +441,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   nvar = 0;
   for (E_Int l = 0; l < n; l++) 
   { 
-    if (!arrMask[l]) continue;  // array is invalid, skip
+    if (!arrValid[l]) continue;  // array is invalid, skip
     array = PyList_GetItem(arrays, l);
     K_ARRAY::getFromArray3(array, varString, f);
     nfld = f->getNfld();
