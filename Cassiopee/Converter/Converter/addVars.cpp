@@ -351,8 +351,6 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
         npts0 = npts; nelts0 = nelts;        
         strcpy(eltType0, eltType);
         if (center || strchr(eltType0, '*') != NULL) center0 = true;
-
-        std::cout << npts0 << " " << nelts0 << " " << eltType << std::endl;
       }
       else if ((center0 && nelts != nelts0) || (!center0 && npts != npts0))
       {
@@ -428,7 +426,6 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   }
   else
   {  
-    std::cout << eltType0 << " " << center0 << std::endl;
     tpl = K_ARRAY::buildArray3(nfld2, varString2, f->getSize(),
                                *cn, eltType0, center0, api, true);
   }
