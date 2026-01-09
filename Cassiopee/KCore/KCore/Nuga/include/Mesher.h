@@ -397,7 +397,7 @@ namespace DELAUNAY
 
     L = std::max(maxY-minY, maxX-minX);
 
-    double factor = 0.1;
+    E_Float factor = 0.1;
 
     minX -= factor*L;
     minY -= factor*L;

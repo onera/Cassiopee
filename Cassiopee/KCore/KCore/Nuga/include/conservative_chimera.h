@@ -79,7 +79,7 @@ namespace NUGA
       const acrd_t& crdD,
       const cnt_t& cntD,
       std::vector<int>& dindices,
-      std::vector<double>& dcoeffs,
+      std::vector<E_Float>& dcoeffs,
       std::vector<int>& xr, bool do_omp = false)
     {
       dindices.clear();
@@ -129,7 +129,7 @@ namespace NUGA
       const acrd_t& crdD,
       const cnt_t& cntD,
       std::vector<int>& dindices,
-      std::vector<double>& dcoeffs,
+      std::vector<E_Float>& dcoeffs,
       std::vector<int>& xr, bool do_omp = false)
     {
       dindices.clear();
@@ -183,7 +183,7 @@ namespace NUGA
       const cnt_t& cntD,
       eMode mode,
       std::vector<int>& dindices,
-      std::vector<double>& dcoeffs,
+      std::vector<E_Float>& dcoeffs,
       std::vector<int>& xr,
       bool do_omp = false)
     {

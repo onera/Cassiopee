@@ -120,8 +120,8 @@ BAR_Conformizer<DIM>::__intersect
   E_Float tol[] ={tolerance, tolerance};
   if (parent_type::_absolute_tol)
   {
-    tol[0] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
-    tol[1] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
+    tol[0] /= sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
+    tol[1] /= sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
   }
 
   E_Int n1, Ni, ret = false;

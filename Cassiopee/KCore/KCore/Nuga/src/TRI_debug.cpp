@@ -186,7 +186,7 @@ void TRI_debug::connected_to_T3
         Emax = *it;
       }
     }
-    L = ::sqrt(L);
+    L = sqrt(L);
     
     for (size_t i = 0; i < tmp.cols(); ++i)
     {
@@ -216,7 +216,7 @@ void TRI_debug::connected_to_T3
       
       E_Float N0N1[3];
       NUGA::diff<3>(coordCpy.col(N1), coordCpy.col(N0), N0N1);
-      //E_Float l=::sqrt(NUGA::sqrNorm<3>(N0N1));
+      //E_Float l=sqrt(NUGA::sqrNorm<3>(N0N1));
       E_Float Ph[3];
       NUGA::sum<3>(0.5, N0N1, coordCpy.col(N0), Ph);
       
@@ -416,7 +416,7 @@ void TRI_debug::write_wired(const char* fname, const K_FLD::FloatArray& coord, c
       Lmin = (L2 < Lmin) ? L2 : Lmin;
     }
     
-    Lmin = 0.5*::sqrt(Lmin);
+    Lmin = 0.5*sqrt(Lmin);
     
     if (T3colors)
       E2colors.resize(E2colors.size()+3, (*T3colors)[i]);

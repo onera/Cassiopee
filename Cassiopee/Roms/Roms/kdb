@@ -8,10 +8,14 @@ def usage():
     print("kdb: query: kdb -q <name.db> <query> ")
     print("kdb: query verbose: kdb -qv <name.db> <query> ")
     print("kdb: fetch: kdb -f <name.db> <query> \n ")
+    print("kdb: join: kdb -j <name1.db> <name2.db> \n ")
+    
     print("<query> needs to be enclosed by \"\"")
     print("Examples of <query>:")
+    print("‣ kdb -q Local.db \"id\" ; query all ids")
     print("‣ kdb -q Local.db \"id<10\" ; where id is the number of the case in the database")
     print("‣ kdb -q Local.db \"AoA<10 AND Mach=0.3\" ; where AoA & Mach are parameters in the dabatase")
+    
     sys.exit(1)
 
 if __name__ == "__main__":
@@ -21,7 +25,7 @@ if __name__ == "__main__":
 
     # argument 1 must be the command (-q or -f or -l)
     com = sys.argv[1]
-    if com not in ['-q', '-qv', '-f', '-l', '-h']:
+    if com not in ['-q', '-qv', '-f', '-l', '-h', '-j']:
         print("kdb: invalid command.")
         exit(1)
     
@@ -48,20 +52,26 @@ if __name__ == "__main__":
     # open db
     db = DataBase.DataBase(baseName)
 
-    # list catalog
-    if com == '-l':
+    if com == '-l': # list
         q = db.query()
         db.print(q, mode=0)
-    elif com == '-q':
+    elif com == '-q': # query
         q = db.query(query)
         db.print(q, mode=1)
-    elif com == '-qv':
+    elif com == '-qv': # verbose query
         q = db.query(query)
         db.print(q, mode=1, fullListVar=True)
-    elif com == '-f':
+    elif com == '-f': # fetch
         q = db.query(query)
         t = db.fetchTree(q)
         for c, ti in enumerate(t):
-            C.convertPyTree2File(ti, 'out%d.cgns'%c)
-
+            id = q[c][0]
+            C.convertPyTree2File(ti, 'out%05d.cgns'%id)
+    elif com == '-j': # join
+        baseName2 = query
+        db2 = DataBase.DataBase(baseName2, mode="r")
+        db.join(db2)
+        db2.close()
+    
+    # close db
     db.close()

@@ -7,6 +7,10 @@ USURP = False
 STREAMLINE2 = True
 dirName = os.path.dirname(__file__)+'/Post'
 
+import KCore.Dist as Dist
+if Dist.ADOLC:
+    STREAMLINE2 = False
+
 #==============================================================================
 # Fichiers C++
 #==============================================================================
@@ -22,7 +26,6 @@ cpp_srcs = [
     "Post/selectExteriorElts.cpp",
     "Post/exteriorEltsStructured.cpp",
     "Post/frontFaces.cpp",
-
     "Post/Fortran/compInterfaceField.cpp",
     "Post/Fortran/compCurlStruct.cpp",
     "Post/Fortran/compCurlUnstruct.cpp",
@@ -44,7 +47,6 @@ cpp_srcs = [
     "Post/Fortran/integMomentNormUnstruct.cpp",
     "Post/Fortran/integMomentStruct.cpp",
     "Post/Fortran/integMomentUnstruct.cpp",
-
     "Post/integ.cpp",
     "Post/integNorm.cpp",
     "Post/integNormProd.cpp",
@@ -97,6 +99,93 @@ cpp_srcs = [
     "Post/sharpEdges.cpp",
     "Post/silhouette.cpp"
 ]
+
+if Dist.ADOLC:
+    cpp_srcs = [
+        #"Post/coarsen.cpp",
+        "Post/refine.cpp",
+        "Post/refineButterfly.cpp",
+        #"Post/selectCells.cpp",
+        #"Post/selectCellCenters.cpp",
+        "Post/selectInteriorFaces.cpp",
+        "Post/selectExteriorFaces.cpp",
+        "Post/selectExteriorFacesStructured.cpp",
+        #"Post/selectExteriorElts.cpp",
+        "Post/exteriorEltsStructured.cpp",
+        "Post/frontFaces.cpp",
+        "Post/Fortran/compInterfaceField.cpp",
+        "Post/Fortran/compCurlStruct.cpp",
+        "Post/Fortran/compCurlUnstruct.cpp",
+        "Post/Fortran/compCurlNGon.cpp",
+        "Post/Fortran/compDivStruct.cpp",
+        "Post/Fortran/compDivUnstruct.cpp",
+        "Post/Fortran/compDivNGon.cpp",
+        "Post/Fortran/compGradStruct.cpp",
+        "Post/Fortran/compGradUnstruct.cpp",
+        "Post/Fortran/compGradNGon.cpp",
+        "Post/Fortran/compUnstrNodes2Faces.cpp",
+        #"Post/Fortran/integStruct.cpp",
+        #"Post/Fortran/integUnstruct.cpp",
+        #"Post/Fortran/integNormStruct.cpp",
+        #"Post/Fortran/integNormUnstruct.cpp",
+        #"Post/Fortran/integNormProdStruct.cpp",
+        #"Post/Fortran/integNormProdUnstruct.cpp",
+        #"Post/Fortran/integMomentNormStruct.cpp",
+        #"Post/Fortran/integMomentNormUnstruct.cpp",
+        #"Post/Fortran/integMomentStruct.cpp",
+        #"Post/Fortran/integMomentUnstruct.cpp",
+        #"Post/integ.cpp",
+        #"Post/integNorm.cpp",
+        #"Post/integNormProd.cpp",
+        #"Post/integMoment.cpp",
+        #"Post/integMomentNorm.cpp",
+        "Post/computeVariables.cpp",
+        "Post/computeVariables2.cpp",
+        "Post/computeGrad.cpp",
+        "Post/computeGrad2.cpp",
+        "Post/computeGradLSQ.cpp",
+        "Post/computeNormGrad.cpp",
+        "Post/computeDiv.cpp",
+        "Post/computeDiv2.cpp",
+        "Post/computeCurl.cpp",
+        "Post/computeNormCurl.cpp",
+        #"Post/perlinNoise.cpp",
+        #"Post/zipper/Algorithm.cpp",
+        #"Post/zipper/Intersection.cpp",
+        #"Post/zipper/StructBlock.cpp",
+        #"Post/zipper/StructBlock_iblank.cpp",
+        #"Post/zipper/StructBlock_uns.cpp",
+        #"Post/zipper/StructBlock_string.cpp",
+        #"Post/zipper/CString.cpp",
+        #"Post/zipper/Pocket.cpp",
+        #"Post/zipper/SingleSegment.cpp",
+        #"Post/zipper/TriangleZ.cpp",
+        #"Post/zipper/ZipLib.cpp",
+        #"Post/zipper/SegmentPair.cpp",
+        #"Post/zipper.cpp",
+        "Post/extractPoint.cpp",
+        "Post/extractMesh.cpp",
+        #"Post/projectCloudSolution2Triangle.cpp",
+        "Post/extractPlane.cpp",
+        "Post/cutPlane/cutPlane.cpp",
+        "Post/cutPlane/PlaneIntersection.cpp",
+        "Post/Stream/stream.cpp",
+        "Post/Stream/StreamLine.cpp",
+        "Post/Stream/StreamRibbon.cpp",
+        "Post/Stream/StreamSurf.cpp",
+        "Post/vertexInterp.cpp",
+        "Post/isoLine.cpp",
+        "Post/isoSurf.cpp",
+        "Post/isoSurfMC.cpp",
+        #"Post/isoSurfNGon.cpp",
+        "Post/computeDiff.cpp",
+        #"Post/computeIndicatorValue.cpp",
+        #"Post/enforceIndicatorNearBodies.cpp",
+        "Post/enforceIndicatorForFinestLevel.cpp",
+        "Post/enforceIndicatorForCoarsestLevel.cpp",
+        "Post/sharpEdges.cpp",
+        "Post/silhouette.cpp"
+    ]
 
 if STREAMLINE2:
     cpp_srcs += [

@@ -198,9 +198,12 @@ class Probe:
                 dim = Internal.getZoneDim(b)
                 if dim[0] == 'Structured':
                     if loc == 'nodes':
-                        ind = (ind[0]-1)+(ind[1]-1)*dim[1]+(ind[2]-1)*dim[2]
+                        ni = dim[1]; nj = dim[2]
+                        ind = (ind[0]-1)+(ind[1]-1)*ni+(ind[2]-1)*ni*nj
                     else:
-                        ind = (ind[0]-1)+(ind[1]-1)*(dim[1]-1)+(ind[2]-1)*(dim[2]-1)
+                        ni1 = max(dim[1]-1,1)
+                        nj1 = max(dim[2]-1,1)
+                        ind = (ind[0]-1)+(ind[1]-1)*ni1+(ind[2]-1)*ni1*nj1
                 else: ind = ind[0]
             else: ind = -1
 

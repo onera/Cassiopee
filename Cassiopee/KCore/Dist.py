@@ -13,6 +13,9 @@ EDOUBLEINT = False
 # Toggle to True for compiling global index in i8
 GDOUBLEINT = False
 
+# Temporary for ADOLC
+ADOLC = False
+
 #==============================================================================
 # Check module import
 # Write SUCCESS or FAILED (with colored output)
@@ -896,6 +899,7 @@ def getCArgs():
     options = getCppAdditionalOptions()[:]
     if EDOUBLEINT: options += ['-DE_DOUBLEINT']
     if GDOUBLEINT: options += ['-DG_DOUBLEINT']
+    if ADOLC: options += ['-DE_ADOLC']
     if Cppcompiler == "icpc" or Cppcompiler == "icc":
         v = getCppVersion()
         if DEBUG:

@@ -749,8 +749,8 @@ Conformizer<DIM, Element_t>::__compute_min_edge_length
   
   NUGA::MeshTool::computeMinMaxEdgeSqrLength<DIM>(pos, relevant_elts, min_d, max_d);
 
-  Lmin= ::sqrt(min_d);
-  Lmax = ::sqrt(max_d);
+  Lmin= sqrt(min_d);
+  Lmax = sqrt(max_d);
 }
 
 ///

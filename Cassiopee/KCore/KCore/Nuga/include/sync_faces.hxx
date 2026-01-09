@@ -20,8 +20,8 @@ using crd_t = K_FLD::FloatArray;
 using acrd_t = K_FLD::ArrayAccessor<crd_t>;
 
 ///
-inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* center, const double * axis, double angle, const double* translation,
-  double ARTOL, std::map<E_Int, std::vector<E_Int>>& glob_face_to_bits)
+inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const E_Float* center, const E_Float* axis, E_Float angle, const E_Float* translation,
+  E_Float ARTOL, std::map<E_Int, std::vector<E_Int>>& glob_face_to_bits)
 {
   DELAUNAY::Triangulator dt;
 
@@ -39,7 +39,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
 
   if (ARTOL == 0.) ARTOL = -0.01;
 
-  double TOL = ARTOL;
+  E_Float TOL = ARTOL;
   if (ARTOL < 0.) // relative
   {
     E_Float Lmin, Lmax;
@@ -87,7 +87,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
   K_SEARCH::KdTree<> tree(aCs, EPSILON);
 
   std::vector<E_Int> nids(npgs, IDX_NONE);
-  std::vector<double> d2s(npgs, IDX_NONE);
+  std::vector<E_Float> d2s(npgs, IDX_NONE);
 
   ////////////////////////////////////////////////////////////////////////////
 
@@ -193,12 +193,12 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
     medith::write("face", crdR, m.cnt, i);
     }*/
 
-    double n[3], nc[3];
+    E_Float n[3], nc[3];
     face.normal<K_FLD::FloatArray, 3>(crdR, n);
 
-    double G[3];
+    E_Float G[3];
     face.iso_barycenter<acrd_t, 3>(acrdR, G);
-    double s1 = face.surface<3>(crdR);
+    E_Float s1 = face.surface<3>(crdR);
 
     for (size_t c = 0; c< cands.size(); ++c)
     {
@@ -208,15 +208,15 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
       faceC.normal<K_FLD::FloatArray, 3>(m.crd, nc);
 
       // true candidates must be colinear and opposedly oriented, so ps should near -1
-      double ps = NUGA::dot<3>(n, nc);
+      E_Float ps = NUGA::dot<3>(n, nc);
       if (ps > -0.99) continue;
 
       // check for fully-in case : is face fully inside faceC ?
       bool is_in2{ false };
-      double RTOL = 1.e-6;
+      E_Float RTOL = 1.e-6;
       for (E_Int k = 0; k < face.nb_nodes(); ++k)
       {
-        const double * P = crdR.col(face.node(k));
+        const E_Float* P = crdR.col(face.node(k));
         // if P is in ae1, ae0 is a piece of ae1
         faceC.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, m.crd, P, is_in2, RTOL);
         if (!is_in2) break;
@@ -226,7 +226,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
       bool is_in1{ false };
       for (E_Int k = 0; k < faceC.nb_nodes(); ++k)
       {
-        const double * P = m.crd.col(faceC.node(k));
+        const E_Float* P = m.crd.col(faceC.node(k));
         // if P is in ae1, ae0 is a piece of ae1
         face.fast_is_in_pred<DELAUNAY::Triangulator, 3>(dt, crdR, P, is_in1, RTOL);
         if (!is_in1) break;
@@ -261,7 +261,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
 
       // if mutual inclusion : surface test
 
-      double s2 = faceC.surface<3>(m.crd);
+      E_Float s2 = faceC.surface<3>(m.crd);
 
       if (s1 < s2)
       {
@@ -301,8 +301,8 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
     E_Int master = (i.first < 0) ? -(i.first+1) : i.first;
 
     auto face = m.element(master);
-    double s1 = face.surface<3>(crdR);
-    double s2{ 0. };
+    E_Float s1 = face.surface<3>(crdR);
+    E_Float s2{ 0. };
     for (size_t k = 0; k < i.second.size(); ++k)
     {
       E_Int bitid = (i.second[k] < 0) ? -(i.second[k] + 1) : i.second[k];
@@ -310,7 +310,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
       s2 += fb.surface<3>(m.crd);
     }
 
-    double err = ::fabs((s1 - s2) / s2);
+    E_Float err = ::fabs((s1 - s2) / s2);
     if (err < 1.e-2)
       tmp.insert(std::make_pair(i.first, i.second));
   }
@@ -391,7 +391,7 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const double* ce
 
 ///
 inline void duplicate_and_move_period_faces
-(NUGA::ph_mesh_t& m, const double* center, const double * axis, double angle, const double* translation,
+(NUGA::ph_mesh_t& m, const E_Float* center, const E_Float* axis, E_Float angle, const E_Float* translation,
  std::map<E_Int, std::vector<E_Int>>& face_to_bits)
 {
   std::set<E_Int> leftF; //apply +Transfo
@@ -589,7 +589,7 @@ inline void replace_faces(
                   NUGA::ph_mesh_t& m,
                   const std::map<E_Int,
                   std::vector<E_Int>>& face_to_bits,
-                  double TOL,
+                  E_Float TOL,
                   std::set<E_Int>& modifiedPHs)
 {
   std::vector<E_Int> molecPH;
@@ -667,11 +667,11 @@ inline void replace_faces(
 
 ///
 inline bool sync_faces
-(NUGA::ph_mesh_t& m, const std::map<E_Int, std::vector<E_Int>>& face_to_bits, double ARTOL)
+(NUGA::ph_mesh_t& m, const std::map<E_Int, std::vector<E_Int>>& face_to_bits, E_Float ARTOL)
 {
   if (ARTOL == 0.) ARTOL = -0.01;
 
-  double TOL = ARTOL;
+  E_Float TOL = ARTOL;
   if (ARTOL < 0.) // relative
   {
     E_Float Lmin, Lmax;

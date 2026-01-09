@@ -235,14 +235,14 @@ struct aPolygon : public K_MESH::Polygon
     }
 
     // check for vertices coincidence
-    const double* pt0 = m_crd.col(0);
+    const E_Float* pt0 = m_crd.col(0);
     E_Int n0 = IDX_NONE;
-    double dmin2 = NUGA::FLOAT_MAX;
+    E_Float dmin2 = NUGA::FLOAT_MAX;
     for (E_Int n = 0; n < nnodes; ++n)
     {
-      const double* rptn = rhs.m_crd.col(n);
+      const E_Float* rptn = rhs.m_crd.col(n);
 
-      double d2 = (pt0[0] - rptn[0])*(pt0[0] - rptn[0]) + (pt0[1] - rptn[1])*(pt0[1] - rptn[1]) + (pt0[2] - rptn[2])*(pt0[2] - rptn[2]);
+      E_Float d2 = (pt0[0] - rptn[0])*(pt0[0] - rptn[0]) + (pt0[1] - rptn[1])*(pt0[1] - rptn[1]) + (pt0[2] - rptn[2])*(pt0[2] - rptn[2]);
       if (d2 < dmin2)
       {
         n0 = n;
@@ -254,10 +254,10 @@ struct aPolygon : public K_MESH::Polygon
 
     for (E_Int n = 1; n < nnodes; ++n)
     {
-      const double* pt  = m_crd.col(n);
-      const double* rpt = rhs.m_crd.col((n0 + n) % nnodes);
+      const E_Float* pt  = m_crd.col(n);
+      const E_Float* rpt = rhs.m_crd.col((n0 + n) % nnodes);
 
-      double d2 = (pt[0] - rpt[0])*(pt[0] - rpt[0]) + (pt[1] - rpt[1])*(pt[1] - rpt[1]) + (pt[2] - rpt[2])*(pt[2] - rpt[2]);
+      E_Float d2 = (pt[0] - rpt[0])*(pt[0] - rpt[0]) + (pt[1] - rpt[1])*(pt[1] - rpt[1]) + (pt[2] - rpt[2])*(pt[2] - rpt[2]);
       if (d2 > EPSILON*EPSILON) return false;
     }
 
@@ -276,12 +276,12 @@ struct aPolygon : public K_MESH::Polygon
     }
   }
   
-  template <short DIM> void normal(double* norm) const 
+  template <short DIM> void normal(E_Float* norm) const 
   {
     parent_type::normal<K_FLD::FloatArray, DIM>(m_crd, norm);
   }
 
-  template <short DIM> void centroid(double* G) const
+  template <short DIM> void centroid(E_Float* G) const
   {
     parent_type::centroid<DIM>(m_crd, _nodes, _nb_nodes, 0, G);
   }
@@ -292,30 +292,32 @@ struct aPolygon : public K_MESH::Polygon
     return parent_type::triangulate(dt, m_crd);
   }
 
-  double extent() const
+  E_Float extent() const
   {
     return parent_type::surface<K_FLD::FloatArray, 3>(m_crd, parent_type::_nodes, parent_type::_nb_nodes, parent_type::_shift);
   }
 
-  double metrics() const
+  E_Float metrics() const
   {
     normal<3>(m_normal);
     return extent();
   }
 
-  const double* get_normal() const { 
+  const E_Float* get_normal() const 
+  { 
     if (m_normal[0] == NUGA::FLOAT_MAX)
       normal<3>(m_normal);
     return m_normal;
   }
 
-  const double* get_centroid() const {
+  const E_Float* get_centroid() const 
+  {
     if (m_centroid[0] == NUGA::FLOAT_MAX)
       parent_type::centroid<3>(m_crd, parent_type::_nodes, parent_type::_nb_nodes, parent_type::_shift, m_centroid);
     return m_centroid;
   }
 
-  double Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : parent_type::Lref2(m_crd);} // if passed by mesh_t, return it, otherwise compute it first
+  E_Float Lref2() const { return (m_Lref2 > 0.) ? m_Lref2 : parent_type::Lref2(m_crd);} // if passed by mesh_t, return it, otherwise compute it first
 };
 
 }

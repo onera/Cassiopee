@@ -75,7 +75,7 @@ Intersector::getXPairs
     MinT3Lengths[c].resize(L2.cols());
 
     for (E_Int i = 0; i < L2.cols(); ++i)
-      MinT3Lengths[c][i] = ::sqrt(L2(0, i));
+      MinT3Lengths[c][i] = sqrt(L2(0, i));
   }
 
   // Bounding Boxes Trees.

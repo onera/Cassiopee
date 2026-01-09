@@ -85,7 +85,7 @@ void
 MeshUtils1D::mesh_arc (E_Float* C, E_Float* axis, E_Float* P0, E_Float alpha, E_Int N,
                        K_FLD::FloatArray& pos, K_FLD::IntArray& connect)
 {
-  E_Float R = ::sqrt(NUGA::sqrDistance(C, P0, DIM));
+  E_Float R = sqrt(NUGA::sqrDistance(C, P0, DIM));
   E_Float ai = alpha*R/N;
   E_Float Pj[DIM], CPi[DIM], PiPj[DIM];
   const E_Float* Pi;

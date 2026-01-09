@@ -188,7 +188,7 @@ namespace gte
           // G = {{c,0,-s},{s,0,c},{0,1,0}} where each inner triple
           // is a row of G.
           GetCosSin(half * (b00 - b11), b01, c2, s2);
-          s = std::sqrt(half * (one - c2));
+          s = sqrt(half * (one - c2));
           c = half * s2 / s;
 
           // Update Q <- Q * G.
@@ -222,7 +222,7 @@ namespace gte
             // H1 = {{c,s,0},{s,-c,0},{0,0,1}} where each inner
             // triple is a row of H1.
             GetCosSin(half * (b00 - b11), b01, c2, s2);
-            s = std::sqrt(half * (one - c2));
+            s = sqrt(half * (one - c2));
             c = half * s2 / s;
 
             // Update Q <- Q * H1.
@@ -260,7 +260,7 @@ namespace gte
           // G = {{0,1,0},{c,0,-s},{s,0,c}} where each inner triple
           // is a row of G.
           GetCosSin(half * (b11 - b22), b12, c2, s2);
-          s = std::sqrt(half * (one - c2));
+          s = sqrt(half * (one - c2));
           c = half * s2 / s;
 
           // Update Q <- Q * G.
@@ -294,7 +294,7 @@ namespace gte
             // H1 = {{1,0,0},{0,c,s},{0,s,-c}} where each inner
             // triple is a row of H1.
             GetCosSin(half * (b11 - b22), b12, c2, s2);
-            s = std::sqrt(half * (one - c2));
+            s = sqrt(half * (one - c2));
             c = half * s2 / s;
 
             // Update Q <- Q * H1.
@@ -343,7 +343,7 @@ namespace gte
     static void GetCosSin(T const& u, T const& v, T& c, T& s)
     {
       T const zero = static_cast<T>(0);
-      T length = std::sqrt(u * u + v * v);
+      T length = sqrt(u * u + v * v);
       if (length > zero)
       {
         c = u / length;
@@ -440,7 +440,7 @@ namespace gte
         T b22 = a22 - q;
 
         // The is the variable p mentioned in the PDF.
-        T p = std::sqrt((b00 * b00 + b11 * b11 + b22 * b22 + norm * (T)2) / (T)6);
+        T p = sqrt((b00 * b00 + b11 * b11 + b22 * b22 + norm * (T)2) / (T)6);
 
         // We need det(B) = det((A - q*I)/p) = det(A - q*I)/p^3.  The
         // value det(A - q*I) is computed using a cofactor expansion
@@ -563,14 +563,14 @@ namespace gte
       {
         // The component of maximum absolute value is either W[0]
         // or W[2].
-        invLength = (T)1 / std::sqrt(W[0] * W[0] + W[2] * W[2]);
+        invLength = (T)1 / sqrt(W[0] * W[0] + W[2] * W[2]);
         U = { -W[2] * invLength, (T)0, +W[0] * invLength };
       }
       else
       {
         // The component of maximum absolute value is either W[1]
         // or W[2].
-        invLength = (T)1 / std::sqrt(W[1] * W[1] + W[2] * W[2]);
+        invLength = (T)1 / sqrt(W[1] * W[1] + W[2] * W[2]);
         U = { (T)0, +W[2] * invLength, -W[1] * invLength };
       }
       V = Cross(W, U);
@@ -608,15 +608,15 @@ namespace gte
 
       if (imax == 0)
       {
-        evec0 = Divide(r0xr1, std::sqrt(d0));
+        evec0 = Divide(r0xr1, sqrt(d0));
       }
       else if (imax == 1)
       {
-        evec0 = Divide(r0xr2, std::sqrt(d1));
+        evec0 = Divide(r0xr2, sqrt(d1));
       }
       else
       {
-        evec0 = Divide(r1xr2, std::sqrt(d2));
+        evec0 = Divide(r1xr2, sqrt(d2));
       }
     }
 
@@ -681,13 +681,13 @@ namespace gte
           if (absM00 >= absM01)
           {
             m01 /= m00;
-            m00 = (T)1 / std::sqrt((T)1 + m01 * m01);
+            m00 = (T)1 / sqrt((T)1 + m01 * m01);
             m01 *= m00;
           }
           else
           {
             m00 /= m01;
-            m01 = (T)1 / std::sqrt((T)1 + m00 * m00);
+            m01 = (T)1 / sqrt((T)1 + m00 * m00);
             m00 *= m01;
           }
           evec1 = Subtract(Multiply(m01, U), Multiply(m00, V));
@@ -705,13 +705,13 @@ namespace gte
           if (absM11 >= absM01)
           {
             m01 /= m11;
-            m11 = (T)1 / std::sqrt((T)1 + m01 * m01);
+            m11 = (T)1 / sqrt((T)1 + m01 * m01);
             m01 *= m11;
           }
           else
           {
             m11 /= m01;
-            m01 = (T)1 / std::sqrt((T)1 + m11 * m11);
+            m01 = (T)1 / sqrt((T)1 + m11 * m11);
             m11 *= m01;
           }
           evec1 = Subtract(Multiply(m11, U), Multiply(m01, V));
