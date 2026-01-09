@@ -287,7 +287,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   varString2[0] = '\0';
 
   vector<char*> vars; // vars du array de sortie
-  vector<char*> local; // vars du array courant
+  vector<char*> varStrings; // vars du array courant
   FldArrayI pos; // position des variables non communes dans le array de sortie
   E_Int* posp;
   char* localj;
@@ -311,7 +311,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
                                     ni, nj, nk, npts, nelts, 
                                     sizeConnect, eltType);
     center = (npts > 0 && nelts > 0) && (npts == nelts);
-    
+
     if (res != 1 && res != 2)
     {
       printf("Warning: addVars: array is invalid. Array " SF_D_ " skipped...\n", l+1);
@@ -323,7 +323,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
       arrMask[l] = true;
       iarr0 = l;
       res0 = res;
-      if (res == 1) { ni0 = ni; nj0 = nj; nk0 = nk; }
+      if (res == 1) { ni0 = ni; nj0 = nj; nk0 = nk; npts0 = ni0*nj0*nk0; }
       else
       {
         npts0 = npts; nelts0 = nelts;
@@ -350,13 +350,13 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     arrMask[l] = true;
 
     // Selectionne les variables non communes
-    K_ARRAY::extractVars(varString, local);
+    K_ARRAY::extractVars(varString, varStrings);
     nvar = vars.size();
-    sizelocal = local.size();
+    sizelocal = varStrings.size();
     for (E_Int j = 0; j < sizelocal; j++)
     {
       sizevars  = vars.size();
-      localj = local[j];
+      localj = varStrings[j];
       E_Bool exist = false;
       for (E_Int i = 0; i < sizevars; i++)
       {
@@ -371,7 +371,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
       }
       else delete [] localj;
     }
-    local.clear();
+    varStrings.clear();
   }
 
   E_Int nvalidArrs = 0;
@@ -398,8 +398,15 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   api = f->getApi();
   
   // Construit le numpy de sortie
+  FldArrayF* f2;
   if (res0 == 1)
   {
+    std::cout << "nfld2 = " << nfld2 << std::endl;
+    std::cout << "varString2 = " << varString2 << std::endl;
+    std::cout << "ni0 = " << ni0 << std::endl;
+    std::cout << "nj0 = " << nj0 << std::endl;
+    std::cout << "nk0 = " << nk0 << std::endl;
+    std::cout << "api = " << api << std::endl;
     tpl = K_ARRAY::buildArray3(nfld2, varString2, ni0, nj0, nk0, api);
   }
   else
@@ -408,13 +415,12 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     tpl = K_ARRAY::buildArray3(nfld2, varString2, f->getSize(),
                                *cn, eltType0, center0, api, true);
   }
+  K_ARRAY::getFromArray3(tpl, f2);
 
   // Free memory from the first valid array
   RELEASESHAREDB(res0, array, f, cn);
 
-  FldArrayF* field;
-  K_ARRAY::getFromArray3(tpl, field);
-
+  // Copy fields
   nvar = 0;
   for (E_Int l = 0; l < n; l++) 
   { 
@@ -424,31 +430,31 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     nfld = f->getNfld();
 
     // Selectionne les variables non communes
-    K_ARRAY::extractVars(varString, local);
+    K_ARRAY::extractVars(varString, varStrings);
     nvar = vars.size();
-    sizelocal = local.size();
+    sizelocal = varStrings.size();
     pos.malloc(sizelocal); posp = pos.begin();
     for (E_Int j = 0; j < sizelocal; j++)
     {
       posp[j] = 1;
       sizevars = vars.size();
-      localj = local[j];
+      localj = varStrings[j];
       for (E_Int i = 0; i < sizevars; i++)
       {
         if (K_STRING::cmp(vars[i], localj) == 0) { posp[j] = i+1; break; }
       }
       delete [] localj;
     }
-    local.clear();
+    varStrings.clear();
 
     #pragma omp parallel default(shared)
     {
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
-        E_Float* fip = field->begin(posp[eq-1]);
+        E_Float* f2p = f2->begin(posp[eq-1]);
         E_Float* fp = f->begin(eq);
         #pragma omp for nowait
-        for (E_Int i = 0; i < npts0; i++) fip[i] = fp[i];
+        for (E_Int i = 0; i < npts0; i++) f2p[i] = fp[i];
       }
     }
 
@@ -458,7 +464,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
   delete [] varString2;
   delete [] eltType0;
-  RELEASESHAREDS(tpl, field);
+  RELEASESHAREDS(tpl, f2);
 
   return tpl;
 }
