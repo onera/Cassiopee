@@ -634,6 +634,15 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       }
     }
 
+    // Free memory
+    for (E_Int i = 0; i < nthreads; i++)
+    {
+      delete [] tntagfpc[i];
+      delete [] toffset[i];
+    }
+    delete [] toffset[nthreads];
+    delete [] tntagfpc; delete [] toffset;
+    delete [] eltType2;
     for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
     return tpl;
