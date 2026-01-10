@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,14 +29,14 @@
 #define Vector_t std::vector
 
 
-static const E_Float aa = 0.25*(1. - 1./::sqrt(5.));
-static const E_Float bb = 1. -3.*aa;//(5. + 3.*::sqrt(5.)) / 20.;
+static const E_Float aa = 0.25*(1. - 1./sqrt(5.));
+static const E_Float bb = 1. -3.*aa;//(5. + 3.*sqrt(5.)) / 20.;
 
 namespace K_MESH
 {
 
-class Tetrahedron {
-  
+class Tetrahedron 
+{  
   public:
     static constexpr E_Int NB_NODES = 4;
     static constexpr E_Int NB_TRIS = 4;
@@ -102,7 +102,7 @@ class Tetrahedron {
     {
       E_Int ns[4], nods[4][4];
       K_MESH::Triangle::eDegenType ftype[4];
-      double FACTOR = 3;
+      E_Float FACTOR = 3;
       
       nods[0][0] = _nodes[0];
       nods[0][1] = _nodes[1];
@@ -217,12 +217,12 @@ class Tetrahedron {
 
       if (NB_SPIKES >= 2) // SLICE1, SLICE2 or SPIKE ?
       {
-        const double * P0 = crd.col(_nodes[0]);
-        const double * P1 = crd.col(_nodes[1]);
-        const double * P2 = crd.col(_nodes[2]);
-        const double * P3 = crd.col(_nodes[3]);
+        const E_Float* P0 = crd.col(_nodes[0]);
+        const E_Float* P1 = crd.col(_nodes[1]);
+        const E_Float* P2 = crd.col(_nodes[2]);
+        const E_Float* P3 = crd.col(_nodes[3]);
 
-        std::pair<double, int> palma[4];
+        std::pair<E_Float, int> palma[4];
 
         palma[0] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P2), 1);
         palma[1] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P3), 2);

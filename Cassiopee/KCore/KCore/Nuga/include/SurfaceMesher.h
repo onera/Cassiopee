@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -50,11 +50,11 @@ public:
   SurfaceMesherMode mode;
 
 private:
-  void __mapToSurface(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D);
+  void __mapToSurface(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D, E_Bool exportUV);
     
 #ifdef DEBUG_MESHER
 public:
-    bool dbg_flag;
+  bool dbg_flag;
 #endif
 };
 
@@ -62,22 +62,20 @@ template <typename SurfaceType>
 E_Int
 SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 {
-  typedef GeomMetric<Aniso2D, SurfaceType>  MetricType;
-  //typedef Mesher<Aniso2D, MetricType>       MesherType;
+  typedef GeomMetric<Aniso2D, SurfaceType> MetricType;
+  //typedef Mesher<Aniso2D, MetricType> MesherType;
 
   MetricType metric_aniso(*data.pos, data.surface, (typename MetricType::GMmode)mode.metric_mode,
                           mode.chordal_error, mode.hmin, mode.hmax, mode.growth_ratio);
   
   metric_aniso.set_pos2D(*data.pos);// hack to avoid to create an argument for init_metric (that is not required for other metric than GeomMetric
 
-  //std::cout << "run 0" << std::endl;
   metric_aniso.init_metric(data.metrics, data.pos3D, *data.connectB, data.hardNodes);
   
   parent_t::clear(); // clear container attributes
   parent_t::set(metric_aniso);
 
   parent_t::mode = mode;
-  //std::cout << "run 1" << std::endl;
   
 #ifdef DEBUG_MESHER
   parent_t::dbg_flag = dbg_flag;
@@ -87,7 +85,7 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 
   if (!err && (data.connectM.cols() != 0))//fixme : pos3D might have data upon entry so need to preserve them
   {
-    __mapToSurface(data.surface, *data.pos, data.pos3D);
+    __mapToSurface(data.surface, *data.pos, data.pos3D, data.exportUV);
     
     // Replace the real contour coordinates.
     /*std::vector<E_Int> Bnodes;
@@ -113,15 +111,21 @@ SurfaceMesher<SurfaceType>::run(SurfaceMeshData<SurfaceType>& data)
 template <typename SurfaceType>
 void
 SurfaceMesher<SurfaceType>::__mapToSurface
-(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D)
+(const SurfaceType& surface, const K_FLD::FloatArray& pos2D, K_FLD::FloatArray& pos3D, E_Bool exportUV)
 {
   E_Float pt[3];
   size_type COLS = pos2D.cols(), col0 = pos3D.cols();
 
   //pos3D.clear();
 
-  E_Int nfld = 3;
-  pos3D.resize(nfld, COLS);
+  if (exportUV == true)
+  {
+    pos3D.resize(5, COLS);
+  }
+  else
+  {
+    pos3D.resize(3, COLS);
+  }
 
   for (size_type c = col0; c < COLS; c++)
   {
@@ -129,11 +133,15 @@ SurfaceMesher<SurfaceType>::__mapToSurface
     pos3D(0,c) = pt[0];
     pos3D(1,c) = pt[1];
     pos3D(2,c) = pt[2];
-    //pos3D(3,c) = pos2D(0,c);
-    //pos3D(4,c) = pos2D(1,c);
+  }
+  if (exportUV == true)
+  {
+    for (size_type c = 0; c < COLS; c++)
+    {
+      pos3D(3,c) = pos2D(0,c); // uv
+      pos3D(4,c) = pos2D(1,c);
+    }
   }
 }
-
 }
-
 #endif

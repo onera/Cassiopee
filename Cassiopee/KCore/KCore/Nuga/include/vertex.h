@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -27,8 +27,8 @@ namespace NUGA
 {
   struct vecval
   {
-    double  vec[3];
-    double  val2;
+    E_Float vec[3];
+    E_Float val2;
     int     flag; // e.g. used to store node id
     int     flag2;
 
@@ -38,7 +38,7 @@ namespace NUGA
       flag = flag2 = -1;
     }
 
-    vecval(const double*p, double v2):val2(v2)
+    vecval(const E_Float*p, E_Float v2) : val2(v2)
     {
       vec[0] = p[0];
       vec[1] = p[1];
@@ -48,8 +48,6 @@ namespace NUGA
 
   using vertex = vecval;
   using direction = vecval;
-
-  
 }
 
 #endif

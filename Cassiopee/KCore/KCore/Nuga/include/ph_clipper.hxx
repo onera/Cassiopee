@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -78,7 +78,7 @@ namespace NUGA
         for (E_Int n=0; n < nb_nodes1;++n)
           Lref = MIN(Lref, L(0,nodes1[n]-1));
 
-        E_Float abstol = MAX(EPSILON, RTOL*::sqrt(Lref));
+        E_Float abstol = MAX(EPSILON, RTOL*sqrt(Lref));
 
         for (E_Int i2=0; i2 < nb_faces2; ++i2)
         {
@@ -90,7 +90,7 @@ namespace NUGA
           E_Float n2[3];
           PG2.template normal<acrd_t, 3>(acrd2, nodes2, nb_nodes2, 1, n2); //watchme : base
 
-          double ps = NUGA::dot<3>(n1,n2);
+          E_Float ps = NUGA::dot<3>(n1,n2);
           if (::fabs(ps) < ps_min) continue;
 
           //std::cout << "ps : " << ps << std::endl;
@@ -212,7 +212,7 @@ namespace NUGA
 
         //normals
         K_MESH::Triangle::normal(acrd1.array(), &T[0], nT3);
-        E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+        E_Float l2 = sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
         if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
           K_MESH::Polygon::normal<acrd_t, 3>(acrd1, subj.m_pgs.get_facets_ptr(ancPG1[i]), subj.m_pgs.stride(ancPG1[i]), 1, nT3);
         normalsT3(0, i) = nT3[0];
@@ -234,7 +234,7 @@ namespace NUGA
         assert (T[1] < acrd2.array().cols());
         assert (T[2] < acrd2.array().cols());
         K_MESH::Triangle::normal(acrd2.array(), T, nT3);
-        E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+        E_Float l2 = sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
         if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
           K_MESH::Polygon::normal<acrd_t, 3>(acrd2, cutter.m_pgs.get_facets_ptr(ancPG2[i]), cutter.m_pgs.stride(ancPG2[i]), 1, nT3);
 
@@ -261,17 +261,16 @@ namespace NUGA
       
       //medith::write("triangles.mesh", crd, cT3, "TRI");
 #ifdef DEBUG_CLIPPER
-      if (dbg){
+      if (dbg)
+      {
         medith::write("triangles", crd, cT3, "TRI");
-        //std::cout << crd << std::endl;
-        //std::cout << cT3 << std::endl;
       }
 #endif
 
       // compute an overall abstol
       E_Float min_d, max_d, abstol;
       NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(crd, cT3, min_d, max_d);
-      abstol= ::sqrt(min_d) * RTOL;
+      abstol= sqrt(min_d) * RTOL;
 
       // conformize this cloud
       std::vector<E_Int> ancT3;
@@ -314,7 +313,7 @@ namespace NUGA
       for (E_Int i = 0; i < cT3.cols(); ++i)
       {
         K_MESH::Triangle::normal(crd, cT3.col(i), nT3);
-         E_Float l2 = ::sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
+         E_Float l2 = sqrt(nT3[0] * nT3[0] + nT3[1] * nT3[1] + nT3[2] * nT3[2]);
         if (::fabs(l2 - 1.) >= EPSILON) // DEGEN
         {
           nT3[0] = normalsT3(0, ancT3[i]);
@@ -591,7 +590,7 @@ namespace NUGA
       {
         //medith::write("cutT3", crd, cT3, "TRI");
         //std::cout << "error clipping" << std::endl;
-        //std::cout << "min_d / max_d : " << ::sqrt(min_d) << "/" << ::sqrt(max_d) << std::endl;
+        //std::cout << "min_d / max_d : " << sqrt(min_d) << "/" << sqrt(max_d) << std::endl;
         //return 1;
         //
       }

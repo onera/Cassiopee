@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -460,7 +460,7 @@ NUGA::MeshTool::computeNodeNormals
     const E_Int* nodes = pgs.get_facets_ptr(i);
     E_Int nb_nodes = pgs.stride(i);
     K_MESH::Polygon::normal<acrd_t, 3>(acrd, nodes, nb_nodes, 1, normal);
-    E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+    E_Float l2 = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
     
     is_degen[i] = (::fabs(l2 - 1.) >= EPSILON); // DEGEN
     
@@ -547,7 +547,7 @@ E_Int NUGA::MeshTool::computeNodeRadiusAndAngles
       E_Int Ni = nodes[n] - 1;
       const E_Float* pt = coord.col(Ni);
 
-      radius[Ni] = ::sqrt( ((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)) );
+      radius[Ni] = sqrt( ((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)) );
 
       E_Float c = pt[0]/radius[Ni];
       E_Float s = pt[1]/radius[Ni];
@@ -592,7 +592,7 @@ E_Int NUGA::MeshTool::smoothNodeNormals(const ngon_unit& pgs, K_FLD::FloatArray&
       
       NUGA::normalize<3>(incr);
       
-      E_Float l2 = ::sqrt(incr[0] * incr[0] + incr[1] * incr[1] + incr[2] * incr[2]);
+      E_Float l2 = sqrt(incr[0] * incr[0] + incr[1] * incr[1] + incr[2] * incr[2]);
       if(::fabs(l2 - 1.) >= EPSILON) // DEGEN
         continue;
       
@@ -633,7 +633,7 @@ void NUGA::MeshTool::compute_or_transfer_normals
     
     K_MESH::Triangle::normal(p0, p1, p2, normal); 
     
-    E_Float l2 = ::sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
+    E_Float l2 = sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
     
     if (::fabs(l2 - 1.) < EPSILON) // NOT degen
       T3normals.pushBack(normal, normal+3);
@@ -847,7 +847,7 @@ NUGA::MeshTool::flipT3(K_FLD::IntArray& connectT3)
 
 void
 NUGA::MeshTool::metricAnisoE22D
-(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectE2, double kn, K_FLD::FloatArray& M)
+(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectE2, E_Float kn, K_FLD::FloatArray& M)
 {
   M.clear();
   M.resize(3, pos.cols());
@@ -1546,17 +1546,17 @@ E_Float NUGA::MeshTool::get_max_deviation
 
 ///
 void NUGA::MeshTool::extrude_line
-(K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4)
+(K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const E_Float* dir, E_Float H, K_FLD::IntArray& cntQ4)
 {
   int nbe = cntE.cols();
   int nbp = crd.cols();
 
   // 1. EDGE NORMALS
   K_FLD::FloatArray normE(3, nbe);
-  double Lmean(0.);
+  E_Float Lmean(0.);
   for (int i = 0; i < nbe; ++i)
   {
-    double Ei[3], ni[3];
+    E_Float Ei[3], ni[3];
     NUGA::diff<3>(crd.col(cntE(1, i)), crd.col(cntE(0, i)), Ei);
     NUGA::crossProduct<3>(Ei, dir, ni);//ni is normal to plane(Ei, dir)
     NUGA::crossProduct<3>(ni, Ei, normE.col(i));
@@ -1564,21 +1564,9 @@ void NUGA::MeshTool::extrude_line
     NUGA::normalize<3>(normE.col(i));
 
     // min edge length
-    double L = NUGA::sqrNorm<3>(Ei);
-    Lmean += ::sqrt(L);
+    E_Float L = NUGA::sqrNorm<3>(Ei);
+    Lmean += sqrt(L);
   }
-
-  /*{
-    K_FLD::FloatArray crdt = crd;
-    for (int i = 0; i < nbe; ++i) {
-      double P[3];
-      NUGA::sum<3>(crd.col(cntE(0, i)), normE.col(i), P);
-      crdt.pushBack(P, P + 3);
-    }
-
-    K_FLD::IntArray tmp(2, 1, 0);
-    tp::write("D:\\slandier\\DATA\\tmp\\normE.tp", crdt, tmp, "BAR");
-  }*/
 
   Lmean /= nbe;
 
@@ -1599,19 +1587,16 @@ void NUGA::MeshTool::extrude_line
                                 // add space to crd
   crd.resize(3, nbp*nbr);
 
-  double k = H / nbr;
+  E_Float k = H / nbr;
   for (int r = 0; r < nbr - 1; ++r)
   {
     for (int i = 0; i < nbp; ++i)
     {
-      double* Pi = crd.col(i + r * nbp);
-      double* newPi = crd.col(i + (r + 1)*nbp);
+      E_Float* Pi = crd.col(i + r * nbp);
+      E_Float* newPi = crd.col(i + (r + 1)*nbp);
       NUGA::sum<3>(k, normN.col(i), Pi, newPi);
     }
   }
-
-  //K_FLD::IntArray tmp(2, 1, 0);
-  //tp::write("D:\\slandier\\DATA\\tmp\\toto.tp", crd, tmp, "BAR");
 
   // 4. output QUAD connectivity
   cntQ4.clear();

@@ -855,6 +855,22 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
 # IN: sameBase=1 (itype='chimera'): autorise l'interpolation dans la meme base
 # memes arguments que setInterpData
 #=========================================================================
+def setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
+                  method='lagrangian', loc='nodes', storage='direct',
+                  interpDataType=1, hook=None, cartesian=False, sameBase=0,
+                  topTreeRcv=None, topTreeDnr=None, sameName=1, verbose=2,
+                  dim=3, itype='abutting'):
+    """Compute interpolation data for abutting or chimera intergrid connectivity."""
+    tR = Internal.copyRef(aR)
+    tD = Internal.copyRef(aD)
+    _setInterpData(tR, tD, order=order, penalty=penalty, nature=nature, extrap=extrap,
+                   method=method, loc=loc, storage=storage,
+                   interpDataType=interpDataType, hook=hook, cartesian=cartesian, sameBase=sameBase,
+                   topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, verbose=verbose,
+                   dim=dim, itype=itype)
+    if storage == 'direct': return tR
+    else: return tD
+
 def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, cartesian=False, sameBase=0,
@@ -1021,30 +1037,30 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
 
     return None
 
-def setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+def setInterpData2(aR, aD, order=2, loc='centers', cartesian=False, extrap=1, nature=1, penalty=1, verbose=2):
     """Compute interpolation data for 2 different trees."""
-    aD = Internal.copyRef(tD)
-    aR = Internal.copyRef(tR)
-    _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
-    return aD
+    tD = Internal.copyRef(aD)
+    tR = Internal.copyRef(aR)
+    _setInterpData2(tR, tD, order=order, loc=loc, cartesian=cartesian, extrap=extrap, nature=nature, penalty=penalty, verbose=verbose)
+    return tD
 
-def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
+def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False, extrap=1, nature=1, penalty=1, verbose=2):
     """Compute interpolation data for 2 different trees."""
 
     if loc == 'nodes': varcelln = 'cellN'
     else: varcelln = 'centers:cellN'
 
     # Clean previous IDs if necessary
-    Internal._rmNodesFromType(tD, 'ZoneSubRegion_t')
-    Internal._rmNodesFromName(tD, 'GridCoordinates#Init')
+    Internal._rmNodesFromType(aD, 'ZoneSubRegion_t')
+    Internal._rmNodesFromName(aD, 'GridCoordinates#Init')
 
     if cartesian: interpDataType = 0 # 0 if tc is cartesian
     else: interpDataType = 1
-    locR = loc
+
     # Compute BBoxTrees
-    tsBB = Cmpi.createBBoxTree(tR)
+    tsBB = Cmpi.createBBoxTree(aR)
     procDicts = Cmpi.getProcDict(tsBB)
-    tDBB = Cmpi.createBBoxTree(tD)
+    tDBB = Cmpi.createBBoxTree(aD)
     procDictD = Cmpi.getProcDict(tDBB)
     interDicts = X.getIntersectingDomains(tsBB, tDBB, taabb=tsBB, taabb2=tDBB)
     interDictD2R = X.getIntersectingDomains(tDBB, tsBB, taabb=tDBB, taabb2=tsBB)
@@ -1053,24 +1069,25 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
                               procDict=procDictD, procDict2=procDicts, t2=tsBB, reduction=True)
     graph2 = Cmpi.computeGraph(tsBB, type='bbox3', intersectionsDict=interDicts,
                                procDict=procDicts, procDict2=procDictD, t2=tDBB, reduction=True)
-    Cmpi._addXZones(tD, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, subr=False, keepOldNodes=False, zoneGC=True)
+    Cmpi._addXZones(aD, graph, variables=['cellN'], noCoordinates=False, cartesian=cartesian, subr=False, keepOldNodes=False, zoneGC=True)
 
     datas = {}
-    for zs in Internal.getZones(tR):
+    for zs in Internal.getZones(aR):
         zrname = Internal.getName(zs)
         dnrZones = []
         for zdname in interDicts[zrname]:
-            zd = Internal.getNodeFromName2(tD, zdname)
+            zd = Internal.getNodeFromName2(aD, zdname)
             dnrZones.append(zd)
 
         cellNPresent = C.isNamePresent(zs, varcelln)
         if cellNPresent == -1: C._initVars(zs, varcelln, 2.) # interp all
 
         if dnrZones != []:
-            X._setInterpData(zs, dnrZones, nature=1, penalty=1, order=order, loc=locR, storage='inverse',
-                             sameName=0, interpDataType=interpDataType, itype='chimera')
-        if cellNPresent == -1:
-            C._rmVars(zs, [varcelln])
+            X._setInterpData(zs, dnrZones, nature=nature, penalty=penalty, order=order, loc=loc, storage='inverse',
+                             extrap=extrap, sameName=0, interpDataType=interpDataType, itype='chimera', verbose=verbose)
+
+        if cellNPresent == -1: C._rmVars(zs, [varcelln])
+
         for zd in dnrZones:
             zdname = zd[0]
             destProc = procDictD[zdname]
@@ -1082,7 +1099,7 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
 
             if IDs != []:
                 if destProc == Cmpi.rank:
-                    zD = Internal.getNodeFromName2(tD, zdname)
+                    zD = Internal.getNodeFromName2(aD, zdname)
                     zD[2] += IDs
                 else:
                     if destProc not in datas: datas[destProc] = [[zdname,IDs]]
@@ -1090,14 +1107,14 @@ def _setInterpData2(tR, tD, order=2, loc='centers', cartesian=False):
             else:
                 if destProc not in datas: datas[destProc] = []
 
-    Cmpi._rmXZones(tD)
+    Cmpi._rmXZones(aD)
     destDatas = Cmpi.sendRecv(datas, graph2)
     for i in destDatas:
         for n in destDatas[i]:
             zname = n[0]
             IDs = n[1]
             if IDs != []:
-                zD = Internal.getNodeFromName2(tD, zname)
+                zD = Internal.getNodeFromName2(aD, zname)
                 zD[2] += IDs
     datas = {}; destDatas = None
 

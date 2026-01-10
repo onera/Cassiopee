@@ -43,7 +43,7 @@ setup(
     name="Dist2Walls",
     version="4.1",
     description="Computation of distance to walls.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Dist2Walls'],
     ext_modules=extensions

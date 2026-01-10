@@ -2,7 +2,6 @@
 import Generator.PyTree as G
 import Converter.PyTree as C
 import KCore.test as test
-test.TOLERANCE=1.e-7
 
 # Structure
 a = G.cart((0.,0.,0.), (0.1,0.1,0.1), (11,11,11))

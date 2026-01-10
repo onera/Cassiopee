@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,6 @@ GapFixer::GapFixer(){}
 ///
 GapFixer::~GapFixer(){}
 
-
 ///
 E_Int
 GapFixer::run
@@ -49,15 +48,15 @@ GapFixer::run
   posG.clear();
   
   // Fast Return
-  if (posC.cols() == 0)      return 0;
-  if (posB0.cols() == 0)     return 0;
+  if (posC.cols() == 0) return 0;
+  if (posB0.cols() == 0) return 0;
   if (connectB0.cols() == 0) return 0;
-  if (nj == 0)               return 1;
+  if (nj == 0) return 1;
 
   // Compact the data to work only on contour nodes.
-  K_FLD::IntArray              cB0(connectB0);
-  K_FLD::FloatArray            pB0(posB0);
-  std::vector<E_Int>           new_IDs, hN;
+  K_FLD::IntArray cB0(connectB0);
+  K_FLD::FloatArray pB0(posB0);
+  std::vector<E_Int> new_IDs, hN;
 
   NUGA::MeshTool::compact_to_mesh(pB0, cB0, new_IDs);
   
@@ -87,12 +86,11 @@ GapFixer::run
  
   // Build the spline surface.
   std::unique_ptr<UBSSurface> ubs(UBSSurface::buildUBSSurface(posC, nj));
-  if (!ubs.get())
-    return 1;
+  if (!ubs.get()) return 1;
 
   // Build the triangulated spline surface.
-  K_FLD::FloatArray               posST3;
-  K_FLD::IntArray                 connectST3;
+  K_FLD::FloatArray posST3;
+  K_FLD::IntArray connectST3;
   
   ubs->triangulate(posST3, connectST3);
 
@@ -104,9 +102,9 @@ GapFixer::run
 #endif
   
   // Imprint the contour on the spline surface (get the (u,v) parameters).
-  int_vector_type         cell_indices;
-  DELAUNAY::Imprinter     imprinter(posST3, connectST3);
-  K_FLD::FloatArray       posUV;
+  int_vector_type  cell_indices;
+  DELAUNAY::Imprinter imprinter(posST3, connectST3);
+  K_FLD::FloatArray posUV;
 
   imprinter.run(pB0, cB0, posUV, cell_indices, &hN);
 
@@ -149,9 +147,9 @@ GapFixer::__convertToGlobalQInterp
  const NUGA::int_vector_type& cell_indices,
  K_FLD::FloatArray& posUV)
 {
-  E_Int     Ni, Ci, Qi, I, J;
-  E_Int     n(nj+1);
-  E_Int     COLS(posB0.cols());
+  E_Int Ni, Ci, Qi, I, J;
+  E_Int n(nj+1);
+  E_Int COLS(posB0.cols());
 
   for (Ni = 0; Ni < COLS; ++Ni)
   {

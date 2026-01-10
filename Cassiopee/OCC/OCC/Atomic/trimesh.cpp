@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,8 +24,10 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "Nuga/include/SurfaceMesher.h"
 
-// trimesh : mesh with TRI on a CAD patch
+//===========================================================
+// trimesh: mesh with TRI on a CAD patch
 // IN: contour UV, no de la face dans la CAD
+//===========================================================
 PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 {
   PyObject* hook;
@@ -165,6 +167,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 
   E_Int err = 0;
   mesher.clear(); // landier
+  data.exportUV = true;
   err = mesher.run(data);
   if (err || (data.connectM.cols() == 0))
   {
@@ -181,8 +184,8 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   data.pos3D.convert(*coords);
   FldArrayI* cn = new FldArrayI;
   data.connectM.convert(*cn, 1);
-  PyObject* tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, "TRI");
-  //PyObject* tpl = K_ARRAY::buildArray(*coords, "x,y,z,u,v", *cn, -1, "TRI");
+  PyObject* tpl = NULL;
+  tpl = K_ARRAY::buildArray(*coords, "x,y,z,u,v", *cn, -1, "TRI");
   delete coords; delete cn;
 
   RELEASESHAREDB(ret, arrayUV, fi, ci);

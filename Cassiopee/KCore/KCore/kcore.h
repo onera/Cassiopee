@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -35,10 +35,6 @@
 #include "Metric/metric.h"
 #include "Math/math.h"
 #include "Nuga/include/KdTree.h"
-//#include "Memory/unique_ptr.hpp"
-//#include "Memory/shared_ptr.hpp"
-//#include "Memory/vector_view.hpp"
-//#include "ExtArith/quad_double.hpp"
 #include "parallel.h"
 #include "kPython.h"
 #include <vector>

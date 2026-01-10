@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,18 +24,18 @@
 // ============================================================================
 static PyMethodDef Pygeom [] =
 {
-  {"naca", K_GEOM::nacaMesh, METH_VARARGS},
-  {"line", K_GEOM::lineMesh, METH_VARARGS},
-  {"circle", K_GEOM::circleMesh, METH_VARARGS},
-  {"sphere", K_GEOM::sphereMesh, METH_VARARGS},
-  {"cone", K_GEOM::coneMesh, METH_VARARGS},
+  {"naca", K_GEOM::naca, METH_VARARGS},
+  {"line", K_GEOM::line, METH_VARARGS},
+  {"circle", K_GEOM::circle, METH_VARARGS},
+  {"sphere", K_GEOM::sphere, METH_VARARGS},
+  {"cone", K_GEOM::cone, METH_VARARGS},
   {"torus", K_GEOM::torus, METH_VARARGS},
-  {"triangle", K_GEOM::triangleMesh, METH_VARARGS},
-  {"quadrangle", K_GEOM::quadrangleMesh, METH_VARARGS},
+  {"triangle", K_GEOM::triangle, METH_VARARGS},
+  {"quadrangle", K_GEOM::quadrangle, METH_VARARGS},
   {"bezier", K_GEOM::bezier, METH_VARARGS},
-  {"lineGenerate", K_GEOM::lineGenerateMesh, METH_VARARGS},
+  {"lineGenerate", K_GEOM::lineGenerate, METH_VARARGS},
   {"lineGenerate2", K_GEOM::lineGenerate2, METH_VARARGS},
-  {"addSeparationLine", K_GEOM::addSeparationLineMesh, METH_VARARGS},
+  {"addSeparationLine", K_GEOM::addSeparationLine, METH_VARARGS},
   {"axisym", K_GEOM::axisym, METH_VARARGS},
   {"volumeFromCrossSections", K_GEOM::volumeFromCrossSections, METH_VARARGS},
   {"getLength", K_GEOM::getLength, METH_VARARGS},

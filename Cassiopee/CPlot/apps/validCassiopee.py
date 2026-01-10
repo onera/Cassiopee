@@ -21,7 +21,15 @@ except: isMpi = False
 # Regexprs
 regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
-regError = re.compile("|".join(['Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation', 'ERROR: AddressSanitizer', 'getFromArray', 'incoherency']), re.UNICODE)
+regError = re.compile(
+    "|".join([
+        'Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
+        'ERROR: AddressSanitizer', 'getFromArray', 'incoherency',
+        'Your MPI job will now abort.',
+        'Attempting to use an MPI routine before initializing MPICH'
+    ]),
+    re.UNICODE
+)
 regLeakError = re.compile('ERROR: LeakSanitizer')
 separator = ':'
 separatorl = separator+' '

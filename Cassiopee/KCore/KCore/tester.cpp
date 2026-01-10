@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@
 #define  TEST1          0
 #define  TEST2          0
 #define  TEST3          0
-#define  TEST4          1
+#define  TEST4          0
 #define  TESTARRAY2     0
 #define  TESTARRAY3     0
 #define  TESTFLD        0

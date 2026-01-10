@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -562,12 +562,12 @@ namespace K_POST
 // ============================================================================
 // Etant donnes n champs definis aux noeuds d une grille 3D, 
 // calcul des champs aux centres des interfaces de la grille  
-// fint = 0.25*(fa+fb+fc+fd)
+// fint1 = 0.25*(fa+fb+fc+fd)
 // ============================================================================
   void compIntField(
     const E_Int ni, const E_Int nj, const E_Int nk,
     const E_Int nfld, const E_Float* f,
-    E_Float* fint);
+    E_Float* fint1);
 
 // ============================================================================
 // Compute the values of the vector (f1,f2,f3) at interfaces
@@ -987,6 +987,10 @@ namespace K_POST
   PyObject* exteriorFacesBasic(char* varString, FldArrayF& f,
                                FldArrayI& cn, char* eltType,
                                PyObject* Indices);
+
+  PyObject* selectExteriorFacesME(char* varString, FldArrayF& f,    
+                                  FldArrayI& cn, char* eltType,
+                                  PyObject* indices);                         
 
   PyObject* selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
                                       FldArrayI& cn,

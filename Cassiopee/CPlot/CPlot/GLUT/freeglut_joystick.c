@@ -75,6 +75,7 @@
 #    ifdef HAVE_FCNTL_H
 #        include <fcntl.h>
 #    endif
+#    include <unistd.h>
 #    ifdef HAVE_ERRNO_H
 #        include <errno.h>
 #        include <string.h>

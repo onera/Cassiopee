@@ -11,11 +11,9 @@ import KCore.test as test
 a = G.cartHexa((0.,0.,0.), (1,1,0.2), (2,2,1))
 a = G.quad2Pyra(a)
 a = C.convertArray2NGon(a)
-a = G.close(a)
 
 b = G.cart((0.2,0.2,0.2), (0.01,0.01,0.01),(5,5,5))
 b = C.convertArray2NGon(b)
-b = G.close(b)
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')

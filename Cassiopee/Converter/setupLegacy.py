@@ -98,7 +98,7 @@ setup(
     name="Converter",
     version="4.1",
     description="Converter for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Converter'],
     ext_modules=listExtensions

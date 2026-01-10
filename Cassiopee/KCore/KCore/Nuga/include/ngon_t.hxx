@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -1022,7 +1022,7 @@ struct ngon_t
   }
 
   /// Remove hatty PGs (chinese hats when 3 nodes) from a mesh => open mesh to fix with close_phs
-  static void remove_hatty_PGs(ngon_t& ngio, const K_FLD::FloatArray& crd, double ARTOL)
+  static void remove_hatty_PGs(ngon_t& ngio, const K_FLD::FloatArray& crd, E_Float ARTOL)
   {
     ngio.PGs.updateFacets();
 
@@ -1604,14 +1604,14 @@ struct ngon_t
   }
 
   ///
-  bool collapse_micro_edge(const K_FLD::FloatArray& crd, double edge_ratio, double Lmax, std::vector<E_Int>& nids)
+  bool collapse_micro_edge(const K_FLD::FloatArray& crd, E_Float edge_ratio, E_Float Lmax, std::vector<E_Int>& nids)
   {
     bool has_changed=false;
 
     if (edge_ratio > 1.) edge_ratio = 1./edge_ratio;
     if (edge_ratio <= 0.) return false;
 
-    double edge_ratio2 = edge_ratio*edge_ratio;
+    E_Float edge_ratio2 = edge_ratio*edge_ratio;
 
     nids.clear();
     K_CONNECT::IdTool::init_inc(nids, crd.cols()); 
@@ -1634,19 +1634,19 @@ struct ngon_t
         E_Int Ni   = pnodes[n]-1;
         E_Int Nip1 = pnodes[(n+1) % nnodes]-1;
 
-        double NiNj[3];
+        E_Float NiNj[3];
         NUGA::diff<3>(crd.col(Ni), crd.col(Nip1), NiNj);
-        double Lref = ::sqrt(NUGA::sqrNorm<3>(NiNj));
+        E_Float Lref = sqrt(NUGA::sqrNorm<3>(NiNj));
 
-        const double& emin2 = L(0, Ni);
-        const double& emax2 = L(1, Ni);
+        const E_Float& emin2 = L(0, Ni);
+        const E_Float& emax2 = L(1, Ni);
         if (emin2 < edge_ratio2*emax2) ++n_bad_nodes;
 
-        const double& emin21 = L(0, Nip1);
-        const double& emax21 = L(1, Nip1);
+        const E_Float& emin21 = L(0, Nip1);
+        const E_Float& emax21 = L(1, Nip1);
         if (emin21 < edge_ratio2*emax21) ++n_bad_nodes;
 
-        double emin = ::sqrt(std::min(emin2, emin21));
+        E_Float emin = sqrt(std::min(emin2, emin21));
         if (Lmax > 0. && emin > Lmax) continue; // consider only edges under Lmax (if valid value)
 
         bool small_edge = ::fabs(emin - Lref) < 1.e-6 * emin ; // NiNj is (or very near) the smallest incident edge
@@ -1662,9 +1662,9 @@ struct ngon_t
     // update the pointers to point to the leaves
     for (size_t i =0; i < nids.size(); ++i)
     {
-      E_Int Fi=nids[i];
+      E_Int Fi = nids[i];
       while (Fi != nids[Fi])Fi=nids[Fi];
-      nids[i]=Fi;
+      nids[i] = Fi;
     }
 
     return has_changed;
@@ -2073,7 +2073,7 @@ struct ngon_t
       
       // test normal computation
       K_MESH::Polygon::normal<acrd_t, 3>(acrd, nodes, nb_nodes, 1, W);
-      E_Float l2 = ::sqrt(W[0]*W[0]+W[1]*W[1]+W[2]*W[2]);
+      E_Float l2 = sqrt(W[0]*W[0]+W[1]*W[1]+W[2]*W[2]);
       
       if (::fabs(l2 - 1.) >= EPSILON) // NORMAL CALCULATION FAILED
       {
@@ -2088,8 +2088,8 @@ struct ngon_t
           Lmax = std::max(Lmax, d2);
         }
         
-        Lmin = ::sqrt(Lmin);
-        Lmax = ::sqrt(Lmax);*/
+        Lmin = sqrt(Lmin);
+        Lmax = sqrt(Lmax);*/
 
         if (nb_nodes == 3)
         {
@@ -2263,7 +2263,7 @@ static E_Int detect_bad_volumes(const K_FLD::FloatArray& crd, const ngon_t& ngi,
   std::stable_sort(v_to_id.begin(), v_to_id.end(), 
   [](const pair_t& a, const pair_t& b)
   {
-    double tol = (std::max(a.first, b.first) < 1.e-15) ? 1.e-30 : 1.e-15;
+    E_Float tol = (std::max(a.first, b.first) < 1.e-15) ? 1.e-30 : 1.e-15;
     return (a.first < (b.first + tol));
   }
   );
@@ -3123,17 +3123,16 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     else //if (tolerance < 0.)
     {
       //std::cout << "RELATIVE TOL" << std::endl;
-      std::vector<double> nodal_metric2;
+      std::vector<E_Float> nodal_metric2;
       if (Lmin2 == nullptr)
       {
-        //std::cout << "computing Lmin2" << std::endl;
         NUGA::MeshTool::computeNodalDistance2<K_FLD::FloatArray, ngon_unit>(f, NG.PGs, nodal_metric2);
         Lmin2 = &nodal_metric2;
       }
 
       //std::cout << "Limn2 size vs crd : " << Lmin2->size() << "/" << f.cols() << std::endl;
       
-      double RTOL = -tolerance;
+      E_Float RTOL = -tolerance;
       nb_merges = NG.join_phs(f, *Lmin2, RTOL, do_omp);
     }
 
@@ -3177,7 +3176,7 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
     E_Int min_nb_facets = ngon_dim + 1;
     NG.PHs.get_degenerated(min_nb_facets, toremove);
 
-    // 5- Elimination des elts doubles : WARNING : do not care of multiple occ in toremove as remove_entities handles it.
+    // 5- Elimination des elts doublons : WARNING : do not care of multiple occ in toremove as remove_entities handles it.
     if (remove_dup_phs)
     {
       std::vector<E_Int> duphnids;
@@ -3411,8 +3410,8 @@ E_Int remove_unreferenced_pgs(Vector_t<E_Int>& pgnids, Vector_t<E_Int>& phnids)
       }
     }
 
-    Lmin = ::sqrt(Lmin);
-    Lmax = ::sqrt(Lmax);
+    Lmin = sqrt(Lmin);
+    Lmax = sqrt(Lmax);
   }
 
   struct link_t{
@@ -5008,10 +5007,10 @@ static E_Int extrude_faces
       if (L(0,i) == NUGA::FLOAT_MAX) continue;
       if (L(1,i) == -NUGA::FLOAT_MAX) continue;
       ++count;
-      if (strategy == CST_REL_MEAN) Lcomp += 0.5 *(::sqrt(L(0,i)) + ::sqrt(L(1,i)));           // GLOBAL MEAN
-      else if (strategy == CST_REL_MIN) Lcomp += ::sqrt(L(0,i));                               // GLOBAL MEAN OF MINS
-      else if (strategy == VAR_REL_MEAN) heightv[i] *= 0.5 *(::sqrt(L(0,i)) + ::sqrt(L(1,i))); // LOCAL MEAN
-      else if (strategy == VAR_REL_MIN) heightv[i] *= ::sqrt(L(0,i));                          // LOCAL MIN
+      if (strategy == CST_REL_MEAN) Lcomp += 0.5 *(sqrt(L(0,i)) + sqrt(L(1,i)));           // GLOBAL MEAN
+      else if (strategy == CST_REL_MIN) Lcomp += sqrt(L(0,i));                               // GLOBAL MEAN OF MINS
+      else if (strategy == VAR_REL_MEAN) heightv[i] *= 0.5 *(sqrt(L(0,i)) + sqrt(L(1,i))); // LOCAL MEAN
+      else if (strategy == VAR_REL_MIN) heightv[i] *= sqrt(L(0,i));                          // LOCAL MIN
     }
     if (count) Lcomp /= count;
 
@@ -5055,8 +5054,8 @@ static E_Int extrude_faces
     const E_Float* norm = normals.col(i);
     if (norm[0] == NUGA::FLOAT_MAX) continue;
     const E_Float* p = coord.col(i);
-    //E_Float Lmax = ::sqrt(L(1, i));
-    //E_Float Lmin = ::sqrt(L(0, i));
+    //E_Float Lmax = sqrt(L(1, i));
+    //E_Float Lmin = sqrt(L(0, i));
     //E_Float Lref = FACTOR*Lmean;//std::min(FACTOR*Lmin, Lmax);
     NUGA::sum<3>(1., p, heightv[i], norm, coord.col(nid)); // creating image point
     img[i] = nid++;
@@ -5642,18 +5641,18 @@ static int validate_moves_by_fluxes
   //E_Int err = 
   build_orientation_ngu<TriangulatorType>(crd, ngio, orient);//fixme hpc : should be deduced from the input PH orientation
 
-  std::vector<double> fluxes0(ngio.PHs.size(), NUGA::FLOAT_MAX);
-  std::vector<double> vols0  (ngio.PHs.size(), NUGA::FLOAT_MAX);
+  std::vector<E_Float> fluxes0(ngio.PHs.size(), NUGA::FLOAT_MAX);
+  std::vector<E_Float> vols0  (ngio.PHs.size(), NUGA::FLOAT_MAX);
 
   //computes initial flux at cells
   for (size_t i = 0; i < PHlist.size(); ++i)
   {
     E_Int PHi = PHlist[i];
     K_MESH::Polyhedron<0> PH0(ngio, PHi);
-    double fluxvec[3];
+    E_Float fluxvec[3];
     PH0.flux(crd, orient.get_facets_ptr(PHi), fluxvec);
 
-    E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+    E_Float f = sqrt(NUGA::sqrNorm<3>(fluxvec));
     E_Float s = PH0.surface(crd);
     f /= s;
 
@@ -5707,8 +5706,8 @@ static int validate_moves_by_fluxes
 
     ph_shell(ngio, PHi, neighborsi, shellPHs, boundPGs, wprocessed);
 
-    double maxflux = fluxes0[PHi];
-    double minvol  = NUGA::FLOAT_MAX;
+    E_Float maxflux = fluxes0[PHi];
+    E_Float minvol  = NUGA::FLOAT_MAX;
 
     for (size_t u = 0; u < shellPHs.size(); ++u)
     {
@@ -5738,21 +5737,21 @@ static int validate_moves_by_fluxes
     build_orientation_ngu<TriangulatorType>(crd, ngshell, orientshell);
 
     // compute new max flux : must decrease to validate
-    double newmaxflux = -1.;
-    double newminvol = NUGA::FLOAT_MAX;
+    E_Float newmaxflux = -1.;
+    E_Float newminvol = NUGA::FLOAT_MAX;
     TriangulatorType dt;
     for (E_Int u = 0; u < ngshell.PHs.size(); ++u)
     {
       K_MESH::Polyhedron<0> PH0(ngshell, u);
-      double fluxvec[3];
+      E_Float fluxvec[3];
       PH0.flux(crd, orientshell.get_facets_ptr(u), fluxvec);
 
-      E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+      E_Float f = sqrt(NUGA::sqrNorm<3>(fluxvec));
       E_Float s = PH0.surface(crd);
       f /= s;
 
       newmaxflux = std::max(newmaxflux, f);
-      double v;
+      E_Float v;
       PH0.volume<TriangulatorType>(crd, orientshell.get_facets_ptr(u), v, dt);
       if (v < newminvol) newminvol = v;
     }

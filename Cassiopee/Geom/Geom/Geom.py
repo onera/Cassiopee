@@ -396,7 +396,7 @@ def surface__(f, N):
 # - informations -
 def getLength(a):
     """Return the length of 1D-mesh.
-    Usage: l = getLength(a"""
+    Usage: l = getLength(a)"""
     if isinstance(a[0], list):
         l = 0.
         for i in a: l += geom.getLength(i)

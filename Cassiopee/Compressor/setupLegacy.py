@@ -58,7 +58,7 @@ setup(
     name="Compressor",
     version="4.1",
     description="Compress CFD solutions.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     #packages=['Compressor', 'Compressor.zfp', 'Compressor.sz'],
     packages=['Compressor'],

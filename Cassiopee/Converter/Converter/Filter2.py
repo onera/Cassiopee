@@ -682,8 +682,7 @@ def createZoneGridConnectivityFilter(zone, zone_path, hdf_filter):
         for gc in I.getNodesFromType1(zone_gc, 'GridConnectivity_t'):
             gc_path = zone_gc_path+"/"+gc[0]
             distrib_ia = I.getVal(getDistribution(gc, 'Index'))
-
-            gc_shape   = plOrPrSize(gc)
+            gc_shape = plOrPrSize(gc)
             data_space = createDataArrayFilter(distrib_ia, gc_shape)
             applyDataspaceToPointlist(gc, gc_path, data_space, hdf_filter)
 
@@ -846,7 +845,7 @@ def saveTreeFromFilter(fileName, dist_tree, comm, hdf_filter):
     for key, f in hdf_filter_with_func.items():
         f(hdf_filter_with_dim)
 
-    #Dont save distribution info, but work on a copy to keep it for further use
+    # Dont save distribution info, but work on a copy to keep it for further use
     saving_dist_tree = I.copyRef(dist_tree)
     cleanDistributionInfo(saving_dist_tree)
 
@@ -964,6 +963,5 @@ def mergeAndSave(distTree, fileName):
     """Save a distributed tree in one NGON zone."""
     hdfFilter = {}
     createTreeHdfFilter(distTree, hdfFilter)
-
     saveTreeFromFilter(fileName, distTree, Cmpi.KCOMM, hdfFilter)
     return None

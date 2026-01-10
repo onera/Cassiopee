@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -85,8 +85,9 @@ PyObject* K_OCC::evalFace(PyObject* self, PyObject* args)
   else 
   {
     K_ARRAY::getFromArray3(o, fo, co);
-    E_Int* pci = ci->begin(); E_Int* pco = co->begin();
-    for (E_Int i = 0; i < ci->getSize()*ci->getNfld(); i++) pco[i]  = pci[i];
+    for (E_Int n = 0; n < ci->getNfld(); n++)
+      for (E_Int i = 0; i < ci->getSize(); i++)
+        (*co)(i,n+1) = (*ci)(i,n+1);
   }
   E_Float* px = fo->begin(1);
   E_Float* py = fo->begin(2);

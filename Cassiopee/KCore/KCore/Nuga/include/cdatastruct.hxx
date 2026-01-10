@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -96,8 +96,8 @@ namespace NUGA
   };
 
   using c_morse_t = vngon_unit<int, 1>;
-  using c_crd3D_t = crd3D<double, int, 1>;
-  using c_phmesh_t = phmesh<double, int, 1>;
+  using c_crd3D_t = crd3D<E_Float, int, 1>;
+  using c_phmesh_t = phmesh<E_Float, int, 1>;
 
 }
 

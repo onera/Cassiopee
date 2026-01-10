@@ -2,7 +2,7 @@
 import Converter as C
 import Post as P
 import Generator as G
-import KCore.test as T
+import KCore.test as test
 
 def F(x,y,z): return 12*y*y + 4
 
@@ -16,7 +16,7 @@ m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeNormCurl(m, ['u','v','w']) # defined on centers
-T.testA([p], 1)
+test.testA([p], 1)
 
 # cas 3D tetra
 ni = 30; nj = 40; nk = 3
@@ -26,7 +26,7 @@ m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeNormCurl(m,['u','v','w']) # defined on centers
-T.testA([p], 2)
+test.testA([p], 2)
 
 # cas 3D penta
 ni = 30; nj = 40; nk = 3
@@ -36,7 +36,7 @@ m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeNormCurl(m,['u','v','w']) # defined on centers
-T.testA([p], 3)
+test.testA([p], 3)
 
 # cas 2D QUAD
 ni = 30; nj = 40; nk = 1
@@ -46,7 +46,7 @@ m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeNormCurl(m,['u','v','w']) # defined on centers
-T.testA([p], 4)
+test.testA([p], 4)
 
 # cas 2D tri
 ni = 30; nj = 40; nk = 1
@@ -56,4 +56,4 @@ m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
 m = C.initVars(m,'sol',DF,['y'])
 p = P.computeNormCurl(m,['u','v','w']) # defined on centers
-T.testA([p], 5)
+test.testA([p], 5)

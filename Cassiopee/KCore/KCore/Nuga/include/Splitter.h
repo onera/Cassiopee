@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -143,7 +143,7 @@ namespace NUGA
     //
     template<typename TriangulatorType>
     inline static E_Int split_phs
-    (K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orient, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, double GRmin, E_Float Fluxmax, ngon_type& ngo, const Vector_t<E_Int>& PHlist)
+    (K_FLD::FloatArray& crd, const ngon_type& ngi, const ngon_unit& orient, E_Float concave_threshold, E_Float convex_threshold, E_Float RTOL, E_Float GRmin, E_Float Fluxmax, ngon_type& ngo, const Vector_t<E_Int>& PHlist)
     {
       ngo.clear();//important
       
@@ -258,7 +258,7 @@ namespace NUGA
     template<typename TriangulatorType>
     inline static E_Int single_concave_split(const K_FLD::FloatArray& crd, E_Int index_start,
                                              const ngon_unit& PGS, const E_Int* first_pg, E_Int nb_pgs, const E_Int* orient,
-                                             E_Float alpha_conc, E_Float alpha_cvx, E_Float rtol, double GRmin, E_Float Fluxmax, ngon_type& twoPHs,
+                                             E_Float alpha_conc, E_Float alpha_cvx, E_Float rtol, E_Float GRmin, E_Float Fluxmax, ngon_type& twoPHs,
                                              const E_Float** normals = 0);
 
   
@@ -1499,30 +1499,27 @@ if (PHi == faultyPH)
       std::set_intersection(ALL(common_faces1), ALL(node_to_faces[N3]), std::back_inserter(common_faces));
       if (common_faces.empty()) continue;
 
-      const double* P0 = crd.col(N1-1);
-      const double* P1 = crd.col(N2-1);
-      const double* P2 = crd.col(N3-1);
+      const E_Float* P0 = crd.col(N1-1);
+      const E_Float* P1 = crd.col(N2-1);
+      const E_Float* P2 = crd.col(N3-1);
 
-      double N[3];
+      E_Float N[3];
       K_MESH::Triangle::normal(P0, P1, P2, N);
 
-      double nPGi[3];
+      E_Float nPGi[3];
       for (auto PGi : common_faces)
       {
         const E_Int* pn = PGS.get_facets_ptr(PGi);
         int nnodes = PGS.stride(PGi);
 
         K_MESH::Polygon::normal<K_FLD::FloatArray, 3>(crd, pn, nnodes, 1, nPGi);
-        double ps = ::fabs(NUGA::dot<3>(N, nPGi));
+        E_Float ps = ::fabs(NUGA::dot<3>(N, nPGi));
         if (ps > 0.99) return false;
       }
-
     }
-
   }
 
   // try the cut
-
   eset_t split_edges;
   for (E_Int n = 0; n < nb_ch_nodes; ++n)
     split_edges.insert(K_MESH::NO_Edge(chain[n], chain[(n + 1) % nb_ch_nodes]));
@@ -1680,7 +1677,7 @@ if (PHi == faultyPH)
   if (res != dCONCAVITY_TO_SPLIT && res != dPATHO_PH_NONE)
     return false;
 
-  double THRESHOLD = 5.e-2;
+  E_Float THRESHOLD = 5.e-2;
   
   E_Float minA1, maxA1;
   E_Int maxAPG11, maxAPG12;
@@ -1697,22 +1694,24 @@ if (PHi == faultyPH)
   if ((maxA2 > maxA) && ::fabs(2.*NUGA::PI - maxA2) < THRESHOLD) return false; // same comment
 
   K_MESH::Polyhedron<0> PH0(twoPH, 0);
-  double fluxvec[3];
+  E_Float fluxvec[3];
   PH0.flux(crd, orient.get_facets_ptr(0), fluxvec);
-  E_Float f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+  E_Float f = sqrt(NUGA::sqrNorm<3>(fluxvec));
   E_Float s = PH0.surface(crd);
   f /= s;
-  if (f > Fluxmax) {
+  if (f > Fluxmax) 
+  {
     std::cout << "rejected by flux" << std::endl;
     return false;
   }
 
   K_MESH::Polyhedron<0> PH1(twoPH, 1);
   PH1.flux(crd, orient.get_facets_ptr(1), fluxvec);
-  f = ::sqrt(NUGA::sqrNorm<3>(fluxvec));
+  f = sqrt(NUGA::sqrNorm<3>(fluxvec));
   s = PH0.surface(crd);
   f /= s;
-  if (f > Fluxmax) {
+  if (f > Fluxmax) 
+  {
     std::cout << "rejected by flux" << std::endl;
     return false;
   }

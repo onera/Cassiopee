@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -35,9 +35,9 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
 
   if (ext < 0) 
   {
-   PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError, 
                    "extendCartGrids: ext must be a positive value.");
-   return NULL;
+    return NULL;
   }
   if (ext == 0) return arrays;
   if (optimized != 0 && optimized != 1 && optimized != -1) 
@@ -61,7 +61,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-  if ( isOk == -1 ) 
+  if (isOk == -1)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "extendCartGrids: invalid list of arrays.");
@@ -87,7 +87,7 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi);
   }
   E_Int dim = 3;
-  if ( nkt[0] == 1 ) dim = 2;
+  if (nkt[0] == 1) dim = 2;
 
   // determination des elts dont les bbox intersectent l elt courant
   FldArrayF bbox(nzones, 6);// xmin, ymin, zmin, xmax, ymax, zmax
@@ -113,7 +113,6 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   // Determination des extensions pour chq zone a partir de l'octree
   E_Int extg = ext; E_Int extf = ext; E_Int extff = ext;
   if (optimized == 1) {extg = ext-1; extff = extg;}
-  if (optimized ==-1) {extg = ext+1;}
 
   FldArrayI extension(nzones, 6); extension.setAllValuesAtNull();
   vector<E_Int> indicesBB;
@@ -1064,8 +1063,8 @@ PyObject* K_GENERATOR::extendCartGrids(PyObject* self, PyObject* args)
   {
     for (E_Int v = 0; v < nzones; v++)
     { 
-      ext1[v]=2; ext2[v]=2; ext3[v]=2; ext4[v]=2;
-      if (dim != 2) { ext5[v]=2; ext6[v]=2; }
+      ext1[v]=ext; ext2[v]=ext; ext3[v]=ext; ext4[v]=ext;
+      if (dim != 2) { ext5[v]=ext; ext6[v]=ext; }
     }
   }
 

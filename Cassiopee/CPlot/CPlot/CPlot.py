@@ -29,10 +29,10 @@ __slot__ = None
 
 #==============================================================================
 # -- configuration --
-def configure(useRender):
+def configure(useRender, offscreen=0):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
-    getModule()
+    getModule(offscreen)
     cplotm.configure(useRender)
 
 def hasDirectRendering():
@@ -193,7 +193,7 @@ def replace(arrays, no, array, zoneName=None, renderTag=None):
 
 #==============================================================================
 def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
-              bgBlend=1., var1='x', var2='y', r1=None, r2=None, offscren=0):
+              bgBlend=1., var1='x', var2='y', r1=None, r2=None, offscreen=0):
     """Display 1D plots.
     Usage: display1D(arrays, slot, ....)"""
     import Converter

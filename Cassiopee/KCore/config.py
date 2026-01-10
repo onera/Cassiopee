@@ -36,7 +36,11 @@ if prod is not None:
         if len(mac) == 2:
             branchName = mac[1]
             prod = prod.replace('_' + branchName, '')
-    if prod in configDict: key = prod
+        if mac[0] in configDict: key = mac[0]
+        else:
+            if prod in configDict: key = prod
+    else:
+        if prod in configDict: key = prod
 
 if key == '': # not found in install base
     print("Warning: %s not found in KCore/installBase.py."%(prod))

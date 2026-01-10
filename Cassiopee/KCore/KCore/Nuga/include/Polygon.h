@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -235,24 +235,24 @@ public:
     }
   }
 
-  double Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE=NUGA::ISO_MIN) const
+  E_Float Lref2(const K_FLD::FloatArray& crd, NUGA::eMetricType MTYPE=NUGA::ISO_MIN) const
   {
     E_Float Lmin2, Lmax2;
     edge_length_extrema(crd, Lmin2, Lmax2);
     if (MTYPE == NUGA::ISO_MIN) return Lmin2;
     if (MTYPE == NUGA::ISO_MAX) return Lmax2;
-    double d = 0.5*(::sqrt(Lmin2) + ::sqrt(Lmax2));
+    E_Float d = 0.5*(sqrt(Lmin2) + sqrt(Lmax2));
     return d * d;//ISO_MEAN
   }
 
-  double Lref2(const std::vector<E_Float>& nodal_tol2) const
+  E_Float Lref2(const std::vector<E_Float>& nodal_tol2) const
   {
     return Lref2(_nodes, _nb_nodes, nodal_tol2, _shift);
   }
 
-  static double Lref2(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
+  static E_Float Lref2(const E_Int* nodes, E_Int nb_nodes, const std::vector<E_Float>& nodal_tol2, E_Int shift)
   {
-    double val = NUGA::FLOAT_MAX;
+    E_Float val = NUGA::FLOAT_MAX;
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
       E_Int Ni = *(nodes + n) + shift;
@@ -279,7 +279,6 @@ public:
   {
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
-      //std::cout << *(nodes+n) << std::endl;
       if (*(nodes+n) == Ni) return n;
     }
     assert (false);// should never get here.
@@ -347,10 +346,10 @@ public:
   
   template <typename InputIterator>
   static bool is_hatty
-  (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL=0.);
+  (const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, E_Float ARTOL=0.);
 
   template <typename TriangulatorType, short DIM>
-  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, double ATOL=EPSILON);
+  inline int fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool& pt_is_in, E_Float ATOL=EPSILON);
 
   // Polygon-Edge intersection
   template <typename TriangulatorType>
@@ -361,7 +360,7 @@ public:
   static void sync_join(const K_FLD::FloatArray&crd1, const E_Int* nodes1, E_Int idx_strt1, const K_FLD::FloatArray&crd2, E_Int* nodes2, E_Int idx_strt2, E_Int nb_nodes, bool do_reverse = false);
   static void shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int nnodes, E_Int idx_strt);
 
-  static void imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, double RTOL, std::vector<E_Int>& molec);
+  static void imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, E_Float RTOL, std::vector<E_Int>& molec);
 
 private: 
   Polygon(const Polygon& orig);
@@ -820,7 +819,7 @@ void Polygon::centroid(const K_FLD::FloatArray& crd, const E_Int* nodes, E_Int n
     E_Int Nip1 = nodes[(i + 1) % nb_nodes] - index_start;
     
     K_MESH::Triangle::ndS<3>(G, crd.col(Ni), crd.col(Nip1), vsi);
-    si = ::sqrt(NUGA::sqrNorm<DIM>(vsi));
+    si = sqrt(NUGA::sqrNorm<DIM>(vsi));
     K_MESH::Triangle::isoG(G, crd.col(Ni), crd.col(Nip1), gi);
     
     w = SIGN(NUGA::dot<DIM>(vsi, n)) * si;
@@ -856,7 +855,7 @@ E_Float Polygon::surface<K_FLD::FloatArray,3>(const K_FLD::FloatArray& crd, cons
 {
   E_Float ndS[3];
   K_MESH::Polygon::ndS<K_FLD::FloatArray, 3>(crd, nodes, nb_nodes, index_start, ndS);
-  return ::sqrt(NUGA::sqrNorm<3>(ndS));
+  return sqrt(NUGA::sqrNorm<3>(ndS));
 }
 
 template <> inline 
@@ -1064,7 +1063,7 @@ inline void Polygon::shift_geom(const K_FLD::FloatArray&crd, E_Int* nodes, E_Int
   return;
 }
 
-inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, double RTOL, std::vector<E_Int>& molec)
+inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_Int nnodes1, const K_FLD::FloatArray& crd2, E_Float RTOL, std::vector<E_Int>& molec)
 {
   molec.clear();
 
@@ -1074,7 +1073,7 @@ inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_In
 
   for (E_Int i = 0; i < crd2.cols(); ++i)
   {
-    const double * P = crd2.col(i);
+    const E_Float* P = crd2.col(i);
 
     for (E_Int j = 0; j < nnodes1; ++j)
     {
@@ -1083,16 +1082,15 @@ inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_In
       const E_Float* Pi = crd1.col(Ni);
       const E_Float* Pj = crd1.col(Nj);
       
-      double L2 = (Pj[0] - Pi[0])*(Pj[0] - Pi[0]) + (Pj[1] - Pi[1])*(Pj[1] - Pi[1]) + (Pj[2] - Pi[2])*(Pj[2] - Pi[2]);
+      E_Float L2 = (Pj[0] - Pi[0])*(Pj[0] - Pi[0]) + (Pj[1] - Pi[1])*(Pj[1] - Pi[1]) + (Pj[2] - Pi[2])*(Pj[2] - Pi[2]);
 
-      double l;
-      double d2 = K_MESH::Edge::linePointMinDistance2<3>(Pi, Pj, P, l) / L2;
+      E_Float l;
+      E_Float d2 = K_MESH::Edge::linePointMinDistance2<3>(Pi, Pj, P, l) / L2;
 
       if (d2 > EPSILON) continue;
 
       if (std::isnan(d2))
       {
-        //std::cout << "rank : " << rank << " face : " << PGi << " ::: ISNAN !!!! : NI/NJ : " << Ni << "/" << Nj << " : L2 : " << L2 << std::endl;
         assert(false); // should not happen
         continue;
       }
@@ -1131,7 +1129,7 @@ inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_In
 
     for (size_t j = 0; j < lms.size(); ++j)
     {
-      double& lambda = lms[j];
+      E_Float& lambda = lms[j];
       E_Float P[3];
       NUGA::sum<3>(lambda, v, Pi, P);
       crd1.pushBack(P, P + 3);
@@ -1142,7 +1140,7 @@ inline void Polygon::imprint(K_FLD::FloatArray& crd1, const E_Int* pnodes1, E_In
 
 template <typename InputIterator>
 bool Polygon::is_hatty
-(const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, double ARTOL)
+(const K_FLD::FloatArray& crd, InputIterator nodes, E_Int nb_nodes, E_Int idx_start, E_Int& is, E_Int& ie, E_Float ARTOL)
 {
   is = IDX_NONE;
   ie = IDX_NONE;
@@ -1182,15 +1180,15 @@ bool Polygon::is_hatty
   {
     K_MESH::Edge e(nodes[is] - idx_start, nodes[ie] - idx_start);
     if (ARTOL < 0.) // relative
-      ARTOL *= - ::sqrt(e.Lref2(crd)); // turn to absolute
+      ARTOL *= - sqrt(e.Lref2(crd)); // turn to absolute
 
     E_Float dmax{ -1. };
     for (E_Int n = 0; n < nb_nodes; ++n)
     {
       if (n == is || n == ie) continue;
       E_Int Ni = nodes[n] - idx_start;
-      double lambda;
-      double d = K_MESH::Edge::edgePointMinDistance<3>(crd.col(e.node(0)), crd.col(e.node(1)), crd.col(Ni), lambda);
+      E_Float lambda;
+      E_Float d = K_MESH::Edge::edgePointMinDistance<3>(crd.col(e.node(0)), crd.col(e.node(1)), crd.col(Ni), lambda);
       if (d > dmax)
         dmax = d;
     }
@@ -1245,7 +1243,7 @@ const E_Float* normal, E_Float convexity_tol, E_Int& iworst, E_Int& ibest)
 }
 
 template <typename TriangulatorType, short DIM>
-inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, double ATOL)
+inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::FloatArray& crd, const E_Float* P, bool & pt_is_in, E_Float ATOL)
 {
   pt_is_in = false;
 
@@ -1266,9 +1264,9 @@ inline int Polygon::fast_is_in_pred(const TriangulatorType& dt, const K_FLD::Flo
     assert(T[1] < crd.cols()); // if false => corrupted element
     assert(T[2] < crd.cols()); // if false => corrupted element
 
-    const double* pt0 = crd.col(T[0]);
-    const double* pt1 = crd.col(T[1]);
-    const double* pt2 = crd.col(T[2]);
+    const E_Float* pt0 = crd.col(T[0]);
+    const E_Float* pt1 = crd.col(T[1]);
+    const E_Float* pt2 = crd.col(T[2]);
 
     pt_is_in = K_MESH::Triangle::fast_is_in_pred<DIM>(P, pt0, pt1, pt2, ATOL);
   }
@@ -1333,7 +1331,7 @@ E_Int Polygon::get_boundary
     std::vector<int> uunodes{ ALL(unodes) };
 
     K_FLD::ArrayAccessor<K_FLD::FloatArray> acc(crd);
-    double totol = ZERO_M;
+    E_Float totol = ZERO_M;
     std::vector<int> nids;
     int nb_merges = merge(acc, totol, uunodes, uunodes, nids);
 

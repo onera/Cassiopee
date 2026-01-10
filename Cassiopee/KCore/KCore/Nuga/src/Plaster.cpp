@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -511,7 +511,7 @@ Plaster::__bumpPlaster
   for (int_set_type::iterator it = inodes.begin(); it != inodes.end(); ++it)
   {
     E_Int N = tree.getClosest(plaster2D.col(*it));
-    E_Float dx = ::sqrt(NUGA::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
+    E_Float dx = sqrt(NUGA::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
     z[*it] = z[N] + (ta * dx);
   }
 }
@@ -641,7 +641,7 @@ Plaster::__blockNodes
   // Build the box tree.
   K_SEARCH::BbTree2D E2tree(E2boxes);
 
-  E_Float dx = ::sqrt(2. * NUGA::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
+  E_Float dx = sqrt(2. * NUGA::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
   std::vector<E_Int> E2s;
   E_Float mB[2], MB[2], min_d, de, lambda;
   E_Int N;
@@ -688,7 +688,7 @@ Plaster::__computeCharacteristicLength
   NUGA::MeshTool::computeEdgesSqrLengths<2>(pos2D, connectE2, Lengths);
   for (E_Int l = 0; l < Lengths.cols(); ++l)
   {
-    L = ::sqrt(Lengths(0,l));
+    L = sqrt(Lengths(0,l));
     min_d = std::min(min_d, L);
     max_d = std::max(max_d, L);
     perimeter += L;

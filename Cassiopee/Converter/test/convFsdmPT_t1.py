@@ -12,7 +12,6 @@ LOCAL = test.getLocal()
 
 dz = 0.01
 xmin, ymin, zmin, xmax, ymax, zmax = [-0.5,-0.5,0,1.5,0.5,dz]
-mesh_name = "naca_curvi"
 size = 0.01
 L = 1
 N = 200

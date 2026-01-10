@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2025 Onera.
+C    Copyright 2013-2026 ONERA.
 C
 C    This file is part of Cassiopee.
 C
@@ -28,7 +28,7 @@ C
 
 C==============================================================================
 C_IN
-      INTEGER_E im, ip, it ! digit
+      INTEGER_E im, ip, it ! digits
       INTEGER_E sharpte    ! sharp trailing edge
       INTEGER_E npt        ! number of points (input and output)
 C_OUT

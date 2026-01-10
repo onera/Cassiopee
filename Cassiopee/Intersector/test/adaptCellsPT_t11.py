@@ -12,7 +12,7 @@ import KCore.test as test
 N = 5
 t = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (N,2,2))
 
-t = C.convertArray2NGon(t); t = G.close(t)
+t = C.convertArray2NGon(t)
 
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 t = C.initVars(t, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')

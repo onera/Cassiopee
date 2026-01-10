@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -169,7 +169,7 @@ namespace DELAUNAY
   {
     size_type Ni, sz, nb_nodes;
     E_Float mBox[2], MBox[2];
-    E_Float coeff(0.5*::sqrt(2.)/*fixme sqrt...*/), Ri;
+    E_Float coeff(0.5*sqrt(2.)/*fixme sqrt...*/), Ri;
     int_vector_type nodes;
     int_vector_type tmp(refine_nodes);
     refine_nodes.clear();
@@ -249,7 +249,7 @@ namespace DELAUNAY
   NUGA::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
   // Geom repartition.fixme
   E_Float h0 = _metric[Ni], h1 = _metric[Nj];
-  E_Float d0 = ::sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
+  E_Float d0 = sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
   NiNj[0] /= d0;
   NiNj[1] /= d0;//Normalize
   E_Float x(h1 / h0), r1 = x;

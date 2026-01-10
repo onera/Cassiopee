@@ -59,7 +59,7 @@ setup(
     name="Intersector",
     version="4.1",
     description="Mesh-intersection-based services in *Cassiopee*.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Intersector'],
     ext_modules=[Extension('Intersector.intersector',

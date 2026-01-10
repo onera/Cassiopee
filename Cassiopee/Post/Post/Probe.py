@@ -198,9 +198,12 @@ class Probe:
                 dim = Internal.getZoneDim(b)
                 if dim[0] == 'Structured':
                     if loc == 'nodes':
-                        ind = (ind[0]-1)+(ind[1]-1)*dim[1]+(ind[2]-1)*dim[2]
+                        ni = dim[1]; nj = dim[2]
+                        ind = (ind[0]-1)+(ind[1]-1)*ni+(ind[2]-1)*ni*nj
                     else:
-                        ind = (ind[0]-1)+(ind[1]-1)*(dim[1]-1)+(ind[2]-1)*(dim[2]-1)
+                        ni1 = max(dim[1]-1,1)
+                        nj1 = max(dim[2]-1,1)
+                        ind = (ind[0]-1)+(ind[1]-1)*ni1+(ind[2]-1)*ni1*nj1
                 else: ind = ind[0]
             else: ind = -1
 
@@ -261,47 +264,46 @@ class Probe:
         elif self._mode == 2  and source is not None:
             zones = Internal.getZones(source)
             self._probeZones = []
+            loc = self.getFieldLoc(self._fields)
             for z in zones:
-                npts = C.getNPts(z)
-                ncells = C.getNCells(z)
                 dimz = Internal.getZoneDim(z)
                 ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
-                if self.getFieldLoc(self._fields) == 'centers': # attention!
+                if loc == 'centers': # attention!
                     zp = G.cart((0,0,0), (1,1,1), (self._bsize+1,ni,nj))
                 else: zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
                 zp[0] = '%s'%z[0] # name of probe zone is identical to name of source
                 D2._addProcNode(zp, Cmpi.rank)
                 self._probeZones.append(zp)
-                C._initVars(zp, '{time}=-1.') # time sentinel
+                C._initVars(zp, 'time', -1) # time sentinel
                 for v in self._fields: C._initVars(zp, v, 0.)
 
         elif self._mode == 3 and source is not None: # surface permeable
             zones = Internal.getZones(source)
             self._probeZones = []
+            loc = self.getFieldLoc(self._fields)
             for z in zones:
                 dimz = Internal.getZoneDim(z)
                 if dimz[0] == 'Structured':
                     ni = dimz[1]; nj = dimz[2]; nk = dimz[3]
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
+                    if loc == 'centers': # attention!
+                        zp = G.cart((0,0,0), (1,1,1), (self._bsize+1,ni,nj))
+                    else: zp = G.cart((0,0,0), (1,1,1), (self._bsize,ni,nj))
                 else: # en non structure, c'est surement pas la bonne solution
                     npts = C.getNPts(z)
-                    zp = G.cart((0,0,0), (1,1,1), (self._bsize,npts,1))
+                    if loc == 'centers': # attention!
+                        zp = G.cart((0,0,0), (1,1,1), (self._bsize+1,npts,1))
+                    else: zp = G.cart((0,0,0), (1,1,1), (self._bsize,npts,1))
                 zp[0] = '%s'%z[0] # name of probe zone is identical to name of source
                 D2._addProcNode(zp, Cmpi.rank)
                 self._probeZones.append(zp)
-                C._initVars(zp, '{time}=-1.') # time sentinel
-
-                for v in self._fields:
-                    v = v.split(':')
-                    if len(v) == 2: v = v[1]
-                    else: v = v[0]
-                    C._initVars(zp, v, 0.)
+                C._initVars(zp, 'time', -1) # time sentinel
+                for v in self._fields: C._initVars(zp, v, 0.)
         return None
 
     # Prepare for mode=3
-    def prepare(self, tc, cartesian=False):
+    def prepare(self, tc, loc='nodes', cartesian=False, extrap=1, nature=1, penalty=1, verbose=2):
         tcs = Internal.copyRef(tc)
-        Xmpi._setInterpData2(self._ts, tcs, loc='nodes', cartesian=cartesian)
+        Xmpi._setInterpData2(self._ts, tcs, loc=loc, cartesian=cartesian, extrap=extrap, nature=nature, penalty=penalty, verbose=verbose)
         return tcs
 
     # Check file, if it doesnt exist, write probe zone in it
@@ -590,7 +592,8 @@ class Probe:
             self._graph = Cmpi.computeGraph(tcsBB, type='bbox3', intersectionsDict=interDictD2R,
                                             procDict=procDictc, procDict2=self._procDicts, t2=tsBB, reduction=True)
 
-        Xmpi._setInterpTransfers(self._ts, tcs, variables=self._fields, graph=self._graph, procDict=self._procDicts)
+        variables = [var.split(':')[-1] for var in self._fields] # self._fields can be located at centers
+        Xmpi._setInterpTransfers(self._ts, tcs, variables=variables, graph=self._graph, procDict=self._procDicts)
         if onlyTransfer: return None
         #Cmpi.convertPyTree2File(self._ts, 'out.cgns')
         #Internal.printTree(self._probeZones)
@@ -641,7 +644,6 @@ class Probe:
         self._icur += 1
         if self._icur >= self._bsize: self.flush()
         return None
-
 
     def share(self, tcs, tc):
         """Share coordinates and fields between tcs and tc."""
@@ -702,27 +704,27 @@ class Probe:
         if self._icur >= self._bsize: # because buffer is out
             for pzone in self._probeZones:
                 nodes = []; paths = []
-                gc = Internal.getNodeFromName1(pzone, 'GridCoordinates')
+                gc = Internal.getNodeFromName1(pzone, Internal.__GridCoordinates__)
                 if gc is not None:
                     gc = Internal.copyNode(gc)
                     gc[0] = 'GridCoordinates#%d'%self._filecur
                     nodes += [gc]
                     paths += ['CGNSTree/Base/%s'%pzone[0]]
-                fc = Internal.getNodeFromName1(pzone, 'FlowSolution')
+                fc = Internal.getNodeFromName1(pzone, Internal.__FlowSolutionNodes__)
                 if fc is not None:
                     fc = Internal.copyNode(fc)
                     fc[0] = 'FlowSolution#%d'%self._filecur
                     nodes += [fc]
                     paths += ['CGNSTree/Base/%s'%pzone[0]]
-                fcc = Internal.getNodeFromName1(pzone, 'FlowSolution#Centers')
+                fcc = Internal.getNodeFromName1(pzone, Internal.__FlowSolutionCenters__)
                 if fcc is not None:
                     fcc = Internal.copyNode(fcc)
                     fcc[0] = 'FlowSolution#Centers#%d'%self._filecur
                     nodes += [fcc]
                     paths += ['CGNSTree/Base/%s'%pzone[0]]
                 Distributed.writeNodesFromPaths(self._fileName, paths, nodes, None, -1, 0)
-                C._initVars(pzone, '{time}=-1.') # time sentinel
-                for v in self._fields:C._initVars(pzone, '{%s}=0.'%v)
+                C._initVars(pzone, 'time', -1) # time sentinel
+                for v in self._fields: C._initVars(pzone, v, 0.)
             #print('self._filecur=',self._filecur)
             self._filecur += 1
             self._icur = 0

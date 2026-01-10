@@ -1,11 +1,11 @@
 # driver: parametric profile
-import OCC.Driver as D
+import Roms.Driver as D
 import Geom
 import Generator
 import Converter
 
 # Create a parameter
-epaisseur = D.Scalar('epaisseur', 12.)
+epaisseur = D.Scalar('epaisseur')
 epaisseur.range = [0, 5, 0.1]
 
 # discrete profile
@@ -14,29 +14,29 @@ bbox = Generator.bbox(naca)
 
 # Create parameter grid
 grid1 = D.Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
-D.Eq(epaisseur.s, grid1.P[1][2][0].y.s)
+D.Eq(epaisseur, grid1.P[1][2][0].y)
 
 # Create parametric profile
 spline1 = D.Spline3('spline1', grid1, mesh=naca)
 
 # Create parametric sketch
-sketch1 = D.Sketch('sketch1', [spline1])
+sketch1 = D.Sketch('sketch1', [spline1], h=[0.01,0.01,0.01])
 
 # solve for free parameters
-D.DRIVER.solve2()
+D.DRIVER.solve()
 #grid1.P[1][2][0].y.print()
 
 # instantiate a CAD from free parameters
 # then mesh and get sensibilities
 D.DRIVER.instantiate({'epaisseur': 0.8})
 sketch1.writeCAD('out.step')
-mesh = sketch1.mesh(0.01, 0.01, 0.01)
-D.DRIVER._diff(sketch1, mesh)
+mesh = sketch1.mesh()
+D.DRIVER._dXdmu(sketch1, mesh)
 Converter.convertArrays2File(mesh, 'dout.plt')
 
 # Build DOE
 D.DRIVER.createDOE('doe.hdf')
-D.DRIVER.walkDOE3(sketch1, 0.01, 0.01, 0.01)
+D.DRIVER.walkDOE3(sketch1)
 
 # reread one snapshot from DOE file
 m = D.DRIVER.readSnaphot(0)
@@ -59,11 +59,6 @@ Converter.convertArrays2File(m, 'reread2.plt')
 import CPlot, time
 for i in range(20):
     D.DRIVER.instantiate({'epaisseur': 0.3+i/50.})
-    mesh = sketch1.mesh(0.01, 0.01, 0.01)
+    mesh = sketch1.mesh()
     CPlot.display(mesh)
     time.sleep(0.5)
-
-# build dmesh
-mesh1 = D.DRIVER.dmesh(sketch1, mesh, ['epaisseur'], 0.1)
-mesh2 = D.DRIVER.dmesh(sketch1, mesh1, ['epaisseur'], 0.1)
-Converter.convertArrays2File(mesh+mesh1+mesh2, 'out.plt')

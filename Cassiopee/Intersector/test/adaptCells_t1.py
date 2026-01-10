@@ -5,7 +5,7 @@ import Generator as G
 import KCore.test as test
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
-a = C.convertArray2NGon(a); a = G.close(a)
+a = C.convertArray2NGon(a)
 #C.convertArrays2File([a], 'a.plt')
 b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.005), (5,5,5))
 #C.convertArrays2File([b], 'b.plt')

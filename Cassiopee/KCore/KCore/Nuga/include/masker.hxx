@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ namespace NUGA
     using wdata_t = typename parent_t::wdata_t;
     using outdata_t = typename parent_t::outdata_t;
 
-    masker(double RTOL) : parent_t(RTOL), _col_X(0.5) {}
+    masker(E_Float RTOL) : parent_t(RTOL), _col_X(0.5) {}
     
     outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, wdata_t & wdata)
     {
@@ -45,9 +45,8 @@ namespace NUGA
     };
 
   private:
-    double _col_X;
+    E_Float _col_X;
 
-    
   };
 }
 #endif

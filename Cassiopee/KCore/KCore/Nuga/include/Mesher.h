@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -397,7 +397,7 @@ namespace DELAUNAY
 
     L = std::max(maxY-minY, maxX-minX);
 
-    double factor = 0.1;
+    E_Float factor = 0.1;
 
     minX -= factor*L;
     minY -= factor*L;
