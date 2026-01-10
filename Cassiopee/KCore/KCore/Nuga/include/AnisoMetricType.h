@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,8 @@
 
 #include "Nuga/include/defs.h"
 #include <array>
+#include <cmath>
+#include <iostream>
 
 namespace DELAUNAY{
 
@@ -164,7 +166,7 @@ void AnisoMetricType<2>::eigen_values(E_Float &lmax, E_Float & lmin) const
   E_Float b = _mij[0]*_mij[2] - _mij[1]*_mij[1]; //det
   E_Float d = a*a - 4.*b;
 
-  d = (d > 0.) ? ::sqrt(d) : 0.;
+  d = (d > 0.) ? sqrt(d) : 0.;
   lmin = 0.5*(a - d);
   lmax = lmin+d;
 }

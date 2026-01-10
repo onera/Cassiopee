@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -148,10 +148,10 @@ PyObject* K_GENERATOR::gapfixer(PyObject* self, PyObject* args)
     delete cndum;  // always delete because DynArray
   }
   
-  K_FLD::FloatArray &posB0 = *fB0;
-  K_FLD::FloatArray &posC = *fC;
+  K_FLD::FloatArray& posB0 = *fB0;
+  K_FLD::FloatArray& posC = *fC;
   K_FLD::FloatArray posG;
-  K_FLD::IntArray   &connectB0 = *cn1, connectG;
+  K_FLD::IntArray& connectB0 = *cn1, connectG;
 
   E_Int err = GapFixer::run(posC, ni, posB0, connectB0, posG, connectG, refine, fHP);
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -119,7 +119,7 @@ K_MESH::Triangle::eDegenType K_MESH::Triangle::degen_type(const K_FLD::FloatArra
   //
   E_Float normal[3];
   K_MESH::Triangle::normal(crd.col(N0), crd.col(N1), crd.col(N2), normal);
-  E_Float l2 = ::sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+  E_Float l2 = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   //
   if (::fabs(l2 - 1.) < EPSILON)
     return OK;
@@ -172,20 +172,20 @@ K_MESH::Triangle::eDegenType K_MESH::Triangle::degen_type_angular(const K_FLD::F
   eDegenType type = OK;
   ns = IDX_NONE;
 
-  const double* P0 = crd.col(N0);
-  const double* P1 = crd.col(N1);
-  const double* P2 = crd.col(N2);
+  const E_Float* P0 = crd.col(N0);
+  const E_Float* P1 = crd.col(N1);
+  const E_Float* P2 = crd.col(N2);
   
-  double P0P1[3], P1P2[3], P2P0[3];
+  E_Float P0P1[3], P1P2[3], P2P0[3];
   NUGA::diff<3>(P1, P0, P0P1);
   NUGA::diff<3>(P2, P1, P1P2);
   NUGA::diff<3>(P0, P2, P2P0);
 
-  double a0 = NUGA::PI - NUGA::normals_angle(P2P0, P0P1);
-  double a1 = NUGA::PI - NUGA::normals_angle(P0P1, P1P2);
-  double a2 = NUGA::PI - NUGA::normals_angle(P1P2, P2P0);
+  E_Float a0 = NUGA::PI - NUGA::normals_angle(P2P0, P0P1);
+  E_Float a1 = NUGA::PI - NUGA::normals_angle(P0P1, P1P2);
+  E_Float a2 = NUGA::PI - NUGA::normals_angle(P1P2, P2P0);
 
-  std::pair<double, int> palma[3];
+  std::pair<E_Float, int> palma[3];
   
   palma[0] = std::make_pair(a0, 0);
   palma[1] = std::make_pair(a1, 1);
@@ -193,8 +193,8 @@ K_MESH::Triangle::eDegenType K_MESH::Triangle::degen_type_angular(const K_FLD::F
 
   std::sort(&palma[0], &palma[0] + 3);
 
-  double ratio1 = palma[1].first / palma[0].first;
-  double ratio2 = palma[2].first / palma[1].first;
+  E_Float ratio1 = palma[1].first / palma[0].first;
+  E_Float ratio2 = palma[2].first / palma[1].first;
 
   if (FACTOR * ratio1 < ratio2) // ratio1 << ratio2 : the greatest angle is far from the 2 others
   {

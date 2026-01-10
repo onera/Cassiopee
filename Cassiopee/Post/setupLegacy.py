@@ -63,7 +63,7 @@ setup(
     name="Post",
     version="4.1",
     description="Post-processing of CFD solutions.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Post'],
     ext_modules=listExtensions

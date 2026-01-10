@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -255,11 +255,9 @@ namespace NUGA
     oriento.clear();
     nb_aggs = 0;
 
-    double concave_threshold = angle_threshold;
-    double convex_threshold = angle_threshold;
+    E_Float concave_threshold = angle_threshold;
+    E_Float convex_threshold = angle_threshold;
     
-    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
-  
     // Fast return
     if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) return;
   
@@ -388,8 +386,6 @@ namespace NUGA
         {
           for (std::map<K_MESH::NO_Edge, E_Float>::const_iterator it = reflex_edges.begin(); it != reflex_edges.end(); ++it) 
             reflex_a = std::min(reflex_a, it->second);
-
-          //std::cout << "worst angle : " << reflex_a << std::endl;
         }
 
         reflex_a /= NUGA::PI;
@@ -397,9 +393,9 @@ namespace NUGA
         if (enforce_reflex_criteria == 1)
         {
           // prioritize contributions
-          reflex_ratio *= 2;// ::sqrt(reflex_ratio); // increase impact
+          reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
           N++;
-          reflex_a *= 2;// ::sqrt(worst_reflex_a);   // increase impact
+          reflex_a *= 2;// sqrt(worst_reflex_a);   // increase impact
           N++;
           //volume_ratio *= volume_ratio;            // decrease impact
           //N++
@@ -501,11 +497,9 @@ namespace NUGA
     oriento.clear();
     nb_aggs = 0;
 
-    double concave_threshold = angle_threshold;
-    double convex_threshold = angle_threshold;
+    E_Float concave_threshold = angle_threshold;
+    E_Float convex_threshold = angle_threshold;
     
-    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
-  
     // Fast return
     if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) return;
   
@@ -643,16 +637,16 @@ namespace NUGA
         if (enforce_reflex_criteria == 1)
         {
           // prioritize contributions
-          reflex_ratio = ::sqrt(reflex_ratio);       // increase impact
-          worst_reflex_a = ::sqrt(worst_reflex_a);   // increase impact
+          reflex_ratio = sqrt(reflex_ratio);       // increase impact
+          worst_reflex_a = sqrt(worst_reflex_a);   // increase impact
           //volume_ratio *= volume_ratio;            // decrease impact
 
           q = face_ratio * surface_ratio * worst_reflex_a * reflex_ratio; // *volume_ratio;
         }
         else if ((enforce_reflex_criteria == 0) || (enforce_reflex_criteria == 2))
         {
-          double F = 1.;
-          double N = 4.;
+          E_Float F = 1.;
+          E_Float N = 4.;
           if (enforce_reflex_criteria == 2) {F = 2; N = 6;}
 
           q = (face_ratio + surface_ratio + F * (worst_reflex_a + reflex_ratio) )  / N;
@@ -754,10 +748,8 @@ namespace NUGA
     oriento.clear();
     nb_aggs = 0;
 
-    double concave_threshold = angle_threshold;
-    double convex_threshold = angle_threshold;
-
-    //std::cout << "ngi : initial nb of phs : " << ngi.PHs.size() << std::endl;
+    E_Float concave_threshold = angle_threshold;
+    E_Float convex_threshold = angle_threshold;
 
     // Fast return
     if (PHlist.size() * ngi.PHs.size() * ngi.PGs.size() == 0) return;
@@ -875,12 +867,12 @@ namespace NUGA
           }
           else if (res == resi || res == resj)  // same pathology as one of the component : the added part is not necessarily making things worst
           {
-            double worst_reflex_a_i{ NUGA::PI }, worst_reflex_a_j{ NUGA::PI };
+            E_Float worst_reflex_a_i{ NUGA::PI }, worst_reflex_a_j{ NUGA::PI };
             for (auto it = reflex_edges_i.begin(); it != reflex_edges_i.end(); ++it)
               worst_reflex_a_i = std::min(worst_reflex_a_i, it->second);
             for (auto it = reflex_edges_j.begin(); it != reflex_edges_j.end(); ++it)
               worst_reflex_a_j = std::min(worst_reflex_a_j, it->second);
-            double worst_ref_a{ NUGA::PI };
+            E_Float worst_ref_a{ NUGA::PI };
             for (auto it = reflex_edges.begin(); it != reflex_edges.end(); ++it)
               worst_ref_a = std::min(worst_ref_a, it->second);
 
@@ -946,9 +938,9 @@ namespace NUGA
         if (enforce_reflex_criteria_and_or_badagglo_allowance == 1 || enforce_reflex_criteria_and_or_badagglo_allowance == 3)
         {
           // prioritize contributions
-          reflex_ratio *= 2;// ::sqrt(reflex_ratio); // increase impact
+          reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
           N++;
-          worst_reflex_a *= 2;// ::sqrt(worst_reflex_a);   // increase impact
+          worst_reflex_a *= 2;// sqrt(worst_reflex_a);   // increase impact
           N++;
           //volume_ratio *= volume_ratio;            // decrease impact
           //N++
@@ -1778,7 +1770,7 @@ namespace NUGA
           for (size_t k = 0; k < 3; ++k)
             nids[pnodes[k] - 1] = Ntarget;
         }*/
-        double Lmin2=NUGA::FLOAT_MAX;
+        E_Float Lmin2 = NUGA::FLOAT_MAX;
         E_Int* pf = ngio.PHs.get_facets_ptr(PHi);
         E_Int Nmin=0, Nmax=0;
         for (size_t f = 0; f < 4; ++f)

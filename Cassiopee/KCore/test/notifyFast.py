@@ -222,7 +222,7 @@ def checkInstallStatus():
     messageSubject = "[Install Fast] State: {}".format(baseState)
     if baseState == 'FAILED':
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-            'please contact the maintainer:\nbenjamin.constant@onera.fr'
+            'please contact the maintainer:\nivan.mary@onera.fr'
 
     return messageSubject, messageText
 
@@ -265,7 +265,7 @@ def checkCheckoutStatus(sendEmail=False):
             prod, pckg, date, status)
 
     messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-        'please contact the maintainer:\nbenjamin.constant@onera.fr'
+        'please contact the maintainer:\nivan.mary@onera.fr'
 
     return messageSubject, messageText
 
@@ -300,7 +300,7 @@ def checkValidStatus():
     messageSubject = "[V&V Fast] State: {}".format(vnvState)
     if vnvState == 'FAILED':
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
-            'please contact the maintainer:\nbenjamin.constant@onera.fr\n'\
+            'please contact the maintainer:\nivan.mary@onera.fr\n'\
             'or list remaining issues with:\n'\
             'notifyFast --valid --prod=your_prod_name --full'
 

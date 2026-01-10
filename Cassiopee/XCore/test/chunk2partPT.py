@@ -15,7 +15,7 @@ fileName = 'case.cgns'
 # 1 - Make the case
 if rank == 0:
     a = G.cartTetra((0,0,0),(1,1,1),(5,7,11))
-    a = C.convertArray2NGon(a); a = G.close(a)
+    a = C.convertArray2NGon(a)
     a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + sin({centers:CoordinateY}) + cos({centers:CoordinateZ})')
     a = C.initVars(a, '{centers:Pressure} = {centers:CoordinateX} + cos({centers:CoordinateY}) + sin({centers:CoordinateZ})')
     a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')

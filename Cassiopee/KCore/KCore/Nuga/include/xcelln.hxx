@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,7 +40,7 @@ namespace NUGA
     using outdata_t = typename parent_t::outdata_t;
     using aelt_t    = typename zmesh_t::aelt_t;
 
-    xcellnv(double RTOL) : parent_t(RTOL) {}
+    xcellnv(E_Float RTOL) : parent_t(RTOL) {}
 
     outdata_t __process_X_cells(zmesh_t const & z_mesh, std::vector< bound_mesh_t*> const & mask_bits, wdata_t & wdata)
     {
@@ -59,19 +59,19 @@ namespace NUGA
       {
         color_t const & idata = wdata[i];
 
-        double v = double(idata);
+        E_Float v = E_Float(idata);
         xcelln[i] = v;
         if (v != X) continue;
 
         bits.clear();
         bits.push_back(z_mesh.aelement(i)); // autonomous element directly stolen by bits (rvalue ref) 
         
-        double v0 = bits[0].metrics(); // initial surface&normal (surf)/volume 
+        E_Float v0 = bits[0].metrics(); // initial surface&normal (surf)/volume 
 
         NUGA::CLIP::poly_clip<zmesh_t, bound_mesh_t>(bits, v0, idata.masks, mask_bits, parent_t::_RTOL);
 
         // accumulated volume
-        double vcur = 0.;
+        E_Float vcur = 0.;
         for (size_t b = 0; b < bits.size(); ++b)
           vcur += bits[b].extent();
 
@@ -106,7 +106,7 @@ namespace NUGA
     using outdata_t = typename parent_t::outdata_t; // zmesh_t
     using aelt_t    = typename zmesh_t::aelt_t;
 
-    xcellno(double RTOL) : parent_t(RTOL) {}
+    xcellno(E_Float RTOL) : parent_t(RTOL) {}
 
     void finalize(const zmesh_t& m, outdata_t& outdata)
     {
@@ -132,14 +132,11 @@ namespace NUGA
       for (size_t i = 0; i < ncells; ++i)
       {
         color_t const & idata = wdata[i];
-        double v = double(idata);
+        E_Float v = E_Float(idata);
 
         keep[i] = (v == OUT);
         docomp |= (v != OUT);
-
       }
-
-      //std::cout << "has somethin else than OUT ? " << docomp << std::endl;
 
       xmesh.mesh = z_mesh;
       K_CONNECT::IdTool::init_inc(xmesh.mesh.flag, xmesh.mesh.ncells()); // for history
@@ -157,13 +154,13 @@ namespace NUGA
       {
         color_t const & idata = wdata[i];
 
-        double v = double(idata);
+        E_Float v = E_Float(idata);
         if (v != X) continue;
 
         bits.clear();
         bits.push_back(z_mesh.aelement(i)); // autonomous element directly stolen by bits (rvalue ref) 
 
-        double v0 = bits[0].metrics(); // initial surface&normal (surf)/volume 
+        E_Float v0 = bits[0].metrics(); // initial surface&normal (surf)/volume 
 
         NUGA::CLIP::poly_clip<zmesh_t, bound_mesh_t>(bits, v0, idata.masks, mask_bits, parent_t::_RTOL);
 

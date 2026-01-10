@@ -868,7 +868,6 @@ def _setIBCDataForZone2__(z, zonesDnr, correctedPts, wallPts, interpPts, interpP
 
     return None
 
-
 def _addIBCCoords__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, bcName=None, ReferenceState=None, prefix='IBCD_',model='NSLaminar'):
     nameSubRegion = prefix+zname
     zsr = Internal.getNodeFromName1(z, nameSubRegion)
@@ -1080,24 +1079,35 @@ def _addIBCCoords2__(z, zname, correctedPts, wallPts, interpolatedPts, bcType, b
 
     return None
 
-def setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
-    aD = Internal.copyRef(aD)
-    aR = Internal.copyRef(aR)
-    _setInterpData2(aR, aD, order=order, loc=loc, cartesian=cartesian)
-    return aD
+def setInterpData2(aR, aD, order=2, loc='centers', cartesian=False, extrap=1, nature=1, penalty=1, verbose=2):
+    """Compute interpolation data for 2 different trees."""
+    tD = Internal.copyRef(aD)
+    tR = Internal.copyRef(aR)
+    _setInterpData2(tR, tD, order=order, loc=loc, cartesian=cartesian, extrap=extrap, nature=nature, penalty=penalty, verbose=verbose)
+    return tD
 
-def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
-    if cartesian: interpDataType = 0
-    else: interpDataType = 1
+def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False, extrap=1, nature=1, penalty=1, verbose=2):
+    """Compute interpolation data for 2 different trees."""
 
     if loc == 'nodes': varcelln = 'cellN'
     else: varcelln = 'centers:cellN'
+
+    # Clean previous IDs if necessary
+    Internal._rmNodesFromType(aD, 'ZoneSubRegion_t')
+    Internal._rmNodesFromName(aD, 'GridCoordinates#Init')
+
+    if cartesian: interpDataType = 0
+    else: interpDataType = 1
+
     cellNPresent = C.isNamePresent(aR, varcelln)
-    if cellNPresent==-1: C._initVars(aR, varcelln, 2.) # interp all
-    _setInterpData(aR, aD, order=order, penalty=1, nature=1, extrap=1,
-                   method='lagrangian', loc=loc, storage='inverse',
+    if cellNPresent == -1: C._initVars(aR, varcelln, 2.) # interp all
+
+    _setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
+                   method='lagrangian', loc=loc, storage='inverse', verbose=verbose,
                    interpDataType=interpDataType, sameName=0, itype="chimera")
-    if cellNPresent==-1: C._rmVars(aR, [varcelln])
+
+    if cellNPresent == -1: C._rmVars(aR, [varcelln])
+
     return None
 
 #==============================================================================
@@ -1130,24 +1140,25 @@ def _setInterpData2(aR, aD, order=2, loc='centers', cartesian=False):
 # verbose: 0 (rien), 1 (bilan interpolation), 2 (ecrit les indices de pts orphelins),
 # RMQ: method='conservative' -> tout le domaine receveur est pour l'instant considere a interpoler (maquette)
 #==============================================================================
-def setInterpData(tR, tD, order=2, penalty=1, nature=0, extrap=1,
+def setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                   method='lagrangian', loc='nodes', storage='direct',
                   interpDataType=1, hook=None, verbose=2,
                   topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
-    """Compute and store overset interpolation data."""
-    aR = Internal.copyRef(tR)
-    aD = Internal.copyRef(tD)
-    _setInterpData(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap,
+    """Compute interpolation data for abutting or chimera intergrid connectivity."""
+    tR = Internal.copyRef(aR)
+    tD = Internal.copyRef(aD)
+    _setInterpData(tR, tD, order=order, penalty=penalty, nature=nature, extrap=extrap,
                    method=method, loc=loc, storage=storage, interpDataType=interpDataType,
                    hook=hook, verbose=verbose,
                    topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
-    if storage == 'direct': return aR
-    else: return aD
+    if storage == 'direct': return tR
+    else: return tD
 
 def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
                    method='lagrangian', loc='nodes', storage='direct',
                    interpDataType=1, hook=None, verbose=2,
                    topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
+    """Compute interpolation data for abutting or chimera intergrid connectivity."""
 
     # Recherche pour les pts coincidents (base sur les GridConnectivity)
     if itype != 'chimera': # abutting
@@ -1162,19 +1173,19 @@ def _setInterpData(aR, aD, order=2, penalty=1, nature=0, extrap=1,
             _adaptForRANSLES__(aR, aD, dictOfModels=dictOfModels)
 
     if itype != 'abutting': # chimera
-        _setInterpDataChimera(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap, verbose=verbose,
-                              method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
-                              topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
+        _setInterpDataChimera__(aR, aD, order=order, penalty=penalty, nature=nature, extrap=extrap, verbose=verbose,
+                                method=method, loc=loc, storage=storage, interpDataType=interpDataType, hook=hook,
+                                topTreeRcv=topTreeRcv, topTreeDnr=topTreeDnr, sameName=sameName, dim=dim, itype=itype, dictOfModels=dictOfModels)
 
     # SP: pour l'instant adaptForRANSLES est appele 2 fois: pour les ghost cells et pour le chimere
     # peut on ne le mettre qu ici ?
     #if storage=='inverse': _adaptForRANSLES__(aR, aD)
     return None
 
-def _setInterpDataChimera(aR, aD, order=2, penalty=1, nature=0, extrap=1,
-                          method='lagrangian', loc='nodes', storage='direct',
-                          interpDataType=1, hook=None, verbose=2,
-                          topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
+def _setInterpDataChimera__(aR, aD, order=2, penalty=1, nature=0, extrap=1,
+                            method='lagrangian', loc='nodes', storage='direct',
+                            interpDataType=1, hook=None, verbose=2,
+                            topTreeRcv=None, topTreeDnr=None, sameName=1, dim=3, itype='both', dictOfModels=None):
     locR = loc
 
     # Si pas de cellN receveur, on retourne
@@ -1377,7 +1388,7 @@ def _setInterpDataConservative__(aR, aD, storage='direct'):
     for zd in Internal.getZones(aD):
         hookD = C.createHook(zd,'elementCenters')
         zdnr = P.selectCells(zd,'({centers:cellN}>0.)*({centers:cellN}<2.)>0.')
-        zdnr = C.convertArray2NGon(zdnr); zdnr = G.close(zdnr)
+        zdnr = C.convertArray2NGon(zdnr)
 
         allDnrCells[zd[0]]=zdnr; allDnrZones[zd[0]]=zd
         indicesDnrOrig = C.identifyElements(hookD,zdnr)
@@ -1541,7 +1552,6 @@ def _setInterpDataForGhostCellsNGon__(aR, aD, storage='inverse', loc='centers'):
                                           RotationAngle=RotationAngle, RotationCenter=RotationCenter)
 
     return None
-
 
 def _setInterpDataForGhostCellsStruct__(aR, aD, storage='direct', loc='nodes'):
 

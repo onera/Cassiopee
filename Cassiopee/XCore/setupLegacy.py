@@ -66,7 +66,7 @@ setup(
     name="XCore",
     version="4.1",
     description="Parallel core for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['XCore'],
     ext_modules=listExtensions

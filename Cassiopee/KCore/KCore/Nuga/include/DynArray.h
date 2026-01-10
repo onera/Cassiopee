@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -56,7 +56,6 @@ Design
   template <typename T>
   class DynArray
   {
-
     /// To output the DynArray data.
     template<typename U> friend std::ostream& operator<<(std::ostream&, const DynArray<U>&);
 
@@ -196,7 +195,7 @@ Design
     inline const_iterator begin(size_type i) const
     {assert(i < _cols);return _data + (i*_rowsMax);} 
     
-    inline size_type stride( int i) { return _rows; }
+    inline size_type stride(int i) { return _rows; }
 
   public: /** Operators and operations*/
 
@@ -307,7 +306,7 @@ Design
     /// The data storage
     iterator   _data;
     /// allocation style (0 : CPP, 1 : C)
-    bool        _calloc;
+    bool       _calloc;
 
   }; // End class DynArray
 
@@ -335,10 +334,10 @@ Design
   DynArray<T>::DynArray(size_type rows, size_type cols, bool calloc)
     :_allocated_sz(0), _rows(rows), _cols(cols), _rowsMax(rows), _colsMax(cols), _data(0), _calloc(calloc)
   {  
-      if (_cols * _rows == 0) // No data so make the attributes consistent.
-        _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
-      else
-        _data=__create(rows*cols);        
+    if (_cols * _rows == 0) // No data so make the attributes consistent.
+      _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
+    else
+      _data = __create(rows*cols);        
   }
 
   /// Constructor with a specified size.
@@ -372,7 +371,7 @@ Design
       _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
     else // Assign the data.
     {
-      _data=__create(_rows * _cols);
+      _data = __create(_rows * _cols);
       __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
     }
   }
@@ -386,7 +385,7 @@ Design
       _allocated_sz = _cols = _rows = _colsMax = _rowsMax = 0;
     else // Assign the data.
     {
-      _data=__create(_rows * _cols);
+      _data = __create(_rows * _cols);
       __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
     }
   }
@@ -414,17 +413,16 @@ Design
 
   template <typename T> inline
   void
-    DynArray<T>::extract_field(size_type i, std::vector<T>& f)
+  DynArray<T>::extract_field(size_type i, std::vector<T>& f)
   {
     f.resize(_cols, {});
     for (size_type j = 0; j < _cols; ++j)
       f[j] = *(_data + j * _rowsMax + i);
   }
   
-
   template <typename T> inline
   void
-    DynArray<T>::set_field(size_type i, const std::vector<T>& f)
+  DynArray<T>::set_field(size_type i, const std::vector<T>& f)
   {
     assert(f.size() == (size_t)_cols);
     assert(i < _rows);
@@ -459,79 +457,80 @@ Design
   */
   template <typename T>
   int
-    DynArray<T>::reserve(size_type rows, size_type cols){
-    
-      if ((rows == _rowsMax) && (cols == _colsMax)) // Allocated memory is OK.
-        return 0;
-
-      if (cols < 0)
-      {
-        std::cout << "DynArray error: ask to reserve with a negative value => int32 limit ?" << std::endl;
-        return 1;
-      }
-
-      size_type r = std::max(rows, _rowsMax);
-      size_type c = std::max(cols, _colsMax);
-
-      iterator  newdata(__create(r*c)), start(0), there(0);
-
-      if (newdata == nullptr) return 1;
-
-      // Assign the values column by colum.
-      for (size_type i = 0; i < _cols; ++i){
-        start = _data + i*_rowsMax;
-        there = newdata + i*r;
-        __copy (start, start + _rows, there);
-      }
-
-      __destroy();
-      _data = newdata;
-      _rowsMax = r;
-      _colsMax = c;
-
+  DynArray<T>::reserve(size_type rows, size_type cols)
+  {
+    if ((rows == _rowsMax) && (cols == _colsMax)) // Allocated memory is OK.
       return 0;
+
+    if (cols < 0)
+    {
+      std::cout << "DynArray error: ask to reserve with a negative value => int32 limit ?" << std::endl;
+      return 1;
+    }
+
+    size_type r = std::max(rows, _rowsMax);
+    size_type c = std::max(cols, _colsMax);
+
+    iterator newdata(__create(r*c)), start(0), there(0);
+
+    if (newdata == nullptr) return 1;
+
+    // Assign the values column by colum.
+    for (size_type i = 0; i < _cols; ++i)
+    {
+      start = _data + i*_rowsMax;
+      there = newdata + i*r;
+      __copy (start, start + _rows, there);
+    }
+
+    __destroy();
+    _data = newdata;
+    _rowsMax = r;
+    _colsMax = c;
+
+    return 0;
   }
 
   template <typename T>
   void
-    DynArray<T>::resize(size_type rows, size_type cols, const value_type* val){
-
-      size_type   size(rows*cols);
-      size_type   cols0(_cols);
+  DynArray<T>::resize(size_type rows, size_type cols, const value_type* val)
+  {
+    size_type size(rows*cols);
+    size_type cols0(_cols);
       
-      if (cols == _cols && rows <= _rows)
-      {
-        _rows = rows;
-        return;
-      }
-      if ((rows != _rows) || (cols > _colsMax)) //need to reallocate
-      {
-        iterator newdata(__create(size));
-       
-        // reassign the values column by colum.
-        if (_data != 0)
-        {
-          __mappingcopyandfill(*this, newdata, rows, _rows, _cols, val);
-          __destroy();
-        }
-        
-        _rowsMax = _rows = rows;
-        _colsMax = _cols = cols;
-        _data = newdata;
-      }
-      if (val && cols > cols0)
-        __assign (_data + cols0*rows, _data + size, *val); // Fill the data's tail with val
-      
+    if (cols == _cols && rows <= _rows)
+    {
       _rows = rows;
-      _cols = cols;
+      return;
+    }
+    if ((rows != _rows) || (cols > _colsMax)) //need to reallocate
+    {
+      iterator newdata(__create(size));
+       
+      // reassign the values column by colum.
+      if (_data != 0)
+      {
+        __mappingcopyandfill(*this, newdata, rows, _rows, _cols, val);
+        __destroy();
+      }
+        
+      _rowsMax = _rows = rows;
+      _colsMax = _cols = cols;
+      _data = newdata;
+    }
+    if (val && cols > cols0)
+      __assign (_data + cols0*rows, _data + size, *val); // Fill the data's tail with val
+      
+    _rows = rows;
+    _cols = cols;
   }
   
   template <typename T>
   void
   DynArray<T>::resize(size_type rows, size_type cols, const value_type& val)
   {
-    size_type   size(rows*cols);
-    size_type   cols0(_cols);
+    size_type size(rows*cols);
+    size_type cols0(_cols);
       
     if ((rows != _rows) || (cols > _colsMax)) //need to reallocate
     {
@@ -553,29 +552,28 @@ Design
     
     _rows = rows;
     _cols = cols;
-}
+  }
 
-///
-template <typename T>
-int
-DynArray<T>::pushBack(const self_type& a){
-
+  ///
+  template <typename T>
+  int
+  DynArray<T>::pushBack(const self_type& a)
+  {
     if (_rows == 0)// Empty array
     {
       *this = a;
       return 0;
     }
-    else if (_rows != a._rows)
-      return 1;
+    else if (_rows != a._rows) return 1;
 
-    if (a._cols > (_colsMax - _cols)){     // If the spare room is too tight.
+    if (a._cols > (_colsMax - _cols))
+    {
+      // If the spare room is too tight.
       int err = reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
       if (err) return 1;
     }
-    //const_iterator start(0);
-    //iterator there(0);
-
-    E_Int last=_cols;
+    
+    E_Int last = _cols;
     _cols += a._cols;
     __mappingcopy(a, _data+last*_rowsMax, _rowsMax, a._rows, a._cols);
 
@@ -587,15 +585,16 @@ DynArray<T>::pushBack(const self_type& a){
   int
   DynArray<T>::pushBack(const self_type& a, const E_Int* fields, E_Int sz)
   {
-    if (sz==0)
-      return 0;
+    if (sz==0) return 0;
     
     assert (_rows==0 || sz == _rows);
     
-    if (_rows == 0)// Empty array
+    if (_rows == 0) // Empty array
       _rows=sz;
     
-    if (a._cols > (_colsMax - _cols)) {    // If the spare room is too tight.
+    if (a._cols > (_colsMax - _cols)) 
+    {    
+      // If the spare room is too tight.
       int err = reserve(_rows, 2*(_cols+a._cols));  // Double the columns capacity.
       if (err) return 1;
     }
@@ -639,29 +638,30 @@ DynArray<T>::pushBack(const self_type& a){
   template <typename T>
   template <typename Iterator>
   int
-    DynArray<T>::pushBack(Iterator begin, Iterator end){
+  DynArray<T>::pushBack(Iterator begin, Iterator end)
+  {
+    if (_rows == 0)// Empty array
+      _rows = (end - begin);
+    else if (_rows != (end - begin))
+      return 1;
 
-      if (_rows == 0)// Empty array
-        _rows = (end - begin);
-      else if (_rows != (end - begin))
-        return 1;
+    if (_cols == _colsMax)
+    {
+      int err = reserve (_rows, 2*(_cols+1));
+      if (err) return 1;
+    }
 
-      if (_cols == _colsMax){
-        int err = reserve (_rows, 2*(_cols+1));
-        if (err) return 1;
-      }
+    iterator there(col(_cols++));
+    __copy(begin, end, there);
 
-      iterator there(col(_cols++));
-      __copy(begin, end, there);
-
-      return 0;
+    return 0;
   }
 
   ///
   template <typename T>
   int
-    DynArray<T>::pushBack(value_type val, E_Int rows) {
-        
+  DynArray<T>::pushBack(value_type val, E_Int rows) 
+  {      
     if (_rows == 0)// Empty array
       _rows = rows;
     else if (_rows != rows)
@@ -693,49 +693,49 @@ DynArray<T>::pushBack(const self_type& a){
   /// Assignment operator.
   template <typename T>
   DynArray<T>&
-    DynArray<T>::operator=(const self_type& rhs){
-
-      if (this == &rhs) //avoid self assignment.
-        return *this;
-      
-      E_Int required_sz = rhs._cols*rhs._rows;
-      if (required_sz == 0)
-      {
-        this->clear();
-        return *this;
-      }
-      
-      if (_allocated_sz < required_sz)
-      {
-        __destroy(); // Delete old memory.
-        _calloc = rhs._calloc; //use same policy as rhs
-        _data = __create(required_sz); // Reallocate.
-        _rowsMax = _rows = rhs._rows;
-        _colsMax = _cols = rhs._cols;
-        _allocated_sz = required_sz;
-      }
-      else
-      {
-        // WARNING : compacted assignment
-        _rowsMax = _rows = rhs._rows;
-        assert (_rowsMax > 0);
-        _colsMax = _allocated_sz / _rowsMax;
-        _rows = rhs._rows;
-        _cols = rhs._cols;
-        assert (_cols <= _colsMax);
-      }
-      
-      // Assign the rhs data.
-     __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
-
+  DynArray<T>::operator=(const self_type& rhs)
+  {
+    if (this == &rhs) //avoid self assignment.
       return *this;
+      
+    E_Int required_sz = rhs._cols*rhs._rows;
+    if (required_sz == 0)
+    {
+      this->clear();
+      return *this;
+    }
+      
+    if (_allocated_sz < required_sz)
+    {
+      __destroy(); // Delete old memory.
+      _calloc = rhs._calloc; //use same policy as rhs
+      _data = __create(required_sz); // Reallocate.
+      _rowsMax = _rows = rhs._rows;
+      _colsMax = _cols = rhs._cols;
+      _allocated_sz = required_sz;
+    }
+    else
+    {
+      // WARNING : compacted assignment
+      _rowsMax = _rows = rhs._rows;
+      assert (_rowsMax > 0);
+      _colsMax = _allocated_sz / _rowsMax;
+      _rows = rhs._rows;
+      _cols = rhs._cols;
+      assert (_cols <= _colsMax);
+    }
+      
+    // Assign the rhs data.
+    __mappingcopy(rhs, _data, _rowsMax, _rows, _cols);
+
+    return *this;
   }
 
   /// Move Assignment operator.
   template <typename T>
   DynArray<T>&
-    DynArray<T>::operator=(self_type&& rhs) {
-
+  DynArray<T>::operator=(self_type&& rhs) 
+  {
     if (this == &rhs) //avoid self move.
       return *this;
 
@@ -758,46 +758,46 @@ DynArray<T>::pushBack(const self_type& a){
   /// Adds two DynArrays. Do the job on the common dimensions.
   template <typename T>
   DynArray<T>
-    DynArray<T>::operator+(const self_type& rhs) const {
+  DynArray<T>::operator+(const self_type& rhs) const 
+  {
+    size_type r = std::min(_rows, rhs._rows);
+    size_type c = std::min(_cols, rhs._cols);
+    DynArray<T> result(r,c);
 
-      size_type r = std::min(_rows, rhs._rows);
-      size_type c = std::min(_cols, rhs._cols);
-      DynArray<T> result(r,c);
+    for (size_type j = 0; j < c; ++j)
+      for (size_type i = 0; i < r; ++i)
+        result(i,j) = (*this)(i,j)+ rhs(i,j);
 
-      for (size_type j = 0; j < c; ++j)
-        for (size_type i = 0; i < r; ++i)
-          result(i,j) = (*this)(i,j)+ rhs(i,j);
-
-      return result;
+    return result;
   }
 
   /// Multiplies two DynArrays. Do the job on the common dimensions.
   template <typename T>
   const DynArray<T>
-    DynArray<T>::operator*(const self_type& rhs) const {
+  DynArray<T>::operator*(const self_type& rhs) const 
+  {
+    size_type n = std::min(_rows, rhs._cols);
+    size_type m = std::min(_cols, rhs._rows);
 
-      size_type n = std::min(_rows, rhs._cols);
-      size_type m = std::min(_cols, rhs._rows);
-
-      DynArray<T> result(n,n, value_type(0.));//fixme
+    DynArray<T> result(n,n, value_type(0.));//fixme
       
-      for (size_type j = 0; j < n; ++j)
-        for (size_type i = 0; i < n; ++i)
-          for (size_type k = 0; k < m; ++k)
-            result(i,j) += (*this)(i,k) * rhs(k,j);
+    for (size_type j = 0; j < n; ++j)
+      for (size_type i = 0; i < n; ++i)
+        for (size_type k = 0; k < m; ++k)
+          result(i,j) += (*this)(i,k) * rhs(k,j);
 
-      return result;
+    return result;
   }
   
   /// Multiplies two DynArrays. Do the job on the common dimensions.
   template <typename T>
-  DynArray<T>& DynArray<T>::operator*=(T factor) {
-      
-      for (size_type i = 0; i < _rows; ++i)
-        for (size_type j = 0; j < _cols; ++j)
-            (*this)(i,j) *= factor;
+  DynArray<T>& DynArray<T>::operator*=(T factor) 
+  {    
+    for (size_type i = 0; i < _rows; ++i)
+      for (size_type j = 0; j < _cols; ++j)
+          (*this)(i,j) *= factor;
 
-      return *this;
+    return *this;
   }
   
   /// Checks equality
@@ -827,48 +827,48 @@ DynArray<T>::pushBack(const self_type& a){
   /// Transposes the input array.
   template <typename T>
   DynArray<T>&
-    DynArray<T>::transpose (){
+  DynArray<T>::transpose()
+  {
+    DynArray<T> result(_cols, _rows);
 
-      DynArray<T> result(_cols, _rows);
+    for (size_type j = 0; j < _rows; ++j)
+      for (size_type i = 0; i < _cols; ++i)
+        result(i,j) = (*this)(j,i);
 
-      for (size_type j = 0; j < _rows; ++j)
-        for (size_type i = 0; i < _cols; ++i)
-          result(i,j) = (*this)(j,i);
-
-      *(this)=result;
-      return *this;
+    *(this) = result;
+    return *this;
   }
 
   template <typename T>
   void
-    DynArray<T>::transpose (self_type& result) const {
+  DynArray<T>::transpose(self_type& result) const 
+  {
+    result.resize(_cols, _rows);
 
-      result.resize(_cols, _rows);
-
-      for (size_type j = 0; j < _rows; ++j)
-        for (size_type i = 0; i < _cols; ++i)
-          result(i,j) = (*this)(j,i);
+    for (size_type j = 0; j < _rows; ++j)
+      for (size_type i = 0; i < _cols; ++i)
+        result(i,j) = (*this)(j,i);
   }
 
   template <typename T>
   template <typename Vector1, typename Vector2>
   typename DynArray<T>::size_type
-    DynArray<T>::compact (self_type& a, const Vector1& keep, Vector2& new_Ids)
+  DynArray<T>::compact (self_type& a, const Vector1& keep, Vector2& new_Ids)
   {
-    size_type        cols(a._cols);
+    size_type cols(a._cols);
     // Fast returns
-    if (cols == 0)   return 0;
+    if (cols == 0) return 0;
 
     assert (keep.size() == (size_t)cols);
 
-    bool             carry_on(false);
-    size_type        i1(0), i2(cols-1);
+    bool carry_on(false);
+    size_type i1(0), i2(cols-1);
 
     new_Ids.clear();
     new_Ids.resize(cols, IDX_NONE);
 
-    do{
-
+    do 
+    {
       while ((i1 <= i2) && keep[i1]){new_Ids[i1] = i1; ++i1;}  // Get the first empty column.
       while ((i1 <= i2) && !keep[i2]){--i2;} // Get the first column to move from the tail.
 
@@ -892,7 +892,7 @@ DynArray<T>::pushBack(const self_type& a){
   template <typename T>
   template <typename Vector>
   typename DynArray<T>::size_type
-    DynArray<T>::compact (self_type& a, const Vector& new_Ids)
+  DynArray<T>::compact (self_type& a, const Vector& new_Ids)
   {
     size_type       cols(a.cols()), newId, count(0);
     const_iterator  it2;
@@ -1014,8 +1014,8 @@ DynArray<T>::pushBack(const self_type& a){
 
   template <typename T>
   T*
-    DynArray<T>::__create(size_type size){
-
+    DynArray<T>::__create(size_type size)
+    {
       if (size == 0)
         return nullptr;
 

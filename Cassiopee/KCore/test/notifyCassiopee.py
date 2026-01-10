@@ -30,6 +30,8 @@ IGNORE_TESTS_DBG = [
     "Ael/quantum_t1.py", "Converter/mpi4py_t1.py", "KCore/empty_t1.py",
     "Connector/prepAMRFull_t1.py", "Connector/prepAMRFull_t2.py",
     "Generator/adaptMeshPT_t1.py", "Generator/createHook4AdaptMeshPT_t1.py",
+    "Generator/generateAMRMeshMultiRes2DPT_t1.py",
+    "Generator/generateAMRMeshMultiRes3DPT_t1.py",
     "Generator/generateAMRMeshPT_t1.py", "XCore/adaptMeshPT_t1.py",
     "XCore/adaptMesh_ExitPT_t1.py"
 ]

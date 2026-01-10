@@ -27,7 +27,8 @@ __all__ = ['convertCAD2Arrays',
            '_splitEdge',
            '_addArc', '_addCircle', '_addEllipse',
            '_addSuperEllipse', '_addLine', '_addSquare', '_addSpline',
-           '_addBox', '_addSphere', '_addCylinder', '_addGordonSurface',
+           '_addBox', '_addSphere', '_addCylinder',
+           '_addSplineSurface', '_addGordonSurface',
            '_revolve', '_sweep', '_loft', '_boolean']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -463,6 +464,9 @@ def _enforceEdgesInFace(a, edges):
         xo[0, c:c+npts] = xe[0, 0:npts]
         xo[1, c:c+npts] = xe[1, 0:npts]
         xo[2, c:c+npts] = xe[2, 0:npts]
+        #if xo.shape[0] == 5 and xe.shape[0] == 5:
+        #    xo[3, c:c+npts] = xe[3, 0:npts]
+        #    xo[4, c:c+npts] = xe[4, 0:npts]
         c += npts
     return None
 
@@ -523,13 +527,18 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
 # IN: hook: cad hook
 # IN: i: no de la face
 # IN: edges structured one per wire
-# hmax: hmin/hmax/hausd par face
+# IN: hmax: hmin/hmax/hausd par face
+# IN: close: if True, close mesh
 #===============================================================================
-def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
+def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, close, mesh, FAILED):
 
     # save edges
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
+    #_scaleUV(edgesSav, vu='u', vv='v')
+    #if i == 2:
+    #    Converter.convertArrays2File(edgesSav, 'edgesSav.plt')
+    #    exit(0)
 
     # must close in uv space
     edges = switch2UV2(edges)
@@ -555,9 +564,11 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     try:
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1)
         _enforceEdgesInFace(a, edgesSav)
-        a = Generator.close(a, 1.e-10) # needed for periodic faces
+        if close:
+            a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             a = Transform.reorder(a, (-1,))
+        _unscaleUV([a], T, vu='u', vv='v')
         mesh.append(a)
         SUCCESS = True
     except Exception as e:
@@ -568,7 +579,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, mesh, FAILED):
     return SUCCESS
 
 # TRI mesh face regular in UV space
-def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
+def meshFaceInUV(hook, i, edges, grading, close, mesh, FAILED):
 
     # save edges
     edgesSav = []
@@ -586,6 +597,8 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
         _unscaleUV([a], T)
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
+        if close:
+            a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         mesh.append(o)
@@ -598,7 +611,7 @@ def meshFaceInUV(hook, i, edges, grading, mesh, FAILED):
     return SUCCESS
 
 # pointed hat mesh face in UV space
-def meshFaceWithPointedHat(hook, i, edges, mesh):
+def meshFaceWithPointedHat(hook, i, edges, close, mesh):
 
     # save edges
     #edgesSav = []
@@ -622,6 +635,8 @@ def meshFaceWithPointedHat(hook, i, edges, mesh):
     _unscaleUV([a], T)
     o = occ.evalFace(hook, a, i)
     #_enforceEdgesInFace(o, edgesSav)
+    if close:
+        a = Generator.close(a, 1.e-10) # needed for periodic faces
     if occ.getFaceOrientation(hook, i) == 0:
         o = Transform.reorder(o, (-1,))
     mesh.append(o)
@@ -650,8 +665,9 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
 # IN: metric: if True use metric else mesh in uv
 # IN: faceList: list of faces to mesh (start 1)
 # IN: hList: list of (hmin, hmax, hausd) for each face to mesh
+# IN: close: if true, close meshes
 #==================================================================
-def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
+def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[], close=True):
     nbFaces = len(faceList)
     FAILED1 = []; FAILED2 = []; dfaces = []
     for c, i in enumerate(faceList):
@@ -674,16 +690,16 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[]):
         SUCCESS = False
         if metric:
             hsize = hList[c]
-            SUCCESS = meshFaceWithMetric(hook, i, edges, hsize[0], hsize[1], hsize[2], dfaces, FAILED1)
+            SUCCESS = meshFaceWithMetric(hook, i, edges, hsize[0], hsize[1], hsize[2], close, dfaces, FAILED1)
 
         if not SUCCESS: # TRIMESH sans metric
             edges = edgesSav
-            SUCCESS = meshFaceInUV(hook, i, edges, 1., dfaces, FAILED2)
+            SUCCESS = meshFaceInUV(hook, i, edges, 1., close, dfaces, FAILED2)
 
         if not SUCCESS: # pointed hat
             edges = edgesSav
             #dfaces.append(None)
-            SUCCESS = meshFaceWithPointedHat(hook, i, edges, dfaces)
+            SUCCESS = meshFaceWithPointedHat(hook, i, edges, close, dfaces)
 
     FAIL1 = len(FAILED1)
     print("METRICFAILURE = %d / %d"%(FAIL1, nbFaces))
@@ -946,6 +962,11 @@ def _addCylinder(hook, C, axis, R, H):
     occ.addCylinder(hook, C, axis, R, H)
     return None
 
+def _addSplineSurface(hook, points, degree):
+    """Add a spline surface to hook."""
+    occ.addSplineSurface(hook, points, 2, degree)
+    return None
+
 def _addGordonSurface(hook, ucurves, vcurves):
     """Add a Gordon surface to hook."""
     occ.addGordonSurface(hook, ucurves, vcurves)
@@ -953,7 +974,7 @@ def _addGordonSurface(hook, ucurves, vcurves):
 
 def _revolve(hook, edges, C, axis, angle):
     """Revolve edges to create surface."""
-    occ.revolve(hook, C, axis, angle)
+    occ.revolve(hook, edges, C, axis, angle)
 
 def _sweep(hook, profiles, paths):
     """Sweep profiles along paths."""

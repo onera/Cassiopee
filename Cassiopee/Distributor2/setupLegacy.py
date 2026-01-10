@@ -31,7 +31,7 @@ setup(
     name="Distributor2",
     version="4.1",
     description="Distributor for arrays and pyTrees.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Distributor2'],
     ext_modules=[Extension('Distributor2.distributor2',

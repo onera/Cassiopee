@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -105,8 +105,9 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
   if (!foundEltType2Convert)
   {
     // Nothing to convert
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     RELEASESHAREDU(array, f, cn);
-    Py_INCREF(array);
+    Py_INCREF(array);  // TODO: to be removed
     return array;
   }
 
@@ -121,6 +122,7 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "convertArray2Tetra: coords must be present in array.");
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       RELEASESHAREDU(array, f, cn);
       return NULL;
     }
@@ -139,19 +141,19 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
                                        eltType2, false, api);
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
+  FldArrayI& cm2 = *(cn2->getConnect(0));
 
   #pragma omp parallel if (nelts2 > __MIN_SIZE_MEAN__)
   {
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cn->getConnect(ic));
-      FldArrayI& cm2 = *(cn2->getConnect(ic));
       E_Int nelts = cm.getSize();
-      E_Int nvpe = cm.getNfld();
       E_Int offset = cumnepc[ic];
 
       if (!convConn[ic])  // simple copy
       {
+        E_Int nvpe = cm.getNfld();
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
           for (E_Int j = 1; j <= nvpe; j++) cm2(i+offset,j) = cm(i,j);
@@ -425,6 +427,7 @@ PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
 
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(tpl, f2, cn2);
+  delete[] eltType2;
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   return tpl;
 }

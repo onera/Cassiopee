@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,18 +24,18 @@
 
 namespace K_GEOM
 {
-  PyObject* nacaMesh(PyObject* self, PyObject* args);
-  PyObject* lineMesh(PyObject* self, PyObject* args);
-  PyObject* circleMesh(PyObject* self, PyObject* args);
-  PyObject* sphereMesh(PyObject* self, PyObject* args);
-  PyObject* coneMesh(PyObject* self, PyObject* args);
+  PyObject* naca(PyObject* self, PyObject* args);
+  PyObject* line(PyObject* self, PyObject* args);
+  PyObject* circle(PyObject* self, PyObject* args);
+  PyObject* sphere(PyObject* self, PyObject* args);
+  PyObject* cone(PyObject* self, PyObject* args);
   PyObject* torus(PyObject* self, PyObject* args);
-  PyObject* triangleMesh(PyObject* self, PyObject* args);
-  PyObject* quadrangleMesh(PyObject* self, PyObject* args);
+  PyObject* triangle(PyObject* self, PyObject* args);
+  PyObject* quadrangle(PyObject* self, PyObject* args);
   PyObject* bezier(PyObject* self, PyObject* args);
-  PyObject* lineGenerateMesh(PyObject* self, PyObject* args);
+  PyObject* lineGenerate(PyObject* self, PyObject* args);
   PyObject* lineGenerate2(PyObject* self, PyObject* args);
-  PyObject* addSeparationLineMesh(PyObject* self, PyObject* args);
+  PyObject* addSeparationLine(PyObject* self, PyObject* args);
   PyObject* axisym(PyObject* self, PyObject* args);
   PyObject* volumeFromCrossSections(PyObject* self, PyObject* args);
   PyObject* getLength(PyObject* self, PyObject* args);

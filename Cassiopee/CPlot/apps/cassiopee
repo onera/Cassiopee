@@ -4,8 +4,7 @@ if [ "$PYTHONEXE" = "" ]; then
 fi
 export MPIRUN=0
 
-if ! command -v xdpyinfo &> /dev/null
-then
+if ! command -v xdpyinfo > /dev/null; then
     if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
     then
         $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"

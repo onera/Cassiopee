@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -64,7 +64,11 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
       for (E_Int i = 0; i < n; i++)
       {
         valf = PyFloat_AsDouble(PyList_GetItem(o, i));
-        out[i] = (E_Int)valf;
+#ifdef E_ADOLC
+        out[i] = E_Int(valf.value());
+#else
+        out[i] = E_Int(valf);
+#endif
       } 
       return 1;
     }

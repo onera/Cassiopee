@@ -13,9 +13,11 @@ import pickle
 #==============================================================================
 def deltaIndex(index, ref):
     """Return the delta between index and ref."""
-    r1 = numpy.in1d(index, ref)
+    try: r1 = numpy.isin(index, ref)
+    except: r1 = numpy.is1d(index, ref)
     r1 = r1.astype(Internal.E_NpyInt)
-    r2 = numpy.in1d(ref, index)
+    try: r2 = numpy.isin(ref, index)
+    except: r2 = numpy.is1d(ref, index)
     r2 = r2.astype(Internal.E_NpyInt)
     return compressor.deltaIndex(index, ref, r1, r2)
 

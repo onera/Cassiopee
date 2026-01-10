@@ -23,7 +23,7 @@ sketch3 = D.Sketch('sketch3', [circle3])
 # Create sketch 4
 circle4 = D.Circle('circle4', (0,0,1), 0.5)
 sketch4 = D.Sketch('sketch4', [circle4])
-D.Eq(circle4.P[0].z.s, length.s)
+D.Eq(circle4.P[0].z, length)
 
 # surface2
 surface2 = D.Loft('surface2', [sketch3, sketch4])
@@ -35,10 +35,10 @@ surface2.position.z.v = 2.
 
 # surface finale
 #surface = D.Merge('surface', listSurfaces=[surface1,surface2])
-surface = D.Union('surface', listSurfaces1=[surface1], listSurfaces2=[surface2])
+surface = D.Union('surface', listSurfaces1=[surface1], listSurfaces2=[surface2], h=[0.1,0.1,0.1])
 
 # test
-D.DRIVER.solve2()
+D.DRIVER.solve()
 D.DRIVER.instantiate({'length': 10})
 
 surface.writeCAD('out.step')
@@ -47,7 +47,7 @@ import CPlot, time
 point = D.DRIVER.walkDOE()
 while point is not None:
     D.DRIVER.instantiate(point)
-    mesh = surface.mesh(0.1, 0.1, 0.1)
+    mesh = surface.mesh()
     CPlot.display(mesh)
     point = D.DRIVER.walkDOE()
     time.sleep(0.5)

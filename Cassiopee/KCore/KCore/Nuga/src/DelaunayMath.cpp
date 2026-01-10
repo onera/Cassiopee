@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -31,17 +31,17 @@ void DelaunayMath::eigen_values
   // therefore x=(1/2)*(tr(A) +- sqrt(delta)) where delta=tr(A)^2-4*det(A)
   // Assumption: we always have 2 (not necessarily distinct) solutions.
   //             therefore delta is assumed positive or null.
-   E_Float trA    = a00+a11;
-   E_Float detA   = a00*a11 - a10*a10;
-   E_Float delta  = trA*trA - 4.*detA;          
+   E_Float trA   = a00+a11;
+   E_Float detA  = a00*a11 - a10*a10;
+   E_Float delta = trA*trA - 4.*detA;          
    if (delta > 0.) // Valid discriminant.
    {
-     delta=::sqrt(delta);
-     lambda0=0.5*(trA-delta);
-     lambda1=lambda0+delta;
+     delta = sqrt(delta);
+     lambda0 = 0.5*(trA-delta);
+     lambda1 = lambda0+delta;
    }
    else //delta is set to 0. 
-     lambda1=lambda0=0.5*trA;
+     lambda1 = lambda0 = 0.5*trA;
 }
 
 //=============================================================================

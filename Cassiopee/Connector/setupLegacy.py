@@ -57,7 +57,7 @@ setup(
     name="Connector",
     version="4.1",
     description="Connector for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Connector'],
     ext_modules=listExtensions)

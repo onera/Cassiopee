@@ -840,7 +840,8 @@ def evalPositionM1(coords, z, time):
             if dtype == 3: # constant rotation + translation speeds
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
-                omega = getNodeValue__(m, 'omega')
+                #omega = getNodeValue__(m, 'omega')
+                omega = Internal.getValue(Internal.getNodeFromName(m, 'omega'))
                 speed = getNodeValue__(m, 'transl_speed')
                 coordsD = [-speed[0]*time+axis_pnt[0], -speed[1]*time+axis_pnt[1], -speed[2]*time+axis_pnt[2]]
                 coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]

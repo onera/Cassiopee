@@ -841,9 +841,9 @@ def oneovern(a, N, add=1):
     else:
         return transform.oneovern(a, N, add)
 
-def subzone(array, minIndex, maxIndex=None, type=None):
+def subzone(array, minIndex, maxIndex=None, type=None, dimOut=-1):
     """Take a subzone of mesh.
-    Usage: subzone(array, (imin,jmin,kmin), (imax,jmax,kmax))"""
+    Usage: subzone(array, (imin,jmin,kmin), (imax,jmax,kmax), dimOut)"""
     if maxIndex is None: # non structure
         if type == 'elements':
             if len(array) == 5:
@@ -857,11 +857,11 @@ def subzone(array, minIndex, maxIndex=None, type=None):
         elif type == 'nodes':
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
-            return  transform.subzoneUnstruct(array, minIndex)
+            return  transform.subzoneUnstruct(array, minIndex, dimOut)
         else:
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
-            return transform.subzoneUnstruct(array, minIndex)
+            return transform.subzoneUnstruct(array, minIndex, dimOut)
     else: # structure (subzone par range)
         if len(array) == 4:
             raise TypeError("subzone: subzone with two ranges is not valid for unstructured arrays.")
@@ -1710,9 +1710,9 @@ def dual(array, extraPoints=1):
     except: # NODE forcement
         return array
 
-    if isinstance(array[0], list):
+    if isinstance(a[0], list):
         out = []
-        for i in array:
+        for i in a:
             out.append(transform.dualNGon(i, extraPoints))
         return out
     else: return transform.dualNGon(a, extraPoints)

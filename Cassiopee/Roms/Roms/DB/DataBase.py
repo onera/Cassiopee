@@ -1,8 +1,8 @@
 # Manage base of CFD data
 
-# DataBase sumary:
-# name <dir>
-#   name.db (sql data base)
+# DataBase summary:
+# name.db <dir>
+#   name.sql (sql data base)
 #   ref.cgns (common cgns data)
 #   0001.cgns (key associated data)
 
@@ -10,9 +10,9 @@
 # query(sqlstring) -> return a query (list of full sql data)
 # query(point) -> return query for given parametric point
 # fetch(query) -> return real data corresponding to query
-# parametric point: a dict of parameter names/value (as in DOE)
+# parametric point: a dict of parameter names/value (as in Driver walkDOE)
 
-import sqlite3
+import sqlite3, shutil
 import os, numpy, time, datetime
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -25,9 +25,9 @@ class DataBase:
         if mode == 'a': # enable read/write
             self.mode = 'a'
         elif mode == 'r': # read only
-            self.mode = 'w'
+            self.mode = 'r'
         elif mode == 'w': # start anew
-            self.mode == 'w'
+            self.mode = 'w'
         else: raise ValueError('DataBase: invalid mode.')
         # database name
         if name[-3:] == ".db": name = name[:-3]
@@ -37,13 +37,16 @@ class DataBase:
         self.dirName = name+'.db'
         if not os.path.exists(self.dirName):
             if mode == 'w':
-                import shutil
-                shutil.rmtree(self.dirName)
                 os.mkdir(self.dirName)
             elif mode == 'r':
                 raise ValueError('DataBase: can not open file for reading.')
             else:
                 os.mkdir(self.dirName)
+        else:
+            if mode == 'w':
+                shutil.rmtree(self.dirName)
+                os.mkdir(self.dirName)
+
         # pointer on sql db
         self.db = None
         self.cursor = None
@@ -61,7 +64,7 @@ class DataBase:
         # column name list
         self.columns = ['id','descp','date','reference','variables']+self.parameters
 
-    # open sql data base
+    # open sql db
     def open(self):
         """Open sql db."""
         self.db = sqlite3.connect('%s/%s.sql'%(self.dirName,self.name))
@@ -88,11 +91,12 @@ class DataBase:
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.name} ({columnsSql})")
 
     # create reference (all without fields)
-    def registerReference(self, t, name):
+    def registerReference(self, data, name):
         """Write reference file used for coordinates and connectivity."""
         if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
         cgnsName = self.dirName+'/%s'%name+'.cgns'
-        tp = Internal.copyRef(t)
+        tp, _ = Internal.node2PyTree(data)
+        tp = Internal.copyRef(tp)
         Internal._rmNodesFromType(tp, 'FlowSolution_t')
         Compressor._compressAll(tp) # lossless
         C.convertPyTree2File(tp, cgnsName)
@@ -116,8 +120,8 @@ class DataBase:
     # IN: descp: description string
     # IN: point: parametric point (dict)
     # IN: ref: reference mesh if your sample has the same topology
-    # IN: data: the tree, zone, date
-    # IN: compressionTol: if None: lossless else comrpession accuracy
+    # IN: data: the tree, zone, data
+    # IN: compressionTol: if None: lossless else compression accuracy
     def register(self, descp, point, ref=None, data=None, compressionTol=None):
         """Register data in db."""
         if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
@@ -148,14 +152,19 @@ class DataBase:
         # and return id
         com = ''
         for p in point:
-            com += "%s = %g AND "%(p, point[p])
+            com += "%s <= %g+1.e-10 AND %s >= %g-1.e-10 AND "%(p, point[p], p, point[p])
         if len(com) >= 4: com = com[:-4]
         com1 = 'SELECT * FROM %s WHERE '%self.name
         com1 = com1+com
         self.cursor.execute(com1)
         q = self.cursor.fetchall()
         if q != []: id = q[0][0]
-        else: id = self.cursor.lastrowid+1
+        else:
+            com = "SELECT id FROM %s ORDER BY id DESC LIMIT 1"%self.name
+            self.cursor.execute(com)
+            row = self.cursor.fetchone()
+            if row is not None: id = row[0]+1
+            else: id = 1 # this is an error
 
         # get current date
         now = datetime.datetime.now()
@@ -181,12 +190,15 @@ class DataBase:
         # register dcoords/fields cgns
         if data is not None:
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
-            tp = Internal.copyRef(data)
+            tp, ntype = Internal.node2PyTree(data)
+            tp = Internal.copyRef(tp)
             zones = Internal.getZones(tp)
             for z in zones:
                 dcoords = None
                 FC = Internal.getNodeFromType1(z, 'GridCoordinates_t')
-                if FC is not None: # if coordinates in zone
+                if FC is not None: px = Internal.getNodeFromName1(FC, 'CoordinateX')
+                else: px = None
+                if px is not None: # if coordinates in zone
                     # check reference if possible
                     refCgnsName = self.dirName+'/%s'%ref+'.cgns'
                     refFC = None
@@ -279,7 +291,7 @@ class DataBase:
             q = self.cursor.fetchall()
             return q
 
-    # return True if parameters exist in db
+    # return True if parametric point exists in db
     def exist(self, point=None):
         if point is not None:
             q = self.query(point)
@@ -287,7 +299,7 @@ class DataBase:
             else: return True
         else: return False
 
-    # load sample from query
+    # load data from query
     # return list of trees
     def fetchTree(self, q):
         """Fetch a query and return tree."""
@@ -321,15 +333,19 @@ class DataBase:
             ts.append(t)
         return ts
 
-    # fetch all parameters as a vector
-    def fetchParams(self, q):
+    # fetch all parameters of q as a vector
+    def fetchPointVector(self, q, exportJax=False):
         """Fetch a query and return param vector."""
-        # build param vector
+        # build param points vector
+        if exportJax: import jax.numpy as jnp
         nparam = len(q[0])-5
         nrows = len(q)
-        param = numpy.zeros((nrows,nparam), dtype=numpy.float64)
-        for c, r in enumerate(q):
-            param[c,:] = r[5:]
+        if exportJax:
+            param = jnp.zeros((nrows,nparam), dtype=numpy.float64)
+            for c, r in enumerate(q): param.at[c,:] = r[5:]
+        else:
+            param = numpy.zeros((nrows,nparam), dtype=numpy.float64)
+            for c, r in enumerate(q): param[c,:] = r[5:]
         return param
 
     # fetch all parameters of q as a point dict of DOE
@@ -345,8 +361,9 @@ class DataBase:
         return out
 
     # fetch all parameters of q as a matrix
-    def fetchMatrix(self, q, variables):
+    def fetchMatrix(self, q, variables, exportJax=False):
         """Fetch a query and return a matrix."""
+        if exportJax: import jax.numpy as jnp
         # sizes
         nq = len(q) # number of parametric points
         nv = len(variables) # number of variables
@@ -354,7 +371,7 @@ class DataBase:
         pt1 = None
         matrix = None
 
-        for c, r in enumerate(q): # columns : parametric points
+        for c, r in enumerate(q): # columns: parametric points
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             h = Filter.Handle(cgnsName)
@@ -369,9 +386,9 @@ class DataBase:
                 if len(v) == 2: v = v[1]
                 else: v = v[0]
                 for z in zones:
-                    p = Internal.getNodeFromName(z, v)
+                    p = Internal.getNodeFromName2(z, v)
                     if p is None:
-                        raise ValueError('fetchMatrix; variable not found in data set.')
+                        raise ValueError('fetchMatrix: variable not found in data set.')
 
             if pt0 is None:
                 sizetot = 0
@@ -396,16 +413,48 @@ class DataBase:
                 for n, z in enumerate(zones): # rows : field variables per zone
                     p = Internal.getNodeFromName(z, v)
                     nf = p[1].size
-                    if matrix is None:
-                        matrix = numpy.zeros((sizetot, nq), dtype=numpy.float64)
-                        #matrix[:,:] = 1.
-                    matrix[pt0[x,n]:pt1[x,n], c] = p[1].ravel('k')
+                    if exportJax:
+                        if matrix is None:
+                            matrix = jnp.zeros((sizetot, nq), dtype=numpy.float64)
+                        jp = jnp.array(p.ravel('k'))
+                        matrix.at[pt0[x,n]:pt1[x,n], c].set(jp)
+                    else:
+                        if matrix is None:
+                            matrix = numpy.zeros((sizetot, nq), dtype=numpy.float64)
+                        matrix[pt0[x,n]:pt1[x,n], c] = p[1].ravel('k')
+
         return matrix
+
+    # fetch mass matrix of reference
+    def fetchW(self, ref, exportJax=False):
+        """Return the mass vector for ref."""
+        import Generator.PyTree as G
+        if exportJax: import jax.numpy as jnp
+        cgnsName = self.dirName+'/%s'%ref+'.cgns'
+        tref = C.convertFile2PyTree(cgnsName)
+        G._getVolumeMap(tref)
+        zones = Internal.getZones(tref)
+        sizetot = 0
+        for z in zones:
+            p = Internal.getNodeFromName2(z, "vol")
+            sizetot += p[1].size
+        if exportJax:
+            v = jnp.zeros((sizetot, 1), dtype=numpy.float64)
+        else:
+            v = numpy.zeros((sizetot, 1), dtype=numpy.float64)
+        pt0 = 0
+        for n, z in enumerate(zones):
+            p = Internal.getNodeFromName2(z, "vol")
+            size = p[1].size
+            if exportJax: v.at[pt0:pt0+size, 0] = p[1].ravel('k')
+            else: v[pt0:pt0+size, 0] = p[1].ravel('k')
+            pt0 += size
+        return v
 
     # delete rows corresponding to q
     def delete(self, q):
         """Delete queries from data base."""
-        if self.mode == 'r': raise ValueError('register: can not delete in read only mode.')
+        if self.mode == 'r': raise ValueError('delete: can not delete in read only mode.')
 
         for c, r in enumerate(q):
             # remove row in sql
@@ -420,7 +469,54 @@ class DataBase:
             # remove file
             id = r[0]
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
-            os.remove(cgnsName)
+            try: os.remove(cgnsName)
+            except: pass
+
+    # join this data base with another one
+    def join(self, db2):
+        if self.mode == 'r': raise ValueError('join: can not join in read only mode.')
+        # check that parameters are identicals
+        for p in self.parameters:
+            if p not in db2.parameters:
+                raise ValueError('join: parameter %s is not in both dbs.'%p)
+
+        # get the last id of self
+        com = "SELECT id FROM %s ORDER BY id DESC LIMIT 1"%self.name
+        self.cursor.execute(com)
+        q = self.cursor.fetchone()
+        if q is not None: id = q[0]+1
+        else: id = 1
+
+        # get all reference names in self and db2
+        refNames1 = {}
+        self.cursor.execute('SELECT * FROM %s'%self.name)
+        rows = self.cursor.fetchall()
+        for q in rows:
+            ref = q[3]
+            refNames1[ref] = 1
+        refNames2 = {}
+        db2.cursor.execute('SELECT * FROM %s'%db2.name)
+        rows = db2.cursor.fetchall()
+        for q in rows:
+            ref = q[3]
+            refNames2[ref] = 1
+
+        # get all recordings in db2, add them and copy .cgns
+        db2.cursor.execute('SELECT * FROM %s'%db2.name)
+        rows = db2.cursor.fetchall()
+        pts = db2.fetchPoints(rows)
+        for c, pt in enumerate(pts):
+            q = rows[c]
+            id = q[0]
+            print("join: adding", pt, "to "+self.dirName)
+            self.register(q[1], pt, ref=q[3], data=None)
+            id2 = self.cursor.lastrowid
+            shutil.copy(db2.dirName+"/%05d"%id+".cgns", self.dirName+"/%05d"%id2+".cgns")
+
+        # copy references if different names
+        for r in refNames2:
+            if r not in refNames1:
+                shutil.copy(db2.dirName+"/"+r+".cgns", self.dirName)
 
     # monitor: write string to a log file monitor.txt
     def monitor(self, text):
@@ -435,35 +531,48 @@ class DataBase:
     # print query to screen
     # mode=0: horizontal
     # mode=1: vertical
-    def print(self, q, mode=0):
+    def print(self, q, mode=0, fullListVar=False):
         """Print query to screen."""
         if mode == 0: # horizontal
             print(len(q),'entries.')
-            size = 15
+            size  = 20
+            size2 = 15
             print('='*size*len(self.columns))
 
             txt = ''; txt2 = ''
             for c, i in enumerate(self.columns):
                 if c != 3 and c != 4:
-                    txt += str(i)[0:size-1].ljust(size)
-                else: txt2 += str(i)[0:size-1].ljust(size)
+                    txt += str(i)[0:size2-1].ljust(size)
+                else: txt2 += str(i)[0:size2-1].ljust(size)
             print(txt+txt2)
 
             print('='*size*len(self.columns))
             for r in q:
                 txt = ''; txt2 = ''
                 for c, i in enumerate(r):
-                    if c != 3 and c != 4:
-                        txt += str(i)[0:size-1].ljust(size)
-                    else: txt2 += str(i)[0:size-1].ljust(size)
+                    txtAdd = str(i)[0:size2-1]
+                    if len(str(i))>size2: txtAdd += '... '
+                    if c != 3 and c != 4: txt += txtAdd.ljust(size)
+                    else: txt2 += txtAdd.ljust(size)
                 print(txt+txt2)
         else: # vertical
             print(len(q),'entries.')
-            if len(q) == 1: size = 80
-            elif len(q) == 2: size = 40
-            else: size = 15
+            maxLength = 165
+            size = max(maxLength//len(q),20)
+            size2 = size-5
+            print('='*((size+1)*len(q)+13))
             for c, i in enumerate(self.columns):
                 txt = str(i)[0:12-1].ljust(12)+ '|'
                 for r in q:
-                    txt += str(r[c])[0:size-1].ljust(size) + '|'
+                    txtAdd = str(r[c])[0:size2-1]
+                    if len(str(r[c]))>size2: txtAdd += '... '
+                    txt += txtAdd.ljust(size) + '|'
                 print(txt)
+            print('='*((size+1)*len(q)+13))
+            if fullListVar:
+                print('\n \n')
+                for i, r in enumerate(q):
+                    print('=============================')
+                    print('Full list of variables: id %d'%r[0])
+                    print(r[4])
+                    print('============================= \n')

@@ -45,7 +45,7 @@ setup(
     name="Geom",
     version="4.1",
     description="Geometry definition for *Cassiopee* modules.",
-    author="Onera",
+    author="ONERA",
     package_dir={"":"."},
     packages=['Geom'],
     ext_modules=[Extension('Geom.geom',

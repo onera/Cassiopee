@@ -223,7 +223,7 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     t = C.newPyTree(['Base',o])
 
     print('Conformizing...')
-    t = C.convertArray2NGon(t) ; G._close(t)
+    t = C.convertArray2NGon(t)
     t = C.conformizeNGon(t) ; G._close(t)
 
     # Extract blanking surface

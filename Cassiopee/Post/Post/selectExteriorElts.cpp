@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -544,7 +544,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   std::vector<E_Int> cENN(ntotElts);
   K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
 
-  // Manual uniform chunks with at most 'net' elements per thread
+  // Uniform chunks (schedule: static) with at most 'net' elements per thread
   E_Int nthreads = __NUMTHREADS__;
   E_Int net = ntotElts/nthreads + nc;
   // Thread-related arrays are prefixed with 't'. For each thread:
@@ -601,7 +601,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
           for (E_Int j = 1; j <= nvpe; j++)
           {
             indv = cm(i, j) - 1;
-            if (vindir[indv] == 0) vindir[indv] = 1;
+            vindir[indv] = 1;
           }
         }
       }

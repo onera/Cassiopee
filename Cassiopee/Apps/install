@@ -45,6 +45,9 @@ elif [ $PRODMODE -eq 2 ]; then # pip+wheel
     # wheels in $INSTALLPATH
     TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
     [ $? != 0 ] && exit 1;
+elif [ $PRODMODE -eq 3 ]; then # pip no isolation
+    python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+    [ $? != 0 ] && exit 1;
 fi
 
 # Check installation

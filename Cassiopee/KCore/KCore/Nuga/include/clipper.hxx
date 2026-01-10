@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -95,7 +95,7 @@ namespace NUGA
           continue; // X node => lying on (impacted) sub : no test required (which is good it as it might fail)
         }
 
-        const double * P = crd2D.col(k);
+        const E_Float* P = crd2D.col(k);
         sub.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
         w_keep[k] = is_in;
       }
@@ -136,7 +136,7 @@ namespace NUGA
           continue; // X node => lying on (impacted) sub : no test required (which is good it as it might fail)
         }
 
-        const double * P = crd2D.col(k);
+        const E_Float* P = crd2D.col(k);
         cut.template fast_is_in_pred<DELAUNAY::Triangulator, 2>(dt, crd2D, P, is_in, 1.e-9);
         w_keep[k] = is_in;
       }
@@ -165,7 +165,7 @@ namespace NUGA
       K_SEARCH::BoundingBox<DIM> box;
       box.compute(crd);
 
-      double dX[DIM];
+      E_Float dX[DIM];
       for (size_t k = 0; k < DIM; ++k)
         dX[k] = box.maxB[k] - box.minB[k];
 
@@ -176,7 +176,7 @@ namespace NUGA
       }
     }
 
-    inline void go_2D(bool proj_on_first, const E_Float* W, K_FLD::FloatArray& crd, std::vector<double>& zs, double& zmean, K_FLD::FloatArray& P, const K_FLD::IntArray& cnt, E_Int nb_pts1, E_Int nb_edges1)
+    inline void go_2D(bool proj_on_first, const E_Float* W, K_FLD::FloatArray& crd, std::vector<E_Float>& zs, E_Float& zmean, K_FLD::FloatArray& P, const K_FLD::IntArray& cnt, E_Int nb_pts1, E_Int nb_edges1)
     {      
       K_FLD::FloatArray iP(3, 3);
 
@@ -269,10 +269,10 @@ namespace NUGA
       K_FLD::FloatArray::inverse3(iP);
       NUGA::transform(crd, iP);
 
-      std::vector<double> zs;
+      std::vector<E_Float> zs;
       crd.extract_field(2, zs); //keep 3rd coord appart (altitude)
       //compute zmean
-      double zmean(0.);
+      E_Float zmean(0.);
       for (E_Int k = 0; k < nb_pts1; ++k) zmean += zs[k];
       zmean /= nb_pts1;
       
@@ -282,7 +282,7 @@ namespace NUGA
       // using bbox in 2D frame
       K_SEARCH::BBox2D bx(crd, nb_pts1);
       std::vector<E_Int> new_edge_ids; //in case of compacting, need to propagate original ids in xedge
-      double Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
+      E_Float Lref = std::min(bx.maxB[0] - bx.minB[0], bx.maxB[1] - bx.minB[1]);
 
       // discard false overlaps among front (now we are in 2D, those with big altitudes)
       {
@@ -290,12 +290,12 @@ namespace NUGA
         bool do_compact(false);
         for (E_Int i = nb_edges1; i < cnt.cols(); ++i)
         {
-          double z1 = zs[cnt(0, i)] - zmean;
-          double z2 = zs[cnt(1, i)] - zmean;
+          E_Float z1 = zs[cnt(0, i)] - zmean;
+          E_Float z2 = zs[cnt(1, i)] - zmean;
 
           if (z1*z2 < 0.) continue; // means crossing 
 
-          double mz = std::min(::fabs(z1), ::fabs(z2));
+          E_Float mz = std::min(::fabs(z1), ::fabs(z2));
           keep[i] = (mz < Lref); //at least one inside interf zone
           do_compact |= !keep[i];
         }
@@ -335,18 +335,18 @@ namespace NUGA
       }
 #endif
 
-      double ABSTOL2D = ARTOL;
+      E_Float ABSTOL2D = ARTOL;
       if (ARTOL < 0.) //relative
       {
         //2D ABS TOLERANCE
-        double Lref2 = NUGA::FLOAT_MAX;
+        E_Float Lref2 = NUGA::FLOAT_MAX;
         for (int k = 0; k < cnt.cols(); ++k)
         {
-          double d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
+          E_Float d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
           Lref2 = std::min(d2, Lref2);
         }
 
-        ABSTOL2D = -::sqrt(Lref2) * ARTOL;
+        ABSTOL2D = -sqrt(Lref2) * ARTOL;
         ABSTOL2D = std::max(ABSTOL2D, ZERO_M);
       }
 
@@ -401,7 +401,7 @@ namespace NUGA
       true_clip = true;
 
       // transfer altitude
-      std::vector<double> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
+      std::vector<E_Float> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
       const auto& pnids = conformizer.get_node_history();
       for (size_t i = 0; i < pnids.size(); ++i)
         if (pnids[i] != IDX_NONE) zsnew[pnids[i]] = zs[i];
@@ -421,15 +421,14 @@ namespace NUGA
         if (xe.first >= subj.cols()) continue;
 
         int N0 = subj(0, xe.first);
-        double * P0 = crd.col(N0);
+        E_Float* P0 = crd.col(N0);
         int N1 = subj(1, xe.first);
-        double * P1 = crd.col(N1);
-        double * Px = crd.col(i);
+        E_Float* P1 = crd.col(N1);
+        E_Float* Px = crd.col(i);
 
-        double L2 = NUGA::sqrDistance(P0, P1, 2);
-        double lam2 = NUGA::sqrDistance(P0, Px, 2);
-        double l = ::sqrt(lam2 / L2);
-
+        E_Float L2 = NUGA::sqrDistance(P0, P1, 2);
+        E_Float lam2 = NUGA::sqrDistance(P0, Px, 2);
+        E_Float l = sqrt(lam2 / L2);
         zs[i] = (1. - l) * zs[N0] + l * zs[N1];
       }
 
@@ -443,10 +442,6 @@ namespace NUGA
       data.pos->resize(3, data.pos->cols());
       data.pos->set_field(2, zs); //
       NUGA::transform(*data.pos, P); // back to original ref frame  
-
-#ifdef DEBUG_CLIPPER
-      //medith::write("boolean", *data.pos, data.connectM, "TRI");
-#endif
 
       std::vector<crd_t> crd_res;              //intermediate format as crds
       int minc = *std::min_element(ALL(data.colors));
@@ -570,8 +565,8 @@ namespace NUGA
       // project one on the other
       const E_Float* W = proj_on_first ? sub.get_normal() : cut.get_normal();
 
-      std::vector<double> zs;
-      double zmean;
+      std::vector<E_Float> zs;
+      E_Float zmean;
       K_FLD::FloatArray P(3, 3);
       go_2D(proj_on_first, W, crd, zs, zmean, P, cnt, nb_pts1, nb_edges1);
 
@@ -595,25 +590,23 @@ namespace NUGA
       }
 #endif
 
-      double ABSTOL2D = ARTOL;
+      E_Float ABSTOL2D = ARTOL;
       if (ARTOL < 0.) //relative
       {
         //2D ABS TOLERANCE
-        double Lref2 = NUGA::FLOAT_MAX;
+        E_Float Lref2 = NUGA::FLOAT_MAX;
         for (int k = 0; k < cnt.cols(); ++k)
         {
-          double d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
+          E_Float d2 = NUGA::sqrDistance(crd.col(cnt(0, k)), crd.col(cnt(1, k)), 3);
           Lref2 = std::min(d2, Lref2);
         }
-
-        ABSTOL2D = -::sqrt(Lref2) * ARTOL;
+        ABSTOL2D = -sqrt(Lref2) * ARTOL;
         ABSTOL2D = std::max(ABSTOL2D, ZERO_M);
       }
 
       //
       err = conformizer.run(crd, cnt, ancE2, nullptr/*&priority*/, ABSTOL2D, -nb_nodes, 1 /*one iter only*/);
-      if (err)
-        return err;
+      if (err) return err;
 
 #ifdef DEBUG_CLIPPER
       {
@@ -823,7 +816,7 @@ namespace NUGA
       true_clip = true;
 
       // transfer altitude
-      std::vector<double> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
+      std::vector<E_Float> zsnew(data.pos->cols(), NUGA::FLOAT_MAX);
       const auto& pnids = conformizer.get_node_history();
       for (size_t i = 0; i < pnids.size(); ++i)
         if (pnids[i] != IDX_NONE) zsnew[pnids[i]] = zs[i];
@@ -843,15 +836,14 @@ namespace NUGA
         if (xe.first >= subj.cols()) continue;
 
         int N0 = subj(0, xe.first);
-        double * P0 = crd.col(N0);
+        E_Float* P0 = crd.col(N0);
         int N1 = subj(1, xe.first);
-        double * P1 = crd.col(N1);
-        double * Px = crd.col(i);
+        E_Float* P1 = crd.col(N1);
+        E_Float* Px = crd.col(i);
 
-        double L2 = NUGA::sqrDistance(P0, P1, 2);
-        double lam2 = NUGA::sqrDistance(P0, Px, 2);
-        double l = ::sqrt(lam2 / L2);
-
+        E_Float L2 = NUGA::sqrDistance(P0, P1, 2);
+        E_Float lam2 = NUGA::sqrDistance(P0, Px, 2);
+        E_Float l = sqrt(lam2 / L2);
         zs[i] = (1. - l) * zs[N0] + l * zs[N1];
       }
 
@@ -865,10 +857,6 @@ namespace NUGA
       data.pos->resize(3, data.pos->cols());
       data.pos->set_field(2, zs); //
       NUGA::transform(*data.pos, P); // back to original ref frame  
-
-#ifdef DEBUG_CLIPPER
-      //medith::write("boolean", *data.pos, data.connectM, "TRI");
-#endif
 
       // build history
       std::vector<E_Int> poids;
@@ -1049,7 +1037,7 @@ namespace NUGA
     bool compute(aELT1 & subj, aELT2 & cutter, NUGA::INTERSECT::eOPER oper, std::vector<aELT1>& bits)
     {
       bool true_clip(false);
-      double RTOL = -1.e-9;
+      E_Float RTOL = -1.e-9;
       E_Int err(1);
       for (size_t i = 0; i < 8 && err; ++i)
       {
@@ -1112,12 +1100,11 @@ namespace NUGA
     ///
     template<typename zmesh_t, typename bound_mesh_t = typename NUGA::boundary_t<zmesh_t>>
     void poly_clip
-    (std::vector<typename zmesh_t::aelt_t>& bits, double v0, 
-     std::vector<E_Int> const & mask_ids, std::vector< bound_mesh_t*> const & mask_bits, double RTOL)
+    (std::vector<typename zmesh_t::aelt_t>& bits, E_Float v0, 
+     std::vector<E_Int> const & mask_ids, std::vector< bound_mesh_t*> const & mask_bits, E_Float RTOL)
     {
       using loc_t = typename zmesh_t::loc_t;
-
-      double vcur(v0), veps(v0*EPSILON);
+      E_Float vcur(v0), veps(v0*EPSILON);
       K_SEARCH::BBox3D bx0;
       bx0.compute(bits[0].m_crd);
       bx0.enlarge(RTOL);

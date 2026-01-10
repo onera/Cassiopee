@@ -259,10 +259,7 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
             t = timeit.default_timer()
             dt = t - TRACESTATE['prevFullTime']
             TRACESTATE['prevFullTime'] = t
-        hours = int(dt // 3600)
-        minutes = int((dt % 3600) // 60)
-        seconds = (dt % 60)
-        msg += ' [%g hr %g min %g sec]'%(hours, minutes, seconds)
+
     if TRACESTATE['mem']:
         tot = 0.; peak = -1
         if TRACESTATE['method'] == 0: # Rss in smaps
@@ -319,7 +316,11 @@ def trace(text=">>> IN XXX: ", cpu=None, mem=None, reset=False, fileName=None, m
             dt = max(dt, i[0]); tot = max(tot, i[1])
 
     # build msg
-    if TRACESTATE['cpu']: msg += ' [%g secs]'%dt
+    if TRACESTATE['cpu']:
+        hours = int(dt // 3600)
+        minutes = int((dt % 3600) // 60)
+        seconds = (dt % 60)
+        msg += ' [%g hr %g min %g sec]'%(hours, minutes, seconds)
     if TRACESTATE['mem']:
         if peak == -1: # peak is not known
             if tot > 1.e6: msg += '[%f GB]'%(tot/1.e6)

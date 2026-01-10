@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ namespace K_OCC
 {
 E_Int CADread2
 (char* file, char* fileFmt, E_Float h, E_Float chordal_err, E_Float gr, 
- E_Float merge_tol, char*& varString,
+ E_Float merge_tol,
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
@@ -62,7 +62,6 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
     return NULL;
   }
   
-  char* varString = NULL;
   vector<FldArrayI*> c;
   vector<FldArrayF*> ufield;  // field read for each zone
   vector<E_Int> et;
@@ -71,7 +70,7 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   printf("Reading %s (%s)...", fileName, fileFmt);
   fflush(stdout);
   
-  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, merge_tol, varString, ufield, c, et, zoneNames, do_join);
+  E_Int ret = CADread2(fileName, fileFmt, h, chordal_err, gr, merge_tol, ufield, c, et, zoneNames, do_join);
 
   if (ret == 1)
   {
@@ -97,7 +96,7 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   E_Int n = ufield.size();    
   for (E_Int i = 0; i < n; i++)
   {
-    tpl = K_ARRAY::buildArray(*ufield[i], varString,
+    tpl = K_ARRAY::buildArray(*ufield[i], "x,y,z",
                               *c[i], et[i]);
     delete ufield[i]; delete c[i];
     PyList_Append(l, tpl);
@@ -107,15 +106,14 @@ PyObject* K_OCC::convertCAD2Arrays2(PyObject* self, PyObject* args)
   // build zoneNames list. Les fonctions de lecture ont alloue un char* par
   // zone lue dans l'ordre (zones structurees, non structurees)
   for (size_t i = 0; i < zoneNames.size(); i++) delete [] zoneNames[i];
-  delete [] varString;
-
+  
   return l;
 }
 
 // sub routine
 E_Int K_OCC::CADread2
 (char* file, char* fileFmt, E_Float h, E_Float chordal_err, 
- E_Float gr, E_Float merge_tol, char*& varString,
+ E_Float gr, E_Float merge_tol,
  vector<FldArrayF*>& unstructField,
  vector<FldArrayI*>& connect,
  vector<E_Int>& eltType,
@@ -166,38 +164,35 @@ E_Int K_OCC::CADread2
   connectMs.clear();
   err = reader.mesh_faces2(coords, connectBs, crds, connectMs, aniso, do_join);
   
-   if (err) return err;
+  if (err) return err;
 
-   E_Int nmeshes = connectMs.size();
+  E_Int nmeshes = connectMs.size();
 
-   unstructField.resize(nmeshes, nullptr);
-   connect.resize(nmeshes, nullptr);
-   eltType.resize(nmeshes, 0);
-   zoneNames.resize(nmeshes, nullptr);
+  unstructField.resize(nmeshes, nullptr);
+  connect.resize(nmeshes, nullptr);
+  eltType.resize(nmeshes, 0);
+  zoneNames.resize(nmeshes, nullptr);
  
-   for (size_t i=0; i < connectMs.size(); i++)
-   {
-     if (connectMs[i].cols() == 0) continue; //failed to mesh it
+  for (size_t i=0; i < connectMs.size(); i++)
+  {
+    if (connectMs[i].cols() == 0) continue; //failed to mesh it
      
-     FldArrayF* crd = new FldArrayF;
-     crds[i].convert(*crd);
-     unstructField[i] = crd;
-     FldArrayI* cnt = new FldArrayI;
-     connectMs[i].convert(*cnt,1/*shift*/);
-     connect[i] = cnt;
+    FldArrayF* crd = new FldArrayF;
+    crds[i].convert(*crd);
+    unstructField[i] = crd;
+    FldArrayI* cnt = new FldArrayI;
+    connectMs[i].convert(*cnt,1/*shift*/);
+    connect[i] = cnt;
     
-     char* zoneName = new char [128];
-     sprintf(zoneName, "Zone%zu",i);
+    char* zoneName = new char [128];
+    sprintf(zoneName, "Zone%zu",i);
 
     E_Int row = connectMs[i].rows();
 
     zoneNames[i] = zoneName;
 
     eltType[i] = row -1 ; // 2->TRI or 3->QUAD
-   }
+  }
 
-  varString = new char [8];
-  strcpy(varString, "x,y,z");
-  
   return 0;
 }

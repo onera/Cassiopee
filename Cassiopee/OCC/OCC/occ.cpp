@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -53,6 +53,7 @@ static PyMethodDef Pyocc [] =
   {"addArc", K_OCC::addArc, METH_VARARGS},
   {"addSuperEllipse", K_OCC::addSuperEllipse, METH_VARARGS},
   
+  {"addSplineSurface", K_OCC::addSplineSurface, METH_VARARGS},
   {"addGordonSurface", K_OCC::addGordonSurface, METH_VARARGS},
 
   {"getNbFaces", K_OCC::getNbFaces, METH_VARARGS},

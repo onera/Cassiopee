@@ -1478,7 +1478,6 @@ def identifyTags__(a):
 
 # add family name on faces taken from OCAF compounds
 def _addOCAFCompoundNames(hook, t):
-
     # FACES
     ret = getFaceNameInOCAF(hook)
     pos = getAllPos(t)

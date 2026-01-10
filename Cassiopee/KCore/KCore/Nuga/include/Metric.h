@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,6 @@
 #include "Nuga/include/macros.h"
 #include "Nuga/include/MeshUtils1D.h"
 #include "Nuga/include/ngon_unit.h"
-
 #include "Nuga/include/diag.h"
 
 #ifdef DEBUG_METRIC
@@ -129,10 +128,10 @@ namespace DELAUNAY {
   void draw_ellipse_field(const char* fname, const K_FLD::FloatArray& crd, const std::vector<size_type>& indices);
   void draw_ellipse(const char* fname, const K_FLD::FloatArray& crd, size_type i);
 
-  static void append_unity_ellipse(const double* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE = 100);
-  static void append_ellipse_axis(const double * P0, double a00, double a01, double a02, double a11, double a12, double a22, int axis, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int SAMPLE=100);
-  static void append_ellipse(const double * P0, double a00, double a01, double a02, double a11, double a12, double a22, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample = 1000);
-  static void build_ellipses_field(const K_FLD::FloatArray & crd, std::vector<T> & field, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample = 100, std::vector<int>* indices = nullptr);
+  static void append_unity_ellipse(const E_Float* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE = 100);
+  static void append_ellipse_axis(const E_Float* P0, E_Float a00, E_Float a01, E_Float a02, E_Float a11, E_Float a12, E_Float a22, int axis, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int SAMPLE=100);
+  static void append_ellipse(const E_Float* P0, E_Float a00, E_Float a01, E_Float a02, E_Float a11, E_Float a12, E_Float a22, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample=1000);
+  static void build_ellipses_field(const K_FLD::FloatArray& crd, std::vector<T> & field, K_FLD::FloatArray& crdo, K_FLD::IntArray& cnto, int Nsample=100, std::vector<int>* indices=nullptr);
 #endif
 
 
@@ -304,7 +303,7 @@ namespace DELAUNAY {
     E_Float l = m11*dir[0]*dir[0] + m22*dir[1]*dir[1] + m33*dir[2]*dir[2] +
     2.*m12*dir[0]*dir[1] + 2.*m13*dir[0]*dir[2] + 2.*m23*dir[1]*dir[2];
 
-    return ::sqrt(l);
+    return sqrt(l);
   }
   
   template<> inline
@@ -411,7 +410,7 @@ namespace DELAUNAY {
       const E_Float& m12 = m[1];
       const E_Float& m22 = m[2];
       
-      E_Float k = 1. /::sqrt( u*(m11*u + m12*v) + v*(m12*u + m22*v) );
+      E_Float k = 1. /sqrt( u*(m11*u + m12*v) + v*(m12*u + m22*v) );
       
       E_Float Pt[] = {k*u , k*v};
       
@@ -431,7 +430,7 @@ namespace DELAUNAY {
 
   template<typename T> inline
   void
-  VarMetric<T>::append_unity_ellipse(const double* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE)
+  VarMetric<T>::append_unity_ellipse(const E_Float* pNc, const T& m, K_FLD::FloatArray& crd, K_FLD::IntArray& cnt, int SAMPLE)
   {
     if (m[0] == 0. || m[2] == 0.) return;
 
@@ -451,7 +450,7 @@ namespace DELAUNAY {
       const E_Float& m12 = m[1];
       const E_Float& m22 = m[2];
 
-      E_Float k = 1. / ::sqrt(u*(m11*u + m12 * v) + v * (m12*u + m22 * v));
+      E_Float k = 1. / sqrt(u*(m11*u + m12 * v) + v * (m12*u + m22 * v));
 
       E_Float Pt[] = { k*u , k*v };
 
@@ -506,8 +505,8 @@ namespace DELAUNAY {
     void
     VarMetric<T>::append_ellipse_axis
   (
-    const double * P0,
-    double a00, double a01, double a02, double a11, double a12, double a22,
+    const E_Float* P0,
+    E_Float a00, E_Float a01, E_Float a02, E_Float a11, E_Float a12, E_Float a22,
     int axis,
     K_FLD::FloatArray& crdo,
     K_FLD::IntArray& cnto,
@@ -516,10 +515,10 @@ namespace DELAUNAY {
   {
     bool aggressive = false;
     int32_t sortType = 0; //no sorting
-    std::array<double, 3> eval;
-    std::array<std::array<double, 3>, 3> evec;
+    std::array<E_Float, 3> eval;
+    std::array<std::array<E_Float, 3>, 3> evec;
 
-    gte::SymmetricEigensolver3x3<double>()(a00, a01, a02, a11, a12, a22, aggressive, sortType, eval, evec);
+    gte::SymmetricEigensolver3x3<E_Float>()(a00, a01, a02, a11, a12, a22, aggressive, sortType, eval, evec);
 
     K_FLD::FloatArray evectors(3, 3);
 
@@ -559,8 +558,7 @@ namespace DELAUNAY {
     K_FLD::FloatArray cc;
     cc.pushBack(P0, P0 + 3);
     NUGA::transform(cc, iP);
-    double * pNc = cc.col(0); // centroid in local ref frame
-
+    E_Float* pNc = cc.col(0); // centroid in local ref frame
                               // axis : normal to the 2D-ellipse to consider
 
     m[1] = 0.;
@@ -596,8 +594,8 @@ namespace DELAUNAY {
     void
     VarMetric<T>::append_ellipse
   (
-    const double * P0,
-    double a00, double a01, double a02, double a11, double a12, double a22,
+    const E_Float* P0,
+    E_Float a00, E_Float a01, E_Float a02, E_Float a11, E_Float a12, E_Float a22,
     K_FLD::FloatArray& crdo,
     K_FLD::IntArray& cnto,
     int Nsample
@@ -622,7 +620,7 @@ namespace DELAUNAY {
         int Ni = (*indices)[i];
         auto& fld = field[Ni];
 
-        const double* Pi = crd.col(Ni);
+        const E_Float* Pi = crd.col(Ni);
         append_ellipse(Pi, fld[0], fld[1], fld[2], fld[3], fld[4], fld[5], crdo, cnto, Nsample);
       }
     }
@@ -632,7 +630,7 @@ namespace DELAUNAY {
       {
         auto& fld = field[Ni];
 
-        const double* Pi = crd.col(Ni);
+        const E_Float* Pi = crd.col(Ni);
         append_ellipse(Pi, fld[0], fld[1], fld[2], fld[3], fld[4], fld[5], crdo, cnto, Nsample);
       }
     }
@@ -759,7 +757,7 @@ namespace DELAUNAY {
       r2 += vj[i]*v[i];
     }
     
-    E_Float res = 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
+    E_Float res = 0.5 * (sqrt(r1) + sqrt(r2)); //integral approx.
 
 #ifdef DEBUG_METRIC
     assert (res > EPSILON);
@@ -776,7 +774,7 @@ namespace DELAUNAY {
   VarMetric<E_Float>::length(size_type Ni, size_type Nj)
   {
   E_Float h0 = _metric[Ni], h1 = _metric[Nj];
-  E_Float d = ::sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
+  E_Float d = sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
   E_Float r1 = h1 / h0;
   if (::abs(r1 - 1.) < 0.01)
   return d / std::max(h0,h1);
@@ -793,7 +791,7 @@ namespace DELAUNAY {
     VarMetric<E_Float>::lengthEval(size_type Ni, const E_Float& mi, size_type Nj, const E_Float& mj)
   {
     // Warning : input mi and mj are in fact hi and hj.
-    return 0.5 * ((1./mi) + (1./mj)) * ::sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
+    return 0.5 * ((1./mi) + (1./mj)) * sqrt(NUGA::sqrDistance(_pos->col(Ni), _pos->col(Nj), _pos->rows()));
   }
 
   template <> inline
@@ -831,7 +829,7 @@ namespace DELAUNAY {
       r2 += vj[i]*v[i];
     }
 
-    E_Float res = 0.5 * (::sqrt(r1) + ::sqrt(r2)); //integral approx.
+    E_Float res = 0.5 * (sqrt(r1) + sqrt(r2)); //integral approx.
 
 #ifdef DEBUG_METRIC
     assert (res > EPSILON);
@@ -855,7 +853,7 @@ namespace DELAUNAY {
   {
     E_Float lmax, lmin;
     _field[Ni].eigen_values(lmax, lmin);
-    return 1./::sqrt(lmin);
+    return 1./sqrt(lmin);
   }
 
   /// Return curvature radius
@@ -865,7 +863,7 @@ namespace DELAUNAY {
   {
     E_Float lmax, lmin;
     _field[Ni].eigen_values(lmax, lmin);
-    return 1./::sqrt(lmin);
+    return 1./sqrt(lmin);
   }
   
   ///
@@ -877,7 +875,7 @@ namespace DELAUNAY {
     //       where X is the intersection point of the ellipse with the line (Ni, dir)
     
     // (h2, dir) => X => hnew, the one between h1new and h2new that maximize hnew/hold
-    E_Float hdir = ::sqrt(hdir2);
+    E_Float hdir = sqrt(hdir2);
     E_Float NiX[] = {normed_dir[0]*hdir, normed_dir[1]*hdir};
     
     // Diagonalization
@@ -1602,7 +1600,7 @@ namespace DELAUNAY {
     pos.pushBack(newP, newP+dim);
     size_type N = pos.cols()-1;
     
-    E_Float d = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
+    E_Float d = sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), pos.rows()));
     
     // set the metric as a large valid value : half of the initial edge length
     E_Float factor = 0.5;
