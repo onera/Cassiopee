@@ -869,9 +869,12 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                 granularityLocal = 0
                 if Internal.getNodeByName(checkOneOver, 'granularity'):
                     granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
-                oneoverX = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
-                oneoverY = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
-                oneoverZ = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
+                oneoverX = Internal.getNodeByName(checkOneOver, 'dirx')
+                oneoverX = Internal.getValue(oneoverX)
+                oneoverY = Internal.getNodeByName(checkOneOver, 'diry')
+                oneoverY = Internal.getValue(oneoverY)
+                oneoverZ = Internal.getNodeByName(checkOneOver, 'dirz')
+                oneoverZ = Internal.getValue(oneoverZ)
                 ## Select regions that need to be coarsened
                 if granularityLocal == 1:
                     C._initVars(tzones2, 'cellNOneOver', 1.)

@@ -887,6 +887,7 @@ def _createBCStandard__(a_hexa, a):
     return None
 
 def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0):
+    from mpi4py import MPI # for MPI_Init
     coarseXray = False
     bbtb = G.bbox(tb)
     lenMax = 0.0

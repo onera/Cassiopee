@@ -140,7 +140,7 @@ MergingZipper::__computeTolerance
   K_FLD::IntArray   connectA;
 
   NUGA::MeshTool::computeMinMaxEdgeSqrLength<3>(pos, connect, tol, max_d);
-  return std::max((::sqrt(tol) - EPSILON), EPSILON);
+  return std::max((sqrt(tol) - EPSILON), EPSILON);
 }
 
 E_Int

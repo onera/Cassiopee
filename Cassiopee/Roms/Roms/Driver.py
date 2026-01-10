@@ -846,7 +846,8 @@ class Surface():
             "OmpAllInOne"       :  True,
             "Ndivision"         :  100,
             "NullDisplacements" :  "Weighted",
-            "Smoothing"         :  False }
+            "Smoothing"         :  False,
+            "printLevel"        :  0 }
         self.DefTree = {}
         for i, z in enumerate(self.RefMeshUV2):
             self.DefTree[i+1] = KDG.KeDefGrid(z, **DeformationArgs)
@@ -1075,7 +1076,8 @@ class Volume2D():
             "OmpAllInOne"       :  True,
             "Ndivision"         :  100,
             "NullDisplacements" :  "Weighted",
-            "Smoothing"         :  False }
+            "Smoothing"         :  False,
+            "printLevel"        :  0 }
         self.DefTree = KDG.KeDefGrid(self.RefMesh2, **DeformationArgs)
         self.DefTree.set_Amplitude(1.)
         return self.RefMesh
@@ -1128,6 +1130,39 @@ class Volume2D():
         XB3[:] = XA3[:] + DA3[:len(DA3)//2]
 
         return self.RefMesh
+
+#============================================================
+class Volume3D():
+    """Define a parametric 3D volume."""
+    def __init__(self, name=None, listSurfaces=[], orders=[]):
+        # name
+        if name is not None: self.name = name
+        else: self.name = getName("vol")
+        # surfaces that define the bounded volume
+        self.surfaces = listSurfaces
+        # optional ordering of surfaces
+        self.orders = orders
+
+    def mesh(self):
+        """Call the volume mesher."""
+        import Generator, Transform
+        # call surface mesher
+        borders = []
+        for c, s in enumerate(self.surfaces):
+            m = s.mesh()
+            if c < len(self.orders) and self.orders[c] == -1: m = Transform.reorder(m, (-1,))
+            borders += m
+        borders = Transform.join(borders)
+        m = Generator.TetraMesher(borders)
+        return m
+
+    def Mesh(self):
+        m = self.mesh()
+        z = Internal.createZoneNode(self.name, m, [],
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)
+        return z
 
 #============================================================
 class Eq:

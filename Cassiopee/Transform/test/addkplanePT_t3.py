@@ -25,13 +25,6 @@ a = C.initVars(a, 'F', 2.); a = C.initVars(a, 'centers:G', 1.)
 a = T.addkplane(a, N=3)
 test.testT(a, 2)
 
-# BAR
-#a = G.cart((0.,0.,0.),(0.1,1,1),(11,1,1))
-#a = C.convertArray2Tetra(a)
-#a = C.initVars(a, 'F',2.); a = C.initVars(a, 'centers:G',1.)
-#a = T.addkplane(a, N=3)
-#test.testT(a, 3)
-
 # QUAD
 a = G.cart((0.,0.,0.),(0.1,0.1,1.),(11,10,1))
 a = C.convertArray2Hexa(a)
@@ -45,3 +38,10 @@ a = C.convertArray2Tetra(a)
 a = C.initVars(a, 'F',2.); a = C.initVars(a, 'centers:G',1.)
 a = T.addkplane(a, N=3)
 test.testT(a, 5)
+
+# BAR
+a = G.cart((0.,0.,0.),(0.1,1,1),(11,1,1))
+a = C.convertArray2Tetra(a)
+a = C.initVars(a, 'F',2.); a = C.initVars(a, 'centers:G',1.)
+a = T.addkplane(a, N=5)
+test.testT(a, 3)

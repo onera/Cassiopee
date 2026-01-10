@@ -1,8 +1,8 @@
 # Manage base of CFD data
 
-# DataBase sumary:
-# name <dir>
-#   name.db (sql data base)
+# DataBase summary:
+# name.db <dir>
+#   name.sql (sql data base)
 #   ref.cgns (common cgns data)
 #   0001.cgns (key associated data)
 
@@ -10,9 +10,9 @@
 # query(sqlstring) -> return a query (list of full sql data)
 # query(point) -> return query for given parametric point
 # fetch(query) -> return real data corresponding to query
-# parametric point: a dict of parameter names/value (as in DOE)
+# parametric point: a dict of parameter names/value (as in Driver walkDOE)
 
-import sqlite3
+import sqlite3, shutil
 import os, numpy, time, datetime
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -37,13 +37,16 @@ class DataBase:
         self.dirName = name+'.db'
         if not os.path.exists(self.dirName):
             if mode == 'w':
-                import shutil
-                shutil.rmtree(self.dirName)
                 os.mkdir(self.dirName)
             elif mode == 'r':
                 raise ValueError('DataBase: can not open file for reading.')
             else:
                 os.mkdir(self.dirName)
+        else:
+            if mode == 'w':
+                shutil.rmtree(self.dirName)
+                os.mkdir(self.dirName)
+
         # pointer on sql db
         self.db = None
         self.cursor = None
@@ -61,7 +64,7 @@ class DataBase:
         # column name list
         self.columns = ['id','descp','date','reference','variables']+self.parameters
 
-    # open sql data base
+    # open sql db
     def open(self):
         """Open sql db."""
         self.db = sqlite3.connect('%s/%s.sql'%(self.dirName,self.name))
@@ -88,11 +91,12 @@ class DataBase:
         self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.name} ({columnsSql})")
 
     # create reference (all without fields)
-    def registerReference(self, t, name):
+    def registerReference(self, data, name):
         """Write reference file used for coordinates and connectivity."""
         if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
         cgnsName = self.dirName+'/%s'%name+'.cgns'
-        tp = Internal.copyRef(t)
+        tp, _ = Internal.node2PyTree(data)
+        tp = Internal.copyRef(tp)
         Internal._rmNodesFromType(tp, 'FlowSolution_t')
         Compressor._compressAll(tp) # lossless
         C.convertPyTree2File(tp, cgnsName)
@@ -116,8 +120,8 @@ class DataBase:
     # IN: descp: description string
     # IN: point: parametric point (dict)
     # IN: ref: reference mesh if your sample has the same topology
-    # IN: data: the tree, zone, date
-    # IN: compressionTol: if None: lossless else comrpession accuracy
+    # IN: data: the tree, zone, data
+    # IN: compressionTol: if None: lossless else compression accuracy
     def register(self, descp, point, ref=None, data=None, compressionTol=None):
         """Register data in db."""
         if self.mode == 'r': raise ValueError('register: can not write in read only mode.')
@@ -148,14 +152,19 @@ class DataBase:
         # and return id
         com = ''
         for p in point:
-            com += "%s = %g AND "%(p, point[p])
+            com += "%s <= %g+1.e-10 AND %s >= %g-1.e-10 AND "%(p, point[p], p, point[p])
         if len(com) >= 4: com = com[:-4]
         com1 = 'SELECT * FROM %s WHERE '%self.name
         com1 = com1+com
         self.cursor.execute(com1)
         q = self.cursor.fetchall()
         if q != []: id = q[0][0]
-        else: id = self.cursor.lastrowid+1
+        else:
+            com = "SELECT id FROM %s ORDER BY id DESC LIMIT 1"%self.name
+            self.cursor.execute(com)
+            row = self.cursor.fetchone()
+            if row is not None: id = row[0]+1
+            else: id = 1 # this is an error
 
         # get current date
         now = datetime.datetime.now()
@@ -181,7 +190,8 @@ class DataBase:
         # register dcoords/fields cgns
         if data is not None:
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
-            tp = Internal.copyRef(data)
+            tp, ntype = Internal.node2PyTree(data)
+            tp = Internal.copyRef(tp)
             zones = Internal.getZones(tp)
             for z in zones:
                 dcoords = None
@@ -281,7 +291,7 @@ class DataBase:
             q = self.cursor.fetchall()
             return q
 
-    # return True if parameters exist in db
+    # return True if parametric point exists in db
     def exist(self, point=None):
         if point is not None:
             q = self.query(point)
@@ -289,7 +299,7 @@ class DataBase:
             else: return True
         else: return False
 
-    # load sample from query
+    # load data from query
     # return list of trees
     def fetchTree(self, q):
         """Fetch a query and return tree."""
@@ -323,7 +333,7 @@ class DataBase:
             ts.append(t)
         return ts
 
-    # fetch all parameters as a vector
+    # fetch all parameters of q as a vector
     def fetchPointVector(self, q, exportJax=False):
         """Fetch a query and return param vector."""
         # build param points vector
@@ -415,6 +425,7 @@ class DataBase:
 
         return matrix
 
+    # fetch mass matrix of reference
     def fetchW(self, ref, exportJax=False):
         """Return the mass vector for ref."""
         import Generator.PyTree as G
@@ -443,7 +454,7 @@ class DataBase:
     # delete rows corresponding to q
     def delete(self, q):
         """Delete queries from data base."""
-        if self.mode == 'r': raise ValueError('register: can not delete in read only mode.')
+        if self.mode == 'r': raise ValueError('delete: can not delete in read only mode.')
 
         for c, r in enumerate(q):
             # remove row in sql
@@ -460,6 +471,52 @@ class DataBase:
             cgnsName = self.dirName+'/%05d'%id+'.cgns'
             try: os.remove(cgnsName)
             except: pass
+
+    # join this data base with another one
+    def join(self, db2):
+        if self.mode == 'r': raise ValueError('join: can not join in read only mode.')
+        # check that parameters are identicals
+        for p in self.parameters:
+            if p not in db2.parameters:
+                raise ValueError('join: parameter %s is not in both dbs.'%p)
+
+        # get the last id of self
+        com = "SELECT id FROM %s ORDER BY id DESC LIMIT 1"%self.name
+        self.cursor.execute(com)
+        q = self.cursor.fetchone()
+        if q is not None: id = q[0]+1
+        else: id = 1
+
+        # get all reference names in self and db2
+        refNames1 = {}
+        self.cursor.execute('SELECT * FROM %s'%self.name)
+        rows = self.cursor.fetchall()
+        for q in rows:
+            ref = q[3]
+            refNames1[ref] = 1
+        refNames2 = {}
+        db2.cursor.execute('SELECT * FROM %s'%db2.name)
+        rows = db2.cursor.fetchall()
+        for q in rows:
+            ref = q[3]
+            refNames2[ref] = 1
+
+        # get all recordings in db2, add them and copy .cgns
+        db2.cursor.execute('SELECT * FROM %s'%db2.name)
+        rows = db2.cursor.fetchall()
+        pts = db2.fetchPoints(rows)
+        for c, pt in enumerate(pts):
+            q = rows[c]
+            id = q[0]
+            print("join: adding", pt, "to "+self.dirName)
+            self.register(q[1], pt, ref=q[3], data=None)
+            id2 = self.cursor.lastrowid
+            shutil.copy(db2.dirName+"/%05d"%id+".cgns", self.dirName+"/%05d"%id2+".cgns")
+
+        # copy references if different names
+        for r in refNames2:
+            if r not in refNames1:
+                shutil.copy(db2.dirName+"/"+r+".cgns", self.dirName)
 
     # monitor: write string to a log file monitor.txt
     def monitor(self, text):

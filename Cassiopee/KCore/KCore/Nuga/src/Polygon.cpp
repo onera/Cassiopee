@@ -475,7 +475,7 @@ E_Int Polygon::get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit
     Normi[2] = -Normi[2];
   }
 
-  E_Float l2 = ::sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
+  E_Float l2 = sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
   if (::fabs(l2 - 1.) < EPSILON) // NOT DEGEN
     return 0;
   return 1;

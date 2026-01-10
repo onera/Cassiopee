@@ -571,7 +571,7 @@ E_Int K_IO::GenIO::tauread(char* file, PyObject*& tree)
 */
 //=============================================================================
 E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
-{
+{  
   /* Open file for writing */
   int ncid, ret;
   ret = nc_create(file, NC_CLOBBER, &ncid);
@@ -580,7 +580,7 @@ E_Int K_IO::GenIO::tauwrite(char* file, PyObject* tree)
     printf("Warning: tauwrite: can not open file %s for writing.\n", file);
     return 1;
   }
-  
+
   // Check only for one zone
   std::vector<PyObject*> bases;
   K_PYTREE::getNodesFromType1(tree, "CGNSBase_t", bases);

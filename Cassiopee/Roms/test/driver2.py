@@ -3,10 +3,10 @@ import Roms.Driver as D
 
 # Create parameters
 hauteur = D.Scalar('hauteur')
-hauteur.range = [0, 1, 0.1]
+hauteur.range = [0., 1., 0.1]
 
 largeur = D.Scalar('largeur')
-largeur.range = [0, 2, 0.1]
+largeur.range = [0., 2., 0.1]
 
 # equation
 D.Eq(largeur, 2*hauteur)
@@ -20,7 +20,7 @@ P2 = D.Point('P2', (1,0,0))
 D.Eq(P2.x, P1.x + largeur)
 
 P3 = D.Point('P3', (1,1,0))
-P3.x.range = [-5,5]
+P3.x.range = [-5., 5.]
 P4 = D.Point('P4', (0,1,0))
 D.Eq(P3.y, P4.y)
 D.Eq(P3.y, P1.y + hauteur)

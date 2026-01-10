@@ -30,7 +30,7 @@ namespace NUGA
 {
 
   template <typename mesh_t1, typename mesh_t2, typename cell_incr_t>
-  bool estimate_adap_req(mesh_t1& m1, mesh_t2& m2, NUGA::eMetricType M, double RTOL, std::vector<cell_incr_t>& data, E_Int MINVAL = 0, E_Int MAXVAL = 10)
+  bool estimate_adap_req(mesh_t1& m1, mesh_t2& m2, NUGA::eMetricType M, E_Float RTOL, std::vector<cell_incr_t>& data, E_Int MINVAL = 0, E_Int MAXVAL = 10)
   {
     data.clear();
     data.resize(m1.ncells(), cell_incr_t(0));
@@ -52,7 +52,7 @@ namespace NUGA
     for (E_Int i = 0; i < m1.ncells(); ++i)
     {
       auto ae1 = m1.aelement(i);
-      double Lref21 = ae1.Lref2();
+      E_Float Lref21 = ae1.Lref2();
 
       cands.clear();
       loc2->get_candidates(ae1, ae1.m_crd, cands, 1, RTOL); //return as 0-based (fixme for volumic, was 1-based)
@@ -62,14 +62,14 @@ namespace NUGA
       if (!is_x) continue;
       if (cands.empty()) continue;
 
-      double cands_lref2 = 0.;
+      E_Float cands_lref2 = 0.;
       if (M == NUGA::ISO_MIN) cands_lref2 = NUGA::FLOAT_MAX;
 
       for (size_t k = 0; k < cands.size(); ++k)
       {
         E_Int PGi = cands[k] - 1;
         auto as2 = m2.aelement(PGi);
-        double Lref22 = as2.Lref2();
+        E_Float Lref22 = as2.Lref2();
 
         if (M == NUGA::ISO_MEAN)
           cands_lref2 += Lref22;
@@ -102,7 +102,7 @@ namespace NUGA
       medith::write(o1.str().c_str(), s2.crd, s2.cnt, &cands, 1);
       }*/
 
-      double r = 0.5*::log2(Lref21 / cands_lref2); // half because Lrefs are squares
+      E_Float r = 0.5*::log2(Lref21 / cands_lref2); // half because Lrefs are squares
 
       if (r < 1.) continue;
       E_Int nsub = E_Int(r);

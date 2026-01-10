@@ -148,38 +148,50 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* listOfNodes;
-  if (!PYPARSETUPLE_(args, OO_, &array, &listOfNodes)) return NULL;
+  E_Int dimOut = -1;
+
+  Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+  if (nargs == 2)
+  {
+    if (!PYPARSETUPLE_(args, OO_, &array, &listOfNodes)) return NULL;
+  }
+  else
+  {
+    if (!PYPARSETUPLE_(args, OO_ I_, &array, &listOfNodes, &dimOut)) return NULL;
+  }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
+
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: unknown type of array.");
+                    "subzoneUnstruct: unknown type of array.");
     return NULL;
   }
 
   if (res == 1)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: cannot be used on a structured array.");
+                    "subzoneUnstruct: cannot be used on a structured array.");
     RELEASESHAREDS(array, f); return NULL;
   }
-  if (strcmp(eltType, "NGON") == 0)
+  else if (strcmp(eltType, "NGON") == 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: type='nodes' not implemented for a NGON array.");
+                    "subzoneUnstruct: type='nodes' not implemented for a NGON array.");
     RELEASESHAREDU(array, f, cn); return NULL;
   }
+
   FldArrayI indices;
-  E_Int ok = K_ARRAY::getFromList(listOfNodes, indices);
-  if (ok == 0)
+  E_Int ierr = K_ARRAY::getFromList(listOfNodes, indices);
+  if (ierr == 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: 2nd argument must be an integer list or a numpy.");
+                    "subzoneUnstruct: 2nd argument must be an integer list or a numpy.");
     RELEASESHAREDU(array, f, cn); return NULL;
   }
 
@@ -188,10 +200,17 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   E_Int* indicesp = indices.begin();
   FldArrayI tmap(npts); tmap.setAllValuesAt(-1); E_Int* tmapP = tmap.begin();
 
-  if (strcmp(eltType, "NODE") == 0)
+  E_Int dim = K_CONNECT::getDimME(eltType);
+  if (dimOut > dim)
   {
-    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, n, 0, eltType,
-                                         false, api);
+    PyErr_SetString(PyExc_TypeError,
+                    "subzoneUnstruct: dimension of the subzone, dimOut, cannot "
+                    "be greater than the unstructured array dimension.");
+    RELEASESHAREDU(array, f, cn); return NULL;
+  }
+  else if (strcmp(eltType, "NODE") == 0 || dimOut == 0)
+  {
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, n, 0, "NODE", false, api);
     FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
 
     #pragma omp parallel
@@ -218,114 +237,416 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     RELEASESHAREDS(tpl, f2); RELEASESHAREDU(array, f, cn);
     return tpl;
   }
-
-  // Selectionne les elements subzones - BE/ME
-  #pragma omp parallel for
-  for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
-
-  E_Int nc = cn->getNConnect(), nc2 = 0;
-  vector<vector<E_Int> > eltList(nc);
-  vector<E_Int> nelts2(nc);
-
-  // Tag les points deja inseres dans un element
-  // Permet de savoir si un point n'est pas utilise
-  FldArrayI tag(n); tag.setAllValuesAtNull();
-  E_Int* tagp = tag.begin();
-
-  for (E_Int ic = 0; ic < nc; ic++)
+  else if (dim == dimOut || dimOut == -1)
   {
-    E_Int compt, indv;
-    FldArrayI& cm = *(cn->getConnect(ic));
-    E_Int nelts = cn->getSize();
-    E_Int nvpe = cn->getNfld();
+    // Selectionne les elements subzones - BE/ME
+    #pragma omp parallel for
+    for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
 
-    for (E_Int i = 0; i < nelts; i++)
-    {
-      compt = 0;
-      for (E_Int j = 1; j <= nvpe; j++)
-      {
-        indv = cm(i,j)-1;
-        if (tmapP[indv] != -1) compt++;
-      }
-      if (compt == nvpe)
-      {
-        // Add element to list and mark vertex as seen
-        eltList[ic].push_back(i);
-        for (E_Int j = 1; j <= nvpe; j++)
-        {
-          indv = cm(i,j)-1;
-          tagp[tmapP[indv]]++;
-        }
-      }
-    }
-    if (eltList[ic].size())
-    {
-      // Count number of elements in this connectivity
-      nelts2[nc2] = eltList[ic].size(); nc2++;
-    }
-  }
-  nelts2.resize(nc2);
+    E_Int nc = cn->getNConnect(), nc2 = 0;
+    std::vector<std::vector<E_Int> > eltList(nc);
+    std::vector<E_Int> nelts2(nc);
 
-  // Build connectivity
-  E_Int ierr = 0;
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, n, nelts2, eltType, false, api);
-  FldArrayF* f2; FldArrayI* cn2;
-  K_ARRAY::getFromArray3(tpl, f2, cn2);
-
-  #pragma omp parallel
-  {
-    E_Int indv, noe, nvpe, ic2 = 0;
-
-    // Check if any non-used vertices
-    #pragma omp for
-    for (E_Int i = 0; i < n; i++)
-    {
-      if (tagp[i] == 0) ierr = 1;
-    }
+    // Tag les points deja inseres dans un element
+    // Permet de savoir si un point n'est pas utilise
+    FldArrayI tag(n); tag.setAllValuesAtNull();
+    E_Int* tagp = tag.begin();
 
     for (E_Int ic = 0; ic < nc; ic++)
     {
-      if (!eltList[ic].size()) continue;
+      E_Int compt, indv;
       FldArrayI& cm = *(cn->getConnect(ic));
-      FldArrayI& cm2 = *(cn2->getConnect(ic2));
-      nvpe = cm.getNfld();
+      E_Int nelts = cn->getSize();
+      E_Int nvpe = cn->getNfld();
 
-      #pragma omp for
-      for (E_Int i = 0; i < nelts2[ic2]; i++)
+      for (E_Int i = 0; i < nelts; i++)
       {
-        noe = eltList[ic][i];
+        compt = 0;
         for (E_Int j = 1; j <= nvpe; j++)
         {
-          indv = cm(noe,j)-1;
-          cm2(i,j) = tmapP[indv]+1;
+          indv = cm(i,j)-1;
+          if (tmapP[indv] != -1) compt++;
+        }
+        if (compt == nvpe)
+        {
+          // Add element to list and mark vertex as seen
+          eltList[ic].push_back(i);
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            indv = cm(i,j)-1;
+            tagp[tmapP[indv]]++;
+          }
         }
       }
-      ic2++;
-    }
-
-    for (E_Int eq = 1; eq <= nfld; eq++)
-    {
-      E_Float* fp = f->begin(eq);
-      E_Float* f2p = f2->begin(eq);
-      #pragma omp for
-      for (E_Int i = 0; i < n; i++)
+      if (eltList[ic].size())
       {
-        indv = indicesp[i]-1;
-        f2p[i] = fp[indv];
+        // Count number of elements in this connectivity
+        nelts2[nc2] = eltList[ic].size(); nc2++;
       }
     }
-  }
+    nelts2.resize(nc2);
 
-  if (ierr == 1)
+    // Build connectivity
+    ierr = 0;
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, n, nelts2, eltType, false, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+    #pragma omp parallel
+    {
+      E_Int indv, noe, nvpe, ic2 = 0;
+
+      // Check if any non-used vertices
+      #pragma omp for nowait
+      for (E_Int i = 0; i < n; i++)
+      {
+        if (tagp[i] == 0) ierr = 1;
+      }
+
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        if (!eltList[ic].size()) continue;
+        FldArrayI& cm = *(cn->getConnect(ic));
+        FldArrayI& cm2 = *(cn2->getConnect(ic2));
+        nvpe = cm.getNfld();
+
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts2[ic2]; i++)
+        {
+          noe = eltList[ic][i];
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            indv = cm(noe,j)-1;
+            cm2(i,j) = tmapP[indv]+1;
+          }
+        }
+        ic2++;
+      }
+
+      for (E_Int eq = 1; eq <= nfld; eq++)
+      {
+        E_Float* fp = f->begin(eq);
+        E_Float* f2p = f2->begin(eq);
+        #pragma omp for nowait
+        for (E_Int i = 0; i < n; i++)
+        {
+          indv = indicesp[i]-1;
+          f2p[i] = fp[indv];
+        }
+      }
+    }
+
+    if (ierr == 1)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "subzoneUnstruct: indices for unstructured subzone must be contiguous.");
+      RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
+      return NULL;
+    }
+
+    RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
+    return tpl;
+  }
+  else if (dim-1 == dimOut)
   {
+    // Selectionne les elements subzones de dimension directement inferieure - BE/ME
+    // Table d'indirection des vertices
+    #pragma omp parallel for
+    for (E_Int i = 0; i < n; i++) tmapP[indicesp[i]-1] = i;
+
+    E_Int nc = cn->getNConnect();
+    std::vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
+    // Compute number of faces per element, nfpe
+    std::vector<E_Int> nfpe;
+    std::vector<E_Int> cumnfpc(nc+1); cumnfpc[0] = 0;  // cumulative number of faces per conn.
+    ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+    if (ierr != 0)
+    {
+      RELEASESHAREDU(array, f, cn);
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+      return NULL;
+    }
+    
+    // Compute total number of faces across all connectivities
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+      E_Int nelts = cm.getSize();
+      cumnfpc[ic+1] = cumnfpc[ic] + nelts*nfpe[ic];
+    }
+    E_Int ntotFaces = cumnfpc[nc];
+
+    // Hash faces if all their vertices are tagged
+    std::vector<E_Int> faceMask(ntotFaces);  // 0: dropped, 1: selected
+    TopologyOpt F;
+    std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > faceMap;
+    faceMap.reserve(ntotFaces);
+    E_Int face[5];
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      E_Bool dropFace;
+      E_Int indv, nelts, nvpf, fidx;
+      K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+      nelts = cm.getSize();
+      std::vector<std::vector<E_Int> > facets;
+      K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+    
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        // Loop over each facet of this element
+        for (E_Int f = 0; f < nfpe[ic]; f++)
+        {
+          dropFace = false;
+          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+          nvpf = facets[f].size();  // number of vertices per facet
+          // Fill face
+          for (E_Int j = 0; j < nvpf; j++)
+          {
+            indv = cm(i, facets[f][j]);
+            if (tmapP[indv-1] == -1)
+            {
+              // not all vertices of that face are tagged, drop it
+              faceMask[fidx] = 0;
+              dropFace = true; continue;
+            }
+            face[j] = indv;
+          }
+          if (dropFace) continue;
+          F.set(face, nvpf);
+          auto res = faceMap.insert(std::make_pair(F, fidx));
+          if (res.second) faceMask[fidx] = 1;  // first occurence: keep it
+          else faceMask[fidx] = 0;  // duplicate: drop it
+        }
+      }
+    }
+
+    // Free memory
+    faceMap.clear(); faceMap.rehash(0);
+
+    // There are a total of 3 possible conns: BAR, TRI and QUAD
+    const E_Int nbuckets = 3;
+    // Uniform chunks (schedule: static) with at most 'nfc' faces per thread
+    const E_Int nthreads = __NUMTHREADS__;
+    // Thread-related arrays are prefixed with 't'. For each thread:
+    //  - tntagfpc: number of tagged faces found in each *input* connectivity
+    E_Int** tntagfpc = new E_Int* [nthreads];
+    //  - toffset: cumulative number of tagged faces found in each *output*
+    //             connectivity
+    E_Int** toffset = new E_Int* [nthreads+1];
+    for (E_Int tid = 0; tid < nthreads; tid++)
+    {
+      tntagfpc[tid] = new E_Int [nbuckets];
+      toffset[tid] = new E_Int [nbuckets];
+      for (E_Int ic = 0; ic < nbuckets; ic++) toffset[tid][ic] = 0;
+    }
+    toffset[nthreads] = new E_Int [nbuckets];
+    for (E_Int ic = 0; ic < nbuckets; ic++) toffset[nthreads][ic] = 0;
+
+    // Number of tagged faces found in each *output* connectivity
+    // (for all threads)
+    std::vector<E_Int> ntagfpc(nc, 0);
+    // Number of faces per connectivity of the output ME
+    // ('tmp_' is uncompressed: out of the 3 possible conns - BAR, TRI and
+    //                          QUAD -, some will necessarily be empty)
+    std::vector<E_Int> tmp_nfpc2(nbuckets, 0);
+
+    // In a first pass, tag vertex indices that belong to tagged faces
+    std::vector<E_Int> vindir(npts, 0);
+
+    #pragma omp parallel
+    {
+      E_Int nelts, nvpf, fidx, indv;
+      E_Int ntagFaces = 0;  // number of tagged faces found in all conn. of that thread
+      E_Int ntagFacesIc;  // number of tagged faces found in a given conn. of that thread
+      std::vector<std::vector<E_Int> > facets;
+
+      // Local thread-related arrays are prefixed with 'loc_t'
+      E_Int tid = __CURRENT_THREAD__;
+      E_Int* loc_tntagfpc = tntagfpc[tid];
+      E_Int* loc_toffset = toffset[tid+1];
+
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        nelts = cm.getSize();
+        K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+        ntagFacesIc = 0;
+
+        #pragma omp for schedule(static)
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          // Loop over each facet of this element
+          for (E_Int f = 0; f < nfpe[ic]; f++)
+          {
+            fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+            if (faceMask[fidx] == 1)  // tagged face found
+            {
+              nvpf = facets[f].size();  // number of vertices per face
+              ntagFaces++; ntagFacesIc++;
+              loc_toffset[nvpf-2]++;  // from BAR (0) to QUAD (2)
+              // Tag vertices of that faces as tagged vertices
+              for (E_Int j = 0; j < nvpf; j++)
+              {
+                indv = cm(i, facets[f][j]) - 1;
+                vindir[indv] = 1;
+              }
+            }
+          }
+        }
+        loc_tntagfpc[ic] = ntagFacesIc;
+      }
+
+      #pragma omp critical
+      {
+        // Update number of tagged faces found in each input connectivity,
+        // ntagfpc, and in each output connectivity, tmp_nfpc2
+        for (E_Int ic = 0; ic < nc; ic++) ntagfpc[ic] += loc_tntagfpc[ic];
+        for (E_Int ic = 0; ic < nbuckets; ic++) tmp_nfpc2[ic] += loc_toffset[ic];
+      }
+    }
+
+    // Compute thread face offsets in the output ME for each connectivity
+    // Used to build cm2 using multiple threads
+    for (E_Int tid = 1; tid < nthreads+1; tid++)
+      for (E_Int ic = 0; ic < nbuckets; ic++)
+        toffset[tid][ic] += toffset[tid-1][ic];
+
+    // Transform the tagged vertex mask of zeros and ones into a vertex map
+    // from old to new connectivities, and get the number of unique tagged
+    // vertices, npts2
+    E_Int npts2 = K_CONNECT::prefixSum(vindir);
+
+    // Build new eltType from connectivities that have at least one element
+    E_Int nc2 = 0;
+    std::map<E_Int, E_Int> outConnId;  // map (nvpf-2) to 'ic' in output ME
+    char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+    const char* tmpEltType;
+    eltType2[0] = '\0';
+    for (E_Int ic = 0; ic < nbuckets; ic++)  // from BAR (0) to QUAD (2)
+    {
+      if (tmp_nfpc2[ic] > 0)
+      {
+        outConnId[ic] = nc2; nc2++;
+        if (ic == 0) tmpEltType = "BAR";
+        else if (ic == 1) tmpEltType = "TRI";
+        else tmpEltType = "QUAD";
+        if (eltType2[0] == '\0') strcpy(eltType2, tmpEltType);
+        else
+        {
+          strcat(eltType2, ",");
+          strcat(eltType2, tmpEltType);
+        }
+      }
+    }
+    if (nc2 > 1) api = 3;
+
+    // Compress the number of faces per connectivity of the output ME, ie,
+    // drop connectivities containing no tagged faces
+    E_Int ntotUniqueFaces = 0;
+    std::vector<E_Int> nfpc2(nc2);
+    nc2 = 0;
+    for (E_Int ic = 0; ic < nbuckets; ic++)
+    {
+      if (tmp_nfpc2[ic] > 0)
+      {
+        nfpc2[nc2] = tmp_nfpc2[ic]; nc2++;
+        ntotUniqueFaces += tmp_nfpc2[ic];
+      }
+    }
+
+    if (ntotUniqueFaces == 0)  // can only happen for a closed 1D contour
+    {
+      // Free memory
+      for (E_Int i = 0; i < nthreads; i++)
+      {
+        delete [] tntagfpc[i];
+        delete [] toffset[i];
+      }
+      delete [] toffset[nthreads];
+      delete [] tntagfpc; delete [] toffset;
+    
+      delete [] eltType2;
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+      return NULL;
+    }
+
+    // Build new connectivity (containing a max. 2 BE conns)
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                         nfpc2, eltType2, false, api);
+    FldArrayF* f2; FldArrayI* cn2;
+    K_ARRAY::getFromArray3(tpl, f2, cn2);
+    std::vector<FldArrayI*> cms2(nc2);
+    for (E_Int ic = 0; ic < nc2; ic++) cms2[ic] = cn2->getConnect(ic);
+
+    #pragma omp parallel
+    {
+      E_Int ic2, indv, indf, nelts, fidx, nvpf;
+      E_Int tid = __CURRENT_THREAD__;
+      E_Int* loc_toffset = toffset[tid];
+      std::vector<std::vector<E_Int> > facets;
+
+      // Copy fields
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fp = f->begin(n);
+        E_Float* f2p = f2->begin(n);
+        #pragma omp for nowait
+        for (E_Int i = 0; i < npts; i++)
+        {
+          indv = vindir[i];
+          if (indv > 0) f2p[indv-1] = fp[i];
+        }
+      }
+
+      // Copy connectivity
+      std::vector<E_Int> tagfCmpt(nbuckets, 0);  // number of tagged faces found
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        if (ntagfpc[ic] == 0) continue;  // no tagged faces in this input conn., skip
+        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        nelts = cm.getSize();
+        K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+
+        #pragma omp for schedule(static)
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          // Loop over each facet of this element
+          for (E_Int f = 0; f < nfpe[ic]; f++)
+          {
+            fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+            if (faceMask[fidx] == 1)  // tagged face
+            {
+              nvpf = facets[f].size();
+              ic2 = outConnId[nvpf-2];
+              indf = loc_toffset[nvpf-2] + tagfCmpt[nvpf-2];
+              for (E_Int j = 1; j <= nvpf; j++)
+              {
+                indv = cm(i, facets[f][j-1]) - 1;
+                (*cms2[ic2])(indf, j) = vindir[indv];
+              }
+              tagfCmpt[nvpf-2]++;
+            }
+          }
+        }
+      }
+    }
+
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+    RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
+    return tpl;
+  }
+  else // if (dim-2 == dimOut)
+  {
+    // Selectionne les elements BAR subzones issue d'un maillage 3D - BE/ME
     PyErr_SetString(PyExc_TypeError,
-                    "subzoneUnstruct: indices for unstructured subzone must be contiguous.");
+                    "subzoneUnstruct: subzoning of a 3D ME array into a BAR "
+                    "array not implemented yet.");
     RELEASESHAREDU(array, f, cn);
     return NULL;
   }
-
-  RELEASESHAREDU(tpl, f2, cn2); RELEASESHAREDU(array, f, cn);
-  return tpl;
 }
 
 // ============================================================================
@@ -1435,7 +1756,6 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       nfpc[ic+1] = nfaces;
       nfacesTot += nfaces;
     }
-    //std::cout << "nfacesTot: " << nfacesTot << std::endl;
     for (E_Int ic = 1; ic < nc+1; ic++) nfpc[ic] += nfpc[ic-1]; // cumulated
 
     // Faces are hashed to build the new 2D connectivity

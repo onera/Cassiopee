@@ -34,7 +34,7 @@ if [ "$PRODMODE" = "" ]; then
 fi
 
 # Compilation et installation
-if [ $PRODMODE -le 2 ]; then
+if [ $PRODMODE -ge 0 ]; then
     sconsf=`which scons`
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
@@ -65,6 +65,9 @@ if [ $PRODMODE -le 2 ]; then
         [ $? != 0 ] && exit 1;
     elif [ $PRODMODE -eq 2 ]; then # pip+wheel
         TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 3 ]; then # pip no isolation
+        python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi
 else

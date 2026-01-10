@@ -1637,7 +1637,7 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
   // Free memory
   faceMap.clear(); faceMap.rehash(0);
 
-  // There is a total 4 possible conns: NODE, BAR, TRI and QUAD
+  // There are a total of 4 possible conns: NODE, BAR, TRI and QUAD
   const E_Int nbuckets = 4;
   // Uniform chunks (schedule: static) with at most 'nfc' faces per thread
   const E_Int nthreads = __NUMTHREADS__;
@@ -1780,7 +1780,6 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
 	  delete [] toffset[nthreads];
 	  delete [] tnextfpc; delete [] toffset;
 	
-	  //RELEASESHAREDU(tpl, f2, cn2);
 	  delete [] eltType2;
 	  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 		return NULL;
@@ -1824,7 +1823,7 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
     std::vector<E_Int> extfCmpt(nbuckets, 0);  // number of ext faces found
     for (E_Int ic = 0; ic < nc; ic++)
     {
-      if (nextfpc[ic] == 0) continue;  // no exterior elements in this input conn., skip
+      if (nextfpc[ic] == 0) continue;  // no exterior faces in this input conn., skip
       K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
       nelts = cm.getSize();
       K_CONNECT::getEVFacets(facets, eltTypes[ic], false);

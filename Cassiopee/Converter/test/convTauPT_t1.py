@@ -7,6 +7,8 @@ import Transform.PyTree as T
 import Generator.PyTree as G
 import KCore.test as test
 
+LOCAL = test.getLocal()
+
 dz = 0.01
 xmin, ymin, zmin, xmax, ymax, zmax = [-0.5,-0.5,0,1.5,0.5,dz]
 size = 0.01
@@ -77,6 +79,6 @@ from KCore.config import *
                                                                     additionalIncludePaths)
 
 if netcdf:
-    C.convertPyTree2File(m, 'out.grid')
-    t = C.convertFile2PyTree('out.grid')
+    C.convertPyTree2File(m, LOCAL+'/out.grid')
+    t = C.convertFile2PyTree(LOCAL+'/out.grid')
     test.testT(t, 1)

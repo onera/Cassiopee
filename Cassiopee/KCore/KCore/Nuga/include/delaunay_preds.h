@@ -31,7 +31,7 @@ namespace DELAUNAY
 /**
    Predicate that returns true if the input edge is hard.
   */
-  struct HardEdgeCriterion // : public std::unary_function <const K_MESH::NO_Edge&, bool>
+struct HardEdgeCriterion // : public std::unary_function <const K_MESH::NO_Edge&, bool>
 {
 
   explicit HardEdgeCriterion(const NUGA::non_oriented_edge_set_type& hard_edges)
