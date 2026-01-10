@@ -1966,9 +1966,9 @@ def _addkplane(t, N=1):
     """Add N k-plane(s) to a mesh."""
     zones = Internal.getZones(t)
     for z in zones:
-        nodes = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
-        fn = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
-        fc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+        nodes = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
+        fn = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
+        fc = C.getFields(Internal.__FlowSolutionCenters__, z, api=3)[0]
         # Coordinates + fields located at nodes
         if fn != []:
             if nodes == []: nodes = fn
