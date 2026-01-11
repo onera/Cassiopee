@@ -110,9 +110,9 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
 
     # pour un seul plan de symetrie, on symetrise la geometrie pour assurer que l octree se decoupe sur ce plan
     if nbsyms == 1:
-        if sym == 'X': syms = T.symetrize(body, (Locsyms[0],0.,0.), (0,1,0), (0,0,1))
-        elif sym == 'Y': syms = T.symetrize(body, (0.,Locsyms[0],0.), (1,0,0), (0,0,1))
-        elif sym == 'Z': syms = T.symetrize(body, (0.,0.,Locsyms[0]), (1,0,0), (0,1,0))
+        if sym == 'X': syms = T.symmetrize(body, (Locsyms[0],0.,0.), (0,1,0), (0,0,1))
+        elif sym == 'Y': syms = T.symmetrize(body, (0.,Locsyms[0],0.), (1,0,0), (0,0,1))
+        elif sym == 'Z': syms = T.symmetrize(body, (0.,0.,Locsyms[0]), (1,0,0), (0,1,0))
         syms[0] = 'syms'
         body = T.join(body,syms); G._close(body, tol=4.e-5)
 

@@ -126,7 +126,7 @@ void K_DISTRIBUTOR2::graph(
   E_Float nbPtsMax = 0;
   for (E_Int i = 0; i < nb; i++) nbPtsMax = K_FUNC::E_max(nbPts[i], nbPtsMax);
 
-  // Enforce com graph symetry (necessary for metis but not necessarily ensured by IBM)
+  // Enforce com graph symmetry (necessary for metis but not necessarily ensured by IBM)
   if (com != NULL)
   {
     for (E_Int i = 0; i < nb; i++)
@@ -134,7 +134,7 @@ void K_DISTRIBUTOR2::graph(
       {
         if (com[i+j*nb] != com[j+i*nb])
         {
-          //printf("No Symetry - forced: %d %d (%d %d)\n", i,j, com[i+j*nb], com[j+i*nb]);
+          //printf("No Symmetry - forced: %d %d (%d %d)\n", i,j, com[i+j*nb], com[j+i*nb]);
           //com[i+j*nb] = com[j+i*nb];
           if (com[j+i*nb] > 0) com[i+j*nb] = com[j+i*nb];
           else com[j+i*nb] = com[i+j*nb];

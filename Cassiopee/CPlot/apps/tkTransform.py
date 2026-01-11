@@ -16,7 +16,7 @@ import time
 WIDGETS = {}; VARS = []
 
 #==============================================================================
-def symetrize():
+def symmetrize():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
@@ -66,7 +66,7 @@ def symetrize():
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        a = T.symetrize(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe1, axe2)
+        a = T.symmetrize(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe1, axe2)
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TXT.insert('START', 'Zones have been symmetrized.\n')
     CTK.TKTREE.updateApp()
@@ -427,7 +427,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('around X'); VARS.append(V)
     # -3- Rotation angle
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    # -4- Symetry axis
+    # -4- Symmetry axis
     V = TK.StringVar(win); V.set('around XY-'); VARS.append(V)
     # -5- Scale axis
     V = TK.StringVar(win); V.set('along XYZ'); VARS.append(V)
@@ -481,11 +481,11 @@ def createApp(win):
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)\nIf center is not specified, rotate around barycenter of zones.')
 
-    # - Symetrize -
-    B = TTK.Button(Frame, text="Mirror", command=symetrize)
+    # - Symmetrize -
+    B = TTK.Button(Frame, text="Mirror", command=symmetrize)
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Symetrize zone(s) of pyTree.')
+                       text='Symmetrize zone(s) of pyTree.')
     B = TTK.OptionMenu(Frame, VARS[4], 'around XY-', 'around XY+', 'around YZ-',
                        'around YZ+', 'around XZ-', 'around XZ+', 'around view')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)

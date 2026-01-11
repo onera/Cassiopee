@@ -57,7 +57,7 @@ tb = T.translate(tb, (0,1,0))
 tb = D_IBM.setDfar(tb, 10.)
 tb = D_IBM.setSnear(tb, 0.1)
 tb = C.newPyTree(['Base', tb])
-D_IBM._symetrizePb(tb, 'Base', snear_sym=1, dir_sym=2)
+D_IBM._symmetrizePb(tb, 'Base', snear_sym=1, dir_sym=2)
 
 t = G_IBM.generateIBMMesh(tb, dimPb=3, vmin=21, octreeMode=1, check=False)
 test.testT(t,5)

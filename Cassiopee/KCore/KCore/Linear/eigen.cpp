@@ -247,7 +247,7 @@ void K_LINEAR::tql2(E_Float V[3][3], E_Float d[3], E_Float e[3])
 }
 
 //=============================================================================
-/* Eigen value and vector of a 2x2 symetric matrix
+/* Eigen value and vector of a 2x2 symmetric matrix
 */
 //=============================================================================
 E_Int K_LINEAR::eigen2(E_Float a00, E_Float a11, E_Float a10, 
@@ -260,7 +260,7 @@ E_Int K_LINEAR::eigen2(E_Float a00, E_Float a11, E_Float a10,
 }
 
 //=============================================================================
-/* Eigen value and vector of a 3x3 symetric matrix
+/* Eigen value and vector of a 3x3 symmetric matrix
 */
 //=============================================================================
 E_Int K_LINEAR::eigen3(E_Float a00, E_Float a01, E_Float a02,
@@ -312,7 +312,7 @@ E_Int K_LINEAR::eigen3(E_Float a00, E_Float a01, E_Float a02,
 }
 
 //=============================================================================
-/* Eigen value and vector of a 3x3 symetric matrix (other version)
+/* Eigen value and vector of a 3x3 symmetric matrix (other version)
 */
 //=============================================================================
 E_Int K_LINEAR::eigen3bis(E_Float A[3][3], E_Float V[3][3], E_Float d[3])

@@ -128,7 +128,7 @@ def symmetrize():
     elif axis == 'Around XZ-': dir_sym = 2
     elif axis == 'Around YZ-': dir_sym = 3
 
-    D_IBM._symetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
+    D_IBM._symmetrizePb(CTK.t, bodySymName, snear_sym, dir_sym=dir_sym)
     CTK.TXT.insert('START', 'Symmetry plane has been created with snear=%f.\n'%snear_sym)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()

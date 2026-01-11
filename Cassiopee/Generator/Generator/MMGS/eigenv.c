@@ -29,7 +29,7 @@
  * \version 5
  * \copyright GNU Lesser General Public License.
  *
- * Find eigenvalues and eigenvectors of 2x2 or 3x3 symetric definite
+ * Find eigenvalues and eigenvectors of 2x2 or 3x3 symmetric definite
  * positive matrix.
  *
  */

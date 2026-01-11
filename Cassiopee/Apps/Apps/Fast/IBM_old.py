@@ -701,7 +701,7 @@ def setInterpData_Hybride(t_3d, tc_3d, t_curvi, extrusion=None, interpDataType=1
 #
 # extrusion: make an extrusion from a 2D profile. ATTENTION, each zone of the profile must be joined in one single zone
 # smoothing : smooth the front during the front 2 specific treatment in the cases of local refinements
-# balancing ; balance the entire distribution after the octree generation, useful for symetries
+# balancing ; balance the entire distribution after the octree generation, useful for symmetries
 # distrib : new distribution at the end of prepare1
 #===================================================================================================================
 def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., dfarList=[],
