@@ -47,6 +47,9 @@ E_Int K_COMPGEOM::distanceToTriangle(
   E_Float& xp, E_Float& yp, E_Float& zp,
   E_Float& sigma0, E_Float& sigma1)
 {
+  const E_Float EPS = 1.e-24;
+  const E_Float EPS2 = K_CONST::E_GEOM_CUTOFF;
+  
   E_Float e0x, e0y, e0z, e1x, e1y, e1z;
   E_Float nx, ny, nz, t, px, py, pz;
   E_Float det, deti;
@@ -54,16 +57,16 @@ E_Int K_COMPGEOM::distanceToTriangle(
   in = false;
   dist2 = 0.;
   xp = p[0]; yp = p[1]; zp = p[2];
-  e0x = p1[0]-p0[0]; e0y = p1[1]-p0[1]; e0z = p1[2]-p0[2];
-  e1x = p2[0]-p0[0]; e1y = p2[1]-p0[1]; e1z = p2[2]-p0[2];
-  nx = e0y*e1z-e0z*e1y;
-  ny = e0z*e1x-e0x*e1z;
-  nz = e0x*e1y-e0y*e1x;
+  e0x = p1[0] - p0[0]; e0y = p1[1] - p0[1]; e0z = p1[2] - p0[2];
+  e1x = p2[0] - p0[0]; e1y = p2[1] - p0[1]; e1z = p2[2] - p0[2];
+  nx = e0y * e1z - e0z * e1y;
+  ny = e0z * e1x - e0x * e1z;
+  nz = e0x * e1y - e0y * e1x;
 
   det = e0x*e1y*nz - e0x*ny*e1z - e0y*e1x*nz 
     + e0y*nx*e1z + e0z*e1x*ny - e0z*e1y*nx;
 
-  if (K_FUNC::fEqualZero(det, 1.e-24) == true) return -1;
+  if (K_FUNC::fEqualZero(det, EPS)) return -1;
 
   px = p[0]-p0[0]; py = p[1]-p0[1]; pz = p[2]-p0[2];
 
@@ -79,10 +82,9 @@ E_Int K_COMPGEOM::distanceToTriangle(
   yp = p[1] + t*ny;
   zp = p[2] + t*nz;
   dist2 = (xp-p[0])*(xp-p[0]) + (yp-p[1])*(yp-p[1]) + (zp-p[2])*(zp-p[2]);
-  E_Float eps = K_CONST::E_GEOM_CUTOFF;
+  
 
-  if (sigma0 >= -eps && 
-      sigma1 >= -eps && sigma0+sigma1 <= 1.+2*eps)
+  if (sigma0 >= -EPS2 && sigma1 >= -EPS2 && sigma0+sigma1 <= 1.+2*EPS2)
   {
     in = true;
   }
@@ -119,9 +121,9 @@ E_Int K_COMPGEOM::distanceToTriangle(
     distanceToBar(p0, p1, p, 0, xp1, yp1, zp1, in1, d1);
     distanceToBar(p0, p2, p, 0, xp2, yp2, zp2, in2, d2);
     distanceToBar(p1, p2, p, 0, xp3, yp3, zp3, in3, d3);
-    if (in1 == false) d1 = 1.e6; 
-    if (in2 == false) d2 = 1.e6;
-    if (in3 == false) d3 = 1.e6;
+    if (!in1) d1 = 1.e6; 
+    if (!in2) d2 = 1.e6;
+    if (!in3) d3 = 1.e6;
     if (d1 < d2 && d1 < d3)
     {
       xp = xp1; yp = yp1; zp = zp1; dist2 = d1;
@@ -134,7 +136,7 @@ E_Int K_COMPGEOM::distanceToTriangle(
     {
       xp = xp3; yp = yp3; zp = zp3; dist2 = d3;
     }
-    if (in1 == false && in2 == false && in3 == false)
+    if (!in1 && !in2 && !in3)
     {
       xp = p0[0]; yp = p0[1]; zp = p0[2];
       d0 = (p[0]-p0[0])*(p[0]-p0[0]) + 
@@ -182,17 +184,19 @@ E_Int K_COMPGEOM::distanceToBar(E_Float* pA, E_Float* pB,
                                 E_Float& xp, E_Float& yp, E_Float& zp,
                                 E_Bool& in, E_Float& dist2)
 {
+  const E_Float EPS = 1.e-24;
+  
+  E_Float dxAP = p[0] - pA[0]; E_Float dxAB = pB[0] - pA[0]; 
+  E_Float dyAP = p[1] - pA[1]; E_Float dyAB = pB[1] - pA[1]; 
+  E_Float dzAP = p[2] - pA[2]; E_Float dzAB = pB[2] - pA[2]; 
+  E_Float scal = dxAP * dxAB + dyAP * dyAB + dzAP * dzAB;
+  E_Float dAB2 = dxAB * dxAB + dyAB * dyAB + dzAB * dzAB;
+
   in = false;
 
-  E_Float dxAP = p[0]-pA[0]; E_Float dxAB = pB[0]-pA[0]; 
-  E_Float dyAP = p[1]-pA[1]; E_Float dyAB = pB[1]-pA[1]; 
-  E_Float dzAP = p[2]-pA[2]; E_Float dzAB = pB[2]-pA[2]; 
-  E_Float scal = dxAP*dxAB + dyAP*dyAB + dzAP*dzAB;
-  
-  E_Float dAB2 = dxAB*dxAB+dyAB*dyAB+dzAB*dzAB;
-  if (K_FUNC::fEqualZero(dAB2, 1.e-24) == true)
+  if (K_FUNC::fEqualZero(dAB2, EPS))
   {
-    if (K_FUNC::fEqualZero(dxAP*dxAP + dyAP*dyAP + dzAP*dzAP, 1.e-24) == true)
+    if (K_FUNC::fEqualZero(dxAP*dxAP + dyAP*dyAP + dzAP*dzAP, EPS))
     {
       in = true; xp = pA[0]; yp = pA[1]; zp = pA[2]; return 0;
     }
@@ -203,11 +207,12 @@ E_Int K_COMPGEOM::distanceToBar(E_Float* pA, E_Float* pB,
   }
   
   E_Float alpha = scal / dAB2;
-  xp = pA[0] + alpha*dxAB;
-  yp = pA[1] + alpha*dyAB;
-  zp = pA[2] + alpha*dzAB;
+  xp = pA[0] + alpha * dxAB;
+  yp = pA[1] + alpha * dyAB;
+  zp = pA[2] + alpha * dzAB;
   dist2 = (p[0]-xp)*(p[0]-xp) + (p[1]-yp)*(p[1]-yp) + (p[2]-zp)*(p[2]-zp);
-  if (alpha < 0. || alpha > 1.) 
+
+  if (alpha < 0 || alpha > 1.)
   {
     in = false;
     if (treatment == 1)
@@ -218,5 +223,6 @@ E_Int K_COMPGEOM::distanceToBar(E_Float* pA, E_Float* pB,
     }
   }
   else in = true;
+
   return 0;
 }

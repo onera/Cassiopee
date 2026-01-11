@@ -859,17 +859,17 @@ typedef struct {
                                  K_FLD::FldArrayI& cn, 
                                  K_FLD::FldArrayF& angle);
 
-  /* calcul de la hauteur li�e � la courbure pour des i-arrays */
+  /* calcul de la hauteur liee a la courbure pour des i-arrays */
   void compStructCurvatureHeight1D(E_Int im, E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des (i,j)-arrays */
+  /* calcul de la hauteur liee a la courbure pour des (i,j)-arrays */
   void compStructCurvatureHeight2D(E_Int im, E_Int jm, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des BAR*/
+  /* calcul de la hauteur liee a la courbure pour des BAR*/
   void compCurvatureHeightForBAR(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                  K_FLD::FldArrayI& cn, E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des surfaces TRI et QUAD */
+  /* calcul de la hauteur liee a la courbure pour des surfaces TRI et QUAD */
   void compCurvatureHeightForTRIQUAD(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                      K_FLD::FldArrayI& cn,
                                      E_Float* hmaxt);

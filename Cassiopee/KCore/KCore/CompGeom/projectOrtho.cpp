@@ -46,57 +46,60 @@ E_Int K_COMPGEOM::projectOrtho(E_Float x, E_Float y, E_Float z,
   p[0] = x; p[1] = y; p[2] = z;
   
   E_Float distc = 1.e6;
-  E_Float dist2; E_Float sigma0, sigma1;
-  E_Float xp, yp, zp;
+  E_Float dist2, sigma0, sigma1, xp, yp, zp;
   E_Int ind1, ind2, ind3;
   E_Bool in;
-  E_Int* cn2p1 = cn2.begin(1);
-  E_Int* cn2p2 = cn2.begin(2);
-  E_Int nvert = cn2.getNfld();
   xo = x; yo = y; zo = z;
 
-  if (nvert == 2) // bar
+  E_Int nc = cn2.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-    for (E_Int e = 0; e < cn2.getSize(); e++)
+    K_FLD::FldArrayI& cm2 = *(cn2.getConnect(ic));
+    E_Int nelts = cm2.getSize();
+    E_Int nvpe = cm2.getNfld();
+    if (nvpe != 2 && nvpe != 3)
     {
-      ind1 = cn2p1[e]-1; ind2 = cn2p2[e]-1;     
-      p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
-      p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      ret = K_COMPGEOM::distanceToBar(p0, p1, p, 1, xp, yp, zp, in, dist2);
-      
-      if (ret == 0)
-      {
-        if (dist2 < distc) 
-        {xo = xp; yo = yp; zo = zp; distc = dist2; noet = e;}
-      }  
+      printf("Warning: projectOrtho: only valid for BAR, TRI elements.\n");
+      return -1;
     }
-  }
-  else if (nvert == 3) // tri
-  {
-    E_Int* cn2p3 = cn2.begin(3);
-    for (E_Int e = 0; e < cn2.getSize(); e++)
+    else if (nvpe == 2)  // BAR
     {
-      ind1 = cn2p1[e]-1; ind2 = cn2p2[e]-1;  ind3 = cn2p3[e]-1;
-      p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
-      p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-      ret = K_COMPGEOM::distanceToTriangle(p0, p1, p2, p, 2, 
-                                           dist2, in, 
-                                           xp, yp, zp,
-                                           sigma0, sigma1);
-      if (ret == 0)
+      for (E_Int i = 0; i < nelts; i++)
       {
-        //if (in == false) dist2 = dist2 * 1.1;
-        if (dist2 < distc)
-        { xo = xp; yo = yp; zo = zp; distc = dist2; noet = e; }
+        ind1 = cm2(i, 1) - 1; ind2 = cm2(i, 2) - 1;
+        p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
+        p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
+
+        ret = K_COMPGEOM::distanceToBar(p0, p1, p, 1, xp, yp, zp, in, dist2);
+        if (ret == 0 && dist2 < distc)
+        {
+          xo = xp; yo = yp; zo = zp;
+          distc = dist2; noet = i;
+        }  
+      }
+    }
+    else  // TRI
+    {
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        ind1 = cm2(i, 1) - 1; ind2 = cm2(i, 2) - 1;  ind3 = cm2(i, 3) - 1;
+        p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
+        p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
+        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+        ret = K_COMPGEOM::distanceToTriangle(p0, p1, p2, p, 2, 
+                                             dist2, in, 
+                                             xp, yp, zp,
+                                             sigma0, sigma1);
+        if (ret == 0 && dist2 < distc)
+        {
+          xo = xp; yo = yp; zo = zp;
+          distc = dist2; noet = i;
+        }
       }
     }
   }
-  else 
-  {
-    printf("Warning: projectOrtho: only valid for BAR, TRI elements.\n");
-    return -1;
-  }
+
   return noet;
 }
 
@@ -122,40 +125,43 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
   p[0] = x; p[1] = y; p[2] = z;
   
   E_Float distc = 1.e6;
-  E_Float dist2; E_Float sigma0, sigma1;
+  E_Float dist2, sigma0, sigma1;
   E_Float xp, yp, zp;
-  E_Int ind1, ind2, ind3;
+  E_Int ind1, ind2, ind3, et;
   E_Bool in;
-  E_Int* cn2p1 = cn2.begin(1);
-  E_Int* cn2p2 = cn2.begin(2);
-  E_Int nvert = cn2.getNfld();
   xo = x; yo = y; zo = z;
+
   E_Int nbb = indices.size();
-  E_Int et = 0;
-  if (nvert == 2) // bar
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nvpe = cm2.getNfld();
+  if (nvpe != 2 && nvpe != 3)
   {
-    for (E_Int noe = 0; noe < nbb; noe++)
+    printf("Warning: projectOrthoPrecond: only valid for BAR, TRI elements.\n");
+    return -1;
+  }
+  else if (nvpe == 2)  // BAR
+  {
+    for (E_Int i = 0; i < nbb; i++)
     {
-      et = indices[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1;     
+      et = indices[i];
+      ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
+
       ret = K_COMPGEOM::distanceToBar(p0, p1, p, 1, xp, yp, zp, in, dist2);
-      
-      if (ret == 0)
+      if (ret == 0 && dist2 < distc)
       {
-        if (dist2 < distc) 
-        {xo = xp; yo = yp; zo = zp; distc = dist2; noet = et;}
+        xo = xp; yo = yp; zo = zp;
+        distc = dist2; noet = et;
       }  
     }
   }
-  else if (nvert == 3) // tri
+  else  // TRI
   {
-    E_Int* cn2p3 = cn2.begin(3);
-    for (E_Int noe = 0; noe < nbb; noe++)
+    for (E_Int i = 0; i < nbb; i++)
     {
-      et = indices[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+      et = indices[i];
+      ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1;  ind3 = cm2(et, 3) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
       p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
@@ -163,18 +169,14 @@ E_Int K_COMPGEOM::projectOrthoPrecond(
                                            dist2, in, 
                                            xp, yp, zp,
                                            sigma0, sigma1);
-      if (ret == 0)
+      if (ret == 0 && dist2 < distc)
       {
-        if (dist2 < distc) 
-        {xo = xp; yo = yp; zo = zp; distc = dist2; noet = et;}
+        xo = xp; yo = yp; zo = zp;
+        distc = dist2; noet = et;
       }
     }
   }
-  else 
-  {
-    printf("Warning: projectOrthoPrecond: only valid for BAR, TRI elements.\n");
-    return -1;
-  }
+
   return noet;
 }
 
@@ -192,16 +194,16 @@ void K_COMPGEOM::projectOrthoWithoutPrecond(
 {
   #pragma omp parallel
   {
-    E_Int ret = 0;
+    E_Int ret;
     E_Float xo, yo, zo;
     E_Float p0[3]; E_Float p1[3]; E_Float p2[3]; E_Float p[3];
 
     #pragma omp for
-    for (E_Int ind = 0; ind < npts; ind++)
+    for (E_Int i = 0; i < npts; i++)
     {
-      ret = projectOrtho(fx[ind], fy[ind], fz[ind], 
+      ret = projectOrtho(fx[i], fy[i], fz[i], 
                          fx2, fy2, fz2, cn2, xo, yo, zo, p0, p1, p2, p);
-      if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+      if (ret != -1) { fx[i] = xo; fy[i] = yo; fz[i] = zo; }
     }
   }
 }
@@ -216,15 +218,19 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   FldArrayI& cn2, FldArrayF& f2, vector<E_Int>& sizet,
   vector<E_Float*>& fxt, vector<E_Float*>& fyt, vector<E_Float*>& fzt) 
 {
-  E_Int nelts2 = cn2.getSize();
   E_Float* fx2 = f2.begin(posx2);
   E_Float* fy2 = f2.begin(posy2);
   E_Float* fz2 = f2.begin(posz2);
+
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nelts2 = cm2.getSize();
+
   // Creation du kdtree
   K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
+
   // Creation du bboxtree
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
   K_FLD::FldArrayF bbox(nelts2, 6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
@@ -237,11 +243,11 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   {
     E_Float minB[3]; E_Float maxB[3];
     #pragma omp for
-    for (E_Int et = 0; et < nelts2; et++)
+    for (E_Int i = 0; i < nelts2; i++)
     {
-      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-      boxes[et] = new BBox3DType(minB, maxB);
+      minB[0] = xminp[i]; minB[1] = yminp[i]; minB[2] = zminp[i];
+      maxB[0] = xmaxp[i]; maxB[1] = ymaxp[i]; maxB[2] = zmaxp[i]; 
+      boxes[i] = new BBox3DType(minB, maxB);
     }
   }
     
@@ -268,10 +274,10 @@ void K_COMPGEOM::projectOrthoWithPrecond(
       E_Float* fz = fzt[v];
     
       #pragma omp for
-      for (E_Int ind = 0; ind < npts; ind++)
+      for (E_Int i = 0; i < npts; i++)
       {
         // recherche du pt le plus proche P' de P
-        pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
+        pt[0] = fx[i]; pt[1] = fy[i]; pt[2] = fz[i];
         indp = kdt.getClosest(pt);
       
         // calcul de la bounding box de la sphere de rayon PP'
@@ -281,10 +287,10 @@ void K_COMPGEOM::projectOrthoWithPrecond(
         maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
         bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
       
-        ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
+        ret = projectOrthoPrecond(fx[i], fy[i], fz[i], 
                                   fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
                                   p0, p1, p2, p);
-        if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+        if (ret != -1) {fx[i] = xo; fy[i] = yo; fz[i] = zo;}
         indicesBB.clear();
       }
     }
@@ -307,17 +313,19 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   E_Int posx2, E_Int posy2, E_Int posz2,
   FldArrayF& f2, E_Float* fx, E_Float* fy, E_Float* fz)
 {
-  E_Int nelts2 = cn2.getSize();
   E_Float* fx2 = f2.begin(posx2);
   E_Float* fy2 = f2.begin(posy2);
   E_Float* fz2 = f2.begin(posz2);
- 
+
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nelts2 = cm2.getSize();
+
   // Creation du kdtree
   K_FLD::ArrayAccessor<FldArrayF> coordAcc(f2, posx2, posy2, posz2);
   K_SEARCH::KdTree<FldArrayF> kdt(coordAcc);
 
   // Creation du bboxtree
-  typedef K_SEARCH::BoundingBox<3>  BBox3DType; 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType; 
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
   K_FLD::FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
   K_COMPGEOM::boundingBoxOfUnstrCells(cn2, fx2, fy2, fz2, bbox);
@@ -330,11 +338,11 @@ void K_COMPGEOM::projectOrthoWithPrecond(
   {
     E_Float minB[3];  E_Float maxB[3];
     #pragma omp for
-    for (E_Int et = 0; et < nelts2; et++)
+    for (E_Int i = 0; i < nelts2; i++)
     {
-      minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-      maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-      boxes[et] = new BBox3DType(minB, maxB);
+      minB[0] = xminp[i]; minB[1] = yminp[i]; minB[2] = zminp[i];
+      maxB[0] = xmaxp[i]; maxB[1] = ymaxp[i]; maxB[2] = zmaxp[i]; 
+      boxes[i] = new BBox3DType(minB, maxB);
     }
   }
   // Build the box tree.
@@ -351,10 +359,10 @@ void K_COMPGEOM::projectOrthoWithPrecond(
     vector<E_Int> indicesBB; // liste des indices des facettes intersectant la bbox
 
     #pragma omp for
-    for (E_Int ind = 0; ind < npts; ind++)
+    for (E_Int i = 0; i < npts; i++)
     {
       // recherche du pt le plus proche P' de P
-      pt[0] = fx[ind]; pt[1] = fy[ind]; pt[2] = fz[ind];
+      pt[0] = fx[i]; pt[1] = fy[i]; pt[2] = fz[i];
       indp = kdt.getClosest(pt);
 
       // calcul de la bounding box de la sphere de rayon PP'
@@ -364,10 +372,10 @@ void K_COMPGEOM::projectOrthoWithPrecond(
       maxB[0] = pt[0]+rad; maxB[1] = pt[1]+rad; maxB[2] = pt[2]+rad;
       bbtree.getOverlappingBoxes(minB, maxB, indicesBB);
 
-      ret = projectOrthoPrecond(fx[ind], fy[ind], fz[ind], 
+      ret = projectOrthoPrecond(fx[i], fy[i], fz[i], 
                                 fx2, fy2, fz2, indicesBB, cn2, xo, yo, zo,
                                 p0, p1, p2, p);
-      if (ret != -1) {fx[ind] = xo; fy[ind] = yo; fz[ind] = zo;}
+      if (ret != -1) {fx[i] = xo; fy[i] = yo; fz[i] = zo;}
       indicesBB.clear();
     }
   }
