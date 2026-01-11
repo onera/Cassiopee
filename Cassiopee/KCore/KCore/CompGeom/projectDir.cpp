@@ -66,29 +66,25 @@ E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
   pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
 
   E_Float distc = 1.e6;
-  E_Float dist;
-  E_Int ind1, ind2, ind3;
-  E_Int nvert = cn2.getNfld();
+  E_Float dist, dx, dy, dz, normp, ps;
+  E_Int ind1, ind2, ind3, et;
   xo = x; yo = y; zo = z; 
 
   E_Int nbboxes = indices.size();
-  E_Int et;
-  E_Float dx, dy, dz, normp, ps;
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nvpe = cm2.getNfld();
   
-  if (nvert == 3) // tri
+  if (nvpe == 3)  // TRI
   {
-    E_Int* cn2p1 = cn2.begin(1);
-    E_Int* cn2p2 = cn2.begin(2);
-    E_Int* cn2p3 = cn2.begin(3);
-    for (E_Int noe = 0; noe < nbboxes; noe++)   
+    for (E_Int i = 0; i < nbboxes; i++)   
     {
-      et = indices[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+      et = indices[i];
+      ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1; ind3 = cm2(et, 3) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, 
-                                             pr1, pr2, pi);
+      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
       if (ret == 1)
       {
         dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
@@ -97,7 +93,7 @@ E_Int K_COMPGEOM::projectDir(E_Float x, E_Float y, E_Float z,
         {
           normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
           ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-          if ( ps > 0. ) 
+          if (ps > 0.) 
           {
             if (dist < distc) 
             {xo = pi[0]; yo = pi[1]; zo = pi[2]; distc = dist; noet = et;}
@@ -129,7 +125,10 @@ E_Int K_COMPGEOM::projectOneDirWithPrecond(
   E_Float tol = 1.e-6;
   typedef K_SEARCH::BoundingBox<3>  BBox3DType;
 
-  E_Int nelts2 = cn2.getSize();
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nelts2 = cm2.getSize();
+  E_Int nvpe = cm2.getNfld();
+
   // Creation de la bboxtree
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
   K_FLD::FldArrayF bbox(nelts2,6);// xmin, ymin, zmin, xmax, ymax, zmax
@@ -158,7 +157,7 @@ E_Int K_COMPGEOM::projectOneDirWithPrecond(
   E_Float distc = 1.e6;
   E_Float dist;
   E_Int ind1, ind2, ind3;
-  E_Int nvert = cn2.getNfld();
+  
   xo = x; yo = y; zo = z; 
 
   vector<E_Int> indicesBB;
@@ -167,20 +166,17 @@ E_Int K_COMPGEOM::projectOneDirWithPrecond(
   E_Int et;
   E_Float dx, dy, dz, normp, ps;
 
-  if (nvert == 3) // tri
+  if (nvpe == 3)  // TRI
   {
-    E_Int* cn2p1 = cn2.begin(1);
-    E_Int* cn2p2 = cn2.begin(2);
-    E_Int* cn2p3 = cn2.begin(3);
-    for (E_Int noe = 0; noe < nbboxes; noe++)   
+    for (E_Int i = 0; i < nbboxes; i++)   
     {
-      et = indicesBB[noe];
-      ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1;  ind3 = cn2p3[et]-1;
+      et = indicesBB[i];
+      ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1; ind3 = cm2(et, 3) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, 
-                                             pr1, pr2, pi);
+      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
       if (ret == 1)
       {
         dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
@@ -234,40 +230,40 @@ E_Int K_COMPGEOM::projectOneDirWithoutPrecond(
   E_Float distc = 1e6;
   E_Float dist, dx, dy, dz, normp, ps;
   E_Int ind1, ind2, ind3;
-  E_Int nvert = cn2.getNfld();
   xo = x; yo = y; zo = z; 
 
-  if (nvert == 3) // tri
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nvpe = cm2.getNfld();
+  E_Int nelts2 = cm2.getSize();
+
+  if (nvpe == 3) // tri
   {
-    E_Int* cn2p1 = cn2.begin(1);
-    E_Int* cn2p2 = cn2.begin(2);
-    E_Int* cn2p3 = cn2.begin(3);
-    for (E_Int e = 0; e < cn2.getSize(); e++)
+    for (E_Int i = 0; i < nelts2; i++)
     {
-      ind1 = cn2p1[e]-1; ind2 = cn2p2[e]-1;  ind3 = cn2p3[e]-1;
+      ind1 = cm2(i, 1) - 1; ind2 = cm2(i, 2) - 1; ind3 = cm2(i, 3) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, 
-                                             pr1, pr2, pi);
+      p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
       if (ret == 1)
       {
         dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
         dist = dx*dx + dy*dy + dz*dz;
-        if ( oriented != 0 )
+        if (oriented != 0)
         {
           normp = sqrt(nx*nx+ny*ny+nz*nz);//normale
           ps = nx*dx+ny*dy+nz*dz/(dist*normp);
-          if ( ps > 0. ) 
+          if (ps > 0.) 
           {
             if (dist < distc) 
-            {xo = pi[0]; yo = pi[1]; zo = pi[2]; distc = dist; noet = e;}
+            {xo = pi[0]; yo = pi[1]; zo = pi[2]; distc = dist; noet = i;}
           }
         }
         else
         { 
           if (dist < distc) 
-          {xo = pi[0]; yo = pi[1]; zo = pi[2]; distc = dist; noet = e;}
+          {xo = pi[0]; yo = pi[1]; zo = pi[2]; distc = dist; noet = i;}
         }
       }
     }
@@ -292,7 +288,7 @@ void K_COMPGEOM::projectDirWithPrecond(
   E_Float tol = 1.e-6;
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
 
-  E_Int* cn2p1 = cn2.begin(1); E_Int* cn2p2 = cn2.begin(2); E_Int* cn2p3 = cn2.begin(3);
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
 
   // Creation de la bboxtree
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
@@ -337,15 +333,15 @@ void K_COMPGEOM::projectDirWithPrecond(
     
       distc = 1.e6;
       nbboxes = indicesBB.size();
-      for (E_Int noe = 0; noe < nbboxes; noe++)
+      for (E_Int i = 0; i < nbboxes; i++)
       {
-        et = indicesBB[noe];
-        ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+        et = indicesBB[i];
+        ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1; ind3 = cm2(et, 3) - 1;
         p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
         p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                               pr1, pr2, pi);
+        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
         if (ret == 1)
         {
           dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
@@ -388,8 +384,9 @@ void K_COMPGEOM::projectDirWithPrecond(
 {
   E_Float tol = 1.e-6;
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
-  E_Int nelts2 = cn2.getSize();
-  E_Int* cn2p1 = cn2.begin(1); E_Int* cn2p2 = cn2.begin(2); E_Int* cn2p3 = cn2.begin(3);
+
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nelts2 = cm2.getSize();
 
   // Creation de la bboxtree
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
@@ -444,15 +441,15 @@ void K_COMPGEOM::projectDirWithPrecond(
       
         distc = 1e6;
         nbboxes = indicesBB.size();
-        for (E_Int noe = 0; noe < nbboxes; noe++)
+        for (E_Int i = 0; i < nbboxes; i++)
         {
-          et = indicesBB[noe];
-          ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+          et = indicesBB[i];
+          ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1; ind3 = cm2(et, 3) - 1;
           p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
           p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-          p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-          ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                                pr1, pr2, pi);
+          p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+          ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
           if (ret == 1)
           {
             dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
@@ -497,8 +494,9 @@ void K_COMPGEOM::projectDirWithPrecond(
 {
   E_Float tol = 1.e-6;
   typedef K_SEARCH::BoundingBox<3> BBox3DType;
-  E_Int nelts2 = cn2.getSize();
-  E_Int* cn2p1 = cn2.begin(1); E_Int* cn2p2 = cn2.begin(2); E_Int* cn2p3 = cn2.begin(3);
+
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+  E_Int nelts2 = cm2.getSize();
 
   // Creation de la bboxtree
   vector<BBox3DType*> boxes(nelts2);// liste des bbox de ts les elements de a2
@@ -508,11 +506,11 @@ void K_COMPGEOM::projectDirWithPrecond(
   E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
   E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
   E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-  for (E_Int et = 0; et < nelts2; et++)
+  for (E_Int i = 0; i < nelts2; i++)
   {
-    minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];
-    maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
-    boxes[et] = new BBox3DType(minB, maxB);
+    minB[0] = xminp[i]; minB[1] = yminp[i]; minB[2] = zminp[i];
+    maxB[0] = xmaxp[i]; maxB[1] = ymaxp[i]; maxB[2] = zmaxp[i]; 
+    boxes[i] = new BBox3DType(minB, maxB);
   }
   // Build the box tree.
   K_SEARCH::BbTree3D bbtree(boxes);
@@ -546,17 +544,15 @@ void K_COMPGEOM::projectDirWithPrecond(
       
       distc = 1e6;
       nbboxes = indicesBB.size();
-      for (E_Int noe = 0; noe < nbboxes; noe++)
+      for (E_Int i = 0; i < nbboxes; i++)
       {
-        et = indicesBB[noe];
-        ind1 = cn2p1[et]-1; ind2 = cn2p2[et]-1; ind3 = cn2p3[et]-1;
+        et = indicesBB[i];
+        ind1 = cm2(et, 1) - 1; ind2 = cm2(et, 2) - 1; ind3 = cm2(et, 3) - 1;
         p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
         p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
-        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
-        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                               pr1, pr2,
-                                               pi);
-        
+        p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];
+
+        ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
         if (ret == 1)
         {
           dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];
@@ -595,33 +591,29 @@ void K_COMPGEOM::projectDirWithoutPrecond(
   E_Float* fx2, E_Float* fy2, E_Float* fz2,
   E_Float* fx, E_Float* fy, E_Float* fz, E_Int oriented)
 {
-  E_Int* cn2p1 = cn2.begin(1); 
-  E_Int* cn2p2 = cn2.begin(2); 
-  E_Int* cn2p3 = cn2.begin(3);
   // Algorithme de projection
   E_Float p[3]; E_Float pr1[3]; E_Float pr2[3]; E_Float pi[3];
   E_Float p0[3]; E_Float p1[3]; E_Float p2[3];
   E_Float dist; E_Float distc; 
   E_Int ret; E_Int ind1, ind2, ind3;
   E_Float dx, dy, dz, normp, ps;
+
+  K_FLD::FldArrayI& cm2 = *(cn2.getConnect(0));
+
   for (E_Int ind = 0; ind < npts; ind++)
   {
     p[0] = fx[ind]; p[1] = fy[ind]; p[2] = fz[ind];
     pr1[0] = p[0]; pr1[1] = p[1]; pr1[2] = p[2];
     pr2[0] = p[0] + nx; pr2[1] = p[1] + ny; pr2[2] = p[2] + nz;
     distc = 1e6;
-    for (E_Int e = 0; e < nelts2; e++)
+    for (E_Int i = 0; i < nelts2; i++)
     {
-      ind1 = cn2p1[e]-1;
-      ind2 = cn2p2[e]-1;
-      ind3 = cn2p3[e]-1;
+      ind1 = cm2(i, 1) - 1; ind2 = cm2(i, 2) - 1; ind3 = cm2(i, 3) - 1;
       p0[0] = fx2[ind1]; p0[1] = fy2[ind1]; p0[2] = fz2[ind1];
       p1[0] = fx2[ind2]; p1[1] = fy2[ind2]; p1[2] = fz2[ind2];
       p2[0] = fx2[ind3]; p2[1] = fy2[ind3]; p2[2] = fz2[ind3];        
      
-      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2,
-                                             pr1, pr2,
-                                             pi);
+      ret = K_COMPGEOM::intersectRayTriangle(p0, p1, p2, pr1, pr2, pi);
       if (ret == 1)
       {
         dx = pi[0]-p[0]; dy = pi[1]-p[1]; dz = pi[2]-p[2];

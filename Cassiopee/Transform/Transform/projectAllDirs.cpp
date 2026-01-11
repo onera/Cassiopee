@@ -248,7 +248,15 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
   for (E_Int nos = 0; nos < nsurfaces; nos++)
   {
     FldArrayI* cnloc = (FldArrayI*)a2s[nos];
-    E_Int nelts = cnloc->getSize();
+    // Compute total number of elements
+    E_Int nc = cnloc->getNConnect();
+    E_Int nelts = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cmloc = *(cnloc->getConnect(ic));
+      nelts += cmloc.getSize();
+    }
+
     vector<BBox3DType*> boxes(nelts);// liste des bbox de ts les elements de la paroi courante
     FldArrayF bbox(nelts, 6);// xmin, ymin, zmin, xmax, ymax, zmax
     E_Float* xs = fieldsS[nos]->begin(posxs[nos]);
@@ -315,7 +323,8 @@ PyObject* K_TRANSFORM::projectAllDirs(PyObject* self, PyObject* args)
 
         // Precond : indices : triangles candidats a la projection
         E_Int ok = K_COMPGEOM::projectDir(x, y, z, dirx, diry, dirz,
-                                          xs, ys, zs, indicesBB, *cns, xo, yo, zo, oriented);
+                                          xs, ys, zs, indicesBB, *cns,
+                                          xo, yo, zo, oriented);
         indicesBB.clear();
         if ( ok > -1 )
         {
