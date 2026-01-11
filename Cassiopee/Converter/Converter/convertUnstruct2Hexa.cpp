@@ -20,10 +20,9 @@
 
 using namespace K_FUNC;
 using namespace K_FLD;
-using namespace std;
 
 // ============================================================================
-/* Convert unstructured array to a hexaedrical mesh */
+/* Convert an unstructured array to a hexaedrical mesh */
 // ============================================================================
 PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
 {
@@ -31,11 +30,11 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
-  E_Int nil, njl, nkl;
-  FldArrayF* f; FldArrayI* cnl;
-  char* varString; char* eltType; string eltType2;
+  E_Int ni, nj, nk;
+  FldArrayF* f; FldArrayI* cn;
+  char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f,
-                                     nil, njl, nkl, cnl, eltType);
+                                     ni, nj, nk, cn, eltType);
   if (res != 2) 
   {
     RELEASESHAREDS(array, f);
@@ -43,166 +42,152 @@ PyObject* K_CONVERTER::convertUnstruct2Hexa(PyObject* self, PyObject* args)
                     "convertUnstruct2Hexa: array must be unstructured.");
     return NULL;
   }
+  else if (K_STRING::cmp(eltType, 4, "NGON") == 0)
+  {
+    RELEASESHAREDU(array, f, cn);
+    PyErr_SetString(PyExc_TypeError, 
+                    "convertUnstruct2Hexa: array must be unstructured, not NGON.");
+    return NULL;
+  }
 
   // Acces universel sur BE/ME
-  E_Int nc = cnl->getNConnect();
-  vector<char*> eltTypes;
+  E_Int nc = cn->getNConnect();
+  std::vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
 
   E_Int npts = f->getSize(), api = f->getApi(), nfld = f->getNfld();
-  E_Int nelts, loc = 0;
-  vector<E_Int> nepc(nc);
-  E_Bool center = false;
+  E_Bool center = strchr(eltType,'*') != NULL;
 
-  // Boucle sur toutes les connectivites pour determiner les types des
-  // nouveaux elements afin de construire la nouvelle connectivite ME
+  // Compute cumulative number of elements per conn. of the input ME (offsets)
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    FldArrayI& cm = *(cnl->getConnect(ic));
-    char* eltTypConn = eltTypes[ic];
-    if (ic > 0) eltType2.append(","); 
-    
-    if (strncmp(eltTypConn, "QUAD", 4) == 0 || strncmp(eltTypConn, "HEXA", 4) == 0 ||
-        strncmp(eltTypConn, "BAR", 3) == 0)
-    {
-      eltType2.append(eltTypConn);
-    }
-    else if (strncmp(eltType, "TRI", 3) == 0) eltType2.append("QUAD");
-    else if (strncmp(eltType, "PENTA", 5) == 0 || strncmp(eltType, "TETRA", 5) == 0)
-    {
-      eltType2.append("HEXA");
-    }
-    else
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "convertUnstruct2Hexa: invalid element type.");
-      return NULL;
-    }
-
-    if (strchr(eltTypConn,'*') != NULL) loc += 1;
-    nepc[ic] = cm.getSize();
+    K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+    cumnepc[ic+1] = cumnepc[ic] + cm.getSize();
   }
 
-  if (loc != 0 and loc != nc)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "convertUnstruct2Hexa: invalid element type - mix of "
-                    "cell-centered and nodal fields in ME connectivity");
-    return NULL;
-  }
-  else if (loc == nc) center = true;
+  // Determine the output eltType from the input dimension
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH]; eltType2[0] = '\0';
+  E_Int dim = K_CONNECT::getDimME(eltTypes);
+  if (dim == 2) strcpy(eltType2, "QUAD");
+  else strcpy(eltType2, "HEXA");
 
-  // Build empty ME connectivity
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nepc,
-                                       eltType2.c_str(), center, api);
-  FldArrayF* f2; FldArrayI* cnl2;
-  K_ARRAY::getFromArray3(tpl, f2, cnl2);
+  // Build new BE connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, cumnepc[nc],
+                                       eltType2, center, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+  FldArrayI& cm2 = *(cn2->getConnect(0));
 
   // Boucle sur toutes les connectivites pour les remplir
-  for (E_Int ic = 0; ic < nc; ic++)
+  #pragma omp parallel
   {
-    FldArrayI& cm = *(cnl->getConnect(ic));
-    FldArrayI& cm2 = *(cnl2->getConnect(ic));
-    char* eltTypConn = eltTypes[ic];
-    nelts = cm.getSize();
-
-#pragma omp parallel default(shared) if (nelts > __MIN_SIZE_MEAN__)
+    E_Int ind;
+    for (E_Int ic = 0; ic < nc; ic++)
     {
-      if (strncmp(eltTypConn, "QUAD", 4) == 0)
+      FldArrayI& cm = *(cn->getConnect(ic));
+      char* eltTypConn = eltTypes[ic];
+      E_Int nelts = cm.getSize();
+      E_Int offset = cumnepc[ic];
+
+      if (K_STRING::cmp(eltTypConn, 4, "QUAD") == 0)
       {
         // Copy existing connectivity
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
-          cm2(et,3) = cm(et,3);
-          cm2(et,4) = cm(et,4);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
+          cm2(ind,3) = cm(i,3);
+          cm2(ind,4) = cm(i,4);
         }
       }
-      else if (strncmp(eltTypConn, "HEXA", 4) == 0)
+      else if (K_STRING::cmp(eltTypConn, 4, "HEXA") == 0)
       {
         // Copy existing connectivity
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
-          cm2(et,3) = cm(et,3);
-          cm2(et,4) = cm(et,4);
-          cm2(et,5) = cm(et,5);
-          cm2(et,6) = cm(et,6);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
+          cm2(ind,3) = cm(i,3);
+          cm2(ind,4) = cm(i,4);
+          cm2(ind,5) = cm(i,5);
+          cm2(ind,6) = cm(i,6);
         }
       }
-      else if (strncmp(eltTypConn, "BAR", 3) == 0)
+      else if (K_STRING::cmp(eltTypConn, 3, "BAR") == 0)
       {
         // Copy existing connectivity
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
         }
       }
-      else if (strncmp(eltType, "TRI", 3) == 0)
+      else if (K_STRING::cmp(eltType, 3, "TRI") == 0)
       {
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
-          cm2(et,3) = cm(et,3);
-          cm2(et,4) = cm(et,3);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
+          cm2(ind,3) = cm(i,3);
+          cm2(ind,4) = cm(i,3);
         }
       }
-      else if (strncmp(eltType, "TETRA", 5) == 0)
+      else if (K_STRING::cmp(eltType, 5, "TETRA") == 0)
       {
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
-          cm2(et,3) = cm(et,3);
-          cm2(et,4) = cm(et,3);
-          cm2(et,5) = cm(et,4);
-          cm2(et,6) = cm(et,4);
-          cm2(et,7) = cm(et,4);
-          cm2(et,8) = cm(et,4);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
+          cm2(ind,3) = cm(i,3);
+          cm2(ind,4) = cm(i,3);
+          cm2(ind,5) = cm(i,4);
+          cm2(ind,6) = cm(i,4);
+          cm2(ind,7) = cm(i,4);
+          cm2(ind,8) = cm(i,4);
         }
       }
-      else if (strncmp(eltType, "PENTA", 5) == 0)
+      else if (K_STRING::cmp(eltType, 5, "PENTA") == 0)
       {
-#pragma omp for
-        for (E_Int et = 0; et < nelts; et++)
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nelts; i++)
         {
-          cm2(et,1) = cm(et,1);
-          cm2(et,2) = cm(et,2);
-          cm2(et,3) = cm(et,3);
-          cm2(et,4) = cm(et,3);
-          cm2(et,5) = cm(et,4);
-          cm2(et,6) = cm(et,5);
-          cm2(et,7) = cm(et,6);
-          cm2(et,8) = cm(et,6);
+          ind = i + offset;
+          cm2(ind,1) = cm(i,1);
+          cm2(ind,2) = cm(i,2);
+          cm2(ind,3) = cm(i,3);
+          cm2(ind,4) = cm(i,3);
+          cm2(ind,5) = cm(i,4);
+          cm2(ind,6) = cm(i,5);
+          cm2(ind,7) = cm(i,6);
+          cm2(ind,8) = cm(i,6);
         }
       }
     }
-  }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-
-#pragma omp parallel
-  {
     // Copy fields to f2
     for (E_Int n = 1; n <= nfld; n++)
     {
       E_Float* fp = f->begin(n);
       E_Float* f2p = f2->begin(n);
-#pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
   }
   
-  RELEASESHAREDU(array, f, cnl);
-  RELEASESHAREDU(tpl, f2, cnl2);
+  delete[] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+  RELEASESHAREDU(array, f, cn);
+  RELEASESHAREDU(tpl, f2, cn2);
   return tpl;
 }
