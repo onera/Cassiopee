@@ -1352,16 +1352,11 @@ def convertArray2Hexa1__(array):
     if isinstance(sub, str): t = sub
     else: t = 'STRUCT'
     if t == 'STRUCT': return converter.convertStruct2Hexa(array)
-    elif t == 'HEXA' or t == 'QUAD' or t == 'BAR' or t == 'NODE':
-        return array
-    elif t == 'HEXA*' or t == 'QUAD*' or t == 'BAR*' or t == 'NODE*':
-        return array
-    elif t == 'TRI' or t == 'TETRA' or t == 'PENTA':
-        return converter.convertUnstruct2Hexa(array)
     elif t == 'NGON':
         try: import Transform as T
         except: raise ImportError("convertArray2Hexa: requires Transform for NGONs.")
         tmp = T.breakElements(array)
+        tmp = T.reorder(tmp)
         brd = []
         for i in tmp:
             if i[3] != 'NGON': brd.append(convertArray2Hexa1__(i))
