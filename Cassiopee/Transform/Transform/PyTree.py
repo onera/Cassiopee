@@ -134,15 +134,18 @@ def _scale(a, factor=1., X=None):
         except: pass
     return C.__TZGC3(a, Transform._scale, factor, X)
 
-def symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.TZGC3(a, 'nodes', False, Transform.symetrize, point, vector1, vector2)
+def symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+    return C.TZGC3(a, 'nodes', False, Transform.symmetrize, point, vector1, vector2)
 
-def _symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.__TZGC3(a, Transform._symetrize, point, vector1, vector2)
+def _symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+    return C.__TZGC3(a, Transform._symmetrize, point, vector1, vector2)
+
+symetrize = symmetrize
+_symetrize = _symmetrize
 
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius

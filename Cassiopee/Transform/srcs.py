@@ -2,7 +2,7 @@
 # Fichiers C++
 #==============================================================================
 cpp_srcs = ["Transform/coordTransform.cpp",
-            "Transform/symetrize.cpp",
+            "Transform/symmetrize.cpp",
             "Transform/deform.cpp",
             "Transform/deform2.cpp",
             "Transform/deformMeshStruct.cpp",

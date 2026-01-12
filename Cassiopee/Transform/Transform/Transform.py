@@ -10,17 +10,24 @@ try: import Converter
 except: raise ImportError("Transform: requires Converter module.")
 from Converter.Internal import E_NpyInt
 
-__all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', '_cart2Cyl', 'collapse',
-           'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart', 'deform', 'deformNormals', 'deformPoint',
-           'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart',
-           'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir',
-           'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll',
-           'rotate', '_rotate', '_scale', 'scale',
-           'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
-           'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches',
-           'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'controlPoints', 'freeForm',
-           'kround', 'smoothField', '_smoothField',
-           'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
+__all__ = [
+    '_translate', 'translate', 'addkplane', 'breakElements',
+    'cart2Cyl', '_cart2Cyl', 'collapse', 'computeDeformationVector',
+    '_contract', 'contract', 'cyl2Cart', '_cyl2Cart',
+    'deform', 'deformNormals', 'deformPoint', 'dual', '_homothety', 'homothety',
+    'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart',
+    'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate',
+    'projectAllDirs', 'projectDir', 'projectOrtho', 'projectOrthoSmooth',
+    'projectRay', 'reorder', 'reorderAll', 'rotate', '_rotate',
+    '_scale', 'scale', 'smooth', 'splitBAR', 'splitConnexity',
+    'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
+    'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize',
+    'splitTBranches', 'splitTRI', 'subzone',
+    '_symmetrize', 'symmetrize', '_symetrize', 'symetrize', 'deformMesh',
+    'controlPoints', 'freeForm', 'kround', 'smoothField', '_smoothField',
+    'alignVectorFieldWithRadialCylindricProjection',
+    '_alignVectorFieldWithRadialCylindricProjection'
+]
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level
@@ -283,22 +290,25 @@ def _scale(a, factor=1., X=None):
         _homothety(a, X, factor)
     return None
 
-def symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+def symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
     b = Converter.copy(a)
-    _symetrize(b, point, vector1, vector2)
+    _symmetrize(b, point, vector1, vector2)
     return b
 
-def _symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+def _symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
     if isinstance(a[0], list):
         for i in a:
-            transform.symetrize(i, point, vector1, vector2)
+            transform.symmetrize(i, point, vector1, vector2)
     else:
-        return transform.symetrize(a, point, vector1, vector2)
+        return transform.symmetrize(a, point, vector1, vector2)
     return None
+
+symetrize = symmetrize
+_symetrize = _symmetrize
 
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius

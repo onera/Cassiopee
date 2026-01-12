@@ -19,7 +19,7 @@ def leave(w=1., h=2., N=10):
     c = T.join(c)
     pl = G.fittingPlaster(c)
     b = G.gapfixer(c, pl)
-    b2 = T.symetrize(b, (0,0,0), (0,1,0), (0,0,1))
+    b2 = T.symmetrize(b, (0,0,0), (0,1,0), (0,0,1))
     o = T.join([b,b2])
     o = G.close(o)
     return o

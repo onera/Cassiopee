@@ -845,7 +845,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
         t_curvi = T.contract(t_curvi, (0,0,0), (1,0,0), (0,1,0), 0.01)
         t_curvi = T.makeDirect(t_curvi)
 
-    #creation "vraie" cellule ghost pour BC plansymetry pour faciliter interp Chimere
+    #creation "vraie" cellule ghost pour BC plan symmetry pour faciliter interp Chimere
     _modifGhostSymmetryPlan(t_curvi, depth=2, dim=dim)
 
     #calcul distance paroi si necessaire
@@ -1346,7 +1346,7 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
 # expand=1,2,3   : sorte d'expand des niveaux (1:classque,2:minimum,3:deux niveaux)
 # tinit          : arbre de champ d'avant pour la reprise
 # smoothing      : smooth the front during the front 2 specific treatment in the cases of local refinements
-# balancing      : balance the entire distribution after the octree generation, useful for symetries
+# balancing      : balance the entire distribution after the octree generation, useful for symmetries
 # distrib        : new distribution at the end of prepare1
 #===================================================================================================================
 

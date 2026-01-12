@@ -223,7 +223,7 @@ Setting IBC Type
 
 ---------------------------------------
 
-.. py:function:: Geom.IBM.symetrizePb(tb)
+.. py:function:: Geom.IBM.symmetrizePb(tb)
 
     Add a symmetry plane and symmetrize the body base; input surface must be y>=0 if the symmetry plane is at y=0.
     Creates the geometry for the symmetry plane, the snear and slip IBC type.

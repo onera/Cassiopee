@@ -637,7 +637,7 @@ def addSeparationLine(array, array2):
     return geom.addSeparationLine(array, array2)
 
 def axisym(a, C, axis, angle=360., Ntheta=180, rmod=None):
-    """Create an axisymetrical mesh given an azimuthal 1D or 2D mesh.
+    """Create an axisymmetrical mesh given an azimuthal 1D or 2D mesh.
     Usage: axisym(array, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
     try:
         import Converter

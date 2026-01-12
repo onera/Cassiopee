@@ -24,12 +24,12 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
-/* Symetry */
-/* make a symetric mesh considering the plane passing */
+/* Symmetry */
+/* make a symmetric mesh considering the plane passing */
 /* by (x0,y0,z0) and of director vectors (v1x,v1y,v1z) */
 /* and (v2x,v2y,v2z). */
 // ============================================================================
-PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
+PyObject* K_TRANSFORM::symmetrize(PyObject* self, PyObject* args)
 {
   E_Float x0, y0, z0;
   E_Float v1x, v1y, v1z;
@@ -59,7 +59,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
       delete f;
       if (res == 2) delete cn;
       PyErr_SetString(PyExc_TypeError,
-                      "symetrize: can't find coordinates in array.");
+                      "symmetrize: can't find coordinates in array.");
       return NULL;
     }
     posx++; posy++; posz++;
@@ -86,7 +86,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
     E_Float* yp = f->begin(posy);
     E_Float* zp = f->begin(posz);
 
-    // Symetry
+    // Symmetry
 #pragma omp parallel
     {
         E_Float sigma1, sigma0, dist2;
@@ -114,7 +114,7 @@ PyObject* K_TRANSFORM::symetrize(PyObject* self, PyObject* args)
   else
   {
     PyErr_SetString(PyExc_TypeError,
-                    "symetrize: not a valid array.");
+                    "symmetrize: not a valid array.");
     return NULL;
   }
 }
