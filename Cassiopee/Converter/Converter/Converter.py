@@ -1388,7 +1388,7 @@ def convertArray2Hexa(array):
     else: return convertArray2Hexa1__(array)
 
 def mergeByEltType(array):
-    """Convert a PENTA array to a STRAND array."""
+    """Merge an unstructured array by element type."""
     if isinstance(array[0], list):
         b = []
         for i in array: b.append(converter.mergeByEltType(i))
