@@ -149,6 +149,7 @@ List of functions
     Converter.PyTree.getNobNozOfZone
     Converter.PyTree.breakConnectivity
     Converter.PyTree.mergeConnectivity
+    Converter.PyTree.mergeByEltType
     Converter.PyTree.sliceNGonFaces
     Converter.PyTree.deleteEmptyZones
     Converter.PyTree.addState
@@ -533,6 +534,24 @@ pyTree creation and manipulation
     * `Merge connectivity (pyTree) <Examples/Converter/mergeConnectivityPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/mergeConnectivityPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.mergeByEltType(a)
+
+    Merge an unstructured array by element type, thus ensuring each element type
+    is listed only once. For example, if the input zone is TRI,TRI,QUAD,
+    return a TRI,QUAD zone.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Merge an unstructured array by element type (pyTree) <Examples/Converter/mergeByEltTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/mergeByEltType.py
 
 ---------------------------------------------------------------------------
 

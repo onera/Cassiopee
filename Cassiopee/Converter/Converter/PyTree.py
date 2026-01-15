@@ -7724,6 +7724,20 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                                        value=newc)
     return None
 
+# -- mergeByEltType
+def mergeByEltType(t):
+    """Merge an unstructured array by element type, thus ensuring each element
+    type is listed only once. For example, if the input zone is TRI,TRI,QUAD,
+    return a TRI,QUAD zone.
+    Usage: mergeByEltType(t)"""
+    tp = Internal.copyRef(t)
+    _mergeByEltType(tp)
+    return tp
+
+def _mergeByEltType(t):
+    _TZA3(t, 'both', 'nodes', True, Converter.mergeByEltType)
+    return None
+
 # -- sliceNGonFaces
 def sliceNGonFaces(z, indices=None):
     """Slice an NGON connectivity using a list of face indices. Return two numpy

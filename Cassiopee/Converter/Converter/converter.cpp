@@ -59,6 +59,7 @@ static PyMethodDef Pyconverter [] =
   {"convertHexa2Struct", K_CONVERTER::convertHexa2Struct, METH_VARARGS},
   {"convertUnstruct2NGon", K_CONVERTER::convertUnstruct2NGon, METH_VARARGS},
   {"convertUnstruct2Hexa", K_CONVERTER::convertUnstruct2Hexa, METH_VARARGS},
+  {"mergeByEltType", K_CONVERTER::mergeByEltType, METH_VARARGS},
   {"convertArray2Tetra", K_CONVERTER::convertArray2Tetra, METH_VARARGS},
   {"convertArray2TetraBary", K_CONVERTER::convertArray2TetraBary, METH_VARARGS},
   {"convertArray2TetraBaryBoth", K_CONVERTER::convertArray2TetraBaryBoth, METH_VARARGS},
