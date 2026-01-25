@@ -250,7 +250,7 @@ def computationDistancesNormals(t, tb, dim=3):
     #if Cmpi.rank==0: C.convertPyTree2File(tb2,"tb2.plt")
 
     tc = C.node2Center(t)
-    tb_WD = getBodiesForWallDistanceComputation(tb2)
+    tb_WD = getBodiesForWallDistanceComputation__(tb2)
     DTW._distance2Walls(t, tb_WD, type='ortho', signed=0, dim=3, loc='centers')
     X._applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN')
     C._initVars(t,'{centers:cellNChim}={centers:cellN}')

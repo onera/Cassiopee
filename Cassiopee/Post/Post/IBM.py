@@ -1539,12 +1539,10 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
         if tc2 is None:
             print('Info: loads: pressure gradients come from tc')
-            if order < 2: tc = extractPressureHO(tc, order=1)
-            else: tc = extractPressureHO(tc, order=2)
+            _extractPressureHighOrder(tc, order=order)
         else:
             print('Info: loads: pressure gradients come from tc2')
-            if order < 2: tc2 = extractPressureHO(tc2, order=1)
-            else: tc2 = extractPressureHO(tc2, order=2)
+            _extractPressureHighOrder(tc2, order=order)
 
     #====================================
     # Extraction des grandeurs a la paroi
