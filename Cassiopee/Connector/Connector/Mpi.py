@@ -158,7 +158,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         data = Cmpi.passNext(data)
         (zu, indicesE) = data
         #print(Cmpi.rank, "receive done", zu[0], flush=True)
-        
+
         # identify faces and build matches
         ids = C.identifyElements(hook, zu, tol)
 
