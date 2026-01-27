@@ -972,6 +972,8 @@ def _upgradeZone(z, uncompress=True, upgradeNGon=True):
                 c = Internal.getNodeFromName1(ngon, 'ElementConnectivity')
                 if c is not None and c[1] is not None:
                     Internal._adaptSurfaceNGon(z)
+            # unsign NFACE
+            _unsignNGonFaces(z)
     if uncompress:
         try:
             import Compressor.PyTree as Compressor
@@ -1018,6 +1020,8 @@ def _downgradeZone(z, upgradeNGon=True):
             if PE is not None and PE[1] is not None:
                 import Converter.Check as Check
                 Check._shiftParentElements(z, shift=+1)
+            # resign NFACE
+            _signNGonFaces(z, force=False)
     return None
 
 # Hack pour les arrays en centres avec sentinelle - 1.79769e+308
@@ -8133,15 +8137,28 @@ def convertPyTree2FFD(zone, RefStat, FlowEq, nd):
                                           Internal.__FlowSolutionCenters__)
     return None
 
-def signNGonFaces(t):
-    """Sign NFACE connectivity in NGON zones."""
+def signNGonFaces(t, force=True):
+    """Sign NFACE connectivity in NGON zones. If force is False, conserve
+    signness, ie, check if the node `Signed` is present in the NFACE
+    connectivity of the NGON zone and sign NFACE if `Signed` has a value of 1
+    (meaning the NGon was signed when first read with _unsignNGonFaces).
+    Usage: signNGonFaces(a)"""
     tc = Internal.copyRef(t)
-    _signNGonFaces(tc)
+    _signNGonFaces(tc, force)
     return tc
 
-def _signNGonFaces(t):
+def _signNGonFaces(t, force=True):
     """Sign NFACE connectivity in NGON zones."""
-    __TZGC3(t, Converter._signNGonFaces)
+    zones = Internal.getZones(t)
+    for z in zones:
+        n0 = Internal.getNFaceNode(z)
+        if n0 is None: continue  # not an NGon
+        if force: __TZGC3(z, Converter._signNGonFaces)
+        else:
+            n = Internal.getNodeFromName1(n0, 'Signed')
+            if n is None: continue  # NGon was not signed
+            if Internal.getValue(n) == 1: __TZGC3(z, Converter._signNGonFaces)
+        Internal._rmNodesFromName(n0, 'Signed')
     return None
 
 def unsignNGonFaces(t):
@@ -8157,37 +8174,15 @@ def _unsignNGonFaces(t):
     zones = Internal.getZones(t)
     isSigned = -1
     for z in zones:
+        if isSigned == 0: return None  # assumes consistent signness for all zones
         n0 = Internal.getNFaceNode(z)
-        if n0 is None: return None # not an NGon
-        n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
-        if n is None: return None # not an NGon v4
+        if n0 is None: continue  # not an NGon
         n = Internal.getNodeFromName1(n0, 'Signed')
-        if n is not None: return None # function already called
+        if n is not None: continue  # function already called
         fc = getFields(Internal.__GridCoordinates__, z, api=3)[0]
-        if isSigned != 0 and fc:
-            isSigned = Converter._unsignNGonFaces(fc)
-        if isSigned != -1:
+        if fc != []: isSigned = Converter._unsignNGonFaces(fc)
+        if isSigned == 1:
             Internal._createUniqueChild(n0, 'Signed', 'DataArray_t', value=isSigned)
-    return None
-
-def resignNGonFaces(t):
-    """Resign NFACE connectivity in NGON zones if the node `Signed` is present
-    and has a value of 1 (meaning the NGonv4 was signed when first read)."""
-    tc = Internal.copyRef(t)
-    _resignNGonFaces(tc)
-    return tc
-
-def _resignNGonFaces(t):
-    """Resign NFACE connectivity in NGON zones and delete node `Signed`."""
-    z = Internal.getZones(t)[0]
-    n0 = Internal.getNFaceNode(z)
-    if n0 is None: return None # not an NGon
-    n = Internal.getNodeFromName1(n0, 'ElementStartOffset')
-    if n is None: return None # not an NGon v4
-    n = Internal.getNodeFromName1(n0, 'Signed')
-    if n is None: return None # NGon was not signed
-    Internal._rmNodesFromName(n0, 'Signed')
-    if Internal.getValue(n) == 1: _signNGonFaces(t)
     return None
 
 def makeParentElements(t):

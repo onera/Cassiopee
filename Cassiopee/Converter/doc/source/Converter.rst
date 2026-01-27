@@ -207,6 +207,7 @@ List of functions
     Converter.PyTree.addGhostCells
     Converter.PyTree.rmGhostCells
     Converter.PyTree.signNGonFaces
+    Converter.PyTree.unsignNGonFaces
 
 **-- Array / PyTree analysis**
 
@@ -1859,7 +1860,7 @@ Array / PyTree common manipulations
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.signNGonFaces(t)
+.. py:function:: Converter.PyTree.signNGonFaces(t, force=True)
 
     For NGON zones, sign the NFACE connectivity with cell external normals.
 
@@ -1868,12 +1869,32 @@ Array / PyTree common manipulations
     :param t: tree
     :type t: pyTree
     :rtype: t with signed NFACE
+    :param force: if True, always sign NFACE, else restore signness found when reading the pyTree.
+    :type force: boolean
 
     *Example of use:*
 
     * `Sign NGon faces (pyTree) <Examples/Converter/signNGonFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/signNGonFacesPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.unsignNGonFaces(t)
+
+    For NGON zones, unsign the NFACE connectivity.
+
+    Exists also as in place version (_unsignNGonFaces) that modifies t and returns None.
+
+    :param t: tree
+    :type t: pyTree
+    :rtype: t with unsigned NFACE
+
+    *Example of use:*
+
+    * `Unsign NGon faces (pyTree) <Examples/Converter/unsignNGonFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/unsignNGonFacesPT.py
 
 ---------------------------------------------------------------------------
 

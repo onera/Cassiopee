@@ -42,7 +42,7 @@ void K_CONNECT::connectNG2FE(K_FLD::FldArrayI& cNG, K_FLD::FldArrayI& cFE)
     E_Int* elt = cNG.getElt(i, nf, nface, indPH);
     for (E_Int j = 0; j < nf; j++)
     {
-      fidx = K_FUNC::E_abs(elt[j]) - 1;
+      fidx = elt[j] - 1;
       if (facesp1[fidx] == 0) facesp1[fidx] = i+1;
       else facesp2[fidx] = i+1;
     }

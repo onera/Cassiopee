@@ -1851,7 +1851,7 @@ def _unsignNGonFaces(a):
         isSigned = 1
         for i in a:
             if isSigned == 1: isSigned = converter.unsignNGonFaces(i)
-            else: break # stop if unsigned
+            else: break # stop if unsigned (assume consistent signness)
     else:
         isSigned = converter.unsignNGonFaces(a)
     return isSigned

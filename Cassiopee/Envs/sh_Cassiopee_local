@@ -387,7 +387,8 @@ elif [ "$MAC" = "juno_coda" ]; then
     module purge
     module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
-    module load fmt/8.1.1-gnu831 gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    module load gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    module load fmt/8.1.1-gnu850
     export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
     export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
     module use /stck/rhea/juno_coda_v2025_08/modules/linux-rocky8-x86_64_v3
