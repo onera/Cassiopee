@@ -130,5 +130,6 @@ PyObject *K_XCORE::AdaptMesh_Adapt(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("    Done.");
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

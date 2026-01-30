@@ -77,5 +77,6 @@ PyObject *K_XCORE::icapsule_intersect2(PyObject *self, PyObject *args)
     
     Mf.reconstruct(M);
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

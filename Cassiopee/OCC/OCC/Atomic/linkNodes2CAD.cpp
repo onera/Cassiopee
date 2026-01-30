@@ -318,7 +318,7 @@ PyObject* K_OCC::linkNodes2CAD(PyObject* self, PyObject* args)
   delete [] ptx; delete [] pty; delete [] ptz;
   boxes.clear();
 
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 
 }
@@ -389,7 +389,7 @@ PyObject* K_OCC::updateFcadidFromNcadid(PyObject* self, PyObject* args)
   }
  
   
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 
 }
@@ -477,7 +477,7 @@ PyObject* K_OCC::updateNcadidFromFcadid(PyObject* self, PyObject* args)
     }
   }
  
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 
 }
@@ -704,7 +704,7 @@ PyObject* K_OCC::getNodalParameters(PyObject* self, PyObject* args)
   for (E_Int j=0; j < nfaces; j++) delete allsas[j];
   boxes.clear();
   
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 }
 

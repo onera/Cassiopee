@@ -39,5 +39,6 @@ PyObject *K_XCORE::IntersectMesh_TriangulateFaceSet(PyObject *self,
 
     M->triangulate_face_set();
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

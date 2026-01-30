@@ -267,7 +267,7 @@ PyObject *K_POST::computeGradLSQ(PyObject *self, PyObject *args)
 
   // Check fields
   E_Int fsize = PyList_Size(fields);
-  if (fsize == 0) return Py_None;
+  if (fsize == 0) { Py_INCREF(Py_None); return Py_None; }
 
   // Connectivity
   E_Int ni, nj, nk;

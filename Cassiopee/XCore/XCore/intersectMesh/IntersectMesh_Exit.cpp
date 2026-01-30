@@ -36,5 +36,6 @@ PyObject *K_XCORE::IntersectMesh_Exit(PyObject *self, PyObject *args)
 
     delete M;
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

@@ -262,7 +262,7 @@ PyObject* K_INTERSECTOR::createHMesh(PyObject* self, PyObject* args)
     packet[1] = __createHM<K_MESH::Hexahedron, NUGA::DIR>(crd, cnt, *zid);
   }
 
-  if (packet[1] == nullptr) return Py_None;// the input mesh does not have basic elts
+  if (packet[1] == nullptr) { Py_INCREF(Py_None); return Py_None; } // the input mesh does not have basic elts
 
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
@@ -968,7 +968,7 @@ PyObject* K_INTERSECTOR::assignData2Sensor(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_, &hook_sensor, &dataSensor))
     return nullptr;
   if (dataSensor == Py_None) // nothing to do
-    return Py_None;
+    { Py_INCREF(Py_None); return Py_None; }
 
   // recupere le hook
   int *hook_ss_id{ nullptr }, *sensor_type{ nullptr }, *smoothing_type{ nullptr };

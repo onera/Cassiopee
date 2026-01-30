@@ -159,5 +159,6 @@ PyObject* K_CPLOT::blur(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDS(array, im);
+  Py_INCREF(Py_None);
   return Py_None;
 }

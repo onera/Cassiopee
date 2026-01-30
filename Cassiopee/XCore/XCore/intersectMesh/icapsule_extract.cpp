@@ -106,6 +106,7 @@ PyObject *K_XCORE::icapsule_extract_slaves(PyObject *self, PyObject *args)
 PyObject *K_XCORE::icapsule_extract_slave(PyObject *self, PyObject *args)
 {
     assert(0 && "Unimplemented");
+    Py_INCREF(Py_None);
     return Py_None;
     /*
     PyObject *ICAPSULE;

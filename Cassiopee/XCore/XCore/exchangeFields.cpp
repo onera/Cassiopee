@@ -30,7 +30,7 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
 
   // Process comm data
   E_Int psize = PyList_Size(comm_list);
-  if (psize == 0) return Py_None;
+  if (psize == 0) { Py_INCREF(Py_None); return Py_None; }
 
   // Check array
   E_Int ni, nj, nk;
@@ -65,6 +65,7 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
   E_Int fsize = PyList_Size(flds);
   if (fsize == 0) {
     RELEASESHAREDU(arr, f, cn);
+    Py_INCREF(Py_None);
     return Py_None;
   }
 

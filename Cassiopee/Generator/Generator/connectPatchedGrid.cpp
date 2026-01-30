@@ -57,7 +57,7 @@ PyObject* K_GENERATOR::connectPatchGrid(PyObject* self, PyObject* args)
   else if (K_FUNC::fEqualZero(ymax1-ymin2,eps) == true) nowin1 = 4;
   else if (K_FUNC::fEqualZero(zmin1-zmax2,eps) == true) nowin1 = 5;
   else if (K_FUNC::fEqualZero(zmax1-zmin2,eps) == true) nowin1 = 6;
-  else return Py_None;
+  else { Py_INCREF(Py_None); return Py_None; }
 
   // Check arrays
   E_Int ni1, nj1, nk1;

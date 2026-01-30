@@ -49,5 +49,6 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("OK LoadBalance.");
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

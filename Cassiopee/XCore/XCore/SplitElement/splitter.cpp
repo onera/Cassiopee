@@ -27,6 +27,7 @@ using std::unordered_set;
 // stub
 PyObject *splitElements(PyObject *self, PyObject *args)
 {
+    Py_INCREF(Py_None);
     return Py_None;
 }
 // #include "Memory/vector_view.hpp"

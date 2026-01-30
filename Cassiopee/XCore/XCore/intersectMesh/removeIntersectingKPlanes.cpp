@@ -610,6 +610,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
         assert(inside);
     }
 
+    Py_INCREF(Py_None);
     return Py_None;
     */
 

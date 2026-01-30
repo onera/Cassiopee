@@ -74,7 +74,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
   if (fid < 0)
   {
     printf("Warning: hdfcgnsReadFromPathsPartial: can not open file %s.\n", file);
-    return Py_None;
+    Py_INCREF(Py_None); return Py_None;
   }
   H5Pclose(fapl);
     

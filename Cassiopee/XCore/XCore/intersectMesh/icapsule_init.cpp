@@ -69,6 +69,7 @@ PyObject *K_XCORE::icapsule_set_master(PyObject *self, PyObject *args)
     M.ctag.resize(M.nc);
     memcpy(M.ctag.data(), ctag, M.nc * sizeof(E_Float));
 
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -192,6 +193,7 @@ PyObject *K_XCORE::icapsule_set_slaves(PyObject *self, PyObject *args)
         memcpy(S.ctag.data(), ctags[i], S.nc*sizeof(E_Float));
     }
 
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
