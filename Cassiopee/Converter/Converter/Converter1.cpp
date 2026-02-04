@@ -859,7 +859,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0) // fmt open foam
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not convertedin foam.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in foam.\n"); 
     
     isok = K_IO::GenIO::getInstance()->foamwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
