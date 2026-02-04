@@ -81,7 +81,9 @@ E_Int K_CONNECT::getNFPE(
     }
     else
     {
-      printf("Error in getNFPE: element type unknown or not covered.");
+      PyErr_Format(PyExc_TypeError,
+                   "Error in getNFPE: element type unknown or not covered: %s",
+                   eltTypeConn);
       for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       return 1;
     };

@@ -374,7 +374,7 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
   E_Bool hasCnOffsets = (ngonType == 2 || ngonType == 3);
   
   E_Int nf, nv, extElt, indface;
-  E_Int pos, e1, e2;
+  E_Int e1, e2;
 
   FldArrayI indirFaces(nfaces); indirFaces.setAllValuesAt(-1);
   FldArrayI nface2Temp(sizeEF), indPH2Temp(0);
@@ -415,7 +415,6 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
         if (indirFaces[indface] == -1) 
         {
           cn.getFace(indface, nv, ngon, indPG);
-          sizeFN2 += nv + shift;
           indFaceExt = nExtFaces; nExtFaces++;
           indirFaces[indface] = indFaceExt;
           origIndicesOfExtFaces.push_back(indface);
@@ -439,12 +438,12 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
   FldArrayI ngon2Temp(sizeFN), indPG2Temp(0);
   if (hasCnOffsets) { indPG2Temp.resize(nExtFaces+1); indPG2Temp[0] = 0; }
 
-  pos = 0;
+  sizeFN2 = 0;
   for (E_Int f = 0; f < nExtFaces; f++)
   {
     indface2 = origIndicesOfExtFaces[f];  // starts at 0
     E_Int* face = cn.getFace(indface2, nv, ngon, indPG);
-    ngon2Temp[pos] = nv;
+    ngon2Temp[sizeFN2] = nv;
     if (hasCnOffsets) indPG2Temp[f+1] = indPG2Temp[f] + nv;
     for (E_Int p = 0; p < nv; p++)
     {
@@ -452,13 +451,14 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
       if (indirNodes[indnode] == -1)  // creation
       {
         indirNodes[indnode] = npts2 + 1;
-        ngon2Temp[pos+p+shift] = npts2 + 1;
+        ngon2Temp[sizeFN2+p+shift] = npts2 + 1;
         npts2++;
       }
-      else ngon2Temp[pos+p+shift] = indirNodes[indnode];
+      else ngon2Temp[sizeFN2+p+shift] = indirNodes[indnode];
     }
-    pos += nv + shift;
+    sizeFN2 += nv + shift;
   }
+  ngon2Temp.resize(sizeFN2);
   origIndicesOfExtFaces.clear();
 
   // Reconstruction de la connectivite finale

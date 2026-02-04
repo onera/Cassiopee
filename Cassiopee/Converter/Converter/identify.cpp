@@ -348,8 +348,8 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       E_Float pt[3];
       E_Int ic = 0;
 
+#pragma omp for collapse(3)
       for (E_Int k = 0; k < nke; k++)
-#pragma omp for
       for (E_Int j = 0; j < nje; j++)
       for (E_Int i = 0; i < nie; i++)
       {
@@ -417,6 +417,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       {
         // Acces universel element i
         E_Int* elem = cnl->getElt(i, nf, nface, indPH);
+        std::cout << "nf = " << nf << std::endl;
         xf = 0.; yf = 0.; zf = 0.; c = 0;
 
 #ifdef QUADDOUBLE
@@ -444,6 +445,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           for (E_Int n = 0; n < nf; n++)
           { 
             // Acces universel face elem[n]-1
+            std::cout << "elem[n]-1 = " << elem[n]-1 << std::endl;
             E_Int* face = cnl->getFace(elem[n]-1, nv, ngon, indPG);
             for (E_Int p = 0; p < nv; p++)
             {
@@ -463,12 +465,16 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
   }
   else
   {
+    E_Float* xt = centers->begin(1);
+    E_Float* yt = centers->begin(2);
+    E_Float* zt = centers->begin(3);
+
     // Acces universel sur BE/ME
     E_Int nc = cnl->getNConnect();
     // Acces universel aux eltTypes
     std::vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
-    E_Int nvert, nelts, ntotelts = 0;
+    std::vector<E_Int> nepc(nc+1, 0);
 
     // Boucle sur toutes les connectivites une premiere fois pour savoir si
     // elles sont valides et calculer le nombre total d'elements - permet
@@ -479,39 +485,37 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       char* eltTypConn = eltTypes[ic];
       // Check that this connectivity is valid
       if (not(strcmp(eltTypConn,"BAR")==0 || strcmp(eltTypConn,"TRI")==0 || 
-          strcmp(eltTypConn,"QUAD")==0 || strcmp(eltTypConn,"TETRA")==0 || 
-          strcmp(eltTypConn,"HEXA")==0 || strcmp(eltTypConn,"PENTA")==0 ||
-          strcmp(eltTypConn,"PYRA")==0))
+              strcmp(eltTypConn,"QUAD")==0 || strcmp(eltTypConn,"TETRA")==0 || 
+              strcmp(eltTypConn,"HEXA")==0 || strcmp(eltTypConn,"PENTA")==0 ||
+              strcmp(eltTypConn,"PYRA")==0))
       {
         RELEASESHAREDB(res, array, f, cnl);
-        PyErr_SetString(PyExc_TypeError, 
+        PyErr_SetString(PyExc_TypeError,
                         "identifyElements: invalid type of array.");
         return NULL;
       }
-      ntotelts += cm.getSize();
+      nepc[ic+1] += nepc[ic] + cm.getSize();
     }
 
     for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 
-    ac = K_NUMPY::buildNumpyArray(ntotelts, 1, 1);
+    ac = K_NUMPY::buildNumpyArray(nepc[nc], 1, 1);
     E_Int* nptr = K_NUMPY::getNumpyPtrI(ac);
 
     // Boucle sur toutes les connectivites pour remplir ac
-    for (E_Int ic = 0; ic < nc; ic++)
-    {
-      FldArrayI& cm = *(cnl->getConnect(ic));
-      nelts = cm.getSize(); // Number of elements of this connectivity
-      nvert = cm.getNfld(); // Nombre de points par elements de cette connectivite
-      E_Float inv = 1./E_Float(nvert);
-#ifdef QUADDOUBLE
-      quad_double qinv = quad_double(nvert);
-#endif
-      E_Float* xt = centers->begin(1);
-      E_Float* yt = centers->begin(2);
-      E_Float* zt = centers->begin(3);
-
 #pragma omp parallel default(shared)
+    {
+      for (E_Int ic = 0; ic < nc; ic++)
       {
+        FldArrayI& cm = *(cnl->getConnect(ic));
+        E_Int nelts = cm.getSize();
+        E_Int offset = nepc[ic];
+        E_Int nvpe = cm.getNfld();
+        E_Float inv = 1./E_Float(nvpe);
+#ifdef QUADDOUBLE
+        quad_double qinv = quad_double(nvpe);
+#endif
+
         E_Float pt[3];
         E_Float xf,yf,zf,dx,dy,dz;
         E_Int ind;
@@ -524,7 +528,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
         {
 #ifdef QUADDOUBLE
           qxf = 0.; qyf =0.; qzf = 0.;
-          for (E_Int n = 1; n <= nvert; n++)
+          for (E_Int n = 1; n <= nvpe; n++)
           {
             ind = cm(i,n)-1;
             qxf = qxf+quad_double(xp[ind]);
@@ -541,7 +545,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
             #ifdef __INTEL_COMPILER
             #pragma float_control(precise, on)
             #endif
-            for (E_Int n = 1; n <= nvert; n++)
+            for (E_Int n = 1; n <= nvpe; n++)
             {
               ind = cm(i,n)-1; 
               xf += xp[ind]; yf += yp[ind]; zf += zp[ind];        
@@ -554,14 +558,15 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           ind = globalKdt->getClosest(pt); // closest pt
           dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
           //d = dx*dx + dy*dy + dz*dz;
-          //if (d < tol) nptr[i] = ind+1;
-          //else nptr[i] = -1;
-          if (K_FUNC::E_abs(dx) < tol && K_FUNC::E_abs(dy) < tol && K_FUNC::E_abs(dz) < tol) nptr[i] = ind+1;
-          else nptr[i] = -1;
+          //if (d < tol) nptr[offset+i] = ind+1;
+          //else nptr[offset+i] = -1;
+          if (K_FUNC::E_abs(dx) < tol && K_FUNC::E_abs(dy) < tol && K_FUNC::E_abs(dz) < tol) nptr[offset+i] = ind+1;
+          else nptr[offset+i] = -1;
         }
       }
     }
   }
+
   RELEASESHAREDB(res, array, f, cnl);
   return ac;
 }
