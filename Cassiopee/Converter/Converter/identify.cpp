@@ -417,7 +417,6 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       {
         // Acces universel element i
         E_Int* elem = cnl->getElt(i, nf, nface, indPH);
-        std::cout << "nf = " << nf << std::endl;
         xf = 0.; yf = 0.; zf = 0.; c = 0;
 
 #ifdef QUADDOUBLE
