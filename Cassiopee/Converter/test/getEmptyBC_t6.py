@@ -38,4 +38,3 @@ t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 wins = C.getEmptyBC(t)
 test.testO(wins, 4)
-
