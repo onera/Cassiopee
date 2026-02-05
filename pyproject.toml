@@ -10,18 +10,18 @@ local_scheme = "node-and-date"
 name = "Cassiopee"
 version = "4.1"
 authors = [
-  {name="ONERA", email="christophe.benoit@onera.fr"},
+    {name="ONERA", email="christophe.benoit@onera.fr"},
 ]
 license = {text="LGPLv3"}
 description = "Computational Fluid Dynamics pre- and post-processing python modules"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
-  "Programming Language :: Python",
-  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
-  "Operating System :: Unix",
-  "Operating System :: Microsoft :: Windows",
-  "Topic :: Scientific/Engineering :: Physics"
+    "Programming Language :: Python",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Scientific/Engineering :: Physics"
 ]
 dependencies = [
     "numpy>=1.23.3",
