@@ -18,292 +18,237 @@
 */
 
 # include "transform.h"
-
-using namespace K_FLD;
-using namespace std;
+#include <map>
 
 //=============================================================================
-void K_TRANSFORM::breakMixedElements(
-  FldArrayF& field, FldArrayI& ce,
-  vector<FldArrayI*>& cEV, vector<FldArrayF*>& fields, vector<E_Int>& eltType)
+PyObject* K_TRANSFORM::breakMixedElements(
+  K_FLD::FldArrayF& field, K_FLD::FldArrayI& ce, char* varString
+)
 {
-  E_Int npts = field.getSize(); E_Int nfld = field.getNfld();
+  E_Int npts = field.getSize();
+  E_Int nfld = field.getNfld();
+  E_Int api = field.getApi();
   E_Int* cnp = ce.begin();
-
-  E_Int netbar = 0; E_Int nptsbar = 0;
-  E_Int nettri = 0; E_Int nptstri = 0;
-  E_Int netquad = 0; E_Int nptsquad = 0;
-  E_Int nettetra = 0; E_Int nptstetra = 0;
-  E_Int nethexa = 0; E_Int nptshexa = 0;
-  E_Int netpenta = 0; E_Int nptspenta = 0;
-  E_Int netpyra = 0; E_Int nptspyra = 0;
-
-  // Compte les types d'elements
-  E_Int ps = 0; E_Int ntype;
   E_Int size = ce.getSize();
 
+  // Number of elements per connectivity of the output ME
+  // NB1: 'tmp_' is uncompressed: all possible connectivities listed
+  const E_Int nbuckets = 7;
+  std::vector<E_Int> tmp_nepc2(nbuckets, 0);
+
+  // First pass to get the number of elements of each type
+  E_Int ps = 0; E_Int ntype;
   while (ps < size)
   {
     ntype = cnp[0];
     if (ntype == 3) // BAR
     {
-      netbar += 1; nptsbar += 2;
+      tmp_nepc2[0]++;
       ps += 3; cnp += 3;
     }
     else if (ntype == 5) // TRI
     {
-      nettri += 1; nptstri += 3;
+      tmp_nepc2[1]++;
       ps += 4; cnp += 4;
     }
     else if (ntype == 7) // QUAD
     {
-      netquad += 1; nptsquad += 4;
+      tmp_nepc2[2]++;
       ps += 5; cnp += 5;
     }
     else if (ntype == 10) // TETRA
     {
-      nettetra += 1; nptstetra += 4;
+      tmp_nepc2[3]++;
       ps += 5; cnp += 5;
     }
     else if (ntype == 12) // PYRA
     {
-      netpyra += 1; nptspyra += 5;
+      tmp_nepc2[4]++;
       ps += 6; cnp += 6;
     }
     else if (ntype == 14) // PENTA
     {
-      netpenta += 1; nptspenta += 6;
+      tmp_nepc2[5]++;
       ps += 7; cnp += 7;
     }
     else if (ntype == 17) // HEXA
     {
-      nethexa += 1; nptshexa += 8;
+      tmp_nepc2[6]++;
       ps += 9; cnp += 9;
     }
     else
     {
-      printf("Warning: breakElements: unknow type of element.\n");
+      printf("Warning: breakMixedElements: unknow type of element.\n");
     }
   }
 
-  // Remplit
-  FldArrayI* cEVbarp = new FldArrayI(netbar, 2);
-  FldArrayF* fbarp = new FldArrayF(nptsbar, nfld);
-  FldArrayF& fbar = *fbarp; FldArrayI& cEVbar = *cEVbarp;
-  FldArrayI indirbF(npts); indirbF.setAllValuesAt(-1);
-  E_Int* indirb = indirbF.begin();
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  std::map<E_Int, E_Int> old2newIc;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType2[0] = '\0';
+  if (tmp_nepc2[0] > 0)
+  {
+    old2newIc.insert({0, nc2});
+    strcat(eltType2, "BAR");
+    nc2++;
+  }
+  if (tmp_nepc2[1] > 0)
+  {
+    old2newIc.insert({1, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "TRI");
+    nc2++;
+  }
+  if (tmp_nepc2[2] > 0)
+  {
+    old2newIc.insert({2, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "QUAD");
+    nc2++;
+  }
+  if (tmp_nepc2[3] > 0)
+  {
+    old2newIc.insert({3, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "TETRA");
+    nc2++;
+  }
+  if (tmp_nepc2[4] > 0)
+  {
+    old2newIc.insert({4, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "PYRA");
+    nc2++;
+  }
+  if (tmp_nepc2[5] > 0)
+  {
+    old2newIc.insert({5, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "PENTA");
+    nc2++;
+  }
+  if (tmp_nepc2[6] > 0)
+  {
+    old2newIc.insert({6, nc2});
+    if (nc2 > 0) strcat(eltType2, ",");
+    strcat(eltType2, "HEXA");
+    nc2++;
+  }
 
-  FldArrayI* cEVtrip = new FldArrayI(nettri,3);
-  FldArrayF* ftrip = new FldArrayF(nptstri,nfld);
-  FldArrayF& ftri = *ftrip; FldArrayI& cEVtri = *cEVtrip;
-  FldArrayI indirtF(npts); indirtF.setAllValuesAt(-1);
-  E_Int* indirt = indirtF.begin();
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no elements
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nbuckets; ic++)  // from BAR (0) to HEXA (6)
+  {
+    if (tmp_nepc2[ic] > 0) { nepc2[nc2] = tmp_nepc2[ic]; nc2++; }
+  }
 
-  FldArrayI* cEVquadp = new FldArrayI(netquad,4);
-  FldArrayF* fquadp = new FldArrayF(nptsquad,nfld);
-  FldArrayF& fquad = *fquadp; FldArrayI& cEVquad = *cEVquadp;
-  FldArrayI indirqF(npts); indirqF.setAllValuesAt(-1);
-  E_Int* indirq = indirqF.begin();
+  // Build new ME connectivity
+  PyObject* l = PyList_New(0);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
 
-  FldArrayI* cEVtetrap = new FldArrayI(nettetra,4);
-  FldArrayF* ftetrap = new FldArrayF(nptstetra,nfld);
-  FldArrayF& ftetra = *ftetrap; FldArrayI& cEVtetra = *cEVtetrap;
-  FldArrayI indirttF(npts); indirttF.setAllValuesAt(-1);
-  E_Int* indirtt = indirttF.begin();
+  #pragma omp parallel
+  {
+    // Copy fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = field.begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for nowait
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+    }
+  }
 
-  FldArrayI* cEVpentap = new FldArrayI(netpenta, 6);
-  FldArrayF* fpentap = new FldArrayF(nptspenta, nfld);
-  FldArrayF& fpenta = *fpentap; FldArrayI& cEVpenta = *cEVpentap;
-  FldArrayI indirpF(npts); indirpF.setAllValuesAt(-1);
-  E_Int* indirp = indirpF.begin();
+  for (E_Int ic = 0; ic < nbuckets; ic++) tmp_nepc2[ic] = 0;
 
-  FldArrayI* cEVpyrap = new FldArrayI(netpyra, 5);
-  FldArrayF* fpyrap = new FldArrayF(nptspyra,nfld);
-  FldArrayF& fpyra = *fpyrap; FldArrayI& cEVpyra = *cEVpyrap;
-  FldArrayI indiryF(npts); indiryF.setAllValuesAt(-1);
-  E_Int* indiry = indiryF.begin();
+  std::vector<FldArrayI*> cms2(nc2);
+  for (E_Int ic = 0; ic < nc2; ic++) cms2[ic] = cn2->getConnect(ic);
 
-  FldArrayI* cEVhexap = new FldArrayI(nethexa, 8);
-  FldArrayF* fhexap = new FldArrayF(nptshexa,nfld);
-  FldArrayF& fhexa = *fhexap; FldArrayI& cEVhexa = *cEVhexap;
-  FldArrayI indirhF(npts); indirhF.setAllValuesAt(-1);
-  E_Int* indirh = indirhF.begin();
-
-  E_Int et;
-  cnp = ce.begin();
-  ps = 0;
-  netbar = 0; nptsbar = 0;
-  nettri = 0; nptstri = 0;
-  netquad = 0; nptsquad = 0;
-  nettetra = 0; nptstetra = 0;
-  nethexa = 0; nptshexa = 0;
-  netpenta = 0; nptspenta = 0;
-  netpyra = 0; nptspyra = 0;
-  printf("breaking MIXED\n");
-
+  // Copy connectivities
+  E_Int ic2;
   while (ps < size)
   {
     ntype = cnp[0];
 
-    if (ntype == 3) //BAR
+    if (ntype == 3) // BAR
     {
-      for (E_Int nov = 0; nov < 2; nov++)
+      ic2 = old2newIc[0];
+      for (E_Int j = 1; j <= 2; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirb[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) fbar(nptsbar,eq) = field(et,eq);
-          nptsbar++;
-          indirb[et] = nptsbar;
-        }
+        (*cms2[ic2])(tmp_nepc2[0], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 2; nov++)
-      {
-        cEVbar(netbar, nov+1) = indirb[cnp[nov+1]-1];
-      }
-      netbar++;
+      tmp_nepc2[0]++;
       cnp += 2+1; ps += 2+1;
     }
     else if (ntype == 5) // TRI
     {
-      for (E_Int nov = 0; nov < 3; nov++)
+      ic2 = old2newIc[1];
+      for (E_Int j = 1; j <= 3; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirt[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) ftri(nptstri,eq) = field(et,eq);
-          nptstri++;
-          indirt[et] = nptstri;
-        }
+        (*cms2[ic2])(tmp_nepc2[1], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 3; nov++)
-      {
-        cEVtri(nettri,nov+1) = indirt[cnp[nov+1]-1];
-      }
-      nettri++;
+      tmp_nepc2[1]++;
       cnp += 3+1; ps += 3+1;
     }
     else if (ntype == 7) // QUAD
     {
-      for (E_Int nov = 0; nov < 4; nov++)
+      ic2 = old2newIc[2];
+      for (E_Int j = 1; j <= 4; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirq[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) fquad(nptsquad,eq) = field(et,eq);
-          nptsquad++;
-          indirq[et] = nptsquad;
-        }
+        (*cms2[ic2])(tmp_nepc2[2], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 4; nov++)
-      {
-        cEVquad(netquad,nov+1) = indirq[cnp[nov+1]-1];
-      }
-      netquad++;
+      tmp_nepc2[2]++;
       cnp += 4+1; ps += 4+1;
     }
     else if (ntype == 10) // TETRA
     {
-      for (E_Int nov = 0; nov < 4; nov++)
+      ic2 = old2newIc[3];
+      for (E_Int j = 1; j <= 4; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirtt[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) ftetra(nptstetra,eq) = field(et,eq);
-          nptstetra++;
-          indirtt[et] = nptstetra;
-        }
+        (*cms2[ic2])(tmp_nepc2[3], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 4; nov++)
-      {
-        cEVtetra(nettetra,nov+1) = indirtt[cnp[nov+1]-1];
-      }
-      nettetra++;
+      tmp_nepc2[3]++;
       cnp += 4+1; ps += 4+1;
     }
     else if (ntype == 12) // PYRA
     {
-      for (E_Int nov = 0; nov < 5; nov++)
+      ic2 = old2newIc[4];
+      for (E_Int j = 1; j <= 5; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indiry[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) fpyra(nptspyra,eq) = field(et,eq);
-          nptspyra++;
-          indiry[et] = nptspyra;
-        }
+        (*cms2[ic2])(tmp_nepc2[4], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 5; nov++)
-      {
-        cEVpyra(netpyra,nov+1) = indiry[cnp[nov+1]-1];
-      }
-      netpyra++;
+      tmp_nepc2[4]++;
       cnp += 5+1; ps += 5+1;
     }
     else if (ntype == 14) // PENTA
     {
-      for (E_Int nov = 0; nov < 6; nov++)
+      ic2 = old2newIc[5];
+      for (E_Int j = 1; j <= 6; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirp[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) fpenta(nptspenta,eq) = field(et,eq);
-          nptspenta++;
-          indirp[et] = nptspenta;
-        }
+        (*cms2[ic2])(tmp_nepc2[5], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 6; nov++)
-      {
-        cEVpenta(netpenta,nov+1) = indirp[cnp[nov+1]-1];
-      }
-      netpenta++;
+      tmp_nepc2[5]++;
       cnp += 6+1; ps += 6+1;
     }
     else if (ntype == 17) // HEXA
     {
-      for (E_Int nov = 0; nov < 8; nov++)
+      ic2 = old2newIc[6];
+      for (E_Int j = 1; j <= 8; j++)
       {
-        et = cnp[nov+1]-1;
-        if (indirp[et] == -1)
-        {
-          for (E_Int eq = 1; eq <= nfld; eq++) fhexa(nptshexa,eq) = field(et,eq);
-          nptshexa++;
-          indirh[et] = nptshexa;
-        }
+        (*cms2[ic2])(tmp_nepc2[6], j) = cnp[j];
       }
-      for (E_Int nov = 0; nov < 8; nov++)
-      {
-        cEVhexa(nethexa,nov+1) = indirh[cnp[nov+1]-1];
-      }
-      nethexa++;
+      tmp_nepc2[6]++;
       cnp += 8+1; ps += 8+1;
     }
   }
-  printf("found " SF_D_ " TRI\n", nettri);
-  printf("found " SF_D_ " QUAD\n", netquad);
-  printf("found " SF_D_ " HEXA\n", nethexa);
-  printf("found " SF_D_ " PENTA\n", netpenta);
-  printf("found " SF_D_ " TETRA\n", nettetra);
 
-  // BAR
-  cEVbarp->reAllocMat(netbar,2);
-  cEV.push_back(cEVbarp); fields.push_back(fbarp); eltType.push_back(1);
-  //TRI
-  cEVtrip->reAllocMat(nettri,3);
-  cEV.push_back(cEVtrip); fields.push_back(ftrip); eltType.push_back(2);
-  //QUAD
-  cEVquadp->reAllocMat(netquad,4);
-  cEV.push_back(cEVquadp); fields.push_back(fquadp); eltType.push_back(3);
-  //TETRA
-  cEVtetrap->reAllocMat(nettetra,4);
-  cEV.push_back(cEVtetrap); fields.push_back(ftetrap); eltType.push_back(4);
-  //PYRA
-  cEVpyrap->reAllocMat(netpyra,5);
-  cEV.push_back(cEVpyrap); fields.push_back(fpyrap); eltType.push_back(5);
-  //PENTA
-  cEVpentap->reAllocMat(netpenta,6);
-  cEV.push_back(cEVpentap); fields.push_back(fpentap); eltType.push_back(6);
-  //HEXA
-  cEVhexap->reAllocMat(nethexa,8);
-  cEV.push_back(cEVhexap); fields.push_back(fhexap); eltType.push_back(7);
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  PyList_Append(l, tpl); Py_DECREF(tpl);
+  return l;
 }
