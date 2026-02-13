@@ -204,15 +204,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         hj_core = (ymax_core-ymin_core)/(nj_core-1)
         hk_core = (zmax_core-zmin_core)/(nk_core-1)
         h_core = min(hi_core, hj_core)
-        if dim == 3:
-            h_core = min(h_core, hk_core)
-            h_core = min(h_core, 8.*minSnear)
+        if dim == 3: h_core = min(h_core, hk_core)
         if dim == 2:
             zmin = 0; zmax = 0
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
-            # Pull request note: h_core may cause regressions in the mesh generation
-            h_core = min(h_core, 16.*minSnear)
+        # Pull request note: h_core may cause regressions in the mesh generation
+        h_core = min(h_core, 4.*minSnear)
 
         # Do not extend the CartCore beyond the symmetry plane (symClose)
         if dir_sym > 0 and tbLocal[0] in listShiftBase:
