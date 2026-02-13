@@ -229,9 +229,9 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         bndy_treat.append(treatment)
 
     discParaDict = {
-      **discParaDictTmp,
-      "boundary treatments": bndy_treat
-      }
+        **discParaDictTmp,
+        "boundary treatments": bndy_treat
+    }
 
     alpha    = discParaDict["reference state"]["flow direction specification"]["angle of attack"]
     beta     = discParaDict["reference state"]["flow direction specification"]["angle of sideslip"]
@@ -253,16 +253,16 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     velZRef = velooRef*numpy.sin(alpha_rad)
 
     dictReferenceQuantities = {
-      "Mach_ref" : Mach,
-      "Reynolds_ref" : Reynolds,
-      "pressure_ref" : pressureRef,
-      "density_ref" : densityRef,
-      "velX_ref" : velXRef,
-      "velY_ref" : velYRef,
-      "velZ_ref" : velZRef,
-      "alpha" : alpha,
-      "beta" : beta,
-      "Sref": Aref,
+        "Mach_ref" : Mach,
+        "Reynolds_ref" : Reynolds,
+        "pressure_ref" : pressureRef,
+        "density_ref" : densityRef,
+        "velX_ref" : velXRef,
+        "velY_ref" : velYRef,
+        "velZ_ref" : velZRef,
+        "alpha" : alpha,
+        "beta" : beta,
+        "Sref": Aref,
     }
 
     clac   = FSClac()
