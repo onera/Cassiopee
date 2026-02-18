@@ -1,6 +1,5 @@
 #from distutils.core import setup, Extension
 from setuptools import setup, Extension
-import KCore.config
 import os
 
 #=============================================================================
@@ -12,42 +11,43 @@ import os
 # optional: PNG, MPEG, OSMesa
 #=============================================================================
 
-# If you want to use CPlot as a offscreen plotter (as on clusters)
-# set UseOSMesa to True (requires mesa)
-UseOSMesa = KCore.config.CPlotOffScreen
-
-# Write setup.cfg
 import KCore.Dist as Dist
+UseOSMesa = True
+
+# Compiler settings must be set in installBase.py / installBaseUser.py
+f77compiler = Dist.getf77Compiler()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalLibs = Dist.getAdditionalLibs()
+
+# Write setup.cfg file
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 libraries = ["GLU", "kcore", "Xi", "Xmu", "rt"]
-from KCore.config import *
 if not UseOSMesa: libraries += ["GL"]
 
 #libraryDirs = [kcoreLibDir]
 libraryDirs = [kcoreLibDir, '/usr/X11R6/lib64']
 includeDirs = [numpyIncDir, kcoreIncDir]
 
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Test if PNG exists =========================================================
-(png, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,
-                                         additionalIncludePaths)
+(png, pngIncDir, pngLib) = Dist.checkPng()
 if png:
     libraries += ["png"]
     libraryDirs += [pngLib]
     includeDirs += [pngIncDir]
 
 # Test if MPEG exists =========================================================
-(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                             additionalIncludePaths)
+(mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg()
 if mpeg:
     libraries += ["avcodec"]
     libraryDirs += [mpegLib]
@@ -56,8 +56,7 @@ if mpeg:
 # Test if OSMesa exists =======================================================
 # Put this to True for using CPlot in batch mode
 if UseOSMesa:
-    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa(additionalLibPaths,
-                                                         additionalIncludePaths)
+    (OSMesa, OSMesaIncDir, OSMesaLib) = Dist.checkOSMesa()
     if OSMesa:
         libraries += ["OSMesa"]
         libraryDirs += [OSMesaLib]
@@ -91,6 +90,7 @@ setup(
     version="4.1",
     description="A plotter for *Cassiopee* Modules.",
     author="ONERA",
+    url="https://onera.github.io/Cassiopee/",
     package_dir={"":"."},
     packages=['CPlot'],
     ext_modules=extensions

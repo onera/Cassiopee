@@ -75,7 +75,7 @@ static int newton3(E_Float p[4], E_Float x[3])
   E_Float b,c,d,da,db,dc,epsd;
   E_Float delta,fx,dfx,dxx;
   E_Float fdx0,fdx1,dx0,dx1,x1,x2;
-  int it, n;
+  E_Int it, n;
   static char mmgWarn=0;
 
   /* coeffs polynomial, a=1 */
@@ -107,7 +107,8 @@ static int newton3(E_Float p[4], E_Float x[3])
   x1 = -db / 6.0f;
 
   n = 1;
-  if ( delta > epsd ) {
+  if ( delta > epsd ) 
+  {
     delta = sqrt(delta);
     dx0   = (-db + delta) / 6.0;
     dx1   = (-db - delta) / 6.0;
@@ -115,7 +116,8 @@ static int newton3(E_Float p[4], E_Float x[3])
     fdx0 = d + dx0*(c+dx0*(b+dx0));
     fdx1 = d + dx1*(c+dx1*(b+dx1));
 
-    if ( fabs(fdx0) < EIGENV_EPSD ) {
+    if ( fabs(fdx0) < EIGENV_EPSD ) 
+    {
       /* dx0: double root, compute single root */
       n = 2;
       x[0] = dx0;
@@ -123,7 +125,8 @@ static int newton3(E_Float p[4], E_Float x[3])
       x[2] = -b - 2.0*dx0;
       /* check if P(x) = 0 */
       fx = d + x[2]*(c+x[2]*(b+x[2]));
-      if ( fabs(fx) > EIGENV_EPSD2 ) {
+      if ( fabs(fx) > EIGENV_EPSD2 ) 
+      {
 #ifdef DEBUG
          fprintf(stderr,"\n  ## Error: %s: ERR 9100, newton3: fx= %E.\n",
                  __func__,fx);
@@ -132,7 +135,8 @@ static int newton3(E_Float p[4], E_Float x[3])
       }
       return n;
     }
-    else if ( fabs(fdx1) < EIGENV_EPSD ) {
+    else if ( fabs(fdx1) < EIGENV_EPSD ) 
+    {
       /* dx1: double root, compute single root */
       n = 2;
       x[0] = dx1;
@@ -140,7 +144,8 @@ static int newton3(E_Float p[4], E_Float x[3])
       x[2] = -b - 2.0*dx1;
       /* check if P(x) = 0 */
       fx = d + x[2]*(c+x[2]*(b+x[2]));
-      if ( fabs(fx) > EIGENV_EPSD2 ) {
+      if ( fabs(fx) > EIGENV_EPSD2 ) 
+      {
 #ifdef DEBUG
         fprintf(stderr,"\n  ## Error: %s: ERR 9100, newton3: fx= %E.\n",
                 __func__,fx);
@@ -151,7 +156,8 @@ static int newton3(E_Float p[4], E_Float x[3])
     }
   }
 
-  else if ( fabs(delta) < epsd ) {
+  else if ( fabs(delta) < epsd ) 
+  {
     /* triple root */
     n = 3;
     x[0] = x1;
@@ -159,7 +165,8 @@ static int newton3(E_Float p[4], E_Float x[3])
     x[2] = x1;
     /* check if P(x) = 0 */
     fx = d + x[0]*(c+x[0]*(b+x[0]));
-    if ( fabs(fx) > EIGENV_EPSD2 ) {
+    if ( fabs(fx) > EIGENV_EPSD2 ) 
+    {
 #ifdef DEBUG
       fprintf(stderr,"\n  ## Error: %s: ERR 9100, newton3: fx= %E.\n",
               __func__,fx);
@@ -169,7 +176,8 @@ static int newton3(E_Float p[4], E_Float x[3])
     return n;
   }
 
-  else {
+  else 
+  {
 #ifdef DEBUG
     fprintf(stderr,"\n  ## Error: %s: ERR 9101, newton3: no real roots.\n",
             __func__);
@@ -183,10 +191,12 @@ static int newton3(E_Float p[4], E_Float x[3])
   dfx =  c + b*x1;
   fx  = d + x1*(c -2.0*x1*x1);
   it  = 0;
-  do {
+  do 
+  {
     x2 = x1 - fx / dfx;
     fx = d + x2*(c+x2*(b+x2));
-    if ( fabs(fx) < EIGENV_EPSD ) {
+    if ( fabs(fx) < EIGENV_EPSD ) 
+    {
       x[0] = x2;
       break;
     }
@@ -194,9 +204,11 @@ static int newton3(E_Float p[4], E_Float x[3])
 
     /* check for break-off condition */
     dxx = fabs((x2-x1) / x2);
-    if ( dxx < 1.0e-10 ) {
+    if ( dxx < 1.0e-10 ) 
+    {
       x[0] = x2;
-      if ( fabs(fx) > EIGENV_EPSD2 ) {
+      if ( fabs(fx) > EIGENV_EPSD2 ) 
+      {
         fprintf(stderr,"\n  ## Error: %s: ERR 9102, newton3, no root found"
                 " (fx %E).\n",
                 __func__,fx);
@@ -209,10 +221,12 @@ static int newton3(E_Float p[4], E_Float x[3])
   }
   while ( ++it < MAXITER );
 
-  if ( it == MAXITER ) {
+  if ( it == MAXITER ) 
+  {
     x[0] = x1;
     fx   = d + x1*(c+(x1*(b+x1)));
-    if ( fabs(fx) > EIGENV_EPSD2 ) {
+    if ( fabs(fx) > EIGENV_EPSD2 ) 
+    {
       fprintf(stderr,"\n  ## Error: %s: ERR 9102, newton3, no root found"
               " (fx %E).\n",
               __func__,fx);
@@ -222,11 +236,12 @@ static int newton3(E_Float p[4], E_Float x[3])
 
   /* solve 2nd order equation
      P(x) = (x-sol(1))* (x^2+bb*x+cc)  */
-  db    = b + x[0];
-  dc    = c + x[0]*db;
+  db = b + x[0];
+  dc = c + x[0]*db;
   delta = db*db - 4.0*dc;
 
-  if ( delta <= 0.0 ) {
+  if ( delta <= 0.0 ) 
+  {
     fprintf(stderr,"\n  ## Error: %s: ERR 9103, newton3, det = 0.\n",__func__);
     return 0;
   }
@@ -238,13 +253,15 @@ static int newton3(E_Float p[4], E_Float x[3])
 #ifdef DEBUG
   /* check for root accuracy */
   fx = d + x[1]*(c+x[1]*(b+x[1]));
-  if ( fabs(fx) > EIGENV_EPSD2 ) {
+  if ( fabs(fx) > EIGENV_EPSD2 ) 
+  {
     fprintf(stderr,"\n  ## Error: %s: ERR 9104, newton3: fx= %E  x= %E.\n",
             __func__,fx,x[1]);
     return 0;
   }
   fx = d + x[2]*(c+x[2]*(b+x[2]));
-  if ( fabs(fx) > EIGENV_EPSD2 ) {
+  if ( fabs(fx) > EIGENV_EPSD2 ) 
+  {
     fprintf(stderr,"\n  ## Error: %s: ERR 9104, newton3: fx= %E  x= %E.\n",
             __func__,fx,x[2]);
     return 0;
@@ -278,13 +295,15 @@ int check_accuracy(E_Float mat[6], E_Float lambda[3], E_Float v[3][3],
 {
   E_Float err,tmpx,tmpy,tmpz;
   E_Float m[6];
-  int i,j,k;
+  E_Int i,j,k;
 
   if ( !symmat ) return 1;
 
   k = 0;
-  for (i=0; i<3; i++) {
-    for (j=i; j<3; j++) {
+  for (i=0; i<3; i++) 
+  {
+    for (j=i; j<3; j++) 
+    {
       m[k++] = lambda[0]*v[i][0]*v[j][0]
         + lambda[1]*v[i][1]*v[j][1]
         + lambda[2]*v[i][2]*v[j][2];
@@ -294,7 +313,8 @@ int check_accuracy(E_Float mat[6], E_Float lambda[3], E_Float v[3][3],
   for (i=1; i<6; i++)
     if ( fabs(m[i]-mat[i]) > err )  err = fabs(m[i]-mat[i]);
 
-  if ( err > 1.e03*maxm ) {
+  if ( err > 1.e03*maxm ) 
+  {
     fprintf(stderr,"\n  ## Error: %s:\nProbleme eigenv3: err= %f\n",__func__,err*maxm);
     fprintf(stderr,"\n  ## Error: %s:mat depart :\n",__func__);
     fprintf(stderr,"\n  ## Error: %s:%13.6f  %13.6f  %13.6f\n",__func__,mat[0],mat[1],mat[2]);
@@ -314,7 +334,7 @@ int check_accuracy(E_Float mat[6], E_Float lambda[3], E_Float v[3][3],
     fprintf(stderr,"\n  ## Error: %s:v2.v3 = %.14f\n",__func__,
             v[1][0]*v[2][0]+v[1][1]*v[2][1]+ v[1][2]*v[2][2]);
 
-    fprintf(stderr,"\n  ## Error: %s:Consistency\n",__func__);
+    fprintf(stderr,"\n  ## Error: %s:Consistency\n", __func__);
     for (i=0; i<3; i++) 
     {
       tmpx = v[0][i]*m[0] + v[1][i]*m[1]
@@ -389,9 +409,9 @@ inline E_Int eigenv(E_Int symmat, E_Float* mat, E_Float lambda[3], E_Float v[3][
     if ( valm > maxd )  maxd = valm;
     if ( maxd < EIGENV_EPSD )  return 1;
 
-    a21  = a12;
-    a31  = a13;
-    a32  = a23;
+    a21 = a12;
+    a31 = a13;
+    a32 = a23;
 
     /* build characteristic polynomial
        P(X) = X^3 - trace X^2 + (somme des mineurs)X - det = 0 */
@@ -628,7 +648,7 @@ inline E_Int eigenv(E_Int symmat, E_Float* mat, E_Float lambda[3], E_Float v[3][
   lambda[2] *= maxm;
 
   /* check accuracy */
-  if ( getenv("MEIGENV_DDEBUG") && symmat ) 
+  if ( symmat ) 
   {
     if ( !check_accuracy ( mat, lambda, v, w1, w2, w3, maxm, n, symmat ) )
       return 0;
@@ -651,7 +671,7 @@ inline E_Int eigen2(E_Float* mm, E_Float* lambda, E_Float vp[2][2])
   E_Float m[3],dd,a1,xn,ddeltb,rr1,rr2,ux,uy;
 
   /* normalize */
-  memcpy(m,mm,3*sizeof(E_Float));
+  memcpy(m, mm, 3*sizeof(E_Float));
   xn = fabs(m[0]);
   if ( fabs(m[1]) > xn )  xn = fabs(m[1]);
   if ( fabs(m[2]) > xn )  xn = fabs(m[2]);
@@ -677,28 +697,33 @@ inline E_Int eigen2(E_Float* mm, E_Float* lambda, E_Float vp[2][2])
   }
 
   /* eigenvalues of jacobian */
-  a1     = -(m[0] + m[2]);
+  a1 = -(m[0] + m[2]);
   ddeltb = a1*a1 - 4.0 * (m[0]*m[2] - m[1]*m[1]);
 
-  if ( ddeltb < 0.0 ) {
+  if ( ddeltb < 0.0 ) 
+  {
     fprintf(stderr,"\n  ## Error: %s: Delta: %f\n",__func__,ddeltb);
     ddeltb = 0.0;
   }
   ddeltb = sqrt(ddeltb);
 
-  if ( fabs(a1) < EIGENV_EPS ) {
+  if ( fabs(a1) < EIGENV_EPS ) 
+  {
     rr1 = 0.5 * sqrt(ddeltb);
     rr2 = -rr1;
   }
-  else if ( a1 < 0.0 ) {
+  else if ( a1 < 0.0 ) 
+  {
     rr1 = 0.5 * (-a1 + ddeltb);
     rr2 = (-m[1]*m[1] + m[0]*m[2]) / rr1;
   }
-  else if ( a1 > 0.0 ) {
+  else if ( a1 > 0.0 ) 
+  {
     rr1 = 0.5 * (-a1 - ddeltb);
     rr2 = (-m[1]*m[1] + m[0]*m[2]) / rr1;
   }
-  else {
+  else 
+  {
     rr1 = 0.5 * ddeltb;
     rr2 = -rr1;
   }

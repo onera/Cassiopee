@@ -223,7 +223,8 @@ elif [ "$MAC" = "visung_gcc" ]; then
     module load socle-cfd/7.0-gnu850-ompi502
     module load emacs/27.2-gnu831
     export PYTHONEXE=python3
-    export OMP_NUM_THREADS=72
+    export OMP_NUM_THREADS=36
+    export OMP_PLACES=cores
     export PRODMODE=1
 
 elif [ "$MAC" = "visung" ]; then
@@ -236,7 +237,8 @@ elif [ "$MAC" = "visung" ]; then
     module load emacs/27.2-gnu831
     module load socle-cfd/6.0-intel2220-impi
     export PYTHONEXE=python3
-    export OMP_NUM_THREADS=72
+    export OMP_NUM_THREADS=36
+    export OMP_PLACES=cores
     export PRODMODE=1
     export I_MPI_FABRICS=shm
 
@@ -678,25 +680,24 @@ if ! [ -z $PATHL ]; then
 fi
 
 if [ "$PYTHONEXE" = "python3" ]; then
-    pyversion="python"`python3 -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+    pylib=$($PYTHONEXE -c 'import os; import site; a = site.getsitepackages()[0].split("/")[-4:-2]; print(os.path.join(*a) if a[0] == "local" else a[1])' 2>/dev/null)
+    pysite=$($PYTHONEXE -c 'import os; import site; a = site.getsitepackages()[0].split("/")[-4:]; print(os.path.join(*a) if a[0] == "local" else os.path.join(*a[1:]))' 2>/dev/null)
     alias python=python3
 else
+    pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
     pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
-fi
-# Detect if pyenv is used
-pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
-
-pylib="lib"
-if [ "$MAC" = "ubuntu" ] && [ "$pyenv" == "False" ]; then
-    pylib="local/"$pylib
-    pysite="dist-packages"
-else
-    pysite="site-packages"
+    if [ "$MAC" = "ubuntu" ] && [ "$pyenv" == "False" ]; then
+        pylib="local/lib"
+        pysite=$pylib/$pyversion/"dist-packages"
+    else
+        pylib="lib"
+        pysite=$pylib/$pyversion/"site-packages"
+    fi
 fi
 
 export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
 export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"
-export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"/"$pyversion"/"$pysite"
+export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pysite"
 
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths

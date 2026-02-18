@@ -286,15 +286,15 @@ E_Int K_OCC::CADviaOCC::__eval_nb_points2(const BRepAdaptor_Curve& C, E_Float u0
 E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float u0, E_Float u1, E_Float& dmax)
 {
   gp_Pnt pu0;
-  C.D0 (u0, pu0);
+  C.D0(u0, pu0);
   gp_Pnt pu1;
-  C.D0 (u1, pu1);
+  C.D0(u1, pu1);
     
   gp_Pnt pu, P0, P1;
   E_Float Pu[3], Pm[3];
   
-  C.D0 (u0, P0);
-  C.D0 (u1, P1);
+  C.D0(u0, P0);
+  C.D0(u1, P1);
   
   dmax = -1;
   
@@ -303,7 +303,7 @@ E_Int K_OCC::CADviaOCC::__eval_chordal_error(const BRepAdaptor_Curve& C, E_Float
   {
     E_Float u = u0 + 0.25 * (n+1) * (u1-u0);
     
-    C.D0 (u, pu);
+    C.D0(u, pu);
     Pu[0] = pu.X(); Pu[1] = pu.Y(); Pu[2] = pu.Z();
     
     Pm[0] = P0.X() + 0.25 * (n+1) * (P1.X() - P0.X());
@@ -367,9 +367,9 @@ E_Int K_OCC::CADviaOCC::mesh_edges(K_FLD::FloatArray& coords, std::vector<K_FLD:
 
 E_Int K_OCC::CADviaOCC::__remove_degenerated(K_FLD::IntArray& connectE)
 {
-  E_Int                       Si, COLS(connectE.cols()), ROWS(2);
-  K_FLD::IntArray::iterator   pS;
-  K_FLD::IntArray             connectOut;
+  E_Int Si, COLS(connectE.cols()), ROWS(2);
+  K_FLD::IntArray::iterator pS;
+  K_FLD::IntArray connectOut;
   
   connectOut.reserve(ROWS, COLS);
 
@@ -378,8 +378,7 @@ E_Int K_OCC::CADviaOCC::__remove_degenerated(K_FLD::IntArray& connectE)
   {
     pS = connectE.col(Si);
     
-    if (*pS != *(pS+1))
-      connectOut.pushBack(pS, pS+ ROWS);
+    if (*pS != *(pS+1)) connectOut.pushBack(pS, pS+ ROWS);
   }
 
   connectE = connectOut;

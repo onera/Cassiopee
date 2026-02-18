@@ -236,7 +236,7 @@ def extractIBMWallFields(pytree,tb,discSelectionParaDict,tempViscFlag=False):
     #This is a workaround for the function P_IBM.extractIBMWallFields, which projects the variable "Temperature" and not the "ViscosityMolecular". -> We put then the viscosity into a node called "Temperature".
     if tempViscFlag:
         Internal.getNodeFromName(info,"Temperature")[1] = Internal.getNodeFromName(info,"ViscosityMolecular")[1]
-    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[])#, front=1)
+    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=True, isPreProjectOrtho=True)#, front=1)
     if discSelectionParaDict["PDE"]=="Euler":
         C._initVars(zw,"utau",0)
         C._initVars(zw,"yplus",0)
@@ -497,6 +497,7 @@ def intersectObstacleMesh(t, surf_detail,list_bcs):
         zbc = T.join(zbc)
         zbcs.append(zbc)
         if bctype.startswith("BCWall"):
+            nobc = i
             wall_clean = zbc
 
     #4: intersect surfaces

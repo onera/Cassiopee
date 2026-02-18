@@ -123,7 +123,6 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 
   //printf("nfaces=%d, npts=%d\n", nfaces, npts); fflush(stdout);
   //npts = 500;
-  
 
 #pragma omp parallel
   {
@@ -184,6 +183,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
         catch (StdFail_NotDone& e)
         { 
           //printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); 
+          ptx[i] = K_CONST::E_MAX_FLOAT;
+          pty[i] = K_CONST::E_MAX_FLOAT;
+          ptz[i] = K_CONST::E_MAX_FLOAT;
+        }
+        catch (Standard_NullObject& e)
+        {
+          //printf("Face is NULL for point %g %g %g\n", px[i],py[i],pz[i]); 
           ptx[i] = K_CONST::E_MAX_FLOAT;
           pty[i] = K_CONST::E_MAX_FLOAT;
           ptz[i] = K_CONST::E_MAX_FLOAT;

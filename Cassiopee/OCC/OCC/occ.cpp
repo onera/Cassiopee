@@ -17,6 +17,13 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define K_ARRAY_UNIQUE_SYMBOL
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
+
 #include "occ.h"
 #include "Standard_Version.hxx"
 
@@ -33,6 +40,7 @@ static PyMethodDef Pyocc [] =
   {"writeCAD", K_OCC::writeCAD, METH_VARARGS},
   {"createEmptyCAD", K_OCC::createEmptyCAD, METH_VARARGS},
   {"mergeCAD", K_OCC::mergeCAD, METH_VARARGS},
+  {"_mergeCAD", K_OCC::_mergeCAD, METH_VARARGS},
   {"freeHook", K_OCC::freeHook, METH_VARARGS},
   
   {"printOCAF", K_OCC::printOCAF, METH_VARARGS},
@@ -40,12 +48,14 @@ static PyMethodDef Pyocc [] =
   {"getFaceNameInOCAF", K_OCC::getFaceNameInOCAF, METH_VARARGS},
   {"getFaceNameInOCAF2", K_OCC::getFaceNameInOCAF2, METH_VARARGS},
   {"getEdgeNameInOCAF2", K_OCC::getEdgeNameInOCAF2, METH_VARARGS},
-  
+
   {"bottle", K_OCC::bottle, METH_VARARGS},
   {"addSphere", K_OCC::addSphere, METH_VARARGS},
   {"addCylinder", K_OCC::addCylinder, METH_VARARGS},
   {"addBox", K_OCC::addBox, METH_VARARGS},
+  {"addBox2", K_OCC::addBox2, METH_VARARGS},
   {"addSquare", K_OCC::addSquare, METH_VARARGS},
+  {"addSquare2", K_OCC::addSquare2, METH_VARARGS},
   {"addLine", K_OCC::addLine, METH_VARARGS},
   {"addCircle", K_OCC::addCircle, METH_VARARGS},
   {"addEllipse", K_OCC::addEllipse, METH_VARARGS},
@@ -78,24 +88,29 @@ static PyMethodDef Pyocc [] =
   {"updateNcadidFromFcadid", K_OCC::updateNcadidFromFcadid, METH_VARARGS},
   {"getNodalParameters", K_OCC::getNodalParameters, METH_VARARGS},
   {"trimesh", K_OCC::trimesh, METH_VARARGS},
+  {"occmesh", K_OCC::occmesh, METH_VARARGS},
 
   {"meshOneEdge", K_OCC::meshOneEdge, METH_VARARGS},
   {"meshEdgesOfFace", K_OCC::meshEdgesOfFace, METH_VARARGS},
 
   {"analyseEdges", K_OCC::analyseEdges, METH_VARARGS},
   {"getFaceArea", K_OCC::getFaceArea, METH_VARARGS},
+  {"getBoundingBox", K_OCC::getBoundingBox, METH_VARARGS},
   {"getFaceOrientation", K_OCC::getFaceOrientation, METH_VARARGS},
   {"areEdgeIdentical", K_OCC::areEdgeIdentical, METH_VARARGS},
 
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"splitEdge", K_OCC::splitEdge, METH_VARARGS},
-  {"fixShape", K_OCC::fixShape, METH_VARARGS},
-  {"sewing", K_OCC::sewing, METH_VARARGS},
-  {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
-  {"fillHole", K_OCC::fillHole, METH_VARARGS},
-  {"addFillet", K_OCC::addFillet, METH_VARARGS},
   {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
   {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
+  {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
+
+  {"fixShape", K_OCC::fixShape, METH_VARARGS},
+  {"sewing", K_OCC::sewing, METH_VARARGS},
+
+  {"fillHole", K_OCC::fillHole, METH_VARARGS},
+  {"addFillet", K_OCC::addFillet, METH_VARARGS},
+  {"offset", K_OCC::offset, METH_VARARGS},
   
   {"loft", K_OCC::loft, METH_VARARGS},
   {"sweep", K_OCC::sweep, METH_VARARGS},

@@ -302,7 +302,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   E_Bool center0 = false;
   char* eltType0 = new char[K_ARRAY::VARSTRINGLENGTH];
   eltType0[0] = '\0';
-  E_Bool arrValid[n];
+  E_Bool* arrValid = new E_Bool [n];
 
   for (E_Int l = 0; l < n; l++)
   {
@@ -404,6 +404,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
     for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
     delete [] varString2;
     delete [] eltType0;
+    delete [] arrValid;
     return NULL;
   }
 
@@ -478,6 +479,7 @@ PyObject* K_CONVERTER::addVars(PyObject* self, PyObject* args)
   for (size_t i = 0; i < vars.size(); i++) delete [] vars[i];
   delete [] varString2;
   delete [] eltType0;
+  delete [] arrValid;
   RELEASESHAREDS(tpl, f2);
 
   return tpl;

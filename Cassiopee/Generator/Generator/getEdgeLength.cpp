@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getMaxLength
+// getEdgeLength
 
 # include "generator.h"
 
@@ -27,13 +27,13 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Return max length of a cell */
+/* Return max (0), min (1), ratio (2), mean (3) of edge length for each cell */
 // ============================================================================
-PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getEdgeLength(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  E_Int dimPb;
-  if (!PYPARSETUPLE_(args, O_ I_, &array, &dimPb)) return NULL;
+  E_Int dimPb; E_Int type;
+  if (!PYPARSETUPLE_(args, O_ II_, &array, &type, &dimPb)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -46,13 +46,13 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
   if (dim != 2 && dim != 3) 
   {
     PyErr_SetString(PyExc_ValueError,
-                    "getMaxLength: dim must be equal to 2 or 3.");
+                    "getEdgeLength: dim must be equal to 2 or 3.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   if (res != 1 && res != 2)
   {    
     PyErr_SetString(PyExc_TypeError,
-                    "getMaxLength: unknown type of array.");
+                    "getEdgeLength: unknown type of array.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   
@@ -62,7 +62,7 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
   if (posx == -1 || posy == -1 || posz == -1)
   {
     PyErr_SetString(PyExc_ValueError,
-                    "getMaxLength: cannot find coordinates in array.");
+                    "getEdgeLength: cannot find coordinates in array.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
@@ -83,27 +83,27 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (jm == 1) jm1 = 1;
     if (km == 1) km1 = 1;
       
-    tpl = K_ARRAY::buildArray3(1, "MaxLength", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "EdgeLength", im1, jm1, km1, api);
     FldArrayF* field; 
     K_ARRAY::getFromArray3(tpl, field);
 
     E_Int ret = K_COMPGEOM::getEdgeLength(
       xt, yt, zt, im, jm, km, 
-      NULL, NULL, dim, 0, field->begin()
+      NULL, NULL, dim, type, field->begin()
     );
     RELEASESHAREDS(tpl, field);
     RELEASESHAREDS(array, f);
     if (ret == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getMaxLength: failed.");
+                      "getEdgeLength: failed.");
       return NULL;
     }
     return tpl;
   }
   else
   {
-    tpl = K_ARRAY::buildArray3(1, "MaxLength", f->getSize(), *cn, eltType, 1, api);
+    tpl = K_ARRAY::buildArray3(1, "EdgeLength", f->getSize(), *cn, eltType, 1, api);
     FldArrayF* field; 
     K_ARRAY::getFromArray3(tpl, field);
     E_Int ret = K_COMPGEOM::getEdgeLength(
@@ -115,7 +115,7 @@ PyObject* K_GENERATOR::getMaxLength(PyObject* self, PyObject* args)
     if (ret == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getMaxLength: failed.");
+                      "getEdgeLength: failed.");
       return NULL;          
     }
     return tpl;

@@ -88,8 +88,8 @@ namespace DELAUNAY
 
     SurfaceMesherMode():MesherMode(), chordal_error(0.01), metric_mode(ISO_RHO){}
 
-    E_Float     chordal_error;
-    GMmode      metric_mode;
+    E_Float chordal_error;
+    GMmode metric_mode;
   };
 }
 

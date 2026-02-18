@@ -44,13 +44,12 @@
 PyObject* K_OCC::addSplineSurface(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* opc; E_Int method = 0; E_Int degree = 3;
-  if (!PYPARSETUPLE_(args, OO_ II_, &hook, &opc, &method, &degree)) return NULL;
+  char* name;
+  if (!PYPARSETUPLE_(args, OO_ II_ S_, &hook, &opc, &method, &degree, &name)) return NULL;
 
   printf("INFO: addSplineSurface: method=%d, degree=%d\n", method, degree);
 
   GETSHAPE;
-  GETMAPSURFACES;
-  GETMAPEDGES;
 
   /* get control points (method0) or through points (method1) */
   E_Int im, jm, km;
@@ -145,6 +144,25 @@ PyObject* K_OCC::addSplineSurface(PyObject* self, PyObject* args)
     return NULL;
   }
 
+#ifdef USEXCAF
+
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+  builder.Add(compound, face);
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(compound, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+  GETMAPSURFACES;
+  GETMAPEDGES;
+
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;
@@ -175,4 +193,5 @@ PyObject* K_OCC::addSplineSurface(PyObject* self, PyObject* args)
 
   Py_INCREF(Py_None);
   return Py_None;
+#endif
 }

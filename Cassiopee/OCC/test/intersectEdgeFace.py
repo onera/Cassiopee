@@ -12,7 +12,7 @@ for i in range(N):
 
 # y = 0 plane
 hook = OCC.createEmptyCAD()
-OCC._addSquare(hook, (-2,0,-22), (22,0,-22), (22,0,2), (-2,0,2), makeFace=True)
+OCC._addSquare2(hook, (-2,0,-22), (22,0,-22), (22,0,2), (-2,0,2), makeFace=True)
 
 hook = OCC.mergeCAD(ucurves+[hook])
 for i in range(N):

@@ -110,7 +110,7 @@ static PyMethodDef Pygenerator [] =
   {"getLocalStepFactor", K_GENERATOR::getLocalStepFactor, METH_VARARGS},
   {"getLocalStepFactor2", K_GENERATOR::getLocalStepFactor2, METH_VARARGS},
   {"getEdgeRatio", K_GENERATOR::getEdgeRatio, METH_VARARGS},
-  {"getMaxLength", K_GENERATOR::getMaxLength, METH_VARARGS},
+  {"getEdgeLength", K_GENERATOR::getEdgeLength, METH_VARARGS},
   {"getTriQualityMap", K_GENERATOR::getTriQualityMap, METH_VARARGS},
   {"netgen1", K_GENERATOR::netgen1, METH_VARARGS},
   {"netgen2", K_GENERATOR::netgen2, METH_VARARGS},

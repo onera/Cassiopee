@@ -27,7 +27,7 @@
 #include "TDocStd_Document.hxx"
 
 // ============================================================================
-/* Merge two CAD hooks in a single hook 
+/* Merge CAD hooks in a new hook 
    Caller must eventually dealloc input hooks */
 // ============================================================================
 PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
@@ -88,4 +88,51 @@ PyObject* K_OCC::mergeCAD(PyObject* self, PyObject* args)
   packet[5] = doc;
 
   return hook;
+} 
+
+// ============================================================================
+/* Merge CAD hooks in a first hook (in place) */
+// ============================================================================
+PyObject* K_OCC::_mergeCAD(PyObject* self, PyObject* args)
+{
+  PyObject* listHooks;
+  if (!PYPARSETUPLE_(args, O_, &listHooks)) return NULL;
+
+  // Rebuild a single compound
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+
+  E_Int size = PyList_Size(listHooks);
+  for (E_Int i = 0; i < size; i++)
+  {
+    PyObject* hook = PyList_GetItem(listHooks, i);
+    GETPACKET;
+    GETMAPSURFACES;
+    GETMAPEDGES;
+    
+    for (E_Int i = 1; i <= surfaces.Extent(); i++)
+    {
+      TopoDS_Face F = TopoDS::Face(surfaces(i));
+      builder.Add(compound, F);
+    }
+    for (E_Int i = 1; i <= edges.Extent(); i++)
+    {
+      TopoDS_Edge E = TopoDS::Edge(edges(i));
+      builder.Add(compound, E);
+    }
+  }
+  TopoDS_Shape* newshp = new TopoDS_Shape(compound);
+
+  // capsule
+  PyObject* hook = PyList_GetItem(listHooks, 0);
+  GETSHAPE;
+  delete shape;
+  SETSHAPE(newshp);
+
+  printf("INFO: after merge: Nb edges=%d\n", se->Extent());
+  printf("INFO: after merge: Nb faces=%d\n", sf->Extent());
+  
+  Py_INCREF(Py_None);
+  return Py_None;  
 } 

@@ -109,9 +109,14 @@ PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
     *newshp = sewer.SewedShape();
   }
 
-  delete shape;
-  packet[0] = newshp;
+#ifdef USEXCAF
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  std::map< E_Int, std::vector<E_Int> > label2Faces;
+  getLabel2Faces(*doc, label2Faces);
+  copyTopShape2OCAF(*newshp, label2Faces, *doc);
+#endif
 
+  delete shape;
   SETSHAPE(newshp);
 
   Py_INCREF(Py_None);

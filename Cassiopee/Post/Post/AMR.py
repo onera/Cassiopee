@@ -76,7 +76,7 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
     info[2].append(FS[2][1:])
     info[2] = info[2][0]
 
-    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[])
+    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=True, isPreProjectOrtho=True)
 
     return zw
 

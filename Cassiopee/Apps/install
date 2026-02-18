@@ -39,11 +39,11 @@ if [ $PRODMODE -eq 0 ]; then # setup
     python setup.py install --prefix="$INSTALLPATH"
     [ $? != 0 ] && exit 1;
 elif [ $PRODMODE -eq 1 ]; then # pip
-    python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+    python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
     [ $? != 0 ] && exit 1;
 elif [ $PRODMODE -eq 2 ]; then # pip+wheel
     # wheels in $INSTALLPATH
-    TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+    TMPDIR=$INSTALLPATH python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
     [ $? != 0 ] && exit 1;
 elif [ $PRODMODE -eq 3 ]; then # pip no isolation
     python -m pip install --disable-pip-version-check --no-deps --only-binary=:all: --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .

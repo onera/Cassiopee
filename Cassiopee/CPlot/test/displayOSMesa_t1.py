@@ -5,8 +5,7 @@ import Geom as D
 import KCore.test as test
 
 import KCore.Dist as Dist
-from KCore.config import *
-(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa(additionalLibPaths,                                                                    additionalIncludePaths)
+(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa()
 if not osmesa:
     import sys; sys.exit()
 

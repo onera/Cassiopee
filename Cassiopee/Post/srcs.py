@@ -1,7 +1,3 @@
-try:
-    from KCore.config import *
-except ModuleNotFoundError:
-    pass
 import os
 USURP = False
 STREAMLINE2 = True
@@ -205,21 +201,26 @@ if STREAMLINE2:
         "Post/Stream2/volume.cpp",
         "Post/Stream2/rotational.cpp",
         "Post/Stream2/ribbon_stream_line.cpp",
-        "Post/Stream2/py_streamribbon.cpp"]
+        "Post/Stream2/py_streamribbon.cpp"
+    ]
 else:
     cpp_srcs += [
         "Post/Stream2/py_stream_line_stub.cpp",
-        "Post/Stream2/py_stream_ribbon_stub.cpp"]
+        "Post/Stream2/py_stream_ribbon_stub.cpp"
+    ]
 
-if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
+f90compiler = Dist.getFromConfigDict("f90compiler", "gfortran")
+if USURP and f90compiler is not None and os.access(dirName+'/usurp', os.F_OK):
     cpp_srcs.append("Post/usurp.cpp")
-    cpp_srcs += ["Post/usurp/Ctype.cpp",
-                 "Post/usurp/Gpc.cpp",
-                 "Post/usurp/Gpc_c_translator_clip.cpp",
-                 "Post/usurp/Gpc_c_translator_strip.cpp",
-                 "Post/usurp/Share_eps.cpp",
-                 "Post/usurp/Triangle.cpp",
-                 "Post/usurp/Triangle_translator_c.cpp"]
+    cpp_srcs += [
+        "Post/usurp/Ctype.cpp",
+        "Post/usurp/Gpc.cpp",
+        "Post/usurp/Gpc_c_translator_clip.cpp",
+        "Post/usurp/Gpc_c_translator_strip.cpp",
+        "Post/usurp/Share_eps.cpp",
+        "Post/usurp/Triangle.cpp",
+        "Post/usurp/Triangle_translator_c.cpp"
+    ]
 else: cpp_srcs.append("Post/usurpStub.cpp")
 
 #==============================================================================
@@ -228,77 +229,79 @@ else: cpp_srcs.append("Post/usurpStub.cpp")
 for_srcs = []
 
 f90_srcs = []
-if USURP and f90compiler != "None" and os.access(dirName+'/usurp', os.F_OK):
-    f90_srcs = ['Post/usurp/IntrTypeM.f90',
-                'Post/usurp/VertexDataM.f90',
-                'Post/usurp/TypesM.f90',
-                'Post/usurp/Sort2M.f90',
-                'Post/usurp/My_cpu_timeM.f90',
-                'Post/usurp/NetAllocM.f90',
-                'Post/usurp/CalculatePolygonAreaM.f90',
-                'Post/usurp/VolumeArraysM.f90',
-                'Post/usurp/UserInputM.f90',
-                'Post/usurp/TranslationArraysM.f90',
-                'Post/usurp/TimeKeeperM.f90',
-                'Post/usurp/RTreeTypesM.f90',
-                'Post/usurp/RotateBackM.f90',
-                'Post/usurp/PriPairsM.f90',
-                'Post/usurp/PrintPolyM.f90',
-                'Post/usurp/PatchInfoM.f90',
-                'Post/usurp/OverlappedM.f90',
-                'Post/usurp/GroupInfoM.f90',
-                'Post/usurp/GraphProceduresM.f90',
-                'Post/usurp/FoMoArraysM.f90',
-                'Post/usurp/EdgeDataM.f90',
-                'Post/usurp/ConvertPanelToPolygonM.f90',
-                'Post/usurp/CheckPanelPairM.f90',
-                'Post/usurp/CheckInputM.f90',
-                'Post/usurp/CalculateVolumesM.f90',
-                'Post/usurp/CommandLineM.f90',
-                'Post/usurp/StructuredPatchProceduresM.f90',
-                'Post/usurp/StorePatchesCFDSHIPM.f90',
-                'Post/usurp/StorePatchesGenericM.f90',
-                'Post/usurp/StorePatchesUNCLEM.f90',
-                'Post/usurp/StorePatchesOVERFLOWM.f90',
-                'Post/usurp/DPLRM.f90',
-                'Post/usurp/TecplotTrianglesM.f90',
-                'Post/usurp/WriteGridIBIM.f90',
-                'Post/usurp/WritePatchesM.f90',
-                'Post/usurp/WriteTriQM.f90',
-                'Post/usurp/WritePanelWeightsM.f90',
-                'Post/usurp/WriteMixsurFMPM.f90',
-                'Post/usurp/UnusedVerticesM.f90',
-                'Post/usurp/InsertNodeM.f90',
-                'Post/usurp/CalculateForcesAndMomentsM.f90',
-                'Post/usurp/CalculateProjectedAreasM.f90',
-                'Post/usurp/CheckRatiosM.f90',
-                'Post/usurp/CheckTrianglesM.f90',
-                'Post/usurp/CreateNewNodeListM.f90',
-                'Post/usurp/CutOutStringsM.f90',
-                'Post/usurp/DefinePanelsM.f90',
-                'Post/usurp/ExaminePrioritiesM.f90',
-                'Post/usurp/GetUserInputM.f90',
-                'Post/usurp/LoadPanelsM.f90',
-                'Post/usurp/LoadPanelsNPHASEM.f90',
-                'Post/usurp/MapTriQM.f90',
-                'Post/usurp/OutputForcesAndMomentsM.f90',
-                'Post/usurp/OutputOVERFLOWM.f90',
-                'Post/usurp/PreReadBCinM.f90',
-                'Post/usurp/PreReadBCSM.f90',
-                'Post/usurp/PreReadGenericM.f90',
-                'Post/usurp/PreReadNPHASEM.f90',
-                'Post/usurp/PreReadOVERFLOWM.f90',
-                'Post/usurp/PreReadUNCLEMM.f90',
-                'Post/usurp/ReadPanelWeightsM.f90',
-                'Post/usurp/ResolveEdgeIntersectionsM.f90',
-                'Post/usurp/ShrinkVertexListM.f90',
-                'Post/usurp/TecplotNPHASEM.f90',
-                'Post/usurp/BuildGraphM.f90',
-                'Post/usurp/GarbageCollectorM.f90',
-                'Post/usurp/ProcessPairProceduresM.f90',
-                'Post/usurp/TriQuadM.f90',
-                'Post/usurp/CreateTrianglesM.f90',
-                'Post/usurp/DeallocatePanelsM.f90',
-                'Post/usurp/DetermineSurfaceOverlapM.f90',
-                'Post/usurp/RTreeProceduresM.f90',
-                'Post/usurp/Usurp.f90']
+if USURP and f90compiler is not None and os.access(dirName+'/usurp', os.F_OK):
+    f90_srcs = [
+        'Post/usurp/IntrTypeM.f90',
+        'Post/usurp/VertexDataM.f90',
+        'Post/usurp/TypesM.f90',
+        'Post/usurp/Sort2M.f90',
+        'Post/usurp/My_cpu_timeM.f90',
+        'Post/usurp/NetAllocM.f90',
+        'Post/usurp/CalculatePolygonAreaM.f90',
+        'Post/usurp/VolumeArraysM.f90',
+        'Post/usurp/UserInputM.f90',
+        'Post/usurp/TranslationArraysM.f90',
+        'Post/usurp/TimeKeeperM.f90',
+        'Post/usurp/RTreeTypesM.f90',
+        'Post/usurp/RotateBackM.f90',
+        'Post/usurp/PriPairsM.f90',
+        'Post/usurp/PrintPolyM.f90',
+        'Post/usurp/PatchInfoM.f90',
+        'Post/usurp/OverlappedM.f90',
+        'Post/usurp/GroupInfoM.f90',
+        'Post/usurp/GraphProceduresM.f90',
+        'Post/usurp/FoMoArraysM.f90',
+        'Post/usurp/EdgeDataM.f90',
+        'Post/usurp/ConvertPanelToPolygonM.f90',
+        'Post/usurp/CheckPanelPairM.f90',
+        'Post/usurp/CheckInputM.f90',
+        'Post/usurp/CalculateVolumesM.f90',
+        'Post/usurp/CommandLineM.f90',
+        'Post/usurp/StructuredPatchProceduresM.f90',
+        'Post/usurp/StorePatchesCFDSHIPM.f90',
+        'Post/usurp/StorePatchesGenericM.f90',
+        'Post/usurp/StorePatchesUNCLEM.f90',
+        'Post/usurp/StorePatchesOVERFLOWM.f90',
+        'Post/usurp/DPLRM.f90',
+        'Post/usurp/TecplotTrianglesM.f90',
+        'Post/usurp/WriteGridIBIM.f90',
+        'Post/usurp/WritePatchesM.f90',
+        'Post/usurp/WriteTriQM.f90',
+        'Post/usurp/WritePanelWeightsM.f90',
+        'Post/usurp/WriteMixsurFMPM.f90',
+        'Post/usurp/UnusedVerticesM.f90',
+        'Post/usurp/InsertNodeM.f90',
+        'Post/usurp/CalculateForcesAndMomentsM.f90',
+        'Post/usurp/CalculateProjectedAreasM.f90',
+        'Post/usurp/CheckRatiosM.f90',
+        'Post/usurp/CheckTrianglesM.f90',
+        'Post/usurp/CreateNewNodeListM.f90',
+        'Post/usurp/CutOutStringsM.f90',
+        'Post/usurp/DefinePanelsM.f90',
+        'Post/usurp/ExaminePrioritiesM.f90',
+        'Post/usurp/GetUserInputM.f90',
+        'Post/usurp/LoadPanelsM.f90',
+        'Post/usurp/LoadPanelsNPHASEM.f90',
+        'Post/usurp/MapTriQM.f90',
+        'Post/usurp/OutputForcesAndMomentsM.f90',
+        'Post/usurp/OutputOVERFLOWM.f90',
+        'Post/usurp/PreReadBCinM.f90',
+        'Post/usurp/PreReadBCSM.f90',
+        'Post/usurp/PreReadGenericM.f90',
+        'Post/usurp/PreReadNPHASEM.f90',
+        'Post/usurp/PreReadOVERFLOWM.f90',
+        'Post/usurp/PreReadUNCLEMM.f90',
+        'Post/usurp/ReadPanelWeightsM.f90',
+        'Post/usurp/ResolveEdgeIntersectionsM.f90',
+        'Post/usurp/ShrinkVertexListM.f90',
+        'Post/usurp/TecplotNPHASEM.f90',
+        'Post/usurp/BuildGraphM.f90',
+        'Post/usurp/GarbageCollectorM.f90',
+        'Post/usurp/ProcessPairProceduresM.f90',
+        'Post/usurp/TriQuadM.f90',
+        'Post/usurp/CreateTrianglesM.f90',
+        'Post/usurp/DeallocatePanelsM.f90',
+        'Post/usurp/DetermineSurfaceOverlapM.f90',
+        'Post/usurp/RTreeProceduresM.f90',
+        'Post/usurp/Usurp.f90'
+    ]

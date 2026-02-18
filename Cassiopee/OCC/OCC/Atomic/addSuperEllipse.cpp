@@ -47,13 +47,12 @@ PyObject* K_OCC::addSuperEllipse(PyObject* self, PyObject* args)
   E_Float xc, yc, zc, a, b;
   E_Int n, samples;
   E_Int makeFace;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ RR_ II_ I_, &hook, 
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ RR_ II_ I_ S_, &hook, 
         &xc, &yc, &zc, &a, &b, 
-        &n, &samples, &makeFace)) return NULL;
+        &n, &samples, &makeFace, &name)) return NULL;
 
   GETSHAPE;
-  GETMAPSURFACES;
-  GETMAPEDGES;
 
   Handle(TColgp_HArray1OfPnt) pointsArray = new TColgp_HArray1OfPnt(1, samples);
   if (n == 0) n = 1;
@@ -91,6 +90,27 @@ PyObject* K_OCC::addSuperEllipse(PyObject* self, PyObject* args)
   TopoDS_Wire wire = BRepBuilderAPI_MakeWire(edge);
   TopoDS_Face face = BRepBuilderAPI_MakeFace(wire);
 
+#ifdef USEXCAF
+
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+  builder.Add(compound, wire);
+  if (makeFace == 1) builder.Add(compound, face);
+  
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(compound, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+
+  GETMAPSURFACES;
+  GETMAPEDGES;
+
   // Rebuild a single compound
   BRep_Builder builder;
   TopoDS_Compound compound;
@@ -119,4 +139,5 @@ PyObject* K_OCC::addSuperEllipse(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
+#endif
 }

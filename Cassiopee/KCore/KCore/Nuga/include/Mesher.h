@@ -139,27 +139,27 @@ namespace DELAUNAY
   
   protected:
 
-    MeshData*                   _data;
+    MeshData* _data;
 
-    MetricType*                 _metric;
+    MetricType* _metric;
 
-    NUGA::MeshTool*             _tool;
+    NUGA::MeshTool* _tool;
 
-    coord_access_type*          _posAcc;
-    tree_type*                  _tree;
+    coord_access_type* _posAcc;
+    tree_type* _tree;
 
-    kernel_type*                _kernel;
+    kernel_type* _kernel;
 
-    int_set_type                _box_nodes;
+    int_set_type _box_nodes;
 
-    E_Int                       _err;
+    E_Int _err;
 
-    E_Int                       _N0;
+    E_Int _N0;
 
-    NUGA::random                _random;
+    NUGA::random _random;
 
   public:
-    MesherMode        mode;
+    MesherMode mode;
     std::vector<edge_error_t>  _edge_errors;
     
     
@@ -267,7 +267,7 @@ namespace DELAUNAY
 
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "Warning: mesher: error triangulating." << std::endl;
+      if (!mode.silent_errors) std::cout << "Error: mesher: error triangulating." << std::endl;
 #ifdef DEBUG_MESHER
       medith::write("err_tria.mesh", *_data->pos, *_data->connectB, "BAR");
 #endif
@@ -285,7 +285,7 @@ namespace DELAUNAY
     _err = restoreBoundaries(*data.pos, data.connectM, data.neighbors, data.ancestors);
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "Warning: mesher: error restoring boundaries." << std::endl;
+      if (!mode.silent_errors) std::cout << "Error: mesher: error restoring boundaries." << std::endl;
       return _err;
     }
 
@@ -307,13 +307,12 @@ namespace DELAUNAY
     _err = setColors(data.pos->cols()-1, data); //fixme : Nbox
     if (_err)
     {
-      if (!mode.silent_errors) std::cout << "Warning: mesher: error setting colors." << std::endl;
+      if (!mode.silent_errors) std::cout << "Error: mesher: error setting colors." << std::endl;
       return _err;
     }
 
 #ifdef DEBUG_MESHER
-    //if (dbg_flag)
-      medith::write("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
+    medith::write("triangulationC_color",*_data->pos, _data->connectM, "TRI", &_data->mask, &data.colors);
 #endif
     
     if (mode.mesh_mode == MesherMode::REFINE_MODE)
@@ -325,7 +324,11 @@ namespace DELAUNAY
 
       // Refine
       _err = refine();
-      if (_err) return _err;
+      if (_err)
+      { 
+        std::cout << "Error: mesher: error in refine." << std::endl;
+        return _err;  
+      }
     }
 
 #ifdef E_TIME
@@ -341,7 +344,7 @@ namespace DELAUNAY
     c.start();
 #endif
 
-    if (_err && !mode.silent_errors) std::cout << "Warning: mesher: error finalizing." << std::endl;
+    if (_err) std::cout << "Error: mesher: error finalizing." << std::endl;
     
     return _err;
   }
@@ -941,8 +944,8 @@ namespace DELAUNAY
 
     while (!done)
     {
-      count  = 0;
-      nopp   = element_type::getOppLocalNodeId(S, n, connect, neighbors);
+      count = 0;
+      nopp = element_type::getOppLocalNodeId(S, n, connect, neighbors);
       nstart = (nopp+1)%element_type::NB_NODES;
         
       S = neighbors(n, S);
@@ -950,13 +953,13 @@ namespace DELAUNAY
         
       for (size_type i = 0; (i < edge_type::NB_NODES) && !done; ++i)
       {
-        ni  = (nstart+i) % element_type::NB_NODES;
+        ni = (nstart+i) % element_type::NB_NODES;
         Ni = *(pS + (ni+1) % element_type::NB_NODES);
         Nj = *(pS + (ni+2) % element_type::NB_NODES);
 
         done = (Nj == N1); // End of pipe reached.
 
-        intersect  = !done && (element_type::surface(pos.col(N0), pos.col(Ni), pos.col(N1), dim) > tol2);
+        intersect = !done && (element_type::surface(pos.col(N0), pos.col(Ni), pos.col(N1), dim) > tol2);
         intersect &= (element_type::surface(pos.col(N0), pos.col(N1), pos.col(Nj), dim) > tol2);
         // intersect = !done && edge_type::intersect<2>(pos.col(N0), pos.col(N1), pos.col(Ni), pos.col(Nj), tolerance, true/*absolute*/,u00, u01, u10, u11, overlap);
         if (intersect)
@@ -968,10 +971,10 @@ namespace DELAUNAY
       }
 
       if (done && (count != 0))  // Error : we must have Nj = N1 at i = 0 when reaching the end of pipe.
-      {err=2; break;}
+      {err = 2; break;}
       if (!done && (count != 1)) // Error : one node is on the edge N0N1.
       {
-        err=NODE_IN_EDGE_ERROR;
+        err = NODE_IN_EDGE_ERROR;
         break;
       }
 
@@ -988,15 +991,14 @@ namespace DELAUNAY
     return (perpdot < 0.) ? -1 : (perpdot > 0.) ? 1 : 0;
   }
   
-  inline E_Float proj(const E_Float*P0, const E_Float*P1, const E_Float*P)
+  inline E_Float proj(const E_Float* P0, const E_Float* P1, const E_Float* P)
   {
     return (P1[0]-P0[0])*(P[0]-P0[0]) + (P1[1]-P0[1])*(P[1]-P0[1]);
   }
   
   ///
   template <typename T, typename MetricType>
-  E_Int
-  Mesher<T, MetricType>::__get_xedge_on_shell
+  E_Int Mesher<T, MetricType>::__get_xedge_on_shell
   (size_type N0, size_type N1, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
    const K_FLD::IntArray& neighbors, const int_vector_type& ancestors, E_Int& Sx, E_Int& nx, E_Float &tolerance)
   {
@@ -1009,8 +1011,8 @@ namespace DELAUNAY
             
     if (ancestors[N0] == IDX_NONE) return 4;
     
-    const E_Float* P0=pos.col(N0);
-    const E_Float* P1=pos.col(N1);
+    const E_Float* P0 = pos.col(N0);
+    const E_Float* P1 = pos.col(N1);
 
     pS = connect.col(ancestors[N0]);
     _tool->getAncestors(N0, connect, ancestors, neighbors, std::back_inserter(Ancs));
@@ -1030,7 +1032,7 @@ namespace DELAUNAY
 
       if ((Ni == N1) || (Nj == N1))
       {
-        Sx=IDX_NONE;
+        Sx = IDX_NONE;
         return 0; // N0N1 is already in, so return OK
       }
       
@@ -1047,16 +1049,16 @@ namespace DELAUNAY
         
         if (SIGNi*SIGNip1 < 0 && ux > 0. && ux < 1.)
         {
-          Sx=Si;
-          nx=ni;
+          Sx = Si;
+          nx = ni;
           return 0;
         }
       
         if (ux0 < ux && ux < 1.1 && ux > -1.1)
         {
-          Sx=Si;
-          nx=ni;
-          ux0=ux;
+          Sx = Si;
+          nx = ni;
+          ux0 = ux;
         } 
       }
     }
@@ -1083,7 +1085,7 @@ namespace DELAUNAY
       // Choose randomly an intersecting edge.
 
       Xnb = (size_type)Xedges.size();
-      r   = _random.rand() % Xnb;
+      r = _random.rand() % Xnb;
       //std::cout << "Mesher : rand : " << r << std::endl;
 
       int_pair_type& E = Xedges[r];
@@ -1108,7 +1110,7 @@ namespace DELAUNAY
 
       s1 = element_type::surface(pos.col(Ni), pos.col(Nj), pos.col(Nk), dim);
       s2 = element_type::surface(pos.col(Ni), pos.col(Nk), pos.col(Nl), dim);
-      isConvex  = (s1 > tol2) && (s2 > tol2);
+      isConvex = (s1 > tol2) && (s2 > tol2);
 
       if (!isConvex)
       {
@@ -1205,8 +1207,7 @@ namespace DELAUNAY
         Xedges.push_back(int_pair_type(S, (b+1) % NB_NODES));// Swapped edge.
     }// While loop
 
-    if (Xedges.empty())
-      return 0;
+    if (Xedges.empty()) return 0;
     else
     {
       return 1;//fixme : handle errors in a better way (nb_try...)
@@ -1215,8 +1216,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename MetricType>
-  E_Int
-  Mesher<T, MetricType>::clean_data(MeshData& data, const bool_vector_type& mask)
+  E_Int Mesher<T, MetricType>::clean_data(MeshData& data, const bool_vector_type& mask)
   {
     std::vector<size_type> newIds;
 

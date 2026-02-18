@@ -41,26 +41,44 @@ PyObject* K_OCC::addCylinder(PyObject* self, PyObject* args)
 {
   PyObject* hook; 
   E_Float xc, yc, zc, xaxis, yaxis, zaxis, R, H;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ R_, 
-    &hook, &xc, &yc, &zc, &xaxis, &yaxis, &zaxis, &R, &H)) return NULL;
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ R_ S_, 
+    &hook, &xc, &yc, &zc, &xaxis, &yaxis, &zaxis, &R, &H, &name)) return NULL;
 
   GETSHAPE;
-  GETMAPSURFACES;
-  GETMAPEDGES;
   
   // Define the radius, height, and angle of the cylinder
   //Standard_Real angle = 2*M_PI;
-  // Create the cylinder with closing faces 
+  //Create the cylinder with closing faces 
   //TopoDS_Shape part = BRepPrimAPI_MakeCylinder(R, H, angle).Shape();
 
   // Create only the side of cylinder
   gp_Ax2 axis(gp_Pnt(xc, yc, zc), gp_Dir(xaxis, yaxis, zaxis)); // Axis of the cylinder
-  gp_Cylinder cylinder(axis, R); // Radius of 10.0
+  gp_Cylinder cylinder(axis, R); // Radius
   Standard_Real uMin = 0.0;
   Standard_Real uMax = 2 * M_PI; // Full circle
   Standard_Real vMin = 0.0;
   Standard_Real vMax = H; // Height of the cylinder
   TopoDS_Face face = BRepBuilderAPI_MakeFace(cylinder, uMin, uMax, vMin, vMax);
+
+#ifdef USEXCAF
+
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+  builder.Add(compound, face);
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(compound, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+  GETMAPSURFACES;
+  GETMAPEDGES;
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -89,4 +107,5 @@ PyObject* K_OCC::addCylinder(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
+#endif
 }

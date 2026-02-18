@@ -145,7 +145,7 @@ List of functions
    Generator.getCircumCircleMap
    Generator.getInCircleMap
    Generator.getEdgeRatio
-   Generator.getMaxLength
+   Generator.getEdgeLength
    Generator.checkMesh
 
 **-- Operations on distributions**
@@ -2259,26 +2259,30 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.getMaxLength(a)
+.. py:function:: Generator.getEdgeLength(a, type=0, dim=3)
 
-    Return the length of the longer edge of each cell. 
+    Return the length of the max, min, ratio, mean of edges for each cell. 
     
-    Exists also as in place version (_getMaxLength) that modifies a and returns None. 
+    Exists also as in place version (_getEdgeLength) that modifies a and returns None. 
 
-    :param a:  input mesh
-    :type  a:  array or pyTree
+    :param a: input mesh
+    :type  a: array or pyTree
+    :param type: max (0), min (1), ratio (2), mean (3) of edge length of cell
+    :type  type: int
+    :param dim: problem dimension
+    :type dim: 1, 2, 3
     :return: modified reference copy of a
     :rtype: array or pyTree
 
     *Example of use:*
 
-    * `Computation of maximum edge length of cells (array) <Examples/Generator/getMaxLength.py>`_:
+    * `Computation of maximum edge length of cells (array) <Examples/Generator/getEdgeLength.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getMaxLength.py
+    .. literalinclude:: ../build/Examples/Generator/getEdgeLength.py
 
-    * `Computation of maximum edge length of cells (pyTree) <Examples/Generator/getMaxLengthPT.py>`_:
+    * `Computation of maximum edge length of cells (pyTree) <Examples/Generator/getEdgeLengthPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getMaxLengthPT.py
+    .. literalinclude:: ../build/Examples/Generator/getEdgeLengthPT.py
     
 
 ---------------------------------------

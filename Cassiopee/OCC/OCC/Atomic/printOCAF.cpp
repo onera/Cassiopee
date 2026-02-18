@@ -238,13 +238,8 @@ PyObject* K_OCC::printOCAF(PyObject* self, PyObject* args)
   PyObject* hook;
   if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
+  GETPACKET;
+  
   TDocStd_Document* doc = (TDocStd_Document*)packet[5];
   if (doc == NULL) 
   {
@@ -267,12 +262,7 @@ PyObject* K_OCC::printShapeOCAF(PyObject* self, PyObject* args)
   PyObject* hook;
   if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
+  GETPACKET;
 
   TDocStd_Document* doc = (TDocStd_Document*)packet[5];
   if (doc == NULL) 

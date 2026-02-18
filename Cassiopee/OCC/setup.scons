@@ -1,6 +1,5 @@
 import os
 import KCore.Dist as Dist
-from KCore.config import *
 
 #==============================================================================
 # OCC requires:
@@ -14,6 +13,9 @@ from KCore.config import *
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
 installPath = Dist.getInstallPath(prefix)
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Get compilers from Distutils ================================================
 (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
@@ -25,14 +27,13 @@ installPath = Dist.getInstallPath(prefix)
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists ========================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if generator exists ====================================================
-(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
+(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkModuleCassiopee("Generator")
 
 # Test if open-cascade is installed ===========================================
-(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC(additionalLibPaths, 
-                                                   additionalIncludePaths)
+(OCCPresent, OCCIncDir, OCCLibDir) = Dist.checkOCC()
 
 if not OCCPresent:
     # Utilise la version installee dans OCC (non fonctionnel)
@@ -48,7 +49,7 @@ if not OCCPresent:
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, generatorLibDir]
 includeDirs = [OCCIncDir, generatorIncDir, pythonIncDir, numpyIncDir, kcoreIncDir]
 libraries = ["generator", "kcore"]
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Env =========================================================================

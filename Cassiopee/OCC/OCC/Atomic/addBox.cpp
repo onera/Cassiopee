@@ -28,33 +28,32 @@
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
+#include "BRepBuilderAPI_Sewing.hxx"
 
 //=====================================================================
-// Add a box to CAD hook
+// Add a box to CAD hook from P0, width, height, depth
 //=====================================================================
 PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
 {
-  PyObject* hook; 
-  E_Float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-  E_Float x5, y5, z5, x6, y6, z6, x7, y7, z7, x8, y8, z8;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ TRRR_ TRRR_ TRRR_ TRRR_ TRRR_, 
+  PyObject* hook;
+  E_Float x0, y0, z0, width, height, depth;
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ RRR_ S_, 
     &hook, 
-    &x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3, &x4, &y4, &z4,
-    &x5, &y5, &z5, &x6, &y6, &z6, &x7, &y7, &z7, &x8, &y8, &z8)) return NULL;
+    &x0, &y0, &z0, &width, &height, &depth, 
+    &name)) return NULL;
 
   GETSHAPE;
-  GETMAPSURFACES;
-  GETMAPEDGES;
-
-  /* new square */
-  gp_Pnt p1(x1, y1, z1); // Bottom left
-  gp_Pnt p2(x2, y2, z2); // Bottom right
-  gp_Pnt p3(x3, y3, z3); // Top right
-  gp_Pnt p4(x4, y4, z4); // Top left
-  gp_Pnt p5(x5, y5, z5); // Bottom left
-  gp_Pnt p6(x6, y6, z6); // Bottom right
-  gp_Pnt p7(x7, y7, z7); // Top right
-  gp_Pnt p8(x8, y8, z8); // Top left
+  
+  /* new box */
+  gp_Pnt p1(x0, y0, z0); // Bottom left
+  gp_Pnt p2(x0+width, y0, z0); // Bottom right
+  gp_Pnt p3(x0+width, y0+height, z0); // Top right
+  gp_Pnt p4(x0, y0+height, z0); // Top left
+  gp_Pnt p5(x0, y0, z0+depth); // Bottom left
+  gp_Pnt p6(x0+width, y0, z0+depth); // Bottom right
+  gp_Pnt p7(x0+width, y0+height, z0+depth); // Top right
+  gp_Pnt p8(x0, y0+height, z0+depth); // Top left
 
   TopoDS_Edge edge1 = BRepBuilderAPI_MakeEdge(p1, p2);
   TopoDS_Edge edge2 = BRepBuilderAPI_MakeEdge(p2, p3);
@@ -104,21 +103,11 @@ PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
   wire = BRepBuilderAPI_MakeWire(edge1, edge2, edge3, edge4);
   TopoDS_Face face6 = BRepBuilderAPI_MakeFace(wire);
 
-  // Rebuild a single compound
+  // Build a compound for box
   BRep_Builder builder;
   TopoDS_Compound compound;
   builder.MakeCompound(compound);
     
-  for (E_Int i = 1; i <= surfaces.Extent(); i++)
-  {
-    TopoDS_Face F = TopoDS::Face(surfaces(i));
-    builder.Add(compound, F);
-  }
-  for (E_Int i = 1; i <= edges.Extent(); i++)
-  {
-    TopoDS_Edge E = TopoDS::Edge(edges(i));
-    builder.Add(compound, E);
-  }
   builder.Add(compound, face1);
   builder.Add(compound, face2);
   builder.Add(compound, face3);
@@ -126,8 +115,58 @@ PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
   builder.Add(compound, face5);
   builder.Add(compound, face6);
 
-  TopoDS_Shape* newshp = new TopoDS_Shape(compound);
-    
+  BRepBuilderAPI_Sewing sewingTool;
+  sewingTool.Add(compound);
+  sewingTool.Perform();
+  TopoDS_Shape sewedShape = sewingTool.SewedShape();
+
+#ifdef USEXCAF
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(sewedShape, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+
+  GETMAPSURFACES;
+  GETMAPEDGES;
+
+  // Rebuild single compound
+  BRep_Builder builder2;
+  TopoDS_Compound compound2;
+  builder.MakeCompound(compound2);
+  for (E_Int i = 1; i <= surfaces.Extent(); i++)
+  {
+    TopoDS_Face F = TopoDS::Face(surfaces(i));
+    builder2.Add(compound2, F);
+  }
+  for (E_Int i = 1; i <= edges.Extent(); i++)
+  {
+    TopoDS_Edge E = TopoDS::Edge(edges(i));
+    builder2.Add(compound2, E);
+  }
+  
+  TopTools_IndexedMapOfShape sf2 = TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(sewedShape, TopAbs_FACE, sf2);
+  TopTools_IndexedMapOfShape se2 = TopTools_IndexedMapOfShape();
+  TopExp::MapShapes(sewedShape, TopAbs_EDGE, se2);
+  for (E_Int i = 1; i <= sf2.Extent(); i++)
+  {
+    TopoDS_Face F = TopoDS::Face(sf2(i));
+    builder2.Add(compound2, F);
+  }
+  for (E_Int i = 1; i <= se2.Extent(); i++)
+  {
+    TopoDS_Edge E = TopoDS::Edge(se2(i));
+    builder2.Add(compound2, E);
+  }
+
+  TopoDS_Shape* newshp = new TopoDS_Shape(compound2);
+
   delete shape;
   SETSHAPE(newshp);
 
@@ -136,4 +175,6 @@ PyObject* K_OCC::addBox(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
+
+#endif
 }

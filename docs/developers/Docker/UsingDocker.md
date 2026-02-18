@@ -30,11 +30,13 @@ groups ${USER}
 - Please pull the official image of Cassiopee from DockerHub 
 
 ```sh
-docker pull cassiopee486/cassiopee:<tag>
+docker pull cassiopee486/cassiopee:<tag>-<pyversion>
 ```
 
-where _tag_ is a version tag such as `v4.0b` (in the remainder of these notes, `v4.0b` is used).
-Available tags, **from `v4.0b` onwards**, are recalled [on this page](https://github.com/onera/Cassiopee/tags).
+where _tag_ is a Cassiopee version tag (e.g.,`v4.1`) and _pyversion_ is a version of python (e.g., `py3.12.4`).
+Available tags are recalled [on this page](https://hub.docker.com/r/cassiopee486/cassiopee/tags).
+In the remainder of these notes, `v4.1-py3.12.4` is used.
+
 
 - Verify that the image is now present in the list of downloaded images
 
@@ -46,25 +48,60 @@ docker images
 
 ## 3. Running a container
 
-- The Cassiopee container can be run interactively for version `v4.0b` like so
+### 3.1 Manual configuration
+
+The Cassiopee container can be run interactively for version `v4.1` with:
 
 ```sh
 xhost +local:docker
-docker run -it --rm --network=host --privileged --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee486/cassiopee:v4.0b
+docker run -it --rm --network=host --privileged \
+    --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /dev/dri:/dev/dri \
+    -e DISPLAY=unix$DISPLAY \
+    cassiopee486/cassiopee:v4.1-py3.12.4
 ```
 
-and the instance of the container will be removed after it execution thanks to `--rm`.  
-**Note that none of the modifications you may have made in the container will persist.** Please consider using _volumes_ or _bind mounts_ if this is something you may benefit from. An example is given below for a bind mount with read and write permissions using the command-line flag `-v /home/user/git/io:/io`, where the local folder `/home/user/git/io` is mapped to the `/io` folder in the container
+- The `--rm` flag ensures that the container is automatically removed after it exits.  
+- Any changes made inside the container will not persist. To retain data, consider using volumes or bind mounts.  
+
+For example, to map a local folder `/home/user/git/io` to `/io` in the container with read-write access:
 
 ```sh
 xhost +local:docker
-docker run -it --rm --network=host --privileged --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -v /home/user/git/io:/io -e DISPLAY=unix$DISPLAY cassiopee486/cassiopee:v4.0b
+docker run -it --rm --network=host --privileged \
+    --volume="$HOME/.Xauthority:/root/.Xauthority:rw" \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /dev/dri:/dev/dri \
+    -v $HOME/io:/io \
+    -e DISPLAY=unix$DISPLAY \
+    cassiopee486/cassiopee:v4.1-py3.12.4
 ```
 
-- After execution, feel free to check the list of running instances (it should be none)
+After execution, you can verify that no containers are still running:
+
 ```sh
 docker ps -a
 ```
+
+### 3.2 Docker Compose
+
+A `docker-compose.yml` file is provided in the root directory of Cassiopee, preconfigured with the same settings as in section 3.1.
+
+To run the container interactively using Docker Compose:
+
+```sh
+xhost +local:docker
+cd $CASSIOPEE
+cp .env.template .env  # configure any environment variables if needed
+docker compose run --rm cassiopee
+```
+
+Docker Compose automatically sets up the container with the correct volumes, display, and privileges.
+
+As with manual execution, `--rm` ensures the container is removed when you exit.
+
+Use the `.env` file to configure the tag and python version used without modifying the Compose file directly.
 
 <br></br>
 

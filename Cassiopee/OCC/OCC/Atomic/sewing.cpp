@@ -124,6 +124,13 @@ PyObject* K_OCC::sewing(PyObject* self, PyObject* args)
     newshp = new TopoDS_Shape(shc);
   }
 
+#ifdef USEXCAF
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  std::map< E_Int, std::vector<E_Int> > label2Faces;
+  getLabel2Faces(*doc, label2Faces);
+  copyTopShape2OCAF(*newshp, label2Faces, *doc);
+#endif
+
   // export
   delete shape;
   SETSHAPE(newshp);

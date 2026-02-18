@@ -7,7 +7,6 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Generator.PyTree as G
 import Geom.PyTree as D
-import Transform.PyTree as T
 import Converter.Internal as Internal
 
 # local widgets list

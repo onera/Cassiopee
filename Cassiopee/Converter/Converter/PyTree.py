@@ -5184,34 +5184,6 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
                     zp = Internal.copyRef(z)
                     connects = Internal.getNodesFromType1(z, 'Elements_t')
 
-                    '''
-                    ermin = numpy.amin(PL)
-                    ermax = numpy.amax(PL)
-                    for cn in connects:
-                        ERLoc = Internal.getNodeFromName1(cn, 'ElementRange')
-                        ERMin = Internal.getValue(ERLoc)[0]
-                        ERMax = Internal.getValue(ERLoc)[1]
-                        if ermin >= ERMin and ermax <= ERMax:
-                            for cn2 in connects:
-                                if cn2[0] != cn[0]:
-                                    Internal._rmNodesFromName(zp, cn2[0])
-                            etype = Internal.getValue(cn)
-                            if etype[1] != 0: etype[1] = 0
-                            nfaces = PL.size
-                            facelist = numpy.zeros(nfaces, dtype=Internal.E_NpyInt)
-                            facelist[:] = PL[:]-ERMin
-                            Internal._rmNodesFromType(zp, "ZoneBC_t")
-                            Internal._rmNodesFromType(zp, "ZoneGridConnectivity_t")
-                            Internal._rmNodesFromType(zp, "Family_t")
-                            Internal._rmNodesFromType(zp, "FamilyName_t")
-                            Internal._rmNodesFromName(zp, "ParentElement*")
-                            zp = T.subzone(zp, facelist, type='elements')
-                            zp[0] = z[0]+Internal.SEP1+zbc[0]
-                            _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
-                            res.append(zp)
-                            break
-                    '''
-
                     for cn in connects:
                         ERLoc = Internal.getNodeFromName1(cn, 'ElementRange')
                         ERMin = Internal.getValue(ERLoc)[0]
@@ -5233,6 +5205,7 @@ def getBC2__(zbc, z, T, res, extrapFlow=True):
                             Internal._rmNodesFromType(zp, "Family_t")
                             Internal._rmNodesFromType(zp, "FamilyName_t")
                             Internal._rmNodesFromName(zp, "ParentElement*")
+                            _deleteFlowSolutions__(zp, loc='centers') # sadly
                             zp = T.subzone(zp, facelist, type='elements')
                             zp[0] = z[0]+Internal.SEP1+zbc[0]
                             _keepBCDataSet(zp, z, zbc, extrapFlow=extrapFlow)
@@ -5289,7 +5262,6 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0):
         _deleteZoneBC__(zp)
         _deleteGridConnectivity__(zp)
         _deleteSolverNodes__(zp)
-
         # Get BCDataSet if any
         _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)
         res.append(zp)

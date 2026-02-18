@@ -40,11 +40,11 @@ namespace DELAUNAY
   class Refiner
   {
   public:
-    typedef NUGA::size_type                  size_type;
-    typedef NUGA::int_vector_type            int_vector_type;
-    typedef NUGA::int_set_type               int_set_type;
-    typedef K_SEARCH::KdTree<>               tree_type;
-    typedef K_MESH::Triangle                 element_type;
+    typedef NUGA::size_type  size_type;
+    typedef NUGA::int_vector_type int_vector_type;
+    typedef NUGA::int_set_type int_set_type;
+    typedef K_SEARCH::KdTree<> tree_type;
+    typedef K_MESH::Triangle element_type;
     typedef NUGA::non_oriented_edge_set_type non_oriented_edge_set_type;
 
   public:
@@ -63,14 +63,14 @@ namespace DELAUNAY
                             tree_type& filter_tree);
 
   private:
-    MetricType&             _metric;
-    std::vector<size_type>  _tmpNodes;
-    E_Float                 _threshold;
-    E_Float                 _gr;
-    E_Int                   _nb_smooth_iter;
-    E_Bool                  _symmetrize;
+    MetricType& _metric;
+    std::vector<size_type> _tmpNodes;
+    E_Float _threshold;
+    E_Float _gr;
+    E_Int _nb_smooth_iter;
+    E_Bool _symmetrize;
   public:
-    E_Bool                  _debug;
+    E_Bool _debug;
   };
 
   /// ajoute les points de raffinement
@@ -114,7 +114,7 @@ namespace DELAUNAY
     // mesh quality by setting the right metrics at skeleton nodes (__init_refine_points)
     _metric._N0 = N0;
 
-    bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);
+    bool do_smooth = (_nb_smooth_iter > 0) && (iter > 1);
     do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
 
     if (do_smooth)
@@ -136,7 +136,6 @@ namespace DELAUNAY
         _metric.draw_ellipse_field(o.str().c_str(), *data.pos, data.connectM, &data.mask);
       }
 #endif
-    
     }
     
     std::vector<std::pair<E_Float, size_type> > length_to_points;
@@ -154,8 +153,12 @@ namespace DELAUNAY
     std::sort(ALL(length_to_points));
     
     size_type sz = (size_type)length_to_points.size(); // peut devenir trop grand
+    refine_nodes.resize(sz);
     for (size_type i = 0; i < sz; ++i)
-      refine_nodes.push_back(length_to_points[i].second);
+    {
+      //refine_nodes.push_back(length_to_points[i].second);
+      refine_nodes[i] = length_to_points[i].second;
+    }
   }
 
   /// supprime les points qui ne sont pas dans la box
@@ -164,17 +167,19 @@ namespace DELAUNAY
     (MeshData& data, const int_set_type& box_nodes, 
     int_vector_type& refine_nodes, tree_type& filter_tree)
   {
-    size_type Ni, sz, nb_nodes;
-    E_Float mBox[2], MBox[2];
-    E_Float coeff(0.5*sqrt(2.)), Ri;
-    int_vector_type nodes;
-    int_vector_type tmp(refine_nodes);
+    E_Float coeff(0.5*sqrt(2.));
+    int_vector_type tmp(refine_nodes); // copie
     refine_nodes.clear();
 
-    sz = (size_type) tmp.size();
+    size_type sz = (size_type)tmp.size();
     //refine_nodes.reserve(sz);
     //printf("filter sz=%d\n", sz); fflush(stdout);
 
+    size_type Ni, nb_nodes;
+    E_Float Ri;
+    E_Float mBox[2], MBox[2];
+    int_vector_type nodes; // vecteur local
+    
     for (size_type i = 0; i < sz; ++i) // pour chaque point
     {
       Ni = tmp[i];
@@ -231,10 +236,10 @@ namespace DELAUNAY
       {
         refine_nodes.push_back(Ni); // reserve + resize
         filter_tree.insert(Ni);
+
       }
     }
   
-    //refine_nodes.resize(refine_nodes.size());
   }
 
 /*

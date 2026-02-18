@@ -34,8 +34,9 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   E_Int faceNo; // no de la face
   PyObject* arrayUV;
   E_Float hmin, hmax, hausd, grading;
-  if (!PYPARSETUPLE_(args, OO_ I_ RRRR_, 
-                    &hook, &arrayUV, &faceNo, &hmin, &hmax, &hausd, &grading)) return NULL;  
+  E_Int aniso;
+  if (!PYPARSETUPLE_(args, OO_ I_ RRRR_ I_, 
+                    &hook, &arrayUV, &faceNo, &hmin, &hmax, &hausd, &grading, &aniso)) return NULL;  
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   packet = (void**) PyCObject_AsVoidPtr(hook);
@@ -70,6 +71,20 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < n; i++) pos3D(1,i) = (*fi)(i,2);
   for (E_Int i = 0; i < n; i++) pos3D(2,i) = (*fi)(i,3);
     
+  // add BBox for relative chord error
+  E_Float xmin, xmax, ymin, ymax, zmin, zmax;
+  for (E_Int i = 0; i < n; i++)
+  {
+    xmin = K_FUNC::E_min(xmin, pos3D(0,i));
+    xmax = K_FUNC::E_max(xmax, pos3D(0,i));
+    ymin = K_FUNC::E_min(ymin, pos3D(1,i));
+    ymax = K_FUNC::E_max(ymax, pos3D(1,i));
+    zmin = K_FUNC::E_min(zmin, pos3D(2,i));
+    zmax = K_FUNC::E_max(zmax, pos3D(2,i));
+  }
+  E_Float L = K_FUNC::E_max(xmax-xmin, ymax-ymin);
+  L = K_FUNC::E_max(L, zmax-zmin);
+
   K_FLD::FloatArray UVcontour(2, n);
   for (E_Int i = 0; i < n; i++) UVcontour(0,i) = (*fi)(i,4);
   for (E_Int i = 0; i < n; i++) UVcontour(1,i) = (*fi)(i,5);
@@ -105,8 +120,6 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
 
   DELAUNAY::SurfaceMesherMode mode;
 
-  E_Int aniso = false;
-
   if ( (hausd < 0 && hmax > 0) ||
        (hausd > 0 && std::abs(hmax-hmin) < 1.e-12) ) // iso hmax
   {
@@ -123,12 +136,13 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     if (dx > 0.2) mode.growth_ratio = 1.1;
     //printf("trimesh uniform hmin=" SF_F_ " hmax=" SF_F_ " grading=" SF_F_ "\n", mode.hmin, mode.hmax, mode.growth_ratio);      
   }
-  else if (hausd > 0 && hmax > 0 && hmin >= 0 && aniso == true) // aniso mix
+  else if (hausd > 0 && hmax > 0 && hmin >= 0 && aniso == 1) // aniso mix
   {
     // mode pure hausd
     mode.metric_mode = mode.ANISO; //ISO_RHO impose la courbure minimum dans les deux directions
     mode.hmax = hmax; // h moyen
     mode.hmin = hmin; // h moyen
+    //mode.chordal_error = hausd/L; // chordal error set
     mode.chordal_error = hausd; // chordal error set
     mode.growth_ratio = grading; // grading forced
     mode.nb_smooth_iter = 2; // iter de lissage pour assurer le grading
@@ -141,6 +155,7 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
     mode.hmax = hmax; // h max
     mode.hmin = hmin; // h min
     //mode.hmin = K_CONST::E_MAX_FLOAT; // hmin as in landier
+    //mode.chordal_error = hausd/L; // chordal error set
     mode.chordal_error = hausd; // chordal error set
     mode.growth_ratio = grading; // grading ne sert pas si pas de lissage
     mode.nb_smooth_iter = 0; // iter de lissage de la metrique
@@ -171,12 +186,12 @@ PyObject* K_OCC::trimesh(PyObject* self, PyObject* args)
   err = mesher.run(data);
   if (err || (data.connectM.cols() == 0))
   {
-      // connectM doit etre la sortie
-      printf("error = " SF_D_ "\n", err);
-      printf("cols = " SF_D_ "\n", data.connectM.cols());
-      RELEASESHAREDB(ret, arrayUV, fi, ci);
-      PyErr_SetString(PyExc_TypeError, "trimesh: mesher has failed.");
-      return NULL;
+    // connectM doit etre la sortie
+    printf("Error: trimesh: error code = " SF_D_ "\n", err);
+    printf("Error: trimesh: cols = " SF_D_ "\n", data.connectM.cols());
+    RELEASESHAREDB(ret, arrayUV, fi, ci);
+    PyErr_SetString(PyExc_TypeError, "trimesh: mesher has failed.");
+    return NULL;
   }
     
   // recupere la sortie

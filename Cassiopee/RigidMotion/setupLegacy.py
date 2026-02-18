@@ -13,32 +13,37 @@ import os
 # elsA/Kernel
 #=============================================================================
 
-# Write setup.cfg
 import KCore.Dist as Dist
+
+# Compiler settings must be set in installBase.py / installBaseUser.py
+f77compiler = Dist.getf77Compiler()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalLibs = Dist.getAdditionalLibs()
+
+# Write setup.cfg file
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Compilation des fortrans ===================================================
-from KCore.config import *
-if f77compiler == "None":
+if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling RigidMotion.")
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
 os.system("make -e FC="+f77compiler+" WDIR=RigidMotion/Fortran "+opt)
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod,kcoreLibDir]
 libraries = ["RigidMotionF","kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
@@ -48,6 +53,7 @@ setup(
     version="4.1",
     description="Rigid motion module.",
     author="ONERA",
+    url="https://onera.github.io/Cassiopee/",
     package_dir={"":"."},
     packages=['RigidMotion'],
     ext_modules=[Extension('RigidMotion.rigidMotion',

@@ -30,11 +30,11 @@
 #include "Nuga/include/MeshUtils1D.h"
 #include "Nuga/include/ngon_unit.h"
 #include "Nuga/include/diag.h"
+#include "Nuga/include/Edge.h"
 
 #ifdef DEBUG_METRIC
 #include "eberly_eigen.h"
 #endif
-
 
 namespace DELAUNAY 
 {
@@ -95,8 +95,8 @@ namespace DELAUNAY
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold,
      std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
-    void __compute_refine_points
-    (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
+    void __compute_refine_points(K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, 
+        std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes);
     
     void smoothing_loop(const std::set<K_MESH::NO_Edge>& edges, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/);
     void smoothing_loop(const K_FLD::IntArray& connectB, E_Float gr, E_Int itermax, E_Int N0 /* threshold for metric changes*/);
@@ -294,7 +294,8 @@ namespace DELAUNAY
   bool VarMetric<Aniso2D>::isWeakAniso(size_type Ni, E_Float r) 
   {   
     const Aniso2D& mi = _field[Ni];
-    E_Float lambda0, lambda1, v0[2], v1[2];
+    E_Float lambda0, lambda1;
+    E_Float v0[2], v1[2];
     K_LINEAR::DelaunayMath::eigen_vectors(mi[0], mi[2], mi[1], lambda0, lambda1, v0, v1);
     E_Float h1old2 = get_h2_along_dir(Ni, v0);
     E_Float h2old2 = get_h2_along_dir(Ni, v1);
@@ -669,16 +670,16 @@ namespace DELAUNAY
   }
 
   template <typename T>
-  E_Float VarMetric<T>::length(size_type Ni, size_type Nj, const E_Float & threshold, NUGA::int_vector_type& tmpNodes)
+  E_Float VarMetric<T>::length(size_type Ni, size_type Nj, const E_Float& threshold, NUGA::int_vector_type& tmpNodes)
   {
     // This computes recursively the length of the input edge by splitting it in
-    // a number of bits such all the bits are smaller than the treshold.
+    // a number of bits such all the bits are smaller than the threshold.
     E_Float L = lengthEval(Ni, _field[Ni], Nj, _field[Nj]);
     if (L <= threshold) return L;
 
     // Split
     size_type dim = _pos->rows();
-    E_Float* newP = new E_Float[dim];
+    E_Float newP[3];
     E_Float* it = newP;
 
     K_FLD::FloatArray::const_iterator it1(_pos->col(Ni)), it2(_pos->col(Nj));
@@ -688,7 +689,6 @@ namespace DELAUNAY
 
     _pos->pushBack(newP, newP+dim);
     size_type N = _pos->cols()-1;
-    delete [] newP;
     tmpNodes.push_back(N);
     this->computeMetric(N, Ni, Nj, 0.5);
 
@@ -951,11 +951,9 @@ namespace DELAUNAY
 //      directional_metric_reduce(Nj, hjnew2, normed_dir); //orientation of NiNj does not matter
 //    else //isotropic reduction
     E_Float t = hjold2 / hjnew2;
-    {
-      _field[Nj][0] *= t;
-      _field[Nj][2] *= t;
-      _field[Nj][1] *= t;
-    }
+    _field[Nj][0] *= t;
+    _field[Nj][2] *= t;
+    _field[Nj][1] *= t;
   }
 
   template<> inline
@@ -966,9 +964,7 @@ namespace DELAUNAY
     //      directional_metric_reduce(Nj, hjnew2, normed_dir); //orientation of NiNj does not matter
     //    else //isotropic reduction
     E_Float t = hjold2 / hjnew2;
-    {
-      for (size_t k=0; k < 6; ++k) _field[Nj][k] *= t;
-    }
+    for (size_t k=0; k < 6; ++k) _field[Nj][k] *= t;
   }
 
   /// calcule la metrique par interpolation
@@ -1301,7 +1297,7 @@ namespace DELAUNAY
     {
       m = metric2(0,i);
       if ((m > 0.) && (m < NUGA::FLOAT_MAX))
-        metric1[i] = std::min(m, metric1[i]);
+        metric1[i] = K_FUNC::E_min(m, metric1[i]);
     }
   }
 
@@ -1534,16 +1530,14 @@ namespace DELAUNAY
     return true;
   }
 
-  ///
+  /// add mid point of Ni Nj
   template <typename T>
   void VarMetric<T>::__init_refine_points
     (K_FLD::FloatArray& pos, size_type Ni, size_type Nj, E_Float threshold, 
     std::vector<std::pair<E_Float, size_type> >& length_to_points, std::vector<size_type>& tmpNodes)
   {
     size_type dim(pos.rows());
-    
     E_Float newP[3];
-    
     K_FLD::FloatArray::const_iterator it1(pos.col(Ni)), it2(pos.col(Nj));
     for (size_type i = 0; i < dim; ++i) // middle point.
       newP[i] = 0.5 * (*(it1++) + *(it2++));

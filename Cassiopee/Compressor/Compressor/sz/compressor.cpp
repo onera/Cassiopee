@@ -24,8 +24,10 @@
 #include "sz_omp.h"
 #include "zlib.h"
 
-namespace sz {
-enum sz_ikeys {
+namespace sz 
+{
+  enum sz_ikeys 
+  {
     snapShotCmprStep = 0,
     withLinearRegression,
     protectValueRange,
@@ -103,46 +105,47 @@ init_parameters(sz_params &parameters)
 
 void display_parameters(const sz_params &params)
 {
-    if(params.sol_ID == SZ)
-        printf("compressor Name:        \t SZ\n");
-    else if(params.sol_ID == SZ_Transpose)
-        printf("compressor Name:        \t SZ_Transpose\n");
+    if (params.sol_ID == SZ)
+      printf("compressor Name:        \t SZ\n");
+    else if (params.sol_ID == SZ_Transpose)
+      printf("compressor Name:        \t SZ_Transpose\n");
     else
-        printf("compressor Name:        \t Other compressor\n");
-    switch(params.dataType)
+      printf("compressor Name:        \t Other compressor\n");
+    
+      switch(params.dataType)
     {
-    case SZ_FLOAT:
+      case SZ_FLOAT:
         printf("Data type:                      \t FLOAT\n");
         printf("min value of raw data:          \t %f\n", params.fmin);
         printf("max value of raw data:          \t %f\n", params.fmax);        
         break;
-    case SZ_DOUBLE:
+      case SZ_DOUBLE:
         printf("Data type:                      \t DOUBLE\n");
         printf("min value of raw data:          \t %f\n", params.dmin);
         printf("max value of raw data:          \t %f\n", params.dmax);    
         break;
-    case SZ_INT8:
+      case SZ_INT8:
         printf("Data type:                      \t INT8\n");
         break;  
-    case SZ_INT16:
+      case SZ_INT16:
         printf("Data type:                      \t INT16\n");
         break;
-    case SZ_INT32:
+      case SZ_INT32:
         printf("Data type:                      \t INT32\n");
         break;  
-    case SZ_INT64:
+      case SZ_INT64:
         printf("Data type:                      \t INT64\n");
         break;  
-    case SZ_UINT8:
+      case SZ_UINT8:
         printf("Data type:                      \t UINT8\n");
         break;  
-    case SZ_UINT16:
+      case SZ_UINT16:
         printf("Data type:                      \t UINT16\n");
         break;
-    case SZ_UINT32:
+      case SZ_UINT32:
         printf("Data type:                      \t UINT32\n");
         break;  
-    case SZ_UINT64:
+      case SZ_UINT64:
         printf("Data type:                      \t UINT64\n");
         break;              
     }
@@ -153,87 +156,87 @@ void display_parameters(const sz_params &params)
     printf("predThreshold:                  \t %f\n", params.predThreshold);
     switch(params.szMode)
     {
-    case SZ_BEST_SPEED:
+      case SZ_BEST_SPEED:
         printf("szMode:                         \t SZ_BEST_SPEED (without Gzip)\n");
         break;
-    case SZ_BEST_COMPRESSION:
+      case SZ_BEST_COMPRESSION:
         printf("szMode:                         \t SZ_BEST_COMPRESSION (with Zstd or Gzip)\n");
         break;
     }
     switch(params.gzipMode)
     {
-    case Z_BEST_SPEED:
+      case Z_BEST_SPEED:
         printf("gzipMode:                       \t Z_BEST_SPEED\n");
         break;
-    case Z_DEFAULT_COMPRESSION:
+      case Z_DEFAULT_COMPRESSION:
         printf("gzipMode:                       \t Z_BEST_SPEED\n");
         break;  
-    case Z_BEST_COMPRESSION:
+      case Z_BEST_COMPRESSION:
         printf("gzipMode:                       \t Z_BEST_COMPRESSION\n");
         break;
     }
     
     switch(params.errorBoundMode)
     {
-    case ABS:
+      case ABS:
         printf("errBoundMode:                   \t ABS\n");
         printf("absErrBound:                    \t %g\n", params.absErrBound);
         break;
-    case REL:
+      case REL:
         printf("errBoundMode:                   \t REL (based on value_range extent)\n");
         printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
         break;
-    case ABS_AND_REL:
+      case ABS_AND_REL:
         printf("errBoundMode:                   \t ABS_AND_REL\n");
         printf("absErrBound:                    \t %g\n", params.absErrBound);
         printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
         break;
-    case ABS_OR_REL:
+      case ABS_OR_REL:
         printf("errBoundMode:                   \t ABS_OR_REL\n");
         printf("absErrBound:                    \t %g\n", params.absErrBound);
         printf("relBoundRatio:                  \t %g\n", params.relBoundRatio);
         break;
-    case PSNR:
+      case PSNR:
         printf("errBoundMode:                   \t PSNR\n");
         printf("psnr:                           \t %g\n", params.psnr);
         break;
-    case PW_REL:
+      case PW_REL:
         printf("errBoundMode:                   \t PW_REL\n");
         break;
-    case ABS_AND_PW_REL:
+      case ABS_AND_PW_REL:
         printf("errBoundMode:                   \t ABS_AND_PW_REL\n");
         printf("absErrBound:                    \t %f\n", params.absErrBound);
         break;
-    case ABS_OR_PW_REL:
+      case ABS_OR_PW_REL:
         printf("errBoundMode:                   \t ABS_OR_PW_REL\n");
         printf("absErrBound:                    \t %f\n", params.absErrBound);
         break;
-    case REL_AND_PW_REL:
+      case REL_AND_PW_REL:
         printf("errBoundMode:                   \t REL_AND_PW_REL\n");
         printf("range_relBoundRatio:            \t %f\n", params.relBoundRatio);
         break;
-    case REL_OR_PW_REL:
+      case REL_OR_PW_REL:
         printf("errBoundMode:                   \t REL_OR_PW_REL\n");
         printf("range_relBoundRatio:            \t %f\n", params.relBoundRatio);
         break;
     }
     
-    if(params.errorBoundMode>=PW_REL && params.errorBoundMode<=REL_OR_PW_REL)
+    if (params.errorBoundMode>=PW_REL && params.errorBoundMode<=REL_OR_PW_REL)
     {
-        printf("pw_relBoundRatio:               \t %f\n", params.pw_relBoundRatio);
-        //printf("segment_size:                   \t %d\n", params.segment_size);
-        switch(params.pwr_type)
-        {
+      printf("pw_relBoundRatio:               \t %f\n", params.pw_relBoundRatio);
+      //printf("segment_size:                   \t %d\n", params.segment_size);
+      switch(params.pwr_type)
+      {
         case SZ_PWR_MIN_TYPE:
-            printf("pwrType:                    \t SZ_PWR_MIN_TYPE\n");
-            break;
+          printf("pwrType:                    \t SZ_PWR_MIN_TYPE\n");
+          break;
         case SZ_PWR_AVG_TYPE:
-            printf("pwrType:                    \t SZ_PWR_AVG_TYPE\n");
-            break;
+          printf("pwrType:                    \t SZ_PWR_AVG_TYPE\n");
+          break;
         case SZ_PWR_MAX_TYPE:
-            printf("pwrType:                    \t SZ_PWR_MAX_TYPE\n");
-            break;
-        }
+          printf("pwrType:                    \t SZ_PWR_MAX_TYPE\n");
+          break;
+      }
     }
     fflush(stdout);
 }
@@ -241,136 +244,168 @@ void display_parameters(const sz_params &params)
 bool
 set_parameters_from_dictionnary(PyObject *options, sz_params &parameters)
 {
-    PyObject * key, *value;
-    Py_ssize_t pos = 0;
-    while (PyDict_Next(options, &pos, &key, &value)) {
+  PyObject * key, *value;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(options, &pos, &key, &value)) 
+  {
 #if PY_VERSION_HEX >= 0x03000000
-        std::string ckey = PyUnicode_AsUTF8(key);
+    std::string ckey = PyUnicode_AsUTF8(key);
 #else
-        std::string ckey = PyString_AsString(key);
+    std::string ckey = PyString_AsString(key);
 #endif
-        if (ckey == sz_keys[quantization_intervals]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for quantization intervals");
-                return false;
-            }
-            long val                          = PyLong_AsLong(value);
-            parameters.quantization_intervals = val;
-        }
-        else if (ckey == sz_keys[max_quant_intervals]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for max quant intervals");
-                return false;
-            }
-            long val                       = PyLong_AsLong(value);
-            parameters.max_quant_intervals = val;
-        }
-        else if (ckey == sz_keys[sampleDistance]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for sample distance");
-                return false;
-            }
-            long val                  = PyLong_AsLong(value);
-            parameters.sampleDistance = val;
-        }
-        else if (ckey == sz_keys[predThreshold]) {
-            if (!PyFloat_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an float type for pred threshold");
-                return false;
-            }
-            double val               = PyFloat_AsDouble(value);
-            parameters.predThreshold = val;
-        }
-        else if (ckey == sz_keys[szMode]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for sz mode");
-                return false;
-            }
-            long val          = PyLong_AsLong(value);
-            parameters.szMode = val;
-        }
-        else if (ckey == sz_keys[gzipMode]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for gzip mode");
-                return false;
-            }
-            long val            = PyLong_AsLong(value);
-            parameters.gzipMode = val;
-        }
-        else if (ckey == sz_keys[errorBoundMode]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for error bound mode");
-                return false;
-            }
-            long val                  = PyLong_AsLong(value);
-            parameters.errorBoundMode = val;
-        }
-        else if (ckey == sz_keys[absErrBound]) {
-            if (!PyFloat_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an float type for abs error bound");
-                return false;
-            }
-            double val             = PyFloat_AsDouble(value);
-            parameters.absErrBound = val;
-        }
-        else if (ckey == sz_keys[relBoundRatio]) {
-            if (!PyFloat_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an float type for rel bound ratio");
-                return false;
-            }
-            double val               = PyFloat_AsDouble(value);
-            parameters.relBoundRatio = val;
-        }
-        else if (ckey == sz_keys[pw_relBoundRatio]) {
-            if (!PyFloat_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an float type for point wise rel bound ratio");
-                return false;
-            }
-            double val                  = PyFloat_AsDouble(value);
-            parameters.pw_relBoundRatio = val;
-        }
-        else if (ckey == sz_keys[psnr]) {
-            if (!PyLong_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting an integer type for psnr");
-                return false;
-            }
-            long val        = PyLong_AsLong(value);
-            parameters.psnr = val;
-        }
-        else if (ckey == sz_keys[protectValueRange]) {
-            if (!PyBool_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for protectValueRange");
-                return false;
-            }
-            parameters.protectValueRange = (PyObject_IsTrue(value) ? 1 : 0);
-        }
-        else if (ckey == sz_keys[accelerate_pw_rel_compression]) {
-            if (!PyBool_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for accelerate_pw_rel_compression");
-                return false;
-            }
-            parameters.accelerate_pw_rel_compression = (PyObject_IsTrue(value) ? 1 : 0);
-        }
-        else if (ckey == sz_keys[randomAccess]) {
-            if (!PyBool_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for protectValueRange");
-                return false;
-            }
-            parameters.randomAccess = (PyObject_IsTrue(value) ? 1 : 0);
-        }
-        else if (ckey == sz_keys[withLinearRegression]) {
-            if (!PyBool_Check(value)) {
-                PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for withLinearFegression");
-                return false;
-            }
-            parameters.withRegression = (PyObject_IsTrue(value) ? SZ_WITH_LINEAR_REGRESSION : SZ_NO_REGRESSION );
-        }
-        else {
-            PyErr_SetString(PyExc_Warning, "Key for sz options doesn't exist !");
-            return false;
-        }
+    if (ckey == sz_keys[quantization_intervals]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for quantization intervals");
+        return false;
+      }
+      long val                          = PyLong_AsLong(value);
+      parameters.quantization_intervals = val;
     }
-    return true;
+    else if (ckey == sz_keys[max_quant_intervals]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for max quant intervals");
+        return false;
+      }
+      long val                       = PyLong_AsLong(value);
+      parameters.max_quant_intervals = val;
+    }
+    else if (ckey == sz_keys[sampleDistance]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for sample distance");
+        return false;
+      }
+      long val                  = PyLong_AsLong(value);
+      parameters.sampleDistance = val;
+    }
+    else if (ckey == sz_keys[predThreshold]) 
+    {
+      if (!PyFloat_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an float type for pred threshold");
+        return false;
+      }
+      double val               = PyFloat_AsDouble(value);
+      parameters.predThreshold = val;
+    }
+    else if (ckey == sz_keys[szMode]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for sz mode");
+        return false;
+      }
+      long val          = PyLong_AsLong(value);
+      parameters.szMode = val;
+    }
+    else if (ckey == sz_keys[gzipMode]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for gzip mode");
+        return false;
+      }
+      long val            = PyLong_AsLong(value);
+      parameters.gzipMode = val;
+    }
+    else if (ckey == sz_keys[errorBoundMode]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for error bound mode");
+        return false;
+      }
+      long val                  = PyLong_AsLong(value);
+      parameters.errorBoundMode = val;
+    }
+    else if (ckey == sz_keys[absErrBound]) 
+    {
+      if (!PyFloat_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an float type for abs error bound");
+        return false;
+      }
+      double val             = PyFloat_AsDouble(value);
+      parameters.absErrBound = val;
+    }
+    else if (ckey == sz_keys[relBoundRatio]) 
+    {
+      if (!PyFloat_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an float type for rel bound ratio");
+        return false;
+      }
+      double val               = PyFloat_AsDouble(value);
+      parameters.relBoundRatio = val;
+    }
+    else if (ckey == sz_keys[pw_relBoundRatio]) 
+    {
+      if (!PyFloat_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an float type for point wise rel bound ratio");
+        return false;
+      }
+      double val                  = PyFloat_AsDouble(value);
+      parameters.pw_relBoundRatio = val;
+    }
+    else if (ckey == sz_keys[psnr]) 
+    {
+      if (!PyLong_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting an integer type for psnr");
+        return false;
+      }
+      long val        = PyLong_AsLong(value);
+      parameters.psnr = val;
+    }
+    else if (ckey == sz_keys[protectValueRange]) 
+    {
+      if (!PyBool_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for protectValueRange");
+        return false;
+      }
+      parameters.protectValueRange = (PyObject_IsTrue(value) ? 1 : 0);
+    }
+    else if (ckey == sz_keys[accelerate_pw_rel_compression]) 
+    {
+      if (!PyBool_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for accelerate_pw_rel_compression");
+        return false;
+      }
+      parameters.accelerate_pw_rel_compression = (PyObject_IsTrue(value) ? 1 : 0);
+    }
+    else if (ckey == sz_keys[randomAccess]) 
+    {
+      if (!PyBool_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for protectValueRange");
+        return false;
+      }
+      parameters.randomAccess = (PyObject_IsTrue(value) ? 1 : 0);
+    }
+    else if (ckey == sz_keys[withLinearRegression]) 
+    {
+      if (!PyBool_Check(value)) 
+      {
+        PyErr_SetString(PyExc_TypeError, "Waiting a boolean type for withLinearFegression");
+        return false;
+      }
+      parameters.withRegression = (PyObject_IsTrue(value) ? SZ_WITH_LINEAR_REGRESSION : SZ_NO_REGRESSION );
+    }
+    else 
+    {
+      PyErr_SetString(PyExc_Warning, "Key for sz options doesn't exist !");
+      return false;
+    }
+  }
+  return true;
 }
 
 const char *compress_doc = R"RAW( 
@@ -468,119 +503,130 @@ const char *compress_doc = R"RAW(
 PyObject *
 py_compress(PyObject *self, PyObject *args)
 {
-    PyObject *arrays;
-    PyObject *options = nullptr;
-    if (!PyArg_ParseTuple(args, "O|O", &arrays, &options)) {
-        PyErr_SetString(PyExc_SyntaxError,
-                        "Wrong syntax. Right syntax : pack(array or list of arrays, dictionnary options or file name");
-        return NULL;
-    }
-    bool                         is_list = false;
-    std::vector<PyArrayObject *> np_arrays;
-    if (PyList_Check(arrays)) {
-        is_list = true;
-        np_arrays.reserve(PyList_Size(arrays));
-        for (Py_ssize_t i = 0; i < PyList_Size(arrays); ++i)
-            np_arrays.push_back((PyArrayObject *)PyList_GetItem(arrays, i));
-    }
-    else if (PyArray_Check(arrays))
-        np_arrays.push_back((PyArrayObject *)arrays);
-    else {
-        PyErr_SetString(PyExc_TypeError, "First argument must be an array or a list of array");
-        return NULL;
-    }
+  PyObject *arrays;
+  PyObject *options = nullptr;
+  if (!PyArg_ParseTuple(args, "O|O", &arrays, &options)) 
+  {
+    PyErr_SetString(PyExc_SyntaxError,
+                    "Wrong syntax. Right syntax : pack(array or list of arrays, dictionnary options or file name");
+    return NULL;
+  }
+  bool                         is_list = false;
+  std::vector<PyArrayObject *> np_arrays;
+  if (PyList_Check(arrays)) 
+  {
+    is_list = true;
+    np_arrays.reserve(PyList_Size(arrays));
+    for (Py_ssize_t i = 0; i < PyList_Size(arrays); ++i)
+      np_arrays.push_back((PyArrayObject *)PyList_GetItem(arrays, i));
+  }
+  else if (PyArray_Check(arrays))
+    np_arrays.push_back((PyArrayObject *)arrays);
+  else 
+  {
+    PyErr_SetString(PyExc_TypeError, "First argument must be an array or a list of array");
+    return NULL;
+  }
 
-    const char *filename = nullptr;
-    sz_params parameters;
-    init_parameters(parameters);
-    if (options) {
-        if (PyUnicode_Check(options))
+  const char *filename = nullptr;
+  sz_params parameters;
+  init_parameters(parameters);
+  if (options) 
+  {
+    if (PyUnicode_Check(options))
 #if PY_VERSION_HEX >= 0x03000000
-            filename = PyUnicode_AsUTF8(options);
+      filename = PyUnicode_AsUTF8(options);
 #else
-            filename = PyString_AsString(options);
+      filename = PyString_AsString(options);
 #endif
-        else if (PyDict_Check(options)) {
-            bool is_ok = set_parameters_from_dictionnary(options, parameters);
-            if (!is_ok) return NULL;
-        }
+    else if (PyDict_Check(options)) 
+    {
+      bool is_ok = set_parameters_from_dictionnary(options, parameters);
+      if (!is_ok) return NULL;
     }
-    if (filename) {
-        int ok = SZ_Init(filename);
-        if (ok == SZ_NSCS) {
-            PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
-            return NULL;
-        }
+  }
+  if (filename) 
+  {
+    int ok = SZ_Init(filename);
+    if (ok == SZ_NSCS) 
+    {
+      PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
+      return NULL;
     }
-    else {
-        int ok = SZ_Init_Params(&parameters);
-        if (ok == SZ_NSCS) {
-            PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
-            return NULL;
-        }
+  }
+  else 
+  {
+    int ok = SZ_Init_Params(&parameters);
+    if (ok == SZ_NSCS) 
+    {
+      PyErr_SetString(PyExc_RuntimeError, "Failed to initialize SZ librarie ! (Wrong parameters ?)");
+      return NULL;
     }
-    PyObject *compressed_list = PyList_New(np_arrays.size());
-    int       ind_list        = 0;
-    for (const auto &an_array : np_arrays) {
-        std::size_t outSize, r5, r4, r3, r2, r1;
-        r5              = 0;
-        r4              = 0;
-        r3              = 0;
-        r2              = 0;
-        r1              = 0;
-        int       ndims = PyArray_NDIM(an_array);
-        npy_intp *dims  = PyArray_DIMS(an_array);
-        bool is_c_order = false;
-        if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
-        if (is_c_order)
-        {
-            if (ndims > 4) r5 = dims[0];
-            if (ndims > 3) r4 = dims[ndims-4];
-            if (ndims > 2) r3 = dims[ndims-3];
-            if (ndims > 1) r2 = dims[ndims-2];
-            r1                = dims[ndims-1];
-        }
-        else //_ Fortran order _
-        {
-            r1                = dims[0];
-            if (ndims > 1) r2 = dims[1];
-            if (ndims > 2) r3 = dims[2];
-            if (ndims > 3) r4 = dims[3];
-            if (ndims > 4) r5 = dims[4];
-        }
-        unsigned char *compressed_data = SZ_compress(SZ_DOUBLE, PyArray_DATA(an_array), &outSize, r5, r4, r3, r2, r1);
-        npy_intp out_dim = outSize;
-        PyObject *shape = PyTuple_New(ndims);
-        for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
-        PyObject *obj = PyTuple_New(3);
-        PyTuple_SET_ITEM(obj, 0, shape);
-        PyArrayObject* data = (PyArrayObject*)PyArray_SimpleNewFromData(1, &out_dim, NPY_BYTE, compressed_data);
-        char* ptr = (char*)PyArray_DATA(data);
+  }
+  PyObject *compressed_list = PyList_New(np_arrays.size());
+  int       ind_list        = 0;
+  for (const auto &an_array : np_arrays) 
+  {
+    std::size_t outSize, r5, r4, r3, r2, r1;
+    r5              = 0;
+    r4              = 0;
+    r3              = 0;
+    r2              = 0;
+    r1              = 0;
+    int       ndims = PyArray_NDIM(an_array);
+    npy_intp *dims  = PyArray_DIMS(an_array);
+    bool is_c_order = false;
+    if (PyArray_CHKFLAGS(an_array, NPY_ARRAY_C_CONTIGUOUS)) is_c_order = true;
+    if (is_c_order)
+    {
+      if (ndims > 4) r5 = dims[0];
+      if (ndims > 3) r4 = dims[ndims-4];
+      if (ndims > 2) r3 = dims[ndims-3];
+      if (ndims > 1) r2 = dims[ndims-2];
+      r1                = dims[ndims-1];
+    }
+    else //_ Fortran order _
+    {
+      r1                = dims[0];
+      if (ndims > 1) r2 = dims[1];
+      if (ndims > 2) r3 = dims[2];
+      if (ndims > 3) r4 = dims[3];
+      if (ndims > 4) r5 = dims[4];
+    }
+    unsigned char *compressed_data = SZ_compress(SZ_DOUBLE, PyArray_DATA(an_array), &outSize, r5, r4, r3, r2, r1);
+    npy_intp out_dim = outSize;
+    PyObject *shape = PyTuple_New(ndims);
+    for (int i = 0; i < ndims; ++i) PyTuple_SET_ITEM(shape, i, PyLong_FromLong(long(dims[i])));
+    PyObject *obj = PyTuple_New(3);
+    PyTuple_SET_ITEM(obj, 0, shape);
+    PyArrayObject* data = (PyArrayObject*)PyArray_SimpleNewFromData(1, &out_dim, NPY_BYTE, compressed_data);
+    char* ptr = (char*)PyArray_DATA(data);
         
-        PyArray_ENABLEFLAGS(data, NPY_ARRAY_OWNDATA);
-        PyTuple_SET_ITEM(obj, 1, (PyObject*)data);
-        if (is_c_order)
-        {
-            Py_IncRef(Py_True);
-            PyTuple_SetItem(obj, 2, Py_True); 
-        }
-        else
-        {
-            Py_IncRef(Py_False);
-            PyTuple_SetItem(obj, 2, Py_False); 
-        }
-        PyList_SetItem(compressed_list, ind_list, obj);
-        ind_list++;
+    PyArray_ENABLEFLAGS(data, NPY_ARRAY_OWNDATA);
+    PyTuple_SET_ITEM(obj, 1, (PyObject*)data);
+    if (is_c_order)
+    {
+      Py_IncRef(Py_True);
+      PyTuple_SetItem(obj, 2, Py_True); 
+    }
+    else
+    {
+      Py_IncRef(Py_False);
+      PyTuple_SetItem(obj, 2, Py_False); 
+    }
+    PyList_SetItem(compressed_list, ind_list, obj);
+    ind_list++;
     }
     //display_parameters(parameters);
     SZ_Finalize();
-    if (!is_list) {
+    if (!is_list) 
+    {
         PyObject *array = PyList_GetItem(compressed_list, 0);
         Py_INCREF(array);
         Py_DECREF(compressed_list);
         return array;
     }
-    return compressed_list;
+  return compressed_list;
 }
 
 static const char *decompress_doc = R"RAW(
@@ -594,24 +640,26 @@ Usage: array = sz.unpack(compressed_array[,options]);
       and options (optional arguments) as same signification than options in compress function.
 )RAW";
 
-struct sz_ndims {
-    sz_ndims() : r{0, 0, 0, 0, 0} {}
-    std::array<std::size_t, 5> r;
-    int
-    ndims() const
-    {
-        int n = 5;
-        while ((n > 0) && (r[5 - n] == 0)) --n;
-        return n;
-    }
+struct sz_ndims 
+{
+  sz_ndims() : r{0, 0, 0, 0, 0} {}
+  std::array<std::size_t, 5> r;
+  int
+  ndims() const
+  {
+    int n = 5;
+    while ((n > 0) && (r[5 - n] == 0)) --n;
+    return n;
+  }
 };
 
-PyObject *
+PyObject*
 py_decompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays, *options;
     options = nullptr;
-    if (!PyArg_ParseTuple(args, "O|O", &cpr_arrays, &options)) {
+    if (!PyArg_ParseTuple(args, "O|O", &cpr_arrays, &options)) 
+    {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpack(array or list of compressed arrays");
         return NULL;
     }

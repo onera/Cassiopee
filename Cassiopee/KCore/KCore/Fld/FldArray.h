@@ -485,12 +485,14 @@ E_Int FldArray<T>::getDim(char* eltType)
   // {
     if (_ngon == 3)  // Array3/NGonv4
     {
+      if (getNFaces() == 0) return dim;
       E_Int* indPG = _rake[2];
       E_Int pos0 = indPG[0];
       size0 = indPG[1] - pos0;
     }
     else if (_ngon == 2)  // Array3/NGonv3
     {
+      if (getNFaces() == 0) return dim;
       E_Int* ngon = _rake[0];
       E_Int* indPG = _rake[2];
       E_Int pos0 = indPG[0];
@@ -498,6 +500,7 @@ E_Int FldArray<T>::getDim(char* eltType)
     }
     else // Array1/NGONv3
     {
+      if (getNFaces() == 0) return dim;
       E_Int* ngon = _rake[0]+2;
       E_Int* indPG = getIndPG();
       E_Int pos0 = indPG[0];
@@ -584,9 +587,9 @@ E_Int* FldArray<T>::getIndPG()
       _ngon = 1;
       E_Int nfaces = _rake[0][0];
       E_Int* ptrf = _rake[0]+2;
-      E_Int c = 0;
       _rake[2] = new E_Int [nfaces];
       E_Int* indPG = _rake[2];
+      E_Int c = 0;
       for (E_Int i = 0; i < nfaces; i++) { indPG[i] = c; c += ptrf[c]+1; }
     }
     return _rake[2];

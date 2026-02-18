@@ -36,12 +36,12 @@ PyObject* K_OCC::addArc(PyObject* self, PyObject* args)
 {
   PyObject* hook; 
   E_Float x1, y1, z1, x2, y2, z2, x3, y3, z3;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_, &hook, 
-    &x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3)) return NULL;
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ TRRR_ S_, &hook, 
+    &x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3,
+    &name)) return NULL;
 
   GETSHAPE;
-  GETMAPSURFACES;
-  GETMAPEDGES;
   
   gp_Pnt p1(x1, y1, z1); // start
   gp_Pnt p2(x2, y2, z2); // mid
@@ -49,6 +49,26 @@ PyObject* K_OCC::addArc(PyObject* self, PyObject* args)
   GC_MakeArcOfCircle arcBuilder(p1, p2, p3);
   Handle(Geom_TrimmedCurve) arc = arcBuilder.Value();
   TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(arc);
+  
+#ifdef USEXCAF
+
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+  builder.Add(compound, edge);
+  
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(compound, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+
+  GETMAPSURFACES;
+  GETMAPEDGES;
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -77,4 +97,6 @@ PyObject* K_OCC::addArc(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
+
+#endif
 }

@@ -17,7 +17,7 @@ WIDTH=40
 # Si le python installe n'a pas tkinter, il reste possible d'ajouter
 # tous les chemins dans config.py (ancien systeme).
 #==============================================================================
-try: import Tkinter as TK
+try: import tkinter as TK
 except: raise ImportError('Cassiopee installer requires tkinter.\nIf your python dont run tkinter, edit the installBaseUser.py file manually and add your machine settings.')
 
 import Dist
@@ -155,8 +155,7 @@ def check__(name):
     elif name == 'png':
         additionalLibPaths = eval(VadditionalLibPaths.get())
         additionalIncludePaths = eval(VadditionalIncludePaths.get())
-        (ok, pngIncDir, pngLib) = Dist.checkPng(additionalLibPaths,
-                                                additionalIncludePaths)
+        (ok, pngIncDir, pngLib) = Dist.checkPng()
         if ok: out = ['png: OK']
         else: out = ['png: libpng or png.h is missing']
 
@@ -283,8 +282,7 @@ import platform, re, os
 a = platform.uname()
 system = a[0] # Linux, Windows
 host = a[1]   # host name
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or 'xx'
 
 #==============================================================================
 master = TK.Tk()

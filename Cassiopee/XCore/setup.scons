@@ -1,6 +1,5 @@
 import os
 import KCore.Dist as Dist
-from KCore.config import *
 #==============================================================================
 # XCore requires:
 # C++ compiler
@@ -11,6 +10,10 @@ from KCore.config import *
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
 installPath = Dist.getInstallPath(prefix)
+Cppcompiler = Dist.getCppCompiler()
+additionalLibs = Dist.getAdditionalLibs()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
 
 # Get compilers from Distutils ================================================
 (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
@@ -22,13 +25,11 @@ installPath = Dist.getInstallPath(prefix)
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir]
@@ -52,7 +53,7 @@ if mpi4py:
     includeDirs.append(mpiIncDir)
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Specific options for scotch

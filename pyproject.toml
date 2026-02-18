@@ -1,5 +1,10 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "scons>=4.4.0"]
+requires = [
+    "setuptools>=45",
+    "setuptools_scm[toml]>=6.2",
+    "numpy>=1.23.3",
+    "scons>=4.4.0"
+]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
@@ -7,21 +12,21 @@ version_scheme = "post-release"
 local_scheme = "node-and-date"
 
 [project]
-name = "Cassiopee"
+name = "cassiopee"
 version = "4.1"
 authors = [
-  {name="ONERA", email="christophe.benoit@onera.fr"},
+    {name="ONERA", email="christophe.benoit@onera.fr"},
 ]
 license = {text="LGPLv3"}
 description = "Computational Fluid Dynamics pre- and post-processing python modules"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
-  "Programming Language :: Python",
-  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
-  "Operating System :: Unix",
-  "Operating System :: Microsoft :: Windows",
-  "Topic :: Scientific/Engineering :: Physics"
+    "Programming Language :: Python",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Scientific/Engineering :: Physics"
 ]
 dependencies = [
     "numpy>=1.23.3",
@@ -48,7 +53,9 @@ include = [
     "Modeler",
     "Intersector",
     "Apps",
-    "CPlot" 
+    "Roms",
+    "CPlot",
+    "OCC"
 ]
 
 [tool.setuptools.data-files]

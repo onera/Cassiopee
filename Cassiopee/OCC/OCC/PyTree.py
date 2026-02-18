@@ -14,13 +14,18 @@ except ImportError:
 __version__ = OCC.__version__
 import numpy
 
-from OCC import readCAD, writeCAD, createEmptyCAD, \
+from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
+    getNbEdges, getNbFaces, getFileAndFormat, \
+    printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, \
+    getFaceArea, getBoundingBox, \
     _translate, _rotate, _scale, _sewing, _splitFaces, \
-    _mergeFaces, _trimFaces, _removeFaces, _fillHole, _addFillet, mergeCAD, \
-    printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, _splitEdge, \
-    _addArc, _addCircle, _addEllipse, _addSuperEllipse, _addLine, _addSquare, \
-    _addSpline,_addBox, _addSphere, _addCylinder, _addSplineSurface, \
-    _addGordonSurface, _revolve, _sweep, _loft, _boolean
+    _mergeFaces, _trimFaces, _removeFaces, _fillHole, \
+    _addFillet, _offset, mergeCAD, _splitEdge, \
+    _addArc, _addCircle, _addEllipse, _addSuperEllipse, _addLine, \
+    _addSquare, _addSquare2, _addBox, _addBox2, \
+    _addSpline, _addSphere, _addCylinder, _addSplineSurface, \
+    _addGordonSurface, _addDomain, \
+    _revolve, _sweep, _loft, _boolean
 
 #==============================================================================
 # -- convertCAD2PyTree --
@@ -491,9 +496,10 @@ def getAllPos(t):
 # IN: hmax: hmax
 # IN: hausd: hausd deflection
 # IN: faceList: si fourni, ne maille que ces faces
+# IN: aniso: si true, anisotropic mesher
 # OUT: meshed CAD with CAD links
 #=================================================
-def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
+def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False):
     """Get a first TRI meshed tree linked to CAD."""
 
     t = C.newPyTree(['EDGES', 'FACES'])
@@ -535,7 +541,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None):
     else:
         hList = [(hmin,hmax,hausd)]*len(faceList)
 
-    faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList)
+    faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList, True, aniso)
 
     for c, f in enumerate(faces):
         if f is None: continue # Failed face
@@ -600,6 +606,57 @@ def meshAllPara(hook, hmin=-1, hmax=-1., hausd=-1.):
     D2._addProcNode(t, Cmpi.rank)
     return t
 
+#=============================
+def meshAllOCC(hook, hausd):
+    t = C.newPyTree(['EDGES', 'FACES'])
+
+    # Add CAD top container containing the CAD file name
+    fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
+    _setCADcontainer(t, fileName, fileFmt, -1, -1, hausd)
+
+    dedges, dfaces = OCC.meshAllOCC(hook, hausd)
+
+    # - Edges -
+    b = Internal.getNodeFromName1(t, 'EDGES')
+    for c, e in enumerate(dedges):
+        z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)
+        # Conserve hook, name, type et no de l'edge dans la CAD
+        r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+        Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
+        Internal._createChild(r, "type", "DataArray_t", value="edge")
+        Internal._createChild(r, "no", "DataArray_t", value=(c+1))
+        #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+        b[2].append(z)
+
+    # - Faces -
+    b = Internal.getNodeFromName1(t, 'FACES')
+    for c, f in enumerate(dfaces):
+        if f is None: continue # Failed face
+        noface = c+1
+        z = Internal.createZoneNode('face%03d'%(noface), f, [],
+                                    Internal.__GridCoordinates__,
+                                    Internal.__FlowSolutionNodes__,
+                                    Internal.__FlowSolutionCenters__)
+        edgeNo = OCC.occ.getEdgeNoByFace(hook, noface)
+        # conserve hook, name, type
+        r = Internal.createChild(z, "CAD", "UserDefinedData_t")
+        Internal._createChild(r, "name", "DataArray_t", value="face%03d"%(noface))
+        Internal._createChild(r, "type", "DataArray_t", value="face")
+        Internal._createChild(r, "no", "DataArray_t", value=noface)
+        Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
+        Internal._createChild(r, "hsize", "DataArray_t", value=-1)
+        #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
+        b[2].append(z)
+
+    _updateEdgesFaceList__(t)
+    _addOCAFCompoundNames(hook, t)
+    _setLonelyEdgesColor(t)
+
+    return t
+
 #================================================
 # remesh faces from an external modified edges
 # edges is a list of externally remeshed edges
@@ -638,9 +695,9 @@ def _remeshTreeFromEdges(hook, t, edges):
         for e in edgeList:
             ze = be[2][pose[e]]
             fedges.append(ze)
-        a = G.getMaxLength(fedges)
-        hmine = C.getMinValue(a, 'centers:MaxLength')
-        hmaxe = C.getMaxValue(a, 'centers:MaxLength')
+        a = G.getEdgeLength(fedges, type=0)
+        hmine = C.getMinValue(a, 'centers:EdgeLength')
+        hmaxe = C.getMaxValue(a, 'centers:EdgeLength')
         hausde = hsize[2]
         #print("hsize=",hmine,hmaxe,hausde)
         hsize = ( min(hmine, hsize[0]), max(hmaxe, hsize[1]), min(hausde, hsize[2]) )
@@ -953,6 +1010,7 @@ def _projectOnEdges(hook, t, edgeList=None):
     return None
 
 def _meshDeviation__(z, zc, F, hook, eList, no):
+    if C.getNPts(zc) == 0: return None
     xp = Internal.getNodeFromName2(zc, 'CoordinateX')
     yp = Internal.getNodeFromName2(zc, 'CoordinateY')
     zp = Internal.getNodeFromName2(zc, 'CoordinateZ')
@@ -960,7 +1018,8 @@ def _meshDeviation__(z, zc, F, hook, eList, no):
     F(hook, zc, eList)
     diff = (xp[1]-xp0)*(xp[1]-xp0)+(yp[1]-yp0)*(yp[1]-yp0)+(zp[1]-zp0)*(zp[1]-zp0)
     diff = numpy.sqrt(diff)
-    print("INFO: meshDeviation: %d: %g"%(no, numpy.max(diff)))
+    maxdev = numpy.max(diff)
+    print("INFO: meshDeviation: %d: %g"%(no, maxdev))
     if z[1][0,0] == zc[1][0,0]:
         C._initVars(z, 'nodes:deviation', 0.)
         FS = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
@@ -985,20 +1044,20 @@ def _meshDeviation(hook, t, loc='nodes'):
 
 def _meshDeviation1(hook, t, loc='nodes'):
     """Measure deviation from mesh to CAD."""
-    EDGES = Internal.getNodeFromName1(t, 'EDGES')
-    zones = Internal.getZones(EDGES)
-    for z in zones:
-        # no de l'edge
-        try:
-            no = getNo(z)
-            edgeList = [no]
-        except: edgeList = None
-        if loc == "centers":
-            # recupere le maillage en centre
-            zc = C.node2Center(z)
-            _meshDeviation__(z, zc, _projectOnEdges, hook, edgeList, no)
-        else: # nodes
-            _meshDeviation__(z, z, _projectOnEdges, hook, edgeList, no)
+    #EDGES = Internal.getNodeFromName1(t, 'EDGES')
+    #zones = Internal.getZones(EDGES)
+    #for z in zones:
+    #    # no de l'edge
+    #    try:
+    #        no = getNo(z)
+    #        edgeList = [no]
+    #    except: edgeList = None
+    #    if loc == "centers":
+    #        # recupere le maillage en centre
+    #        zc = C.node2Center(z)
+    #        _meshDeviation__(z, zc, _projectOnEdges, hook, edgeList, no)
+    #    else: # nodes
+    #        _meshDeviation__(z, z, _projectOnEdges, hook, edgeList, no)
     FACES = Internal.getNodeFromName1(t, 'FACES')
     zones = Internal.getZones(FACES)
     for z in zones:
@@ -1320,104 +1379,6 @@ def orderEdgeList(edges, tol=1.e-10):
 #=============================================================================
 # CAD fixing
 #=============================================================================
-def readCAD(fileName, format='fmt_step'):
-    """Read CAD file and return CAD hook."""
-    h = OCC.occ.readCAD(fileName, format)
-    return h
-
-def writeCAD(hook, fileName, format='fmt_step'):
-    """Write CAD file."""
-    OCC.occ.writeCAD(hook, fileName, format)
-    return None
-
-def freeHook(hook):
-    """Free hook."""
-    OCC.occ.freeHook(hook)
-    return None
-
-# Return the number of edges in CAD hook
-def getNbEdges(hook):
-    """Return the number of edges in CAD hook."""
-    return OCC.occ.getNbEdges(hook)
-
-# Return the number of faces in CAD hook
-def getNbFaces(hook):
-    """Return the number of faces in CAD hook."""
-    return OCC.occ.getNbFaces(hook)
-
-# Return the file and format used to load CAD in hook
-def getFileAndFormat(hook):
-    """Return file and format of associated CAD file."""
-    return OCC.occ.getFileAndFormat(hook)
-
-# Return the area of specified faces
-def getFaceArea(hook, faceList=None):
-    """Return the area of given faces."""
-    return OCC.occ.getFaceArea(hook, faceList)
-
-# Translate
-def _translate(hook, vector, faceList=None):
-    """Translate all or given faces."""
-    OCC.occ.translate(hook, vector, faceList)
-    return None
-
-# Rotate
-def _rotate(hook, Xc, axis, angle, faceList=None):
-    """Rotate all or given faces."""
-    OCC.occ.rotate(hook, Xc, axis, angle, faceList)
-    return None
-
-# Scale
-def _scale(hook, factor, X, faceList=None):
-    """Scale all or given faces."""
-    OCC.occ.scale(hook, factor, X, faceList)
-    return None
-
-# sew a set of faces
-# faces: face list numbers
-def _sewing(hook, faceList=None, tol=1.e-6):
-    """Sew some faces (suppress redundant edges)."""
-    OCC.occ.sewing(hook, faceList, tol)
-    return None
-
-# add fillet from edges with given radius
-def _addFillet(hook, edges, radius, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    OCC.occ.addFillet(hook, edges, radius, new2OldEdgeMap, new2OldFaceMap)
-    return None
-
-# edgeMap and faceMap are new2old maps
-def _removeFaces(hook, faceList, new2OldEdgeMap=[], new2OldFaceMap=[]):
-    """Remove given faces."""
-    OCC.occ.removeFaces(hook, faceList, new2OldEdgeMap, new2OldFaceMap)
-    return None
-
-# fill hole from edges
-# edges: edge list numbers (must be ordered)
-def _fillHole(hook, edges, faces=None, continuity=0):
-    """Fill hole defined by close loop of edges."""
-    OCC.occ.fillHole(hook, edges, faces, continuity)
-    return None
-
-# trim two set of surfaces
-# if mode=0, faces2 cut faces1
-# if mode=1, faces1 cut faces2
-# if mode=2, both cut
-def _trimFaces(hook, faces1, faces2, mode=2, algo=0):
-    """Trim a set of faces with another set of faces."""
-    OCC.occ.trimFaces(hook, faces1, faces2, mode, algo)
-    return None
-
-# split faces
-def _splitFaces(hook, area):
-    """Split all faces to be less than area."""
-    OCC.occ.splitFaces(hook, area)
-    return None
-
-# merge faces
-def _mergeFaces(hook, faceList=None):
-    """Merge some faces."""
-    OCC.occ.mergeFaces(hook, faceList)
-    return None
 
 # IN: new2old: new2old map
 # IN: Nold: size of old entities
@@ -1620,16 +1581,3 @@ def isWatertight(component, leaks=[]):
     except: pass
     if len(leaks) != 0: return False
     else: return True
-
-# print OCAF document
-def printOCAF(h):
-    """Print OCAF document."""
-    OCC.occ.printOCAF(h)
-
-def getFaceNameInOCAF(h):
-    """Return face names in OCAF."""
-    return OCC.occ.getFaceNameInOCAF2(h)
-
-def getEdgeNameInOCAF(h):
-    """Return edge names in OCAF."""
-    return OCC.occ.getEdgeNameInOCAF2(h)

@@ -74,9 +74,9 @@ for c, e  in enumerate(ext):
 #C.convertPyTree2File(m, 'mesh.cgns')
 
 import KCore.Dist as Dist
-from KCore.config import *
-(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths,
-                                                                    additionalIncludePaths)
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf()
 
 if netcdf:
     C.convertPyTree2File(m, LOCAL+'/out.grid')

@@ -14,22 +14,21 @@ import os
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or 'xx'
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if generator exists ===================================================
-(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkGenerator()
+(generatorVersion, generatorIncDir, generatorLibDir) = Dist.checkModuleCassiopee("Generator")
 
 # Setting libraryDirs and libraries ==========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
 includeDirs = [kcoreIncDir, generatorIncDir]
 libraries = ["generator", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================

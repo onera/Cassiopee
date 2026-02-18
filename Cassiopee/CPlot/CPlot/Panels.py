@@ -9,7 +9,7 @@ import Converter.PyTree as C
 from . import PyTree as CPlot
 from . import Ttk as TTK
 from . import iconics
-import time
+import time, os
 
 #==============================================================================
 # LoadPanel
@@ -746,7 +746,9 @@ def openDocFile(event=None):
     initFile = docData['docWidget'].get("1.0", TK.END)
     initFile = ''
     file = tkFileDialog.asksaveasfilename(
-        filetypes=[('Open document', '*.odt'), ('All files', '*.*')], initialfile=initFile)
+        filetypes=[('Open document', '*.odt'), ('All files', '*.*')],
+        initialfile=initFile,
+        initialdir=os.getcwd())
     if (file == '' or file is None or file == ()): # user cancel
         return
     file = CTK.fixFileString2__(file)

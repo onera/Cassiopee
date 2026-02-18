@@ -18,8 +18,6 @@
 */
 // convertCAD2Arrays (algo=0)
 
-#define OCEVERSION 0
-
 #include "occ.h"
 #include "kcore.h"
 #include <stdio.h>
@@ -36,9 +34,7 @@
 #include "TopoDS_Shape.hxx"
 #include "Standard_ConstructionError.hxx"
 
-#include "BRepPrimAPI_MakeCylinder.hxx"
-#include "BRepPrimAPI_MakeBox.hxx"
-#include "BRepAlgoAPI_Cut.hxx"
+#include "BRep_Tool.hxx"
 #include "BRepGProp.hxx"
 #include "BRepMesh_IncrementalMesh.hxx"
 #include "GProp_GProps.hxx"

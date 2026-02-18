@@ -141,6 +141,7 @@ def getMinimumCartesianSpacing(t):
 # Creation of a case with a symmetry plane
 #==============================================================================
 def _symmetrizePb(t, bodySymName, snear_sym, dir_sym=2):
+    """Symmetrize the geometry tree and add a symmetry plane."""
     if dir_sym not in [1,2,3]:
         raise ValueError('The symmetry direction %d is not supported. Must be '
                          '1(x), 2(y), or 3(z). Exiting...'%dir_sym)
@@ -165,7 +166,8 @@ def _symmetrizeBody(base, dir_sym=2, symPlane=(0.,0.,0.)):
     elif dir_sym == 3:
         v1 = (1,0,0); v2 =(0,1,0)
 
-    zones_dup = T.symmetrize(zones, symPlane, v1, v2)
+    zones_dup = [Internal.copyTree(z) for z in zones]
+    T._symmetrize(zones_dup, symPlane, v1, v2)
     for z in zones_dup: z[0] += '_sym'
     dim = Internal.getZoneDim(zones_dup[0])
     if dim[0] == 'Structured': order = (-1, 2, 3)
@@ -210,6 +212,7 @@ def _addSymPlane(tb, snear_sym, dir_sym=2, midPlane=0):
     _setIBCType(base, "slip")
     return None
 
+_symetrizePb = _symmetrizePb
 #==============================================================================
 # Set snear in zones
 #==============================================================================

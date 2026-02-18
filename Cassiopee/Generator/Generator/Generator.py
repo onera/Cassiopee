@@ -24,7 +24,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'TFIStar', 'TFIStar2',
            'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
            'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
-           'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
+           'getSmoothNormalMap', 'getEdgeRatio', 'getEdgeLength', 'collarMesh',
            'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
            'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
            'modifyNormalWithMetric',
@@ -1073,14 +1073,14 @@ def getEdgeRatio(array, dim=3):
 #=============================================================================
 # Computes the max length of all the edges of cells
 #=============================================================================
-def getMaxLength(array, dim=3):
-    """Computes the max length of all the edges of cells in an array.
-    Usage: getMaxLength(a)"""
+def getEdgeLength(array, type=0, dim=3):
+    """Computes the min,max,mean length of all the edges for each cell in an array.
+    Usage: getEdgeLength(a)"""
     if isinstance(array[0], list):
         b = []
-        for i in array: b.append(generator.getMaxLength(i, dim))
+        for i in array: b.append(generator.getEdgeLength(i, type, dim))
         return b
-    else: return generator.getMaxLength(array, dim)
+    else: return generator.getEdgeLength(array, type, dim)
 
 #=============================================================================
 # Generate a list of collar grids depending on the assembly type

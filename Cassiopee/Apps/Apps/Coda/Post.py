@@ -191,6 +191,116 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
     else:
         return zw, coefs
 
+
+def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, localDir='./', check=False, verbose=False):
+    """ Surface quantity post-processing for CODA IBM computation using FSUI-CODA.
+    Usage: computeSurfValues(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, localDir, check, verbose)"""
+    import json
+
+    ## fileNameResultIn  = (e.g) solution.h5    (the h5 from the fsui-coda run)
+    ## fileNameRelations = (e.g) relations.json (the json file created after fsui-coda create)
+    if isinstance(tb, str): tb = C.convertFile2PyTree(tb)
+    else: tb = Internal.copyTree(tb)
+
+    if not isinstance(fileNameResultIn,str):
+        ValueError('fileNameResultIn MUST be the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
+    if not isinstance(fileNameRelations,str):
+        ValueError('fileNameRelations MUST be the name of the file. Importing of this file is done in this file through "open(RelationsFileName)".')
+
+    ## READ relations.json file
+    with open(fileNameRelations, 'r') as f: data = json.load(f)
+
+    discSelectionParaDict = data['CFD']['GeomIBM']['DiscretizationSelection']
+    discParaDictTmp       = data['CFD']['GeomIBM']['DiscretizationPara']
+    domain                = data['CFD']['GeomIBM']['Domain']
+    # Convert domain to boundary treatments
+    IBMMarkers = []
+    bndy_treat  = []
+    for boundary_name, boundary_data in domain.items():
+        treatment = {
+            "treatment type": boundary_data["FlowSolverBCType"],
+            "boundary markers": boundary_data["CADGroupID"]
+        }
+        if 'Immersed' in boundary_data["FlowSolverBCType"]:
+            IBMMarkers.append(boundary_data["CADGroupID"][0])
+        # Check if there's a wall model in the CFD section
+        if "CFD" in boundary_data and "wall model" in boundary_data["CFD"]:
+            treatment["wall model"] = boundary_data["CFD"]["wall model"]
+        bndy_treat.append(treatment)
+
+    discParaDict = {
+        **discParaDictTmp,
+        "boundary treatments": bndy_treat
+    }
+
+    alpha    = discParaDict["reference state"]["flow direction specification"]["angle of attack"]
+    beta     = discParaDict["reference state"]["flow direction specification"]["angle of sideslip"]
+    Mach     = discParaDict["reference state"]["flow speed specification"]["Mach"]
+    Reynolds = discParaDict["reference state"]["viscosity specification"]["Reynolds"]
+    Lref     = discParaDict["reference state"]["viscosity specification"]["Reynolds_Length"]
+    Aref     = discParaDict["boundary integral quantities"]["Coef_Area"]
+    ## Post Values
+    pressureRef    = 1
+    densityRef     = 1
+    gammaRef       = 1.4
+    aRef           = (gammaRef*pressureRef/densityRef)**0.5
+    velooRef       = Mach*aRef
+
+    alpha_rad = numpy.deg2rad(alpha)
+    beta_rad  = numpy.deg2rad(beta)
+    velXRef = velooRef*numpy.cos(alpha_rad)*numpy.cos(beta_rad)
+    velYRef = velooRef*numpy.cos(alpha_rad)*numpy.sin(beta_rad)
+    velZRef = velooRef*numpy.sin(alpha_rad)
+
+    dictReferenceQuantities = {
+        "Mach_ref" : Mach,
+        "Reynolds_ref" : Reynolds,
+        "pressure_ref" : pressureRef,
+        "density_ref" : densityRef,
+        "velX_ref" : velXRef,
+        "velY_ref" : velYRef,
+        "velZ_ref" : velZRef,
+        "alpha" : alpha,
+        "beta" : beta,
+        "Sref": Aref,
+    }
+
+    clac   = FSClac()
+    fsmesh = FSMesh(clac)
+    fsmesh.ImportMeshHDF5(Filename=fileNameResultIn) or FSError.PrintAndExit()
+
+    # Reconstruction of the solution at the donor points (in parallel).
+    donorPointsNumpy, wallPointsNumpy, augStateNumpy = interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict,
+                                                                                IBMMarkers, localDir=localDir, check=check)
+
+    # Serial part of the post-processing.
+    zw = None
+    if Cmpi.master:
+        pytree = P_AMR.createPyTreeForIBMWallFieldsExtraction(numpy.concatenate(donorPointsNumpy),
+                                                              numpy.concatenate(wallPointsNumpy),
+                                                              numpy.concatenate(augStateNumpy),
+                                                              discSelectionParaDict)
+        if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
+        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict)
+
+    zw       = Cmpi.bcast(zw, root=0)
+    zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
+
+    if Cmpi.master:
+        print("\nIntegrated coefficients:")
+        print("CD=      %g"%coefs[0])
+        print("CDfric=  %g"%coefs[2])
+        print("CDpres=  %g"%coefs[3])
+        print("CL=      %g"%coefs[1])
+        print("CLfric=  %g"%coefs[4])
+        print("CLpres=  %g"%coefs[5])
+
+    if fileNameResultOut is not None:
+        if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
+        return None
+    else:
+        return zw, coefs
+
 ##========================================================================
 ##========================================================================
 

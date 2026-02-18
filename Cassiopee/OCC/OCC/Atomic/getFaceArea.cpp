@@ -50,21 +50,6 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
   TopExp_Explorer expl;
 
-  //const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
-
-  // By wire
-  /*
-  for (expl.Init(surfaces(noFace), TopAbs_WIRE); expl.More(); expl.Next())
-  {
-    const TopoDS_Wire& W = TopoDS::Wire(expl.Current());
-    E_Float surface = ShapeAnalysis::ContourArea(W);
-    //printf("wire surface=%f\n", surface);	
-    area = std::max(area, surface);
-  }
-  printf("area1=%g\n", area);
-  */
-
-  // By face
   E_Float area = 0.;
   if (listFaces == Py_None) // all faces of topshape
   {

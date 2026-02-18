@@ -35,8 +35,8 @@ public:
     const char* fname, const char*format, 
     std::vector<K_FLD::FloatArray> & crds,
     std::vector<K_FLD::IntArray>& connectMs,
-    E_Float h=0., E_Float chordal_err=0.,  E_Float gr = 0. /*growth ratio*/,
-    bool aniso = false, bool do_join = true
+    E_Float h=0., E_Float chordal_err=0.,  E_Float gr=0. /*growth ratio*/,
+    bool aniso=false, bool do_join=true
   );
 
 private:

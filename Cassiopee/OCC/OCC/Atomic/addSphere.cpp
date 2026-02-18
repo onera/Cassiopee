@@ -32,7 +32,8 @@
 PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
 {
   PyObject* hook; E_Float xc, yc, zc, R;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ R_, &hook, &xc, &yc, &zc, &R)) return NULL;
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ R_ S_, &hook, &xc, &yc, &zc, &R, &name)) return NULL;
 
   GETSHAPE;
   GETMAPSURFACES;
@@ -42,6 +43,18 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   gp_Pnt center(xc, yc, zc);
   BRepPrimAPI_MakeSphere makerSphere(center, R);
   TopoDS_Shape sphere = makerSphere.Shape();
+
+#ifdef USEXCAF
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(sphere, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -58,6 +71,7 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
     TopoDS_Edge E = TopoDS::Edge(edges(i));
     builder.Add(compound, E);
   }
+
   // Add the sphere faces
   TopTools_IndexedMapOfShape* sfs = new TopTools_IndexedMapOfShape();
   TopExp::MapShapes(sphere, TopAbs_FACE, *sfs);
@@ -70,7 +84,7 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   delete sfs;
 
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
-    
+
   delete shape;
   SETSHAPE(newshp);
 
@@ -79,4 +93,6 @@ PyObject* K_OCC::addSphere(PyObject* self, PyObject* args)
   
   Py_INCREF(Py_None);
   return Py_None;
+#endif
+
 }

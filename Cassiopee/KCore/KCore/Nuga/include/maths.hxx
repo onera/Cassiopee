@@ -56,7 +56,7 @@ diff (InputIterator1 x, InputIterator2 y, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i) 
   {
-     *(z+i) = *(x+i) - *(y+i); 
+    *(z+i) = *(x+i) - *(y+i); 
   }
 
   return z + dim;
@@ -68,7 +68,7 @@ diff (InputIterator1 x, InputIterator2 y, E_Int stride, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i)
   {
-     *(z+i) = *(x+i*stride) - *(y+i*stride);
+    *(z+i) = *(x+i*stride) - *(y+i*stride);
   }
 
   return z + dim;
@@ -80,7 +80,7 @@ inline InputIterator3
 sum (InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i) + *(y+i);
+    *(z+i) = *(x+i) + *(y+i);
 
   return z + dim;
 }
@@ -91,7 +91,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b;
+    *(z+i) = *(x+i)*a + *(y+i)*b;
 
   return z + dim;
 }
@@ -102,7 +102,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator2 c, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
+    *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
 
   return z + dim;
 }
@@ -113,7 +113,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i);
+    *(z+i) = *(x+i)*a + *(y+i);
 
   return z + dim;
 }
@@ -202,7 +202,7 @@ E_Float dot<3> (const E_Float* x, const E_Float* y)
 
 template <E_Int dim, typename InputIterator>
 inline
-E_Float normalize (InputIterator it)
+E_Float normalize(InputIterator it)
 {
   E_Float L0 = sqrt(sqrNorm<dim>(it));
   if (L0 != 0.)
@@ -365,8 +365,7 @@ inline bool angular_weighted_normal(const E_Float* Pim1, const E_Float* Pi, cons
 }
 
 ///
-inline void __get_transform_matrix
-(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
+inline void __get_transform_matrix(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
 {
   P.resize(3, 3);
 
@@ -379,8 +378,7 @@ inline void __get_transform_matrix
 }
 
 ///
-inline void __get_normal_to
-(const E_Float* V, E_Float* N)
+inline void __get_normal_to(const E_Float* V, E_Float* N)
 {
   N[0] = 1.0;
   for (E_Int k = 1; k < 3; ++k)

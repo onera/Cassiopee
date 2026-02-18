@@ -570,9 +570,9 @@ installDict = {
         [], # f77AdditionalOptions
         True, # useOMP
         False, # static
-        ['/usr/include', '/usr/include/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu/openmpi/include'], # additionalIncludePaths
+        ['/usr/include', '/usr/include/openmpi-x86_64'], # additionalIncludePaths
         ['gfortran', 'gomp'], # additionalLibs
-        ['/usr/lib/x86_64-linux-gnu/hdf5/openmpi', '/usr/lib/x86_64-linux-gnu'], # additionalLibPaths
+        ['/usr/lib64', '/usr/lib64/openmpi/lib'], # additionalLibPaths
         False, # useCuda
         [] # NvccAdditionalOptions
     ],

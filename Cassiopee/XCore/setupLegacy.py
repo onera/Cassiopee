@@ -1,4 +1,3 @@
-#from distutils.core import setup, Extension
 from setuptools import setup, Extension
 import os
 
@@ -9,27 +8,26 @@ import os
 # Numpy, MPI
 # KCore library
 #=============================================================================
+# Compiler settings must be set in installBase.py / installBaseUser.py
+import KCore.Dist as Dist
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
-
-from KCore.config import *
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -45,7 +43,7 @@ if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
@@ -67,6 +65,7 @@ setup(
     version="4.1",
     description="Parallel core for *Cassiopee* modules.",
     author="ONERA",
+    url="https://onera.github.io/Cassiopee/",
     package_dir={"":"."},
     packages=['XCore'],
     ext_modules=listExtensions

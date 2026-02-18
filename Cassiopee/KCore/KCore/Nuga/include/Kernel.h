@@ -134,19 +134,19 @@ private:
 
   MeshData* _data;
   const NUGA::MeshTool* _tool;
-  DelaunayCriterion<T>              _Ball_pred;
-  unconstrained_predicate           _unconstrained_pred;
-  constrained_predicate             *_constrained_pred;
+  DelaunayCriterion<T> _Ball_pred;
+  unconstrained_predicate _unconstrained_pred;
+  constrained_predicate* _constrained_pred;
 
   // Temporary containers (put here for speed).
-  int_set_type          _cavity;
-  int_pair_vector_type  _cboundary;
-  int_set_type           _base;
-  int_pair_set_type     _sbound, _real_cboundary;
-  int_set_type          _visited;
-  int_set_type          inodes;
-  int_vector_type       Ancs;
-  int_vector_type       elements;
+  int_set_type _cavity;
+  int_pair_vector_type _cboundary;
+  int_set_type _base;
+  int_pair_set_type _sbound, _real_cboundary;
+  int_set_type _visited;
+  int_set_type inodes;
+  int_vector_type Ancs;
+  int_vector_type elements;
   std::map<size_type, int_pair_set_type::iterator> _node_to_rightS;
   
 public:

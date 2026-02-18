@@ -12891,7 +12891,10 @@ class DesktopFrameTK(TK.Frame):
     def cmd_confSave(self):
         global STYLEFILE
         # Works only with python 2, for python 3, it seems that the module name has changed to "filedialog"
-        filename = tkFileDialog.asksaveasfilename(parent=self, initialdir=os.getcwd(), initialfile=STYLEFILE, filetypes=[('python', ".py")])
+        filename = tkFileDialog.asksaveasfilename(parent=self,
+                                                  initialdir=os.getcwd(),
+                                                  initialfile=STYLEFILE,
+                                                  filetypes=[('python', ".py")])
         if filename=='' or filename is None: return
         STYLEFILE = filename
         self.confSave(filename,True)
@@ -13146,7 +13149,10 @@ class DesktopFrameTK(TK.Frame):
     def cmd_export(self):
         # Get path to save
         global EXPORTFILE
-        filename = tkFileDialog.asksaveasfilename(parent=self, initialdir=os.getcwd(), initialfile=EXPORTFILE, filetypes=[('png', ".png"), ('pdf', ".pdf")])
+        filename = tkFileDialog.asksaveasfilename(parent=self,
+                                                  initialdir=os.getcwd(),
+                                                  initialfile=EXPORTFILE,
+                                                  filetypes=[('png', ".png"), ('pdf', ".pdf")])
         if filename == '' or filename is None: return
         EXPORTFILE = filename
         self.export(filename)

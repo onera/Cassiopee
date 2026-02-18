@@ -388,11 +388,10 @@ K_SEARCH::KdTree<CoordArrayType>::getClosest(const E_Float* point, const E_Float
 }
 
 // ============================================================================
-/// Returns all the nodes in the input box by appending the vector 'out'.
+/// Returns all the nodes in the input box by appending to the vector 'out'.
 // ============================================================================
 template <typename CoordArrayType>
-void
-K_SEARCH::KdTree<CoordArrayType>::getInBox
+void K_SEARCH::KdTree<CoordArrayType>::getInBox
 (const E_Float* minB, const E_Float* maxB, std::vector<size_type>& out) const
 {
   // Check that the box is not ill posed
@@ -401,7 +400,7 @@ K_SEARCH::KdTree<CoordArrayType>::getInBox
     ok &= (minB[i] < maxB[i]);
   if (!ok) return;
 
-  //
+  // append to out if in box
   __getInBox(0/*root*/, 0/*axis*/, minB, maxB, out);
 }
 
@@ -409,8 +408,7 @@ K_SEARCH::KdTree<CoordArrayType>::getInBox
 /// Returns all the nodes in the input sphere centered on C by appending the vector 'out'.
 // ============================================================================
 template <typename CoordArrayType>
-void
-K_SEARCH::KdTree<CoordArrayType>::getInSphere
+void K_SEARCH::KdTree<CoordArrayType>::getInSphere
 (const E_Float* C, E_Float radius, std::vector<size_type>& out) const
 {
   E_Float mB[3], MB[3];

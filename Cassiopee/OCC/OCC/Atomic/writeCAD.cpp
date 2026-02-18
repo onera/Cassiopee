@@ -28,6 +28,13 @@
 #include "TopExp.hxx"
 #include "TopExp_Explorer.hxx"
 
+#include "XCAFDoc_ShapeTool.hxx"
+#include "XCAFDoc_DocumentTool.hxx"
+#include "XCAFDoc_ShapeMapTool.hxx"
+#include "TDocStd_Document.hxx"
+#include "TDataStd_Name.hxx"
+#include "STEPCAFControl_Writer.hxx"
+
 // ============================================================================
 /* Write CAD file from OpenCascade hook 
    Modify fileName and fileFmt in hook */
@@ -49,9 +56,27 @@ PyObject* K_OCC::writeCAD(PyObject* self, PyObject* args)
   }
   else if (strcmp(fileFmt, "fmt_step") == 0)
   {
-    STEPControl_Writer writer;
-    writer.Transfer(*shape, STEPControl_AsIs);
-    writer.Write(fileName);
+    TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+    if (doc == NULL) 
+    {
+      STEPControl_Writer writer;
+      writer.Transfer(*shape, STEPControl_AsIs);
+      writer.Write(fileName);
+    }
+    else
+    {
+#ifdef USEXCAF
+      Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
+      // Write STEP with metadata
+      STEPCAFControl_Writer writer;
+      writer.Transfer(doc, STEPControl_AsIs);
+      writer.Write(fileName);
+#else
+      STEPControl_Writer writer;
+      writer.Transfer(*shape, STEPControl_AsIs);
+      writer.Write(fileName);
+#endif
+    }
   }  
 
   // Change le nom du fichier et le format dans le packet

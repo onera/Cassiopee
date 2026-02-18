@@ -72,7 +72,7 @@ List of functions
     Geom.IBM.initOutflow
     Geom.IBM.initInj
     Geom.IBM.setFluidInside
-
+    Geom.IBM._symmetrizePb
 
 Contents
 ########
@@ -121,31 +121,29 @@ Setting Snear & Dfar
 
 ---------------------------------------
 
-
-
     .. .. py:function:: Geom.IBM.getDfarOpt(tb, vmin, snear, factor=10, nlevel=-1)
 
-       Computes the optimal dfar to get the exact snear.
+    ..    Computes the optimal dfar to get the exact snear.
 
-       :param tb: geometry tree
-       :type  tb: [zone, list of zones, tree]
-       :param vmin: number of points per elementary structured octree zone
-       :type vmin: integer
-       :param snear: targeted snear (smallest value)
-       :type snear: float
-       :param factor: factor*L is the extent of the octree, where L is the maximum length of the bounding box of tb.
-       :type factor: float
-       :param nlevel: number of levels prescribed for the octree (-1 means that the number of refinement levels are computed according to the parameter factor).
-       :type nlevel: integer
-       :return: float
+    ..    :param tb: geometry tree
+    ..    :type  tb: [zone, list of zones, tree]
+    ..    :param vmin: number of points per elementary structured octree zone
+    ..    :type vmin: integer
+    ..    :param snear: targeted snear (smallest value)
+    ..    :type snear: float
+    ..    :param factor: factor*L is the extent of the octree, where L is the maximum length of the bounding box of tb.
+    ..    :type factor: float
+    ..    :param nlevel: number of levels prescribed for the octree (-1 means that the number of refinement levels are computed according to the parameter factor).
+    ..    :type nlevel: integer
+    ..    :return: float
 
-       *Example of use:*
+    ..    *Example of use:*
 
-       * `Get the value of the dfar to respect exactly snear (pyTree) <Examples/Geom/getDfarOptPT.py>`_:
+    ..    * `Get the value of the dfar to respect exactly snear (pyTree) <Examples/Geom/getDfarOptPT.py>`_:
 
-       .. literalinclude:: ../build/Examples/Geom/getDfarOptPT.py
+    ..    .. literalinclude:: ../build/Examples/Geom/getDfarOptPT.py
 
----------------------------------------
+.. ---------------------------------------
 
 
 .. py:function:: Geom.IBM.snearFactor(tb, sfactor)
@@ -223,13 +221,17 @@ Setting IBC Type
 
 ---------------------------------------
 
-.. py:function:: Geom.IBM.symmetrizePb(tb)
+.. py:function:: Geom.IBM._symmetrizePb(tb, bodySymName, snear_sym, dir_sym=2)
 
-    Add a symmetry plane and symmetrize the body base; input surface must be y>=0 if the symmetry plane is at y=0.
-    Creates the geometry for the symmetry plane, the snear and slip IBC type.
+    Add a symmetry plane and symmetrize the body base. The geometry must be aligned with the input direction (dir_sym).
+
+    The symmetry plane is located at the local minimum found in the case coordinates (xmin, ymin, or zmin), based on the input direction, and is placed in a separate base labeled 'BOX'.
+
+    The symmetrized body zones are labeled zname_sym, where zname is the name of a given zone. These zones are located in the same base as the original zones (bodySymName).
+
     :param tb: geometry tree 
     :type  tb: [zone, list of zones, tree]
-    :param bodyNameSym: name of the base where
+    :param bodyNameSym: name of the base in which the body is defined
     :type bodyNameSym: string
     :param snear_sym: mesh resolution at the symmetry plane
     :type snear_sym: float
