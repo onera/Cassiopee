@@ -245,6 +245,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if different_front_flag == False: #True is default
             Internal._rmNodesFromName(t, "TurbulentDistance")
             Internal._renameNode(t, "TurbulentDistanceForCFDComputation","TurbulentDistance")
+
+    # Catch 22: IBM prep needs dist2wall at the nodes (dist2wall@Node). blanking, ibm point location, etc. is doing using dist2wall@Node
+    #           CODA needs dist2wall at the cell centers. CODA doesnt recalculate this for IBM runs and must therefore be provided.
+    # Chosen approach: OPT=True - use only the dist2wall@Node for the IBM prep & if needed recalculate the dist2wall@Centers at the end of the function.
+    #                  Options for OPT=False have not been tested but do not seem like the appropriate solution : calcs on dist2wall@Centers + center2Node is counterintuitive
+    # TODO: Remove OPT=False options ONLY after testing with IBM Local options. F. Basile prototype did some operations with dist2wall@Centers.
     if OPT:
         varnames = C.getVarNames(t, loc="centers")[0]
         if "TurbulentDistance" not in varnames:
@@ -591,6 +597,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
+        f = None
         if z is not None:
             nobc = len(zbcs)
             f = Internal.getZones(f_pytree)[0]
@@ -979,19 +986,41 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
 
+    ## =========================
+    ## ==== Mesh Generation ====
+    ## =========================
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
                                   toffset=toffset, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
                                   snears=0.01, dfars=10, loadBalancing=loadBalancing, tbox=tbox, vminsTbox=vminsTbox, tbv2=tbv2)
 
     Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
-    if dim == 2: tb2 = T.addkplane(tb)
+    tb2  = Internal.copyTree(tb)
+    if dim == 2:tb2 = T.addkplane(tb)
+    else:
+        baseSYM = Internal.getNodesFromName1(tb2, "SYM")
+        if baseSYM:
+            tb2 = Internal.rmNodesByNameAndType(tb2, 'SYM', 'CGNSBase_t')
+            tb2 = Internal.rmNodesByNameAndType(tb2, '*_sym*', 'Zone_t')
+            tb  = Internal.copyTree(tb2)
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     DTW._distance2Walls(t_AMR, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
     del tb2
     Cmpi.trace('AMR Mesh Dist2Walls...end', master=True)
 
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
+    ## Ncells output
+    Ncells=C.getNCells(t_AMR)
+    Ncells=Cmpi.allreduce(Ncells, op=Cmpi.SUM)
+    if Cmpi.master: print("[MESH GEN.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
+
+    ## ==================
+    ## ==== IBM Prep ====
+    ## ==================
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir, forceAlignment=forceAlignment)
+    ## Ncells output
+    Ncells=C.getNCells(t_AMR)
+    Ncells=Cmpi.allreduce(Ncells, op=Cmpi.SUM)
+    if Cmpi.master: print("[IBM PREP.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
 
     if fileName is not None:
         Cmpi.convertPyTree2File(t_AMR, localDir+fileName)
