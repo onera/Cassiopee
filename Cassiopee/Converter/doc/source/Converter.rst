@@ -2660,7 +2660,7 @@ Geometrical identification
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
     :param tol: matching absolute tolerance
     :type rtol: float
-    :param rtol: relative tolerance based on the largest edge of the mesh bounding box
+    :param rtol: relative tolerance
     :type tol: float
     :return: indices of identified points
     :rtype: numpy array or list of numpy arrays
@@ -2694,7 +2694,7 @@ Geometrical identification
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
     :param tol: matching absolute tolerance
     :type tol: float
-    :param rtol: relative tolerance based on the largest edge of a given face
+    :param rtol: relative tolerance
     :type rtol: float
     :return: indices of identified faces
     :rtype: numpy array or list of numpy arrays
@@ -2724,7 +2724,7 @@ Geometrical identification
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
     :param tol: matching absolute tolerance
     :type tol: float
-    :param rtol: relative tolerance based on the largest edge of a given element
+    :param rtol: relative tolerance
     :type rtol: float
     :return: indices of identified elements
     :rtype: numpy array or list of numpy arrays
