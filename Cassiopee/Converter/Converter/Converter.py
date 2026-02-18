@@ -1659,40 +1659,40 @@ def freeHook(hook):
 #==============================================================================
 # Fonctions d'identification geometrique
 #==============================================================================
-def identifyNodes(hook, a, tol=1.e-11):
+def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
     """Identify nodes of a in KDT. return identified indices.
     Usage: identifyNodes(hook, a)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(converter.identifyNodes(hook, i, tol))
+            b.append(converter.identifyNodes(hook, i, tol, rtol))
         return b
     else:
-        return converter.identifyNodes(hook, a, tol)
+        return converter.identifyNodes(hook, a, tol, rtol)
 
-def identifyFaces(hook, a, tol=1.e-11):
+def identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12):
     """Identify face centers of a in KDT. return identified indices.
     Usage: identifyFaces(hook, a)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(converter.identifyFaces(hook, convertArray2NGon(i), tol))
+            b.append(converter.identifyFaces(hook, convertArray2NGon(i), tol, rtol))
         return b
     else:
-        return converter.identifyFaces(hook, convertArray2NGon(a), tol)
+        return converter.identifyFaces(hook, convertArray2NGon(a), tol, rtol)
 
-def identifyElements(hook, a, tol=1.e-11):
+def identifyElements(hook, a, tol=1.e-11, rtol=1.e-12):
     """Identify element centers of a in KDT. return identified indices.
     Usage: identifyElement(hook, a)"""
     if isinstance(a[0], list):
         b = []
         for i in a:
             # if len(i) == 5: i = convertArray2Hexa(i)
-            b.append(converter.identifyElements(hook, i, tol))
+            b.append(converter.identifyElements(hook, i, tol, rtol))
         return b
     else:
         # if len(a) == 5: a = convertArray2Hexa(a)
-        return converter.identifyElements(hook, a, tol)
+        return converter.identifyElements(hook, a, tol, rtol)
 
 #=============================================================================
 def identifySolutions(coordsRcv, solDnr, hookDnr, vars=[], tol=1.e6):

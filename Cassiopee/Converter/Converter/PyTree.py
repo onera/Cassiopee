@@ -7207,28 +7207,28 @@ def freeHook(hook):
 #==============================================================================
 
 # -- identifyNodes: identifie les noeuds de a dans hook
-def identifyNodes(hook, a, tol=1.e-11):
+def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
     """Find in a hook nearest points of nodes of a. return identified node indices.
     Usage: identifyNodes(hook, a)"""
     fields = getFields(Internal.__GridCoordinates__, a, api=3)
-    if len(fields) == 1: return Converter.identifyNodes(hook, fields[0], tol)
-    else: return Converter.identifyNodes(hook, fields, tol)
+    if len(fields) == 1: return Converter.identifyNodes(hook, fields[0], tol, rtol)
+    else: return Converter.identifyNodes(hook, fields, tol, rtol)
 
 # -- identifyFaces: identifie les centres de faces de a dans hook
-def identifyFaces(hook, a, tol=1.e-11):
+def identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12):
     """Find in a hook nearest points of face centers of a. return identified face indices.
     Usage: identifyFaces(hook, a)"""
     fields = getFields(Internal.__GridCoordinates__, a, api=3)
-    if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol)
-    else: return Converter.identifyFaces(hook, fields, tol)
+    if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol, rtol)
+    else: return Converter.identifyFaces(hook, fields, tol, rtol)
 
 # -- identifyElements: identifie le centre des elements de a dans hook
-def identifyElements(hook, a, tol=1.e-11):
+def identifyElements(hook, a, tol=1.e-11, rtol=1.e-12):
     """Find in a hook nearest points of element centers of a. return identified element indices.
     Usage: identifyElements(hook, a)"""
     fields = getFields(Internal.__GridCoordinates__, a, api=3)
-    if len(fields) == 1: return Converter.identifyElements(hook, fields[0], tol)
-    else: return Converter.identifyElements(hook, fields, tol)
+    if len(fields) == 1: return Converter.identifyElements(hook, fields[0], tol, rtol)
+    else: return Converter.identifyElements(hook, fields, tol, rtol)
 
 # -- identifySolutions: recopie la solution de tDnr dans tRcv par identification
 # des noeuds et des centres

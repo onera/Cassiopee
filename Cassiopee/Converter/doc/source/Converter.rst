@@ -2647,17 +2647,20 @@ and Post.
 Geometrical identification
 ----------------------------
 
-.. py:function:: Converter.identifyNodes(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14)
 
     Identify nodes of a with nodes stored in hook. Return the indices of hook 
-    corresponding to the nodes of a. If a point is not identified,
-    its returned index is -1.
+    corresponding to the nodes of a. If a point is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of the mesh bounding box.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
+    :type rtol: float
+    :param rtol: relative tolerance based on the largest edge of the mesh bounding box
     :type tol: float
     :return: indices of identified points
     :rtype: numpy array or list of numpy arrays
@@ -2678,18 +2681,21 @@ Geometrical identification
 
 ------------------------------------------------------------------------------------------
 
-.. py:function:: Converter.identifyFaces(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12)
 
     Identify face centers of a with points stored in hook. Return the indices of hook 
-    corresponding to the faces of a. If a face is not identified,
-    its returned index is -1.
+    corresponding to the faces of a. If a face is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of a given face.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
     :type tol: float
+    :param rtol: relative tolerance based on the largest edge of a given face
+    :type rtol: float
     :return: indices of identified faces
     :rtype: numpy array or list of numpy arrays
 
@@ -2705,18 +2711,21 @@ Geometrical identification
 
 ------------------------------------------------------------------------------------------
 
-.. py:function:: Converter.identifyElements(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyElements(hook, a, tol=1.e-11, rtol=1.e-12)
 
     Identify element centers of a with points stored in hook. Return the indices of hook 
-    corresponding to the elements of a. If a elements is not identified,
-    its returned index is -1.
+    corresponding to the elements of a. If a elements is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of a given element.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
     :type tol: float
+    :param rtol: relative tolerance based on the largest edge of a given element
+    :type rtol: float
     :return: indices of identified elements
     :rtype: numpy array or list of numpy arrays
 
