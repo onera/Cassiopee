@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -31,17 +31,17 @@ void DelaunayMath::eigen_values
   // therefore x=(1/2)*(tr(A) +- sqrt(delta)) where delta=tr(A)^2-4*det(A)
   // Assumption: we always have 2 (not necessarily distinct) solutions.
   //             therefore delta is assumed positive or null.
-   E_Float trA    = a00+a11;
-   E_Float detA   = a00*a11 - a10*a10;
-   E_Float delta  = trA*trA - 4.*detA;          
+   E_Float trA   = a00+a11;
+   E_Float detA  = a00*a11 - a10*a10;
+   E_Float delta = trA*trA - 4.*detA;          
    if (delta > 0.) // Valid discriminant.
    {
-     delta=::sqrt(delta);
-     lambda0=0.5*(trA-delta);
-     lambda1=lambda0+delta;
+     delta = sqrt(delta);
+     lambda0 = 0.5*(trA-delta);
+     lambda1 = lambda0+delta;
    }
    else //delta is set to 0. 
-     lambda1=lambda0=0.5*trA;
+     lambda1 = lambda0 = 0.5*trA;
 }
 
 //=============================================================================
@@ -55,7 +55,7 @@ void DelaunayMath::simultaneous_reduction
 
   K_FLD::FloatArray NN(M1b * M2);
 
-  if (::fabs(NN(1,0)) < 1.e-10)//fixme value epsilon?
+  if (fabs(NN(1,0)) < 1.e-10)//fixme value epsilon?
   {
     V1[0] = 1.; V1[1] = 0.;
     V2[0] = 0.; V2[1] = 1.;
@@ -75,7 +75,7 @@ void DelaunayMath::eigen_vectors
   eigen_values(a00, a11, a10, lambda0, lambda1);
 
   // Diag. matrix case
-  if ((::fabs(a10) < EPSILON) && (::fabs(lambda0-a11)< EPSILON))
+  if ((fabs(a10) < EPSILON) && (fabs(lambda0-a11)< EPSILON))
   {
     if (a00 <= a11)
     {

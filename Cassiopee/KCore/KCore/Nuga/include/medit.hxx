@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -36,7 +36,7 @@
 
 #include "Nuga/include/DynArray.h"
 #include "Nuga/include/MeshTool.h"
-
+#include "kcore.h"
 
 class medith
 {
@@ -56,14 +56,13 @@ public:
   FILE * fp = fopen(filename, "r");
   int                          nb_entities, nb_read;
   std::vector<K_FLD::IntArray> connects;
-  double                       P[3];
+  E_Float                       P[3];
   int                          nb_nodes[5], S[8], nods, dim(3);
 
   pos.clear();
   connect.clear();
 
-  if (fp == NULL)
-    return 1;
+  if (fp == NULL) return 1;
 
   nb_nodes[EDGE] = 2;
   nb_nodes[TRI] = 3;
@@ -560,7 +559,7 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
       Lmin = (L2 < Lmin) ? L2 : Lmin;
     }
 
-    Lmin = 0.5*::sqrt(Lmin);
+    Lmin = 0.5*sqrt(Lmin);
 
     K_MESH::Polygon::iso_barycenter<acrd_t, 3 >(acrd, pNi, nb_nodes, 1, P0);
 
@@ -603,44 +602,50 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
     }
   }
   
-  #define white_space(c) ((c) == ' ' || (c) == '\t')
+#define white_space(c) ((c) == ' ' || (c) == '\t')
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
 
-  static double fast_atof(const char *p)
+  static E_Float fast_atof(const char *p)
   {
     int frac;
-    double sign, value, scale;
+    E_Float sign, value, scale;
 
     // Skip leading white space, if any.
 
-    while (white_space(*p)) {
+    while (white_space(*p)) 
+    {
       p += 1;
     }
 
     // Get sign, if any.
 
     sign = 1.0;
-    if (*p == '-') {
+    if (*p == '-') 
+    {
       sign = -1.0;
       p += 1;
 
     }
-    else if (*p == '+') {
+    else if (*p == '+') 
+    {
       p += 1;
     }
 
     // Get digits before decimal point or exponent, if any.
 
-    for (value = 0.0; valid_digit(*p); p += 1) {
+    for (value = 0.0; valid_digit(*p); p += 1) 
+    {
       value = value * 10.0 + (*p - '0');
     }
 
     // Get digits after decimal point, if any.
 
-    if (*p == '.') {
-      double pow10 = 10.0;
+    if (*p == '.') 
+    {
+      E_Float pow10 = 10.0;
       p += 1;
-      while (valid_digit(*p)) {
+      while (valid_digit(*p)) 
+      {
         value += (*p - '0') / pow10;
         pow10 *= 10.0;
         p += 1;
@@ -648,27 +653,30 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
     }
 
     // Handle exponent, if any.
-
     frac = 0;
     scale = 1.0;
-    if ((*p == 'e') || (*p == 'E')) {
+    if ((*p == 'e') || (*p == 'E')) 
+    {
       unsigned int expon;
 
       // Get sign of exponent, if any.
 
       p += 1;
-      if (*p == '-') {
+      if (*p == '-') 
+      {
         frac = 1;
         p += 1;
 
       }
-      else if (*p == '+') {
+      else if (*p == '+') 
+      {
         p += 1;
       }
 
       // Get digits of exponent, if any.
 
-      for (expon = 0; valid_digit(*p); p += 1) {
+      for (expon = 0; valid_digit(*p); p += 1) 
+      {
         expon = expon * 10 + (*p - '0');
       }
       if (expon > 308) expon = 308;
@@ -691,7 +699,8 @@ static E_Int read(const char* filename, T1*& pcrd, T2& dim, T2& npts, bool& call
 
     // Get digits before decimal point or exponent, if any.
 
-    for (value = 0; valid_digit(*p); p += 1) {
+    for (value = 0; valid_digit(*p); p += 1) 
+    {
       value = value * 10 + (*p - '0');
     }
     return value;

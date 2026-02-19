@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -70,7 +70,7 @@ public:
   {
   }
 
-  inline T interpolate(const T& H0, const T& H1, E_Float u) const {return H0 * ::pow(H1/H0, u);} //iso
+  inline T interpolate(const T& H0, const T& H1, E_Float u) const {return H0 * pow(H1/H0, u);} //iso
 
 };
 

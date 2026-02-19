@@ -1,12 +1,12 @@
 # - tkOffset -
 """Offset a surface."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Geom.PyTree
+import Geom.Offset
 # local widgets list
 WIDGETS = {}; VARS = []
 
@@ -48,7 +48,7 @@ def remap():
     else: algo = 1
 
     CTK.setCursor(2, WIDGETS['remap'])
-    iso = Geom.PyTree.offsetSurface(a, offset, pointsPerUnitLength, algo)
+    iso = Geom.Offset.offsetSurface(a, offset, pointsPerUnitLength, algo)
     CTK.setCursor(0, WIDGETS['remap'])
 
     if iso != []:

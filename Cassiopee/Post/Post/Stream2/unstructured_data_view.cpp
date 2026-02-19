@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -316,7 +316,7 @@ namespace K_POST
     unstructured_data_view::Implementation::is_containing(E_Int ind_elt, const point3d& pt) const
     {
         const auto& crds = this->getCoordinates();
-        std::array<std::vector<double>,3> coords; // Nombre de sommet depend du type d'element (avec barycentre pour certains)
+        std::array<std::vector<E_Float>,3> coords; // Nombre de sommet depend du type d'element (avec barycentre pour certains)
         coords[0].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
         coords[1].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
         coords[2].reserve(number_of_vertices_for_polyhedron[m_type_of_element]);
@@ -364,9 +364,9 @@ namespace K_POST
         }
         // Construction du polyedre :
         triangulated_polyhedron polyedre( faces, {
-                                     K_MEMORY::vector_view<const double>(coords[0].begin(),coords[0].end()),
-                                     K_MEMORY::vector_view<const double>(coords[1].begin(),coords[1].end()),
-                                     K_MEMORY::vector_view<const double>(coords[2].begin(),coords[2].end())
+                                     K_MEMORY::vector_view<const E_Float>(coords[0].begin(),coords[0].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[1].begin(),coords[1].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[2].begin(),coords[2].end())
                                                  } );
         bool is_inside;
         try {
@@ -386,7 +386,7 @@ namespace K_POST
     {
         if (not this->aabbox.contains(point)) return -1;
         E_Int ind_nearest_vertex;
-        double dist_nearest_vertex;
+        E_Float dist_nearest_vertex;
         std::tie(ind_nearest_vertex, dist_nearest_vertex) = this->tree.nearest(point);
         // On va chercher l'appartenance du point aux cellules contenant le point le plus proche :
         for (E_Int ielt = m_beg_vert2elts[ind_nearest_vertex]; ielt < m_beg_vert2elts[ind_nearest_vertex+1]; ++ielt )
@@ -423,7 +423,7 @@ namespace K_POST
         coords.reserve(nb_verts_per_elt);
         FldArrayF* fld = this->fields;
         E_Int nfld = fld->getNfld();
-        std::vector<std::vector<double>> values(nfld);
+        std::vector<std::vector<E_Float>> values(nfld);
         for (E_Int ifld = 0; ifld < nfld; ++ifld)
         {
             values[ifld].reserve(nb_verts_per_elt);
@@ -461,15 +461,15 @@ namespace K_POST
             vector3d e3(coords[0],coords[3]);
             vector3d pp0(coords[0], pt);
 
-            matrix_3x3_type A{std::array<double,3>{e1.x,e2.x,e3.x},
+            matrix_3x3_type A{std::array<E_Float,3>{e1.x,e2.x,e3.x},
                                                   {e1.y,e2.y,e3.y},
                                                   {e1.z,e2.z,e3.z}
                              };
             auto barycrds = inverse_linear_system(A, pp0);
-            double alpha = barycrds[0];
-            double beta  = barycrds[1];
-            double gamma = barycrds[2];
-            double umabg = 1. - alpha - beta - gamma;
+            E_Float alpha = barycrds[0];
+            E_Float beta  = barycrds[1];
+            E_Float gamma = barycrds[2];
+            E_Float umabg = 1. - alpha - beta - gamma;
             for ( E_Int ifld = 0; ifld < nfld; ++ifld)
             {
                 interpolatedField(ipos,ifld+1) = umabg * values[ifld][0] + alpha * values[ifld][1] + beta * values[ifld][2] +
@@ -519,26 +519,26 @@ namespace K_POST
             vector3d p0p2(coords[0], coords[2]);
             vector3d p0p(coords[0], pt);
 
-            matrix_3x3_type A{std::array<double,3>{e1.x,e2.x,e3.x},
+            matrix_3x3_type A{std::array<E_Float,3>{e1.x,e2.x,e3.x},
                                                   {e1.y,e2.y,e3.y},
                                                   {e1.z,e2.z,e3.z}
                              };
             matrix_3x3_type invA = inverse(A);
             auto p2_barycrds = invA*p0p2;
-            double alpha_2 = p2_barycrds[0];
-            double beta_2  = p2_barycrds[1];
-            double gamma_2 = p2_barycrds[2];
+            E_Float alpha_2 = p2_barycrds[0];
+            E_Float beta_2  = p2_barycrds[1];
+            E_Float gamma_2 = p2_barycrds[2];
             auto p_barycrds  = invA*p0p;
-            double alpha_p = p_barycrds[0];
-            double beta_p  = p_barycrds[1];
-            double gamma_p = p_barycrds[2];
+            E_Float alpha_p = p_barycrds[0];
+            E_Float beta_p  = p_barycrds[1];
+            E_Float gamma_p = p_barycrds[2];
             for ( E_Int ifld = 0; ifld < nfld; ++ifld)
             {
-                double a0 = values[ifld][0];
-                double a1 = values[ifld][1] - a0;
-                double a2 = values[ifld][3] - a0;
-                double a3 = values[ifld][4] - a0;                
-                double a4 = (values[ifld][2] - a0 - alpha_2*a1 -beta_2*a2 - gamma_2*a3)/(alpha_2*beta_2);
+                E_Float a0 = values[ifld][0];
+                E_Float a1 = values[ifld][1] - a0;
+                E_Float a2 = values[ifld][3] - a0;
+                E_Float a3 = values[ifld][4] - a0;                
+                E_Float a4 = (values[ifld][2] - a0 - alpha_2*a1 -beta_2*a2 - gamma_2*a3)/(alpha_2*beta_2);
                 interpolatedField(ipos,ifld+1) = a0 + a1 * alpha_p + a2 * beta_p + a3 * gamma_p + a4 * alpha_p * beta_p;
             }
         }
@@ -589,38 +589,38 @@ namespace K_POST
             vector3d p0p5(coords[0], coords[5]);
             vector3d p0p(coords[0], pt);
 
-            matrix_3x3_type A{std::array<double,3>{e1.x,e2.x,e3.x},
+            matrix_3x3_type A{std::array<E_Float,3>{e1.x,e2.x,e3.x},
                                                   {e1.y,e2.y,e3.y},
                                                   {e1.z,e2.z,e3.z}
                              };
             matrix_3x3_type invA = inverse(A);
             auto p4_barycrds = invA*p0p4;
-            double alpha_4 = p4_barycrds[0];
-            double beta_4  = p4_barycrds[1];
-            double gamma_4 = p4_barycrds[2];
+            E_Float alpha_4 = p4_barycrds[0];
+            E_Float beta_4  = p4_barycrds[1];
+            E_Float gamma_4 = p4_barycrds[2];
             auto p5_barycrds = invA*p0p5;
-            double alpha_5 = p5_barycrds[0];
-            double beta_5  = p5_barycrds[1];
-            double gamma_5 = p5_barycrds[2];
+            E_Float alpha_5 = p5_barycrds[0];
+            E_Float beta_5  = p5_barycrds[1];
+            E_Float gamma_5 = p5_barycrds[2];
             auto p_barycrds  = invA*p0p;
-            double alpha_p = p_barycrds[0];
-            double beta_p  = p_barycrds[1];
-            double gamma_p = p_barycrds[2];            
+            E_Float alpha_p = p_barycrds[0];
+            E_Float beta_p  = p_barycrds[1];
+            E_Float gamma_p = p_barycrds[2];            
             for ( E_Int ifld = 0; ifld < nfld; ++ifld)
             {
-                double a0 = values[ifld][0];
-                double a1 = values[ifld][1] - a0;
-                double a2 = values[ifld][2] - a0;
-                double a3 = values[ifld][3] - a0;
-                matrix_2x2_type A2{ std::array<double,2>{alpha_4*gamma_4, beta_4*gamma_4},
+                E_Float a0 = values[ifld][0];
+                E_Float a1 = values[ifld][1] - a0;
+                E_Float a2 = values[ifld][2] - a0;
+                E_Float a3 = values[ifld][3] - a0;
+                matrix_2x2_type A2{ std::array<E_Float,2>{alpha_4*gamma_4, beta_4*gamma_4},
                                                         {alpha_5*gamma_5, beta_5*gamma_5}
                                   };
                 auto invA2 = inverse(A2);
                 vector2d b2{ values[ifld][4] - a0 - a1*alpha_4 - a2*beta_4 - a3*gamma_4,
                              values[ifld][5] - a0 - a1*alpha_5 - a2*beta_5 - a3*gamma_5 };
                 vector2d res = invA2 * b2;
-                double a4 = res[0];
-                double a5 = res[1];
+                E_Float a4 = res[0];
+                E_Float a5 = res[1];
                 interpolatedField(ipos,ifld+1) = a0 + a1 * alpha_p + a2 * beta_p + a3 * gamma_p + a4 * alpha_p * gamma_p +
                                                  a5 * beta_p * gamma_p;
             }
@@ -667,7 +667,7 @@ namespace K_POST
             vector3d e1(coords[0], coords[1]);
             vector3d e2(coords[0], coords[3]);
             vector3d e3(coords[0], coords[4]);
-            matrix_3x3_type A{std::array<double,3>{ e1.x ,e2.x, e3.x},
+            matrix_3x3_type A{std::array<E_Float,3>{ e1.x ,e2.x, e3.x},
                                                   { e1.y ,e2.y, e3.y},
                                                   { e1.z ,e2.z, e3.z}
                              };
@@ -680,7 +680,7 @@ namespace K_POST
             vector3d bary_pt= invA*vector3d(coords[0], pt);
 
             //      a₄.𝛼ᵢ𝛽ᵢ + a₅.𝛼ᵢ𝛾ᵢ + a₆.𝛽ᵢ𝛾ᵢ + a₇.𝛼ᵢ𝛽ᵢ𝛾ᵢ = f(pᵢ) - a₀ - a₁.𝛼ᵢ - a₂.𝛽ᵢ - a₃.𝛾ᵢ
-            matrix_4x4_type B{ std::array<double,4>{bar2.x*bar2.y, bar2.x*bar2.z, bar2.y*bar2.z, bar2.x*bar2.y*bar2.z},
+            matrix_4x4_type B{ std::array<E_Float,4>{bar2.x*bar2.y, bar2.x*bar2.z, bar2.y*bar2.z, bar2.x*bar2.y*bar2.z},
                                                    {bar5.x*bar5.y, bar5.x*bar5.z, bar5.y*bar5.z, bar5.x*bar5.y*bar5.z},
                                                    {bar6.x*bar6.y, bar6.x*bar6.z, bar6.y*bar6.z, bar6.x*bar6.y*bar6.z},
                                                    {bar7.x*bar7.y, bar7.x*bar7.z, bar7.y*bar7.z, bar7.x*bar7.y*bar7.z}
@@ -688,10 +688,10 @@ namespace K_POST
             auto LUB = factorize(B);
             for ( E_Int ifld = 0; ifld < nfld; ++ifld)
             {
-                double a0 = values[ifld][0];        // a₀ = f(p₀)
-                double a1 = values[ifld][1] - a0;   // a₁ = f(p₁) - a₀
-                double a2 = values[ifld][3] - a0;   // a₂ = f(p₃) - a₀
-                double a3 = values[ifld][4] - a0;   // a₃ = f(p₄) - a₀
+                E_Float a0 = values[ifld][0];        // a₀ = f(p₀)
+                E_Float a1 = values[ifld][1] - a0;   // a₁ = f(p₁) - a₀
+                E_Float a2 = values[ifld][3] - a0;   // a₂ = f(p₃) - a₀
+                E_Float a3 = values[ifld][4] - a0;   // a₃ = f(p₄) - a₀
                 vector4d b{
                     values[ifld][2] - a0 -a1*bar2.x -a2*bar2.y - a3*bar2.z, 
                     values[ifld][5] - a0 -a1*bar5.x -a2*bar5.y - a3*bar5.z, 
@@ -699,10 +699,10 @@ namespace K_POST
                     values[ifld][7] - a0 -a1*bar7.x -a2*bar7.y - a3*bar7.z
                           };
                 auto x = inverse_linear_system(LUB, b);
-                double a4 = x[0];
-                double a5 = x[1];
-                double a6 = x[2];
-                double a7 = x[3];
+                E_Float a4 = x[0];
+                E_Float a5 = x[1];
+                E_Float a6 = x[2];
+                E_Float a7 = x[3];
                 interpolatedField(ipos,ifld+1) = a0 + a1*bary_pt.x + a2*bary_pt.y + a3*bary_pt.z +
                                                  a4*bary_pt.x*bary_pt.y + a5*bary_pt.x*bary_pt.z + a6*bary_pt.y*bary_pt.z +
                                                  a7*bary_pt.x*bary_pt.y*bary_pt.z;
@@ -755,7 +755,7 @@ namespace K_POST
         return {0.,0.,0.};
     }
     //_ _____________________________ Calcul du volume d'une cellule donnée ______________________________
-    double unstructured_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
+    E_Float unstructured_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
     {
         E_Int nb_verts_per_elt = number_of_vertices_per_element[m_type_of_element];
         const auto& crds = this->getCoordinates();

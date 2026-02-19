@@ -122,6 +122,33 @@ switch (type)
    }
    break;
       
+  case 44: // Lagrange O4
+   for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
+   { 
+   indCoef   = (pt_deb-ideb)*sizecoefs +  shiftCoef;
+     for (E_Int noind = pt_deb; noind < pt_fin; noind++)
+     {
+      indD0 = donorPts[noind];  //car type 0 est toujour traite en dernier. Sinon noind pas valable
+      k     = indD0/imdjmd;
+      j     = (indD0-k*imdjmd)/imd;
+      i     = (indD0-j*imd-k*imdjmd);
+    
+      val=0.;
+
+      for (E_Int kk=0; kk<4; kk++)
+        for (E_Int jj=0; jj<4; jj++)
+          for (E_Int ii=0; ii<4; ii++)
+          {
+            indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
+            val += ptrCoefs[ indCoef + ii]*ptrCoefs[ indCoef + jj+4]*ptrCoefs[ indCoef + kk+8]*vectOfDnrFields[ne][indD];
+          }
+      vectOfRcvFields[ne][noind] = val;
+      noi      += 1;
+      indCoef  += sizecoefs;
+     }
+   }
+   break;
+      
   case 4: // Tetra O2
    for (E_Int ne    = 0     ; ne    < nvars_loc ; ne++)
    {

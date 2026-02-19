@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ namespace K_POST
         */
         bool empty() const { return m_indices.size() == 0; }
 
-        std::pair<E_Int,double> nearest( const point3d& pt, const std::array<K_MEMORY::vector_view<const double>,3>& coords ) const;
+        std::pair<E_Int,E_Float> nearest( const point3d& pt, const std::array<K_MEMORY::vector_view<const E_Float>,3>& coords ) const;
 
         direction_type m_direction; /// Direction de la séparation (en X, en Y, en Z, etc.)
         E_Int m_separation_index;
@@ -49,13 +49,13 @@ namespace K_POST
     {
     }
     // ----------------------------------------------------------------------------------
-    std::pair<E_Int,double>
-    kdtree::node::nearest(const point3d &pt, const std::array<K_MEMORY::vector_view<const double>, 3> &coords) const
+    std::pair<E_Int,E_Float>
+    kdtree::node::nearest(const point3d &pt, const std::array<K_MEMORY::vector_view<const E_Float>, 3> &coords) const
     {
         //std::cout << __PRETTY_FUNCTION__ << std::endl;
         point3d sep_point{ coords[0][m_separation_index], coords[1][m_separation_index], coords[2][m_separation_index]};
         //std::cout << "point de séparation : " << std::string(sep_point) << std::endl;
-        double sq_dist_min = square_distance(pt, sep_point);
+        E_Float sq_dist_min = square_distance(pt, sep_point);
         //std::cout << "Distance au point de séparation : " << sq_dist_min << std::endl;
         E_Int  min_index = m_separation_index;
         if (sq_dist_min == 0) return {m_separation_index,0.};
@@ -66,7 +66,7 @@ namespace K_POST
             for ( const auto& ind : m_indices )
             {
                 point3d vertex{ coords[0][ind], coords[1][ind], coords[2][ind] };
-                double sq_dist = square_distance(pt, vertex);
+                E_Float sq_dist = square_distance(pt, vertex);
                 if (sq_dist < sq_dist_min)
                 {
                     sq_dist_min = sq_dist;
@@ -77,9 +77,8 @@ namespace K_POST
             //          << " à distance² " << sq_dist_min << std::endl;
             return {min_index, sq_dist_min};
         }
-        double dx = coords[m_direction][m_separation_index] - pt[m_direction];
-        //std::cout << "dx : " << dx << std::endl;
-        std::pair<E_Int,double> result_child;
+        E_Float dx = coords[m_direction][m_separation_index] - pt[m_direction];
+        std::pair<E_Int,E_Float> result_child;
         if (dx>=0)
         {
             if (m_left != nullptr)
@@ -142,9 +141,9 @@ namespace K_POST
         return {min_index, sq_dist_min};
     }
     // ##################################################################################
-    kdtree::kdtree( const K_MEMORY::vector_view<const double>& xCoords, 
-                    const K_MEMORY::vector_view<const double>& yCoords,
-                    const K_MEMORY::vector_view<const double>& zCoords, unsigned min_nodes ) :
+    kdtree::kdtree( const K_MEMORY::vector_view<const E_Float>& xCoords, 
+                    const K_MEMORY::vector_view<const E_Float>& yCoords,
+                    const K_MEMORY::vector_view<const E_Float>& zCoords, unsigned min_nodes ) :
         m_coords{xCoords, yCoords, zCoords},
         m_indices_nodes(xCoords.size())
     {
@@ -156,7 +155,7 @@ namespace K_POST
         m_root = make_tree(0, min_nodes, node_indices);
     }
     // ----------------------------------------------------------------------------------    
-    kdtree::kdtree( const std::array<K_MEMORY::vector_view<const double>,3>& coords, unsigned min_nodes ) :
+    kdtree::kdtree( const std::array<K_MEMORY::vector_view<const E_Float>,3>& coords, unsigned min_nodes ) :
         m_coords(coords),
         m_indices_nodes(coords[0].size())
     {
@@ -178,8 +177,8 @@ namespace K_POST
         std::size_t n = (indices.size()+1)/2;
 
         auto cmp_operator = [&,this] ( E_Int ind1, E_Int ind2 ) {
-            double val1 = this->m_coords[dir][ind1];
-            double val2 = this->m_coords[dir][ind2];
+            E_Float val1 = this->m_coords[dir][ind1];
+            E_Float val2 = this->m_coords[dir][ind2];
             return val1 < val2;
         };
 
@@ -200,7 +199,7 @@ namespace K_POST
         return pt_nd;
     }
     // ----------------------------------------------------------------------------------
-    std::pair<E_Int,double> kdtree::nearest(const point3d& pt ) const
+    std::pair<E_Int,E_Float> kdtree::nearest(const point3d& pt) const
     {
         return m_root->nearest(pt, this->m_coords);
     }

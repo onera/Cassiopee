@@ -3,9 +3,6 @@ from . import Post
 from . import post
 __version__ = Post.__version__
 
-try: range = xrange
-except: pass
-
 import math
 
 try:
@@ -38,8 +35,8 @@ def extractPoint(t, Pts, order=2, extrapOrder=1,
     z = C.convertArray2Node(z)
     _extractMesh(t, z, order, extrapOrder, constraint, tol, hook, mode)
 
-    soln = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-    solc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+    soln = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+    solc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
     if not isinstance(Pts, list):
         resn = []; resc = []
         solnN = soln[1]
@@ -82,7 +79,7 @@ def extractPlane(t, T, order=2, tol=1.e-6):
     Usage: extractPlane(t, (coefa, coefb, coefc, coefd), order)"""
     #t = C.deleteFlowSolutions__(t, 'centers')
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    A = C.getAllFields(t, 'nodes')
+    A = C.getAllFields(t, 'nodes', api=1)
     a = Post.extractPlane(A, T, order, tol)
     return C.convertArrays2ZoneNode('extractedPlane', [a])
 
@@ -109,24 +106,23 @@ def _projectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False, isPreProje
     if isPreProjectOrtho:
         print("Project Cloud Solution::performing pre orthogonal projection")
         import Transform.PyTree as T
-        cloud = T.projectOrtho(cloud, surf);
+        cloud = T.projectOrtho(cloud, surf)
 
-
-    fc = C.getAllFields(cloud, 'nodes')[0]
+    fc = C.getAllFields(cloud, 'nodes', api=1)[0]
     zones = Internal.getZones(surf)
-    for noz in range(len(zones)):
-        interpData = Internal.getNodeFromName(zones[noz], 'POST_MLS')
+    for noz, z in enumerate(zones):
+        interpData = Internal.getNodeFromName(z, 'POST_MLS')
         if interpData is not None:
             offset = Internal.getNodeFromName(interpData, 'offset')[1]
             interpDonor = Internal.getNodeFromName(interpData, 'interpDonor')[1]
             interpCoef = Internal.getNodeFromName(interpData, 'interpCoef')[1]
-            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes', api=1)[0]
             res = Post.projectCloudSolutionWithInterpData(fc, fs, offset, interpDonor, interpCoef, dim=dim)
-            C.setFields([res], zones[noz], 'nodes')
+            C.setFields([res], z, 'nodes')
         else:
-            fs = C.getAllFields(zones[noz], 'nodes')[0]
+            fs = C.getAllFields(z, 'nodes', api=1)[0]
             res = Post.projectCloudSolution(fc, fs, dim=dim, ibm=ibm, old=old)
-            C.setFields([res], zones[noz], 'nodes')
+            C.setFields([res], z, 'nodes')
     return None
 
 def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
@@ -137,10 +133,10 @@ def prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
 
 def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
     """Compute the MLS interpolation data for projectCloudSolutionWithInterpData."""
-    fc = C.getAllFields(cloud, 'nodes')[0]
+    fc = C.getAllFields(cloud, 'nodes', api=1)[0]
     zones = Internal.getZones(surf)
     for noz in range(len(zones)):
-        fs = C.getAllFields(zones[noz], 'nodes')[0]
+        fs = C.getAllFields(zones[noz], 'nodes', api=1)[0]
         res = Post.prepareProjectCloudSolution(fc, fs, dim=dim, ibm=ibm)
 
         interpDonor, interpCoef = res
@@ -153,9 +149,9 @@ def _prepareProjectCloudSolution(cloud, surf, dim=3, loc='nodes', ibm=False):
         interpCoef = numpy.concatenate(interpCoef)
 
         children = []
-        children.append(Internal.createNode('offset' , 'DataArray_t', offset))
-        children.append(Internal.createNode('interpDonor' , 'DataArray_t', interpDonor))
-        children.append(Internal.createNode('interpCoef' , 'DataArray_t', interpCoef))
+        children.append(Internal.createNode('offset', 'DataArray_t', offset))
+        children.append(Internal.createNode('interpDonor', 'DataArray_t', interpDonor))
+        children.append(Internal.createNode('interpCoef', 'DataArray_t', interpCoef))
         Internal._createChild(zones[noz], 'POST_MLS', 'UserDefinedData_t', value=None, children=children)
 
     return None
@@ -175,11 +171,12 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     Usage: extractMesh(t, extractMesh, order, extrapOrder, constraint, tol, hook)"""
 
     # we sort structured then unstructured
-    orderedZones=[]
-    for i,z in enumerate(Internal.getZones(extractionMesh)):
-        if Internal.getZoneType(z)==1: orderedZones.append(i)
-    for i,z in enumerate(Internal.getZones(extractionMesh)):
-        if Internal.getZoneType(z)==2: orderedZones.append(i)
+    orderedZones = []
+    zones = Internal.getZones(extractionMesh)
+    for i, z in enumerate(zones):
+        if Internal.getZoneType(z) == 1: orderedZones.append(i)
+    for i, z in enumerate(zones):
+        if Internal.getZoneType(z) == 2: orderedZones.append(i)
 
     if mode == 'robust':
         tc = C.center2Node(t, Internal.__FlowSolutionCenters__)
@@ -187,9 +184,9 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
 
         if hook is not None:
             if not isinstance(hook,list): raise TypeError("_extractMesh: hook must be a list of hooks on ADTs.")
-        fa = C.getAllFields(tc, 'nodes')
+        fa = C.getAllFields(tc, 'nodes', api=1)
         del tc
-        an = C.getFields(Internal.__GridCoordinates__, extractionMesh)
+        an = C.getFields(Internal.__GridCoordinates__, extractionMesh, api=1)
         res = Post.extractMesh(fa, an, order, extrapOrder, constraint, tol, hook)
         if len(res) != len(orderedZones):
             raise ValueError("_extractMesh: invalid number of zones.")
@@ -227,9 +224,9 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
             if hook is not None:
                 print("Warning: _extractMesh: hook is not used in 'accurate' mode.")
             tp = Internal.addGhostCells(t, t, 1, adaptBCs=0)
-            an = C.getFields(Internal.__GridCoordinates__, zones)
+            an = C.getFields(Internal.__GridCoordinates__, zones, api=1)
             ac = Converter.node2Center(an)
-            fc = C.getFields(Internal.__GridCoordinates__, tp)
+            fc = C.getFields(Internal.__GridCoordinates__, tp, api=1)
             nzones = len(fc)
             for i in range(len(fc)):
                 if len(fc[i]) == 4:
@@ -237,7 +234,7 @@ def _extractMesh(t, extractionMesh, order=2, extrapOrder=1,
                     except: raise ImportError('extractMesh: Transform module is required.')
                     fc[i] = Transform.dual(fc[i], extraPoints=0)
                 else: fc[i] = Converter.node2Center(fc[i])
-            fa = C.getFields(Internal.__FlowSolutionCenters__, tp)
+            fa = C.getFields(Internal.__FlowSolutionCenters__, tp, api=1)
             del tp
             allf = []
             nzones = len(fc)
@@ -269,10 +266,10 @@ def coarsen(t, indicName='indic', argqual=0.1, tol=1.e6):
     C._deleteGridConnectivity__(tp)
     nodes = Internal.getZones(tp)
     for z in nodes:
-        taga = C.getFields(Internal.__FlowSolutionCenters__, z)
+        taga = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)
         taga = Converter.extractVars(taga, [indicName])[0]
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
             fp = Post.coarsen(f, taga, argqual, tol)
@@ -304,10 +301,10 @@ def _refine(t, indicName='indic', w=-1):
         if len(indicName) != 1: indicName = indicName[1]
         else: indicName = indicName[0]
         for z in zones:
-            taga = C.getFields(Internal.__FlowSolutionCenters__, z)
+            taga = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)
             taga = Converter.extractVars(taga, [indicName])[0]
-            fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-            fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+            fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
                 f = Converter.addVars([fc, fa])
                 fp = Post.refine(f, taga)
@@ -321,7 +318,7 @@ def _refine(t, indicName='indic', w=-1):
         C._deleteFlowSolutions__(t, 'centers')
     else: # butterfly everywhere
         C._deleteFlowSolutions__(t, 'centers')
-        C._TZA(t, 'nodes', 'nodes', Post.refine, None, None, w)
+        C._TZA1(t, 'nodes', 'nodes', Post.refine, None, None, w)
     return None
 
 #==============================================================================
@@ -377,9 +374,9 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
                 node = GEl[NGON]
                 PE = Internal.getNodeFromName1(node, 'ParentElements')
 
-            fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-            fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-            fb = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+            fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+            fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
 
             if fc != [] and fa != []:
                 ft = Converter.addVars([fc, fa])
@@ -451,7 +448,7 @@ def selectCells(t, F, varStrings=[], strict=0, cleanConnectivity=True):
         C._deleteZoneBC__(tp)
         C._deleteGridConnectivity__(tp)
         C._addVars(tp, 'centers:__tag__')
-        fields = C.getFields(Internal.__FlowSolutionCenters__, tp)
+        fields = C.getFields(Internal.__FlowSolutionCenters__, tp, api=1)
 
         tags = []
         if varStrings == []:
@@ -498,15 +495,15 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
             PE = Internal.getNodeFromName1(node, 'ParentElements')
 
         if loc == 0: # noeuds
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
-            taga = C.getFields(Internal.__FlowSolutionNodes__, z)
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+            taga = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)
             taga = Converter.extractVars(taga, [tagName])[0]
         else:
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             taga = Converter.extractVars(fb, [res[1]])
 
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
 
         if loc != 0: # centres
             if KCore.isNamePresent(fb,res[1]) > -1:
@@ -615,10 +612,10 @@ def frontFaces(t, tagName):
     C._deleteFlowSolutions__(tp, 'centers')
     nodes = Internal.getZones(tp)
     for z in nodes:
-        taga = C.getFields(Internal.__FlowSolutionNodes__, z)
+        taga = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)
         taga = Converter.extractVars(taga, [tagName])[0]
-        fc = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fa = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fc != [] and fa != []:
             f = Converter.addVars([fc, fa])
             fp = Post.frontFaces(f, taga)
@@ -630,6 +627,19 @@ def frontFaces(t, tagName):
             fp = Post.frontFaces(fc, taga)
             C.setFields([fp], z, 'nodes')
     return tp
+
+def exteriorVertices(t, indices=None):
+    """Exterior vertices of a mesh.
+    Usage: exteriorVertices(t, indices)"""
+    tp = Internal.copyRef(t)
+    _exteriorVertices(tp, indices)
+    return tp
+
+def _exteriorVertices(t, indices=None):
+    C._deleteZoneBC__(t)
+    C._deleteFlowSolutions__(t, 'centers')
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorVertices, indices)
+    return None
 
 def interiorFaces(t, strict=0):
     """Interior faces of an array. The argument strict equal to 1 means
@@ -644,11 +654,12 @@ def interiorFaces(t, strict=0):
 def exteriorFacesStructured(t):
     """Return the list of exterior faces for a structured mesh
     Usage: exteriorFacesStructured(a)"""
+    C._deleteZoneBC__(t)
     t = C.deleteFlowSolutions__(t, 'centers')
     zones = Internal.getZones(t)
     listzones = []
     for z in zones:
-        field = C.getAllFields(z, 'nodes')[0]
+        field = C.getAllFields(z, 'nodes', api=3)[0]
         A = Post.exteriorFacesStructured(field)
         c = 1
         for a in A:
@@ -667,7 +678,8 @@ def exteriorFaces(t, indices=None):
 def _exteriorFaces(t, indices=None):
     C._deleteZoneBC__(t)
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
+    C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
+    return None
 
 def exteriorElts(t):
     """Exterior (border) elts of a mesh.
@@ -678,8 +690,10 @@ def exteriorElts(t):
 
 def _exteriorElts(t):
     """Exterior (border) elts of a mesh."""
+    C._deleteZoneBC__(t)
     C._deleteFlowSolutions__(t, 'centers')
-    return C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorElts)
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorElts)
+    return None
 
 def exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid.
@@ -690,8 +704,9 @@ def exteriorEltsStructured(t, depth=1):
 
 def _exteriorEltsStructured(t, depth=1):
     """Exterior (border) elts of a mesh as a structured grid."""
-    C._TZA2(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
-    C._TZA2(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
+    C._deleteZoneBC__(t)
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorEltsStructured, depth)
+    C._TZA3(t, 'centers', 'centers', False, Post.exteriorEltsStructured, depth)
     return None
 
 def computeVariables(t, varList,
@@ -736,10 +751,10 @@ def computeVariables(t, varList,
                                 'centers:MomentumY', 'centers:MomentumZ',
                                 'centers:EnergyStagnationDensity'])
 
-    tp = C.TZAGC(tp, 'both', 'both', False,
-                 Post.computeVariables, Post.computeVariables,
-                 varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
-                 varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
+    tp = C.TZAGC1(tp, 'both', 'both', False,
+                  Post.computeVariables, Post.computeVariables,
+                  varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
+                  varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
     if presc == -1 and varnamesc != []:
         tp = C.rmVars(tp, ['centers:Density', 'centers:MomentumX',
                            'centers:MomentumY', 'centers:MomentumZ',
@@ -787,10 +802,10 @@ def _computeVariables(t, varList,
     if presn == -1 and varnamesn != []:
         raise ValueError("computeVariables: conservative variables missing.")
 
-    C._TZAGC(t, 'both', 'both', False,
-             Post.computeVariables, Post.computeVariables,
-             varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
-             varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
+    C._TZAGC1(t, 'both', 'both', False,
+              Post.computeVariables, Post.computeVariables,
+              varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts,
+              varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
     if presc == -1 and varnamesc != []:
         C._rmVars(t, ['centers:Density', 'centers:MomentumX',
                       'centers:MomentumY', 'centers:MomentumZ',
@@ -857,11 +872,11 @@ def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
         else: varnamesn.append(var)
 
     if varnamesn != []:
-        C.__TZC2(t, 'nodes', False,
+        C.__TZC3(t, 'nodes', False,
                  Post._computeVariables2, varnamesn, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     if varnamesc != []:
-        C.__TZC2(t, 'centers', False,
+        C.__TZC3(t, 'centers', False,
                  Post._computeVariables2, varnamesc, gamma, rgp, s0, betas, Cs, mus, Ts)
 
     return None
@@ -995,7 +1010,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
     nzones1 = len(zones1); nzones2 = len(zones2)
     dejaVu = numpy.zeros(nzones2, dtype=Internal.E_NpyInt)
 
-    locDict={}
+    locDict = {}
     if method == 2:
         for noz1 in range(nzones1):
             z1 = zones1[noz1]; found = 0
@@ -1004,7 +1019,7 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                 z2 = zones2[noz2]
                 (parent2, d) = Internal.getParentOfNode(a2, z2)
                 loc = identifyZonesLoc__(z1, z2, method, eps)
-                locDict[z1[0]]=loc
+                locDict[z1[0]] = loc
                 if abs(loc) == 1: # nodes
                     dejaVu[noz2] = noz1+1; found = 1
                     sol1 = Internal.getNodesFromType1(z1, 'FlowSolution_t')
@@ -1032,9 +1047,9 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                         loci = Internal.getNodesFromType1(s1, 'GridLocation_t')
                         if len(loci) > 0:
                             v = loci[0]
-                            if v[0]!='V': loc1 = 1# 'Vertex'
+                            if v[0] != 'V': loc1 = 1 # 'Vertex'
 
-                        if loc1==0:
+                        if loc1 == 0:
                             sol11 = Internal.getNodesFromType(s1, 'DataArray_t')
                             for s11 in sol11:
                                 ar1 = Internal.convertDataNode2Array(s11, dim1, cn1)[1]
@@ -1108,11 +1123,11 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
             if tag[noz1] == 0:
                 z = zones1[noz1]
                 loc = locDict[z[0]]
-                if abs(loc)==1: # ajout direct
+                if abs(loc) == 1: # ajout direct
                     base[0][2].append(z)
 
                 elif abs(loc) == 2: # ajout coord en noeud et champ direct (qui correspond aux centres du  nouveau)
-                    C._rmVars(z,Internal.__FlowSolutionCenters__)
+                    C._rmVars(z, Internal.__FlowSolutionCenters__)
                     zc = C.center2Node(z)
                     coords = Internal.getNodesFromType1(zc, 'GridCoordinates_t')
                     dim = Internal.getZoneDim(zc)
@@ -1124,13 +1139,13 @@ def importVariables(t1, t2, method=0, eps=1.e-6, addExtra=1):
                             z = C.setFields([ar], z, 'nodes')
                     fields = Internal.getNodesFromType1(z, 'FlowSolution_t')
                     for x in fields:
-                        gloc= Internal.getNodeFromType(x,'GridLocation_t')
+                        gloc = Internal.getNodeFromType1(x, 'GridLocation_t')
                         vloc = 1
                         if gloc is None: vloc = 0
                         else:
-                            if gloc[1][0]=='V': vloc=0# =='Vertex'
+                            if gloc[1][0] == 'V': vloc = 0 # =='Vertex'
                         if vloc == 0:
-                            ax = Internal.getNodesFromType(x, 'DataArray_t')
+                            ax = Internal.getNodesFromType1(x, 'DataArray_t')
                             for sx in ax:
                                 ar = Internal.convertDataNode2Array(sx, dim, cn)[1]
                                 z = C.setFields([ar], z, 'centers')
@@ -1214,31 +1229,31 @@ def zipper(t, options=[]):
     """Extract Chimera surface as an unique unstructured surface.
     Usage: zipper(t, options)"""
     t = C.deleteFlowSolutions__(t,'centers')
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.zipper(arrays, options)
     return C.convertArrays2ZoneNode('zipper', [a])
 
-def extractArraysForScalarInteg__(t, var=''):
+def extractArraysForScalarInteg__(t, var='', api=1):
     zones = Internal.getZones(t)
     zvars = var.split(':')
     if len(zvars) == 2: loc = 'centers'
     else: loc = 'nodes'
 
-    coords = C.getFields(Internal.__GridCoordinates__, zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=api)
     fields = []; fieldsc = []
     if var == '':
-        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
         fields = Converter.addVars([coords,fields])
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
     elif var == Internal.__GridCoordinates__:
         fields = coords
     elif var == Internal.__FlowSolutionNodes__:
-        fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+        fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
     elif var == Internal.__FlowSolutionCenters__:
-        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+        fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
     else: # un champ specifique
-        if loc == 'nodes': fields = C.getField(var, zones)
-        else: fieldsc = C.getField(var,zones)
+        if loc == 'nodes': fields = C.getField(var, zones, api=api)
+        else: fieldsc = C.getField(var,zones, api=api)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
     foundn = 0; foundc = 0
@@ -1250,7 +1265,7 @@ def extractArraysForScalarInteg__(t, var=''):
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
 
-def extractArraysForVectorInteg__(t, vector):
+def extractArraysForVectorInteg__(t, vector, api=1):
     zones = Internal.getZones(t)
     loc = 'unknown'
     if len(vector) != 3: raise ValueError("extractArraysForVectorInteg: vector must be of size 3.")
@@ -1261,15 +1276,15 @@ def extractArraysForVectorInteg__(t, vector):
         elif len(v)  > 1 and loc != 'nodes': loc = 'centers'; zvars.append(v[1])
         else: raise ValueError("extractArraysForVectorInteg: all the components of the vector must have the same location.")
 
-    coords = C.getFields(Internal.__GridCoordinates__, zones)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=api)
     fields = []; fieldsc = []
     if vector == ['CoordinateX','CoordinateY','CoordinateZ']: fields = coords
     else:
         if loc == 'nodes':
-            fields = C.getFields(Internal.__FlowSolutionNodes__, zones)
+            fields = C.getFields(Internal.__FlowSolutionNodes__, zones, api=api)
             if fields != []: fields = Converter.extractVars(fields, zvars)
         else:
-            fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones)
+            fieldsc = C.getFields(Internal.__FlowSolutionCenters__, zones, api=api)
             if fieldsc != []: fieldsc = Converter.extractVars(fieldsc, zvars)
 
     # mise a jour de fields [[],[],[],..,[]] -> []
@@ -1282,11 +1297,11 @@ def extractArraysForVectorInteg__(t, vector):
     if foundc == 0: fieldsc = []
     return [coords, fields, fieldsc]
 
-def extractRatioForInteg__(t):
+def extractRatioForInteg__(t, api=1):
     zones = Internal.getZones(t)
     # extraction des ratios
-    ration = C.getField('ratio', zones)
-    ratioc = C.getField('centers:ratio', zones)
+    ration = C.getField('ratio', zones, api=api)
+    ratioc = C.getField('centers:ratio', zones, api=api)
     foundn = 0; foundc = 0
     for nof in range(len(ration)):
         if ration[nof] != []: foundn = 1
@@ -1300,8 +1315,8 @@ def extractRatioForInteg__(t):
 def integ2(t, var=''):
     """Integral of fields defined in t.
     Usage: integ(t, var)"""
-    info = extractArraysForScalarInteg__(t, var)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForScalarInteg__(t, var, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
@@ -1328,7 +1343,7 @@ def integ(t, var=''):
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
             vol = Internal.getNodeFromName1(cont, 'vol')
-            ratio = Internal.getNodeFromName1(cont, 'ratio')
+            #ratio = Internal.getNodeFromName1(cont, 'ratio')
         if vol is None:
             removeVol = True
             G._getVolumeMap(z)
@@ -1348,8 +1363,8 @@ def integ(t, var=''):
 def integNorm(t, var=''):
     """Integral of fields times normal.
     Usage: integNorm(t, var)"""
-    info = extractArraysForScalarInteg__(t, var)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForScalarInteg__(t, var, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
@@ -1364,8 +1379,8 @@ def integNorm(t, var=''):
 def integNormProduct(t, vector=[]):
     """Integral of scalar product fields times normal.
     Usage: integNormProduct(t, vector)"""
-    info = extractArraysForVectorInteg__(t, vector)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForVectorInteg__(t, vector, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
     resn = []; resc = []
@@ -1379,8 +1394,8 @@ def integNormProduct(t, vector=[]):
 def integMoment(t, center=(0.,0.,0.), vector=[]):
     """Integral of moments.
     Usage: integMoment(t, (xc, yc, zc), vector)"""
-    info = extractArraysForVectorInteg__(t, vector)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForVectorInteg__(t, vector, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
@@ -1395,8 +1410,8 @@ def integMoment(t, center=(0.,0.,0.), vector=[]):
 def integMomentNorm(t, center=(0.,0.,0.), var=''):
     """Integral of moments (OM^f.vect(n)).
     Usage: integMomentNorm( t, (xc, yc, zc), var )"""
-    info = extractArraysForScalarInteg__(t, var)
-    infor = extractRatioForInteg__(t)
+    info = extractArraysForScalarInteg__(t, var, api=3)
+    infor = extractRatioForInteg__(t, api=3)
     coords = info[0]; fieldsn = info[1]; fieldsc = info[2]
     ration = infor[0]; ratioc = infor[1]
 
@@ -1418,8 +1433,8 @@ def usurp(t):
 def _usurp(t):
     """Extract unique surfaces using ranked polygons.
     Usage: usurp(t)"""
-    coords = C.getFields(Internal.__GridCoordinates__, t)
-    fields = C.getFields(Internal.__FlowSolutionCenters__, t)
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    fields = C.getFields(Internal.__FlowSolutionCenters__, t, api=1)
     r = Post.usurp(coords, fields)
     C.setFields(r, t, 'centers')
     return None
@@ -1437,7 +1452,7 @@ def computeGrad(t, var):
             tp = C.center2Node(tp, var)
         gradVar = v[1]
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     if posv == -1: C._rmVars(tp, gradVar)
     centers = Post.computeGrad(nodes, gradVar)
     C.setFields(centers, tp, 'centers')
@@ -1457,21 +1472,19 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
         centers = G.getCellCenters(t, fc, fa)
 
     zones = Internal.getZones(t)
-
-    for i in range(len(zones)):
-        zone = zones[i]
+    for i, zone in enumerate(zones):
 
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
-        if arr == None: continue
+        if arr is None: continue
 
         fsolc = Internal.getNodeFromName1(zone,
                                           Internal.__FlowSolutionCenters__)
-        if fsolc == None: raise ValueError("FlowSolutionCenters not found.")
+        if fsolc is None: raise ValueError("FlowSolutionCenters not found.")
 
         flds = []
         for fldName in fldNames:
             fsol = Internal.getNodeFromName1(fsolc, fldName)
-            if fsol == None:
+            if fsol is None:
                 raise ValueError('Field ' + fldName + ' not found.')
             flds.append(fsol[1])
 
@@ -1547,8 +1560,8 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                 if cellN is not None: cellN = cellN[1]
         else: cellN = None
 
-        f = C.getField(var, z)[0]
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        f = C.getField(var, z, api=1)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         # Get BCDataSet if any
         indices=None; BCField=None
 
@@ -1632,7 +1645,7 @@ def computeNormGrad(t, var):
             posv = C.isNamePresent(tp, v[1])
             tp = C.center2Node(tp, var)
             gradVar = v[1]
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     if posv == -1: C._rmVars(tp, gradVar)
     centers = Post.computeNormGrad(nodes, gradVar)
     C.setFields(centers, tp, 'centers')
@@ -1658,7 +1671,7 @@ def computeDiv(t,var):
             name = v[1]
         divVector.append(name)
 
-    tn = C.getAllFields(tp, 'nodes') # < get all fields (?) We only need a few...
+    tn = C.getAllFields(tp, 'nodes', api=1) # < get all fields (?) We only need a few...
     for i in range(dim):
         if posv[i] == -1: C._rmVars(tp, divVector[i])
     tc = Post.computeDiv(tn, divVector)
@@ -1699,7 +1712,7 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         if withTNC: allMatchTNC = C.extractAllBCMatchTNC(t,varList)
         else: allMatchTNC = {}
     else:
-        allMatch    = {}; allMatchTNC = {}
+        allMatch = {}; allMatchTNC = {}
 
     for z in zones:
 
@@ -1714,13 +1727,13 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         flist, f = [], []
         for v in var:
             for sdir in sdirlist:
-                flist.append(C.getField('%s%s' % (v,sdir), z)[0])
+                flist.append(C.getField('%s%s' % (v,sdir), z, api=1)[0])
         flist = [x for x in flist if x]
 
         if flist and len(flist)%ndims == 0:
             f = [Converter.addVars(flist[i:i+ndims]) for i in range(0, len(flist), ndims)]
 
-        x = C.getFields(Internal.__GridCoordinates__, z)[0]
+        x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         # Get BCDataSet if any
         indices  = None
         BCFieldX = None; BCFieldY = None; BCFieldZ = None
@@ -1787,10 +1800,10 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                         if fldZ is None: fldZ = fgcZ
                         else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                    indp    = indFace.ravel(order='K')
-                    fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                    fldY    = fldY.ravel(order='K').reshape(nvars,-1)
-                    fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                    indp = indFace.ravel(order='K')
+                    fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                    fldY = fldY.ravel(order='K').reshape(nvars,-1)
+                    fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                     if indices is None: indices = indp
                     else: indices = numpy.concatenate((indices, indp))
@@ -1815,9 +1828,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldY is None: fldY = fgcY
                             else: fldY = numpy.concatenate((fldY,fgcY), axis=1)
 
-                        indp    = indFace.ravel(order='K')
-                        fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                        fldY    = fldY.ravel(order='K').reshape(nvars,-1)
+                        indp = indFace.ravel(order='K')
+                        fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                        fldY = fldY.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -1839,9 +1852,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldZ is None: fldZ = fgcZ
                             else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                        indp    = indFace.ravel(order='K')
-                        fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                        fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                        indp = indFace.ravel(order='K')
+                        fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                        fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -1863,9 +1876,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldZ is None: fldZ = fgcZ
                             else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                        indp    = indFace.ravel(order='K')
-                        fldY    = fldY.ravel(order='K').reshape(nvars,-1)
-                        fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                        indp = indFace.ravel(order='K')
+                        fldY = fldY.ravel(order='K').reshape(nvars,-1)
+                        fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -1900,10 +1913,10 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                         if fldZ is None: fldZ = fgcZ
                         else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                    indp    = indFaceTNC.ravel(order='K')
-                    fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                    fldY    = fldY.ravel(order='K').reshape(nvars,-1)
-                    fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                    indp = indFaceTNC.ravel(order='K')
+                    fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                    fldY = fldY.ravel(order='K').reshape(nvars,-1)
+                    fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                     if indices is None: indices = indp
                     else: indices = numpy.concatenate((indices, indp))
@@ -1930,9 +1943,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldY is None: fldY = fgcY
                             else: fldY = numpy.concatenate((fldY,fgcY), axis=1)
 
-                        indp    = indFaceTNC.ravel(order='K')
-                        fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                        fldY    = fldY.ravel(order='K').reshape(nvars,-1)
+                        indp = indFaceTNC.ravel(order='K')
+                        fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                        fldY = fldY.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -1955,9 +1968,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldZ is None: fldZ = fgcZ
                             else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                        indp    = indFaceTNC.ravel(order='K')
-                        fldX    = fldX.ravel(order='K').reshape(nvars,-1)
-                        fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                        indp = indFaceTNC.ravel(order='K')
+                        fldX = fldX.ravel(order='K').reshape(nvars,-1)
+                        fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -1980,9 +1993,9 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
                             if fldZ is None: fldZ = fgcZ
                             else: fldZ = numpy.concatenate((fldZ,fgcZ), axis=1)
 
-                        indp    = indFaceTNC.ravel(order='K')
-                        fldY    = fldY.ravel(order='K').reshape(nvars,-1)
-                        fldZ    = fldZ.ravel(order='K').reshape(nvars,-1)
+                        indp = indFaceTNC.ravel(order='K')
+                        fldY = fldY.ravel(order='K').reshape(nvars,-1)
+                        fldZ = fldZ.ravel(order='K').reshape(nvars,-1)
 
                         if indices is None: indices = indp
                         else: indices = numpy.concatenate((indices, indp))
@@ -2033,7 +2046,7 @@ def computeCurl(t, vector):
                 curlVar = v[1]
         curlVector.append(curlVar)
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
 
@@ -2059,7 +2072,7 @@ def computeNormCurl(t, vector):
                 curlVar = v[1]
         curlVector.append(curlVar)
 
-    nodes = C.getAllFields(tp, 'nodes')
+    nodes = C.getAllFields(tp, 'nodes', api=3)
     for i in range(n):
         if posv[i] == -1: tp = C.rmVars(tp, curlVector[i])
     centers = Post.computeNormCurl(nodes, curlVector)
@@ -2075,7 +2088,7 @@ def computeDiff(t, var):
             loc = 'centers'; var = v[1]
     tp = Internal.copyRef(t)
     Internal._addGhostCells(tp, tp, 1, adaptBCs=0)
-    nodes = C.getAllFields(tp, loc)
+    nodes = C.getAllFields(tp, loc, api=1)
     res = Post.computeDiff(nodes, var)
     C.setFields(res, tp, loc)
     tp = Internal.rmGhostCells(tp, tp, 1, adaptBCs=0)
@@ -2083,17 +2096,18 @@ def computeDiff(t, var):
 
 def perlinNoise(t, alpha=2., beta=2., n=8):
     """Generate a perlin noise."""
-    return C.TZGC1(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
+    return C.TZGC3(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
 
 def _perlinNoise(t, alpha=2., beta=2., n=8):
-    return C._TZGC1(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
+    """Generate a perlin noise."""
+    return C._TZGC3(t, 'nodes', True, Post.perlinNoise, alpha, beta, n)
 
 def streamLine(t, X0, vector, N=2000, dir=2):
     """Compute a streamline starting from (x0,y0,z0) given
     a list of arrays containing 'vector' information.
     Usage: streamLine(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.streamLine(arrays, X0, vector, N, dir)
     return C.convertArrays2ZoneNode('streamLine', [a])
 
@@ -2103,7 +2117,7 @@ def streamLine2(t, X0, vector, N=2000, dir=2, eps=1.e-2):
     a list of arrays containing 'vector' information.
     Usage: streamLine2(t, (x0,y0,z0), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     for c, v in enumerate(vector): vector[c] = v.replace('centers:', '')
     a = Post.streamLine2(arrays, X0, vector, N, dir, eps)
     out = []
@@ -2117,8 +2131,8 @@ def streamSurf(t, b, vector, N=2000, dir=1):
     a list of arrays containing 'vector' information.
     Usage: streamSurf(t, b, (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
-    bar = C.getFields(Internal.__GridCoordinates__, b)[0]
+    arrays = C.getAllFields(t, 'nodes', api=1)
+    bar = C.getFields(Internal.__GridCoordinates__, b, api=1)[0]
     a = Post.streamSurf(arrays, bar, vector, N, dir)
     return C.convertArrays2ZoneNode('streamSurf', [a])
 
@@ -2129,7 +2143,7 @@ def streamRibbon(t, X0, N0, vector, N=2000, dir=2):
     from X0.
     Usage: streamRibbon(arrays, (x0,y0,z0), (n0x,n0y,n0z), (vx,vy,vz), N, dir)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.streamRibbon(arrays, X0, N0, vector, N, dir)
     return C.convertArrays2ZoneNode('streamRibbon', [a])
 
@@ -2138,7 +2152,7 @@ def isoLine(t, var, value):
     Usage: isoLine(t, var, value)"""
     t = C.center2Node(t, Internal.__FlowSolutionCenters__)
     v, loc = Internal.fixVarName(var)
-    arrays = C.getAllFields(t, 'nodes')
+    arrays = C.getAllFields(t, 'nodes', api=1)
     a = Post.isoLine(arrays, v, value)
     return C.convertArrays2ZoneNode('isoLine', [a])
 
@@ -2159,9 +2173,21 @@ def isoSurf(t, var, value, vars=None, split='simple'):
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
+
+    # #FIREWALL ME (to be suppressed when ME isosurf)
+    zones2 = []
     for z in zones:
-        if vars is None: array = C.getAllFields(z, 'nodes')[0]
-        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc)[0]
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and ',' in dim[3]:
+            zs = C.breakConnectivity(z)
+            zones2 += zs
+        else: zones2.append(z)
+    zones = zones2
+    # fin firewall
+
+    for z in zones:
+        if vars is None: array = C.getAllFields(z, 'nodes', api=1)[0]
+        else: array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vn+vc, api=1)[0]
         try:
             a = Post.isoSurf(array, var, value, split)
             if a != []:
@@ -2193,15 +2219,27 @@ def isoSurfMC(t, var, value, vars=None, split='simple'):
     zones = Internal.getZones(t)
     var, loc = Internal.fixVarName(var)
     ret = []
+
+    # #FIREWALL ME (to be suppressed when ME isosurf)
+    zones2 = []
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured' and ',' in dim[3]:
+            zs = C.breakConnectivity(z)
+            zones2 += zs
+        else: zones2.append(z)
+    zones = zones2
+    # fin firewall
+
     for z in zones:
         purge = False
         if Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__) is None: purge=True
         if vars is  None or vc != []:
             z = C.center2Node(z, target_var )
         if vars is None:
-            array = C.getAllFields(z, 'nodes')[0]
+            array = C.getAllFields(z, 'nodes', api=1)[0]
         else:
-            array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc)[0]
+            array = C.getFields([Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__], z, vars=vn+vc, api=1)[0]
         try:
             a = Post.isoSurfMC(array, var, value, split)
             if purge: Internal._rmNodesByName1(z, Internal.__FlowSolutionNodes__)
@@ -2252,16 +2290,16 @@ def _computeIndicatorField(octreeHexa, varName, nbTargetPts=-1, bodies=[],
     Usage: computeIndicatorField(octreeHexa, indicVal, nbTargetPts, bodies,
     refineFinestLevel, coarsenCoarsestLevel)"""
     zvars = varName.split(':')
-    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa)[0]
+    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa, api=1)[0]
     bodiesA = []
     if bodies != []:
-        bodiesA = C.getFields(Internal.__GridCoordinates__, bodies)
-    fields = C.getField(varName, octreeHexa)[0]
+        bodiesA = C.getFields(Internal.__GridCoordinates__, bodies, api=1)
+    fields = C.getField(varName, octreeHexa, api=1)[0]
     if zvars[0] != 'centers': fields = Converter.node2Center(fields)
 
     if isAMR:
-        epsInf=valMin
-        epsSup=valMax
+        epsInf = valMin
+        epsSup = valMax
         indicator = Post.computeIndicatorField_AMR(
             hexa, fields, nbTargetPts, bodiesA,
             refineFinestLevel, coarsenCoarsestLevel,valMin=valMin,valMax=valMax,isOnlySmallest=isOnlySmallest)
@@ -2287,9 +2325,9 @@ def _computeIndicatorValue(octreeHexa, t, varName):
     vars0 = varName.split(':')
     if vars0[0] == 'centers': loc = 'centers'
     else: loc = 'nodes'
-    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa)[0]
-    coords = C.getFields(Internal.__GridCoordinates__, t)
-    field = C.getField(varName, t)
+    hexa = C.getFields(Internal.__GridCoordinates__, octreeHexa, api=1)[0]
+    coords = C.getFields(Internal.__GridCoordinates__, t, api=1)
+    field = C.getField(varName, t, api=1)
     if loc == 'centers': field = Converter.center2Node(field)
     indicValue = Post.computeIndicatorValue(hexa, coords, field)
     if loc == 'centers': indicValue = Converter.node2Center(indicValue)
@@ -2300,7 +2338,7 @@ def sharpEdges(a, alphaRef=30.):
     """Detect sharp edges between adjacent cells of a surface. Angle out of
     [180-alpharef,180+alpharef] are considered as sharp.
     Usage: sharpEdges(a, alphaRef)"""
-    arrays = C.getAllFields(a, 'nodes')
+    arrays = C.getAllFields(a, 'nodes', api=1)
     res = Post.sharpEdges(arrays, alphaRef)
     zones = []
     for r in res: zones.append(C.convertArrays2ZoneNode('edge', [r]))
@@ -2308,7 +2346,7 @@ def sharpEdges(a, alphaRef=30.):
 
 def silhouette(a, vector):
     """Detect shape of an unstructured surface."""
-    arrays = C.getAllFields(a, 'nodes')
+    arrays = C.getAllFields(a, 'nodes', api=1)
     res = Post.silhouette(arrays, vector)
     zones = []
     for r in res: zones.append(C.convertArrays2ZoneNode('silhouette', [r]))
@@ -2337,28 +2375,28 @@ def _renameVars(a, varsPrev, varsNew):
             if len(splP) != 1 and splP[0] == 'centers' and len(splN) != 1 and splN[0]=='centers':
                 for fc in fcenters:
                     for j in fc[2]:
-                        if j[0]==splP[1]: j[0] = splN[1]
+                        if j[0] == splP[1]: j[0] = splN[1]
         if fnodes != []:
             if len(splP) == 1 and len(splN) == 1:
                 if fnodes != []:
                     for fn in fnodes:
                         for j in fn[2]:
-                            if j[0]==splP[0]: j[0] = splN[0]
+                            if j[0] == splP[0]: j[0] = splN[0]
             elif len(splP) != 1 and splP[0] == 'nodes' and len(splN) != 1 and splN[0]=='nodes':
                 if fnodes != []:
                     for fn in fnodes:
                         for j in fn[2]:
-                            if j[0]==splP[1]: j[0] = splN[1]
+                            if j[0] == splP[1]: j[0] = splN[1]
 
 # Statistique de cellN=1 par rapport au nombre total de pt des zones
 def checkOccupancyCellN(lowerLimit, t):
     """Check cellN occupancy"""
     import Converter.Mpi as Cmpi
-    total_cells        = 0
+    total_cells = 0
 
-    list_zones         =[]
-    list_occupancy     =[]
-    list_zones_below   =[]
+    list_zones = []
+    list_occupancy = []
+    list_zones_below = []
 
     t=Internal.rmGhostCells(t,t,2,adaptBCs=1) #want "real" cells
 
@@ -2510,18 +2548,18 @@ def cgns2tecplot(t,isRmGhost=False,isSet2Zero=False):
     if isRmGhost: t = Internal.rmGhostCells(t, t, 2, adaptBCs=0)
     if isSet2Zero:
         for z in Internal.getZones(t):
-            sol        = Internal.getNodeFromName(z,'FlowSolution')
-            varNames   = C.getVarNames(z)[0]
+            sol = Internal.getNodeFromName(z, 'FlowSolution')
+            varNames = C.getVarNames(z)[0]
             for namem in listNameRemove:
                 varNames.remove(namem)
 
             dist2walls = Internal.getNodeFromName(sol,'TurbulentDistance')[1]
-            sh         = numpy.shape(dist2walls)
+            sh = numpy.shape(dist2walls)
             for namem in varNames:
                 if 'P1' in namem or 'M1' in namem:continue
-                var       = Internal.getNodeFromName(sol,namem)[1]
+                var = Internal.getNodeFromName(sol,namem)[1]
 
-                if len(sh) ==2:
+                if len(sh) == 2:
                     for j in range(sh[1]):
                         for i in range(sh[0]):
                             if dist2walls[i,j]<0:

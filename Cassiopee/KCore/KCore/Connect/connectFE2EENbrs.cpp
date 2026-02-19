@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -39,8 +39,10 @@ void K_CONNECT::connectFE2EENbrs(FldArrayI& cFE,
   for (E_Int i = 0; i < nf; i++)
   {
     e1 = cFE1[i]; e2 = cFE2[i];
-    if (e1 > 0 && e2 > 0) {
+    if (e1 > 0 && e2 > 0) 
+    {
       cEEN[e1-1].push_back(e2-1);
-      cEEN[e2-1].push_back(e1-1); }
+      cEEN[e2-1].push_back(e1-1); 
+    }
   }
 }

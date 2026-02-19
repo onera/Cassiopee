@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -51,7 +51,7 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res = 
-    K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl, 
+    K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl, 
                           cn, eltType);
 
   if (res != 1 && res != 2)
@@ -105,7 +105,8 @@ PyObject* K_POST::isoSurfNGon(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* t = K_ARRAY::buildArray(fiso, varString, ciso, -1, "TRI");
+  E_Int api = 1; //f->getApi();
+  PyObject* t = K_ARRAY::buildArray3(fiso, varString, ciso, "TRI", api);
   return t;
 }
 
@@ -133,7 +134,7 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
   E_Int nelts = cn.getNElts();
   //E_Int nfaces = cn.getNFaces();
   //printf("nelts=" SF_D_ ", nfaces=" SF_D_ "\n", nelts, nfaces);
-  //printf("api=" SF_D_ ", ngon=" SF_D_ "\n", cn.getApi(), cn.isNGon());
+  //printf("api=" SF_D_ ", ngon=" SF_D_ "\n", cn.getApi(), cn.getNGonType());
   //printf("nfld=" SF_D_ "\n", cn.getNfld());
   fflush(stdout);
   E_Int* ptrf = cn.getNGon();
@@ -201,19 +202,31 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
       E_Float f0, f1, f2, f3;
       E_Float ffs, fcs;
       E_Float delta = (nelts*1.)/(nthreads*1.);
-      E_Int ieltstart = int(ithread*delta);
-      E_Int ieltend = int((ithread+1)*delta);
-      //printf("ieltstart = " SF_D_ " , " SF_D_ " check=" SF_D_ "\n",ieltstart, ieltend, nelts);
+#ifdef E_ADOLC
+      E_Int ieltstart = E_Int(ithread*delta.value());
+      E_Int ieltend = E_Int((ithread+1)*delta.value());
+#else
+      E_Int ieltstart = E_Int(ithread*delta);
+      E_Int ieltend = E_Int((ithread+1)*delta);
+#endif
       E_Float deltap = (ieltend-ieltstart)/(10.);
+      //printf("ieltstart = " SF_D_ " , " SF_D_ " check=" SF_D_ "\n",ieltstart, ieltend, nelts);
       E_Int elt;
-
       elt = ieltstart;
       //printf("borne start=" SF_D_ "\n", elt);
       for (E_Int j = 0; j < 10; j++)
       {
         np = 0; ntri = 0;
-        //printf("" SF_D2_ "\n", int((j)*deltap), int((j+1)*deltap));
-        for (E_Int k = 0; k < int((j+1)*deltap)-int(j*deltap); k++)
+        //printf("" SF_D2_ "\n", djp, djp1);
+      #ifdef E_ADOLC
+        E_Int djp1 = E_Int((j+1)*deltap.value());
+        E_Int djp = E_Int(j*deltap.value());
+      #else
+        E_Int djp1 = E_Int((j+1)*deltap);
+        E_Int djp = E_Int(j*deltap);
+      #endif
+
+        for (E_Int k = 0; k < djp1-djp; k++)
         {
           //printf("" SF_D2_ "\n", elt, nelts);
           // Construit centre de l'element
@@ -319,9 +332,9 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Float alpha = 0.;
     for (E_Int i = 0; i < 10*nthreads; i++) alpha += ntris2[i];
     alpha = alpha/nthreads;
-    //printf("ntri=" SF_D_ ", ntri moyen par thread=" SF_D_ "\n", int(alpha*nthreads),int(alpha));
+    //printf("ntri=" SF_D_ ", ntri moyen par thread=" SF_D_ "\n", E_Int(alpha*nthreads),E_Int(alpha));
     //fflush(stdout);
-    if (alpha == 0.)
+    if (K_FUNC::fEqualZero(alpha))
     {
       delete [] npts2; delete [] ntris2;
       fiso.malloc(0,nfld);
@@ -342,20 +355,26 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     E_Float delta = (nelts*1.)/(nthreads*1.);
     for (E_Int i = 0; i < nthreads; i++)
     {
-      E_Int ieltstart = int(i*delta);
-      E_Int ieltend = int((i+1)*delta);
+    #ifdef E_ADOLC
+      E_Int ieltstart = E_Int(i*delta.value());
+      E_Int ieltend = E_Int((i+1)*delta.value());
+    #else
+      E_Int ieltstart = E_Int(i*delta);
+      E_Int ieltend = E_Int((i+1)*delta);
+    #endif
       E_Float deltap = (ieltend-ieltstart)/(10.);
       for (E_Int j = 0; j < 10; j++)
       {
-        iestart[j+10*i] = ieltstart+int(deltap*j);
-        ieend[j+10*i] = ieltstart+int(deltap*(j+1));
+        #ifdef E_ADOLC
+        iestart[j+10*i] = ieltstart+E_Int(deltap.value()*j);
+        ieend[j+10*i] = ieltstart+E_Int(deltap.value()*(j+1));
+        #else
+        iestart[j+10*i] = ieltstart+E_Int(deltap*j);
+        ieend[j+10*i] = ieltstart+E_Int(deltap*(j+1));
+        #endif
       }
     }
     ieend[10*nthreads-1] = nelts;
-    //for (E_Int i = 0; i < nthreads; i++)
-    //  for (E_Int j = 0; j < 10; j++)
-    //    printf("" SF_D2_ ": " SF_D2_ "\n",i,j,iestart[j+10*i],ieend[j+10*i]);
-    //fflush(stdout);
 
     E_Int* istart = new E_Int [nthreads];
     E_Int* iend = new E_Int [nthreads];
@@ -367,7 +386,12 @@ void K_POST::doIsoSurfNGon(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float valu
     for (E_Int i = 0; i < nthreads; i++)
     {
       E_Int nc = 0; E_Int np = 0;
-      while (ib < nthreads*10 && nc+plus*ntris2[ib] < int(alpha))
+      #ifdef E_ADOLC
+      E_Int alphai = E_Int(alpha.value());
+      #else
+      E_Int alphai = E_Int(alpha);
+      #endif
+      while (ib < nthreads*10 && nc+plus*ntris2[ib] < alphai)
       {
         nc += ntris2[ib];
         np += npts2[ib]; ib++;

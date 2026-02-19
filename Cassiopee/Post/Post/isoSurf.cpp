@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,10 +33,9 @@ PyObject* K_POST::isoSurf(PyObject* self, PyObject* args)
   // value: valeur de l'iso
   PyObject* grid;
   char* field; E_Float value;
-  if (!PYPARSETUPLE_(args, O_ S_ R_,
-                    &grid, &field, &value))
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &grid, &field, &value))
   {
-      return NULL;
+    return NULL;
   }
 
   /*----------------------------------------------*/
@@ -46,8 +45,8 @@ PyObject* K_POST::isoSurf(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   E_Int nil, njl, nkl;
   E_Int res = 
-    K_ARRAY::getFromArray(grid, varString0, f, nil, njl, nkl, 
-                          cn, eltType0, true);
+    K_ARRAY::getFromArray3(grid, varString0, f, nil, njl, nkl, 
+                           cn, eltType0);
 
   if (res != 1 && res != 2)
   {
@@ -104,7 +103,8 @@ PyObject* K_POST::isoSurf(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  PyObject* t = K_ARRAY::buildArray(fiso, varString0, ciso, -1, "TRI");
+  E_Int api = 1; //f->getApi();
+  PyObject* t = K_ARRAY::buildArray3(fiso, varString0, ciso, "TRI", api);
   return t;
 }
 

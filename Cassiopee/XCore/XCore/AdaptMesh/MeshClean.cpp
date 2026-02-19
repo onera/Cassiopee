@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -112,6 +112,7 @@ void Mesh_reset_parallel_data(Mesh *M)
 
     XFREE(M->xneis);
     XFREE(M->cneis);
+
 }
 
 void Mesh_reset_tags(Mesh *M)
@@ -123,6 +124,7 @@ void Mesh_reset_tags(Mesh *M)
 
 void Mesh_free(Mesh *M)
 {
+    XFREE(M->reqs);
     Mesh_reset_base_data(M);
     Mesh_reset_boundary_data(M);
     Mesh_reset_adaptation_data(M);

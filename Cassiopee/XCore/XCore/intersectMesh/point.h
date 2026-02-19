@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -19,7 +19,6 @@
 #pragma once
 
 #include "xcore.h"
-#include "primitives.h"
 
 struct Point {
     E_Float x, y, z;
@@ -59,14 +58,6 @@ struct PointLoc {
     E_Float y = EFLOATMAX;
     E_Float z = EFLOATMAX;
     E_Int sub = -1;
-
-    bool operator<(const PointLoc &p) const
-    {
-        if (Sign(x-p.x) < 0) return true;
-        if (Sign(x-p.x) == 0 && Sign(y-p.y) < 0) return true;
-        if (Sign(x-p.x) == 0 && Sign(y-p.y) == 0 && Sign(z-p.z) < 0) return true;
-        return false;
-    }
 };
 
 struct PointData {

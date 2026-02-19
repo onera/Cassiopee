@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -494,7 +494,7 @@ E_Int Conformizer<DIM, Element_t>::__run
 #ifdef FLAG_STEP
   E_Int nb_merges =
 #endif
-    int n0 = (_X1 != 0) ? -_N0 : _N0; 
+    E_Int n0 = (_X1 != 0) ? -_N0 : _N0; 
     __merge_clean(_tol_clean/*1.e-9 for now*/, pos, connect, ancestors, nids, &xc, n0);
 
 #ifdef DEBUG_CONFORMIZER
@@ -723,7 +723,7 @@ Conformizer<DIM, Element_t>::__update_tolerance(const K_FLD::FloatArray& coord, 
   E_Float Lmin, Lmax;
   __compute_min_edge_length(coord, _connect0, xc0, Lmin, Lmax);
   E_Float new_tol = MAX_PERCENT*Lmin;
-  _tolerance = std::max(new_tol, _tolerance);
+  _tolerance = K_FUNC::E_max(new_tol, _tolerance);
   
 #ifdef DEBUG_CONFORMIZER
   std::cout << "new tol: "  << _tolerance << std::endl;
@@ -749,8 +749,8 @@ Conformizer<DIM, Element_t>::__compute_min_edge_length
   
   NUGA::MeshTool::computeMinMaxEdgeSqrLength<DIM>(pos, relevant_elts, min_d, max_d);
 
-  Lmin= ::sqrt(min_d);
-  Lmax = ::sqrt(max_d);
+  Lmin= sqrt(min_d);
+  Lmax = sqrt(max_d);
 }
 
 ///
@@ -920,12 +920,12 @@ Conformizer<DIM, Element_t>::__compute_intersections_brute
   E_Int nbelts = _elements.size();
   E_Int nbX(0);
   //
-  for (int i = 0; i < _X0; ++i)
+  for (E_Int i = 0; i < _X0; ++i)
   {
     DS_Type& e1 = _elements[i];
 
     // Loop through the second part and do the intersection test.
-    for (int j = _X0; j < nbelts; ++j)
+    for (E_Int j = _X0; j < nbelts; ++j)
     {
       DS_Type& e2 = _elements[j];
 

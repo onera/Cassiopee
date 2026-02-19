@@ -31,8 +31,8 @@ def _interpolate(tR, tD, interpTree, graph, procDict, typeTransfer=0):
     else:
         loc = 'nodes'
 
-    zd = Internal.getNodeFromType(tD,"Zone_t")
-    FSconts = Internal.getNodesFromType(zd,'FlowSolution_t')
+    zd = Internal.getNodeFromType2(tD, "Zone_t")
+    FSconts = Internal.getNodesFromType1(zd, 'FlowSolution_t')
     dictOfFSC={}; dictOfFSN={}
     for fs in FSconts:
         GL = Internal.getNodeFromType(fs,'GridLocation_t')

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -18,7 +18,7 @@
 */
 
 // Lecture partielle des noeuds decrits dans Filter (chemins et filtre)
-PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
+PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode,
                                                    PyObject* Filter,
                                                    PyObject* mpi4pyCom)
 {
@@ -48,7 +48,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
 
   /* Group Level */
   GenIOHdf HDF;
-  HDF._readMode = readMode;
+  HDF._readIntMode = readIntMode;
   HDF._skeleton = 0;
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
@@ -61,10 +61,10 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
-    MPI_Info info   = MPI_INFO_NULL;
-    E_Int ret       = H5Pset_fapl_mpio(fapl, comm, info);
+    MPI_Info info = MPI_INFO_NULL;
+    H5Pset_fapl_mpio(fapl, comm, info);
    }
 #endif
 
@@ -74,7 +74,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
   if (fid < 0)
   {
     printf("Warning: hdfcgnsReadFromPathsPartial: can not open file %s.\n", file);
-    return Py_None;
+    Py_INCREF(Py_None); return Py_None;
   }
   H5Pclose(fapl);
     
@@ -83,7 +83,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readMode,
   while (PyDict_Next(Filter, &pos, &key, &DataSpaceDIM))
   {
     // Multiple path or Not ?
-    E_Boolean isKeyString = false;
+    E_Bool isKeyString = false;
     if (PyString_Check(key)) isKeyString = true;
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(key)) isKeyString = true; 
@@ -712,10 +712,10 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
     MPI_Info info   = MPI_INFO_NULL;
-    E_Int ret       = H5Pset_fapl_mpio(fapl, comm, info);
+    H5Pset_fapl_mpio(fapl, comm, info);
   }
 #endif
    
@@ -733,7 +733,7 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
     E_Int FilterSize = PyList_Size(DataSpaceDIM);
     /* ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo */
     /* Check if key is String values */
-    E_Boolean isKeyString = false;
+    E_Bool isKeyString = false;
     if (PyString_Check(key)) isKeyString = true;
 #if PY_VERSION_HEX >= 0x03000000
     else if (PyUnicode_Check(key)) isKeyString = true; 
@@ -1613,11 +1613,11 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
 {
   /* ***************************************************** */
   /* Declaration */
-  int       n, dst_ndims;
-  hsize_t   dst_dim_vals[L3C_MAX_DIMS];
-  hid_t     /*yid,tid,*/mid;
-  hssize_t  dst_size;
-  herr_t    stat;
+  int n, dst_ndims;
+  hsize_t dst_dim_vals[L3C_MAX_DIMS];
+  hid_t /*yid,tid,*/mid;
+  hssize_t dst_size;
+  herr_t stat;
   
   dst_size  = 1;
   dst_ndims = 0;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -167,10 +167,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
     vector<FldArrayI*> cnt; vector<char*> eltType;
     vector<PyObject*> objst, objut;
-    E_Boolean skipNoCoord = true;
-    E_Boolean skipStructured = true;
-    E_Boolean skipUnstructured = false;
-    E_Boolean skipDiffVars = false;
+    E_Bool skipNoCoord = true;
+    E_Bool skipStructured = true;
+    E_Bool skipUnstructured = false;
+    E_Bool skipDiffVars = false;
     E_Int isOk = K_ARRAY::getFromArrays(allCorrectedPts, resl, structVarString, unstrVarString,
                                         structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
                                         skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
@@ -486,6 +486,7 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float heightloc = vectOfModelisationHeightsLoc[noz];
         //distance max for image pt to its corrected pt : height*sqrt(3)
 
+        //old way of setting max tolerances
         heightloc = heightloc*1.1 + 3*snearloc*sqrt(3.); // for 2nd image point
         heightloc = heightloc*heightloc;
 
@@ -494,6 +495,13 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
 
         E_Float distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
         E_Float distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
+
+        //new way of setting max tolerances
+        // heightloc = heightloc*heightloc;
+        // snearloc = snearloc*snearloc;
+        // E_Float distMaxF2 = max(toldistFactorImage*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
+        // E_Float distMaxB2 = max(toldistFactorWall*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
+        // These max distances are based on 2*hmod instead of hmod to allow some tolerance for complex geometries
 
         vector<FldArrayI*> vectOfIndicesByIBCType(nbodies);
         vector<E_Int> nPtsPerIBCType(nbodies);//nb de pts projetes sur la surface paroi de type associe 

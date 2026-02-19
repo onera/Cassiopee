@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -97,7 +97,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
                        niso, isoEdges, isoScales, 
                        bgColor, backgroundFile, 
                        -1, -1, -1, shadow, dof,
-                       exportFile, exportResolution);
+                       exportFile, exportResolution, exportAA);
 
   if (stereo != -1) d->ptrState->stereo = stereo;
   if (stereoDist != -1.) d->ptrState->stereoDist = stereoDist;

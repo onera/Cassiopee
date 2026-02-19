@@ -528,7 +528,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     Cmpi._addXZones(t, graph, variables=[], cartesian=True)
     test.printMem(">>> extended cart grids [after add XZones]")
     zones = Internal.getZones(t)
-    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+    coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
     coords, rinds = Generator.extendCartGrids(coords, ext=DEPTH+1, optimized=1, extBnd=0)
     C.setFields(coords, zones, 'nodes')
     for noz in range(len(zones)):
@@ -871,7 +871,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
                     zrname = zonesRIBC[nozr][0]
                     interpPtsBB = Generator.BB(allInterpPts[nozr])
                     for z in zones:
-                        bba = C.getFields('GridCoordinates', z)[0]
+                        bba = C.getFields('GridCoordinates', z, api=1)[0]
                         if Generator.bboxIntersection(interpPtsBB,bba,isBB=True):
                             zname = z[0]
                             popp = Cmpi.getProc(z)
@@ -961,8 +961,8 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     test.printMem(">>> Interpolating IBM [after rm XZones]")
 
     for zd_cart in Internal.getZones(tpc_cart):
-        zd = Internal.getNodeFromName1(tpc[2][1],zd_cart[0])
-        IBCDS = Internal.getNodesFromName(zd_cart,'IBCD_*')
+        zd = Internal.getNodeFromName1(tpc[2][1], zd_cart[0])
+        IBCDS = Internal.getNodesFromName(zd_cart, 'IBCD_*')
         zd[2]+=IBCDS
     del tpc_cart
 

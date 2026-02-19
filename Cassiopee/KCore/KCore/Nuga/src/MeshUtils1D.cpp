@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -39,10 +39,9 @@ void
 MeshUtils1D::compute_iso_metric
 (const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
  const std::vector<E_Int>& hard_nodes,
- std::vector<E_Float> & metric, E_Float &hmin, E_Float& hmax)
+ std::vector<E_Float>& metric, E_Float& hmin, E_Float& hmax)
 {
-  /// Compute the metric at connect nodes and assigne the mean to other hard nodes.
-
+  /// Compute the metric at connect nodes and assign the mean to other hard nodes.
   std::vector<E_Int> nodes;
   std::vector<E_Int> count;
   K_FLD::IntArray::const_iterator pS;
@@ -67,7 +66,7 @@ MeshUtils1D::compute_iso_metric
     pS = connect.col(i);
     Ni = *pS;
     Nj = *(pS+1);
-    L = ::sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
+    L = sqrt(NUGA::sqrDistance(pos.col(Ni), pos.col(Nj), DIM));
     metric[Ni] += L;
     metric[Nj] += L;
     ++count[Ni];

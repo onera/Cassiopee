@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,8 +40,8 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int res, ni, nj, nk;
-  res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cnp, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cnp, 
+                               eltType);
 
   if (res != 1 && res != 2)
   {
@@ -54,9 +54,9 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   char* varStringa; char* eltTypea;
   FldArrayF* tag; FldArrayI* cnpa;
   E_Int nia, nja, nka;
-  E_Int resa = K_ARRAY::getFromArray(taga, varStringa, 
-                                     tag, nia, nja, nka, cnpa, 
-                                     eltTypea, true);
+  E_Int resa = K_ARRAY::getFromArray3(taga, varStringa, 
+                                      tag, nia, nja, nka, cnpa, 
+                                      eltTypea);
 
   if (resa != 1 && resa != 2)
   {
@@ -85,12 +85,12 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
   }
 
   E_Float oneEps = 1.-1.e-10;
-  E_Int elt = -1;
   E_Float* tagp = tag->begin();
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   if (res == 1) // Create connectivity cnp (HEXA or QUAD)
   {
@@ -127,10 +127,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     {
       nelts = ncells;
       cn.malloc(nelts, 2);
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-
-      elt = 1; // BAR
+      
       if (nj1 == 1 && nk1 == 1)
       {
         for (E_Int i = 0; i < ni1; i++)
@@ -138,7 +135,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
           // starts from 1
           ind1 = i + 1; //(i,1,1)
           ind2 = ind1 + 1;  //(i+1,1,1)
-          cn1[c] = ind1; cn2[c] = ind2;  
+          cn(c,1) = ind1; cn(c,2) = ind2;  
           c++;
         }
       }
@@ -148,7 +145,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
         {
           ind1 = j*ni + 1;  //(1,j,1)
           ind2 = ind1 + ni; //(1,j+1,1)
-          cn1[c] = ind1; cn2[c] = ind2;
+          cn(c,1) = ind1; cn(c,2) = ind2;
           c++;         
         }
       }
@@ -158,7 +155,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
         {
           ind1 = 1 + k*ninj; //(1,1,k)
           ind2 = ind1 + ninj;   //(1,1,k+1)
-          cn1[c] = ind1; cn2[c] = ind2;
+          cn(c,1) = ind1; cn(c,2) = ind2;
           c++;
         }
       }
@@ -167,11 +164,6 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     {
       nelts = ncells;
       cn.malloc(nelts, 4);
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
-      E_Int* cn4 = cn.begin(4);
-      elt = 3; //QUAD
       if (nk1 == 1)
       {
         for (E_Int j = 0; j < nj1; j++)
@@ -182,8 +174,8 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
             ind2 = ind1 + 1;  //(i+1,j,1)
             ind3 = ind2 + ni; //(i+1,j+1,1)
             ind4 = ind3 - 1;  //(i,j+1,1)
-            cn1[c] = ind1; cn2[c] = ind2;
-            cn3[c] = ind3; cn4[c] = ind4;
+            cn(c,1) = ind1; cn(c,2) = ind2;
+            cn(c,3) = ind3; cn(c,4) = ind4;
             c++;
           }
       }
@@ -196,9 +188,9 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
             ind2 = ind1 + ninj; //(i,1,k+1)
             ind3 = ind2 + 1;    //(i+1,1,k+1)
             ind4 = ind3 - 1;    //(i,1,k+1)
-            cn1[c] = ind1; cn2[c] = ind2;
-            cn3[c] = ind3; cn4[c] = ind4;
-            c++;         
+            cn(c,1) = ind1; cn(c,2) = ind2;
+            cn(c,3) = ind3; cn(c,4) = ind4;
+            c++;
           }
       }
       else // i1 = 1 
@@ -210,8 +202,8 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
             ind2 = ind1 + ni;   //(1,j+1,k)
             ind3 = ind2 + ninj; //(1,j+1,k+1)
             ind4 = ind3 - ni;   //(1,j,k+1)
-            cn1[c] = ind1; cn2[c] = ind2;
-            cn3[c] = ind3; cn4[c] = ind4;
+            cn(c,1) = ind1; cn(c,2) = ind2;
+            cn(c,3) = ind3; cn(c,4) = ind4;
             c++;
           }
       }// i1 = 1
@@ -220,15 +212,6 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     { 
       nelts = ncells;
       cn.malloc(nelts,8);
-      elt = 7; // HEXA
-      E_Int* cn1 = cn.begin(1);
-      E_Int* cn2 = cn.begin(2);
-      E_Int* cn3 = cn.begin(3);
-      E_Int* cn4 = cn.begin(4);
-      E_Int* cn5 = cn.begin(5);
-      E_Int* cn6 = cn.begin(6);
-      E_Int* cn7 = cn.begin(7);
-      E_Int* cn8 = cn.begin(8);
       
       for (E_Int k = 0; k < nk1; k++)
         for (E_Int j = 0; j < nj1; j++)
@@ -243,10 +226,10 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
             ind7 = ind3 + ninj;           //G(i+1,j+1,k+1)
             ind8 = ind4 + ninj;           //H(  i,j+1,k+1) 
             
-            cn1[c] = ind1; cn2[c] = ind2;
-            cn3[c] = ind3; cn4[c] = ind4;
-            cn5[c] = ind5; cn6[c] = ind6;
-            cn7[c] = ind7; cn8[c] = ind8;
+            cn(c,1) = ind1; cn(c,2) = ind2;
+            cn(c,3) = ind3; cn(c,4) = ind4;
+            cn(c,5) = ind5; cn(c,6) = ind6;
+            cn(c,7) = ind7; cn(c,8) = ind8;
             c++;
           }
     } //dim = 3
@@ -254,7 +237,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 
   // Selection
   PyObject* l = PyList_New(0);
-  PyObject* tpl;
+  PyObject* tpl = NULL;
 
   if (strcmp(eltType, "NGON") != 0) // tous les elements sauf NGON
   {
@@ -263,6 +246,7 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     FldArrayI& cn = *acn;
     E_Int nt = cnp->getNfld();
     E_Int ne = cnp->getSize();
+    E_Int api = f->getApi();
 
     E_Int nthreads = __NUMTHREADS__;
     E_Int net = ne/nthreads+1;
@@ -317,16 +301,12 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nthreads; i++) delete [] ptr[i];
     delete [] ptr;
 
-    if (nntot == 0) fout->reAllocMat(0, nfld);
-    else 
-    {
-      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
-        K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, 
-                                     *fout, *acn);
-    }
-    tpl = K_ARRAY::buildArray(*fout, varString, *acn, elt, eltType);
+    if (nntot == 0) { fout->reAllocMat(0, nfld); cleanConnectivity = 0; } 
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
+      tpl = K_CONNECT::V_cleanConnectivity(varString, *fout, *acn, eltType, 1.e-10);
+    else tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType, api);
     delete acn; delete fout;
-    if (res == 1) delete[] eltType;
+    if (res == 1) delete [] eltType;
   }
   else // elements NGON
   {
@@ -350,61 +330,61 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     
     if (PE != Py_None)
     {
-        new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
-        keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
-        new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+      new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+      keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
+      new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
 
-        new_pg_ids = -1;
-        new_ph_ids = -1;
-        keep_pg    = -1; 
+      new_pg_ids = -1;
+      new_ph_ids = -1;
+      keep_pg    = -1; 
       
-        // Boucle sur le nombre d elements
-        for (E_Int i = 0; i < nbElements; i++)
+      // Boucle sur le nombre d'elements
+      for (E_Int i = 0; i < nbElements; i++)
+      {
+        nbFaces = cnEFp[0];
+        if (tagp[i] >= oneEps)
         {
-          nbFaces = cnEFp[0];
-          if (tagp[i] >= oneEps)
+          cn2p[0] = nbFaces; size2 +=1;
+          for (E_Int n = 1; n <= nbFaces; n++)
           {
-            cn2p[0] = nbFaces; size2 +=1;
-            for (E_Int n = 1; n <= nbFaces; n++)
-            {
-              cn2p[n]             = cnEFp[n];
-	      keep_pg[cnEFp[n]-1] = +1;
-            }
-            size2 += nbFaces; cn2p += nbFaces+1; next++;
-	    
-	    // Selection elt 
-	    new_ph_ids[i] = ii;
-	    ii++;
-          }    
-          cnEFp += nbFaces+1;
-        }
-	
-	E_Int nn = 0; 
-	for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
-	{
-	    if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
-	}
-	
-        cn2.reAlloc(size2);
+            cn2p[n] = cnEFp[n];
+            keep_pg[cnEFp[n]-1] = +1;
+          }
+          size2 += nbFaces; cn2p += nbFaces+1; next++;
+      
+          // Selection elt 
+          new_ph_ids[i] = ii;
+          ii++;
+        }    
+        cnEFp += nbFaces+1;
+      }
+  
+      E_Int nn = 0; 
+      for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+      {
+        if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+      }
+  
+      cn2.reAlloc(size2);
     }
     else // PE == Py_None - pas de creation de tab d'indirection 
     {
-        // Boucle sur le nombre d elements
-        for (E_Int i = 0; i < nbElements; i++)
+      // Boucle sur le nombre d elements
+      for (E_Int i = 0; i < nbElements; i++)
+      {
+        nbFaces = cnEFp[0];
+        if (tagp[i] >= oneEps)
         {
-          nbFaces = cnEFp[0];
-          if (tagp[i] >= oneEps)
+          cn2p[0] = nbFaces; size2 +=1;
+          for (E_Int n = 1; n <= nbFaces; n++)
           {
-            cn2p[0] = nbFaces; size2 +=1;
-            for (E_Int n = 1; n <= nbFaces; n++)
-            {
-              cn2p[n] = cnEFp[n];
-            }
-            size2 += nbFaces; cn2p += nbFaces+1; next++;
-          }    
-          cnEFp += nbFaces+1;
-        }
-        cn2.reAlloc(size2);
+            cn2p[n] = cnEFp[n];
+          }
+          size2 += nbFaces; cn2p += nbFaces+1; next++;
+        }    
+        cnEFp += nbFaces+1;
+      }
+      cn2.reAlloc(size2);
     }
 
     // Cree la nouvelle connectivite complete
@@ -424,13 +404,13 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {
-	      RELEASESHAREDN(PE, cFE);
-	      PyErr_SetString(PyExc_TypeError, "selectCellsCenter: PE numpy is invalid.");
-	      return NULL;
+        RELEASESHAREDN(PE, cFE);
+        PyErr_SetString(PyExc_TypeError, "selectCellsCenter: PE numpy is invalid.");
+        return NULL;
       }
       
       ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
@@ -450,33 +430,32 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
 
       for (E_Int pgi = 0; pgi < nbFaces; pgi++)
       {
-	     if (new_pg_ids[pgi]>=0)
-	     {
-	       old_ph_1 = cFEl_old[pgi]-1;
-	       old_ph_2 = cFEr_old[pgi]-1;
+        if (new_pg_ids[pgi]>=0)
+        {
+          old_ph_1 = cFEl_old[pgi]-1;
+          old_ph_2 = cFEr_old[pgi]-1;
 
-	       if (old_ph_1 >= 0) // l'elmt gauche existe 
-	       {
-	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+          if (old_ph_1 >= 0) // l'elmt gauche existe 
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
  
-	         if (old_ph_2 >= 0) // l'elmt droit existe
-		       {
+            if (old_ph_2 >= 0) // l'elmt droit existe
+            {
               cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-		       }
-		 
-	         else
-	           cFEr[new_pg_ids[pgi]] = 0;
-	       } 
-	       else // l'elmt gauche a disparu - switch droite/gauche
-	       {
-	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-	         cFEr[new_pg_ids[pgi]] = 0;
-	         // reverse
-	         E_Int s = ng.PGs.stride(pgi);
-	         E_Int* p = ng.PGs.get_facets_ptr(pgi);
-	         std::reverse(p, p + s);
-	       }
-	     }
+            }
+            else
+              cFEr[new_pg_ids[pgi]] = 0;
+          } 
+          else // l'elmt gauche a disparu - switch droite/gauche
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+            cFEr[new_pg_ids[pgi]] = 0;
+            // reverse
+            E_Int s = ng.PGs.stride(pgi);
+            E_Int* p = ng.PGs.get_facets_ptr(pgi);
+            std::reverse(p, p + s);
+          }
+        }
       } // boucle pgi      
       
       // export ngon
@@ -495,17 +474,16 @@ PyObject* K_POST::selectCellCenters(PyObject* self, PyObject* args)
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
 
-    tpl = K_ARRAY::buildArray(*fout, varString, *cout, 8);
-    delete cout; delete fout;     
+    cout->setNGonType(cnp->getNGonType());
+    tpl = K_ARRAY::buildArray3(*fout, varString, *cout, "NGON", api);
+    delete cout; delete fout;
   }
 
-  PyList_Append(l,tpl) ; Py_DECREF(tpl);
-    
+  PyList_Append(l,tpl); Py_DECREF(tpl);  
   RELEASESHAREDB(res, array, f, cnp);
   return l;
 }
 //=============================================================================
-
 
 
 //=============================================================================
@@ -521,8 +499,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int res, ni, nj, nk;
-  res = K_ARRAY::getFromArray(arrayNodes, varString, f, ni, nj, nk, cnp, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(arrayNodes, varString, f, ni, nj, nk, cnp, 
+                               eltType);
 
 
   if (res != 1 && res != 2)
@@ -536,8 +514,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varStringC; char* eltTypeC;
   FldArrayF* fC; FldArrayI* cnpC;
   E_Int resC, niC, njC, nkC;
-  resC = K_ARRAY::getFromArray(arrayCenters, varStringC, fC, niC, njC, nkC, cnpC, 
-                              eltTypeC, true);
+  resC = K_ARRAY::getFromArray3(arrayCenters, varStringC, fC, niC, njC, nkC, cnpC, 
+                                eltTypeC);
   
   if (resC != 1 && resC != 2)
   {
@@ -551,9 +529,9 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   char* varStringa; char* eltTypea;
   FldArrayF* tag; FldArrayI* cnpa;
   E_Int nia, nja, nka;
-  E_Int resa = K_ARRAY::getFromArray(taga, varStringa, 
-                                     tag, nia, nja, nka, cnpa, 
-                                     eltTypea, true);
+  E_Int resa = K_ARRAY::getFromArray3(taga, varStringa, 
+                                      tag, nia, nja, nka, cnpa, 
+                                      eltTypea);
 
   if (resa != 1 && resa != 2)
   {
@@ -582,7 +560,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   }
 
   E_Float oneEps = 1.-1.e-10;
-  E_Int elt = -1;
   E_Float* tagp = tag->begin();
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
@@ -627,7 +604,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
 
-      elt = 1; // BAR
       if (nj1 == 1 && nk1 == 1)
       {
         for (E_Int i = 0; i < ni1; i++)
@@ -668,7 +644,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
       E_Int* cn4 = cn.begin(4);
-      elt = 3; //QUAD
       if (nk1 == 1)
       {
         for (E_Int j = 0; j < nj1; j++)
@@ -717,7 +692,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     { 
       nelts = ncells;
       cn.malloc(nelts,8);
-      elt = 7; // HEXA
       E_Int* cn1 = cn.begin(1);
       E_Int* cn2 = cn.begin(2);
       E_Int* cn3 = cn.begin(3);
@@ -754,6 +728,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0); 
   PyObject* tpl;
   PyObject* tplc;
+  E_Int api = fC->getApi();
 
   if (strcmp(eltType, "NGON") != 0) // tous les elements sauf NGON
   {
@@ -775,8 +750,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     
     for (E_Int i = 0; i < nthreads; i++)
     {
-	    ptr[i]  = new E_Int   [net*nt];
-	    ptrF[i] = new E_Float [nfldC*net*nt];
+      ptr[i]  = new E_Int   [net*nt];
+      ptrF[i] = new E_Float [nfldC*net*nt];
     }
 
 #pragma omp parallel default(shared)
@@ -799,14 +774,13 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
             cnt[cprev+(n-1)]      = (*cnp)(i,n);
           }
 
-	  // boucle sur les champs
-	  for (E_Int k = 1; k <= nfldC; k++)
-	  {
-	    E_Float* fcpl = fC->begin(k);
-	    ftcenter[cprev2+(k-1)]  = fcpl[i];
-	  }
-	  ii++ ;
-	  
+          // boucle sur les champs
+          for (E_Int k = 1; k <= nfldC; k++)
+          {
+            E_Float* fcpl = fC->begin(k);
+            ftcenter[cprev2+(k-1)]  = fcpl[i];
+          }
+          ii++;
           cprev += nt; cprev2 +=nfldC; nes[ithread]++;
         }
       }
@@ -838,9 +812,9 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
         }
 
         for (E_Int k = 1; k <= nfldC; k++)
-	      {
-	        fcenter(i+p,k) = ftcenter[i*nfldC+(k-1)];	    
-	      }
+        {
+          fcenter(i+p,k) = ftcenter[i*nfldC+(k-1)];	    
+        }
       }
     }
 
@@ -856,8 +830,8 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
                                      *fout, *acn);
     }
     
-    tpl  = K_ARRAY::buildArray(*fout,  varString,  *acn, elt, eltType);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *acn, elt, eltType);
+    tpl = K_ARRAY::buildArray3(*fout, varString, *acn, eltType, api);
+    tplc = K_ARRAY::buildArray3(*foutC, varStringC, *acn, eltType, api);
     delete acn; delete fout; delete foutC;
     if (res == 1) delete[] eltType;
   }
@@ -868,7 +842,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     FldArrayF& fcenter  = *foutC; 
     FldArrayF& fcenter0 = *fC; 
     
-    E_Int nfldC        = fC->getNfld(); // nombre de champs en centres 
+    E_Int nfldC = fC->getNfld(); // nombre de champs en centres 
     E_Int* cnpp = cnp->begin();
     E_Int sizeFN = cnpp[1];            // taille de l'ancienne connectivite Face/Noeuds
     E_Int nbElements = cnpp[sizeFN+2]; // nombre d'elts de l'ancienne connectivite
@@ -888,44 +862,44 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
 
     if (PE != Py_None)
     {
-        new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
-        keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
-        new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
+      new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
+      keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
+      new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
 
-        new_pg_ids = -1;
-        new_ph_ids = -1;
-        keep_pg    = -1; 
+      new_pg_ids = -1;
+      new_ph_ids = -1;
+      keep_pg    = -1; 
       
-        // Boucle sur le nombre d elements
-        for (E_Int i = 0; i < nbElements; i++)
+      // Boucle sur le nombre d'elements
+      for (E_Int i = 0; i < nbElements; i++)
+      {
+        nbFaces = cnEFp[0];
+        if (tagp[i] >= oneEps)
         {
-          nbFaces = cnEFp[0];
-          if (tagp[i] >= oneEps)
+          cn2p[0] = nbFaces; size2 +=1;
+          for (E_Int n = 1; n <= nbFaces; n++)
           {
-            cn2p[0] = nbFaces; size2 +=1;
-            for (E_Int n = 1; n <= nbFaces; n++)
-            {
-              cn2p[n]             = cnEFp[n];
-	            keep_pg[cnEFp[n]-1] = +1;
-            }
-            size2 += nbFaces; cn2p += nbFaces+1; next++;
+            cn2p[n]             = cnEFp[n];
+            keep_pg[cnEFp[n]-1] = +1;
+          }
+          size2 += nbFaces; cn2p += nbFaces+1; next++;
 
-	          // Selection champs en centres 
-      	    for (E_Int k = 1; k <= nfldC; k++)
-	          { 
-	            fcenter(ii,k) = fcenter0(i,k);
-	          }
-	          new_ph_ids[i] = ii;
-	          ii++;
-          }    
-          cnEFp += nbFaces+1;
-        }
+          // Selection champs en centres 
+          for (E_Int k = 1; k <= nfldC; k++)
+          { 
+            fcenter(ii,k) = fcenter0(i,k);
+          }
+          new_ph_ids[i] = ii;
+          ii++;
+        }    
+        cnEFp += nbFaces+1;
+      }
 
-	      E_Int nn = 0; 
-	      for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
-	      {
-	          if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
-	      }
+      E_Int nn = 0; 
+      for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
+      {
+        if (keep_pg[n]>0){ new_pg_ids[n] = nn; nn++; newNumFace++;}
+      }
     } 
     else // PE == Py_None - pas de creation de tab d'indirection 
     {
@@ -942,12 +916,12 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
             }
             size2 += nbFaces; cn2p += nbFaces+1; next++;
 
-	        // Selection champs en centres 
-    	    for (E_Int k = 1; k <= nfldC; k++)
-	        { 
-	          fcenter(ii,k) = fcenter0(i,k);
-	        }
-	        ii++;
+            // Selection champs en centres 
+            for (E_Int k = 1; k <= nfldC; k++)
+            { 
+              fcenter(ii,k) = fcenter0(i,k);
+            }
+            ii++;
           }    
           cnEFp += nbFaces+1;
         }
@@ -974,13 +948,13 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
     {
       // Check numpy (parentElement)
       FldArrayI* cFE;
-      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE, true);
+      E_Int res = K_NUMPY::getFromNumpyArray(PE, cFE);
       
       if (res == 0)
       {
-	      RELEASESHAREDN(PE, cFE);
-	      PyErr_SetString(PyExc_TypeError, "selectCellsBoth: PE numpy is invalid.");
-	      return NULL;
+        RELEASESHAREDN(PE, cFE);
+        PyErr_SetString(PyExc_TypeError, "selectCellsBoth: PE numpy is invalid.");
+        return NULL;
       }
       
       ngon_t<K_FLD::FldArrayI> ng(*cout); // construction d'un ngon_t à partir d'un FldArrayI
@@ -1000,33 +974,32 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
 
       for (E_Int pgi = 0; pgi < nbFaces; pgi++)
       {
-	     if (new_pg_ids[pgi]>=0)
-	     {
-	       old_ph_1 = cFEl_old[pgi]-1;
-	       old_ph_2 = cFEr_old[pgi]-1;
+        if (new_pg_ids[pgi]>=0)
+        {
+          old_ph_1 = cFEl_old[pgi]-1;
+          old_ph_2 = cFEr_old[pgi]-1;
 
-	       if (old_ph_1 >= 0) // l'elmt gauche existe 
-	       {
-	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+          if (old_ph_1 >= 0) // l'elmt gauche existe 
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
  
-	         if (old_ph_2 >= 0) // l'elmt droit existe
-		       {
-	                 cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-		       }
-		 
-	         else
-	           cFEr[new_pg_ids[pgi]] = 0;
-	       } 
-	       else // l'elmt gauche a disparu - switch droite/gauche
-	       {
-	         cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-	         cFEr[new_pg_ids[pgi]] = 0;
-	         // reverse
-	         E_Int s = ng.PGs.stride(pgi);
-	         E_Int* p = ng.PGs.get_facets_ptr(pgi);
-	         std::reverse(p, p + s);
-	       }
-	     }
+            if (old_ph_2 >= 0) // l'elmt droit existe
+            {
+              cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+            }
+            else
+              cFEr[new_pg_ids[pgi]] = 0;
+          } 
+          else // l'elmt gauche a disparu - switch droite/gauche
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+            cFEr[new_pg_ids[pgi]] = 0;
+            // reverse
+            E_Int s = ng.PGs.stride(pgi);
+            E_Int* p = ng.PGs.get_facets_ptr(pgi);
+            std::reverse(p, p + s);
+          }
+        }
       } // boucle pgi      
       
       // export ngon
@@ -1040,7 +1013,6 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       delete cFEp_new;
       RELEASESHAREDN(PE, cFE);
     }
-
     
     // close
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
@@ -1049,16 +1021,16 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       
     }
 
-    tpl  = K_ARRAY::buildArray(*fout,  varString,  *cout, 8);
-    tplc = K_ARRAY::buildArray(*foutC, varStringC, *cout, 8);
-    delete cout; delete fout; delete foutC;
-    
+    cout->setNGonType(1);
+    tpl  = K_ARRAY::buildArray3(*fout,  varString, *cout, eltType, api);
+    tplc = K_ARRAY::buildArray3(*foutC, varStringC, *cout, eltType, api);
+    delete cout; delete fout; delete foutC; 
   }
 
-  PyList_Append(l,tpl) ; Py_DECREF(tpl);
-  PyList_Append(l,tplc); Py_DECREF(tplc);
+  PyList_Append(l, tpl); Py_DECREF(tpl);
+  PyList_Append(l, tplc); Py_DECREF(tplc);
   
-  RELEASESHAREDB(res,  arrayNodes,   f,  cnp);
+  RELEASESHAREDB(res, arrayNodes, f, cnp);
   RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
   
   return l;

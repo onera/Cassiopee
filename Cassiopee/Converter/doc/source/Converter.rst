@@ -149,6 +149,8 @@ List of functions
     Converter.PyTree.getNobNozOfZone
     Converter.PyTree.breakConnectivity
     Converter.PyTree.mergeConnectivity
+    Converter.PyTree.mergeByEltType
+    Converter.PyTree.sliceNGonFaces
     Converter.PyTree.deleteEmptyZones
     Converter.PyTree.addState
     Converter.PyTree.addChimera2Base
@@ -200,12 +202,12 @@ List of functions
     Converter.convertHO2LO
     Converter.convertLO2HO
     Converter.conformizeNGon
-    Converter.convertSurfaceNGon
     Converter.node2Center
     Converter.center2Node
     Converter.PyTree.addGhostCells
     Converter.PyTree.rmGhostCells
     Converter.PyTree.signNGonFaces
+    Converter.PyTree.unsignNGonFaces
 
 **-- Array / PyTree analysis**
 
@@ -534,6 +536,43 @@ pyTree creation and manipulation
 
     .. literalinclude:: ../build/Examples/Converter/mergeConnectivityPT.py
 
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.mergeByEltType(a)
+
+    Merge an unstructured array by element type, thus ensuring each element type
+    is listed only once. For example, if the input zone is TRI,TRI,QUAD,
+    return a TRI,QUAD zone.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Merge an unstructured array by element type (pyTree) <Examples/Converter/mergeByEltTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/mergeByEltType.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.sliceNGonFaces(z, indices=None)
+
+    Slice an NGON connectivity using a list of face indices. Return two numpy
+    arrays: an array of face vertices and an array of face offsets.
+
+    :param a: input data
+    :type a: CGNS Zone node
+    :param indices: face indices
+    :type indices: list of integers
+    :rtype: zone
+
+    *Example of use:*
+
+    * `Slice NGON connectivity (pyTree) <Examples/Converter/sliceNGonFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/sliceNGonFacesPT.py
+
 ---------------------------------------------------------------------------
 
 .. py:function:: Converter.PyTree.deleteEmptyZones(a)
@@ -740,9 +779,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Fill empty BC (pyTree) <Examples/Converter/fillEmptyBCWith.py>`_:
+    * `Fill empty BC (pyTree) <Examples/Converter/fillEmptyBCWithPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/fillEmptyBCWith.py    
+    .. literalinclude:: ../build/Examples/Converter/fillEmptyBCWithPT.py    
 
 ---------------------------------------------------------------------------
 
@@ -906,9 +945,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Get empty BCs (pyTree) <Examples/Converter/getEmptyBC.py>`_:
+    * `Get empty BCs (pyTree) <Examples/Converter/getEmptyBCPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/getEmptyBC.py
+    .. literalinclude:: ../build/Examples/Converter/getEmptyBCPT.py
 
 ---------------------------------------------------------------------------
 
@@ -1400,7 +1439,7 @@ Array / PyTree common manipulations
     :type varNameString: string or list of strings
     :param value: value in case of constant init or function.
     :type value: float or function and parameters
-    :param isVectorized: when using functions, indicates that function is vectorized.
+    :param isVectorized: when using functions, indicates that function is in vectorized form.
     :type isVectorized: boolean
     :rtype: identical to input
 
@@ -1534,14 +1573,14 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertArray2NGon(a, recoverBC=1, api=1)
+.. py:function:: Converter.convertArray2NGon(a, recoverBC=True, api=1)
 
     Create NGON array from an any type of mesh.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param recoverBC: BCs can be recovered (=1) or not(=0) on the NGON a (not valid for arrays).
-    :type recoverBC: integer (0 or 1)
+    :param recoverBC: BCs can be recovered or not on the NGON a (not valid for arrays).
+    :type recoverBC: boolean
     :param api: CGNSv3 compact (=1), CGNSv3 (=2) or CGNSv4 (=3).
     :type api: integer (1, 2 or 3)
     :rtype: Identical to input
@@ -1700,26 +1739,6 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.convertSurfaceNGon(a, rmEmptyNFaceElements=True)
-
-    Convert a surface NGon from (A: NGON=bars, NFACE=polygon)
-    to (B: NGON=polygon, NFACE=NULL), or vice versa.
-
-    :param a: input data (NGON)
-    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
-    :param rmEmptyNFaceElements: if True, remove all empty NFaceElements nodes from the zones.
-    :type tol: boolean
-    :rtype: Identical to input
-
-    *Example of use:*
-
-    * `NGON surface mesh conversion (pyTree) <Examples/Converter/convertSurfaceNGonPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/convertSurfaceNGonPT.py
-
-
------------------------------------------------------------------------------------
-
 .. py:function:: Converter.node2Center(a, var='')
 
     Change data location from nodes to centers. 
@@ -1841,7 +1860,7 @@ Array / PyTree common manipulations
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.signNGonFaces(t)
+.. py:function:: Converter.PyTree.signNGonFaces(t, force=True)
 
     For NGON zones, sign the NFACE connectivity with cell external normals.
 
@@ -1850,12 +1869,32 @@ Array / PyTree common manipulations
     :param t: tree
     :type t: pyTree
     :rtype: t with signed NFACE
+    :param force: if True, always sign NFACE, else restore signness found when reading the pyTree.
+    :type force: boolean
 
     *Example of use:*
 
     * `Sign NGon faces (pyTree) <Examples/Converter/signNGonFacesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/signNGonFacesPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.PyTree.unsignNGonFaces(t)
+
+    For NGON zones, unsign the NFACE connectivity.
+
+    Exists also as in place version (_unsignNGonFaces) that modifies t and returns None.
+
+    :param t: tree
+    :type t: pyTree
+    :rtype: t with unsigned NFACE
+
+    *Example of use:*
+
+    * `Unsign NGon faces (pyTree) <Examples/Converter/unsignNGonFacesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/unsignNGonFacesPT.py
 
 ---------------------------------------------------------------------------
 
@@ -1882,7 +1921,7 @@ Array / PyTree common manipulations
 Array / PyTree analysis
 ------------------------------------
 
-.. py:function:: Converter.diffArrays(a, b, removeCoordinates=True)
+.. py:function:: Converter.diffArrays(a, b, removeCoordinates=True, atol=1.e-11, rtol=0.)
 
     Given a solution in a and a solution in b, both defined on the same mesh, 
     return the differences.
@@ -1893,6 +1932,10 @@ Array / PyTree analysis
     :type b: [list of arrays] or [pyTree, base, zone, list of zones]
     :param removeCoordinates: if True, remove original coordinates (pyTree)
     :type removeCoordinates: boolean
+    :param atol: absolute tolerance
+    :type atol: float
+    :param rtol: relative tolerance
+    :type rtol: float
     :rtype: Identical to input 1
 
     *Example of use:*
@@ -2058,7 +2101,7 @@ Array / PyTree analysis
 
 .. py:function:: Converter.normL0(a, var)
 
-    Return the L0 norm of field 'var' on input.
+    Return the infinite norm of field 'var' on input.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -2413,6 +2456,8 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |bin_tau     | .grid     | binary TAU file                       |
     +------------+-----------+---------------------------------------+
+    |bin_fsdm    | .h5       | binary FSDM file                      |
+    +------------+-----------+---------------------------------------+
 
 
 .. _ReadOptions: 
@@ -2457,9 +2502,9 @@ Array / PyTree input/output
     +------------+--------------------------------------------------------------------------+--------------------+---------------------------------------+-----------------------------------+
     | Option     | Description                                                              | Format             | Possible values                       | Default value                     |
     +============+==========================================================================+====================+=======================================+===================================+
-    |isize       | Size of integer                                                          | v3d, p3d           | 4,8                                   | 4                                 |
+    |isize       | Size of integers                                                         | v3d, p3d, HDF      | 4,8                                   | 8                                 |
     +------------+--------------------------------------------------------------------------+--------------------+---------------------------------------+-----------------------------------+
-    |rsize       | Size of real                                                             | v3d, p3d           | 4,8                                   | 8                                 |
+    |rsize       | Size of reals                                                            | v3d, p3d, HDF      | 4,8                                   | 8                                 |
     +------------+--------------------------------------------------------------------------+--------------------+---------------------------------------+-----------------------------------+
     |endian      | Data endianess                                                           | v3d, p3d           | 'little', 'big'                       | 'big'                             |
     +------------+--------------------------------------------------------------------------+--------------------+---------------------------------------+-----------------------------------+
@@ -2602,17 +2647,20 @@ and Post.
 Geometrical identification
 ----------------------------
 
-.. py:function:: Converter.identifyNodes(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14)
 
     Identify nodes of a with nodes stored in hook. Return the indices of hook 
-    corresponding to the nodes of a. If a point is not identified,
-    its returned index is -1.
+    corresponding to the nodes of a. If a point is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of the mesh bounding box.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
+    :type rtol: float
+    :param rtol: relative tolerance
     :type tol: float
     :return: indices of identified points
     :rtype: numpy array or list of numpy arrays
@@ -2633,18 +2681,21 @@ Geometrical identification
 
 ------------------------------------------------------------------------------------------
 
-.. py:function:: Converter.identifyFaces(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12)
 
     Identify face centers of a with points stored in hook. Return the indices of hook 
-    corresponding to the faces of a. If a face is not identified,
-    its returned index is -1.
+    corresponding to the faces of a. If a face is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of a given face.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
     :type tol: float
+    :param rtol: relative tolerance
+    :type rtol: float
     :return: indices of identified faces
     :rtype: numpy array or list of numpy arrays
 
@@ -2660,18 +2711,21 @@ Geometrical identification
 
 ------------------------------------------------------------------------------------------
 
-.. py:function:: Converter.identifyElements(hook, a, tol=1.e-11)
+.. py:function:: Converter.identifyElements(hook, a, tol=1.e-11, rtol=1.e-12)
 
     Identify element centers of a with points stored in hook. Return the indices of hook 
-    corresponding to the elements of a. If a elements is not identified,
-    its returned index is -1.
+    corresponding to the elements of a. If a elements is not identified, its returned index is -1.
+    The effective tolerance is computed as tol + rtol*L where L is the largest
+    edge of a given element.
 
     :param hook: hook
     :type hook: created by createHook
     :param a: input data
     :type a: [array,list of arrays] or [pyTree, base, zone, list of zones]
-    :param tol: matching tolerance
+    :param tol: matching absolute tolerance
     :type tol: float
+    :param rtol: relative tolerance
+    :type rtol: float
     :return: indices of identified elements
     :rtype: numpy array or list of numpy arrays
 

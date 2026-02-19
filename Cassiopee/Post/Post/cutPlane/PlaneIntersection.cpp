@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -25,21 +25,6 @@
 using namespace std;
 using namespace K_FLD;
 using namespace K_FUNC;
-
-extern "C"
-{
-  void k6compvolofstructcell_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-    const E_Int& indcell, const E_Int& indnode,
-    const E_Float* x, const E_Float* y, 
-    const E_Float* z, E_Float& vol);
-
-  void k6compvoloftetracell_(const E_Int& nelts, 
-                             const E_Int& ind1, const E_Int& ind2, 
-                             const E_Int& ind3, const E_Int& ind4,
-                             const E_Float* xt, const E_Float* yt, 
-                             const E_Float* zt, E_Float& vol);
-} 
 
 //=============================================================================
 /* Given the points defined by coord, for each segment [i,i+1] or [j,j+1] ...
@@ -257,9 +242,11 @@ void K_POST::computeUnstrIntersectionWithPlane(
   FldArrayF& intersectPts, FldArrayF& volOfIntersectPts)
 {
   E_Int nfld = field.getNfld();
-  E_Int nnodes = field.getSize();
+  //E_Int nnodes = field.getSize();
   E_Int nelts = connect.getSize();
   E_Int sizeMax = 6*nelts;
+  E_Int nfpe = 4; //TETRA
+  E_Int nfaces = nfpe*nelts;
 
   intersectPts.malloc(sizeMax, nfld);
   volOfIntersectPts.malloc(sizeMax);
@@ -271,18 +258,29 @@ void K_POST::computeUnstrIntersectionWithPlane(
   E_Int* indt4 = connect.begin(4);
   E_Float cellVol = 0.;
 
+  E_Int ind1, ind2, ind3, ind4;
+
+  // compute surf + vol of the elt
+  FldArrayF snx(nfaces), sny(nfaces), snz(nfaces), surf(nfaces);
+  FldArrayF vol(nelts);
+  
+  K_METRIC::compMetricUnstruct(
+    connect, "TETRA",
+    field.begin(posx), field.begin(posy), field.begin(posz),
+    snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
+  );
+
   for (E_Int et = 0; et < connect.getSize(); et++)
   {
     if (tagC[et] == 1) 
     {
-      E_Int ind1 = indt1[et]-1;
-      E_Int ind2 = indt2[et]-1;
-      E_Int ind3 = indt3[et]-1;
-      E_Int ind4 = indt4[et]-1;
-          
-      k6compvoloftetracell_(nnodes, ind1, ind2, ind3, ind4, 
-                            field.begin(posx), field.begin(posy),
-                            field.begin(posz), cellVol);
+      ind1 = indt1[et]-1;
+      ind2 = indt2[et]-1;
+      ind3 = indt3[et]-1;
+      ind4 = indt4[et]-1;
+
+      cellVol = vol[et];
+
       // segment 12
       searchUnstrIntersectForSegment(coefa, coefb, coefc, coefd, 
                                      ind1, ind2, posx, posy, posz, posc,
@@ -560,9 +558,9 @@ void K_POST::searchUnstrIntersectForSegment(
           {
             E_Float cellNA = field(indA, posc);
             E_Float cellNB = field(indB, posc);
-            if (cellNA == 0. || cellNB == 0.) intersectPts(cnt, posc) = 0.;
+            if (K_FUNC::fEqualZero(cellNA) || K_FUNC::fEqualZero(cellNB)) intersectPts(cnt, posc) = 0.;
             else intersectPts(cnt, posc) = k1*cellNA + k*cellNB;
-//               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
+//          intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
 
           volOfIntersectPts[cnt] = cellVol;
@@ -603,7 +601,7 @@ void K_POST::searchStructIntersectForSegment(
   FldArrayF& intersectPts,
   FldArrayF& volOfIntersectPts)
 {
-  E_Int inddummy = -1;//doit rester a -1 pour k6compvolofstructcell
+  E_Int inddummy = -1;  // doit rester a -1 pour K_METRIC::compVolOfStructCell3D
   FldArrayI connect(0);
   E_Float eps = 1.e-12;
   E_Int nfld = field.getNfld();
@@ -651,23 +649,23 @@ void K_POST::searchStructIntersectForSegment(
 
   E_Float det = coefa * xAB + coefb * yAB + coefc * zAB;
 
-  if (fEqualZero(det, 1.e-12) == true) 
+  if (fEqualZero(det, 1.e-12)) 
   {
     // pts A et B sont soit dans le plan ou soit dans un plan parallele
     // il suffit donc de le savoir pour le point A
-    if (fEqualZero(res, 1.e-12) == true)// point A dans le plan 
+    if (fEqualZero(res, 1.e-12))// point A dans le plan 
     { 
       for (E_Int eq = 1; eq <= nfld; eq++)
       {
         intersectPts(cnt,   eq) = field(indA, eq);
         intersectPts(cnt+1, eq) = field(indB, eq);
       }
-      k6compvolofstructcell_( ni, nj, nk, inddummy, indA, 
-                              xp, yp, zp,
-                              volOfIntersectPts[cnt]);
-      k6compvolofstructcell_( ni, nj, nk, inddummy, indB, 
-                              xp, yp, zp, 
-                              volOfIntersectPts[cnt+1]);
+      K_METRIC::compVolOfStructCell3D(
+        ni, nj, nk, inddummy, indA, 
+        xp, yp, zp, volOfIntersectPts[cnt]);
+      K_METRIC::compVolOfStructCell3D(
+        ni, nj, nk, inddummy, indB, 
+        xp, yp, zp, volOfIntersectPts[cnt+1]);
       cnt = cnt+2;
     }
   }
@@ -688,9 +686,9 @@ void K_POST::searchStructIntersectForSegment(
         //if (posc != 0)
         //  intersectPts(cnt, posc) = field(indA, posc);
         
-        k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
-                               xp, yp, zp, 
-                               volOfIntersectPts[cnt]);
+        K_METRIC::compVolOfStructCell3D(
+          ni, nj, nk, inddummy, indA, 
+          xp, yp, zp, volOfIntersectPts[cnt]);
         cnt++;
       }
       else if (k >= 1.-eps)
@@ -702,9 +700,9 @@ void K_POST::searchStructIntersectForSegment(
         //if (posc != 0)
         //  intersectPts(cnt, posc) = field(indB, posc);
         
-        k6compvolofstructcell_(ni, nj, nk, inddummy, indB, 
-                               xp, yp, zp, 
-                               volOfIntersectPts[cnt]);
+        K_METRIC::compVolOfStructCell3D(
+          ni, nj, nk, inddummy, indB, 
+          xp, yp, zp, volOfIntersectPts[cnt]);
         cnt++;
       }
       else 
@@ -715,13 +713,15 @@ void K_POST::searchStructIntersectForSegment(
         E_Float zH = k1*zp[indA] + k*zp[indB];
         E_Float voli;
         E_Int type = 0, noblk = 0;
-        short found0 = K_INTERP::getInterpolationCell(xH, yH, zH, interpData,
-                                                      &field, &ni, &nj, &nk, NULL,
-                                                      posx, posy, posz, posc,
-                                                      voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);             
+        short found0 = K_INTERP::getInterpolationCell(
+          xH, yH, zH, interpData,
+          &field, &ni, &nj, &nk, NULL,
+          posx, posy, posz, posc,
+          voli, indi, cf, tmpIndi, tmpCf, type, noblk, interpType);
         if (found0 > 0) 
         {          
-          K_INTERP::compInterpolatedValues(indi.begin(), cf, field, &ni, &nj, &nk, cnt, type,intersectPts);
+          K_INTERP::compInterpolatedValues(
+            indi.begin(), cf, field, &ni, &nj, &nk, cnt, type,intersectPts);
           
           // coordonnees
           intersectPts(cnt,posx) = xH;
@@ -733,23 +733,23 @@ void K_POST::searchStructIntersectForSegment(
           {
             E_Float cellNA = field(indA, posc);
             E_Float cellNB = field(indB, posc);
-            if (cellNA == 0. || cellNB == 0.) intersectPts(cnt, posc) = 0.;
+            if (K_FUNC::fEqualZero(cellNA) || K_FUNC::fEqualZero(cellNB)) intersectPts(cnt, posc) = 0.;
             else intersectPts(cnt, posc) = k1*cellNA + k*cellNB;
-//               intersectPts(cnt, posc) = E_max(cellNA, cellNB);
+//          intersectPts(cnt, posc) = E_max(cellNA, cellNB);
           }
           
-          k6compvolofstructcell_(ni, nj, nk, inddummy, indA,
-                                 xp, yp, zp,
-                                 volOfIntersectPts[cnt]);
+          K_METRIC::compVolOfStructCell3D(
+            ni, nj, nk, inddummy, indA,
+            xp, yp, zp, volOfIntersectPts[cnt]);
           cnt++;
         }
         else 
         {
           for (E_Int v = 1; v <= nfld; v++)
             intersectPts(cnt,v) = k1*field(indA,v)+k*field(indB,v);
-          k6compvolofstructcell_(ni, nj, nk, inddummy, indA, 
-                                 xp, yp, zp,
-                                 volOfIntersectPts[cnt]);
+          K_METRIC::compVolOfStructCell3D(
+            ni, nj, nk, inddummy, indA, 
+            xp, yp, zp, volOfIntersectPts[cnt]);
           cnt++;  
         }
       }

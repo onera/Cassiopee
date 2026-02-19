@@ -1,4 +1,4 @@
-# - probe (pyTree) -
+# - Probe (pyTree) -
 # Relecture probe mode 2 pour donner un numpy qui concatene toute la solution
 # a tous les instants
 import Converter.PyTree as C
@@ -15,7 +15,7 @@ s = D.sphere((2.5,2.5,2.5), 1.)
 s = T.splitNParts(s, 2)
 
 # Create probe to store surface
-probe = Probe.Probe(LOCAL+'/probe.cgns', t=None, fields=['centers:F'], bufferSize=15)
+probe = Probe.Probe(LOCAL+'/probe.cgns', s, fields=['centers:F'], bufferSize=15)
 
 # Extractions
 for i in range(40):
@@ -25,7 +25,7 @@ for i in range(40):
 probe.flush()
 
 # Relecture par containers
-p2 = Probe.Probe(LOCAL+'/probe.cgns', fields=['centers:F'])
+p2 = Probe.Probe(LOCAL+'/probe.cgns')
 
 out = p2.readCont2(0, 'centers:F', [])
 out = p2.readCont2(1, 'centers:F', out)

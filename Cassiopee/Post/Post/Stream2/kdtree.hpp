@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -61,8 +61,8 @@ namespace K_POST
          * @param[in]  zCoords  Les profondeurs des sommets
          * @param[in]  min_nodes_per_leaf Arête de construire l'arbre k-d tree dès qu'une feuille contient moins que cette valeur
          */
-        kdtree( const K_MEMORY::vector_view<const double>& xCoords, const K_MEMORY::vector_view<const double>& yCoords,
-                const K_MEMORY::vector_view<const double>& zCoords, unsigned min_nodes_per_leaf = 10 );
+        kdtree( const K_MEMORY::vector_view<const E_Float>& xCoords, const K_MEMORY::vector_view<const E_Float>& yCoords,
+                const K_MEMORY::vector_view<const E_Float>& zCoords, unsigned min_nodes_per_leaf = 10 );
         /**
          * @brief      Construit un arbre k-d à partir d'un ensemble de sommets
          *
@@ -72,7 +72,7 @@ namespace K_POST
          * @param[in]  coords   Le tableau des trois tableaux de sommets
          * @param[in]  min_nodes_per_leaf Arête de construire l'arbre k-d tree dès qu'une feuille contient moins que cette valeur
          */
-        kdtree( const std::array<K_MEMORY::vector_view<const double>,3>& coords, unsigned min_nodes_per_leaf = 10 );
+        kdtree( const std::array<K_MEMORY::vector_view<const E_Float>,3>& coords, unsigned min_nodes_per_leaf=10);
         /// Constructeur de copie (interdit)
         kdtree( const kdtree& ) = delete;
         /// Constructeur de deplacement (par defaut)
@@ -98,13 +98,13 @@ namespace K_POST
          *
          * @return     L'indice du sommet le plus proche
          */
-        std::pair<E_Int,double> nearest(const point3d& pt) const;
+        std::pair<E_Int,E_Float> nearest(const point3d& pt) const;
         //@}
     private:
         struct node;
         std::shared_ptr<node> make_tree(direction_type, unsigned min_nodes,
                                         K_MEMORY::vector_view<E_Int>& indices);
-        std::array<K_MEMORY::vector_view<const double>,3> m_coords;
+        std::array<K_MEMORY::vector_view<const E_Float>,3> m_coords;
         std::shared_ptr<node> m_root;
         std::vector<E_Int> m_indices_nodes;
     };

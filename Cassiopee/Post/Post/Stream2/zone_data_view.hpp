@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -184,7 +184,7 @@ namespace K_POST
          * @param ind_cell Numéro de la cellule
          * @return Un réel en virgule flottante donnant le volume de la cellule
          */
-        double compute_volume_of_cell( E_Int ind_cell ) const;
+        E_Float compute_volume_of_cell( E_Int ind_cell ) const;
         //@}
     };
 }

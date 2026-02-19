@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -83,8 +83,8 @@ BAR_Conformizer<DIM>::__set_tolerances(E_Float Lmin, E_Float Lmax, E_Float  user
   
   if (user_tolerance > 0.)
   {
-    parent_type::_tolerance = std::min(user_tolerance, tol_max);
-    parent_type::_tolerance = std::max(user_tolerance, tol_min);
+    parent_type::_tolerance = K_FUNC::E_min(user_tolerance, tol_max);
+    parent_type::_tolerance = K_FUNC::E_max(user_tolerance, tol_min);
   }
   else
     parent_type::_tolerance = tol_max;
@@ -120,8 +120,8 @@ BAR_Conformizer<DIM>::__intersect
   E_Float tol[] ={tolerance, tolerance};
   if (parent_type::_absolute_tol)
   {
-    tol[0] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
-    tol[1] /= ::sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
+    tol[0] /= sqrt(NUGA::sqrNorm<DIM>(/*Edge[0]*/Edg1));
+    tol[1] /= sqrt(NUGA::sqrNorm<DIM>(/*Edge[1]*/Edg2));
   }
 
   E_Int n1, Ni, ret = false;

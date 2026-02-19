@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,7 @@ namespace K_COMPRESSOR
 PyObject* py_cellN_compress(PyObject *self, PyObject *args)
 {
     PyObject *arrays;
-    if (!PyArg_ParseTuple(args, "O", &arrays)) 
+    if (!PYPARSETUPLE_(args, O_, &arrays)) 
     {
         PyErr_SetString(PyExc_SyntaxError,
                         "pack: wrong syntax. Right syntax: packCellN(array or list of arrays");
@@ -120,7 +120,7 @@ PyObject* py_cellN_compress(PyObject *self, PyObject *args)
 PyObject* py_cellN_uncompress(PyObject *self, PyObject *args)
 {
     PyObject *cpr_arrays;
-    if (!PyArg_ParseTuple(args, "O", &cpr_arrays)) 
+    if (!PYPARSETUPLE_(args, O_, &cpr_arrays)) 
     {
         PyErr_SetString(PyExc_SyntaxError, "Wrong syntax. Right syntax : unpackCellN(array or list of compressed arrays");
         return NULL;

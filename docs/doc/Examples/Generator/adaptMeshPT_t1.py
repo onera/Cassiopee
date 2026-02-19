@@ -1,0 +1,65 @@
+# - adaptMesh (pyTree) -
+import Generator.PyTree as G
+import Converter.PyTree as C
+import KCore.test as test
+
+# HEXA but no adaptation in the 3rd direction (2D adaptation)
+a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
+C._initVars(a, "F", 1.)
+C._initVars(a, '{centers:indicator}=({centers:CoordinateX})>0.5')
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=False)
+test.testT(a2, 1)
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=True)
+test.testT(a2, 2)
+
+a = G.cartNGon((0,0,0),(0.1,0.1,0.1),(11,11,2))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
+C._initVars(a, "F", 1.)
+C._initVars(a,'{centers:indicator}=({centers:CoordinateX})>0.5')
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=False)
+test.testT(a2, 3)
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=True)
+test.testT(a2, 4)
+
+# 3D HEXA
+a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=3)
+C._initVars(a, "F", 1.)
+C._initVars(a,'{centers:indicator}=({centers:CoordinateX})>0.5')
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False)
+test.testT(a2, 5)
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=True)
+test.testT(a2, 6)
+
+a = G.cartNGon((0,0,0),(0.1,0.1,0.1),(11,11,11))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=3)
+C._initVars(a, "F", 1.)
+C._initVars(a, '{centers:indicator}=({centers:CoordinateX})>0.5')
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False)
+test.testT(a2, 7)
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=True)
+test.testT(a2, 8)
+
+# Returns the hook on the tree structure
+a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=3)
+C._initVars(a, "F", 1.)
+C._initVars(a, '{centers:indicator}=({centers:CoordinateX})>0.5')
+hooka=G.createHook4AdaptMesh(a, dim=3, splitInfos=None)
+a2 = G.adaptMesh(a, indicator="indicator", hook=hooka, dim=3, conformize=False)
+test.testT(a2, 9)
+C._initVars(a2, '{centers:indicator}=({centers:CoordinateZ})>0.5')
+a2 = G.adaptMesh(a2, indicator="indicator", hook=hooka, dim=3, conformize=False)
+G.freeHook4AdaptMesh(hooka)
+test.testT(a2, 10)
+
+# Structured but no adaptation in the 3rd direction (2D adaptation)
+a = G.cart((0,0,0),(0.1,0.1,0.1),(11,11,2))
+C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
+C._initVars(a, "F", 1.)
+C._initVars(a,'{centers:indicator}=({centers:CoordinateX})>0.5')
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=False)
+test.testT(a2, 11)
+a2 = G.adaptMesh(a, indicator="indicator", hook=None, dim=2, conformize=True)
+test.testT(a2, 12)

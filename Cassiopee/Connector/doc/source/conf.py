@@ -5,8 +5,16 @@
 import sys
 import os
 
-import Connector
-__version__ = Connector.__version__
+try:
+    import Connector
+    __version__ = Connector.__version__
+except ModuleNotFoundError:
+    __version__ = 'undefined'
+    with open('../../Connector/Connector.py') as f:
+        for line in f:
+            if '__version__' in line:
+                __version__ = line.split('=')[1].strip()
+                break
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

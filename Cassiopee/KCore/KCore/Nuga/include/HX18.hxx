@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -119,7 +119,7 @@ namespace NUGA
       nodes[0] = *pN; // 0 -> PHi(0,0)
 
       if (F2E(1, PGi) == PHi) // for BOT, PH is the right element : well oriented
-        for (int k = 1; k < 4; k++) nodes[k] = *(pN + k);
+        for (E_Int k = 1; k < 4; k++) nodes[k] = *(pN + k);
 
       else // otherwise : wrong orientation (swap 1 & 3)
       {

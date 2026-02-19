@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -93,17 +93,13 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Int sizeFN = cn.getSizeNGon(), sizeEF = cn.getSizeNFace();
   E_Int nfaces = cn.getNFaces(), nelts = cn.getNElts();
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
-  E_Bool array23 = false;
-  if (api == 2 || api == 3) array23 = true;
-  if (api == 2) api = 3;
-  E_Int shift = 1; if (api == 3) shift = 0;
+  E_Int ngonType = cn.getNGonType();
+  E_Bool hasCnOffsets = false;
+  if (ngonType == 2 || ngonType == 3) hasCnOffsets = true;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
 
   // Get dimensionality
-  E_Int dim = 3;
-  E_Int nvf0; cn.getFace(0, nvf0, ngon, indPG);
-  if (nvf0 == 1) dim = 1;
-  else if (nvf0 == 2) dim = 2;
-  //std::cout<<"dim: " << dim << std::endl;
+  E_Int dim = cn.getDim();
   
   // --- 1. Points ---
   // 1a. Identify orphan points, ie, initialise indirection table for use in 1b
@@ -124,30 +120,31 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       }
     }
 
-    rmOrphanPts = false;
-    for (E_Int i = 0; i < npts; i++)
+    if (!rmOverlappingPts)
     {
-      if (indir[i] == -1)
+      E_Int norphans = 0;
+      for (E_Int i = 0; i < npts; i++)
       {
-        rmOrphanPts = true;
-        break;
+        if (indir[i] == -1) norphans++;
+        else indir[i] -= norphans;
       }
+      nuniquePts -= norphans;
     }
   }
 
   // 1b. Identify overlapping points geometrically
-  E_Bool rmDirtyPts = (rmOverlappingPts || rmOrphanPts);
   if (rmOverlappingPts)
   {
     nuniquePts = K_CONNECT::V_identifyDirtyPoints(posx, posy, posz, f, tol,
                                                   indir, rmOverlappingPts);
     if (nuniquePts < 0) return NULL;
-    else if (nuniquePts == npts) rmDirtyPts = false;
   }
   //std::cout<<"npts: " << npts << std::endl;
   //std::cout<<"nuniquePts: " << nuniquePts << std::endl;
 
   // An update is necessary before topological operations in 2. & 3.
+  E_Bool rmDirtyPts = true;
+  if (nuniquePts == npts) rmDirtyPts = false;
   if (rmDirtyPts)
   {
     E_Int j, itrl, nv, vidx;
@@ -195,6 +192,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     if (nuniqueElts != nelts) rmDuplicatedFaces = true;
     else rmDuplicatedElts = false;
   }
+  if (nuniqueElts == nelts) rmDirtyElts = false;
   //std::cout<<"nelts: " << nelts << std::endl;
   //std::cout<<"nuniqueElts: " << nuniqueElts << std::endl;
 
@@ -208,6 +206,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
                                                        rmDegeneratedFaces);
     if (nuniqueFaces == nfaces) rmDuplicatedFaces = false;
   }
+  if (nuniqueFaces == nfaces) rmDirtyFaces = false;
   //std::cout<<"nfaces: " << nfaces << std::endl;
   //std::cout<<"nuniqueFaces: " << nuniqueFaces << std::endl;
 
@@ -254,7 +253,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         }
         if (shift == 1) ngon[k] = nvins;
       }
-      if (array23) // array2 or array3
+      if (hasCnOffsets) // array2 or array3
       {
         indPG[j] = k; j += 1;
       }
@@ -309,7 +308,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         if (shift == 1) nface[k] = nfins;
       }
       
-      if (rmDirtyElts && array23) // array2 or array3
+      if (rmDirtyElts && hasCnOffsets) // array2 or array3
       {
         indPH[j] = k; j += 1;
       }
@@ -324,12 +323,9 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   }
 
   // --- 5. Create resized connectivity ---
-  if (rmOverlappingPts || rmDuplicatedFaces || rmDuplicatedElts)
-  {  
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
-    E_Boolean center = false;
+  if (rmDirtyPts || rmDirtyFaces || rmDirtyElts)
+  {
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                nuniqueFaces, "NGON", sizeFN2, sizeEF2,
                                ngonType, center, api);
@@ -337,7 +333,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     K_ARRAY::getFromArray3(tpl, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (array23)
+    if (hasCnOffsets)
     {
       indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
     }
@@ -349,7 +345,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       {
         E_Float* fp = f.begin(n);
         E_Float* f2p = f2->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nuniquePts; i++) f2p[i] = fp[i];
       }
 
@@ -359,16 +355,20 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
       #pragma omp for nowait
       for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = nface[i];
 
-      if (array23) // array2 or array3
+      if (hasCnOffsets) // array2 or array3
       {
         #pragma omp for nowait
         for (E_Int i = 0; i < nuniqueFaces; i++) indPG2[i] = indPG[i];
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int i = 0; i < nuniqueElts; i++) indPH2[i] = indPH[i];
       }
     }
 
     RELEASESHAREDU(tpl, f2, cn2);
+  }
+  else  // nothing to do, copy input connectivity
+  {
+    tpl = K_ARRAY::buildArray3(f, varString, cn, "NGON", api);
   }
   
   if (exportIndirPts)
@@ -472,20 +472,54 @@ E_Int K_CONNECT::V_identifyDirtyPoints(
       }
       
       // Remove circular references by instructing the pointers to point to
-      // the leaves, and conditionally mark orphan points
+      // the roots
       if (rmOrphanPts)
       {
+        E_Int prev, fi;
+        // seen array used to detect cycles
+        E_Int* seen = (E_Int*) calloc(npts, sizeof(E_Int));
+        E_Int stamp = 1;
+    
         for (size_t i = 0; i < npts; ++i)
         {
           // Skip orphan points
           if (indir[i] == -1) { locIndir[i] = -1; continue; }
+
+          prev = i;
           fi = locIndir[i];
-          while (fi != locIndir[fi]) fi = locIndir[fi];
-          locIndir[i] = fi;
+
+          while (true)
+          {
+            // If orphan node, cut at last valid ancestor prev
+            if (fi == -1 or indir[fi] == -1)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+            // If fi is a valid self-pointer, cut at fi
+            else if (locIndir[fi] == fi)
+            {
+              locIndir[i] = fi;
+              break;
+            }
+            // If fi is revisited in this traversal, break the cycle
+            else if (seen[fi] == stamp)
+            {
+              locIndir[i] = prev;
+              break;
+            }
+
+            seen[fi] = stamp;
+            prev = fi;
+            fi = locIndir[fi];
+          }
+          stamp++;
         }
+        free(seen);
       }
       else
       {
+        // Path compression step from a disjoint set data structure
         for (size_t i = 0; i < npts; ++i)
         {
           fi = locIndir[i];
@@ -550,7 +584,8 @@ E_Int K_CONNECT::V_identifyDirtyFacesNGon(
 
   // Face map to eliminate duplicates and collapsed faces
   Topology F;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > faceMap;
+  std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > faceMap;
+  faceMap.reserve(nfaces);
   
   if (rmDegeneratedFaces && dim > 1)
   {
@@ -575,7 +610,7 @@ E_Int K_CONNECT::V_identifyDirtyFacesNGon(
         }
         indirPG[i] = res.first->second;
         // Flip sign of degenerated faces
-        if (F.isDegen_) indirPG[i] *= -1;
+        if (F.isDegen_) indirPG[i] = -indirPG[i];
       }
     }
   }
@@ -621,7 +656,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsNGon(
 
   // Element map to eliminate duplicates
   Topology E;
-  std::unordered_map<Topology, E_Int, JenkinsHash<Topology> > eltMap;
+  std::unordered_map<Topology, E_Int, BernsteinHash<Topology> > eltMap;
+  eltMap.reserve(nelts);
 
   if (rmDegeneratedElts && dim > 0)
   {
@@ -646,7 +682,7 @@ E_Int K_CONNECT::V_identifyDirtyElementsNGon(
         }
         indirPH[i] = res.first->second;
         // Flip sign of degenerated elements
-        if (E.isDegen_) indirPH[i] *= -1;
+        if (E.isDegen_) indirPH[i] = -indirPH[i];
       }
     }
   }
@@ -680,35 +716,23 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   E_Bool exportIndirPts
 )
 {
-  E_Bool rmDirtyElts = (rmDuplicatedElts || rmDegeneratedElts);
-  
   PyObject* tpl = NULL;
   E_Int nc = cn.getNConnect();
   E_Int vidx;
   E_Int nfld = f.getNfld(), npts = f.getSize(), api = f.getApi();
-  std::vector<char*> eltTypes;
-  K_ARRAY::extractVars(eltType, eltTypes);
 
   // Get dimensionality
-  E_Int dim = 3;
-  if (strcmp(eltTypes[0], "NODE") == 0) dim = 0;
-  else if (strcmp(eltTypes[0], "BAR") == 0) dim = 1;
-  else if (strcmp(eltTypes[0], "TRI") == 0 ||
-           strcmp(eltTypes[0], "QUAD") == 0) dim = 2;
-  for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
-  
-  //for (E_Int ic = 0; ic < nc; ic++) std::cout<<"eltType: " << eltTypes[ic] << std::endl;
-  //std::cout<<"dim: " << dim << std::endl;
+  E_Int dim = K_CONNECT::getDimME(eltType);
 
   // Compute total number of elements
-  E_Int neltsTot = 0;
+  E_Int ntotElts = 0;
   std::vector<E_Int> nepc(nc); // initial number of elements per connectivity
   for (E_Int ic = 0; ic < nc; ic++)
   {
     FldArrayI& cm = *(cn.getConnect(ic));
     E_Int nelts = cm.getSize();
     nepc[ic] = nelts;
-    neltsTot += nelts;
+    ntotElts += nelts;
   }
   
   // --- 1. Points ---
@@ -746,18 +770,18 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   }
 
   // 1b. Identify overlapping points geometrically
-  E_Bool rmDirtyPts = (rmOverlappingPts || rmOrphanPts);
-  if (rmDirtyPts)
+  if (rmOverlappingPts)
   {
     nuniquePts = K_CONNECT::V_identifyDirtyPoints(posx, posy, posz, f, tol,
                                                   indir, rmOverlappingPts);
     if (nuniquePts < 0) return NULL;
-    else if (nuniquePts == npts) rmDirtyPts = false;
   }
   //std::cout<<"npts: " << npts << std::endl;
   //std::cout<<"nuniquePts: " << nuniquePts << std::endl;
   
   // An update is necessary before topological operations in 2.
+  E_Bool rmDirtyPts = true;
+  if (nuniquePts == npts) rmDirtyPts = false;
   if (rmDirtyPts)
   {
     // 1.c Reindex vertices (no change in size)
@@ -800,13 +824,12 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   }
 
   // --- 2. Identify dirty elements topologically ---
-  E_Int nuniqueEltsTot = neltsTot;
+  E_Int ntotUniqueElts = ntotElts;
   std::vector<E_Int> indirPH, nuniqueElts;
-  if (rmDirtyElts)
+  if (rmDuplicatedElts || rmDegeneratedElts)
   {
-    nuniqueEltsTot = K_CONNECT::V_identifyDirtyElementsME(
-        dim, cn, indirPH, nuniqueElts, neltsTot, rmDegeneratedElts);
-    if (nuniqueEltsTot == neltsTot) rmDuplicatedElts = false;
+    ntotUniqueElts = K_CONNECT::V_identifyDirtyElementsME(
+        dim, cn, indirPH, nuniqueElts, ntotElts, rmDegeneratedElts);
   }
   else
   {
@@ -817,10 +840,12 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       nuniqueElts[ic] = cm.getSize();
     }
   }
-  //std::cout<<"neltsTot: " << neltsTot << std::endl;
-  //std::cout<<"nuniqueEltsTot: " << nuniqueEltsTot << std::endl;
+  //std::cout<<"ntotElts: " << ntotElts << std::endl;
+  //std::cout<<"ntotUniqueElts: " << ntotUniqueElts << std::endl;
 
   // --- 3. Reindex & Compress connectivities ---
+  E_Bool rmDirtyElts = true;
+  if (ntotUniqueElts == ntotElts) rmDirtyElts = false;
   if (rmDirtyElts)
   {
     E_Int k = 0; // write pointer
@@ -849,9 +874,9 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   }
 
   // --- 4. Create resized connectivity ---
-  if (rmOverlappingPts || rmDirtyElts)
-  {  
-    E_Boolean center = false;
+  if (rmDirtyPts || rmDirtyElts)
+  {
+    E_Bool center = false;
     tpl = K_ARRAY::buildArray3(nfld, varString, nuniquePts, nuniqueElts,
                                eltType, center, api);
     FldArrayF* f2; FldArrayI* cn2;
@@ -881,6 +906,10 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
     }
     RELEASESHAREDU(tpl, f2, cn2);
   }
+  else  // nothing to do, copy input connectivity
+  {
+    tpl = K_ARRAY::buildArray3(f, varString, cn, eltType, api);
+  }
   
   if (exportIndirPts)
   {
@@ -895,34 +924,37 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
 
 E_Int K_CONNECT::V_identifyDirtyElementsME(
   E_Int dim, FldArrayI& cn, std::vector<E_Int>& indir,
-  std::vector<E_Int>& nuniqueElts, E_Int neltsTot,
+  std::vector<E_Int>& nuniqueElts, E_Int ntotElts,
   E_Bool rmDegeneratedElts
 )
 {
   E_Int nc = cn.getNConnect();
-  E_Int nuniqueEltsTot = 0;
+  E_Int ntotUniqueElts = 0;
   // Compute total number of elements if not provided
-  if (neltsTot == 0)
+  if (ntotElts == 0)
   {
     for (E_Int ic = 0; ic < nc; ic++)
     {
       FldArrayI& cm = *(cn.getConnect(ic));
       E_Int nelts = cm.getSize();
-      neltsTot += nelts;
+      ntotElts += nelts;
     }
   }
-  indir.clear(); indir.resize(neltsTot);
+  indir.clear(); indir.resize(ntotElts);
   nuniqueElts.clear(); nuniqueElts.resize(nc);
 
   // Element map to eliminate duplicates
   E_Int elOffset = 0;
   TopologyOpt E;
-  std::unordered_map<TopologyOpt, E_Int, JenkinsHash<TopologyOpt> > eltMap;
+  std::unordered_map<TopologyOpt, E_Int, BernsteinHash<TopologyOpt> > eltMap;
+  eltMap.reserve(ntotElts);
 
   if (rmDegeneratedElts && dim > 0)
   {
     std::vector<E_Int> isTotDegen(4, -1);
     for (E_Int i = 0; i <= 3; i++) isTotDegen[i] = i;
+
+    E_Int eltc[9];
 
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
@@ -931,11 +963,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe, true);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe, true);
         if (E.isDegen_ and (E_Int)E.size_ <= isTotDegen[dim])
         {
           indir[elOffset+i] = COLLAPSED; continue;
@@ -952,11 +984,13 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       }
       elOffset += nelts;
       nuniqueElts[ic] -= 1;
-      nuniqueEltsTot += nuniqueElts[ic];
+      ntotUniqueElts += nuniqueElts[ic];
     }
   }
   else
   {
+    E_Int eltc[9];
+
     // Loop over ME connectivity
     for (E_Int ic = 0; ic < nc; ic++)
     {
@@ -964,11 +998,11 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       E_Int nelts = cm.getSize();
       nuniqueElts[ic] = 1;
       E_Int nvpe = cm.getNfld();
-      std::vector<E_Int> elt(nvpe);
+      //std::vector<E_Int> elt(nvpe);
       for (E_Int i = 0; i < nelts; i++)
       {
-        for (E_Int j = 1; j <= nvpe; j++) elt[j-1] = cm(i,j);
-        E.set(elt, nvpe);
+        for (E_Int j = 1; j <= nvpe; j++) eltc[j-1] = cm(i,j);
+        E.set(eltc, nvpe);
         // Use insert to ensure E is initially mapped to -1 if it doesn't exist
         auto res = eltMap.insert(std::make_pair(E, -1));
         // Check the value associated with E. If it is -1, then first time this
@@ -981,8 +1015,8 @@ E_Int K_CONNECT::V_identifyDirtyElementsME(
       }
       elOffset += nelts;
       nuniqueElts[ic] -= 1;
-      nuniqueEltsTot += nuniqueElts[ic];
+      ntotUniqueElts += nuniqueElts[ic];
     }
   }
-  return nuniqueEltsTot;
+  return ntotUniqueElts;
 }

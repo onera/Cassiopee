@@ -1,7 +1,7 @@
 
 #include "volume.hpp"
 
-inline double triple_product( const K_POST::vector3d& v1, const K_POST::vector3d& v2, const K_POST::vector3d& v3)
+inline E_Float triple_product( const K_POST::vector3d& v1, const K_POST::vector3d& v2, const K_POST::vector3d& v3)
 {
     return  (v1|(v2^v3));   
 }
@@ -9,9 +9,9 @@ inline double triple_product( const K_POST::vector3d& v1, const K_POST::vector3d
 namespace K_POST
 {
 
-    double compute_volume_tetrahedra( const point3d &p1, const point3d &p2, const point3d &p3, const point3d &p4 )
+    E_Float compute_volume_tetrahedra( const point3d &p1, const point3d &p2, const point3d &p3, const point3d &p4 )
     {
-        constexpr const double onesixth = 1./6.;
+        constexpr const E_Float onesixth = 1./6.;
 
         vector3d e14(p1,p4);
         vector3d e23(p2,p3); vector3d e24(p2,p4);
@@ -19,10 +19,10 @@ namespace K_POST
         return onesixth*triple_product(e14, e23, e24);
     }
 
-    double compute_volume_pyramid   ( const point3d &p1, const point3d &p2, const point3d &p3,
-                                      const point3d &p4, const point3d &p5)
+    E_Float compute_volume_pyramid( const point3d &p1, const point3d &p2, const point3d &p3,
+                                  const point3d &p4, const point3d &p5)
     {
-        constexpr const double onetwelth = 1./12.;
+        constexpr const E_Float onetwelth = 1./12.;
         // V(P) = (1/12){[E₁₂;E₁₃;E₁₅]+[E₁₂+E₁₃;E₁₄;E₁₅]+[E₂₃;E₂₄;E₂₅]}
         vector3d e12(p1,p2); vector3d e13(p1,p3); 
         vector3d e15(p1,p5); vector3d e14(p1,p4);
@@ -31,10 +31,10 @@ namespace K_POST
         return onetwelth*(triple_product(e12, e13, e15)+triple_product(e12+e13,e14,e15)+triple_product(e23,e24,e25));
     } 
 
-    double compute_volume_pentaedra( const point3d &p1, const point3d &p2, const point3d &p3,
+    E_Float compute_volume_pentaedra( const point3d &p1, const point3d &p2, const point3d &p3,
                                      const point3d &p4, const point3d &p5, const point3d& p6)
     {
-        constexpr const double onesixth = 1./6.;
+        constexpr const E_Float onesixth = 1./6.;
 
         // V = (1/6){[E₁₄;E₄₅;E₄₆] + (1/2)[E₁₃; E₃₄; E₁₆] + [E₁₃;E₂₆;E₃₅] + (1/2)[E₂₆;E₆₅;E₃₅] + (1/2)[E₁₂;E₁₅;E₂₄]}
         vector3d e12(p1,p2); vector3d e14(p1,p4); vector3d e13(p1,p3); 
@@ -48,11 +48,11 @@ namespace K_POST
                     0.5*(triple_product(e13, e34, e16)+triple_product(e26, e65, e35) + triple_product(e12, e15, e24)) );
     }
 
-    double compute_volume_hexaedra ( const point3d &p1, const point3d &p2, const point3d &p3,
+    E_Float compute_volume_hexaedra ( const point3d &p1, const point3d &p2, const point3d &p3,
                                      const point3d &p4, const point3d &p5, const point3d &p6,
                                      const point3d &p7, const point3d &p8 )
     {
-        constexpr const double onesixth = 1./6.;
+        constexpr const E_Float onesixth = 1./6.;
         // V = (1/6){[E₁₂;E₆₃;E₂₇] + [E₁₄;E₄₇;E₈₃] + [E₁₅;E₈₆;E₅₇]} + (1/12){[E₁₂;E₁₄;E₁₃] + [E₁₅;E₁₂;E₁₆] + [E₂₃;E₃₇;E₂₆] +
         //                                                                   [E₄₃;E₄₈;E₃₇] + [E₁₅;E₅₈;E₁₄] + [E₅₆;E₆₇;E₅₈]}
         vector3d e12(p1,p2); vector3d e13(p1,p3); vector3d e14(p1,p4);
@@ -69,11 +69,11 @@ namespace K_POST
                               triple_product(e43, e48, e37)+triple_product(e15,e58,e14)+triple_product(e56,e67,e58)) );
     }
 
-    double compute_volume_ngon( const std::vector<face>& faces )
+    E_Float compute_volume_ngon( const std::vector<face>& faces )
     {
         // (1/2)[pᵢ;Eᵢⱼ;Eᵢₖ] pour le triangle
         // (1/2)[pᵢ;Eₗⱼ;Eᵢₖ] + (1/4)[Eᵢⱼ;Eⱼₖ;Eᵢₗ] pour le quadrangle
-        double vol = 0.;
+        E_Float vol = 0.;
         for (const auto& f : faces)
         {
             const point3d& pi = f.get_vertex(0);

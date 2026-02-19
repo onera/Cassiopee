@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,7 @@
 # include <stdio.h>
 
 using namespace std;
-using namespace K_FLD; 
+using namespace K_FLD;
 using namespace K_FUNC;
 using namespace K_CONST;
 
@@ -42,7 +42,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   K_ARRAY::getFromArrays(arrays, res, structVarString,
                          unstructVarString, structF,
                          unstructF, ni, nj, nk,
-                         cn, eltType, objs, obju, 
+                         cn, eltType, objs, obju,
                          true, true, true, false, true);
 
   // Fusion des zones non-structures
@@ -63,7 +63,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   for (E_Int k = 0; k < nu; k++)
   {
     npts += unstructF[k]->getSize();
-    
+
     if (strcmp(eltType[k], "NGON") == 0)
     {
       // La connectivite fusionee ne doit avoir que des NGONs
@@ -133,9 +133,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   if (strcmp(eltRef, "NGON") == 0)
   {
     strcat(newEltType, "NGON");
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn[0]->getNGonType();
     tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
                                nfaces, newEltType, sizeFN, sizeEF,
                                ngonType, false, api);
@@ -145,9 +143,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     // Remove trailing comma in newEltType
     E_Int len = strlen(newEltType);
     newEltType[len-1] = '\0';
-    
-    // ME: api = 3 only
-    if (nc > 1) api = 3;
+
     if (nc == 2 && dimRef == 3)
     {
       // HEXA & TETRA cannot be joined in a conformal mesh, skipping the last
@@ -171,7 +167,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     {
       vector<char*> eltTypesk;
       K_ARRAY::extractVars(eltType[k], eltTypesk);
-      
+
       E_Int nck = cn[k]->getNConnect();
       for (E_Int ic = 0; ic < nck; ic++)
       {
@@ -199,10 +195,11 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 
   // Acces non universel sur les ptrs NGON
   E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  E_Int ngonType = cno->getNGonType();
   if (strcmp(eltRef, "NGON") == 0)
   {
     ngon = cno->getNGon(); nface = cno->getNFace();
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG = cno->getIndPG(); indPH = cno->getIndPH();
     }
@@ -247,7 +244,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < sizeEFk; i++)
           nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
 
-        if (api == 2 || api == 3)
+        if (ngonType == 2 || ngonType == 3)
         {
           indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
           #pragma omp for
@@ -274,7 +271,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
           FldArrayI& cmkic = *(cn[k]->getConnect(ic));
           FldArrayI& cm = *(cno->getConnect(indir[k][ic]));
           E_Int neltskic = cmkic.getSize();
-          
+
           #pragma omp for
           for (E_Int i = 0; i < neltskic; i++)
             for (E_Int j = 1; j <= cmkic.getNfld(); j++)
@@ -304,7 +301,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         ngon[offsetSizeFN+ind] = ngonk[ind];
         ind += ngonk[ind]+1;
       }
-      
+
       ind = 0;
       for (E_Int i = 0; i < cn[k]->getNElts(); i++)
       {
@@ -325,9 +322,11 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(unstructVarString[0])+1;
   if (posx > 0 && posy > 0 && posz > 0)
   {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, 
+    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType,
                                  *f, *cno);
-    PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+    PyObject* tpl2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType, api);
+    // PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(
+    //   unstructVarString[0], *f, *cno, newEltType, tol);
     RELEASESHAREDU(tpl, f, cno); Py_DECREF(tpl);
     return tpl2;
   }
@@ -346,7 +345,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   PyObject *arrays, *arraysc; E_Float tol;
   if (!PYPARSETUPLE_(args, OO_ R_, &arrays, &arraysc, &tol)) return NULL;
 
-  // Check arrays for fields located at nodes 
+  // Check arrays for fields located at nodes
   vector<E_Int> res;
   vector<char*> structVarString; vector<char*> unstructVarString;
   vector<FldArrayF*> structF; vector<FldArrayF*> unstructF;
@@ -356,7 +355,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   K_ARRAY::getFromArrays(arrays, res, structVarString,
                          unstructVarString, structF,
                          unstructF, ni, nj, nk,
-                         cn, eltType, objs, obju, 
+                         cn, eltType, objs, obju,
                          true, true, true, false, true);
 
   // Check arrays for fields located at centers
@@ -369,7 +368,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   K_ARRAY::getFromArrays(arraysc, resc, structVarStringc,
 			                   unstructVarStringc, structFc,
 			                   unstructFc, nic, njc, nkc,
-			                   cnc, eltTypec, objsc, objuc, 
+			                   cnc, eltTypec, objsc, objuc,
 			                   false, false, false, false, true);
 
   // Fusion des zones non-structures
@@ -378,13 +377,13 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   if (nu != nuc or (nu == 0 && nuc == 0))
   {
     for (E_Int k = 0; k < nu; k++) RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
-    for (E_Int k = 0; k < nuc; k++) RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);  
+    for (E_Int k = 0; k < nuc; k++) RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);
     PyErr_SetString(PyExc_ValueError,
                     "joinAllBoth: number of arrays at nodes and centers must "
                     "be equal.");
     return NULL;
   }
-  
+
   char* eltRef = NULL;
   eltRef = eltType[0];
   E_Int missed = 0;
@@ -400,7 +399,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   for (E_Int k = 0; k < nu; k++)
   {
     npts += unstructF[k]->getSize();
-    
+
     if (strcmp(eltType[k], "NGON") == 0)
     {
       // La connectivite fusionee ne doit avoir que des NGONs
@@ -419,7 +418,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       // et de leur identite
       vector<char*> eltTypesk;
       K_ARRAY::extractVars(eltType[k], eltTypesk);
-      
+
       E_Int nck = cn[k]->getNConnect();
       for (E_Int ic = 0; ic < nck; ic++)
       {
@@ -472,9 +471,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   {
     strcpy(newEltType, "NGON");
     neltstot = neltsNGON;
-    E_Int ngonType = 1; // CGNSv3 compact array1
-    if (api == 2) ngonType = 2; // CGNSv3, array2
-    else if (api == 3) ngonType = 3; // force CGNSv4, array3
+    E_Int ngonType = cn[0]->getNGonType();
     tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsNGON,
                                 nfaces, newEltType, sizeFN, sizeEF,
                                 ngonType, false, api);
@@ -484,9 +481,6 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     // Remove trailing comma in newEltType
     E_Int len = strlen(newEltType);
     newEltType[len-1] = '\0';
-    
-    // ME: api = 3 only
-    if (nc > 1) api = 3;
 
     vector<char*> newEltTypes;
     K_ARRAY::extractVars(newEltType, newEltTypes);
@@ -497,7 +491,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     {
       vector<char*> eltTypesk;
       K_ARRAY::extractVars(eltType[k], eltTypesk);
-      
+
       E_Int nck = cn[k]->getNConnect();
       for (E_Int ic = 0; ic < nck; ic++)
       {
@@ -525,16 +519,17 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   K_ARRAY::getFromArray3(tpln, f, cno);
 
   // Nouveaux champs aux centres (la connectivite sera identique a cno)
-  E_Boolean compact = false;
+  E_Bool compact = false;
   if (api == 1) compact = true;
   FldArrayF* fc = new FldArrayF(neltstot, nfldc, compact);
 
   // Acces non universel sur les ptrs NGON
   E_Int *ngon = NULL, *nface = NULL, *indPG = NULL, *indPH = NULL;
+  E_Int ngonType = cno->getNGonType();
   if (strcmp(eltRef, "NGON") == 0)
   {
     ngon = cno->getNGon(); nface = cno->getNFace();
-    if (api == 2 || api == 3)
+    if (ngonType == 2 || ngonType == 3)
     {
       indPG = cno->getIndPG(); indPH = cno->getIndPH();
     }
@@ -557,7 +552,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       {
         E_Float* fkn = unstructF[k]->begin(n);
         E_Float* fn = f->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nptsk; i++) fn[i+offsetPts] = fkn[i];
       }
 
@@ -566,7 +561,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       {
         E_Float* fckn = unstructFc[k]->begin(n);
         E_Float* fcn = fc->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < unstructFc[k]->getSize(); i++)
           fcn[i+offsetElts] = fckn[i];
       }
@@ -582,17 +577,17 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
         E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
         E_Int *indPGk = NULL, *indPHk = NULL;
 
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < sizeFNk; i++)
           ngon[i+offsetSizeFN] = ngonk[i] + offsetPts;
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < sizeEFk; i++)
           nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
 
-        if (api == 2 || api == 3)
+        if (ngonType == 2 || ngonType == 3)
         {
           indPGk = cn[k]->getIndPG(); indPHk = cn[k]->getIndPH();
-          #pragma omp for
+          #pragma omp for nowait
           for (E_Int i = 0; i < nfacesk; i++)
             indPG[i+offsetFaces] = indPGk[i] + offsetFaces;
           #pragma omp for
@@ -646,7 +641,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
         ngon[offsetSizeFN+ind] = ngonk[ind];
         ind += ngonk[ind]+1;
       }
-      
+
       ind = 0;
       for (E_Int i = 0; i < cn[k]->getNElts(); i++)
       {
@@ -662,26 +657,32 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   for (E_Int k = 0; k < nu; k++)
   {
     RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
-    RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);  
+    RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);
   }
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(unstructVarString[0])+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(unstructVarString[0])+1;
   E_Int posz = K_ARRAY::isCoordinateZPresent(unstructVarString[0])+1;
-  
+
+  PyObject* l = PyList_New(0);
   if (posx > 0 && posy > 0 && posz > 0)
   {
     K_CONNECT::cleanConnectivity(posx, posy, posz, tol, newEltType, *f, *cno);
-    //PyObject* tpln3 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+    // PyObject* tpln2 = K_CONNECT::V_cleanConnectivity(
+    //  unstructVarString[0], *f, *cno, newEltType, tol);
+    // PyList_Append(l, tpln2); Py_DECREF(tpln2);
   }
-
-  PyObject* l = PyList_New(0);
-  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType);
+  // else
+  // {
+  //  PyList_Append(l, tpln);
+  // }
+  PyObject* tpln2 = K_ARRAY::buildArray3(*f, unstructVarString[0], *cno, newEltType, api);
   PyList_Append(l, tpln2); Py_DECREF(tpln2);
+
   char newEltTypec[K_ARRAY::VARSTRINGLENGTH];
   K_ARRAY::starVarString(newEltType, newEltTypec);
-  PyObject* tplc = K_ARRAY::buildArray3(*fc, unstructVarStringc[0], 
-                                        *cno, newEltTypec);
+  PyObject* tplc = K_ARRAY::buildArray3(*fc, unstructVarStringc[0],
+                                        *cno, newEltTypec, api);
   PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
   RELEASESHAREDU(tpln, f, cno);
   return l;

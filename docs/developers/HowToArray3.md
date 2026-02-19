@@ -13,7 +13,7 @@ Arrays can be:
 Use getFromArray3 to pass from python object to FldArrays:
   
     PyObject* o;
-    if (!PyArg_ParseTuple(args, "O", &o)) return NULL;
+    if (!PYPARSETUPLE_(args, O_, &o)) return NULL;
     E_Int ni, nj, nk;
     K_FLD::FldArrayF* f; K_FLD::FldArrayI* c;
     char* varString; char* eltType;
@@ -109,7 +109,7 @@ For structured array, there is no difference between array2 and array3.
 
 For NGONs:
 
-    E_Int isNGon = c->isNGon();
+    E_Int isNGon = c->getNGonType();
     // isNGon=1: NGON, NFACE CGNSv3 array1 compact
     // isNGON=2: NGON, NFACE, [indPG], [indPF] rake CGNSv3
     // isNGON=3: NGON, NFACE, indPG, indPF rake CGNSv4

@@ -1,0 +1,743 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="ASCII" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Post.Probe: Probe extraction &#8212; Post 4.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.Probe: Probe extraction</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="post-probe-probe-extraction">
+<h1>Post.Probe: Probe extraction</h1>
+<p>Specific probe extraction module.</p>
+<p>This page describes how the object-oriented Probe module operates. The various methods presented below should be used after instantiating a Probe object of the same-named class.</p>
+<p>All of these methods and functions can be executed in both sequential and parallel contexts.</p>
+<span class="target" id="module-Post.Probe"></span><section id="list-of-functions">
+<h2>List of functions</h2>
+<p><strong>&#8211; Probe creation</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe" title="Post.Probe.Probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Probe.Probe</span></code></a></p></td>
+<td><p>Create Probe object to extract and save data during simulations.</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>&#8211; Probe methods</strong></p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe.printInfo" title="Post.Probe.Probe.printInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probe.printInfo</span></code></a></p></td>
+<td><p>Print information about a new probe.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.Probe.Probe.prepare" title="Post.Probe.Probe.prepare"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probe.prepare</span></code></a></p></td>
+<td><p>Prepare the interpolation data for probe extraction in mode 3.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe.extract" title="Post.Probe.Probe.extract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probe.extract</span></code></a></p></td>
+<td><p>Extract probe information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.Probe.Probe.flush" title="Post.Probe.Probe.flush"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probe.flush</span></code></a></p></td>
+<td><p>Flush buffered data to probe file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe.read" title="Post.Probe.Probe.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probe.read</span></code></a></p></td>
+<td><p>Read data from existing probe file.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="contents">
+<h2>Contents</h2>
+<section id="probe-creation">
+<h3>Probe creation</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe">
+<span class="sig-prename descclassname"><span class="pre">Post.Probe.</span></span><span class="sig-name descname"><span class="pre">Probe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tPermeable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Create a Python object from the Probe class. Five modes are possible:</p>
+<ul class="simple">
+<li><p><strong>mode 0</strong>: if t and X are provided, the probe will extract the fields from t at the absolute position X=(x,y,z).</p></li>
+<li><p><strong>mode 1</strong>: if t and (ind, blockName) are provided, the probe will extract the fields from t at the given index of the specified block.</p></li>
+<li><p><strong>mode 2</strong>: if t is provided without a specific location (index or position), the probe will store all zones of t with both coordinates and fields. t must be 1D or 2D.</p></li>
+<li><p><strong>mode 3</strong>: if t and tPermeable are provided, the probe will interpolate the fields on tPermeable using t as the donor tree. tPermeable must be 1D or 2D.</p></li>
+<li><p><strong>mode 4</strong>: if t is not provided, the probe will simply store specified values over time.</p></li>
+</ul>
+<p>Data are periodically flushed to probe file when the buffer size exceeds the user input bufferSize.</p>
+<p>For Probe objects in modes 0, 1, or 4, all data are stored in 1D numpy arrays of size bufferSize.</p>
+<p>For Probe objects in modes 2 or 3, the data are stored in 2D/3D numpy arrays of size (bufferSize,ni,nj) where (ni,nj) are the original dimensions of the receiver tree zones (t for mode 2 or tPermeable for mode 3).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Modes 2 and 3 only operates with structured meshes.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fileName</strong> (<em>string</em>) &#8211; name of the probe file</p></li>
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; pyTree containing the flow solution</p></li>
+<li><p><strong>X</strong> (<em>tuple</em><em> of </em><em>3 floats</em><em> (</em><em>x</em><em>,</em><em>y</em><em>,</em><em>z</em><em>)</em>) &#8211; absolute position of a single probe (mode 0 only)</p></li>
+<li><p><strong>ind</strong> (<em>integer</em><em> or </em><em>tuple</em><em> of </em><em>3 integers</em><em> (</em><em>i</em><em>,</em><em>j</em><em>,</em><em>k</em><em>)</em>) &#8211; index of a single probe located in blockName (mode 1 only)</p></li>
+<li><p><strong>blockName</strong> (<em>string</em>) &#8211; name of the block containing the probe index (mode 1 only)</p></li>
+<li><p><strong>tPermeable</strong> (<em>pyTree</em><em>, </em><em>zone</em><em> or </em><em>list</em><em> of </em><em>zones</em>) &#8211; interpolated tree (mode 3 only)</p></li>
+<li><p><strong>fields</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; list of fields to extract (located at the mesh nodes OR the mesh centers)</p></li>
+<li><p><strong>append</strong> (<em>Boolean</em>) &#8211; if True, append result to existing file</p></li>
+<li><p><strong>bufferSize</strong> (<em>int</em>) &#8211; size of internal buffer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>probe instance</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeMode0PT.py">Probe - mode 0 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe mode 0 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a probe using mode 0</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centers:Fx&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:Fy&#39;</span><span class="p">]</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe0.cgns&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">p0</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:Fx} + cos(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:Fx} + sin(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p0</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+
+<span class="c1"># force probe flush</span>
+<span class="n">p0</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeMode1PT.py">Probe - mode 1 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe mode 1 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a probe using mode 1</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centers:Fx&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:Fy&#39;</span><span class="p">]</span>
+<span class="n">p1</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe1.cgns&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">blockName</span><span class="o">=</span><span class="s1">&#39;cart1-1-1&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">p1</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:Fx} + cos(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:Fx} + sin(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p1</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+
+<span class="c1"># force probe flush</span>
+<span class="n">p1</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeMode2PT.py">Probe - mode 2 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe mode 2 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="c1"># test case</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">),</span> <span class="mf">10.</span><span class="p">,</span> <span class="mf">40.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ntype</span><span class="o">=</span><span class="s1">&#39;STRUCT&#39;</span><span class="p">)</span>
+<span class="n">tR</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a probe using mode 2</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centers:Fx&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:Fy&#39;</span><span class="p">]</span>
+<span class="n">p2</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe2.cgns&#39;</span><span class="p">,</span> <span class="n">tR</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">p2</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">T</span><span class="o">.</span><span class="n">_rotate</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="p">(</span><span class="mf">50.</span><span class="p">,</span><span class="mf">50.</span><span class="p">,</span><span class="mf">50.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+    <span class="n">p2</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+
+<span class="c1"># force probe flush</span>
+<span class="n">p2</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeMode3PT.py">Probe - mode 3 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe mode 3 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">),</span> <span class="mf">10.</span><span class="p">,</span> <span class="mf">40.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ntype</span><span class="o">=</span><span class="s1">&#39;STRUCT&#39;</span><span class="p">)</span>
+<span class="n">tR</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span> <span class="c1"># receiver surface tree storing the interpolated flow variable data</span>
+
+<span class="n">tD</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">copyRef</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="c1"># donor tree storing the interpolation data (interpolation coefficients)</span>
+
+<span class="c1"># create a probe using mode 3</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centers:Fx&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:Fy&#39;</span><span class="p">]</span>
+<span class="n">p3</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe3.cgns&#39;</span><span class="p">,</span> <span class="n">tPermeable</span><span class="o">=</span><span class="n">tR</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># compute the interpolation data for probe extraction (mode 3 only)</span>
+<span class="n">tD</span> <span class="o">=</span> <span class="n">p3</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:Fx} + cos(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:Fx} + sin(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">_cpVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">tD</span><span class="p">,</span> <span class="n">varname</span><span class="p">)</span>
+    <span class="n">tD</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">center2Node</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="c1"># donor solution is located at the nodes</span>
+    <span class="n">p3</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+
+<span class="c1"># force probe flush</span>
+<span class="n">p3</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeMode4PT.py">Probe - mode 4 (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe mode 4 (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a probe using mode 4</span>
+<span class="n">p4</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe4.cgns&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;minFx&#39;</span><span class="p">,</span> <span class="s1">&#39;maxFx&#39;</span><span class="p">,</span> <span class="s1">&#39;minFy&#39;</span><span class="p">,</span> <span class="s1">&#39;maxFy&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">p4</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">maxFx</span><span class="p">,</span> <span class="n">minFx</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.e6</span>
+    <span class="n">maxFy</span><span class="p">,</span> <span class="n">minFy</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.e6</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:Fx} + cos(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:Fx} + sin(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="n">Fx</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;Fx&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Fy</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;Fy&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">minFx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minFx</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Fx</span><span class="p">))</span>
+        <span class="n">maxFx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxFx</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">Fx</span><span class="p">))</span>
+        
+        <span class="n">minFy</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minFy</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">Fy</span><span class="p">))</span>
+        <span class="n">maxFy</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxFy</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">Fy</span><span class="p">))</span>
+        
+    <span class="n">p4</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">minFx</span><span class="p">,</span> <span class="n">maxFx</span><span class="p">,</span> <span class="n">minFy</span><span class="p">,</span> <span class="n">maxFy</span><span class="p">])</span>
+
+<span class="c1"># force probe flush</span>
+<span class="n">p4</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<hr class="docutils" />
+<section id="probe-methods">
+<h3>Probe methods</h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe.printInfo">
+<span class="sig-prename descclassname"><span class="pre">Probe.</span></span><span class="sig-name descname"><span class="pre">printInfo</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Post/Probe.html#Probe.printInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p><strong>printInfo</strong> is a method of the Probe class.</p>
+<p>Print all the information about a probe object.</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probePrintInfoPT.py">Print information about a given probe (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe printInfo (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+
+<span class="c1"># create a probe using mode 4</span>
+<span class="n">p4</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe4.cgns&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="s1">&#39;Mach&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># print all relevant information about the p4 probe object</span>
+<span class="n">p4</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe.prepare">
+<span class="sig-prename descclassname"><span class="pre">Probe.</span></span><span class="sig-name descname"><span class="pre">prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Post/Probe.html#Probe.prepare"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p><strong>prepare</strong> is a method of the Probe class.</p>
+<p>Only for mode 3. Prepare the interpolation data for probe extraction from a donor computational tree to a 1D or 2D receiver mesh.</p>
+<p>The arguments are mostly the same as those for Connector.setInterpData2(). Donor tree flow fields must be located at the nodes. Receiver tree flow fields can be located at the nodes (loc=&#8217;nodes&#8217;) or at the centers (loc=&#8217;centers&#8217;).</p>
+<p>If the cellN field (cell nature field) is not found in the donor tree, the function assumes that all cells are computed cells (cellN = 1). Similarly, if the cellN field is not found in the receiver tree, the function assumes that all cells are interpolated cells (cellN = 2).</p>
+<p>extrap options:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: extrapolation is disabled. Extrapolated cells are flagged as orphans.</p></li>
+<li><p><strong>1</strong>: extrapolation is enabled.</p></li>
+</ul>
+<p>nature options:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: candidate donors can be everything but blanked cells (cellN = 0).</p></li>
+<li><p><strong>1</strong>: candidate donors can only be computed cells (cellN = 1).</p></li>
+</ul>
+<p>penalty options:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: all candidates have the same weight.</p></li>
+<li><p><strong>1</strong>: donor cell candidates located at a zone border are penalized against interior cells.</p></li>
+</ul>
+<p>verbose options:</p>
+<ul class="simple">
+<li><p><strong>0</strong>: no information is printed.</p></li>
+<li><p><strong>1</strong>: print only the summary of the interpolation data search.</p></li>
+<li><p><strong>2</strong>: print the summary and indices of the orphan points (if any).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; pyTree containing the flow solution</p></li>
+<li><p><strong>loc</strong> (<em>string</em><em> (</em><em>'centers'</em><em> or </em><em>'nodes'</em><em>)</em>) &#8211; extraction location</p></li>
+<li><p><strong>extrap</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; extrapolation parameter</p></li>
+<li><p><strong>nature</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; donor cell nature parameter</p></li>
+<li><p><strong>penalty</strong> (<em>integer</em><em> (</em><em>0</em><em> or </em><em>1</em><em>)</em>) &#8211; penalization parameter</p></li>
+<li><p><strong>verbose</strong> (<em>integer</em><em> (</em><em>0</em><em>, </em><em>1</em><em>, or </em><em>2</em><em>)</em>) &#8211; print parameter</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probePrepareCenterPT.py">Probe (mode 3) prepare operation for receiver flow fields located at centers (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe prepare - centers (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:F}</span><span class="s1"> = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">box</span><span class="p">((</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.7</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="n">ntype</span><span class="o">=</span><span class="s1">&#39;STRUCT&#39;</span><span class="p">)</span>
+<span class="n">tR</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span> <span class="c1"># receiver surface tree storing the interpolated flow variable data</span>
+
+<span class="n">tD</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">copyRef</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="c1"># donor tree storing the interpolation data (interpolation coefficients)</span>
+
+<span class="c1"># create a probe using mode 3</span>
+<span class="n">p3</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe3.cgns&#39;</span><span class="p">,</span> <span class="n">tPermeable</span><span class="o">=</span><span class="n">tR</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;centers:F&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># compute the interpolation data for probe extraction (mode 3 only)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{cellN}</span><span class="s1"> = 1&#39;</span><span class="p">)</span> <span class="c1"># donor solution is located at the nodes</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;{centers:cellN} = 2&#39;</span><span class="p">)</span>
+<span class="n">tD</span> <span class="o">=</span> <span class="n">p3</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probePrepareNodePT.py">Probe (mode 3) prepare operation for receiver flow fields located at nodes (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe prepare - nodes (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1"> = </span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">box</span><span class="p">((</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.7</span><span class="p">),</span> <span class="mi">6</span><span class="p">,</span> <span class="n">ntype</span><span class="o">=</span><span class="s1">&#39;QUAD&#39;</span><span class="p">)</span>
+<span class="n">tR</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span> <span class="c1"># receiver surface tree storing the interpolated flow variable data</span>
+
+<span class="n">tD</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">copyRef</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="c1"># donor tree storing the interpolation data (interpolation coefficients)</span>
+
+<span class="c1"># create a probe using mode 3</span>
+<span class="n">p3</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe3.cgns&#39;</span><span class="p">,</span> <span class="n">tPermeable</span><span class="o">=</span><span class="n">tR</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># compute the interpolation data for probe extraction (mode 3 only)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{cellN}</span><span class="s1"> = 1&#39;</span><span class="p">)</span> <span class="c1"># donor solution is located at the nodes</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{cellN}</span><span class="s1"> = 2&#39;</span><span class="p">)</span>
+<span class="n">tD</span> <span class="o">=</span> <span class="n">p3</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe.extract">
+<span class="sig-prename descclassname"><span class="pre">Probe.</span></span><span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onlyTransfer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Post/Probe.html#Probe.extract"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p><strong>extract</strong> is a method of the Probe class.</p>
+<p>Extract the probe information (coordinates and field) at a given time from t.</p>
+<p>Flow solution and grid coordinate extractions from the donor tree t are based on the information located in the Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters, and Internal.__FlowSolutionCenters__ containers. Users can modify these container names by editing the constant names in the Internal module. New containers are created each time the local buffer size exceeds the bufferSize limits specified by the user.</p>
+<p>Probe information data is then stored in the following fixed container names: GridCoordinates#i, FlowSolution#i, and FlowSolution#Centers#i, where i is an iterator that is automatically set and handled by the Probe class.</p>
+<p>To extract the receiver tree interpolated data at a given time without stacking the information (coordinates and field) in the probe, set onlyTransfer to True for mode 3. This option is useful when users only want to monitor integral quantities instead of monitoring all solution fields over time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; pyTree containing the flow solution</p></li>
+<li><p><strong>time</strong> (<em>float</em>) &#8211; extraction time</p></li>
+<li><p><strong>value</strong> (<em>list</em><em> of </em><em>floats</em>) &#8211; list of values to be stored in probe (only for mode 4)</p></li>
+<li><p><strong>onlyTransfer</strong> (<em>boolean</em>) &#8211; deactivate information stacking in the probe object (only for mode 3)</p></li>
+</ul>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>for simpler examples of each mode, see the Post.Probe.Probe function definition.</p>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeExtractPT.py">Probe extraction using both mode 3 and mode 4 to monitor integral quantities (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe extract (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">51</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{Density}</span><span class="s1"> = 1.&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{VelocityX}</span><span class="s1"> = </span><span class="si">{CoordinateX}</span><span class="s1">-1&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{VelocityY}</span><span class="s1"> = </span><span class="si">{CoordinateY}</span><span class="s1">-1&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{VelocityZ}</span><span class="s1"> = </span><span class="si">{CoordinateZ}</span><span class="s1">-1&#39;</span><span class="p">)</span>
+
+<span class="n">b1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">));</span> <span class="n">b1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;upstream&#39;</span>
+<span class="n">b2</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">));</span> <span class="n">b2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;downstream&#39;</span>
+<span class="n">tR</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">b1</span><span class="p">,</span><span class="n">b2</span><span class="p">]])</span>
+<span class="n">G</span><span class="o">.</span><span class="n">_getSmoothNormalMap</span><span class="p">(</span><span class="n">tR</span><span class="p">)</span>
+
+<span class="n">tD</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">copyRef</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="c1"># create a first probe using mode 3</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="s1">&#39;VelocityX&#39;</span><span class="p">,</span> <span class="s1">&#39;VelocityY&#39;</span><span class="p">,</span> <span class="s1">&#39;VelocityZ&#39;</span><span class="p">]</span>
+<span class="n">p3</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe3.cgns&#39;</span><span class="p">,</span> <span class="n">tPermeable</span><span class="o">=</span><span class="n">tR</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">tD</span> <span class="o">=</span> <span class="n">p3</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a second probe using mode 4</span>
+<span class="n">p4</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe4.cgns&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;massflow_upstream&#39;</span><span class="p">,</span> <span class="s1">&#39;massflow_downstream&#39;</span><span class="p">],</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># extract flow information on the receiver surface tree</span>
+<span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span> <span class="n">C</span><span class="o">.</span><span class="n">_cpVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">varname</span> <span class="p">,</span> <span class="n">tD</span><span class="p">,</span> <span class="n">varname</span><span class="p">)</span>
+<span class="n">p3</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">tD</span><span class="p">,</span> <span class="n">onlyTransfer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># tR interpolated data are now updated: integral quantities can be computed on each surface</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{massflow}</span><span class="s1">=</span><span class="si">{Density}</span><span class="s1">*(</span><span class="si">{sx}</span><span class="s1">*</span><span class="si">{VelocityX}</span><span class="s1">+</span><span class="si">{sy}</span><span class="s1">*</span><span class="si">{VelocityY}</span><span class="s1">+</span><span class="si">{sz}</span><span class="s1">*</span><span class="si">{VelocityZ}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+<span class="n">z_upstream</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;upstream&#39;</span><span class="p">)</span>
+<span class="n">massflow_upstream</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">integ</span><span class="p">(</span><span class="n">z_upstream</span><span class="p">,</span> <span class="s1">&#39;massflow&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">z_downstream</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">tR</span><span class="p">,</span> <span class="s1">&#39;downstream&#39;</span><span class="p">)</span>
+<span class="n">massflow_downstream</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">integ</span><span class="p">(</span><span class="n">z_downstream</span><span class="p">,</span> <span class="s1">&#39;massflow&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># store data information in the p4 probe using single integrated values</span>
+<span class="n">p4</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">massflow_upstream</span><span class="p">,</span> <span class="n">massflow_downstream</span><span class="p">])</span>
+
+<span class="n">p4</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe.flush">
+<span class="sig-prename descclassname"><span class="pre">Probe.</span></span><span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Post/Probe.html#Probe.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p><strong>flush</strong> is a method of the Probe class.</p>
+<p>Force buffered data to be written in the associated probe file before reaching the user input bufferSize limit.</p>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeFlushPT.py">Flush unsaved probe data to disk. (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe flush (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+
+<span class="c1"># create a probe using mode 4</span>
+<span class="n">p4</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe4.cgns&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="s1">&#39;Mach&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
+    <span class="n">p4</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">i</span><span class="o">*</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">*</span><span class="mi">10</span><span class="p">])</span> 
+    <span class="c1"># p4 will automatically flushed itself when reaching the buffer size limit (100)</span>
+
+<span class="c1"># flush current buffered data to disk to save last extractions</span>
+<span class="n">p4</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Post.Probe.Probe.read">
+<span class="sig-prename descclassname"><span class="pre">Probe.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probeName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Post/Probe.html#Probe.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Read the data stored in the probe file and return either a zone or a list of zones.</p>
+<p>The Probe object must already be instantiated with the desired probe file name. Otherwise, use Post.Probe.Probe(fileName) to create a new probe object from an existing probe file for reading purposes only.</p>
+<p>Can be used in two ways:</p>
+<ul class="simple">
+<li><p><strong>extract all points</strong>: if cont is provided, this function extracts all data from the given time container.</p></li>
+<li><p><strong>extract all times</strong>: if ind and probeName are provided, this function now extracts the given index value(s) of the given zone at all times.</p></li>
+</ul>
+<p>If ind is provided but probeName is not, the function will automatically selects the first zone in the probe.</p>
+<p>When extracting all points, the output is a list of zones. Each zone corresponds to a probe zone at a single time included in the loaded container.</p>
+<p>When extracting all times, the output is a single zone. This zone contains numpy arrays of size (ntime,npoints) depending on the number of point indices provided.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For modes 0, 1, and 4, probes consist of only one zone named &#8216;probe&#8217;. For modes 2 and 3, probes contain the same number of zones as the original tree (t for mode 2 or tPermeable for mode 3).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cont</strong> (<em>integer</em>) &#8211; time container number</p></li>
+<li><p><strong>ind</strong> (<em>integer</em><em>, </em><em>tuple</em><em> of </em><em>3 integers</em><em> (</em><em>i</em><em>,</em><em>j</em><em>,</em><em>k</em><em>)</em><em>, </em><em>list</em><em> of </em><em>integers</em><em>, or </em><em>list</em><em> of </em><em>tuples</em><em> of </em><em>3 integers</em><em> [</em><em>(</em><em>i1</em><em>,</em><em>j1</em><em>,</em><em>k1</em><em>)</em><em>, </em><em>(</em><em>i2</em><em>,</em><em>j2</em><em>,</em><em>k2</em><em>)</em><em>, </em><em>...</em><em>]</em>) &#8211; index (or indices) of probe point(s) located in probeName</p></li>
+<li><p><strong>probeName</strong> (<em>string</em><em> or </em><em>int</em>) &#8211; only used when ind is provided. Name or number of the probe zone to extract</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>zone or list of zones</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/probeReadPT.py">Read data from probe file. (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe read (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># test case</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:CoordinateX}&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:CoordinateY}&#39;</span><span class="p">)</span>
+
+<span class="c1"># create a probe using mode 1</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centers:Fx&#39;</span><span class="p">,</span> <span class="s1">&#39;centers:Fy&#39;</span><span class="p">]</span>
+<span class="n">p1</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe1.cgns&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span> <span class="n">blockName</span><span class="o">=</span><span class="s1">&#39;cart1-1-1&#39;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bufferSize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">p1</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
+
+<span class="c1"># extract probe information over time</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">210</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fx} = {centers:Fx} + cos(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:Fy} = {centers:Fx} + sin(</span><span class="si">%f</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p1</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
+
+<span class="c1"># flush current buffered data to disk to save last extractions</span>
+<span class="n">p1</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+<span class="c1"># reread probe from file (not necessary here as the probe object p1 is already loaded)</span>
+<span class="n">p1</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe1.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># extract all points</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">cont</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># get all the information located in the first container</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="c1"># list of 100 zones named &#39;probe@it&#39; where &#39;it&#39; goes from 0 to 99 (bufferSize-1)</span>
+
+<span class="c1"># extract all times</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">ind</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">probeName</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># get all the information over time of the first point of the first probe zone</span>
+<span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="c1"># mono zone with numpy arrays of size 210</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+</section>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="Post.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Post.Probe: Probe extraction</a><ul>
+<li><a class="reference internal" href="#list-of-functions">List of functions</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script><a  href="Probe.pdf" target="_self">Download pdf version</a>
+<p></p>
+<head>
+<style>
+#myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #282a35;
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+#myBtn:hover {
+  background-color: rgb(26,85,85);
+}
+
+#myImg:hover {
+  opacity: 50%;
+}
+
+</style>
+</head>
+
+<button onclick="topFunction()" id="myBtn" title="Go to top"><img src="./_static/icon.png" width="20" height="20"></button>
+
+<script>
+const targetDiv = document.getElementsByClassName('sphinxsidebarwrapper')[0];
+
+const link = document.createElement('a');
+link.href = "../index.html";
+
+const newImage = document.createElement('img');
+newImage.src = '../Images/CassiopeeLogo.png';
+newImage.id = 'myImg';
+newImage.style.width = '80%';
+newImage.style.height = 'auto';
+newImage.style.border = 'none';
+newImage.style.borderRadius = '0px';
+newImage.style.marginLeft = '18px';
+newImage.style.marginBottom = '50px';
+
+// Append the image to the div
+link.appendChild(newImage);
+targetDiv.prepend(link);
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = scrollFunction;
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+
+// When the window is too small, hide the sidebar
+window.onresize = resizeFunction;
+window.onload = resizeFunction;
+function resizeFunction() {
+  var bodyWidth = document.bodyWidth;
+  if (window.outerWidth < 1000) {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "hidden";
+        document.getElementById("myBtn").style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "-170px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "135%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "30px";
+    } else {
+        document.getElementsByClassName("sphinxsidebar")[0].style.visibility = "visible";
+        document.getElementsByClassName("body")[0].style.marginLeft = "130px";
+        document.getElementsByClassName("body")[0].style.maxWidth = "80%";
+        document.getElementsByClassName("body")[0].style.paddingLeft = "0px";
+    }
+}
+
+</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="Post.html">Post 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Post.Probe: Probe extraction</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>

@@ -82,12 +82,22 @@ List of functions
    Generator.PyTree.cartRx
    Generator.PyTree.cartRx3
 
+**-- Hierarchical mesh adaptation**
+
+.. autosummary::
+   :nosignatures:   
+   
+   Generator.PyTree.adaptMesh
+   Generator.PyTree.createHook4AdaptMesh
+   Generator.PyTree.freeHook4AdaptMesh
+
 **-- Operations on meshes**
 
 .. autosummary::
    :nosignatures:
 
    Generator.close
+   Generator.rmOrphans
    Generator.zip
    Generator.selectInsideElts
    Generator.map
@@ -135,7 +145,7 @@ List of functions
    Generator.getCircumCircleMap
    Generator.getInCircleMap
    Generator.getEdgeRatio
-   Generator.getMaxLength
+   Generator.getEdgeLength
    Generator.checkMesh
 
 **-- Operations on distributions**
@@ -1199,6 +1209,76 @@ Cartesian grid generators
 
     .. literalinclude:: ../build/Examples/Generator/cartRx3PT.py
 
+---------------------------------------
+
+Hierarchical mesh adaptation
+-----------------------
+
+.. py:function:: Generator.PyTree.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
+
+    Hierarchical mesh adaptation of a conformal mesh defined by an HEXA or a NGON (6 faces) zone according to a refinement indicator.
+    The zone a can be distributed in MPI, in that case splitInfos must be provided.    
+    splitInfos is a dictionary of comms between partitions, global indices of cells and faces.
+    They can be extracted from Converter.Filter2.loadAndSplit, e.g.:
+    a, res = Filter2.loadAndSplit('mesh.cgns')
+    splitInfos["graph"]=res[1]
+    splitInfos["cellGlobalIndex"]=res[5]
+    splitInfos["faceGlobalIndex"]=res[6]
+
+    :param a: zone to adapt 
+    :type  a: zone
+    :param indicator: name of the refinement indicator, located at cell centers
+    :type  indicator: string
+    :param dim: dimension of the problem
+    :type  dim: integer (2 or 3)
+    :param hook: hook of the hierarchical data structure
+    :type  hook: pointer or None
+    :param conformize: if True, a NGON conformal mesh is returned
+    :type  conformize: Boolean
+    :param splitInfos: dictionary of infos for parallel mode.
+    :type  splitInfos: dictionary
+    :return: adapted mesh (NGON or HEXA)
+    :rtype: zone
+
+    *Example of use:*
+
+    * `Hierarchical mesh adaptation of an HEXA mesh (pyTree) <Examples/Generator/adaptMeshPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/adaptMeshPT.py
+
+.. py:function:: Generator.PyTree.createHook4AdaptMesh(a, dim=3, splitInfos=None)
+
+    Create the hierarchical data structure from an initial conformal mesh (structured, HEXA or NGON).
+    splitInfos is required in parallel MPI mode (see adaptMesh doc).
+    In the in-place version, a is modified to a NGON v3 conformal mesh.
+
+    :param a: zone to adapt 
+    :type  a: zone
+    :param dim: dimension of the problem
+    :type  dim: integer (2 or 3)
+    :param splitInfos: dictionary of infos for parallel mode.
+    :type  splitInfos: dictionary
+    :return: Initial data structure for hierarchical mesh adaptation
+    :rtype: pointer on the C data structure
+
+    *Example of use:*
+
+    * `Initial data structure for hierarchical mesh adaptation of an HEXA mesh (pyTree) <Examples/Generator/createHook4AdaptMeshPTPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/createHook4AdaptMeshPT.py
+
+.. py:function:: Generator.PyTree.freeHook4AdaptMesh(hook)
+
+    Release the memory of the hierarchical data structure.
+    :param hook: 
+    :type  a: hierarchical mesh adaptation data structure
+    :return: None
+
+    *Example of use:*
+
+    * `Delete the C data structure for hierarchical mesh adaptation <Examples/Generator/freeHook4AdaptMeshPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/freeHook4AdaptMeshPT.py
 
 ---------------------------------------------------------------------------
 
@@ -1231,7 +1311,7 @@ Operations on meshes
     :type rmDegeneratedElts: boolean
     :param indices: vertex indirection table following mesh cleaning
     :type indices: [array, list of arrays]
-    :return: modified reference copy of t
+    :return: modified reference copy of a
     :rtype: array or pyTree
 
     *Example of use:*
@@ -1243,7 +1323,26 @@ Operations on meshes
     * `Mesh closing (pyTree) <Examples/Generator/closePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Generator/closePT.py
-        
+
+---------------------------------------
+
+.. py:function:: Generator.rmOrphans(a)
+
+    Remove orphan vertices from an unstructured mesh defined by array a.
+    
+    Exists also as in place version (_rmOrphans) that modifies a and returns None. 
+
+    :param a:  input mesh
+    :type  a:  array or pyTree
+    :return: modified reference copy of a
+    :rtype: array or pyTree
+
+    *Example of use:*
+
+    * `Mesh closing (pyTree) <Examples/Generator/rmOrphansPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/rmOrphansPT.py
+
 ---------------------------------------
 
 .. py:function:: Generator.zip(a, tol=1.e-12)
@@ -1894,7 +1993,7 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.getVolumeMap(a, method=0, tol=1e-12)
+.. py:function:: Generator.getVolumeMap(a, method=0)
 
     Return the volume field of an array. Volume is located at centers of cells. 
     
@@ -1904,8 +2003,6 @@ Information on generated meshes
     :type  a:  array or pyTree
     :param method: method of volumes computation (0 or 1). method = 1 is usually more robust on NGons
     :type method: int
-    :param tol: tolerance used within internal routines when method = 1
-    :type tol: float
     :return: modified reference copy of a
     :rtype: array or pyTree
 
@@ -2162,26 +2259,30 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.getMaxLength(a)
+.. py:function:: Generator.getEdgeLength(a, type=0, dim=3)
 
-    Return the length of the longer edge of each cell. 
+    Return the length of the max, min, ratio, mean of edges for each cell. 
     
-    Exists also as in place version (_getMaxLength) that modifies a and returns None. 
+    Exists also as in place version (_getEdgeLength) that modifies a and returns None. 
 
-    :param a:  input mesh
-    :type  a:  array or pyTree
+    :param a: input mesh
+    :type  a: array or pyTree
+    :param type: max (0), min (1), ratio (2), mean (3) of edge length of cell
+    :type  type: int
+    :param dim: problem dimension
+    :type dim: 1, 2, 3
     :return: modified reference copy of a
     :rtype: array or pyTree
 
     *Example of use:*
 
-    * `Computation of maximum edge length of cells (array) <Examples/Generator/getMaxLength.py>`_:
+    * `Computation of maximum edge length of cells (array) <Examples/Generator/getEdgeLength.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getMaxLength.py
+    .. literalinclude:: ../build/Examples/Generator/getEdgeLength.py
 
-    * `Computation of maximum edge length of cells (pyTree) <Examples/Generator/getMaxLengthPT.py>`_:
+    * `Computation of maximum edge length of cells (pyTree) <Examples/Generator/getEdgeLengthPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getMaxLengthPT.py
+    .. literalinclude:: ../build/Examples/Generator/getEdgeLengthPT.py
     
 
 ---------------------------------------

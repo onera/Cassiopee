@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -87,7 +87,7 @@ namespace NUGA
         meshes[i]->cnt.PGs._type.resize(npgs);
         for (E_Int k = 0; k < npgs; ++k)
         {
-          int nnodes = meshes[i]->cnt.PGs.stride(k);
+          E_Int nnodes = meshes[i]->cnt.PGs.stride(k);
           meshes[i]->cnt.PGs._type[k] = nnodes;
         }
       }
@@ -123,7 +123,7 @@ namespace NUGA
       //no reduction mode #pragma omp parallel for if(PARA == COARSE_OMP)          
       for (E_Int i = 0; i < NBZ; ++i)
       {
-        int zid = zids[i];
+        E_Int zid = zids[i];
         mesh_t& mesh = *meshes[i];
         auto& crd = mesh.crd;
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,7 +38,7 @@ namespace DELAUNAY
       ANISO    ///< both local principal curvature radii are used to compute the metric.
     };
 
-    typedef  VarMetric<T>     parent_type;
+    typedef  VarMetric<T>  parent_type;
     typedef  NUGA::size_type  size_type;
 
   public:
@@ -55,7 +55,8 @@ namespace DELAUNAY
                E_Float chordal_error, E_Float hmin, E_Float hmax, E_Float gr)
       : parent_type (pos, hmin, hmax), _mode(mode), _surface(surface),
       _h0(NUGA::FLOAT_MAX), _chordal_error(chordal_error),
-      _alpha2(4. * chordal_error*(2. - chordal_error)), _gr(gr), _unbounded_h(false)  
+      _alpha2(4. * chordal_error*(2. - chordal_error)), 
+      _gr(gr), _unbounded_h(false)  
     {}
     
     void set_pos2D(const K_FLD::FloatArray& pos2D){_pos2D = &pos2D;}
@@ -78,13 +79,13 @@ namespace DELAUNAY
     void __computeMetric(size_type N, K_FLD::FloatArray& Mout, E_Float hmax2);
 
   private:
-    GMmode             _mode;
+    GMmode _mode;
     const SurfaceType& _surface;
-    E_Float            _hmax2;
-    E_Float            _h0;
-    E_Float            _chordal_error;
-    E_Float            _alpha2;
-    E_Float            _gr;
+    E_Float _hmax2;
+    E_Float _h0;
+    E_Float _chordal_error;
+    E_Float _alpha2;
+    E_Float _gr;
     const K_FLD::FloatArray* _pos2D; //hack to avoid to pass a dummy argument for Metric::init_metric as pos2D is only required for GeomMetric
     
     //T _boundary_metric_max;
@@ -94,8 +95,7 @@ namespace DELAUNAY
 
   ///
   template <typename T, typename SurfaceType>
-  void
-  GeomMetric<T, SurfaceType>::init_metric
+  void GeomMetric<T, SurfaceType>::init_metric
   (const K_FLD::FloatArray& metric, K_FLD::FloatArray& pos3D, const K_FLD::IntArray& connectB,
    const std::vector<E_Int>& hard_nodes)
   {
@@ -104,12 +104,12 @@ namespace DELAUNAY
     connectB.uniqueVals(BNodes);
     E_Int maxID = *std::max_element(ALL(BNodes));
     if (!hard_nodes.empty())
-      maxID = std::max(maxID, *std::max_element(ALL(hard_nodes)));
+      maxID = K_FUNC::E_max(maxID, *std::max_element(ALL(hard_nodes)));
 
     T m; // invalid by default
     parent_type::_field.resize(parent_type::_pos->cols(), m);
 
-    E_Int max = std::min(maxID+1, metric.cols());
+    E_Int max = K_FUNC::E_min(maxID+1, metric.cols());
 
     // Set the input metric
     if (metric.rows() >= 3)
@@ -135,17 +135,17 @@ namespace DELAUNAY
        _unbounded_h = true;
      }
      if ((parent_type::_hmin <= 0.) || (parent_type::_hmin > parent_type::_hmax) || (parent_type::_hmin == NUGA::FLOAT_MAX) )
-       parent_type::_hmin = std::min(hmin1, parent_type::_hmax);
+       parent_type::_hmin = K_FUNC::E_min(hmin1, parent_type::_hmax);
  
      if (parent_type::_hmax < hmax1)
      {
        for (size_t i=0; i < m_iso.size(); ++i)
-         m_iso[i] = std::min(m_iso[i], parent_type::_hmax);
+         m_iso[i] = K_FUNC::E_min(m_iso[i], parent_type::_hmax);
      }
      if (parent_type::_hmin > hmin1)
      {
        for (size_t i=0; i < m_iso.size(); ++i)
-         m_iso[i] = std::max(m_iso[i], parent_type::_hmin);
+         m_iso[i] = K_FUNC::E_max(m_iso[i], parent_type::_hmin);
      }
      
     _hmax2 = (parent_type::_hmax != NUGA::FLOAT_MAX) ? parent_type::_hmax * parent_type::_hmax : NUGA::FLOAT_MAX; //fixme : important to be done before __update_boundary_metric_with_surface
@@ -185,14 +185,14 @@ namespace DELAUNAY
 //    const K_FLD::FloatArray &crd = *_pos2D;
 //    for (E_Int i=0; i < nbe; ++i)
 //    {
-//      E_Float du = ::fabs(crd(0,connectB(0,i)) - crd(0,connectB(1,i)));
-//      E_Float dv = ::fabs(crd(1,connectB(0,i)) - crd(1,connectB(1,i)));
+//      E_Float du = fabs(crd(0,connectB(0,i)) - crd(0,connectB(1,i)));
+//      E_Float dv = fabs(crd(1,connectB(0,i)) - crd(1,connectB(1,i)));
 //      
-//      hu_max = std::max(hu_max, du);
-//      hv_max = std::max(hv_max, dv);
+//      hu_max = K_FUNC::E_max(hu_max, du);
+//      hv_max = K_FUNC::E_max(hv_max, dv);
 //    }
 //    
-////    E_Float huvmax = std::max(hu_max, hv_max);
+////    E_Float huvmax = K_FUNC::E_max(hu_max, hv_max);
 ////
 ////    _boundary_metric_max[1] = 0.;
 //    _humax2 = hu_max*hu_max;
@@ -202,8 +202,8 @@ namespace DELAUNAY
 //    
 //    for (size_t Ni = 0; Ni < parent_type::_field.size(); ++Ni)
 //    {
-//      parent_type::_field[Ni][0] = std::max(parent_type::_field[Ni][0], mu_min);
-//      parent_type::_field[Ni][2] = std::max(parent_type::_field[Ni][2], mv_min);
+//      parent_type::_field[Ni][0] = K_FUNC::E_max(parent_type::_field[Ni][0], mu_min);
+//      parent_type::_field[Ni][2] = K_FUNC::E_max(parent_type::_field[Ni][2], mv_min);
 //    }
 //    
 //#ifdef DEBUG_METRIC
@@ -293,7 +293,7 @@ namespace DELAUNAY
     NUGA::crossProduct<3> (dU1, dV1, n); // Normal to the tangential plane.
     E_Float ln = NUGA::normalize<3>(n);
     
-    bool singular = (::fabs(ln) < EPSILON); //undefined plane : dU1 and dV2 are colinear !
+    bool singular = (fabs(ln) < EPSILON); //undefined plane : dU1 and dV2 are colinear !
 
     if (!singular)
     {
@@ -320,16 +320,16 @@ namespace DELAUNAY
     M = NUGA::dot<3>(n, dUV);
     N = NUGA::dot<3>(n, dV2);
 
-    bool locally_iso = ((::fabs((F*L)-(E*M)) < EPSILON) && 
-                        (::fabs((G*L)-(E*N)) < EPSILON) && 
-                        (::fabs((G*M)-(F*N)) < EPSILON));
+    bool locally_iso = ((fabs((F*L)-(E*M)) < EPSILON) && 
+                        (fabs((G*L)-(E*N)) < EPSILON) && 
+                        (fabs((G*M)-(F*N)) < EPSILON));
 
     if (locally_iso)
     {
       E_Float R2 = E/L; // pourquoi cette valeur ? 
-      R2 *= R2;
-      E_Float h2 = std::min(hmax2, _alpha2*R2); // alpha2 prend en compte hausd
-      h2 = std::max(h2, hmin2); //fixme!!
+      E_Float h2 = K_FUNC::E_min(hmax2, (2.*K_FUNC::E_abs(R2)-_chordal_error)*4.*_chordal_error); // alpha2 prend en compte hausd
+      //printf("in: rho=%g, hmin=%g, hmax=%g\n", R2, sqrt(hmin2), sqrt(hmax2));
+      h2 = K_FUNC::E_max(h2, hmin2);
       h2 = 1./h2;
 
       Mout(0,0) = E*h2;
@@ -379,8 +379,9 @@ namespace DELAUNAY
 
     if (_mode == ISO_RHO) // use min curvature in all directions + impose hmin
     {
-      E_Float h2 = std::min(hmax2, _alpha2*rho1_2);
-      h2 = std::max(h2, hmin2);
+      E_Float h2 = K_FUNC::E_min(hmax2, (2.*K_FUNC::E_abs(rho1)-_chordal_error)*4.*_chordal_error);
+      
+      h2 = K_FUNC::E_max(h2, hmin2);
       h2 = 1./h2;
 
       Mout(0,0) = E*h2;
@@ -404,21 +405,23 @@ namespace DELAUNAY
 
     E_Float rho2_2 = rho2 * rho2; // plus grand rayon de courbure
 
-    rho1_2 = std::min(hmax2/_alpha2, rho1_2); // impose hmax et hmin
-    rho2_2 = std::min(hmax2/_alpha2, rho2_2);
-    rho1_2 = std::max(hmin2/_alpha2, rho1_2); //fixme
-    rho2_2 = std::max(hmin2/_alpha2, rho2_2); //fixme
-
-    E_Float q = 1. - ::sqrt(rho1_2/rho2_2);
+    E_Float rhol = (hmax2+4.*_chordal_error*_chordal_error)/(8.*_chordal_error);
+    rho1_2 = K_FUNC::E_min(rhol*rhol, rho1_2);
+    rho2_2 = K_FUNC::E_min(rhol*rhol, rho2_2);
+    rhol = (hmin2+4.*_chordal_error*_chordal_error)/(8.*_chordal_error);
+    rho1_2 = K_FUNC::E_max(rhol*rhol, rho1_2);
+    rho2_2 = K_FUNC::E_max(rhol*rhol, rho2_2);
+    
+    E_Float q = 1. - sqrt(rho1_2/rho2_2);
     E_Float rho2_2c = rho2_2*(1.-q*q); // reduce the largest according to q
 
-    E_Float h1_2 = _alpha2*rho1_2;
-    E_Float h2_2 = _alpha2*rho2_2c;
+    E_Float h1_2 = (2.*rho1-_chordal_error)*4.*_chordal_error;
+    E_Float h2_2 = (2.*sqrt(rho2_2c)-_chordal_error)*4.*_chordal_error;
 
     // Use an interpolation for the third metric
     //  E_Float k = 0.;
-    //  E_Float maxh = std::max(h1_2, h2_2);
-    E_Float minh = std::min(h1_2, h2_2);
+    //  E_Float maxh = K_FUNC::E_max(h1_2, h2_2);
+    E_Float minh = K_FUNC::E_min(h1_2, h2_2);
     E_Float h3_2 = minh;//(((1.-k)*minh) + (k * maxh));
 
     K_FLD::FloatArray Base(3,3, 0.);
@@ -574,8 +577,8 @@ namespace DELAUNAY
     
     E_Float P0[2], P1[2];
     
-    E_Float h0 = ::sqrt(1./lambda0);
-    E_Float h1 = ::sqrt(1./lambda1);
+    E_Float h0 = sqrt(1./lambda0);
+    E_Float h1 = sqrt(1./lambda1);
     //E_Float Pix = parent_type::_pos(0,Ni);
     //E_Float Piy = parent_type::_pos(1,Ni);
 
@@ -621,7 +624,7 @@ namespace DELAUNAY
 
     if (k02 <= 1. && k12 <= 1.) return; //smaller than hmax
     
-    E_Float KMAX2 = (1. + ::sqrt(2.));
+    E_Float KMAX2 = (1. + sqrt(2.));
     KMAX2 *= KMAX2;
         
     if (k02 > 1.1 && k02 < KMAX2) D(0,0) *= k02;

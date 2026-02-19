@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,6 +30,8 @@ void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
     E_Int fid = loc.fid;
     assert(fid != -1);
 
+    // TODO(Imad): e_idx is no good!!!!
+
     if (loc.e_idx != -1) {
         assert(loc.v_idx == -1);
         const auto &pe = F2E[fid];
@@ -40,22 +42,30 @@ void Smesh::get_shared_faces(const PointLoc &loc, std::vector<E_Int> &ret,
         // O could be on a boundary edge
         if (pf[1] != -1) ret.push_back(pf[1]);
     }
-    else if (loc.v_idx != -1) {
+    else if (loc.v_idx != -1) 
+    {
         assert(loc.e_idx == -1);
         const auto &pn = Fc[fid];
         pid = pn[loc.v_idx];
         const auto &pf = P2F[pid];
         // For consistency
+#ifndef NDEBUG
         bool found_fid = false;
-        for (auto face : pf) {
+#endif
+        for (auto face : pf) 
+        {
             ret.push_back(face);
-            if (face == fid) {
+#ifndef NDEBUG
+            if (face == fid)
+            {
                 found_fid = true;
             }
+#endif
         }
         assert(found_fid == true);
     }
-    else {
+    else 
+    {
         ret.push_back(fid);
     }
 }
@@ -127,8 +137,9 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
     if (cmp < 0) std::reverse(pchain.begin(), pchain.end());
     */
 
-    //for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
     //Sf.write_points("pchain.im", pchain);
+
+    for (E_Int p : pchain) pchains.push_back({Sf.X[p], Sf.Y[p], Sf.Z[p]});
 
     std::set<E_Int> wfids;
     std::set<E_Int> weids;
@@ -140,10 +151,8 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
         E_Float px = Sf.X[p], py = Sf.Y[p], pz = Sf.Z[p];
         E_Float qx = Sf.X[q], qy = Sf.Y[q], qz = Sf.Z[q];
 
-        std::set<E_Int> lfids;
-
-        //point_write("p.im", px, py, pz);
-        //point_write("q.im", qx, qy, qz);
+        //point_write("p", px, py, pz);
+        //point_write("q", qx, qy, qz);
 
         E_Float D[3] = {qx-px, qy-py, qz-pz};
         E_Float NORM = K_MATH::norm(D, 3);
@@ -154,11 +163,10 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
 
         E_Int last_vertex = -1, last_edge = -1, dummy;
 
-        get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge);
+        get_shared_faces(plocs[p], orig_faces, last_vertex, last_edge); 
         get_shared_faces(plocs[q], tail_faces, dummy, dummy);
 
-        //write_ngon("orig_faces.im", orig_faces);
-        //write_ngon("tail_faces.im", tail_faces);
+        //write_ngon("shared", orig_faces);
 
         E_Int starting_face = deduce_face(orig_faces, px, py, pz,
             D, last_vertex, last_edge, dummy);
@@ -174,9 +182,8 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
         while (!found_tail && walk <= max_walks) {
             
             wfids.insert(cur_fid);
-            lfids.insert(cur_fid);
 
-            //write_face("cur_fid.im", cur_fid);
+            //write_face("cur_fid", cur_fid);
 
             E_Float proj[3];
             get_unit_projected_direction(cur_fid, D, proj);
@@ -199,7 +206,7 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
                 }
             }
 
-            //write_edges("wall.im", weids);
+            //write_edges("wall", weids);
 
             for (auto fid : tail_faces) {
                 if (fid == cur_fid) {
@@ -236,7 +243,8 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
                 );
 
                 if (hit) {
-                    if (s > TOL && s < 1 - TOL) {
+                    if (s > TOL && s < 1 - TOL) 
+                    {
                         const auto &pe = F2E[cur_fid];
                         E_Int eid = pe[i];
                         last_edge = eid;
@@ -248,9 +256,13 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
                         next_pos[0] = cur_pos[0] + t * proj[0];
                         next_pos[1] = cur_pos[1] + t * proj[1];
                         next_pos[2] = cur_pos[2] + t * proj[2];
-                    } else {
+                    } 
+                    else 
+                    {
                         bool hit_p = (s <= TOL);
+                        #ifndef NDEBUG
                         bool hit_q = (s >= 1 - TOL);
+                        #endif
                         assert(!(hit_p && hit_q));
                         last_edge = -1;
                         if (hit_p) last_vertex = p;
@@ -275,15 +287,6 @@ std::set<E_Int> Smesh::extract_covering_faces(const Smesh &Sf,
             cur_pos[1] = next_pos[1];
             cur_pos[2] = next_pos[2];
             walk++;
-        }
-
-        if (!found_tail) {
-            fprintf(stderr, "Couldn't reach the tail!\n");
-            point_write("orig.im", px, py, pz);
-            point_write("tail.im", qx, qy, qz);
-            write_ngon("orig_faces.im", orig_faces);
-            write_ngon("tail_faces.im", tail_faces);
-            write_ngon("traversed_fids.im", lfids);
         }
 
         assert(found_tail);

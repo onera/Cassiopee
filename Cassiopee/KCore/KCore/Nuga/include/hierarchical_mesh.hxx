@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -389,7 +389,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::extract_enabled_phs(ngon_type& filt
     if (_PHtree.is_enabled(i) == true)
     {
       const E_Int* p = _ng.PHs.get_facets_ptr(i);
-      int s = _ng.PHs.stride(i);
+      E_Int s = _ng.PHs.stride(i);
       filtered_ng.PHs.add(s,p);//alexis : set _type for children ??
     }
   }
@@ -506,7 +506,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_higher_level_neighbours
   const E_Int* children = _PGtree.children(PGi);
   E_Int nb_children = _PGtree.nb_children(PGi);
   
-  for (int i = 0; i < nb_children; ++i)
+  for (E_Int i = 0; i < nb_children; ++i)
   {
     E_Int PH = (_F2E(0,PGi) == PHi) ? _F2E(1,children[i]) : _F2E(0,children[i]);
     neighbours[nb_neighbours++] = PH;
@@ -526,7 +526,7 @@ void hierarchical_mesh<ELT_t, STYPE, ngo_t>::get_enabled_neighbours
 #ifdef DEBUG_HIERARCHICAL_MESH
   assert (nb_neighbours == 0);
 #endif
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
   {
     E_Int PGi = p[i] - 1;
       
@@ -1023,7 +1023,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
         K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PHj), _ng.PHs.stride(PHj), v, true);
 
         for (size_t f = 0; f < nbf; ++f)
-          new_fields[f][nfid[pid]] += cfields[f][i] * ::fabs(v); // accumulate mass
+          new_fields[f][nfid[pid]] += cfields[f][i] * fabs(v); // accumulate mass
 
         to_agglo[nfid[pid]] = true;
 
@@ -1041,7 +1041,7 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
     E_Float v;
     K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(_crd, _ng.PGs, _ng.PHs.get_facets_ptr(PH), _ng.PHs.stride(PH), v, true);
 
-    if (::fabs(v) < ZERO_M) continue;
+    if (fabs(v) < ZERO_M) continue;
 
     for (size_t f = 0; f < nbf; ++f)
       new_fields[f][i] /= v;
@@ -1128,14 +1128,14 @@ E_Int hierarchical_mesh<ELT_t, STYPE, ngo_t>::project_cell_center_sol_order1
         K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd_don, ng_don.PGs, ng_don.PHs.get_facets_ptr(src), ng_don.PHs.stride(src), v, true);
 
         for (size_t f = 0; f < nbf; ++f)
-          new_fields[f][i] += cfields[f][src] * ::fabs(v); // accumulate mass
+          new_fields[f][i] += cfields[f][src] * fabs(v); // accumulate mass
       }
 
       // now divide by receiver volume
       E_Float v;
       K_MESH::Polyhedron<0>::volume<DELAUNAY::Triangulator>(crd_rec, ng_rec.PGs, ng_rec.PHs.get_facets_ptr(i), _ng.PHs.stride(i), v, true);
 
-      if (::fabs(v) < ZERO_M) continue;
+      if (fabs(v) < ZERO_M) continue;
 
       for (size_t f = 0; f < nbf; ++f)
         new_fields[f][i] /= v;

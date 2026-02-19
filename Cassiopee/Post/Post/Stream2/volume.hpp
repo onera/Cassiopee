@@ -77,7 +77,7 @@ namespace K_POST {
  * @param p4 Quatrième sommet du tétraèdre 
  * @return Retourne le volume du tétraèdre 
  */
-double compute_volume_tetrahedra( const point3d &p1, const point3d &p2, const point3d &p3, const point3d &p4 );
+E_Float compute_volume_tetrahedra( const point3d &p1, const point3d &p2, const point3d &p3, const point3d &p4 );
 
 /**
  * @brief Calcule le volume d'une pyramide courbe (considéré ici comme un polytope et non un polyèdre)
@@ -172,8 +172,8 @@ double compute_volume_tetrahedra( const point3d &p1, const point3d &p2, const po
  * @param p5 Cinquième sommet de la pyramide
  * @return Le volume de la pyramide
  */
-double compute_volume_pyramid   ( const point3d &p1, const point3d &p2, const point3d &p3,
-                                  const point3d &p4, const point3d &p5);
+E_Float compute_volume_pyramid( const point3d &p1, const point3d &p2, const point3d &p3,
+                                const point3d &p4, const point3d &p5);
 /**
  * @brief Calcule le volume d'un pentaedre
  * @details Calcule le volume d'un pentaedre en se basant sur le théorème de la divergence
@@ -269,8 +269,8 @@ double compute_volume_pyramid   ( const point3d &p1, const point3d &p2, const po
  * @param p6 Sixième sommet du pentaèdre
  * @return Volume du polytope pentaédrique
  */
-double compute_volume_pentaedra( const point3d &p1, const point3d &p2, const point3d &p3,
-                                 const point3d &p4, const point3d &p5, const point3d &p6);
+E_Float compute_volume_pentaedra( const point3d &p1, const point3d &p2, const point3d &p3,
+                                  const point3d &p4, const point3d &p5, const point3d &p6);
 
 /**
  * @brief Calcule le volume d'un polytope de type hexaèdre
@@ -394,7 +394,7 @@ double compute_volume_pentaedra( const point3d &p1, const point3d &p2, const poi
  * @param p8 Huitième sommet de l'hexaèdre
  * @return Le volume du polytope hexaèdrique.
  */
-double compute_volume_hexaedra ( const point3d &p1, const point3d &p2, const point3d &p3,
+E_Float compute_volume_hexaedra ( const point3d &p1, const point3d &p2, const point3d &p3,
                                  const point3d &p4, const point3d &p5, const point3d &p6,
                                  const point3d &p7, const point3d &p8 );
 
@@ -450,7 +450,7 @@ double compute_volume_hexaedra ( const point3d &p1, const point3d &p2, const poi
                 chacun les sommets
  * @return Le volume du polytope 
  */
-double compute_volume_ngon( const std::vector<face>& faces );
+E_Float compute_volume_ngon( const std::vector<face>& faces );
 }
 
 

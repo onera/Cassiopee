@@ -64,7 +64,7 @@ def _connectMatchNGON__(a, tol, dim, glob, allExtFaces=None, allExtIndices=None,
     if allExtFaces != []:
         nzones = len(zonesp)
         tagsF = C.node2Center(allExtFaces)
-        tagsF = C.getAllFields(tagsF, 'nodes')
+        tagsF = C.getAllFields(tagsF, 'nodes', api=1)
         tagsF = Connector.identifyMatching(tagsF, tol) # modifie tag1, tag2
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]
@@ -162,7 +162,7 @@ def _connectMatchHybrid__(a, tol, dim, glob):
     # identify matching exterior faces
     if allExtFaces != []:
         tagsF = C.node2Center(allExtFaces)
-        tagsF = C.getAllFields(tagsF, 'nodes')
+        tagsF = C.getAllFields(tagsF, 'nodes', api=1)
         tagsF = Connector.identifyMatching(tagsF, tol)
         infos = Connector.gatherMatchingNGon__(tagsF, allExtIndices)
         rcvZones = infos[0]
@@ -352,28 +352,28 @@ def getEmptyWindowsInfoStruct__(t, dim=3):
             if ranges != []:
                 locWins=[]; locTypes=[]; locIndir=[]
                 winp = T.subzone(z,(1,1,1),(1,nj,nk))
-                win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                 locWins.append(win); locTypes.append(1); locIndir.append(noz)
 
                 winp = T.subzone(z,(ni,1,1),(ni,nj,nk))
-                win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                 locWins.append(win); locTypes.append(2); locIndir.append(noz)
 
                 winp = T.subzone(z,(1,1,1),(ni,1,nk))
-                win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                 locWins.append(win); locTypes.append(3); locIndir.append(noz)
 
                 winp = T.subzone(z,(1,nj,1),(ni,nj,nk))
-                win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                 locWins.append(win); locTypes.append(4); locIndir.append(noz)
 
                 if dim == 3:
                     winp = T.subzone(z,(1,1,1),(ni,nj,1))
-                    win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                    win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                     locWins.append(win); locTypes.append(5); locIndir.append(noz)
 
                     winp = T.subzone(z,(1,1,nk),(ni,nj,nk))
-                    win = C.getFields(Internal.__GridCoordinates__,winp)[0]
+                    win = C.getFields(Internal.__GridCoordinates__, winp, api=1)[0]
                     locWins.append(win); locTypes.append(6); locIndir.append(noz)
 
                 locTags = Converter.node2Center(locWins)
@@ -537,9 +537,9 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
     infoPer = duplicatePeriodicZones__(allExtFaces0,rotationCenter,rotationAngleD,translation,tol,dim)
     nzonesU = len(zonesU)
     typePeriodic = infoPer[0]
-    if typePeriodic==1: signT = [-1,1]; signR=[0,0]
-    elif typePeriodic==2: signT=[0,0]; signR=[-1,1]
-    elif typePeriodic==3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
+    if typePeriodic==1: signT = [-1,1]; signR = [0,0]
+    elif typePeriodic==2: signT = [0,0]; signR = [-1,1]
+    elif typePeriodic==3: signT = [-1,-1,1,1]; signR = [-1,1,-1,1]
     dupname = 'DUPPER_' # prefix for duplicated zones
     for i in range(1, len(infoPer)):
         # renommage des zones dupliquees
@@ -554,13 +554,13 @@ def connectMatchPeriodicNGON__(a, rotationCenter, rotationAngle, translation, to
                                    unitAngle=unitAngle)
         # update centers:tag1
         if glob > 0:
-            tag1p = C.getField('centers:tag1',infoPer[i])
-            tag1o = C.getField('centers:tag1',allExtFaces0)
+            tag1p = C.getField('centers:tag1', infoPer[i], api=1)
+            tag1o = C.getField('centers:tag1', allExtFaces0, api=1)
             for noz in range(len(tag1p)): tag1p[noz][0]='tag1p'
             tag1o = Converter.addVars([tag1o,tag1p])
             tag1o = Converter.initVars(tag1o,'{tag1}=maximum({tag1},{tag1p})')
-            C.setFields(tag1o,allExtFaces0,loc='centers')
-            C._rmVars(allExtFaces0,'centers:tag1p')
+            C.setFields(tag1o, allExtFaces0, loc='centers')
+            C._rmVars(allExtFaces0, 'centers:tag1p')
 
         infoPer[i] = []
     # update the original tree
@@ -598,9 +598,9 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
     infoPer = duplicatePeriodicZones__(zonesS, rotationCenter, rotationAngleD, translation, tol, dim)
     nzonesS = len(zonesS)
     typePeriodic = infoPer[0]
-    if typePeriodic == 1: signT = [-1,1]; signR=[0,0]
-    elif typePeriodic == 2: signT=[0,0]; signR=[-1,1]
-    elif typePeriodic == 3: signT = [-1,-1,1,1]; signR=[-1,1,-1,1]
+    if typePeriodic == 1: signT = [-1,1]; signR = [0,0]
+    elif typePeriodic == 2: signT = [0,0]; signR = [-1,1]
+    elif typePeriodic == 3: signT = [-1,-1,1,1]; signR = [-1,1,-1,1]
     dupname = 'DUPPER_' # prefix for duplicated zones
     for i in range(1, len(infoPer)):
         # renommage des zones dupliquees
@@ -620,7 +620,7 @@ def connectMatchPeriodicStruct__(a,rotationCenter,rotationAngle,translation,tol,
                     if angle == 180. or angle == -180.:
                         nogci = 0
                         for gc in gcnodes:
-                            if Internal.getValue(gc)==Internal.getName(zonesS[noz]):
+                            if Internal.getValue(gc) == Internal.getName(zonesS[noz]):
                                 rotation_angle = Internal.getNodeFromName(gc, "RotationAngle")
                                 if rotation_angle:
                                     nogci += 1
@@ -783,7 +783,7 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
     else: allRatios = [ratio]
 
     model ='Euler'
-    bases = Internal.getNodesFromType2(t, 'CGNSBase_t')
+    bases = Internal.getNodesFromType1(t, 'CGNSBase_t')
     if bases != []:
         eq = Internal.getNodeFromName2(bases[0], 'GoverningEquations')
         if eq is not None: model = Internal.getValue(eq)
@@ -837,9 +837,9 @@ def connectNearMatch(t, ratio=2, tol=1.e-6, dim=3):
         if allTags1 != [] and len(allTags1) == len(allTags2):
             allTags = Connector.identifyMatchingNM(allTags2, allTags1,tol)
         else: allTags = []
-        allWins=allWins2+allWins1
-        typeOfWins=typeOfWins2+typeOfWins1
-        indirBlkOfWins=indirBlkOfWins2+indirBlkOfWins1
+        allWins = allWins2+allWins1
+        typeOfWins = typeOfWins2+typeOfWins1
+        indirBlkOfWins = indirBlkOfWins2+indirBlkOfWins1
         dimsI = dimsI2+dimsI1
         dimsJ = dimsJ2+dimsJ1
         dimsK = dimsK2+dimsK1
@@ -928,8 +928,8 @@ def blankIntersectingCells(t, tol=1.e-10, depth=2):
     Usage: blankIntersectingCells(t, tol, depth)"""
     a = Internal.copyRef(t)
     _addCellN__(a, loc='centers')
-    coords = C.getFields(Internal.__GridCoordinates__, a)
-    cellN = C.getField('centers:cellN', a)
+    coords = C.getFields(Internal.__GridCoordinates__, a, api=1)
+    cellN = C.getField('centers:cellN', a, api=1)
     res = Connector.blankIntersectingCells(coords, cellN, tol)
     C.setFields(res, a, 'centers')
     return a
@@ -977,16 +977,16 @@ def blankCells(t, bodies, blankingMatrix=[], depth=2,
 
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), Internal.E_NpyInt)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b)
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=1)
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
-            else: cellN = C.getField(cellNName, b)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=1)
+            else: cellN = C.getField(cellNName, b, api=1)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
                     bc = []
                     for z in bodies[nb2]:
-                        c = C.getFields(Internal.__GridCoordinates__, z)
+                        c = C.getFields(Internal.__GridCoordinates__, z, api=1)
                         if c != []:
                             c = c[0]
                             if len(c) == 5: # structure
@@ -1047,16 +1047,16 @@ def _blankCells(a, bodies, blankingMatrix=[], depth=2,
 
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(bodies)), dtype=Internal.E_NpyInt)
     for b in bases:
-        coords = C.getFields(Internal.__GridCoordinates__, b, api=2) # api=1 a cause de node2Center en center_in dans le Connector.py
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=3)
         if coords != []:
-            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=2)
-            else: cellN = C.getField(cellNName, b, api=2)
+            if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=3)
+            else: cellN = C.getField(cellNName, b, api=3)
             for nb2 in range(len(bodies)):
                 blanking = blankingMatrix[nb, nb2]
                 if bodies[nb2] != [] and (blanking == 1 or blanking == -1):
                     bc = []
                     for z in bodies[nb2]:
-                        c = C.getFields(Internal.__GridCoordinates__, z)
+                        c = C.getFields(Internal.__GridCoordinates__, z, api=1)
                         if c != []:
                             c = c[0]
                             if len(c) == 5: # structure
@@ -1101,12 +1101,12 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT4)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
-        coords = C.getFields(Internal.__GridCoordinates__, b)
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=1)
         if coords == []: continue
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
 
-        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=1)
         else: cellN = C.getField(cellNName, b)
         bc = []
         for nb2 in range(len(mT4)):
@@ -1114,7 +1114,7 @@ def blankCellsTetra(t, mT4, blankingMatrix=[], blankingType='node_in',
             if mT4[nb2] == [] or (blanking != 1 and blanking != -1): continue
             i = 0
             for z in mT4[nb2]:
-                c = C.getFields(Internal.__GridCoordinates__, z)
+                c = C.getFields(Internal.__GridCoordinates__, z, api=1)
                 if c != []:
                     c = c[0]
                     bc.append(c)
@@ -1159,20 +1159,20 @@ def blankCellsTri(t, mT3, blankingMatrix=[], blankingType='node_in',
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
-        coords = C.getFields(Internal.__GridCoordinates__, b)
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=1)
         if coords == []: continue
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
 
-        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
-        else: cellN = C.getField(cellNName, b)
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=1)
+        else: cellN = C.getField(cellNName, b, api=1)
         bc = []
         for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
             if mT3[nb2] == [] or (blanking != 1 and blanking != -1): continue
             i = 0
             for z in mT3[nb2]:
-                c = C.getFields(Internal.__GridCoordinates__, z)
+                c = C.getFields(Internal.__GridCoordinates__, z, api=1)
                 if c != []:
                     c = c[0]
                     bc.append(c)
@@ -1213,20 +1213,20 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
     if isinstance(blankingMatrix, list) and blankingMatrix == []: blankingMatrix = numpy.ones((len(bases), len(mT3)), dtype=Internal.E_NpyInt)
     for b in bases:
         nb += 1
-        coords = C.getFields(Internal.__GridCoordinates__, b)
+        coords = C.getFields(Internal.__GridCoordinates__, b, api=1)
         if coords == []: continue
 
         if len(coords[0]) == 5: coords = Converter.convertArray2Hexa(coords) # STRUCT -> HEXA
 
-        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b)
-        else: cellN = C.getField(cellNName, b)
+        if loc == 'centers': cellN = C.getField('centers:'+cellNName, b, api=1)
+        else: cellN = C.getField(cellNName, b, api=1)
         bc = []
         for nb2 in range(len(mT3)):
             blanking = blankingMatrix[nb, nb2]
             if mT3[nb2] == [] or (blanking != 1 and blanking != -1): continue
             i = 0
             for z in mT3[nb2]:
-                c = C.getFields(Internal.__GridCoordinates__, z)
+                c = C.getFields(Internal.__GridCoordinates__, z, api=1)
                 if c != []:
                     c = c[0]
                     bc.append(c)
@@ -1243,9 +1243,9 @@ def _blankCellsTri(a, mT3, blankingMatrix=[], blankingType='node_in',
 
 # cellN modifications
 def _modCellN1(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN1, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN1, cellNName)
 def _modCellN2(t, cellNName='cellN'):
-    return C.__TZA2(t, 'centers', Connector._modCellN2, cellNName)
+    return C.__TZA3(t, 'centers', Connector._modCellN2, cellNName)
 
 #=====================================================================================
 # returns the numpys of indices of cellN=2 cell centers and corresponding coordinates
@@ -1337,7 +1337,7 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
     allExtCenters = []; allCenters = []; zones = []
     for nob1 in range(nbases):
         zones.append(Internal.getNodesFromType1(bases[nob1], 'Zone_t'))
-        nodesPerBase = C.getFields(Internal.__GridCoordinates__,zones[nob1])
+        nodesPerBase = C.getFields(Internal.__GridCoordinates__, zones[nob1], api=1)
         if nodesPerBase == []:
             allExtCenters.append([[]]*len(zones[nob1]))
             allCenters.append([[]]*len(zones[nob1]))
@@ -1393,8 +1393,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                 else: isTempPeriodicZone1 = 1
                 ae1 = allExtCenters[nob1][noz1]
                 ac1 = allCenters[nob1][noz1]
-                sol1 = C.getField('centers:cellN', z1)[0]
-                vol1 = C.getField('centers:vol', z1)[0]
+                sol1 = C.getField('centers:cellN', z1, api=1)[0]
+                vol1 = C.getField('centers:vol', z1, api=1)[0]
                 ac1 = Converter.addVars([ac1,sol1,vol1])
                 adt1 = allHooks[nob1][noz1]
                 nobOfIntersectBasesAndZonesForZone1 = nobOfIntersectBasesAndZones[nob1][noz1]
@@ -1414,9 +1414,9 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                             else: isTempPeriodicZone2 = 1
                             ae2 = allExtCenters[nob2][noz2]
                             ac2 = allCenters[nob2][noz2]
-                            sol2 = C.getField('centers:cellN',z2)[0]
-                            vol2 = C.getField('centers:vol',z2)[0]
-                            ac2 = Converter.addVars([ac2,sol2,vol2])
+                            sol2 = C.getField('centers:cellN', z2, api=1)[0]
+                            vol2 = C.getField('centers:vol', z2, api=1)[0]
+                            ac2 = Converter.addVars([ac2, sol2, vol2])
                             res = Connector.optimizeOverlap__(ae1, ac1, ae2, ac2, prio1=prio1, prio2=prio2, \
                                                               isDW=isDW, hook1=adt1, hook2=adt2)
                             cellN1 = Converter.extractVars(res[0],['cellN'])
@@ -1442,8 +1442,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                 else: isTempPeriodicZone1 = 1
                 ae1 = allExtCenters[nob1][noz1]
                 ac1 = allCenters[nob1][noz1]
-                sol1 = C.getField('centers:cellN', z1)[0]
-                vol1 = C.getField('centers:vol', z1)[0]
+                sol1 = C.getField('centers:cellN', z1, api=1)[0]
+                vol1 = C.getField('centers:vol', z1, api=1)[0]
                 ac1 = Converter.addVars([ac1, sol1, vol1])
                 adt1 = allHooks[nob1][noz1]
 
@@ -1467,8 +1467,8 @@ def optimizeOverlap(t, double_wall=0, priorities=[], planarTol=0., intersections
                             else: isTempPeriodicZone2 = 1
                             ae2 = allExtCenters[nob2][noz2]
                             ac2 = allCenters[nob2][noz2]
-                            sol2 = C.getField('centers:cellN',z2)[0]
-                            vol2 = C.getField('centers:vol',z2)[0]
+                            sol2 = C.getField('centers:cellN', z2, api=1)[0]
+                            vol2 = C.getField('centers:vol', z2, api=1)[0]
                             ac2 = Converter.addVars([ac2,sol2,vol2])
                             adt2 = allHooks[nob2][noz2]
                             isDW = 0
@@ -1533,7 +1533,7 @@ def _maximizeBlankedCells(t, depth=2, dir=1, loc='centers', cellNName='cellN', a
         ghost = Internal.getNodeFromName(t, 'ZoneRind')
         if ghost is None: Internal._addGhostCells(t, t, depth, adaptBCs=0, modified=[var])
 
-    cellN = C.getField(var, t)
+    cellN = C.getField(var, t, api=1)
     cellN = Connector.maximizeBlankedCells(cellN, depth, dir, cellNName=cellNName)
     C.setFields(cellN, t, loc, False)
 
@@ -1551,7 +1551,7 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetF
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+varc; shift = 0
     else: shift = 1
-    cellN = C.getField(varc, z, api=2)[0]
+    cellN = C.getField(varc, z, api=3)[0]
     ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
 
     overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -1567,8 +1567,8 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetF
                         info = userDef[0][2][0]
                         if info[0] == 'doubly_defined': isDD = 1
                 if isDD == 0:
-                    r = Internal.getNodesFromType(o, 'IndexRange_t')
-                    l = Internal.getNodesFromType(o, 'IndexArray_t')
+                    r = Internal.getNodesFromType1(o, 'IndexRange_t')
+                    l = Internal.getNodesFromType1(o, 'IndexArray_t')
                     if r == [] and l == []:
                         print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                     elif r != []:
@@ -1580,13 +1580,13 @@ def _applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN', oversetF
                                                            val=val, cellNName=cellNName)
     # defined by a family with .Solver#Overlap
     # list of families of type overset
-    for bc in Internal.getNodesFromType2(z,'BC_t'):
-        famName = Internal.getNodeFromType1(bc,'FamilyName_t')
+    for bc in Internal.getNodesFromType2(z, 'BC_t'):
+        famName = Internal.getNodeFromType1(bc, 'FamilyName_t')
         if famName is not None:
             famName = Internal.getValue(famName)
             if famName in oversetFamNames:
-                r = Internal.getNodesFromType(bc, 'IndexRange_t')
-                l = Internal.getNodesFromType(bc, 'IndexArray_t')
+                r = Internal.getNodesFromType1(bc, 'IndexRange_t')
+                l = Internal.getNodesFromType1(bc, 'IndexArray_t')
                 if r == [] and l == []:
                     print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                 elif r != []:
@@ -1603,7 +1603,7 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN',
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+cellNName; shift = 0
     else: shift = 1
-    cellN = C.getField(varc, z)[0]
+    cellN = C.getField(varc, z, api=1)[0]
     ni = cellN[2]; nj = cellN[3]; nk = cellN[4]
 
     overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -1619,8 +1619,8 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN',
                         info = userDef[0][2][0]
                         if info[0] == 'doubly_defined': isDD = 1
                 if isDD == 0:
-                    r = Internal.getNodesFromType(o, 'IndexRange_t')
-                    l = Internal.getNodesFromType(o, 'IndexArray_t')
+                    r = Internal.getNodesFromType1(o, 'IndexRange_t')
+                    l = Internal.getNodesFromType1(o, 'IndexArray_t')
                     if r == [] and l == []:
                         print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                     elif r != []:
@@ -1638,8 +1638,8 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN',
         if famName is not None:
             famName = Internal.getValue(famName)
             if famName in oversetFamNames:
-                r = Internal.getNodesFromType(bc, 'IndexRange_t')
-                l = Internal.getNodesFromType(bc, 'IndexArray_t')
+                r = Internal.getNodesFromType1(bc, 'IndexRange_t')
+                l = Internal.getNodesFromType1(bc, 'IndexArray_t')
                 if r == [] and l == []:
                     print("Warning: applyBCOverlaps: BCOverlap is ill-defined.")
                 elif r != []:
@@ -1654,7 +1654,7 @@ def applyBCOverlapsStructured(z, depth, loc, val=2, cellNName='cellN',
 def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN',oversetFamNames=[]):
     varc = cellNName
     if loc == 'centers': varc = 'centers:'+cellNName
-    cellN = C.getField(varc, z)[0]
+    cellN = C.getField(varc, z, api=1)[0]
     zoneBC = Internal.getNodesFromType2(z, 'BC_t')
     for bc in zoneBC:
         v = Internal.getValue(bc)
@@ -1677,11 +1677,11 @@ def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
     _addCellN__(a, loc=loc, cellNName=cellNName)
 
     # only non doubly defined
-    oversetFamNames=[]
-    for fam in Internal.getNodesFromType(a,'Family_t'):
-        OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+    oversetFamNames = []
+    for fam in Internal.getNodesFromType2(a, 'Family_t'):
+        OV = Internal.getNodeFromName1(fam, '.Solver#Overlap')
         if OV is not None:
-            dd = Internal.getNodeFromName1(OV,'doubly_defined')
+            dd = Internal.getNodeFromName1(OV, 'doubly_defined')
             if dd is None:
                 oversetFamNames.append(Internal.getName(fam))
 
@@ -1699,9 +1699,9 @@ def applyBCOverlaps(t, depth=2, loc='centers', val=2, cellNName='cellN'):
 def _applyBCOverlaps(a, depth=2, loc='centers', val=2, cellNName='cellN', checkCellN=True):
     # ajout du celln si n'existe pas pour une zone
     if checkCellN: _addCellN__(a, loc=loc, cellNName=cellNName)
-    oversetFamNames=[]
-    for fam in Internal.getNodesFromType(a,'Family_t'):
-        OV = Internal.getNodeFromName1(fam,'.Solver#Overlap')
+    oversetFamNames = []
+    for fam in Internal.getNodesFromType2(a, 'Family_t'):
+        OV = Internal.getNodeFromName1(fam, '.Solver#Overlap')
         if OV is not None:
             oversetFamNames.append(Internal.getName(fam))
     zones = Internal.getZones(a)
@@ -1732,7 +1732,7 @@ def setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers', cellNName='cellN
     if ghost is None:
         a = Internal.addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
         a = setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-        a = Internal.rmGhostCells(a,a,abs(depth), adaptBCs=0, modified=[varcelln])
+        a = Internal.rmGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
     return a
 
 def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
@@ -1743,9 +1743,9 @@ def setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
-            cellN = C.getField(varcelln, z)[0]
+            cellN = C.getField(varcelln, z, api=1)[0]
             if cellN != []:# cellN existe
-                cellN = Connector.setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
+                cellN = Connector.setHoleInterpolatedPoints(cellN, depth=depth, dir=dir, cellNName=cellNName)
                 C.setFields([cellN], z, loc, False)
     return a
 
@@ -1758,7 +1758,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
         else: # passage ghost cells
-            cellN = C.getField(varcelln, z, api=2)[0]
+            cellN = C.getField(varcelln, z, api=3)[0]
             if cellN != []:
                 Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
     return None
@@ -1813,13 +1813,13 @@ def getDoublyDefinedDonorZones__(oversetgcnode, topTreeD):
     for donorName in donorNames:
         dnrZone = Internal.getNodeFromName2(topTreeD,donorName)
         if dnrZone is not None:
-            coords = C.getFields(Internal.__GridCoordinates__, dnrZone)[0]
+            coords = C.getFields(Internal.__GridCoordinates__, dnrZone, api=1)[0]
             listOfDnrZones.append(coords)
-            cellN2 = C.getField('centers:cellN',dnrZone)[0]
+            cellN2 = C.getField('centers:cellN', dnrZone, api=1)[0]
             if cellN2 == []:
                 print('Warning: setDoublyDefined: cellN init to 1 for zone %s.'%dnrZone[0])
                 C._initVars(dnrZone,'centers:cellN',1.)
-                cellN2 = C.getField('centers:cellN',dnrZone)[0]
+                cellN2 = C.getField('centers:cellN', dnrZone, api=1)[0]
             listOfDnrCellN.append(cellN2)
 
     return listOfDnrZones,listOfDnrCellN
@@ -1845,10 +1845,10 @@ def setDoublyDefinedBC(t, depth=2):
     for z in zones:
         if Internal.getNodeFromName1(z,'TempPeriodicZone') is not None: pass
         else:
-            cellNDD = C.getField('centers:cellN',z)[0]
+            cellNDD = C.getField('centers:cellN', z, api=1)[0]
             #(parent, d2) = Internal.getParentOfNode(a, z)
             overlaps = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-            coords = C.getFields(Internal.__GridCoordinates__,z)[0]
+            coords = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
             for o in overlaps:
                 n = Internal.getNodeFromType1(o, 'GridConnectivityType_t')
                 if n is not None:
@@ -1888,7 +1888,7 @@ def setDoublyDefinedBC(t, depth=2):
 def maskXRay__(body, delta=0., dim=3, isNot=0, tol=1.e-8):
     """Create the pierce points of a X-Ray mask defined by body."""
     body = C.convertArray2Tetra(body)
-    surf = C.getFields(Internal.__GridCoordinates__, body)
+    surf = C.getFields(Internal.__GridCoordinates__, body, api=1)
     pts = Connector.maskXRay__(surf, delta, dim, isNot, tol)
     return C.convertArrays2ZoneNode('XRayPts', [pts])
 
@@ -1902,7 +1902,7 @@ def connectNSLBM(t, tol=1.e-6, dim=3, type='all'):
     #On recupere les zones structurees
     zones = []
     for z in Internal.getZones(a):
-        if Internal.getZoneType(z)==1: zones.append(z)
+        if Internal.getZoneType(z) == 1: zones.append(z)
     # extract empty windows
     structTags,structWins,structIndirBlkOfWins,typeOfWins,dimsI,dimsJ,dimsK = \
         getEmptyWindowsInfoStruct__(zones, dim)

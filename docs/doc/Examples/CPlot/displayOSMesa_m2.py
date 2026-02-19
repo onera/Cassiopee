@@ -5,6 +5,12 @@ import Geom.PyTree as D
 import Converter.Mpi as Cmpi
 import KCore.test as test
 
+import KCore.Dist as Dist
+from KCore.config import *
+(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa(additionalLibPaths,                                                                    additionalIncludePaths)
+if not osmesa:
+    import sys; sys.exit()
+
 LOCAL = test.getLocal()
 
 if Cmpi.rank == 0: a = D.sphere((0,0,0), 1, N=200)

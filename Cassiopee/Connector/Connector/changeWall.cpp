@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,8 +52,8 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   E_Int imc, jmc, kmc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, 
-                                    imc, jmc, kmc, cnc, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, 
+                                     imc, jmc, kmc, cnc, eltType); 
   if (res != 1)
   {
     if (res == 2) RELEASESHAREDU(arrayCenters,fc,cnc);
@@ -85,8 +85,8 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   E_Int im1, jm1, km1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  res = K_ARRAY::getFromArray(firstWallCenters, varString1, f1, 
-                              im1, jm1, km1, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(firstWallCenters, varString1, f1, 
+                               im1, jm1, km1, cn1, eltType1); 
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(firstWallCenters, f1);
@@ -125,10 +125,10 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     projectSurfArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -156,40 +156,41 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
     if (poshi == 0) 
     {
       PyErr_SetString(PyExc_TypeError,"changeWall: hmax variable missing in 3rd argument.");
-      for (E_Int iu = 0; iu < nu; iu++)
-        RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
+      for (E_Int iu = 0; iu < nu; iu++) RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
       RELEASESHAREDS(arrayCenters,fc); RELEASESHAREDU(firstWallCenters,f1, cn1);
       return NULL;
     }
     if (posci == 0) 
     {
       PyErr_SetString(PyExc_TypeError,"changeWall: cellN variable missing in 3rd argument.");
-      for (E_Int iu = 0; iu < nu; iu++)
-        RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
+      for (E_Int iu = 0; iu < nu; iu++) RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
       RELEASESHAREDS(arrayCenters,fc); RELEASESHAREDU(firstWallCenters,f1, cn1);
       return NULL;
     }
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi); 
     posht.push_back(poshi); posct.push_back(posci);
   }
-  /*-------------------- Fin des verifs --------------------------------------*/
-  PyObject* tpl = K_ARRAY::buildArray(fc->getNfld(), varStringc, imc, jmc, kmc);
-  E_Float* fcp2 = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fc2(fc->getSize(), fc->getNfld(), fcp2, true); fc2.setAllValuesAt(*fc);
-  changeWall(imc, jmc, kmc, fc2.begin(posc), 
-             f1->getSize(), f1->begin(posindw), f1->begin(posdir1), f1->begin(posdir2),f1->begin(posdir3),
+  /*-------------------- Fin des verifs --------------------------------------*/  
+  PyObject* tpl = K_ARRAY::buildArray3(fc->getNfld(), varStringc, imc, jmc, kmc, f1->getApi());
+  FldArrayF* fc2;
+  K_ARRAY::getFromArray3(tpl, fc2);
+  fc2->setAllValuesAt(*fc);
+  changeWall(imc, jmc, kmc, fc2->begin(posc), 
+             f1->getSize(), f1->begin(posindw), 
+             f1->begin(posdir1), f1->begin(posdir2), f1->begin(posdir3),
              f1->begin(poshw),
              posxt, posyt, poszt, posht, posct, cnt, unstrF, 
              fc->begin(posxc), fc->begin(posyc), fc->begin(poszc),
-             fc2.begin(posxc), fc2.begin(posyc), fc2.begin(poszc), planarTol);
-
+             fc2->begin(posxc), fc2->begin(posyc), fc2->begin(poszc), planarTol);
+ 
   // cleaning
-  for (E_Int iu = 0; iu < nu; iu++)
-    RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
-  RELEASESHAREDS(arrayCenters,fc);
-  RELEASESHAREDU(firstWallCenters,f1, cn1);
+  for (E_Int iu = 0; iu < nu; iu++) RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
+  RELEASESHAREDS(arrayCenters, fc);
+  RELEASESHAREDU(firstWallCenters, f1, cn1);
+  RELEASESHAREDS(tpl, fc2);
   return tpl;
 }
+
 //=============================================================================
 /* Nouvel algo de projection double wall */
 //=============================================================================
@@ -251,7 +252,7 @@ void K_CONNECTOR::changeWall(
     E_Int nob, nov1, nov2, nov3;
     E_Int nbB, dir1, dir2, dir3, dir, indA, indB;
     E_Int cpt_loc=0;
-    E_Boolean isProjected;
+    E_Bool isProjected;
     E_Float xa, ya, za, xb, yb, zb, dAP2, dirx, diry, dirz;
     E_Float dxa, dya, dza, hmax1, hmax2, hmax;
     vector<E_Int> indicesElts; vector<E_Int> candidates;

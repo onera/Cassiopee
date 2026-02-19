@@ -1,6 +1,5 @@
 # Search BAR
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 from . import Ttk as TTK
 from . import Tk as CTK
 

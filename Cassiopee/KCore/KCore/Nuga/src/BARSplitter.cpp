@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -538,7 +538,7 @@ E_Float BARSplitter::__getAngle(const E_Float* n1, const E_Float* n2)
   NUGA::crossProduct<3>(n1, n2, n);
   s = NUGA::normalize<3>(n);
   c = NUGA::dot<3>(n1, n2);
-  return ::atan2(s, c);
+  return atan2(s, c);
 }
 
 //=============================================================================
@@ -613,7 +613,7 @@ void BARSplitter::split_loops
           NUGA::diff<3>(coord.col(node_to_nodes[N][i]), coord.col(N), n2);
           NUGA::normalize<3>(n2);
           
-          alpha = ::fabs(__getAngle(n1, n2));
+          alpha = fabs(__getAngle(n1, n2));
           if (alpha < mina)
           {
             mina = alpha;
@@ -637,7 +637,7 @@ E_Int BARSplitter::min_angle_node(const std::vector<E_Int>& sorted_nodes, const 
 {
   E_Int Nmin(IDX_NONE);
   E_Int sz(sorted_nodes.size());
-  E_Int iprev=sz-1;
+  E_Int iprev = sz-1;
   E_Float n1[3], n2[3], mina(NUGA::FLOAT_MAX), alpha;
   
   for (E_Int i = 0; i < sz; ++i)
@@ -649,7 +649,7 @@ E_Int BARSplitter::min_angle_node(const std::vector<E_Int>& sorted_nodes, const 
     NUGA::diff<3>(coord.col(Nprev), coord.col(N), n1);
     NUGA::diff<3>(coord.col(Nnext), coord.col(N), n2);
     
-    alpha = ::fabs(__getAngle(n1, n2));
+    alpha = fabs(__getAngle(n1, n2));
     if (alpha < mina)
     {
       mina = alpha;

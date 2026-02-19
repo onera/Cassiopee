@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::getTriQualityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -40,8 +40,8 @@ PyObject* K_GENERATOR::getTriQualityMap(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int posx, posy, posz;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, 
+                               eltType);
 
   if (res != 2)
   {
@@ -67,16 +67,14 @@ PyObject* K_GENERATOR::getTriQualityMap(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
   
+  E_Int api = f->getApi();
+  E_Int npts = f->getSize();
   E_Int nelts = cn->getSize();
-  E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-  
-  PyObject* tpl = K_ARRAY::buildArray(1, "quality", nelts, 
-					nelts, -1, eltType, true);
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  K_KCORE::memcpy__(cnnp, cn->begin(), nelts*nnodes);
-    
-  E_Float* qualitiesp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF qualities(nelts,1, qualitiesp, true);
+
+  PyObject* tpl = K_ARRAY::buildArray3(1, "quality", npts, *cn, eltType, 1, api, true);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
+  E_Float* qualities = f2->begin(1);
   
   if (strcmp(eltType, "TRI") != 0)
   {
@@ -103,6 +101,7 @@ PyObject* K_GENERATOR::getTriQualityMap(PyObject* self, PyObject* args)
     qualities[et]=K_MESH::Triangle::qualityG<3>(&P0[0], &P1[0], &P2[0]);
   }
   
+  RELEASESHAREDS(tpl, f2);
   RELEASESHAREDU(array, f, cn); 
   return tpl;
 }

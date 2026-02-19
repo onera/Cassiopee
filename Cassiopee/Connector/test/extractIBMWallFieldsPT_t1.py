@@ -5,13 +5,10 @@ import Connector.PyTree as X
 import Geom.PyTree as D
 import Post.PyTree as P
 import Dist2Walls.PyTree as DTW
-import Transform.PyTree as T
-import Initiator.PyTree as I
 import Converter.Internal as Internal
 import Connector.ToolboxIBM as IBM
 import KCore.test as test
 import numpy
-test.TOLERANCE = 1.e-8
 
 N = 41
 a = G.cart((0,0,0),(1./(N-1),1./(N-1),1./(N-1)),(N,N,N))
@@ -46,8 +43,7 @@ X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=0)
 #test avec arbre tc compact
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 
-zones = Internal.getNodesFromType2(t, 'Zone_t')
-X.miseAPlatDonorTree__(zones, tc, graph=None)
+X.miseAPlatDonorTree__(t, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
 z = IBM.extractIBMWallFields(tc, tb=tb)
@@ -57,8 +53,7 @@ Internal._rmNodesFromName(t,"Parameter_int")
 Internal._rmNodesFromName(t,"Parameter_real")
 tc = C.node2Center(t)
 X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=3)
-zones = Internal.getNodesFromType2(t, 'Zone_t')
-X.miseAPlatDonorTree__(zones, tc, graph=None)
+X.miseAPlatDonorTree__(t, tc, graph=None)
 X._setInterpTransfers(t, tc, bcType=3, varType=2,variablesIBC=vars,compact=0,compactD=1)
 tb_out = IBM.extractIBMWallFields(tc, tb=tb)
 test.testT(tb_out,2)

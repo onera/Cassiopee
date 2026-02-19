@@ -21,7 +21,7 @@ t = C.newPyTree(['Cart'])
 # --- Equation state
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
 t[2][1][2] += [a, b, c]
-bases = Internal.getNodesFromType(t,'CGNSBase_t')
+bases = Internal.getBases(t)
 base = bases[0]
 doms = X.getCEBBIntersectingDomains(base, bases,sameBase=1)
 test.testO(doms)

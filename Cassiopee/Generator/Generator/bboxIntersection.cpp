@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,7 +30,6 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
 {
   PyObject* array1; PyObject* array2;
   E_Float tol;
-
   if (!PYPARSETUPLE_(args, OO_ R_,
                     &array1, &array2, &tol)) return NULL;
 
@@ -38,8 +37,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   E_Int ni1, nj1, nk1;
   FldArrayF* f1; FldArrayI* cn1;
   char* varString1; char* eltType1;
-  E_Int res1 = K_ARRAY::getFromArray(
-    array1, varString1, f1, ni1, nj1, nk1, cn1, eltType1, true);
+  E_Int res1 = K_ARRAY::getFromArray3(array1, varString1, f1, ni1, nj1, nk1, cn1, eltType1);
     
   if (res1 != 1 && res1 != 2)
   {
@@ -53,8 +51,7 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   FldArrayI* cn2;
   char* varString2;
   char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(
-    array2, varString2, f2, ni2, nj2, nk2, cn2, eltType2, true);
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2, f2, ni2, nj2, nk2, cn2, eltType2);
   
   if (res2 != 1 && res2 != 2)
   {
@@ -92,14 +89,16 @@ PyObject* K_GENERATOR::bboxIntersection(PyObject* self, PyObject* args)
   posx2++; posy2++; posz2++;
 
   // bbox de a1
+  E_Int npts1 = f1->getSize();
   E_Float xmin1, ymin1, zmin1, xmax1, ymax1, zmax1;
-  K_COMPGEOM::boundingBox(posx1, posy1, posz1, *f1, 
-                          xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
+  K_COMPGEOM::boundingBoxUnstruct(npts1, f1->begin(posx1), f1->begin(posy1), f1->begin(posz1), 
+                                  xmin1, ymin1, zmin1, xmax1, ymax1, zmax1);
 
   // bbox de a2
+  E_Int npts2 = f2->getSize();
   E_Float xmin2, ymin2, zmin2, xmax2, ymax2, zmax2;
-  K_COMPGEOM::boundingBox(posx2, posy2, posz2, *f2, 
-                          xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
+  K_COMPGEOM::boundingBoxUnstruct(npts2, f2->begin(posx2), f2->begin(posy2), f2->begin(posz2), 
+                                  xmin2, ymin2, zmin2, xmax2, ymax2, zmax2);
   
   RELEASESHAREDB(res1, array1, f1, cn1); 
   RELEASESHAREDB(res2, array2, f2, cn2); 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,17 +29,17 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   PyObject *pyIndExtrap;
   PyObject *pyArrayTypes;
   PyObject *pyArrayCoefs;
-  if (!PyArg_ParseTuple(args, "OOOO",
-                        &pyIndRcv, &pyIndExtrap, &pyArrayTypes, &pyArrayCoefs))
+  if (!PYPARSETUPLE_(args, OOO_ O_,
+                      &pyIndRcv, &pyIndExtrap, &pyArrayTypes, &pyArrayCoefs))
   {
-      return NULL;
+    return NULL;
   }
 
   /*--------------------------------------*/
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   if (res == 0) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -50,7 +50,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des indices des extrapoles */
   /*---------------------------------------*/
   FldArrayI* extrapPtsI;
-  res = K_NUMPY::getFromNumpyArray(pyIndExtrap, extrapPtsI, true);
+  res = K_NUMPY::getFromNumpyArray(pyIndExtrap, extrapPtsI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -63,7 +63,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des types */
   /*----------------------*/
   FldArrayI* typesI;
-  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -77,8 +77,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  E_Boolean shared=true;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, shared);
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -103,12 +102,15 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
     for (E_Int noind = 0; noind < nbRcvPts; noind++)
     {
       if (extrapPts[noinde] == rcvPts[noind])  
-      {indices.push_back(noind); break;}
+      { indices.push_back(noind); break; }
     }
   E_Int nindices = indices.size();  
-  PyObject* tpl = K_ARRAY::buildArray(1,"extrapolated", nindices, 1, 1);
-  E_Float* sumCfp = K_ARRAY::getFieldPtr(tpl);   
-  
+    
+  PyObject* tpl = K_ARRAY::buildArray3(1, "extrapolated", nindices, 1, 1, 1);
+  FldArrayF* sumCf;
+  K_ARRAY::getFromArray3(tpl, sumCf);
+  E_Float* sumCfp = sumCf->begin();
+
   for (E_Int noe = 0; noe < nindices; noe++)
   {        
     E_Int noind = indices[noe];
@@ -183,6 +185,7 @@ PyObject* K_CONNECTOR::getExtrapAbsCoefs(PyObject* self, PyObject* args)
   }     
 
   // sortie
+  RELEASESHAREDS(tpl, sumCf);
   RELEASESHAREDN(pyIndRcv, rcvPtsI);
   RELEASESHAREDN(pyIndExtrap, extrapPtsI);
   RELEASESHAREDN(pyArrayTypes, typesI);

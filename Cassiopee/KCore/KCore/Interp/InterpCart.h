@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -48,6 +48,11 @@ public:
                                       FldArrayF& cf);
   virtual
   short searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_Int nk,
+                                      E_Float x, E_Float y, E_Float z,
+                                      E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+                                      FldArrayF& cf);
+
+  short searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
                                       E_Float x, E_Float y, E_Float z,
                                       E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                       FldArrayF& cf);

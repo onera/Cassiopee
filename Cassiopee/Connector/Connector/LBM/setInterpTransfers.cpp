@@ -1,5 +1,5 @@
 /*    
-      Copyright 2013-2020 Onera.
+      Copyright 2013-2026 ONERA.
 
       This file is part of Cassiopee.
 
@@ -87,14 +87,16 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
   /*-------------------------------------*/
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
-  FldArrayI* param_int;E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  FldArrayI* param_int;
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   
-  FldArrayF* param_real;res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  FldArrayF* param_real;res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
   E_Float* ipt_param_real = param_real->begin();
 
   //On recupere le nom de la 1ere variable a recuperer 
-  PyObject* tpl0= PyList_GetItem(pyVariables, 0); 
+  PyObject* tpl0 = PyList_GetItem(pyVariables, 0); 
   char* varname = NULL;
   if (PyString_Check(tpl0)) varname = PyString_AsString(tpl0);
 #if PY_VERSION_HEX >= 0x03000000
@@ -208,8 +210,8 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
     E_Int Nbre_thread_actif = 1;
 #endif
 
-    E_Int indR, type;
-    E_Int indD0, indD, i, j, k, ncfLoc, indCoef, noi, sizecoefs, imd, jmd, imdjmd;
+    E_Int type;
+    E_Int indCoef, noi, sizecoefs, imd, jmd, imdjmd;
 
     E_Float* RcvFields;
     
@@ -229,19 +231,21 @@ PyObject* K_CONNECTOR::___setQintersectionLBM(PyObject* self, PyObject* args){
 	    E_Int NoD       =  ipt_param_int[ shift_rac + nrac*5  ];
 	    E_Int loc       =  ipt_param_int[ shift_rac + nrac*9  ]; //+1 a cause du nrac mpi
 	    E_Int NoR       =  ipt_param_int[ shift_rac + nrac*11 ];
-	    E_Int nvars_loc =  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
+	    //E_Int nvars_loc =  ipt_param_int[ shift_rac + nrac*13 ]; //neq fonction raccord rans/LES
 	   
 	    E_Int meshtype = ipt_ndimdxD[NoD + nidomD*6];
-	    E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
-	    E_Int* ptrcnd  = ipt_cnd[    NoD           ];
-	    E_Float* ipt_distQ ;
-	    E_Int*   ipt_intrQ ;
-	    E_Int*   ipt_cvel  ;
-	    if (loc == 0){
+	    //E_Int cnNfldD  = ipt_ndimdxD[NoD + nidomD*7];
+	    //E_Int* ptrcnd  = ipt_cnd[    NoD           ];
+	    E_Float* ipt_distQ=NULL;
+	    E_Int* ipt_intrQ=NULL;
+	    E_Int* ipt_cvel=NULL;
+	    if (loc == 0)
+      {
 	      printf("Error: transferts optimises non code en vextex " SF_D3_ "\n", shift_rac + nrac*9  +1, NoD, NoR ); 
 	      imd = 0; jmd = 0;
 	    }
-	    else {
+	    else 
+      {
 	      imd= ipt_param_intR[ NoD ][ NIJK ];
 	      jmd= ipt_param_intR[ NoD ][ NIJK+1];
 	      RcvFields = ipt_distR[NoR] ;
@@ -388,7 +392,7 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   E_Int NoTransfert  = E_Int(no_transfert);
 
   //printf("vartype=" SF_D_ " \n",vartype);
-  E_Int kmd, cnNfldD, nvars, meshtype;
+  E_Int kmd, cnNfldD=0, nvars, meshtype;
   E_Int nvars_macro_local;
 
   E_Int isLBM                 = 0;
@@ -515,10 +519,11 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
   /* Extraction tableau int et real de tc*/
   /*-------------------------------------*/
   FldArrayI* param_int;
-  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int, true);
+  E_Int res_donor = K_NUMPY::getFromNumpyArray(pyParam_int, param_int);
+  if (res_donor == 0) return NULL;
   E_Int* ipt_param_int = param_int->begin();
   FldArrayF* param_real;
-  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real, true);
+  res_donor = K_NUMPY::getFromNumpyArray(pyParam_real, param_real);
   E_Float* ipt_param_real = param_real->begin();
   //On recupere le nom de la 1ere variable a recuperer 
   PyObject* tpl0= PyList_GetItem(pyVariables, 0); 
@@ -718,8 +723,8 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	for  (E_Int irac=irac_deb; irac< irac_fin; irac++){
  	  E_Int irac_auto= irac-irac_deb;
 	  E_Int debut_rac = ech + 4 + timelevel*2 + nrac*ntab_int + 27*irac; 
-	  E_Int levelD = ipt_param_int[debut_rac + 25];
-	  E_Int levelR = ipt_param_int[debut_rac + 24];
+	  //E_Int levelD = ipt_param_int[debut_rac + 25];
+	  //E_Int levelR = ipt_param_int[debut_rac + 24];
 	  
  	  if (autorisation_transferts[pass_inst][irac_auto]==1){
 	    //printf("AUTHORIZED :: levelR,levelD=%d %d\n", levelR,levelD);
@@ -751,11 +756,11 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
  	    E_Int* ptrcnd  = ipt_cnd[    NoD           ];
 
 	    // [LBM]
-	    E_Int   num_bcs;
-	    E_Int*  ipt_cvel ;
- 	    E_Int*  ipt_intrQ ;
- 	    E_Int*  ipt_cminus ;
- 	    E_Int*  ipt_bcs ;
+	    E_Int   num_bcs=0;
+	    E_Int*  ipt_cvel=NULL;
+ 	    E_Int*  ipt_intrQ=NULL;
+ 	    E_Int*  ipt_cminus=NULL;
+ 	    E_Int*  ipt_bcs=NULL;
 	    
  	    E_Float c0_local          = ipt_param_realR[NoR][LBM_c0];
 	    E_Float c02               = 1./(c0_local*c0_local);
@@ -764,9 +769,9 @@ PyObject* K_CONNECTOR::___setInterpTransfersLBM(PyObject* self, PyObject* args){
 	    E_Float tau_relax         = ipt_param_realR[NoR][LBM_difcoef]*gamma_precon_inv*c02+0.5;
 	    E_Float tau_relaxD        = ipt_param_realR[NoD][LBM_difcoef]*gamma_precon_inv*c02+0.5;
 	    E_Float tau_relaxR        = ipt_param_realR[NoR][LBM_difcoef]*gamma_precon_inv*c02+0.5;
-	    E_Float* ipt_wdist ;
-	    E_Float* ipt_distQ ;	    
-	    E_Float* ipt_H2H3;
+	    E_Float* ipt_wdist=NULL;
+	    E_Float* ipt_distQ=NULL;	    
+	    E_Float* ipt_H2H3=NULL;
 
 	    // IMPORTANT NOTE:: calc of tau_relax assumes constant nu & not in sponge layers
 	    

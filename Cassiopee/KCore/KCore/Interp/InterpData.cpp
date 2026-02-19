@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -42,11 +42,11 @@ K_INTERP::InterpData::InterpData(E_Int topology, E_Float xmin, E_Float ymin, E_F
   _EPS_DET(1.e-16), _EPS_TETRA(1.e-4), _EPS_GEOM(K_CONST::E_GEOM_CUTOFF)
 {
   _topology = topology;
-  _xmin =  xmin;
-  _ymin =  ymin;
-  _zmin =  zmin;
-  _xmax =  K_CONST::E_MAX_FLOAT;
-  _ymax =  K_CONST::E_MAX_FLOAT;
+  _xmin = xmin;
+  _ymin = ymin;
+  _zmin = zmin;
+  _xmax = K_CONST::E_MAX_FLOAT;
+  _ymax = K_CONST::E_MAX_FLOAT;
   _zmax = K_CONST::E_MAX_FLOAT;
 }
 // ============================================================================
@@ -138,7 +138,7 @@ void K_INTERP::InterpData::coordHexa(E_Int ind, E_Int ni, E_Int nj, E_Int nk,
    one center of a face. Uses a "jump" technique to find quickly the most 
    probable tetrahedron */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                                 FldArrayF& cf)
   {
@@ -276,10 +276,19 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
   }
     
   /* Compute index to find the most probable triangle */
+#ifdef E_ADOLC
+  E_Float vx = (K_CONST::ONE + K_FUNC::E_sign(xi-yi)) * K_CONST::ONE_HALF;
+  E_Float vy = (K_CONST::ONE + K_FUNC::E_sign(yi-zi)) * K_CONST::ONE_HALF; 
+  E_Float vz = (K_CONST::ONE + K_FUNC::E_sign(zi-xi)) * K_CONST::ONE_HALF; 
+  is1 = E_Int(vx.value());
+  is2 = E_Int(vy.value());
+  is3 = E_Int(vz.value());
+#else
   is1 = E_Int((K_CONST::ONE + K_FUNC::E_sign(xi-yi)) * K_CONST::ONE_HALF);
   is2 = E_Int((K_CONST::ONE + K_FUNC::E_sign(yi-zi)) * K_CONST::ONE_HALF);
   is3 = E_Int((K_CONST::ONE + K_FUNC::E_sign(zi-xi)) * K_CONST::ONE_HALF);
-  
+#endif
+
   itri = indtr[isomm+8*is1+16*is2+32*is3];
 
   indr = indtd[0+itri*4];
@@ -299,7 +308,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
   {
     /* Transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     
     cfp[0] = cf0;
     cfp[1] = cf0;
@@ -358,7 +367,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* Transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
           
           for (i = 0; i < 4; i++)
@@ -380,7 +389,7 @@ E_Boolean K_INTERP::InterpData::coeffInterpHexa(E_Float x, E_Float y, E_Float z,
 //=============================================================================
 /* Test if the cell contains the point to interpolate */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::getCellJump(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::getCellJump(E_Float x, E_Float y, E_Float z,
                                             E_Float* xt, E_Float* yt, E_Float* zt,
                                             E_Int& isomm,
                                             E_Float& xi, E_Float& yi, E_Float& zi)
@@ -493,7 +502,7 @@ void K_INTERP::InterpData::coeffInterpTetra(E_Float x, E_Float y, E_Float z,
   Taken from FLU3M.
 */
 //=============================================================================
-E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
+E_Bool K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float z,
                                                    E_Int isomm,
                                                    E_Float xi, E_Float yi, E_Float zi, 
                                                    E_Float* xt, E_Float* yt, E_Float* zt,
@@ -592,10 +601,19 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
   }
     
   /* Compute index to find the most probable triangle */
+#ifdef E_ADOLC
+  E_Float vx = (K_CONST::ONE + K_FUNC::E_sign(xi-yi)) * K_CONST::ONE_HALF;
+  E_Float vy = (K_CONST::ONE + K_FUNC::E_sign(yi-zi)) * K_CONST::ONE_HALF;
+  E_Float vz = (K_CONST::ONE + K_FUNC::E_sign(zi-xi)) * K_CONST::ONE_HALF;
+  E_Int is1 = static_cast<E_Int>(vx.value());
+  E_Int is2 = static_cast<E_Int>(vy.value());
+  E_Int is3 = static_cast<E_Int>(vz.value());
+#else
   E_Int is1 = static_cast<E_Int>((K_CONST::ONE + K_FUNC::E_sign(xi-yi)) * K_CONST::ONE_HALF);
   E_Int is2 = static_cast<E_Int>((K_CONST::ONE + K_FUNC::E_sign(yi-zi)) * K_CONST::ONE_HALF);
   E_Int is3 = static_cast<E_Int>((K_CONST::ONE + K_FUNC::E_sign(zi-xi)) * K_CONST::ONE_HALF);
-  
+#endif
+
   E_Int itri = indtr[isomm+8*is1+16*is2+32*is3];
 
   E_Int indr = indtd[0+itri*4];
@@ -618,7 +636,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
     /* transforming tetrahedra interpolation coefficient into */
     /* hexahedra interpolation coefficients */
       
-    cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+    cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
     for (i = 0; i < 8; i++) cfp[i] = cf0;
     
     for (i = 0; i < 4; i++)
@@ -664,7 +682,7 @@ E_Boolean K_INTERP::InterpData::getCoeffInterpHexa(E_Float x, E_Float y, E_Float
             (zi > -EPS)&&(xi+yi+zi < K_CONST::ONE+3*EPS))
         {
           /* transforming to hexahedra coefficients */ 
-          cf0 = K_CONST::ONE_EIGHT*(1.-xi-yi-zi);
+          cf0 = K_CONST::ONE_EIGHTH*(1.-xi-yi-zi);
           for (i = 0; i < 8; i++) cfp[i] = cf0;
 
           for (i = 0; i < 4; i++)
@@ -759,7 +777,7 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
   E_Float sum, sum2;
   E_Float report, cellN0;
   E_Float val = 1.;
-  E_Boolean valid = false;
+  E_Bool valid = false;
   xp = xt[14]; yp = yt[14]; zp = zt[14];
 
   // test les 24 tetraedres a la recherche d'un tetraedre
@@ -785,7 +803,7 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
         coeffInterpTetra(x, y, z, xp, yp, zp, xq, yq, zq,
                          xr, yr, zr, xs, ys, zs, xi, yi, zi);       
         /* transforming to hexahedra coefficients */ 
-        cf0 = K_CONST::ONE_EIGHT*(K_CONST::ONE-xi-yi-zi);
+        cf0 = K_CONST::ONE_EIGHTH*(K_CONST::ONE-xi-yi-zi);
         for (E_Int i = 0; i < 8; i++) cfp[i] = cf0;
         
         for (E_Int i = 0; i < 4; i++)
@@ -894,14 +912,14 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
     if (cellNp != NULL)
     {
       sum = 0.;
-      if ( dim == 3)
+      if (dim == 3)
       {
         for (E_Int kk = 0; kk < 2; kk++)
           for (E_Int jj = 0; jj < 2; jj++)
             for (E_Int ii = 0; ii < 2; ii++)
             {
               E_Int ind = (ic + ii) + (jc + jj)*ni + (kc+kk)*ni*nj;
-              if (nature == 1) locCellN[icell] = 1.-(cellNp[ind]-1.);
+              if (nature == 1) locCellN[icell] = 1.-K_FUNC::E_abs(cellNp[ind]-1.);
               else if (nature == 0) locCellN[icell] = K_FUNC::E_min(1.,cellNp[ind]);
               sum += locCellN[icell];
               icell++;
@@ -913,7 +931,6 @@ short K_INTERP::InterpData::getExtrapolationCoeffForCell(
           for (E_Int ii = 0; ii < 2; ii++)
           {
             E_Int ind = (ic + ii) + (jc + jj)*ni;
-            // if (nature == 1) locCellN[icell] = 1.-(cellNp[ind]-1.);
             if (nature == 1) locCellN[icell] = 1.-K_FUNC::E_abs(cellNp[ind]-1.);
             else if (nature == 0) locCellN[icell] = K_FUNC::E_min(1.,cellNp[ind]);
             sum += locCellN[icell];

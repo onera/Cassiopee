@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -389,8 +389,8 @@ namespace NUGA
     }
 
     E_Int min() const {
-      if (DIM == 3) return std::min(n[0], std::min(n[1], n[2]));
-      else return std::min(n[0], n[1]);
+      if (DIM == 3) return K_FUNC::E_min(n[0], K_FUNC::E_min(n[1], n[2]));
+      else return K_FUNC::E_min(n[0], n[1]);
     }
   };
 

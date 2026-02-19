@@ -1,6 +1,5 @@
 # - fix CAD app -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -22,20 +21,19 @@ def readCAD(event=None):
         OCC.freeHook(hook)
         # free the previous hook
         edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-        edges[2] = []
+        if edges is not None: edges[2] = []
         faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-        faces[2] = []
-    hook = OCC.readCAD(fileName, fileFmt)
+        if faces is not None: faces[2] = []
+    CTK.CADHOOK = OCC.readCAD(fileName, fileFmt)
     # Previous hmax, hausd?
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     if hmax is None or (hmax < 0 and hausd < 0):
-        (hmax,hmin,hausd) = OCC.occ.analyseEdges(hook)
+        (hmax,hmin,hausd) = OCC.occ.analyseEdges(CTK.CADHOOK)
     OCC._setCADcontainer(CTK.t, fileName, fileFmt, hmin, hmax, hausd)
-    CTK.CADHOOK = hook
     # remesh and redisplay
     CTK.setCursor(2, WIDGETS['frame'])
-    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
-    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    OCC._meshAllEdges(CTK.CADHHOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.display(CTK.t)
     CTK.TXT.insert('START', 'CAD loaded from %s.\n'%fileName)
@@ -44,10 +42,9 @@ def readCAD(event=None):
 def writeCAD(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
-    hook = CTK.CADHOOK
     fileName = VARS[0].get()
     fileFmt = VARS[1].get()
-    OCC.writeCAD(hook, fileName, fileFmt)
+    OCC.writeCAD(CTK.CADHOOK, fileName, fileFmt)
     CTK.TXT.insert('START', 'CAD written in %s.\n'%fileName)
 
 #==============================================================================
@@ -55,7 +52,6 @@ def sewCAD(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     tol = CTK.varsFromWidget(VARS[2].get(), 1)[0]
-    hook = CTK.CADHOOK
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     faces = []
     nzs = CPlot.getSelectedZones()
@@ -70,18 +66,20 @@ def sewCAD(event=None):
             no = Internal.getNodeFromName1(CAD, 'no')
             no = Internal.getValue(no)
             faces.append(no)
+    if faces == []: faces = None
 
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['sewingButton'])
 
-    OCC._sewing(hook, faces, tol)
+    OCC._sewing(CTK.CADHOOK, faces, tol)
+
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
+    if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
-    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    if faces is not None: faces[2] = []
+    OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
 
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['sewingButton'])
@@ -99,7 +97,6 @@ def filletCAD(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
     radius = CTK.varsFromWidget(VARS[3].get(), 1)[0]
-    hook = CTK.CADHOOK
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected edges
     nzs = CPlot.getSelectedZones()
@@ -123,7 +120,7 @@ def filletCAD(event=None):
     CTK.setCursor(2, WIDGETS['filletButton'])
 
     try:
-        OCC._addFillet(hook, edges, radius)
+        OCC._addFillet(CTK.CADHOOK, edges, radius)
     except:
         CTK.setCursor(0, WIDGETS['frame'])
         CTK.setCursor(0, WIDGETS['filletButton'])
@@ -132,11 +129,11 @@ def filletCAD(event=None):
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
+    if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    if faces is not None: faces[2] = []
+    OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['filletButton'])
 
@@ -149,7 +146,6 @@ def filletCAD(event=None):
 def removeFaces(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
-    hook = CTK.CADHOOK
     #[hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected faces
     nzs = CPlot.getSelectedZones()
@@ -172,21 +168,11 @@ def removeFaces(event=None):
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['removeFacesButton'])
 
-    # old style (full remesh)
-    #edgeMap = []; faceMap = []
-    #OCC._removeFaces(hook, faces, edgeMap, faceMap)
-    #edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    #edges[2] = []
-    #faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    #faces[2] = []
-    #OCC._meshAllEdges(hook, CTK.t, hmax=hmax, hausd=hausd)
-    #OCC._meshAllFacesTri(hook, CTK.t, hmax=hmax, hausd=hausd)
-
     # new style (no remesh)
-    nbEdges = OCC.getNbEdges(hook)
-    nbFaces = OCC.getNbFaces(hook)
+    nbEdges = OCC.getNbEdges(CTK.CADHOOK)
+    nbFaces = OCC.getNbFaces(CTK.CADHOOK)
     new2OldEdgeMap = []; new2OldFaceMap = []
-    OCC._removeFaces(hook, faces, new2OldEdgeMap, new2OldFaceMap)
+    OCC._removeFaces(CTK.CADHOOK, faces, new2OldEdgeMap, new2OldFaceMap)
     OCC._updateTree(CTK.t, nbEdges, nbFaces, new2OldEdgeMap, new2OldFaceMap)
 
     CTK.setCursor(0, WIDGETS['frame'])
@@ -249,7 +235,6 @@ def filterLonelyEdges(event=None):
 def fillHole(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
-    hook = CTK.CADHOOK
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected edges
     nzs = CPlot.getSelectedZones()
@@ -272,7 +257,7 @@ def fillHole(event=None):
     edges = OCC.orderEdgeList(edges)
     #print('edgeList', edges, flush=True)
     try:
-        OCC._fillHole(hook, edges)
+        OCC._fillHole(CTK.CADHOOK, edges)
     except:
         CTK.setCursor(0, WIDGETS['frame'])
         CTK.setCursor(0, WIDGETS['fillHoleButton'])
@@ -281,11 +266,11 @@ def fillHole(event=None):
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
+    if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    if faces is not None: faces[2] = []
+    OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['fillHoleButton'])
 
@@ -326,7 +311,6 @@ def setTrimFace1():
 def trimFaces(event=None):
     import OCC.PyTree as OCC
     if CTK.CADHOOK is None: return
-    hook = CTK.CADHOOK
     [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
     # Get selected faces
     nzs = CPlot.getSelectedZones()
@@ -361,15 +345,15 @@ def trimFaces(event=None):
     CTK.setCursor(2, WIDGETS['frame'])
     CTK.setCursor(2, WIDGETS['trimFacesButton'])
 
-    OCC.occ.trimFaces(hook, faces1, faces2)
+    OCC._trimFaces(CTK.CADHOOK, faces1, faces2, mode=2, algo=1)
 
     # remesh CAD and redisplay
     edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
-    edges[2] = []
+    if edges is not None: edges[2] = []
     faces = Internal.getNodeFromName1(CTK.t, 'FACES')
-    faces[2] = []
-    OCC._meshAllEdges(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
-    OCC._meshAllFacesTri(hook, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+    if faces is not None: faces[2] = []
+    OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing...
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
 
     CTK.setCursor(0, WIDGETS['frame'])
     CTK.setCursor(0, WIDGETS['trimFacesButton'])
@@ -448,6 +432,29 @@ def checkWatertight(event=None):
     else: CTK.TXT.insert('START', 'CAD is not watertight with tol %g.\n'%tol)
 
 #==============================================================================
+def addDomain(event=None):
+    import OCC.PyTree as OCC
+    if CTK.t == []: return
+    if CTK.CADHOOK is None: return
+    [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
+
+    dfar = CTK.varsFromWidget(VARS[8].get(), type=1)[0]
+    type = VARS[7].get()
+    OCC._addDomain(CTK.CADHOOK, type=type, dfar=dfar)
+
+    edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
+    if edges is not None: edges[2] = []
+    faces = Internal.getNodeFromName1(CTK.t, 'FACES')
+    if faces is not None: faces[2] = []
+    OCC._meshAllEdges(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd) # loose manual remeshing
+    OCC._meshAllFacesTri(CTK.CADHOOK, CTK.t, hmin=hmin, hmax=hmax, hausd=hausd)
+
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TKTREE.updateApp()
+    CTK.display(CTK.t)
+    CTK.TXT.insert('START', 'Domain is added.\n')
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):
@@ -488,7 +495,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)
     # -1- CAD file format -
     V = TK.StringVar(win); V.set(fileFmt); VARS.append(V)
-    # -2- Sewing tolerance -
+    # -2- Sewing with tolerance -
     V = TK.StringVar(win); V.set(str(tol)); VARS.append(V)
     # -3- Fillet radius -
     V = TK.StringVar(win); V.set('0.1'); VARS.append(V)
@@ -498,6 +505,10 @@ def createApp(win):
     V = TK.StringVar(win); V.set(''); VARS.append(V)
     # -6- Number of components
     V = TK.StringVar(win); V.set('Components: 0'); VARS.append(V)
+    # -7- addDomain type
+    V = TK.StringVar(win); V.set('sphere'); VARS.append(V)
+    # -8- addDomain data
+    V = TK.StringVar(win); V.set('10.'); VARS.append(V)
 
     # CAD file name
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=15)
@@ -577,6 +588,16 @@ def createApp(win):
                    image=iconics.PHOTO[8], padx=0, pady=0)
     BB = CTK.infoBulle(parent=B, text='Set the faces for first compound.')
     B.grid(row=7, column=1, columnspan=1, sticky=TK.EW)
+
+    # addDomain
+    B = TTK.OptionMenu(Frame, VARS[7], 'sphere', 'box')
+    BB = CTK.infoBulle(parent=B, text='Add domain.')
+    B.grid(row=8, column=0, columnspan=1, sticky=TK.EW)
+
+    B = TTK.Entry(Frame, textvariable=VARS[8], background='White', width=10)
+    B.grid(row=8, column=1, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Domain data.')
+    B.bind('<Return>', addDomain)
 
 #==============================================================================
 # Called to display widgets

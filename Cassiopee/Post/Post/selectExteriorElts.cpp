@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -16,15 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-// selectExteriorElts
-
-# include <stdio.h>
-# include <string.h>
 # include "post.h"
+# include "String/kstring.h"
 # include "Nuga/include/merge.h"
 
-using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
@@ -33,49 +28,37 @@ using namespace K_FLD;
 PyObject* K_POST::selectExteriorElts(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
-  if (res != 1 && res != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "selectExteriorElts: array is invalid.");
-    return NULL;
-  }
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res == 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "exteriorElts: only for unstructured arrays.");
     RELEASESHAREDB(res, array, f, cn); return NULL;
   }
-  //E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
-  //E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
-  //E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
+  else if (res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "selectExteriorElts: array is invalid.");
+    return NULL;
+  }
 
-  PyObject* t;
+  PyObject* tpl;
   if (strcmp(eltType, "NGON") == 0)
   {
-    t = selectExteriorEltsNGon(*f, *cn, varString);
+    tpl = selectExteriorEltsNGon(*f, *cn, varString);
   }
   else 
   {
-    /*
-    if (posx == 0 || posy == 0 || posz == 0 || 
-        strcmp(eltType, "BAR") == 0 || strcmp(eltType, "PYRA") == 0 ||
-        strcmp(eltType, "PENTA") == 0)
-      t = selectExteriorEltsBasic(*f, *cn, eltType, varString);
-    else
-      t = selectExteriorEltsBasic2(*f, *cn, eltType, varString, 
-                                   posx, posy, posz);
-    */
-    t = selectExteriorEltsBasic(*f, *cn, eltType, varString);
+    tpl = selectExteriorEltsME(*f, *cn, eltType, varString);
   }
   RELEASESHAREDU(array, f, cn); 
-  return t;
+  return tpl;
 }
 
 //=============================================================================
@@ -86,11 +69,11 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
                                           char* eltType, char* varString)
 {
   E_Int nelts = cn.getSize();
-  vector< vector<E_Int> > cEEN(nelts);
+  std::vector<std::vector<E_Int> > cEEN(nelts);
   K_CONNECT::connectEV2EENbrs(eltType, f.getSize(), cn, cEEN);
 
   // Nombre de voisins pour un elt interieur
-  unsigned int nvoisins = 0;
+  size_t nvoisins = 0;
   if (strcmp(eltType, "BAR") == 0) nvoisins = 2;
   else if (strcmp(eltType, "QUAD") == 0) nvoisins = 4;
   else if (strcmp(eltType, "TRI") == 0) nvoisins = 3;
@@ -99,6 +82,7 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   else if (strcmp(eltType, "PYRA") == 0) nvoisins = 5;
   else if (strcmp(eltType, "PENTA") == 0) nvoisins = 5;
   
+  E_Int api = f.getApi();
   E_Int nv = cn.getNfld();
   E_Int nthreads = __NUMTHREADS__;
   E_Int net = nelts/nthreads+1;
@@ -107,7 +91,7 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   for (E_Int i = 0; i < nthreads; i++) indirs[i] = new E_Int [net];
   E_Int* prev = new E_Int [nthreads];
 
-#pragma omp parallel default(shared)
+#pragma omp parallel
   {
     E_Int  ithread = __CURRENT_THREAD__;
     E_Int* indir = indirs[ithread];
@@ -129,7 +113,7 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   // Connectivite
   FldArrayI cnn(netot, nv);
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     E_Int  ithread = __CURRENT_THREAD__;
     E_Int* indir = indirs[ithread];
@@ -147,8 +131,8 @@ PyObject* K_POST::selectExteriorEltsBasic(FldArrayF& f, FldArrayI& cn,
   for (E_Int i = 0; i < nthreads; i++) delete [] indirs[i];
   delete [] indirs; delete [] nes; delete [] prev;
 
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
-  return t;
+  PyObject* tpl = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
+  return tpl;
 }
 
 //=============================================================================
@@ -177,6 +161,7 @@ PyObject* K_POST::selectExteriorEltsBasic2(FldArrayF& f, FldArrayI& cn,
     return NULL;
   }
  
+  E_Int api = f.getApi();
   E_Int ne = cn.getSize();
   E_Int nv = cn.getNfld();
   E_Float* fx = f.begin(posx);
@@ -265,8 +250,8 @@ PyObject* K_POST::selectExteriorEltsBasic2(FldArrayF& f, FldArrayI& cn,
       }
     }
   }
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
-  return t;
+  PyObject* tpl = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
+  return tpl;
 }
 
 //=============================================================================
@@ -295,6 +280,7 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
     return NULL;
   }
  
+  E_Int api = f.getApi();
   E_Int ne = cn.getSize();
   E_Int nv = cn.getNfld();
   E_Float* fx = f.begin(posx);
@@ -311,11 +297,11 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
   E_Float* interfacez = interfaceCenters.begin(3);
   E_Float fvertex = 1./nvertex;
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel
   {
     E_Float xm, ym, zm;
     E_Int ind, ff;
-#pragma omp for
+    #pragma omp for
     for (E_Int et = 0; et < ne; et++)
     {
       for (E_Int j = 0; j < nfaces; j++)
@@ -336,7 +322,7 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
   }
 
   ArrayAccessor<FldArrayF> coordAcc(interfaceCenters, 1, 2, 3);
-  vector<E_Int> ids;
+  std::vector<E_Int> ids;
   ::merge(coordAcc, 1.e-12, ids);
 
   interfaceCenters.setAllValuesAtNull(); // store int/ext tag
@@ -364,8 +350,8 @@ PyObject* K_POST::selectExteriorEltsBasic3(FldArrayF& f, FldArrayI& cn,
       ff++;
     }
   }
-  PyObject* t = K_ARRAY::buildArray(f, varString, cnn, -1, eltType);
-  return t;
+  PyObject* tpl = K_ARRAY::buildArray3(f, varString, cnn, eltType, api);
+  return tpl;
 }
 
 //=============================================================================
@@ -377,143 +363,375 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
   FldArrayI cFE; K_CONNECT::connectNG2FE(cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
-  E_Int* ptr = cn.begin();
-  E_Int nfacesTot = ptr[0];
-  E_Int sizeFN = ptr[1]; ptr += sizeFN+2;
-  E_Int neltsTot = ptr[0];
-  E_Int sizeEF = ptr[1];
-  
-  FldArrayI posFace;
-  K_CONNECT::getPosFaces(cn, posFace);
-  E_Int* posFacep = posFace.begin();
-  
-  E_Int nbnodes, nbfaces, extElt, indface;
-  E_Int posf, e1, e2;
-  E_Int* ptrFN = cn.begin()+2;
-  E_Int* ptrEF = cn.begin()+4+sizeFN;
 
-  FldArrayI connectEFTemp(sizeEF); E_Int* cEFTemp = connectEFTemp.begin(); 
-  FldArrayI indirFaces(nfacesTot); indirFaces.setAllValuesAt(-1); E_Int* indirFacesp = indirFaces.begin();
+  E_Int npts = f.getSize(); E_Int nfld = f.getNfld(); E_Int api = f.getApi();
+  E_Int* ngon = cn.getNGon(); E_Int* indPG = cn.getIndPG();
+  E_Int* nface = cn.getNFace(); E_Int* indPH = cn.getIndPH();
+  E_Int nfaces = cn.getNFaces(); E_Int nelts = cn.getNElts();
+  E_Int sizeFN = cn.getSizeNGon(); E_Int sizeEF = cn.getSizeNFace();
+  E_Int ngonType = cn.getNGonType();
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
+  E_Bool hasCnOffsets = (ngonType == 2 || ngonType == 3);
+  
+  E_Int nf, nv, extElt, indface;
+  E_Int e1, e2;
+
+  FldArrayI indirFaces(nfaces); indirFaces.setAllValuesAt(-1);
+  FldArrayI nface2Temp(sizeEF), indPH2Temp(0);
+  if (hasCnOffsets) { indPH2Temp.resize(nelts+1); indPH2Temp[0] = 0; }
+
   E_Int indFaceExt;
-  vector<E_Int> origIndicesOfExternalFaces;
+  std::vector<E_Int> origIndicesOfExtFaces;
+  origIndicesOfExtFaces.reserve(E_Int(nfaces/10));  // random guess
   E_Int sizeFN2 = 0; E_Int sizeEF2 = 0;
-  E_Int nbFacesExt = 0; E_Int nbEltsExt = 0;
-  for (E_Int et = 0; et < neltsTot; et++)
-  {
-    nbfaces = ptrEF[0]; // nbre de faces de l'element
-    extElt = -1;
+  E_Int nExtFaces = 0; E_Int nExtElts = 0;
 
-    for (E_Int nf = 0; nf < nbfaces; nf++)
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    extElt = -1;
+    E_Int* elt = cn.getElt(i, nf, nface, indPH);
+    
+    if (nf == 1) { extElt = cFE1[elt[0]-1] - 1; }  // Ghost cell
+    else
     {
-      indface = ptrEF[nf+1]-1;
-      e1 = cFE1[indface];  // element voisin 1
-      e2 = cFE2[indface];  // element voisin 2
-      if (e2 == 0 && e1 > 0) { extElt = e1-1; break; }
-      else if (e1 == 0 && e2 > 0) { extElt = e2-1; break; }
+      for (E_Int f = 0; f < nf; f++)
+      {
+        indface = elt[f] - 1;
+        e1 = cFE1[indface];  // element voisin 1
+        e2 = cFE2[indface];  // element voisin 2
+        if (e2 == 0 && e1 > 0) { extElt = e1 - 1; break; }
+        else if (e1 == 0 && e2 > 0) { extElt = e2 - 1; break; }
+      }
     }
-    if (nbfaces == 1) { extElt = cFE1[ptrEF[1]-1]-1; } // Ghost cells
-    if (extElt != -1)
+    
+    if (extElt != -1)  // exterior element found
     {
       // construction de la connectivite Elts/Faces des elts externes
-      cEFTemp[0] = nbfaces;
-      for (E_Int nof = 0; nof < nbfaces; nof++)
+      nface2Temp[sizeEF2] = nf;
+      if (hasCnOffsets) indPH2Temp[nExtElts+1] = indPH2Temp[nExtElts] + nf;
+      for (E_Int f = 0; f < nf; f++)
       {
-        indface = ptrEF[nof+1]-1;        
-        if (indirFacesp[indface] == -1) 
+        indface = elt[f] - 1;
+        if (indirFaces[indface] == -1) 
         {
-          posf = posFacep[indface];
-          ptrFN = cn.begin()+posf;
-          sizeFN2 += ptrFN[0]+1;
-
-          indFaceExt = nbFacesExt; 
-          indirFacesp[indface] = indFaceExt; 
-          nbFacesExt++;
-          origIndicesOfExternalFaces.push_back(indface);
+          cn.getFace(indface, nv, ngon, indPG);
+          indFaceExt = nExtFaces; nExtFaces++;
+          indirFaces[indface] = indFaceExt;
+          origIndicesOfExtFaces.push_back(indface);
         }
-        else indFaceExt = indirFacesp[indface];
+        else indFaceExt = indirFaces[indface];
 
-        cEFTemp[nof+1] = indFaceExt+1;
+        nface2Temp[sizeEF2+f+shift] = indFaceExt + 1;
       }
-      cEFTemp += nbfaces+1; sizeEF2 += nbfaces+1; nbEltsExt += 1;
+      sizeEF2 += nf + shift; nExtElts++;
     }
-    ptrEF += nbfaces+1;
   }
   cFE.malloc(0); indirFaces.malloc(0);
-  // on connait sizeEF2, nbEltsExt, nbFacesExt (sans doublons)
-  connectEFTemp.resize(sizeEF2);
+
+  // on connait sizeEF2, nExtElts, nExtFaces (sans doublons)
+  nface2Temp.resize(sizeEF2);
+
   // construction de la connectivite Faces/Noeuds
-  FldArrayI connectFNTemp(sizeFN); E_Int* cFNTemp = connectFNTemp.begin(); 
-  E_Int npts = f.getSize(); E_Int nfld = f.getNfld();
+  E_Int npts2 = 0;
+  E_Int indnode, indface2;
+  FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
+  FldArrayI ngon2Temp(sizeFN), indPG2Temp(0);
+  if (hasCnOffsets) { indPG2Temp.resize(nExtFaces+1); indPG2Temp[0] = 0; }
 
-  FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1); E_Int* indirNp = indirNodes.begin();
-  E_Int indnode, indfaceo;
-  E_Int numNode = 0;
-  for (E_Int nfe = 0 ; nfe < nbFacesExt; nfe++)
+  sizeFN2 = 0;
+  for (E_Int f = 0; f < nExtFaces; f++)
   {
-    indfaceo = origIndicesOfExternalFaces[nfe]; //demarre a 0
-    posf = posFacep[indfaceo];
-    ptrFN = cn.begin()+posf;
-    nbnodes = ptrFN[0];
-    cFNTemp[0] = nbnodes;
-    for (E_Int p = 1; p <= nbnodes; p++)
+    indface2 = origIndicesOfExtFaces[f];  // starts at 0
+    E_Int* face = cn.getFace(indface2, nv, ngon, indPG);
+    ngon2Temp[sizeFN2] = nv;
+    if (hasCnOffsets) indPG2Temp[f+1] = indPG2Temp[f] + nv;
+    for (E_Int p = 0; p < nv; p++)
     {
-      indnode = ptrFN[p]-1;
-      if (indirNp[indnode] == -1) //creation
+      indnode = face[p] - 1;
+      if (indirNodes[indnode] == -1)  // creation
       {
-        indirNp[indnode] = numNode+1;
-        cFNTemp[p] = numNode+1;
-        numNode++;
+        indirNodes[indnode] = npts2 + 1;
+        ngon2Temp[sizeFN2+p+shift] = npts2 + 1;
+        npts2++;
       }
-      else
-      {
-        cFNTemp[p] = indirNp[indnode];
-      }
+      else ngon2Temp[sizeFN2+p+shift] = indirNodes[indnode];
     }
-    cFNTemp += nbnodes+1;
+    sizeFN2 += nv + shift;
   }
-  posFace.malloc(0); origIndicesOfExternalFaces.clear();
+  ngon2Temp.resize(sizeFN2);
+  origIndicesOfExtFaces.clear();
 
-  // construit l'array de sortie
-  E_Int csize = sizeFN2+sizeEF2+4;
-  PyObject* tpl= K_ARRAY::buildArray(nfld, varString, numNode, csize, 8, 
-                                     "NGON", false, csize); 
+  // Reconstruction de la connectivite finale
+  PyObject* tpl = K_ARRAY::buildArray3(
+    nfld, varString, npts2, nExtElts, nExtFaces,
+    "NGON", sizeFN2, sizeEF2, ngonType, false, api
+  ); 
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
 
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF f2(numNode, nfld, fnp, true);
-  
-#pragma omp parallel default(shared)
+  E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
+  E_Int *indPG2 = NULL, *indPH2 = NULL;
+  if (hasCnOffsets) { indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH(); }
+
+  #pragma omp parallel
   {
     E_Int indf;
+    // Copy compressed fields to f2
     for (E_Int eq = 1; eq <= nfld; eq++)
     {
       E_Float* fp = f.begin(eq);
-      E_Float* fnp = f2.begin(eq);
-#pragma omp for
+      E_Float* f2p = f2->begin(eq);
+      #pragma omp for nowait
       for (E_Int ind = 0; ind < npts; ind++)
       {
-        indf = indirNp[ind]-1;
-        if (indf > -1) fnp[indf] = fp[ind];
+        indf = indirNodes[ind] - 1;
+        if (indf > -1) f2p[indf] = fp[ind];
+      }
+    }
+
+    // Copy compressed connectivity to cn2
+    #pragma omp for nowait
+    for (E_Int i = 0; i < sizeFN2; i++) ngon2[i] = ngon2Temp[i];
+    #pragma omp for nowait
+    for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = nface2Temp[i];
+
+    if (hasCnOffsets)
+    {
+      #pragma omp for nowait
+      for (E_Int i = 0; i < nExtFaces; i++) indPG2[i] = indPG2Temp[i];
+      #pragma omp for
+      for (E_Int i = 0; i < nExtElts; i++) indPH2[i] = indPH2Temp[i];
+    }
+  }
+
+  RELEASESHAREDU(tpl, f2, cn2);
+  return tpl;
+}
+
+//=============================================================================
+// Recherche topologique des elements exterieurs utilisant la connectivite
+// EV2NNbrs
+//==============================================================================
+PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn, 
+                                       char* eltType, char* varString)
+{
+  E_Int nc = cn.getNConnect();
+  E_Int nfld = f.getNfld();
+  E_Int api = f.getApi();
+  E_Int npts = f.getSize();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute total number of elements across all connectivities, ntotElts
+  std::vector<E_Int> nepc(nc);
+  std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;  // cumulative number of elts per conn.
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    nepc[ic] = nelts;
+    cumnepc[ic+1] = cumnepc[ic] + nelts;
+  }
+  E_Int ntotElts = cumnepc[nc];
+
+  // Compute number of neighbour elements of internal elements, that is the
+  // number of faces per element, nfpe
+  std::vector<E_Int> nfpe;
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  if (ierr != 0) return NULL;
+
+  // Build the element -> number of neighbour elements connectivity
+  std::vector<E_Int> cENN(ntotElts);
+  K_CONNECT::connectEV2NNbrs(eltType, npts, cn, cENN);
+
+  // Uniform chunks (schedule: static) with at most 'net' elements per thread
+  E_Int nthreads = __NUMTHREADS__;
+  E_Int net = ntotElts/nthreads + nc;
+  // Thread-related arrays are prefixed with 't'. For each thread:
+  //  - tindir: maps element indices from new to old ME
+  E_Int** tindir = new E_Int* [nthreads];
+  //  - tnextepc: number of exterior elements found in each connectivity
+  E_Int** tnextepc = new E_Int* [nthreads];
+  //  - toffset: cumulative number of exterior elements found in each connectivity
+  E_Int** toffset = new E_Int* [nthreads];
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    tindir[i] = new E_Int [net];
+    tnextepc[i] = new E_Int [nc];
+    toffset[i] = new E_Int [nc];
+  }
+
+  // Number of elements per connectivity of the output ME
+  // ('tmp_' is uncompressed: same number of connectivities as the input ME)
+  std::vector<E_Int> tmp_nepc2(nc, 0);
+
+  // In a first pass, tag vertex indices that belong to exterior elements
+  std::vector<E_Int> vindir(npts, 0);
+
+  #pragma omp parallel
+  {
+    E_Int indv;
+    E_Int eidx;  // global element index
+    E_Int nneis;  // number of neighbours of element eidx
+    E_Int nextElts = 0;  // number of exterior elements found in all conn. of that thread
+    E_Int nextEltsIc;  // number of exterior elements found in a given conn. of that thread
+    // Local thread-related arrays are prefixed with 'loc_t'
+    E_Int tid = __CURRENT_THREAD__;
+    E_Int* loc_tindir = tindir[tid];
+    E_Int* loc_tnextepc = tnextepc[tid];
+    std::vector<E_Int> loc_ttmp_nepc2(nc, 0);
+
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cn.getConnect(ic));
+      E_Int nvpe = cm.getNfld();
+      nextEltsIc = 0;
+
+      #pragma omp for schedule(static)
+      for (E_Int i = 0; i < nepc[ic]; i++)
+      {
+        eidx = cumnepc[ic] + i;
+        nneis = cENN[eidx];
+        if (nneis != nfpe[ic])  // exterior element found
+        {
+          loc_tindir[nextElts] = i; nextElts++; nextEltsIc++;
+          loc_ttmp_nepc2[ic]++;
+
+          // Tag vertices as exterior vertices
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            indv = cm(i, j) - 1;
+            vindir[indv] = 1;
+          }
+        }
+      }
+
+      loc_tnextepc[ic] = nextEltsIc;
+    }
+
+    #pragma omp critical
+    {
+      for (E_Int ic = 0; ic < nc; ic++) tmp_nepc2[ic] += loc_ttmp_nepc2[ic];
+    }
+  }
+
+  // Transform the exterior vertex mask of zeros and ones into a vertex map
+  // from old to new connectivities, and get the number of unique exterior
+  // vertices, npts2
+  E_Int npts2 = K_CONNECT::prefixSum(vindir);
+
+  // Compute thread element offsets in the output ME for each connectivity
+  // toffset is a cumulative tnextepc over all conns
+  // Used to build cm2 using multiple threads
+  {
+    E_Int* loc_toffset = toffset[0];
+    for (E_Int ic = 0; ic < nc; ic++) loc_toffset[ic] = 0;
+  }
+  
+  for (E_Int i = 1; i < nthreads; i++)
+  {
+    E_Int* tnextepcm1 = tnextepc[i-1];
+    E_Int* loc_toffset = toffset[i];
+    E_Int* toffsetm1 = toffset[i-1];
+    for (E_Int ic = 0; ic < nc; ic++)
+      loc_toffset[ic] = toffsetm1[ic] + tnextepcm1[ic];
+  }
+
+  // Free memory
+  cENN.clear(); cENN.shrink_to_fit();
+
+  // Build new eltType from connectivities that have at least one element
+  E_Int nc2 = 0;
+  char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+  eltType2[0] = '\0';
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    if (tmp_nepc2[ic] > 0)
+    {
+      nc2++;
+      if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
+      else
+      {
+        strcat(eltType2, ",");
+        strcat(eltType2, eltTypes[ic]);
       }
     }
   }
 
-  // reconstruction de la connectivite finale
-  E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  cnp[0] = nbFacesExt; cnp[1] = sizeFN2;
-  cnp += 2;
-  E_Int* cne = cnp + sizeFN2;
-  cne[0] = nbEltsExt; 
-  cne[1] = sizeEF2;
-  cne += 2;
-  E_Int* ptro1 = connectFNTemp.begin();  
-  E_Int* ptro2 = connectEFTemp.begin(); 
-
-#pragma omp parallel default(shared)
+  // Compress the number of elements per connectivity of the output ME, ie,
+  // drop connectivities containing no exterior elements
+  std::vector<E_Int> nepc2(nc2);
+  nc2 = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
   {
-#pragma omp for
-    for (E_Int i = 0; i < sizeFN2; i++) cnp[i] = ptro1[i];
-#pragma omp for
-    for (E_Int i = 0; i < sizeEF2; i++) cne[i] = ptro2[i];
+    if (tmp_nepc2[ic] > 0) { nepc2[nc2] = tmp_nepc2[ic]; nc2++; }
   }
+ 
+  // Build new connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+                                       nepc2, eltType2, false, api);
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  #pragma omp parallel
+  {
+    E_Int ic2, indv, inde, nelts, nvpe;
+    E_Int offR;  // cumulative element offset of a given conn. to Read from cm
+    E_Int offW;  // cumulative element offset of a given conn. to Write into cm2
+    E_Int tid = __CURRENT_THREAD__;
+    E_Int* loc_tindir = tindir[tid];
+    E_Int* loc_tnextepc = tnextepc[tid];
+    E_Int* loc_toffset = toffset[tid];
+
+    // Fields
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f.begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++)
+      {
+        indv = vindir[i];
+        if (indv > 0) f2p[indv-1] = fp[i];
+      }
+    }
+
+    // Connectivity
+    ic2 = 0;
+    offR = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      if (tmp_nepc2[ic] == 0) continue;  // no exterior elements in this conn, skip
+      FldArrayI& cm = *(cn.getConnect(ic));
+      FldArrayI& cm2 = *(cn2->getConnect(ic2));
+      nelts = loc_tnextepc[ic];
+      offW = loc_toffset[ic];
+      nvpe = cm.getNfld();
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        inde = loc_tindir[i+offR];
+        for (E_Int j = 1; j <= nvpe; j++)
+        {
+          indv = cm(inde, j) - 1;
+          cm2(offW+i, j) = vindir[indv];
+        }
+      }
+      ic2++;
+      offR += nelts;
+    }
+  }
+
+  // Free memory
+  for (E_Int i = 0; i < nthreads; i++)
+  {
+    delete [] tindir[i];
+    delete [] tnextepc[i];
+    delete [] toffset[i];
+  }
+  delete [] tindir; delete [] tnextepc; delete [] toffset;
+
+  RELEASESHAREDU(tpl, f2, cn2);
+  delete [] eltType2;
+  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   return tpl;
 }

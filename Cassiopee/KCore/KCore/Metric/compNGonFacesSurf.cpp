@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -36,7 +36,8 @@ using namespace std;
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
 E_Int K_METRIC::compNGonFacesSurf(
-  E_Float* xt, E_Float* yt, E_Float* zt, FldArrayI& cn,
+  const E_Float* xt, const E_Float* yt, const E_Float* zt,
+  FldArrayI& cn,
   E_Float* sxp, E_Float* syp, E_Float* szp, E_Float* snp,
   FldArrayI* cFE)
 {

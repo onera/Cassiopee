@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -25,13 +25,6 @@
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
-extern "C"
-{
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 namespace K_GENERATOR 
 {
@@ -119,15 +112,14 @@ PyObject* octree(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-  E_Boolean shared = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int res = K_ARRAY::getFromArrays(
     stlArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, shared);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (res == -1) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -182,6 +174,8 @@ PyObject* octree(PyObject* self, PyObject* args)
     posxi++; posyi++; poszi++;
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi);
   }
+
+  E_Int api = 1; // TODO unstrF[0]->getApi();
 
   // recuperation des snears 
   E_Int nsnear = PyList_Size(listOfSnears);
@@ -475,7 +469,7 @@ PyObject* octree(PyObject* self, PyObject* args)
       {
         //regarder si dh > snear ? 
         snear = K_FUNC::E_min(snears[v], snear);
-        if (dh > snear-tol && dh != snear) found = 1;
+        if (dh-tol > snear && dh != snear) found = 1;
       }
       indicesBB.clear();
     }
@@ -651,7 +645,7 @@ PyObject* octree(PyObject* self, PyObject* args)
   const char* eltType = "HEXA"; if (dim == 2) eltType = "QUAD"; 
   K_CONNECT::cleanConnectivity(1, 2, 3, 1.e-6, eltType, *coords, *cn);
   //buildArray
-  tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, eltType, false);
+  tpl = K_ARRAY::buildArray3(*coords, "x,y,z", *cn, eltType, api);
 
   //nettoyage
   delete coords; delete cn;

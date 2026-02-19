@@ -1,7 +1,6 @@
 # -- tkBCs --
 """Applet to view/set BCs in a pyTree."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -52,7 +51,7 @@ def getAllDefinedBC(t):
             if r is not None:
                 if Internal.getValue(r) == 'Abutting1to1': natives.add('BCMatch')
 
-        # BCNearMatch
+        # BCNearMatch or BCOverlap
         nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
         for i in nodes:
             r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
@@ -62,13 +61,7 @@ def getAllDefinedBC(t):
                     if f is not None and Internal.getValue(f).startswith('BCStage'):
                         natives.add(Internal.getValue(f))
                     else: natives.add('BCNearMatch')
-
-        # BCOverlap
-        nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-        for i in nodes:
-            r = Internal.getNodeFromType1(i, 'GridConnectivityType_t')
-            if r is not None:
-                if Internal.getValue(r) == 'Overset': natives.add('BCOverlap')
+                elif Internal.getValue(r) == 'Overset': natives.add('BCOverlap')
 
     natives = list(natives)
     natives.sort(key=str.lower)
@@ -280,9 +273,9 @@ def check():
     bases = Internal.getBases(tp)
     nb = 0
     for b in bases:
-        nodes = Internal.getNodesFromType1(b, 'Zone_t')
+        zones = Internal.getNodesFromType1(b, 'Zone_t')
         nz = 0
-        for z in nodes:
+        for z in zones:
             ztype = Internal.getZoneType(z)
             winz = wins[nb][nz]
             if ztype == 1: # structure
@@ -805,7 +798,7 @@ def createApp(win):
 
     # - Slider for splitFactor -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL,
-                  command=setSplitFactor, showvalue=0, borderwidth=1, value=0)
+                  command=setSplitFactor, showvalue=0, borderwidth=1, value=75)
     WIDGETS['splitFactor'] = B
     B.grid(row=3, columnspan=1, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[8])

@@ -43,6 +43,5 @@ for n in nodes:
     a = numpy.reshape(a, (1,ni*nj*nk))
     array = ['walldistance', a, ni, nj, nk]
     array = Converter.initVars(array, 'wallglobalindex', 1)
-    Converter.convertArrays2File([array], 'dist'+str(c)+'.v3d',
-                                 'bin_v3d')
+    Converter.convertArrays2File([array], 'dist'+str(c)+'.v3d', 'bin_v3d')
     c += 1

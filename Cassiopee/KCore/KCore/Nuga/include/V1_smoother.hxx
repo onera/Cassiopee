@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -74,7 +74,7 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)  {
     
     hmesh.get_enabled_neighbours(ind_PHi, neighbours.begin(), nb_neighbours); // get the effective neighbours (enabled ones) to assert the 2:1 rule
 
-    for (int i = 0; i < nb_neighbours; ++i)
+    for (E_Int i = 0; i < nb_neighbours; ++i)
     {
       //fixme : dangerous : operator[] returns a ref
       // so doing :
@@ -100,7 +100,7 @@ void V1_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)  {
         E_Int father = PHtree.parent(PH_to_mod);
         const E_Int* p = PHtree.children(father);
         E_Int nb_children = PHtree.nb_children(father);
-        for (int j = 0; j < nb_children; ++j)
+        for (E_Int j = 0; j < nb_children; ++j)
         {
           adap_incr.cell_adap_incr[p[j]] += 1;
           stck.push(p[j]);

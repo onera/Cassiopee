@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "converter.h"
-//# include <vector>
 using namespace std;
 using namespace K_FLD;
 
@@ -43,44 +42,55 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
   }
 
   E_Int ni, nj, nk;
-  FldArrayI* c; FldArrayF* FCenter;
+  FldArrayI* cnc; FldArrayF* fc;
   char* eltType; char* varString;
-  E_Int res; 
-  res = K_ARRAY::getFromArray3(array, varString, FCenter,
-                               ni, nj, nk, c, eltType);
-  if (res != 1 && res != 2) return NULL;
 
-  E_Int nelts = FCenter->getSize();
+  E_Int res = K_ARRAY::getFromArray3(array, varString, fc, ni, nj, nk, cnc, eltType);
 
-  /* Essaie de trouver la variables cellN. Les traitements sont un peu
-     differents pour cette variable. */
-  E_Int cellN = -1;
-  E_Int ret = K_ARRAY::isCellNatureField2Present(varString);
-  if (ret != -1) cellN = ret+1;
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "center2Node: unrecognised type of array.");
+    return NULL;
+  }
+
+  E_Int nelts = fc->getSize();
+  E_Int nfld = fc->getNfld();
+  E_Int api = fc->getApi();
+  E_Int npts;
+
+  // Essaie de trouver la variables cellN. Les traitements sont un peu
+  // differents pour cette variable.
+  E_Int posCellN = K_ARRAY::isCellNatureField2Present(varString);
+  if (posCellN != -1) posCellN += 1;
 
   // Retourne le mode de sortie du champ cellnaturefield (1 (0,1), 2 (0,1,2) 
   // ou 3 (0, 1, -interpolationblock))
-  E_Int mod = 0; E_Float nature;
-  if (cellN != -1)
+  E_Int mod = 0;
+  E_Float nature;
+  if (posCellN != -1)
   {
     mod = 1;
-    E_Float* cellNat = FCenter->begin(cellN);
-    for (E_Int ind = 0; ind < nelts; ind++) 
+    E_Float* cellNp = fc->begin(posCellN);
+    for (E_Int i = 0; i < nelts; i++) 
     {
-      nature = cellNat[ind];
-      if (K_FUNC::fEqualZero(nature-2.) == true) { mod = 2; break; }
+      nature = cellNp[i];
+      if (K_FUNC::fEqualZero(nature-2.)) { mod = 2; break; }
       else if (nature < -0.2) { mod = 3; break; }
     }
   }
 
-  E_Int nfld = FCenter->getNfld();
-  E_Int api = FCenter->getApi();
+  PyObject* tpl;
+  FldArrayF* fn2;
+  E_Int ret;
+
+  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
+  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
+  
   if (res == 1)
   {
     E_Int nin, njn, nkn;
-    E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-    E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-    E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     
     if (ni == 1)
     {
@@ -109,158 +119,150 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
       else //if (nj == 1)
       { nin = ni+1; njn = 1; nkn = 1; }
     }
-    else
-    { nin = ni+1; njn = nj+1; nkn = nk+1; }
+    else { nin = ni+1; njn = nj+1; nkn = nk+1; }
 
-    PyObject*tpl = K_ARRAY::buildArray3(nfld, varString, nin, njn, nkn);
-    E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF FNode(nin*njn*nkn, nfld, fnp, true);
-    ret = K_LOC::center2nodeStruct(*FCenter, ni, nj, nk, cellN, mod, 
-                                   posx, posy, posz, FNode, nin, njn, nkn,
+    tpl = K_ARRAY::buildArray3(nfld, varString, nin, njn, nkn);
+    K_ARRAY::getFromArray3(tpl, fn2);
+
+    ret = K_LOC::center2nodeStruct(*fc, ni, nj, nk, posCellN, mod, 
+                                   posx, posy, posz, *fn2, nin, njn, nkn,
                                    type);
     // Boundary corrections
     if (BCFields != Py_None)
     {
       //PyObject* indR = PyList_GetItem(BCFields, 0);
       //PyObject* fields = PyList_GetItem(BCFields, 1);
-      //E_Int res = K_ARRAY::getFromArray(fields, varString, FCenter, 
-      //                                  ni, nj, nk, c, eltType, true);
-      //center2NodeStructBorder(FNode, nin, njn, nkn);
-      //RELEASESHAREDB(res, fields, );
+      //E_Int res = K_ARRAY::getFromArray3(fields, varString, fc, 
+      //                                   ni, nj, nk, cnc, eltType);
+      //center2NodeStructBorder(fn2, nin, njn, nkn);
+      //RELEASESHAREDB(res, fields);
     }
 
-    RELEASESHAREDS(array, FCenter);
-    if (ret == 0) return NULL;
+    RELEASESHAREDS(tpl, fn2);
+    RELEASESHAREDS(array, fc);
+    if (ret == 0)
+    {
+      PyErr_SetString(PyExc_ValueError, 
+                      "center2Node: algo failed for the structured array.");
+      return NULL;
+    }
     return tpl;
   }
-  else if (res == 2)
+  else  // res == 2
   {
     if (strchr(eltType, '*') == NULL)
     {
       PyErr_SetString(PyExc_TypeError, 
                       "center2Node: unstructured array must be eltType*.");
-      RELEASESHAREDU(array, FCenter, c); return NULL;
+      RELEASESHAREDU(array, fc, cnc); return NULL;
+    }
+
+    if (K_STRING::cmp(eltType, "NODE*") == 0)
+    {
+      npts = nelts;
+      tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts, "NODE", true, api);
+      K_ARRAY::getFromArray3(tpl, fn2);
+      
+      #pragma omp parallel
+      {
+        for (E_Int n = 1; n <= nfld; n++)
+        {
+          E_Float* fcp = fc->begin(n);
+          E_Float* fn2p = fn2->begin(n);
+
+          #pragma omp for nowait
+          for (E_Int i = 0; i < npts; i++) fn2p[i] = fcp[i]; 
+        }
+      }
+
+      RELEASESHAREDS(tpl, fn2);
+      RELEASESHAREDU(array, fc, cnc);
+      return tpl;
     }
       
-    E_Int nb = 0;
-    E_Boolean compact = false;
-    if (api == 1) compact = true;
+    npts = 0;
 
     if (K_STRING::cmp(eltType, "NGON*") == 0)
     {
-      vector< vector<E_Int> > cEV(nelts);
-      K_CONNECT::connectNG2EV(*c, cEV);
+      vector<vector<E_Int> > cEV(nelts);
+      K_CONNECT::connectNG2EV(*cnc, cEV);
 
-      /* Calcul de Nb en eliminant les vertex non references
-      E_Int nptsmax = 0;
-      for (E_Int et = 0; et < nelts; et++) nptsmax += cEV[et].size();
-      FldArrayI count(nptsmax); count.setAllValuesAtNull();
-      E_Int* countp = count.begin();
-      for (E_Int et = 0; et < nelts; et++)
+      // Calcul de npts en prenant le numero max du vertex dans la conn NGON
+      #pragma omp parallel reduction(max: npts)
       {
-        vector<E_Int>& vertices = cEV[et]; E_Int nvert = vertices.size();   
-        for (E_Int nov = 0; nov < nvert; nov++)
+        E_Int indv, nv;
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
         {
-          E_Int indv = vertices[nov]-1;         
-          if (countp[indv] == 0) {countp[indv]++; nb++;}
-        }
-      }
-      count.malloc(0);
-      */
-
-      /* Calcul de Nb en prenant le numero max du vertex dans les faces */
-      for (E_Int et = 0; et < nelts; et++)
-      {
-        vector<E_Int>& vertices = cEV[et]; E_Int nvert = vertices.size();   
-        for (E_Int nov = 0; nov < nvert; nov++)
-        {
-          E_Int indv = vertices[nov];
-          nb = K_FUNC::E_max(nb, indv);
+          const vector<E_Int>& vertices = cEV[i];
+          nv = vertices.size();
+          for (E_Int j = 0; j < nv; j++)
+          {
+            indv = vertices[j];
+            npts = K_FUNC::E_max(npts, indv);
+          }
         }
       }
 
-      FldArrayF* FNode = new FldArrayF(nb, nfld, compact);
-      ret = K_LOC::center2nodeNGon(*FCenter, *c, cEV, *FNode, cellN, mod, type);
-    
-      for (E_Int et = 0; et < nelts; et++) cEV[et].clear();
+      PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts,
+                                           *cnc, "NGON", false, api, true);
+      FldArrayF* fn2;
+      K_ARRAY::getFromArray3(tpl, fn2);
+      ret = K_LOC::center2nodeNGon(*fc, *cnc, cEV, *fn2, posCellN, mod, type);
       cEV.clear();
-      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, "NGON");
-      delete FNode;
-      RELEASESHAREDU(array, FCenter, c);
-      if (ret == 0) return NULL;
+
+      RELEASESHAREDS(tpl, fn2);
+      RELEASESHAREDU(array, fc, cnc);
+      if (ret == 0)
+      {
+        PyErr_SetString(PyExc_ValueError, 
+                        "center2Node: algo failed for the NGON array.");
+        return NULL;
+      }
       return tpl;
     }
     else // BE/ME
     {    
+      E_Int nc = cnc->getNConnect();
       char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
       K_ARRAY::unstarVarString(eltType, eltType2);
 
-      FldArrayF* FNode;
-
-      if (K_STRING::cmp(eltType, "NODE*") == 0)
+      // Calcul de npts en prenant le numero max dans les conns BE
+      #pragma omp parallel reduction(max: npts)
       {
-        ret = 1;
-        nb = nelts;
-        FNode = new FldArrayF(nb, nfld, compact);
-        E_Float* fn = FNode->begin();
-        E_Float* fc = FCenter->begin();
-#pragma omp parallel for
-        for (E_Int i = 0; i < nb*nfld; i++) fn[i] = fc[i]; 
-      }
-      else
-      {
-        // Acces universel sur BE/ME
-        E_Int nc = c->getNConnect();
-        // Acces universel aux eltTypes
-        vector<char*> eltTypes;
-        K_ARRAY::extractVars(eltType, eltTypes);
-
-        // Boucle sur toutes les connectivites 
         for (E_Int ic = 0; ic < nc; ic++)
         {
-          FldArrayI& cm = *(c->getConnect(ic));
-          char* eltTypConn = eltTypes[ic];
-          if (not (K_STRING::cmp(eltTypConn, "BAR*") == 0   ||
-                   K_STRING::cmp(eltTypConn, "TRI*") == 0   ||
-                   K_STRING::cmp(eltTypConn, "QUAD*") == 0  ||
-                   K_STRING::cmp(eltTypConn, "TETRA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "HEXA*") == 0  ||
-                   K_STRING::cmp(eltTypConn, "PENTA*") == 0 ||
-                   K_STRING::cmp(eltTypConn, "PYRA*") == 0))
+          FldArrayI& cmc = *(cnc->getConnect(ic));
+          E_Int nelts = cmc.getSize();
+          E_Int nvpe = cmc.getNfld();
+          
+          #pragma omp for collapse(2)
+          for (E_Int i = 0; i < nelts; i++)
+          for (E_Int n = 1; n <= nvpe; n++)
           {
-            PyErr_SetString(PyExc_TypeError, 
-                            "center2Node: BE eltType does not exist.");
-            RELEASESHAREDU(array, FCenter, c);
-            return NULL;
-          }
-
-          E_Int ne = cm.getSize(), nt = cm.getNfld();
-          for (E_Int n = 1; n <= nt; n++)
-          {
-            for (E_Int e = 0; e < ne; e++) nb = K_FUNC::E_max(nb, cm(e,n));
+            npts = K_FUNC::E_max(npts, cmc(i,n));
           }
         }
-
-        for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-
-        E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-        E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-        E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-        FNode = new FldArrayF(nb, nfld, compact);
-        ret = K_LOC::center2nodeUnstruct(*FCenter, *c, cellN, mod, posx, posy, posz, *FNode, type);
       }
-      
-      PyObject* tpl = K_ARRAY::buildArray3(*FNode, varString, *c, eltType2);
-      delete FNode; delete[] eltType2;
-      RELEASESHAREDU(array, FCenter, c);
+
+      tpl = K_ARRAY::buildArray3(nfld, varString, npts,
+                                 *cnc, eltType2, false, api, true);
+      K_ARRAY::getFromArray3(tpl, fn2);
+
+      ret = K_LOC::center2nodeUnstruct(*fc, *cnc, posCellN, mod,
+                                        posx, posy, posz, *fn2, type);
+
+      delete[] eltType2;
+      RELEASESHAREDS(tpl, fn2);
+      RELEASESHAREDU(array, fc, cnc);
+
+      if (ret == 0)
+      {
+        PyErr_SetString(PyExc_ValueError, 
+                        "center2Node: algo failed for the BE/ME array.");
+        return NULL;
+      }
       return tpl;
     }
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "close: unrecognised type of array.");
-    RELEASESHAREDU(array, FCenter, c);
-    return NULL;
   }
 }

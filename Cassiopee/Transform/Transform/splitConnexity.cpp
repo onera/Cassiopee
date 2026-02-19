@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,8 +23,8 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitConnexity: 
+/*
+   splitConnexity:
    Decoupe un array non structure en partie connexes de meme type d'element.
    La connectivite doit etre propre.
 */
@@ -32,17 +32,17 @@ using namespace std;
 PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array))
+  if (!PYPARSETUPLE_(args, O_, &array))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -57,7 +57,7 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
                     "splitConnexity: cannot be used on a structured array.");
     return NULL;
   }
-  
+
   if (K_STRING::cmp(eltType, "PYRA") == 0)
   {
     RELEASESHAREDU(array, f, cn);
@@ -93,11 +93,11 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
 
   PyObject* out;
-  if (K_STRING::cmp(eltType, "NGON") == 0) 
+  if (K_STRING::cmp(eltType, "NGON") == 0)
     out = splitConnexityNGon(f, cn, varString, posx, posy, posz);
-  else if (K_STRING::cmp(eltType, "NODE") == 0) 
+  else if (K_STRING::cmp(eltType, "NODE") == 0)
     out = splitConnexityNODE(f, cn, eltType, varString, posx, posy, posz);
-  else out = splitConnexityBasics(f, cn, eltType, varString, 
+  else out = splitConnexityBasics(f, cn, eltType, varString,
                                   posx, posy, posz);
 
   RELEASESHAREDU(array, f, cn);
@@ -106,13 +106,14 @@ PyObject* K_TRANSFORM::splitConnexity(PyObject* self, PyObject* args)
 
 //=============================================================================
 PyObject* K_TRANSFORM::splitConnexityBasics(
-  FldArrayF* f, FldArrayI* cn, 
+  FldArrayF* f, FldArrayI* cn,
   char* eltType, char* varString,
   E_Int posx, E_Int posy, E_Int posz)
 {
   vector< vector<E_Int> > cEEN(cn->getSize());
   K_CONNECT::connectEV2EENbrs(eltType, f->getSize(), *cn, cEEN);
-  
+
+  E_Int api = f->getApi();
   E_Int nt = cn->getNfld();
   E_Int ne = cn->getSize(); // nbre d'elements
   E_Int nev = 0; // nbre d'elements deja visites
@@ -131,12 +132,12 @@ PyObject* K_TRANSFORM::splitConnexityBasics(
 
     // C'est un nouveau composant connexe
     FldArrayI* c = new FldArrayI(ne, nt);
- 
+
     mustBeVisited[mbv] = p;
     mbv++; nev++;
     isVisited[p] = 1;
     curr = 0;
-    
+
     while (mbv > 0)
     {
       mbv--;
@@ -174,7 +175,7 @@ PyObject* K_TRANSFORM::splitConnexityBasics(
     FldArrayI& cnp = *components[i];
     K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
                                  fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, eltType);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, eltType, api);
     delete &fp; delete &cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -187,6 +188,7 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
   FldArrayF* f, FldArrayI* cn, char* varString,
   E_Int posx, E_Int posy, E_Int posz)
 {
+  E_Int api = f->getApi();
   E_Int* ptr = cn->begin();
   E_Int sf = ptr[1];
   E_Int ne = ptr[2+sf]; // nbre d'elements
@@ -195,7 +197,7 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
   K_CONNECT::connectNG2FE(*cn, cFE);
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
-  
+
   E_Int* ptrElts = ptr + (sf+4);
   E_Int se = ptr[3+sf]; // taille connectivite elements/faces
   E_Int nev = 0; // nbre d'elements deja visites
@@ -215,12 +217,12 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
     // C'est un nouveau composant connexe
     FldArrayI* c = new FldArrayI(se+1);
     E_Int* pc = c->begin(); // current pointer
- 
+
     mustBeVisited[mbv] = p;
     mbv++; nev++;
     isVisited[p] = 1;
     curr = 0; necurr = 0;
-    
+
     while (mbv > 0)
     {
       mbv--;
@@ -228,7 +230,7 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
       // copie elt
       ptrElts = &ptr[pos[elt]];
       lt =  ptrElts[0];
-      pc[0] = lt; 
+      pc[0] = lt;
       for (i = 1; i <= pc[0]; i++) pc[i] = ptrElts[i];
       pc += lt+1;
       curr += lt+1; necurr++;
@@ -251,7 +253,7 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
         }
       }
     }
-    
+
     pc[0] = necurr; // sentinelle
     c->reAlloc(curr+1);
     components.push_back(c);
@@ -279,11 +281,12 @@ PyObject* K_TRANSFORM::splitConnexityNGon(
     for (E_Int j = 0; j < sf+2; j++) cnpp[j] = ptr[j];
     cnpp += sf+2;
     cnpp[0] = comp[si]; cnpp[1] = si; cnpp += 2;
-    for (E_Int j = 0; j < si; j++) cnpp[j] = comp[j];  
-    
+    for (E_Int j = 0; j < si; j++) cnpp[j] = comp[j];
+
     K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                      fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, "NGON");
+    cnp.setNGonType(cn->getNGonType());
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, "NGON", api);
     delete &fp; delete components[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -303,6 +306,7 @@ PyObject* K_TRANSFORM::splitConnexityNODE(FldArrayF* f, FldArrayI* cn,
                                *f, *cn);
   E_Int npts = f->getSize();
   E_Int nfld = f->getNfld();
+  E_Int api = f->getApi();
 
   for (E_Int i = 0; i < npts; i++)
   {
@@ -311,10 +315,10 @@ PyObject* K_TRANSFORM::splitConnexityNODE(FldArrayF* f, FldArrayI* cn,
     FldArrayI* cnp = new FldArrayI(0);
     for (E_Int v = 1; v <= nfld; v++) fp[v-1] = (*f)(i,v);
 
-    tpl = K_ARRAY::buildArray(*f0, varString, *cnp, -1, eltType);
+    tpl = K_ARRAY::buildArray3(*f0, varString, *cnp, eltType, api);
     delete f0; delete cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
-  return l; 
+  return l;
 }

@@ -50,7 +50,6 @@ a = G.close(c)
 
 # go
 a = C.convertArray2NGon(a)
-a = G.close(a)
 a = T.reorder(a, (+1,))
 ainit = C.copy(a)
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -54,7 +54,7 @@
 PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
 {
   char* fileName; char* fileFmt;
-  if (!PyArg_ParseTuple(args, "ss", &fileName, &fileFmt)) return NULL;
+  if (!PYPARSETUPLE_(args, SS_, &fileName, &fileFmt)) return NULL;
 
   FILE* ptrFile = fopen(fileName, "r");
   if (ptrFile == NULL)
@@ -108,7 +108,7 @@ PyObject* K_OCC::readCAD(PyObject* self, PyObject* args)
   // get shape
   shapeTool->GetFreeShapes(labels);
   //printf("freeshapes length=%d\n", labels.Length());
-  if (labels.Length() == 1)
+  if (labels.Length() == 1) // one shape or one assembly
   {
     TDF_Label label = labels.Value(1);
     *shp = shapeTool->GetShape(label);

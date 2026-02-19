@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -84,7 +84,7 @@ void Data::openGfx()
   if (_view.w == 0 || _view.h == 0)
   {
     _view.w = screenWidth-320;
-    _view.h = screenHeight;
+    _view.h = screenHeight-80;
   }
   
   /* Window */

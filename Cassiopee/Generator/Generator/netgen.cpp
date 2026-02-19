@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -480,16 +480,12 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float grading, maxh;
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "Odd", &array, &maxh, &grading)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off", &array, &maxh, &grading)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_, &array, &maxh, &grading)) return NULL;
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res <= 0) return NULL;
   if (res == 1)
   {
@@ -530,6 +526,7 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   nglib::Ng_Init();
   mesh = nglib::Ng_NewMesh();
 
+  E_Int api = f->getApi();
   E_Int np = f->getSize();
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
@@ -594,7 +591,7 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   printf("Generate %d elements.\n",ne);
   
   /* Build output array */
-  out = K_ARRAY::buildArray(3, "x,y,z", np, ne, 4, NULL, false, 0);
+  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", api);
   E_Float* fp = K_ARRAY::getFieldPtr(out);
   E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
   E_Int* cp = K_ARRAY::getConnectPtr(out);
@@ -631,16 +628,12 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float grading, maxh;
-#if defined E_DOUBLEREAL
-  if (!PyArg_ParseTuple(args, "Odd", &array, &maxh, &grading)) return NULL;
-#else
-  if (!PyArg_ParseTuple(args, "Off", &array, &maxh, &grading)) return NULL;
-#endif
+  if (!PYPARSETUPLE_(args, O_ RR_, &array, &maxh, &grading)) return NULL;
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res <= 0) return NULL;
   if (res == 1)
   {
@@ -668,6 +661,8 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
     RELEASESHAREDU(array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
+
+  E_Int api = f->getApi();
   
   // Reglages des parametres de netgen
   mparam.uselocalh = 1;
@@ -727,12 +722,12 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
    PyObject* out = NULL;
    // TETRA mesh output
    np = nglib::Ng_GetNP(mesh);
-   printf("Generate %d points.\n",np);
+   printf("Generate " SF_D_ " points.\n", np);
    ne = nglib::Ng_GetNE(mesh);
-   printf("Generate %d elements.\n",ne);
+   printf("Generate " SF_D_ " elements.\n", ne);
   
   /* Build output array */
-  out = K_ARRAY::buildArray(3, "x,y,z", np, ne, 4, NULL, false, 0);
+  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", api);
   E_Float* fp = K_ARRAY::getFieldPtr(out);
   E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
   E_Int* cp = K_ARRAY::getConnectPtr(out);

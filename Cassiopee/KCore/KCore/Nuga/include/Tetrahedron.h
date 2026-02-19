@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,14 +29,14 @@
 #define Vector_t std::vector
 
 
-static const E_Float aa = 0.25*(1. - 1./::sqrt(5.));
-static const E_Float bb = 1. -3.*aa;//(5. + 3.*::sqrt(5.)) / 20.;
+static const E_Float aa = 0.25*(1. - 1./sqrt(5.));
+static const E_Float bb = 1. -3.*aa;//(5. + 3.*sqrt(5.)) / 20.;
 
 namespace K_MESH
 {
 
-class Tetrahedron {
-  
+class Tetrahedron 
+{  
   public:
     static constexpr E_Int NB_NODES = 4;
     static constexpr E_Int NB_TRIS = 4;
@@ -92,7 +92,7 @@ class Tetrahedron {
     static bool is_of_type(const ngunit_t & PGs, const E_Int* first_pg, E_Int nb_pgs) {
       if (nb_pgs != 4) return false;
 
-      for (int i = 0; i<4; i++)
+      for (E_Int i = 0; i < 4; i++)
         if (PGs.stride(*(first_pg + i) - 1) != 3) return false;
 
       return true;
@@ -102,7 +102,7 @@ class Tetrahedron {
     {
       E_Int ns[4], nods[4][4];
       K_MESH::Triangle::eDegenType ftype[4];
-      double FACTOR = 3;
+      E_Float FACTOR = 3;
       
       nods[0][0] = _nodes[0];
       nods[0][1] = _nodes[1];
@@ -217,12 +217,12 @@ class Tetrahedron {
 
       if (NB_SPIKES >= 2) // SLICE1, SLICE2 or SPIKE ?
       {
-        const double * P0 = crd.col(_nodes[0]);
-        const double * P1 = crd.col(_nodes[1]);
-        const double * P2 = crd.col(_nodes[2]);
-        const double * P3 = crd.col(_nodes[3]);
+        const E_Float* P0 = crd.col(_nodes[0]);
+        const E_Float* P1 = crd.col(_nodes[1]);
+        const E_Float* P2 = crd.col(_nodes[2]);
+        const E_Float* P3 = crd.col(_nodes[3]);
 
-        std::pair<double, int> palma[4];
+        std::pair<E_Float, int> palma[4];
 
         palma[0] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P2), 1);
         palma[1] = std::make_pair(K_MESH::Triangle::surface<3>(P0, P1, P3), 2);
@@ -276,8 +276,8 @@ class Tetrahedron {
         if (NB_SPIKES != 4)
           std::cout << "LOGIC ERROR" << std::endl;
 
-        int count = 0; //fist 2 spike should be enough
-        int pairs[2][2];
+        E_Int count = 0; //fist 2 spike should be enough
+        E_Int pairs[2][2];
         pairs[0][0] = -1;
         pairs[0][1] = -1;
         pairs[1][0] = -1;
@@ -659,21 +659,21 @@ void Tetrahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   bool commonNodes[3];
 
-  for (int k = 1; k < 4; ++k)
+  for (E_Int k = 1; k < 4; ++k)
   {
-    int count = 0;
+    //E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = false;
 
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 3; ++j)
+    for (E_Int j = 0; j < 3; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
       {
         // found
-        count++;
+        //count++;
         commonNodes[it->second] = true;
       }
     }
@@ -696,8 +696,7 @@ void Tetrahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   assert (F2Id != IDX_NONE && F2Id != 0 && F2Id != F1Id && F2Id != F3Id);
   assert (F3Id != IDX_NONE && F3Id != 0 && F3Id != F1Id && F3Id != F2Id);
 
-  for (int i = 0; i < nb_faces; ++i)
-    faces[i] = mol[i];
+  for (E_Int i = 0; i < nb_faces; ++i) faces[i] = mol[i];
 }
 
 }

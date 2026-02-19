@@ -1,7 +1,3 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
 # Connector requires:
 # C++ compiler
@@ -9,29 +5,32 @@ import os
 # Numpy
 # KCore
 #=============================================================================
+import os
+from setuptools import setup, Extension
+import KCore.Dist as Dist
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
-from KCore.config import *
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Compilation des fortrans ===================================================
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 libraries = ["connector", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 includeDirs = [numpyIncDir, kcoreIncDir]
 ADDITIONALCPPFLAGS=[]
@@ -54,10 +53,8 @@ setup(
     version="4.1",
     description="Connector for *Cassiopee* modules.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Connector'],
     package_dir={"":"."},
     ext_modules=listExtensions)
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,19 +24,6 @@ using namespace std;
 using namespace K_FLD;
 using namespace K_FUNC;
 using namespace K_CONST;
-
-extern "C"
-{
-  void k6boundboxofstructcell_(E_Int* ind, E_Int& ni, 
-                               E_Float* x, E_Float* y, E_Float* z,
-                               E_Float& xmin, E_Float& xmax, 
-                               E_Float& ymin, E_Float& ymax, 
-                               E_Float& zmin, E_Float& zmax);
-  void k6boundbox_(const E_Int& im, const E_Int& jm, const E_Int& km, 
-                   const E_Float* x, const E_Float* y, const E_Float* z,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 //=============================================================================
 /* Constructor from a field.
@@ -73,9 +60,12 @@ StructBlock::StructBlock(E_Int id, E_Int ni, E_Int nj, E_Int nk,
   _coord = coord;
 
   _nMeshPts = ni*nj*nk;
-  k6boundbox_(_im, _jm, _km, 
-              _coord.begin(1), _coord.begin(2), _coord.begin(3),
-              _xmax, _ymax, _zmax, _xmin, _ymin, _zmin);
+  K_COMPGEOM::boundingBoxStruct(_im, _jm, _km,
+                                _coord.begin(1),
+                                _coord.begin(2),
+                                _coord.begin(3),
+                                _xmin, _ymin, _zmin,
+                                _xmax, _ymax, _zmax);
   
   _globalField.malloc(_nMeshPts, 3+_cfdField.getNfld());
 
@@ -93,9 +83,13 @@ StructBlock::StructBlock(E_Int id, E_Int ni, E_Int nj, E_Int nk,
   E_Float xmax, xmin, ymax, ymin, zmax, zmin;
   for (i = 0; i < _nMeshPts; i++)
   {
-    boundingBoxOfCell(i,
-                      xmax, ymax, zmax,
-                      xmin, ymin, zmin);
+    K_COMPGEOM::boundingBoxOfStructCell(i, _im, _jm, _km,
+                                        _coord.begin(1),
+                                        _coord.begin(2),
+                                        _coord.begin(3),
+                                        xmin, ymin, zmin,
+                                        xmax, ymax, zmax, 0); // node
+
     _bbCell(i,1) = xmax;
     _bbCell(i,2) = ymax;
     _bbCell(i,3) = zmax;
@@ -363,7 +357,7 @@ void StructBlock::computeDistanceOfNodeToCell(
   taking iblank into account.
 */
 //=============================================================================
-void StructBlock::write(const char* fileName, E_Boolean add)
+void StructBlock::write(const char* fileName, E_Bool add)
 {
   E_Int im = _im;
   E_Int im1 = im-1;
@@ -423,7 +417,7 @@ void StructBlock::write(const char* fileName, E_Boolean add)
 
 //=============================================================================
 void StructBlock::writeLine(FldArrayI& indices,
-                            const char* fileName, E_Boolean add)
+                            const char* fileName, E_Bool add)
 {
   // Note : lines are defined by degenerated triangles
   E_Int ind;
@@ -464,7 +458,7 @@ void StructBlock::writeLine(FldArrayI& indices,
 //=============================================================================
 /* Test if blk1 and blk2 have a matching boundary condition */
 //=============================================================================
-E_Boolean StructBlock::testMatchingBlks( StructBlock* blk1,
+E_Bool StructBlock::testMatchingBlks( StructBlock* blk1,
                                          StructBlock* blk2)
 {
   E_Int im1 = blk1->getIm();
@@ -545,12 +539,12 @@ E_Boolean StructBlock::testMatchingBlks( StructBlock* blk1,
 }
 
 //=============================================================================
-/* Projection du point (x,y,z) sur la frontière dir. 
-   Retourne false si le projeté n'est pas situé sur cette frontiere, à
-   un epsilon près.
+/* Projection du point (x,y,z) sur la frontiere dir. 
+   Retourne false si le projete n'est pas situe sur cette frontiere, a
+   un epsilon pres.
 */
 //=============================================================================
-E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
                                     E_Int dir)
 {
   E_Float eps  = _matchTol;
@@ -618,11 +612,11 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        // teste si le projeté est dans le segment [xi,xi+1]
+        // teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          // distance entre P et son projeté
+          // distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -682,11 +676,11 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        // teste si le projeté est dans le segment [xi,xi+1]
+        // teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -746,11 +740,11 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
          
-        //teste si le projeté est dans le segment [xi,xi+1]
+        //teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -811,11 +805,11 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
           yyh = yym;
         }
         
-        //teste si le projeté est dans le segment [xi,xi+1]
+        //teste si le projete est dans le segment [xi,xi+1]
         if ( xxh > xmin - _matchTol && xxh < xmax + _matchTol &&
              yyh > ymin - _matchTol && yyh < ymax + _matchTol )
         {
-          //distance entre P et son projeté
+          //distance entre P et son projete
           dist = (xxh-xx)*(xxh-xx) + (yyh-yy)*(yyh-yy);
           
           if (dist < distmin) 
@@ -839,7 +833,7 @@ E_Boolean StructBlock::projectOrtho(E_Float x, E_Float y, E_Float z,
    And if the corresponding point is not blanked nor interpolated.
    Return true if it is a match/nearmatch/nomatch bnd */
 //=============================================================================
-E_Boolean StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
                                             StructBlock* blk2)
 {
   FldArrayF& cfd2 =  blk2->getCfdField();
@@ -943,7 +937,7 @@ E_Boolean StructBlock::searchForMatchingBnd(E_Float x, E_Float y, E_Float z,
 /* Look if point (x,y,z) is on a matching bnd of blk2.
    Return true if match is found */
 //=============================================================================
-E_Boolean StructBlock::searchForMatchingBnd2(E_Float x, E_Float y, E_Float z,
+E_Bool StructBlock::searchForMatchingBnd2(E_Float x, E_Float y, E_Float z,
                                              StructBlock* blk2,
                                              E_Int& ind2)
 {
@@ -1032,7 +1026,7 @@ void StructBlock::checkValidityOfInterpolationCell(
   E_Int ind1, ind2;
   E_Float dist1, dist2;
   E_Float x1, y1, z1;
-  E_Boolean erased;
+  E_Bool erased;
  
   vector<StructBlock*> testBlks = _overlappingBlks;
   vector<StructBlock*> matchingBlks = _matchingBlks;
@@ -1120,7 +1114,7 @@ void StructBlock::eliminateDoubleElts(vector<StructBlock*>& vectOfBlks)
   E_Int  vectOfBlksSize = vectOfBlks.size();
   for (E_Int i = 0; i < vectOfBlksSize; i++)
   {
-    E_Boolean found = false;
+    E_Bool found = false;
     for (E_Int j = 0; j < i; j++)
     {
       if ( vectOfBlks[i] == vectOfBlks[j])
@@ -1142,7 +1136,7 @@ void StructBlock::eliminateDoubleElts(vector<StructBlock*>& vectOfBlks)
 //=============================================================================
 /* Search For matching bnds . Return true if match is found*/
 //=============================================================================
-E_Boolean StructBlock::isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
+E_Bool StructBlock::isAMatchingBnd(E_Float x1, E_Float y1, E_Float z1,
                                       StructBlock* blk2)
 {
   FldArrayF& cfd2 =  blk2->getCfdField();
@@ -1277,7 +1271,7 @@ void StructBlock::createArrayOfBorders(E_Int dir, FldArrayI& indBord)
    out : n : index of next element of the string.   
 */
 //=========================================================================
-E_Boolean StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
+E_Bool StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
                                       StructBlock* blk2, E_Int& n)
 {
   E_Float x11, y11, z11;
@@ -1360,46 +1354,6 @@ E_Boolean StructBlock::addPtsInString(E_Int ind11, E_Int ind12, E_Int dir2,
     }
   }
   return false;
-}
-//=============================================================================
-void StructBlock::boundingBoxOfCell(
-  E_Int ind,
-  E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-  E_Float& xmin, E_Float& ymin, E_Float& zmin)
-{ 
-  E_Int imjm = _im*_jm;
-  E_Int k = ind/imjm;
-  E_Int j = ( ind - k * imjm )/_im;
-  E_Int i = ind - j * _im + k * imjm;
-
-  E_Int alpha = 1;
-  E_Int beta  = 1;
-  E_Int gamma = 1;
-            
-  if (i == _im-1) alpha = -1;
-  
-  if (j == _jm-1) beta = -1;
-  
-  if ( k == _km-1) gamma = -1;
-  
-  if ( _im == 1 ) alpha = 0;
-  if ( _jm == 1 ) beta = 0;
-  if ( _km == 1 ) gamma = 0;
-  
-  FldArrayI indtab(8);
-  indtab[0] = ind;
-  indtab[1] = (i+alpha) + j*_im + k*imjm;
-  indtab[2] = (i+alpha) + (j+beta)*_im + k*imjm;
-  indtab[3] = i + (j+beta)*_im + k*imjm;
-  indtab[4] = i + j*_im + (k+gamma)*imjm;
-  indtab[5] = (i+alpha) + j*_im + (k+gamma)*imjm;
-  indtab[6] = (i+alpha) + (j+beta)*_im + (k+gamma)*imjm;  
-  indtab[7] = i + (j+beta)*_im + (k+gamma)*imjm;
-  
-  E_Int size = _coord.getSize();
-  k6boundboxofstructcell_( indtab.begin(), size,
-                           _coord.begin(1), _coord.begin(2), _coord.begin(3), 
-                           xmin, xmax, ymin, ymax, zmin, zmax);
 }
 
 //=============================================================================

@@ -4,8 +4,9 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import numpy
 import copy
-import Generator.IBMmodelHeight as G_IBM_Height
+import math
 from . import PyTree as D
+
 varsDeleteIBM = ['utau','StagnationEnthalpy','StagnationPressure',
                  'dirx'          ,'diry'          ,'dirz',
                  'gradxPressure' ,'gradyPressure' ,'gradzPressure' ,
@@ -22,34 +23,161 @@ varsDeleteIBMRotTmp=['CoordinateX_PC#Init','CoordinateX_PC#Init','CoordinateX_PC
                      'transl_speedX','transl_speedY','transl_speedZ',
                      'axis_pntX'    ,'axis_pntY'    ,'axis_pntZ'    ,
                      'axis_vctX'    ,'axis_vctY'    ,'axis_vctZ'    ]
+
+EPSCART = 1.e-6
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## COMPUTE INFO FOR F42 (e.g. Yplus & modelisation height etc.)
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#=============================================================================
+# Compute the skin friction coefficient for a given emperical law
+#=============================================================================
+def compute_Cf(Re, Cf_law='ANSYS'):
+    if Cf_law == 'ANSYS':
+        return 0.058*Re**(-0.2)
+    elif Cf_law == 'PW':
+        return 0.026*Re**(-1/7.)
+    elif Cf_law == 'PipeDiameter':
+        return 0.079*Re**(-0.25)
+    elif Cf_law == 'Laminar':
+        return 1.328*Re**(-0.5)
+
+
+#=============================================================================
+# Compute the corresponding yplus of a given modeling height
+#=============================================================================
+def computeYplus(Re, Cf_law='ANSYS', height=0.1, L=1.):
+    h0 = (L*numpy.sqrt(2))/(Re*numpy.sqrt(compute_Cf(Re,Cf_law)))
+    return height/h0
+
+
+#=============================================================================
+# Compute the modeling height
+#=============================================================================
+def computeModelisationHeight(Re, Cf_law='ANSYS', yplus=100., L=1.):
+    return (yplus*L*numpy.sqrt(2))/(Re*numpy.sqrt(compute_Cf(Re,Cf_law)))
+
+
+#=============================================================================
+# Compute the best modeling height for a given snear
+#=============================================================================
+def computeBestModelisationHeight(Re, h, Cf_law='ANSYS', L=1., q=1.2):
+    h0 = (L*numpy.sqrt(2))/(Re*numpy.sqrt(compute_Cf(Re,Cf_law)))
+    hmod = (h0-q*h)/(1.-q)
+    return hmod, hmod/h0
+
+
+def computeYplusOpt(Re=None,tb=None,Lref=1.,q=1.2,snear=None,Cf_law='ANSYS'):
+    fail=0
+    if Re is None:
+        if tb is not None:
+            Re = Internal.getNodeFromName(tb,"Reynolds")
+            if Re is None: fail=1
+            else:
+                Re = Internal.getValue(Re)
+        else: fail = 1
+    if fail:
+        raise ValueError("computeYplusOpt: requires Reynolds number as a float or in tb.")
+    fail = 0
+    if snear is None:
+        snear = Internal.getNodeFromName(tb,"snear")
+        if snear is None: fail=1
+        else: snear = Internal.getValue(snear)
+    if fail:
+        raise ValueError("computeYlusOpt: requires snear as a float or in tb.")
+
+    print("Warning: estimation of the optimum y+ at Reynolds number ", Re, " and snear target at image point ", snear)
+    h0 = (1.*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+1
+    h_opti = (h0-q*snear)/(1.-q) #Hauteur de modelisation opti
+    yplus_opti = h_opti/h0 #yplus opti
+    # print('\nInformation for the body-fitted mesh :')
+    # print('h_opti     = %1.2e'%(h_opti))
+    # print('h0         = %1.2e\n'%(h0))
+    # print('Information for the Cartesian mesh :')
+    # print('yplus_opti = %d\n'%(int(math.ceil(yplus_opti))))
+    return yplus_opti
+
+
+# compute the near wall spacing in agreement with the yplus target at image points - front42
+def computeSnearOpt(Re=None,tb=None,Lref=1.,q=1.2,yplus=300.,Cf_law='ANSYS'):
+    fail=0
+    if Re is None:
+        if tb is not None:
+            Re = Internal.getNodeFromName(tb,"Reynolds")
+            if Re is None: fail=1
+            else: Re = Internal.getValue(Re)
+        else: fail = 1
+    if fail:
+        raise ValueError("computeSnearOpt: requires Reynolds number as a float or in tb.")
+
+
+    print("Estimation of the optimum near-wall spacing at Reynolds number ", Re, " and yplus target at image point ", yplus)
+    h_mod = (yplus*Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law)))
+    h0    = (Lref*math.sqrt(2.))/(Re*math.sqrt(compute_Cf(Re,Cf_law))) #Taille de maille pour y+=1
+    n     = int(math.ceil(math.log(1-yplus*(1-q))/math.log(q))) # number of cells in the BF mesh for the height h
+    snear_opti = q**(n-1)*h0 # best snear for the target yplus
+    # print('\nInformation for the body-fitted mesh :')
+    # print('h           = %1.2e'%(h_mod))
+    # print('h0          = %1.2e\n'%(h0))
+    # print('Information for the Cartesian mesh :')
+    # print('snear_opti  = %1.3e\n'%(snear_opti))
+    return snear_opti
+
+
+def getMinimumCartesianSpacing(t):
+    baseC = Internal.getNodeFromName1(t, 'CARTESIAN')
+    if baseC is None: return -1.
+
+    zonesC = Internal.getZones(baseC)
+    dxmin = 1.e6
+    for z in zonesC:
+        dx = abs(C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
+        if dx < dxmin: dxmin = dx
+
+    print('Minimum spacing on Cartesian grids = %f.'%dxmin, flush=True)
+    return dxmin
+
 #==============================================================================
 # Creation of a case with a symmetry plane
 #==============================================================================
-def _symetrizePb(t, bodySymName, snear_sym, dir_sym=2):
-    base = Internal.getNodeFromName(t, bodySymName)
-    _symetrizeBody(base, dir_sym=dir_sym)
-    _addSymPlane(t, snear_sym, dir_sym=dir_sym)
+def _symmetrizePb(t, bodySymName, snear_sym, dir_sym=2):
+    """Symmetrize the geometry tree and add a symmetry plane."""
+    if dir_sym not in [1,2,3]:
+        raise ValueError('The symmetry direction %d is not supported. Must be '
+                         '1(x), 2(y), or 3(z). Exiting...'%dir_sym)
+    base   = Internal.getNodeFromName(t, bodySymName)
+    minval = C.getMinValue(base, ['CoordinateX', 'CoordinateY','CoordinateZ'])
+    minval = minval[dir_sym-1]
+    if dir_sym==1: symPlane=(minval,0,0)
+    elif dir_sym==2: symPlane=(0,minval,0)
+    else: symPlane=(0,0,minval)
+    _symmetrizeBody(base, dir_sym=dir_sym, symPlane=symPlane)
+    _addSymPlane(t, snear_sym, dir_sym=dir_sym, midPlane=minval)
     return None
 
-def _symetrizeBody(base, dir_sym=2):
+def _symmetrizeBody(base, dir_sym=2, symPlane=(0.,0.,0.)):
     import Transform.PyTree as T
     zones = Internal.getZones(base)
-    C._initVars(zones,'centers:cellN',1.)
+    C._initVars(zones, 'centers:cellN', 1.)
     if dir_sym == 2:
-        v1 = (1,0,0); v2=(0,0,1)
+        v1 = (1,0,0); v2 =(0,0,1)
     elif dir_sym == 1:
-        v1 = (0,1,0); v2=(0,0,1)
+        v1 = (0,1,0); v2 =(0,0,1)
     elif dir_sym == 3:
-        v1 = (1,0,0); v2=(0,1,0)
+        v1 = (1,0,0); v2 =(0,1,0)
 
-    zones_dup = T.symetrize(zones,(0,0,0),v1, v2)
+    zones_dup = [Internal.copyTree(z) for z in zones]
+    T._symmetrize(zones_dup, symPlane, v1, v2)
     for z in zones_dup: z[0] += '_sym'
-    T._reorder(zones_dup,(-1,2,3))
-    C._initVars(zones_dup,'centers:cellN',0.)
-    base[2]+= zones_dup
+    dim = Internal.getZoneDim(zones_dup[0])
+    if dim[0] == 'Structured': order = (-1, 2, 3)
+    else: order = (-1,)
+    T._reorder(zones_dup, order)
+    C._initVars(zones_dup, 'centers:cellN', 0.)
+    base[2] += zones_dup
     return None
 
-def _addSymPlane(tb, snear_sym, dir_sym=2):
+def _addSymPlane(tb, snear_sym, dir_sym=2, midPlane=0):
     import Generator.PyTree as G
     snearList=[]; dfarList=[]
     snearFactor=50
@@ -72,23 +200,19 @@ def _addSymPlane(tb, snear_sym, dir_sym=2):
     L = 0.5*(xmax+xmin); eps = 0.2*L
     xmin = xmin-eps; ymin = ymin-eps; zmin = zmin-eps
     xmax = xmax+eps; ymax = ymax+eps; zmax = zmax+eps
-    if dir_sym==1: coordsym = 'CoordinateX'; xmax=0
-    elif dir_sym==2: coordsym = 'CoordinateY'; ymax=0
-    elif dir_sym==3: coordsym = 'CoordinateZ'; zmax=0
+    if dir_sym==1: coordsym = 'CoordinateX'; xmax=midPlane
+    elif dir_sym==2: coordsym = 'CoordinateY'; ymax=midPlane
+    elif dir_sym==3: coordsym = 'CoordinateZ'; zmax=midPlane
     a = D.box((xmin,ymin,zmin),(xmax,ymax,zmax))
-    C._initVars(a,'{centers:cellN}=({centers:%s}>-1e-8)'%coordsym)
+    C._initVars(a,'{centers:cellN}=({centers:%s}>(%g-1e-8))'%(coordsym,midPlane))
     C._addBase2PyTree(tb,"SYM")
     base = Internal.getNodeFromName(tb,"SYM"); base[2]+=a
     _setSnear(base,snear_sym)
     _setDfar(base,-1.)
     _setIBCType(base, "slip")
     return None
-#==============================================================================
-# compute the near wall spacing in agreement with the yplus target at image points - front42
-#==============================================================================
-def computeSnearOpt(Re=None, tb=None, Lref=1., q=1.2, yplus=300., Cf_law='ANSYS'):
-    return G_IBM_Height.computeSnearOpt(Re=Re, tb=tb, Lref=Lref, q=q, yplus=yplus, Cf_law=Cf_law)
 
+_symetrizePb = _symmetrizePb
 #==============================================================================
 # Set snear in zones
 #==============================================================================
@@ -98,7 +222,6 @@ def setSnear(t, value):
     tp = Internal.copyRef(t)
     _setSnear(tp, value)
     return tp
-
 
 def _setSnear(t, value):
     """Set the value of snear in a geometry tree.
@@ -829,11 +952,21 @@ def naca0012(snear=0.001, ibctype='Musker', alpha=0.):
     return t
 
 #====================================================================================
-#Add .Solver#Define with dirx,diry, & dirz to the base of the rectilinear in tbox
-def _addOneOverLocally(FileName,oneOver):
+#Add .Solver#Define with dirx, diry, dirz, & granularity to the base of the tboneover. tboneover is the
+#PyTree that defines the region in space wherein a one over n coarsening will be pursued
+#during the automatic cartesian grid generator of FastIBC.
+#IN: t: PyTree
+#IN: oneOver: list of list of dirx,diry,dirz,granularity for each base in tboneover. E.g. oneOver=[[1,1,2,0],[1,2,1,0],[2,1,1,1]]
+#             for a tboneover with 3 bases where the 1st base has dirx=1, diry=1, dirz=2, & granularity=0 (coarse)
+#                                                    2nd base has dirx=1, diry=2, dirz=1, & granularity=0 (coarse)
+#                                                    3rd base has dirx=2, diry=1, dirz=1, & granularity=0 (fine)
+#OUT: Nothing. Rewrite tboneover with the same FileName as that original used
+##NOTE # 1: To be run SEQUENTIALLY ONLY. This is ok as we are dealing with a surface geometry which tend to be
+##          relatively small.
+##NOTE # 2: Generation of tboneover is similar to that used for tbox.
+def _addOneOverLocally(t,oneOver):
     count   = 0
-    t_local = C.convertFile2PyTree(FileName)
-    nodes   = Internal.getNodesFromNameAndType(t_local, '*OneOver*', 'CGNSBase_t')
+    nodes   = Internal.getNodesFromNameAndType(t, '*OneOver*', 'CGNSBase_t')
     for b in nodes:
         Internal._createUniqueChild(b, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(b, '.Solver#define')
@@ -842,5 +975,4 @@ def _addOneOverLocally(FileName,oneOver):
         Internal._createUniqueChild(n, 'dirz'       , 'DataArray_t', value=oneOver[count][2])
         Internal._createUniqueChild(n, 'granularity', 'DataArray_t', value=oneOver[count][3])
         count+=1
-    C.convertPyTree2File(t_local,FileName)
     return None

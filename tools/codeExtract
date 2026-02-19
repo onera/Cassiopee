@@ -1,0 +1,9 @@
+#!/bin/sh
+# codeExtract toto.md toto.py
+# Get the python code from a md tutorial
+
+# man ------------------------------------------------------------------------
+if [ "$PYTHONEXE" != "" ]; then
+    alias python=$PYTHONEXE
+fi
+python $CASSIOPEE/tools/codeExtract.py "$1" "$2"

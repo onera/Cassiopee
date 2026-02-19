@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -45,13 +45,13 @@ namespace K_POST
         //@{
         
         /**
-         * @brief      Construit un polyèdre dont toutes les faces sont triangularisées
+         * @brief      Construit un polyedre dont toutes les faces sont triangularisées
          *
          * @param      triangular_faces  L'ensemble des indices des sommets des faces triangulaires du polyèdre (indices globale provenant du maillage)
          * @param      coords            Les coordonnées de l'ensemble des sommets du maillage dont est extrait le polygone
          */
         triangulated_polyhedron( const std::vector<triangle_type>& triangular_faces, 
-                                 const std::array<vector_view<const double>,3>& coords );
+                                 const std::array<vector_view<const E_Float>,3>& coords );
         
         /// Constructeur de copie
         triangulated_polyhedron( const triangulated_polyhedron& ) = default;
@@ -78,7 +78,7 @@ namespace K_POST
          *
          * @return     { description_of_the_return_value }
          */
-        double volume() const;
+        E_Float volume() const;
 
         int winding_number(const point3d& pt) const;
 
@@ -98,7 +98,7 @@ namespace K_POST
         }
     private:
         std::vector<triangle_type> triangular_faces;
-        const std::array<vector_view<const double>,3> coords;
+        const std::array<vector_view<const E_Float>,3> coords;
     };
 }
 

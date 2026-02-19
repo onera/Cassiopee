@@ -1,23 +1,21 @@
 # -- Internal --
 # -- PyTree node manipulations --
-from sys import version_info
-
 import numpy
 import fnmatch # unix wildcards
 import KCore.kcore as KCore
 from . import converter
 
-# INT size for numpys connectivities
+# INT size for numpy connectivities
 from KCore.Dist import EDOUBLEINT
 if EDOUBLEINT: E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
-# Containeurs
+# Containers
 __GridCoordinates__ = 'GridCoordinates'
 __FlowSolutionNodes__ = 'FlowSolution'
 __FlowSolutionCenters__ = 'FlowSolution#Centers'
 
-# Pour les BCs non structurees (nommage de transition courant/derniere norme)
+# Boundary condition keywords for unstructured grids (nommage de transition courant/derniere norme)
 __ELEMENTRANGE__ = 'ElementRange' # ElementRange/PointRange
 __ELEMENTLIST__ = 'PointList' # ElementList/PointList
 __FACELIST__ = 'PointList' # FaceList/PointList
@@ -30,56 +28,127 @@ SEP1 = '\\'
 # Separateur intra-BCs (pour les exports getBCFaces et addBCFaces)
 SEP2 = '@'
 
-# other var names to CGNS var names
-name2CGNS = { \
-    'x'              :'CoordinateX'                   , \
-    'y'              :'CoordinateY'                   , \
-    'z'              :'CoordinateZ'                   , \
-    'x3d'            :'CoordinateX'                   , \
-    'y3d'            :'CoordinateY'                   , \
-    'z3d'            :'CoordinateZ'                   , \
-    'X'              :'CoordinateX'                   , \
-    'Y'              :'CoordinateY'                   , \
-    'Z'              :'CoordinateZ'                   , \
-    'ro'             :'Density'                       , \
-    'rou'            :'MomentumX'                     , \
-    'rov'            :'MomentumY'                     , \
-    'row'            :'MomentumZ'                     , \
-    'rovx'           :'MomentumX'                     , \
-    'rovy'           :'MomentumY'                     , \
-    'rovz'           :'MomentumZ'                     , \
-    'roe'            :'EnergyStagnationDensity'       , \
-    'roE'            :'EnergyStagnationDensity'       , \
-    'rok'            :'TurbulentEnergyKineticDensity' , \
-    'ronutilde'      :'TurbulentSANuTildeDensity'    , \
-    'roeps'          :'TurbulentDissipationDensity'   , \
-    'roomega'        :'TurbulentDissipationRateDensity', \
-    'mach'           :'Mach'                          , \
-    'psta'           :'Pressure'                      , \
-    'tsta'           :'Temperature'                   , \
-    'viscrapp'       :'Viscosity_EddyMolecularRatio'  , \
-    'walldistance'   :'TurbulentDistance'             , \
-    'wallglobalindex':'TurbulentDistanceIndex'        , \
+# Map variable names to their CGNS counterparts
+VARNAME2CGNS = {
+    'x'              : 'CoordinateX',
+    'y'              : 'CoordinateY',
+    'z'              : 'CoordinateZ',
+    'x3d'            : 'CoordinateX',
+    'y3d'            : 'CoordinateY',
+    'z3d'            : 'CoordinateZ',
+    'X'              : 'CoordinateX',
+    'Y'              : 'CoordinateY',
+    'Z'              : 'CoordinateZ',
+    'ro'             : 'Density',
+    'rou'            : 'MomentumX',
+    'rov'            : 'MomentumY',
+    'row'            : 'MomentumZ',
+    'rovx'           : 'MomentumX',
+    'rovy'           : 'MomentumY',
+    'rovz'           : 'MomentumZ',
+    'roe'            : 'EnergyStagnationDensity',
+    'roE'            : 'EnergyStagnationDensity',
+    'rok'            : 'TurbulentEnergyKineticDensity',
+    'ronutilde'      : 'TurbulentSANuTildeDensity',
+    'roeps'          : 'TurbulentDissipationDensity',
+    'roomega'        : 'TurbulentDissipationRateDensity',
+    'mach'           : 'Mach',
+    'psta'           : 'Pressure',
+    'tsta'           : 'Temperature',
+    'viscrapp'       : 'Viscosity_EddyMolecularRatio',
+    'walldistance'   : 'TurbulentDistance',
+    'wallglobalindex': 'TurbulentDistanceIndex',
 }
 
-# Known BCs
-KNOWNBCS = ['BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
-            'BCFarfield', 'BCExtrapolate',
-            'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
-            'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
-            'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
-            'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
-            'UserDefined']
+# Known CGNS BC types
+KNOWNBCS = [
+    'BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
+    'BCFarfield', 'BCExtrapolate',
+    'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
+    'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
+    'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',
+    'BCDegenerateLine', 'BCDegeneratePoint', 'BCStage',
+    'UserDefined'
+]
 
-#import math
-__DEG2RAD__ = 0.017453292519943295 #math.pi/180.
-__RAD2DEG__ = 57.29577951308232    #180./math.pi
+# Dictionary mapping an Element number to a tuple storing
+# (Element name, number of nodes, dimensionality). The number of nodes and the
+# dimensionality are set to -1 and 3, respectively, when they cannot be inferred
+# from the Element number alone (e.g., NGON, MIXED).
+ELTNO2ELTINFO = {
+    2: ('NODE', 1, 0),
+    3: ('BAR', 2, 1),
+    4: ('BAR_3', 3, 1),
+    24: ('BAR_4', 4, 1),
+    40: ('BAR_5', 5, 1),
+    5: ('TRI', 3, 2),
+    6: ('TRI_6', 6, 2),
+    25: ('TRI_9', 9, 2),
+    26: ('TRI_10', 10, 2),
+    41: ('TRI_12', 12, 2),
+    42: ('TRI_15', 15, 2),
+    7: ('QUAD', 4, 2),
+    8: ('QUAD_8', 8, 2),
+    9: ('QUAD_9', 9, 2),
+    27: ('QUAD_12', 12, 2),
+    28: ('QUAD_16', 16, 2),
+    43: ('QUAD_P4_16', 16, 2),
+    44: ('QUAD_25', 25, 2),
+    10: ('TETRA', 4, 3),
+    11: ('TETRA_10', 10, 3),
+    29: ('TETRA_16', 16, 3),
+    30: ('TETRA_20', 20, 3),
+    45: ('TETRA_22', 22, 3),
+    46: ('TETRA_34', 34, 3),
+    47: ('TETRA_35', 35, 3),
+    12: ('PYRA', 5, 3),
+    21: ('PYRA_13', 13, 3),
+    13: ('PYRA_14', 14, 3),
+    31: ('PYRA_21', 21, 3),
+    32: ('PYRA_29', 29, 3),
+    33: ('PYRA_30', 30, 3),
+    48: ('PYRA_P4_29', 29, 3),
+    49: ('PYRA_50', 50, 3),
+    50: ('PYRA_55', 55, 3),
+    14: ('PENTA', 6, 3),
+    15: ('PENTA_15', 15, 3),
+    16: ('PENTA_18', 18, 3),
+    34: ('PENTA_24', 24, 3),
+    51: ('PENTA_33', 33, 3),
+    35: ('PENTA_38', 38, 3),
+    36: ('PENTA_40', 40, 3),
+    52: ('PENTA_66', 66, 3),
+    53: ('PENTA_75', 75, 3),
+    17: ('HEXA', 8, 3),
+    18: ('HEXA_20', 20, 3),
+    19: ('HEXA_27', 27, 3),
+    37: ('HEXA_32', 32, 3),
+    54: ('HEXA_44', 44, 3),
+    38: ('HEXA_56', 56, 3),
+    39: ('HEXA_64', 64, 3),
+    55: ('HEXA_98', 98, 3),
+    56: ('HEXA_125', 125, 3),
+    20: ('MIXED', -1, 3),
+    22: ('NGON', -1, 3),
+    23: ('NFACE', -1, 3)
+}
+
+# Dictionary mapping an Element name to a tuple storing
+# (Element number, number of nodes). The number of nodes is set to -1 when it
+# cannot be inferred from the Element name alone (e.g., NGON, MIXED).
+ELTNAME2ELTINFO = {
+    eltInfo[0]: (eltNo, eltInfo[1]) for eltNo, eltInfo in ELTNO2ELTINFO.items()
+}
+
+__DEG2RAD__ = 0.017453292519943295 # math.pi/180.
+__RAD2DEG__ = 57.29577951308232    # 180./math.pi
+
 
 #==============================================================================
-# -- is? --
+# -- Test node equality --
 #==============================================================================
 
-# -- is node a top tree or something else?
+# -- is node a top tree?
 def isTopTree(node):
   """Return True if node corresponds to a top tree node (CGSNTree_t)."""
   if len(node) != 4: return False
@@ -91,7 +160,8 @@ def isTopTree(node):
 # Retourne -1 si node est un noeud standard de l'arbre
 # Retourne 0 si node est une liste de noeuds standards (meme vide)
 def isStdNode(node):
-  """Return 0 if node is a list of standard pyTree nodes, -1 if node is a standard pyTree node, -2 otherwise."""
+  """Return 0 if node is a list of standard pyTree nodes,
+  -1 if node is a standard pyTree node, -2 otherwise."""
   if not isinstance(node, list): return -2
   if len(node) == 0: return 0
   node0 = node[0]
@@ -665,7 +735,7 @@ def newElements(name='Elements', etype='UserDefined',
                 erange=None, eboundary=0, parent=None):
   """Create a new Elements node."""
   if isinstance(etype, int): etp = etype
-  else: etp, nnodes = eltName2EltNo(etype)
+  else: etp, _ = eltName2EltNo(etype)
   if parent is None:
     node = createNode(name, 'Elements_t', value=[etp,eboundary])
   else:
@@ -755,7 +825,7 @@ def newBCProperty(wallFunction='Null', area='Null', parent=None):
 # -- newAxiSymmetry
 def newAxiSymmetry(referencePoint=[0.,0.,0.],
                    axisVector=[0.,0.,0.], parent=None):
-  """Create AxiSymetry node."""
+  """Create AxiSymmetry node."""
   if parent is None:
     node = createNode('AxiSymmetry', 'AxiSymmetry_t')
   else: node = createUniqueChild(parent, 'AxiSymmetry', 'AxiSymmetry_t')
@@ -2019,30 +2089,18 @@ def getValue(node):
   if isinstance(n, numpy.ndarray):
     if n.dtype.char == 'S':
       if len(n.shape) == 1:
-        if version_info[0] == 2:
-          try: return n.tobytes()
-          except: return n.tostring()
-        else: return n.tobytes().decode()
+        return n.tobytes().decode()
       out = []
       for i in range(n.shape[1]):
-        if version_info[0] == 2:
-          try: v = n[:,i].tobytes()
-          except: v = n[:,i].tostring()
-        else: v = n[:,i].tobytes().decode()
+        v = n[:,i].tobytes().decode()
         out.append(v.strip())
       return out
     elif n.dtype.char == 'c':
       if len(n.shape) == 1:
-        if version_info[0] == 2:
-          try: return n.tobytes()
-          except: return n.tostring()
-        else: return n.tobytes().decode()
+        return n.tobytes().decode()
       out = []
       for i in range(n.shape[1]):
-        if version_info[0] == 2:
-          try: v = n[:,i].tobytes()
-          except: v = n[:,i].tostring()
-        else: v = n[:,i].tobytes().decode()
+        v = n[:,i].tobytes().decode()
         out.append(v.strip())
       return out
     elif n.dtype == numpy.int32:
@@ -2466,7 +2524,7 @@ def copyRef(node):
 
 # -- Copie un arbre ou un sous-arbre en copiant aussi les numpy.array
 def copyTree(node, order='F'):
-  """Fully copy a tree."""
+  """Full copy of a tree."""
   ret = isStdNode(node)
   if ret == -1:
     d = copyTree__(node, order=order)
@@ -2489,7 +2547,7 @@ def copyTree__(node, parent=None, order='F'):
 
 # -- Copie un noeud (pas de recursivite)
 def copyNode(node):
-  """Copy only this node (no recursion). Share children with node. """
+  """Copy only this node (no recursion). Share children with node."""
   ret = isStdNode(node)
   if ret == -1:
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
@@ -2542,13 +2600,15 @@ def merge(A, pathList=None):
   # check
   if pathList:
     for path in pathList:
-      if not isinstance(path,str): raise AttributeError("merge: pathList should be a list of strings.")
+      if not isinstance(path,str):
+        raise AttributeError("merge: pathList should be a list of strings.")
   tp = copyRef(A[0])
   if pathList is None: pathList = [None for tree in A[1:]]
   for path, tree in zip(pathList, A[1:]):
     if path: _append(tp, tree, path)
     else:
-      if tp[0] != tree[0]: raise AttributeError("merge: path is None, but root name are differents.")
+      if tp[0] != tree[0]:
+        raise AttributeError("merge: path is None, but root name are differents.")
       for child in tree[2]: _append(tp, child, tree[0])
   return tp
 
@@ -2618,28 +2678,38 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
     import sys
     sys.stdout.write(rep)
 
-# Mesure de la taille de a en octets
 def getSizeOf__(a, s):
-  s += len(a[0])
-  s += len(a[3])
-  r = a[1]
-  if r is not None:
-    if isinstance(r, numpy.ndarray):
-      if r.dtype == numpy.int32: s += r.size*4
-      elif r.dtype == numpy.float32: s += r.size*4
-      else: s += r.size*8
-  for i in a[2]:
-    s = getSizeOf__(i, s)
+  if isinstance(a, numpy.ndarray):
+    if a.dtype == numpy.int32: s += a.size*4
+    elif a.dtype == numpy.float32: s += a.size*4
+    else: s += a.size*8
+  elif isinstance(a, list):
+    for i in a:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, dict):
+    for i in a:
+      s = getSizeOf__(a[i], s)
+  elif isStdNode(a) == -1:
+    s += len(a[0])
+    s += len(a[3])
+    r = a[1]
+    if r is not None:
+      if isinstance(r, numpy.ndarray):
+        if r.dtype == numpy.int32: s += r.size*4
+        elif r.dtype == numpy.float32: s += r.size*4
+        else: s += r.size*8
+    for i in a[2]:
+      s = getSizeOf__(i, s)
+  elif isinstance(a, str):
+    s += len(a)
   return s
 
+# Get the size of a pytree node in octets
+# Work also on numpys, list of numpys, dict of numpys
 def getSizeOf(a):
   """Return the size of a in octets."""
   s = 0
-  if isStdNode(a) == 0:
-    for i in a:
-      sl = 0
-      s += getSizeOf__(i, sl)
-  else: s = getSizeOf__(a, s)
+  s = getSizeOf__(a, s)
   return s
 
 #==============================================================================
@@ -2688,11 +2758,20 @@ def pyTree2Node(t, type):
   else: node = t
   return node
 
+# -- EltName2EltNo
+# Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
+def eltName2EltNo(name):
+  if name.endswith('*'): name = name[:-1]
+  eltno, nnodes = ELTNAME2ELTINFO.get(name, ('UNKNOWN', -1))
+  if name == 'MIXED':
+    print('Warning: eltName2EltNo: MIXED elements not supported.')
+  return eltno, nnodes
+
 # -- EltNames2EltNos
 # Convertit une liste de noms CGNS d'elt en nos CGNS d'elt et leurs nombres
 # de noeuds associes. Retourne deux listes
 def eltNames2EltNos(names):
-  if (isinstance(names, (list, tuple, numpy.ndarray)) and len(names) and
+  if (isinstance(names, (list, tuple)) and len(names) and
           isinstance(names[0], str)):
     names = ','.join(name for name in names)
   if len(names.split(',')) > 1:
@@ -2700,62 +2779,14 @@ def eltNames2EltNos(names):
     return list(zip(*eltnos))
   else: return [[i] for i in eltName2EltNo(names)]
 
-# -- EltName2EltNo
-# Convertit un nom CGNS d'elt en no CGNS d'elt et son nombre de noeuds associes
-def eltName2EltNo(name):
-  eltno = 0; nnodes = 0
-  if name == 'NODE':
-    eltno = 2; nnodes = 1
-  elif name[0:3] == 'BAR':
-    if len(name) == 3: nnodes = 2
-    else: nnodes = int(name[4:])
-    if nnodes == 2: eltno = 3
-    elif nnodes == 3: eltno = 4
-  elif name[0:3] == 'TRI':
-    if len(name) == 3: nnodes = 3
-    else: nnodes = int(name[4:])
-    if nnodes == 3: eltno = 5
-    elif nnodes == 6: eltno = 6
-    elif nnodes == 9: eltno = 25   # D'apres l'enumeration CGNS
-    elif nnodes == 10: eltno = 26  #
-    # Pour l'ordre 4, rien dans l'enumeration CGNS...
-  elif name[0:4] == 'QUAD':
-    if len(name) == 4: nnodes = 4
-    else: nnodes = int(name[5:])
-    if nnodes == 4: eltno = 7
-    elif nnodes == 8:  eltno = 8
-    elif nnodes == 9:  eltno = 9
-    elif nnodes == 12: eltno = 27 # D'apres l'enumeration CGNS
-    elif nnodes == 16: eltno = 28 # Attention, ici, je prends par defaut QUAD_16 mais cela pourrait etre QUAD_P4_16... Que faire ?
-    # Pour l'ordre 4, rien dans l'enumeration CGNS
-  elif name[0:5] == 'TETRA':
-    if len(name) == 5: nnodes = 4
-    else: nnodes = int(name[6:])
-    if nnodes == 4: eltno = 10
-    elif nnodes == 10: eltno = 11
-  elif name[0:4] == 'PYRA':
-    if len(name) == 4: nnodes = 5
-    else: nnodes = int(name[5:])
-    if nnodes == 5: eltno = 12
-    elif nnodes == 14: eltno = 13
-  elif name[0:5] == 'PENTA':
-    if len(name) == 5: nnodes = 6
-    else: nnodes = int(name[6:])
-    if nnodes == 6: eltno = 14
-    elif nnodes == 15: eltno = 15
-    elif nnodes == 18: eltno = 16
-  elif name[0:4] == 'HEXA':
-    if len(name) == 4: nnodes = 8
-    else: nnodes = int(name[5:])
-    if nnodes == 8: eltno = 17
-    elif nnodes == 20: eltno = 18
-    elif nnodes == 27: eltno = 19
-  elif name == 'MIXED':
-    print('Warning: eltName2EltNo: MIXED elements not supported.')
-    eltno = 20; nnodes = 1
-  elif name == 'NGON' or name == 'NGON_n': eltno = 22; nnodes = 1
-  elif name == 'NFACE' or name == 'NFACE_n': eltno = 23; nnodes = 1
-  return eltno, nnodes
+# -- EltNo2EltName
+# Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
+# associes
+def eltNo2EltName(eltno):
+  name, nnodes, _ = ELTNO2ELTINFO.get(eltno, ('UNKNOWN', -1, 3))
+  if eltno == 20:
+    print('Warning: eltNo2EltName: MIXED elements not supported.')
+  return name, nnodes
 
 # -- EltNos2EltNames
 # Convertit une liste de numeros CGNS d'elt en noms CGNS d'elt et leurs nombres
@@ -2766,48 +2797,22 @@ def eltNos2EltNames(eltnos):
     return list(zip(*eltnames))
   else: return [[i] for i in eltNo2EltName(eltnos)]
 
-# -- EltNo2EltName
-# Convertit un numero CGNS d'elt en nom CGNS d'elt et son nombre de noeuds
-# associes
-def eltNo2EltName(eltno):
-  name = 'UNKNOWN'; nnodes = 0
-  if eltno == 2: name = 'NODE'; nnodes = 1
-  elif eltno == 3: name = 'BAR'; nnodes = 2
-  elif eltno == 4: name = 'BAR_3'; nnodes = 3
-  elif eltno == 5: name = 'TRI'; nnodes = 3
-  elif eltno == 6: name = 'TRI_6'; nnodes = 6
-  elif eltno == 25: name = 'TRI_9'; nnodes = 9
-  elif eltno == 26: name = 'TRI_10'; nnodes = 10
-  elif eltno == 7: name = 'QUAD'; nnodes = 4
-  elif eltno == 8: name = 'QUAD_8'; nnodes = 8
-  elif eltno == 9: name = 'QUAD_9'; nnodes = 9
-  elif eltno == 27: name = 'QUAD_12'; nnodes = 12
-  elif eltno == 28: name = 'QUAD_16'; nnodes = 16
-  elif eltno == 10: name = 'TETRA'; nnodes = 4
-  elif eltno == 11: name = 'TETRA_10'; nnodes = 10
-  elif eltno == 12: name = 'PYRA'; nnodes = 5
-  elif eltno == 13: name = 'PYRA_14'; nnodes = 14
-  elif eltno == 14: name = 'PENTA'; nnodes = 6
-  elif eltno == 15: name = 'PENTA_15'; nnodes = 15
-  elif eltno == 16: name = 'PENTA_18'; nnodes = 18
-  elif eltno == 17: name = 'HEXA'; nnodes = 8
-  elif eltno == 18: name = 'HEXA_20'; nnodes = 20
-  elif eltno == 19: name = 'HEXA_27'; nnodes = 27
-  elif eltno == 20:
-    print('Warning: eltNo2EltName: MIXED elements not supported.')
-    name = 'MIXED'; nnodes = 1
-  elif eltno == 22: name = 'NGON'; nnodes = 1
-  elif eltno == 23: name = 'NFACE'; nnodes = 1
-  return name, nnodes
-
 # Donne la dimension d'un element a partir de son no
-def dimFromEltNo(eltno):
-  if eltno == 2: return 0 # NODE
-  elif eltno >= 3 and eltno <= 4: return 1 # BAR
-  elif eltno >= 5 and eltno <= 6: return 2 # TRI
-  elif eltno >= 7 and eltno <= 9: return 2 # QUAD
-  elif eltno >=25 and eltno <= 28: return 2 #TRI et QUAD d'ordre 3
-  else: return 3
+def eltNo2Dim(eltno):
+  if eltno in ELTNO2ELTINFO: dim = ELTNO2ELTINFO[eltno][2]
+  else:
+    dim = 3
+    print(f"Warning: eltNo2Dim: Element '{eltno}' not supported.")
+  return dim
+
+# Return (Element name, number of nodes, dimensionality) given an Element number
+def eltNo2EltInfo(eltno):
+  if eltno in ELTNO2ELTINFO:
+    name, nnodes, dim = ELTNO2ELTINFO[eltno]
+  else:
+    name, nnodes, dim = 'UNKNOWN', -1, 3
+    print(f"Warning: eltNo2EltInfo: Element '{eltno}' not supported.")
+  return name, nnodes, dim
 
 # -- Convertit un PointRange (pyTree) en indices de fenetres (Converter)
 def range2Window(r):
@@ -2831,15 +2836,12 @@ def window2Range(win):
 
 # -- ClearList: supprime les [] d'une liste
 def clearList(list):
-  t = []
-  for i in list:
-    if i != []: t.append(i)
+  t = [x for x in list if x != []]
   return t
 
-# -- Change a var name to a CGNS name
+# -- Change a variable name to a CGNS name
 def getCGNSName(v):
-  if v in name2CGNS: return name2CGNS[v]
-  else: return v
+  return VARNAME2CGNS.get(v, v)
 
 #==============================================================================
 # -- Conversion Arrays / Nodes --
@@ -3467,7 +3469,7 @@ def convertDataNodes2Array2(nodes, dim, connects, loc=-1):
   if dim[1] != dim[2]: # on peut decider
     if s == dim[2]: ettype = ettype.replace(',', '*,') + '*'
     elif s != dim[1]:
-      print("Warning: convertDataNodes2Array2: incoherency zone/array.")
+      print("Warning: convertDataNodes2Array2: incoherency zone (%d,%d)/array(%d)."%(dim[1],dim[2],s))
   else: # force + no check
     if loc == 1: ettype = ettype.replace(',', '*,') + '*'
   return [vars, field, cr, ettype]
@@ -3498,11 +3500,13 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
     else:
       # Le tableau n'est pas coherent avec les noeuds ou les centres
       # de la zone
+      print("Warning: convertDataNodes2Array3: incoherency zone (%d,%d)/array (%d)."%(ni*nk*nk,ni1*nj1*nk1,s))
+      import traceback
+      traceback.print_stack()
       size = ar.shape; lsize = len(size)
       if lsize == 1: ni = size[0]; nj = 1; nk = 1
       elif lsize == 2: ni = size[0]; nj = size[1]; nk = 1
       elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
-      print("Warning: convertDataNodes2Array3: incoherency zone/array.")
       return [vars, field, ni, nj, nk]
 
   # unstructured
@@ -3577,7 +3581,10 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
   if dim[1] != dim[2]: # on peut decider
     if s == dim[2]: eltString = eltString.replace(',', '*,') + '*'
     elif s != dim[1]:
-      print("Warning: convertDataNodes2Array3: incoherency zone/array.")
+      print("Warning: convertDataNodes2Array3: incoherency zone (%d,%d)/array (%d)."%(dim[1],dim[2],s))
+      import traceback
+      traceback.print_stack()
+
   else: # force + no check
     if loc == 1: eltString = eltString.replace(',', '*,') + '*'
   return [vars, field, cr, eltString]
@@ -3592,12 +3599,12 @@ def _groupByFamily(t, familyChilds=None, unique=False):
     BCNotSpec = []
     for bc in getNodesFromType3(b, 'BC_t'):
       if not isValue(bc, 'FamilySpecified'):
-        childname = getNodesFromName(bc, 'FamilyName')
-        if childname != []: BCNotSpec.append(bc)
+        childname = getNodeFromName1(bc, 'FamilyName')
+        if childname is not None: BCNotSpec.append(bc)
     for bc in BCNotSpec:
-      FamNameNode = getNodeFromType(bc, 'FamilyName_t')
+      FamNameNode = getNodeFromType1(bc, 'FamilyName_t')
       FamilyName= getValue(FamNameNode)
-      solverBC = getNodeFromName(bc, '.Solver#BC')
+      solverBC = getNodeFromName1(bc, '.Solver#BC')
       if not solverBC: solverBCChilds = []
       else: solverBCChilds = solverBC[2]
 
@@ -3612,11 +3619,11 @@ def _groupByFamily(t, familyChilds=None, unique=False):
         else:
           e = -1
           for child in children:
-            if isName(child,getName(FamBC)) and isType(child,'Family_t'):
+            if isName(child,getName(FamBC)) and isType(child, 'Family_t'):
               setValue(child,getValue(FamBC))
               e = 0
               break
-          if e==-1: children.append(FamBC)
+          if e == -1: children.append(FamBC)
 
         nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
         setValue(bc, 'FamilySpecified')
@@ -3642,8 +3649,6 @@ def groupByFamily(t, familyChilds=None, unique=False):
 # EltsName: nom des elements (BAR, NODE, ..., NGON ou MULTI)
 def getZoneDim(zone):
   """Return dimension information from a Zone_t node."""
-  dimBE = {'NODE': 0, 'BAR': 1, 'TRI': 2, 'QUAD': 2, 'TETRA': 3,
-           'PYRA': 3, 'PENTA': 3, 'HEXA': 3}
   if len(zone) < 4: raise TypeError("getZoneDim: not a zone node.")
   if zone[3] != 'Zone_t': raise TypeError("getZoneDim: '%s' is not a zone node."%(zone[0]))
   dims = zone[1]
@@ -3668,16 +3673,22 @@ def getZoneDim(zone):
         lc = len(c)
         if lc == 0: return [gtype, np, ne, 'UNKNOWN', 3]
         elif lc == 1:
-          eltName,stype = eltNo2EltName(c[0][1][0])
-          if eltName in dimBE: cellDim = dimBE[eltName]
-          elif eltName in ['NGON', 'NFACE']:
+          elt = c[0][1][0]
+          eltName, _, cellDim = eltNo2EltInfo(elt)
+          if elt == 22 or elt == 23: # NGON or NFACE
             eltName = 'NGON'
-            data = getNodeFromName1(c[0], 'ElementConnectivity')
-            if data is not None and len(data)>0: datar = data[1]
-            if datar is not None and datar.size > 0:
-              if datar[0] == 1: cellDim = 1
-              elif datar[0] == 2: cellDim = 2
-          else: eltName = 'UNKNOWN'
+            data = getNodeFromName1(c[0], 'ElementStartOffset')
+            if data is not None: # NGON4
+              datar = data[1]
+              if datar is not None and len(datar)>1:
+                if datar[1] == 1: cellDim = 1
+                elif datar[1] == 2: cellDim = 2
+            else: # NGON3
+              data = getNodeFromName1(c[0], 'ElementConnectivity')
+              if data is not None and len(data)>0: datar = data[1]
+              if datar is not None and datar.size>0:
+                if datar[0] == 1: cellDim = 1
+                elif datar[0] == 2: cellDim = 2
           return [gtype, np, ne, eltName, cellDim]
         else: # lc >= 2:
           # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
@@ -3688,22 +3699,20 @@ def getZoneDim(zone):
             data = getNodeFromName1(NGONp, 'ElementStartOffset')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>1:
               if datar[1] == 1: cellDim = 1
               elif datar[1] == 2: cellDim = 2
               return [gtype, np, ne, 'NGON', cellDim]
-
             data = getNodeFromName1(NGONp, 'ElementConnectivity')
             if data is not None and len(data)>0: datar = data[1]
             else: datar = None
-            if datar is not None and datar.size > 0:
+            if datar is not None and datar.size>0:
               if datar[0] == 1: cellDim = 1
               elif datar[0] == 2: cellDim = 2
-
             return [gtype, np, ne, 'NGON', cellDim]
           else: # BE/ME
             cellDim = 0
-            for elt in eltNames: cellDim = max(cellDim, dimBE[elt])
+            for i in c: cellDim = max(cellDim, eltNo2Dim(i[1][0]))
             eltNames = dict.fromkeys(eltNames, None)
             return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
@@ -3847,8 +3856,8 @@ def addOneLayer2BC(t, dir, N=1):
   return a
 
 def _addOneLayer2BC(a, dir, N=1):
-  nodes = getZones(a)
-  for z in nodes:
+  zones = getZones(a)
+  for z in zones:
     # ZoneBC
     bnds = getNodesFromType2(z, 'BC_t')
     for bnd in bnds:
@@ -3856,11 +3865,11 @@ def _addOneLayer2BC(a, dir, N=1):
       for w in wins:
         (parent, d) = getParentOfNode(bnd, w)
         win = range2Window(w[1])
-        win[-1]+=N
+        win[-1] += N
         parent[2][d][1] = window2Range(win)
 
     # Connectivite match/nearmatch/overlap
-    connect = getNodesFromType2(z, 'ZoneGridConnectivity_t')
+    connect = getNodesFromType1(z, 'ZoneGridConnectivity_t')
     for cn in connect:
       wins = getNodesFromName2(cn, 'PointRange')
       transf =  getNodesFromName(cn, 'Transform')
@@ -3868,7 +3877,7 @@ def _addOneLayer2BC(a, dir, N=1):
       for w in wins:
         (parent, d) = getParentOfNode(cn, w)
         win = range2Window(w[1])
-        win[-1]+=N
+        win[-1] += N
         parent[2][d][1] = window2Range(win)
       nom = 0
       for w in winsopp: # passe seult pour les matchs/nearmatch
@@ -3879,7 +3888,7 @@ def _addOneLayer2BC(a, dir, N=1):
         else: diropp = abs(transf[nom][1][dir-1])
         (parent, d) = getParentOfNode(cn, w)
         win = range2Window(w[1])
-        win[-1]+=N
+        win[-1] += N
         parent[2][d][1] = window2Range(win)
         nom += 1
   return None
@@ -4115,9 +4124,9 @@ def setElementConnectivity2(z, array):
       else: cname = 'GridElements%d'%nc
       z[2].append([cname, i, [], 'Elements_t'])
       info = z[2][len(z[2])-1]
-      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[1]
+      i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = gc.shape[0]
       info[2].append(['ElementRange', i, [], 'IndexRange_t'])
-      info[2].append(['ElementConnectivity', gc, [], 'DataArray_t'])
+      info[2].append(['ElementConnectivity', gc.ravel("k"), [], 'DataArray_t'])
       _updateElementRange(z)
   else: # Faces->Nodes and Elements->Faces connectivities (NGON or NFACE)
     i = numpy.empty((2), E_NpyInt); i[0] = etype0; i[1] = 0
@@ -4218,7 +4227,7 @@ def setElementConnectivity2(z, array):
 def _setElementDim(z):
   GEl = getNodesFromType1(z, 'Elements_t')
   if GEl == []: return []
-  dimElt = [dimFromEltNo(i[1][0]) for i in GEl]
+  dimElt = [eltNo2Dim(i[1][0]) for i in GEl]
   maxdim = max(dimElt)
   for c, GE in enumerate(GEl):
     if dimElt[c] == maxdim: GE[1][1] = 0
@@ -4227,20 +4236,48 @@ def _setElementDim(z):
 # -- Retourne une liste des noeuds Elements_t volumiques d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementNodes(z):
+  dim = 0; out = []
   GEl = getNodesFromType1(z, 'Elements_t')
-  out = []
   for GE in GEl:
-    if GE[1][1] == 0: out.append(GE)
+    elt = GE[1][0]
+    dimElt = eltNo2Dim(elt)
+    dim = max(dim, dimElt)
+  for GE in GEl:
+    #if GE[1][1] == 0: out.append(GE)
+    elt = GE[1][0]
+    dimElt = eltNo2Dim(elt)
+    if dimElt == dim: out.append(GE)
   return out
 
 # -- Retourne une liste des noeuds Elements_t de boundary d'une zone
 # Retourne [] si il n'y en a pas.
 def getElementBoundaryNodes(z):
+  dim = 0; out = []
   GEl = getNodesFromType1(z, 'Elements_t')
-  out = []
   for GE in GEl:
-    if GE[1][1] > 0: out.append(GE)
+    elt = GE[1][0]
+    dimElt = eltNo2Dim(elt)
+    dim = max(dim, dimElt)
+  for GE in GEl:
+    #if GE[1][1] > 0: out.append(GE)
+    elt = GE[1][0]
+    dimElt = eltNo2Dim(elt)
+    if dimElt < dim: out.append(GE)
   return out
+
+# -- Retourne le noeud Element_t NGon si il existe
+def getNGonNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 22: return GE
+  return None
+
+# -- Retourne le noeud Elements_t NFace si il existe
+def getNFaceNode(z):
+  GEl = getNodesFromType1(z, 'Elements_t')
+  for GE in GEl:
+    if GE[1][0] == 23: return GE
+  return None
 
 # -- Update la numerotation des ElementRanges dans l'ordre des connectivites
 def _updateElementRange(z):
@@ -4304,35 +4341,35 @@ def _adaptPE2NFace(t, remove=True):
   """Creates NFaceElements nodes from ParentElements arrays in each zone."""
   zones = getZones(t)
   for z in zones:
-    NGON = getNodeFromName1(z, 'NGonElements')
+    NGON = getNGonNode(z)
     offset = getNodeFromName1(NGON, 'ElementStartOffset')
-    api = 3 if offset is not None else 2
-
+    ngonType = 4 if offset is not None else 3
     parentElt = getNodeFromName2(z, 'ParentElements')
     if parentElt is not None:
       cFE = parentElt[1]
-      cNFace, off, nelts = converter.adaptPE2NFace(cFE, api)
+      cNFace, off, nelts = converter.adaptPE2NFace(cFE, ngonType)
       p = createUniqueChild(z, 'NFaceElements', 'Elements_t', value=[23,0])
       #p[1] = p[1].astype(numpy.int32) # force I4
       createUniqueChild(p, 'ElementRange', 'IndexRange_t', value=[1,nelts])
       createUniqueChild(p, 'ElementConnectivity', 'DataArray_t', value=cNFace)
-      if api < 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
+      if ngonType == 3: createUniqueChild(p, 'ElementIndex', 'DataArray_t', value=off)
       else: createUniqueChild(p, 'ElementStartOffset', 'DataArray_t', value=off)
-
       if remove: _rmNodesByName(z, 'ParentElements')
+      _updateElementRange(z)
   return None
 
 # -- Adapte une connectivite NFACE en connectivite ParentElement
 # remove = True: detruit la connectivite NFace
 # methodPE = 0 : methode geometrique pour generer le ParentElement (pour un maillage relativement regulier, sans cellules concaves).
 # methodPE = 1 : methode topologique (pour un maillage quelconque).
-def adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+# if shiftPE=True, element numbers are shifted of nfaces
+def adaptNFace2PE(t, remove=False, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   tp = copyRef(t)
   _adaptNFace2PE(tp, remove, methodPE, shiftPE)
   return tp
 
-def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
+def _adaptNFace2PE(t, remove=False, methodPE=0, shiftPE=False):
   """Creates ParentElement arrays from NFaceElement nodes in each zone."""
   zones = getZones(t)
   for z in zones:
@@ -4354,7 +4391,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           node = getNodeFromName1(e, 'ElementRange')[1]
           nfaces = node[1]-node[0]+1
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNGon = cNGon.copy()
             cNGon = numpy.insert(cNGon, offset[:-1], offset[1:]-offset[:-1])
@@ -4364,7 +4401,7 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
           noNFace = c
           cNFace = getNodeFromName1(e, 'ElementConnectivity')[1]
           offset = getNodeFromName1(e, 'ElementStartOffset')
-          if offset is not None: # CGNSv4
+          if offset is not None: # NGON4
             offset = offset[1]
             cNFace = cNFace.copy()
             cNFace = numpy.insert(cNFace, offset[:-1], offset[1:]-offset[:-1])
@@ -4372,9 +4409,89 @@ def _adaptNFace2PE(t, remove=True, methodPE=0, shiftPE=False):
 
     if cNFace is not None and NGON is not None and cNGon is not None:
       cFE = converter.adaptNFace2PE(cNFace, cNGon, XN, YN, ZN, nelts, nfaces, methodPE)
+      if shiftPE: cFE = numpy.where(cFE==0, 0, cFE+nfaces)
       createUniqueChild(NGON, 'ParentElements', 'DataArray_t', value=cFE)
     if remove: del z[2][noNFace]
-    if shiftPE: cFE[:] += nfaces
+  return None
+
+def adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
+  """Adapt face point list into vertex point list for a list of BC_t nodes."""
+  tp = copyRef(t)
+  _adaptBCFacePL2VertexPL(tp, bcs, btype, remove)
+  return tp
+
+def _adaptBCFacePL2VertexPL(t, bcs=None, btype=None, remove=False):
+  """Adapt face point list into vertex point list for a list of BC_t nodes."""
+  zones = getZones(t)
+  for z in zones:
+    zdim = getZoneDim(z)
+    if zdim[0] != 'Unstructured': continue
+
+    if bcs is None:
+      zoneBCs = getNodeFromType1(z, 'ZoneBC_t')
+      if zoneBCs is not None: zoneBCs = getNodesFromType1(zoneBCs, 'BC_t')
+    elif isinstance(bcs, list):
+      if len(bcs) == 4 and bcs[-1] == 'BC_t': zoneBCs = [bcs]
+      else: zoneBCs = bcs
+    else: raise NotImplementedError
+    if btype is not None:
+      zoneBCs = [i for i in zoneBCs if getValue(i) == btype]
+    if not zoneBCs: continue
+
+    from . import PyTree
+    array = PyTree.getFields('coords', z, api=3)[0]
+
+    for bc in zoneBCs:
+      r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
+      loc = getNodeFromName1(bc, 'GridLocation')
+      if loc is None:
+        raise ValueError(f"Node GridLocation missing in BC '{bc[0]}' of zone '{z[0]}'")
+      if r is None: continue
+      if getValue(loc) in ['EdgeCenter', 'FaceCenter', 'CellCenter']:
+        r[1] = converter.adaptBCFacePL2VertexPL(array, r[1])  # ME or NGON
+        r[1] = r[1].reshape((1, r[1].size), order='F')
+        setValue(loc, 'Vertex')
+        if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
+  return None
+
+def adaptBCVertexPL2FacePL(t, bcs=None, btype=None, remove=False):
+  """Adapt vertex point list into face point list for a list of BC_t nodes."""
+  tp = copyRef(t)
+  _adaptBCVertexPL2FacePL(tp, bcs, btype, remove)
+  return tp
+
+def _adaptBCVertexPL2FacePL(t, bcs=None, btype=None, remove=False):
+  """Adapt vertex point list into face point list for a list of BC_t nodes."""
+  zones = getZones(t)
+  for z in zones:
+    zdim = getZoneDim(z)
+    if zdim[0] != 'Unstructured': continue
+
+    if bcs is None:
+      zoneBCs = getNodeFromType1(z, 'ZoneBC_t')
+      if zoneBCs is not None: zoneBCs = getNodesFromType1(zoneBCs, 'BC_t')
+    elif isinstance(bcs, list):
+      if len(bcs) == 4 and bcs[-1] == 'BC_t': zoneBCs = [bcs]
+      else: zoneBCs = bcs
+    else: raise NotImplementedError
+    if btype is not None:
+      zoneBCs = [i for i in zoneBCs if getValue(i) == btype]
+    if not zoneBCs: continue
+
+    from . import PyTree
+    array = PyTree.getFields('coords', z, api=3)[0]
+
+    for bc in zoneBCs:
+      r = getNodeFromName1(bc, __FACELIST__)  # IndexArray (PointList)
+      loc = getNodeFromName1(bc, 'GridLocation')
+      if loc is None:
+        raise ValueError(f"Node GridLocation missing in BC '{bc[0]}' of zone '{z[0]}'")
+      if r is None: continue
+      if getValue(loc) == 'Vertex':
+        r[1] = converter.adaptBCVertexPL2FacePL(array, r[1])  # ME or NGON
+        r[1] = r[1].reshape((1, r[1].size), order='F')
+        setValue(loc, 'FaceCenter')
+        if remove: _rmNodesFromType1(bc, 'BCDataSet_t')  # Remove old datasets
   return None
 
 # -- Adapte NGON en FaceIndex
@@ -4476,6 +4593,54 @@ def _adaptNGon32NGon4(t, shiftPE=True):
           if cFE is not None: parentElt[1] = cFE
 
   return None
+
+# -- adaptSurfaceNGon
+def _adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  # add NFace node if necessary
+  for z in getZones(a):
+    nFace = getNFaceNode(z)
+    if nFace is None:
+      nGon = getNGonNode(z)
+      offset = getNodeFromName1(nGon, 'ElementStartOffset')
+      ngonType = 4 if offset is not None else 3
+      rnGon = getNodeFromName1(nGon, 'ElementRange')[1]
+      nface = createNode('NFaceElements', 'Elements_t', parent=z,
+                         value=numpy.array([23,0], dtype=E_NpyInt, order='F'))
+
+      value = numpy.array([rnGon[1]+1, rnGon[1]+1],
+                          dtype=E_NpyInt, order='F')
+      createNode('ElementRange', 'IndexRange_t',
+                 parent=nface, value=value)
+      value = numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementConnectivity', 'DataArray_t',
+                 parent=nface, value=value)
+      if ngonType == 4:
+        value = numpy.array([0], dtype=E_NpyInt, order='F')
+      else: value =  numpy.array([], dtype=E_NpyInt, order='F')
+      createNode('ElementStartOffset', 'DataArray_t', parent=nface, value=value)
+
+  import Converter.PyTree as C
+  import Converter
+  C._TZGC3(a, 'nodes', True, Converter.adaptSurfaceNGon)
+
+  if rmEmptyNFaceElements:
+    for z in getZones(a):
+      nFace = getNFaceNode(z)
+      cnFace = getNodeFromName1(nFace, 'ElementConnectivity')[1]
+      if cnFace.size == 0: _rmNodesByName(z, nFace[0])
+
+  return None
+
+def adaptSurfaceNGon(a, rmEmptyNFaceElements=True):
+  """Adapt a surface NGon from (A: NGON=bars, NFACE=polygon)
+  to (B: NGON=polygon, NFACE=NULL), or vice versa.
+  """
+  b = copyRef(a)
+  _adaptSurfaceNGon(b)
+  return b
 
 # -- Adapte une condition aux limites definies par faces en conditions aux
 # limites definies avec une BCC
@@ -4898,7 +5063,7 @@ def _createElsaHybrid(t, method=0, axe2D=0, methodPE=0):
 # -- Purely internal (undocumented) --
 #==============================================================================
 
-# order nodes in FSC
+# order nodes in FlowSolution
 def _orderFlowSolution(t, loc='both'):
   if loc == 'nodes': loci=0
   elif loc == 'centers': loci=1
@@ -4907,7 +5072,7 @@ def _orderFlowSolution(t, loc='both'):
   noz = 0; orderedNodesC=[]; orderedNodesN=[]
   for z in getZones(t):
     if loci > 0:
-      FSC = getNodeFromName(z,__FlowSolutionCenters__)
+      FSC = getNodeFromName(z, __FlowSolutionCenters__)
       if FSC is not None:
         if noz == 0:
           for fieldnode in FSC[2]:
@@ -4915,9 +5080,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesC:
-            nodel = getNodeFromName1(FSC,nodename)
+            nodel = getNodeFromName1(FSC, nodename)
             newChildrens.append(nodel)
-          FSC[2]=newChildrens
+          FSC[2] = newChildrens
     else:
       FSN = getNodeFromName(z,__FlowSolutionNodes__)
       if FSN is not None:
@@ -4927,9 +5092,9 @@ def _orderFlowSolution(t, loc='both'):
         else:
           newChildrens=[]
           for nodename in orderedNodesN:
-            nodel = getNodeFromName1(FSN,nodename)
+            nodel = getNodeFromName1(FSN, nodename)
             newChildrens.append(nodel)
-          FSN[2]=newChildrens
+          FSN[2] = newChildrens
     noz += 1
   return None
 # -- Convert an array with (i,j,k) numerotation to an array with 1D-index
@@ -5090,15 +5255,15 @@ def _mergeEltsTPerType(t):
     typesEltsT={}
     rangeMinT={}; rangeMaxT={}
     rmaxall = -1
-    for elts_t in getNodesFromType(z,'Elements_t'):
+    for elts_t in getNodesFromType1(z, 'Elements_t'):
       name = getName(elts_t)
       typeEt = getValue(elts_t)[0]
       if typeEt not in typesEltsT: typesEltsT[name]=[]
       typesEltsT[name].append(typeEt)
-      eltRange = getNodeFromType(elts_t,"IndexRange_t")
+      eltRange = getNodeFromType(elts_t, "IndexRange_t")
       rangeMinT[name] = getValue(eltRange)[0]
       rangeMaxT[name] = getValue(eltRange)[1]
-      rmaxall = max(rangeMaxT[name]+1,rmaxall)
+      rmaxall = max(rangeMaxT[name]+1, rmaxall)
 
     # init
     rmin = 1; rmax= -1
@@ -5108,9 +5273,9 @@ def _mergeEltsTPerType(t):
       name1 = -1; name2 = -1
       #start
       for name in rangeMinT:
-        if rangeMinT[name]==rmin:
+        if rangeMinT[name] == rmin:
           rmax = rangeMaxT[name]
-          EltsT = getNodeFromName1(z,name)
+          EltsT = getNodeFromName1(z, name)
           etype = typesEltsT[name]
           name1 = name
           break
@@ -5124,7 +5289,7 @@ def _mergeEltsTPerType(t):
             if typesEltsT[name]==etype:
               found = 1
               name2 = name
-              EltsT2 = getNodeFromName1(z,name2)
+              EltsT2 = getNodeFromName1(z, name2)
             else: found = 0
 
         if found == 0:
@@ -5168,7 +5333,7 @@ def _mergeBCDataSets__(z, bcNode):
   dataSetLocs = []
   nod = -1; no = 0
   for d in dataSets:
-    loc = getNodeFromName1(d,'GridLocation')
+    loc = getNodeFromName1(d, 'GridLocation')
     if loc is not None:
       if getValue(loc)=='FaceCenter': dataSetLocs.append(1)
       else : dataSetLocs.append(0)
@@ -5280,7 +5445,12 @@ def getBCDataSet(z, bcNode, withLoc=False):
 # Retourne un dictionnaire
 def getBCDataSets(z, bcNode):
   ret = {}
-  nodes1 = getNodesFromType(z, 'BCDataSet_t')
+  nodes1 = []
+  zonebc = getNodeFromType1(z, 'ZoneBC_t')
+  if zonebc is not None:
+    BCs = getNodesFromType1(zonebc, 'BC_t')
+    for bc in BCs:
+      nodes1 += getNodesFromType1(bc, 'BCDataSet_t')
   for n in nodes1:
     datas = getNodesFromType2(n, 'DataArray_t')
     ploc = 'Vertex'
@@ -5288,7 +5458,7 @@ def getBCDataSets(z, bcNode):
     if l is not None: ploc = getValue(l)
     ret[getName(n)] = [datas, ploc]
 
-  nodes2 = getNodesFromType(z, 'ZoneSubRegion_t')
+  nodes2 = getNodesFromType1(z, 'ZoneSubRegion_t')
   bcName = getName(bcNode)
   for n in nodes2:
     bcRegionNameNode = getNodeFromName1(n, 'BCRegionName')
@@ -5314,13 +5484,18 @@ def getBCDataSets(z, bcNode):
 # si la grille est structuree, retourne un indicage de faces
 # IN: z: zone node
 # IN: bcNode: BC node
+# IN: donor: if True, get PointListDonor or PointRangeDonor
 # OUT: facelist node
 #==============================================================================
-def getBCFaceNode(z, bcNode):
+def getBCFaceNode(z, bcNode, donor=False):
   dims = getZoneDim(z)
-  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, 'PointList')
+  if donor: name = 'PointListDonor'
+  else: name = 'PointList'
+  if dims[0] == 'Unstructured': return getNodeFromName1(bcNode, name)
 
-  r = getNodeFromName1(bcNode, 'PointRange') # structure maintenant
+  if donor: name = 'PointRangeDonor'
+  else: name = 'PointRange'
+  r = getNodeFromName1(bcNode, name) # structure maintenant
   ni = dims[1]; nj = dims[2]; nk = dims[3]
   wins = range2Window(r[1])
   listIndices = converter.range2PointList(wins[0], wins[1], wins[2], wins[3], wins[4], wins[5],
@@ -5376,7 +5551,7 @@ def getBCDataSetContainers(name, z):
             if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
               datas = getNodesFromName1(allBCDatas[nobcdata],fname)
               if datas != []:
-                dataSetL+=[[allRanges[nobcdata], datas[0][1]]]
+                dataSetL += [[allRanges[nobcdata], datas[0][1]]]
           if dataSetL != []: # variable exists both in flow solution and in bcdataset
             dataFS = [fname, loc, dataSetL]
             containers.append(dataFS)
@@ -5414,7 +5589,7 @@ def getBCDataSetContainers(name, z):
               if allLocDS[nobcdata]==matchingLoc: # OK: locations are consistent
                 datas = getNodesFromName1(allBCDatas[nobcdata],varname)
                 if datas != []:
-                  dataSetL+=[[allRanges[nobcdata], datas[0][1]]]
+                  dataSetL += [[allRanges[nobcdata], datas[0][1]]]
             if dataSetL != []: # variable exists both in flow solution and in bcdataset
               dataFS = [varname, loc, dataSetL]
               containers.append(dataFS)

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -22,14 +22,15 @@
 PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
 {
   PyObject *arr, *pe, *flds, *comm_list;
-  if (!PyArg_ParseTuple(args, "OOOO", &arr, &pe, &flds, &comm_list)) {
+  if (!PYPARSETUPLE_(args, OOOO_, &arr, &pe, &flds, &comm_list)) 
+  {
     PyErr_SetString(PyExc_ValueError, "Bad input.");
     return NULL;
   }
 
   // Process comm data
   E_Int psize = PyList_Size(comm_list);
-  if (psize == 0) return Py_None;
+  if (psize == 0) { Py_INCREF(Py_None); return Py_None; }
 
   // Check array
   E_Int ni, nj, nk;
@@ -64,6 +65,7 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
   E_Int fsize = PyList_Size(flds);
   if (fsize == 0) {
     RELEASESHAREDU(arr, f, cn);
+    Py_INCREF(Py_None);
     return Py_None;
   }
 
@@ -71,26 +73,27 @@ PyObject *K_XCORE::exchangeFields(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < fsize; i++) {
     PyObject *fld = PyList_GetItem(flds, i);
     E_Int nc = -1;
-    ret = K_NUMPY::getFromNumpyArray(fld, fields[i], nc, true);
+    ret = K_NUMPY::getFromNumpyArray(fld, fields[i], nc);
     assert(nc == cn->getNElts());
   }
 
   // Parent Elements
   E_Int *PE;
   E_Int pe_size;
-  K_NUMPY::getFromNumpyArray(pe, PE, pe_size, true);
+  K_NUMPY::getFromNumpyArray(pe, PE, pe_size);
   assert(pe_size == 2*cn->getNFaces());
 
   // Comm data
   E_Int *procs = (E_Int *)malloc(psize * sizeof(E_Int));
   E_Int **ptlists = (E_Int **)calloc(psize, sizeof(E_Int *));
   E_Int *npfaces = (E_Int *)malloc(psize * sizeof(E_Int));
-  for (E_Int i = 0; i < psize; i++) {
+  for (E_Int i = 0; i < psize; i++) 
+  {
     PyObject *proc_and_list = PyList_GetItem(comm_list, i);
     PyObject *proc = PyList_GetItem(proc_and_list, 0);
     PyObject *list = PyList_GetItem(proc_and_list, 1);
     procs[i] = PyLong_AsLong(proc);
-    ret = K_NUMPY::getFromNumpyArray(list, ptlists[i], npfaces[i], true);
+    ret = K_NUMPY::getFromNumpyArray(list, ptlists[i], npfaces[i]);
   }
 
   // Exchange fields one by one

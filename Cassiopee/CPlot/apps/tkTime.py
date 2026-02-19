@@ -1,7 +1,6 @@
 # - tkTime -
 """Time machine."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -73,7 +72,7 @@ def playForward(event=None):
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
     if walls == '1' and CTK.dt == []:
-        zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
+        zones = Internal.getZones(CTK.t)
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
@@ -102,7 +101,7 @@ def playBackward(event=None):
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
     if walls == '1' and CTK.dt == []:
-        zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
+        zones = Internal.getZones(CTK.t)
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
 
@@ -122,7 +121,7 @@ def playBackward(event=None):
 def setWalls(event=None):
     walls = VARS[3].get()
     if walls == '1':
-        zones = Internal.getNodesFromType(CTK.t, 'Zone_t')
+        zones = Internal.getZones(CTK.t)
         Z = buildWalls(zones)
         CTK.dt = C.newPyTree(['Base']); CTK.dt[2][1][2] += Z
     else: CTK.dt = []

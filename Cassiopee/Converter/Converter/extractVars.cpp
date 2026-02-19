@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ using namespace K_FLD;
 PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* vars; PyObject* tpl;
-  if (!PyArg_ParseTuple(args, "OO", &array, &vars)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &vars)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl;
@@ -101,17 +101,18 @@ PyObject* K_CONVERTER::extractVars(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < sizevvars; i++) delete [] vvars[i];
 
   // Build array here
+  E_Int api = f->getApi();
   if (res == 1)
   {
-    tpl = K_ARRAY::buildArray3(nt, fstring, nil, njl, nkl);
+    tpl = K_ARRAY::buildArray3(nt, fstring, nil, njl, nkl, api);
   }
   else
   {
     E_Int api = f->getApi();
-    E_Boolean compact = false;
+    E_Bool compact = false;
     if (api == 1) compact = true;
     FldArrayF f2(fSize, nt, compact);
-    tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType);
+    tpl = K_ARRAY::buildArray3(f2, fstring, *cn, eltType, api);
   }
   FldArrayF* f2; K_ARRAY::getFromArray3(tpl, f2);
 

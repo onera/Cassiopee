@@ -5,23 +5,32 @@ from . import Distributed
 from . import converter
 
 # Acces a Distributed
-from .Distributed import readZones, _readZones, convert2PartialTree, _convert2PartialTree, convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths, writeNodesFromPaths, mergeGraph, splitGraph
+from .Distributed import (
+    readZones, _readZones, convert2PartialTree, _convert2PartialTree,
+    convert2SkeletonTree, readNodesFromPaths, readPyTreeFromPaths,
+    writeNodesFromPaths, mergeGraph, splitGraph
+)
 
-__all__ = ['rank', 'size', 'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
-           'setCommunicator', 'barrier', 'send', 'recv', 'sendRecv', 'sendRecvC',
-           'bcast', 'Bcast', 'gather', 'Gather',
-           'reduce', 'Reduce', 'allreduce', 'Allreduce',
-           'bcastZone', 'gatherZones', 'allgatherZones',
-           'createBBTree', 'intersect', 'intersect2', 'allgatherDict',
-           'allgather', 'readZones', 'writeZones', 'convert2PartialTree',
-           'convert2SkeletonTree',
-           'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
-           'allgatherTree', 'convertFile2SkeletonTree', 'convertFile2PyTree',
-           'convertPyTree2File', 'seq', 'print0', 'printA',
-           'createBboxDict', 'computeGraph', 'addXZones',
-           '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
-           'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
-           'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty', 'COMM_WORLD']
+__all__ = [
+    'rank', 'size', 'master',
+    'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
+    'setCommunicator', 'abort', 'barrier',
+    'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
+    'bcast', 'Bcast', 'gather', 'Gather',
+    'reduce', 'Reduce', 'allreduce', 'Allreduce',
+    'bcastZone', 'gatherZones', 'allgatherZones',
+    'allgatherDict', 'allgatherDict2', 'allgatherTree',
+    'allgather', 'passNext', 'allgatherNext',
+    'getSizeOf',
+    'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
+    'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
+    'convertFile2SkeletonTree', 'convertFile2PyTree', 'convertPyTree2File',
+    'seq', 'print0', 'printA',
+    'createBboxDict', 'computeGraph', 'addXZones',
+    '_addXZones', '_addMXZones', '_addBXZones', '_addLXZones',
+    'rmXZones', '_rmXZones', '_rmMXZones', '_rmBXZones', 'getProcDict',
+    'getProc', 'setProc', '_setProc', 'getPropertyDict', 'getProperty'
+]
 
 from mpi4py import MPI
 import numpy
@@ -32,6 +41,7 @@ KCOMM = COMM_WORLD
 
 rank = KCOMM.rank
 size = KCOMM.size
+master = (rank == 0)
 
 SUM = MPI.SUM
 MAX = MPI.MAX
@@ -45,7 +55,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
     return None
 
 #==============================================================================
-# Change de communicateur
+# Change communicator
 #==============================================================================
 def setCommunicator(com):
     """Set MPI communicator to com."""
@@ -53,6 +63,12 @@ def setCommunicator(com):
     KCOMM = com
     rank = KCOMM.rank
     size = KCOMM.size
+
+#==============================================================================
+# abort: terminate the entire MPI job immediately
+#==============================================================================
+def abort(errorcode=0):
+    KCOMM.Abort(errorcode)
 
 #==============================================================================
 # barrier
@@ -76,13 +92,13 @@ def Send(obj, dest=None, tag=0):
 # isend - non blocking send data from a proc to another proc (using pickle, small data)
 #=====================================================================================
 def isend(obj, dest=None, tag=0):
-    KCOMM.isend(obj, dest, tag=tag)
+    return KCOMM.isend(obj, dest, tag=tag)
 
 #=====================================================================================
 # iSend - non blocking send data from a proc to another proc (for numpys)
 #=====================================================================================
 def Isend(obj, dest=None, tag=0):
-    KCOMM.Isend(obj, dest, tag=tag)
+    return KCOMM.Isend(obj, dest, tag=tag)
 
 #==============================================================================
 # receive - receive data from a proc
@@ -91,13 +107,20 @@ def recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG):
     return KCOMM.recv(source=source, tag=tag)
 
 #==============================================================================
-# Reduce to root (using pickle, small data)
+# Wait for all requests to finish
+#==============================================================================
+def requestWaitall(reqs):
+    MPI.Request.waitall(reqs)
+    return None
+
+#==============================================================================
+# Reduce to root applying op (using pickle, small data)
 #==============================================================================
 def reduce(data, op=MPI.SUM, root=0):
     return KCOMM.reduce(data, op=op, root=root)
 
 #==============================================================================
-# Reduce to root (for numpy data)
+# Reduce to root (for numpy data) applying op
 # dataIn and dataOut must be numpys of same size and type
 # or buffer specified [data,count,MPI_DOUBLE]
 #==============================================================================
@@ -105,13 +128,13 @@ def Reduce(dataIn, dataOut, op=MPI.SUM):
     return KCOMM.Reduce(dataIn, dataOut, op=op)
 
 #==============================================================================
-# Reduce to all (using pickle, small data)
+# Reduce to all  procs (using pickle, small data)
 #==============================================================================
 def allreduce(data, op=MPI.SUM):
     return KCOMM.allreduce(data, op=op)
 
 #==============================================================================
-# Reduce to all (for numpy data)
+# Reduce to all procs (for numpy data)
 # dataIn and dataOut must be numpys of same size and type
 # or buffer specified [data,count,MPI_DOUBLE]
 #==============================================================================
@@ -124,6 +147,7 @@ def Allreduce(dataIn, dataOut, op=MPI.SUM):
 # OUT: un dictionnaire des donnees recues par proc d'origine
 #==============================================================================
 def sendRecv(datas, graph):
+    """Send/receive with a graph."""
     if graph == {}: return {}
     reqs = []
 
@@ -131,16 +155,13 @@ def sendRecv(datas, graph):
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             if oppNode in datas: s = KCOMM.isend(datas[oppNode], dest=oppNode)
             else: s = KCOMM.isend(None, dest=oppNode)
             reqs.append(s)
     barrier()
     rcvDatas={}
     for node in graph:
-        #print(rank, graph[node],graph[node].keys(),flush=True)
         if rank in graph[node]:
-            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]),flush=True)
             rec = KCOMM.recv(source=node)
             if rec is not None: rcvDatas[node] = rec
     MPI.Request.waitall(reqs)
@@ -153,6 +174,7 @@ def sendRecv(datas, graph):
 # Attention: ne fonctionne que pour certaines datas (issues de transfer)
 #==============================================================================
 def sendRecvC(datas, graph):
+    """Send/receive with a graph (C version/no pickle)."""
     if graph == {}: return {}
     reqs = []
 
@@ -160,7 +182,6 @@ def sendRecvC(datas, graph):
         g = graph[rank] # graph du proc courant
         for oppNode in g:
             # Envoie les datas necessaires au noeud oppose
-            #print('%d: On envoie a %d: %s'%(rank,oppNode,g[oppNode]))
             if oppNode in datas:
                 s = converter.iSend(datas[oppNode], oppNode, rank, KCOMM)
             else:
@@ -169,9 +190,7 @@ def sendRecvC(datas, graph):
     barrier()
     rcvDatas={}
     for node in graph:
-        #print(rank, graph[node].keys())
         if rank in graph[node]:
-            #print('%d: On doit recevoir de %d: %s'%(rank,node,graph[node][rank]))
             rec = converter.recv(node, rank, KCOMM)
             if rec is not None: rcvDatas[node] = rec
 
@@ -179,145 +198,173 @@ def sendRecvC(datas, graph):
     return rcvDatas
 
 #==============================================================================
-# Construction d'un arbre de recherche pour des BBox
-# IN : tBB arbre cgns de bbox
-# OUT : objet C BBtree (hook)
+# passNext
+# pass data to the next proc
 #==============================================================================
-def createBBTree(t):
-    zones = Internal.getZones(t)
-    minBBoxes = [] ; maxBBoxes = []
-    for z in zones:
-        # BBox de la zone
-        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-        minBBoxes.append([numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)])
-        maxBBoxes.append([numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)])
+def passNext(data):
+    """Pass data to next proc."""
+    reqs = []
+    if rank < size-1: s = isend(data, dest=rank+1)
+    else: s = isend(data, 0)
+    reqs.append(s)
+    barrier()
 
-    return converter.createBBTree(minBBoxes, maxBBoxes)
+    if rank > 0: data = recv(source=rank-1)
+    else: data = recv(source=size-1)
+    requestWaitall(reqs)
+    return data
 
 #==============================================================================
-# Recherche des intersections entre une bbox de zone et un arbre de BBox
-# IN : Bbox d'une zone + arbre de recherche de BBox
-# OUT : tableau de taille de nombre des BBox avec True or False
+# gather data in a list identical on all procs with passNext algorithm
 #==============================================================================
-def intersect(zone, BBTree):
-    gc = Internal.getNodeFromName1(zone, Internal.__GridCoordinates__)
-    xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-    yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-    zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-    minBBox = [numpy.min(xCoords), numpy.min(yCoords), numpy.min(zCoords)]
-    maxBBox = [numpy.max(xCoords), numpy.max(yCoords), numpy.max(zCoords)]
-    return converter.intersect(minBBox, maxBBox, BBTree)
-
-def intersect2(t, BBTree):
-    zones = Internal.getZones(t)
-    inBB = numpy.empty((6*len(zones)), dtype=numpy.float64)
-    for c, z in enumerate(zones):
-        gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
-        xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
-        yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
-        zCoords = Internal.getNodeFromName1(gc, 'CoordinateZ')[1]
-        inBB[6*c  ] = xCoords[0,0,0]
-        inBB[6*c+1] = yCoords[0,0,0]
-        inBB[6*c+2] = zCoords[0,0,0]
-        inBB[6*c+3] = xCoords[1,0,0]
-        inBB[6*c+4] = yCoords[0,1,0]
-        inBB[6*c+5] = zCoords[0,0,1]
-
-    return converter.intersect2(inBB, BBTree)
+def allgatherNext(data):
+    ret = [None]*size
+    ret[rank] = data
+    dest = rank
+    for trip in range(size-1):
+        data = passNext(data)
+        dest = dest-1
+        if dest < 0: dest = size-1
+        ret[dest] = data
+    return ret
 
 #==============================================================================
-# Recherche des zones fixes non intersectees et ajout dans le dict
-# IN : liste des zones fixes, dict des intersects
-# OUT : dict a jour (reference ou pas?)
+# gather data in a list identical on all processors
+# check data size to avoid mpi buffer overflow
 #==============================================================================
-#def fillDict(zones, dictIntersect):
-#    for zone in zones:
-#        if zone[0] not in dictIntersect: dictIntersect[zone[0]] = []
-#    return dictIntersect
+def allgather(data):
+    s = getSizeOf(data, op='sum')
+    if s < 1.e7: return KCOMM.allgather(data)
+    else: return allgatherNext(data)
 
 #==============================================================================
-# allGather dictionnaire (rejete les doublons de keys et values)
+# gather data in a list identical on all processors
+#==============================================================================
+#def allgather(data):
+#    ret = KCOMM.allgather(data)
+#    return ret
+
+#==============================================================================
+# gather a dictionary identical on all procs when: dict[key] = [value]
+# return dict[key] = [all values]
+# all values in a single list (rejete les doublons de keys et doublons de values)
 #==============================================================================
 def allgatherDict(data):
     ret = KCOMM.allgather(data)
-    if isinstance(data, dict):
-        out = {}
-        for r in ret:
-            for k in r:
-                # if rank==0: print('PROC%d : k=%s'%(rank, k), flush=True)
-                if k not in out:
-                    out[k] = []
-                    for data in r[k]:
-                        if data not in out[k]:
-                            # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
-                            out[k].append(data)
-                            # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
-
-                else:
-                    for data in r[k]:
-                        # if rank==0: print('PROC%d : data=%s ; out[k] = '%(rank, k), out[k], flush=True)
-                        if data not in out[k]: out[k].append(data)
-                        # if rank==0: print('PROC%d : out[k] = '%(rank), out[k], flush=True)
-        return out
-    else: return ret
+    if not isinstance(data, dict): return ret
+    out = {}
+    for r in ret: # all proc return
+        for k in r: # for each key in dict
+            if k not in out:
+                out[k] = []
+                for data in r[k]:
+                    if data not in out[k]: out[k].append(data)
+            else:
+                for data in r[k]:
+                    if data not in out[k]: out[k].append(data)
+    return out
 
 #==============================================================================
-# allgather
+# gather a dict identical on all procs
+# if: dict[key] = value,
+# return dict[key] = value (en choisi une value si doublon de key)
 #==============================================================================
-def allgather(data):
+def allgatherDict2(data):
     ret = KCOMM.allgather(data)
-    # Si dictionnaire de listes, on fusionne les listes
-    # Si dictionnaire d'autre chose, on append dans des listes
-    if isinstance(data, dict):
-        out = {}
-        for r in ret:
-            for k in r:
-                if k not in out: out[k] = r[k]
-                else:
-                    try: out[k] += r[k]
-                    except: out[k].append(r[k])
-        return out
-    else: return ret
+    if not isinstance(data, dict): return ret
+    out = {}
+    for r in ret: # all proc return
+        for k in r: # for each key in dict
+            if k not in out: out[k] = r[k]
+    return out
 
+#==============================================================================
+# gather tree in a single tree identical on all processors
+#==============================================================================
 def allgatherTree(t):
     """Gather a distributed tree on all processors."""
-    d = KCOMM.allgather(t)
+    d = allgather(t) # with check size
     return Internal.merge(d)
 
 #==============================================================================
-# gather to root from all procs
+# All gather une liste de zones, recuperation identique sur tous les procs
+# dans une liste a plat
+# Partage les coordonnees si coord=True
+# Partage les variables renseignees et supprime les autres
 #==============================================================================
-# data=All with pickle
+def allgatherZones(zones, coord=True, variables=[]):
+    # Chaque processeur bcast ses zones vers les autres ranks
+    zones = Internal.getZones(zones)
+    lenZones = KCOMM.allgather(len(zones))
+    allZones = []
+    for i in range(size):
+        for cz in range(lenZones[i]):
+            if rank == i:
+                zp = bcastZone(zones[cz], root=i, coord=coord, variables=variables)
+            #    if variables == []:
+            #        Internal._rmNodesFromType(zp, 'FlowSolution_t')
+            #    else:
+            #        varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
+            #        for var in varszp:
+            #            if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
+            else:
+                zp = bcastZone(None, root=i, coord=coord, variables=variables)
+
+            #if rank == i: zp = zones[cz]
+            #else: zp = None
+            #zp = bcastZone(zp, root=i, coord=coord, variables=variables)
+
+            allZones.append(zp)
+    return allZones
+
+#==============================================================================
+# gather from all procs to root, small data
+#==============================================================================
 def gather(data, root=0):
     return KCOMM.gather(data, root)
 
-# data=numpy
+#==============================================================================
+# gather from all procs to root, data=numpys
+#==============================================================================
 def Gather(data, root=0):
     return KCOMM.Gather(data, root)
 
 #==============================================================================
-# bcast from root to all procs
+# Envoie les zones de chaque proc au proc root dans une liste a plat des zones
 #==============================================================================
-# data=All with pickle
+def gatherZones(zones, root=0):
+    zones = Internal.getZones(zones)
+    ret = KCOMM.gather(zones, root)
+    out = []
+    if ret is not None:
+        for i in ret: out += i
+    return out
+
+#==============================================================================
+# bcast data from root to all procs, small data
+#==============================================================================
 def bcast(data, root=0):
     return KCOMM.bcast(data, root)
 
-# data=numpy
+#==============================================================================
+# bcast data from root to all procs, data=numpy
+#==============================================================================
 def Bcast(data, root=0):
     return KCOMM.Bcast(data, root)
 
-# data=tree
+#==============================================================================
+# bcast a tree from root to all proc
+#==============================================================================
 def bcastTree(t, root=0):
     if t is not None:
         zones = Internal.getZones(t)
         for z in zones: z = bcastZone(z)
     return t
 
-# data=zone
+#==============================================================================
+# bcast a zone from root to all proc
 # if variables == [] and coord == True, envoie uniquement les coords de z
+#==============================================================================
 def bcastZone(z, root=0, coord=True, variables=[]):
     # zp = squelette envoye en pickle
     if rank == root:
@@ -397,43 +444,24 @@ def bcastZone(z, root=0, coord=True, variables=[]):
                     Internal._rmNodesFromName(zp, var.replace('centers:',''))
     return zp
 
-# All gather une liste de zones, recuperation identique sur tous les procs
-# dans une liste a plat
-# Partage les coordonnees si coord=True
-# Partage les variables renseignees et supprime les autres
-def allgatherZones(zones, coord=True, variables=[]):
-    # Chaque processeur bcast ses zones vers les autres ranks
-    zones = Internal.getZones(zones)
-    lenZones = KCOMM.allgather(len(zones))
-    allZones = []
-    for i in range(size):
-        for cz in range(lenZones[i]):
-            if rank == i:
-                zp = bcastZone(zones[cz], root=i, coord=coord, variables=variables)
-            #    if variables == []:
-            #        Internal._rmNodesFromType(zp, 'FlowSolution_t')
-            #    else:
-            #        varszp = C.getVarNames(zp, excludeXYZ=True, loc='both')[0]
-            #        for var in varszp:
-            #            if var not in variables: Internal._rmNodesFromName(zp, var.replace('centers:',''))
-            else:
-                zp = bcastZone(None, root=i, coord=coord, variables=variables)
-
-            #if rank == i: zp = zones[cz]
-            #else: zp = None
-            #zp = bcastZone(zp, root=i, coord=coord, variables=variables)
-
-            allZones.append(zp)
-    return allZones
-
-# Envoie les zones de chaque proc au proc root dans une liste a plat des zones
-def gatherZones(zones, root=0):
-    zones = Internal.getZones(zones)
-    ret = KCOMM.gather(zones, root)
-    out = []
-    if ret is not None:
-        for i in ret: out += i
-    return out
+#==============================================================================
+# get size of data
+# IN: op: max, min or sum
+#==============================================================================
+def getSizeOf(data, op='sum'):
+    """Get the size of data in octets."""
+    s = Internal.getSizeOf(data)
+    ret = KCOMM.allgather(s)
+    if op == 'sum':
+        s = 0
+        for i in ret: s += i
+    elif op == 'max':
+        s = -1.e32
+        for i in ret: s = max(i, s)
+    elif op == 'min':
+        s = +1.e32
+        for i in ret: s = min(i, s)
+    return s
 
 #==============================================================================
 # Lecture du squelette d'un arbre dans un fichier
@@ -505,6 +533,7 @@ def _merge__(t):
 # sans zones (pour recuperer toutes les bases et les data des bases)
 #==============================================================================
 def convertPyTree2File(t, fileName, format=None, links=[],
+                       isize=8, rsize=8,
                        ignoreProcNodes=False, merge=True):
     """Write a skeleton or partial tree."""
     tp = convert2PartialTree(t)
@@ -515,17 +544,17 @@ def convertPyTree2File(t, fileName, format=None, links=[],
     nzones = len(Internal.getZones(tp))
     if rank == 0:
         if nzones > 0:
-            C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
+            C.convertPyTree2File(tp, fileName, format=format, links=links, isize=isize, rsize=rsize); go = 1
         else: go = 0
         if size > 1: KCOMM.send(go, dest=1)
     else:
         go = KCOMM.recv(source=rank-1)
         if go == 1:
-            if ignoreProcNodes: Distributed.writeZones(tp, fileName, format=format, proc=-1, links=links)
-            else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links)
+            if ignoreProcNodes: Distributed.writeZones(tp, fileName, format=format, proc=-1, links=links, isize=isize, rsize=rsize)
+            else: Distributed.writeZones(tp, fileName, format=format, proc=rank, links=links, isize=isize, rsize=rsize)
         else:
             if nzones > 0:
-                C.convertPyTree2File(tp, fileName, format=format, links=links); go = 1
+                C.convertPyTree2File(tp, fileName, format=format, links=links, isize=isize, rsize=rsize); go = 1
         if rank < size-1: KCOMM.send(go, dest=rank+1)
     barrier()
 
@@ -556,10 +585,11 @@ def printA(A):
     seq(fprint, A)
 
 #==============================================================================
-# Calcule le dictionnaire des bbox de l'arbre complet
-# Utile pour addXZones optimises
+# Calcule le dictionnaire des bbox de l'arbre complet, identique
+# sur tous les procs. Utile pour addXZones optimises
 #==============================================================================
 def createBboxDict(t):
+    """Return bboxes of zones of t in a dictionary."""
     try: import Generator.PyTree as G
     except: raise ImportError("createBboxDict requires Generator module.")
     bboxDict = {}
@@ -849,14 +879,14 @@ def getMatchSubZones__(z, procDict, oppNode, depth):
 
 def _updateGridConnectivity(a):
     # Update grid connectivities to be consistent with XZone (just after using addMXZones)
-    zones     = Internal.getZones(a)
+    zones = Internal.getZones(a)
     zonesReal = []
     for z in zones:
         xz = Internal.getNodeFromName1(z, 'XZone')
         if xz is None: zonesReal.append(z)
 
     for z in zonesReal:
-        gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+        gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
         for g in gcs:
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
             for n in nodes:
@@ -877,7 +907,7 @@ def _updateGridConnectivity(a):
                 elif kmin == kmax and kmin == 1: suffix = 'kmin'+str(imin)+str(jmin)
                 elif kmin == kmax: suffix = 'kmax'+str(imin)+str(jmin)
 
-                zopp = Internal.getNodeFromName(a, oppName+'_MX_'+z[0]+'-'+suffix)
+                zopp = Internal.getNodeFromName2(a, oppName+'_MX_'+z[0]+'-'+suffix)
 
                 if zopp is not None:
 
@@ -886,58 +916,24 @@ def _updateGridConnectivity(a):
                     src, loc2glob = Internal.getLoc2Glob(zopp)
 
                     # Update current zone
-                    prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
-                    p      = Internal.range2Window(prd[1])
-                    p      = [p[0]-loc2glob[0]+1,p[1]-loc2glob[0]+1,p[2]-loc2glob[2]+1,p[3]-loc2glob[2]+1,p[4]-loc2glob[4]+1,p[5]-loc2glob[4]+1]
-                    p      = Internal.window2Range(p)
+                    prd = Internal.getNodeFromName1(n, 'PointRangeDonor')
+                    p = Internal.range2Window(prd[1])
+                    p = [p[0]-loc2glob[0]+1,p[1]-loc2glob[0]+1,p[2]-loc2glob[2]+1,p[3]-loc2glob[2]+1,p[4]-loc2glob[4]+1,p[5]-loc2glob[4]+1]
+                    p = Internal.window2Range(p)
                     Internal.setValue(prd, p)
 
                     # Update XZone
-                    gcopp  = Internal.getNodesFromType1(zopp, 'ZoneGridConnectivity_t')
-                    match  = Internal.getNodesFromType1(gcopp, 'GridConnectivity1to1_t')[0] # 1 seul match dans les XZone
+                    gcopp = Internal.getNodesFromType1(zopp, 'ZoneGridConnectivity_t')
+                    match = Internal.getNodesFromType1(gcopp, 'GridConnectivity1to1_t')[0] # 1 seul match dans les XZones
 
-                    pr     = Internal.getNodeFromName1(match, 'PointRange')
+                    pr = Internal.getNodeFromName1(match, 'PointRange')
                     Internal.setValue(pr, p)
 
     return None
 
 def _revertMXGridConnectivity(a):
     # Restore grid connectivities with respect to real zone (after using addMXZones)
-    zones     = Internal.getZones(a)
-    zonesReal = []
-    for z in zones:
-        xz = Internal.getNodeFromName1(z, 'XZone')
-        if xz is None: zonesReal.append(z)
-
-    for z in zonesReal:
-        gcs   = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
-        for g in gcs:
-            nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
-            for n in nodes:
-                # Recherche le nom de la bandelette en raccord
-                oppName = Internal.getValue(n)
-
-                zopp    = Internal.getNodeFromName(a, oppName)
-                xzopp   = Internal.getNodeFromName1(zopp, 'XZone')
-
-                if xzopp is not None:
-                    newName = oppName.split('_MX_')[0]
-                    Internal.setValue(n, newName)
-
-                    src, loc2glob = Internal.getLoc2Glob(zopp)
-
-                    # Update current zone
-                    prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
-                    p      = Internal.range2Window(prd[1])
-                    p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
-                    p      = Internal.window2Range(p)
-                    Internal.setValue(prd, p)
-
-    return None
-
-def _revertBXGridConnectivity(a):
-    # Restore grid connectivities with respect to real zone (after using addBXZones)
-    zones     = Internal.getZones(a)
+    zones = Internal.getZones(a)
     zonesReal = []
     for z in zones:
         xz = Internal.getNodeFromName1(z, 'XZone')
@@ -950,7 +946,41 @@ def _revertBXGridConnectivity(a):
             for n in nodes:
                 # Recherche le nom de la bandelette en raccord
                 oppName = Internal.getValue(n)
-                zopp    = Internal.getNodeFromName(a, oppName)
+
+                zopp = Internal.getNodeFromName2(a, oppName)
+                xzopp = Internal.getNodeFromName1(zopp, 'XZone')
+
+                if xzopp is not None:
+                    newName = oppName.split('_MX_')[0]
+                    Internal.setValue(n, newName)
+
+                    src, loc2glob = Internal.getLoc2Glob(zopp)
+
+                    # Update current zone
+                    prd = Internal.getNodeFromName1(n, 'PointRangeDonor')
+                    p = Internal.range2Window(prd[1])
+                    p = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
+                    p = Internal.window2Range(p)
+                    Internal.setValue(prd, p)
+
+    return None
+
+def _revertBXGridConnectivity(a):
+    # Restore grid connectivities with respect to real zone (after using addBXZones)
+    zones = Internal.getZones(a)
+    zonesReal = []
+    for z in zones:
+        xz = Internal.getNodeFromName1(z, 'XZone')
+        if xz is None: zonesReal.append(z)
+
+    for z in zonesReal:
+        gcs = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
+        for g in gcs:
+            nodes = Internal.getNodesFromType1(g, 'GridConnectivity1to1_t')
+            for n in nodes:
+                # Recherche le nom de la bandelette en raccord
+                oppName = Internal.getValue(n)
+                zopp = Internal.getNodeFromName2(a, oppName)
                 if zopp is not None:
                     xzopp = Internal.getNodeFromName1(zopp, 'XZone')
                     if xzopp is not None:
@@ -959,18 +989,18 @@ def _revertBXGridConnectivity(a):
                         src, loc2glob = Internal.getLoc2Glob(zopp)
 
                         # Update current zone
-                        prd    = Internal.getNodeFromName1(n, 'PointRangeDonor')
-                        p      = Internal.range2Window(prd[1])
-                        p      = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
+                        prd = Internal.getNodeFromName1(n, 'PointRangeDonor')
+                        p = Internal.range2Window(prd[1])
+                        p = [p[0]+loc2glob[0]-1,p[1]+loc2glob[0]-1,p[2]+loc2glob[2]-1,p[3]+loc2glob[2]-1,p[4]+loc2glob[4]-1,p[5]+loc2glob[4]-1]
                         #check if not same window - can happen if near match exists
-                        remove=False
+                        remove = False
                         if z[0] == newName:
-                            remove=True
+                            remove = True
                             prr = Internal.getNodeFromName1(n,'PointRange')
                             p2 = Internal.range2Window(prr[1])
                             for i in range(6):
                                 if p2[i] != p[i]:
-                                    remove=False
+                                    remove = False
                                     break
                         if not remove:
                             p = Internal.window2Range(p)
@@ -980,12 +1010,12 @@ def _revertBXGridConnectivity(a):
 
             nodes = Internal.getNodesFromType1(g, 'GridConnectivity_t')
             for n in nodes:
-                gctype = Internal.getNodeFromType(n,'GridConnectivityType_t')
+                gctype = Internal.getNodeFromType(n, 'GridConnectivityType_t')
                 gctype = Internal.getValue(gctype)
                 if gctype == 'Abutting':
                     # Recherche le nom de la bandelette en raccord
                     oppName = Internal.getValue(n)
-                    zopp    = Internal.getNodeFromName(a, oppName)
+                    zopp = Internal.getNodeFromName2(a, oppName)
                     if zopp is not None:
                         xzopp = Internal.getNodeFromName1(zopp, 'XZone')
                         if xzopp is not None:
@@ -996,7 +1026,7 @@ def _revertBXGridConnectivity(a):
 
 # Ajoute des sous-zones correspondant aux raccords sur un arbre distribue
 def _addMXZones(a, depth=2, variables=None, noCoordinates=False, keepOldNodes=True):
-
+    """Add band zones corresponding to match."""
     graph = computeGraph(a, type='match')
     bases = Internal.getBases(a)
     procDict = getProcDict(a)
@@ -1147,7 +1177,7 @@ def _addBXZones(a, depth=2, allB=False, variables=None):
     bboxes = KCOMM.allgather(bbz)
 
     # Echange par alltoall
-    data   = []
+    data = []
     zone_i = []
     for i in range(size):
         data_i = {}
@@ -1197,6 +1227,7 @@ def rmXZones(t):
     return tp
 
 def _rmXZones(t):
+    """Remove zones added by addXZones."""
     bases = Internal.getBases(t)
     if bases == []:
         zones = Internal.getZones(t)
@@ -1216,11 +1247,13 @@ def _rmXZones(t):
     return None
 
 def _rmMXZones(t):
+    """Remove zones added by addMXZones."""
     _revertMXGridConnectivity(t)
     _rmXZones(t)
     return None
 
 def _rmBXZones(t):
+    """Remove zones added by addMXZones."""
     _revertBXGridConnectivity(t)
     _rmXZones(t)
     return None
@@ -1259,16 +1292,16 @@ def setProc(t, rank):
     return tp
 
 def _setProc(t, rank):
+    """Set the proc number to a zone or a set of zones."""
     Distributed._setProc(t, rank)
     return None
-
 
 #==============================================================================
 # Retourne le dictionnaire proc pour chaque zoneName
 # IN: t: full/S/LS/Partial
 #==============================================================================
 def getPropertyDict(t, propName, reduction=True):
-    """Return the dictionary proc['zoneName']."""
+    """Return the dictionary propDict['zoneName']."""
     d1 = Distributed.getPropertyDict(t, propName)
     #d1 = allgatherDict(d1)
     if reduction:

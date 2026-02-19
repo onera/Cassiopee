@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -31,14 +31,14 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
 {
   E_Float tolps = 0.1;
   PyObject *array, *normales; 
-  if (!PyArg_ParseTuple(args, "OO", &array, &normales)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &normales)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     im, jm, km, cn, eltType);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -61,8 +61,8 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
 
   FldArrayF* fn; FldArrayI* cnn;
   char* varStringn; char* eltTypen;
-  res = K_ARRAY::getFromArray(normales, varStringn, fn, 
-                              im, jm, km, cnn, eltTypen, true);
+  res = K_ARRAY::getFromArray3(normales, varStringn, fn, 
+                               im, jm, km, cnn, eltTypen);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -95,6 +95,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
   possx++; possy++; possz++;
 
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   FldArrayF fout(npts,1);
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
@@ -185,7 +186,7 @@ PyObject* K_GENERATOR::getLocalStepFactor(PyObject* self, PyObject* args)
       }
     }
   }
-  PyObject* tpl = K_ARRAY::buildArray(fout, "ht", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(fout, "ht", *cn, eltType, api);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(normales, fn, cnn);
   return tpl;
@@ -204,14 +205,14 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   PyObject *array, *normales;
   E_Int kappaType;
   E_Float kappaL, kappaP;
-  if (!PyArg_ParseTuple(args, "OOldd", &array, &normales, &kappaType, &kappaL, &kappaP)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ I_ RR_, &array, &normales, &kappaType, &kappaL, &kappaP)) return NULL;
 
   // Check arrays : surface + normales sx,sy,sz
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     im, jm, km, cn, eltType);
   if (res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -234,8 +235,8 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
 
   FldArrayF* fn; FldArrayI* cnn;
   char* varStringn; char* eltTypen;
-  res = K_ARRAY::getFromArray(normales, varStringn, fn, 
-                              im, jm, km, cnn, eltTypen, true);
+  res = K_ARRAY::getFromArray3(normales, varStringn, fn, 
+                               im, jm, km, cnn, eltTypen);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -268,6 +269,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
   possx++; possy++; possz++;
 
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   FldArrayF fout(npts,2);
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
@@ -454,7 +456,7 @@ PyObject* K_GENERATOR::getLocalStepFactor2(PyObject* self, PyObject* args)
       }
     }
   }
-  PyObject* tpl = K_ARRAY::buildArray(fout, "ht,hl", *cn, -1, eltType);
+  PyObject* tpl = K_ARRAY::buildArray3(fout, "ht,hl", *cn, eltType, api);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(normales, fn, cnn);
   return tpl;

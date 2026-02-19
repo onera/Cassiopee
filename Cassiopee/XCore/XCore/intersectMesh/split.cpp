@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,13 +23,15 @@
 PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
 {
     PyObject *MESH, *CTAG, *PTAG;
-    if (!PYPARSETUPLE_(args, OOO_, &MESH, &CTAG, &PTAG)) {
+    if (!PYPARSETUPLE_(args, OOO_, &MESH, &CTAG, &PTAG)) 
+    {
         RAISE("Bad input.");
         return NULL;
     }
 
     Karray array;
-    if (Karray_parse_ngon(MESH, array) != 0) {
+    if (Karray_parse_ngon(MESH, array) != 0) 
+    {
         RAISE("Failed to parse NGon.");
         return NULL;
     }
@@ -38,15 +40,16 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
 
     E_Float *ctag = NULL;
     E_Int size = -1;
-    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size, true);
+    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size);
     if (ret != 1 || size != nc) {
         RAISE("Bad ctag array.");
         return NULL;
     }
 
     E_Float *ptag = NULL;
-    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size, true);
-    if (ret != 1 || size != np) {
+    ret = K_NUMPY::getFromNumpyArray(PTAG, ptag, size);
+    if (ret != 1 || size != np) 
+    {
         RAISE("Bad ptag array.");
         return NULL;
     }
@@ -161,12 +164,12 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         PyObject *arr = K_ARRAY::buildArray3(3, varString, np, nc, nf, "NGON",
             sizeNGon, sizeNFace, 3, false, 3);
         
-        printf("np: %d\n", np);
-        printf("nf: %d\n", nf);
-        printf("nc: %d\n", nc);
+        //printf("np: %d\n", np);
+        //printf("nf: %d\n", nf);
+        //printf("nc: %d\n", nc);
     
-        K_FLD::FldArrayF *f;
-        K_FLD::FldArrayI *cn;
+        K_FLD::FldArrayF* f;
+        K_FLD::FldArrayI* cn;
         K_ARRAY::getFromArray3(arr, f, cn);
 
         // Points
@@ -187,23 +190,25 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         E_Int *ngon = cn->getNGon();
         indPG[0] = 0;
 
-        for (const auto &fids : fmap) {
+        for (const auto &fids : fmap) 
+        {
             E_Int ofid = fids.first-1;
             E_Int nfid = fids.second;
             assert(nfid < nf);
             E_Int NP = -1;
-            E_Int *pn = array.get_face(ofid, NP);
+            array.get_face(ofid, NP);
             indPG[nfid+1] = NP;
         }
         for (E_Int fid = 0; fid < nf; fid++) indPG[fid+1] += indPG[fid];
         assert(indPG[nf] == sizeNGon);
 
-        for (const auto &fids : fmap) {
+        for (const auto &fids : fmap) 
+        {
             E_Int ofid = fids.first-1;
             E_Int nfid = fids.second;
             E_Int NP = -1;
-            E_Int *pn = array.get_face(ofid, NP);
-            E_Int *ptr = &ngon[indPG[nfid]];
+            E_Int* pn = array.get_face(ofid, NP);
+            E_Int* ptr = &ngon[indPG[nfid]];
             for (E_Int i = 0; i < NP; i++) ptr[i] = pmap.at(pn[i])+1;
         }
 
@@ -212,9 +217,11 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         E_Int *nface = cn->getNFace();
         indPH[0] = 0;
         nc = 0;
-        for (E_Int cid : clist) {
+        for (E_Int cid : clist) 
+        {
             E_Int NF = -1;
-            E_Int *pf = array.get_cell(cid, NF);
+            //E_Int *pf = 
+            array.get_cell(cid, NF);
             indPH[nc+1] = NF;
             nc++;
         }
@@ -222,7 +229,8 @@ PyObject *K_XCORE::split_connex(PyObject *self, PyObject *args)
         assert(indPH[nc] == sizeNFace);
 
         nc = 0;
-        for (E_Int cid : clist) {
+        for (E_Int cid : clist) 
+        {
             E_Int NF = -1;
             E_Int *pf = array.get_cell(cid, NF);
             E_Int *ptr = &nface[indPH[nc]];

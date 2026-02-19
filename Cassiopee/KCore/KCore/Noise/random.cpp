@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,17 +32,17 @@
 #define IR 2836
 #define MASK 123459876
 
-double K_NOISE::stdRand(E_LONG *idum)
+E_Float K_NOISE::stdRand(E_LONG *idum)
 {
   E_LONG k;
-  double ans;
+  E_Float ans;
 
   *idum ^= MASK;
-  k=(*idum)/IQ;
-  *idum=IA*(*idum-k*IQ)-IR*k;
+  k = (*idum)/IQ;
+  *idum = IA*(*idum-k*IQ)-IR*k;
   if (*idum < 0) *idum += IM;			//cycling
   
-  ans=AM*(*idum);
+  ans = AM*(*idum);
   *idum ^= MASK;
   return ans;
 }
@@ -58,34 +58,34 @@ double K_NOISE::stdRand(E_LONG *idum)
 #define EPS 1.2e-10
 #define RNMX (1.0-EPS)
 
-double K_NOISE::shuffleRand(E_LONG *idum)
+E_Float K_NOISE::shuffleRand(E_LONG *idum)
 {
   int j;
   E_LONG k;
   static E_LONG iy=0;
   static E_LONG iv[NTAB];
-  double temp;
+  E_Float temp;
   
   if (*idum <=0 || !iy)
   {
-    if (-(*idum)<1) *idum=1;
-    else *idum=-(*idum);
-    for (j=NTAB+7;j>=0;j--)
+    if (-(*idum) < 1) *idum = 1;
+    else *idum = -(*idum);
+    for (j = NTAB+7; j >= 0; j--)
     {
       k=(*idum)/IQ;
-      *idum=IA*(*idum-k*IQ)-IR*k;
-      if (*idum<0) *idum += IM;
-      if (j<NTAB) iv[j]=*idum;
+      *idum = IA*(*idum-k*IQ)-IR*k;
+      if (*idum < 0) *idum += IM;
+      if (j < NTAB) iv[j] = *idum;
     }
-    iy=iv[0];
+    iy = iv[0];
   }
-  k=(*idum)/IQ;
-  *idum=IA*(*idum-k*IQ)-IR*k;
+  k = (*idum)/IQ;
+  *idum = IA*(*idum-k*IQ)-IR*k;
   if (*idum<0) *idum += IM;
-  j=iy/NDIV;
-  iy=iv[j];
-  iv[j]=*idum;
-  if ((temp=AM*iy)>RNMX) temp=RNMX;
+  j = iy/NDIV;
+  iy = iv[j];
+  iv[j] = *idum;
+  if ((temp=AM*iy) > RNMX) temp = RNMX;
   return temp;
 }
 
@@ -107,40 +107,40 @@ double K_NOISE::shuffleRand(E_LONG *idum)
 #define IR2 3791
 #define NDIV1 (1+IMM1/NTAB)
 
-double K_NOISE::longRand(E_LONG *idum)
+E_Float K_NOISE::longRand(E_LONG *idum)
 {
   int j;
   E_LONG k;
   static E_LONG idum2=123456789;
-  static E_LONG iy=0;
+  static E_LONG iy = 0;
   static E_LONG iv[NTAB];
-  double temp;
+  E_Float temp;
   
   if (*idum <=0 || !iy)
   {
-    if (-(*idum)<1) *idum=1;
-    else *idum=-(*idum);
-    idum2=(*idum);
-    for (j=NTAB+7;j>=0;j--)
+    if (-(*idum) < 1) *idum = 1;
+    else *idum = -(*idum);
+    idum2 = (*idum);
+    for (j = NTAB+7; j >= 0; j--)
     {
-      k=(*idum)/IQ1;
-      *idum=IA1*(*idum-k*IQ1)-IR1*k;
-      if (*idum<0) *idum += IM1;
-      if (j<NTAB) iv[j]=*idum;
+      k = (*idum)/IQ1;
+      *idum = IA1*(*idum-k*IQ1)-IR1*k;
+      if (*idum < 0) *idum += IM1;
+      if (j < NTAB) iv[j] = *idum;
     }
-    iy=iv[0];
+    iy = iv[0];
   }
-  k=(*idum)/IQ1;
-  *idum=IA1*(*idum-k*IQ1)-IR1*k;
+  k = (*idum)/IQ1;
+  *idum = IA1*(*idum-k*IQ1)-IR1*k;
   if (*idum<0) *idum += IM1;
-  k=idum2/IQ2;
+  k = idum2/IQ2;
   idum2=IA2*(idum2-k*IQ2)-IR2*k;
   if (idum2<0) idum2 += IM2;
 
-  j=iy/NDIV1;
-  iy=iv[j]-idum2;
-  iv[j]=*idum;
+  j = iy/NDIV1;
+  iy = iv[j]-idum2;
+  iv[j] = *idum;
   if (iy<1) iy += IMM1;
-  if ((temp=AM1*iy)>RNMX) temp=RNMX;
+  if ((temp=AM1*iy) > RNMX) temp = RNMX;
   return temp;	
 }

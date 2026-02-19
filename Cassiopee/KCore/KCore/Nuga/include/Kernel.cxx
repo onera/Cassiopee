@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -85,18 +85,17 @@ Kernel<T>::~Kernel(void)
   if (_constrained_pred) delete _constrained_pred;
 }
 
-///
+/// delaunay insertion
 template <typename T>
 template <typename ConstraintType>
-E_Int
-Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
+E_Int Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
 {
 #ifdef E_TIME
   NUGA::chrono c;
   c.start();
 #endif
 
-  //
+  // get cavity containg node
   E_Int ret = __getCavity<ConstraintType> (N, m, *_data->pos, _data->neighbors, _data->ancestors, _cavity, _cboundary);
 
   if (ret == -1 || ret == 2)
@@ -107,7 +106,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
   c.start();
 #endif
 
-  //
+  // remesh cavity
   ret = __remeshCavity (N, _data->connectM, _data->neighbors, _data->ancestors, _cavity, _cboundary);
   if (ret)
     return ret;
@@ -128,8 +127,7 @@ Kernel<T>::insertNode(size_type N, const T& m, const ConstraintType& dummy)
 }
 
 template <typename T>
-void
-Kernel<T>::setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges)
+void Kernel<T>::setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges)
 {
   if (_constrained_pred) delete _constrained_pred;
   _constrained_pred = new constrained_predicate(hard_edges);
@@ -138,8 +136,7 @@ Kernel<T>::setConstraint(const NUGA::non_oriented_edge_set_type& hard_edges)
 ///
 template <typename T>
 template <typename ConstraintType>
-E_Int
-Kernel<T>::__getCavity
+E_Int Kernel<T>::__getCavity
 (size_type N, const T& m,
  const K_FLD::FloatArray& pos, const K_FLD::IntArray& neighbors,
  const int_vector_type& ancestors, int_set_type& cavity,
@@ -174,15 +171,13 @@ Kernel<T>::__getCavity
   }
 #endif
   
-  if (ret == 2)
-    return ret;
+  if (ret == 2) return ret;
 
   if (ret == -1) // Error
     return ret;;
 
   if ((_base.size() > 2) || (cavity.size() != _base.size()))
     ret = __fixCavity(N, pos, _data->connectM, neighbors, ancestors, _base, cavity, _sbound);
-
 
   if (ret == -1) // Error
     return ret;
@@ -207,9 +202,13 @@ Kernel<T>::__getCavity
 #endif
 
   cboundary.clear();
-  //_visited.clear();
-  //__getSortedBoundary(_data->connectM, neighbors, *_base.begin(), 0, cavity, _sbound, _visited, cboundary);
   ret = __getSortedBoundary2(_data->connectM, _sbound, cboundary);
+  if (ret == 2) // getSortedBoundary2 fails
+  {
+    _visited.clear();
+    cboundary.clear();
+    __getSortedBoundary(_data->connectM, neighbors, *_base.begin(), 0, cavity, _sbound, _visited, cboundary);
+  }
   _sbound.clear();
 
 #ifdef E_TIME
@@ -222,8 +221,7 @@ Kernel<T>::__getCavity
 ///
 template <typename T>
 template <typename ConstraintType>
-E_Int
-Kernel<T>::__getInitialCavity
+E_Int Kernel<T>::__getInitialCavity
 (size_type N, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connect,
  const K_FLD::IntArray& neighbors, const int_vector_type& ancestors, int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
@@ -240,12 +238,11 @@ Kernel<T>::__getInitialCavity
   c.start();
 #endif
 
-  E_Int ret = _tool->getContainingElements (pos.col(N), pos, connect, neighbors, ancestors, _data->mask,
+  E_Int ret = _tool->getContainingElements(pos.col(N), pos, connect, neighbors, ancestors, _data->mask,
                                            _tool->getTree(), std::back_inserter(ba), Nmatch);
 
   size_type sz = (size_type)ba.size();
-  for (size_type i = 0; i < sz; ++i)//fixme
-    base.insert(ba[i]);
+  for (size_type i = 0; i < sz; ++i) base.insert(ba[i]);
 
 #ifdef E_TIME
   _base_time += c.elapsed();
@@ -268,13 +265,13 @@ Kernel<T>::__getInitialCavity
   
   if (ret == 2)
   {  
-  K_FLD::IntArray cc;
-  for (int_set_type::iterator i = base.begin(); i != base.end(); ++i)
-  {
-  const E_Int* p = connect.col(*i);
-  cc.pushBack(p,p+3);
-  }
-  medith::write("base.mesh", pos, cc);
+    K_FLD::IntArray cc;
+    for (int_set_type::iterator i = base.begin(); i != base.end(); ++i)
+    {
+      const E_Int* p = connect.col(*i);
+      cc.pushBack(p,p+3);
+    }
+    medith::write("base.mesh", pos, cc);
   }
 #endif
 
@@ -304,8 +301,7 @@ Kernel<T>::__getInitialCavity
 /// Default implementation : constrained iso/aniso
 template <typename T>
 template <typename ConstraintType>
-void
-Kernel<T>::__appendCavity
+void Kernel<T>::__appendCavity
 (const K_FLD::IntArray& neighbors, const int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
 {
@@ -323,8 +319,7 @@ Kernel<T>::__appendCavity
 // Specialization : unconstrained iso.
 template <> 
 template <> inline
-void
-Kernel<E_Float>::__appendCavity<UNCONSTRAINED>
+void Kernel<E_Float>::__appendCavity<UNCONSTRAINED>
 (const K_FLD::IntArray& neighbors, const int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
 {
@@ -341,8 +336,7 @@ Kernel<E_Float>::__appendCavity<UNCONSTRAINED>
 // Specialization unconstrained aniso.
 template <> 
 template <> inline
-void
-Kernel<Aniso2D>::__appendCavity<UNCONSTRAINED>
+void Kernel<Aniso2D>::__appendCavity<UNCONSTRAINED>
 (const K_FLD::IntArray& neighbors, const int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
 {
@@ -356,21 +350,20 @@ Kernel<Aniso2D>::__appendCavity<UNCONSTRAINED>
   __getBoundary(cavity, neighbors, cboundary);
 }
 
-///
+// remesh cavity
 template <typename T>
-E_Int
-  Kernel<T>::__remeshCavity
+E_Int Kernel<T>::__remeshCavity
 (size_type N, K_FLD::IntArray & connect, K_FLD::IntArray& neighbors,
  int_vector_type& ancestors, const int_set_type& cavity,
  const int_pair_vector_type& cboundary)
 {
   // Fast return.
-  if (cavity.empty())       return -1; // Error
-  if (cboundary.empty())    return -1; // Error
+  if (cavity.empty()) return -1; // Error
+  if (cboundary.empty()) return -1; // Error
 
   size_type K0, Kprev(IDX_NONE), K1(connect.cols()), Kstart(connect.cols()), Kadj,j,jadj;
   K_FLD::IntArray::const_iterator pK0;
-  size_type                   newN[] = {IDX_NONE, IDX_NONE, IDX_NONE};
+  size_type newN[] = {IDX_NONE, IDX_NONE, IDX_NONE};
 
   int_pair_type Bi;
   size_type triangle[3], N0, N1;
@@ -380,8 +373,7 @@ E_Int
   bool set_color = !_data->colors.empty();
 
   size_type color = -1;
-  if (set_color)
-    color = _data->colors[*cavity.begin()];
+  if (set_color) color = _data->colors[*cavity.begin()];
 
   size_type bsize = (size_type)cboundary.size();
   for (size_type i = 0; i < bsize; ++i)
@@ -395,8 +387,7 @@ E_Int
     N1 = triangle[1] = *(pK0 + (j+2) % element_type::NB_NODES);
 
     connect.pushBack (triangle, triangle + 3);
-    if (color != -1)
-      _data->colors.push_back(color);
+    if (color != -1) _data->colors.push_back(color);
 
     Kadj = neighbors(j, K0);
     neighbors.pushBack (newN, newN + 3);
@@ -428,8 +419,7 @@ E_Int
 
 ///
 template <typename T>
-void
-  Kernel<T>::__invalidCavityElements
+void Kernel<T>::__invalidCavityElements
 (const int_set_type& cavity, const K_FLD::IntArray& connect,
  bool_vector_type& mask)
 {
@@ -438,11 +428,9 @@ void
     mask[*i] = false;
 }
 
-
 ///
 template <typename T>
-E_Int
-  Kernel<T>::__fixCavity
+E_Int Kernel<T>::__fixCavity
 (size_type N, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectM, const K_FLD::IntArray& neighbors,
  const int_vector_type& ancestors, const int_set_type& base, int_set_type& cavity,
  int_pair_set_type& cboundary)
@@ -455,33 +443,29 @@ E_Int
 
 ///
 template <typename T>
-void
-  Kernel<T>::__getSortedBoundary
+void Kernel<T>::__getSortedBoundary
 (const K_FLD::IntArray& connectM, const K_FLD::IntArray& neighbors, size_type Ki, size_type b0,
  const int_set_type& cavity, int_pair_set_type& cboundary, int_set_type& visitedK, int_pair_vector_type& sorted_boundary)
 {
-  size_type                       Nj, Kj, b, b1;
-  int_pair_type                   Bi;
-  K_FLD::IntArray::const_iterator  pKi, pKj;
+  size_type Nj, Kj, b, b1;
+  int_pair_type Bi;
+  K_FLD::IntArray::const_iterator pKi, pKj;
 
-  if (cboundary.empty())
-    return;
+  if (cboundary.empty()) return;
 
   visitedK.insert(Ki);
 
   for (size_type i = 0; i < element_type::NB_NODES; ++i)
   {
-    b         = (b0+i) % element_type::NB_NODES;
-    Bi.first  = Ki;
+    b = (b0+i) % element_type::NB_NODES;
+    Bi.first = Ki;
     Bi.second = b;
 
-    Kj  = neighbors (b, Ki);
+    Kj = neighbors(b, Ki);
 
 #ifdef E_DEBUG
-    if (Ki != IDX_NONE)
-      pKi = connectM.col(Ki);
-    if (Kj != IDX_NONE)
-      pKj = connectM.col(Kj);
+    if (Ki != IDX_NONE) pKi = connectM.col(Ki);
+    if (Kj != IDX_NONE) pKj = connectM.col(Kj);
 #endif
 
     if (IS_IN(cboundary, Bi) || (Kj == IDX_NONE))//fixme : est-ce que la seconde condition est necessaire ?
@@ -496,8 +480,8 @@ void
 
     pKi = connectM.col(Ki);
     pKj = connectM.col(Kj);
-    Nj  = *(pKi + (b+2)% element_type::NB_NODES);
-    b1  = element_type::getLocalNodeId (pKj, Nj);
+    Nj = *(pKi + (b+2)% element_type::NB_NODES);
+    b1 = element_type::getLocalNodeId(pKj, Nj);
 
     __getSortedBoundary(connectM, neighbors, Kj, b1, cavity, cboundary, visitedK, sorted_boundary);
   }
@@ -505,21 +489,20 @@ void
 
 ///
 template <typename T>
-E_Int
-  Kernel<T>::__getSortedBoundary2
+E_Int Kernel<T>::__getSortedBoundary2
 (const K_FLD::IntArray& connect, int_pair_set_type& in, int_pair_vector_type& out)
 {
-  size_type sz(in.size());
-  if (sz == 0)
-    return 1;
+  size_type sz = in.size();
+  if (sz == 0) return 1;
   
   out.resize(sz);
   _node_to_rightS.clear();
-  size_type S,b,Ni;
+
+  size_type S, b, Ni;
   for (int_pair_set_type::iterator it = in.begin(); it != in.end(); ++it)
   {
-    S = it->first;
-    b = it->second;
+    S = it->first; // element
+    b = it->second; // no dans l'element
     Ni = connect((b+1)%3, S);
     _node_to_rightS[Ni] = it;
   }
@@ -531,86 +514,18 @@ E_Int
     S = out[i].first;
     b = out[i].second;
     Ni = connect((b+2)%3, S);
+    // CBX: BUG: it fails to find Ni in map for some rare cases but why?
+    //if (_node_to_rightS.count(Ni) == 0)
+    //{ printf("Ni=%d -> S=%d, b=%d, sz=%d\n", Ni, S, b, sz); }
+    if (_node_to_rightS.count(Ni) == 0) return 2;
     out[i+1] = *_node_to_rightS[Ni];
   }
   return 0;
 }
 
-/* vtune reports the uncommented is better but not very obvious looking at CPU...
 ///
 template <typename T>
-E_Int
-  Kernel<T>::__ensureEmptyCavity
-(const K_FLD::IntArray& connectM, const K_FLD::IntArray& neighbors, const int_vector_type& ancestors, const int_set_type& base,
- int_set_type& cavity, int_pair_set_type& cboundary)
-{
-  K_FLD::IntArray::const_iterator pK;
-  int_pair_set_type::const_iterator it(cboundary.begin()), itEnd(cboundary.end());
-  int_set_type::const_iterator itC(cavity.begin()), itCend(cavity.end());
-
-  inodes.clear();
-
-  // Store the cavity nodes.
-  for (; itC != itCend; ++itC)
-  {
-    pK = connectM.col(*itC);
-    inodes.insert (*pK);
-    inodes.insert (*(pK + 1));
-    inodes.insert (*(pK + 2));
-  }
-
-  // Store the boundary nodes.
-  for (; it != itEnd; ++it)
-  {
-    const int_pair_type & Bi = *it;
-    const size_type& K = Bi.first;
-    const size_type& b = Bi.second;
-    pK = connectM.col(K);
-
-    inodes.erase (*(pK + (b+1) % element_type::NB_NODES));
-    //inodes.erase (*(pK + (b+2) % element_type::NB_NODES));
-  }
-
-  if (inodes.empty())
-    return 0;
-  
-  int_set_type removable = cavity;
-  for (int_set_type::const_iterator itB = base.begin(); itB != base.end(); ++itB)
-    removable.erase(*itB);
-  
-  while (!inodes.empty())
-  {
-    Ancs.clear();
-    _tool->getAncestors (*inodes.begin(), ancestors, neighbors, std::back_inserter(Ancs));
-
-    elements.clear();
-    std::sort(ALL(Ancs));
-    std::set_intersection (ALL(Ancs), ALL(removable), std::back_inserter(elements));
-
-    if (elements.empty())
-      return -1;
-    
-    const size_type& K = *elements.begin();
-    pK = connectM.col(K);
-
-    cavity.erase (K);
-    removable.erase(K);
-
-    for (size_type i = 0; i < element_type::NB_NODES; ++i)
-    {
-      inodes.erase(*(pK+i));
-      int_pair_type B(K,i);
-      if (!cboundary.insert(B).second) // if already in
-        cboundary.erase(B);
-    }
-  }
-  return 0;
-}*/
-
-///
-template <typename T>
-E_Int
-  Kernel<T>::__ensureEmptyCavity
+E_Int Kernel<T>::__ensureEmptyCavity
 (const K_FLD::IntArray& connectM, const K_FLD::IntArray& neighbors, const int_vector_type& ancestors, const int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
 {
@@ -657,8 +572,7 @@ E_Int
     std::sort(ALL(Ancs));
     std::set_intersection (ALL(Ancs), ALL(removable), std::back_inserter(elements));
 
-    if (elements.empty())
-      return -1;
+    if (elements.empty()) return -1;
     
     const size_type& K = *elements.begin();
     pK = connectM.col(K);
@@ -679,8 +593,7 @@ E_Int
 
 ///
 template <typename T>
-E_Int
-  Kernel<T>::__ensureStarShape
+E_Int Kernel<T>::__ensureStarShape
 (size_type N, const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectM, 
  const K_FLD::IntArray& neighbors, const int_set_type& base,
  int_set_type& cavity, int_pair_set_type& cboundary)
@@ -709,8 +622,7 @@ E_Int
 
       q = K_MESH::Triangle::qualityG<2>(pos.col(N), pos.col(Ni), pos.col(Nj));
 
-      if (q > tolerance)
-        continue;
+      if (q > tolerance) continue;
 
       cavity.erase(S);
       carry_on = true;
@@ -726,8 +638,7 @@ E_Int
   
 ///
 template <typename T>
-void
-  Kernel<T>::__getBoundary
+void Kernel<T>::__getBoundary
 (int_set_type& cavity, const K_FLD::IntArray& neighbors, int_pair_set_type& cboundary)
 {
   cboundary.clear();
@@ -742,7 +653,6 @@ void
     }
   }
 }
-
 
 
 }

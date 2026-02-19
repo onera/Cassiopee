@@ -1,6 +1,7 @@
 # - addSphere (array) -
 import OCC
 
-hook = OCC.occ.createEmptyCAD("bottle.stp", "fmt_step")
-OCC.occ.addSphere(hook, 0., 0., 0., 1.)
-OCC.occ.writeCAD(hook, "out.step", "fmt_step")
+hook = OCC.createEmptyCAD()
+OCC._addSphere(hook, (0.,0.,0.), 1., name="sphere1")
+OCC._addSphere(hook, (2.,0.,0.), 2., name="sphere1")
+OCC.writeCAD(hook, "out.step")

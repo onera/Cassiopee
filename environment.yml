@@ -1,0 +1,9 @@
+name: cassiopee
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.8
+  - numpy>=1.23.3
+  - mpi4py>=3.1.3
+  - scons>=4.4.0
+  - matplotlib>=3.8.0

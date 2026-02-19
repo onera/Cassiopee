@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -168,11 +168,11 @@ namespace NUGA
       //	
     //====4 loop on coarse-level nodes ===============================================================
     //===== using auxiliary data build  new PGi ======================================================
-    // avoid double definition of theses PGi by testing second node (middle of edge is in a dedicated list)				
+    // avoid doublon definition of theses PGi by testing second node (middle of edge is in a dedicated list)				
     // no inheritance to be coded check reservation of memory = done in reserve_mem_PHs
     //  mapcn2fPG had only the external faces corresponding to current coarse node > completed with interior faces
 
-      std::vector<E_Int> edgedone;         // to avoid double definition of new faces 
+      std::vector<E_Int> edgedone;         // to avoid doublon definition of new faces 
       std::map <E_Int, E_Int> midToPGi;       // store indices of middles of edges for which
       E_Int indIntPG = firstIntPG;           // the corresponding new internal face has been created
       bool found = false;
@@ -277,7 +277,7 @@ namespace NUGA
       PHtree.set_children(PHi, PHchildren.get(), nb_nodesc);
 
       //== 6=== final F2E for internal faces =====================================================
-      //========== go for double loop on coarse nodes ==========================================
+      //========== go for doublon loop on coarse nodes ==========================================
 
       //E_Int indComFace;
       //E_Bool comInternalFace;

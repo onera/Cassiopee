@@ -28,9 +28,9 @@ t = X.connectMatch(t, dim=2)
 
 # Recupere un raccord
 r = Internal.getNodeFromType(a, 'GridConnectivity1to1_t')
-n = Internal.getNodeFromName(r, 'PointRange')[1]
-nd = Internal.getNodeFromName(r, 'PointRangeDonor')[1]
-trf = Internal.getNodeFromName(r, 'Transform')[1]
+n = Internal.getNodeFromName1(r, 'PointRange')[1]
+nd = Internal.getNodeFromName1(r, 'PointRangeDonor')[1]
+trf = Internal.getNodeFromName1(r, 'Transform')[1]
 
 # Recupere les indices des raccords
 inds, donors = Converter.converter.PR2VL(n, 10, 10, 1, nd, trf, 10, 10, 1)

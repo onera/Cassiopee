@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,7 @@ class BoundingBox{
 
 public:
   /// Constructors
-  BoundingBox(const E_Float *mB, const E_Float* MB)
+  BoundingBox(const E_Float* mB, const E_Float* MB)
   {for (E_Int i = 0; i < DIM; ++i){minB[i] = *(mB++); maxB[i] = *(MB++);}}
 
   ///
@@ -120,18 +120,18 @@ public:
   }
 
   // default impl for 3D. Specialization below after the class scope
-  void enlarge(double RTOL)
+  void enlarge(E_Float RTOL)
   {
     // compute Lref (min & non-null box size)
-    double dx = (maxB[0] - minB[0]);
-    double dy = (maxB[1] - minB[1]);
-    double dz = (maxB[2] - minB[2]);
+    E_Float dx = (maxB[0] - minB[0]);
+    E_Float dy = (maxB[1] - minB[1]);
+    E_Float dz = (maxB[2] - minB[2]);
 
-    double Lref = std::max(dx, std::max(dy, dz)); // ensure to get a non-null val
+    E_Float Lref = K_FUNC::E_max(dx, K_FUNC::E_max(dy, dz)); // ensure to get a non-null val
 
-    if (dx > ZERO_M) Lref = std::min(Lref, dx);
-    if (dy > ZERO_M) Lref = std::min(Lref, dy);
-    if (dz > ZERO_M) Lref = std::min(Lref, dz);
+    if (dx > ZERO_M) Lref = K_FUNC::E_min(Lref, dx);
+    if (dy > ZERO_M) Lref = K_FUNC::E_min(Lref, dy);
+    if (dz > ZERO_M) Lref = K_FUNC::E_min(Lref, dz);
 
     Lref *= RTOL;
 
@@ -146,12 +146,12 @@ public:
   // default impl for 3D. Specialization below after the class scope
   void merge(const BoundingBox& b)
   {
-    minB[0] = std::min(minB[0], b.minB[0]);
-    minB[1] = std::min(minB[1], b.minB[1]);
-    minB[2] = std::min(minB[2], b.minB[2]);
-    maxB[0] = std::max(maxB[0], b.maxB[0]);
-    maxB[1] = std::max(maxB[1], b.maxB[1]);
-    maxB[2] = std::max(maxB[2], b.maxB[2]);
+    minB[0] = K_FUNC::E_min(minB[0], b.minB[0]);
+    minB[1] = K_FUNC::E_min(minB[1], b.minB[1]);
+    minB[2] = K_FUNC::E_min(minB[2], b.minB[2]);
+    maxB[0] = K_FUNC::E_max(maxB[0], b.maxB[0]);
+    maxB[1] = K_FUNC::E_max(maxB[1], b.maxB[1]);
+    maxB[2] = K_FUNC::E_max(maxB[2], b.maxB[2]);
   }
 
   static bool intersection(const BoundingBox& b1, const BoundingBox& b2, BoundingBox& b)
@@ -176,7 +176,7 @@ public:
   }
   
   template<typename ng_t>
-  void convert2NG(K_FLD::FloatArray&crd, ng_t& ng)
+  void convert2NG(K_FLD::FloatArray& crd, ng_t& ng)
   {
     ng.clear();
     crd.clear();
@@ -391,34 +391,34 @@ inline BBox2D& BBox2D::operator=(const BBox2D& rhs)
 }
 
 template <>
-inline void BBox2D::enlarge(double RTOL)
+inline void BBox2D::enlarge(E_Float RTOL)
 {
-    // compute Lref (min & non-null box size)
-    double dx = (maxB[0] - minB[0]);
-    double dy = (maxB[1] - minB[1]);
+  // compute Lref (min & non-null box size)
+  E_Float dx = (maxB[0] - minB[0]);
+  E_Float dy = (maxB[1] - minB[1]);
 
-    double Lref = std::max(dx, dy);
+  E_Float Lref = K_FUNC::E_max(dx, dy);
 
-    if (dx > ZERO_M) Lref = std::min(Lref, dx);
-    if (dy > ZERO_M) Lref = std::min(Lref, dy);
+  if (dx > ZERO_M) Lref = K_FUNC::E_min(Lref, dx);
+  if (dy > ZERO_M) Lref = K_FUNC::E_min(Lref, dy);
 
-    Lref *= RTOL;
+  Lref *= RTOL;
 
-    minB[0] -= Lref;
-    minB[1] -= Lref;
+  minB[0] -= Lref;
+  minB[1] -= Lref;
     
-    maxB[0] += Lref;
-    maxB[1] += Lref;
+  maxB[0] += Lref;
+  maxB[1] += Lref;
 }
 
 template <>
 inline void BBox2D::merge(const BBox2D& b)
 {
-    minB[0] = std::min(minB[0], b.minB[0]);
-    minB[1] = std::min(minB[1], b.minB[1]);
+  minB[0] = K_FUNC::E_min(minB[0], b.minB[0]);
+  minB[1] = K_FUNC::E_min(minB[1], b.minB[1]);
     
-    maxB[0] = std::max(maxB[0], b.maxB[0]);
-    maxB[1] = std::max(maxB[1], b.maxB[1]);
+  maxB[0] = K_FUNC::E_max(maxB[0], b.maxB[0]);
+  maxB[1] = K_FUNC::E_max(maxB[1], b.maxB[1]);
 }
 
 ///
@@ -427,10 +427,10 @@ class BbTree {
 
   public: /** Typedefs */
 
-    typedef           BbTree                                self_type;
-    typedef           NUGA::size_type                       size_type;
-    typedef           K_FLD::IntArray                       tree_array_type;
-    typedef           BBoxType                              box_type;
+    typedef BbTree                  self_type;
+    typedef NUGA::size_type         size_type;
+    typedef K_FLD::IntArray         tree_array_type;
+    typedef BBoxType                box_type;
    
 
 #define BBTREE_ROWS 2 // the first row contains the node id, the second(third) contains the left(right) child column id.
@@ -511,33 +511,33 @@ class BbTree {
 
 #ifdef E_TIME1
 public:
-  static double _append_tree;
-  static double _get_box_boxes;
-  static double _get_longest_axis;
-  static double _build_vectors;
-  static double _fill_vectors;
+  static E_Float _append_tree;
+  static E_Float _get_box_boxes;
+  static E_Float _get_longest_axis;
+  static E_Float _build_vectors;
+  static E_Float _fill_vectors;
 #endif
 
  // private:
   public:
     /// BB tree
-    tree_array_type          _tree;
+    tree_array_type _tree;
 
     /// boxes
-    std::vector<BBoxType*>   _boxes;
+    std::vector<BBoxType*> _boxes;
 
     /// tolerance
-    E_Float                  _tolerance;
+    E_Float _tolerance;
 
     /// Empty column for the tree.
-    size_type                _newL[BBTREE_ROWS];
+    size_type _newL[BBTREE_ROWS];
 
     /// 
-    size_type                _root_id;
+    size_type _root_id;
     
     ///
-    bool                    _owes_boxes;
-    BBoxType*               _pool;
+    bool _owes_boxes;
+    BBoxType* _pool;
     
 }; // End class BbTree
 

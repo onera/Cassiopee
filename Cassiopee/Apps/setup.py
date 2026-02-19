@@ -1,16 +1,13 @@
-from distutils.core import setup
-#from setuptools import setup
-import os
-import KCore.Dist as Dist
-
 #=============================================================================
 # Apps requires:
 # ELSAPROD variable defined in environment
 # CASSIOPEE
 #=============================================================================
+import os
+from setuptools import setup
+import KCore.Dist as Dist
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # setup ======================================================================
 setup(
@@ -18,9 +15,8 @@ setup(
     version="4.1",
     description="Application modules",
     author="ONERA",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
     package_dir={"":"."}
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

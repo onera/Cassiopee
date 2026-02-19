@@ -22,7 +22,8 @@ void gpc_c_translator_clip_(int *a, double *b)
      malloc(subj.num_contours * sizeof(gpc_vertex_list));
    subj.hole    = (int*)malloc(subj.num_contours * sizeof(int));
 
-   for (ic=0; ic < subj.num_contours; ic++) {
+   for (ic=0; ic < subj.num_contours; ic++) 
+   {
        subj.contour[ic].num_vertices = a[i++];
        subj.hole[ic] = a[i++];
    }

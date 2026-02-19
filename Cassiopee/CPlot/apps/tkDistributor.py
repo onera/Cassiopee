@@ -1,7 +1,6 @@
 # - tkDistributor -
 """Block distribution over processors."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -114,7 +113,7 @@ def setProc(event=None):
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
         v = numpy.zeros((1,1), dtype=Internal.E_NpyInt); v[0,0] = proc
-        nodes = Internal.getNodesFromName(param, 'proc')
+        nodes = Internal.getNodesFromName1(param, 'proc')
         if nodes != []:
             a = nodes[0]; a[1] = v
         else:
@@ -135,7 +134,7 @@ def setProcField():
     CTK.saveTree()
     zones = Internal.getZones(CTK.t)
     for z in zones:
-        param = Internal.getNodesFromName(z, '.Solver#Param')
+        param = Internal.getNodesFromName1(z, '.Solver#Param')
         if param != []:
             nodes = Internal.getNodesFromName1(param[0], 'proc')
             (r,c) = Internal.getParentOfNode(CTK.t, z)

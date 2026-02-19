@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -36,6 +36,16 @@ E_Int K_STRING::cmp(char* s1, E_Int s, char* s2)
 }
 
 E_Int K_STRING::cmp(char* s1, E_Int s, const char* s2)
+{
+  CMPI;
+}
+
+E_Int K_STRING::cmp(const char* s1, E_Int s, const char* s2)
+{
+  CMPI;
+}
+
+E_Int K_STRING::cmp(const char* s1, E_Int s, char* s2)
 {
   CMPI;
 }

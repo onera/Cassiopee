@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
 {
   PyObject* arrayD; PyObject* arrayC;
   E_Float power;
-  if (!PyArg_ParseTuple(args, "OOd", &arrayD, &arrayC, &power)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_ R_, &arrayD, &arrayC, &power)) return NULL;
   
   // Check array
   E_Int im, jm, km, imd, jmd, kmd;
@@ -43,10 +43,10 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
   FldArrayF coord; 
   vector<E_Int> posc; vector<E_Int> posd;
   
-  E_Int resc = K_ARRAY::getFromArray(arrayC, varStringc, fc, im, jm, km,
-                                     cnc, eltTypec); 
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd, imd, jmd, kmd,
-                                     cnd, eltTyped);
+  E_Int resc = K_ARRAY::getFromArray3(arrayC, varStringc, fc, im, jm, km,
+                                      cnc, eltTypec); 
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd, imd, jmd, kmd,
+                                      cnd, eltTyped);
   
   FldArrayF s, cm, xd, xrk, crk;
   E_Int posxc, posyc, poszc;
@@ -63,7 +63,8 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     if (posxc == -1 || posyc == -1 || poszc == -1 ||
         posxd == -1 || posyd == -1 || poszd == -1)
     {
-      delete fc; delete fd;
+      RELEASESHAREDS(arrayC, fc);
+      RELEASESHAREDS(arrayD, fd);
       PyErr_SetString(PyExc_TypeError,
                       "enforceCurvature: coordinates not found.");
       return NULL;
@@ -80,6 +81,7 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
     E_Float l;
     s[0] = 0.;
 
+    E_Int api = fc->getApi();
     E_Float* xc = fc->begin(posxc);
     E_Float* yc = fc->begin(posyc);
     E_Float* zc = fc->begin(poszc);
@@ -264,17 +266,17 @@ PyObject* K_GENERATOR::enforceCurvature(PyObject* self, PyObject* args)
       delete out;
     }
 
-    delete fc;
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*fd, varStringd, N, jmd, kmd);
-    delete fd; 
+    PyObject* tpl = K_ARRAY::buildArray3(*fd, varStringd, N, jmd, kmd, api);
+    RELEASESHAREDS(arrayC, fc);
+    RELEASESHAREDS(arrayD, fd);
     return tpl;
   }
   else if (resc == 2 || resd == 2)
   {
-    delete fc; delete fd;
-    if (resc == 2) delete fc;
-    if (resd == 2) delete fd;
+    RELEASESHAREDB(resc, arrayC, fc, cnc);
+    RELEASESHAREDB(resd, arrayD, fd, cnd);
+      
     PyErr_SetString(PyExc_TypeError,
                     "enforceCurvature: not used for unstructured arrays.");
     return NULL;

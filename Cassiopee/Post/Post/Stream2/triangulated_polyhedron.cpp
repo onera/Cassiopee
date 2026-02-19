@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -367,23 +367,22 @@ namespace
 // ================================================================================================
 K_POST::triangulated_polyhedron::triangulated_polyhedron(
                                  const std::vector<triangle_type>& trig_faces, 
-                                 const std::array<vector_view<const double>,3>& crds) :
+                                 const std::array<vector_view<const E_Float>,3>& crds) :
     triangular_faces(trig_faces),
     coords(crds)
 {}
 // ---------------------------------------------------------------------------------------------------    
-double
-K_POST::triangulated_polyhedron::volume() const
+E_Float K_POST::triangulated_polyhedron::volume() const
 {
-    double acc = 0;
+    E_Float acc = 0;
     for ( const auto& ind_trig : this->triangular_faces)
     {
         const auto& pos = this->triangle_position(ind_trig);
         // Deux fois l'aire de la projection  sur le plan XY
-        double det = ((pos[1][1] - pos[2][1]) * (pos[0][0] - pos[2][0]) -
+        E_Float det = ((pos[1][1] - pos[2][1]) * (pos[0][0] - pos[2][0]) -
                       (pos[1][0] - pos[2][0]) * (pos[0][1] - pos[2][1]) );
         // Trois fois la hauteur moyenne :
-        double height = pos[0][2] + pos[1][2] + pos[2][2];
+        E_Float height = pos[0][2] + pos[1][2] + pos[2][2];
         acc += det * height;
     }
     return acc / 6.0;
@@ -408,7 +407,7 @@ K_POST::triangulated_polyhedron::winding_number(const point3d &pt) const
 
 using K_POST::triangulated_polyhedron;
 using triangle_type = triangulated_polyhedron::triangle_type;
-using polyhedron_data_type = std::pair<std::vector<triangle_type>, std::array<std::vector<double>,3>>;
+using polyhedron_data_type = std::pair<std::vector<triangle_type>, std::array<std::vector<E_Float>,3>>;
 
 
 enum {
@@ -423,9 +422,9 @@ make_triangulated_polyhedron( const polyhedron_data_type&  data)
 {
     return triangulated_polyhedron( data.first, 
                                     {
-                                        K_MEMORY::vector_view<const double>(data.second[0].begin(), data.second[0].end()),
-                                        K_MEMORY::vector_view<const double>(data.second[1].begin(), data.second[1].end()),
-                                        K_MEMORY::vector_view<const double>(data.second[2].begin(), data.second[2].end())
+                                        K_MEMORY::vector_view<const E_Float>(data.second[0].begin(), data.second[0].end()),
+                                        K_MEMORY::vector_view<const E_Float>(data.second[1].begin(), data.second[1].end()),
+                                        K_MEMORY::vector_view<const E_Float>(data.second[2].begin(), data.second[2].end())
                                     } );
 }
 
@@ -443,7 +442,7 @@ int main()
           {1,2,3}
      },
      // Coordonnées des sommets
-     { std::vector<double>{0., 0., 1., 1.}, 
+     { std::vector<E_Float>{0., 0., 1., 1.}, 
                           {0., 1., 0., 1.}, 
                           {0., 1., 1., 0.} 
      }
@@ -496,14 +495,14 @@ int main()
              {3,4,5} 
         },
         // Coordonnées des sommets
-        { std::vector<double>{-1.,  0.,  0.,  1.,  0.,  0.},
+        { std::vector<E_Float>{-1.,  0.,  0.,  1.,  0.,  0.},
                              { 0., -1.,  0.,  0.,  1.,  0.},
                              { 0.,  0., -1.,  0.,  0.,  1.}
         }
     );
     triangulated_polyhedron octahedron = make_triangulated_polyhedron(octahedron_data);
     auto octahedron_classify = [](const K_POST::point3d& pt) {
-            double s = std::abs(pt.x) + std::abs(pt.y) + std::abs(pt.z);
+            E_Float s = std::abs(pt.x) + std::abs(pt.y) + std::abs(pt.z);
             if (s < 1.)
                 return IS_INSIDE;
             else if (s == 1.)
@@ -556,7 +555,7 @@ int main()
         },
         // Coordonnées des sommets
         {
-            std::vector<double>{-1., -1., -1., -1., +1., +1., +1., +1.},
+            std::vector<E_Float>{-1., -1., -1., -1., +1., +1., +1., +1.},
                                {-1., -1., +1., +1., -1., -1., +1., +1.},
                                {-1., +1., -1., +1., -1., +1., -1., +1.}
         }
@@ -611,7 +610,7 @@ int main()
         }
         ,
         // Coordonnées des sommets
-        { std::vector<double>{-1.,-1.,-1.,-1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.},
+        { std::vector<E_Float>{-1.,-1.,-1.,-1., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1.},
                              {-1.,-1., 0., 0.,-1.,-1., 0., 0., 0., 1., 1., 0., 0., 1., 1.},
                              {-1., 0.,-1., 0.,-1., 0.,-1., 0., 1., 0., 1., 0., 1., 0., 1.}
         }
@@ -669,7 +668,7 @@ int main()
         }
         ,
         // Coordonnées des sommets
-        { std::vector<double>{ 0., 0., 0., 0., 3., 3., 3., 3., 0., 0., 0., 0., 3., 3., 3., 3.},
+        { std::vector<E_Float>{ 0., 0., 0., 0., 3., 3., 3., 3., 0., 0., 0., 0., 3., 3., 3., 3.},
                              { 0., 0., 3., 3., 0., 0., 3., 3., 0., 0., 3., 3., 0., 0., 3., 3.},
                              { 0., 1., 0., 1., 0., 1., 0., 1., 2., 3., 2., 3., 2., 3., 2., 3.} }
     };
@@ -726,7 +725,7 @@ int main()
         }
         ,
         // Coordonnées des sommets
-        { std::vector<double>{ 0., 0., 0., 0., 2., 2., 2., 2., 1., 1., 1., 1., 3., 3., 3., 3.},
+        { std::vector<E_Float>{ 0., 0., 0., 0., 2., 2., 2., 2., 1., 1., 1., 1., 3., 3., 3., 3.},
                              { 0., 0., 2., 2., 0., 0., 2., 2., 1., 1., 3., 3., 1., 1., 3., 3.},
                              { 0., 1., 0., 1., 0., 1., 0., 1., 2., 3., 2., 3., 2., 3., 2., 3.} }
     };
@@ -782,7 +781,7 @@ int main()
         }
         ,
         // Coordonnées des sommets
-        { std::vector<double>{ 0., 0., 0., 0., 3., 3., 3., 3., 1., 1., 1., 1., 2., 2., 2., 2.},
+        { std::vector<E_Float>{ 0., 0., 0., 0., 3., 3., 3., 3., 1., 1., 1., 1., 2., 2., 2., 2.},
                              { 0., 0., 3., 3., 0., 0., 3., 3., 1., 1., 2., 2., 1., 1., 2., 2.},
                              { 0., 3., 0., 3., 0., 3., 0., 3., 1., 2., 1., 2., 1., 2., 1., 2.} }
     };
@@ -841,7 +840,7 @@ int main()
         }
         ,
         // Coordonnées des sommets
-        { std::vector<double>{ 0., 0., 0., 0., 3., 3., 3., 3., 1., 1., 1., 1., 2., 2., 2., 2.},
+        { std::vector<E_Float>{ 0., 0., 0., 0., 3., 3., 3., 3., 1., 1., 1., 1., 2., 2., 2., 2.},
                              { 0., 0., 3., 3., 0., 0., 3., 3., 1., 1., 2., 2., 1., 1., 2., 2.},
                              { 0., 3., 0., 3., 0., 3., 0., 3., 1., 2., 1., 2., 1., 2., 1., 2.} }
     };
@@ -905,7 +904,7 @@ int main()
         }
         ,
         // Coordonnées sommets ｢ Dehors/bas  ｣ ｢ Dedans/bas  ｣｢ Dehors/haut  ｣｢ Dedans/haut  ｣(Toutes des facettes carrées)
-        { std::vector<double>{ 0., 0., 3., 3., 1., 1., 2., 2., 0., 0., 3., 3., 1., 1., 2., 2.},
+        { std::vector<E_Float>{ 0., 0., 3., 3., 1., 1., 2., 2., 0., 0., 3., 3., 1., 1., 2., 2.},
                              { 0., 3., 0., 3., 1., 2., 1., 2., 0., 3., 0., 3., 1., 2., 1., 2.},
                              { 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 1., 1.} }
     };
@@ -954,7 +953,7 @@ int main()
     // Une surface nulle
     // =========================================================================
     polyhedron_data_type empty_data = { {}, 
-                                        { std::vector<double>{},
+                                        { std::vector<E_Float>{},
                                                              {},
                                                              {} }
                                       };
@@ -980,7 +979,7 @@ int main()
                                             {0, 1, 2},
                                             {2, 1, 0},
                                            }, 
-                                           { std::vector<double>{1., 0., 0.},
+                                           { std::vector<E_Float>{1., 0., 0.},
                                                                 {0., 1., 0.},
                                                                 {0., 0., 1.} }
                                          };
@@ -1027,7 +1026,7 @@ int main()
             {9, 6, 5}, {9, 7, 6}, {9, 8, 7}, {9, 1, 8}        
         },
         // Coordonnées des sommets 
-        { std::vector<double>{0., 1., 0.,-1., 0., 1., 0.,-1., 0., 0.},
+        { std::vector<E_Float>{0., 1., 0.,-1., 0., 1., 0.,-1., 0., 0.},
                              {0., 0., 1., 0.,-1., 0., 1., 0.,-1., 0.},
                              {1., 0., 0., 0., 0., 0., 0., 0., 0.,-1.} }
     };
@@ -1035,7 +1034,7 @@ int main()
     assert(std::abs(hexadecaedre.volume() - 8./3.) < 1.E-14);
     auto hexadecaedre_classify = [] (const K_POST::point3d& point)
     {
-        double s = std::abs(point.x) + std::abs(point.y) + std::abs(point.z);
+        E_Float s = std::abs(point.x) + std::abs(point.y) + std::abs(point.z);
         if (s==1) return IS_ON_BOUNDARY;
         if (s >1) return IS_OUTSIDE;
         return IS_DOUBLED;

@@ -6,6 +6,11 @@ import Converter as C
 import Geom as D
 import KCore.test as test
 
+import KCore.Dist as Dist
+(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa()
+if not osmesa:
+    import sys; sys.exit()
+
 LOCAL = test.getLocal()
 
 offscreen = 1

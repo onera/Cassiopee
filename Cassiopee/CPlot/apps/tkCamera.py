@@ -1,7 +1,6 @@
 # - tkCamera -
 """Display Camera information."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -56,7 +55,7 @@ def exportInfo(event=None):
         meshStyle = CPlot.getState('meshStyle'); com += ', meshStyle=%d'%meshStyle
     elif mode == 1: # solid
         solidStyle = CPlot.getState('solidStyle'); com += ', solidStyle=%d'%solidStyle
-    elif mode == 3: # scalar
+    elif mode == 2 or mode == 3: # scalar or render
         scalarField = CPlot.getState('scalarField')
         varnames = C.getVarNames(CTK.t, excludeXYZ=True)
         field = str(scalarField)
@@ -66,7 +65,9 @@ def exportInfo(event=None):
         com += ', scalarField="%s"'%field
 
         scalarStyle = CPlot.getState('scalarStyle'); com += ', scalarStyle=%d'%scalarStyle
-        colormap = CPlot.getState('colormap'); com += ', colormap=%d'%colormap
+        colormap = CPlot.getFilteredColormap()
+        com += ', colormap=%d'%colormap
+
         isoEdges = CPlot.getState('isoEdges'); com += ', isoEdges=%g'%isoEdges
         isoScale = CPlot.getState('isoScale');
         isoScale = [field]+isoScale

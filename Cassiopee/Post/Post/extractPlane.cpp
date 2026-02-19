@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,7 +40,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ TRRRR_ I_,
                     &listFields, &coefa, &coefb, &coefc, &coefd, &order))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check every array in listFields
@@ -51,9 +51,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (fEqualZero(coefa) == true &&
-      fEqualZero(coefb) == true &&
-      fEqualZero(coefc) == true) 
+  if (fEqualZero(coefa) && fEqualZero(coefb) && fEqualZero(coefc)) 
   {
     PyErr_SetString(
       PyExc_TypeError, 
@@ -70,10 +68,10 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listFields, res, structVarString, unstrVarString,
@@ -88,9 +86,9 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "extractPlane: invalid list of arrays.");
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }
@@ -138,9 +136,9 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
       for (size_t noi = 0; noi < structInterpDatas.size(); noi++)
         delete structInterpDatas[noi];
       PyErr_SetString(PyExc_TypeError, "2D structured donor zones must be z=constant.");
-      for (unsigned int nos = 0; nos < objs.size(); nos++)
+      for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju.size(); nos++)
+      for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
       return NULL;
     }
@@ -170,9 +168,9 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "extractPlane: invalid arrays.");
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }
@@ -188,18 +186,20 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
   E_Int indTab[8];
   E_Int ni, nj, nk, ninj, nic, njc, nkc, nicnjc, indcell, posx, posy, posz, posc, npts, nelts;
   E_Float sumCellN; E_Int nplus, nmoins;
+  E_Int api = -1;
   // on preconditionne en mettant le tag a 1 pour les cellules intersectant le plan
   for (E_Int nob = 0; nob < nbZonesS; nob++)
   {
-    ni = nit[nob]; nic = K_FUNC::E_max(ni-1,1);
-    nj = njt[nob]; njc = K_FUNC::E_max(nj-1,1);
-    nk = nkt[nob]; nkc = K_FUNC::E_max(nk-1,1);
+    ni = nit[nob]; nic = K_FUNC::E_max(ni-1, 1);
+    nj = njt[nob]; njc = K_FUNC::E_max(nj-1, 1);
+    nk = nkt[nob]; nkc = K_FUNC::E_max(nk-1, 1);
     ninj = ni*nj; nicnjc = nic*njc;
     posx = posxs[nob]; posy = posys[nob]; posz = poszs[nob]; posc = poscs[nob];   
     E_Float* xt = structF[nob]->begin(posx);
     E_Float* yt = structF[nob]->begin(posy);
     E_Float* zt = structF[nob]->begin(posz);
     npts = structF[nob]->getSize();
+    if (api == -1) api = structF[nob]->getApi();
 
     FldArrayF field(npts,1); E_Float* fp = field.begin();
     for (E_Int ind = 0; ind < npts; ind++)
@@ -253,7 +253,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
               if ( fp[indTab[noi]] >= 0 ) nplus++;
               if ( fp[indTab[noi]] <= 0 ) nmoins++;
             }
-            if ( nplus == 0 || nmoins == 0 || sumCellN == 0.) tagcp[indcell] = 0;// PAS DE CHANGEMENT DE SIGNE DS LA CELLULE                 
+            if (nplus == 0 || nmoins == 0 || K_FUNC::fEqualZero(sumCellN)) tagcp[indcell] = 0;// PAS DE CHANGEMENT DE SIGNE DS LA CELLULE                 
           }
     }
     tagS.push_back(tagS1);
@@ -265,6 +265,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
     E_Float* yt = unstrF[v]->begin(posy);
     E_Float* zt = unstrF[v]->begin(posz);
     npts = unstrF[v]->getSize(); nelts = cnt[v]->getSize();
+    if (api == -1) api = unstrF[v]->getApi();
     FldArrayF field(npts); E_Float* fp = field.begin();
     for (E_Int ind = 0; ind < npts; ind++)
       fp[ind] = coefa*xt[ind]+coefb*yt[ind]+coefc*zt[ind]+coefd;
@@ -285,7 +286,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
           if ( fp[indv] >= 0 ) nplus++;
           if ( fp[indv] <= 0 ) nmoins++;
         }
-        if ( nplus == 0 || nmoins == 0 || sumCellN == 0.) // PAS DE CHANGEMENT DE SIGNE DS LA CELLULE OU TS LES SOMMETS SONT MASQUES
+        if (nplus == 0 || nmoins == 0 || K_FUNC::fEqualZero(sumCellN)) // PAS DE CHANGEMENT DE SIGNE DS LA CELLULE OU TS LES SOMMETS SONT MASQUES
           tagcp[indcell] = 0;
       }
     }
@@ -306,6 +307,7 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
     }
     tagU.push_back(tagU1);
   }
+  if (api == -1) api = 1;
   compIntersectionWithPlane(coefa, coefb, coefc, coefd,
                             structInterpDatas, nit, njt, nkt,
                             posxs, posys, poszs, poscs, structF, 
@@ -393,20 +395,20 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
       }
       strcat(varStringOut, ",");
       strcat(varStringOut, vars[posc]); 
-      for (unsigned int i = 0; i < vars.size(); i++) delete vars[i];
+      for (size_t i = 0; i < vars.size(); i++) delete vars[i];
     }
 
-    PyObject* t = K_ARRAY::buildArray(*selectedPts, varStringOut,
-                                      *connect, -1, "TRI");
+    PyObject* t = K_ARRAY::buildArray3(*selectedPts, varStringOut,
+                                       *connect, "TRI", api);
     delete selectedPts; delete connect;
     // delete des interp datas
     for ( E_Int nob = 0; nob < nbZonesS; nob++)
       delete structInterpDatas[nob];
     for ( E_Int nob = 0; nob < nbZonesU; nob++)
       delete unstrInterpDatas[nob];
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     delete [] tmpStr; delete [] varStringOut;
     return t;
@@ -426,23 +428,23 @@ PyObject* K_POST::extractPlane(PyObject* self, PyObject* args)
       posxs,posys,poszs,structF,xmins, ymins, zmins,xmaxs,ymaxs,zmaxs);
     K_COMPGEOM::globalBoundingBox(
       posxu,posyu,poszu,unstrF,xminu, yminu, zminu,xmaxu,ymaxu,zmaxu);
-    xmin = E_min(xminu,xmins); xmax = E_max(xmaxu,xmaxs);
-    ymin = E_min(yminu,ymins); ymax = E_max(ymaxu,ymaxs);
-    zmin = E_min(zminu,zmins); zmax = E_max(zmaxu,zmaxs);
+    xmin = E_min(xminu, xmins); xmax = E_max(xmaxu, xmaxs);
+    ymin = E_min(yminu, ymins); ymax = E_max(ymaxu, ymaxs);
+    zmin = E_min(zminu, zmins); zmax = E_max(zmaxu, zmaxs);
     
     printf("Info: Bounding box of all meshes is:\n");
-    printf("Info: x is between: %f and %f\n", xmin,xmax);
-    printf("Info: y is between: %f and %f\n", ymin,ymax); 
-    printf("Info: z is between: %f and %f\n", zmin,zmax);
+    printf("Info: x is between: %f and %f\n", xmin, xmax);
+    printf("Info: y is between: %f and %f\n", ymin, ymax); 
+    printf("Info: z is between: %f and %f\n", zmin, zmax);
 
     // delete des interp datas
     for ( E_Int nob = 0; nob < nbZonesS; nob++)
       delete structInterpDatas[nob];
     for ( E_Int nob = 0; nob < nbZonesU; nob++)
       delete unstrInterpDatas[nob];
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }

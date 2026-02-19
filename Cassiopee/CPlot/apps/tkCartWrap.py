@@ -1,7 +1,6 @@
 # - tkCartWrap -
 """Surface remesh with cartesian wrapper."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -39,7 +38,7 @@ def mapSurf(z, density, smoothIter, eltType, constraints, strength):
     import Post as P
     import Transform as T
 
-    a = C.getFields(Internal.__GridCoordinates__, z)[0]
+    a = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
 
     # Grille cartesienne (reguliere)
     BB = G.bbox([a])
@@ -181,7 +180,7 @@ def remap(event=None):
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
                 if z[0] == sname[1]:
-                    coord = C.getFields(Internal.__GridCoordinates__, z)[0]
+                    coord = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
                     constraints.append(coord)
     CTK.saveTree()
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -59,7 +59,7 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
       return NULL;
     }
   }
-  if (res == 2) 
+  if (res == 2)
   {
     if (strcmp(eltType, "TRI") != 0 && 
         strcmp(eltType, "QUAD") != 0 &&
@@ -87,7 +87,7 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   }
  
   K_FLD::FloatArray& POS = *f;
-  K_FLD::IntArray&   CONNECT = *cn;
+  K_FLD::IntArray& CONNECT = *cn;
 
   POS.resize(2, POS.cols());
 
@@ -130,7 +130,6 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
 
   if (metric_interp_type != 0)
     mode.metric_interpol_type = mode.GEOMETRIC;
-
   
   E_Int err = 0;
   if (dT3.metrics.rows() < 3) // Isotropic
@@ -148,8 +147,8 @@ PyObject* K_GENERATOR::T3mesher2D(PyObject* self, PyObject* args)
   if (!err)
   {
     dT3.pos->resize(3, dT3.pos->cols(), &zero);
-    tpl = K_ARRAY::buildArray(*dT3.pos, varString, dT3.connectM, 
-                                      -1, "TRI", false);
+    tpl = K_ARRAY::buildArray(*dT3.pos, "x,y,z", dT3.connectM, 
+                              -1, "TRI", false);
   }
   delete f; delete cn;
   return tpl;

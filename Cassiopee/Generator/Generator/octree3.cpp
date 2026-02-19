@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -28,13 +28,6 @@
 using namespace std;
 using namespace K_FLD;
 using namespace K_SEARCH;
-extern "C"
-{
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
-}
 
 namespace K_GENERATOR 
 {
@@ -111,18 +104,19 @@ PyObject* octree3(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
 
   E_Int res = K_ARRAY::getFromArrays(
     stlArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   if (res == -1) 
   {
-    K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+    for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+    for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);            
     PyErr_SetString(PyExc_TypeError, 
                     "octree3: 1st arg is not valid.");
     return NULL;
@@ -137,7 +131,8 @@ PyObject* octree3(PyObject* self, PyObject* args)
       if ( dim == -1 ) dim = 3;
       else if ( dim != 3) 
       {
-        K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+        for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+        for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);                
         PyErr_SetString(PyExc_TypeError, 
                         "octree3: 1st arg must be a list of TRI zones.");
         return NULL;
@@ -148,7 +143,8 @@ PyObject* octree3(PyObject* self, PyObject* args)
       if ( dim == -1 ) dim = 2;
       else if ( dim != 2) 
       {
-        K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+        for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+        for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);                
         PyErr_SetString(PyExc_TypeError, 
                         "octree3: 1st arg must be a list of BAR zones.");
         return NULL;
@@ -156,7 +152,8 @@ PyObject* octree3(PyObject* self, PyObject* args)
     }
     else 
     {
-      K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+      for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+      for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);              
       PyErr_SetString(PyExc_TypeError, 
                       "octree3: 1st arg must be a list of TRI or BAR zones.");
       return NULL; 
@@ -173,11 +170,14 @@ PyObject* octree3(PyObject* self, PyObject* args)
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi);
   }
 
+  E_Int api = 1; // TODO unstrF[0]->getApi();
+
   // recuperation des snears 
   E_Int nsnear = PyList_Size(listOfSnears);
   if ( nzones != nsnear )
   {
-    K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+    for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+    for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);            
     PyErr_SetString(PyExc_TypeError, 
                     "octree3: 1st and 2nd args must be consistent.");
     return NULL;
@@ -189,7 +189,8 @@ PyObject* octree3(PyObject* self, PyObject* args)
     tpl = PyList_GetItem(listOfSnears, i);
     if (PyFloat_Check(tpl) == 0 && PyInt_Check(tpl) == 0)
     {
-      K_ARRAY::cleanUnstrFields(unstrF, cnt, eltTypet);
+      for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+      for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);              
       PyErr_SetString(PyExc_TypeError, 
                       "octree3: not a valid value for snear.");
       return NULL;
@@ -220,8 +221,9 @@ PyObject* octree3(PyObject* self, PyObject* args)
     FldArrayF& f2 = *unstrF[v]; FldArrayI& cn2 = *cnt[v];
     posx2 = posxt[v]; posy2 = posyt[v]; posz2 = poszt[v];
     //bounding box globale ? 
-    k6boundboxunstr_(f2.getSize(), f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
-                     xmaxloc, ymaxloc, zmaxloc, xminloc, yminloc, zminloc);
+    K_COMPGEOM::boundingBoxUnstruct(f2.getSize(),
+                                    f2.begin(posx2), f2.begin(posy2), f2.begin(posz2),
+                                    xminloc, yminloc, zminloc, xmaxloc, ymaxloc, zmaxloc);
     xmino = K_FUNC::E_min(xminloc,xmino); xmaxo = K_FUNC::E_max(xmaxloc,xmaxo);
     ymino = K_FUNC::E_min(yminloc,ymino); ymaxo = K_FUNC::E_max(ymaxloc,ymaxo);
     if (dim == 2) {zmino = 0.; zmaxo = 0.;}
@@ -425,7 +427,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
     zmino = current->getZmin(); zmaxo = zmino+dh0;//current->getZmax();
 
     // feuille->inserer dans le maillage
-    if (  current->getNext1() == NULL ) 
+    if (current->getNext1() == NULL) 
     { 
       //creation des 9 ou 27 sommets de la cellule 1
       xt[ind] = xmino; yt[ind] = ymino; zt[ind] = zmino; cn1[et] = ind+1; ind++; 
@@ -490,9 +492,12 @@ PyObject* octree3(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(1, 2, 3, 1.e-6, eltType,*coords, *cn);
     
   // buildArray
-  tpl = K_ARRAY::buildArray(*coords, "x,y,z", *cn, -1, eltType, false);
+  tpl = K_ARRAY::buildArray3(*coords, "x,y,z", *cn, eltType, api);
   // nettoyage
   delete coords; delete cn;
+  for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
+  for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);            
+
   return tpl;
 }
 //=============================================================================

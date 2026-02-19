@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,14 +32,29 @@ void K_COMPGEOM::barycenter(
   E_Float* x, E_Float* y, E_Float* z,
   E_Float& xb, E_Float& yb, E_Float& zb)
 {
-  E_Float x1, y1, z1;
-  x1 = 0.; y1 = 0.; z1 = 0.;
-#pragma omp parallel for shared(n,x,y,z) reduction(+:x1,y1,z1) 
-  for (int i = 0; i < n; i++) 
-  { x1 += x[i]; y1 += y[i]; z1 += z[i]; }
-
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* xp = new E_Float [3*nthreads];
+  
+  #pragma omp parallel
+  {
+    E_Int it = 3 * __CURRENT_THREAD__;
+    xp[it] = 0.; xp[it+1] = 0.; xp[it+2] = 0.;
+    #pragma omp for
+    for (E_Int i = 0; i < n; i++) 
+    { 
+      xp[it] += x[i];
+      xp[it+1] += y[i];
+      xp[it+2] += z[i];
+    }
+  }
   E_Float onen = 1./n;
-  xb = x1 * onen; yb = y1 * onen; zb = z1 * onen;
+  xb = 0.; yb = 0.; zb = 0.;
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    xb += xp[3*it]; yb += xp[3*it+1]; zb += xp[3*it+2];
+  }
+  xb = xb * onen; yb = yb * onen; zb = zb * onen;
+  delete [] xp;
 }
 
 //=============================================================================
@@ -55,20 +70,32 @@ void K_COMPGEOM::weightedBarycenter(E_Int n,
 E_Float* x, E_Float* y, E_Float* z, E_Float* w,
 E_Float& xb, E_Float& yb, E_Float& zb)
 {
-  E_Float wg;
-  E_Float x1, y1, z1, wb;
-  x1 = 0.; y1 = 0.; z1 = 0.; wb = 0.;
-#pragma omp parallel for shared(n,x,y,z) private(wg) reduction(+:x1,y1,z1,wb) 
-  for (int i = 0; i < n; i++)
-  {  
-    wg = w[i];
-    x1 += wg*x[i]; y1 += wg*y[i]; z1 += wg*z[i];
-    wb += wg;
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* xp = new E_Float [4*nthreads];
+  
+  #pragma omp parallel
+  {
+    E_Int it = 4 * __CURRENT_THREAD__;
+    xp[it] = 0.; xp[it+1] = 0.; xp[it+2] = 0.; xp[it+3] = 0.;
+    #pragma omp for
+    for (E_Int i = 0; i < n; i++)
+    { 
+      xp[it] += x[i]*w[i]; 
+      xp[it+1] += y[i]*w[i]; 
+      xp[it+2] += z[i]*w[i];
+      xp[it+3] += w[i];
+    }
   }
-
+  xb = 0.; yb = 0.; zb = 0.; E_Float wb = 0.;
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    xb += xp[4*it]; yb += xp[4*it+1]; zb += xp[4*it+2];
+    wb += xp[4*it+3];
+  }
   wb = K_FUNC::E_max(wb, 1.e-10);
   E_Float onew = 1./wb;
-  xb = x1 * onew; yb = y1 * onew; zb = z1 * onew;
+  xb = xb * onew; yb = yb * onew; zb = zb * onew;
+  delete [] xp;
 }
 
 //=============================================================================

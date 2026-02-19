@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -93,6 +93,8 @@ namespace K_STRING
      OUT: 0: si identique, 1: sinon */
   E_Int cmp(char* s1, E_Int s, char* s2);
   E_Int cmp(char* s1, E_Int s, const char* s2);
+  E_Int cmp(const char* s1, E_Int s, const char* s2);
+  E_Int cmp(const char* s1, E_Int s, char* s2);
   /* strcmp (plus rapide)
      IN: s1: chaine terminee par \0
      IN: s2: chaine a comparer (terminee par \0)

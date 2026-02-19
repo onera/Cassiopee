@@ -1,6 +1,5 @@
 # - an applet for creating points -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -121,7 +120,7 @@ def createApp(win):
 
     B = TTK.Button(Frame, text="Modify", command=modifyPoint)
     B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Modify point coordinate.')
+    BB = CTK.infoBulle(parent=B, text='Modify point coordinates.')
 
 #==============================================================================
 # Called to display widgets

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cmath>
 #include "point3d.hpp"
+#include "kcore.h"
 
 namespace K_POST
 {
@@ -29,7 +30,7 @@ namespace K_POST
      */
     struct vector3d
     {
-        double x,y,z; /// Coordonnées du vecteur
+        E_Float x,y,z; /// Coordonnées du vecteur
 
         /// Constructeurs et destructeur
         //@{
@@ -42,7 +43,7 @@ namespace K_POST
          * @param[in]  _y    La valeur de l'ordonnée
          * @param[in]  _z    La valeur de la hauteur
          */
-        vector3d( double _x, double _y, double _z ) : x(_x), y(_y), z(_z)
+        vector3d( E_Float _x, E_Float _y, E_Float _z ) : x(_x), y(_y), z(_z)
         {}
         /**
          * @brief      Constructeur initialisant un vecteur à partir de deux points
@@ -101,18 +102,18 @@ namespace K_POST
                      this->x * u.y - this->y * u.x };
         }
         /// Produit scalaire
-        double operator | ( const vector3d& u ) const
+        E_Float operator | ( const vector3d& u ) const
         {
             return this->x*u.x + this->y*u.y + this->z*u.z;
         }
         /// Accesseur par indice aux coefficients du vecteur
-        const double& operator [] ( unsigned i ) const
+        const E_Float& operator [] ( unsigned i ) const
         {
             assert(i<3);
             return (i==0 ? this->x : i == 1 ? this->y : this->z );
         }
         /// Accesseur par indice aux coefficients du vecteur
-        double& operator [] ( unsigned i )
+        E_Float& operator [] ( unsigned i )
         {
             assert(i<3);
             return (i==0 ? this->x : i == 1 ? this->y : this->z );
@@ -139,7 +140,7 @@ namespace K_POST
      *
      * @return     Le résultat de l'homothétie
      */
-    inline vector3d operator * ( double alpha, const vector3d& u )
+    inline vector3d operator * ( E_Float alpha, const vector3d& u )
     {
         return {alpha*u.x, alpha*u.y, alpha*u.z};
     }
@@ -165,7 +166,7 @@ namespace K_POST
     *
     * @return     Retourne ||u||_{L2}^{2}
     */
-    inline double norm( const vector3d& u )
+    inline E_Float norm( const vector3d& u )
     {
         return (u|u);
     }
@@ -176,7 +177,7 @@ namespace K_POST
      *
      * @return     ||u||_{L2}
      */
-    inline double abs( const vector3d& u )
+    inline E_Float abs( const vector3d& u )
     {
         return std::sqrt(norm(u));
     }
@@ -197,12 +198,12 @@ namespace K_POST
      * 
      * @return Le vecteur résultat après rotation
      */
-    inline vector3d rotate( const vector3d& axis, double theta, const vector3d& u)
+    inline vector3d rotate( const vector3d& axis, E_Float theta, const vector3d& u)
     {
         assert(std::abs(abs(axis) - 1.) < 1.E-14);
-        double ct = std::cos(theta);
-        double st = std::sin(theta);
-        double umct = 1. - ct;
+        E_Float ct = std::cos(theta);
+        E_Float st = std::sin(theta);
+        E_Float umct = 1. - ct;
         return {
             (ct + axis.x*axis.x*umct)*u.x + (axis.x*axis.y*umct-axis.z*st)*u.y + (axis.x*axis.z*umct+axis.y*st)*u.z,
             (axis.y*axis.x*umct+axis.z*st)*u.x + (ct + axis.y*axis.y*umct)*u.y + (axis.y*axis.z*umct-axis.x*st)*u.z,

@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,26 +24,25 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitTRI: 
+/*
+   splitTRI:
    Splits a TRI into several TRIs delimited by the input polyline.
 */
 //=============================================================================
 PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
 {
   PyObject *array, *polyLineList;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &array, &polyLineList))
+  if (!PYPARSETUPLE_(args, OO_, &array, &polyLineList))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FloatArray* f; IntArray* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res =
+    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -58,7 +57,7 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
                     "splitTRI: unknown type of array.");
     return NULL;
   }
-  
+
   if (strcmp(eltType, "TRI") != 0)
   {
     delete f; delete cn;
@@ -66,10 +65,10 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
                     "splitTRI: must be used on a TRI-array.");
     return NULL;
   }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-   
+
   if (posx == -1 || posy == -1)
   {
     delete f; delete cn;
@@ -80,7 +79,7 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
 
   // Check and get polyLines.
   PyObject *polyLine, *pN0, *pN1;
-  IntArray connectP; 
+  IntArray connectP;
   if (PyList_Check(polyLineList) == 0)
   {
     PyErr_Warn(PyExc_Warning,
@@ -92,7 +91,7 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < lsize; ++i)
   {
     polyLine = PyList_GetItem(polyLineList, i);
-    
+
     if (PyList_Check(polyLineList) == 0)
     {
       PyErr_Warn(PyExc_Warning,
@@ -106,7 +105,7 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
     {
       pN0 = PyList_GetItem(polyLine, j);
       pN1 = PyList_GetItem(polyLine, j+1);
-      
+
       if (PyLong_Check(pN0) == 0 && PyInt_Check(pN0) == 0)
       {
         PyErr_Warn(PyExc_Warning,
@@ -125,16 +124,16 @@ PyObject* K_TRANSFORM::splitTRI(PyObject* self, PyObject* args)
       connectP.pushBack(Edge, Edge+2);
     }
   }
-  
-  vector<IntArray>   cs;
+
+  vector<IntArray> cs;
   vector<FloatArray> fs;
   TSSplitter::split(*f, *cn, connectP, fs, cs);
   delete f; delete cn;
 
-  // Formation des array de sortie
+  // Formation des arrays de sortie
   PyObject* tpl;
   PyObject* l = PyList_New(0);
-  
+
   for (size_t i = 0; i < cs.size(); ++i)
   {
     tpl = K_ARRAY::buildArray(fs[i], varString, cs[i], -1, eltType);

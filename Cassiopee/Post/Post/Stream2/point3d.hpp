@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include "kcore.h"
 
 namespace K_POST
 {
@@ -34,7 +35,7 @@ namespace K_POST
     //@brief Coordonnées d'un point en trois dimensions                 
     struct point3d
     {
-        double x,y,z;//_ Coordonnées du point __________________________
+        E_Float x,y,z;//_ Coordonnées du point __________________________
 
         //______________ Constructeurs et destructeur __________________
 
@@ -45,7 +46,7 @@ namespace K_POST
         //@param[in]  _x    La valeur de l'abscisse                     
         //@param[in]  _y    La valeur de l'ordonnée                     
         //@param[in]  _z    La valeur de la hauteur                     
-        point3d(double _x, double _y, double _z) : x(_x), y(_y), z(_z)
+        point3d(E_Float _x, E_Float _y, E_Float _z) : x(_x), y(_y), z(_z)
         {}
         //@brief Constructeur par copie                                 
         point3d(const point3d& ) = default;
@@ -61,7 +62,7 @@ namespace K_POST
         //@brief Opérateur de déplacement                               
         point3d& operator = ( point3d&& p )      = default;
         //@brief Opérateur d'accès à la ième coordonnée en lecture seule
-        double operator[] (unsigned i) const
+        E_Float operator[] (unsigned i) const
         {
             assert(i<3);
             return (i==0 ? this->x : i == 1 ? this->y : this->z);
@@ -82,9 +83,9 @@ namespace K_POST
     //@param[in]  p1    Le premier point                                
     //@param[in]  p2    Le deuxième point                               
     //@return     Renvoie la distance au carré entre p1 et p2           
-    inline double square_distance( const point3d& p1, const point3d& p2)
+    inline E_Float square_distance( const point3d& p1, const point3d& p2)
     {
-        double dx = p2.x-p1.x, dy = p2.y-p1.y, dz = p2.z - p1.z;
+        E_Float dx = p2.x-p1.x, dy = p2.y-p1.y, dz = p2.z - p1.z;
         return dx*dx + dy*dy + dz*dz;
     }
 
@@ -92,7 +93,7 @@ namespace K_POST
     //@param[in]  p1    Le premier point                                
     //@param[in]  p2    Le deuxième point                               
     //@return     Renvoie la distance entre p1 et p2                    
-    inline double distance( const point3d& p1, const point3d& p2 )
+    inline E_Float distance( const point3d& p1, const point3d& p2 )
     { return std::sqrt(square_distance(p1, p2)); }
 }
 

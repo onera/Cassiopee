@@ -8,33 +8,34 @@ err = 1; skip =0;
 
 for (E_Int noind = 0; noind < ifin-ideb; noind++)
 {
-  
   utau_vec[noind] = std::max(utau_vec[noind], 1.e-12);
 
-  if (gradP_vec[noind] == 0.) {
-      gradP_vec[noind] = 0.;
-      utau_vec[noind] = utauOri_vec[noind];
+  if (gradP_vec[noind] == 0.) 
+  {
+    gradP_vec[noind] = 0.;
+    utau_vec[noind] = utauOri_vec[noind];
 
-      yplus            = utau_vec[noind]*yplus_vec[noind];
-      yplus_vec[noind] = yplus;
+    yplus            = utau_vec[noind]*yplus_vec[noind];
+    yplus_vec[noind] = yplus;
 
-      denoml10 = yplus*yplus-8.15*yplus+86.;
-      denoml10 = denoml10*denoml10;
+    denoml10 = yplus*yplus-8.15*yplus+86.;
+    denoml10 = denoml10*denoml10;
 
-      px  = gradP_vec[noind]/pow(utau_vec[noind],3);
+    px  = gradP_vec[noind]/pow(utau_vec[noind],3);
       
-      l11 = pow(yplus+10.6,9.6);
-      l12 = yplus*(yplus-8.15) + 86.;
-      l13 = (2.*yplus-8.15)/16.7;
+    l11 = pow(yplus+10.6,9.6);
+    l12 = yplus*(yplus-8.15) + 86.;
+    l13 = (2.*yplus-8.15)/16.7;
 
-      l1 = 5.424*atan(l13) + log10(l11/(l12*l12)) - 3.52;
-      l2 = -2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.);
-      l3 = 2.*kappainv*(sqrt(1.+px*yplus)-1.);
+    l1 = 5.424*atan(l13) + log10(l11/(l12*l12)) - 3.52;
+    l2 = -2.*kappainv*log((sqrt(1.+px*yplus)+1.)/2.);
+    l3 = 2.*kappainv*(sqrt(1.+px*yplus)-1.);
 
-      umod = utau_vec[noind]*(l1 + l2 + l3);
+    umod = utau_vec[noind]*(l1 + l2 + l3);
   }
 
-  else { 
+  else 
+  { 
     //Mafzal s'applique - FULL VERSION
     yplus = utau_vec[noind]*yplus_vec[noind];
     yplus_vec[noind] = yplus;

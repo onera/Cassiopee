@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,7 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2)
   {
@@ -48,31 +48,17 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
   E_Int npts = f->getSize();
-  E_Int nfld = f->getNfld();
+  E_Int api = f->getApi();
   if (res == 1) //structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varString, 
-                              ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk, api);
   } 
   else //unstructured 
   {
-    E_Int csize = cn->getSize()*cn->getNfld(); 
-    tpl = K_ARRAY::buildArray(nfld, varString,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
   }
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true); fn.setAllValuesAt(*f);
-
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    E_Int* cnp = cn->begin();
-    E_Int size = cn->getSize()*cn->getNfld();
-    E_Int i;
-#pragma omp parallel for shared(size,cnnp,cnp) private(i)
-    for (i = 0; i < size; i++) cnnp[i] = cnp[i];
-  }
+  FldArrayF* fn;
+  K_ARRAY::getFromArray3(tpl, fn);
 
   E_Int posvar = K_ARRAY::isNamePresent(varname, varString)+1;
   if (posvar == 0)
@@ -81,7 +67,7 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
   }
   else 
   {
-    E_Float* fnp = fn.begin(posvar);
+    E_Float* fnp = fn->begin(posvar);
     E_Int i;
     E_LONG idum = -1;
     E_Float rfactor;
@@ -92,6 +78,7 @@ PyObject* K_CONVERTER::randomizeVar(PyObject* self, PyObject* args)
     }
   }
 
+  RELEASESHAREDS(tpl, fn);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 } 

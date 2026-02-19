@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -115,6 +115,12 @@ struct IMesh {
     }
 
     AABB AABB_face(const std::vector<E_Int> &pn) const;
+
+    E_Int RayFaceIntersect(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, E_Int fid, TriangleIntersection &TI) const;
+    
+    E_Int project_point(E_Float px, E_Float py, E_Float pz, E_Float dx,
+        E_Float dy, E_Float dz, TriangleIntersection &TI, E_Int II);
     
     void triangulate_face_set(bool propagate = true);
 
@@ -221,7 +227,7 @@ struct IMesh {
     void flag_and_get_external_faces(std::vector<E_Int> &fflags,
         std::vector<E_Int> &efaces);
     
-    void extract_nface_of_kept_pgs(const std::vector<bool> &kept_pgs,
+    void extract_nface_of_kept_pgs(const std::vector<E_Bool> &kept_pgs,
         std::vector<E_Int> &NFACE, std::vector<E_Int> &cxadj,
         std::vector<E_Int> &cells);
     

@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,8 +23,8 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitSharpEdges: 
+/*
+   splitSharpEdges:
    Decoupe un array TRI, QUAD, BAR en partie lisses (angle entre elements
    inferieur a alphaRef)
    La connectivite doit etre propre.
@@ -37,18 +37,14 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   E_Float dirVect[3];
   dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
 
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &alphaRef))
-  {
-      return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &alphaRef)) return NULL;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -62,7 +58,8 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "splitSharpEdges: unknown type of array.");
     return NULL;
-  }  
+  }
+
   if (K_STRING::cmp(eltType, "NODE") == 0)
   {
     RELEASESHAREDU(array, f, cn);
@@ -70,51 +67,18 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
                     "splitSharpEdges: cannot be used on a NODE-array.");
     return NULL;
   }
-  if (K_STRING::cmp(eltType, "PYRA") == 0)
-  {
-    RELEASESHAREDU(array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: cannot be used on a PYRA-array.");
-    return NULL;
-  }
-  if (K_STRING::cmp(eltType, "PENTA") == 0)
-  {
-    RELEASESHAREDU(array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: cannot be used on a PENTA-array.");
-    return NULL;
-  }
-  if (K_STRING::cmp(eltType, "HEXA") == 0)
-  {
-    RELEASESHAREDU(array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: cannot be used on a HEXA-array.");
-    return NULL;
-  }
-  if (K_STRING::cmp(eltType, "MIX") == 0)
+  else if (K_STRING::cmp(eltType, "MIX") == 0)
   {
     RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitSharpEdges: cannot be used on a MIX-array.");
     return NULL;
   }
-  E_Int type = 0;
-  if (K_STRING::cmp(eltType, "BAR") == 0) type = 0;
-  else if (K_STRING::cmp(eltType, "TRI") == 0) type = 1;
-  else if (K_STRING::cmp(eltType, "QUAD") == 0) type = 2;
-  else if (K_STRING::cmp(eltType, "NGON") == 0) type = 3;
-  else
-  {
-    RELEASESHAREDU(array, f, cn);
-    PyErr_SetString(PyExc_TypeError,
-                    "splitSharpEdges: can not be used on this type of array.");
-    return NULL;
-  }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-   
+
   if (posx == -1 || posy == -1 || posz == -1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -124,83 +88,129 @@ PyObject* K_TRANSFORM::splitSharpEdges(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  PyObject* out;
-  if (type == 3) 
-    out = splitSharpEdgesNGon(f, cn, varString,
+  PyObject* tpl;
+  if (K_STRING::cmp(eltType, "NGON") == 0)
+  {
+    tpl = splitSharpEdgesNGon(f, cn, varString,
                               posx, posy, posz, alphaRef, dirVect);
-  else out = splitSharpEdgesBasics(f, cn, eltType, varString, 
-                                   posx, posy, posz, type, alphaRef, dirVect);
+  }
+  else
+  {
+    E_Int dim = K_CONNECT::getDimME(eltType);
+    if (dim == 3)
+    {
+      RELEASESHAREDU(array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                      "splitSharpEdges: cannot be used on a 3D ME array.");
+      return NULL;
+    }
+
+    tpl = splitSharpEdgesBasics(f, cn, eltType, varString,
+                                posx, posy, posz, alphaRef, dirVect);
+  }
 
   RELEASESHAREDU(array, f, cn);
-  return out;
+  return tpl;
 }
 
 //=============================================================================
 // Split sharp edges pour un array a elements basiques (BAR,TRI,QUAD)
 //=============================================================================
 PyObject* K_TRANSFORM::splitSharpEdgesBasics(
-  FldArrayF* f, FldArrayI* cn, 
-  char* eltType, char* varString, E_Int posx, E_Int posy, E_Int posz, 
-  E_Int type, E_Float alphaRef, E_Float* dirVect)
+  FldArrayF* f, FldArrayI* cn,
+  char* eltType, char* varString, E_Int posx, E_Int posy, E_Int posz,
+  E_Float alphaRef, E_Float* dirVect)
 {
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
+  E_Int api = f->getApi();
+  E_Int npts = f->getSize();
 
-  vector< vector<E_Int> > cEEN(cn->getSize());
-  K_CONNECT::connectEV2EENbrs(eltType, f->getSize(), *cn, cEEN);
-  
-  E_Int nt = cn->getNfld();
-  E_Int ne = cn->getSize(); // nbre d'elements
+  E_Int nc = cn->getNConnect();
+  std::vector<char*> eltTypes;
+  K_ARRAY::extractVars(eltType, eltTypes);
+
+  // Compute total number of elements
+  E_Int ntotElts = 0;
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+
+  vector<vector<E_Int> > cEEN(ntotElts);
+  K_CONNECT::connectEV2EENbrs(eltType, npts, *cn, cEEN);
+
   E_Int nev = 0; // nbre d'elements deja visites
-  char* isVisited = (char*)calloc(ne, sizeof(char)); // elt deja visite?
-  E_Int* mustBeVisited = (E_Int*)malloc(ne * sizeof(E_Int));
-  E_Int mbv, p, i, ie, elt, curr;
-  unsigned int iv;
+  char* isVisited = (char*)calloc(ntotElts, sizeof(char)); // elt deja visite?
+  E_Int* mustBeVisited = (E_Int*)malloc(ntotElts * sizeof(E_Int));
+  E_Int mbv, ie, elt, curr, p;
   vector<FldArrayI*> components;
 
   E_Float alpha;
   E_Int ind;
   E_Float pts1[4][3]; E_Float pts2[4][3];
+  
+  vector<E_Int> type;
+  E_Int dim = K_CONNECT::getDimME(eltTypes);
+  if (dim == 1) type.push_back(0);
+  else
+  {
+    for (size_t ic = 0; ic < eltTypes.size(); ic++)
+    {
+      if (K_STRING::cmp(eltTypes[ic], "TRI") == 0) type.push_back(1);
+      else type.push_back(2);  // QUAD
+    }
+  }
+
+  for (size_t ic = 0; ic < eltTypes.size(); ic++)
+  {
+    delete [] eltTypes[ic];
+  }
+
+  K_FLD::FldArrayI& cm = *(cn->getConnect(0));
+  E_Int nvpe = cm.getNfld();
 
   mbv = 0;
-  while (nev < ne)
+  while (nev < ntotElts)
   {
     // Recherche le premier elt pas encore visite
     for (p = 0; (isVisited[p] != 0); p++);
 
     // C'est un nouveau composant
-    FldArrayI* c = new FldArrayI(ne, nt);
- 
+    FldArrayI* cn2 = new FldArrayI(ntotElts, nvpe);
+
     mustBeVisited[mbv] = p;
     mbv++; nev++;
     isVisited[p] = 1;
     curr = 0;
-    
+
     while (mbv > 0)
     {
       mbv--;
       elt = mustBeVisited[mbv];
-      for (i = 0; i < nt; i++) 
+      for (E_Int i = 0; i < nvpe; i++)
       {
-        ind = (*cn)(elt,i+1)-1;
-        pts1[i][0] = x[ind]; pts1[i][1] = y[ind]; pts1[i][2] = z[ind]; 
-        (*c)(curr,i+1) = ind+1;
+        ind = cm(elt,i+1)-1;
+        pts1[i][0] = x[ind]; pts1[i][1] = y[ind]; pts1[i][2] = z[ind];
+        (*cn2)(curr,i+1) = ind+1;
       }
       curr++;
 
-      for (iv = 0; iv < cEEN[elt].size(); iv++)
+      for (size_t iv = 0; iv < cEEN[elt].size(); iv++)
       {
         ie = cEEN[elt][iv];
         if (isVisited[ie] == 0)
         {
           // Calcul de alpha
-          for (i = 0; i < nt; i++) 
+          for (E_Int i = 0; i < nvpe; i++)
           {
             ind = (*cn)(ie,i+1)-1;
             pts2[i][0] = x[ind]; pts2[i][1] = y[ind]; pts2[i][2] = z[ind];
           }
-          switch (type)
+          switch (type[0])
           {
             case 0:
               alpha = K_COMPGEOM::getAlphaAngleBetweenBars(
@@ -220,7 +230,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
 
             default: alpha = 180.; break;
           }
-       
+
           if (alpha == -1000. || K_FUNC::E_abs(alpha-180.) <= alphaRef)
           {
             mustBeVisited[mbv] = ie;
@@ -230,10 +240,9 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
         }
       }
     }
-    c->reAllocMat(curr, nt);
-    components.push_back(c);
+    cn2->reAllocMat(curr, nvpe);
+    components.push_back(cn2);
   }
-
   free(isVisited);
   free(mustBeVisited);
 
@@ -242,17 +251,19 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
   PyObject* l = PyList_New(0);
   E_Int size = components.size();
 
-  for (i = 0; i < size; i++)
+  for (E_Int i = 0; i < size; i++)
   {
     FldArrayF* f0 = new FldArrayF(*f);
     FldArrayF& fp = *f0;
     FldArrayI& cnp = *components[i];
-    K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType,
-                                 fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, eltType);
+    K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, fp, cnp);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, eltType, api);
     delete &fp; delete &cnp;
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+    // tpl = K_CONNECT::V_cleanConnectivity(varString, *f, *components[i], eltType, 1.e-10);
+    // PyList_Append(l, tpl); Py_DECREF(tpl);
+    // delete components[i];
   }
   return l;
 }
@@ -263,11 +274,12 @@ PyObject* K_TRANSFORM::splitSharpEdgesBasics(
 PyObject* K_TRANSFORM::splitSharpEdgesNGon(
   FldArrayF* f, FldArrayI* cn, char* varString,
   E_Int posx, E_Int posy, E_Int posz, E_Float alphaRef, E_Float* dirVect)
-{ 
+{
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
 
+  E_Int api = f->getApi();
   E_Int* ptr = cn->begin();
   E_Int sf = ptr[1];
   E_Int ne = ptr[2+sf]; // nbre d'elements
@@ -285,7 +297,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
 
   FldArrayI pos; K_CONNECT::getPosElts(*cn, pos);
   FldArrayI posFaces; K_CONNECT::getPosFaces(*cn, posFaces);
-  
+
   // Recupere la dim en se basant sur la premiere face
   E_Int dim = 3;
   dim = ptr[2];
@@ -333,7 +345,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
         pt[0] = x[ind]; pt[1] = y[ind]; pt[2] = z[ind];
         pts2.push_back(pt);
       }
-    
+
       if (dim == 2)
       {
         alpha = K_COMPGEOM::getAlphaAngleBetweenPolygons(pts1, pts2);
@@ -357,14 +369,14 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
       nvert = pts2.size();
       for (E_Int k = 0; k < nvert; k++) delete [] pts2[k];
       pts2.clear();
-    } 
+    }
     alphap[i] = alpha;
   }
   }
 
   E_Int e1, e2, nf;
   E_Float alpha;
-    
+
   // split
   mbv = 0;
   while (nev < ne)
@@ -375,12 +387,12 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
     // C'est un nouveau composant
     FldArrayI* c = new FldArrayI(se+1);
     E_Int* pc = c->begin(); // current pointer
- 
+
     mustBeVisited[mbv] = p;
     mbv++; nev++;
     isVisited[p] = 1;
     curr = 0; necurr = 0;
-    
+
     while (mbv > 0)
     {
       mbv--;
@@ -412,7 +424,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
         }
       }
     }
-    
+
     pc[0] = necurr; // sentinelle
     c->reAlloc(curr+1);
     components.push_back(c);
@@ -439,14 +451,15 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
     for (E_Int j = 0; j < sf+2; j++) cnpp[j] = ptr[j];
     cnpp += sf+2;
     cnpp[0] = comp[si]; cnpp[1] = si; cnpp += 2;
-    for (E_Int j = 0; j < si; j++) cnpp[j] = comp[j];  
-    
+    for (E_Int j = 0; j < si; j++) cnpp[j] = comp[j];
+
     K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                      fp, cnp);
     if (dim == 1) // il semble que dans ce cas, il faut l'appeler 2 fois
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10,
                                        fp, cnp);
-    tpl = K_ARRAY::buildArray(fp, varString, cnp, -1, "NGON");
+    cnp.setNGonType(1);
+    tpl = K_ARRAY::buildArray3(fp, varString, cnp, "NGON", api);
     delete &fp; delete components[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
@@ -460,21 +473,21 @@ PyObject* K_TRANSFORM::splitSharpEdgesNGon(
 // Chaque index est associe a un element
 //==============================================================================
 PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
-{ 
+{
   PyObject* array; PyObject* arrayI;
   E_Float alphaRef;
   if (!PYPARSETUPLE_(args, OO_ R_,
                     &array, &arrayI, &alphaRef))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 2)
   {
@@ -498,10 +511,10 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   }
 
   FldArrayI* indexI;
-  res = K_NUMPY::getFromNumpyArray(arrayI, indexI, true);
+  res = K_NUMPY::getFromNumpyArray(arrayI, indexI);
   if (res == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "splitSharpEdgesList: index numpy is invalid.");
     return NULL;
   }
@@ -513,7 +526,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-   
+
   if (posx == -1 || posy == -1 || posz == -1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -527,133 +540,124 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
 
-  E_Int* ptr = cn->begin();
-  E_Int sf = ptr[1];
-  E_Int ne = ptr[2+sf]; // nbre d'elements
+  E_Int nelts = cn->getNElts();
+  E_Int nfaces = cn->getNFaces();
+  E_Int dim = cn->getDim();
+  E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
+  E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
 
   FldArrayI cFE;
   K_CONNECT::connectNG2FE(*cn, cFE);
 
-  E_Int* ptrElts = ptr + (sf+4);
-  E_Int se = ptr[2+sf]; // nbre d'elements
+  E_Int se = cn->getSizeNFace();
   E_Int nev = 0; // nbre d'elements deja visites
-  char* isVisited = (char*)calloc(ne, sizeof(char)); // elt deja visite?
-  E_Int* mustBeVisited = (E_Int*)malloc(ne * sizeof(E_Int));
-  E_Int mbv, p, i, ie, elt/*, curr*/, necurr, lt, iv;
+  char* isVisited = (char*)calloc(nelts, sizeof(char)); // elt deja visite?
+  E_Int* mustBeVisited = (E_Int*)malloc(nelts * sizeof(E_Int));
+  E_Int mbv, p, ie, elt, necurr, lt;
   vector<FldArrayI*> components; // liste des index par bloc
 
-  FldArrayI pos; K_CONNECT::getPosElts(*cn, pos);
-  FldArrayI posFaces; K_CONNECT::getPosFaces(*cn, posFaces);
-  
-  // Recupere la dim en se basant sur la premiere face
-  E_Int dim = 3;
-  dim = ptr[2];
-  dim = min(dim, E_Int(3));
-
   // Commence par calculer alpha
-  E_Int nfaces = ptr[0];
   FldArrayF alphat(nfaces);
   E_Float* alphap = alphat.begin();
   E_Int* cFE1 = cFE.begin(1);
   E_Int* cFE2 = cFE.begin(2);
-#pragma omp parallel
-  {
-  E_Int e1, e2;
-  vector<E_Int> indices;
-  vector<E_Float*> pts1; vector<E_Float*> pts2;
-  E_Float alpha;
-  E_Int ind, nvert;
 
-#pragma omp for
-  for (E_Int i = 0; i < nfaces; i++)
+  #pragma omp parallel
   {
-    e1 = cFE1[i]-1; e2 = cFE2[i]-1;
-    if (e1 == -1) alpha = -1000.;
-    else if (e2 == -1) alpha = -1000.;
-    else
+    E_Int e1, e2;
+    vector<E_Int> indices;
+    vector<E_Float*> pts1; vector<E_Float*> pts2;
+    E_Float alpha;
+    E_Int ind, nvert;
+
+    #pragma omp for
+    for (E_Int i = 0; i < nfaces; i++)
     {
-      K_CONNECT::getVertexIndices(cn->begin(), posFaces.begin(), pos[e1], indices);
-      nvert = indices.size();
-      pts1.reserve(nvert);
-      for (E_Int k = 0; k < nvert; k++)
+      e1 = cFE1[i]-1; e2 = cFE2[i]-1;
+      if (e1 == -1) alpha = -1000.;
+      else if (e2 == -1) alpha = -1000.;
+      else
       {
-        E_Float* pt = new E_Float[3];
-        ind = indices[k]-1;
-        pt[0] = x[ind]; pt[1] = y[ind]; pt[2] = z[ind];
-        pts1.push_back(pt);
-      }
-      K_CONNECT::getVertexIndices(cn->begin(), posFaces.begin(), pos[e2], indices);
-      nvert = indices.size();
-      pts2.reserve(nvert);
-      for (E_Int k = 0; k < nvert; k++)
-      {
-        E_Float* pt = new E_Float[3];
-        ind = indices[k]-1;
-        pt[0] = x[ind]; pt[1] = y[ind]; pt[2] = z[ind];
-        pts2.push_back(pt);
-      }
-    
-      if (dim == 2)
-      {
-        alpha = K_COMPGEOM::getAlphaAngleBetweenPolygons(pts1, pts2);
-        //printf("mbv=%d, alpha=%f %f\n", mbv, alpha, alphaRef);
-      }
-      else if (dim == 1)
-      {
-        if (pts1.size() == 2 && pts2.size() == 2)
+        K_CONNECT::getVertexIndices(*cn, ngon, nface, indPG, indPH, e1, indices);
+        nvert = indices.size();
+        pts1.reserve(nvert);
+        for (E_Int k = 0; k < nvert; k++)
         {
-          alpha = K_COMPGEOM::getAlphaAngleBetweenBars(
-                    pts1[0], pts1[1],
-                    pts2[0], pts2[1], dirVect);
+          E_Float* pt = new E_Float[3];
+          ind = indices[k]-1;
+          pt[0] = x[ind]; pt[1] = y[ind]; pt[2] = z[ind];
+          pts1.push_back(pt);
         }
-        else alpha = 180.;
-      }
-      else alpha = 180.;
 
-      nvert = pts1.size();
-      for (E_Int k = 0; k < nvert; k++) delete [] pts1[k];
-      pts1.clear();
-      nvert = pts2.size();
-      for (E_Int k = 0; k < nvert; k++) delete [] pts2[k];
-      pts2.clear();
-    } 
-    alphap[i] = alpha;
-  }
+        K_CONNECT::getVertexIndices(*cn, ngon, nface, indPG, indPH, e2, indices);
+        nvert = indices.size();
+        pts2.reserve(nvert);
+        for (E_Int k = 0; k < nvert; k++)
+        {
+          E_Float* pt = new E_Float[3];
+          ind = indices[k]-1;
+          pt[0] = x[ind]; pt[1] = y[ind]; pt[2] = z[ind];
+          pts2.push_back(pt);
+        }
+
+        alpha = 180.;
+        if (dim == 2)
+        {
+          alpha = K_COMPGEOM::getAlphaAngleBetweenPolygons(pts1, pts2);
+        }
+        else if (dim == 1)
+        {
+          if (pts1.size() == 2 && pts2.size() == 2)
+          {
+            alpha = K_COMPGEOM::getAlphaAngleBetweenBars(
+                      pts1[0], pts1[1],
+                      pts2[0], pts2[1], dirVect);
+          }
+        }
+
+        nvert = pts1.size();
+        for (E_Int k = 0; k < nvert; k++) delete [] pts1[k];
+        pts1.clear();
+        nvert = pts2.size();
+        for (E_Int k = 0; k < nvert; k++) delete [] pts2[k];
+        pts2.clear();
+      }
+      alphap[i] = alpha;
+    }
   }
 
   E_Int e1, e2, nf;
   E_Float alpha;
-    
+
   // split
   mbv = 0;
-  while (nev < ne)
+  while (nev < nelts)
   {
     // Recherche le premier elt pas encore visite
     for (p = 0; (isVisited[p] != 0); p++);
 
     // C'est un nouveau composant (morceau de liste)
-    FldArrayI* c = new FldArrayI(se+1);
-    E_Int* pc = c->begin(); // current pointer
- 
+    FldArrayI* cn2 = new FldArrayI(se+1);
+    E_Int* pc = cn2->begin(); // current pointer
+
     mustBeVisited[mbv] = p;
     mbv++; nev++;
     isVisited[p] = 1;
     necurr = 0;
-    
+
     while (mbv > 0)
     {
       mbv--;
       elt = mustBeVisited[mbv];
 
       // copie index de l'element
-      ptrElts = &ptr[pos[elt]];
-      lt = ptrElts[0];
+      E_Int* elem = cn->getElt(elt, lt, nface, indPH);
       (*pc) = index[elt]; pc += 1;
       necurr++;
 
-      for (iv = 0; iv < lt; iv++)
+      for (E_Int iv = 0; iv < lt; iv++)
       {
-        nf = ptrElts[iv+1]-1;
+        nf = elem[iv]-1;
         e1 = cFE1[nf]-1; e2 = cFE2[nf]-1;
         if (e1 == elt) ie = e2;
         else ie = e1;
@@ -670,9 +674,9 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
         }
       }
     }
-    
-    c->reAlloc(necurr);
-    components.push_back(c);
+
+    cn2->reAlloc(necurr);
+    components.push_back(cn2);
   }
 
   free(isVisited);
@@ -683,7 +687,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   E_Int size = components.size();
 
-  for (i = 0; i < size; i++)
+  for (E_Int i = 0; i < size; i++)
   {
     FldArrayI* c = components[i];
     E_Int nd = c->getSize();
@@ -695,6 +699,7 @@ PyObject* K_TRANSFORM::splitSharpEdgesList(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
+
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDN(arrayI, indexI);
   return l;

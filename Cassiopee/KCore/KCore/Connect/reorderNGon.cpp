@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -243,45 +243,5 @@ void K_CONNECT::orderNGONElement(E_Int noe, vector<E_Int>& indices,
   for (E_Int nof = 0; nof < nf; nof++)
   {
     elt[nof] = sortedFaces[nof];
-  }
-}
-
-void K_CONNECT::orderNGONElement(E_Int noe, vector<E_Int>& indices,
-                                 FldArrayI& posElts, FldArrayI& posFaces,
-                                 FldArrayI& cNG)
-{
-  E_Int nvert = indices.size();
-  E_Int* ptre = &cNG[posElts[noe]];
-  E_Int nf = ptre[0];
-  vector<E_Int> sortedFaces;
-  E_Int indm, indp;
-  E_Int nov = 0;
-
-  while (nov < nvert)
-  {
-    indm = indices[nov];
-    if (nov < nvert-1) indp = indices[nov+1];
-    else indp = indices[0];
-
-    for (E_Int nof = 0; nof < nf; nof++)
-    {
-      E_Int face = ptre[nof+1]-1;
-      E_Int* ptrface = &cNG[posFaces[face]];
-      E_Int ind1 = ptrface[1]; E_Int ind2 = ptrface[2];
-
-      if ((ind1 == indm && ind2 == indp)||(ind1 == indp && ind2 == indm))
-      {
-        sortedFaces.push_back(face+1);
-        break;
-      }
-    }
-    nov++;
-  }
-  E_Int nfaces = sortedFaces.size();
-  if (nfaces != nf) {printf("Warning: reorderNGON: NGON connectivity is not clean.");}
-  // trier selon sortedFaces les faces ds cEF
-  for (E_Int nof = 0; nof < nf; nof++)
-  {
-    ptre[nof+1] = sortedFaces[nof];
   }
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -18,44 +18,49 @@
 */
 #include "converter.h"
 
-using namespace std;
 using namespace K_FLD;
 
 //=============================================================================
-/* Conversion d un array en centres étendus en noeuds */
+/* Conversion d un array en centres ï¿½tendus en noeuds */
 //=============================================================================
 PyObject* K_CONVERTER::extCenter2Node(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int nie, nje, nke;
-  FldArrayF* FExtCenters; FldArrayI* cn;
+  FldArrayF* fc; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, FExtCenters, 
-                                    nie, nje, nke, cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, fc, 
+                                     nie, nje, nke, cn, eltType); 
   if (res != 1)
   {
-    PyErr_SetString(PyExc_TypeError, "node2ExtCenter: array must be structured."); 
-    if (res == 2) RELEASESHAREDU(array, FExtCenters, cn);
+    PyErr_SetString(PyExc_TypeError,
+                    "node2ExtCenter: array must be structured."); 
+    if (res == 2) RELEASESHAREDU(array, fc, cn);
     return NULL; 
   }
-  E_Int nfld = FExtCenters->getNfld();
-  E_Int ni = nie-1; E_Int nj = nje-1; E_Int nk = nke-1;
-  if (ni == 0) {ni = 1;}
-  if (nj == 0) {nj = 1;}
-  if (nk == 0) {nk = 1;}
 
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, ni, nj, nk);
-  E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF FNode(ni*nj*nk, nfld, fp, true);
-  E_Int ret = K_LOC::extCenters2NodeStruct(nie, nje, nke, *FExtCenters, 
-                                           ni, nj, nk, FNode);
-  RELEASESHAREDS(array, FExtCenters);
+  E_Int nfld = fc->getNfld();
+  E_Int ni = nie-1; E_Int nj = nje-1; E_Int nk = nke-1;
+  if (ni == 0) ni = 1;
+  if (nj == 0) nj = 1;
+  if (nk == 0) nk = 1;
+
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, ni, nj, nk);
+  FldArrayF* fn2;
+  K_ARRAY::getFromArray3(tpl, fn2);
+
+  E_Int ret = K_LOC::extCenters2NodeStruct(nie, nje, nke, *fc, 
+                                           ni, nj, nk, *fn2);
+  RELEASESHAREDS(array, fc);
+  RELEASESHAREDS(tpl, fn2);
+
   if (ret == 0) 
   {
-    PyErr_SetString(PyExc_TypeError, "extCenter2Node: Fail to compute node mesh."); 
+    PyErr_SetString(PyExc_TypeError,
+                    "extCenter2Node: Fail to compute node mesh."); 
     return NULL;
   }
   return tpl;

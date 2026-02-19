@@ -1,0 +1,18 @@
+services:
+  cassiopee:
+    image: ${CASSIOPEE_IMAGE}
+    container_name: cassiopee
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+
+    environment:
+      DISPLAY: unix${DISPLAY}
+
+    volumes:
+      - ${HOME}/.Xauthority:/root/.Xauthority:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/dri:/dev/dri
+      - ${HOST_IO_PATH}:/io
+

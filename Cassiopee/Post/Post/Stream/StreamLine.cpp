@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,11 +40,10 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   PyObject* vectorNames;
   E_Int nStreamPtsMax;
   E_Float signe;
-
   if (!PYPARSETUPLE_(args, OO_ TRRR_ O_ R_ I_,
                     &arrays, &surfArray, &x0, &y0, &z0, &vectorNames, &signe, &nStreamPtsMax))
   {
-      return NULL;
+    return NULL;
   }
   // Check every array in arrays
   if (PyList_Check(arrays) == 0)
@@ -68,7 +67,7 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
                     "streamLine: vector must be defined by 3 components.");
     return NULL;
   }
-  for (int i = 0; i < PyList_Size(vectorNames); i++)
+  for (Py_ssize_t i = 0; i < PyList_Size(vectorNames); i++)
   {
     PyObject* tpl0 = PyList_GetItem(vectorNames, i);
     if (PyString_Check(tpl0))
@@ -99,10 +98,10 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; 
+  E_Bool skipDiffVars = true;
   E_Int nfld = -1;
   E_Int isOk = K_ARRAY::getFromArrays(arrays, resl, 
                                       structVarString, unstrVarString,
@@ -133,9 +132,9 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "streamLine: invalid list of arrays.");
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   }
@@ -154,17 +153,17 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   E_Int ress = -1000;
   if ((PyList_Check(surfArray) != 0) && (PyList_Size(surfArray) != 0))
   {
-    ress = K_ARRAY::getFromArray(surfArray, varStringSurf, f, 
-                                 imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf, true); 
+    ress = K_ARRAY::getFromArray3(surfArray, varStringSurf, f, 
+                                  imSurf, jmSurf, kmSurf, cnSurf, eltTypeSurf); 
     
     E_Int nfldSurf = K_ARRAY::getNumberOfVariables(varStringSurf);
     if (ress == -1 || nfldSurf == -1)
     {
       PyErr_SetString(PyExc_TypeError,
                       "streamLine: invalid list of surface arrays.");
-      for (unsigned int nos = 0; nos < objs.size(); nos++)
+      for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju.size(); nos++)
+      for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
       if (ress !=-1000) RELEASESHAREDU(surfArray, f, cnSurf);
 
@@ -178,9 +177,9 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
       E_Int posz = K_ARRAY::isCoordinateZPresent(varStringSurf);
       if (posx == -1 || posy == -1 || posz == -1)
       {
-        for (unsigned int nos = 0; nos < objs.size(); nos++)
+        for (size_t nos = 0; nos < objs.size(); nos++)
           RELEASESHAREDS(objs[nos], structF[nos]);
-        for (unsigned int nos = 0; nos < obju.size(); nos++)
+        for (size_t nos = 0; nos < obju.size(); nos++)
           RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
         if (ress != -1000) RELEASESHAREDU(surfArray, f, cnSurf);
         
@@ -258,9 +257,9 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_ValueError,
                     "streamLine: no interpData built.");
     if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
     return NULL;
   } 
@@ -284,7 +283,6 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
   vector<char*> eltTypes;
   vector<K_INTERP::InterpData*> unstrInterpDatas;
 
-  
   // seuls sont pris en compte les champs correspondant au vecteur
   // ts les arrays traites doivent avoir le meme nb de champs
   if (structSize > 0) 
@@ -302,13 +300,13 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
     if (found != 1)
     {
       if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-      for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+      for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
         delete structInterpDatas1[nos];
-      for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+      for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
         delete unstrInterpDatas2[nos];
-      for (unsigned int nos = 0; nos < objs.size(); nos++)
+      for (size_t nos = 0; nos < objs.size(); nos++)
         RELEASESHAREDS(objs[nos], structF[nos]);
-      for (unsigned int nos = 0; nos < obju.size(); nos++)
+      for (size_t nos = 0; nos < obju.size(); nos++)
         RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
       if (found == -1) 
         PyErr_SetString(PyExc_ValueError,
@@ -367,44 +365,49 @@ PyObject* K_POST::compStreamLine(PyObject* self, PyObject* args)
     *streamPts);
   if ( isinterp == 0 ) streamPts->malloc(0);
 
+  E_Int api = 1;
+  size_t structVectorSize = structVector.size();
+  size_t unstrVectorSize = unstrVector.size();
+  if (structVectorSize > 0) api = structVector[0]->getApi();
+  else if (unstrVectorSize > 0) api = unstrVector[0]->getApi();
+
   // little cleaning
-  E_Int structVectorSize = structVector.size();
-  for (E_Int v = 0; v < structVectorSize; v++) delete structVector[v];
-  E_Int unstrVectorSize = unstrVector.size();
-  for (E_Int v = 0; v < unstrVectorSize; v++) delete unstrVector[v];
+  for (size_t v = 0; v < structVectorSize; v++) delete structVector[v];
+  for (size_t v = 0; v < unstrVectorSize; v++) delete unstrVector[v];
 
   // Build array : liste de pts, structure
   E_Int npts = streamPts->getSize(); 
   if (npts < 2)
   { 
     if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-    for (unsigned int nos = 0; nos < objs.size(); nos++)
+    for (size_t nos = 0; nos < objs.size(); nos++)
       RELEASESHAREDS(objs[nos], structF[nos]);
-    for (unsigned int nos = 0; nos < obju.size(); nos++)
+    for (size_t nos = 0; nos < obju.size(); nos++)
       RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
-    for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+    for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
       delete structInterpDatas1[nos];
-    for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+    for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
       delete unstrInterpDatas2[nos];
     delete streamPts;
     PyErr_SetString(PyExc_ValueError,
                     "streamLine: cannot create a line.");
     return NULL;
   }
-  PyObject* tpl = K_ARRAY::buildArray(*streamPts, varStringOut, npts, 1, 1);
+
+  PyObject* tpl = K_ARRAY::buildArray3(*streamPts, varStringOut, npts, 1, 1, api);
   
   delete [] varStringOut;
   
   //nettoyage...
   delete streamPts; 
   if ( ress != -1000 ) RELEASESHAREDU(surfArray, f, cnSurf);
-  for (unsigned int nos = 0; nos < structInterpDatas1.size(); nos++)
+  for (size_t nos = 0; nos < structInterpDatas1.size(); nos++)
     delete structInterpDatas1[nos];
-  for (unsigned int nos = 0; nos < unstrInterpDatas2.size(); nos++)
+  for (size_t nos = 0; nos < unstrInterpDatas2.size(); nos++)
     delete unstrInterpDatas2[nos];
-  for (unsigned int nos = 0; nos < objs.size(); nos++)
+  for (size_t nos = 0; nos < objs.size(); nos++)
     RELEASESHAREDS(objs[nos], structF[nos]);
-  for (unsigned int nos = 0; nos < obju.size(); nos++)
+  for (size_t nos = 0; nos < obju.size(); nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
 
   return tpl;

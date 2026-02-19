@@ -5,8 +5,16 @@
 import sys
 import os
 
-import Distributor2
-__version__ = Distributor2.__version__
+try:
+    import Distributor2
+    __version__ = Distributor2.__version__
+except ModuleNotFoundError:
+    __version__ = 'undefined'
+    with open('../../Distributor2/Distributor2.py') as f:
+        for line in f:
+            if '__version__' in line:
+                __version__ = line.split('=')[1].strip()
+                break
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

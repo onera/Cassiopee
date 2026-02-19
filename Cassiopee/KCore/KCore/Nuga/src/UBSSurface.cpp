@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -113,14 +113,19 @@ void UBSSurface::__eval (E_Float u, const std::vector<pBaseFunc>& FUs,
   P[0] = P[1] = P[2] = 0.;
 
   // Ensure u and v are in the correct interval.
-  u = std::min(_Umax, u);
-  u = std::max(_Umin, u);
-  v = std::min(_Vmax, v);
-  v = std::max(_Vmin, v);
+  u = K_FUNC::E_min(_Umax, u);
+  u = K_FUNC::E_max(_Umin, u);
+  v = K_FUNC::E_min(_Vmax, v);
+  v = K_FUNC::E_max(_Vmin, v);
  
+#ifdef E_ADOLC
+  E_Int i = (v.value() == _Vmax.value())? E_Int(_Vmax.value() - 1.) : E_Int(v.value());
+  E_Int j = (u.value() == _Umax.value())? E_Int(_Umax.value() - 1.) : E_Int(u.value());
+#else
   E_Int i = (v == _Vmax)? E_Int(_Vmax - 1.) : E_Int(v);
   E_Int j = (u == _Umax)? E_Int(_Umax - 1.) : E_Int(u);
-  
+#endif
+
   // Normalize.
   u = u-j;
   v = v-i;
@@ -131,18 +136,16 @@ void UBSSurface::__eval (E_Float u, const std::vector<pBaseFunc>& FUs,
     pBaseFunc Nku = FUs[k-j];
     E_Float xu = Nku(u);
 
-    if (::fabs(xu) < EPSILON)
-      continue;
+    if (fabs(xu) < EPSILON) continue;
 
     for (E_Int l = i; l < i+4; ++l)
     {
       pBaseFunc Nlv = FVs[l-i];
-      E_Float    yv = Nlv(v);
+      E_Float yv = Nlv(v);
 
-      if (::fabs(yv) < EPSILON)
-        continue;
+      if (fabs(yv) < EPSILON) continue;
 
-      E_Int     nkl = _ctrlPts(l,k);
+      E_Int nkl = _ctrlPts(l,k);
 
       for (E_Int i = 0; i < 3; ++i)
         P[i] += xu*yv*_pos(i,nkl);
@@ -231,12 +234,19 @@ void UBSSurface::triangulate(K_FLD::FloatArray& pos,
   connectT3.clear();
   pos.clear();
   K_FLD::IntArray net;
-  net.resize(E_Int(_Vmax)+1, E_Int(_Umax)+1);
+#ifdef E_ADOLC
+  E_Int Vmaxi = E_Int(_Vmax.value());
+  E_Int Umaxi = E_Int(_Umax.value());
+#else
+  E_Int Vmaxi = E_Int(_Vmax);
+  E_Int Umaxi = E_Int(_Umax);
+#endif
+  net.resize(Vmaxi+1, Umaxi+1);
 
   // Create net points.
-  for (E_Int v = 0; v <= _Vmax; ++v)
+  for (E_Int v = 0; v <= Vmaxi; ++v)
   {
-    for (E_Int u =0; u <= _Umax; ++u)
+    for (E_Int u =0; u <= Umaxi; ++u)
     {
       point(u,v, P0);
       pos.pushBack(P0, P0+3);
@@ -245,9 +255,9 @@ void UBSSurface::triangulate(K_FLD::FloatArray& pos,
   }
 
   // Create the connectivity.
-  for (E_Int v = 0; v < _Vmax; ++v)
+  for (E_Int v = 0; v < Vmaxi; ++v)
   {
-    for (E_Int u =0; u < _Umax; ++u)
+    for (E_Int u =0; u < Umaxi; ++u)
     {
       Ti[0] = net(v,u);
       Ti[1] = net(v,u+1);

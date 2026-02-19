@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -55,7 +55,7 @@ PyObject* K_CONVERTER::extrapInterior2BCFaceStruct(PyObject* self, PyObject* arg
 
   // flow field at BC (Vertex or Faces)
   FldArrayF* fieldInt;
-  K_NUMPY::getFromNumpyArray(dataBC, fieldInt, true);
+  K_NUMPY::getFromNumpyArray(dataBC, fieldInt);
   E_Float* ptrBCField = fieldInt->begin();
 
   E_Int imjm = im*jm;

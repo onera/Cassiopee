@@ -63,7 +63,7 @@ List of functions
     Transform.homothety
     Transform.contract
     Transform.scale
-    Transform.symetrize
+    Transform.symmetrize
     Transform.perturbate
     Transform.smooth
     Transform.smoothField
@@ -149,29 +149,34 @@ Basic operations
 
 ---------------------------------------
 
-.. py:function:: Transform.reorder(a, dest) 
+.. py:function:: Transform.reorder(a, order) 
 
     .. A1.O0.D1
       
     For a structured grid, change the (i,j,k) ordering of a. 
-    If you set dest=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
+    If you set order=(i2,j2,k2) for a (i,j,k) mesh, going along i2 direction of the resulting mesh
     will be equivalent to go along i direction of initial mesh.
    
     The transformation can be equivalently described by a matrix M, filled with
     a single non-zero value per line and column (equal to -1 or 1).
-    Then, dest=(desti,destj,destk) means: 
-    M[abs(desti),1]=sign(desti); M[abs(destj),2]=sign(destj); M[abs(destk),3]=sign(destk).
+    Then, order=(orderi, orderj, orderk) means: 
+    M[abs(orderi),1]=sign(orderi); M[abs(orderj),2]=sign(orderj); M[abs(orderk),3]=sign(orderk).
 
-    For an unstructured 2D grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the 
-    same direction. If dest is set to (1,), all elements are oriented as element 0. If dest is (-1,), all elements are oriented
+    For a 2D unstructured grid (TRI, QUAD, 2D NGON), order the element nodes such that all normals are oriented towards the 
+    same direction. If order is set to (1,), all elements are oriented as element 0. If order is (-1,), all elements are oriented
     in the opposite sense of element 0.
+
+    For a 3D unstructured grid (TETRA, PYRA, PENTA, HEXA), element normals must be pointing outward by definition such that the
+    argument order can be left as None.
+
+    3D NGON grids are not supported yet.
    
     Exists also as an in-place version (_reorder) which modifies a and returns None.
    
     :param a: initial mesh
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
-    :param dest: integers specifying transformation
-    :type dest: 3-tuple of signed integers or a tuple of a single 1 or -1
+    :param order: integers specifying transformation
+    :type order: 3-tuple of signed integers or a tuple of a single 1 or -1 or None
     :return: a reoriented mesh
     :rtype: identical to input
 
@@ -579,21 +584,21 @@ Mesh transformation
 ---------------------------------------
 
 
-.. py:function:: Transform.symetrize(a, P, vector1, vector2)
+.. py:function:: Transform.symmetrize(a, P, vector1, vector2)
 
     .. A2.O0.D1
     
     Symmetrize a mesh with respect to a plane defined by point P and vectors vector1 and vector2.
 
-    Exists also as an in-place version (_symetrize) which modifies a and returns None.
+    Exists also as an in-place version (_symmetrize) which modifies a and returns None.
 
     :param a: mesh
     :type a: [array, list of arrays] or [zone, list of zones, base, pyTree]
     :param C: point of the symmetry plane 
     :type C: 3-tuple of floats
-    :param vector1: first vector of the symetry plane
+    :param vector1: first vector of the symmetry plane
     :type vector1: 3-tuple of floats
-    :param vector2: second vector of the symetry plane
+    :param vector2: second vector of the symmetry plane
     :type vector2: 3-tuple of floats
     :return: mesh after symmetrization
     :rtype: identical to input
@@ -775,7 +780,7 @@ Mesh transformation
 Mesh splitting and merging
 --------------------------
 
-.. py:function:: Transform.subzone(a, minIndex, maxIndex=None, type=None)
+.. py:function:: Transform.subzone(a, minIndex, maxIndex=None, type=None, dimOut=None)
 
     .. A1.O0.D0
     
@@ -789,6 +794,10 @@ Mesh splitting and merging
 
          b = T.subzone(a, [1,2,...])
 
+    Extract a subzone composed of 2D faces from a 3D unstructured mesh a, where the vertex list of the subzone must be specified (indices start at 1)::
+
+         b = T.subzone(a, [1,2,...], dimOut=2)
+
     Extract a subzone of an unstructured mesh providing the indices of elements (index starts at 0)::
 
          b = T.subzone(a, [0,1,...], type='elements')
@@ -801,11 +810,13 @@ Mesh splitting and merging
     :param a: input data
     :type  a: array or zone
     :param minIndex: (imin,jmin,kmin) for a structured grid, list of indices otherwise
-    :type  minIndex:  3-tuple of integers
+    :type  minIndex: 3-tuple of integers
     :param maxIndex: (imax,jmax,kmax) for a structured grid, None otherwise
-    :type  maxIndex:  3-tuple of integers
+    :type  maxIndex: 3-tuple of integers
     :param type: type of subzone to perform (None, 'elements', 'faces')
     :type  type: None or string
+    :param dimOut: dimension of the output unstructured connectivity when type is None (None means same as the intput, -1 means 2D for a 3D input connectivity)
+    :type  dimOut: integer
     :return: subzoned mesh
     :rtype: identical to a
 
@@ -1295,7 +1306,7 @@ Mesh deformation
 
     .. A1.O0.D0
     
-    Deform a surface mesh a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps
+    Deform a surface mesh a by moving each point of the surface by a scalar field alpha times the surface normals in niter steps.
 
     Exists also as an in-place version (_deformNormals) which modifies a and returns None.
 

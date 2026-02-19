@@ -15,7 +15,7 @@ fileName = 'case.cgns'
 # 1 - Make the case
 if rank == 0:
     a = G.cartTetra((0,0,0),(1,1,1),(5,7,11))
-    a = C.convertArray2NGon(a); a = G.close(a)
+    a = C.convertArray2NGon(a)
     a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + sin({centers:CoordinateY}) + cos({centers:CoordinateZ})')
     a = C.initVars(a, '{centers:Pressure} = {centers:CoordinateX} + cos({centers:CoordinateY}) + sin({centers:CoordinateZ})')
     a = C.initVars(a, '{Density} = {CoordinateX} + sin({CoordinateY}) + cos({CoordinateZ})')
@@ -34,11 +34,11 @@ for z in Internal.getZones(distTree):
     cy = Internal.getNodeFromName2(z, 'CoordinateY')[1]
     cz = Internal.getNodeFromName2(z, 'CoordinateZ')[1]
 
-    ngon = Internal.getNodeFromName2(z, 'NGonElements')
+    ngon = Internal.getNGonNode(z)
     ngonc = Internal.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = Internal.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = Internal.getNodeFromName2(z, 'NFaceElements')
+    nface = Internal.getNFaceNode(z)
     nfacec = Internal.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = Internal.getNodeFromName1(nface, 'ElementStartOffset')[1]
 

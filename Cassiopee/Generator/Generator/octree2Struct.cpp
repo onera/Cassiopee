@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ using namespace K_CONST;
 PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 {
   PyObject* octree; PyObject* listOfVmin;
-  if (!PyArg_ParseTuple(args, "OO", &octree, &listOfVmin)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &octree, &listOfVmin)) return NULL;
   if (PyList_Check(listOfVmin) == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -47,14 +47,14 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   K_FLD::FldArrayF* f; K_FLD::FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   E_Int dim = 3;
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, 
                     "octree2Struct: array must be unstructured.");
-    if (res == 1) RELEASESHAREDS(octree,f);
+    if (res == 1) RELEASESHAREDS(octree, f);
     return NULL;   
   }
   if (strcmp(eltType, "HEXA") == 0) dim = 3;
@@ -157,6 +157,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 
   // decoupage de chaque QUAD ou HEXA en vmin points par direction
   // attention: QUAD en (x,y): z = 0.
+  E_Int api = f->getApi();
   E_Int nfld = f->getNfld();
   PyObject* l = PyList_New(nelts);
 
@@ -167,11 +168,12 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
     {
       E_Int lloc = lp[et]; 
       E_Int vminloc = vmint[lloc];
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varString, vminloc, vminloc, 1);
-      E_Float* coordsp = K_ARRAY::getFieldPtr(tpl);
-      E_Float* xt = coordsp;
-      xtt[et] = xt;
+      PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, vminloc, vminloc, 1, api);
+      FldArrayF* coords;
+      K_ARRAY::getFromArray3(tpl, coords);
+      xtt[et] = coords->begin();
       PyList_SET_ITEM(l, et, tpl);
+      RELEASESHAREDS(tpl, coords);
     }
 
 #pragma omp parallel for default(shared)
@@ -207,11 +209,12 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
     {
       E_Int lloc = lp[et]; 
       E_Int vminloc = vmint[lloc];
-      PyObject* tpl = K_ARRAY::buildArray(3, "x,y,z", vminloc, vminloc, vminloc);
-      E_Float* coordsp = K_ARRAY::getFieldPtr(tpl);
-      E_Float* xt = coordsp;
-      xtt[et] = xt;
+      PyObject* tpl = K_ARRAY::buildArray3(3, "x,y,z", vminloc, vminloc, vminloc, api);
+      FldArrayF* coords;
+      K_ARRAY::getFromArray3(tpl, coords);
+      xtt[et] = coords->begin();
       PyList_SET_ITEM(l, et, tpl);
+      RELEASESHAREDS(tpl, coords);
     }
 
 #pragma omp parallel for default(shared)

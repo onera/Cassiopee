@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -31,31 +31,31 @@ using namespace std;
 PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
-  
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
+
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: array must be a BAR or an i-array.");
-    return NULL;  
+    return NULL;
   }
   if ( res == 1 && ( jm != 1 || km != 1 || im == 1 ) )
   {
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: structured array must be an i-array.");
     return NULL;
   }
   else if ( res == 2  )
   {
-    delete f; delete cn;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: not for unstructured arrays.");
     return NULL;
@@ -66,21 +66,22 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: can't find coordinates in array.");
     return NULL;
   }
-  posx++; posy++; posz++;  
+  posx++; posy++; posz++;
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
+  E_Int api = f->getApi();
   E_Int npts = f->getSize();
 
   // calcul du rayon de courbure
   FldArrayF* radp = new FldArrayF(npts);
   FldArrayF& rad = *radp;
-  
+
   FldArrayF curv(npts);
   K_COMPGEOM::compCurvature(npts, xt, yt, zt, curv);
   E_Float c;
@@ -93,7 +94,8 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
       rad[i] = -K_CONST::E_MAX_FLOAT;
     else rad[i] = 1./c;
   }
-  PyObject* tpl = K_ARRAY::buildArray(rad, "radius", npts, 1, 1);
-  delete f; delete radp;
+  PyObject* tpl = K_ARRAY::buildArray3(rad, "radius", npts, 1, 1, api);
+  delete radp;
+  RELEASESHAREDB(res, array, f, cn);  
   return tpl;
-}     
+}

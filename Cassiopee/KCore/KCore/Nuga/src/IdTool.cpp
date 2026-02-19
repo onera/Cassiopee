@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -206,7 +206,7 @@ namespace K_CONNECT
     {
       const E_Int& id = vec[i];
       if (id != IDX_NONE)
-          mid=std::max(mid, id);
+          mid = K_FUNC::E_max(mid, id);
     }
     return mid;
   }
@@ -218,7 +218,7 @@ namespace K_CONNECT
     for (E_Int i = 0; i < connect.cols(); ++i)
     {
       for (E_Int j = 0; j < connect.rows(); ++j)
-        mid=std::min(mid, connect(j,i));
+        mid = K_FUNC::E_min(mid, connect(j,i));
     }
     return mid;
   }
@@ -228,7 +228,7 @@ namespace K_CONNECT
   {
     E_Int mid = IDX_NONE;
     for (size_t i=0; i < vec.size(); ++i)
-      mid=std::min(mid, vec[i]);
+      mid = K_FUNC::E_min(mid, vec[i]);
     return mid;
   }
   
@@ -244,7 +244,7 @@ namespace K_CONNECT
         tmp.push_back(vec[i]);
     }
     
-    vec=tmp;
+    vec = tmp;
   }
   
   ///

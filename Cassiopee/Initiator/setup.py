@@ -1,37 +1,37 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
-# Initiator requires :
+# Initiator requires:
 # [ENV] CASSIOPEE, ELSAPROD
 # C++ compiler
-# Fortran compiler : defined in config.py
+# Fortran compiler: defined in config.py
 # Numpy
 # KCore library
 #=============================================================================
-
-# Write setup.cfg
+import os
+from setuptools import setup, Extension
 import KCore.Dist as Dist
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
+
+# Write setup.cfg file
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Compilation des fortrans ===================================================
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
 libraries = ["initiator", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # setup =======================================================================
@@ -40,7 +40,7 @@ setup(
     version="4.1",
     description="Initiator for *Cassiopee* modules.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Initiator'],
     package_dir={"":"."},
     ext_modules=[Extension('Initiator.initiator',
@@ -54,5 +54,3 @@ setup(
                  ]
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -5,7 +5,6 @@ CompTetraCellCenterF.for\
 CompStructCellCenterF.for\
 CompVolOfStructCellF.for \
 CompVolOfTetraCellF.for \
-CompMeanLengthOfCellF.for\
 CompMinLengthOfCellF.for\
 CompIntSurfOfCellF.for\
 CompIntSurfF.for \

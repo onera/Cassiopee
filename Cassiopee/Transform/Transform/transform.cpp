@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -41,7 +41,7 @@ static PyMethodDef PyTransform[] =
   {"_rotateA3", K_TRANSFORM::_rotateA3, METH_VARARGS},
   {"homothety", K_TRANSFORM::homothety, METH_VARARGS},
   {"contract", K_TRANSFORM::contract, METH_VARARGS},
-  {"symetrize", K_TRANSFORM::symetrize, METH_VARARGS},
+  {"symmetrize", K_TRANSFORM::symmetrize, METH_VARARGS},
   {"perturbate", K_TRANSFORM::perturbate, METH_VARARGS},
   {"smooth", K_TRANSFORM::smooth, METH_VARARGS},
   {"_smoothField", K_TRANSFORM::_smoothField, METH_VARARGS},
@@ -49,6 +49,8 @@ static PyMethodDef PyTransform[] =
   {"deform2", K_TRANSFORM::deform2, METH_VARARGS},
   {"deformPoint", K_TRANSFORM::deformPoint, METH_VARARGS},
   {"deformMeshStruct", K_TRANSFORM::deformMeshStruct, METH_VARARGS},
+  {"computeDeformationVector", K_TRANSFORM::computeDeformationVector, METH_VARARGS},
+  {"_freeForm", K_TRANSFORM::_freeForm, METH_VARARGS},
   {"projectAllDirs", K_TRANSFORM::projectAllDirs, METH_VARARGS},
   {"projectDir", K_TRANSFORM::projectDir, METH_VARARGS},
   {"projectOrtho", K_TRANSFORM::projectOrtho, METH_VARARGS},
@@ -89,7 +91,6 @@ static PyMethodDef PyTransform[] =
   {"collapse", K_TRANSFORM::collapse, METH_VARARGS},
   {"mergeCart", K_TRANSFORM::mergeCartGrids, METH_VARARGS},
   {"merge", K_TRANSFORM::mergeStructGrids, METH_VARARGS},
-  {"computeDeformationVector", K_TRANSFORM::computeDeformationVector, METH_VARARGS},
   {"breakElements", K_TRANSFORM::breakElements, METH_VARARGS},
   {"splitNGon", K_TRANSFORM::splitNGon, METH_VARARGS},
   {"splitNGon2", K_TRANSFORM::splitNGon2, METH_VARARGS},

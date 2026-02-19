@@ -1,10 +1,16 @@
 # - adaptSurfaceNGon (pyTree) -
-import Generator.PyTree as G
 import Converter.PyTree as C
+import Converter.Internal as Internal
+import Generator.PyTree as G
 
-# This is type A
-a = G.cartNGon((0,0,0), (1,1,1), (10,10,1))
+# type A : NGON=bars, NFACE=polygon
+a = G.cartNGon((0,0,0), (1,1,1), (10,10,1), api=3)
+Internal.printTree(a)
 
-ar = C.getFields('GridCoordinates', a, api=3)[0]
-import Converter
-Converter.converter.adaptSurfaceNGon(ar)
+# type B : NGON=polygon, NFACE=NULL
+b = Internal.adaptSurfaceNGon(a)
+Internal.printTree(b)
+
+# Back to type A
+c = Internal.adaptSurfaceNGon(b)
+Internal.printTree(c)

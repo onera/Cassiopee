@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -27,7 +27,7 @@ using namespace K_FLD;
 PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if ( !PyArg_ParseTuple(args, "O", &array) )
+  if ( !PYPARSETUPLE_(args, O_, &array) )
   {
     return NULL;
   }
@@ -35,7 +35,7 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 2 || strcmp(eltType, "TRI") != 0) 
   {
@@ -56,33 +56,30 @@ PyObject* K_GENERATOR::getCircumCircleMap(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
   
   E_Int ncells = cn->getSize();
-  E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
+  E_Int api = f->getApi();
+  E_Int nvertex = f->getSize();
 
-  PyObject* tpl = K_ARRAY::buildArray(1, "ccradius", ncells, ncells, 
-				      -1, eltType, true);
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  K_KCORE::memcpy__(cnnp, cn->begin(), ncells*nnodes);
-  E_Float* ccradp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF ccrad(ncells, 1, ccradp, true);
+  PyObject* tpl = K_ARRAY::buildArray3(1, "ccradius", nvertex, *cn, eltType, 1, api, true);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
+  E_Float* ccrad = f2->begin(1);
 
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
   
   E_Int ind1, ind2, ind3;
   E_Float p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z;
   for (E_Int et = 0; et < ncells; et++)
   {
-    ind1 = cn1[et]-1; ind2 = cn2[et]-1; ind3 = cn3[et]-1;
+    ind1 = (*cn)(et,1)-1; ind2 = (*cn)(et,2)-1; ind3 = (*cn)(et,3)-1;
     p1x = xt[ind1]; p1y = yt[ind1]; p1z = zt[ind1];  
     p2x = xt[ind2]; p2y = yt[ind2]; p2z = zt[ind2];
     p3x = xt[ind3]; p3y = yt[ind3]; p3z = zt[ind3];
     ccrad[et] = K_COMPGEOM::circumCircleRadius(p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z);
   }
   
+  RELEASESHAREDS(tpl, f2); 
   RELEASESHAREDU(array, f, cn); 
   return tpl;
 }

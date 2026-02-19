@@ -1,34 +1,34 @@
-import os
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-
 #=============================================================================
 # Dist2Walls requires:
 # C++ compiler
 # Numpy
 # KCore
 #=============================================================================
-
-# Write setup.cfg
+import os
+from setuptools import setup, Extension
 import KCore.Dist as Dist
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
+
+# Write setup.cfg file
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Setting libraryDirs and libraries ===========================================
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 libraryDirs = [kcoreLibDir, 'build/'+prod]
 libraries = ["dist2walls", "kcore"]
-from KCore.config import *
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
@@ -49,11 +49,9 @@ setup(
     version="4.1",
     description="Computation of distance to walls.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Dist2Walls'],
     package_dir={"":"."},
     ext_modules=extensions
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

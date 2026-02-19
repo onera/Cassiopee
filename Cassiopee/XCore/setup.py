@@ -1,7 +1,3 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
 # XCore requires:
 # ELSAPROD variable defined in environment
@@ -9,12 +5,25 @@ import os
 # Numpy, MPI
 # KCore library
 #=============================================================================
+import os
+from setuptools import setup, Extension
+from importlib.util import spec_from_file_location, module_from_spec
+import KCore.Dist as Dist
+
+def loadModuleFromPath(modname):
+    # Load a Python file by filesystem path (PEP-517 isolated build requirement)
+    helper = os.path.join(os.path.dirname(__file__), modname + ".py")
+    spec = spec_from_file_location(modname, helper)
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
-
-from KCore.config import *
 
 # Get compilers from Distutils ================================================
 (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
@@ -26,25 +35,22 @@ from KCore.config import *
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if fortran exists
-(ok, fortranLibs, fortranLibDir) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, fortranLibs, fortranLibDir) = Dist.checkFortranLibs()
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]+fortranLibDir
 includeDirs = [numpyIncDir, kcoreIncDir]
 
-import srcs
+srcs = loadModuleFromPath('srcs')
 libraries = ["xcore"]
 if srcs.ZOLTAN and mpi: libraries += ["zoltan"]
 if srcs.SCOTCH: libraries += ["scotch1", "scotch2"]
@@ -71,7 +77,7 @@ if mpi4py:
     includeDirs.append(mpi4pyIncDir)
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
@@ -87,14 +93,14 @@ listExtensions.append(
               ) )
 
 listExtensionsPyx = []
-cython = Dist.checkCython(additionalLibPaths, additionalIncludePaths)
+cython = Dist.checkCython()
 
 if cython and mpi and mpi4py:
     if srcs.PARADIGMA == 2:
-        import srcs_paradigma23 as srcs_paradigma
+        srcs_paradigma = loadModuleFromPath('srcs_paradigma23')
         paradigmaDir = "XCore/paradgima"
     elif srcs.PARADIGMA == 1:
-        import srcs_paradigma
+        srcs_paradigma = loadModuleFromPath('srcs_paradigma')
         paradigmaDir = "XCore/paradigma23"
     if srcs.PARADIGMA != 0:
         PPATH = srcs_paradigma.PPATH
@@ -126,11 +132,9 @@ setup(
     version="4.1",
     description="XCore for *Cassiopee* modules.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['XCore'],
     package_dir={"":"."},
     ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=[paradigmaDir])
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

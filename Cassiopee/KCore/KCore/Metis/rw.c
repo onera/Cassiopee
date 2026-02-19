@@ -28,7 +28,7 @@
 /**************************************************************************/
 int gk_rw_PageRank(gk_csr_t *mat, float lamda, float eps, int max_niter, float *pr)
 {
-  ssize_t i, j, k, iter, nrows;
+  ssize_t i, j, iter, nrows;
   double *rscale, *prold, *prnew, *prtmp;
   double fromsinks, error;
   ssize_t *rowptr;

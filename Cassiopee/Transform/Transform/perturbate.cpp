@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,20 +34,22 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_ I_,
                     &array, &radius, &dim))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   E_Int posx, posy, posz;
   E_Float rx, ry, rz;
   E_Float rxi, ryi, rzi, rxj, ryj, rzj, rxk, ryk,rzk;
   E_Int ind, indi, indj, indk;
-  E_Float l; 
+  E_Float l;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -56,13 +58,13 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "perturbate: can't find coordinates in array.");
       return NULL;
     }
     posx++; posy++; posz++;
-    
+
     E_Float* fx = f->begin(posx);
     E_Float* fy = f->begin(posy);
     E_Float* fz = f->begin(posz);
@@ -103,8 +105,8 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
             rx = K_NOISE::stdRand(&idum)-0.5;
             ry = 0.; rz = 0.;
             if (dim > 1) ry = K_NOISE::stdRand(&idum)-0.5;
-            if (dim > 2) rz = K_NOISE::stdRand(&idum)-0.5;  
-            
+            if (dim > 2) rz = K_NOISE::stdRand(&idum)-0.5;
+
             ind = i + j*im + k*im*jm;
             indi = i+1 + j*im + k*im*jm;
             indj = i + (j+1)*im + k*im*jm;
@@ -112,24 +114,24 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
             rxi = fx[indi]-fx[ind];
             ryi = fy[indi]-fy[ind];
             rzi = fz[indi]-fz[ind];
-            
+
             rxj = fx[indj]-fx[ind];
             ryj = fy[indj]-fy[ind];
             rzj = fz[indj]-fz[ind];
-           
+
             rxk = fx[indk]-fx[ind];
             ryk = fy[indk]-fy[ind];
             rzk = fz[indk]-fz[ind];
-            
+
             fx[ind] += radius*(rx*rxi+ry*rxj+rz*rxk);
             fy[ind] += radius*(rx*ryi+ry*ryj+rz*ryk);
             fz[ind] += radius*(rx*rzi+ry*rzj+rz*rzk);
           }
     }
-      
+
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString, im, jm, km);
-    delete f;
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+    RELEASESHAREDS(array, f);
     return tpl;
   }
   else if (res == 2)
@@ -139,17 +141,17 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
     posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f; delete cn;
+      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "perturbate: can't find coordinates in array.");
       return NULL;
     }
     posx++; posy++; posz++;
-    
+
     E_Float* fx = f->begin(posx);
     E_Float* fy = f->begin(posy);
     E_Float* fz = f->begin(posz);
-    
+
     // Random perturbation
     E_LONG idum = -1;
 
@@ -167,7 +169,7 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
       if (dim > 2) rz = K_NOISE::stdRand(&idum);
       vector<E_Int>& pt = cVN[i];
       l = 1.e6;
-      for (unsigned int j = 0; j < pt.size(); j++)
+      for (size_t j = 0; j < pt.size(); j++)
       {
         ind = pt[j]-1;
         lx = fx[i] - fx[ind];
@@ -180,10 +182,10 @@ PyObject* K_TRANSFORM::perturbate(PyObject* self, PyObject* args)
       fy[i] += radius*ry*l;
       fz[i] += radius*rz*l;
     }
-    
+
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
-    delete f; delete cn;
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
   else

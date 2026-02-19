@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ PyObject* K_CONVERTER::adaptShiftedPE2PE(PyObject* self, PyObject* args)
 
   // Check numpy (FE)
   FldArrayI* cFE;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayFE, cFE, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayFE, cFE);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

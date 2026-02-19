@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -22,7 +22,7 @@
 #include <iomanip>
 #include "linear_algebra.hpp" 
 
-double K_POST::det(const matrix_2x2_type& A)
+E_Float K_POST::det(const matrix_2x2_type& A)
 {
     return A[0][0]*A[1][1] - A[0][1]*A[1][0];
 }
@@ -38,11 +38,11 @@ auto K_POST::operator * ( const matrix_2x2_type& A, const vector2d& u) -> vector
 auto K_POST::inverse(const matrix_2x2_type& A) -> matrix_2x2_type
 {
     // On utilise la formule des cofacteurs pour une matrice 2x2
-    double detA = det(A);
+    E_Float detA = det(A);
     if (std::abs(detA)<1.E-14) throw std::invalid_argument("The matrix A is not inversible !");
-    double inv_det = 1./detA;
+    E_Float inv_det = 1./detA;
     return {
-        std::array<double,2>{ inv_det*A[1][1], -inv_det*A[0][1]},
+        std::array<E_Float,2>{ inv_det*A[1][1], -inv_det*A[0][1]},
                             {-inv_det*A[1][0],  inv_det*A[0][0]}
            };
 }
@@ -51,13 +51,13 @@ auto
 K_POST::inverse_linear_system(const matrix_2x2_type& A, const vector2d& u) -> vector2d
 {
     // On utilise la formule des cofacteurs pour une matrice 2x2
-    double detA = det(A);
+    E_Float detA = det(A);
     if (std::abs(detA)<1.E-14) throw std::invalid_argument("The matrix A is not inversible !");
     matrix_2x2_type coMat = {
-        std::array<double,2>{ A[1][1], -A[0][1]},
+        std::array<E_Float,2>{ A[1][1], -A[0][1]},
                             {-A[1][0],  A[0][0]}
                             };
-    double inv_det = 1./detA;
+    E_Float inv_det = 1./detA;
     return {
             inv_det*(coMat[0][0]*u[0]+coMat[0][1]*u[1]),
             inv_det*(coMat[1][0]*u[0]+coMat[1][1]*u[1])
@@ -86,7 +86,7 @@ std::string K_POST::to_string(const matrix_2x2_type& A)
     return sout.str();
 }
 // ====================================================================================================
-double K_POST::det(const matrix_3x3_type& A)
+E_Float K_POST::det(const matrix_3x3_type& A)
 {
     return A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1] -
            A[0][2]*A[1][1]*A[2][0] - A[1][2]*A[2][1]*A[0][0] - A[2][2]*A[0][1]*A[1][0];
@@ -104,11 +104,11 @@ auto K_POST::operator * ( const matrix_3x3_type& A, const vector3d& u) -> vector
 auto K_POST::inverse(const matrix_3x3_type& A) -> matrix_3x3_type
 {
     // On utilise la formule des cofacteurs pour une matrice 3x3
-    double detA = det(A);
+    E_Float detA = det(A);
     if (std::abs(detA)<1.E-14) throw std::invalid_argument("The matrix A is not inversible !");
-    double inv_det = 1./detA;
+    E_Float inv_det = 1./detA;
     return {
-        std::array<double,3>{inv_det*(A[1][1]*A[2][2]-A[1][2]*A[2][1]), inv_det*(A[2][1]*A[0][2]-A[0][1]*A[2][2]), inv_det*(A[0][1]*A[1][2]-A[1][1]*A[0][2])},
+        std::array<E_Float,3>{inv_det*(A[1][1]*A[2][2]-A[1][2]*A[2][1]), inv_det*(A[2][1]*A[0][2]-A[0][1]*A[2][2]), inv_det*(A[0][1]*A[1][2]-A[1][1]*A[0][2])},
                             {inv_det*(A[2][0]*A[1][2]-A[1][0]*A[2][2]), inv_det*(A[0][0]*A[2][2]-A[2][0]*A[0][2]), inv_det*(A[1][0]*A[0][2]-A[0][0]*A[1][2])},
                             {inv_det*(A[1][0]*A[2][1]-A[2][0]*A[1][1]), inv_det*(A[2][0]*A[0][1]-A[0][0]*A[2][1]), inv_det*(A[0][0]*A[1][1]-A[1][0]*A[0][1])}
            };
@@ -118,14 +118,14 @@ auto
 K_POST::inverse_linear_system(const matrix_3x3_type& A, const vector3d& u) -> vector3d
 {
     // On utilise la formule des cofacteurs pour une matrice 3x3
-    double detA = det(A);
+    E_Float detA = det(A);
     if (std::abs(detA)<1.E-14) throw std::invalid_argument("The matrix A is not inversible !");
     matrix_3x3_type coMat = {
-        std::array<double,3>{A[1][1]*A[2][2]-A[1][2]*A[2][1], A[2][1]*A[0][2]-A[0][1]*A[2][2], A[0][1]*A[1][2]-A[1][1]*A[0][2]},
+        std::array<E_Float,3>{A[1][1]*A[2][2]-A[1][2]*A[2][1], A[2][1]*A[0][2]-A[0][1]*A[2][2], A[0][1]*A[1][2]-A[1][1]*A[0][2]},
                             {A[2][0]*A[1][2]-A[1][0]*A[2][2], A[0][0]*A[2][2]-A[2][0]*A[0][2], A[1][0]*A[0][2]-A[0][0]*A[1][2]},
                             {A[1][0]*A[2][1]-A[2][0]*A[1][1], A[2][0]*A[0][1]-A[0][0]*A[2][1], A[0][0]*A[1][1]-A[1][0]*A[0][1]}
                             };
-    double inv_det = 1./detA;
+    E_Float inv_det = 1./detA;
     return {
             inv_det*(coMat[0][0]*u[0]+coMat[0][1]*u[1]+coMat[0][2]*u[2]),
             inv_det*(coMat[1][0]*u[0]+coMat[1][1]*u[1]+coMat[1][2]*u[2]),
@@ -181,9 +181,9 @@ auto K_POST::factorize(const matrix_4x4_type& A) -> factorized_matrix_4x4_type
            std::swap(pivot[i], pivot[imax]);
            std::swap(LU[i],LU[imax]);
         }
-        double Apiv = LU[i][i];
+        E_Float Apiv = LU[i][i];
         if (std::abs(Apiv) < 1.E-14) throw std::invalid_argument("La matrice A est non inversible !");
-        double inv_piv = 1./Apiv;
+        E_Float inv_piv = 1./Apiv;
         for (int j = i + 1; j < 4; j++) {
             LU[j][i] *= inv_piv;
 
@@ -335,13 +335,13 @@ std::string K_POST::to_string(const factorized_matrix_4x4_type& PLU)
 using namespace K_POST;
 int main()
 {
-    matrix_2x2_type A2{ std::array<double,2>{ 3,1},
+    matrix_2x2_type A2{ std::array<E_Float,2>{ 3,1},
                                             {-1,3}
                       };
     std::cout << "A2 : " << std::endl << to_string(A2) << std::endl;
     vector2d u2{1.,2.};
     std::cout << "u2 = " << u2 << std::endl;
-    double det_A2 = det(A2);
+    E_Float det_A2 = det(A2);
     assert(std::abs(det_A2-10.)<1.E-14);
     vector2d v2 = A2*u2;
     std::cout << "v2 = A2.u2 = " << v2 << std::endl;
@@ -360,14 +360,14 @@ int main()
     assert(std::abs(w2_2[0]-u2[0])<1.E-14);
     assert(std::abs(w2_2[0]-u2[0])<1.E-14);
     // ##############################################################
-    matrix_3x3_type A{ std::array<double,3>{ 3, 1, 1},
+    matrix_3x3_type A{ std::array<E_Float,3>{ 3, 1, 1},
                                            {-1, 3, 1},
                                            {-1,-1, 3}
                      };
     std::cout << "A : " << std::endl << to_string(A) << std::endl;
     vector3d u{1.,2.,3.};
     std::cout << "u = " << std::string(u) << std::endl;
-    double det_A = det(A);
+    E_Float det_A = det(A);
     assert(std::abs(det_A-36.)<1.E-14);
     vector3d v = A*u;
     std::cout << "v = A.u = " << std::string(v) << std::endl;
@@ -389,7 +389,7 @@ int main()
     assert(std::abs(w2.y-u.y)<1.E-14);
     assert(std::abs(w2.z-u.z)<1.E-14);
     // ##############################################################
-    matrix_4x4_type B{ std::array<double,4>{0.5, 1, 1, 1},
+    matrix_4x4_type B{ std::array<E_Float,4>{0.5, 1, 1, 1},
                                            {-1, 4, 1, 1},
                                            {-1,-1, 4, 1},
                                            {-1,-1,-1, 2}

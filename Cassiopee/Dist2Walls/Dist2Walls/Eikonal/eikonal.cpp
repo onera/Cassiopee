@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
-/* Eikonal solver (array) 
+/* Eikonal solver (array)
    IN: cartesian grid */
 // ============================================================================
 PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
@@ -38,15 +38,15 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //struct timespec beg, end;
   //clock_gettime(CLOCK_REALTIME, &beg);
   int algo = 0;
-  if (!PyArg_ParseTuple(args, "O|i", &array,&algo)) return NULL;
-  
+  if (!PyArg_ParseTuple(args, "O|i", &array, &algo)) return NULL;
+
   // Check array
   E_Int nil, njl, nkl;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl, 
-                              cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                               cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -73,21 +73,16 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
-    
-  E_Int npts = f->getSize();
-  E_Int nfld = f->getNfld();
 
   // Construit l'array resultat et l'initialise par copie
   PyObject* tpl;
-  tpl = K_ARRAY::buildArray(nfld, varString, 
-                            nil, njl, nkl);
-  
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
-  fn.setAllValuesAt(*f);
+  FldArrayF* f2;
+  tpl = K_ARRAY::buildArray3(*f, varString, nil, njl, nkl, api);
+  K_ARRAY::getFromArray3(tpl, f2);
 
   // Get the pointer on phi
   E_Int pos = K_ARRAY::isNamePresent("Phi", varString);
@@ -98,10 +93,10 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
                     "eikonal: cannot find Phi in array.");
     return NULL;
   }
-  E_Float* phi = fn.begin(pos+1);
+  E_Float* phi = f2->begin(pos+1);
   E_Float max_float = 0.;
-  for ( int i = 0; i < nil*njl*nkl; ++i )
-    max_float = std::max(max_float,phi[i]);
+  for (E_Int i = 0; i < nil*njl*nkl; i++)
+    max_float = K_FUNC::E_max(max_float, phi[i]);
 
   // Get the pointer on v (speed)
   E_Int posv = K_ARRAY::isNamePresent("speed", varString);
@@ -113,14 +108,14 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Float* v = fn.begin(posv+1);
-  E_Float dh = x[1]-x[0];
+  E_Float* v = f2->begin(posv+1);
+  E_Float dh = x[1] - x[0];
   //E_Int nbSubIter = 5;
 
   //clock_gettime(CLOCK_REALTIME, &end);
   //double seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
-  //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;  
-  //E_Int nt = __NUMTHREADS__;  
+  //std::cout << "Temps passé en C avant appel Eikonal solver : " << seconds << "secondes" << std::endl;
+  //E_Int nt = __NUMTHREADS__;
   //nt = 0; // pas de multithread pour l'instant
   //clock_gettime(CLOCK_REALTIME, &beg);
   if (algo == 0 ) // Algorithme d'origine FMM
@@ -132,19 +127,20 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
     Eikonal::FIM::solveOnIsotropGrid( nil, njl, nkl, x[0], y[0], z[0], dh, phi, v, max_float);
   }
   if (algo == 2 )// Si on a choisit l'algorithme FIM
-  //if (nt == 0) 
+  //if (nt == 0)
   {
     solveEikonalOnIsotropGrid(nil, njl, nkl,
                               x[0], y[0], z[0],
                               dh, v, phi);
   }
-  // else 
+  // else
   // {
   //   blockFIM( nil, njl, nkl, x[0], y[0], z[0], dh, niBlk, njBlk, nkBlk, nbSubIter, v, phi);
   // }
   //clock_gettime(CLOCK_REALTIME, &end);
   //seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
-  //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;  
+  //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;
+  RELEASESHAREDS(tpl, f2);
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

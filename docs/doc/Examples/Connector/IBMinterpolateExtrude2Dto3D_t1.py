@@ -1,5 +1,5 @@
 # extrude 2D mesh to 3D with Cartesian approach & prepareIBMDataExtrude
-import Apps.Fast.IBM as App
+#import Apps.Fast.IBM as App
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Converter.Internal as Internal

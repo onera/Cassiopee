@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@
 void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield)
 {
   E_Int i, n1, n2, n3, n4;
-  float r, g, b, offb=0.;
+  float r, /*g, b,*/ offb=0.;
   double blend;
   E_Int ret1, ret2, ret3, ret4, ff=0;
 
@@ -77,6 +77,7 @@ void Data::displayUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 #undef PLOTQUAD
 #undef PLOTQUAD2
 #undef PLOTNGON
+#undef PLOTNGON2
   double* f1 = zonep->f[nofield1];
   double* f2 = zonep->f[nofield2];
   double* f3 = zonep->f[nofield3];

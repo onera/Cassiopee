@@ -1,14 +1,15 @@
 # install les themes ttk
-import KCore.installPath
-import os, sys
+import KCore.installPath as K
+import os
+import sys
+
 force = False
 if len(sys.argv) > 1:
-    if sys.argv[1] == '-f': force = True
-    elif sys.argv[1] == '-force': force = True
+    if sys.argv[1] in ['-f', '-force']: force = True
 
-p = KCore.installPath.installPath+'/CPlot'
-a = os.access(p+'/themes.tar', os.R_OK)
-b = os.access(p+'/themes', os.R_OK)
+p = os.path.join(K.installPath, 'CPlot')
+a = os.access(os.path.join(p, 'themes.tar'), os.R_OK)
+b = os.access(os.path.join(p, 'themes'), os.R_OK)
 if force or (a and not b):
     h = os.getcwd()
     os.chdir(p)

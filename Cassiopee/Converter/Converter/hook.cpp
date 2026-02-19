@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -35,7 +35,7 @@ using namespace ExtendedArithmetics;
 PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -502,8 +502,8 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord=true; E_Boolean skipStructured=false;
-  E_Boolean skipUnstructured=false; E_Boolean skipDiffVars=true;
+  E_Bool skipNoCoord=true; E_Bool skipStructured=false;
+  E_Bool skipUnstructured=false; E_Bool skipDiffVars=true;
   E_Int isOk = K_ARRAY::getFromArrays(listFields, resl, varString, fields, 
                                       a2, a3, a4, objs, skipDiffVars, skipNoCoord, 
                                       skipStructured, skipUnstructured, true);
@@ -584,30 +584,30 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
     K_INTERP::InterpAdt* adt=NULL;
     if (center == Py_None || axis == Py_None)
     {
-        // Adt sur les coordonnees cartesiennes
-        adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no], isBuilt);
+      // Adt sur les coordonnees cartesiennes
+      adt = new K_INTERP::InterpAdt(
+      fields[no]->getSize(), 
+      fields[no]->begin(posxs[no]),
+      fields[no]->begin(posys[no]),
+      fields[no]->begin(poszs[no]),
+      a2[no], a3[no], a4[no], isBuilt);
     }
     else
     {
-        // Adt sur les coordonnees cylindriques
-        E_Float centerX, centerY, centerZ;
-        E_Float axisX, axisY, axisZ;
-        PYPARSETUPLE_(center, RRR_, &centerX, &centerY, &centerZ);
-        PYPARSETUPLE_(axis, RRR_, &axisX, &axisY, &axisZ);
-        adt = new K_INTERP::InterpAdt(
-        fields[no]->getSize(), 
-        fields[no]->begin(posxs[no]),
-        fields[no]->begin(posys[no]),
-        fields[no]->begin(poszs[no]),
-        a2[no], a3[no], a4[no],
-        centerX, centerY, centerZ,
-        axisX, axisY, axisZ, thetaShift, depth,
-        isBuilt);
+      // Adt sur les coordonnees cylindriques
+      E_Float centerX, centerY, centerZ;
+      E_Float axisX, axisY, axisZ;
+      PYPARSETUPLE_(center, RRR_, &centerX, &centerY, &centerZ);
+      PYPARSETUPLE_(axis, RRR_, &axisX, &axisY, &axisZ);
+      adt = new K_INTERP::InterpAdt(
+      fields[no]->getSize(), 
+      fields[no]->begin(posxs[no]),
+      fields[no]->begin(posys[no]),
+      fields[no]->begin(poszs[no]),
+      a2[no], a3[no], a4[no],
+      centerX, centerY, centerZ,
+      axisX, axisY, axisZ, thetaShift, depth,
+      isBuilt);
     }
 
     if (isBuilt == 1) interpDatas.push_back(adt);
@@ -650,7 +650,7 @@ PyObject* K_CONVERTER::registerCells(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -725,7 +725,7 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl, res;
@@ -866,7 +866,7 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
         for (E_Int n = 0; n < nf; n++)
         { 
           // Acces universel face elem[n]-1
-          E_Int* face = cnl->getFace(elem[n]-1, nv, ngon, indPG);
+          E_Int* face = cnl->getFace(std::abs(elem[n])-1, nv, ngon, indPG);
           #ifdef QUADDOUBLE
           for (E_Int p = 0; p < nv; p++)
           {
@@ -1001,7 +1001,7 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::freeHook(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  if (!PyArg_ParseTuple(args, "O", &hook)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &hook)) return NULL;
   
   // recupere le hook
   void** packet = NULL;

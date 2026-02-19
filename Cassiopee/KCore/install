@@ -2,7 +2,7 @@
 #
 # Installation du module KCore
 #
-# 1. Modifier le fichier KCore/installBase.py
+# 1. Modifier le fichier KCore/installBaseUser.py
 # 2. Pour l'installation standard (dans $CASSIOPEE/Dist/bin/$ELSAPROD/),
 # taper  : ./install
 #    Pour une installation dans un repertoire <rep>, taper : ./install <rep>
@@ -41,7 +41,7 @@ if [ "$PRODMODE" = "" ]; then
 fi
 
 # Compilation et installation
-if [ $PRODMODE -le 2 ]; then
+if [ $PRODMODE -ge 0 ]; then
     sconsf=`which scons`
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
@@ -67,10 +67,13 @@ if [ $PRODMODE -le 2 ]; then
         python setup.py install --prefix="$INSTALLPATH"
         [ $? != 0 ] && exit 1;
     elif [ $PRODMODE -eq 1 ]; then # pip
-        python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+        python -m pip install --no-build-isolation --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     elif [ $PRODMODE -eq 2 ]; then # pip+wheel
-        TMPDIR=$INSTALLPATH python -m pip install --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+        TMPDIR=$INSTALLPATH python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
+        [ $? != 0 ] && exit 1;
+    elif [ $PRODMODE -eq 3 ]; then # pip no isolation
+        python -m pip install --disable-pip-version-check --no-deps --only-binary=:all: --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
         [ $? != 0 ] && exit 1;
     fi
 else
@@ -107,6 +110,9 @@ leak:Converter/hook.cpp
 leak:Converter/globalHook.cpp
 leak:Converter/identifySolutions.cpp
 leak:OCC/Atomic/readCAD.cpp
+leak:PyObject_Malloc
+leak:PyUnicode_FromKindAndData
+leak:PyImport_ImportModuleLevelObject
 EOF
 
 # Check installation

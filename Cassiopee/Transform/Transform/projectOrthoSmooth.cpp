@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,14 +23,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-}
-
 // ============================================================================
 /* Projete un surface array1 sur un surface array2 (TRI).
    La normale est lissee si le projete n'est pas regulier. */
@@ -38,10 +30,9 @@ extern "C"
 PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
 {
   PyObject* arrays; PyObject* array2;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &arrays, &array2))
+  if (!PYPARSETUPLE_(args, OO_, &arrays, &array2))
   {
-      return NULL;
+    return NULL;
   }
 
   // Extract infos from arrays
@@ -54,13 +45,13 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
+    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
   if (isOk == -1)
@@ -82,21 +73,21 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     posx1 = K_ARRAY::isCoordinateXPresent(structVarString[nos]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(structVarString[nos]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(structVarString[nos]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
   for (E_Int nou = 0; nou < nu; nou++)
   {
     posx1 = K_ARRAY::isCoordinateXPresent(unstrVarString[nou]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(unstrVarString[nou]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(unstrVarString[nou]); posz1++;
-    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
+    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1);
   }
   // Projection surface array
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(array2, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(array2, varString2,
+                                      f2, im2, jm2, km2, cn2, eltType2);
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -123,7 +114,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
   E_Int posx2 = K_ARRAY::isCoordinateXPresent(varString2);
   E_Int posy2 = K_ARRAY::isCoordinateYPresent(varString2);
   E_Int posz2 = K_ARRAY::isCoordinateZPresent(varString2);
-   
+
   if (posx2 == -1 || posy2 == -1 || posz2 == -1)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -136,43 +127,42 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     return NULL;
   }
   posx2++; posy2++; posz2++;
-  
+
   // Build arrays
   PyObject* l = PyList_New(0);
   vector<E_Float*> coordx; vector<E_Float*> coordy; vector<E_Float*> coordz;
   vector<E_Int> sizet;
+  PyObject* tpl;
+  FldArrayF* f;
   for (E_Int nos = 0; nos < ns; nos++)
   {
-    E_Int nfld = structF[nos]->getNfld(); E_Int npts = structF[nos]->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, structVarString[nos], 
-                                        nit[nos], njt[nos], nkt[nos]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *structF[nos];
-    coordx.push_back(f.begin(posxs[nos]));
-    coordy.push_back(f.begin(posys[nos]));
-    coordz.push_back(f.begin(poszs[nos]));
-    sizet.push_back(f.getSize());
+    E_Int api = structF[nos]->getApi();
+    tpl = K_ARRAY::buildArray3(*structF[nos], structVarString[nos],
+                               nit[nos], njt[nos], nkt[nos], api);
+    K_ARRAY::getFromArray3(tpl, f);
+    coordx.push_back(f->begin(posxs[nos]));
+    coordy.push_back(f->begin(posys[nos]));
+    coordz.push_back(f->begin(poszs[nos]));
+    sizet.push_back(f->getSize());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
   {
-    E_Int nfld = unstrF[nou]->getNfld(); E_Int npts = unstrF[nou]->getSize();
-    E_Int nelts = cnt[nou]->getSize(); E_Int nvert = cnt[nou]->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, unstrVarString[nou], npts, 
-                                        nelts, -1, eltType[nou], false, nelts);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *unstrF[nou];
-    E_Int* cnpo = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cno(nelts, nvert, cnpo, true); cno = *cnt[nou];    
-    coordx.push_back(f.begin(posxu[nou]));
-    coordy.push_back(f.begin(posyu[nou]));
-    coordz.push_back(f.begin(poszu[nou]));
-    sizet.push_back(f.getSize());
+    E_Int api = unstrF[nou]->getApi();
+    tpl = K_ARRAY::buildArray3(*unstrF[nou], unstrVarString[nou],
+                               *cnt[nou], eltType[nou], api);
+    K_ARRAY::getFromArray3(tpl, f);
+    coordx.push_back(f->begin(posxu[nou]));
+    coordy.push_back(f->begin(posyu[nou]));
+    coordz.push_back(f->begin(poszu[nou]));
+    sizet.push_back(f->getSize());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   // Projete
-  K_COMPGEOM::projectOrthoWithPrecond(posx2, posy2, posz2, *cn2, *f2, 
+  K_COMPGEOM::projectOrthoWithPrecond(posx2, posy2, posz2, *cn2, *f2,
                                       sizet, coordx, coordy, coordz);
 
   // On cree les directions de projection et la qualite
@@ -209,14 +199,14 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     E_Float* yo = orig.begin(posys[nos]);
     E_Float* zo = orig.begin(poszs[nos]);
     E_Int npts = structF[nos]->getSize();
-    E_Float* x = coordx[no]; // projete 
+    E_Float* x = coordx[no]; // projete
     E_Float* y = coordy[no];
     E_Float* z = coordz[no];
     E_Float* nx = nxt[no];
     E_Float* ny = nyt[no];
     E_Float* nz = nzt[no];
     E_Float* q = qual[no];
-    
+
     for (E_Int i = 0; i < npts; i++)
     {
       nx[i] = x[i]-xo[i];
@@ -224,12 +214,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
       nz[i] = z[i]-zo[i];
     }
     E_Int im = nit[nos]; E_Int jm = njt[nos]; E_Int km = nkt[nos];
-    E_Int im1 = im-1; E_Int jm1 = jm-1; E_Int km1 = km-1;
-    if (im == 1) im1 = 1;
-    if (jm == 1) jm1 = 1;
-    if (km == 1) km1 = 1;
-    k6structsurft_(im, jm, km, im1*jm1*km1,
-                   x, y, z, q);
+    K_METRIC::compSurfStruct2D(im, jm, km, x, y, z, q);
     no++;
   }
   for (E_Int nou = 0; nou < nu; nou++)
@@ -239,20 +224,20 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     E_Float* yo = orig.begin(posyu[nou]);
     E_Float* zo = orig.begin(poszu[nou]);
     E_Int npts = unstrF[nou]->getSize();
-    E_Float* x = coordx[nou]; // projete 
+    E_Float* x = coordx[nou]; // projete
     E_Float* y = coordy[nou];
     E_Float* z = coordz[nou];
     E_Float* nx = nxt[nou];
     E_Float* ny = nyt[nou];
     E_Float* nz = nzt[nou];
-    
+
     for (E_Int i = 0; i < npts; i++)
     {
       nx[i] = x[i]-xo[i];
       ny[i] = y[i]-yo[i];
       nz[i] = z[i]-zo[i];
     }
-    
+
     no++;
   }
 
@@ -264,7 +249,7 @@ PyObject* K_TRANSFORM::projectOrthoSmooth(PyObject* self, PyObject* args)
     delete [] nzt[no];
     delete [] qual[no];
   }
-                                   
+
   RELEASESHAREDU(array2, f2, cn2);
   for (E_Int nos = 0; nos < ns; nos++)
     RELEASESHAREDS(objst[nos], structF[nos]);

@@ -50,7 +50,7 @@ namespace {
  * @brief Résoud l'hamiltonien au point courant à l'ordre un
  * @details Résoud l'équation hamiltonienne \f$\left|\nabla \phi(x)\right|^{2}-\frac{1}{f(x)}=0, \forall x\in\Omega\f$
  *          au point courant $(i,j,k)$ à l'aide d'un schéma décentré au premier ordre de Godunov.
- * 
+ *
  * @param i Index i du point courant
  * @param j Index j du point courant
  * @param k Index k du point courant
@@ -66,7 +66,7 @@ namespace {
  * @param speed La fonction vitesse ( ou également appelée la fonction de poids pour la distance )
  * @return Retourne la solution du problème hamiltonien à l'ordre un en fonction de la valeur de points voisins.
  */
-    E_Float solve_hamiltonian_order_1( size_t i, size_t j, size_t k, size_t ind, 
+    E_Float solve_hamiltonian_order_1( size_t i, size_t j, size_t k, size_t ind,
                                        size_t ni, size_t nj, size_t nk, size_t nbcells,
                                       size_t stride_i, size_t stride_j, size_t stride_k,
                                       const E_Float* sol, E_Float speed)

@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,15 +33,15 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float dirVect[3];
-  dirVect[0] = 0.;  dirVect[1] = 0.;  dirVect[2] = 1.;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  dirVect[0] = 0.; dirVect[1] = 0.; dirVect[2] = 1.;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   E_Int posx, posy, posz;
 
   if (res == 1 || res == 2)
@@ -53,42 +53,43 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
 
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDB(res, array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: can't find coordinates in array.");
-      return NULL;  
+      return NULL;
     }
-    posx++; posy++; posz++;  
+    posx++; posy++; posz++;
 
     if (res == 1 && (jm != 1 || km != 1))
     {
-      delete f;
+      RELEASESHAREDB(res, array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
-      return NULL;  
+      return NULL;
     }
-    if ( (res == 2 && (strcmp(eltType, "BAR") != 0)))// || 
-      if ((res == 2 && (strcmp(eltType, "TRI") != 0))) 
+    if ( (res == 2 && (strcmp(eltType, "BAR") != 0)))// ||
+      if ((res == 2 && (strcmp(eltType, "TRI") != 0)))
       {
-        delete f; delete cn;
+        RELEASESHAREDB(res, array, f, cn);
         PyErr_SetString(PyExc_TypeError,
                         "getCurvatureAngle: array must be a TRI, a BAR or an i-array.");
-        return NULL;  
+        return NULL;
       }
-    
+
     E_Int sizef = f->getSize();
+    E_Int api = f->getApi();
     E_Float* xt = f->begin(posx);
     E_Float* yt = f->begin(posy);
     E_Float* zt = f->begin(posz);
     PyObject* tpl = NULL;
-    
+
     if (res == 1)
     {
       FldArrayF* an = new FldArrayF(sizef);
       FldArrayF& angle = *an;
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngle(im, xt, yt, zt, dirVect, angle);
-      tpl = K_ARRAY::buildArray(*an, "angle", im, jm, km);
+      tpl = K_ARRAY::buildArray3(*an, "angle", im, jm, km, api);
       delete an;
     }
     else if (res == 2 && strcmp(eltType, "BAR") == 0)
@@ -97,8 +98,8 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
       FldArrayF& angle = *an;
       angle.setAllValuesAtNull();
       K_COMPGEOM::compCurvatureAngleForBar(sizef, xt, yt, zt, *cn, dirVect, angle);
-      tpl = K_ARRAY::buildArray(*an, "angle", *cn, -1, eltType);
-      delete an; delete cn;
+      tpl = K_ARRAY::buildArray3(*an, "angle", *cn, eltType, api);
+      delete an;
     }
     else if (res == 2 && strcmp(eltType, "TRI") == 0)
     {
@@ -109,12 +110,12 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
                                                        xt, yt, zt, *cn, angle);
       if (ret == 1)
       {
-        tpl = K_ARRAY::buildArray(*an, "angle1,angle2,angle3", *cn, -1, eltType);
-        delete an; delete cn;
+        tpl = K_ARRAY::buildArray3(*an, "angle1,angle2,angle3", *cn, eltType, api);
+        delete an;
       }
     }
 
-    delete f;
+    RELEASESHAREDB(res, array, f, cn);
     return tpl;
   }
   else
@@ -123,4 +124,4 @@ PyObject* K_GEOM::getCurvatureAngle(PyObject* self, PyObject* args)
                     "getCurvatureAngle: invalid array.");
     return NULL;
   }
-}     
+}

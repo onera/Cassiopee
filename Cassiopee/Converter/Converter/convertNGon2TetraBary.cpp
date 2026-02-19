@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,15 +33,15 @@ using namespace std;
 PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
   if (res == 1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -331,7 +331,8 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-12, newEltType, fnew, newcn);
 
   // Objet python retourne
-  PyObject* tpl = K_ARRAY::buildArray(fnew, varString, newcn, -1, newEltType);
+  E_Int api = f->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(fnew, varString, newcn, newEltType, api);
 
   RELEASESHAREDB(res, array, f, cn);
   return tpl;
@@ -342,15 +343,15 @@ PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertNGon2TetraBaryBoth(PyObject* self, PyObject* args)
 {
   PyObject *array, *arrayc;
-  if (!PyArg_ParseTuple(args, "OO", &array, &arrayc)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayc)) return NULL;
 
   // Check array
   E_Int ni, nj, nk, res;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
-  res = K_ARRAY::getFromArray(array, varString, 
-                              f, ni, nj, nk, cn, eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, 
+                               f, ni, nj, nk, cn, eltType);
   if (res == 1)
   {
     RELEASESHAREDU(array, f, cn);
@@ -384,8 +385,8 @@ PyObject* K_CONVERTER::convertNGon2TetraBaryBoth(PyObject* self, PyObject* args)
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
   char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray(arrayc, varStringc, 
-                                     fc, nic, njc, nkc, cnc, eltTypec, true);
+  E_Int resc = K_ARRAY::getFromArray3(arrayc, varStringc, 
+                                      fc, nic, njc, nkc, cnc, eltTypec);
   if (resc != 1 && resc != 2)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -689,9 +690,10 @@ PyObject* K_CONVERTER::convertNGon2TetraBaryBoth(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-12, newEltType, fnew, newcn);
   PyObject* l = PyList_New(0);
 
-  PyObject* tpl1 = K_ARRAY::buildArray(fnew, varString, newcn, -1, newEltType);
+  E_Int api = f->getApi();
+  PyObject* tpl1 = K_ARRAY::buildArray3(fnew, varString, newcn, newEltType, api);
   PyList_Append(l, tpl1); Py_DECREF(tpl1);
-  PyObject* tpl2 = K_ARRAY::buildArray(fcnew, varStringc, newcn, -1, newEltType);
+  PyObject* tpl2 = K_ARRAY::buildArray3(fcnew, varStringc, newcn, newEltType, api);
   PyList_Append(l, tpl2); Py_DECREF(tpl2);
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDB(resc, arrayc, fc, cnc);

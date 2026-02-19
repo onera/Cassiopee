@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -26,7 +26,7 @@ using namespace K_SEARCH;
 // ============================================================================
 /* Computes a deformation vector for each point of a list of arrays */
 // ============================================================================
-PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self, 
+PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
                                                 PyObject* args)
 {
   PyObject* arrays; PyObject* deltas;
@@ -44,13 +44,13 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
+    structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nu = objut.size(); E_Int ns = objst.size();
   if (isOk == -1)
@@ -71,7 +71,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     posx1 = K_ARRAY::isCoordinateXPresent(structVarString[nos]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(structVarString[nos]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(structVarString[nos]); posz1++;
-    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1); 
+    posxs.push_back(posx1); posys.push_back(posy1); poszs.push_back(posz1);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
@@ -79,7 +79,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     posx1 = K_ARRAY::isCoordinateXPresent(unstrVarString[nou]); posx1++;
     posy1 = K_ARRAY::isCoordinateYPresent(unstrVarString[nou]); posy1++;
     posz1 = K_ARRAY::isCoordinateZPresent(unstrVarString[nou]); posz1++;
-    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1); 
+    posxu.push_back(posx1); posyu.push_back(posy1); poszu.push_back(posz1);
   }
 
   // Extract infos from surface arrays for which delta is known
@@ -92,11 +92,11 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
   vector<PyObject*> objsts, objuts;
   skipNoCoord = true;
   skipStructured = true;
-  skipUnstructured = false; 
+  skipUnstructured = false;
   skipDiffVars = true;
   isOk = K_ARRAY::getFromArrays(
     deltas, resls, structVarStrings, unstrVarStrings,
-    structFs, unstrFs, nits, njts, nkts, cnts, eltTypes, objsts, objuts, 
+    structFs, unstrFs, nits, njts, nkts, cnts, eltTypes, objsts, objuts,
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
   E_Int nwalls = objuts.size();
@@ -112,7 +112,7 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
       RELEASESHAREDU(objuts[nos], unstrFs[nos], cnts[nos]);
     return NULL;
   }
-  if (nwalls == 0) 
+  if (nwalls == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDeformationVector: no valid surface provided.");
@@ -139,10 +139,10 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     if (posdx < 1) { found = 0; break; }
     posdz = K_ARRAY::isNamePresent("dz",unstrVarStrings[nou]); posdz++;
     if (posdx < 1) { found = 0; break; }
-    posxw.push_back(posx1); posyw.push_back(posy1); poszw.push_back(posz1); 
-    posdxw.push_back(posdx); posdyw.push_back(posdy); posdzw.push_back(posdz); 
+    posxw.push_back(posx1); posyw.push_back(posy1); poszw.push_back(posz1);
+    posdxw.push_back(posdx); posdyw.push_back(posdy); posdzw.push_back(posdz);
   }
-  if (found == 0) 
+  if (found == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDeformationVector: surface arrays must all contain dx, dy, dz variables.");
@@ -177,68 +177,76 @@ PyObject* K_TRANSFORM::computeDeformationVector(PyObject* self,
     E_Int nptsw = fieldv->getSize();
     for (E_Int i = 0; i < nptsw; i++)
     {
-      xw[c] = xw0[i]; yw[c] = yw0[i]; zw[c] = zw0[i]; 
+      xw[c] = xw0[i]; yw[c] = yw0[i]; zw[c] = zw0[i];
       dxw[c] = dxw0[i]; dyw[c] = dyw0[i]; dzw[c] = dzw0[i];
       c++;
     }
   } //fin kdtree
-  
-  ArrayAccessor<FldArrayF> coordAcc(*surfaces, 1,2,3);
+
+  ArrayAccessor<FldArrayF> coordAcc(*surfaces, 1, 2, 3);
   KdTree<FldArrayF> kdt(coordAcc);
 
   // Build arrays
   PyObject* l = PyList_New(0);
-  vector<E_Float*> coordx; vector<E_Float*> dxs; 
+  vector<E_Float*> coordx; vector<E_Float*> dxs;
   vector<E_Float*> coordy; vector<E_Float*> dys;
-  vector<E_Float*> coordz; vector<E_Float*> dzs; 
-  vector<E_Int> sizes;  
+  vector<E_Float*> coordz; vector<E_Float*> dzs;
+  vector<E_Int> sizes;
+  PyObject* tpl;
+  FldArrayF* f2;
   E_Int nfld = 3;
   for (E_Int nos = 0; nos < ns; nos++)
-  { 
+  {
+    E_Int api = structF[nos]->getApi();
     E_Int npts = structF[nos]->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, "dx,dy,dz", nit[nos], njt[nos], nkt[nos]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f.setAllValuesAtNull();
-    coordx.push_back(structF[nos]->begin(posxs[nos])); dxs.push_back(f.begin(1));
-    coordy.push_back(structF[nos]->begin(posys[nos])); dys.push_back(f.begin(2));
-    coordz.push_back(structF[nos]->begin(poszs[nos])); dzs.push_back(f.begin(3));
+    tpl = K_ARRAY::buildArray3(
+      nfld, "dx,dy,dz", nit[nos], njt[nos], nkt[nos], api
+    );
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    coordx.push_back(structF[nos]->begin(posxs[nos])); dxs.push_back(f2->begin(1));
+    coordy.push_back(structF[nos]->begin(posys[nos])); dys.push_back(f2->begin(2));
+    coordz.push_back(structF[nos]->begin(poszs[nos])); dzs.push_back(f2->begin(3));
     sizes.push_back(npts);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
   {
+    E_Int api = unstrF[nou]->getApi();
     E_Int npts = unstrF[nou]->getSize();
-    E_Int nelts = cnt[nou]->getSize(); E_Int nvert = cnt[nou]->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, "dx,dy,dz", npts, nelts, -1, eltType[nou]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f.setAllValuesAtNull();
-    E_Int* cnpo = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cno(nelts, nvert, cnpo, true); cno = *cnt[nou];    
-    coordx.push_back(unstrF[nou]->begin(posxu[nou])); dxs.push_back(f.begin(1));
-    coordy.push_back(unstrF[nou]->begin(posyu[nou])); dys.push_back(f.begin(2));
-    coordz.push_back(unstrF[nou]->begin(poszu[nou])); dzs.push_back(f.begin(3));
+    tpl = K_ARRAY::buildArray3(
+      nfld, "dx,dy,dz", npts,
+      *cnt[nou], eltType[nou], false, api, true
+    );
+    K_ARRAY::getFromArray3(tpl, f2);
+    f2->setAllValuesAtNull();
+    coordx.push_back(unstrF[nou]->begin(posxu[nou])); dxs.push_back(f2->begin(1));
+    coordy.push_back(unstrF[nou]->begin(posyu[nou])); dys.push_back(f2->begin(2));
+    coordz.push_back(unstrF[nou]->begin(poszu[nou])); dzs.push_back(f2->begin(3));
     sizes.push_back(npts);
+    RELEASESHAREDS(tpl, f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
-  // deformation vector computation for each node 
+  // deformation vector computation for each node
   // detection of the nearest surface point
   // On utilise une exponentielle en puissance de 2
-  // On attend 70% d'amortissement a une distance de beta*deformation locale 
+  // On attend 70% d'amortissement a une distance de beta*deformation locale
   //E_Float beta = 7;
   //E_Int factor = 8;
-  E_Float pt[3]; 
+  E_Float pt[3];
   beta = 1./(beta*beta);
   //beta = 1./pow(beta, factor);
   E_Float eps = 1.e-10;
-  E_Float theta; E_Float beta0; E_Float delta; 
+  E_Float theta; E_Float beta0; E_Float delta;
   E_Float x0, y0, z0, dx0, dy0, dz0, dist;
   E_Int nzones = sizes.size();
   for (E_Int v = 0; v < nzones; v++)
   {
     E_Float* xt = coordx[v]; E_Float* yt = coordy[v]; E_Float* zt = coordz[v];
-    E_Float* dxt = dxs[v]; E_Float* dyt = dys[v]; E_Float* dzt = dzs[v]; 
+    E_Float* dxt = dxs[v]; E_Float* dyt = dys[v]; E_Float* dzt = dzs[v];
     E_Int npts = sizes[v];
     for (E_Int ind = 0; ind < npts; ind++)
     {

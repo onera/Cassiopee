@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Transform.PyTree as T
-import Converter.Internal as Internal
 import Apps.Mesh.Mirabelle3 as Mirabelle
 
 # Case
@@ -21,7 +20,6 @@ print("== Computing linelet...")
 
 # Trouve la premiere parois
 #(block,win,zdir) = Mirabelle.getAWallWindow(t)
-
 
 # Getting the linelet
 zdir = 3; block = 'cart.37'
@@ -42,5 +40,4 @@ Mirabelle._propagate(t, g, stack, treated, linelet)
 # Adapte les donneurs a la fin
 Mirabelle._adaptDonorRanges(t)
 
-#Internal.printTree(t)
 C.convertPyTree2File(t, 'remesh.cgns')

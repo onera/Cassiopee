@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -55,12 +55,12 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int supp, suppl, suppr; // supressed points, left, right
   E_Int add;                // added points
-  E_Float eh, ehr;           // enforce length
+  E_Float eh, ehr;          // enforce length
   E_Float x0;
   E_Int verbose;
 
   if (!PYPARSETUPLE_(args, O_ RR_ TII_ I_,
-                    &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
+                     &array, &x0, &eh, &supp, &add, &verbose)) return NULL;
 
   bool isVerbose = (verbose == 1) ? true : false;
 
@@ -69,12 +69,12 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   FldArrayF snr; FldArrayF snl; FldArrayF snl2;
   E_Int jc, il, i, k, istart, iend;
   E_Float hl;
-  E_Boolean pb;
+  E_Bool pb;
 
   if (res == 1)
   {
@@ -86,7 +86,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforceX: can't find coordinates in array.");
       return NULL;
@@ -100,6 +100,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
     jc = 0;
     hl = x0;
 
+    E_Int api = f->getApi();
     E_Float* xt = coord.begin(posx);
 
     // Determination de la cellule de distrib contenant hl
@@ -109,6 +110,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       sprintf(msg,
               "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): cannot find hl in distrib, stopped.",
               x0, eh);
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -117,6 +119,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       char msg[256];
       sprintf(msg,
               "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the first cell of distribution. \n=> use enforcePlusX to enforce this mesh.", x0, eh);
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -125,6 +128,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       char msg[256];
       sprintf(msg,
               "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): line to enforce is in the last cell of distribution. \n=> use enforceMoinsX to enforce this mesh.", x0, eh);
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -133,6 +137,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       char msg[256];
       sprintf(msg,
               "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): overlapping around node 1.\n=> decrease eh or increase hl or enforce initial mesh.", x0, eh);
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
@@ -141,6 +146,7 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       char msg[256];
       sprintf(msg,
               "enforceX (x0=" SF_F_ ", eh=" SF_F_ "): overlapping around node ni-2.\n=> decrease eh or decrease hl.\n", x0, eh);
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       msg);
       return NULL;
@@ -444,14 +450,14 @@ PyObject* K_GENERATOR::enforceXMesh(PyObject* self, PyObject* args)
       jc++;
     }
 
-    delete f;
-    PyObject* tpl = K_ARRAY::buildArray(*an, varString, np, nj, nk);
+    RELEASESHAREDS(array, f);  
+    PyObject* tpl = K_ARRAY::buildArray3(*an, varString, np, nj, nk, api);
     delete an;
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);  
     PyErr_SetString(PyExc_TypeError,
                     "enforceX: not for unstructured arrays.");
     return NULL;
@@ -492,10 +498,12 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
   char* varString; char* eltType;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord; FldArrayF sn1;
   E_Int jc, np, np1;
   E_Float delta1;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -504,6 +512,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforcePlusX: can't find coordinates in array.");
       return NULL;
@@ -512,7 +521,7 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
 
     E_Int i, k;
     E_Int istart, iend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     i = 0;
@@ -728,14 +737,14 @@ PyObject* K_GENERATOR::enforcePlusXMesh(PyObject* self, PyObject* args)
         }
       jc++;
     }
-    delete f;
+    RELEASESHAREDS(array, f);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, np, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, np, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "enforcePlusX: not used for unstructured arrays.");
     return NULL;
@@ -764,7 +773,6 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
   E_Int add;       // added points
   E_Float eh, ehr;    // enforce height
   E_Int verbose;
-
   if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
                     &array, &eh, &supp, &add, &verbose)) return NULL;
 
@@ -776,9 +784,11 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
   char* varString; char* eltType;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1, sn2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -787,7 +797,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforceMoinsX: can't find coordinates in array.");
       return NULL;
@@ -796,7 +806,7 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
 
     E_Int i, k;
     E_Int istart, iend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     iend = ni-1 ;
@@ -997,13 +1007,13 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
       jc++;
     }
 
-    delete f;
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, np, nj, nk);
+    RELEASESHAREDS(array, f);  
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, np, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "enforceMoinsX: not used for unstructured arrays.");
     return NULL;
@@ -1021,13 +1031,12 @@ PyObject* K_GENERATOR::enforceMoinsXMesh(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
 {
-  E_Int supp, suppl, suppr ; // supressed points
-  E_Int add ;                // added points
-  E_Float eh, ehr ;           // enforce height
+  E_Int supp, suppl, suppr; // supressed points
+  E_Int add;                // added points
+  E_Float eh, ehr;          // enforce height
   E_Float y0;
   PyObject* array;
   E_Int verbose;
-
   if (!PYPARSETUPLE_(args, O_ RR_ TII_ I_,
                     &array, &y0, &eh, &supp, &add, &verbose)) return NULL;
 
@@ -1038,10 +1047,11 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
-  E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF snr; FldArrayF snl; FldArrayF snl2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1050,7 +1060,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforceY: can't find coordinates in array.");
       return NULL;
@@ -1060,7 +1070,7 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
     E_Float hl;
     E_Int jl, j, k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Determination de l'indice de modification
     E_Int ic = 0;
@@ -1388,14 +1398,14 @@ PyObject* K_GENERATOR::enforceYMesh(PyObject* self, PyObject* args)
       ic++;
     }
 
-    delete f;
+    RELEASESHAREDS(array, f);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "enforceY: not used for unstructured arrays.");
     return NULL;
@@ -1418,7 +1428,6 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh, ehr;  // enforce height
   E_Int verbose;
-  
   if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
                     &array, &eh, &supp, &add, &verbose)) return NULL;
 
@@ -1430,9 +1439,11 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
   char* varString; char* eltType;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1441,7 +1452,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforcePlusY: can't find coordinates in array.");
       return NULL;
@@ -1449,7 +1460,7 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
     E_Int j,k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     j = 0 ;
@@ -1663,14 +1674,14 @@ PyObject* K_GENERATOR::enforcePlusYMesh(PyObject* self, PyObject* args)
         }
       ic++;
     }
-    delete f;
+    RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "enforcePlusY: not used for unstructured arrays.");
     return NULL;
@@ -1693,7 +1704,6 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh, ehr;  // enforce height
   E_Int verbose;
-  
   if (!PYPARSETUPLE_(args, O_ R_ TII_ I_,
                     &array, &eh, &supp, &add, &verbose)) return NULL;
 
@@ -1705,9 +1715,11 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
   char* varString; char* eltType;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
   FldArrayF coord;
   FldArrayF sn1, sn2;
+
+  E_Int api = f->getApi();
 
   if (res == 1)
   {
@@ -1726,7 +1738,7 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
 
     E_Int j,k;
     E_Int jstart, jend;
-    E_Boolean pb = false;
+    E_Bool pb = false;
 
     // Verification des parametres supp et add et modification si necessaire
     jend = nj-1;
@@ -1904,8 +1916,8 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
       char msg[256];
       sprintf(msg,
               "enforceMoinsY (eh=" SF_F_ "): eh different from the specified value in new distribution eh=" SF_F_ ".", eh, coord((np-1)*ni,2)-coord((np-2)*ni,2));
-      PyErr_SetString(PyExc_TypeError,
-                      msg);
+      RELEASESHAREDS(array, f);
+      PyErr_SetString(PyExc_TypeError, msg);
       return NULL;
     }
 
@@ -1927,14 +1939,14 @@ PyObject* K_GENERATOR::enforceMoinsYMesh(PyObject* self, PyObject* args)
         }
       ic++;
     }
-    delete f;
+    RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "enforceMoinsY: not used for unstructured arrays.");
     return NULL;
@@ -1957,7 +1969,6 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
   E_Int add;  // added points
   E_Float eh; // enforce heigh
   const E_Float EPS = 1.e-3;
-  
   if (!PYPARSETUPLE_(args, OO_ R_ TII_,
                     &array1, &array2, &eh, &supp, &add)) return NULL;
                     
@@ -1973,15 +1984,17 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
 
   // Maillage de base a modifier
   E_Int res1 =
-    K_ARRAY::getFromArray(array1, varString1, f1, ni, nj, nk,
-                          cn1, eltType1);
+    K_ARRAY::getFromArray3(array1, varString1, f1, ni, nj, nk,
+                           cn1, eltType1);
   // Courbe a enforcer
   E_Int res2 =
-    K_ARRAY::getFromArray(array2, varString2, f2, im2, jm2, km2,
-                          cn2, eltType2);
+    K_ARRAY::getFromArray3(array2, varString2, f2, im2, jm2, km2,
+                           cn2, eltType2);
 
   E_Int posx1, posy1, posz1;
   E_Int posx2, posy2, posz2;
+
+  E_Int api = f1->getApi();
 
   if (res1 == 1 && res2 == 1)
   {
@@ -1990,7 +2003,8 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
       K_ARRAY::getPosition(varString1, varString2, pos1, pos2, varString);
     if (res0 == -1)
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_TypeError,
                       "enforceLine: common variables list is empty.");
       return NULL;
@@ -2010,7 +2024,8 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
     if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
         posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      delete f1; delete f2;
+      RELEASESHAREDS(array1, f1);
+      RELEASESHAREDS(array2, f2);
       PyErr_SetString(PyExc_TypeError,
                       "enforceLine: coordinates not found.");
       return NULL;
@@ -2053,7 +2068,8 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
       }
       if (il == im2)
       {
-        delete f1; delete f2;
+        RELEASESHAREDS(array1, f1);
+        RELEASESHAREDS(array2, f2);
         char msg[256];
         sprintf(msg,
                 "enforceLine: cannot find sc=" SF_F_ " in line, stopped.", sc);
@@ -2113,7 +2129,8 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
       }
       if (il == im2)
       {
-        delete f1; delete f2;
+        RELEASESHAREDS(array1, f1);
+        RELEASESHAREDS(array2, f2);
         char msg[256];
         sprintf(msg,
                 "enforceLine: cannot find sc=" SF_F_ " in line, stopped.", sc);
@@ -2200,17 +2217,17 @@ PyObject* K_GENERATOR::enforceLineMesh(PyObject* self, PyObject* args)
       ic++;
     }
 
-    delete f1; delete f2;
+    RELEASESHAREDS(array1, f1);
+    RELEASESHAREDS(array2, f2);  
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, np, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, np, nk, api);
     delete [] varString;
     return tpl;
   }
   else if (res1 == 2 || res2 == 2)
   {
-    delete f1; delete f2;
-    if (res1 == 2) delete cn1;
-    if (res2 == 2) delete cn2;
+    RELEASESHAREDB(res1, array1, f1, cn1);
+    RELEASESHAREDB(res2, array2, f2, cn2);      
     PyErr_SetString(PyExc_TypeError,
                     "enforceLine: not used for unstructured arrays.");
     return NULL;
@@ -2230,7 +2247,6 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Float x0; // enforced point
-  
   if (!PYPARSETUPLE_(args, O_ R_, &array, &x0)) return NULL;
 
   // Check array
@@ -2240,7 +2256,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
   FldArrayF coord;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
 
   if (res == 1)
   {
@@ -2249,7 +2265,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "enforcePoint: can't find coordinates in array.");
       return NULL;
@@ -2257,6 +2273,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     posx++; posy++; posz++;
 
     E_Int i, j, k;
+    E_Int api = f->getApi();
 
     // Distribution finale
     coord.malloc(ni*nj*nk, 3);
@@ -2291,8 +2308,8 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
     if (E_abs(epsilon) < 1.e-12) // nothing to do
     {
-      PyObject* tpl = K_ARRAY::buildArray(*f, varString, ni, nj, nk);
-      delete f;
+      PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ni, nj, nk, api);
+      RELEASESHAREDS(array, f);
       return tpl;
     }
 
@@ -2303,7 +2320,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     {
       while (sigma > 1./delta)
       {
-        E_Boolean cool = true;
+        E_Bool cool = true;
         for (i = 0; i < ni-1; i++)
         {
           E_Float x2 = (*f)(i+1,posx);
@@ -2324,7 +2341,7 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
     {
       while (sigma > 1./delta)
       {
-        E_Boolean cool = true;
+        E_Bool cool = true;
         for (i = 0; i < ni-1; i++)
         {
           E_Float x2 = (*f)(i+1,posx);
@@ -2365,14 +2382,14 @@ PyObject* K_GENERATOR::enforcePoint(PyObject* self, PyObject* args)
 
     printf("Info: enforcePoint: index of enforced point is: " SF_D_ ".\n", is);
 
-    delete f;
+    RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, ni, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, ni, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);    
     PyErr_SetString(PyExc_TypeError,
                     "enforcePoint: not used for unstructured arrays.");
     return NULL;
@@ -2401,7 +2418,10 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
   FldArrayF coord;
 
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
+
+  E_Int api = f->getApi();
+
   if (res == 1)
   {
     E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -2409,7 +2429,7 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "addPointInDistribution: can't find coordinates in array.");
       return NULL;
@@ -2422,7 +2442,7 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
 
     if (ind > ni)
     {
-      delete f;
+      RELEASESHAREDS(array, f);
       PyErr_SetString(PyExc_TypeError,
                       "addPointInDistribution: given index is greater than distribution number of points.");
       return NULL;
@@ -2476,14 +2496,14 @@ PyObject* K_GENERATOR::addPointInDistribution(PyObject* self, PyObject* args)
           coord(l, 1) = coord(l, 1) * inv;
         }
 
-    delete f;
+    RELEASESHAREDS(array, f);
     // Build array
-    PyObject* tpl = K_ARRAY::buildArray(coord, varString, nip1, nj, nk);
+    PyObject* tpl = K_ARRAY::buildArray3(coord, varString, nip1, nj, nk, api);
     return tpl;
   }
   else if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "addPointInDistribution: not used for unstructured arrays.");
     return NULL;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,14 +30,23 @@
 #include "ShapeBuild_ReShape.hxx"
 #include "TopoDS.hxx"
 #include "BRepAlgoAPI_Cut.hxx"
+#include "BRepAlgoAPI_Splitter.hxx"
 
 //=====================================================================
-// Fix the full shape
+// Trim faces
+// trim face1 set with face2 set
+// if face2 is solid -> use cut (algo=0)
+// if face2 is a set of faces -> splitter (algo=1)
+// if mode=0, face2 cut face1
+// if mode=1, face1 cut face2
+// if mode=2, face1 cut face2 and face2 cut face1
 //=====================================================================
 PyObject* K_OCC::trimFaces(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* listOfFaceNo1; PyObject* listOfFaceNo2;
-  if (!PYPARSETUPLE_(args, OOO_ , &hook, &listOfFaceNo1, &listOfFaceNo2)) return NULL;
+  E_Int algo=0; E_Int mode=0;
+  if (!PYPARSETUPLE_(args, OOO_ II_, &hook, &listOfFaceNo1, &listOfFaceNo2,
+    &mode, &algo)) return NULL;
 
   void** packet = NULL;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
@@ -82,42 +91,138 @@ PyObject* K_OCC::trimFaces(PyObject* self, PyObject* args)
     builder2.Add(compound2, F);
   }  
 
-  // trim the compound
-  TopoDS_Shape trimmedCompound1 = BRepAlgoAPI_Cut(compound1, compound2);
-  TopoDS_Shape trimmedCompound2 = BRepAlgoAPI_Cut(compound2, compound1);
-  
-  // rebuild
+  // for rebuild
   BRep_Builder builder3;
   TopoDS_Compound compound3;  
   builder3.MakeCompound(compound3);
-    
   for (auto& i : pl)
   {
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder3.Add(compound3, F);
   }
 
-  TopExp_Explorer expl1(trimmedCompound1, TopAbs_FACE);
-  while (expl1.More())
+  if (algo == 0) // cut for closed shapes
   {
-    TopoDS_Shape shape = expl1.Current();
-    TopoDS_Face face = TopoDS::Face(shape);
-    builder3.Add(compound3, face);
-    expl1.Next();
+    // trim the compound with cut
+    TopoDS_Shape trimmedCompound1 = BRepAlgoAPI_Cut(compound1, compound2);
+    TopoDS_Shape trimmedCompound2 = BRepAlgoAPI_Cut(compound2, compound1);
+    
+    if (mode == 0 || mode == 2)
+    {
+      TopExp_Explorer expl1(trimmedCompound1, TopAbs_FACE);
+      while (expl1.More())
+      {
+        TopoDS_Shape shape = expl1.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl1.Next();
+      }
+    }
+    else
+    {
+      TopExp_Explorer expl1(compound1, TopAbs_FACE);
+      while (expl1.More())
+      {
+        TopoDS_Shape shape = expl1.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl1.Next();
+      }
+    }
+    if (mode == 1 || mode == 2)
+    {
+      TopExp_Explorer expl2(trimmedCompound2, TopAbs_FACE);
+      while (expl2.More()) 
+      {
+        TopoDS_Shape shape = expl2.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl2.Next();
+      }
+    }
+    else
+    {
+      TopExp_Explorer expl2(compound2, TopAbs_FACE);
+      while (expl2.More()) 
+      {
+        TopoDS_Shape shape = expl2.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl2.Next();
+      }
+    }
   }
-  TopExp_Explorer expl2(trimmedCompound2, TopAbs_FACE);
-  while (expl2.More()) 
+  else // splitter for face soup
   {
-    TopoDS_Shape shape = expl2.Current();
-    TopoDS_Face face = TopoDS::Face(shape);
-    builder3.Add(compound3, face);
-    expl2.Next();
+    // trim with splitter
+    BRepAlgoAPI_Splitter splitter;
+    TopTools_ListOfShape args;
+    args.Append(compound1);
+    TopTools_ListOfShape tools;
+    tools.Append(compound2);
+    splitter.SetTools(tools);
+    splitter.SetArguments(args);
+    splitter.Build();
+    TopoDS_Shape trimmedCompound1 = splitter.Shape();
+    BRepAlgoAPI_Splitter splitter2;
+    TopTools_ListOfShape args2;
+    args2.Append(compound2);
+    TopTools_ListOfShape tools2;
+    tools2.Append(compound1);
+    splitter2.SetTools(tools2);
+    splitter2.SetArguments(args2);
+    splitter2.Build();
+    TopoDS_Shape trimmedCompound2 = splitter2.Shape();
+
+    if (mode == 0 || mode == 2)
+    {
+      TopExp_Explorer expl1(trimmedCompound1, TopAbs_FACE);
+      while (expl1.More())
+      {
+        TopoDS_Shape shape = expl1.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl1.Next();
+      }
+    }
+    else
+    {
+      TopExp_Explorer expl1(compound1, TopAbs_FACE);
+      while (expl1.More())
+      {
+        TopoDS_Shape shape = expl1.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl1.Next();
+      }
+    }
+    if (mode == 1 || mode == 2)
+    {
+      TopExp_Explorer expl2(trimmedCompound2, TopAbs_FACE);
+      while (expl2.More()) 
+      {
+        TopoDS_Shape shape = expl2.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl2.Next();
+      }
+    }
+    else
+    {
+      TopExp_Explorer expl2(compound2, TopAbs_FACE);
+      while (expl2.More()) 
+      {
+        TopoDS_Shape shape = expl2.Current();
+        TopoDS_Face face = TopoDS::Face(shape);
+        builder3.Add(compound3, face);
+        expl2.Next();
+      }
+    }
   }
   
   TopoDS_Shape* newshp = new TopoDS_Shape(compound3);
   //TopoDS_Shape* newshp = new TopoDS_Shape(trimmedCompound2);
   
-
   // Rebuild the hook
   packet[0] = newshp;
   // Extract surfaces

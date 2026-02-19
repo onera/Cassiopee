@@ -395,14 +395,14 @@ def _correctNameLength(t):
 
 #==============================================================================
 # Verifie que les noms des noeuds de type donne sont bien uniques
-# Opitmise pour Base, Zone, BC et GC
+# Optimise pour Base, Zone, BC et GC
 #==============================================================================
 def checkUniqueNames(t, ntype):
     nameServer = {}
     errors = []
 
     if ntype == 'CGNSBase_t':
-        nodes = Internal.getNodesFromType(t, 'CGNSBase_t')
+        nodes = Internal.getBases(t)
         for n in nodes:
             name = n[0]
             if name not in nameServer: nameServer[name] = 0
@@ -518,6 +518,7 @@ def checkBCRanges(t, ntype):
     zones = Internal.getZones(t)
     for z in zones:
         dim = Internal.getZoneDim(z)
+        if dim[0] != 'Structured': continue  # pas de check en non structure
         bcs = Internal.getNodesFromType1(z, ctype)
         for bc in bcs:
             nodes = Internal.getNodesFromType1(bc, ntype)
@@ -594,6 +595,7 @@ def checkDonorRanges(t, ntype):
                 if donors != []:
                     if all([Internal.getType(d) == 'Zone_t' for d in donors]):
                         dim = Internal.getZoneDim(donors[0])
+                        if dim[0] != 'Structured': continue  # pas de check en non structure
                         r = Internal.getElementRange(donors[0], type="NGON")
                         if r is not None: nfaces = r[1]-r[0]+1
                         else: nfaces = 0
@@ -680,11 +682,11 @@ def _correctDonorRanges(t, ntype):
 #==============================================================================
 def _reorderBCMatchPointRange(t):
     for z in Internal.getZones(t):
-        for gc in Internal.getNodesFromType(z,'GridConnectivity1to1_t'):
-            TR = Internal.getNodeFromName(gc,"Transform")
+        for gc in Internal.getNodesFromType2(z, 'GridConnectivity1to1_t'):
+            TR = Internal.getNodeFromName1(gc, 'Transform')
             TR = Internal.getValue(TR)
             trirac1 = TR[0]; trirac2 = TR[1]; trirac3 = TR[2]
-            PRN = Internal.getNodeFromName(gc,'PointRangeDonor')
+            PRN = Internal.getNodeFromName1(gc, 'PointRangeDonor')
             win = Internal.range2Window(Internal.getValue(PRN))
             [imin, imax, jmin, jmax, kmin, kmax] = win
             if imin != imax and trirac1<0:
@@ -1107,11 +1109,11 @@ def _correctCGNSType(t):
     return None
 
 #==============================================================================
-# Check element nodes  dans t
+# Check element nodes dans t
 # Verifie:
 # si une zone a NGON+PE et pas de NFace
-# si il y a des connectivites multiples
-# ou une zone a NGON+PE et pas de NFace
+# les vertex references existent pour element et ngon
+# pas de faces negatives
 #==============================================================================
 def checkElementNodes(t):
     errors = []
@@ -1120,35 +1122,50 @@ def checkElementNodes(t):
         zones = Internal.getZones(b)
         for z in zones:
             connects = Internal.getElementNodes(z)
-            iBE = -1; iBEMultiple = -1; iNGon = -1; iNFace = -1; i = 0
+            iBEs = []; iNGons = []; iNFaces = []; i = 0
             for c in connects:
                 ctype = c[1][0]
-                if ctype == 22: iNGon = i
-                elif ctype == 23: iNFace = i
-                else:
-                    if iBE == -1: iBE = i # first
-                    else: iBEMultiple = 1
+                if ctype == 22: iNGons.append(i)
+                elif ctype == 23: iNFaces.append(i)
+                else: iBEs.append(i)
                 i += 1
 
-            if iBE != -1:
+            if len(iNGons) > 1:
+                print("Warning: CheckPyTree: multiple NGON connectivity for zone %s. Please merge NGON connectivities."%z[0])
+            if len(iNFaces) > 1:
+                print("Warning: CheckPyTree: multiple NFACE connectivity for zone %s. Please merge NFACE connectivities."%z[0])
+            if len(iNGons) == 1 and len(iNFaces) == 0:
+                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
+
+            #if len(BE) > 1:
+            #    errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
+
+            for iBE in iBEs: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iBE], 'ElementConnectivity')
-                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                if c[1] is None:
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                elif c[1].size > 0:
+                    minv = numpy.min(c[1]); maxv = numpy.max(c[1])
+                    npts = C.getNPts(z)
+                    if minv < 1 or maxv > npts:
+                        errors += [z, b, 'Element connectivity referenced unexisting vertices in zone %s.'%z[0]]
+
+            for iNFace in iNFaces: # check positive faces
+                c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
+                if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
+                else:
+                    minv = numpy.min(c[1])
+                    if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
+
+            for iNGon in iNGons: # check existing vertices
+                c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
+                if c[1] is None:
+                    print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Connectivity referenced unexisting vertices in zone %s.'%z[0]]
-            if iNFace != -1: # NFace exist
-                c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
-                if c[1] is None: print("CheckPyTree: ElementConnectivity is None (may not be loaded).")
-                else:
-                    minv = numpy.min(c[1])
-                    if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
-            if iNGon != -1 and iNFace != -1: pass
-            elif iNGon != -1 and iNFace == -1:
-                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
-            elif iBEMultiple == 1:
-                errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
+                        errors += [z, b, 'NGON connectivity referenced unexisting vertices in zone %s.'%z[0]]
     return errors
 
 #==============================================================================
@@ -1158,6 +1175,7 @@ def checkElementNodes(t):
 #==============================================================================
 def _correctElementNodes(t):
     _correctBCElementNodes(t)
+    _cleanBEConnect(t)
     errors = checkElementNodes(t)
     le = len(errors)//3
     for e in range(le):
@@ -1170,7 +1188,7 @@ def _correctElementNodes(t):
             zones = C.breakConnectivity(zone)
             c = Internal.getNodePosition(zone, parent)
             parent[2][c] = zones[0]; parent[2] += zones[1:]
-        elif msg[0:6] == 'NFace':
+        elif msg[0:5] == 'NFace':
             # Look for PE
             PE = Internal.getNodeFromName2(zone, 'ParentElements')
             if PE is not None:
@@ -1181,8 +1199,7 @@ def _correctElementNodes(t):
 # Corrige des boundary connectivity qui sont a zero (GE[1][1])
 #===============================================================================
 def _correctBCElementNodes(t):
-    _cleanBEConnect(t)
-    #_correctBC_PL2ER(t)
+    #_correctBCPL2ER(t)
 
     zones = Internal.getZones(t)
     for z in zones:
@@ -1210,25 +1227,25 @@ def _correctBCElementNodes(t):
 #  1/ if BC is defined by a PointList= a set of vertices
 #  2/ or if BC is defined by a PointList= a set of face centers
 #==========================================================================================
-def _correctBC_PL2ER(t):
+def _correctBCPL2ER(t):
     import Post.PyTree as P
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
         if zdim[0] == 'Unstructured':
             ztype = zdim[3]
             if ztype != 'NGON':
-                for zbc in Internal.getNodesFromType(z, 'BC_t'):
+                for zbc in Internal.getNodesFromType2(z, 'BC_t'):
                     bndName = Internal.getName(zbc)
-                    bndType = Internal.getValue(zbc)
-                    gcl = Internal.getNodeFromType(zbc, 'GridLocation_t')
-                    PL = Internal.getNodeFromName(zbc, 'PointList')
+                    #bndType = Internal.getValue(zbc)
+                    gcl = Internal.getNodeFromType1(zbc, 'GridLocation_t')
+                    PL = Internal.getNodeFromName1(zbc, 'PointList')
                     if PL is not None:
                         if gcl is None or Internal.getValue(gcl)=='Vertex':
-                            C._initVars(z,'tag',0.)
+                            C._initVars(z, 'tag', 0.)
                             for ind in Internal.getValue(PL)[0]:
-                                C.setValue(z,'tag',ind,1.)
+                                C.setValue(z, 'tag', ind, 1.)
                             bc = P.exteriorFaces(z)
-                            C._rmVars(z,["tag"])
+                            C._rmVars(z, ["tag"])
                             bc = P.selectCells(bc,"{tag}>0",strict=1)
                             Internal._rmNodesFromName(zbc, "PointList")
                             if bc != []:
@@ -1240,9 +1257,9 @@ def _correctBC_PL2ER(t):
 
                         elif Internal.getValue(gcl) == 'FaceCenter':
                             bc_gcname = 'Elements_%s'%(Internal.getName(zbc))
-                            bc_gcnode = Internal.getNodeFromName(z,bc_gcname)
+                            bc_gcnode = Internal.getNodeFromName(z, bc_gcname)
                             if bc_gcnode is not None:
-                                ER = Internal.getNodeFromName(bc_gcnode,'ElementRange')
+                                ER = Internal.getNodeFromName(bc_gcnode, 'ElementRange')
                                 if ER is not None: ER = Internal.getValue(ER)
 
                         if ER is not None:
@@ -1262,10 +1279,36 @@ def _cleanBEConnect(t):
         zdim = Internal.getZoneDim(z)
         if zdim[0] == 'Unstructured':
             if zdim[3] == 'NGON':
-                for elt_t in Internal.getNodesFromType(z, 'Elements_t'):
+                for elt_t in Internal.getNodesFromType1(z, 'Elements_t'):
                     elt_no = Internal.getValue(elt_t)[0]
                     if elt_no != 22 and elt_no != 23:
                         Internal._rmNodesFromName(z, elt_t[0])
+    return None
+
+# Dans un ParentElement, shift les elements si pas deja le cas
+# shift=1: add nface shift if possible
+# shift=-1: sub nface shift if possible
+def _shiftParentElements(t, shift=1):
+    for z in Internal.getZones(t):
+        ngon = Internal.getNGonNode(z)
+        if ngon is not None:
+            PE = Internal.getNodeFromName1(ngon, 'ParentElements')
+            if PE is not None and PE[1] is not None:
+                n = PE[1]
+                if n is not None:
+                    np = n[n > 0]
+                    emin = numpy.min(np)
+                    if emin == 1:
+                        if shift == 1:
+                            nf = n.size//2
+                            np = n+nf
+                            PE[1] = numpy.where(np==nf, 0, np)
+                    else:
+                        if shift == -1:
+                            nf = n.size//2
+                            np = n-nf
+                            PE[1] = numpy.where(np==-nf, 0, np)
+
     return None
 
 #===============================================================================

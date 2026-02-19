@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -22,18 +22,6 @@
 using namespace K_FLD;
 using namespace std;
 
-extern "C"
-{
-    void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj,
-    const E_Int& nintk,
-    E_Float* x, E_Float* y, E_Float* z,
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz,
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-}
-
 //=============================================================================
 /* Calcul du gradient d'un ensemble de champs en centres
    Le gradient est fourni aux centres des cellules */
@@ -43,8 +31,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   PyObject* array; PyObject* arrayc;
   PyObject* volc; PyObject* cellNc;
   PyObject* indices; PyObject* field;
-  if (!PyArg_ParseTuple(args, "OOOOOO", &array, &arrayc, &volc, &cellNc,
-                        &indices, &field)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ OO_, &array, &arrayc, &volc, &cellNc,
+                      &indices, &field)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -89,9 +77,10 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Nombre de variable dont il faut calculer le gradient
+  E_Int api = fc->getApi();
   E_Int nfld = fc->getNfld();
   vector<char*> vars;
   K_ARRAY::extractVars(varStringc, vars);
@@ -147,7 +136,7 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
         #pragma omp for
         for (E_Int i = 0; i < nfaces; i++)
         {
-          i1 = cFE1[i] - 1; i2 = cFE2[i] - 1;
+          i1 = cFE1[i]-1; i2 = cFE2[i]-1;
           if (i2 != -1) fp[i] = 0.5*(s[i1] + s[i2]);
           else fp[i] = s[i1];
         }
@@ -182,8 +171,8 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
   if (indices != Py_None && field != Py_None)
   {
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int n = inds->getSize()*inds->getNfld();
     E_Int* pind = inds->begin();
@@ -204,11 +193,13 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     RELEASESHAREDN(indices, inds);
     RELEASESHAREDN(field, bfield);
   }
-
-  // Build unstructured NGON array from existing connectivity & empty fields
-  FldArrayF* gp = new FldArrayF(nelts, nfld*3, true); gp->setAllValuesAtNull();
-  PyObject* tpl = K_ARRAY::buildArray3(*gp, varStringOut, *cn, "NGON");
-  delete gp; K_ARRAY::getFromArray3(tpl, gp);
+  
+  // Build unstructured NGON array from existing connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(nfld*3, varStringOut, ncells,
+                                       *cn, "NGON", true, api, true);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();  // empty fields
 
   FldArrayF surf(nfaces, 4);
   E_Float* sxp = surf.begin(1);
@@ -223,13 +214,13 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   E_Float ff;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpx = gp->begin(3*n+1);
-    E_Float* gpy = gp->begin(3*n+2);
-    E_Float* gpz = gp->begin(3*n+3);
+    E_Float* gpx = gn->begin(3*n+1);
+    E_Float* gpy = gn->begin(3*n+2);
+    E_Float* gpz = gn->begin(3*n+3);
     E_Float* fp = faceField.begin(n+1);
     for (E_Int i = 0; i < nfaces; i++)
     {
-      i1 = cFE1[i] - 1; i2 = cFE2[i] - 1;
+      i1 = cFE1[i]-1; i2 = cFE2[i]-1;
       ff = fp[i];
       if (i1 != -1)
       {
@@ -248,20 +239,21 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
   
   // free mem
   surf.malloc(0); faceField.malloc(0);
-  
-  FldArrayF vol(nelts);
-  E_Float* volp = vol.begin(1);
+
+  FldArrayF vol;
+  E_Float* volp = NULL;
+  FldArrayF* vols = NULL; 
   if (volc == Py_None)
-  {  
-    K_METRIC::CompNGonVol(f->begin(posx), f->begin(posy),
+  { 
+    vol.malloc(nelts);
+    volp = vol.begin(1);  
+    K_METRIC::compVolNGon(f->begin(posx), f->begin(posy),
   			  f->begin(posz), *cn, volp);
   }
   else
   {
-    FldArrayF* vols=NULL; 
-    K_NUMPY::getFromNumpyArray(volc, vols, true);
+    K_NUMPY::getFromNumpyArray(volc, vols);
     volp = vols->begin();
-    RELEASESHAREDN(volc, vols);
   }
 
   #pragma omp parallel
@@ -269,9 +261,9 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     E_Float voli;
     for (E_Int n = 0; n < nfld; n++)
     {
-      E_Float* gpx = gp->begin(3*n+1);
-      E_Float* gpy = gp->begin(3*n+2);
-      E_Float* gpz = gp->begin(3*n+3);
+      E_Float* gpx = gn->begin(3*n+1);
+      E_Float* gpy = gn->begin(3*n+2);
+      E_Float* gpz = gn->begin(3*n+3);
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
       {
@@ -283,10 +275,11 @@ PyObject* K_POST::computeGrad2NGon(PyObject* self, PyObject* args)
     }
   }
 
+  RELEASESHAREDS(tpl, gn);
   RELEASESHAREDU(array, f, cn);
   RELEASESHAREDU(arrayc, fc, cnc);
-  RELEASESHAREDS(tpl, gp);
   if (cellNc != Py_None) Py_DECREF(cellNc);
+  if (volc != Py_None) RELEASESHAREDN(volc, vols);
 
   delete [] varStringOut;
   return tpl;
@@ -300,8 +293,8 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayc;
   PyObject* indices; PyObject* field; PyObject* cellNc;
-  if (!PyArg_ParseTuple(args, "OOOOO", &array, &arrayc, &cellNc,
-                        &indices, &field)) return NULL;
+  if (!PYPARSETUPLE_(args, OOOO_ O_, &array, &arrayc, &cellNc,
+                      &indices, &field)) return NULL;
 
   // Check array
   char* varString; char* eltType;
@@ -350,7 +343,7 @@ PyObject* K_POST::computeGrad2Struct(PyObject* self, PyObject* args)
   // Extract cellN if any
   E_Float* cellNp = NULL;
   E_Int ncells = fc->getSize();
-  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells, true);
+  if (cellNc != Py_None) K_NUMPY::getFromNumpyArray(cellNc, cellNp, ncells);
 
   // Nombre de variables dont il faut calculer le gradient
   E_Int nfld = fc->getNfld();
@@ -432,7 +425,6 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;
   E_Int nicnj = nic*nj;
-  E_Int nic1 = nic - 1; E_Int njc1 = njc - 1; E_Int nkc1 = nkc - 1;
   
   E_Int nbIntI = ninjc*nkc;
   E_Int nbIntJ = nicnj*nkc;
@@ -440,6 +432,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Int nbIntIJ = nbIntI+nbIntJ;
   E_Int nbIntTot = nbIntIJ+nbIntK;
   
+  E_Int api = fc.getApi();
   E_Int nfld = fc.getNfld(); E_Int nfldg = nfld*3;
   E_Int ncells = nicnjc*nkc;
 
@@ -452,17 +445,14 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
       
       #pragma omp parallel
       {
-        E_Int i, j, k;
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for
-        for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = (idx/nic1)%njc;
-          k = idx/(nic1*njc);
-
           indint = i + j*ni + k*ninjc;
           indcellg = (i - 1) + j*nic + k*nicnjc;
           indcelld = indcellg + 1;
@@ -471,13 +461,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
         {
-          j = idx%njc;
-          k = idx/njc;
-
-          i = 0;
+          E_Int i = 0;
           indint = i + j*ni + k*ninjc;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -491,13 +479,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc1*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc1 + 1;
-          k = idx/(nic*njc1);
-
           indint = i + j*nic + k*nicnj + nbIntI;
           indcellg = i + (j - 1)*nic + k*nicnjc;
           indcelld = indcellg + nic;
@@ -506,13 +492,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*nic; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          k = idx/nic;
-
-          j = 0;
+          E_Int j = 0;
           indint = i + j*nic + k*nicnj + nbIntI;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1;
@@ -527,13 +511,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc1*njc*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc;
-          k = idx/(nic*njc) + 1;
-
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcellg = i + j*nic + (k - 1)*nicnjc;
           indcelld = indcellg + nicnjc;
@@ -542,13 +524,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
 
         // bords des faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < njc*nic; idx++) 
+        #pragma omp for collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic;
-
-          k = 0;
+          E_Int k = 0;
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -572,17 +552,14 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
       
       #pragma omp parallel
       {
-        E_Int i, j, k;
         E_Int indint, indcellg, indcelld;
         
         // faces en i
-        #pragma omp for
-        for (E_Int idx = 0; idx < nkc*njc*nic1; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = (idx/nic1)%njc;
-          k = idx/(nic1*njc);
-
           indint = i + j*ni + k*ninjc;
           indcellg = (i - 1) + j*nic + k*nicnjc;
           indcelld = indcellg + 1;
@@ -593,13 +570,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en i
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
         {
-          j = idx%njc;
-          k = idx/njc;
-
-          i = 0;
+          E_Int i = 0;
           indint = i + j*ni + k*ninjc;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -613,13 +588,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*njc1*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc1 + 1;
-          k = idx/(nic*njc1);
-
           indint = i + j*nic + k*nicnj + nbIntI;
           indcellg = i + (j - 1)*nic + k*nicnjc;
           indcelld = indcellg + nic;
@@ -630,13 +603,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en j
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc*nic; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int k = 0; k < nkc; k++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          k = idx/nic;
-
-          j = 0;
+          E_Int j = 0;
           indint = i + j*nic + k*nicnj + nbIntI;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1;
@@ -651,13 +622,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nkc1*njc*nic; idx++) 
+        #pragma omp for nowait collapse(3)
+        for (E_Int k = 1; k < nkc; k++)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = (idx/nic)%njc;
-          k = idx/(nic*njc) + 1;
-
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcellg = i + j*nic + (k - 1)*nicnjc;
           indcelld = indcellg + nicnjc;
@@ -668,13 +637,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
         }
         
         // bords des faces en k
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < njc*nic; idx++) 
+        #pragma omp for collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic;
-
-          k = 0;
+          E_Int k = 0;
           indint = i + j*nic + k*nicnjc + nbIntIJ;
           indcelld = i + j*nic + k*nicnjc;
           cellG[indint] = -1; cellD[indint] = indcelld;
@@ -694,8 +661,8 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   if (indices != Py_None && field != Py_None)
   {
     FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -719,9 +686,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     RELEASESHAREDN(field, bfield);
   }
 
-  PyObject* tpl = K_ARRAY::buildArray3(nfldg,varStringOut, nic, njc, nkc);
-  E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF gp(ncells, nfldg, gnp, true); gp.setAllValuesAtNull();
+  PyObject* tpl = K_ARRAY::buildArray3(nfldg, varStringOut, nic, njc, nkc, api);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();
+
   FldArrayF surf(nbIntTot,3);
   FldArrayF centerInt(nbIntTot,3);
   E_Float* sxp = surf.begin(1);
@@ -731,10 +700,11 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Float* snp = surfnorm.begin();
   FldArrayF vol(ncells); E_Float* volp = vol.begin();
 
-  k6compstructmetric_(ni, nj, nk, ncells, nbIntTot, nbIntI, nbIntJ, nbIntK,
-                      xt, yt, zt,
-                      volp, sxp, syp, szp, snp,
-                      centerInt.begin(1), centerInt.begin(2),centerInt.begin(3));
+  K_METRIC::compMetricStruct(
+    ni, nj, nk, nbIntI, nbIntJ, nbIntK,
+    xt, yt, zt,
+    volp, sxp, syp, szp, snp,
+    centerInt.begin(1), centerInt.begin(2),centerInt.begin(3));
   
   // free mem
   centerInt.malloc(0); surfnorm.malloc(0);
@@ -744,9 +714,9 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
   E_Float ff;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpx = gp.begin(3*n+1);
-    E_Float* gpy = gp.begin(3*n+2);
-    E_Float* gpz = gp.begin(3*n+3);
+    E_Float* gpx = gn->begin(3*n+1);
+    E_Float* gpy = gn->begin(3*n+2);
+    E_Float* gpz = gn->begin(3*n+3);
     E_Float* fp = faceField.begin(n+1);
 
     for (E_Int indint = 0; indint < nbIntTot; indint++)
@@ -777,9 +747,9 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     
     for (E_Int n = 0; n < nfld; n++)
     {
-      E_Float* gpx = gp.begin(3*n+1);
-      E_Float* gpy = gp.begin(3*n+2);
-      E_Float* gpz = gp.begin(3*n+3);
+      E_Float* gpx = gn->begin(3*n+1);
+      E_Float* gpy = gn->begin(3*n+2);
+      E_Float* gpz = gn->begin(3*n+3);
       
       #pragma omp for
       for (E_Int i = 0; i < ncells; i++)
@@ -790,6 +760,7 @@ PyObject* K_POST::computeGrad2Struct3D(E_Int ni, E_Int nj, E_Int nk,
     }
   }
   
+  RELEASESHAREDS(tpl, gn);
   return tpl;
 }
 //=============================================================================
@@ -804,13 +775,13 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   E_Int nicnjc = nic*njc;
   E_Int ninjc = ni*njc;
   E_Int nicnj = nic*nj;
-  E_Int nic1 = nic - 1; E_Int njc1 = njc - 1;
   
   E_Int nbIntI = ninjc;
   E_Int nbIntJ = nicnj;
   E_Int nbIntIJ = nbIntI+nbIntJ;
   E_Int nbIntTot = nbIntIJ;
   
+  E_Int api = fc.getApi();
   E_Int nfld = fc.getNfld(); E_Int nfldg = nfld*3;
   E_Int ncells = nicnjc;
   FldArrayF sint(nbIntTot,3); sint.setAllValuesAtNull();
@@ -821,16 +792,13 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   // Compute length of faces
   #pragma omp parallel
   {
-    E_Int i, j, indint;
-    E_Int indm, indp;
+    E_Int indint, indm, indp;
     E_Float d13x, d13y, d13z, d24x, d24y, d24z;
     
-    #pragma omp for
-    for (E_Int idx = 0; idx < ninjc; idx++)
+    #pragma omp for nowait collapse(2)
+    for (E_Int j = 0; j < njc; j++)
+    for (E_Int i = 0; i < ni; i++)
     {
-      i = idx%ni;
-      j = idx/ni;
-      
       indm = i + j*ni; indp = indm + ni;
       d13x = xt[indp] - xt[indm];
       d13y = yt[indp] - yt[indm];
@@ -839,18 +807,15 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       d24y = yt[indm] - yt[indp];
       d24z = 1;
 
-      sxint[idx] = 0.5*(d13y*d24z - d13z*d24y);
-      syint[idx] = 0.5*(d13z*d24x - d13x*d24z);
-      szint[idx] = 0.5*(d13x*d24y - d13y*d24x);
+      sxint[indm] = 0.5*(d13y*d24z - d13z*d24y);
+      syint[indm] = 0.5*(d13z*d24x - d13x*d24z);
+      szint[indm] = 0.5*(d13x*d24y - d13y*d24x);
     }
     
-    #pragma omp for nowait
-    for (E_Int idx = 0; idx < nicnj; idx++)
+    #pragma omp for collapse(2)
+    for (E_Int j = 0; j < nj; j++)
+    for (E_Int i = 0; i < nic; i++)
     {
-      i = idx%nic;
-      j = idx/nic;
-      indint = ninjc + idx;
-      
       indm = i + j*ni; indp = indm + 1;
       d13x = xt[indp] - xt[indm];
       d13y = yt[indp] - yt[indm];
@@ -859,6 +824,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
       d24y = yt[indp] - yt[indm];
       d24z = -1;
 
+      indint = i + j*nic + ninjc;
       sxint[indint] = 0.5*(d13y*d24z - d13z*d24y);
       syint[indint] = 0.5*(d13z*d24x - d13x*d24z);
       szint[indint] = 0.5*(d13x*d24y - d13y*d24x);
@@ -874,16 +840,13 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         
       #pragma omp parallel
       {
-        E_Int i, j;
         E_Int indint, indcellg, indcelld;
         
         // faces en i internes
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < njc*nic1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = idx/nic1;
-          
           indint = i + j*ni;
           indcellg = (i - 1) + j*nic; indcelld = indcellg + 1;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -908,12 +871,10 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         }
 
         // faces en j internes
-        #pragma omp for
-        for (E_Int idx = 0; idx < nic*njc1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic + 1;
-    
           indint = i + j*nic + nbIntI;
           indcellg = i + (j - 1)*nic; indcelld = indcellg + nic;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -948,16 +909,13 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         
       #pragma omp parallel
       {
-        E_Int i, j;
         E_Int indint, indcellg, indcelld;
         
         // faces en i internes
-        #pragma omp for
-        for (E_Int idx = 0; idx < njc*nic1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 0; j < njc; j++)
+        for (E_Int i = 1; i < nic; i++)
         {
-          i = idx%nic1 + 1;
-          j = idx/nic1;
-          
           indint = i + j*ni;
           indcellg = (i - 1) + j*nic; indcelld = indcellg + 1;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -984,12 +942,10 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         }
 
         // faces en j internes
-        #pragma omp for nowait
-        for (E_Int idx = 0; idx < nic*njc1; idx++) 
+        #pragma omp for nowait collapse(2)
+        for (E_Int j = 1; j < njc; j++)
+        for (E_Int i = 0; i < nic; i++)
         {
-          i = idx%nic;
-          j = idx/nic + 1;
-    
           indint = i + j*nic + nbIntI;
           indcellg = i + (j - 1)*nic; indcelld = indcellg + nic;
           cellG[indint] = indcellg; cellD[indint] = indcelld;
@@ -999,7 +955,7 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
         }
         
         // bords des faces en j
-        #pragma omp for nowait
+        #pragma omp for
         for (E_Int i = 0; i < nic; i++)
         {
           // faces j = 0
@@ -1022,8 +978,8 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
   if (indices != Py_None && field != Py_None)
   {
     FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
-    K_NUMPY::getFromNumpyArray(indices, inds, true);
-    K_NUMPY::getFromNumpyArray(field, bfield, true);
+    K_NUMPY::getFromNumpyArray(indices, inds);
+    K_NUMPY::getFromNumpyArray(field, bfield);
 
     E_Int ninterfaces = inds->getSize()*inds->getNfld();
     E_Int* pindint = inds->begin();
@@ -1047,17 +1003,18 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     RELEASESHAREDN(indices, inds);
     RELEASESHAREDN(field, bfield);
   }
-  PyObject* tpl = K_ARRAY::buildArray3(nfldg,varStringOut, nic, njc, nkc);
-  E_Float* gnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF gp(ncells, nfldg, gnp, true); gp.setAllValuesAtNull();
+  PyObject* tpl = K_ARRAY::buildArray3(nfldg, varStringOut, nic, njc, nkc, api);
+  FldArrayF* gn;
+  K_ARRAY::getFromArray3(tpl, gn);
+  gn->setAllValuesAtNull();
 
   // gradient
   E_Float ff;
   for (E_Int n = 0; n < nfld; n++)
   {
-    E_Float* gpx = gp.begin(3*n+1);
-    E_Float* gpy = gp.begin(3*n+2);
-    E_Float* gpz = gp.begin(3*n+3);
+    E_Float* gpx = gn->begin(3*n+1);
+    E_Float* gpy = gn->begin(3*n+2);
+    E_Float* gpz = gn->begin(3*n+3);
     E_Float* fp = faceField.begin(n+1);
     for (E_Int indint = 0; indint < nbIntTot; indint++)
     {
@@ -1086,18 +1043,19 @@ PyObject* K_POST::computeGrad2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
     E_Float voli;
     for (E_Int n = 0; n < nfld; n++)
     {
-      E_Float* gpx = gp.begin(3*n+1);
-      E_Float* gpy = gp.begin(3*n+2);
-      E_Float* gpz = gp.begin(3*n+3);
+      E_Float* gpx = gn->begin(3*n+1);
+      E_Float* gpy = gn->begin(3*n+2);
+      E_Float* gpz = gn->begin(3*n+3);
       #pragma omp for
       for (E_Int indcell = 0; indcell < ncells; indcell++)
       {
-        voli = K_METRIC::compVolOfStructCell2D(ni, nj, xt, yt, zt, indcell, -1);
+        K_METRIC::compVolOfStructCell2D(ni, nj, indcell, -1, xt, yt, zt, voli);
         voli = 1./K_FUNC::E_max(voli, K_CONST::E_MIN_VOL);
         gpx[indcell] *= voli; gpy[indcell] *= voli; gpz[indcell] *= voli;
       }
     }
   }
   
+  RELEASESHAREDS(tpl, gn);
   return tpl;
 }

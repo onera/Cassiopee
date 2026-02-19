@@ -1,6 +1,5 @@
 # - fonctions de bloc split -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -150,7 +149,7 @@ def merge():
                     else: zoneNames[s[0]] = [n]
                 else: zoneNames['__Pool__'] += [n]
             else: zoneNames['__Pool__'] += [n]
-        # Reconstitue les listes de zone
+        # Reconstitue les listes de zones
         out = []
         for k in zoneNames:
             l = []
@@ -262,6 +261,10 @@ def split():
 
     # Indice splits
     ind = CPlot.getActivePointIndex()
+    if ind == []:
+        CTK.TXT.insert('START', 'No active point.\n')
+        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+        return
     i1 = ind[2]; j1 = ind[3]; k1 = ind[4]
 
     fail = False; errors = []
@@ -655,7 +658,7 @@ def createApp(win):
     # - split (subzone) -
     B = TTK.Button(Frame, text="Split", command=split)
     B.grid(row=0, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Split structured blocks following\n index direction.')
+    BB = CTK.infoBulle(parent=B, text='Split blocks following\n index direction (structured)\nor geometric direction.')
     B = TTK.OptionMenu(Frame, VARS[1], 'i-indices', 'j-indices', 'k-indices',
                        'X-coords', 'Y-coords', 'Z-coords',
                        'X-view')
@@ -664,7 +667,7 @@ def createApp(win):
     # - splitSize -
     B = TTK.Button(Frame, text="SplitSize", command=splitSize)
     B.grid(row=1, column=0, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Split a mesh with respect to a maximum size.\nTree is modified.')
+    BB = CTK.infoBulle(parent=B, text='Split a mesh with respect to a maximum number of points.\nTree is modified.')
     B = TTK.Entry(Frame, textvariable=VARS[0], background='White', width=10)
     B.grid(row=1, column=1, sticky=TK.EW)
     B.bind('<Return>', splitSize)

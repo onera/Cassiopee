@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ PyObject* K_CONVERTER::adaptNFace2Index(PyObject* self, PyObject* args)
 
   // Check numpy (NFace)
   FldArrayI* cNFace;
-  E_Int res = K_NUMPY::getFromNumpyArray(arrayNF, cNFace, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(arrayNF, cNFace);
   if (res == 0)
   {
     PyErr_SetString(PyExc_TypeError, 

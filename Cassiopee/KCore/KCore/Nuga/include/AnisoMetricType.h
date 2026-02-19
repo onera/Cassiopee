@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,6 +23,8 @@
 
 #include "Nuga/include/defs.h"
 #include <array>
+#include <cmath>
+#include <iostream>
 
 namespace DELAUNAY{
 
@@ -50,8 +52,9 @@ public:
   //fixme imad : not great to have a hard coded test value (should be passed as an argument so not appropriate for operator==)
   inline bool operator==(const self_type& other) const
   {
-    for (E_Int k = 0; k < DIMANISO; k++) {
-      if (::fabs(_mij[k] - other[k]) > 1e-6) return false;
+    for (E_Int k = 0; k < DIMANISO; k++) 
+    {
+      if (fabs(_mij[k] - other[k]) > 1e-6) return false;
     }
     return true;
   }
@@ -164,7 +167,8 @@ void AnisoMetricType<2>::eigen_values(E_Float &lmax, E_Float & lmin) const
   E_Float b = _mij[0]*_mij[2] - _mij[1]*_mij[1]; //det
   E_Float d = a*a - 4.*b;
 
-  d = (d > 0.) ? ::sqrt(d) : 0.;
+  if (d > 0.) d = sqrt(d);
+  else d = 0.;
   lmin = 0.5*(a - d);
   lmax = lmin+d;
 }
@@ -173,8 +177,8 @@ template <> inline
 void AnisoMetricType<3>::eigen_values(E_Float &lmax, E_Float & lmin) const
 {
   //todo Imad : fixme : asssume here a diagonal matrix!
-  lmin = std::min(_mij[0], std::min(_mij[3], _mij[5]));
-  lmax = std::max(_mij[0], std::max(_mij[3], _mij[5]));
+  lmin = K_FUNC::E_min(_mij[0], K_FUNC::E_min(_mij[3], _mij[5]));
+  lmax = K_FUNC::E_max(_mij[0], K_FUNC::E_max(_mij[3], _mij[5]));
 }
 
 #ifdef DEBUG_METRIC

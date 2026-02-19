@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -447,7 +447,7 @@ void K_POST::removeTrianglesWithBlankedCenters(
     E_Float yc = inv * (y[ind1] + y[ind2] + y[ind3]);
     E_Float zc = inv * (z[ind1] + z[ind2] + z[ind3]);
 
-    E_Boolean isInterp = false;
+    E_Bool isInterp = false;
     E_Int type = 0;
     short found = K_INTERP::getInterpolationCell(xc, yc, zc, allInterpDatas,
                                                  allFields, allA1, allA2, allA3, allA4,

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -82,34 +82,7 @@ extern "C"
   void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
                        const E_Int& nfld, E_Float* fieldnode, 
                        E_Float* fieldcenter);
-
-  void k6boundboxunstr_(const E_Int& npts, 
-                        const E_Float* x, const E_Float* y, const E_Float* z, 
-                        E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                        E_Float& xmin, E_Float& ymin, E_Float& zmin);
   
-  void k6boundboxunstr2_(
-    const E_Int& npts, 
-    const E_Float* x, const E_Float* y, const E_Float* z, 
-    const E_Float* m, const E_Float* r0, const E_Float* xc0,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-    E_Float& xmin, E_Float& ymin, E_Float& zmin);
-
-  void k6boundbox2_(const E_Int& im, const E_Int& jm, const E_Int& km,
-                    const E_Float* x, const E_Float* y, const E_Float* z,
-                    const E_Float* m,const E_Float* r0,const E_Float* xc0, 
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin);
-
-  void k6compmeanlengthofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                                     E_Int& indA,  
-                                     E_Float* xt, E_Float* yt, 
-                                     E_Float* zt, E_Float& meanl);
-  
-  void k6compmeanlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
-                                    E_Int& indC, E_Int& indD, 
-                                    E_Float* xt, E_Float* yt, E_Float* zt, 
-                                    E_Float& meanl);
   void k6compminlengthoftetracell_(E_Int& npts, E_Int& indA, E_Int& indB,
                                    E_Int& indC, E_Int& indD, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
@@ -195,22 +168,7 @@ extern "C"
                          const E_Float* x2, const E_Float* y2, 
                          const E_Float* z2, const E_Float& distmin,
                          E_Int& notvalid, E_Int& isopp);
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-  void k6onedmapbar_(const E_Int& ni, const E_Float* xt, const E_Float* yt,
-                     const E_Float* zt, const E_Int& nid, 
-                     const E_Float* fd,
-                     const E_Int& net, const E_Int* cn1, const E_Int* cn2, 
-                     E_Int& neto, E_Int* cn1o, E_Int* cn2o,               
-                     E_Float* xo, E_Float* yo, E_Float* zo,
-                     E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-  void k6rotatemesh_(const E_Int& dim, const E_Float* center,
-                     const E_Float* axis, const E_Float& teta,
-                     E_Float* x, E_Float* y, E_Float* z);
+
 }
 //=============================================================================
 /* Fonctions fortran declarees dans KCore mais non appelees dans KCore   
@@ -221,15 +179,6 @@ void K_KCORE::testFooKCore()
   E_Int i=0; E_Float f=0.;
   
   k6conv2center1_(i, i, i, i, NULL, NULL);
-
-  k6boundboxunstr_(i, NULL, NULL, NULL, 
-                   f, f, f, f, f, f);
-
-  k6compmeanlengthofstructcell_(i, i, i, i,
-                                NULL, NULL, NULL, f);
-
-  k6compmeanlengthoftetracell_(i, i, i, i, i, 
-                               NULL, NULL, NULL, f);
   k6compminlengthofcell_(i, i, i, i, 
                          NULL, NULL, NULL, f);
   k6compminlengthoftetracell_(i, i, i, i, i, 
@@ -263,16 +212,6 @@ void K_KCORE::testFooKCore()
                     NULL, i, i, i,
                     NULL, NULL, NULL, f,
                     i, i);
-  k6onedmap_(i, NULL, NULL, NULL,
-             i, NULL,
-             NULL, NULL, NULL,
-             NULL, NULL, NULL, NULL);
-  k6onedmapbar_(i, NULL, NULL, NULL, i, 
-                NULL, i, NULL, NULL, 
-                i, NULL, NULL,               
-                NULL, NULL, NULL,
-                NULL, NULL, NULL, NULL);
-
   k6compstructcellcenter_(i, i, i, i, i, 
                           NULL, NULL, 
                           NULL, NULL);
@@ -281,22 +220,5 @@ void K_KCORE::testFooKCore()
                          NULL, NULL,
                          NULL, NULL,
                          NULL);
-  
-  k6rotatemesh_(i, NULL, NULL, f,
-                NULL, NULL, NULL);
-
-  k6boundbox2_(i, i, i,
-               NULL, NULL, NULL,
-               NULL, NULL, NULL, 
-               f, f, f, 
-               f, f, f);
-
-  k6boundboxunstr2_(i, 
-                    NULL, NULL, NULL, 
-                    NULL, NULL, NULL,
-                    f, f, f, 
-                    f, f, f);
-  k6fldcopyfrom_(i, i, i, i, NULL, NULL);
-  k6fldintcopyfrom_(i, i, i, i, NULL, NULL);
 }
 

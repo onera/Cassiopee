@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,9 @@
 #include "Data.h"
 #include <math.h>
 
+#ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
+#endif
 
 //=======================================================================
 // Create 1D half gaussian kernel coefficients
@@ -157,5 +159,6 @@ PyObject* K_CPLOT::blur(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDS(array, im);
+  Py_INCREF(Py_None);
   return Py_None;
 }

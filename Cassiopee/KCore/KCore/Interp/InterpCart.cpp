@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2018 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -78,9 +78,18 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
 
+#ifdef E_ADOLC
+  E_Float vx = (x-_xmin)*_hii;
+  E_Float vy = (y-_ymin)*_hji;
+  E_Float vz = (z-_zmin)*_hki;
+  ic = E_Int(vx.value())+_ioff;
+  jc = E_Int(vy.value())+_joff;
+  kc = E_Int(vz.value())+_koff;
+#else
   ic = E_Int((x-_xmin)*_hii)+_ioff;
-  jc = E_Int((y-_ymin)*_hji)+_ioff;
-  kc = E_Int((z-_zmin)*_hki)+_ioff;
+  jc = E_Int((y-_ymin)*_hji)+_joff;
+  kc = E_Int((z-_zmin)*_hki)+_koff;
+#endif
 
   ic = std::min(ic,ni-1); ic = std::max(ic,E_Int(1)); 
   jc = std::min(jc,nj-1); jc = std::max(jc,E_Int(1)); 
@@ -142,9 +151,20 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_
   if (y > _ymax+EPS) return 0;
   if (z < _zmin-EPS) return 0;
   if (z > _zmax+EPS) return 0;
+  
+#ifdef E_ADOLC
+  E_Float vx = (x-_xmin)*_hii;
+  E_Float vy = (y-_ymin)*_hji;
+  E_Float vz = (z-_zmin)*_hki;  
+  ic = E_Int(vx.value())+_ioff;
+  jc = E_Int(vy.value())+_joff;
+  kc = E_Int(vz.value())+_koff;
+#else
   ic = E_Int((x-_xmin)*_hii)+_ioff;
   jc = E_Int((y-_ymin)*_hji)+_joff;
   kc = E_Int((z-_zmin)*_hki)+_koff;
+#endif
+
   ic = std::max(ic,E_Int(1)); ic = std::min(ic,ni-1);
   jc = std::max(jc,E_Int(1)); jc = std::min(jc,nj-1);
   kc = std::max(kc,E_Int(1)); kc = std::min(kc,nk-1);
@@ -323,6 +343,105 @@ short K_INTERP::InterpCart::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_
   ic = icHO; jc = jcHO; kc = kcHO;
   return 1;
 }
+
+// ============================================================================
+/* 4rd order interpolation on Cartesian grids 
+  Returns coefs stored by direction (O4ABC) 
+  e.g. : coef(P_0) = cf[0]*cf[3]*cf[6] */
+// ============================================================================
+short K_INTERP::InterpCart::searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
+                                                          E_Float x, E_Float y, E_Float z,
+                                                          E_Int& ic, E_Int& jc, E_Int& kc,
+                                                          FldArrayF& cf)
+{
+  const E_Float EPS = K_CONST::E_GEOM_CUTOFF;
+  if (x < _xmin-EPS) return 0;
+  if (x > _xmax+EPS) return 0;
+  if (y < _ymin-EPS) return 0;
+  if (y > _ymax+EPS) return 0;
+  if (z < _zmin-EPS) return 0;
+  if (z > _zmax+EPS) return 0;
+
+#ifdef E_ADOLC
+  E_Float vx = (x-_xmin)*_hii;
+  E_Float vy = (y-_ymin)*_hji;
+  E_Float vz = (z-_zmin)*_hki;
+  ic = E_Int(vx.value())+_ioff;
+  jc = E_Int(vy.value())+_joff;
+  kc = E_Int(vz.value())+_koff;
+#else
+  ic = E_Int((x-_xmin)*_hii)+_ioff;
+  jc = E_Int((y-_ymin)*_hji)+_joff;
+  kc = E_Int((z-_zmin)*_hki)+_koff;
+#endif
+
+  ic = std::max(ic,E_Int(1)); ic = std::min(ic,ni-1);
+  jc = std::max(jc,E_Int(1)); jc = std::min(jc,nj-1);
+  kc = std::max(kc,E_Int(1)); kc = std::min(kc,nk-1);
+
+  //Dir X(I)
+  if (ic >1 ) ic -=1; //on decale le donneur de 1
+  if (ic+3 >  _ni) ic -= ic+3-_ni;
+
+  E_Float x_i = _xmin+(ic-1)*_hi; E_Float x_ip = x_i +_hi;  E_Float x_ipp = x_i + 2*_hi; E_Float x_ippp = x_i + 3*_hi;
+
+  //xi
+  E_Float norm= -6.*_hi*_hi*_hi;
+  E_Float lx0 = (x-x_ip)*(x-x_ipp)*(x-x_ippp)/norm;
+  //xip
+  norm=  2.*_hi*_hi*_hi;
+  E_Float lx1 =( x-x_i) *(x-x_ipp)*(x-x_ippp)/norm;
+  //xipp
+  norm= -2.*_hi*_hi*_hi;
+  E_Float lx2 = (x-x_i)*(x-x_ip)*(x-x_ippp)/norm;
+  //xippp
+  norm=  6.*_hi*_hi*_hi;
+  E_Float lx3 = (x-x_i)*(x-x_ip)*(x-x_ipp)/norm;
+
+  //Dir Y(J)
+  //if (jc >= _nj-2) jc -=2;
+  if (jc >1 ) jc -=1; //on decale le donneur de 1
+  if (jc+3 >  _nj) jc -= jc+3-_nj;
+
+  E_Float y_j = _ymin+(jc-1)*_hj; E_Float y_jp = y_j +_hj;  E_Float y_jpp = y_j + 2*_hj; E_Float y_jppp = y_j + 3*_hj;
+  //yj
+  norm=-6.*_hj*_hj*_hj;
+  E_Float ly0 = (y-y_jp)*(y-y_jpp)*(y-y_jppp)/norm;
+  //yjp
+  norm= 2.*_hj*_hj*_hj;
+  E_Float ly1 = (y-y_j) *(y-y_jpp)*(y-y_jppp)/norm;
+  //yjpp
+  norm=-2.*_hj*_hj*_hj;
+  E_Float ly2 =(y-y_j)*(y-y_jp)*(y-y_jppp)/norm;
+  //yjppp
+  norm= 6.*_hj*_hj*_hj;
+  E_Float ly3 = (y-y_j)*(y-y_jp)*(y-y_jpp)/norm;
+
+  //Dir Z(K)
+  if (kc >1 ) kc -=1; //on decale le donneur de 1
+  if (kc+3 >  _nk) kc -= kc+3-_nk;
+
+  E_Float z_k = _zmin+(kc-1)*_hk; E_Float z_kp = z_k +_hk;  E_Float z_kpp = z_k + 2*_hk; E_Float z_kppp = z_k + 3*_hk;
+  //zk
+  norm=-6.*_hk*_hk*_hk;
+  E_Float lz0 = (z-z_kp)*(z-z_kpp)*(z-z_kppp)/norm;
+  //zkp
+  norm= 2.*_hk*_hk*_hk;
+  E_Float lz1 = (z-z_k) *(z-z_kpp)*(z-z_kppp)/norm;
+  //zkpp
+  norm=-2.*_hk*_hk*_hk;
+  E_Float lz2 = (z-z_k)*(z-z_kp)*(z-z_kppp)/norm;
+  //zkppp
+  norm= 6.*_hk*_hk*_hk;
+  E_Float lz3 = (z-z_k)*(z-z_kp)*(z-z_kpp)/norm;
+
+  cf[0] = lx0; cf[1] = lx1; cf[2 ] = lx2;  cf[3] = lx3;
+  cf[4] = ly0; cf[5] = ly1; cf[6 ] = ly2;  cf[7] = ly3;
+  cf[8] = lz0; cf[9] = lz1; cf[10] = lz2;  cf[11] =lz3;
+ 
+  return 1;
+}
+
 // =====================================================================================
 /* Retourne la liste des cellules contenant (x,y,z) a la tolerance alphaTol pres */
 // =====================================================================================
@@ -347,13 +466,31 @@ E_Int K_INTERP::InterpCart::getListOfCandidateCells(E_Float x, E_Float y, E_Floa
   E_Float y0 = y-dy; E_Float y1 = y+dy;
   E_Float z0 = z-dz; E_Float z1 = z+dz;
 
+#ifdef E_ADOLC
+  E_Float vx = (x0-_xmin)*_hii;
+  E_Float vy = (y0-_ymin)*_hji;
+  E_Float vz = (z0-_zmin)*_hki;
+  E_Int icmin = E_Int(vx.value())+_ioff;
+  E_Int jcmin = E_Int(vy.value())+_joff;
+  E_Int kcmin = E_Int(vz.value())+_koff;
+#else
   E_Int icmin = E_Int((x0-_xmin)*_hii)+_ioff;
   E_Int jcmin = E_Int((y0-_ymin)*_hji)+_joff;
   E_Int kcmin = E_Int((z0-_zmin)*_hki)+_koff;
+#endif
 
+#ifdef E_ADOLC
+  vx = (x1-_xmin)*_hii;
+  vy = (y1-_ymin)*_hji;
+  vz = (z1-_zmin)*_hki;
+  E_Int icmax = E_Int(vx.value())+_ioff;
+  E_Int jcmax = E_Int(vy.value())+_joff;
+  E_Int kcmax = E_Int(vz.value())+_koff;
+#else
   E_Int icmax = E_Int((x1-_xmin)*_hii)+_ioff;
   E_Int jcmax = E_Int((y1-_ymin)*_hji)+_joff;
   E_Int kcmax = E_Int((z1-_zmin)*_hki)+_koff;
+#endif
 
   if (icmin < 1 && icmax < 1) return 0;
   if (jcmin < 1 && jcmax < 1) return 0;

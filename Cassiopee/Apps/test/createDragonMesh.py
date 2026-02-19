@@ -1,4 +1,4 @@
-# Dragon mesh
+# - createDragonMesh (pyTree) -
 import Converter.PyTree as C
 import Apps.Mesh.Dragon as AppMesh
 import Geom.PyTree as D
@@ -11,7 +11,6 @@ dictOfParams['h_ext_factor']=4 #facteur*hauteur de la couche externe de prismes,
 
 t = AppMesh.createDragonMesh(s, dictOfParams)
 C.convertPyTree2File(t, "out.cgns")
-
 
 #dictOfParams['sym_plane_axis']='Z'
 #dictOfParams['sym_plane_values']=[0.]

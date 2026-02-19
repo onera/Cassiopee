@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -28,11 +28,11 @@ using namespace K_FLD;
 /* Generate a 2D surface mesh defined by an array from 1D line mesh defined by
    array and a line generator arrayLine */
 // ============================================================================
-PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
+PyObject* K_GEOM::lineGenerate(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayLine;
-  if (!PyArg_ParseTuple(args, "OO", &array, &arrayLine)) return NULL;
-  
+  if (!PYPARSETUPLE_(args, OO_, &array, &arrayLine)) return NULL;
+
   // Check array
   E_Int im1, jm1, km1, im2, jm2, km2;
   E_Int im3, jm3, km3, im3jm3, im1jm1;
@@ -40,14 +40,14 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
   char* varString1; char* eltType1;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  
+
   // Driving curve
-  E_Int res2 = K_ARRAY::getFromArray(arrayLine, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2);
+  E_Int res2 = K_ARRAY::getFromArray3(arrayLine, varString2,
+                                      f2, im2, jm2, km2, cn2, eltType2);
 
   if (res2 == 2)
   {
-    delete f2; delete cn2;
+    RELEASESHAREDU(arrayLine, f2, cn2);
     PyErr_SetString(PyExc_TypeError,
                     "lineGenerate: driving curve must be structured.");
     return NULL;
@@ -59,10 +59,11 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int res1 = K_ARRAY::getFromArray(array, varString1, f1, im1, jm1, km1, 
-                                     cn1, eltType1);
+  E_Int res1 = K_ARRAY::getFromArray3(array, varString1, f1, im1, jm1, km1,
+                                      cn1, eltType1);
 
   E_Int nfld = f1->getNfld();
+  E_Int api = f1->getApi();
 
   if (res1 == 1) // structured
   {
@@ -75,8 +76,10 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     if (posx1 == -1 || posy1 == -1 || posz1 == -1 ||
         posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      PyErr_SetString(PyExc_TypeError,"lineGenerate: coordinates not found.");
-      delete f1; delete f2; return NULL;
+      PyErr_SetString(PyExc_TypeError, "lineGenerate: coordinates not found.");
+      RELEASESHAREDS(array, f1);
+      RELEASESHAREDS(arrayLine, f2);
+      return NULL;
     }
     posx1++; posy1++; posz1++;
     posx2++; posy2++; posz2++;
@@ -94,10 +97,10 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     {
       im3 = im1; jm3 = jm1; km3 = im2;
     }
-    
+
     im3jm3 = im3*jm3;
     im1jm1 = im1*jm1;
-    
+
     FldArrayF* coord = new FldArrayF(im3jm3*km3, nfld);
     E_Float* xt = coord->begin(posx1);
     E_Float* yt = coord->begin(posy1);
@@ -125,7 +128,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
       dx = xt1[i]-xb; dy = yt1[i]-yb; dz = zt1[i]-zb;
       d2 = K_FUNC::E_min(d2, dx*dx+dy*dy+dz*dz);
     }
-    if (d2 < d1) 
+    if (d2 < d1)
       K_CONNECT::reorderStructField(im2, jm2, km2, *f2, -1, 2, 3);
 
     // Init (pour les champs)
@@ -152,7 +155,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
             {
               ind = i + k*im1jm1;
               ind2 = i + j* im3 + k*im3jm3;
-              ft[ind2] = ft1[ind];         
+              ft[ind2] = ft1[ind];
             }
       }
       else
@@ -176,7 +179,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
           for (E_Int j = 0; j < jm3; j++)
           {
             ind = i + j*im3 + k*im3jm3;
-            indm = j*im3 + k*im3jm3; 
+            indm = j*im3 + k*im3jm3;
             xt[ind] = xt1[indm] + xt2[i] - xt2[0];
             yt[ind] = yt1[indm] + yt2[i] - yt2[0];
             zt[ind] = zt1[indm] + zt2[i] - zt2[0];
@@ -208,11 +211,11 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
             zt[ind] = zt1[indm] + zt2[k] - zt2[0];
           }
     }
-    delete f1; delete f2;
-    PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
-                                        im3, jm3, km3);
+    RELEASESHAREDS(array, f1);
+    RELEASESHAREDS(arrayLine, f2);
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1, im3, jm3, km3, api);
     delete coord;
-    return tpl; 
+    return tpl;
   }
   else if (res1 == 2) // unstructured
   {
@@ -222,7 +225,8 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     else if (strcmp(eltType1, "TRI") == 0) strcpy(eltType, "PENTA");
     else
     {
-      delete f2; delete f1; delete cn1;
+      RELEASESHAREDU(array, f1, cn1);
+      RELEASESHAREDS(arrayLine, f2);
       PyErr_SetString(PyExc_TypeError,
                       "lineGenerate: array must be structured, BAR, TRI or QUAD.");
       return NULL;
@@ -237,12 +241,14 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     if ( posx1 == -1 || posy1 == -1 || posz1 == -1 ||
          posx2 == -1 || posy2 == -1 || posz2 == -1)
     {
-      PyErr_SetString(PyExc_TypeError,"lineGenerate: coordinates not found.");
-      delete f2; delete f1; delete cn1; return NULL;
+      PyErr_SetString(PyExc_TypeError, "lineGenerate: coordinates not found.");
+      RELEASESHAREDU(array, f1, cn1);
+      RELEASESHAREDS(arrayLine, f2);
+      return NULL;
     }
     posx1++; posy1++; posz1++;
     posx2++; posy2++; posz2++;
-    
+
     FldArrayF* coord = new FldArrayF(f1->getSize()*im2, nfld);
     E_Float* xt = coord->begin(posx1);
     E_Float* yt = coord->begin(posy1);
@@ -270,7 +276,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
       dx = xt1[i]-xb; dy = yt1[i]-yb; dz = zt1[i]-zb;
       d2 = K_FUNC::E_min(d2, dx*dx+dy*dy+dz*dz);
     }
-    if (d2 < d1) 
+    if (d2 < d1)
       K_CONNECT::reorderStructField(im2, jm2, km2, *f2, -1, 2, 3);
 
     // Init (pour les champs)
@@ -278,7 +284,7 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
     {
       E_Float* ft = coord->begin(n);
       E_Float* ft1 = f1->begin(n);
-      
+
       for (E_Int i = 0; i < im2; i++)
       {
         for (E_Int j = 0; j < n1; j++)
@@ -331,9 +337,11 @@ PyObject* K_GEOM::lineGenerateMesh(PyObject* self, PyObject* args)
       }
     }
 
-    delete f2; delete f1; delete cn1;
-    PyObject* tpl = K_ARRAY::buildArray(*coord, varString1, 
-                                        *connect, -1, eltType);
+    RELEASESHAREDU(array, f1, cn1);
+    RELEASESHAREDS(arrayLine, f2);
+
+    PyObject* tpl = K_ARRAY::buildArray3(*coord, varString1,
+                                         *connect, eltType, api);
     delete coord; delete connect;
     return tpl;
   }

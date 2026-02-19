@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -114,7 +114,7 @@ namespace K_GENERATOR
   PyObject* getLocalStepFactor(PyObject* self, PyObject* args);
   PyObject* getLocalStepFactor2(PyObject* self, PyObject* args);
   PyObject* getEdgeRatio(PyObject* self, PyObject* args);
-  PyObject* getMaxLength(PyObject* self, PyObject* args);
+  PyObject* getEdgeLength(PyObject* self, PyObject* args);
   PyObject* getTriQualityMap(PyObject* self, PyObject* args);
   PyObject* netgen1(PyObject* self, PyObject* args);
   PyObject* netgen2(PyObject* self, PyObject* args);

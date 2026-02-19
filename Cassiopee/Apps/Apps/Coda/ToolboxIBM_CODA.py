@@ -7,17 +7,14 @@ import Converter
 import Converter.Distributed as CD
 import Generator.PyTree as G
 import Post.PyTree as P
-import Connector.OversetData as XOD
 import Converter.Mpi as Cmpi
-import Connector.connector as connector
 import numpy
 import Dist2Walls.PyTree as DTW
 import KCore.test as test
 import Connector.PyTree as X
-import Connector.Mpi as Xmpi
 import Transform
-import Distributor2.PyTree as D2
 import Geom.PyTree as D
+import fnmatch
 
 TOL = 1.e-6
 rank = Cmpi.rank; size = Cmpi.size
@@ -28,7 +25,7 @@ def extractBCOfType(t,bndType):
     for z in Internal.getZones(t):
         zp = Internal.copyRef(z)
         Internal._rmNodesFromType(zp,"FlowSolution_t")
-        connects = Internal.getNodesFromType(z,"Elements_t")
+        connects = Internal.getNodesFromType1(z, "Elements_t")
         cnQUAD = None
         for cn in connects:
             val = Internal.getValue(cn)[0]
@@ -42,14 +39,14 @@ def extractBCOfType(t,bndType):
                 Internal._rmNodesFromName(zp,cn[0])
 
         # physical BCs
-        for bc in Internal.getNodesFromType(z,'BC_t'):
-            if Internal.getValue(bc)==bndType:
+        for bc in Internal.getNodesFromType2(z, 'BC_t'):
+            if Internal.getValue(bc) == bndType:
                 PL = Internal.getNodeFromName(bc,'PointList')
                 GridLoc = Internal.getNodeFromType(bc,'GridLocation_t')
                 GridLoc = Internal.getValue(GridLoc)
                 if PL is not None and GridLoc=='FaceCenter':
                     PL = Internal.getValue(PL)[0].tolist() # list of elements
-                    array = C.getFields(Internal.__GridCoordinates__, zp)[0]
+                    array = C.getFields(Internal.__GridCoordinates__, zp, api=1)[0]
                     array = Transform.transform.subzoneElements(array, PL)
                     res.append(C.convertArrays2ZoneNode(bc[0],[array]))
         # connect 1to1
@@ -58,9 +55,9 @@ def extractBCOfType(t,bndType):
                 PL = Internal.getNodeFromName(gc,'PointList')
                 GridLoc = Internal.getNodeFromType(gc,'GridLocation_t')
                 GridLoc = Internal.getValue(GridLoc)
-                if PL is not None and GridLoc=='FaceCenter':
+                if PL is not None and GridLoc == 'FaceCenter':
                     PL = Internal.getValue(PL)[0].tolist() # list of elements
-                    array = C.getFields(Internal.__GridCoordinates__, zp)[0]
+                    array = C.getFields(Internal.__GridCoordinates__, zp, api=1)[0]
                     array = Transform.transform.subzoneElements(array, PL)
                     res.append(C.convertArrays2ZoneNode(gc[0],[array]))
     return res
@@ -106,12 +103,12 @@ def prepare(t_case, t, tskel, check=False):
     # PointList and PointListDonor are actually FaceList, start at 0, ordered as Cartesian !!!
     prefzone ='CART_P' #zone names are eventually prefixed by this name
     for z in Internal.getZones(t):
-        gcnodes = Internal.getNodesFromType(z,'GridConnectivity1to1_t')
+        gcnodes = Internal.getNodesFromType(z, 'GridConnectivity1to1_t')
         for gcnode in gcnodes:
             zdnrname = Internal.getValue(gcnode)
             dnrproc = procDict[zdnrname]
             if dnrproc == Cmpi.rank:
-                Internal._rmNode(z,gcnode)
+                Internal._rmNode(z, gcnode)
     graphM={}
     _create1To1Connectivity(t, tskel=tskel, dim=dimPb, convertOnly=True)
     dictOfAbuttingSurfaces={}
@@ -199,10 +196,10 @@ def prepare(t_case, t, tskel, check=False):
     t = C.node2Center(t,['TurbulentDistance'])
     t = P.computeGrad(t, 'TurbulentDistance')
     graddvars=["centers:gradxTurbulentDistance",'centers:gradyTurbulentDistance','centers:gradzTurbulentDistance']
-    t = C.center2Node(t,graddvars)
+    t = C.center2Node(t, graddvars)
     #print("After computeGrad : Perform transfers of gradient correctly ????")
     #Internal._rmNodesFromName(t,Internal.__FlowSolutionCenters__)
-    C._rmVars(t,graddvars)
+    C._rmVars(t, graddvars)
     #
     # Extract front faces
     if IBCType == -1:
@@ -220,9 +217,9 @@ def prepare(t_case, t, tskel, check=False):
     frontType=1
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 
-    front1 =[]
+    front1 = []
     he = 0.
-    frontDict={}
+    frontDict = {}
     for z in Internal.getZones(t):
         f = P.frontFaces(z,'cellN')
         if Internal.getZoneDim(f)[1]>0:
@@ -235,7 +232,6 @@ def prepare(t_case, t, tskel, check=False):
 
     print(" Compute IBM Wall points...")
 
-    loc='FaceCenter'
     he = he*1.8 # distmax = sqrt(3)*dx => he min = distmax + dx + tol
     #varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
     allip_pts=[]; allwall_pts=[]; allimage_pts=[]
@@ -266,7 +262,7 @@ def prepare(t_case, t, tskel, check=False):
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -274,8 +270,8 @@ def prepare(t_case, t, tskel, check=False):
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)[0]
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)[0]
+            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts, api=1)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts, api=1)[0]
             ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
             imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -680,7 +676,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             # IBM Wall points
             #
             zname = ip_ptsZ[0]
-            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes')[0]
+            ip_pts = C.getAllFields(ip_ptsZC,loc='nodes', api=1)[0]
             ip_pts = Converter.convertArray2Node(ip_pts)
             wallpts = T.projectAllDirs(ip_ptsZC, tb, varsn, oriented=0)
             C._normalize(wallpts,varsn)
@@ -688,8 +684,8 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts)[0]
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts)[0]
+            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts, api=1)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts, api=1)[0]
             ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
             imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
@@ -989,14 +985,14 @@ def cartRxLoc(X0, H, N, Nb, depth=0, addCellN=False, addBCMatch=False, rank=None
                     out.append(z)
     return out
 
-#suppose que les connectivites quad sont contigues
+# suppose que les connectivites quad sont contigues
 def mergeQuadConn(z):
     NBVERTQ = 4
-    BCs = Internal.getNodesFromType(z, "BC_t")
+    BCs = Internal.getNodesFromType(z, 'BC_t')
 
     rminglob = -1; rmaxglob = -1
     rangeMinT={}; rangeMaxT={}
-    allElts_t = Internal.getNodesFromType(z,'Elements_t')
+    allElts_t = Internal.getNodesFromType(z, 'Elements_t')
     for elts_t in allElts_t:
         typeEt = Internal.getValue(elts_t)[0]
         if typeEt == 7:
@@ -1059,11 +1055,11 @@ def mergeQuadConn0(z):
     rangeMinT={}; rangeMaxT={}
     rmaxall = -1; rminall = 100000000
 
-    for elts_t in Internal.getNodesFromType(z,"Elements_t"):
+    for elts_t in Internal.getNodesFromType(z, "Elements_t"):
         typeEt = Internal.getValue(elts_t)[0]
         if typeEt == 7:
             name = Internal.getName(elts_t)
-            eltRange = Internal.getNodeFromName1(elts_t,"ElementRange")
+            eltRange = Internal.getNodeFromName1(elts_t, "ElementRange")
             rangeMinT[name] = Internal.getValue(eltRange)[0]
             rangeMaxT[name] = Internal.getValue(eltRange)[1]
             rmaxall = max(rangeMaxT[name]+1,rmaxall)
@@ -1989,7 +1985,7 @@ def _recoverBCs1(a, T, tol=1.e-11):
                 bb = C.breakConnectivity(b)
                 ids = numpy.array([], dtype=numpy.int32)
                 for bc in bb:
-                    ids = numpy.concatenate([ids, identifyElements(hook, bc, tol)])
+                    ids = numpy.concatenate([ids, C.identifyElements(hook, bc, tol)])
 
             # Cree les BCs
             ids0 = ids # keep ids for bcdata

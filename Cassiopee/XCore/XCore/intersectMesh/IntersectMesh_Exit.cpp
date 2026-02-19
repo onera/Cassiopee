@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -36,5 +36,6 @@ PyObject *K_XCORE::IntersectMesh_Exit(PyObject *self, PyObject *args)
 
     delete M;
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

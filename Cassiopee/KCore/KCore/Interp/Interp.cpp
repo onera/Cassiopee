@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,11 +30,6 @@ using namespace K_ARRAY;
 
 extern "C"
 {
-  void k6compvolofstructcell_(E_Int& ni, E_Int& nj, E_Int& nk, 
-                              E_Int& indcell, E_Int& indnode, E_Float* x, 
-                              E_Float* y, E_Float* z, 
-                              E_Float& vol);
-
   void k6compvoloftetracell_(const E_Int& npts, 
                              const E_Int& ind1, const E_Int& ind2, 
                              const E_Int& ind3, const E_Int& ind4,
@@ -156,6 +151,7 @@ short K_INTERP::getInterpolationCell(
       oneField.begin(posx0), oneField.begin(posy0), oneField.begin(posz0), 
       cellNp, isBorder, tmpType, tmpIndi, tmpCf, interpType, nature);
 # include "commonTypesForExtrapAndInterp.h"
+
   }// fin parcours des zones
   voli = best;
   noDonorBlk = noblk;
@@ -806,6 +802,35 @@ short K_INTERP::compInterpolatedValues(
               {
                 ind0 = (i+i0) + (j+j0)*ni + (k+k0)*ninj;
                 fp[ind] += cfp[i0]*cfp[j0+3]*cfp[k0+6]* fp0[ind0];  
+              }
+        }
+      }
+      break;
+
+   case 44://formule directionnelle (ex O4ABC): on stocke les indices i,j,k des sommets
+      if (a4 == NULL)// NS: indices des nvert sommets de la molecule d interpolation
+      {
+        printf("Error: compInterpolatedValues: type 44 not valid for unstructured interpolations.\n");
+        return -1;
+      }
+      else // STRUCTURE: indice de la premiere cellule en bas a gauche stockee
+      {
+        ni = *(E_Int*)a2;
+        nj = *(E_Int*)a3;
+        ninj = ni*nj;
+        ind0 = indi[0]; nocf = 0;
+        k = ind0/ninj;  j = (ind0-k*ninj)/ni; i = (ind0-j*ni-k*ninj);
+        for (E_Int eq = 1; eq <= nfld; eq++)
+        {
+          fp = f.begin(eq);
+          fp0 = f0.begin(eq);
+          fp[ind] = 0.;
+          for (E_Int i0 = 0; i0 < 4; i0++)
+            for (E_Int j0 = 0; j0 < 4; j0++)
+              for (E_Int k0 = 0; k0 < 4; k0++)
+              {
+                ind0 = (i+i0) + (j+j0)*ni + (k+k0)*ninj;
+                fp[ind] += cfp[i0]*cfp[j0+4]*cfp[k0+8]* fp0[ind0];
               }
         }
       }

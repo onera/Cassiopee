@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -358,7 +358,7 @@ typedef struct {
   */
   E_Int distanceToTriangle(E_Float* p0, E_Float* p1, E_Float* p2,
                            E_Float* p, E_Int treatment, 
-                           E_Float& dist2, E_Boolean& in, 
+                           E_Float& dist2, E_Bool& in, 
                            E_Float& xp, E_Float& yp, E_Float& zp,
                            E_Float& sigma0, E_Float& sigma1);
   
@@ -378,12 +378,29 @@ typedef struct {
   E_Int distanceToBar(E_Float* pA, E_Float* pB,
                       E_Float* p, E_Int treatment, 
                       E_Float& xp, E_Float& yp, E_Float& zp,
-                      E_Boolean& in, E_Float& dist2);
+                      E_Bool& in, E_Float& dist2);
+
+  /* Calcule la distance minimale entre deux blocs structurés 
+     et retourne les indices correspondants */
+  void compMeanDist(const E_Int ni1, const E_Int nj1,
+    const E_Float* x1, const E_Float* y1, const E_Float* z1,
+    const E_Int ni2, const E_Int nj2,
+    const E_Float* x2, const E_Float* y2, const E_Float* z2,
+    E_Int& ind1s, E_Int& ind2s, E_Float& dmin);
+
+  /* Analyse l'orientation de deux blocs structurés. 
+     Retourne -1 si les normales sont inversées, 1 sinon */
+  void rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int ind1,
+    const E_Float* x1, const E_Float* y1, const E_Float* z1,
+    const E_Int ni2, const E_Int nj2, const E_Int ind2,
+    const E_Float* x2, const E_Float* y2, const E_Float* z2,
+    const E_Float distmin,
+    E_Int& isopp);
 
   /* Calcul de l'aire d'un triangle ABC a partir des longueurs a, b et c
      de ses trois cotes (formule de Heron). 
      Retourne 0. si triangle degenere */
-  E_Float compTriangleArea(E_Float a, E_Float b, E_Float c);
+  E_Float compTriangleArea(const E_Float a, const E_Float b, const E_Float c);
 
   /* Calcul le cercle circonscrit a un triangle du plan (x,y)
      IN: p1, p2, p3: triangles coordinates (in plane x,y)
@@ -623,22 +640,17 @@ typedef struct {
   // Bounding boxes et Cartesian Elements Bounding boxes (CEBB)
   //===========================================================================
   /* Bounding box d'une grille structuree */
-  void boundingBox(E_Int im, E_Int jm, E_Int km, 
-                   E_Int posx, E_Int posy, E_Int posz,
-                   K_FLD::FldArrayF& field,
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax);
+  void boundingBoxStruct(
+   E_Int im, E_Int jm, E_Int km, 
+   E_Float* x, E_Float* y, E_Float* z,
+   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
-  /* Bounding box d'une grille structuree ou non structuree */ 
-  void boundingBox(E_Int posx, E_Int posy, E_Int posz,
-                   K_FLD::FldArrayF& field,
-                   E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                   E_Float& xmax, E_Float& ymax, E_Float& zmax);
-
-  /* Bounding box d'une grille structuree ou non structuree */ 
-  void boundingBox( E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt,
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin,
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax);
+  /* Bounding box d'une grille non structuree */ 
+  void boundingBoxUnstruct(
+   const E_Int npts, const E_Float* xt, const E_Float* yt, const E_Float* zt,
+   E_Float& xmin, E_Float& ymin, E_Float& zmin,
+   E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Bounding box globale d'une liste de grilles */
   void globalBoundingBox(
@@ -653,39 +665,48 @@ typedef struct {
      OUT: bbox(ncells,6): xmin, ymin, zmin, xmax,ymax,zmax
      bbox est alloue ici.
   */
-  void
-  boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
-                           K_FLD::FldArrayF& coord,
-                           K_FLD::FldArrayF& bbox);
+  void boundingBoxOfStructCells(E_Int im, E_Int jm, E_Int km,
+                                E_Float* x, E_Float* y, E_Float* z,
+                                K_FLD::FldArrayF& bbox);
   /* Bounding box de toutes les cellules d'une grille non structuree
      IN: connect: connectivite de la grille
      IN: coord: coordonnees de la grille
      OUT: bbox(nelts,6): xmin, ymin, zmin, xmax,ymax,zmax
      bbox est alloue ici.
   */
-  void 
-  boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
-                          E_Float* xt, E_Float* yt, E_Float* zt,
-                          K_FLD::FldArrayF& bbox);
- 
-  /* Bounding box d'une cellule issue d'une grille structuree
-     IN: im, jm, km: dimensions de l'array definissant la grille
+  void boundingBoxOfUnstrCells(K_FLD::FldArrayI& connect,
+                               E_Float* xt, E_Float* yt, E_Float* zt,
+                               K_FLD::FldArrayF& bbox);
+
+   /* Bounding box de toutes les cellules d'une grille NGon
+     IN: connect: connectivite de la grille
      IN: coord: coordonnees de la grille
-     IN: ind: indice de la cellule dont la bbox est calculee
-     OUT: xmax, ymax, zmax, xmin, ymin, zmin: bbox
+     OUT: bbox(nelts,6): xmin, ymin, zmin, xmax,ymax,zmax
+     bbox est alloue ici.
   */
-  void
-  boundingBoxOfCell(E_Int im, E_Int jm, E_Int km, E_Int ind,
-                    K_FLD::FldArrayF& coord,
-                    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                    E_Float& xmin, E_Float& ymin, E_Float& zmin);
+  void boundingBoxOfNGonCells(K_FLD::FldArrayI& connect,
+    E_Float* xt, E_Float* yt, E_Float* zt,
+    K_FLD::FldArrayF& bbox);
+
+  /* Bounding box d'une cellule issue d'une grille structuree. */
+  void boundingBoxOfStructCell(E_Int ind, E_Int im, E_Int jm, E_Int km,
+    E_Float* x, E_Float* y, E_Float* z,
+    E_Float& xmin, E_Float& ymin, E_Float& zmin,
+    E_Float& xmax, E_Float& ymax, E_Float& zmax, E_Int loc);
 
   /* Bounding box d'une cellule issue d'une grille non structuree. */
   void boundingBoxOfUnstrCell(
     E_Int noet, K_FLD::FldArrayI& connect, 
+    E_Float* xt, E_Float* yt, E_Float* zt, 
+    E_Float& xmin, E_Float& ymin, E_Float& zmin,
+    E_Float& xmax, E_Float& ymax, E_Float& zmax);
+
+  /* Bounding box d'une cellule issue d'une grille NGon. */
+  void boundingBoxOfNGonCell(
+    E_Int noet, K_FLD::FldArrayI& connect, 
     E_Float* xt, E_Float* yt, E_Float* zt,
-    E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-    E_Float& xmin, E_Float& ymin, E_Float& zmin);
+    E_Float& xmin, E_Float& ymin, E_Float& zmin,
+    E_Float& xmax, E_Float& ymax, E_Float& zmax);
 
   /* Intersection des bounding boxes de 2 grilles structurees
      IN: ni1, nj1, nk1: dimension de la grille1
@@ -838,17 +859,17 @@ typedef struct {
                                  K_FLD::FldArrayI& cn, 
                                  K_FLD::FldArrayF& angle);
 
-  /* calcul de la hauteur li�e � la courbure pour des i-arrays */
+  /* calcul de la hauteur liee a la courbure pour des i-arrays */
   void compStructCurvatureHeight1D(E_Int im, E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des (i,j)-arrays */
+  /* calcul de la hauteur liee a la courbure pour des (i,j)-arrays */
   void compStructCurvatureHeight2D(E_Int im, E_Int jm, 
                                    E_Float* xt, E_Float* yt, E_Float* zt, 
                                    E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des BAR*/
+  /* calcul de la hauteur liee a la courbure pour des BAR*/
   void compCurvatureHeightForBAR(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                  K_FLD::FldArrayI& cn, E_Float* hmaxt);
-  /* calcul de la hauteur li�e � la courbure pour des surfaces TRI et QUAD */
+  /* calcul de la hauteur liee a la courbure pour des surfaces TRI et QUAD */
   void compCurvatureHeightForTRIQUAD(E_Int npts, E_Float* xt, E_Float* yt, E_Float* zt, 
                                      K_FLD::FldArrayI& cn,
                                      E_Float* hmaxt);
@@ -858,6 +879,124 @@ typedef struct {
                       E_Int im, E_Int jm, E_Int km, 
                       K_FLD::FldArrayI* cn, char* eltType,
                       E_Int dim, E_Int type, E_Float* out);
+
+  // Make a rotation of a mesh
+  // IN: dim        : mesh size
+  // IN: teta       : angle
+  // IN: center     : center of rotation
+  // IN: axis       : rotation vector
+  // OUT: xo, yo, zo : rotated mesh point
+  void rotateMesh(
+    const E_Int dim, const E_Float teta,
+    const E_Float* center, const E_Float* axis,
+    E_Float* xo, E_Float* yo, E_Float* zo);
+  // Make a rotation of a mesh - same function as rotateMesh, but different interface and omp present
+  // IN: npts       : mesh size
+  // IN: teta       : angle
+  // IN: xc, yc, zc : center of rotation
+  // IN: nx, ny, nz : rotation vector
+  // IN: x, y, z    : mesh coordinate
+  // OUT: xo, yo, zo : rotated mesh point
+  void rotateMesh2(
+    const E_Int npts, const E_Float teta,
+    const E_Float xc, const E_Float yc, const E_Float zc,
+    const E_Float nx, const E_Float ny, const E_Float nz,
+    const E_Float* x,const E_Float* y, const E_Float* z,
+    E_Float* xo, E_Float* yo, E_Float* zo);
+
+  // Map a 1D distribution over a profile
+  // IN: ni         : number of pnts in input line
+  // IN: x, y, z    : input line
+  // IN: no         : number of pnts in output line
+  // IN: d          : distribution
+  // OUT: xo, yo, zo : output line
+  void onedmap(
+    const E_Int ni,
+    const E_Float* x, const E_Float* y, const E_Float* z,
+    const E_Int no, const E_Float* d,
+    E_Float* xo, E_Float* yo, E_Float* zo,
+    E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Map a 1D distribution over a profile with bar connectivity
+  // IN: npts       : number of pnts in input line
+  // IN: x, y, z    : input line
+  // IN: no         : number of pnts in output line
+  // IN: d          : distribution
+  // IN: net        : number of elements in input line
+  // IN: cn1        : 1st vertex connectivity of input line
+  // IN: cn2        : 2nd vertex connectivity of input line
+  // IN: neto       : number of element in output line
+  // OUT: cn1o      : 1st vertex connectivity of output line
+  // OUT: cn2o      : 2nd vertex connectivity of output line
+  // OUT: xo, yo, zo : output line
+  void onedmapbar(
+    const E_Int npts,
+    const E_Float* x, const E_Float* y, const E_Float* z,
+    const E_Int no, const E_Float* d,
+    const E_Int net, const E_Int* cn1, const E_Int* cn2,
+    const E_Int neto, E_Int* cn1o, E_Int* cn2o,
+    E_Float* xo, E_Float* yo, E_Float* zo,
+    E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Compute the slope for a 1D line
+  // Called internally - onedmap
+  // OUT: dx, dy, dz
+  void slope(
+    const E_Int m,
+    const E_Float* x0, const E_Float* y0, const E_Float* z0,
+    E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Compute the slope for a 1D bar with connectivity
+  // Called internally - onedmapbar
+  // OUT: dx, dy, dz
+  void slopebar(
+    const E_Int npts, const E_Int net,
+    const E_Int* cn1, const E_Int* cn2,
+    const E_Float* x0, const E_Float* y0, const E_Float* z0,
+    E_Float* dx, E_Float* dy, E_Float* dz);
+
+  // Compute the parametrization for a line
+  // Called internally - onedmap
+  // OUT: stota, s0
+  void paramFunc(
+    const E_Int m,
+    const E_Float* x0, const E_Float* y0, const E_Float* z0,
+    const E_Float* dx, const E_Float* dy, const E_Float* dz,
+    E_Float& stota, E_Float* s0);
+
+  // Compute the parametrization for a bar (with connectivity)
+  // Called internally - onedmapbar
+  // OUT: stota, s0
+  void paramFuncBar(
+    const E_Int npts, const E_Int net,
+    const E_Int* cn1, const E_Int* cn2,
+    const E_Float* x0, const E_Float* y0, const E_Float* z0,
+    const E_Float* dx, const E_Float* dy, const E_Float* dz,
+    E_Float& stota, E_Float* s0);
+
+  // Hermite cubic interpolation helper
+  inline E_Float valcub(E_Float a, E_Float b, E_Float c, E_Float d, E_Float t);
+
+  // Interpolate a 1D distribution over a profile
+  // Called internally - onedmap
+  // OUT: tabx, taby, tabz
+  void interp(
+    const E_Int im0, const E_Int im, const E_Float stota,
+    const E_Float* s0, const E_Float* s,
+    const E_Float* tabx0, const E_Float* taby0, const E_Float* tabz0,
+    const E_Float* dx0, const E_Float* dy0, const E_Float* dz0,
+    E_Float* tabx, E_Float* taby, E_Float* tabz);
+
+  // Interpolate a 1D distribution over a profile with bar connectivity
+  // Called internally - onedmapbar
+  // OUT: tabx, taby, tabz, cn1, cn2
+  void interpbar(
+    const E_Int im0, const E_Int im, const E_Float stota,
+    const E_Float* s0, const E_Float* s,
+    const E_Float* tabx0, const E_Float* taby0, const E_Float* tabz0,
+    const E_Float* dx0, const E_Float* dy0, const E_Float* dz0,
+    E_Float* tabx, E_Float* taby, E_Float* tabz, 
+    const E_Int net, E_Int* cn1, E_Int* cn2);
 }
 
 #endif

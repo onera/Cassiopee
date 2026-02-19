@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,7 +52,7 @@ namespace NUGA
       const E_Int* nodes = PGs.get_facets_ptr(PGi);
       E_Int nb_nodes = PGs.stride(PGi);
 
-      for (int i = 0; i < nb_nodes; i++) Q6nodes[i] = nodes[i];
+      for (E_Int i = 0; i < nb_nodes; i++) Q6nodes[i] = nodes[i];
 
       const E_Int* pNFils0 = PGs.get_facets_ptr(two_childrenPG[0]);
       //const E_Int* pNFils1 = PGs.get_facets_ptr(two_childrenPG[1]);

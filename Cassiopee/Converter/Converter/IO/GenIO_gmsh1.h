@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -164,7 +164,7 @@
         for (E_Int j = 0; j < 15; j++) READI;
         break;
 
-      case 24: // ??-node TRI (fifth order) -> pas en CGNS
+      case 24: // 15-node incomplete TRI (fifth order) -> pas en CGNS
         nTRI++;
         for (E_Int j = 0; j < 15; j++) READI;
         break;

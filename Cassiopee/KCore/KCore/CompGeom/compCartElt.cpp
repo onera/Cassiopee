@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -247,9 +247,19 @@ void K_COMPGEOM::compDimOfCartElts(E_Int dir, E_Int ni, E_Int nj, E_Int nk,
         dzMax = K_FUNC::E_max(dzMax,dz);   
       }
 
-  E_Int nx = K_FUNC::E_max(1, E_Int(sizex/dxMax));
-  E_Int ny = K_FUNC::E_max(1, E_Int(sizey/dyMax));
-  E_Int nz = K_FUNC::E_max(1, E_Int(sizez/dzMax));
+#ifdef E_ADOLC
+  E_Int nx = E_Int(sizex.value()/dxMax.value());
+  E_Int ny = E_Int(sizey.value()/dyMax.value());
+  E_Int nz = E_Int(sizez.value()/dzMax.value());
+#else
+  E_Int nx = E_Int(sizex/dxMax);
+  E_Int ny = E_Int(sizey/dyMax);
+  E_Int nz = E_Int(sizez/dzMax);
+#endif
+
+  nx = K_FUNC::E_max(1, nx);
+  ny = K_FUNC::E_max(1, ny);
+  nz = K_FUNC::E_max(1, nz);
   
   switch(dir)
   {

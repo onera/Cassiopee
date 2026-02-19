@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -80,7 +80,7 @@ bool join_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
   }
 
   // 2. filling adap_incr.cell_adap_incr : select if face plan is going beyond next generation
-  for (int i = 0; i < nb_elts; ++i)
+  for (E_Int i = 0; i < nb_elts; ++i)
   {
     const E_Int* faces = parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
     E_Int nb_faces = parent_t::_hmesh._ng.PHs.stride(i);

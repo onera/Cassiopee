@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,17 +40,17 @@ namespace DELAUNAY
   class Refiner
   {
   public:
-    typedef NUGA::size_type                  size_type;
-    typedef NUGA::int_vector_type            int_vector_type;
-    typedef NUGA::int_set_type               int_set_type;
-    typedef K_SEARCH::KdTree<>               tree_type;
-    typedef K_MESH::Triangle                 element_type;
+    typedef NUGA::size_type  size_type;
+    typedef NUGA::int_vector_type int_vector_type;
+    typedef NUGA::int_set_type int_set_type;
+    typedef K_SEARCH::KdTree<> tree_type;
+    typedef K_MESH::Triangle element_type;
     typedef NUGA::non_oriented_edge_set_type non_oriented_edge_set_type;
 
   public:
 
     Refiner(MetricType& metric, E_Float growth_ratio, E_Int nb_smooth_iter, E_Bool symmetrize):_metric(metric), _threshold(0.5), 
-            _gr(growth_ratio), _nb_smooth_iter(nb_smooth_iter), _symmetrize(symmetrize), _debug(false){}
+            _gr(growth_ratio), _nb_smooth_iter(nb_smooth_iter), _symmetrize(symmetrize), _debug(false) {}
 
     ~Refiner(void){}
 
@@ -63,20 +63,19 @@ namespace DELAUNAY
                             tree_type& filter_tree);
 
   private:
-    MetricType&             _metric;
-    std::vector<size_type>  _tmpNodes;
-    E_Float                 _threshold;
-    E_Float                 _gr;
-    E_Int                   _nb_smooth_iter;
-    E_Bool                  _symmetrize;
+    MetricType& _metric;
+    std::vector<size_type> _tmpNodes;
+    E_Float _threshold;
+    E_Float _gr;
+    E_Int _nb_smooth_iter;
+    E_Bool _symmetrize;
   public:
-    E_Bool                  _debug;
+    E_Bool _debug;
   };
 
   /// ajoute les points de raffinement
   template <typename MetricType>
-  void
-    Refiner<MetricType>::computeRefinePoints
+  void Refiner<MetricType>::computeRefinePoints
     (E_Int iter, MeshData& data, const int_set_type& box_nodes,
      const non_oriented_edge_set_type& hard_edges,
      int_vector_type& refine_nodes, E_Int N0/*for metrics changes when smoothing*/)
@@ -109,13 +108,13 @@ namespace DELAUNAY
         all_edges.insert(Ei);
       }
     }
-
+    
     // smooth the metric at each nodes.
     // so do it at leat once whatever the user ask for to improve the overall
     // mesh quality by setting the right metrics at skeleton nodes (__init_refine_points)
     _metric._N0 = N0;
 
-    bool do_smooth  = (_nb_smooth_iter > 0) && (iter > 1);
+    bool do_smooth = (_nb_smooth_iter > 0) && (iter > 1);
     do_smooth |= (_symmetrize && (iter == 1)); // T3 Mesher use : always smooth at first iter for skeleton nodes.
 
     if (do_smooth)
@@ -137,9 +136,8 @@ namespace DELAUNAY
         _metric.draw_ellipse_field(o.str().c_str(), *data.pos, data.connectM, &data.mask);
       }
 #endif
-    
     }
-
+    
     std::vector<std::pair<E_Float, size_type> > length_to_points;
     if (_symmetrize && iter == 0)
     {
@@ -153,30 +151,35 @@ namespace DELAUNAY
         _metric.__compute_refine_points(*data.pos, Ei.node(0), Ei.node(1), _threshold, length_to_points, _tmpNodes);
     }
     std::sort(ALL(length_to_points));
-
+    
     size_type sz = (size_type)length_to_points.size(); // peut devenir trop grand
+    refine_nodes.resize(sz);
     for (size_type i = 0; i < sz; ++i)
-      refine_nodes.push_back(length_to_points[i].second);
-
+    {
+      //refine_nodes.push_back(length_to_points[i].second);
+      refine_nodes[i] = length_to_points[i].second;
+    }
   }
 
   /// supprime les points qui ne sont pas dans la box
   template <typename MetricType>
-  void
-    Refiner<MetricType>::filterRefinePoints
+  void Refiner<MetricType>::filterRefinePoints
     (MeshData& data, const int_set_type& box_nodes, 
     int_vector_type& refine_nodes, tree_type& filter_tree)
   {
-    size_type Ni, sz, nb_nodes;
-    E_Float mBox[2], MBox[2];
-    E_Float coeff(0.5*::sqrt(2.)/*fixme sqrt...*/), Ri;
-    int_vector_type nodes;
-    int_vector_type tmp(refine_nodes);
+    E_Float coeff(0.5*sqrt(2.));
+    int_vector_type tmp(refine_nodes); // copie
     refine_nodes.clear();
 
-    sz = (size_type) tmp.size();
+    size_type sz = (size_type)tmp.size();
+    //refine_nodes.reserve(sz);
     //printf("filter sz=%d\n", sz); fflush(stdout);
 
+    size_type Ni, nb_nodes;
+    E_Float Ri;
+    E_Float mBox[2], MBox[2];
+    int_vector_type nodes; // vecteur local
+    
     for (size_type i = 0; i < sz; ++i) // pour chaque point
     {
       Ni = tmp[i];
@@ -233,15 +236,16 @@ namespace DELAUNAY
       {
         refine_nodes.push_back(Ni); // reserve + resize
         filter_tree.insert(Ni);
+
       }
     }
+  
   }
 
 /*
   ///
   template <>
-  void
-  Refiner<E_Float>::__compute_refine_points
+  void Refiner<E_Float>::__compute_refine_points
   (size_type Ni, size_type Nj, std::vector<std::pair<E_Int, size_type> >& length_to_points)
   {
   E_Float d;
@@ -249,20 +253,20 @@ namespace DELAUNAY
   NUGA::diff<2>(_pos.col(Nj), _pos.col(Ni), NiNj);
   // Geom repartition.fixme
   E_Float h0 = _metric[Ni], h1 = _metric[Nj];
-  E_Float d0 = ::sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
+  E_Float d0 = sqrt(NUGA::sqrDistance(_pos.col(Ni), _pos.col(Nj), _pos.rows()));
   NiNj[0] /= d0;
   NiNj[1] /= d0;//Normalize
   E_Float x(h1 / h0), r1 = x;
   E_Float  r = 1;
   size_type n;
   if (::abs(r1 - 1.) < 0.01)
-  d = d0 / std::max(h0, h1);
+  d = d0 / K_FUNC::E_max(h0, h1);
   else
   {
   r = (d0 + h1) / (d0 + h0);
   d = ::log(r1)/::log(r);
   //n = size_type(d);
-  //r1 = ::pow (r1, 1./n);
+  //r1 = pow (r1, 1./n);
   //d =  (h1 - r1 * h0)/(r1 - 1.);
   //r = r1;
   }
@@ -286,7 +290,7 @@ namespace DELAUNAY
   _pos.pushBack (newP, newP+2);
   Nstart = _pos.cols()-1;
   s = (i+1.)/(n+1.);
-  h = h0 * ::pow (x, s);//(1 - s) * h0 + s * h1;
+  h = h0 * pow (x, s);//(1 - s) * h0 + s * h1;
   _metric.push_back (h);
   alpha *= r;
   length_to_points.push_back(std::make_pair(-n, Nstart));

@@ -5,8 +5,16 @@
 import sys
 import os
 
-import Post
-__version__ = Post.__version__
+try:
+    import Post
+    __version__ = Post.__version__
+except ModuleNotFoundError:
+    __version__ = 'undefined'
+    with open('../../Post/Post.py') as f:
+        for line in f:
+            if '__version__' in line:
+                __version__ = line.split('=')[1].strip()
+                break
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -212,6 +220,8 @@ latex_documents = [
     ('ExtraVariables2', 'ExtraVariables2.tex', u'Post.ExtraVariables2 Documentation',
         u'/ELSA/MU-10019/V'+__version__, 'manual'),
     ('Rotor', 'Rotor.tex', u'Post.Rotor Documentation',
+        u'/ELSA/MU-10019/V'+__version__, 'manual'),
+    ('Probe', 'Probe.tex', u'Post.Probe Documentation',
         u'/ELSA/MU-10019/V'+__version__, 'manual'),
     ('Post_IBM', 'Post_IBM.tex', u'Post.IBM Documentation',
         u'/ELSA/MU-10019/V'+__version__, 'manual'),

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,8 +20,9 @@
 
 void *xmalloc(E_Int nbytes, const char *file, E_Int line)
 {
-    if (nbytes < 0) {
-        fprintf(stderr, "trying to allocate a negative amount (%.2f) of bytes in file %s:%d\n",
+    if (nbytes < 0) 
+    {
+        fprintf(stderr, "trying to allocate a negative amount (%.2f) of bytes in file %s:" SF_D_ "\n",
             nbytes/1000000.f, file, line);
         abort();
     }
@@ -37,7 +38,7 @@ void *xmalloc(E_Int nbytes, const char *file, E_Int line)
 void *xcalloc(E_Int count, E_Int size, const char *file, E_Int line)
 {
     if (count < 0) {
-        fprintf(stderr, "xcalloc: count (%d) is negative in file %s:%d\n", count, file, line);
+        fprintf(stderr, "xcalloc: count (%d) is negative in file %s:" SF_D_ "\n", count, file, line);
         abort();
     }
 
@@ -62,7 +63,7 @@ void *xresize(void *ptr, E_Int nbytes, const char *file, E_Int line)
 {
 
     if (nbytes < 0) {
-        fprintf(stderr, "trying to resize to a negative amount (%.2f) of bytes in file %s:%d\n",
+        fprintf(stderr, "trying to resize to a negative amount (%.2f) of bytes in file %s:" SF_D_ "\n",
             nbytes/1000000.f, file, line);
         abort();
     }

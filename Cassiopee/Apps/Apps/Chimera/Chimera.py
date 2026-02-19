@@ -94,11 +94,11 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
     resBB = G.BB(res,method=IMETHOD)
     dnrZones = []
     for zbbd in Internal.getZones(tBB):
-        if G.bboxIntersection(resBB,zbbd,method=IMETHOD,isBB=True)==1:
-            zd = Internal.getNodeFromName(t,zbbd[0])
+        if G.bboxIntersection(resBB, zbbd, method=IMETHOD, isBB=True) == 1:
+            zd = Internal.getNodeFromName2(t, zbbd[0])
             dnrZones.append(zd)
-    P._extractMesh(dnrZones,res,order=2,constraint=10.,mode=mode)
-    C._rmVars(res,[cellNName])
+    P._extractMesh(dnrZones, res, order=2, constraint=10., mode=mode)
+    C._rmVars(res, [cellNName])
     return res
 
 def extractIJSurface(t_sol, t_pts, XC=(0.,0.,0.), AXIS=(1.,0.,0.), loc='centers', cellNName='cellN',variables=[]):

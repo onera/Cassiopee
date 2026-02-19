@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -16,16 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Author : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef OCCSURFACE_H
 #define	OCCSURFACE_H
 
-# include "Nuga/include/DynArray.h"
 #include "TopoDS_Face.hxx"
 #include "Geom_Surface.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
+#include "Nuga/include/DynArray.h"
 #include <map>
 
 namespace K_OCC

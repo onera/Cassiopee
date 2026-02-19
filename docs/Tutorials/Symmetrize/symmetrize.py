@@ -21,7 +21,7 @@ t = C.initVars(t,'{F}={CoordinateX}*{CoordinateX}+{CoordinateY}+2*{CoordinateZ}'
 # Symmetry y=0
 t2 = T.symetrize(t, (0.,0.,0.), (1,0,0), (0,0,1))
 # Rename zones with a unique name
-zones = Internal.getNodesFromType(t2, 'Zone_t')
+zones = Internal.getZones(t2)
 for z in zones: z[0] = C.getZoneName(z[0])
 # Reorder created zones
 t2 = T.reorder(t2, (-1,2,3))

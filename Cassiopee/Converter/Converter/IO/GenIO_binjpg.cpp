@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -19,8 +19,6 @@
 
 // Binary JPG (JPEG) file support
 
-#include "Images/libjpeg/jpeglib.h"
-
 # include "GenIO.h"
 # include "Array/Array.h"
 # include "String/kstring.h"
@@ -28,6 +26,8 @@
 # include <vector>
 # include <stdio.h>
 # include <string.h>
+
+#include "Images/libjpeg/jpeglib.h"
 
 using namespace K_FLD;
 using namespace std;

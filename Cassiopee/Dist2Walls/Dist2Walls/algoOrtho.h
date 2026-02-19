@@ -14,7 +14,7 @@
     //indw2 = kdt.getClosest(pt);
     //rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
     //dist = rx*rx + ry*ry + rz*rz;
-    
+
     indw2 = kdt.getClosest(pt, dist);
     if (indw2 == IDX_NONE) indw2 = 0;
     rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
@@ -42,7 +42,7 @@
 	else
     {
 	  if (d_target>999) { d_target = sqrt(3)*10*h_target; }
-	}	
+	}
 #include "mininterf_ortho.h"
         if (ret != -1){
           dx = xp_local-pt[0]; dy = yp_local-pt[1]; dz = zp_local-pt[2];
@@ -51,7 +51,7 @@
         }
 	if (sqrt(distmin)> d_target) isDoOrtho=0;
     }
-    
+
 
     // distance au centre le plus proche
 #if ALGO == 2
@@ -60,20 +60,20 @@
 
     // distance mixte
 #if ALGO == 1
-    if (rad > 2*rmax) 
+    if (rad > 2*rmax)
     {
         if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
     }
     else if (rad > rmax)
     {
         // find the right wall
-        ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
+        ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw,
                                               candidates, cnloc, xp, yp, zp,
                                               p0, p1, p2, p);
         if (ret != -1)
         {
           dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
-          dist = dx*dx + dy*dy + dz*dz;    
+          dist = dx*dx + dy*dy + dz*dz;
           if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
         }
     }
@@ -88,7 +88,7 @@
         yQ = pt[1] + alpha*ry;
         zQ = pt[2] + alpha*rz;
         minB[0] = xQ-R; minB[1] = yQ-R; minB[2] = zQ-R;
-        maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R; 
+        maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R;
 
         // calcul des cellules intersectantes
         for (E_Int now = 0; now < nwalls; now++)
@@ -117,13 +117,13 @@
                 }
                 if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
             }
-            ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
+            ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw,
                                                 candidates, cnloc, xp, yp, zp,
                                                 p0, p1, p2, p);
             if (ret != -1)
             {
                 dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
-                dist = dx*dx + dy*dy + dz*dz;    
+                dist = dx*dx + dy*dy + dz*dz;
                 if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
             }
         }
@@ -138,7 +138,7 @@
         rad2 = exp(-A*rad);
         alpha = 1.-rad2;
         R = rad*rad2;
-        
+
         // calcul de la bounding box de la sphere de rayon PP'
         xQ = pt[0] + alpha*rx;
         yQ = pt[1] + alpha*ry;
@@ -146,9 +146,9 @@
         minB[0] = xQ-R; minB[1] = yQ-R; minB[2] = zQ-R;
         maxB[0] = xQ+R; maxB[1] = yQ+R; maxB[2] = zQ+R;
         //if (fabs(pt[1])<1.e-10) { printf("%f %f R=%f, delta=%f\n",pt[0],pt[2],R,rad); }
-        
+
         if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
-        
+
         // calcul des cellules intersectantes
         for (E_Int now = 0; now < nwalls; now++)
         {
@@ -176,13 +176,13 @@
               }
               if (prod != 0. && prod != prodCellN2) candidates.push_back(et);
             }
-            ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw, 
+            ret = K_COMPGEOM::projectOrthoPrecond(pt[0], pt[1], pt[2], xw, yw, zw,
                                                   candidates, cnloc, xp, yp, zp,
                                                   p0, p1, p2, p);
             if (ret != -1)
             {
               dx = xp-pt[0]; dy = yp-pt[1]; dz = zp-pt[2];
-              dist = dx*dx + dy*dy + dz*dz;    
+              dist = dx*dx + dy*dy + dz*dz;
               if (dist < distmin) { distancep[ind] = dist; distmin = dist; }
             }
           }

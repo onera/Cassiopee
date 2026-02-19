@@ -20,8 +20,8 @@
 **************************************************************************/
 void ComputePartitionInfoBipartite(graph_t *graph, idx_t nparts, idx_t *where)
 {
-  idx_t i, j, k, nvtxs, ncon, mustfree=0;
-  idx_t *xadj, *adjncy, *vwgt, *vsize, *adjwgt, *kpwgts, *tmpptr;
+  idx_t i, j, nvtxs, ncon, mustfree=0;
+  idx_t *xadj, *adjncy, *vwgt, *vsize, *adjwgt, *kpwgts;
   idx_t *padjncy, *padjwgt, *padjcut;
 
   nvtxs = graph->nvtxs;
@@ -126,7 +126,7 @@ void ComputePartitionBalance(graph_t *graph, idx_t nparts, idx_t *where, real_t 
 {
   idx_t i, j, nvtxs, ncon;
   idx_t *kpwgts, *vwgt;
-  real_t balance;
+  /*real_t balance;*/
 
   nvtxs = graph->nvtxs;
   ncon = graph->ncon;

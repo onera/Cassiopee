@@ -66,6 +66,8 @@ then
     [ $? != 0 ] && exit 1;
     pdflatex ExtraVariables2
     [ $? != 0 ] && exit 1;
+    pdflatex Probe
+    [ $? != 0 ] && exit 1;
     pdflatex Post_IBM
     [ $? != 0 ] && exit 1;
     cd ..
@@ -87,6 +89,11 @@ then
     sed -i 's/Post\.pdf/ExtraVariables2\.pdf/g' build/ExtraVariables2.html
     cp build/ExtraVariables2.html $DEST
     cp build/ExtraVariables2.pdf $DEST
+
+    sed -i 's/Post.Probe.Post.Probe/Post.Probe/g' build/Probe.html
+    sed -i 's/Post\.pdf/Probe\.pdf/g' build/Probe.html
+    cp build/Probe.html $DEST
+    cp build/Probe.pdf $DEST
 
     sed -i 's/Post.Post_IBM.Post.Post_IBM/Post.Post_IBM/g' build/Post_IBM.html
     sed -i 's/Post\.pdf/Post_IBM\.pdf/g' build/Post_IBM.html

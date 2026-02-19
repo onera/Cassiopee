@@ -4,8 +4,6 @@ import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
 import numpy
-try: range = xrange
-except: pass
 
 #================================================================================
 # Multiblock prepare (avec split)

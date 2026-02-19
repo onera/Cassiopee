@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -68,7 +68,7 @@ class Pyramid {
       if (nb_pgs != 5) return false;
       E_Int s1(0), s2(0);
 
-      for (int i = 0; i<5; i++)
+      for (E_Int i = 0; i<5; i++)
       {
         if (PGs.stride(*(first_pg + i) - 1) == 3) ++s1;
         else if (PGs.stride(*(first_pg + i) - 1) == 4) ++s2;
@@ -153,21 +153,24 @@ inline void Pyramid::iso_barycenter(const K_FLD::FloatArray& crd, const ngunit_t
   const E_Int* nodes = PGs.get_facets_ptr(first_pg[0]-index_start);
   E_Int nb_nodes = PGs.stride(first_pg[0]-index_start);
 
-  for (int k = 0; k  < nb_nodes; ++k)
+  for (E_Int k = 0; k  < nb_nodes; ++k)
     new_bary[k] = nodes[k];   
 
   // Summit
   const E_Int* F1 = PGs.get_facets_ptr(first_pg[1]-index_start); // face F1
   E_Int nb_F1 = PGs.stride(first_pg[1]-index_start);
   
-  for (int i=0; i< nb_F1; i++){
+  for (E_Int i=0; i< nb_F1; i++)
+  {
       E_Int n(0);
-      for (int j=0; j < nb_nodes; j++){
-          if ( *(F1+i) != *(nodes+j) ){
+      for (E_Int j=0; j < nb_nodes; j++)
+      {
+          if ( *(F1+i) != *(nodes+j) )
+          {
               n++;
           }
       }
-      if ( n == (nb_nodes-1))
+      if (n == (nb_nodes-1))
         new_bary[4] = *(F1+i);
   }
   
@@ -185,9 +188,9 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   E_Int BOT = IDX_NONE;
 
   E_Int ibot(0);
-  for (int i=0; i< 5; i++)
+  for (E_Int i=0; i< 5; i++)
   {
-    if (ng.PGs.stride(faces[i] - 1)!=4) // BOTTOM is the QUAD
+    if (ng.PGs.stride(faces[i] - 1) != 4) // BOTTOM is the QUAD
       continue;
     
     assert (BOT == IDX_NONE); // one QUAD only
@@ -196,7 +199,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
     ibot = i;
   }
   
-  assert (BOT != IDX_NONE);
+  assert(BOT != IDX_NONE);
   
   E_Int* pN = ng.PGs.get_facets_ptr(BOT);
 
@@ -216,17 +219,17 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
   E_Int F1Id(IDX_NONE), F2Id(IDX_NONE), F3Id(IDX_NONE), F4Id(IDX_NONE);
 
   bool commonNodes[4];
-  for (int k = 1; k < 5; ++k)
+  for (E_Int k = 1; k < 5; ++k)
   {
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
-    int ki = (ibot + k) % 5;
+    E_Int ki = (ibot + k) % 5;
     
     E_Int testedPG = faces[ki]-1;
     
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
     assert(ng.PGs.stride(testedPG) == 3);
 
-    for (int j = 0; j < 3; ++j)
+    for (E_Int j = 0; j < 3; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -254,7 +257,7 @@ void Pyramid::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i)
 
   E_Int mol[] = {faces[ibot], faces[F1Id], faces[F2Id], faces[F3Id], faces[F4Id]};
 
-  for (int i = 0; i < 5; ++i)
+  for (E_Int i = 0; i < 5; ++i)
     faces[i] = mol[i];
 }
 

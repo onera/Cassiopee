@@ -5,7 +5,7 @@ import Converter.Internal as Internal
 import numpy as np
 
 a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
-n = Internal.getNodeFromName(a,"ElementConnectivity")[1]
+n = Internal.getNodeFromName(a, "ElementConnectivity")[1]
 print(f"Original data size : {n.size*4}")
 comp = Co.compressIndices((8,n))
 print(f"Compressed data size : {comp[2].size}")

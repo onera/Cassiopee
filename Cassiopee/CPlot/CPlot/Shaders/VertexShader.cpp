@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,8 @@ VertexShader::VertexShader(const std::string& src):
   ShaderObject()
 {
   _shaderId = glCreateShader(GL_VERTEX_SHADER);
-  bool success = this->compile(src);
+  //bool success = 
+  this->compile(src);
   /*if (not success)
   {
     std::string error("Failed to compile vertex shader :\n");

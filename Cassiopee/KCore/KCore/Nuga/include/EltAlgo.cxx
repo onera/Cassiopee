@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -201,7 +201,7 @@ NUGA::EltAlgo<ElementType>::coloring
 (const K_FLD::IntArray& ELTContainer, const NeighbourType& neighbors, const std::set<BoundaryType> & color_bounds, int_vector_type& colors)
 {
   size_type                        cols(ELTContainer.cols()), i, sz;
-  size_type                        seed(IDX_NONE), S, Sn, color(0), colored(0);
+  size_type                        seed(IDX_NONE), S, Sn, color(0);
   int_vector_type                  cpool;
   int_vector_type::const_iterator  itC;
   //NeighbourType::const_iterator    itV;
@@ -231,7 +231,6 @@ NUGA::EltAlgo<ElementType>::coloring
         continue;
 
       colors[S] = color;
-      ++colored;
 
       assert (S >= 0 && S < (size_type)neighbors.size()); //Error: the neighbors object is not consistent with ELTContainer.
 

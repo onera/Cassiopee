@@ -81,9 +81,11 @@ jobs:
               PKG_NV=\${PKG_NAME}-\${PKG_VERSION}
               cd \$CASSIOPEE/Cassiopee
               . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-              sed -i "s/OCC//g" MODULES
+              sed -i 's/Modeler//g' MODULES
+              sed -i 's/OCC//g' MODULES
               FREE_MODULES=\$(cat MODULES | head -1 | cut -d '=' -f 2 | tr -d \')
-              ./install
+              export OMP_NUM_THREADS=2
+              ./install || { echo \"Cassiopee install failed\"; exit 1; }
               cd \$CASSIOPEE/Dist/bin/\$ELSAPROD
               find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE \;
               find /tmp/ -type f -name 'KCore*.whl' -exec mv {} \$CASSIOPEE \;

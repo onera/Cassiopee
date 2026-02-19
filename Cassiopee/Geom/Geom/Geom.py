@@ -9,9 +9,6 @@ import KCore.Vector as Vector
 
 from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2, smooth, mapCurvature, enforceh3D
 
-try: range = xrange
-except: pass
-
 # - Basic entities -
 def point(P):
     """Create a point. 
@@ -53,6 +50,43 @@ def naca(e, N=101, sharpte=True):
     if not sharpte: sharpte = 0
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)
+
+def profile(name=None):
+    """Create a wing profile mesh."""
+    import os
+    import Converter.PyTree as C
+    import Converter.Internal as Internal
+    import KCore.installPath
+    prodname = os.getenv("ELSAPROD")
+    libpath = KCore.installPath.libPath
+    pos = libpath.rfind(prodname)
+    filepath = os.path.join(libpath[:pos], prodname, "UIUCAirfoils.cgns")
+    t = C.convertFile2PyTree(filepath)
+    bases = Internal.getBases(t)
+    if name is None:
+        # print a dictionary
+        for b in bases:
+            for z in Internal.getZones(b):
+                print("%s/%s\n"%(b[0],z[0]))
+        return None
+    name = name.split('/')
+    if len(name) == 1:
+        # print a dictionary
+        b = Internal.getNodeFromName1(t, name[0])
+        if b is not None:
+            for z in Internal.getZones(b):
+                print("%s/%s\n"%(b[0],z[0]))
+        return None
+    if len(name) != 2:
+        raise ValueError('profile: name must be base/name.')
+    b = Internal.getNodeFromName1(t, name[0])
+    if b is None:
+        raise ValueError('profile: base name not found.')
+    z = Internal.getNodeFromName1(b, name[1])
+    if z is None:
+        raise ValueError('profile: zone name not found.')
+    a = C.getAllFields(z, 'nodes', api=1)[0]
+    return a
 
 def line(P1, P2, N=100):
     """Create a line of N points. 
@@ -326,43 +360,49 @@ def curve__(f, N):
         a[0,i] = r[0]; a[1,i] = r[1]; a[2,i] = r[2]
     return ['x,y,z', a, N, 1, 1]
 
-def surface(f, N=100):
+def surface(f, N=100, isVectorized=False):
     """Create a surface from a user defined parametric function or a formula.
     Usage: a = surface(f, N)"""
     if isinstance(f, str): return surface_(f, N)
-    else: return surface__(f, N)
+    else: return surface__(f, N, isVectorized)
 
 # Surface parametree a partir d'une formule
 def surface_(f, N):
     import Converter; import Generator
-    a = Generator.cart( (0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
+    a = Generator.cart((0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
     a[0] = 't,u,z'
     a = Converter.initVars(a, f)
     a = Converter.extractVars(a, ['x','y','z'])
     return a
 
 # Surface parametree a partir d'une fonction
-def surface__(f, N):
+def surface__(f, N, isVectorized=False):
+    import Generator
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
     r = f(0,0)
     if len(r) != 3:
         print("Warning: surface: parametric function must return a (x,y,z) tuple.")
         return ['x,y,z', a, N, N, 1]
-    for j in range(N):
-        u = 1.*j/(N-1)
-        for i in range(N):
-            ind = i + j*N
-            t = 1.*i/(N-1)
-            r = f(t,u)
-            a[0,ind] = r[0]
-            a[1,ind] = r[1]
-            a[2,ind] = r[2]
+    if isVectorized: # if f is vectorized, apply it on vectors
+        x = Generator.cart((0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
+        x = x[1]
+        (a[0,:], a[1,:], a[2,:]) = f(x[0,:],x[1,:])
+    else:
+        for j in range(N):
+            u = 1.*j/(N-1)
+            for i in range(N):
+                ind = i + j*N
+                t = 1.*i/(N-1)
+                r = f(t,u)
+                a[0,ind] = r[0]
+                a[1,ind] = r[1]
+                a[2,ind] = r[2]
     return ['x,y,z', a, N, N, 1]
 
 # - informations -
 def getLength(a):
     """Return the length of 1D-mesh.
-    Usage: l = getLength(a"""
+    Usage: l = getLength(a)"""
     if isinstance(a[0], list):
         l = 0.
         for i in a: l += geom.getLength(i)
@@ -603,7 +643,7 @@ def addSeparationLine(array, array2):
     return geom.addSeparationLine(array, array2)
 
 def axisym(a, C, axis, angle=360., Ntheta=180, rmod=None):
-    """Create an axisymetrical mesh given an azimuthal 1D or 2D mesh.
+    """Create an axisymmetrical mesh given an azimuthal 1D or 2D mesh.
     Usage: axisym(array, (xo,yo,zo), (nx,ny,nz), teta, Nteta, rmod)"""
     try:
         import Converter
@@ -939,6 +979,7 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
 
 # Init _u_ et _v_ from i,j (struct surface)
 def getUVFromIJ(a):
+    """Return uv of structured surface."""
     import Converter
     a = Converter.initVars(a, '_u_', 0.)
     a = Converter.initVars(a, '_v_', 0.)

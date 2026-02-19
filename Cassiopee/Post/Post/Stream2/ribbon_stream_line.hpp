@@ -30,8 +30,8 @@ namespace K_POST
         ribbon_streamline( const point3d& init_pos, 
                            const std::vector<zone_data_view>&  zones, 
                            E_Int max_vertices_for_streamline, 
-                           double width = 1., 
-                           bool is_bidirectional = false);
+                           E_Float width=1., 
+                           bool is_bidirectional=false);
 
         // @brief          Destructeur                                  
         // 

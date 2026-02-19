@@ -1,6 +1,5 @@
 # iconics Photos
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 
 # ICONFORMAT = 'PNG' or 'GIF'
 ICONFORMAT = 'PNG'

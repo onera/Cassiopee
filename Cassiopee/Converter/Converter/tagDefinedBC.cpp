@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -35,8 +35,8 @@ PyObject* K_CONVERTER::tagDefinedBC(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType);
   
   if (res != 1)
   {
@@ -94,15 +94,16 @@ PyObject* K_CONVERTER::tagDefinedBC(PyObject* self, PyObject* args)
     }
   }// for all wins in allwins
 
-  E_Int nfld = f->getNfld();
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(f->getSize(), nfld, fnp, true); fn = *f;
+  E_Int api = f->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+  FldArrayF* fn;
+  K_ARRAY::getFromArray3(tpl, fn);
+
+  if (dim == 3) tagDefinedBC3D(posd, im, jm, km, *fn, ranges);
+  else tagDefinedBC2D(posd, im, jm, *fn, ranges);
   
-  if (dim == 3) tagDefinedBC3D(posd, im, jm, km, fn, ranges);
-  else tagDefinedBC2D(posd, im, jm, fn, ranges);
-  
-  RELEASESHAREDB(res, array, f, cn); 
+  RELEASESHAREDS(tpl, fn);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }
 //=============================================================================

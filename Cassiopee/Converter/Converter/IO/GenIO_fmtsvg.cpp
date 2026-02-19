@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -255,7 +255,7 @@ E_Int K_IO::GenIO::svgread(
       FldArrayF* an = NULL;
       res = readDataAndKeyword(ptrFile, buf, knownKeywords, prevData, keyword);
       if (res == 1) res = -1;
-      E_Boolean found = false;
+      E_Bool found = false;
       while (res >= 0 && found == false) // OK
       {
         if (strcmp(keyword, "D") == 0)

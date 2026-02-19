@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -21,15 +21,6 @@
 # include "CompGeom/compGeom.h"
 
 using namespace K_FLD;
-extern "C"
-{
-  void k6onedmap_(const E_Int& ni,
-                  const E_Float* x, const E_Float* y, const E_Float* z,
-                  const E_Int& no,
-                  const E_Float* distrib,
-                  E_Float* xo, E_Float* yo, E_Float* zo,
-                  E_Float* s, E_Float* dx, E_Float* dy, E_Float* dz);
-}
 
 //===========================================================================
 /* nurbs a partir des points de controle */
@@ -55,9 +46,9 @@ void K_COMPGEOM::nurbs(E_Int im, E_Int ordern, E_Int N,
     E_Float dy12 = delta * (yt[1]-yt[0]);
     E_Float dz12 = delta * (zt[1]-zt[0]);
     
-#pragma omp parallel default(shared) if (N > __MIN_SIZE_MEAN__)
+    #pragma omp parallel
     {
-#pragma omp for
+      #pragma omp for
       for (E_Int i = 0; i < N; i++)
       {
         coordx[i] = xt[0] + i*dx12;
@@ -79,13 +70,13 @@ void K_COMPGEOM::nurbs(E_Int im, E_Int ordern, E_Int N,
 
     E_Float pas = x[m]/(Nbpoints-1);
     
-#pragma omp parallel default(shared) if (Nbpoints > __MIN_SIZE_MEAN__)
+    #pragma omp parallel
     {
       FldArrayF B(m+1,d+1);
       E_Float* Bd = B.begin(d+1);
       E_Float tmp1, tmp2, tmp3, tmp4;
       E_Float t = 0.;
-#pragma omp for
+      #pragma omp for
       for (E_Int i1 = 0; i1 < Nbpoints; i1++)
       {
         t = i1*pas;        
@@ -148,20 +139,20 @@ void K_COMPGEOM::nurbs2D(E_Int im, E_Int jm, E_Int ordern,
   E_Float pasn = x[p]/(N-1);
   E_Float pasm = y[q]/(M-1);
 
-#pragma omp parallel default(shared) if (M > __MIN_SIZE_MEAN__)
+  #pragma omp parallel 
   {
-  FldArrayF Bn(p+1,ordern);
-  FldArrayF Bm(q+1,orderm);
-  E_Float* Bmm = Bm.begin(orderm);
-  E_Float* Bnn = Bn.begin(ordern);   
-  E_Float* Bnm = Bn.begin(orderm);   
-  E_Float u = 0.;
-  E_Float v = 0.;
-  E_Float tmpx = 0.;
-  E_Float tmpy = 0.; 
-  E_Float tmpz = 0.;
-  E_Float norm = 0.;
-#pragma omp for
+    FldArrayF Bn(p+1,ordern);
+    FldArrayF Bm(q+1,orderm);
+    E_Float* Bmm = Bm.begin(orderm);
+    E_Float* Bnn = Bn.begin(ordern);   
+    E_Float* Bnm = Bn.begin(orderm);   
+    E_Float u = 0.;
+    E_Float v = 0.;
+    E_Float tmpx = 0.;
+    E_Float tmpy = 0.; 
+    E_Float tmpz = 0.;
+    E_Float norm = 0.;
+    #pragma omp for
     for (E_Int j = 0; j < M; j++)
     { 
       v = j*pasm;
@@ -234,7 +225,7 @@ void K_COMPGEOM::evalNurbs(E_Float t, FldArrayF& x,
   {
     E_Float* Bk = B.begin(k);
     E_Float* Bk1 = B.begin(k-1);
-    for(E_Int i = 0 ; i <= n ; i++) 
+    for (E_Int i = 0 ; i <= n ; i++) 
     {
       C1num = t - x[i];
       C1den = x[i+k-1] - x[i];
@@ -271,22 +262,32 @@ void K_COMPGEOM::regularNurbs(E_Int n, E_Int ordern, E_Int N, E_Float density,
 {
   // approx de la longueur de la nurbs par la longueur des pts de controle
   E_Float len = 0.;
-#pragma omp parallel default(shared) if (n > __MIN_SIZE_MEAN__)
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* lp = new E_Float [nthreads];
+
+  #pragma omp parallel
   {
     E_Float dx, dy, dz;
     E_Int i1;
-#pragma omp for reduction(+:len)
+    E_Int it = __CURRENT_THREAD__;
+    lp[it] = 0.;
+    #pragma omp for
     for (E_Int i = 1; i < n; i++)
     {
       i1 = i-1;
       dx = xt[i] - xt[i1];
       dy = yt[i] - yt[i1];
       dz = zt[i] - zt[i1];
-      len = len + sqrt(dx*dx+dy*dy+dz*dz);
-    }  
+      lp[it] += sqrt(dx*dx+dy*dy+dz*dz);
+    }
   }
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    len += lp[it];
+  }
+
   E_Int npts;
-  if (density > 0) npts = E_Int(len*density)+1;
+  if (density > 0.) npts = E_Int(len*density)+1;
   else npts = N;
   E_Int npts0 = 10*npts;
   FldArrayF coord0(npts0, 3);
@@ -298,21 +299,27 @@ void K_COMPGEOM::regularNurbs(E_Int n, E_Int ordern, E_Int N, E_Float density,
 
   // vraie longueur de la nurbs
   len = 0.;
-#pragma omp parallel default(shared) if (npts0 > __MIN_SIZE_MEAN__)
+  #pragma omp parallel
   {
     E_Float dx, dy, dz;
     E_Int i1;
-#pragma omp for reduction(+:len)
+    E_Int it = __CURRENT_THREAD__;
+    lp[it] = 0.;
+    #pragma omp for reduction(+:len)
     for (E_Int i = 1; i < npts0; i++)
     {
       i1 = i-1;
       dx = coordx0[i] - coordx0[i1];
       dy = coordy0[i] - coordy0[i1];
       dz = coordz0[i] - coordz0[i1];
-      len = len + sqrt(dx*dx+dy*dy+dz*dz);
+      lp[it] += sqrt(dx*dx+dy*dy+dz*dz);
     }
   }
-  if (density > 0) npts = E_Int(len*density)+1;
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    len += lp[it];
+  }
+  if (density > 0.) npts = E_Int(len*density)+1;
   else npts = N;
  
   // nurbs reguliere
@@ -328,13 +335,14 @@ void K_COMPGEOM::regularNurbs(E_Int n, E_Int ordern, E_Int N, E_Float density,
   FldArrayF fd(npts);
   E_Float* fdx = fd.begin(1);
   E_Float delta = 1./(npts-1.);
-#pragma omp parallel for default(shared) if (npts > __MIN_SIZE_MEAN__)
+  #pragma omp parallel for
   for (E_Int i = 0; i < npts; i++) fdx[i] = delta*i;
 
-  k6onedmap_(npts0, coordx0, coordy0, coordz0,
-             npts, fd.begin(1),
-             coordx, coordy, coordz,
-             sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+  K_COMPGEOM::onedmap(npts0, coordx0, coordy0, coordz0,
+		      npts, fd.begin(1),
+		      coordx, coordy, coordz,
+		      sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+  delete [] lp;
 }
 
 //=============================================================================
@@ -360,13 +368,13 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   E_Float leni = 0.;
   E_Float lenj = 0.;
 
-#pragma omp parallel default(shared) if (m*n > __MIN_SIZE_MEAN__)
+  #pragma omp parallel
   {
     E_Int ind, ind1, j1;
     E_Float len = 0.;
     E_Float dx, dy, dz;
     E_Float leni_private=0., lenj_private=0.;
-#pragma omp for nowait
+    #pragma omp for nowait
     for (E_Int j = 0; j < m; j++)
     { 
       len = 0.;
@@ -381,7 +389,7 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
       leni_private = K_FUNC::E_max(leni_private, len);
     }
 
-#pragma omp for nowait
+    #pragma omp for nowait
     for (E_Int i = 0; i < n; i++)
     {
       len = 0.;
@@ -396,14 +404,14 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
       }
       lenj_private = K_FUNC::E_max(lenj_private, len);
     }
-#pragma omp critical
+    #pragma omp critical
     {
       leni = K_FUNC::E_max(leni, leni_private);
       lenj = K_FUNC::E_max(lenj, lenj_private);
     }
   }
   E_Int nptsi, nptsj;
-  if (density > 0) 
+  if (density > 0.) 
   { nptsi = E_Int(leni*density)+1; nptsj = E_Int(lenj*density)+1; }
   else { nptsi = N; nptsj = M; }
   E_Int nptsi0 = 10*nptsi;
@@ -415,24 +423,34 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   E_Float* coordz0 = coord0.begin(3);
   nurbs2D(n, m, ordern, nptsi0, orderm, nptsj0, xt, yt, zt, W, coord0);
 
+  E_Int nthreads = __NUMTHREADS__;
+  E_Float* lp = new E_Float [nthreads];
+
   // Remaille suivant i
   // vraie longueur de la spline suivant i
   E_Float len = 0.;
-#pragma omp parallel default(shared) if (nptsi0 > __MIN_SIZE_MEAN__)
+  #pragma omp parallel
   {
     E_Float dx, dy, dz;
     E_Int ind, ind0;
-#pragma omp for reduction(+:len)
+    E_Int it = __CURRENT_THREAD__;
+    lp[it] = 0.;
+    #pragma omp for
     for (E_Int i = 1; i < nptsi0; i++)
     {
       ind = i; ind0 = i-1;
       dx = coordx0[ind] - coordx0[ind0];
       dy = coordy0[ind] - coordy0[ind0];
       dz = coordz0[ind] - coordz0[ind0];
-      len = len + sqrt(dx*dx+dy*dy+dz*dz);
+      lp[it] += sqrt(dx*dx+dy*dy+dz*dz);
     }
   }
-  if (density > 0) nptsi = E_Int(len*density)+1;
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    len += lp[it];
+  }
+
+  if (density > 0.) nptsi = E_Int(len*density)+1;
   else nptsi = N;
 
   FldArrayF sp(nptsi0);
@@ -442,7 +460,7 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   FldArrayF fd(nptsi);
   E_Float* fdx = fd.begin(1);
   E_Float delta = 1./(nptsi-1.);
-#pragma omp parallel for default(shared) if (nptsi > __MIN_SIZE_MEAN__)
+  #pragma omp parallel for
   for (E_Int i = 0; i < nptsi; i++) fdx[i] = delta*i;
   FldArrayF coord1(nptsi*nptsj0, 3); coord1.setAllValuesAtNull();
   E_Float* coordx1 = coord1.begin(1);
@@ -451,31 +469,38 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
 
   for (E_Int j = 0; j < nptsj0; j++)
   {
-    k6onedmap_(nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
-               nptsi, fd.begin(1),
-               coordx1+j*nptsi, coordy1+j*nptsi, coordz1+j*nptsi,
-               sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+    K_COMPGEOM::onedmap(nptsi0, coordx0+j*nptsi0, coordy0+j*nptsi0, coordz0+j*nptsi0,
+			nptsi, fd.begin(1),
+			coordx1+j*nptsi, coordy1+j*nptsi, coordz1+j*nptsi,
+			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
   }
 
   // Remaille en j
   // vraie longueur de la spline suivant j
   len = 0.;
-#pragma omp parallel default(shared) if (nptsj0 > __MIN_SIZE_MEAN__)
+  #pragma omp parallel
   {
     E_Float dx, dy, dz;
     E_Int ind, ind0;
-#pragma omp for reduction(+:len)
+    E_Int it = __CURRENT_THREAD__;
+    lp[it] = 0.;
+
+    #pragma omp for
     for (E_Int j = 1; j < nptsj0; j++)
     {
       ind = j*nptsi0; ind0 = (j-1)*nptsi0;
       dx = coordx0[ind] - coordx0[ind0];
       dy = coordy0[ind] - coordy0[ind0];
       dz = coordz0[ind] - coordz0[ind0];
-      len = len + sqrt(dx*dx+dy*dy+dz*dz);
+      lp[it] += sqrt(dx*dx+dy*dy+dz*dz);
     }
   }
+  for (E_Int it = 0; it < nthreads; it++)
+  {
+    len += lp[it];
+  }
 
-  if (density > 0) nptsj = E_Int(len*density)+1;
+  if (density > 0.) nptsj = E_Int(len*density)+1;
   else nptsj = M;
 
   sp.malloc(nptsj0);
@@ -485,7 +510,7 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   fd.malloc(nptsj);
   fdx = fd.begin(1);
   delta = 1./(nptsj-1.);
-#pragma omp parallel for default(shared) if (nptsj > __MIN_SIZE_MEAN__)
+  #pragma omp parallel for default(shared) if (nptsj > __MIN_SIZE_MEAN__)
   for (E_Int j = 0; j < nptsj; j++) fdx[j] = delta*j;
   coord.malloc(nptsi*nptsj, 3); coord.setAllValuesAtNull();
 
@@ -505,17 +530,22 @@ void K_COMPGEOM::regularNurbs2D(E_Int n, E_Int m, E_Int ordern, E_Int N,
   for (E_Int i = 0; i < nptsi; i++)
   {
     for (E_Int j = 0; j < nptsj0; j++) 
-    { t0x[j] = coordx1[i+j*nptsi];
+    { 
+      t0x[j] = coordx1[i+j*nptsi];
       t0y[j] = coordy1[i+j*nptsi];
-      t0z[j] = coordz1[i+j*nptsi]; }
-    k6onedmap_(nptsj0, t0x, t0y, t0z,
-               nptsj, fd.begin(1),
-               tx, ty, tz,
-               sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
+      t0z[j] = coordz1[i+j*nptsi]; 
+    }
+    K_COMPGEOM::onedmap(nptsj0, t0x, t0y, t0z,
+			nptsj, fd.begin(1),
+			tx, ty, tz,
+			sp.begin(), dxp.begin(), dyp.begin(), dzp.begin());
     for (E_Int j = 0; j < nptsj; j++) 
-    { coordx[i+j*nptsi] = tx[j]; 
+    { 
+      coordx[i+j*nptsi] = tx[j]; 
       coordy[i+j*nptsi] = ty[j]; 
-      coordz[i+j*nptsi] = tz[j]; }
+      coordz[i+j*nptsi] = tz[j]; 
+    }
   }
   niout = nptsi; njout = nptsj;
+  delete [] lp;
 }

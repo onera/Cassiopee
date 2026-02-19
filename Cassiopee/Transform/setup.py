@@ -1,7 +1,3 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
 # Transform requires:
 # ELSAPROD variable defined in environment
@@ -10,28 +6,32 @@ import os
 # Numpy
 # KCore library
 #=============================================================================
+import os
+from setuptools import setup, Extension
+import KCore.Dist as Dist
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkModuleCassiopee("KCore")
 
-from KCore.config import *
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLib]
 includeDirs = [numpyIncDir, kcoreIncDir]
 libraries = ["transform", "kcore"]
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
@@ -52,11 +52,9 @@ setup(
     version="4.1",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     package_dir={"":"."},
     packages=['Transform'],
     ext_modules=listExtensions
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

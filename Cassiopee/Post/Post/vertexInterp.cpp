@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -42,7 +42,8 @@ void K_POST::vertexInterp(E_Int nfld, E_Float value,
   }
   if (poscellN != 0)
   {
-    if (f(ind0, poscellN) == 0. || f(ind1, poscellN) == 0.)
+    if (K_FUNC::fEqualZero(f(ind0, poscellN)) || 
+        K_FUNC::fEqualZero(f(ind1, poscellN)))
       fiso(npts, poscellN) = 0.;
   }
   npts++;

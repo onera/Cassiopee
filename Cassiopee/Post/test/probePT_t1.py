@@ -40,18 +40,18 @@ p1.flush()
 test.testT(p1._probeZones, 2)
 
 # create probe from zones
-p1 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
+a = G.cart((0,0,0), (1,1,1), (5,5,1))
+
+p1 = Probe.Probe(LOCAL+'/probe3.cgns', a, fields=['centers:F'], append=False, bufferSize=15)
 for i in range(20):
     time = 0.1*i
-    a = G.cart((0,0,0), (1,1,1), (5,5,1))
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p1.extract(a, time=time)
 p1.flush()
 
-p1 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=True, bufferSize=15)
+p1 = Probe.Probe(LOCAL+'/probe3.cgns', a, fields=['centers:F'], append=True, bufferSize=15)
 for i in range(20):
     time = 2+0.1*i
-    a = G.cart((0,0,0), (1,1,1), (5,5,1))
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p1.extract(a, time=time)
 p1.flush()

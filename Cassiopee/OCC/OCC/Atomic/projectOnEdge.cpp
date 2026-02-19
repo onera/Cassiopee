@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -50,7 +50,7 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
   FldArrayI* c; FldArrayF* fi;
   E_Int ni, nj, nk;
   char* varString; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(array, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -104,13 +104,21 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
 #pragma omp for
     for (E_Int i=0; i < npts; i++)
     {
+      ptx[i] = K_CONST::E_MAX_FLOAT;
+      pty[i] = K_CONST::E_MAX_FLOAT;
+      ptz[i] = K_CONST::E_MAX_FLOAT;
+
       for (E_Int j = 0; j < nedges; j++)
       {
         const TopoDS_Edge& E = TopoDS::Edge(cadEdges(edges[j]));
+        if (BRep_Tool::Degenerated(E))
+        {
+          //printf("edge is degenerated for point %g %g %g\n", px[i],py[i],pz[i]); 
+          continue;
+        }
         BRepAdaptor_Curve C0(E);
         Standard_Real aFirst=C0.FirstParameter(), aEnd=C0.LastParameter();
         Handle(Geom_Curve) aCurve = BRep_Tool::Curve(E, aFirst, aEnd);
-
         Point.SetCoord(pox[i], poy[i], poz[i]);
         try
         {
@@ -121,20 +129,23 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
         }
         catch (StdFail_NotDone& e) 
         { 
-          //printf("FAIL for point %g %g %g\n", px[i],py[i],pz[i]); 
-          ptx[i] = K_CONST::E_MAX_FLOAT;
-          pty[i] = K_CONST::E_MAX_FLOAT;
-          ptz[i] = K_CONST::E_MAX_FLOAT;
+          //printf("FAIL to project for point %g %g %g\n", px[i],py[i],pz[i]); 
+          continue;
         }
-      }
+        catch (Standard_NullObject& e)
+        {
+          //printf("Curve is ill formed for point %g %g %g\n", px[i],py[i],pz[i]); 
+          continue;
+        }
 
-      dx = ptx[i]-pox[i];
-      dy = pty[i]-poy[i];
-      dz = ptz[i]-poz[i];
-      d = dx*dx+dy*dy+dz*dz;
-      if (d < dist[i])
-      { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
-      //printf("projection %f %f %f -> %f %f %f\n",pox[i],poy[i],poz[i],px[i],py[i],pz[i]);
+        dx = ptx[i]-pox[i];
+        dy = pty[i]-poy[i];
+        dz = ptz[i]-poz[i];
+        d = dx*dx+dy*dy+dz*dz;
+        if (d < dist[i])
+        { dist[i] = d; px[i] = ptx[i]; py[i] = pty[i]; pz[i] = ptz[i]; }
+        //printf("projection %f %f %f -> %f %f %f\n",pox[i],poy[i],poz[i],px[i],py[i],pz[i]);
+      }
     }
   }
 
@@ -142,6 +153,6 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
   delete [] ptx; delete [] pty; delete [] ptz;
   delete [] dist;
   RELEASESHAREDB(ret, array, fi, c);
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 }

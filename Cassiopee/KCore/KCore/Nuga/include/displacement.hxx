@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -35,7 +35,7 @@ namespace NUGA
 {
 
   template <typename mesh_t1, typename mesh_t2>
-  static std::vector<direction> immerse_nodes(mesh_t1& m1, const mesh_t2& m2, double ARTOL)
+  static std::vector<direction> immerse_nodes(mesh_t1& m1, const mesh_t2& m2, E_Float ARTOL)
   {
     eMetricType mtype = NUGA::ISO_MIN;
 
@@ -78,8 +78,8 @@ namespace NUGA
           NUGA::normalize<3>(nn);
 
   #ifdef DEBUG_IMMERSION
-          E_Float l2 = ::sqrt(nn[0] * nn[0] + nn[1] * nn[1] + nn[2] * nn[2]);
-          assert(::fabs(l2 - 1.) < EPSILON);// DEGEN
+          E_Float l2 = sqrt(nn[0] * nn[0] + nn[1] * nn[1] + nn[2] * nn[2]);
+          assert(fabs(l2 - 1.) < EPSILON);// DEGEN
   #endif
 
           // immersion => inward => -=
@@ -90,19 +90,18 @@ namespace NUGA
       }
       else // this vertex is near a m2's node => compute nodal normal : weighted with angle between each pair of ray in the node shell (sum is 2PI)
       {
-        //std::cout << "compute node normal" << std::endl;
-        double TOL2 = ARTOL*ARTOL;
+        E_Float TOL2 = ARTOL*ARTOL;
         if (ARTOL < 0.) //relative
           TOL2 *= vertices[i].val2;
 
         // find near node : 
         E_Int PGi0 = pt_to_faces[i][0];
         auto PG0 = m2.element(PGi0);
-        double dmin2= FLOAT_MAX;
+        E_Float dmin2 = FLOAT_MAX;
         E_Int Ni{IDX_NONE};
         for (size_t u=0; u < (size_t)PG0.nb_nodes(); ++u) 
         {
-          double d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
+          E_Float d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
           if (d2 < dmin2)
           {
             dmin2 = d2;
@@ -112,18 +111,12 @@ namespace NUGA
         assert (dmin2 < TOL2);
         assert (Ni != IDX_NONE);
 
-        //std::cout << "Near node : " << Ni << std::endl;
-
         E_Int count{0};
-
-        //std::cout << "compute the rays angles" << std::endl;
 
         for (size_t p = 0; p < pt_to_faces[i].size(); ++p)
         {
           const E_Int& fid = pt_to_faces[i][p];
           auto PG = m2.element(fid);
-
-          //std::cout << p << "-th face : " << fid << std::endl;
 
           E_Int nnodes = PG.nb_nodes();
 
@@ -132,17 +125,11 @@ namespace NUGA
           if (pos == -1) continue;
           ++count;
 
-          //std::cout << "pos ? : " << pos << std::endl;
-
           E_Int Nip1 = PG.node((pos+1)%nnodes);
           E_Int Nim1 = PG.node((pos+nnodes-1)%nnodes);
 
-          //std::cout << "before angular" << std::endl;
-
           E_Float nn[3];
           NUGA::angular_weighted_normal(m2.crd.col(Nim1), m2.crd.col(Ni), m2.crd.col(Nip1), nn);
-
-          //std::cout << "after angular" << std::endl;
 
           // immersion => inward => -=
           dirs[i].vec[0] -= nn[0];
@@ -176,40 +163,40 @@ namespace NUGA
         auto PG = m2.element(fid);
 
         E_Int P0 = PG.node(0);         // first face node
-        double nPG[3];                 // normal to PG
+        E_Float nPG[3];                 // normal to PG
         PG.template normal<K_FLD::FloatArray, 3>(m2.crd, nPG);
 
-        const double* Pi = vertices[i].vec;
+        const E_Float* Pi = vertices[i].vec;
 
-        double I[3]; // intersection of pt in computed dir on PG plane.
-        double h = NUGA::project(m2.crd.col(P0), nPG, Pi, dirs[i].vec, I); // == PiP0.nPG
+        E_Float I[3]; // intersection of pt in computed dir on PG plane.
+        E_Float h = NUGA::project(m2.crd.col(P0), nPG, Pi, dirs[i].vec, I); // == PiP0.nPG
         
         if (h < 0.) continue; //already immersed
 
-        double w = NUGA::dot<3>(nPG, dirs[i].vec);
+        E_Float w = NUGA::dot<3>(nPG, dirs[i].vec);
         assert(w < 0.);
         w = 1. / w;
 
-        double dmax = ::sqrt(std::min(vertices[i].val2, PG.Lref2(m2.nodal_metric2)));
+        E_Float dmax = sqrt(std::min(vertices[i].val2, PG.Lref2(m2.nodal_metric2)));
 
-        double TOLi = ARTOL;
+        E_Float TOLi = ARTOL;
         if (ARTOL < 0.) // relative
           TOLi *= -dmax;
 
-        TOLi = std::min(0.95*dmax, TOLi);
+        TOLi = K_FUNC::E_min(0.95*dmax, TOLi);
         
-        if (::fabs(h) >= TOLi) 
+        if (fabs(h) >= TOLi) 
         {
           continue;//too far
         }
 
-        double depth = 0.1*(dmax - TOLi);
-        double lambdaMove = -w * (h + depth);
+        E_Float depth = 0.1*(dmax - TOLi);
+        E_Float lambdaMove = -w * (h + depth);
 
         // following assert because dir must be well oriented : inward the surface if above, outward otherwise
         // so attractive if above, repulsive if below (to put it far enough to exit interference zone)
         
-        dirs[i].val2 = std::max(lambdaMove*lambdaMove, dirs[i].val2);
+        dirs[i].val2 = K_FUNC::E_max(lambdaMove*lambdaMove, dirs[i].val2);
       }
     }
 
@@ -222,15 +209,13 @@ namespace NUGA
     {
       if (pt_to_faces[i].empty()) continue; // regular point
 
-      if (::sqrt(dirs[i].val2) > EPSILON) ++nb_disp;
+      if (sqrt(dirs[i].val2) > EPSILON) ++nb_disp;
 
-      NUGA::sum<3>(::sqrt(dirs[i].val2), dirs[i].vec, 1., m1.crd.col(i), m1.crd.col(i));
+      NUGA::sum<3>(sqrt(dirs[i].val2), dirs[i].vec, 1., m1.crd.col(i), m1.crd.col(i));
     }
 
     std::cout << "NB OF DISPLACED POINTS : " << nb_disp << std::endl;
 #ifdef DEBUG_IMMERSION
-    
-
     ngon_unit ngumoved;
     for (size_t i = 0; i < m1.cnt.PGs.size(); ++i)
     {
@@ -273,7 +258,7 @@ namespace NUGA
   }
 
   template <typename mesh_t1, typename mesh_t2>
-  static std::vector<direction> compute_displacement_for_singular_nodes(mesh_t1& m1, const mesh_t2& m2, double ARTOL, eMetricType mtype, bool inward)
+  static std::vector<direction> compute_displacement_for_singular_nodes(mesh_t1& m1, const mesh_t2& m2, E_Float ARTOL, eMetricType mtype, bool inward)
   {
     // inward = True  => immersion
     // inward = False => repulsion
@@ -323,8 +308,8 @@ namespace NUGA
           NUGA::normalize<3>(nn);
 
 #ifdef DEBUG_IMMERSION
-          E_Float l2 = ::sqrt(nn[0] * nn[0] + nn[1] * nn[1] + nn[2] * nn[2]);
-          assert(::fabs(l2 - 1.) < EPSILON);// DEGEN
+          E_Float l2 = sqrt(nn[0] * nn[0] + nn[1] * nn[1] + nn[2] * nn[2]);
+          assert(fabs(l2 - 1.) < EPSILON);// DEGEN
 #endif
           dirs[i].vec[0] += nn[0];
           dirs[i].vec[1] += nn[1];
@@ -334,18 +319,18 @@ namespace NUGA
       else // this vertex is near a m2's node => compute nodal normal : weighted with angle between each pair of ray in the node shell (sum is 2PI)
       {
         //std::cout << "compute node normal" << std::endl;
-        double TOL2 = ARTOL * ARTOL;
+        E_Float TOL2 = ARTOL * ARTOL;
         if (ARTOL < 0.) //relative
           TOL2 *= vertices[i].val2;
 
         // find near node : 
         E_Int PGi0 = pt_to_faces[i][0];
         auto PG0 = m2.element(PGi0);
-        double dmin2 = FLOAT_MAX;
+        E_Float dmin2 = FLOAT_MAX;
         E_Int Ni{ IDX_NONE };
         for (E_Int u = 0; u < PG0.nb_nodes(); ++u)
         {
-          double d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
+          E_Float d2 = NUGA::sqrDistance(m2.crd.col(PG0.node(u)), vertices[i].vec, 3);
           if (d2 < dmin2)
           {
             dmin2 = d2;
@@ -355,18 +340,12 @@ namespace NUGA
         assert(dmin2 < TOL2);
         assert(Ni != IDX_NONE);
 
-        //std::cout << "Near node : " << Ni << std::endl;
-
         size_t count{ 0 };
-
-        //std::cout << "compute the rays angles" << std::endl;
 
         for (size_t p = 0; p < pt_to_faces[i].size(); ++p)
         {
           const E_Int& fid = pt_to_faces[i][p];
           auto PG = m2.element(fid);
-
-          //std::cout << p << "-th face : " << fid << std::endl;
           
           E_Int nnodes = PG.nb_nodes();
 
@@ -375,12 +354,8 @@ namespace NUGA
           if (pos == -1) continue;
           ++count;
 
-          //std::cout << "pos ? : " << pos << std::endl;
-
           E_Int Nip1 = PG.node((pos + 1) % nnodes);
           E_Int Nim1 = PG.node((pos + nnodes - 1) % nnodes);
-
-          //std::cout << "before angular" << std::endl;
 
           E_Float nn[3];
           NUGA::angular_weighted_normal(m2.crd.col(Nim1), m2.crd.col(Ni), m2.crd.col(Nip1), nn);
@@ -409,7 +384,7 @@ namespace NUGA
 
       if (pt_to_faces[i].empty()) continue; // regular point
 
-      const double* Pi = vertices[i].vec;
+      const E_Float* Pi = vertices[i].vec;
  
       // compute max distance among sticking PGs to satisfy all of them
       for (size_t p = 0; p < pt_to_faces[i].size(); ++p)
@@ -417,18 +392,18 @@ namespace NUGA
         const E_Int& fid = pt_to_faces[i][p];
         auto PG = m2.element(fid);
 
-        double TOLi = ARTOL;
+        E_Float TOLi = ARTOL;
         if (ARTOL < 0.) // relative
         {
-          double PGLref2 = PG.Lref2(m2.nodal_metric2);
-          TOLi *= -::sqrt(std::min(vertices[i].val2, PGLref2));
+          E_Float PGLref2 = PG.Lref2(m2.nodal_metric2);
+          TOLi *= -sqrt(std::min(vertices[i].val2, PGLref2));
         }
-        double hmove = (1. + EPSILON) * TOLi;
+        E_Float hmove = (1. + EPSILON) * TOLi;
 
         PG.triangulate(dt, m2.crd);
 
-        double lambdaImin = FLOAT_MAX;
-        double wmin{ 0 };
+        E_Float lambdaImin = FLOAT_MAX;
+        E_Float wmin{ 0 };
         // find the closest triangle
         for (E_Int t = 0; t < PG.nb_tris(); ++t)
         {
@@ -442,13 +417,13 @@ namespace NUGA
           E_Float W[3];
           K_MESH::Triangle::normal(P0, P1, P2, W);
 
-          double w = NUGA::dot<3>(W, dirs[i].vec);
-          if (::fabs(w) < ZERO_M) continue; // should not happen : dir must not be ortho to nPG
+          E_Float w = NUGA::dot<3>(W, dirs[i].vec);
+          if (fabs(w) < ZERO_M) continue; // should not happen : dir must not be ortho to nPG
 
-          double I[3]; // intersection of pt in computed dir on PG plane.
-          double lambdaI = NUGA::project(P0, W, Pi, dirs[i].vec, I); // == Pi + lambdaI*dir = I
+          E_Float I[3]; // intersection of pt in computed dir on PG plane.
+          E_Float lambdaI = NUGA::project(P0, W, Pi, dirs[i].vec, I); // == Pi + lambdaI*dir = I
 
-          if (::fabs(lambdaI) < ::fabs(lambdaImin))
+          if (fabs(lambdaI) < fabs(lambdaImin))
           {
             lambdaImin = lambdaI;
             wmin = w;
@@ -470,7 +445,7 @@ namespace NUGA
           lambdaImin = -lambdaImin;
         }
 
-        double lambdaMove = (::fabs(wmin) * hmove) + lambdaImin;
+        E_Float lambdaMove = (fabs(wmin) * hmove) + lambdaImin;
 
         // following assert because dir must be well oriented : inward the surface if above, outward otherwise
         // so attractive if above, repulsive if below (to put it far enough to exit interference zone)
@@ -502,22 +477,21 @@ namespace NUGA
     acrd_t acrd(crd);
     K_SEARCH::KdTree<> tree(acrd, EPSILON);
     bool found{ false };
-    double d2;
+    E_Float d2;
     std::vector<bool> targeted(crd.cols(), false);
     for (E_Int i = 0; i < m.crd.cols(); ++i)
     {
-      int N = tree.getClosest(m.crd.col(i), ZERO_M*ZERO_M, d2);
+      E_Int N = tree.getClosest(m.crd.col(i), ZERO_M*ZERO_M, d2);
 
       if (N == IDX_NONE) continue;
       assert(targeted[N] == false);
 
       targeted[N] = true;
-      NUGA::sum<3>(::sqrt(dirs[N].val2), dirs[N].vec, 1., m.crd.col(i), m.crd.col(i));
+      NUGA::sum<3>(sqrt(dirs[N].val2), dirs[N].vec, 1., m.crd.col(i), m.crd.col(i));
       found = true;
     }
     return found;
   }
-
 
   enum eBCType { BCNONE = 0, BCWALL = 1 };
 
@@ -532,7 +506,7 @@ namespace NUGA
     bound_mesh_t only_mask_walls(*bit);
     std::vector<E_Int> ptoids;
 
-    int nbcells = bit->ncells();
+    E_Int nbcells = bit->ncells();
 
     bound_mesh_t zwalls(zbound);
     //E_Int nb_occ1 = std::count(ALL(zbound.cnt._type), 1);
@@ -623,26 +597,9 @@ namespace NUGA
       if (singular)
       {
         NUGA::normalize<3>(average_n.vec);
-        /*if (i == 14183)
-        {
-        K_FLD::FloatArray crdtmp(bit->crd);
-        E_Float nP[3];
-        nP[0] = crdtmp(0, nodes[0] - 1) + average_n.vec[0];
-        nP[1] = crdtmp(1, nodes[0] - 1) + average_n.vec[1];
-        nP[2] = crdtmp(2, nodes[0] - 1) + average_n.vec[2];
-        crdtmp.pushBack(nP, nP + 3);
-        E_Int E[] = { nodes[0] - 1, crdtmp.cols() - 1 };
-        K_FLD::IntArray cntmp;
-        cntmp.pushBack(E, E + 2);
-        std::ostringstream o;
-        o << "norm2";
-        medith::write(o.str().c_str(), crdtmp, cntmp, "BAR");
-        }*/
-
-        //double val = ::fabs(NUGA::dot<3>(nni, average_n.vec));
-        double angle = NUGA::normals_angle(nni, average_n.vec);
-        if (angle < AMAX)
-          is_dw[i] = true;
+        //E_Float val = fabs(NUGA::dot<3>(nni, average_n.vec));
+        E_Float angle = NUGA::normals_angle(nni, average_n.vec);
+        if (angle < AMAX) is_dw[i] = true;
       }
     }
 
@@ -677,7 +634,7 @@ namespace NUGA
           ++nb_missing;
         else
         {
-          v.val2 += ::sqrt(all_nodes_disp[Ni].val2);
+          v.val2 += sqrt(all_nodes_disp[Ni].val2);
           v.vec[0] += all_nodes_disp[Ni].vec[0];
           v.vec[1] += all_nodes_disp[Ni].vec[1];
           v.vec[2] += all_nodes_disp[Ni].vec[2];
@@ -725,7 +682,7 @@ namespace NUGA
           if (all_nodes_disp[i].val2 == FLOAT_MAX) continue;
 
           E_Float * Pi = crd.col(i);
-          NUGA::sum<3>(1., Pi, ::sqrt(all_nodes_disp[i].val2), all_nodes_disp[i].vec, Pi);
+          NUGA::sum<3>(1., Pi, sqrt(all_nodes_disp[i].val2), all_nodes_disp[i].vec, Pi);
         }
 
         std::vector<bool> validpt(crd.cols(), true);
@@ -760,7 +717,7 @@ namespace NUGA
       if (all_nodes_disp[i].val2 == FLOAT_MAX) continue;
 
       E_Float * Pi = bit->crd.col(i);
-      NUGA::sum<3>(1., Pi, ::sqrt(all_nodes_disp[i].val2), all_nodes_disp[i].vec, Pi);
+      NUGA::sum<3>(1., Pi, sqrt(all_nodes_disp[i].val2), all_nodes_disp[i].vec, Pi);
     }
 
 #ifdef DISPLACEMENT_DBG
@@ -778,7 +735,7 @@ namespace NUGA
   /// 
   template <> inline
     void move_double_walls<edge_mesh_t>
-    (edge_mesh_t* bit, const edge_mesh_t& zbound, double ARTOL, eMetricType mtype, double AMAX, const std::vector<E_Int>& zmask_wall_ids, std::vector<bool>& is_dw)
+    (edge_mesh_t* bit, const edge_mesh_t& zbound, E_Float ARTOL, eMetricType mtype, E_Float AMAX, const std::vector<E_Int>& zmask_wall_ids, std::vector<bool>& is_dw)
   {
     // not implemented for surfaces
   }

@@ -29,7 +29,7 @@ namespace K_POST
                                                const vector3d& v1, const vector3d& v2,
                                                const vector3d& v3, const vector3d& v4 )
     {
-        double vol = compute_volume_tetrahedra(p1, p2, p3, p4);
+        E_Float vol = compute_volume_tetrahedra(p1, p2, p3, p4);
         return (-1./vol)*(compute_part_of_rot_on_triangle(p1, p3, p2, v1, v3, v2) +
                           compute_part_of_rot_on_triangle(p1, p2, p4, v1, v2, v4) +
                           compute_part_of_rot_on_triangle(p2, p3, p4, v2, v3, v4) +
@@ -42,7 +42,7 @@ namespace K_POST
                                             const vector3d& v3, const vector3d& v4, const vector3d& v5 )
     {
         // Volume de la pyramide :
-        double vol = compute_volume_pyramid(p1, p2, p3, p4, p5);
+        E_Float vol = compute_volume_pyramid(p1, p2, p3, p4, p5);
 
         vector3d E_12(p1,p2), E_13(p1,p3), E_14(p1,p4), E_15(p1,p5);
         vector3d E_23(p2,p3), E_24(p2,p4), E_34(p3,p4);
@@ -72,7 +72,7 @@ namespace K_POST
                                                const vector3d& v4, const vector3d& v5, const vector3d& v6)
     {
         // Calcul volume :
-        double vol = compute_volume_pentaedra(p1, p2, p3, p4, p5, p6);
+        E_Float vol = compute_volume_pentaedra(p1, p2, p3, p4, p5, p6);
         // Q₁₂₅₄ - Q₂₃₆₅ - Q₃₁₄₆ - T₁₃₂ - T₄₅₆
         return (-1./vol)*(compute_part_of_rot_on_quadrangle(p1,p2,p5,p4,v1,v2,v5,v4) +
                           compute_part_of_rot_on_quadrangle(p2,p3,p6,p5,v2,v3,v6,v5) +
@@ -87,7 +87,7 @@ namespace K_POST
                                              const vector3d& v5, const vector3d& v6, const vector3d& v7, const vector3d& v8 )
     {
         // Calcul du volume
-        double vol = compute_volume_hexaedra(p1, p2, p3, p4, p5, p6, p7, p8);
+        E_Float vol = compute_volume_hexaedra(p1, p2, p3, p4, p5, p6, p7, p8);
         // Q₁₄₃₂ -- Q₁₂₆₅ -- Q₂₃₇₆ -- Q₃₄₈₇ -- Q₁₅₈₄ -- Q₅₆₇₈
         return (-1./vol)*(compute_part_of_rot_on_quadrangle(p1,p4,p3,p2,v1,v4,v3,v2) +
                           compute_part_of_rot_on_quadrangle(p1,p2,p6,p5,v1,v2,v6,v5) +
@@ -125,7 +125,7 @@ namespace K_POST
                 rot += compute_part_of_rot_on_quadrangle(pi, pj, pk, pl, vi, vj, vk, vl);
             }
         }
-        double vol = compute_volume_ngon(faces);
+        E_Float vol = compute_volume_ngon(faces);
         return (-1./vol)*rot;
     }
 

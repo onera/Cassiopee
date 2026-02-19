@@ -1,3 +1,5 @@
+GORDON = True
+
 import glob
 import os
 
@@ -42,11 +44,26 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/printOCAF.cpp',
         'OCC/Atomic/getFaceNameInOCAF.cpp',
 
+        'OCC/Atomic/copyOCAF2TopShape.cpp',
+        'OCC/Atomic/addShape2OCAF.cpp',
+        'OCC/Atomic/getLabel2Faces.cpp',
+        'OCC/Atomic/copyTopShape2OCAF.cpp',
+
         'OCC/Atomic/bottle.cpp',
         'OCC/Atomic/addSphere.cpp',
-        'OCC/Atomic/addSquare.cpp',
         'OCC/Atomic/addCylinder.cpp',
         'OCC/Atomic/addBox.cpp',
+        'OCC/Atomic/addBox2.cpp',
+        'OCC/Atomic/addLine.cpp',
+        'OCC/Atomic/addCircle.cpp',
+        'OCC/Atomic/addEllipse.cpp',
+        'OCC/Atomic/addSquare.cpp',
+        'OCC/Atomic/addSquare2.cpp',
+        'OCC/Atomic/addSpline.cpp',
+        'OCC/Atomic/addArc.cpp',
+        'OCC/Atomic/addSuperEllipse.cpp',
+        'OCC/Atomic/addSplineSurface.cpp',
+        'OCC/Atomic/addGordonSurface.cpp',
 
         'OCC/Atomic/meshEdge.cpp',
         'OCC/Atomic/meshEdge2.cpp',
@@ -58,74 +75,56 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/projectOnEdge.cpp',
         'OCC/Atomic/linkNodes2CAD.cpp',
         'OCC/Atomic/trimesh.cpp',
+        'OCC/Atomic/occmesh.cpp',
+
         'OCC/Atomic/analyse.cpp',
         'OCC/Atomic/getFaceArea.cpp',
+        'OCC/Atomic/getBoundingBox.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
 
-        'OCC/Atomic/splitter.cpp',
+        'OCC/Atomic/splitFaces.cpp',
+        'OCC/Atomic/splitEdge.cpp',
+        'OCC/Atomic/mergeFaces.cpp',
+        'OCC/Atomic/mergeEdges.cpp',
+
         'OCC/Atomic/fix.cpp',
-        'OCC/Atomic/trim.cpp',
         'OCC/Atomic/sewing.cpp',
         'OCC/Atomic/removeFaces.cpp',
         'OCC/Atomic/fillHole.cpp',
         'OCC/Atomic/addFillet.cpp',
-        'OCC/Atomic/mergeFaces.cpp',
+        'OCC/Atomic/offset.cpp',
+
+        'OCC/Atomic/loft.cpp',
+        'OCC/Atomic/sweep.cpp',
+        'OCC/Atomic/revolve.cpp',
 
         'OCC/Atomic/translate.cpp',
         'OCC/Atomic/scale.cpp',
         'OCC/Atomic/rotate.cpp',
 
+        'OCC/Atomic/intersectEdgeFace.cpp',
+        'OCC/Atomic/trim.cpp',
+        'OCC/Atomic/boolean.cpp',
+
         'OCC/Atomic/getOppData.cpp',
         'OCC/Atomic/identifyTags.cpp']
 
+if GORDON:
+    srcs += [
+        'OCC/Gordon/BSplineAlgorithms.cpp',
+        'OCC/Gordon/CurveNetworkSorter.cpp',
+        'OCC/Gordon/Error.cpp',
+        'OCC/Gordon/InterpolateCurveNetwork.cpp',
+        'OCC/Gordon/PointsToBSplineInterpolation.cpp',
+        'OCC/Gordon/BSplineApproxInterp.cpp',
+        'OCC/Gordon/CurvesToSurface.cpp',
+        'OCC/Gordon/GordonSurfaceBuilder.cpp',
+        'OCC/Gordon/IntersectBSplines.cpp',
+        'OCC/Gordon/occ_gordon.cpp']
+
+#====================================================================================
 import KCore.Dist as Dist
-
-allMods6 = ["FWOSPlugin", "TKPLCAF", "PTKernel", "TKPrim",
-            "TKAdvTools", "TKPShape", "TKBinL", "TKService",
-            "TKBin", "TKShapeSchema", "TKBinTObj", "TKShHealing",
-            "TKBinXCAF", "TKStdLSchema", "TKBool", "TKStdSchema",
-            "TKBO", "TKSTEP209", "TKBRep", "TKSTEPAttr",
-            "TKCAF", "TKSTEPBase", "TKCDF", "TKSTEP",
-            "TKernel", "TKSTL", "TKFeat", "TKTObj",
-            "TKFillet", "TKTopAlgo", "TKG2d", "TKV3d",
-            "TKG3d", "TKVoxel", "TKGeomAlgo", "TKVRML",
-            "TKGeomBase", "TKXCAFSchema", "TKHLR", "TKXCAF",
-            "TKIGES", "TKXDEIGES", "TKLCAF", "TKXDESTEP",
-            "TKMath", "TKXMesh", "TKMesh", "TKXmlL",
-            "TKMeshVS", "TKXml", "TKNIS", "TKXmlTObj",
-            "TKOffset", "TKXmlXCAF", "TKOpenGl", "TKXSBase",
-            "TKPCAF"]
-
-allMods75 = ["TKBinL", "TKBin", "TKBinTObj",
-             "TKBinXCAF", "TKBool", "TKBO", "TKBRep",
-             "TKCAF", "TKCDF", "TKDCAF", "TKDraw", "TKernel",
-             "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
-             "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
-             "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl", "TKPrim",
-             "TKQADraw", "TKRWMesh", "TKService", "TKShHealing", "TKStdL",
-             "TKStd", "TKSTEP209", "TKSTEPAttr", "TKSTEPBase", "TKSTEP",
-             "TKSTL", "TKTObjDRAW", "TKTObj", "TKTopAlgo", "TKTopTest",
-             "TKV3d", "TKVCAF", "TKViewerTest", "TKVRML", "TKXCAF", "TKXDEDRAW",
-             "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXmlL", "TKXml", "TKXmlTObj",
-             "TKXmlXCAF", "TKXSBase", "TKXSDRAW"]
-
-allMods75W = ["TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
-              "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
-              "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
-              "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
-              "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl",
-              "TKPrim", "TKService",
-              "TKShHealing", "TKStdLSchema",
-              "TKStdSchema", "TKSTEP", "TKSTEP209", "TKSTEPAttr",
-              "TKSTEPBase", "TKSTL", "TKTObj", "TKTopAlgo",
-              "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
-              "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
-              "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
-              "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
-
-
-if Dist.getSystem()[0] == 'mingw': allMods = allMods75W
-else: allMods = allMods75
+allMods = Dist.getOCCModules()
 
 mod_srcs = {}
 for m in allMods:

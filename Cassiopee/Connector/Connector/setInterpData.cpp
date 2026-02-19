@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -97,6 +97,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       ncfmax = 9; nindi = 1;
       break;
 
+    case 4:
+      interpType = K_INTERP::InterpData::O4ABC;
+      ncfmax = 12; nindi = 1;
+      break;
+
     case 5:
       interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
@@ -118,8 +123,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
 
   // Verif des coordonnees dans la zone a interpoler
   E_Int posxr = K_ARRAY::isCoordinateXPresent(varStringr);
@@ -145,8 +150,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true;  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(donorArrays, resl, varString, fields, a2, a3, a4, objs,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzones = objs.size();
@@ -591,7 +596,7 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &enableExtrap,
                     &InterpDataType, &allHooks))
   {
-      return NULL;
+    return NULL;
   }
   
   // Extraction du type d'InterpData (0: CART, 1: ADT)
@@ -628,6 +633,11 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
       ncfmax = 9; nindi = 1;
       break;
 
+    case 4:
+      interpType = K_INTERP::InterpData::O4ABC;
+      ncfmax = 12; nindi = 1;
+      break;
+
     case 5:
       interpType = K_INTERP::InterpData::O5ABC;
       ncfmax = 15; nindi = 1;
@@ -647,8 +657,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(receiverArray, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(receiverArray, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
 
   // Verif des coordonnees dans la zone a interpoler
   E_Int posxr = K_ARRAY::isCoordinateXPresent(varStringr);
@@ -674,8 +684,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
   vector<void*> a3; //eltType en NS
   vector<void*> a4;
   vector<PyObject*> objs;
-  E_Boolean skipNoCoord = true; E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false; E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true; E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false; E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(donorArrays, resl, varString, fields, a2, a3, a4, objs,  
                                       skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int nzones = objs.size();
@@ -980,6 +990,8 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
     for (E_Int ind = 0; ind < nbI; ind++)
     {
       x = xr[ind]; y = yr[ind]; z = zr[ind];
+
+
       ok = K_INTERP::getInterpolationCell(
         x, y, z, interpDatas, fields,
         a2, a3, a4, a5, posxs, posys, poszs, poscs,
@@ -1068,9 +1080,17 @@ PyObject* K_CONNECTOR::setInterpData(PyObject* self, PyObject* args)
             break;
 
           case 5:
-            for (E_Int nocf = 0; nocf < 15; nocf++) 
+            for (E_Int nocf = 0; nocf < 15; nocf++)
               donorCf[sizecf+nocf] = cf[nocf];
             sizecf += 15;
+            donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
+            sizeOfIndDonor1DForBlk++;
+            break;
+
+          case 44:  //lagrange 04
+            for (E_Int nocf = 0; nocf < 12; nocf++) 
+              donorCf[sizecf+nocf] = cf[nocf];
+            sizecf += 12;
             donorInd1D[sizeOfIndDonor1DForBlk] = indi[0];
             sizeOfIndDonor1DForBlk++;
             break;
@@ -1380,8 +1400,8 @@ PyObject* K_CONNECTOR::setInterpDataDW(PyObject* self, PyObject* args)
   vector<void*> ar3; //eltType en NS
   vector<void*> ar4;
   vector<PyObject*> objrs;
-  E_Boolean skipNoCoord = true;  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     receiverArrays, resr, varStringr, fieldrs, ar2, ar3, ar4, objrs,  
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);

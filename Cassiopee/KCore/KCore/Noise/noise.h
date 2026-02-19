@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -27,40 +27,40 @@ namespace K_NOISE
   /* Minimum standard random generator
      Retourne un reel entre 0 et 1.
      Tirages correles. A initialiser avec un entier negatif. */
-  double stdRand(E_LONG *idum);
+  E_Float stdRand(E_LONG *idum);
 
   /* Minimum shuffle random generator
      Retourne un reel entre 0 et 1.
      Non correle pour un nbre de tirages < a 10e8.
      A initialiser avec un entier negatif. */
-  double shuffleRand(E_LONG *idum);
+  E_Float shuffleRand(E_LONG *idum);
 
   /* Minimum combined random generator
      Retourne un reel entre 0 et 1.
      Tres longue periode.
      A initialiser avec un entier negatif. */
-  double longRand(E_LONG *idum);
+  E_Float longRand(E_LONG *idum);
 
   /* Structure pour stocker les donnees du perlin noise. */
 #define MAXB 0x100
   typedef struct
   {
       int p[MAXB + MAXB + 2];
-      double g3[MAXB + MAXB + 2][3];
-      double g2[MAXB + MAXB + 2][2];
-      double g1[MAXB + MAXB + 2];
+      E_Float g3[MAXB + MAXB + 2][3];
+      E_Float g2[MAXB + MAXB + 2][2];
+      E_Float g1[MAXB + MAXB + 2];
       int start;
       int B;
       int BM;
   } PDS;
     
   // Fonctions internes pour le perlin noise
-  void normalize2(double* v);
-  void normalize3(double* v);
+  void normalize2(E_Float* v);
+  void normalize3(E_Float* v);
   void initNoise(PDS& data);
-  double noise1(double arg, PDS& data);
-  double noise2(double vec[2], PDS& data);
-  double noise3(double vec[3], PDS& data);
+  E_Float noise1(E_Float arg, PDS& data);
+  E_Float noise2(E_Float vec[2], PDS& data);
+  E_Float noise3(E_Float vec[3], PDS& data);
 
   /* Initialise le perlin noise. A appeler avant tout autre appel. */
   void initPerlinNoise(int frequency, PDS& data);
@@ -69,10 +69,10 @@ namespace K_NOISE
      alpha est le poids dans la somme des bruits unitaires.
      Generalement, alpha=2, plus alpha approche 1 plus la fonction est bruitee.
      Beta est le pas, generalement 2. */
-  double perlinNoise1D(double x, double alpha, double beta, int n, PDS& data);
-  double perlinNoise2D(double x, double y, double alpha, double beta, int n, 
+  E_Float perlinNoise1D(E_Float x, E_Float alpha, E_Float beta, int n, PDS& data);
+  E_Float perlinNoise2D(E_Float x, E_Float y, E_Float alpha, E_Float beta, int n, 
                        PDS& data);
-  double perlinNoise3D(double x, double y, double z, double alpha,
-                       double beta, int n, PDS& data);
+  E_Float perlinNoise3D(E_Float x, E_Float y, E_Float z, E_Float alpha,
+                        E_Float beta, int n, PDS& data);
 }
 #endif

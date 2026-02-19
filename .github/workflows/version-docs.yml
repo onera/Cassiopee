@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mike mkdocs
+          pip install mike mkdocs #sphinx
 
       - name: Configure Git (for mike to push)
         run: |
@@ -37,6 +37,9 @@ jobs:
 
       - name: Deploy docs
         run: |
+          #export CASSIOPEE=$GITHUB_WORKSPACE
+          #cd $CASSIOPEE/Cassiopee
+          #./install --doc
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
             mike deploy --push --update-aliases "$VERSION" latest

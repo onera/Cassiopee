@@ -14,8 +14,8 @@ in Vertex {
 out vec4 color;
 out vec3 Nv;
 out vec3 P;
-uniform int   show_surface;
-uniform int   project_vectors;
+uniform int show_surface;
+uniform int project_vectors;
 uniform float density;
 uniform sampler1D colormap;
 uniform int style_arrow;

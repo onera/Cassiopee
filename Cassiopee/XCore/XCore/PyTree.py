@@ -6,6 +6,8 @@ from . import xcore
 
 BCType_l = set(I.KNOWNBCS)
 
+# IN : a : zone
+# IN : cid : cell id as integer
 def extractCell(a, cid):
     z = I.getZones(a)[0]
     m = C.getFields(I.__GridCoordinates__, z, api=3)[0]
@@ -13,31 +15,31 @@ def extractCell(a, cid):
     return zmo
 
 # -- AdaptMesh_Init
-# Initialise une structure opaque pour l'adaptation
-# IN: t: arbre CGNS (1 zone)
+# Initialize a structure for mesh adaptation
+# IN: t : CGNS tree/base/zones, only a single zone is taken into account
 # IN: normal2D: vecteur 2D
 # IN: comm: tableaux de connectivités en parallèle issus de chunk2part
 # IN: gcells: indices globaux des cellules en parallèle
 # IN: gfaces: indices globaux des faces en parallèle
-# OUT: structure opaque de l'adaptation
+# OUT: hook on the structure required during the mesh adaptation process
 def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     zones = I.getZones(t)
-    assert(len(zones) == 1)
+    if len(zones) != 1:
+        print("WARNING: AdaptMesh_Init: only the first zone is taken into account.", flush=True)
+
     z = zones[0]
     array = C.getFields(I.__GridCoordinates__, z, api=3)[0]
 
     bcs = []
-    zonebc = I.getNodeFromType(z, 'ZoneBC_t')
+    zonebc = I.getNodeFromType1(z, 'ZoneBC_t')
     if zonebc is not None:
-        zbc = I.getNodesFromType(zonebc, 'BC_t')
-
+        zbc = I.getNodesFromType1(zonebc, 'BC_t')
         bc_count = 0
-
         for bc in zbc:
-            plist = I.getNodeFromName(bc, 'PointList')
+            plist = I.getNodeFromName1(bc, 'PointList')
             name = bc[0]
             #tag = I.getNodeFromName(bc, 'Tag')[1][0]
-            try: tag = I.getNodeFromName(bc, 'Tag')[1][0]
+            try: tag = I.getNodeFromName1(bc, 'Tag')[1][0]
             except: tag = bc_count; bc_count += 1
             bctype = I.getValue(bc)
             bcs.append([plist[1], tag, name, bctype])
@@ -45,24 +47,39 @@ def AdaptMesh_Init(t, normal2D=None, comm=[], gcells=None, gfaces=None):
     return xcore.AdaptMesh_Init(array, normal2D, bcs, comm, gcells, gfaces)
 
 # -- AdaptMesh_Exit
-# Libère la mémoire utilisée par la structure opaque
-# IN: AM: hook issu de AdaptMesh_Init
+# free the memory allocated by AdaptMesh_Init
+# IN: AM: hook created by AdaptMesh_Init
 def AdaptMesh_Exit(AM):
     return xcore.AdaptMesh_Exit(AM)
 
+# IN/OUT : AM: hook on the structure created by AdaptMesh_Init
+# IN : REF: numpy of 0/1 integers used as the adaptation indicator for each leaf of the current adaptation data structure
+# return None
 def AdaptMesh_AssignRefData(AM, REF):
     return xcore.AdaptMesh_AssignRefData(AM, REF)
 
+# load balance using ptsotch
+# IN/OUT: AM: hook on the structure created by AdaptMesh_Init
 def AdaptMesh_LoadBalance(AM):
     return xcore.AdaptMesh_LoadBalance(AM)
 
+# adaptation of the mesh
+# IN/OUT: hook on the structure refering to the adapted mesh
 def AdaptMesh_Adapt(AM):
     return xcore.AdaptMesh_Adapt(AM)
 
-def AdaptMesh_ExtractMesh(AM, conformize=1):
+# convert the hook into a mesh
+# IN: AM: data structure
+# IN: conformize: 0=HEXA, 1=NGON
+# OUT: return a zone per proc with 1to1 grid connectivities and bcs
+def AdaptMesh_ExtractMesh(AM, conformize=1, recoverBC=True):
     mesh, bcs, comm, procs = xcore.AdaptMesh_ExtractMesh(AM, conformize)
     name = 'Proc' + '%d'%Cmpi.rank
     zone = I.createZoneNode(name, mesh)
+
+    if recoverBC is False:
+        t = C.newPyTree([name, zone])
+        return t
 
     if procs is not None and len(procs) > 0:
         I.newUserDefinedData(name='NeighbourProcessors', value=procs, parent=zone)
@@ -119,18 +136,18 @@ def exchangeFields(t, fldNames):
     for zone in zones:
         arr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
         pe = I.getNodeFromName(zone, 'ParentElements')
-        if pe == None: raise ValueError('ParentElements not found.')
+        if pe is None: raise ValueError('ParentElements not found.')
         fsolc = I.getNodeFromName2(zone, I.__FlowSolutionCenters__)
-        if fsolc == None: raise ValueError('FlowSolutionCenters not found.')
+        if fsolc is None: raise ValueError('FlowSolutionCenters not found.')
         flds = []
         for fldName in fldNames:
             fld = I.getNodeFromName2(fsolc, fldName)
-            if fld == None: raise ValueError(fldName, 'not found.')
+            if fld is None: raise ValueError(fldName, 'not found.')
             flds.append(fld[1])
-        zgc = I.getNodeFromType(zone, 'ZoneGridConnectivity_t')
-        if zgc == None: raise ValueError('ZoneGridConnectivity not found')
-        comms = I.getNodesFromType(zgc, 'GridConnectivity1to1_t')
-        if comms == None: raise ValueError('GridConnectivity1to1 not found')
+        zgc = I.getNodeFromType1(zone, 'ZoneGridConnectivity_t')
+        if zgc is None: raise ValueError('ZoneGridConnectivity not found')
+        comms = I.getNodesFromType1(zgc, 'GridConnectivity1to1_t')
+        if comms is None: raise ValueError('GridConnectivity1to1 not found')
         comm_list = []
         for comm in comms:
             nei_proc = int(I.getValue(comm))
@@ -155,7 +172,7 @@ def loadAndSplitElt(fileName):
     XYZ = []
     XYZ.append(cx); XYZ.append(cy); XYZ.append(cz)
 
-    cns = I.getNodesFromType(z, 'Elements_t')
+    cns = I.getNodesFromType1(z, 'Elements_t')
 
     chunks = []
 
@@ -188,11 +205,11 @@ def loadAndSplitNGon(fileName):
     cy = I.getNodeFromName2(z, 'CoordinateY')[1]
     cz = I.getNodeFromName2(z, 'CoordinateZ')[1]
 
-    ngon = I.getNodeFromName2(z, 'NGonElements')
+    ngon = I.getNGonNode(z)
     ngonc = I.getNodeFromName1(ngon, 'ElementConnectivity')[1]
     ngonso = I.getNodeFromName1(ngon, 'ElementStartOffset')[1]
 
-    nface = I.getNodeFromName2(z, 'NFaceElements')
+    nface = I.getNFaceNode(z)
     nfacec = I.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = I.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
@@ -210,13 +227,13 @@ def loadAndSplitNGon(fileName):
             if f[3] == 'DataArray_t':
                 soln.append(f[1]); solNames.append(f[0])
 
-    zonebc = I.getNodeFromType(z, 'ZoneBC_t')
+    zonebc = I.getNodeFromType1(z, 'ZoneBC_t')
     bcs = []
     bcNames = []
     bcTypes = {}
     bcTags = {}
     if zonebc is not None:
-        BCs = I.getNodesFromType(zonebc, 'BC_t')
+        BCs = I.getNodesFromType1(zonebc, 'BC_t')
         for i in range(len(BCs)):
             bc = BCs[i]
             bcname = bc[0]
@@ -263,7 +280,7 @@ def loadAndSplitNGon(fileName):
 
     for n, name in enumerate(solcNames):
         cont = I.createUniqueChild(zo, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray(name, value=solc[n], parent=cont)
 
     # add bcs
@@ -293,7 +310,10 @@ def loadAndSplitNGon(fileName):
     return t, RES
 
 ######################################################
-
+######################################################
+# IntersectMesh functions
+######################################################
+######################################################
 def IntersectMesh_Exit(IM):
     return xcore.IntersectMesh_Exit(IM)
 
@@ -430,7 +450,7 @@ def intersectMesh(master, slave):
 ###############################################################################
 
 def splitConnex(m):
-    zones = I.getNodesFromType(m, 'Zone_t')
+    zones = I.getZones(m)
     if len(zones) != 1: raise ValueError('Master should be one zone.')
     zm = zones[0]
     marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
@@ -443,7 +463,7 @@ def splitConnex(m):
     for i in range(len(new_arrs)):
         z = I.createZoneNode("zone"+str(i), new_arrs[i])
         cont = I.createUniqueChild(z, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray('keep', value=new_ctags[i], parent=cont)
         cont = I.createUniqueChild(z, I.__FlowSolutionNodes__, 'FlowSolution_t')
         I.newDataArray('tag', value=new_ptags[i], parent=cont)
@@ -460,7 +480,7 @@ def icapsuleIntersect2(IC):
     return xcore.icapsule_intersect2(IC)
 
 def icapsuleSetMaster(IC, m):
-    zones = I.getNodesFromType(m, 'Zone_t')
+    zones = I.getZones(m)
     if len(zones) != 1: raise ValueError('Master should be one zone.')
     zm = zones[0]
     marr = C.getFields(I.__GridCoordinates__, zm, api=3)[0]
@@ -491,15 +511,17 @@ def icapsuleSetSlaves(IC, slaves):
 
     return xcore.icapsule_set_slaves(IC, sarrs, ptags, ctags)
 
+# Extract the master mesh corresponding to the capsule
 def icapsuleExtractMaster(IC):
     marr, ctag = xcore.icapsule_extract_master(IC)
     zm = I.createZoneNode("master", marr)
 
     cont = I.createUniqueChild(zm, I.__FlowSolutionCenters__, 'FlowSolution_t')
-    I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+    I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
     I.newDataArray("keep", value=ctag, parent=cont)
     return zm
 
+# Extract the slave mesh corresponding to the capsule
 def icapsuleExtractSlaves(IC):
     sarrs, ctags = xcore.icapsule_extract_slaves(IC)
     assert(len(sarrs) == len(ctags))
@@ -508,33 +530,35 @@ def icapsuleExtractSlaves(IC):
         zs = I.createZoneNode("slave_"+str(i), sarrs[i])
 
         cont = I.createUniqueChild(zs, I.__FlowSolutionCenters__, 'FlowSolution_t')
-        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        I._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         I.newDataArray("keep", value=ctags[i], parent=cont)
 
         zones.append(zs)
     return zones
 
+# Triangulates the external quads of a mesh
+# and modifies the corresponding BC PointList
 def triangulateSkin(m):
     m_copy = I.copyRef(m)
     _triangulateSkin(m_copy)
     return m_copy
 
 def _triangulateSkin(m):
-    zones = I.getNodesFromType(m, 'Zone_t')
-    for i, zone in enumerate(zones):
+    zones = I.getZones(m)
+    for zone in zones:
         marr = C.getFields(I.__GridCoordinates__, zone, api=3)[0]
-        zbc = I.getNodeFromType(zone, 'ZoneBC_t')
+        zbc = I.getNodeFromType1(zone, 'ZoneBC_t')
         ptlists = []
         if zbc is not None:
-            bcs = I.getNodesFromType(zbc, 'BC_t')
+            bcs = I.getNodesFromType1(zbc, 'BC_t')
             for bc in bcs:
-                ptlists.append(I.getNodeFromName(bc, 'PointList')[1][0])
+                ptlists.append(I.getNodeFromName1(bc, 'PointList')[1][0])
         m_out, ptlists_out = xcore.triangulate_skin(marr, ptlists)
         C.setFields([m_out], zone, 'nodes')
         if zbc is not None:
-            bcs = I.getNodesFromType(zbc, 'BC_t')
+            bcs = I.getNodesFromType1(zbc, 'BC_t')
             for j, bc in enumerate(bcs):
-                ptlist = I.getNodeFromName(bc, 'PointList')
+                ptlist = I.getNodeFromName1(bc, 'PointList')
                 ptlist[1] = ptlists_out[j]
 
     return None

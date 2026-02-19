@@ -47,7 +47,7 @@ a = C.initVars(a, 'centers:cellN', 1.)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 test.testT(t, 51)
 
-# Sur une zone non structuree + sur des champs
+# Sur une zone non structuree (BE) + sur des champs
 a = G.cartTetra((0,0,0), (1,1,1), (10,10,10))
 a = C.addVars(a, ['Density', 'H', 'Helio'])
 a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY'])
@@ -56,6 +56,20 @@ a = C.node2Center(a, ['Density', 'Helio'])
 a = C.initVars(a, 'centers:cellN', 1.)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 test.testT(t, 5)
+
+# Sur une zone non structuree (ME) + sur des champs
+N = 5
+a = G.cartTetra((0., 0., 0.), (1., 1., 1.), (N, N, N))
+b = G.cartPenta((N-1., 0., 0.), (1., 1., 1.), (N, N, N))
+c = G.cartPyra((2.*(N-1.), 0., 0.), (1., 1., 1.), (N, N, N))
+d = G.cartHexa((3.*(N-1.), 0., 0.), (1., 1., 1.), (N, N, N))
+a = C.mergeConnectivity([a, b, c, d], boundary=0)
+a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY'])
+a = C.initVars(a, 'Helio', F, ['CoordinateX','CoordinateY'])
+a = C.node2Center(a, ['Density', 'Helio'])
+a = C.initVars(a, 'centers:cellN', 1.)
+t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
+test.testT(t,7)
 
 # Sur une zone NGON
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10))

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -27,39 +27,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6normstructsurft_(const E_Int& ni, const E_Int& nj, const E_Int& npts, 
-                          const E_Float* xt, const E_Float* yt, const E_Float* zt,
-                          E_Float* nxt, E_Float* nyt, E_Float* nzt);
-
-  void k6normunstructsurf_(const E_Int& nt, const E_Int& nv,
-                           E_Int* cn, 
-                           E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                           E_Float* surf);
-
-  void k6integnormprodstruct_(const E_Int& ni, const E_Int& nj, E_Float* ratio,
-                              E_Float* sx, E_Float* sy, E_Float* sz, 
-                              E_Float* vx, E_Float* vy, E_Float* vz, 
-                              E_Float& result);
-
-  void k6integnormprodstructnodecenter_(
-    const E_Int& ni, const E_Int& nj, E_Float* ratio,
-    E_Float* sx, E_Float* sy, E_Float* sz, 
-    E_Float* vx, E_Float* vy, E_Float* vz, 
-    E_Float& result);
-
-  void k6integnormprodunstruct_(const E_Int& nbt, const E_Int& size, 
-                                E_Int* cn, E_Float* ratio, 
-                                E_Float* sx, E_Float* sy, E_Float* sz, 
-                                E_Float* vx, E_Float* vy, E_Float* vz, 
-                                E_Float& result);
-
-  void k6integnormprodunsnodecenter_(const E_Int& nbt, E_Float* ratio, 
-                                     E_Float* sx, E_Float* sy, E_Float* sz, 
-                                     E_Float* vx, E_Float* vy, E_Float* vz, 
-                                     E_Float& result);
-}
 //============================================================================
 /* Calcul une integrale du produit scalaire 
    de la solution*normale (vect(F).vect(n)) */
@@ -69,7 +36,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   PyObject* coordArrays;
   PyObject* FArrays;
   PyObject* ratioArrays;
-  if (!PyArg_ParseTuple(args, "OOO", &coordArrays, &FArrays, &ratioArrays))
+  if (!PYPARSETUPLE_(args, OOO_, &coordArrays, &FArrays, &ratioArrays))
   {
     return NULL;
   }
@@ -93,7 +60,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   {
     PyErr_SetString(
       PyExc_TypeError, 
-      "integNormProduct : third argument must be a list.");
+      "integNormProduct: third argument must be a list.");
     return NULL;
   }
   E_Int nCoordArrays = PyList_Size(coordArrays);
@@ -141,12 +108,12 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
   E_Float resultat = 0.;
   E_Int res = -1;
 
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays,i);
     FObj = PyList_GetItem(FArrays,i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, fc, 
-                                 nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, fc, 
+                                  nic, njc, nkc, cnc, eltTypec); 
     
     if (resc != 1 && resc != 2)
     {
@@ -160,19 +127,19 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varStringc);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       printf("Warning: integNormProduct: coordinates not found in array %d.", i+1);
       printf(" Array skipped...\n");
       goto next; 
     }    
     posx++; posy++; posz++;
 
-    resf = K_ARRAY::getFromArray(FObj, varStringf, ff, nif, njf, nkf, 
-                                 cnf, eltTypef); 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, nif, njf, nkf, 
+                                  cnf, eltTypef); 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDS(FObj, ff);
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       PyErr_SetString(PyExc_TypeError, 
                       "integNormProduct: field is not a valid array.");
       return NULL;
@@ -183,8 +150,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       if (ff->getNfld() != 3)
       {
         printf("Warning: integNormProduct: vector array %d must be 3D.\n", i+1);
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       strcpy(varString0, varStringf);
@@ -196,8 +163,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       {
         printf("Warning: integNormProduct: invalid number of variables for field array %d.", i+1);
         printf(" Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
 
@@ -206,8 +173,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       if (ids == -1) // varstrings are different
       {
         printf("Warning: integNormProduct: variables are in a different order to the first array. Array skipped...\n");
-        delete ff;if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -222,8 +189,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
            (nic > 1 && njc > 1 && nkc > 1))
       {
         printf("Warning: integNormProduct: coordinates array must be 2D. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       
@@ -247,7 +214,8 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
         else 
         {
           printf("Warning: integNormProduct: coord and f arrays do not represent the same zone. Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDS(FObj, ff);
+          RELEASESHAREDS(coordObj, ff);
           goto next;
         }
       }
@@ -261,11 +229,11 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if ( resr == 2 ) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integNormProduct: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -273,29 +241,49 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      res = integ3(nic, njc, nkc, center2node, posx, posy, posz,
+      res = integNormProdStruct2D(nic, njc, nkc, center2node, posx, posy, posz,
                    *fc, *ff, *ratio, resultat);
-      if ( res == 0 ) 
+
+      if (res == 0) 
       {
-        delete ff; delete fc;delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);
         PyErr_SetString(PyExc_ValueError,
                         "integNormProduct: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete ratio;
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     }
     else if (resc == 2 && resf == 2)//cas non structure
     {
-      if ( strcmp(eltTypec,"TRI")==0 && strcmp(eltTypef,"TRI")==0) 
-        center2node = 0;
-      else if (strcmp(eltTypec,"TRI")==0 && strcmp(eltTypef,"TRI*")==0 )
-        center2node = 1;
-      else
+      // check if field is cell or node centered
+      E_Int l = strlen(eltTypef);
+      if (eltTypef[l-1] == '*') center2node = 1;
+      else center2node = 0;
+
+      res = 1;
+      std::vector<char*> eltTypecs, eltTypefs;
+      K_ARRAY::extractVars(eltTypec, eltTypecs);
+
+      // check if elt is valid (QUAD, TRI)
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++)
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        if ((strcmp(eltTypecs[ic], "QUAD") != 0) && (strcmp(eltTypecs[ic], "TRI") != 0)) res = 0;
+      }
+
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++) delete [] eltTypecs[ic];
+
+      if (res == 0)
+      {
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
-                        "integNormProduct: only TRI unstructured arrays are possible.");
+                        "integNormProd: only QUAD or TRI unstructured arrays are possible.");
         return NULL;
       }
 
@@ -310,11 +298,11 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       else //coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
         if (resr != 2)
         {
-          if ( resr == 1 ) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integNormProduct: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -322,20 +310,23 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      
-      res = integUnstruct3(center2node, posx, posy, posz, 
-                           *cnc, *fc, *ff, *ratio, resultat);
-      if ( res == 0 ) 
+      res = integNormProdUnstruct2D(center2node, posx, posy, posz, 
+                           *cnc, eltTypec, *fc, *ff, *ratio, resultat);
+
+      if (res == 0) 
       {
-        delete ff; delete fc; delete cnf; delete cnc;
-        delete ratio; 
-        if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
         PyErr_SetString(PyExc_ValueError,
                         "integNormProduct: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
     }
     else 
     {
@@ -345,110 +336,14 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     }
     next:;
   }
-   if ( res == -1 )
+   
+  if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "integNormProduct: integration failed.");
     return NULL;
   }
 
-  PyObject* tpl;
-#ifdef E_DOUBLEREAL
-  tpl = Py_BuildValue("d", resultat);
-#else
-  tpl = Py_BuildValue("f", resultat);
-#endif
+  PyObject* tpl = Py_BuildValue(R_, resultat);
   return tpl;
-}
-
-//=============================================================================
-// Integre les grandeurs de vect(F).vect(n)
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ3(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                     E_Int center2node,
-                     E_Int posx, E_Int posy, E_Int posz,
-                     FldArrayF& coordBlk, FldArrayF& FBlk, 
-                     FldArrayF& ratioBlk, E_Float& resultat)
-{
-  E_Int NI, NJ;
-  E_Float resultBlk = 0.;
-  
-  if (nkBlk == 1)
-  { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1)
-  { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1)
-  { NI = njBlk; NJ = nkBlk; }
-  else return 0;
- 
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk((NI-1)*(NJ-1),3);
-
-  E_Int npts = coordBlk.getSize();
-  k6normstructsurft_(NI, NJ, npts, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), 
-                     nsurfBlk.begin(1), nsurfBlk.begin(2), nsurfBlk.begin(3));
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integnormprodstructnodecenter_(NI-1, NJ-1, ratioBlk.begin(), 
-                                     nsurfBlk.begin(1), nsurfBlk.begin(2), 
-                                     nsurfBlk.begin(3), FBlk.begin(1), 
-                                     FBlk.begin(2), FBlk.begin(3),
-                                     resultBlk);
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    k6integnormprodstruct_(NI, NJ, ratioBlk.begin(), nsurfBlk.begin(1), 
-                           nsurfBlk.begin(2),  nsurfBlk.begin(3),  
-                           FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-                           resultBlk);
-  }
-  resultat = resultat + resultBlk;   
-  return 1;
-}
-  
-//=============================================================================
-// Integre les grandeurs de vect(F).vect(n)
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct3(E_Int center2node,
-                             E_Int posx, E_Int posy, E_Int posz,
-                             FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                             FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                             E_Float& resultat)
-{
-  E_Float resultBlk = 0.;
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  FldArrayF nsurfBlk(nbT, 3);
-  k6normunstructsurf_(nbT, size, cnBlk.begin(), coordBlk.begin(posx), 
-                      coordBlk.begin(posy), coordBlk.begin(posz),
-                      nsurfBlk.begin());  
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integnormprodunsnodecenter_(nbT, ratioBlk.begin(), 
-                                  nsurfBlk.begin(1), nsurfBlk.begin(2),
-                                  nsurfBlk.begin(3), FBlk.begin(1),
-                                  FBlk.begin(2), FBlk.begin(3),
-                                  resultBlk);
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    k6integnormprodunstruct_(nbT, size, cnBlk.begin(), ratioBlk.begin(), 
-                             nsurfBlk.begin(1), nsurfBlk.begin(2),
-                             nsurfBlk.begin(3), FBlk.begin(1),
-                             FBlk.begin(2), FBlk.begin(3),
-                             resultBlk);
-  }
-  resultat = resultat+resultBlk;
-  return 1;
 }

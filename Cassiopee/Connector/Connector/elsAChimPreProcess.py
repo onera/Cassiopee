@@ -3,9 +3,6 @@ import numpy
 import Compressor
 import Compressor.PyTree as Co
 
-try: range = xrange
-except: pass
-
 # =============================================================================
 # Initialization of dictionnary for unsteady preprocessing
 # OUT : hook: list of dictionnaries for blanking, center and face interpolations
@@ -18,7 +15,7 @@ def initUnsteadyChimera(t):
     alreadyBlanked={}                                                       # alreadyBlanked: tells if key zone is already blanked or not
 
     # initialize dictionaries
-    zones= Internal.getNodesFromType(t,'Zone_t')
+    zones = Internal.getZones(t)
     Id = 0
     for z in zones: zoneId[z[0]] = Id; Id = Id+1
     alreadyBlanked={}
@@ -58,7 +55,7 @@ def computeUnsteadyInterp(tp, hook, ite,loc='cell', nGhostCells=2):
         iteration = hook[2]
         listInterpData = hook[5]
         ref = hook[8]
-    zones = Internal.getNodesFromType(tp,'Zone_t')
+    zones = Internal.getZones(tp)
     for z in zones:
         donorName = z[0]
         dim = Internal.getZoneDim(z)

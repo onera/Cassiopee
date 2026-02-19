@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -77,5 +77,6 @@ PyObject *K_XCORE::icapsule_intersect2(PyObject *self, PyObject *args)
     
     Mf.reconstruct(M);
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

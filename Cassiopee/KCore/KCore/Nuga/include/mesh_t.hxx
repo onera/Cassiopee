@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -893,26 +893,25 @@ struct mesh_t
     e.bbox(crd, box);
   }
 
-  double Lref2() const
+  E_Float Lref2() const
   {
     if (! nodal_metric2.empty())
       return *std::min_element(ALL(nodal_metric2));
 
     // Lref2 est calcule uniquement avec les aretes de la cellule => Possiblement surestime 
     // car des cellules voisines pourraient avoir des aretes plus petites et donc definir une valeur nodale plus petite
-    double minLref2 = NUGA::FLOAT_MAX;
+    E_Float minLref2 = NUGA::FLOAT_MAX;
     for (E_Int i=0; i < ncells(); ++i)
     {
-      elt_t e =element(i);
+      elt_t e = element(i);
       minLref2 = std::min(e.Lref2(crd), minLref2);
-      //std::cout << "minLref2/i/ncel" << minLref2 << "/" << i << "/" << ncells() << std::endl;
     }
     return minLref2;
   }
   
-  double Lref2(E_Int i) const
+  E_Float Lref2(E_Int i) const
   { 
-    elt_t e =element(i);
+    elt_t e = element(i);
     
     if (! nodal_metric2.empty())
       return e.Lref2(nodal_metric2); // taking into acount surrounding metric field (based on neighbors)
@@ -920,9 +919,9 @@ struct mesh_t
     return e.Lref2(crd);               // isolated val
   }
 
-  double Lref2(const std::vector<E_Int>& cands, E_Int idx_start) const
+  E_Float Lref2(const std::vector<E_Int>& cands, E_Int idx_start) const
   {
-    double val = NUGA::FLOAT_MAX;
+    E_Float val = NUGA::FLOAT_MAX;
     for (size_t i = 0; i < cands.size(); ++i)
     {
       val = std::min(val, Lref2(cands[i] - idx_start));
@@ -1034,10 +1033,10 @@ struct mesh_t
       acrd_t acrd(crd);
       K_SEARCH::KdTree<> tree(acrd);
 
-      double d2;
+      E_Float d2;
       for (size_t i = 0; i < nodal_metric2.size(); ++i)
       {
-        double r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
+        E_Float r2 = (1. - EPSILON) * nodal_metric2[i]; //reduce it to discard nodes connected to i.
         E_Int N = tree.getClosest(i, r2, d2);
         if (N != IDX_NONE)nodal_metric2[i] = d2;
       }

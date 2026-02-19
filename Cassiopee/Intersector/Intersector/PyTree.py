@@ -11,9 +11,6 @@ __version__ = XOR.__version__
 
 import numpy
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.PyTree as C
     import Converter.Distributed as CD
@@ -372,7 +369,7 @@ def concatenateBC(bctype, zones, wallpgs, cur_shift):
 
         #print(' -- zone : %d / %d' %(i+1, len(zones)))
         i = i+1
-        bnds = Internal.getNodesFromType(z, 'BC_t')
+        bnds = Internal.getNodesFromType2(z, 'BC_t')
         #print(" -- this zone has %d boundaries"%(len(bnds)))
         #print(' -- cur shift %d' %(cur_shift))
 
@@ -406,7 +403,7 @@ def updatePointLists(z, zones, oids):
 
 def updateBCPointLists1(z, oids):
     bnds = Internal.getNodesFromType(z, 'BC_t')
-    zname = z[0]
+    #zname = z[0]
 
     ptLists = []
     for bb in bnds:
@@ -418,8 +415,8 @@ def updateBCPointLists1(z, oids):
     # recalcul des pointlist
     ptLists = XOR.updatePointLists(oids, ptLists)
 
-    i=0
-    bc_to_remove=[]
+    i = 0
+    bc_to_remove = []
     #print('update the BC pointlists')
     for bb in bnds:
         torem = False
@@ -436,14 +433,14 @@ def updateBCPointLists1(z, oids):
         ptl[0][1] = ptLists[i]
         #print('shape dans updateBCPointLists1 : '+str(numpy.shape(ptl[0][1])))
         #print(ptl[0][1])
-        i=i+1
+        i += 1
 
     for p in bc_to_remove: Internal._rmNodeFromPath(z, p)
 
 def updateJoinsPointLists1(z, zones, oids):
 
     joins = Internal.getNodesFromType(z, 'GridConnectivity_t')
-    zname=z[0]
+    zname = z[0]
 
     ptLists = []
     for j in joins:
@@ -455,7 +452,7 @@ def updateJoinsPointLists1(z, zones, oids):
     # recalcul des pointlist
     ptLists = XOR.updatePointLists(oids, ptLists)
 
-    i=0
+    i = 0
     # update the Join pointlist and synchronize with other zones (their pointListDonnor)
     for j in joins:
         donnorName = "".join(Internal.getValue(j))
@@ -463,7 +460,7 @@ def updateJoinsPointLists1(z, zones, oids):
         # Match has disappeared > remove from tree
         if not isinstance(ptLists[i], numpy.ndarray):
             Internal._rmNode(z, j)
-            i=i+1
+            i += 1
             continue
 
         ptl = Internal.getNodeFromName1(j, 'PointList')
@@ -476,27 +473,27 @@ def updateJoinsPointLists1(z, zones, oids):
                 #dname = "".join(jd[1])
                 dname = "".join(Internal.getValue(jd))
                 # print("dname / zname : ", dname, zname)
-                if (dname != zname) : continue
+                if dname != zname: continue
                 ptlD = Internal.getNodeFromName1(jd, 'PointListDonor')
 
                 PG0 = ptl[1][0][0] # first polygon in the point list
                 PG0D = ptlD[1][0][0] # first polygon in the point list
-                if (PG0 != PG0D) : continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
+                if PG0 != PG0D: continue # not the right join (in case of multiple joins for 2 zones) : the first PG must be the same (assume one PG only in one join)
 
                 ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
 
-                ptl[1]  = ptLists[i]
+                ptl[1] = ptLists[i]
                 ptlD[1] = ptLists[i]
 
                 break
-            i=i+1
+            i += 1
 
 def getJoinsPtList(z, zname2id):
 	raccords = Internal.getNodesFromType2(z, 'GridConnectivity_t')
-	nb_racs = len(raccords)
+	#nb_racs = len(raccords)
 
-	jzid=[]
-	jptlist=[]
+	jzid = []
+	jptlist = []
 
 	j=0
 	for rac in raccords:
@@ -627,9 +624,9 @@ def updateJoinsPointLists2(z, zones, jzids, ptLists):
             # print(numpy.shape(ptl[1]))
 
             # find rank for this id and set list
-            i=-1
+            i = -1
             for k in jzids:
-                i+=1
+                i += 1
                 if k != id: continue
 
                 #print('new j')
@@ -637,7 +634,7 @@ def updateJoinsPointLists2(z, zones, jzids, ptLists):
                 ptLists[i] = numpy.reshape(ptLists[i], (1,len(ptLists[i])))
                 # print(ptLists[i])
 
-                ptl[1]= ptLists[i]
+                ptl[1] = ptLists[i]
                 ptlD[1] = ptLists[i]
 
                 break
@@ -1063,11 +1060,11 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual=False, si
 
     iz = -1
     for z in z2s:
-        iz +=1
+        iz += 1
 
         mesh = res[i]
-        pg_oids=res[i+1]
-        ph_oids=res[i+2]
+        pg_oids = res[i+1]
+        ph_oids = res[i+2]
 
         # print(" ")
         # print("OP2 - pgoids: ", pg_oids)
@@ -1100,9 +1097,7 @@ def _booleanUnionMZ(t1, t2, xtol=0., jtol=0., agg_mode=1, improve_qual=False, si
     # Search for BC family nodes
     fam_nodes = Internal.getNodesFromType(t1, 'Family_t')
 
-    for node in fam_nodes:
-        zs.append(node)
-
+    for node in fam_nodes: zs.append(node)
 
     # Create new matches
     dict1_ptl = res[i]
@@ -1758,11 +1753,11 @@ def _triangulateBC(t, bctype):
 
         coords = Converter.convertArray2NGon(coords)
 
-        bnds = Internal.getNodesFromType(z, 'BC_t')
+        bnds = Internal.getNodesFromType2(z, 'BC_t')
 
         bcpgs = []
         for bb in bnds :
-            if (Internal.isValue(bb, bctype) == False) : continue
+            if Internal.isValue(bb, bctype) == False: continue
             bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
 
         if bcpgs == []: continue
@@ -1772,7 +1767,7 @@ def _triangulateBC(t, bctype):
         res = XOR.triangulateSpecifiedFaces(coords, bcpgs)
 
         mesh = res[0]
-        pg_oids=res[1]
+        pg_oids = res[1]
 
         # MAJ du maillage de la zone
         C.setFields([mesh], z, 'nodes')
@@ -4151,7 +4146,7 @@ def concatenate(t, tol=1.e-15):
                 # Check size
                 for BCData in Internal.getNodesFromType(BCDataSet, "BCData_t"):
                     for data in Internal.getNodesFromType(BCData, "DataArray_t"):
-                        if ( len(data[1]) != len(pointList)):
+                        if len(data[1]) != len(pointList):
                             raise ValueError('Concatenate. BC size differs for BCDataSet.')
 
                 Internal._addChild(bc,BCDataSet)
@@ -4259,7 +4254,7 @@ def volume(t, fieldname=None):
         if fldname is not None: xcelln = C.getField(fldname, z)
         if xcelln is not None: xcelln = xcelln[0]
 
-        z = C.convertArray2NGon(z); z = G.close(z)
+        z = C.convertArray2NGon(z)
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         v += XOR.volume(m, xcelln)
     return v

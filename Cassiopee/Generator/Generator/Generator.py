@@ -24,7 +24,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'TFIStar', 'TFIStar2',
            'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
            'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
-           'getSmoothNormalMap', 'getEdgeRatio', 'getMaxLength', 'collarMesh',
+           'getSmoothNormalMap', 'getEdgeRatio', 'getEdgeLength', 'collarMesh',
            'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
            'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
            'modifyNormalWithMetric',
@@ -821,8 +821,7 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
     if isinstance(array[0], list):
         out = []
         for a in array:
-
-            if len(a)==5: # merge intra-borders (C-type meshes)
+            if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
                 outl = generator.closeMeshLegacy(a, tol, suppressDegeneratedNGons)
@@ -1074,14 +1073,14 @@ def getEdgeRatio(array, dim=3):
 #=============================================================================
 # Computes the max length of all the edges of cells
 #=============================================================================
-def getMaxLength(array, dim=3):
-    """Computes the max length of all the edges of cells in an array.
-    Usage: getMaxLength(a)"""
+def getEdgeLength(array, type=0, dim=3):
+    """Computes the min,max,mean length of all the edges for each cell in an array.
+    Usage: getEdgeLength(a)"""
     if isinstance(array[0], list):
         b = []
-        for i in array: b.append(generator.getMaxLength(i, dim))
+        for i in array: b.append(generator.getEdgeLength(i, type, dim))
         return b
-    else: return generator.getMaxLength(array, dim)
+    else: return generator.getEdgeLength(array, type, dim)
 
 #=============================================================================
 # Generate a list of collar grids depending on the assembly type
@@ -1090,8 +1089,7 @@ def collarMesh(s1, s2, distribj,distribk, niterj=100, niterk=100, ext=10,
                alphaRef=30., type='union',
                contour=[], constraints1=[], constraints2=[], toldist=1.e-6):
     """Generates a collar mesh starting from s1 and s2 surfaces, distributions along the surfaces
-    and along the normal direction, with respect to the assembly type between grids.
-    Usage: collarMesh(s1,s2,distribj,distribk,niterj,niterk,ext, alphaRef,type,contour,constraints1,constraints2,toldist)"""
+    and along the normal direction, with respect to the assembly type between grids."""
     try: from . import Collar
     except: raise ImportError("collarMesh: requires Collar module.")
     if isinstance(s1[0], list): surfaces1 = s1
@@ -1789,14 +1787,14 @@ def conformOctree3(octree):
 def balanceOctree__(octree, ratio=2, corners=0):
     return generator.balanceOctree(octree, ratio, corners)
 
-def extendCartGrids(A, ext=0, optimized=0, extBnd=0):
-    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd)
+def extendCartGrids(A, ext=0, optimized=0, extBnd=0, tol=1.e-6):
+    A, rinds = generator.extendCartGrids(A, ext, optimized, extBnd, tol)
     return A, rinds
 
-def extendOctreeGrids__(A, ext, optimized, extBnd=0):
+def extendOctreeGrids__(A, ext, optimized, extBnd=0, tol=1.e-6):
     """Extend grids with ext cells. If optimized is ext, the minimum overlapping is ensured.
     Usage: extendOctreeGrids__(cartGrids, ext, optimized, extBnd)"""
-    A, rinds = extendCartGrids(A, ext, optimized, extBnd)
+    A, rinds = extendCartGrids(A, ext, optimized, extBnd, tol)
     return A
 
 def adaptOctree(octreeHexa, indicField, balancing=1, ratio=2):
@@ -2193,10 +2191,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
                 cellNp[noz][1][0,:] = cellN[1][0,:]
                 if cellNs[noz] is None: cellNs[noz] = C.copy(cellN)
                 else:
-                    #print(cellNs[noz])
-                    #print(cellN)
                     cellNs[noz] = G.stack(cellNs[noz], cellN)
-                    #print(cellNs[noz])
                 # modification du lissage pour les points masques
                 ni1 = ni-1
                 ni2 = max(ni-2,0)
@@ -2454,7 +2449,7 @@ def quad2Pyra(array, hratio=1.):
     Usage: quad2Pyra(array, hratio)"""
     return generator.quad2Pyra(array, hratio)
 
-def getMeshFieldInfo___(array, field, critValue, verbose):
+def getMeshFieldInfo__(array, field, critValue, verbose):
     fmin  = 1.e32
     fsum  = 0
     fmax  = -1.

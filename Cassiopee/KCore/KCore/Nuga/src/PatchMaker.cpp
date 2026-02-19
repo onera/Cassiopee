@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -337,7 +337,7 @@ E_Float PatchMaker::__getAngle(const E_Float* n1, const E_Float* n2)
   s = NUGA::normalize<3>(n);
   c = NUGA::dot<3>(n1, n2);
 
-  return ::atan2(s, c);
+  return atan2(s, c);
 }
 
 ///

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,7 +29,7 @@ PyObject* K_KCORE::copyto(PyObject* self, PyObject* args)
   }
 
   FldArrayF* f;
-  K_NUMPY::getFromNumpyArray(numpyArray, f, true); 
+  K_NUMPY::getFromNumpyArray(numpyArray, f); 
 
 #ifdef _OPENACC
   E_Float* ipttarget = f->begin();

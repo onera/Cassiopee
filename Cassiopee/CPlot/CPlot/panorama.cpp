@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,7 +20,9 @@
 #include "Data.h"
 #include <math.h>
 
+#ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
+#endif
 
 // interpolation when using images
 void interp(E_Int ind,
@@ -347,6 +349,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   RELEASESHAREDS(bottomArray, bottom);
   RELEASESHAREDS(finalArray, final);
   
+  Py_INCREF(Py_None);
   return Py_None;
 }
 
@@ -366,8 +369,6 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   }
 
   E_Int nangles = PyList_Size(front);
-  printf("nangles=%d\n", nangles);
-
   char* varString;
   E_Int ni, nj, nk, res;
   FldArrayI* cn; char* eltType;
@@ -488,6 +489,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
     }
   }
   */
+  //Py_INCREF(Py_None);
   //return Py_None;
 
   // transformation
@@ -545,6 +547,7 @@ PyObject* K_CPLOT::panoramaODS(PyObject* self, PyObject* args)
   
   RELEASESHAREDS(finalArray, final);
   
+  Py_INCREF(Py_None);
   return Py_None;
 }
 

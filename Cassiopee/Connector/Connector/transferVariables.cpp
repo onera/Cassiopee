@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -98,7 +98,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   /* Extraction des infos sur les points a interpoler */
   /*--------------------------------------------------*/
   FldArrayF* coordX;
-  E_Int resn = K_NUMPY::getFromNumpyArray(interpPtsCoordX, coordX, true);
+  E_Int resn = K_NUMPY::getFromNumpyArray(interpPtsCoordX, coordX);
   if (resn == 0)
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -106,7 +106,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   FldArrayF* coordY;
-  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordY, coordY, true);  
+  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordY, coordY);  
   if (resn == 0)
   {
     RELEASESHAREDN(interpPtsCoordX, coordX);
@@ -115,7 +115,7 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     return NULL;
   }
   FldArrayF* coordZ;
-  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordZ, coordZ, true);  
+  resn = K_NUMPY::getFromNumpyArray(interpPtsCoordZ, coordZ);  
   if (resn == 0)
   {
     RELEASESHAREDN(interpPtsCoordX, coordX);
@@ -344,11 +344,12 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
   // Champs a interpoler   //
   //-----------------------//
   // LE VOLUME DONNEUR EST LE DERNIER CHAMP DE interpolatedFields
-  // N EST PAS INTERPOLE 
-  E_Int nfldD = posvars0.size()+1;// variables a transferer + le volume donneur 
+  // N'EST PAS INTERPOLE
+  E_Int nfldD = posvars0.size()+1;// variables a transferer + le volume donneur
   PyObject* tpl = K_ARRAY::buildArray(nfldD, varStringOut, nbInterpPts, 1, 1);
   E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
   FldArrayF interpolatedFields(nbInterpPts, nfldD, foutp, true);
+
   interpolatedFields.setAllValuesAtNull();
   E_Float* ptrVol = interpolatedFields.begin(nfldD);
 

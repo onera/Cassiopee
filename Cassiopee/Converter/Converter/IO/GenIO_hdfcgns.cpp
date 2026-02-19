@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,9 +23,15 @@
 # define __int64 long long
 #endif
 # include "mpi.h"
-# include "mpi4py/mpi4py.h"
 #else
 #define MPI_Comm void
+#endif
+
+#ifdef _MPI4PY
+# include "mpi4py/mpi4py.h"
+#define GETPYMPICOMM (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi)
+#else
+#define GETPYMPICOMM NULL
 #endif
 
 // to be suppressed in next release
@@ -62,8 +68,8 @@ E_Int checkCompressionFilters()
   status = H5Pset_szip (dcpl, H5_SZIP_NN_OPTION_MASK, 8);
   status = H5Pset_chunk(dcpl, 2, chunk);
 
-  dset = H5Dcreate (file, DATASET, H5T_STD_I32LE, space, H5P_DEFAULT, dcpl,
-                    H5P_DEFAULT);
+  dset = H5Dcreate(file, DATASET, H5T_STD_I32LE, space, H5P_DEFAULT, dcpl,
+                   H5P_DEFAULT);
   status = H5Dwrite (dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                 wdata[0]);
   */
@@ -548,7 +554,7 @@ PyObject* K_IO::GenIOHdf::getArrayI1(hid_t node, hid_t tid,
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }
   else /** HDF is executed in sequential context and compiled in MPI **/
@@ -584,7 +590,7 @@ PyObject* K_IO::GenIOHdf::getArrayI4Raw(hid_t node, hid_t tid,
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }
   else /** HDF is executed in sequential context and compiled in MPI **/
@@ -622,7 +628,7 @@ PyObject* K_IO::GenIOHdf::getArrayI42I8(hid_t node, hid_t tid,
   if (_ismpi == 1)    // HDF is executed in parallel context and compiled in MPI
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
   else // HDF is executed in sequential context and compiled in MPI
@@ -675,7 +681,7 @@ PyObject* K_IO::GenIOHdf::getArrayI8Raw(hid_t node, hid_t tid,
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }
   else /** HDF is executed in sequential context and compiled in MPI **/
@@ -713,7 +719,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4(hid_t node, hid_t tid,
   if (_ismpi == 1)    // HDF is executed in parallel context and compiled in MPI
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
   else // HDF is executed in sequential context and compiled in MPI
@@ -769,7 +775,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4C(hid_t node, hid_t tid,
   if (_ismpi == 1)    // HDF is executed in parallel context and compiled in MPI
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
   else // HDF is executed in sequential context and compiled in MPI
@@ -783,7 +789,7 @@ PyObject* K_IO::GenIOHdf::getArrayI82I4C(hid_t node, hid_t tid,
   H5Tclose(yid); H5Dclose(did);
 
   int* ptr2 = (int*)::malloc(sizem*sizeof(int));
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   int64_t val;
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
@@ -818,10 +824,10 @@ PyObject* K_IO::GenIOHdf::getArrayI8(hid_t node, hid_t tid,
                                      hid_t sid)
 {
 #ifdef E_DOUBLEINT
-  if (_readMode == 0) return getArrayI8Raw(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI8Raw(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
 #else  
-  if (_readMode == 0) return getArrayI82I4C(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI82I4C(node, tid, dim, dims, mid, sid);
   else return getArrayI8Raw(node, tid, dim, dims, mid, sid);
 #endif
 }
@@ -832,10 +838,10 @@ PyObject* K_IO::GenIOHdf::getArrayI4(hid_t node, hid_t tid,
                                      hid_t sid)
 {
 #ifdef E_DOUBLEINT
-  if (_readMode == 0) return getArrayI42I8(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI42I8(node, tid, dim, dims, mid, sid);
   else return getArrayI4Raw(node, tid, dim, dims, mid, sid);
 #else
-  if (_readMode == 0) return getArrayI4Raw(node, tid, dim, dims, mid, sid);
+  if (_readIntMode == 0) return getArrayI4Raw(node, tid, dim, dims, mid, sid);
   else return getArrayI4Raw(node, tid, dim, dims, mid, sid);
 #endif
 }
@@ -876,7 +882,7 @@ PyObject* K_IO::GenIOHdf::getArrayR42R8(hid_t node, hid_t tid,
   if (_ismpi == 1)    // HDF is executed in parallel context and compiled in MPI
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, mid, sid, xfer_plist, ptr);
   }
   else // HDF is executed in sequential context and compiled in MPI
@@ -926,7 +932,7 @@ PyObject* K_IO::GenIOHdf::getArrayR4Raw(hid_t node, hid_t tid, int dim, hsize_t*
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     //hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }     
@@ -1016,8 +1022,8 @@ PyObject* K_IO::GenIOHdf::getArrayR8(hid_t node, hid_t tid, int dim, hsize_t* di
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
-    //hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    //H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_INDEPENDENT);
     H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA(r));
   }     
   else  /** HDF is executed in sequential context and compiled in MPI **/
@@ -1050,7 +1056,7 @@ char* K_IO::GenIOHdf::getArrayC1(hid_t node, hid_t tid, int dim, hsize_t* dims)
   if (_ismpi == 1)    /** HDF is executed in parallel context and compiled in MPI **/
   {
     hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-    hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
     H5Dread(did, yid, H5S_ALL, H5S_ALL, xfer_plist, ptr);
   }     /** HDF is executed in sequential context and compiled in MPI **/
   else
@@ -1098,7 +1104,7 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
   {
    // printf("getArrayContigous H5_HAVE_PARALLEL / _ismpi ON \n ");
    hid_t xfer_plist = H5Pcreate(H5P_DATASET_XFER);
-   hid_t ret        = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+   H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
    H5Dread(did, yid, mid, sid, xfer_plist, PyArray_DATA( (PyArrayObject*) data));
  }
  else
@@ -1123,12 +1129,12 @@ PyObject* K_IO::GenIOHdf::getArrayContigous(hid_t     node,
    IN: skeleton: 0 (full), 1 (only skeleton loaded)
    IN: maxFloatSize: si skeleton=1, load si shape < maxFloatSize
    IN: maxDepth: profondeur max de load
-   IN: readMode: 0: convert int to Cassiopee compile type, 1: read as in file
+   IN: readIntMode: 0: convert int to Cassiopee compile type, 1: read as in file
    IN: skipTypes: types to skip
 */
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape, PyObject* links, 
-                               int skeleton, int maxFloatSize, int maxDepth, int readMode,
+                               int skeleton, int maxFloatSize, int maxDepth, int readIntMode,
                                PyObject* skipTypes)
 {
   tree = PyList_New(4);
@@ -1148,7 +1154,7 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
   }
   hid_t gid = H5Gopen(fid, "/", H5P_DEFAULT);
   GenIOHdf HDF;
-  HDF._readMode = readMode;
+  HDF._readIntMode = readIntMode;
 
   /* Prepare skip types */
   if (skipTypes != NULL)
@@ -1317,7 +1323,7 @@ hid_t K_IO::GenIOHdf::openGroupWithLinks(hid_t start, char* path)
 //=============================================================================
 PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
                                             E_Int maxFloatSize, E_Int maxDepth,
-                                            E_Int readMode, 
+                                            E_Int readIntMode, 
                                             PyObject* dataShape,
                                             PyObject* skipTypes,
                                             PyObject* mpi4pyCom)
@@ -1336,7 +1342,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
   
   PyObject* ret = PyList_New(0);
   GenIOHdf HDF;
-  HDF._readMode = readMode;
+  HDF._readIntMode = readIntMode;
   HDF._ismpi = 0;
   HDF._skeleton = 0;
   PyObject* node;
@@ -1386,7 +1392,7 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPaths(char* file, PyObject* paths,
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
   if (HDF._ismpi == 1)
   {
-    void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);
+    void* pt_comm = GETPYMPICOMM;
     MPI_Comm comm = *((MPI_Comm*) pt_comm);
     MPI_Info info   = MPI_INFO_NULL;
     H5Pset_fapl_mpio(fapl, comm, info);
@@ -1722,7 +1728,8 @@ PyObject* K_IO::GenIOHdf::createNode(hid_t& node, PyObject* dataShape, PyObject*
    hdfcgnswrite
 */
 //=============================================================================
-E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
+E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links,
+                                int writeIntMode, int writeRealMode)
 {
   if (tree == Py_None)
   {
@@ -1740,6 +1747,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   capl = H5Pcreate(H5P_FILE_CREATE);
   H5Pset_link_creation_order(capl, H5P_CRT_ORDER_TRACKED | H5P_CRT_ORDER_INDEXED);
 
+  //H5Pset_file_space_strategy(fapl, H5F_FSPACE_STRATEGY_FSM_AGGR, true, 0);
+
   //lapl = H5Pcreate(H5P_LINK_ACCESS);
   //H5Pset_nlinks(lapl, ADF_MAXIMUM_LINK_DEPTH);
 
@@ -1755,6 +1764,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   GenIOHdf HDF;
   HDF._ismpi = 0;
   HDF._maxDepth = 1e6;
+  HDF._writeIntMode = writeIntMode;
+  HDF._writeRealMode = writeRealMode;
   
   // Ajout version... au root node
   hid_t gid = H5Gopen2(fid, "/", H5P_DEFAULT);
@@ -1783,8 +1794,8 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
   HDF.setArrayC1(gid, version, (char*)L3S_VERSION);
 
   PyObject* o;
-  int listsize = PyList_Size(tree);
-  for (int n = 0; n < listsize; n++) // pour chaque Base
+  E_Int listsize = PyList_Size(tree);
+  for (E_Int n = 0; n < listsize; n++) // pour chaque Base
   {
     o = PyList_GetItem(tree, n);
     HDF._stringStack.push_front("");
@@ -1833,7 +1844,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
       tgt_file_all = new char [size];
       strcpy(tgt_file_all, tgt_file);
     }
-    //printf("all: %s\n", tgt_file_all);
 
     l = PyList_GetItem(llink, 2);
     if (PyString_Check(l)) tgt_path = PyString_AsString(l);
@@ -1847,11 +1857,6 @@ E_Int K_IO::GenIO::hdfcgnswrite(char* file, PyObject* tree, PyObject* links)
     else if (PyUnicode_Check(l)) cur_path = (char*)PyUnicode_AsUTF8(l);
 #endif
     else cur_path = NULL;
-    
-    // > Dramatic verbose
-    //printf(" tgt_file_all : %s \n", tgt_file_all);
-    //printf(" tgt_path : %s \n", tgt_path);
-    //printf(" cur_path : %s \n", cur_path);
     
     /* Rip end of path to get parent */
     char* startPath; char* name;
@@ -1961,7 +1966,8 @@ void K_IO::GenIO::getEndOfPath(char* path, char*& EndPath)
 //=============================================================================
 E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
                                      PyObject* paths, PyObject* links, 
-                                     E_Int maxDepth, E_Int mode)
+                                     E_Int maxDepth, E_Int mode,
+                                     E_Int isize, E_Int rsize)
 {
   if (PyList_Check(paths) == false)
   {
@@ -1988,6 +1994,8 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
   GenIOHdf HDF;
   if (maxDepth >= 0) HDF._maxDepth = maxDepth;
   else HDF._maxDepth = 1e6;
+  if (isize == 4) HDF._writeIntMode = 1; // force best i4/i8 write
+  if (rsize == 4) HDF._writeRealMode = 1; // force r4 write
 
   for (E_Int i = 0; i < size; i++)
   {
@@ -2266,9 +2274,11 @@ hid_t K_IO::GenIOHdf::writeNode(hid_t node, PyObject* tree)
           delete [] buf;
         }
         else
+        {
           setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        }
 #else
-      setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
+        setArrayR8(child, (double*)PyArray_DATA(ar), dim, dims);
 #endif
       }
       else if (typeNum == NPY_INT || typeNum == NPY_INT64 || typeNum == NPY_LONG)
@@ -2543,10 +2553,12 @@ hid_t K_IO::GenIOHdf::setArrayI4(hid_t node, int* data, int idim, hsize_t* idims
 // write a i8 array raw or best.
 hid_t K_IO::GenIOHdf::setArrayI8(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
-  if (_writeMode == 0) return setArrayI8Raw(node, data, idim, idims);
+  if (_writeIntMode == 0) return setArrayI8Raw(node, data, idim, idims);
   else return setArrayI8B(node, data, idim, idims);
 }
 
+//=============================================================================
+// export as i8 with i8 in memory
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayI8Raw(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
@@ -2570,7 +2582,8 @@ hid_t K_IO::GenIOHdf::setArrayI8Raw(hid_t node, E_LONG* data, int idim, hsize_t*
 }
 
 //=============================================================================
-// Best : if possible without loss export to i4
+// Best : if possible exports without loss to i4 else export to i8
+//=============================================================================
 hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* idims)
 {
   hsize_t dim; hsize_t* dims;
@@ -2581,7 +2594,7 @@ hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* i
   // check int size in array
   int64_t maxInt = 2;
   maxInt = (maxInt<<31)-2;
-  E_Boolean exceed = false;
+  E_Bool exceed = false;
   for (int64_t i = 0; i < size; i++)
   {
     if (data[i] > maxInt) { exceed = true; break; }
@@ -2610,6 +2623,9 @@ hid_t K_IO::GenIOHdf::setArrayI8B(hid_t node, E_LONG* data, int idim, hsize_t* i
   free(dims);
   return node;
 }
+
+//=============================================================================
+// export as R4 with R4 in memory
 //=============================================================================
 hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
                                  int idim, hsize_t* idims)
@@ -2637,6 +2653,16 @@ hid_t K_IO::GenIOHdf::setArrayR4(hid_t node, float* data,
 hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
                                  int idim, hsize_t* idims)
 {
+  if (_writeRealMode == 0) return setArrayR8Raw(node, data, idim, idims);
+  else return setArrayR82R4(node, data, idim, idims);
+}
+
+//=============================================================================
+// export as R8 with R8 in memory
+//=============================================================================
+hid_t K_IO::GenIOHdf::setArrayR8Raw(hid_t node, double* data,
+                                    int idim, hsize_t* idims)
+{
   hsize_t dim; hsize_t* dims;
   dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
   for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
@@ -2652,6 +2678,31 @@ hid_t K_IO::GenIOHdf::setArrayR8(hid_t node, double* data,
   H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
   H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
   HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R8);
+  free(dims);
+  return node;
+}
+
+//=============================================================================
+// export as R4 with R8 in memory
+//=============================================================================
+hid_t K_IO::GenIOHdf::setArrayR82R4(hid_t node, double* data,
+                                    int idim, hsize_t* idims)
+{
+  hsize_t dim; hsize_t* dims;
+  dim = idim; dims = (hsize_t*)malloc(sizeof(hsize_t)*dim);
+  for (E_Int i = 0; i < idim; i++) dims[i] = idims[i];
+
+  // data type
+  hid_t tid = H5Tcopy(H5T_NATIVE_FLOAT); H5Tset_precision(tid, 32);
+  // Create dataspace
+  hid_t sid = H5Screate_simple(dim, dims, NULL);
+  // Create dataset
+  hid_t did = H5Dcreate(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  hid_t mid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
+  H5Dwrite(did, mid, H5S_ALL, sid, H5P_DEFAULT, data);
+  H5Tclose(tid); H5Dclose(did); H5Sclose(sid); H5Tclose(mid);
+  HDF_Add_Attribute_As_String(node, L3S_DTYPE, L3T_R4);
   free(dims);
   return node;
 }
@@ -2690,6 +2741,7 @@ E_Int K_IO::GenIO::hdfcgnsDeletePaths(char* file,
   hid_t fapl, fid;
   fapl = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fclose_degree(fapl, H5F_CLOSE_STRONG);
+
   fid = H5Fopen(file, H5F_ACC_RDWR, fapl);
   H5Pclose(fapl);
 

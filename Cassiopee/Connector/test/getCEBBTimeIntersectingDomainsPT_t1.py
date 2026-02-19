@@ -44,10 +44,10 @@ b4 = G.cart((-2.,-2.,3.),(0.4,0.4,1),(11,11,4))
 b5 = G.cart((-4.,-2.,3.),(0.4,0.4,1),(11,11,4))
 b6 = G.cart((2.,-2.,3.),(0.4,0.4,1),(11,11,4))
 #
-t = C.addBase2PyTree(t,'Cart');t[2][2][2] = [b1,b2,b3,b4,b5,b6]
+t = C.addBase2PyTree(t,'Cart'); t[2][2][2] = [b1,b2,b3,b4,b5,b6]
 C._initVars(t, 'centers:cellN', 1.)
 C._initVars(t, 'Density', 2.)
-bases = Internal.getNodesFromType(t,'CGNSBase_t'); base = bases[0]
+bases = Internal.getBases(t); base = bases[0]
 doms = X.getCEBBTimeIntersectingDomains(base, F, bases, Funcs, 0, 6, dt, sameBase=1)
 test.testO(doms)
 doms = X.getCEBBTimeIntersectingDomains(base, F, bases, Funcs, 0, 6, dt, sameBase=0)

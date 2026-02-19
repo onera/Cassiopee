@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -121,7 +121,7 @@ GapsManager::run
   std::vector<E_Int> colError ;
   K_FLD::FloatArray plaster, posG, posFixed;
   K_FLD::IntArray connectG, connectError;
-  E_Int col(0), /* freecol(0),*/ ni, err, nb_cols;
+  E_Int ni, err, nb_cols;
   E_Int nb_contours = connectBout.size();
 #ifdef DEBUG_GAPSMANAGER
   E_Int errcol(0);
@@ -220,7 +220,6 @@ GapsManager::run
       }
       else
       {
-        ++col;
         connectG.shift(posFixed.cols());
         posFixed.pushBack(posG);
         connectFixed.pushBack(connectG);
@@ -288,7 +287,7 @@ GapsManager::run
 #ifdef E_TIME
   std::cout << "aggregate the connectivities " << c.elapsed() << std::endl;
   std::cout << "TOTAL TIME : " << glob.elapsed() << std::endl;
-  std::cout << "SUCCESS : " << col << "/" << connectBout.size() << std::endl;
+  //std::cout << "SUCCESS : " << errcol << "/" << connectBout.size() << std::endl;
   //std::cout << "FAILED  : " << errcol << "/" << connectBout.size() << std::endl;
   //std::cout << "FREE    : " << freecol << "/" << connectBout.size() << std::endl;
 #endif

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -41,32 +41,44 @@ PyObject* K_OCC::addCylinder(PyObject* self, PyObject* args)
 {
   PyObject* hook; 
   E_Float xc, yc, zc, xaxis, yaxis, zaxis, R, H;
-  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ R_, 
-    &hook, &xc, &yc, &zc, &xaxis, &yaxis, &zaxis, &R, &H)) return NULL;
+  char* name;
+  if (!PYPARSETUPLE_(args, O_ TRRR_ TRRR_ R_ R_ S_, 
+    &hook, &xc, &yc, &zc, &xaxis, &yaxis, &zaxis, &R, &H, &name)) return NULL;
 
-  void** packet = NULL;
-#if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
-  packet = (void**) PyCObject_AsVoidPtr(hook);
-#else
-  packet = (void**) PyCapsule_GetPointer(hook, NULL);
-#endif
-
-  //TopoDS_Shape* shp = (TopoDS_Shape*) packet[0];
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-
+  GETSHAPE;
+  
   // Define the radius, height, and angle of the cylinder
   //Standard_Real angle = 2*M_PI;
-  // Create the cylinder with closing faces 
+  //Create the cylinder with closing faces 
   //TopoDS_Shape part = BRepPrimAPI_MakeCylinder(R, H, angle).Shape();
 
   // Create only the side of cylinder
   gp_Ax2 axis(gp_Pnt(xc, yc, zc), gp_Dir(xaxis, yaxis, zaxis)); // Axis of the cylinder
-  gp_Cylinder cylinder(axis, R); // Radius of 10.0
+  gp_Cylinder cylinder(axis, R); // Radius
   Standard_Real uMin = 0.0;
   Standard_Real uMax = 2 * M_PI; // Full circle
   Standard_Real vMin = 0.0;
   Standard_Real vMax = H; // Height of the cylinder
   TopoDS_Face face = BRepBuilderAPI_MakeFace(cylinder, uMin, uMax, vMin, vMax);
+
+#ifdef USEXCAF
+
+  BRep_Builder builder;
+  TopoDS_Compound compound;
+  builder.MakeCompound(compound);
+  builder.Add(compound, face);
+
+  TDocStd_Document* doc = (TDocStd_Document*)packet[5];
+  addShape2OCAF(compound, name, *doc);
+  TopoDS_Shape* newshp = copyOCAF2TopShape(*doc);
+  delete shape;
+  SETSHAPE(newshp);
+  Py_INCREF(Py_None);
+  return Py_None;
+
+#else
+  GETMAPSURFACES;
+  GETMAPEDGES;
 
   // Rebuild a single compound
   BRep_Builder builder;
@@ -78,38 +90,22 @@ PyObject* K_OCC::addCylinder(PyObject* self, PyObject* args)
     TopoDS_Face F = TopoDS::Face(surfaces(i));
     builder.Add(compound, F);
   }
-  builder.Add(compound, face);
-
-  /*
-  TopTools_IndexedMapOfShape sf2 = TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(part, TopAbs_FACE, sf2);
-  for (E_Int i = 1; i <= sf2.Extent(); i++)
+  for (E_Int i = 1; i <= edges.Extent(); i++)
   {
-    TopoDS_Face F = TopoDS::Face(sf2(i));
-    builder.Add(compound, F);
-  }*/
+    TopoDS_Edge E = TopoDS::Edge(edges(i));
+    builder.Add(compound, E);
+  }
+  builder.Add(compound, face);
 
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
-  // Rebuild the hook
-  packet[0] = newshp;
-  // Extract surfaces
-  TopTools_IndexedMapOfShape* ptr = (TopTools_IndexedMapOfShape*)packet[1];
-  delete ptr;
-  TopTools_IndexedMapOfShape* sf = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_FACE, *sf);
-  packet[1] = sf;
+  delete shape;
+  SETSHAPE(newshp);
 
-  // Extract edges
-  TopTools_IndexedMapOfShape* ptr2 = (TopTools_IndexedMapOfShape*)packet[2];
-  delete ptr2;
-  TopTools_IndexedMapOfShape* se = new TopTools_IndexedMapOfShape();
-  TopExp::MapShapes(*newshp, TopAbs_EDGE, *se);
-  packet[2] = se;
   printf("INFO: after addPartCylinder: Nb edges=%d\n", se->Extent());
   printf("INFO: after addPartCylinder: Nb faces=%d\n", sf->Extent());
   
   Py_INCREF(Py_None);
   return Py_None;
-
+#endif
 }

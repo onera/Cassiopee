@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,9 @@
 #include "Bnd_Box.hxx"
 #include "BRepBndLib.hxx"
 
-// Project coords on CAD face
+//===========================================================================
+// Project coords on a CAD face
+//===========================================================================
 void projectOnFace__(E_Int npts, E_Float* px, E_Float* py, E_Float* pz, const TopoDS_Face& F)
 {
   Handle(Geom_Surface) face = BRep_Tool::Surface(F);
@@ -82,7 +84,7 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   // array a projeter
   FldArrayF* fi; E_Int ni, nj, nk;
   char* varString; FldArrayI* c; char* eltType;
-  E_Int ret = K_ARRAY::getFromArray2(array, varString, fi, ni, nj, nk, c, eltType);
+  E_Int ret = K_ARRAY::getFromArray3(array, varString, fi, ni, nj, nk, c, eltType);
   if (ret != 1 && ret != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -121,7 +123,6 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 
   //printf("nfaces=%d, npts=%d\n", nfaces, npts); fflush(stdout);
   //npts = 500;
-  
 
 #pragma omp parallel
   {
@@ -140,13 +141,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
 
     for (E_Int j = 0; j < nfaces; j++)
     {
-        const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
-        Handle(Geom_Surface) face = BRep_Tool::Surface(F);
+      const TopoDS_Face& F = TopoDS::Face(surfaces(faces[j]));
+      Handle(Geom_Surface) face = BRep_Tool::Surface(F);
         
 #if PROJMETHOD == 0
-        GeomAPI_ProjectPointOnSurf o;
+      GeomAPI_ProjectPointOnSurf o;
 #else
-        BRepExtrema_DistShapeShape tool;
+      BRepExtrema_DistShapeShape tool;
 #endif
 
 #pragma omp for
@@ -186,6 +187,13 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
           pty[i] = K_CONST::E_MAX_FLOAT;
           ptz[i] = K_CONST::E_MAX_FLOAT;
         }
+        catch (Standard_NullObject& e)
+        {
+          //printf("Face is NULL for point %g %g %g\n", px[i],py[i],pz[i]); 
+          ptx[i] = K_CONST::E_MAX_FLOAT;
+          pty[i] = K_CONST::E_MAX_FLOAT;
+          ptz[i] = K_CONST::E_MAX_FLOAT;
+        }
 
         dx = ptx[i]-pox[i];
         dy = pty[i]-poy[i];
@@ -202,6 +210,6 @@ PyObject* K_OCC::projectOnFaces(PyObject* self, PyObject* args)
   delete [] ptx; delete [] pty; delete [] ptz;
   delete [] dist;
   RELEASESHAREDB(ret, array, fi, c);
-  Py_DECREF(Py_None);
+  Py_INCREF(Py_None);
   return Py_None;
 }

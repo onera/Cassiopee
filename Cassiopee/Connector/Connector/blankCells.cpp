@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -459,7 +459,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(coordArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -504,7 +504,7 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(cellNArrays, i);
-    E_Int ret = K_ARRAY::getFromArray2(array, varString, f, nil, njl, nkl,
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
                                        cn, eltType);
     if (ret != 1)
     {
@@ -555,8 +555,8 @@ PyObject* K_CONNECTOR::_blankCells(PyObject* self, PyObject* args)
     FldArrayF* f; FldArrayI* cn;
     char* varString; char* eltType;
     PyObject* array = PyList_GetItem(bodyArrays, i);
-    E_Int ret = K_ARRAY::getFromArray(array, varString, f, nil, njl, nkl,
-                                      cn, eltType, true);
+    E_Int ret = K_ARRAY::getFromArray3(array, varString, f, nil, njl, nkl,
+                                       cn, eltType);
     if (ret != 2)
     {
       RELEASEDATA1; RELEASEDATA2; RELEASEDATA3;
@@ -730,10 +730,10 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt; vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     coordArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objs, obju,
@@ -1140,14 +1140,15 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
                      cellns, posxb, posyb, poszb, unstrbF, cnb);
     for (E_Int is = 0; is < ns; is++)
     {
+      E_Int api = 1; // TODO
       E_Int ncells = cellns[is]->getSize();
       E_Int* fp = cellns[is]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
       E_Float* cellnp = cellnout->begin();
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
-      tpl = K_ARRAY::buildArray(*cellnout, cellNName,
-                                nitc[is], njtc[is], nktc[is]);
+      tpl = K_ARRAY::buildArray3(*cellnout, cellNName,
+                                 nitc[is], njtc[is], nktc[is], api);
       delete cellns[is];
       PyList_Append(l, tpl);
       Py_DECREF(tpl);
@@ -1179,11 +1180,11 @@ PyObject* K_CONNECTOR::blankCells(PyObject* self, PyObject* args)
       E_Int* fp = cellnu[iu]->begin();
       FldArrayF* cellnout = new FldArrayF(ncells);
       E_Float* cellnp = cellnout->begin();
+      E_Int api = cellnout->getApi();
       #pragma omp parallel for
       for (E_Int i = 0; i < ncells; i++) cellnp[i] = E_Float(fp[i]);
       FldArrayI* cnout = new K_FLD::FldArrayI(*cntc[iu]);
-      tpl = K_ARRAY::buildArray(*cellnout, cellNName, *cnout, -1, eltTypec[0],
-                                false);
+      tpl = K_ARRAY::buildArray3(*cellnout, cellNName, *cnout, eltTypec[0], api);
       delete cellnu[iu];
       delete cnout;
       PyList_Append(l, tpl); Py_DECREF(tpl);
@@ -1226,11 +1227,15 @@ void K_CONNECTOR::blankCellsUnstr(
 
   // masquage des domaines a masquer
   E_Int nzones = blankedCoords.size();
+  E_Int npts;
   for (E_Int zone = 0; zone < nzones; zone++)
   {
     // intersection des bbox ?
-    K_COMPGEOM::boundingBox(posxt[zone], posyt[zone], poszt[zone],
-                            *blankedCoords[zone],
+    npts = blankedCoords[zone]->getSize();
+    K_COMPGEOM::boundingBoxUnstruct(npts,
+                            blankedCoords[zone]->begin(posxt[zone]),
+                            blankedCoords[zone]->begin(posyt[zone]),
+                            blankedCoords[zone]->begin(poszt[zone]),
                             xminz, yminz, zminz, xmaxz, ymaxz, zmaxz);
     E_Int intersect =
       K_COMPGEOM::compBoundingBoxIntersection(
@@ -1311,15 +1316,20 @@ void K_CONNECTOR::blankCellsStruct(
   // masquage des domaines a masquer
   E_Int nzones = blankedCoords.size();
   E_Int intersect = 1;
+  E_Int npts;
   for (E_Int zone = 0; zone < nzones; zone++)
   {
     intersect = 1;
     if (isNot == 0) // test intersection des bbox que pour les cas de masques classiques
     {
+      npts = blankedCoords[zone]->getSize();
       // intersection des bbox ?
-      K_COMPGEOM::boundingBox(posxt[zone], posyt[zone], poszt[zone],
-                              *blankedCoords[zone],
+      K_COMPGEOM::boundingBoxUnstruct(npts,
+                              blankedCoords[zone]->begin(posxt[zone]),
+                              blankedCoords[zone]->begin(posyt[zone]),
+                              blankedCoords[zone]->begin(poszt[zone]),
                               xminz, yminz, zminz, xmaxz, ymaxz, zmaxz);
+      
       intersect = K_COMPGEOM::compBoundingBoxIntersection(
         xmin, xmax, ymin, ymax, zmin, zmax,
         xminz, xmaxz, yminz, ymaxz, zminz, zmaxz, 1.e-6);
@@ -1972,7 +1982,7 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
   listOfInterpolatedPoints.reAlloc(n);
   // Search for sign of delta expansion in i and j directions
   iP = listOfInterpolatedPoints.begin();
-  if ( type == 0 )
+  if (type == 0)
   {
     if (elevationDir == 2 ) // 2D
     {
@@ -1980,18 +1990,18 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
-          if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN+1] == -1) diri[i] = 1;
         }
-        else if ( indN == imc-1 )
+        else if ( indN == imc-1)
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
         }
         else
         {
-          if (cellNt[indN-1] == -1 ) diri[i] = -1;
-          else if (cellNt[indN+1] == -1 ) diri[i] = 1;
+          if (cellNt[indN-1] == -1) diri[i] = -1;
+          else if (cellNt[indN+1] == -1) diri[i] = 1;
         }
       }
     }
@@ -2002,11 +2012,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
       for (E_Int i = 0; i < n; i++)
       {
         E_Int indN = iP[i];
-        if ( indN == 0 )
+        if (indN == 0)
         {
           if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
-        else if ( indN == imc-1)
+        else if (indN == imc-1)
         {
           if (cellNt[indN-1] == -1 ) diri[i] = -1;
         }
@@ -2016,11 +2026,11 @@ void K_CONNECTOR::compListOfInterpolatedPoints(
           else if (cellNt[indN+1] == -1 ) diri[i] = 1;
         }
 
-        if ( indN-imc < 0 )
+        if (indN-imc < 0)
         {
           if (cellNt[indN+imc] == -1 ) dirj[i] = 1;
         }
-        else if ( indN+imc > ncells)
+        else if (indN+imc > ncells)
         {
           if (cellNt[indN-imc] == -1 ) dirj[i] = -1;
         }

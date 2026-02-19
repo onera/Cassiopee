@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,70 +30,74 @@ using namespace K_SEARCH;
 PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
 {
   PyObject *blks, *bodiesC;
-  if (!PyArg_ParseTuple(args, "OO", &blks, &bodiesC)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &blks, &bodiesC)) return NULL;
   if (PyList_Check(blks) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
-                    "distance2WallsSigned: 1st argument must be a list.");
+    PyErr_SetString(PyExc_TypeError,
+                    "dist2Walls: 1st argument must be a list.");
     return NULL;
   }
 
   if (PyList_Check(bodiesC) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
-                    "distance2WallsSigned: 2nd argument must be a list.");
+    PyErr_SetString(PyExc_TypeError,
+                    "dist2Walls: 2nd argument must be a list.");
     return NULL;
   }
-  
+
   // Maillage en centres
   // les coordonnees doivent etre en premier
   vector<PyObject*> objst, objut;
-  vector<E_Int> res0;
-  vector<char*> structVarString0;
-  vector<char*> unstrVarString0;
-  vector<FldArrayF*> structF0;
-  vector<FldArrayF*> unstrF0;
-  vector<E_Int> nit0;
-  vector<E_Int> njt0; 
-  vector<E_Int> nkt0;
-  vector<FldArrayI*> cnt0;
-  vector<char*> eltType0;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
-  E_Int isOk = K_ARRAY::getFromArrays(
-    blks, res0, structVarString0, unstrVarString0,
-    structF0, unstrF0, nit0, njt0, nkt0, cnt0, eltType0, objst, objut, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
-  E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
-  if (isOk == -1)
+  vector<char*> structVarString0; vector<char*> unstrVarString0;
+  vector<FldArrayF*> structF0; vector<FldArrayF*> unstrF0;
+  vector<E_Int> nit0; vector<E_Int> njt0; vector<E_Int> nkt0;
+  vector<FldArrayI*> cnt0; vector<char*> eltType0;
+  char* varStringl; char* eltTypel;
+  E_Int nil, njl, nkl;
+  FldArrayF* fl; FldArrayI* cnl;
+  PyObject* o; E_Int res;
+  E_Int nz = PyList_Size(blks);
+  for (E_Int i = 0; i < nz; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "distance2WallsSigned: invalid list of mesh arrays.");
-    for (E_Int nos = 0; nos < ns0; nos++)
-      RELEASESHAREDS(objst[nos], structF0[nos]);
-    for (E_Int nos = 0; nos < nu0; nos++)
-      RELEASESHAREDU(objut[nos], unstrF0[nos], cnt0[nos]);
-    return NULL;
+    o = PyList_GetItem(blks, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (res == 1)
+    {
+      structVarString0.push_back(varStringl);
+      structF0.push_back(fl);
+      nit0.push_back(nil); njt0.push_back(njl), nkt0.push_back(nkl);
+      objst.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarString0.push_back(varStringl);
+      unstrF0.push_back(fl);
+      eltType0.push_back(eltTypel); cnt0.push_back(cnl);
+      objut.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
   }
-  E_Int posx=-1, posy=-1, posz=-1; 
-  vector<E_Int> ncellss; vector<E_Int> ncellsu; 
+
+  E_Int api = -1;
+  E_Int ns0 = structF0.size(); E_Int nu0 = unstrF0.size();
+  E_Int posx=-1, posy=-1, posz=-1;
+  vector<E_Int> ncellss; vector<E_Int> ncellsu;
   // Verification de posxi, posyi, poszi dans listFields: vars 1,2,3 imposees
   for (E_Int i = 0; i < ns0; i++)
   {
     E_Int posxi = K_ARRAY::isCoordinateXPresent(structVarString0[i]);
     E_Int posyi = K_ARRAY::isCoordinateYPresent(structVarString0[i]);
     E_Int poszi = K_ARRAY::isCoordinateZPresent(structVarString0[i]);
-    posxi++; posyi++; poszi++; 
+    posxi++; posyi++; poszi++;
     if (posx == -1) posx = posxi;
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
 
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
-        "distance2WallsSigned: coordinates must be located at same position for all zones.");
+        "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < ns0; nos++)
         RELEASESHAREDS(objst[nos], structF0[nos]);
       for (E_Int nos = 0; nos < nu0; nos++)
@@ -112,10 +116,10 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
     if (posy == -1) posy = posyi;
     if (posz == -1) posz = poszi;
 
-    if (posxi != posx || posyi != posy || poszi != posz) 
+    if (posxi != posx || posyi != posy || poszi != posz)
     {
       PyErr_SetString( PyExc_TypeError,
-        "distance2WallsSigned: coordinates must be located at same position for all zones.");
+        "dist2Walls: coordinates must be located at same position for all zones.");
       for (E_Int nos = 0; nos < ns0; nos++)
         RELEASESHAREDS(objst[nos], structF0[nos]);
       for (E_Int nos = 0; nos < nu0; nos++)
@@ -125,21 +129,38 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
     ncellsu.push_back(unstrF0[i]->getSize());
   }
   // Extract infos from body surfaces + cellN + sx, sy, sz
-  vector<E_Int> resl;
   vector<char*> structVarString; vector<char*> unstrVarString;
   vector<FldArrayF*> structF; vector<FldArrayF*> unstrF;
   vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
   vector<FldArrayI*> cnt;
   vector<char*> eltTypeb;
   vector<PyObject*> objs, obju;
-  skipNoCoord = true;
-  skipStructured = true;
-  skipUnstructured = false; 
-  skipDiffVars = true;
-  K_ARRAY::getFromArrays(
-    bodiesC, resl, structVarString, unstrVarString,
-    structF, unstrF, nit, njt, nkt, cnt, eltTypeb, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  nz = PyList_Size(bodiesC);
+
+  for (E_Int i = 0; i < nz; i++)
+  {
+    o = PyList_GetItem(bodiesC, i);
+    res = K_ARRAY::getFromArray3(o, varStringl, fl,
+                                 nil, njl, nkl, cnl, eltTypel);
+    if (api == -1) api = fl->getApi();
+    if (res == 1)
+    {
+      structVarString.push_back(varStringl);
+      structF.push_back(fl);
+      nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
+      objs.push_back(o);
+    }
+    else if (res == 2)
+    {
+      unstrVarString.push_back(varStringl);
+      unstrF.push_back(fl);
+      eltTypeb.push_back(eltTypel); cnt.push_back(cnl);
+      obju.push_back(o);
+    }
+    else printf("Warning: dist2Walls: array " SF_D_ " is invalid. Discarded.\n", i);
+  }
+
+  if (api == -1) api = 1;
   E_Int nwalls = unstrF.size();
 
   if (nwalls == 0)
@@ -152,8 +173,8 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
       RELEASESHAREDU(objut[nos], unstrF0[nos], cnt0[nos]);
     return NULL;
   }
-  
-  // verification de posxv, posyv, poszv dans bodiesC  
+
+  // verification de posxv, posyv, poszv dans bodiesC
   vector<E_Int> posxv;  vector<E_Int> posyv;  vector<E_Int> poszv;
   vector<E_Int> poscv;
   E_Int possx = K_ARRAY::isNamePresent("sx",unstrVarString[0]); possx++;
@@ -169,7 +190,7 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
     posyv0++; posyv.push_back(posyv0);
     poszv0++; poszv.push_back(poszv0);
     poscv0++; poscv.push_back(poscv0);
-    if (poscv0 == 0) 
+    if (poscv0 == 0)
     {
       PyErr_SetString(PyExc_TypeError,"distance2WallsSigned: cellN must be defined for bodies.");
       for (E_Int nos = 0; nos < ns0; nos++)
@@ -194,44 +215,44 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
       return NULL;
     }
   }
-  
+
   // Calcul de la distance a la paroi
   vector<FldArrayF*> distances;
   for (E_Int i = 0; i < ns0; i++)
   {
     E_Int ncells = ncellss[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distances.push_back(distance);
   }
-  if (structF0.size() > 0) 
-    computeMininterfSigned(ncellss, posx, posy, posz, 
-                           structF0, posxv, posyv, poszv, poscv, unstrF, 
-                           possx, possy, possz, 
+  if (structF0.size() > 0)
+    computeMininterfSigned(ncellss, posx, posy, posz,
+                           structF0, posxv, posyv, poszv, poscv, unstrF,
+                           possx, possy, possz,
                            distances);
   vector<FldArrayF*> distancesu;
   for (E_Int i = 0; i < nu0; i++)
   {
     E_Int ncells = ncellsu[i];
-    FldArrayF* distance = new FldArrayF(ncells); 
+    FldArrayF* distance = new FldArrayF(ncells);
     distance->setAllValuesAt(K_CONST::E_INFINITE);
     distancesu.push_back(distance);
   }
-  if (unstrF0.size() > 0) 
+  if (unstrF0.size() > 0)
     computeMininterfSigned(ncellsu, posx, posy, posz,
-                           unstrF0, posxv, posyv, poszv, poscv, unstrF, 
-                           possx, possy, possz, 
+                           unstrF0, posxv, posyv, poszv, poscv, unstrF,
+                           possx, possy, possz,
                            distancesu);
 
   for (E_Int nos = 0; nos < nwalls; nos++)
     RELEASESHAREDU(obju[nos], unstrF[nos], cnt[nos]);
   // Build arrays
   PyObject* l = PyList_New(0);
-  PyObject* tpl;    
+  PyObject* tpl;
   for (E_Int nos = 0; nos < ns0; nos++)
   {
-    tpl = K_ARRAY::buildArray(*distances[nos], "TurbulentDistance", 
-                              nit0[nos], njt0[nos], nkt0[nos]);
+    tpl = K_ARRAY::buildArray3(*distances[nos], "TurbulentDistance",
+                               nit0[nos], njt0[nos], nkt0[nos], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     delete distances[nos];
     RELEASESHAREDS(objst[nos], structF0[nos]);
@@ -239,8 +260,8 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
   for (E_Int nou = 0; nou < nu0; nou++)
   {
     K_FLD::FldArrayI* cnout = new K_FLD::FldArrayI(*cnt0[nou]);
-    tpl = K_ARRAY::buildArray(*distancesu[nou], "TurbulentDistance", *cnout,
-                              -1, eltType0[nou]);
+    tpl = K_ARRAY::buildArray3(*distancesu[nou], "TurbulentDistance", *cnout,
+                               eltType0[nou], api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
     RELEASESHAREDU(objut[nou], unstrF0[nou],cnt0[nou]);
     delete distancesu[nou]; delete cnout;
@@ -253,10 +274,10 @@ PyObject* K_DIST2WALLS::distance2WallsSigned(PyObject* self, PyObject* args)
 //=============================================================================
 void K_DIST2WALLS::computeMininterfSigned(
   vector<E_Int>& ncellst,
-  E_Int posx, E_Int posy, E_Int posz, 
-  vector<FldArrayF*>& fields, 
-  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv, 
-  vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw, 
+  E_Int posx, E_Int posy, E_Int posz,
+  vector<FldArrayF*>& fields,
+  vector<E_Int>& posxv, vector<E_Int>& posyv, vector<E_Int>& poszv,
+  vector<E_Int>& poscv, vector<FldArrayF*>& fieldsw,
   E_Int possx, E_Int possy, E_Int possz,
   vector<FldArrayF*>& distances)
 {
@@ -275,7 +296,7 @@ void K_DIST2WALLS::computeMininterfSigned(
   E_Float* sxw2 = wallpts->begin(4);
   E_Float* syw2 = wallpts->begin(5);
   E_Float* szw2 = wallpts->begin(6);
-  
+
   E_Int c = 0; E_Int nzones = fields.size();
   for (E_Int v = 0; v < nwalls; v++)
   {
@@ -288,38 +309,38 @@ void K_DIST2WALLS::computeMininterfSigned(
     E_Float* syw = fieldv->begin(possy);
     E_Float* szw = fieldv->begin(possz);
     E_Int ncellsw = fieldv->getSize();
-    /* recuperation des points calcules uniquement 
+    /* recuperation des points calcules uniquement
        pas de pts masques et interpoles dans kdtree */
     E_Int poscw = poscv[v]; E_Float* cellnw0 = fieldv->begin(poscw);
     for (E_Int i = 0; i < ncellsw; i++)
     {
-      if (cellnw0[i] == 1.) 
+      if (cellnw0[i] == 1.)
       {
-        xw2[c] = xw[i]; yw2[c] = yw[i]; zw2[c] = zw[i]; 
-        sxw2[c] = sxw[i]; syw2[c] = syw[i]; szw2[c] = szw[i]; 
+        xw2[c] = xw[i]; yw2[c] = yw[i]; zw2[c] = zw[i];
+        sxw2[c] = sxw[i]; syw2[c] = syw[i]; szw2[c] = szw[i];
         c++;
       }
     }
   }//fin kdtree
-  if (c == 0) 
+  if (c == 0)
   {
     delete wallpts;
-    for (E_Int v = 0; v < nzones; v++) 
+    for (E_Int v = 0; v < nzones; v++)
     {
       E_Int ncells = ncellst[v];
       E_Float* distancep = distances[v]->begin();
       for (E_Int ind = 0; ind < ncells; ind++)
-        distancep[ind] = sqrt(distancep[ind]); 
+        distancep[ind] = sqrt(distancep[ind]);
     }
     return;
   }
   wallpts->reAllocMat(c, 6);
   xw2 = wallpts->begin(1); yw2 = wallpts->begin(2); zw2 = wallpts->begin(3);
   sxw2 = wallpts->begin(4); syw2 = wallpts->begin(5); szw2 = wallpts->begin(6);
-  
+
   ArrayAccessor<FldArrayF> coordAcc(*wallpts, 1,2,3);
   KdTree<FldArrayF> kdt(coordAcc, E_EPSILON);
-    
+
   /* detection de la paroi la plus proche */
   E_Float pt[3];
   for (E_Int v = 0; v < nzones; v++)
@@ -338,7 +359,7 @@ void K_DIST2WALLS::computeMininterfSigned(
       pt[0] = xt[ind]; pt[1] = yt[ind]; pt[2] = zt[ind];
       indw2 = kdt.getClosest(pt);
       rx = xw2[indw2]-pt[0]; ry = yw2[indw2]-pt[1]; rz = zw2[indw2]-pt[2];
-      sx = sxw2[indw2]; sy = syw2[indw2]; sz = szw2[indw2]; 
+      sx = sxw2[indw2]; sy = syw2[indw2]; sz = szw2[indw2];
       dist = rx*rx + ry*ry + rz*rz; rad = sqrt(dist);
       sgn = rx*sx + ry*sy + rz*sz;
       if (sgn < 0.) distancep[ind] = rad;

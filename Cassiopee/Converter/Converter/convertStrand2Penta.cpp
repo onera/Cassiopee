@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,7 +24,7 @@
 PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // input strand array is stored as a TRI array
   E_Int nil, njl, nkl, res;
@@ -55,7 +55,7 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
   E_Int npts = f->getSize(); // np * nk
   E_Int nfld = f->getNfld(); // nbre de champs
 
-  E_Int api = f->getApi(); if (api == 2) api = 3;
+  E_Int api = f->getApi();
   
   // Get TRI connectivity
   FldArrayI& cm = *(cnl->getConnect(0));
@@ -72,7 +72,7 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
 
   // Guess nk - connectivity reference the first vertices
   const E_Int numThreads = __NUMTHREADS__;
-  E_Int threadVmax[numThreads];
+  E_Int* threadVmax = new E_Int [numThreads];
   for (E_Int i = 0; i < numThreads; i++){ threadVmax[i]=0; }
 
   #pragma omp parallel num_threads(numThreads)
@@ -90,6 +90,7 @@ PyObject* K_CONVERTER::convertStrand2Penta(PyObject* self, PyObject* args)
 
   E_Int vmax = 0;
   for (E_Int i = 0; i < numThreads; i++) vmax = std::max(vmax, threadVmax[i]);
+  delete [] threadVmax;
 
   E_Int np = vmax;
   E_Int nk = npts / np;

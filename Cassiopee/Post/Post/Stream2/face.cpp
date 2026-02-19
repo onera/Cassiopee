@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -231,40 +231,40 @@ namespace K_POST
             // Möller et Trumbore, « Fast, Minimum Storage Ray-Triangle Intersection », 
             // Journal of Graphics Tools, vol. 2,‎ 1997, p. 21–28 
             // ============================================================================
-            constexpr const double epsilon = 1.E-12; // Tolérance d'erreur géométrique
-            constexpr const double gepsilon = 1.E-3; // Tolérance d'erreur géométrique
-            double nrm2 = std::sqrt((direction|direction));
+            constexpr const E_Float epsilon = 1.E-12; // Tolerance d'erreur géométrique
+            constexpr const E_Float gepsilon = 1.E-3; // Tolerance d'erreur géométrique
+            E_Float nrm2 = sqrt((direction|direction));
             vector3d ndir = (1./nrm2)*direction;// Normalisation de la direction du rayon
             vector3d edge1(v1,v2);
             vector3d edge2(v1,v3);
-            double nrmedge1 = (edge1|edge1);
-            double nrmedge2 = (edge2|edge2);
+            E_Float nrmedge1 = (edge1|edge1);
+            E_Float nrmedge2 = (edge2|edge2);
             vector3d h = (ndir ^ edge2);
-            double a = (edge1 | h);
-#if defined(DEBUG_VERBOSE)
+            E_Float a = (edge1 | h);
+            #if defined(DEBUG_VERBOSE)
             std::cerr << "ndir : "<<std::string(ndir) << std::endl;
             std::cerr << "edge1 : "<<std::string(edge1) << std::endl;
             std::cerr << "edge2 : "<<std::string(edge2) << std::endl;
             std::cerr << "h : "<<std::string(h) << std::endl;
             std::cerr << "a : " << a << ", nrmedge1 : " << nrmedge1 << ", nrmedge2 : " << nrmedge2 << "epsilon : " << epsilon << std::endl;
-#endif
+            #endif
             if (a*a < epsilon*epsilon*nrmedge1*nrmedge2)
             {
                 // Pas d'intersection, on continue avec le prochain triangle
                 num_trig += 1;
                 continue; 
             }
-            double f = 1./a;
+            E_Float f = 1./a;
             vector3d s(v1,origin);
-            double u = f * (s|h);
-            if ((u<0.) ||(u>1.))
+            E_Float u = f * (s|h);
+            if ((u<0.) || (u>1.))
             {
                 // Pas d'intersection, on continue avec le prochain triangle
                 num_trig += 1;
                 continue;
             }
             vector3d q = (s ^ edge1);
-            double v = f * (ndir | q);
+            E_Float v = f * (ndir | q);
 #if defined(DEBUG_VERBOSE)
             std::cerr << "u = " << u << " et v = " << v << std::flush << std::endl;
 #endif
@@ -272,7 +272,7 @@ namespace K_POST
             {
                 // Il y a intersection, on reconstitue à partir des coordonnées
                 // barycentriques les coordonnées cartésiennes du point d'intersection.
-                double t = f * (edge2 | q);
+                E_Float t = f * (edge2 | q);
                 intersection = origin + t * ndir;
                 break; // Intersection trouvée, on quitte la boucle
             }
@@ -280,7 +280,7 @@ namespace K_POST
             else
             {
                 std::cout << "v : "  << v << " et u+v : " << u+v << std::endl;
-                double t = f * (edge2 | q);
+                E_Float t = f * (edge2 | q);
                 intersection = origin + t * ndir;
                 std::cout << "intersection non trouvée sinon ce serait : " << std::string(intersection) << std::endl;
             }
@@ -335,7 +335,7 @@ namespace K_POST
         std::cout << "edge 2 : " << std::string(edge2) << std::endl;
 #endif
         int ind1 = 0, ind2 = 1;
-        double det = edge1[ind1]*edge2[ind2] - edge1[ind2]*edge2[ind1];
+        E_Float det = edge1[ind1]*edge2[ind2] - edge1[ind2]*edge2[ind1];
 #if defined(DEBUG_VERBOSE)
         std::cout << "det = " << det << std::flush << std::endl;
 #endif
@@ -356,10 +356,10 @@ namespace K_POST
 #endif
         }
         assert(std::abs(det) > 1.E-10);
-        double inv_det = 1./det;
+        E_Float inv_det = 1./det;
         vector3d pmb(v1, pos_inter);
-        double s = inv_det * (edge2[ind2] * pmb[ind1] - edge2[ind1] * pmb[ind2]);
-        double t = inv_det * (edge1[ind1] * pmb[ind2] - edge1[ind2] * pmb[ind1]);
+        E_Float s = inv_det * (edge2[ind2] * pmb[ind1] - edge2[ind1] * pmb[ind2]);
+        E_Float t = inv_det * (edge1[ind1] * pmb[ind2] - edge1[ind2] * pmb[ind1]);
         assert(s+t >= -1.E-6);
         assert(s+t <= 1+1.E-6);
         // On vérifie bien qu'on a bien la coordonnée barycentrique avec la troisième coordonnée
@@ -379,11 +379,11 @@ namespace K_POST
         interpol_field[0] = pos_inter.x; interpol_field[1] = pos_inter.y; interpol_field[2] = pos_inter.z;
         for ( E_Int f = 3; f < field.getNfld(); ++f )
         {
-            double v1_val = (triangle_indices[0] >= 0 ? field(triangle_indices[0],f+1) : baryfld[f]);
-            double v2_val = (triangle_indices[1] >= 0 ? field(triangle_indices[1],f+1) : baryfld[f]);
-            double v3_val = (triangle_indices[2] >= 0 ? field(triangle_indices[2],f+1) : baryfld[f]);
-            double delta1 = v2_val - v1_val;
-            double delta2 = v3_val - v1_val;
+            E_Float v1_val = (triangle_indices[0] >= 0 ? field(triangle_indices[0],f+1) : baryfld[f]);
+            E_Float v2_val = (triangle_indices[1] >= 0 ? field(triangle_indices[1],f+1) : baryfld[f]);
+            E_Float v3_val = (triangle_indices[2] >= 0 ? field(triangle_indices[2],f+1) : baryfld[f]);
+            E_Float delta1 = v2_val - v1_val;
+            E_Float delta2 = v3_val - v1_val;
             interpol_field[f] = v1_val + s * delta1 + t * delta2;
         }
         return interpol_field;

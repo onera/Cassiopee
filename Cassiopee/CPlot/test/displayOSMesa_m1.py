@@ -5,6 +5,11 @@ import Geom as D
 import Converter.Mpi as Cmpi
 import KCore.test as test
 
+import KCore.Dist as Dist
+(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa()
+if not osmesa:
+    import sys; sys.exit()
+
 LOCAL = test.getLocal()
 
 a = D.sphere((0,Cmpi.rank,0), 1, N=200)

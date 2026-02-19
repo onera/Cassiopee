@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -30,14 +30,14 @@ using namespace K_FLD;
 PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 {
   PyObject *octree, *zones, *fieldA; 
-  if (!PyArg_ParseTuple(args, "OOO", &octree, &zones, &fieldA)) return NULL;
+  if (!PYPARSETUPLE_(args, OOO_, &octree, &zones, &fieldA)) return NULL;
 
   // Verif octree HEXA/QUAD
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(octree, varString, f, ni, nj, nk, 
-                                    cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(octree, varString, f, ni, nj, nk, 
+                                     cn, eltType);
   if (res != 2) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -68,10 +68,10 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
   K_ARRAY::getFromArrays(
     zones, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -102,6 +102,8 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
     fieldA, resl, structVarString2, unstrVarString2,
     structF2, unstrF2, nit2, njt2, nkt2, cnt2, eltTypet2, objst2, objut2, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
+  
+  E_Int api = f->getApi();
   E_Int nzones2 = structF2.size();
   if (nzones2 != nzones) 
   {
@@ -145,8 +147,12 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
   vector<BBox3DType*> boxes(nzones);// liste des bbox
   for (E_Int v = 0; v < nzones; v++)
   {
-    K_COMPGEOM::boundingBox(nit[v], njt[v], nkt[v], posx, posy, posz, *structF[v], 
-                            bboxes(v,1), bboxes(v,2), bboxes(v,3),bboxes(v,4),bboxes(v,5),bboxes(v,6));
+    K_COMPGEOM::boundingBoxStruct(nit[v], njt[v], nkt[v],
+                                  structF[v]->begin(posx), 
+                                  structF[v]->begin(posy), 
+                                  structF[v]->begin(posz),
+                                  bboxes(v,1), bboxes(v,2), bboxes(v,3),
+                                  bboxes(v,4), bboxes(v,5), bboxes(v,6));
   }
   E_Float* xmin = bboxes.begin(1); E_Float* xmax = bboxes.begin(4);
   E_Float* ymin = bboxes.begin(2); E_Float* ymax = bboxes.begin(5);
@@ -207,10 +213,19 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
         icmin = 10000000; icmax = -1; jcmin = icmin; jcmax =-1; kcmin=icmin; kcmax=-1;
         for (novert = 1; novert <= nvert; novert++)
         {
-          ind = (*cn)(et,novert)-1;          
+          ind = (*cn)(et,novert)-1;
+          #ifdef E_ADOLC
+          E_Float val = (xo[ind]-xmint[noblk])*dhi; 
+          ic = E_Int(val.value());
+          val = (yo[ind]-ymint[noblk])*dhi;
+          jc = E_Int(val.value());
+          val = (zo[ind]-zmint[noblk])*dhi;
+          kc = E_Int(val.value());
+          #else
           ic = E_Int((xo[ind]-xmint[noblk])*dhi);
           jc = E_Int((yo[ind]-ymint[noblk])*dhi);
           kc = E_Int((zo[ind]-zmint[noblk])*dhi);
+          #endif
           if ( ic < 0 || ic >= nib || jc < 0 || jc >= njb || kc < 0 || kc >= nkb ) goto next;
           icmin  = K_FUNC::E_min(ic,icmin); icmax  = K_FUNC::E_max(ic,icmax);
           jcmin  = K_FUNC::E_min(jc,jcmin); jcmax  = K_FUNC::E_max(jc,jcmax);
@@ -265,9 +280,16 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
         icmin = 10000000; icmax = -1; jcmin = icmin; jcmax =-1; 
         for (novert = 1; novert <= nvert; novert++)
         {
-          ind = (*cn)(et,novert)-1;          
+          ind = (*cn)(et,novert)-1;
+          #ifdef E_ADOLC
+          E_Float val = (xo[ind]-xmint[noblk])*dhi;
+          ic = E_Int(val.value());
+          val = (yo[ind]-ymint[noblk])*dhi;
+          jc = E_Int(val.value());
+          #else
           ic = E_Int((xo[ind]-xmint[noblk])*dhi);
           jc = E_Int((yo[ind]-ymint[noblk])*dhi);
+          #endif
           if ( ic < 0 || ic >= nib || jc < 0 || jc >= njb  ) goto next2;
           icmin = K_FUNC::E_min(ic,icmin); icmax = K_FUNC::E_max(ic,icmax);
           jcmin = K_FUNC::E_min(jc,jcmin); jcmax = K_FUNC::E_max(jc,jcmax);
@@ -297,7 +319,7 @@ PyObject* K_POST::computeIndicatorValue(PyObject* self, PyObject* args)
 
   vector<char*> vars;
   K_ARRAY::extractVars(structVarString2[0], vars); 
-  PyObject* tpl = K_ARRAY::buildArray(*field, vars[0], *cn, -1, eltType, true);
+  PyObject* tpl = K_ARRAY::buildArray3(*field, vars[0], *cn, eltType, api);
   
   for (E_Int v = 0; v < nzones; v++) delete boxes[v];
   delete field;  RELEASESHAREDB(res, octree, f, cn); 

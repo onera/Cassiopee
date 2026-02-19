@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -45,7 +45,7 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
   FldArrayF cartEltArray;// alloue ds compCartEltsArray
   E_Float *xtm, *ytm, *ztm, *xtp, *ytp, *ztp;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   E_Int npts;
   short isok;
@@ -68,8 +68,8 @@ PyObject* K_GENERATOR::checkPointInCEBBOfMesh(PyObject* self,
     // Calcul de la bounding box de l'array
     E_Int found = 0;
     E_Float xmin, ymin, zmin, xmax, ymax, zmax;
-    K_COMPGEOM::boundingBox(im, jm, km, posx, posy, posz, *f,
-                            xmin, ymin,  zmin, xmax, ymax,zmax);
+    K_COMPGEOM::boundingBoxStruct(im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
+                                  xmin, ymin, zmin, xmax, ymax, zmax);
 
     if (x > xmax || y > ymax || z > zmax ||
         x < xmin || y < ymin || z < zmin) goto end;

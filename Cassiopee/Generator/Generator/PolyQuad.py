@@ -4,9 +4,6 @@ from . import Generator as G
 import Geom as D
 import math
 
-try: range = xrange
-except: pass
-
 __version__ = G.__version__
 
 #=============================================================================

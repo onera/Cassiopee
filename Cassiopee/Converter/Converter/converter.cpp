@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,7 +52,6 @@ static PyMethodDef Pyconverter [] =
   {"isFinite", K_CONVERTER::isFinite, METH_VARARGS},
   {"setNANValuesAt", K_CONVERTER::setNANValuesAt, METH_VARARGS},
   {"convertBAR2Struct", K_CONVERTER::convertBAR2Struct, METH_VARARGS},
-  {"convertStruct2Tetra", K_CONVERTER::convertStruct2Tetra, METH_VARARGS},
   {"convertStruct2TetraBary", K_CONVERTER::convertStruct2TetraBary, METH_VARARGS},
   {"convertStruct2TetraBaryBoth", K_CONVERTER::convertStruct2TetraBaryBoth, METH_VARARGS},
   {"convertStruct2Hexa", K_CONVERTER::convertStruct2Hexa, METH_VARARGS},
@@ -60,9 +59,8 @@ static PyMethodDef Pyconverter [] =
   {"convertHexa2Struct", K_CONVERTER::convertHexa2Struct, METH_VARARGS},
   {"convertUnstruct2NGon", K_CONVERTER::convertUnstruct2NGon, METH_VARARGS},
   {"convertUnstruct2Hexa", K_CONVERTER::convertUnstruct2Hexa, METH_VARARGS},
-  {"convertHexa2Tetra", K_CONVERTER::convertHexa2Tetra, METH_VARARGS},
-  {"convertPenta2Tetra", K_CONVERTER::convertPenta2Tetra, METH_VARARGS},
-  {"convertPyra2Tetra", K_CONVERTER::convertPyra2Tetra, METH_VARARGS},
+  {"mergeByEltType", K_CONVERTER::mergeByEltType, METH_VARARGS},
+  {"convertArray2Tetra", K_CONVERTER::convertArray2Tetra, METH_VARARGS},
   {"convertArray2TetraBary", K_CONVERTER::convertArray2TetraBary, METH_VARARGS},
   {"convertArray2TetraBaryBoth", K_CONVERTER::convertArray2TetraBaryBoth, METH_VARARGS},
   {"convertNGon2TetraBary", K_CONVERTER::convertNGon2TetraBary, METH_VARARGS},
@@ -144,13 +142,16 @@ static PyMethodDef Pyconverter [] =
   {"adaptNGon2Index", K_CONVERTER::adaptNGon2Index, METH_VARARGS},
   {"adaptNFace2Index", K_CONVERTER::adaptNFace2Index, METH_VARARGS},
   {"adaptBCFace2BCC", K_CONVERTER::adaptBCFace2BCC, METH_VARARGS},
+  {"adaptBCFacePL2VertexPL", K_CONVERTER::adaptBCFacePL2VertexPL, METH_VARARGS},
+  {"adaptBCVertexPL2FacePL", K_CONVERTER::adaptBCVertexPL2FacePL, METH_VARARGS},
   {"adaptNGon42NGon3", K_CONVERTER::adaptNGon42NGon3, METH_VARARGS},
   {"adaptNGon32NGon4", K_CONVERTER::adaptNGon32NGon4, METH_VARARGS},
   {"adaptShiftedPE2PE", K_CONVERTER::adaptShiftedPE2PE, METH_VARARGS},
   {"signNGonFaces", K_CONVERTER::signNGonFaces, METH_VARARGS},
   {"unsignNGonFaces", K_CONVERTER::unsignNGonFaces, METH_VARARGS},
+  {"sliceNGonFaces", K_CONVERTER::sliceNGonFaces, METH_VARARGS},
   {"makeParentElements", K_CONVERTER::makeParentElements, METH_VARARGS},
-  {"convertSurfaceNGon", K_CONVERTER::convertSurfaceNGon, METH_VARARGS},
+  {"adaptSurfaceNGon", K_CONVERTER::adaptSurfaceNGon, METH_VARARGS},
   {"adapt2FastP", K_CONVERTER::adapt2FastP, METH_VARARGS},
   {"createElsaHybrid", K_CONVERTER::createElsaHybrid, METH_VARARGS},
   {"diffIndex", K_CONVERTER::diffIndex, METH_VARARGS},

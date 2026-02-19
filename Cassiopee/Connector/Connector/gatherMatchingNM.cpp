@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -99,10 +99,10 @@ PyObject* K_CONNECTOR::gatherMatchingNM(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllWins, resl, structVarString, unstrVarString,

@@ -1,6 +1,5 @@
 # - global preferences -
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -79,8 +78,7 @@ def setBgColor(event=None):
     elif v == 'Clouds': va = 11
     elif v == 'Blueprint': va = 12
     elif v == 'Custom':
-        try: import tkinter.filedialog as tkFileDialog
-        except: import tkFileDialog
+        import tkinter.filedialog as tkFileDialog
         if 'backgroundFile' in CTK.PREFS: initFile = CTK.PREFS['backgroundFile']
         else: initFile = 'paperBackground1.png'
         files = tkFileDialog.askopenfilenames(

@@ -6,7 +6,7 @@ import KCore.test as test
 import Converter.Internal as I
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
-a = C.convertArray2NGon(a); a = G.close(a)
+a = C.convertArray2NGon(a)
 b = G.cartHexa((0.,0.,0.), (0.005,0.005,0.02), (5,5,2))
 
 m = XOR.adaptCells(a,b, sensor_type=4, sensor_metric_policy=0, conformize=0)

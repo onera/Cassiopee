@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -52,8 +52,9 @@ PyObject *K_XCORE::icapsule_set_master(PyObject *self, PyObject *args)
 
     E_Float *ctag = NULL;
     E_Int size;
-    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size, true);
-    if (ret != 1 || size != array.ncells()) {
+    E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctag, size);
+    if (ret != 1 || size != array.ncells()) 
+    {
         RAISE("Bad cell tag array.");
         return NULL;
     }
@@ -68,6 +69,7 @@ PyObject *K_XCORE::icapsule_set_master(PyObject *self, PyObject *args)
     M.ctag.resize(M.nc);
     memcpy(M.ctag.data(), ctag, M.nc * sizeof(E_Float));
 
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -135,7 +137,7 @@ PyObject *K_XCORE::icapsule_set_slaves(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nslaves; i++) {
         PyObject *PTAG = PyList_GetItem(PTAGS, i);
         E_Int size = -1;
-        E_Int ret = K_NUMPY::getFromNumpyArray(PTAG, ptags[i], size, true);
+        E_Int ret = K_NUMPY::getFromNumpyArray(PTAG, ptags[i], size);
         //Py_DECREF(PTAG);
         if (ret != 1 || size != sarrays[i].npoints()) {
             RAISE("Ptags[i] should have size sarrays[i].npoints.");
@@ -155,7 +157,7 @@ PyObject *K_XCORE::icapsule_set_slaves(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nslaves; i++) {
         PyObject *CTAG = PyList_GetItem(CTAGS, i);
         E_Int size = -1;
-        E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctags[i], size, true);
+        E_Int ret = K_NUMPY::getFromNumpyArray(CTAG, ctags[i], size);
         //Py_DECREF(PTAG);
         if (ret != 1 || size != sarrays[i].ncells()) {
             RAISE("Ctags[i] should have size sarrays[i].npoints.");
@@ -191,6 +193,7 @@ PyObject *K_XCORE::icapsule_set_slaves(PyObject *self, PyObject *args)
         memcpy(S.ctag.data(), ctags[i], S.nc*sizeof(E_Float));
     }
 
+    Py_INCREF(Py_None);
     return Py_None;
 }
 
@@ -279,7 +282,7 @@ PyObject *K_XCORE::icapsule_init(PyObject *self, PyObject *args)
     for (E_Int i = 0; i < nslaves; i++) {
         PyObject *PTAG = PyList_GetItem(PTAGS, i);
         E_Int size = -1;
-        E_Int ret = K_NUMPY::getFromNumpyArray(PTAG, ptags[i], size, true);
+        E_Int ret = K_NUMPY::getFromNumpyArray(PTAG, ptags[i], size);
         //Py_DECREF(PTAG);
         if (ret != 1 || size != sarrays[i].npoints()) {
             RAISE("Ptag[i] should have size sarrays[i].npoints.");
@@ -426,7 +429,7 @@ PyObject *K_XCORE::icapsule_intersect(PyObject *self, PyObject *args)
         PyObject *STAG = PyList_GetItem(STAGS, i);
         E_Int *tag = NULL;
         E_Int tag_size = -1;
-        ret = K_NUMPY::getFromNumpyArray(STAG, tag, tag_size, true);
+        ret = K_NUMPY::getFromNumpyArray(STAG, tag, tag_size);
         assert(ret == 1);
         S.ftag.reserve(tag_size);
         for (int j = 0; j < tag_size; j++) {

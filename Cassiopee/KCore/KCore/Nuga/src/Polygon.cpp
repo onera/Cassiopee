@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -100,7 +100,7 @@ E_Int Polygon::getOrientation
 //   iworst = IDX_NONE;
   
 //   E_Float angle_max = NUGA::PI* PI_ratio; // a fraction betwen 0 and Pi
-//   E_Float cos_min = ::cos(angle_max); // cos is decreasing on [0; Pi]
+//   E_Float cos_min = cos(angle_max); // cos is decreasing on [0; Pi]
 //   E_Float Z[3];
 //   for (E_Int i = 1; i < nb_nodes + 1; ++i)
 //   {
@@ -198,7 +198,7 @@ bool Polygon::is_convex
 
     E_Float uu = NUGA::zzdet4(coord.col(eim1), coord.col(ei), coord.col(eip1), Z);
     /*
-    if ((ps*uu < 0.) && (::fabs(ps) > EPSILON) && (::fabs(uu) > EPSILON))
+    if ((ps*uu < 0.) && (fabs(ps) > EPSILON) && (fabs(uu) > EPSILON))
     {
     assert(false);
     }*/
@@ -379,7 +379,7 @@ E_Int Polygon::get_sharp_edges
 
       // Concave or not ?
       E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
-      alpha = ::fabs(NUGA::PI - alpha);
+      alpha = fabs(NUGA::PI - alpha);
 
       if (alpha >= angular_threshold)
         sharp_edges.insert(K_MESH::NO_Edge(e0, e1));
@@ -437,7 +437,7 @@ E_Int Polygon::update_neighbor_with_sharp_edges
 
       // Concave or not ?
       E_Float alpha = NUGA::angle_measure(ni, nj, E0, E1);
-      alpha = ::fabs(NUGA::PI - alpha);
+      alpha = fabs(NUGA::PI - alpha);
 
       if (alpha < angular_threshold)
         continue;
@@ -475,8 +475,8 @@ E_Int Polygon::get_oriented_normal(const K_FLD::FloatArray& crd, const ngon_unit
     Normi[2] = -Normi[2];
   }
 
-  E_Float l2 = ::sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
-  if (::fabs(l2 - 1.) < EPSILON) // NOT DEGEN
+  E_Float l2 = sqrt(Normi[0] * Normi[0] + Normi[1] * Normi[1] + Normi[2] * Normi[2]);
+  if (fabs(l2 - 1.) < EPSILON) // NOT DEGEN
     return 0;
   return 1;
 }

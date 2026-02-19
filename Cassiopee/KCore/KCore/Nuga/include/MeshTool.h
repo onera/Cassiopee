@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -137,10 +137,8 @@ class MeshTool
     template <typename cnt_t>
     static void computeIncidentEdgesSqrLengths(const K_FLD::FloatArray& pos, const cnt_t& cnt, K_FLD::FloatArray& L);
 
-#ifndef NUGALIB
     template <typename arr_t, typename cnt_t>
     static void computeIncidentEdgesSqrLengths(const K_FLD::ArrayAccessor<arr_t>& acrd, const cnt_t& cnt, K_FLD::FloatArray& L);
-#endif
 
     /// compute mimimal nodal distance bases on faces
     template <typename arr_t, typename cnt_t>
@@ -157,7 +155,7 @@ class MeshTool
 
     static void flipT3(K_FLD::IntArray& connectT3);
 
-    static void metricAnisoE22D(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectE2, double kn, K_FLD::FloatArray& metric);
+    static void metricAnisoE22D(const K_FLD::FloatArray& pos, const K_FLD::IntArray& connectE2, E_Float kn, K_FLD::FloatArray& metric);
     ///
     static bool detectDuplicated(const K_FLD::IntArray& connect, std::vector<E_Int>& dupIds, bool strict_orient = true);
     ///
@@ -199,12 +197,12 @@ class MeshTool
     template <typename IntCONT>
     static inline void get_farthest_point_to_edge (const K_FLD::FloatArray& crd, E_Int Ni, E_Int Nj, const IntCONT& list, E_Int& Nf, E_Float& d2);
     
-    static void extrude_line (K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const double* dir, double H, K_FLD::IntArray& cntQ4);
+    static void extrude_line (K_FLD::FloatArray& crd, const K_FLD::IntArray& cntE, const E_Float* dir, E_Float H, K_FLD::IntArray& cntQ4);
     static E_Int computeNodeRadiusAndAngles(K_FLD::FloatArray& coord, const ngon_unit& pgs, E_Float x0, E_Float y0, 
                                             std::vector<E_Float>& radius, std::vector<E_Float>& angles);
 
     template <typename IntCont, short DIM>
-    static void reorder_nodes_on_edge(const K_FLD::FloatArray& pos, IntCont & nodes, int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter);
+    static void reorder_nodes_on_edge(const K_FLD::FloatArray& pos, IntCont& nodes, E_Int idx_start, std::vector<std::pair<E_Float, E_Int> >& sorter);
 
 private:
 
@@ -360,7 +358,6 @@ void MeshTool::computeNodalDistance2<K_FLD::FloatArray,ngon_unit>
 }
 
 
-#ifndef NUGALIB
 /*template <> inline
 void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::FldArrayF, ngon_unit>
 (
@@ -380,7 +377,7 @@ void MeshTool::computeIncidentEdgesSqrLengths<K_FLD::FldArrayF, ngon_unit>
   L.resize(1, idmaxp1, NUGA::FLOAT_MAX);  //mins
   L.resize(2, idmaxp1, -NUGA::FLOAT_MAX); // maxs
 
-  double pi[3], pj[3];
+  E_Float pi[3], pj[3];
   
   for (E_Int i = 0; i < nb_pgs; ++i)
   {
@@ -426,7 +423,7 @@ void MeshTool::computeNodalDistance2<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,ngon
   E_Int idmaxp1 = cnt.get_facets_max_id();
   Lmin2.resize(idmaxp1, NUGA::FLOAT_MAX);
 
-  double pi[3], pj[3], pk[3];
+  E_Float pi[3], pj[3], pk[3];
 
   for (E_Int i = 0; i < nb_pgs; ++i)
   {
@@ -466,8 +463,6 @@ void MeshTool::computeNodalDistance2<K_FLD::ArrayAccessor<K_FLD::FldArrayF>,ngon
   }  
 
 }
-
-#endif
 
 } // End namespace NUGA
 

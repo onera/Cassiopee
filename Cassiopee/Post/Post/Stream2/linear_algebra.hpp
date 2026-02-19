@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,7 +24,7 @@
 namespace K_POST
 {
     /// Définition d'un vecteur de ℝ²
-    using vector2d        = std::array<double,2>;
+    using vector2d = std::array<E_Float,2>;
     /// Matrice définie de ℝ² dans ℝ²
     using matrix_2x2_type = std::array<std::array<double,2>,2>;
     /// Affichage d'un vecteur en deux dimensions (lisible par l'humain)
@@ -118,9 +118,9 @@ namespace K_POST
     std::string to_string(const matrix_3x3_type& A);
 
     /// Définition d'un vecteur de ℝ⁴
-    using vector4d        = std::array<double,4>;
+    using vector4d = std::array<E_Float,4>;
     /// Définition d'une matrice de ℝ⁴ vers ℝ⁴
-    using matrix_4x4_type = std::array<std::array<double,4>,4>;
+    using matrix_4x4_type = std::array<std::array<E_Float,4>,4>;
     /// Définition d'une paire contenant une matrice factorisée et un tableau des permutations effectuées lors de la factorisation PLU
     using factorized_matrix_4x4_type = std::pair<matrix_4x4_type,std::array<int,4>>;
     /// Produit d'une matrice ℝ⁴xℝ⁴ avec une vecteur de ℝ⁴

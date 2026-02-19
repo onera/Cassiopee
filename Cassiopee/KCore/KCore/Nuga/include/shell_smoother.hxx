@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -63,7 +63,7 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
   {
     n = n + 1;
     carry_on = false;
-    for (int i = 0; i<hmesh._ng.PHs.size(); i++)
+    for (E_Int i = 0; i<hmesh._ng.PHs.size(); i++)
     {  
       E_Int Mnodes(0);
 
@@ -75,7 +75,8 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
       const E_Int* pPHi = hmesh._ng.PHs.get_facets_ptr(i);
 
       // Mnodes definition
-      for (int j = 0; j<hmesh._ng.PHs.stride(i); j++) {
+      for (E_Int j = 0; j<hmesh._ng.PHs.stride(i); j++) 
+      {
         E_Int PGi = *(pPHi + j) - 1;
         E_Int PHn = NEIGHBOR(i, hmesh._F2E, PGi);
         // if the neighbor exist and its children are enabled then travers PGi children nodes
@@ -97,11 +98,11 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
           E_Int nb_ch = hmesh._PGtree.nb_children(PGi);
           assert (nb_ch != 0);
           const E_Int* enf = hmesh._PGtree.children(PGi);
-          for (int k = 0; k< nb_ch; k++)
+          for (E_Int k = 0; k< nb_ch; k++)
           {
             E_Int stride = hmesh._ng.PGs.stride(*(enf + k));
             const E_Int* ind = hmesh._ng.PGs.get_facets_ptr(*(enf + k));
-            for (int l = 0; l<stride; l++)
+            for (E_Int l = 0; l<stride; l++)
               Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
           }
         }
@@ -109,7 +110,7 @@ void shell_smoother<mesh_t>::smooth(const mesh_t& hmesh, output_t& adap_incr)
         {
           E_Int stride = hmesh._ng.PGs.stride(PGi);
           const E_Int *ind = hmesh._ng.PGs.get_facets_ptr(PGi);
-          for (int l = 0; l< stride; l++)
+          for (E_Int l = 0; l< stride; l++)
             Mnodes = std::max(_Ln[*(ind + l) - 1], Mnodes);
         }
       }
@@ -137,13 +138,13 @@ void shell_smoother<mesh_t>::__update_nodal_levels(const mesh_t& hmesh, E_Int PH
   E_Int Lc = hmesh._PHtree.get_level(PHi);
   E_Int nb_faces = hmesh._ng.PHs.stride(PHi);
 
-  for (int j = 0; j< nb_faces; j++)
+  for (E_Int j = 0; j< nb_faces; j++)
   {
     const E_Int* PGj = hmesh._ng.PHs.get_facets_ptr(PHi);
     E_Int PG = PGj[j] - 1;
     const E_Int* pN = hmesh._ng.PGs.get_facets_ptr(PG);
     E_Int nb_nodes = hmesh._ng.PGs.stride(PG);
-    for (int l = 0; l< nb_nodes; l++)
+    for (E_Int l = 0; l< nb_nodes; l++)
       _Ln[*(pN + l) - 1] = std::max(_Ln[*(pN + l) - 1], Lc + aincr);
   }
 }

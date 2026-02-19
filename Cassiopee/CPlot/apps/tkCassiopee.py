@@ -61,8 +61,7 @@ PERSOAPPS = []
 # Add a personal app to pref file
 #==============================================================================
 def addPersonalApp():
-    try: import tkinter.filedialog as tkFileDialog
-    except: import tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
     a = os.access(file, os.F_OK)
     if not a: return
@@ -100,9 +99,12 @@ def notImplemented():
 #==============================================================================
 def run(t=None):
 
+    # force cplot init module
+    CPlot.CPlot.getModule()
+
     if t is not None:
         if Internal.isTopTree(t): CTK.t = t
-        else: CTK.t, ntype = Internal.node2PyTree(t)
+        else: CTK.t, _ = Internal.node2PyTree(t)
 
     if CTK.t != []:
         # upgrade tree

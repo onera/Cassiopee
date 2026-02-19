@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -238,6 +238,7 @@ E_Int K_IO::GenIO::cedreread(
       cp[pt+2+i] = connect3[i];
     }
     connect3.malloc(0); connect1.malloc(0);
+    cn->setNGonType(1);
 
     // Lit les frontieres
     //printf("Lecture frontieres " SF_D_ "\n", nboundaryfaces);

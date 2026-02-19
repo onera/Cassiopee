@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -72,6 +72,8 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(posy);
   E_Float* zt = f->begin(posz);
 
+  E_Int api = f->getApi();
+
   if (res == 1) // cas structure
   {
     E_Int im1 = im-1;
@@ -80,57 +82,36 @@ PyObject* K_GENERATOR::getEdgeRatio(PyObject* self, PyObject* args)
     if (im == 1) im1 = 1;
     if (jm == 1) jm1 = 1;
     if (km == 1) km1 = 1;
-    tpl = K_ARRAY::buildArray3(1, "EdgeRatio", im1, jm1, km1);
-    E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
+    tpl = K_ARRAY::buildArray3(1, "EdgeRatio", im1, jm1, km1, api);
+    FldArrayF* field; 
+    K_ARRAY::getFromArray3(tpl, field);
 
     E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
                                           im, jm, km, 
                                           NULL, NULL,
                                           dim, 2,
-                                          fieldp);
+                                          field->begin());
+    RELEASESHAREDS(tpl, field);
     RELEASESHAREDS(array, f);
     if (ret == 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "getEdgeRatio: failed.");
-      return NULL;          
+        return NULL;
     }
     return tpl;
   }
   else
   {
-    E_Int api = f->getApi();
-    E_Bool center = true;
-    if (strcmp(eltType, "NGON") == 0) // NGON
-    {
-      E_Int nelts = cn->getNElts();
-      E_Int nfaces = cn->getNFaces();
-      E_Int sizeFN = cn->getSizeNGon();
-      E_Int sizeEF = cn->getSizeNFace();
-      E_Int ngonType = 1; // CGNSv3 compact array1
-      if (api == 2) ngonType = 2; // CGNSv3, array2
-      else if (api == 3) ngonType = 3; // force CGNSv4, array3
-      tpl = K_ARRAY::buildArray3(1, "EdgeRatio", f->getSize(), nelts, nfaces,
-                                 eltType, sizeFN, sizeEF, ngonType, center, api);
-    }
-    else // BE/ME
-    {
-      E_Int nc = cn->getNConnect();
-      std::vector<E_Int> nelts(nc);
-      for (E_Int ic = 0; ic < nc; ic++)
-      {
-        FldArrayI& cm = *(cn->getConnect(ic));
-        nelts[ic] = cm.getSize();
-      }
-      tpl = K_ARRAY::buildArray3(1, "EdgeRatio", f->getSize(), nelts,
-                                 eltType, center, api);
-    }
-    E_Float* fieldp = K_ARRAY::getFieldPtr(tpl);
-    E_Int ret = K_COMPGEOM::getEdgeLength(xt, yt, zt,
-                                          -1, -1, -1, 
-                                          cn, eltType,
-                                          dim, 2, fieldp);
+    tpl = K_ARRAY::buildArray3(1, "EdgeRatio", f->getSize(), *cn, eltType, 1, api);
+    FldArrayF* field; 
+    K_ARRAY::getFromArray3(tpl, field);
+    E_Int ret = K_COMPGEOM::getEdgeLength(
+      xt, yt, zt, -1, -1, -1, 
+      cn, eltType, dim, 2, field->begin()
+    );
 
+    RELEASESHAREDS(tpl, field);
     RELEASESHAREDU(array, f, cn);
     if (ret == 0)
     {

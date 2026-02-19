@@ -1,7 +1,3 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
 # Converter requires:
 # ELSAPROD variable defined in environment
@@ -10,36 +6,44 @@ import os
 # Numpy
 # KCore library
 #=============================================================================
+import os
+from setuptools import setup, Extension
+from importlib.util import spec_from_file_location, module_from_spec
+import KCore.Dist as Dist
+
+def loadModuleFromPath(modname):
+    # Load a Python file by filesystem path (PEP-517 isolated build requirement)
+    helper = os.path.join(os.path.dirname(__file__), modname + ".py")
+    spec = spec_from_file_location(modname, helper)
+    mod = module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
-
-from KCore.config import *
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if libhdf5 exists ======================================================
-(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf(additionalLibPaths,
-                                                     additionalIncludePaths)
+(hdf, hdfIncDir, hdfLibDir, hdflibs) = Dist.checkHdf()
 
 # Test if libnetcdf exists ======================================================
-(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf(additionalLibPaths,
-                                                                    additionalIncludePaths)
+(netcdf, netcdfIncDir, netcdfLibDir, netcdflibs) = Dist.checkNetcdf()
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
 # Compilation des fortrans ====================================================
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -57,8 +61,10 @@ if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
     ADDITIONALCPPFLAGS += ['-D_MPI']
+
 if mpi4py:
     includeDirs.append(mpi4pyIncDir)
+    ADDITIONALCPPFLAGS += ['-D_MPI4PY']
 
 if hdf:
     for l in hdflibs: libraries.append(l)
@@ -67,9 +73,9 @@ if netcdf:
 
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
@@ -83,7 +89,7 @@ listExtensions.append(
               extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
               extra_link_args=Dist.getLinkArgs()
               ) )
-import srcs
+srcs = loadModuleFromPath('srcs')
 if srcs.EXPRESSION:
     listExtensions.append(
         Extension('Converter.expression',
@@ -100,11 +106,9 @@ setup(
     version="4.1",
     description="Converter for *Cassiopee* modules.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Converter'],
     package_dir={"":"."},
     ext_modules=listExtensions
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

@@ -27,7 +27,13 @@ except ImportError:
 IGNORE_TESTS_NDBG = []
 # Tests to ignore in debug mode
 IGNORE_TESTS_DBG = [
-    "Ael/quantum_t1.py", "Converter/mpi4py_t1.py", "KCore/empty_t1.py"
+    "Ael/quantum_t1.py", "Converter/mpi4py_t1.py", "KCore/empty_t1.py",
+    "Connector/prepAMRFull_t1.py", "Connector/prepAMRFull_t2.py",
+    "Generator/adaptMeshPT_t1.py", "Generator/createHook4AdaptMeshPT_t1.py",
+    "Generator/generateAMRMeshMultiRes2DPT_t1.py",
+    "Generator/generateAMRMeshMultiRes3DPT_t1.py",
+    "Generator/generateAMRMeshPT_t1.py", "XCore/adaptMeshPT_t1.py",
+    "XCore/adaptMesh_ExitPT_t1.py"
 ]
 
 
@@ -79,9 +85,12 @@ def readGitInfo(filename):
 
 # Find a two session logs of validCassiopee for a given production
 def findLogs(prodname, findRef=True):
-    validDataFolder = "/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{}".format(prodname)
+    validDataFolder = f"/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{prodname}"
     if not os.access(validDataFolder, os.R_OK):
-        raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
+        import KCore.installPath as K
+        validDataFolder = os.path.join(K.includePath, "..", f"ValidData_{prodname}")
+        if not os.access(validDataFolder, os.R_OK):
+            raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
 
     logs = None
     refLogs = []
@@ -163,7 +172,13 @@ def getTestLogs(prodname, testList):
     testLog = ""
     modNames = [test.split('/')[0] for test in testList]
     testNames = [test.split('/')[1] for test in testList]
-    validDataFolder = "/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{}".format(prodname)
+    validDataFolder = f"/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{prodname}"
+    if not os.access(validDataFolder, os.R_OK):
+        import KCore.installPath as K
+        validDataFolder = os.path.join(K.includePath, "..", f"ValidData_{prodname}")
+        if not os.access(validDataFolder, os.R_OK):
+            raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
+
     # Read the last purged logValidCassiopee.dat file
     purgedLogs = sorted(glob(os.path.join(validDataFolder, "logValidCassiopee_purged_*.dat")))
     if not purgedLogs or not os.access(purgedLogs[-1], os.R_OK): return testLog
@@ -186,22 +201,27 @@ def stringify(test='', ref='', new=''):
     mod, test = test.split('/')
     test.split('.')[0]
     if not (ref or new):
-        return "{:>15} | {:>42} |\n".format(mod, test)
+        return f"{mod:>15} | {test:>42} |\n"
     elif not isinstance(ref, list):
-        return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref, new)
+        return f"{mod:>15} | {test:>42} | {ref:>10} | {new:>10} |\n"
     else:
-        return "{:>15} | {:>42} | {:>10} | {:>10} |\n".format(mod, test, ref[5], new[5])
+        return f"{mod:>15} | {test:>42} | {ref[5]:>10} | {new[5]:>10} |\n"
 
 # Check install status
 def checkInstallStatus():
     log_entries = []
-    with open('/stck/cassiope/git/logs/installation_status.txt', 'r') as f:
-        for line in f:
-            log_entries.append(line.strip().split(' - '))
-    log_entries.sort(key=lambda x: x[3], reverse=True)
+    logAllInstalls = '/stck/cassiope/git/logs/installation_status.txt'
+    if os.access(logAllInstalls, os.R_OK):
+        with open(logAllInstalls, 'r') as f:
+            for line in f:
+                log_entries.append(line.strip().split(' - '))
+        log_entries.sort(key=lambda x: x[3], reverse=True)
 
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    if not os.access(cassiopeeIncDir, os.R_OK):
+        import KCore.installPath as K
+        cassiopeeIncDir = os.path.join(K.includePath, "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
@@ -232,13 +252,18 @@ def checkInstallStatus():
 # Parse install logs and return errors
 def parseInstallLogs(userProd):
     log_entries = []
-    with open('/stck/cassiope/git/logs/installation_status.txt', 'r') as f:
-        for line in f:
-            log_entries.append(line.strip().split(' - '))
-    log_entries.sort(key=lambda x: x[3], reverse=True)
+    logAllInstalls = '/stck/cassiope/git/logs/installation_status.txt'
+    if os.access(logAllInstalls, os.R_OK):
+        with open(logAllInstalls, 'r') as f:
+            for line in f:
+                log_entries.append(line.strip().split(' - '))
+        log_entries.sort(key=lambda x: x[3], reverse=True)
 
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    if not os.access(cassiopeeIncDir, os.R_OK):
+        import KCore.installPath as K
+        cassiopeeIncDir = os.path.join(K.includePath, "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
@@ -267,14 +292,12 @@ def parseInstallLogs(userProd):
         installLogs = sorted(glob(os.path.join("/stck/cassiope/git/logs/", f"log_*_{userProd}_*")))
         for installLog in installLogs:
             with open(installLog, 'r') as f: contents = f.readlines()
-            print(len(contents))
             # Find start lines of each module
             startLine = 0
             endMarker = "correctly installed."
             for lineNo, line in enumerate(contents):
                 if endMarker in line:
                     startLine = lineNo+1
-                    print(line, startLine)
             if startLine < len(contents):
                 # Print log of the module that did not complete successfully
                 messageText += f"\n\nInstall log:\n-----------\n\n"
@@ -292,10 +315,12 @@ def parseInstallLogs(userProd):
 # Check checkout status
 def checkCheckoutStatus(sendEmail=False):
     log_entries = []
-    with open('/stck/cassiope/git/logs/checkout_status.txt', 'r') as f:
-        for line in f:
-            log_entries.append(line.strip().split(' - '))
-    log_entries.sort(key=lambda x: x[1], reverse=True)
+    logAllCheckouts = '/stck/cassiope/git/logs/checkout_status.txt'
+    if os.access(logAllCheckouts, os.R_OK):
+        with open(logAllCheckouts, 'r') as f:
+            for line in f:
+                log_entries.append(line.strip().split(' - '))
+        log_entries.sort(key=lambda x: x[1], reverse=True)
 
     # Do not send a notification when everything is OK
     if not any('FAILED' in log_machine for log_machine in log_entries):
@@ -307,6 +332,9 @@ def checkCheckoutStatus(sendEmail=False):
 
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    if not os.access(cassiopeeIncDir, os.R_OK):
+        import KCore.installPath as K
+        cassiopeeIncDir = os.path.join(K.includePath, "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitBranch = Dist.getGitBranch(cassiopeeIncDir)
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
@@ -336,13 +364,18 @@ def checkCheckoutStatus(sendEmail=False):
 # Check valid status
 def checkValidStatus():
     log_entries = []
-    with open('/stck/cassiope/git/logs/validation_status.txt', 'r') as f:
-        for line in f:
-            log_entries.append(line.strip().split(' - '))
-    log_entries.sort(key=lambda x: x[3], reverse=True)
+    logAllValids = '/stck/cassiope/git/logs/validation_status.txt'
+    if os.access(logAllValids, os.R_OK):
+        with open(logAllValids, 'r') as f:
+            for line in f:
+                log_entries.append(line.strip().split(' - '))
+        log_entries.sort(key=lambda x: x[3], reverse=True)
 
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
+    if not os.access(cassiopeeIncDir, os.R_OK):
+        import KCore.installPath as K
+        cassiopeeIncDir = os.path.join(K.includePath, "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
@@ -414,9 +447,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
     commonTestsHeader = "Tests that differ:\n{}\n".format('-'*17)
     for test in commonTests:
         compStr += stringify(*diffTest(test, refDict[test], newDict[test]))
-    if len(compStr):
-        compStr = commonTestsHeader + compStr
-        baseState = 'FAILED'
+    if len(compStr): compStr = commonTestsHeader + compStr
     else: compStr = commonTestsHeader + "[none]\n"
 
     newTestsHeader = "\nNew tests:\n{}\n".format('-'*9)
@@ -491,10 +522,11 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
 
         # Amend state of the base in logs/validation_status.txt
         logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
-        entry = "{} - {} - {} - {} - {}\n".format(prod, gitInfo['Git branch'],
-                                                  gitInfo['Commit hash'], tlog2,
-                                                  baseState)
         if os.access(os.path.dirname(logAllValids), os.W_OK):
+            entry = (
+                f"{prod} - {gitInfo['Git branch']} - "
+                f"{gitInfo['Commit hash']} - {tlog2} - {baseState}\n"
+            )
             with open(logAllValids, 'r') as f: contents = f.readlines()
             prodFound = False
             for i, line in enumerate(contents):

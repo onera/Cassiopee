@@ -1,5 +1,5 @@
 C  
-C    Copyright 2013-2025 Onera.
+C    Copyright 2013-2026 ONERA.
 C
 C    This file is part of Cassiopee.
 C
@@ -148,6 +148,11 @@ c
          base(1) = -1.D0
          base(2) = 0.D0
          base(3) = 1.D0
+      else if ( npts_interp_1D . eq. 4) then !!voir these desquesnes p92
+         base(1) = -1.D0
+         base(2) = 0.D0
+         base(3) = 1.D0
+         base(4) = 2.D0
       else if ( npts_interp_1D . eq. 5) then 
          base(1) = -2.D0
          base(2) = -1.D0

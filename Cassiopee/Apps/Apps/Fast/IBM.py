@@ -1,5 +1,4 @@
 # Class for FastS "IBM" prepare and compute
-import FastS.ToolboxChimera as TBX
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Generator.PyTree as G
@@ -510,7 +509,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             zz   = Internal.getNodeFromName(z, "CoordinateZ")[1]
             yy   = Internal.getNodeFromName(z, "CoordinateY")[1]
 
-            r       = numpy.sqrt( zz**2+yy**2)
+            r    = numpy.sqrt( zz**2+yy**2)
 
             perio_loc = perio
             if c==1: period_loc= perio*1.5
@@ -550,16 +549,16 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
             rind = Internal.getNodeFromName1(z, "Rind")[1]
             rind[4] = ific; rind[5] = ific
             # Modif range BC
-            BCs = Internal.getNodesFromType(z, "BC_t")
+            BCs = Internal.getNodesFromType2(z, "BC_t")
             for bc in BCs:
-                ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
+                ptrg = Internal.getNodeFromName1(bc, "PointRange")[1]
                 ptrg[2,0] = 3
                 ptrg[2,1] = Nk[z[0]]
             if not isAutoPeriodic:
-                # Creatioon connectivite perio dans t
+                # Creation connectivite perio dans t
                 for idir in ['_kmax','_kmin']:
                     if idir == '_kmax':
-                        ktg  = zdim[2,0]
+                        ktg = zdim[2,0]
                         ktgD = 1
                         if extrusion =='cart':
                             angle = 0
@@ -568,8 +567,8 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                             angle = -perio
                             trans = 0.
                     else:
-                        ktgD  = zdim[2,0]
-                        ktg   = 1
+                        ktgD = zdim[2,0]
+                        ktg = 1
                         if extrusion =='cart':
                             angle = 0
                             trans = perio
@@ -580,35 +579,35 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                     Conn = Internal.getNodeFromName(z, "ZoneGridConnectivity")
                     name = 'match_'+z[0]+idir
                     Internal.createUniqueChild(Conn, name, 'GridConnectivity1to1_t')
-                    tmp1     = Internal.getNodeFromName(Conn, name)
+                    tmp1 = Internal.getNodeFromName(Conn, name)
                     Internal.setValue(tmp1, z[0])
-                    datap = numpy.empty( (3,2) , dtype=Internal.E_NpyInt)
+                    datap = numpy.empty((3,2), dtype=Internal.E_NpyInt)
                     datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktg
                     datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktg
                     Internal.createUniqueChild(tmp1 ,'PointRange', 'IndexRange_t',datap)
-                    datap = numpy.empty( (3,2) , dtype=Internal.E_NpyInt)
+                    datap = numpy.empty((3,2) , dtype=Internal.E_NpyInt)
                     datap[0,0]=1+ng;datap[1,0]=1+ng;datap[2,0]=ktgD
                     datap[0,1]=zdim[0,0]-ng;datap[1,1]=zdim[1,0]-ng;datap[2,1]= ktgD
                     Internal.createUniqueChild(tmp1 ,'PointRangeDonor', 'IndexRange_t',datap)
-                    datap = numpy.empty( 3 , dtype=Internal.E_NpyInt)
+                    datap = numpy.empty(3, dtype=Internal.E_NpyInt)
                     datap[0]=1;datap[1]=2;datap[2]=3
                     Internal.createUniqueChild(tmp1 ,'Transform', '"int[IndexDimension]"',datap)
                     Internal.createUniqueChild(tmp1 ,'GridConnectivityProperty', 'GridConnectivityProperty_t')
 
-                    prop     = Internal.getNodeFromName(tmp1, 'GridConnectivityProperty')
-                    Internal.createUniqueChild(prop ,'Periodic', 'Periodic_t')
-                    period    = Internal.getNodeFromName(prop, 'Periodic')
-                    datap = numpy.zeros( 3 , numpy.float64)
+                    prop = Internal.getNodeFromName(tmp1, 'GridConnectivityProperty')
+                    Internal.createUniqueChild(prop, 'Periodic', 'Periodic_t')
+                    period = Internal.getNodeFromName(prop, 'Periodic')
+                    datap = numpy.zeros(3, numpy.float64)
                     Internal.createUniqueChild(period ,'RotationCenter', 'DataArray_t',datap)
-                    datap = numpy.zeros( 3 , numpy.float64)
-                    datap[0]= angle
-                    Internal.createUniqueChild(period ,'RotationAngle' ,'DataArray_t',datap)
-                    datap = numpy.zeros( 3 , numpy.float64)
-                    datap[2]= trans
-                    Internal.createUniqueChild(period ,'Translation', 'DataArray_t',datap)
+                    datap = numpy.zeros(3, numpy.float64)
+                    datap[0] = angle
+                    Internal.createUniqueChild(period, 'RotationAngle' ,'DataArray_t',datap)
+                    datap = numpy.zeros(3, numpy.float64)
+                    datap[2] = trans
+                    Internal.createUniqueChild(period, 'Translation', 'DataArray_t',datap)
 
-                    rot     = Internal.getNodeFromName(period, 'RotationAngle')
-                    Units=['Kilogram','Meter','Second','Kelvin','Radian']
+                    rot = Internal.getNodeFromName(period, 'RotationAngle')
+                    Units = ['Kilogram','Meter','Second','Kelvin','Radian']
                     Internal.createUniqueChild(rot ,'DimensionalUnits' ,'DimensionalUnits_t',Units)
         if isAutoPeriodic:
             for node in Internal.getNodesFromName(t,'EquationDimension'): Internal.setValue(node,3)
@@ -617,7 +616,7 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
                 C._addBC2Zone(z, z[0]+'periodKmax', 'BCautoperiod', 'kmax')
             BCs = Internal.getNodesFromType(t, "BC_t")
             for bc in BCs:
-                if Internal.getValue(bc)=='BCautoperiod':
+                if Internal.getValue(bc) == 'BCautoperiod':
                     ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
                     ptrg[0,0] = 3
                     ptrg[0,1] = ptrg[0,1]-2
@@ -637,9 +636,9 @@ def extrudeCartesian(t,tb, check=False, extrusion="cart", dz=0.01, NPas=10, span
 def _modifGhostSymmetryPlan(t, depth=2,dim=3,Plan='Y'):
 
     for z in Internal.getZones(t):
-        bc = Internal.getNodeFromName1(z,'ZoneBC')
-        bcs=[]
-        if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
+        bc = Internal.getNodeFromName1(z, 'ZoneBC')
+        bcs = []
+        if bc is not None: bcs = Internal.getNodesFromType1(bc, 'BC_t')
         for bc in bcs:
             bctyp = Internal.getValue(bc)
             if bctyp=='BCSymmetryPlane':
@@ -711,47 +710,44 @@ def _modifcellNSymmetryPlan(t, depth=2,dim=3):
 
     for z in Internal.getZones(t):
         bc = Internal.getNodeFromName1(z,'ZoneBC')
-        bcs=[]
-        if bc is not None: bcs = Internal.getNodesFromType(bc,'BC_t')
+        bcs = []
+        if bc is not None: bcs = Internal.getNodesFromType1(bc, 'BC_t')
         for bc in bcs:
             bctyp = Internal.getValue(bc)
-            if bctyp=='BCSymmetryPlane':
+            if bctyp == 'BCSymmetryPlane':
                 ptrg = Internal.getNodeFromName1(bc,'PointRange')
-                dimZ = Internal.getZoneDim(z)
-                #print(z[0], dimZ,'range', ptrg[1])
+                #dimZ = Internal.getZoneDim(z)
 
                 idir = Ghost.getDirection__(dim, [ptrg])
+                cellN = Internal.getNodeFromName2(z,'cellN')[1]
 
-                #print('idir=',idir)
-                cellN= Internal.getNodeFromName2(z,'cellN')[1]
-
-                if idir==0:
-                    jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
-                    kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+                if idir == 0:
+                    jmin = ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+                    kmin = ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     for k in range(kmin,kmax):
                         for j in range(jmin,jmax):
                             for d in range(depth):
-                                if cellN[depth-1-d,j,k]>=1.99 : cellN[depth-1-d,j,k]=1
-                if idir==1:
+                                if cellN[depth-1-d,j,k]>=1.99: cellN[depth-1-d,j,k]=1
+                if idir == 1:
                     i1 = ptrg[1][0,1]-depth-1
-                    jmin =  ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
-                    kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+                    jmin = ptrg[1][1,0]-3; jmax =  ptrg[1][1,1]+1
+                    kmin = ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     for k in range(kmin,kmax):
                         for j in range(jmin,jmax):
                             for d in range(depth):
                                 if cellN[i1+d,j,k]>=1.99: cellN[i1+d,j,k]=1
-                if idir==2:
-                    imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
-                    kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+                if idir == 2:
+                    imin = ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+                    kmin = ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     #print(z[0],'range', imin, imax,kmin,kmax,depth-1)
                     for k in range(kmin,kmax):
                         for i in range(imin,imax):
                             for d in range(depth):
                                 if  cellN[i,depth-1-d,k]>=1.99: cellN[i,depth-1-d,k]= 1
-                if idir==3:
+                if idir == 3:
                     js = ptrg[1][1,1]-depth-1
-                    imin =  ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
-                    kmin =  ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
+                    imin = ptrg[1][0,0]-3; imax =  ptrg[1][0,1]+1
+                    kmin = ptrg[1][2,0]-3; kmax =  ptrg[1][2,1]+1
                     for k in range(kmin,kmax):
                         for i in range(imin,imax):
                             for d in range(depth):
@@ -781,6 +777,7 @@ def _modifcellNSymmetryPlan(t, depth=2,dim=3):
 # IN: t_curvi arbre curviligne   (with bc and connectivity but without ghost)
 #================================================================================
 def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, blankingBodies=None, extrusion=None, interpDataType=1, order=2, verbose=2, filter_zone=None):
+    import FastS.ToolboxChimera as TBX
     overlap = '14'
     InterpOrder = order
     Nproc =Cmpi.size
@@ -845,7 +842,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
         t_curvi = T.contract(t_curvi, (0,0,0), (1,0,0), (0,1,0), 0.01)
         t_curvi = T.makeDirect(t_curvi)
 
-    #creation "vraie" cellule ghost pour BC plansymetry pour faciliter interp Chimere
+    #creation "vraie" cellule ghost pour BC plan symmetry pour faciliter interp Chimere
     _modifGhostSymmetryPlan(t_curvi, depth=2, dim=dim)
 
     #calcul distance paroi si necessaire
@@ -863,7 +860,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
         walls = C.extractBCOfType(t_curvi, 'BCWall')
         wall_gather = Cmpi.allgather(walls)
         #print(" apr wall gather: rank=", rank, flush=True)
-        if rank==0: C.convertPyTree2File(walls,'wall.cgns')
+        if rank == 0: C.convertPyTree2File(walls, 'wall.cgns')
         Cmpi.barrier()
         walls = []
         for i in wall_gather: walls += i
@@ -902,7 +899,7 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
 
         for base in bases: print("verif base order", base[0])
 
-        X._blankCells(t_final, blankingBodies, blankingMatrix, cellNName='cellN', XRaydim1=300, XRaydim2=300, dim=3, delta=0.)
+        X._blankCells(t_curvi, blankingBodies, blankingMatrix, cellNName='cellN', XRaydim1=300, XRaydim2=300, dim=3, delta=0.)
         '''
         BM = numpy.zeros((nbases, 1),dtype=numpy.int32)
         c=0
@@ -1105,8 +1102,6 @@ def setInterpData_Hybride(t_octree, tc_octree, t_curvi, blankingMatrix=None, bla
                 C._tagWithFamily(bc, 'WALL_{}_DYNAMIC'.format(n))
 
     #C.convertPyTree2File(t_curvi, 'CHECK/t_test3_'+str(rank)+'.cgns')
-
-
 
     if Nproc==1:
         tBB2 = G.BB(t_curvi)
@@ -1348,7 +1343,7 @@ def interpolateSolutionCoarse2Fine(tCoarse, tFine, NPprep, NPinterp):
 # expand=1,2,3   : sorte d'expand des niveaux (1:classque,2:minimum,3:deux niveaux)
 # tinit          : arbre de champ d'avant pour la reprise
 # smoothing      : smooth the front during the front 2 specific treatment in the cases of local refinements
-# balancing      : balance the entire distribution after the octree generation, useful for symetries
+# balancing      : balance the entire distribution after the octree generation, useful for symmetries
 # distrib        : new distribution at the end of prepare1
 #===================================================================================================================
 
@@ -1580,7 +1575,7 @@ class IBM(Common):
         test.printMem(">>> cart grids --> rectilinear grids [end]")
 
         zones  = Internal.getZones(t)
-        coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
 
         #C.convertPyTree2File(zones,'verifOctree.cgns')
         #print("extension LOCAL=", ext_local, 'optimized=',self.input_var.optimized )
@@ -1620,7 +1615,7 @@ class IBM(Common):
                 tb2 = C.initVars(tb, 'CoordinateZ', self.input_var.dz*0.5)
                 self.tbsave = tb2
 
-                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
+                dist2wallNearBody__(t, tb2, type='ortho', signed=0, dim=self.dimPb, loc='centers', model=self.model)
 
                 if self.filamentBases:
                     C._initVars(t,'{centers:TurbulentDistanceSolid}={centers:TurbulentDistance}')
@@ -1638,7 +1633,7 @@ class IBM(Common):
 
                     if tbFilamentnoWMM:
                         tbFilamentnoWMM = C.newPyTree(['BasenoWMM', tbFilamentnoWMM])
-                        self.tbsave   = Internal.merge([self.tbsave,tbFilamentnoWMM])
+                        self.tbsave = Internal.merge([self.tbsave,tbFilamentnoWMM])
                         C._initVars(t,'{centers:TurbulentDistance}=1e06')
                         dist2wallNearBody__(t, tbFilamentnoWMM, type='ortho', signed=0, dim=self.dimPb, loc='centers',model=self.model)
                         C._initVars(t,'{centers:TurbulentDistanceFilament}={centers:TurbulentDistance}')
@@ -2043,25 +2038,28 @@ class IBM(Common):
             hmin_loc = 1.e30
             for z in Internal.getZones(t):
                 h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-                levelZone[z[0]]=h
+                levelZone[z[0]] = h
                 if h < hmin_loc : hmin_loc = h
             hmin_loc = Cmpi.allgather(hmin_loc)
-            if Cmpi.size > 1 :
-                hmin=1e30
+            if Cmpi.size > 1:
+                hmin = 1.e30
                 for h in hmin_loc:
-                    if h < hmin : hmin = h
+                    if h < hmin: hmin = h
+            else:
+                hmin = hmin_loc
 
             ## go from dx to dx/dx_min
-            Nlevels=1
+            Nlevels = 1
             for i in levelZone:
-                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001)  , 2)
-                if levelZone[i] +1  > Nlevels : Nlevels = int(levelZone[i]) +1
+                levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001), 2)
+                if levelZone[i] +1  > Nlevels: Nlevels = int(levelZone[i]) +1
 
             ## partage des info level en mpi
-            levelZone = Cmpi.allgather(levelZone)
+            if Cmpi.size > 1:
+                levelZone = Cmpi.allgatherDict2(levelZone)
 
             #
-            #etape1: calcul interpolation entre grille de meme niveau (ordre2, nature1, pas d'extrap)a
+            #etape1: calcul interpolation si grille donneuse meme niveau ou plus fine que receuveuse (ordre2, nature1, pas d'extrap)
             #
             for level in range(Nlevels):
                 print("Interp level=",level)
@@ -2078,7 +2076,7 @@ class IBM(Common):
                     dnrZones = []
                     for zdname in interDict[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
-                        if levelZone[zd[0]]==level: dnrZones.append(zd)
+                        if levelZone[zd[0]]<=level: dnrZones.append(zd)
                     if dnrZones:
                         X._setInterpData(zrcv, dnrZones, nature=1, penalty=1, extrap=0,loc='centers', storage='inverse',
                                          sameName=1, interpDataType=self.input_var.interpDataType, order=2, itype='chimera')
@@ -2135,7 +2133,7 @@ class IBM(Common):
            '''
 
             #
-            #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1, N-1 (donneurs)
+            #etape 3: calcul interpolation entre grille de niveau N (Receveur) et N+1 (donneurs)
             #
             for level in range(Nlevels):
                 print("Interp level=",level)
@@ -2152,7 +2150,7 @@ class IBM(Common):
                     dnrZones = []
                     for zdname in interDict[zrname]:
                         zd = Internal.getNodeFromName2(tc, zdname)
-                        if levelZone[zd[0]]==level+1 or  levelZone[zd[0]]==level-1 :
+                        if levelZone[zd[0]]==level+1:
                             dnrZones.append(zd)
                             print("ZoneD=", zd[0], levelZone[zd[0]])
                     if dnrZones:
@@ -2494,7 +2492,7 @@ class IBM(Common):
                         zrname = self.zonesRIBC[nozr][0]
                         interpPtsBB = Generator.BB(allInterpPts[nozr])
                         for z in zones:
-                            bba = C.getFields('GridCoordinates', z)[0]
+                            bba = C.getFields('GridCoordinates', z, api=1)[0]
                             if Generator.bboxIntersection(interpPtsBB, bba, isBB=True):
                                 zname = z[0]
                                 popp  = Cmpi.getProc(z)
@@ -2514,7 +2512,7 @@ class IBM(Common):
                             zrname = self.zonesRIBC[nozr][0]
                             interpPtsBB2 = Generator.BB(allInterpPts2[nozr])
                             for z in zones:
-                                bba = C.getFields('GridCoordinates', z)[0]
+                                bba = C.getFields('GridCoordinates', z, api=1)[0]
                                 if Generator.bboxIntersection(interpPtsBB2,bba,isBB=True):
                                     zname = z[0]
                                     popp  = Cmpi.getProc(z)

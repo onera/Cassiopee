@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -51,9 +51,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int imEX, jmEX, kmEX;
   FldArrayF* fEX; FldArrayI* cnEX;
   char* varStringEX; char* eltTypeEX;
-  E_Int res = K_ARRAY::getFromArray(arrayEX, varStringEX, 
-                                    fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX, 
-                                    true); 
+  E_Int res = K_ARRAY::getFromArray3(arrayEX, varStringEX, 
+                                     fEX, imEX, jmEX, kmEX, cnEX, eltTypeEX); 
   if (res != 2) 
   {
     if (res == 1) RELEASESHAREDS(arrayEX, fEX);
@@ -93,8 +92,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  res = K_ARRAY::getFromArray(arrayNodes, varString, f, im, jm, km, cn, 
-                              eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, 
+                               eltType); 
   if (res != 1) 
   {
     if (res == 2) RELEASESHAREDU(arrayNodes,f,cn);
@@ -121,8 +120,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayF* fc;
   FldArrayI* cnc;
   char* varStringc;
-  res = K_ARRAY::getFromArray(arrayCenters, varStringc, fc, imc, jmc, kmc, 
-                              cnc, eltType, true); 
+  res = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, 
+                               cnc, eltType); 
   if (res != 1) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX); 
@@ -162,8 +161,8 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   FldArrayI* cn1;
   char* varString1;
   char* eltType1;
-  res = K_ARRAY::getFromArray(firstWallCenters, varString1, f1, 
-                              im1, jm1, km1, cn1, eltType1, true); 
+  res = K_ARRAY::getFromArray3(firstWallCenters, varString1, f1, 
+                               im1, jm1, km1, cn1, eltType1); 
   if ( res != 2 ) 
   {
     RELEASESHAREDU(arrayEX,fEX,cnEX);
@@ -213,10 +212,10 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltTypet;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = true;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = true;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     projectSurfArrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
@@ -269,25 +268,23 @@ PyObject* K_CONNECTOR::changeWallEX(PyObject* self, PyObject* args)
     posxt.push_back(posxi); posyt.push_back(posyi); poszt.push_back(poszi); posht.push_back(poshi); posct.push_back(posci);
   }
   /*-------------------- Fin des verifs --------------------------------------*/
-  E_Int nfld = fEX->getNfld(); E_Int npts = fEX->getSize();
-  E_Int nelts = cnEX->getSize(); E_Int nvert = cnEX->getNfld();
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varStringEX, npts, nelts, -1, "NODE");
-  E_Float* fcpEX = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fcEX(npts, nfld, fcpEX, true); fcEX = *fEX;
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cno(nelts, nvert, cnnp, true); cno = *cnEX;
+  E_Int api = fEX->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*fEX, varStringEX, *cnEX, "NODE", api);
+  FldArrayF* fcEX;
+  K_ARRAY::getFromArray3(tpl, fcEX);
 
-  changeWallEX(fcEX.getSize(), fcEX.begin(posxEX), fcEX.begin(posyEX), fcEX.begin(poszEX),
-               fcEX.begin(posind1), fcEX.begin(posind2), fcEX.begin(posdir), fcEX.begin(posnode), 
+  changeWallEX(fcEX->getSize(), fcEX->begin(posxEX), fcEX->begin(posyEX), fcEX->begin(poszEX),
+               fcEX->begin(posind1), fcEX->begin(posind2), fcEX->begin(posdir), fcEX->begin(posnode), 
                im, jm, km, f->begin(posx), f->begin(posy), f->begin(posz),
                imc, jmc, kmc, fc->begin(posxc), fc->begin(posyc), fc->begin(poszc), fc->begin(poscc),
                f1->getSize(), f1->begin(posindw), f1->begin(posdir1), f1->begin(posdir2), f1->begin(posdir3),f1->begin(poshw),
                posxt, posyt, poszt, posht, posct, cnt, unstrF, planarTol);
-            
-  RELEASESHAREDU(arrayEX,fEX,cnEX);
-  RELEASESHAREDS(arrayNodes,f);
-  RELEASESHAREDS(arrayCenters,fc);
-  RELEASESHAREDU(firstWallCenters,f1, cn1);
+
+  RELEASESHAREDS(tpl, fcEX);
+  RELEASESHAREDU(arrayEX, fEX, cnEX);
+  RELEASESHAREDS(arrayNodes, f);
+  RELEASESHAREDS(arrayCenters, fc);
+  RELEASESHAREDU(firstWallCenters, f1, cn1);
   for (E_Int iu = 0; iu < nu; iu++)
     RELEASESHAREDU(objut[iu], unstrF[iu], cnt[iu]);
   return tpl;
@@ -343,7 +340,7 @@ void K_CONNECTOR::changeWallEX(
   E_Int noet, ind1, ind2, indil, indt1, indt2, indt3;
   E_Int nob, nov1, nov2, nov3;
   E_Int nbB, dir1, dir2, dir3, dir, indA;
-  E_Boolean isProjected;
+  E_Bool isProjected;
   E_Float xA, yA, zA, xaEX, yaEX, zaEX, xbEX, ybEX, zbEX, dAP2;
   E_Float dxa, dya, dza, hmax1, hmax2, hmax, distnew;
   vector<E_Int> indicesElts; vector<E_Int> candidates;

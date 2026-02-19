@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -19,127 +19,147 @@
 
 #include "transform.h"
 
-using namespace std;
 using namespace K_FLD;
 
 // ============================================================================
-/* Reorder the numerotation of mesh */
+// Reorder the vertex indices of the mesh elements
 // ============================================================================
 PyObject* K_TRANSFORM::reorder(PyObject* self, PyObject* args)
 {
-  E_Int oi=1, oj=1, ok=1;
+  E_Int oi = 1, oj = 1, ok = 1;
   PyObject* array; PyObject* order;
-  if (!PyArg_ParseTuple(args, "OO",
-                        &array, &order))
+  if (!PYPARSETUPLE_(args, OO_, &array, &order))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check tuple
   if (PyTuple_Check(order) == 0)
   {
-    PyErr_SetString(PyExc_TypeError, 
+    PyErr_SetString(PyExc_TypeError,
                     "reorder: order argument must be a tuple.");
     return NULL;
   }
   E_Int size = PyTuple_Size(order);
-  PyObject* tpl;
-  if (size == 3)
-  {
-    tpl = PyTuple_GetItem(order, 0);
-    oi = PyLong_AsLong(tpl);
-    tpl = PyTuple_GetItem(order, 1);
-    oj = PyLong_AsLong(tpl);
-    tpl = PyTuple_GetItem(order, 2);
-    ok = PyLong_AsLong(tpl);
-  }
-  else if (size == 1)
-  {
-    tpl = PyTuple_GetItem(order, 0);
-    oi = PyLong_AsLong(tpl);
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError, 
-                    "reorder: order must be like (1,2,3) or (1,).");
-    return NULL;
-  }
+  PyObject *tpl, *tplo;
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType,
-                          true); 
-  
-  E_Int nfld = f->getNfld();
-  E_Int npts = f->getSize();
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
+
+  E_Int api = f->getApi();
+  FldArrayF* f2;
 
   if (res == 1)
   {
-    PyObject* tpl = K_ARRAY::buildArray(nfld, varString, im, jm, km);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF fout(npts, nfld, foutp, true);
-    K_CONNECT::reorderStructField(im, jm, km, *f, fout, 
+    if (size == 3)
+    {
+      tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+      tplo = PyTuple_GetItem(order, 1); oj = PyLong_AsLong(tplo);
+      tplo = PyTuple_GetItem(order, 2); ok = PyLong_AsLong(tplo);
+    }
+    else
+    {
+      PyErr_SetString(PyExc_ValueError,
+                      "reorder: order tuple must be of size 3, eg, (1,2,3).");
+      RELEASESHAREDS(array, f);
+      return NULL;
+    }
+  
+    tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+    K_ARRAY::getFromArray3(tpl, f2);
+    K_CONNECT::reorderStructField(im, jm, km, *f, *f2,
                                   E_Int(oi), E_Int(oj), E_Int(ok));
-    PyList_SetItem(tpl,2, PyInt_FromLong(im));
-    PyList_SetItem(tpl,3, PyInt_FromLong(jm));
-    PyList_SetItem(tpl,4, PyInt_FromLong(km));
+    PyList_SetItem(tpl, 2, PyInt_FromLong(im));
+    PyList_SetItem(tpl, 3, PyInt_FromLong(jm));
+    PyList_SetItem(tpl, 4, PyInt_FromLong(km));
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else if (res == 2)
   {
-    if (strcmp(eltType, "QUAD") == 0 || strcmp(eltType, "TRI") == 0 ||
-        strcmp(eltType, "QUAD*") == 0 || strcmp(eltType, "TRI*") == 0)
+    FldArrayI* cn2;
+    if (strncmp(eltType, "NGON", 4) == 0)
     {
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varString,
-                                          npts, cn->getSize(),
-                                          -1, eltType);
-      E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fn(npts, nfld, fp, true); fn = *f;
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), cn->getNfld(), cnnp, true); cnn = *cn;
-      K_CONNECT::reorderQuadTriField(fn, cnn, E_Int(oi));
-      RELEASESHAREDU(array, f, cn);
-      return tpl;
-    }
-    else if (strcmp(eltType, "NGON") == 0) 
-    {
+      if (size == 0)
+      {
+        PyErr_WarnEx(PyExc_UserWarning,
+                      "reorder: order tuple should be (1,) or (-1,) for NGON. "
+                      "Setting order to (1,)", 1);
+        oi = 1;
+      }
+      else
+      {
+        if (size > 1)
+        {
+          PyErr_WarnEx(PyExc_UserWarning,
+                        "reorder: order tuple should be (1,) or (-1,) for NGON. "
+                        "Selecting first element of the tuple.", 1);
+        }
+        tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+      }
+  
       // check si le NGON est surfacique
-      E_Int* cnp = cn->begin();
+      E_Int dim = cn->getDim();
 
-      if (cnp[2] > 2) // la face a plus de 2 sommets ce n'est pas une arete
+      if (dim == 3)
       {
         PyErr_SetString(PyExc_TypeError,
                         "reorderNGON: NGON array must be a surface.");
-        RELEASESHAREDU(array, f, cn); return NULL;
+        RELEASESHAREDU(array, f, cn);
+        return NULL;
       }
-      if (cnp[2] == 1) // la face a 1 seul sommet
+      else if (dim == 1)
       {
-        tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+        tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
         RELEASESHAREDU(array, f, cn);
         return tpl;
       }
-      
-      E_Int csize = cn->getSize()*cn->getNfld();
-      PyObject* tpl = K_ARRAY::buildArray(nfld, varString, npts, cn->getSize(),
-                                          -1, eltType, false, csize);
-      E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-      FldArrayF fn(npts, nfld, fp, true); fn = *f;
-      E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-      FldArrayI cnn(cn->getSize(), cn->getNfld(), cnnp, true); cnn = *cn;
-      K_CONNECT::reorderNGON(fn, cnn, E_Int(oi));
+
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+      K_CONNECT::reorderNGON(*f2, *cn2, E_Int(oi));
+      RELEASESHAREDU(tpl, f2, cn2);
       RELEASESHAREDU(array, f, cn);
       return tpl;
     }
-    else
+    else  // BE/ME
     {
-      RELEASESHAREDB(res, array, f, cn);
-      PyErr_SetString(PyExc_TypeError,
-                      "reorder: only for TRI-array or QUAD-array.");
-      return NULL;
+      E_Int dim = K_CONNECT::getDimME(eltType);
+      tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+      K_ARRAY::getFromArray3(tpl, f2, cn2);
+      if (dim == 2)
+      {
+        if (size == 0)
+        {
+          PyErr_WarnEx(PyExc_UserWarning,
+                       "reorder: order tuple should be (1,) or (-1,) for TRI "
+                       "or QUAD. Setting order to (1,)", 1);
+          oi = 1;
+        }
+        else
+        {
+          if (size > 1)
+          {
+            PyErr_WarnEx(PyExc_UserWarning,
+                         "reorder: order tuple should be (1,) or (-1,) for TRI "
+                         "or QUAD. Selecting first element of the tuple.", 1);
+          }
+          tplo = PyTuple_GetItem(order, 0); oi = PyLong_AsLong(tplo);
+        }
+        K_CONNECT::reorderUnstruct2D(*f2, *cn2, E_Int(oi));
+      }
+      else if (dim == 3)
+      {
+        K_CONNECT::reorderUnstruct3D(varString, *f2, *cn2, eltType);
+      }
+      RELEASESHAREDU(tpl, f2, cn2);
+      RELEASESHAREDU(array, f, cn);
+      return tpl;
     }
   }
   else

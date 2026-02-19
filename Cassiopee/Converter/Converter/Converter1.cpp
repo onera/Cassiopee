@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -378,7 +378,7 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       E_Int np = myBCFaces.getSize();
       FldArrayI indir(np);
       E_Int l, k, nbc;
-      E_Boolean exist;
+      E_Bool exist;
       
       for (E_Int i = 0; i < np; i++) // pour chaque face frontiere
       {
@@ -495,9 +495,9 @@ PyObject* K_CONVERTER::convertFile2Arrays(PyObject* self, PyObject* args)
       if (fieldc[i] != NULL)
       {
         tpl = K_ARRAY::buildArray3(*fieldc[i], varStringc,
-                                   std::max(im[i]-1,E_Int(1)),
-                                   std::max(jm[i]-1,E_Int(1)),
-                                   std::max(km[i]-1,E_Int(1)), api);
+                                   std::max(im[i]-1, E_Int(1)),
+                                   std::max(jm[i]-1, E_Int(1)),
+                                   std::max(km[i]-1, E_Int(1)), api);
         delete fieldc[i];
       }
       else tpl = PyList_New(0);
@@ -669,8 +669,8 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
         // Ecriture non structuree
         vector<E_Int> ids = getElementTypesId(eltType);
         E_Int nc = ids.size();
-        E_Boolean allNodes = true;
-        E_Boolean allValid = true;
+        E_Bool allNodes = true;
+        E_Bool allValid = true;
         for (E_Int ic = 0; ic < nc; ic++)
         {
           if (ids[ic] < 0)
@@ -859,7 +859,7 @@ PyObject* K_CONVERTER::convertArrays2File(PyObject* self, PyObject* args)
   else if (K_STRING::cmp(fileFmt, "fmt_foam") == 0) // fmt open foam
   {
     if (fieldc.size() != 0)
-      printf("Warning: convertArrays2File: structured arrays not convertedin foam.\n"); 
+      printf("Warning: convertArrays2File: structured arrays not converted in foam.\n"); 
     
     isok = K_IO::GenIO::getInstance()->foamwrite(fileName, dataFmt, varString,
                                                  ni, nj, nk,
@@ -1063,87 +1063,4 @@ vector<E_Int> K_CONVERTER::getElementTypesId(const char* eltType)
     delete [] eltTypes[ic];
   }
   return eltIds;
-}
-
-//=============================================================================
-// Lit les paths specifies dans le fichier file (seult HDF).
-// Retourne une liste d'objets pythons contenant les noeuds pointes par les
-// chemins 
-//=============================================================================
-PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
-{
-  char* fileName; char* format; 
-  E_Int maxFloatSize; E_Int maxDepth; E_Int readMode; 
-  PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
-  if (!PYPARSETUPLE_(args, S_ O_ S_ III_ OOO_,
-                     &fileName, &paths, &format, 
-                     &maxFloatSize, &maxDepth, &readMode, 
-                     &dataShape, &skipTypes, &mpi4pyCom)) return NULL;
-  
-  if (skipTypes == Py_None) skipTypes = NULL;
-  if (dataShape == Py_None) dataShape = NULL;
-  PyObject* ret = NULL;
-  if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
-  else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readMode, dataShape, skipTypes, mpi4pyCom);
-  else if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "readPyTreeFromPaths: unknown file format.");
-    return NULL;
-  }
-  return ret;
-} 
-
-//=============================================================================
-// Ecrit les paths specifies dans le fichier file (ADF/HDF).
-//=============================================================================
-PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
-{
-  char* fileName; char* format; E_Int maxDepth; E_Int mode;
-  PyObject* paths; PyObject* nodeList; PyObject* links;
-  if (!PYPARSETUPLE_(args, S_ OO_ S_ II_ O_,
-                     &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links))
-    return NULL;
-  
-  if (links == Py_None) { links = NULL; }
-  
-  E_Int ret = 1;
-
-  if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
-  else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode);
-  else if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
-  if (ret == 1) return NULL; // exceptions deja levees
-
-  Py_INCREF(Py_None);
-  return Py_None;
-} 
-
-//=============================================================================
-// Delete des paths du fichier (ADF/HDF).
-//=============================================================================
-PyObject* K_CONVERTER::deletePyTreePaths(PyObject* self, PyObject* args)
-{
-  char* fileName; char* format;
-  PyObject* paths;
-  if (!PYPARSETUPLE_(args, S_ O_ S_, &fileName, &paths, &format))
-    return NULL;
-  
-  E_Int ret = 1;
-  if (K_STRING::cmp(format, "bin_cgns") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
-  else if (K_STRING::cmp(format, "bin_hdf") == 0)
-    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
-  else if (K_STRING::cmp(format, "bin_adf") == 0)
-    ret = K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
-  if (ret == 1) return NULL; // exceptions deja levees
-
-  Py_INCREF(Py_None);
-  return Py_None;
 }

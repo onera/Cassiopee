@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -200,7 +200,7 @@ void Data::displayNodes()
         }
         else if (ptrState->mode == VECTORFIELD)
         {
-          float r, g, b, offb, blend;
+          float offb, blend;
           E_Int nofield1 = ptrState->vectorField1;
           E_Int nofield2 = ptrState->vectorField2;
           E_Int nofield3 = ptrState->vectorField3;

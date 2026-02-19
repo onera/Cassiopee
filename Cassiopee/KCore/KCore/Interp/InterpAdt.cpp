@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -26,10 +26,10 @@ using namespace K_FLD;
 
 struct stackData
 {
-    K_INTERP::IntTreeNode* current;
-    E_Float xxmax, yymax, zzmax, ppmax, qqmax, rrmax;
-    E_Float xxmin, yymin, zzmin, ppmin, qqmin, rrmin;
-    E_Int coupure;
+  K_INTERP::IntTreeNode* current;
+  E_Float xxmax, yymax, zzmax, ppmax, qqmax, rrmax;
+  E_Float xxmin, yymin, zzmin, ppmin, qqmin, rrmin;
+  E_Int coupure;
 };
 
 //=============================================================================
@@ -159,7 +159,8 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         K_LOC::cart2Cyl(npts, xD, yD, zD,
                         centerX, centerY, centerZ, 
                         axisX, axisY, axisZ, 
-                        rt, thetat, ni, nj, nk, depth, thetaShift=_thetaShift);
+                        rt, thetat, 
+                        ni, nj, nk, depth, _thetaShift);
 
         /*
         E_Float thetarefmin = K_CONST::E_MAX_FLOAT;
@@ -174,10 +175,6 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         // printf(" thetamin = %g %g \n", _theta_min, _theta_max);
 
         */
-        // printf("ni=%d %d %d\n",*(E_Int*)a1,*(E_Int*)a2,*(E_Int*)a3);
-        // for (E_Int i = 0; i < npts; i++) printf("%g %g\n", thetat[i], coordZ[i]);
-        // printf("BlkInterpAdt: axis = %g %g %g\n", axisX, axisY, axisZ); fflush(stdout);        
-
         built = buildStructAdt(ni, nj, nk, coordX, coordY, coordZ);
     }
     else //non structure
@@ -189,7 +186,8 @@ K_INTERP::InterpAdt::InterpAdt(E_Int npts,
         K_LOC::cart2Cyl(npts, xD, yD, zD,
                         centerX, centerY, centerZ, 
                         axisX, axisY, axisZ, 
-                        rt, thetat, thetaShift=_thetaShift);
+                        rt, thetat,
+                        0, 0, 0, 0, _thetaShift);
 
         built = buildUnstrAdt(npts, cEV, coordX, coordY, coordZ);
     }
@@ -227,7 +225,7 @@ void K_INTERP::InterpAdt::cart2Cyl(E_Int npts, E_Float* x, E_Float* y, E_Float* 
   K_LOC::cart2Cyl(npts, x, y, z,
                   _centerX, _centerY, _centerZ, 
                   _axisX, _axisY, _axisZ, 
-                  rt, thetat, nit, njt, nkt, _thetaShift);
+                  rt, thetat, nit, njt, nkt, 0., _thetaShift);
   /*
   E_Float PI2 = 2.*K_CONST::E_PI;
 #pragma omp parallel default(shared)
@@ -286,9 +284,10 @@ E_Int K_INTERP::InterpAdt::buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
 {  
   _tree = NULL;
  
-  K_COMPGEOM::boundingBox(ni*nj*nk, x, y, z, 
-                          _xmin, _ymin, _zmin, 
-                          _xmax, _ymax, _zmax);
+  K_COMPGEOM::boundingBoxStruct(ni, nj, nk, x, y, z,
+                                _xmin, _ymin, _zmin,
+                                _xmax, _ymax, _zmax);
+
   if (nk == 1) // traitement 2D
   {
     if (K_FUNC::E_abs(_zmax-_zmin) < K_CONST::E_GEOM_CUTOFF) //cas 1 plan en k=zmin = OK
@@ -303,6 +302,7 @@ E_Int K_INTERP::InterpAdt::buildStructAdt(E_Int ni, E_Int nj, E_Int nk,
   E_Float xmax,ymax,zmax,xmin,ymin,zmin;
   E_Int ind, ind2;
   
+  // use compgeom functions instead?
   if (nk > 1)
   { 
     for (E_Int k = 0; k < nk-1; k++)
@@ -436,9 +436,11 @@ E_Int K_INTERP::InterpAdt::buildUnstrAdt(E_Int npts, FldArrayI& connect,
                                          E_Float* x, E_Float* y, E_Float* z)
 {  
   _tree = NULL;
-  K_COMPGEOM::boundingBox(npts, x, y, z, 
-                          _xmin, _ymin, _zmin, 
-                          _xmax, _ymax, _zmax);
+
+  K_COMPGEOM::boundingBoxUnstruct(npts, x, y, z,
+                                  _xmin, _ymin, _zmin,
+                                  _xmax, _ymax, _zmax);
+
   /* Insert all points (cells) in the tree */
   E_Float xmax,ymax,zmax,xmin,ymin,zmin;
   E_Int nelts = connect.getSize();
@@ -1285,7 +1287,7 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
   if (found == 0) return 0; // listOfCandidateCells vide
   
   list<E_Int>::iterator itr;
-  E_Boolean JUMP;
+  E_Bool JUMP;
   E_Int ind, i, isomm, is, js, ks;
   E_Float xi, yi, zi;
   E_Float xt[15], yt[15], zt[15];
@@ -1313,12 +1315,22 @@ short K_INTERP::InterpAdt::searchInterpolationCellStruct(
         break;
       }
       /* Apply a technique of jump */
+#ifdef E_ADOLC
+      E_Float vx = (xi+K_FUNC::E_sign(xi))*K_CONST::ONE_HALF;
+      E_Float vy = (yi+K_FUNC::E_sign(yi))*K_CONST::ONE_HALF;
+      E_Float vz = (zi+K_FUNC::E_sign(zi))*K_CONST::ONE_HALF;
+      is = K_FUNC::E_min(8, E_Int(vx.value()));
+      js = K_FUNC::E_min(8, E_Int(vy.value()));
+      ks = K_FUNC::E_min(8, E_Int(vz.value()));
+#else
       is = K_FUNC::E_min(8, E_Int((xi+K_FUNC::E_sign(xi))*K_CONST::ONE_HALF));
-      is = K_FUNC::E_max(-8, is);
       js = K_FUNC::E_min(8, E_Int((yi+K_FUNC::E_sign(yi))*K_CONST::ONE_HALF));
-      js = K_FUNC::E_max(-8, js);
       ks = K_FUNC::E_min(8, E_Int((zi+K_FUNC::E_sign(zi))*K_CONST::ONE_HALF));
+#endif
+      is = K_FUNC::E_max(-8, is);
+      js = K_FUNC::E_max(-8, js);
       ks = K_FUNC::E_max(-8, ks);
+
       ind = ind+is+js*ni+ks*nij;
 
       kc = ind/nij;
@@ -1404,6 +1416,12 @@ short K_INTERP::InterpAdt::searchInterpolationCellCartO2(E_Int ni, E_Int nj, E_I
 } 
 
 short K_INTERP::InterpAdt::searchInterpolationCellCartO3(E_Int ni, E_Int nj, E_Int nk,
+                                                         E_Float x, E_Float y, E_Float z,
+                                                         E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
+                                                         FldArrayF& cf)
+{return -1;}
+
+short K_INTERP::InterpAdt::searchInterpolationCellCartO4(E_Int ni, E_Int nj, E_Int nk,
                                                          E_Float x, E_Float y, E_Float z,
                                                          E_Int& icHO, E_Int& jcHO, E_Int& kcHO,
                                                          FldArrayF& cf)

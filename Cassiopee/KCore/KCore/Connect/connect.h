@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -159,6 +159,17 @@ namespace K_CONNECT
   /*----------------------------------*/
   /* - Connectivite element basique - */
   /*----------------------------------*/
+  // Get dimensionality of a BE/ME connectivity based on its element types
+  // Shall ultimately be moved to FldArrayI once _ngon=0 means BE/ME
+  E_Int getDimME(const char* eltType);
+  E_Int getDimME(std::vector<char*> eltTypes);
+
+  // Get the number of facets per element type of a Multiple Element
+  // connectivity. If expandToLowerDim is set to True, 'faces' of 1D and 2D
+  // elements are vertices and edges, respectively.
+  E_Int getNFPE(std::vector<E_Int>& nfpe, const char* eltType,
+                E_Bool expandToLowerDim=true);
+
   /* Get all facets of a basic element*/
   E_Int getEVFacets(std::vector<std::vector<E_Int> >& facets,
                     const char* eltType, E_Bool allow_degenerated=true);
@@ -167,14 +178,6 @@ namespace K_CONNECT
      cVE doit deja etre alloue au nombre de noeuds. */
   void connectEV2VE(K_FLD::FldArrayI& cEV,
                     std::vector< std::vector<E_Int> >& cVE);
-  /* Change a Elts-Vertex connectivity to a Vertex-Elts connectivity.
-     Le format de stockage est de type CSR : le premier vecteur donne à
-     l'indice i la position dans le deuxième tableau de l'indice du 
-     premier element contenant le sommet i.
-     nv est le nombre de sommets definissant le maillage.
-   */
-  std::pair<std::vector<E_Int>,std::vector<E_Int> > 
-  connectEV2VE(K_FLD::FldArrayI& cEV);
 
   /* Change a Elts-Vertex connectivity to a Vertex-Vertex neighbours 
      connectivity.
@@ -193,11 +196,13 @@ namespace K_CONNECT
      l'element initial. Maillages conformes.
   */
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
-                         std::vector< std::vector<E_Int> >& cEEN);
+                         std::vector<std::vector<E_Int> >& cEEN);
   E_Int connectEV2EENbrs(const char* eltType, E_Int nv, K_FLD::FldArrayI& cEV,
-                         std::vector< std::vector<E_Int> >& cEEN,
-                         std::vector< std::vector<E_Int> >& commonFace);
-    
+                         std::vector<std::vector<E_Int> >& cEEN,
+                         std::vector<std::vector<E_Int> >& commonFace);
+  // Same as connectEV2EENbrs but only returns the number of neighbours
+  E_Int connectEV2NNbrs(const char* eltType, E_Int nv, FldArrayI& cEV,
+                        std::vector<E_Int>& cENN); 
 
   /* Change un connectivite Elts-Vertex (basic elements) en une connectivite
    Faces->Vertex. L'indice des faces est global, soit : nof + nelt*nfaces
@@ -241,8 +246,12 @@ namespace K_CONNECT
      IN/OUT: cEV: connectivite elt/vertex TRI
      IN: dir: +1 ou -1
   */
-  E_Int reorderQuadTriField(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, 
-                            E_Int dir);
+  E_Int reorderUnstruct2D(K_FLD::FldArrayF& f, K_FLD::FldArrayI& cEV, E_Int dir);
+
+ /* Reorder the vertex indices of a 3D ME connectivity such that each facet
+    normal is pointing outward. */
+  E_Int reorderUnstruct3D(const char* varString, K_FLD::FldArrayF& f, 
+                          K_FLD::FldArrayI& cn, const char* eltType);
 
   /* 
      Creation de la connectivite Elements -> Noeuds
@@ -390,11 +399,7 @@ namespace K_CONNECT
      Enfin les faces sont triees dans la connectivite Elts/Faces 
   IN: noe: no de l'elt
   IN: indices: indices des sommets de l elt tries selon une boucle
-  IN: posElts, posFaces: pour acceder a l elt ou a la face directement
   IN/OUT: connectivite NGON */
-  void orderNGONElement(E_Int noe, std::vector<E_Int>& indices, 
-                        K_FLD::FldArrayI& posElts, K_FLD::FldArrayI& posFaces,
-                        K_FLD::FldArrayI& cNG);
 
   void orderNGONElement(E_Int noe, std::vector<E_Int>& indices, 
                         E_Int* ngon, E_Int* nface, E_Int* indPG,
@@ -505,8 +510,8 @@ namespace K_CONNECT
                          std::vector<E_Int>& ind);
 
   /* ngon tools */
-  E_Int check_open_cells(K_FLD::FldArrayI &cn, E_Int *is_cell_open);
-  E_Int check_overlapping_cells(K_FLD::FldArrayI &cn);
+  E_Int checkOpenCells(K_FLD::FldArrayI &cn, E_Int *isEltOpen);
+  E_Int checkOverlappingCells(K_FLD::FldArrayI &cn);
   E_Int orient_boundary_ngon(E_Float *x, E_Float *y, E_Float *z,
     K_FLD::FldArrayI &cn);
   E_Int build_parent_elements_ngon(K_FLD::FldArrayI &cn, E_Int *owner,
@@ -516,5 +521,11 @@ namespace K_CONNECT
   void build_face_neighbourhood(std::vector<E_Int> &, std::vector<E_Int> &,
     std::vector<E_Int> &);
   E_Int colorConnexParts(E_Int *, E_Int *, E_Int, E_Int *);
+
+  /* Miscellenous */
+  // Perform an exclusive prefix sum on an array that is a mask comprised solely
+  // of zeros and ones. Return the total number of ones, that is the total number
+  // of tagged elements.
+  E_Int prefixSum(std::vector<E_Int>& a);
 }
 #endif

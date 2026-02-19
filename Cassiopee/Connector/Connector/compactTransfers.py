@@ -1,13 +1,8 @@
 # - gestion du compactage et des transferts compacts -
 from . import connector
 import numpy
-
 import Converter.Internal as Internal
-
 from . import OversetData as XOD
-
-try: range = xrange
-except: pass
 
 ibm_lbm_variables_1 ='Q_'
 ibm_lbm_variables_2 ='Qstar_'
@@ -18,7 +13,7 @@ NEQ_LBM =  89
 # Mise a plat (compactage) arbre donneur au niveau de la base
 # fonctionne avec ___setInterpTransfer
 #==============================================================================
-def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=0):
+def miseAPlatDonorTree__(t, tc, graph=None, list_graph=None, nbpts_linelets=0):
     if isinstance(graph, list):
         ###########################IMPORTANT ######################################
         #test pour savoir si graph est une liste de dictionnaires (explicite local)
@@ -29,6 +24,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
     import Converter.Mpi as Cmpi
     rank = Cmpi.rank
+
+    zones = Internal.getZones(t)
 
     if graph is not None and graphliste==False:
         procDict  = graph['procDict']
@@ -70,7 +67,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     numero_min = 100000000
 
     ntab_int    = 18
-    sizefluxCons=4
+    sizefluxCons=7
 
     bases = Internal.getNodesFromType1(tc, 'CGNSBase_t')  # noeud
     c     = 0
@@ -375,6 +372,8 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
     #print("len graphIDrcv  is",len(graphIDrcv))
     #print("pos_IBC is",pos_IBC)
     #print("pos_ID  is",pos_ID)
+
+    npass_transfert=1  # valeur par defaut. Pourra valoir 2 si raccord ordre 4 ou 5
 
     param_int  = numpy.empty(size_int + len(graphIDrcv) + len(graphIBCrcv) + 2, dtype=Internal.E_NpyInt)
     param_real = numpy.empty(size_real, dtype=numpy.float64)
@@ -877,6 +876,7 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
         zd = zones[NozoneD]
         nbfluCons=0
         bcs   = Internal.getNodesFromType2(zd, 'BC_t')
+        nb_bc = len(bcs)
         no_bc = []
         for c1, bc in enumerate(bcs):
             bcname = bc[0].split('_')
@@ -884,13 +884,19 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             if 'BCFluxOctreeF' == btype and bcname[1] == zRname:
                 nbfluCons+=1
                 no_bc.append(c1)
-                param_int_zD = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+                param_int_zD  = Internal.getNodeFromName2( zd, 'Parameter_int' )[1]
+                param_real_zD = Internal.getNodeFromName2( zd, 'Parameter_real' )[1]
 
         for c2 , no in enumerate(no_bc):
             pt_bcs = param_int_zD[70]  #70=PT_BC
             pt_bc  = param_int_zD[pt_bcs + 1 + no]
             idir_bc= param_int_zD[pt_bc + 1]
             sz_bc  =(param_int_zD[pt_bc +3]-param_int_zD[pt_bc+2]+1)*(param_int_zD[pt_bc +5]-param_int_zD[pt_bc+4]+1)*(param_int_zD[pt_bc +7]-param_int_zD[pt_bc+6]+1)
+            nbdata = param_int_zD[pt_bc + 8]
+            iptsize_data = pt_bc + 9
+            ipt_data = param_int_zD[pt_bcs + 1 + no + nb_bc]
+
+            #print("nbdata: ", nbdata, "sz0", param_int_zD[iptsize_data], "sz1", param_int_zD[iptsize_data+1], "ratio",  param_real_zD[ipt_data], param_real_zD[ipt_data+2], param_real_zD[ipt_data+3])
 
             pt_flu = ptFlux + c2*sizefluxCons
             param_int[ pt_flu   ]= idir_bc
@@ -901,7 +907,11 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
             for bc in infoZoneList[zRname][1]:
                 if bc[0] == zd[0] and bc[1] == idir_bc: param_int[pt_flu+3] = bc[2]
 
-            print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3] )
+            param_int[ pt_flu +4]= int( param_real_zD[ipt_data  ] )
+            param_int[ pt_flu +5]= int( param_real_zD[ipt_data+1] )
+            param_int[ pt_flu +6]= int( param_real_zD[ipt_data+2] )
+
+            print("Flux compact: zr=", zRname, "zd=", zd[0], 'idir', idir_bc, 'sz_bc', sz_bc, 'ptbc', pt_bc, 'NobcR', param_int[pt_flu +3], 'ratioK:', param_int[ pt_flu +6] )
         #
         #Fin flux conservatif
         #
@@ -918,93 +928,96 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         #recopie dans tableau a plat + tri par type
         if len(Nbtype) == 1:
-            triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
-                        Interptype, pointlist, pointlistD, param_int,
-                        ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
-                        ptdensity,ptpressure, ptkcurv,
-                        ptvx, ptvy, ptvz,
-                        ptutau,ptyplus,
-                        pttemp_local, pttemp_extra_local,pttemp_extra2_local,
-                        pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                        pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
-                        ptgradxP, ptgradyP, ptgradzP,
-                        ptgradxU, ptgradyU, ptgradzU,
-                        ptgradxV, ptgradyV, ptgradzV,
-                        ptgradxW, ptgradyW, ptgradzW,
-                        ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
-                        ptmotion_type,
-                        pttransl_speedX,pttransl_speedY,pttransl_speedZ,
-                        ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
-                        ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
-                        ptomega,
-                        ptd1,ptd2,ptd3,ptd4,ptd5,
-                        ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
-                        ptalphasbetaline,ptindexline,
-                        xc,yc,zc,xi,yi,zi,xw,yw,zw,
-                        density,pressure, kcurv,
-                        vx, vy, vz,
-                        utau, yplus,
-                        temp_local, temp_extra_local, temp_extra2_local,
-                        wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
-                        wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
-                        gradxP, gradyP, gradzP,
-                        gradxU, gradyU, gradzU,
-                        gradxV, gradyV, gradzV,
-                        gradxW, gradyW, gradzW,
-                        xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
-                        motion_type,
-                        transl_speedX,transl_speedY,transl_speedZ,
-                        axis_pntX,axis_pntY,axis_pntZ,
-                        axis_vctX,axis_vctY,axis_vctZ,
-                        omega,
-                        sd1,sd2,sd3,sd4,sd5,
-                        yline,uline,nutildeline,psiline,matmline,matline,matpline,
-                        alphasbetaline,indexline,
-                        InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets)
+            npass = triMonoType(Nbpts_D, Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+                                Interptype, pointlist, pointlistD, param_int,
+                                ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
+                                ptdensity,ptpressure, ptkcurv,
+                                ptvx, ptvy, ptvz,
+                                ptutau,ptyplus,
+                                pttemp_local, pttemp_extra_local,pttemp_extra2_local,
+                                pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                                pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
+                                ptgradxP, ptgradyP, ptgradzP,
+                                ptgradxU, ptgradyU, ptgradzU,
+                                ptgradxV, ptgradyV, ptgradzV,
+                                ptgradxW, ptgradyW, ptgradzW,
+                                ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
+                                ptmotion_type,
+                                pttransl_speedX,pttransl_speedY,pttransl_speedZ,
+                                ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
+                                ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
+                                ptomega,
+                                ptd1,ptd2,ptd3,ptd4,ptd5,
+                                ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
+                                ptalphasbetaline,ptindexline,
+                                xc,yc,zc,xi,yi,zi,xw,yw,zw,
+                                density,pressure, kcurv,
+                                vx, vy, vz,
+                                utau, yplus,
+                                temp_local, temp_extra_local, temp_extra2_local,
+                                wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                                wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
+                                gradxP, gradyP, gradzP,
+                                gradxU, gradyU, gradzU,
+                                gradxV, gradyV, gradzV,
+                                gradxW, gradyW, gradzW,
+                                xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
+                                motion_type,
+                                transl_speedX,transl_speedY,transl_speedZ,
+                                axis_pntX,axis_pntY,axis_pntZ,
+                                axis_vctX,axis_vctY,axis_vctZ,
+                                omega,
+                                sd1,sd2,sd3,sd4,sd5,
+                                yline,uline,nutildeline,psiline,matmline,matline,matpline,
+                                alphasbetaline,indexline,
+                                InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model,nbpts_linelets)
+
         else:
-            triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
-                         Interptype, pointlist, pointlistD, param_int,
-                         ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
-                         ptdensity,ptpressure, ptkcurv,
-                         ptvx, ptvy, ptvz,
-                         ptutau,ptyplus,
-                         pttemp_local, pttemp_extra_local,pttemp_extra2_local,
-                         pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
-                         pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
-                         ptgradxP, ptgradyP, ptgradzP,
-                         ptgradxU, ptgradyU, ptgradzU,
-                         ptgradxV, ptgradyV, ptgradzV,
-                         ptgradxW, ptgradyW, ptgradzW,
-                         ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
-                         ptmotion_type,
-                         pttransl_speedX,pttransl_speedY,pttransl_speedZ,
-                         ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
-                         ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
-                         ptomega,
-                         ptd1,ptd2,ptd3,ptd4,ptd5,
-                         ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
-                         ptalphasbetaline,ptindexline,
-                         xc,yc,zc,xi,yi,zi,xw,yw,zw,
-                         density,pressure, kcurv,
-                         vx, vy, vz,
-                         utau,yplus,
-                         temp_local, temp_extra_local, temp_extra2_local,
-                         wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
-                         wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
-                         gradxP, gradyP, gradzP,
-                         gradxU, gradyU, gradzU,
-                         gradxV, gradyV, gradzV,
-                         gradxW, gradyW, gradzW,
-                         xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
-                         motion_type,
-                         transl_speedX,transl_speedY,transl_speedZ,
-                         axis_pntX,axis_pntY,axis_pntZ,
-                         axis_vctX,axis_vctY,axis_vctZ,
-                         omega,
-                         sd1,sd2,sd3,sd4,sd5,
-                         yline,uline,nutildeline,psiline,matmline,matline,matpline,
-                         alphasbetaline,indexline,
-                         InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
+            npass = triMultiType(Nbpts_D,Nbpts,Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp, ptTy,shift_typ,pt_coef,nocoef,sname,Nbtype,
+                                 Interptype, pointlist, pointlistD, param_int,
+                                 ptxc,ptyc,ptzc,ptxi,ptyi,ptzi,ptxw,ptyw,ptzw,
+                                 ptdensity,ptpressure, ptkcurv,
+                                 ptvx, ptvy, ptvz,
+                                 ptutau,ptyplus,
+                                 pttemp_local, pttemp_extra_local,pttemp_extra2_local,
+                                 pt_dens_wm_local,pt_velx_wm_local,pt_vely_wm_local,
+                                 pt_velz_wm_local,pt_temp_wm_local,pt_sanu_wm_local,
+                                 ptgradxP, ptgradyP, ptgradzP,
+                                 ptgradxU, ptgradyU, ptgradzU,
+                                 ptgradxV, ptgradyV, ptgradzV,
+                                 ptgradxW, ptgradyW, ptgradzW,
+                                 ptxcInit,ptycInit,ptzcInit,ptxiInit,ptyiInit,ptziInit,ptxwInit,ptywInit,ptzwInit,
+                                 ptmotion_type,
+                                 pttransl_speedX,pttransl_speedY,pttransl_speedZ,
+                                 ptaxis_pntX,ptaxis_pntY,ptaxis_pntZ,
+                                 ptaxis_vctX,ptaxis_vctY,ptaxis_vctZ,
+                                 ptomega,
+                                 ptd1,ptd2,ptd3,ptd4,ptd5,
+                                 ptyline,ptuline,ptnutildeline,ptpsiline,ptmatmline,ptmatline,ptmatpline,
+                                 ptalphasbetaline,ptindexline,
+                                 xc,yc,zc,xi,yi,zi,xw,yw,zw,
+                                 density,pressure, kcurv,
+                                 vx, vy, vz,
+                                 utau,yplus,
+                                 temp_local, temp_extra_local, temp_extra2_local,
+                                 wmodel_local_dens,wmodel_local_velx,wmodel_local_vely,
+                                 wmodel_local_velz,wmodel_local_temp,wmodel_local_sanu,
+                                 gradxP, gradyP, gradzP,
+                                 gradxU, gradyU, gradzU,
+                                 gradxV, gradyV, gradzV,
+                                 gradxW, gradyW, gradzW,
+                                 xcInit,ycInit,zcInit,xiInit,yiInit,ziInit,xwInit,ywInit,zwInit,
+                                 motion_type,
+                                 transl_speedX,transl_speedY,transl_speedZ,
+                                 axis_pntX,axis_pntY,axis_pntZ,
+                                 axis_vctX,axis_vctY,axis_vctZ,
+                                 omega,
+                                 sd1,sd2,sd3,sd4,sd5,
+                                 yline,uline,nutildeline,psiline,matmline,matline,matpline,
+                                 alphasbetaline,indexline,
+                                 InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model)
+
+        if npass==2: npass_transfert=2
 
         pointlist[ 1] = param_int[ lst             : lst              + Nbpts         ]    # supression numpy initial pointlist
         Interptype[1] = param_int[ ptTy + shift_typ: ptTy + shift_typ + Nbpts_D       ]    # supression numpy initial interpolantType
@@ -1219,6 +1232,10 @@ def miseAPlatDonorTree__(zones, tc, graph=None, list_graph=None, nbpts_linelets=
 
         c += 1
 
+    tmp       = Internal.getNodeFromName1(t, '.Solver#ownData')
+    dtloc     = Internal.getNodeFromName1(tmp, '.Solver#dtloc')
+    if dtloc is not None: dtloc[1][12] = npass_transfert
+
     return None
 
 #==============================================================================
@@ -1267,6 +1284,9 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
                  yline,uline,nutildeline,psiline,matmline,matline,matpline,
                  alphasbetaline,indexline,
                  InterpD,param_real,ptqloc_1,qloc_1,ptqloc_2,qloc_2,ptqloc_3,qloc_3,neq_loc,model):
+
+    npass_transfert = 1
+
     for ntype in Nbtype:
         noi_old   = 0
         nocoef_old= 0
@@ -1276,10 +1296,16 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
             if meshtype == 1:
                 if ltype == 1: sizecoef=1
                 elif ltype == 2: sizecoef=8
+                elif ltype ==44:
+                    sizecoef        =12
+                    npass_transfert = 2
                 elif ltype == 3: sizecoef=9
-                elif ltype == 4: sizecoef=8
-                elif ltype == 5: sizecoef=15
+                elif ltype == 5:
+                    sizecoef        =15
+                    npass_transfert = 2
                 elif ltype == 22: sizecoef=4
+                elif ltype == 4: sizecoef=8
+
             else:
                 if ltype == 1: sizecoef=1
                 elif ltype == 4: sizecoef=4
@@ -1442,8 +1468,8 @@ def triMultiType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,
         param_int[ ptTy + ctyp +1 ] = l
         ctyp                        = ctyp +1
 
+    return npass_transfert
 
-    return None
 #==============================================================================
 # tri monotype
 #==============================================================================
@@ -1496,6 +1522,9 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
     nocoef_old= 0
     l         = 0
     ltype     = Interptype[1][0]
+
+    npass_transfert = 1
+    if ltype ==44 or ltype == 5: npass_transfert = 2
 
     #recopieinterpolantType
     ideb =  ptTy + shift_typ
@@ -1637,7 +1666,7 @@ def triMonoType(Nbpts_D, Nbpts, Nbpts_InterpD, meshtype, noi, lst,lstD,l0,ctyp,p
 
     param_int[ ptTy + ctyp +1 ] = Nbpts_D
 
-    return None
+    return npass_transfert
 
 #==============================================================================
 # Mise a plat (compactage) arbre donneur au niveau de la zone donneuse

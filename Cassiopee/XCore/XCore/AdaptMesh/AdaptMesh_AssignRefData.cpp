@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -37,8 +37,9 @@ PyObject *K_XCORE::AdaptMesh_AssignRefData(PyObject *self, PyObject *args)
 
     E_Int *ptr = NULL;
     E_Int ret, nfld, size;
-    ret = K_NUMPY::getFromNumpyArray(CREF, ptr, size, nfld, true);
-    if (ret != 1 || size != M->nc || nfld != 1) {
+    ret = K_NUMPY::getFromNumpyArray(CREF, ptr, size, nfld);
+    if (ret != 1 || size != M->nc || nfld != 1) 
+    {
         RAISE("Bad cref input.");
         return NULL;
     }

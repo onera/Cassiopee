@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -27,90 +27,6 @@
 using namespace std;
 using namespace K_FLD;
 
-extern "C"
-{
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
-                       E_Int& nnodes, E_Int* cn, 
-                       E_Float* coordx, E_Float* coordy, E_Float* coordz,
-                       E_Float* snx, E_Float* sny, E_Float* snz,
-                       E_Float* surface);
-
-  void k6unstructsurf1d_(E_Int& npts, E_Int& nelts, 
-                         E_Int& nnodes, E_Int* cn, 
-                         E_Float* coordx, E_Float* coordy, E_Float* coordz, 
-                         E_Float* length);
-  void k6integmomentstruct_(const E_Int& ni, const E_Int& nj,
-                            const E_Float& cx, const E_Float& cy, 
-                            const E_Float& cz, E_Float* ratio, 
-                            E_Float* xt, E_Float* yt, E_Float* zt, 
-                            E_Float* surf, E_Float* vx, E_Float* vy, 
-                            E_Float* vz, E_Float* result);
-
-  void k6integmomentstruct1d_(const E_Int& ni, const E_Float& cx, 
-                              const E_Float& cy, const E_Float& cz, 
-                              E_Float* ratio, E_Float* xt, E_Float* yt, 
-                              E_Float* zt, E_Float* length, E_Float* vx, 
-                              E_Float* vy, E_Float* vz, E_Float* result);
-
-  void k6integmomentstructnodecenter_(const E_Int& ni, const E_Int& nj,
-                                      const E_Float& cx, const E_Float& cy, 
-                                      const E_Float& cz, E_Float* ratio, 
-                                      E_Float* xt, E_Float* yt, E_Float* zt, 
-                                      E_Float* surf, E_Float* vx, 
-                                      E_Float* vy, E_Float* vz,
-                                      E_Float* result);
-
-  void k6integmomentstructnodecenter1d_(const E_Int& ni, const E_Float& cx, 
-                                        const E_Float& cy, const E_Float& cz,
-                                        E_Float* ratio, E_Float* xt, 
-                                        E_Float* yt, E_Float* zt,
-                                        E_Float* length, E_Float* vx, 
-                                        E_Float* vy, E_Float* vz, 
-                                        E_Float* result);
-  
-  void k6integmomentunstruct_(const E_Int& nbt, const E_Int& size, E_Int* cn,
-                              const E_Float& cx, const E_Float& cy, 
-                              const E_Float& cz, E_Float* ratio, 
-                              E_Float* xt, E_Float* yt, E_Float* zt,
-                              E_Float* surf, E_Float* vx, E_Float* vy, 
-                              E_Float* vz, E_Float* result);
-
-  void k6integmomentunstruct1d_(const E_Int& nbt, const E_Int& size, 
-                                E_Int* cn, const E_Float& cx, 
-                                const E_Float& cy, const E_Float& cz,
-                                E_Float* ratio, E_Float* xt, E_Float* yt, 
-                                E_Float* zt, E_Float* length,
-                                E_Float* vx, E_Float* vy, 
-                                E_Float* vz, E_Float* result);
-
-  void k6integmomentunsnodecenter_(const E_Int& nbt, const E_Int& size, 
-                                   E_Int* cn, const E_Float& cx, 
-                                   const E_Float& cy, const E_Float& cz,
-                                   E_Float* ratio, 
-                                   E_Float* xt, E_Float* yt, E_Float* zt,
-                                   E_Float* surf, E_Float* vx, E_Float* vy, 
-                                   E_Float* vz, E_Float* result);
-
-  void k6integmomentunsnodecenter1d_(const E_Int& nbt, const E_Int& size, 
-                                     E_Int* cn, const E_Float& cx, 
-                                     const E_Float& cy, const E_Float& cz,
-                                     E_Float* ratio, 
-                                     E_Float* xt, E_Float* yt, E_Float* zt,
-                                     E_Float* surf,
-                                     E_Float* vx, E_Float* vy, E_Float* vz,
-                                     E_Float* result);
-}
 //=============================================================================
 /* Calcul une integrale du moment (OM^F) */
 // ============================================================================
@@ -123,7 +39,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOO_ TRRR_,
                     &coordArrays, &FArrays, &ratioArrays, &cx, &cy, &cz))
   {
-      return NULL;
+    return NULL;
   }
   
   // Check every array in listFields
@@ -183,7 +99,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   E_Int nFld = -1;
   E_Int center2node = 2; // set to 1 if coord is in nodes and F in centers
                          // set to 0 if coord and F have the same size
-  E_Int case1D;          // set to 1 if linear integration
+  E_Int case1D=0;        // set to 1 if linear integration
 
 
   char* eltTypec; FldArrayI* cnc;
@@ -196,12 +112,12 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   FldArrayF resultat;
   E_Int res = -1;
 
-  for (int i = 0; i < nCoordArrays; i++)
+  for (E_Int i = 0; i < nCoordArrays; i++)
   {
     coordObj = PyList_GetItem(coordArrays,i);
     FObj = PyList_GetItem(FArrays,i);
-    resc = K_ARRAY::getFromArray(coordObj, varStringc, 
-                                 fc, nic, njc, nkc, cnc, eltTypec); 
+    resc = K_ARRAY::getFromArray3(coordObj, varStringc, 
+                                  fc, nic, njc, nkc, cnc, eltTypec); 
     
     if (resc != 1 && resc != 2)
     {
@@ -216,17 +132,17 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1)
     {
       printf("Warning: integMoment: coordinates not found in array %d. Array skipped...\n",i+1);
-      delete fc; if (resc == 2) delete cnc;
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next; 
     }
     posx++; posy++; posz++;
 
-    resf = K_ARRAY::getFromArray(FObj, varStringf, ff, nif, njf, nkf, 
-                                 cnf, eltTypef); 
+    resf = K_ARRAY::getFromArray3(FObj, varStringf, ff, nif, njf, nkf, 
+                                  cnf, eltTypef); 
     if (resf != 1 && resf != 2)
     {
-      delete ff; delete fc;
-      if (resc == 2) delete cnc;
+      RELEASESHAREDS(FObj, ff);
+      RELEASESHAREDB(resc, coordObj, fc, cnc);
       PyErr_SetString(PyExc_TypeError, 
                       "integMoment: field is not a valid array.");
       return NULL;
@@ -238,8 +154,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       if (ff->getNfld() != 3)
       {
         printf("Warning: integMoment: field must be a vector.\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       strcpy(varString0, varStringf);
@@ -253,8 +169,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       {
         printf("Warning: integMoment: invalid number of variables for field array %d.", i+1);
         printf(" Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       // check is variables are ordered in the same way
@@ -262,8 +178,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       if (ids == -1) // varstrings are different
       {
         printf("Warning: integMoment: variables are in a different order to the first array. Array skipped...\n");
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
     }
@@ -275,8 +191,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       if (nic > 1 && njc > 1 && nkc > 1)
       {
         printf("Warning: integMoment: 3D arrays not valid. Array %d skipped...\n",i+1);
-        delete ff; if (resf == 2) delete cnf;
-        delete fc; if (resc == 2) delete cnc;
+        RELEASESHAREDB(resc, coordObj, fc, cnc);
+        RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
       }
       
@@ -290,10 +206,8 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       // coord et F de meme taille ?
       if (nic == nif && njc == njf && nkc == nkf)
         center2node = 0;
-      
       else if (nic == nif+1 && njc == njf+1 && nkc == nkf+1)
         center2node = 1;
-      
       else
       {
         if ((nic == 1 && njc == njf+1 && nkc == nkf+1) || 
@@ -306,9 +220,10 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
           center2node = 1;
         else 
         {
-          printf("Warning : integMoment : coord and field arrays do not represent the same zone.");
+          printf("Warning: integMoment: coord and field arrays do not represent the same zone.");
           printf("Array skipped...\n");
-          delete ff; delete fc;
+          RELEASESHAREDS(FObj, ff);
+          RELEASESHAREDS(coordObj, ff);
           goto next;
         }
       }
@@ -321,11 +236,11 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       else // coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
-          ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
+        resr = K_ARRAY::getFromArray3(ratioObj, varStringr, ratio, 
+                                      nir, njr, nkr, cnr, eltTyper); 
         if (resr != 1)
         {
-          if ( resr == 2 ) {delete ratio; delete cnr;}
+          RELEASESHAREDB(resr, ratioObj, ratio, cnr);
           printf("Warning: integMoment: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -333,43 +248,58 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       }
       // integ sur chaque bloc
       res = 0;
-      switch (case1D) 
-      {
-        case 1:
-          res = integ41D(nic, njc, nkc, center2node, 
-                         posx, posy, posz, cx, cy, cz, 
-                         *fc, *ff, *ratio, resultat);
-          break;
-        default:
-          res = integ4(nic, njc, nkc, center2node, 
-                       posx, posy, posz, cx, cy, cz,
-                       *fc, *ff, *ratio, resultat);
-          break;
-      }
+
+      if (case1D == 1)
+          res = integMomentStruct1D(nic, njc, nkc, center2node,
+                                    posx, posy, posz, cx, cy, cz,
+                                    *fc, *ff, *ratio, resultat);
+      else
+          res = integMomentStruct2D(nic, njc, nkc, center2node, 
+                                    posx, posy, posz, cx, cy, cz,
+                                    *fc, *ff, *ratio, resultat);
+
       if (res == 0) 
       {
-        delete ff; delete fc; delete ratio;
+        RELEASESHAREDS(coordObj, fc);
+        RELEASESHAREDS(FObj, ff);
+        if (nRatioArrays == 0 || resr != 1) delete ratio;
+        else RELEASESHAREDS(ratioObj, ratio);
         PyErr_SetString(PyExc_ValueError,
                         "integMoment: integration computation fails.");
         return NULL;
       }    
-      delete ff; delete fc; delete ratio;
+      RELEASESHAREDS(coordObj, fc);
+      RELEASESHAREDS(FObj, ff);
+      if (nRatioArrays == 0 || resr != 1) delete ratio;
+      else RELEASESHAREDS(ratioObj, ratio);
     }
-    
-    else if (resc == 2 && resf == 2) // cas non structure
+    else if (resc == 2 && resf == 2) // ME
     {
-      if ((strcmp(eltTypec, "TRI") == 0 && strcmp(eltTypef, "TRI") == 0) || 
-          (strcmp(eltTypec, "BAR") == 0 && strcmp(eltTypef, "BAR") == 0))
-        center2node = 0;
-      else if ((strcmp(eltTypec, "TRI") == 0 && strcmp(eltTypef, "TRI*") == 0) || 
-               (strcmp(eltTypec, "BAR") == 0 && strcmp(eltTypef, "BAR*") == 0))
-        center2node = 1;
-      else
+      // check if field is cell or node centered
+      E_Int l = strlen(eltTypef);
+      if (eltTypef[l-1] == '*') center2node = 1;
+      else center2node = 0;
+
+      res = 1;
+      std::vector<char*> eltTypecs, eltTypefs;
+      K_ARRAY::extractVars(eltTypec, eltTypecs);
+
+      // check if elt is valid (BAR, QUAD, TRI)
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++)
       {
-        delete fc; delete cnc;
-        delete ff; delete cnf;
+        if (strcmp(eltTypecs[ic], "BAR") == 0) case1D = 1;
+        else if ((strcmp(eltTypecs[ic], "QUAD") == 0) || (strcmp(eltTypecs[ic], "TRI") == 0)) case1D = 0;
+        else res = 0;
+      }
+
+      for (size_t ic = 0; ic < eltTypecs.size(); ic++) delete [] eltTypecs[ic];
+
+      if (res == 0)
+      {
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
         PyErr_SetString(PyExc_ValueError, 
-                        "integMoment: only TRI or BAR unstructured arrays are possible.");
+                        "integMoment: only TRI, QUAD, or BAR unstructured arrays are possible.");
         return NULL;
       }
       
@@ -384,11 +314,11 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       else //coord + F + r
       {
         ratioObj = PyList_GetItem(ratioArrays, i);
-        resr = K_ARRAY::getFromArray(
+        resr = K_ARRAY::getFromArray3(
           ratioObj, varStringr, ratio, nir, njr, nkr, cnr, eltTyper); 
         if (resr != 2)
         {
-          if (resr == 1) delete ratio;
+          if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
           printf("Warning: integMoment: ratio %d is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
@@ -397,23 +327,28 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
 
       // integ sur chaque bloc
       res = 0;
-      if (strcmp(eltTypec, "TRI") == 0)
-        res = integUnstruct4(center2node, posx, posy, posz, cx, cy, cz, 
-                             *cnc, *fc, *ff, *ratio, resultat); 
+
+      if (case1D == 1)
+        res = integMomentUnstruct1D(center2node, posx, posy, posz, cx, cy, cz, 
+                                    *cnc, eltTypec, *fc, *ff, *ratio, resultat); 
       else
-        res = integUnstruct41D(center2node, posx, posy, posz, cx, cy, cz, 
-                               *cnc, *fc, *ff, *ratio, resultat);
+        res = integMomentUnstruct2D(center2node, posx, posy, posz, cx, cy, cz, 
+                                    *cnc, eltTypec, *fc, *ff, *ratio, resultat);
         
       if (res == 0)
       {
-        delete ff; delete fc; delete cnf; delete cnc;
-        delete ratio; if (resr == 2) delete cnr;
+        RELEASESHAREDU(coordObj, fc, cnc);
+        RELEASESHAREDU(FObj, ff, cnf);
+        if (nRatioArrays == 0 || resr != 2) delete ratio;
+        else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
         PyErr_SetString(PyExc_ValueError,
                         "integMoment: integration computation fails.");
         return NULL;
       }
-      delete ff; delete fc; delete cnf; delete cnc; delete ratio; 
-      if (resr == 2) delete cnr;
+      RELEASESHAREDU(coordObj, fc, cnc);
+      RELEASESHAREDU(FObj, ff, cnf);
+      if (nRatioArrays == 0 || resr != 2) delete ratio;
+      else RELEASESHAREDB(resr, ratioObj, ratio, cnr);
     }
     else
     {
@@ -423,6 +358,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
     }
     next:;
   }
+  
   if (res == -1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -433,243 +369,10 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
   PyObject* tpl;
   PyObject* l = PyList_New(0);
 
-#ifdef E_DOUBLEREAL  
   for (E_Int i = 0; i < nFld; i++)
   {
-    tpl = Py_BuildValue("d", resultat[i]);
+    tpl = Py_BuildValue(R_, resultat[i]);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
-#else
-  for (E_Int i = 0; i < dim; i++)
-  {
-    tpl = Py_BuildValue("f", resultat[i]);
-    PyList_Append(l, tpl); Py_DECREF(tpl);
-  }
-#endif  
-
   return l;
 }
-
-//=============================================================================
-// Integre "surfaciquement" les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ4(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                     E_Int center2node, 
-                     E_Int posx, E_Int posy, E_Int posz,
-                     E_Float cx, E_Float cy, E_Float cz, 
-                     FldArrayF& coordBlk, 
-                     FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                     FldArrayF& resultat)
-{
-  E_Int NI, NJ;
-  FldArrayF res(3);
-  
-  if (nkBlk == 1)
-  { NI = niBlk; NJ = njBlk; }
-  else if (njBlk == 1)
-  { NI = niBlk; NJ = nkBlk; }
-  else if (niBlk == 1)
-  { NI = njBlk; NJ = nkBlk; }
-  else return 0;
-  
-  E_Int ncells = (NI-1)*(NJ-1);
-  FldArrayF surfBlk(ncells);
-  
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6structsurft_(NI, NJ, 1, ncells, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), surfBlk.begin());
-
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integmomentstructnodecenter_(NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-                                   coordBlk.begin(posx), coordBlk.begin(posy),
-                                   coordBlk.begin(posz), surfBlk.begin(), 
-                                   FBlk.begin(1),FBlk.begin(2),FBlk.begin(3), 
-                                   res.begin());
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    k6integmomentstruct_(NI, NJ, cx, cy, cz, ratioBlk.begin(), 
-                         coordBlk.begin(posx), coordBlk.begin(posy),
-                         coordBlk.begin(posz), surfBlk.begin(), 
-                         FBlk.begin(1), FBlk.begin(2), FBlk.begin(3), 
-                         res.begin());
-  }
-  
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];   
-  return 1;
-}
-//=============================================================================
-// Integre "lineairement" les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integ41D(E_Int niBlk, E_Int njBlk, E_Int nkBlk, 
-                       E_Int center2node, 
-                       E_Int posx, E_Int posy, E_Int posz,
-                       E_Float cx, E_Float cy, E_Float cz, 
-                       FldArrayF& coordBlk, 
-                       FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                       FldArrayF& resultat)
-{
-  E_Int NI, NJ, NK;
-  FldArrayF res(3);
-  resultat.setAllValuesAtNull();
-
-  if (nkBlk == 1 && njBlk == 1)
-  { NI = niBlk; NJ = njBlk; NK = nkBlk; }
-  else if (njBlk == 1 && niBlk == 1)
-  { NI = nkBlk; NJ = njBlk; NK = niBlk; }
-  else if (niBlk == 1 && nkBlk == 1)
-  { NI = njBlk; NJ = niBlk; NK = nkBlk; }
-  else return 0;
-  
-  FldArrayF lengthBlk(NI-1);
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  k6structsurf1dt_(NI, NJ, NK, coordBlk.begin(posx), coordBlk.begin(posy), coordBlk.begin(posz), lengthBlk.begin());
-  
-  if (center2node == 1)
-  {
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-    k6integmomentstructnodecenter1d_(NI, cx, cy, cz, ratioBlk.begin(), 
-                                     coordBlk.begin(posx), 
-                                     coordBlk.begin(posy), 
-                                     coordBlk.begin(posz), 
-                                     lengthBlk.begin(), FBlk.begin(1), 
-                                     FBlk.begin(2), FBlk.begin(3), 
-                                     res.begin());
-  }
-  else
-  {
-    // Compute integral, coordinates and field have the same size
-    k6integmomentstruct1d_(NI, cx, cy, cz, ratioBlk.begin(),
-                           coordBlk.begin(posx), coordBlk.begin(posy),
-                           coordBlk.begin(posz), lengthBlk.begin(),
-                           FBlk.begin(1), FBlk.begin(2), FBlk.begin(3),
-                           res.begin());
-  }
-  
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];
-  
-  return 1;
-}
-  
-  
-//=============================================================================
-// Integre les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct4(E_Int center2node,
-                             E_Int posx, E_Int posy, E_Int posz,
-                             E_Float cx, E_Float cy, E_Float cz, 
-                             FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                             FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                             FldArrayF& resultat)
-{
-  FldArrayF res(3);
-  
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF surfBlk(nbT);
-
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 3;
-  E_Int nedges = 1;
-  FldArrayF snx(nbT); // normale a la surface  
-  FldArrayF sny(nbT);
-  FldArrayF snz(nbT);
-  k6unstructsurf_(size, nbT, nedges, nnodes, cnBlk.begin(),
-                  coordBlk.begin(posx), coordBlk.begin(posy), 
-                  coordBlk.begin(posz),
-                  snx.begin(), sny.begin(), snz.begin(), 
-                  surfBlk.begin());
-
-  switch (center2node)
-  {
-    case 1:
-    // Compute integral, coordinates defined in node 
-    // and field FBlk in center 
-      k6integmomentunsnodecenter_(nbT, size, cnBlk.begin(), cx, cy, cz, 
-                                  ratioBlk.begin(), coordBlk.begin(posx), 
-                                  coordBlk.begin(posy),coordBlk.begin(posz),
-                                  surfBlk.begin(), FBlk.begin(1), 
-                                  FBlk.begin(2), FBlk.begin(3), res.begin());
-      break;
-
-    default:
-      // Compute integral, coordinates and field have the same size
-      k6integmomentunstruct_(nbT, size, cnBlk.begin(), cx, cy, cz, 
-                             ratioBlk.begin(), coordBlk.begin(posx),
-                             coordBlk.begin(posy), coordBlk.begin(posz),
-                             surfBlk.begin(), FBlk.begin(1), FBlk.begin(2),
-                             FBlk.begin(3), res.begin());
-      break;
-  }
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];
-   
-  return 1;
-}
-//=============================================================================
-// Integre les grandeurs de M = OM^F
-// Retourne 1 si success, 0 si echec
-//=============================================================================
-E_Int K_POST::integUnstruct41D(E_Int center2node,
-                               E_Int posx, E_Int posy, E_Int posz,
-                               E_Float cx, E_Float cy, E_Float cz, 
-                               FldArrayI& cnBlk, FldArrayF& coordBlk, 
-                               FldArrayF& FBlk, FldArrayF& ratioBlk, 
-                               FldArrayF& resultat)
-{
-  FldArrayF res(3);
-  
-  E_Int size = coordBlk.getSize();
-  E_Int nbT = cnBlk.getSize();
-  FldArrayF lengthBlk(nbT);
-
-  // Compute surface of each "block" i cell, with coordinates coordBlk
-  E_Int nnodes = 2;
-  k6unstructsurf1d_(size, nbT, nnodes, cnBlk.begin(),
-                    coordBlk.begin(posx), coordBlk.begin(posy), 
-                    coordBlk.begin(posz), lengthBlk.begin());
- 
-  switch (center2node) 
-  { 
-    case 1:
-      // Compute integral, coordinates defined in node 
-      // and field FBlk in center 
-      k6integmomentunsnodecenter1d_(
-        nbT, size, cnBlk.begin(), cx, cy, cz, 
-        ratioBlk.begin(), coordBlk.begin(posx),
-        coordBlk.begin(posy), coordBlk.begin(posz), 
-        lengthBlk.begin(), FBlk.begin(1),
-        FBlk.begin(2), FBlk.begin(3),
-        res.begin());
-      break;
-    default:
-      // Compute integral, coordinates and field have the same size
-      k6integmomentunstruct1d_(
-        nbT, size, cnBlk.begin(), cx, cy, cz, 
-        ratioBlk.begin(), coordBlk.begin(posx),
-        coordBlk.begin(posy), coordBlk.begin(posz), 
-        lengthBlk.begin(), FBlk.begin(1), FBlk.begin(2),
-        FBlk.begin(3), res.begin());
-      break;
-  }
-
-  resultat[0] += res[0];
-  resultat[1] += res[1];
-  resultat[2] += res[2];   
-
-  return 1;
-}
-  
-  

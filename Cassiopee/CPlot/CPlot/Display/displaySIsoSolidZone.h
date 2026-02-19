@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -104,8 +104,10 @@
   deltai = 1./deltai;
 
   // Colormap
+  #ifndef __SHADERS__
   void (*getrgb)(Data* data, double, float*, float*, float*);
   getrgb = _pref.colorMap->f;
+  #endif
 
   // Grid dimensions
   E_Int ni = zonep->ni;

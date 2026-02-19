@@ -33,11 +33,11 @@ C.convertArrays2File([cart4], LOCAL+'/out3.tp', 'fmt_tp',
 test.testF(LOCAL+'/out3.tp', 22)
 
 # bin_v3d
-C.convertArrays2File([cart1], LOCAL+'/outbe.v3d', 'bin_v3d')
+C.convertArrays2File([cart1], LOCAL+'/outbe.v3d', 'bin_v3d', isize=4)
 test.testF(LOCAL+'/outbe.v3d', 3)
 
 # bin_v3d little endian
-C.convertArrays2File([cart1], LOCAL+'/outle.v3d', 'bin_v3d', endian='little')
+C.convertArrays2File([cart1], LOCAL+'/outle.v3d', 'bin_v3d', isize=4, endian='little')
 test.testF(LOCAL+'/outle.v3d', 31)
 
 # fmt_v3d
@@ -45,11 +45,11 @@ C.convertArrays2File([cart1], LOCAL+'/out.dat', 'fmt_v3d', dataFormat='%16.9e')
 test.testF(LOCAL+'/out.dat', 4)
 
 # bin_plot3d big endian
-C.convertArrays2File([cart1], LOCAL+'/outbe.dat', 'bin_plot3d')
+C.convertArrays2File([cart1], LOCAL+'/outbe.dat', 'bin_plot3d', isize=4)
 test.testF(LOCAL+'/outbe.dat.gbin', 5)
 
 # bin_plot3d little endian
-C.convertArrays2File([cart1], LOCAL+'/outle.dat', 'bin_plot3d', endian='little')
+C.convertArrays2File([cart1], LOCAL+'/outle.dat', 'bin_plot3d', endian='little', isize=4)
 test.testF(LOCAL+'/outle.dat.gbin', 51)
 
 # fmt_pov

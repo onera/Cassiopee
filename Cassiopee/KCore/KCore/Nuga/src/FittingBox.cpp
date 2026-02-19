@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -117,8 +117,8 @@ FittingBox::computeOptimalViewFrame
   // Rotation around x-axis
   R(0,0) = R(1,0) = R(2,1) = R(2,2) = 0.;
   R(2,0) = 1.;
-  R(0, 1) = R(1, 2) = ::cos(alpha);
-  R(1, 1) = ::sin(alpha);
+  R(0, 1) = R(1, 2) = cos(alpha);
+  R(1, 1) = sin(alpha);
   R(0, 2) = - R(1, 1);
   err = __computeOptimalViewFrame(posE2, connectE2, W, R, P); // Try rotating aound X-axis
   if (err)
@@ -126,8 +126,8 @@ FittingBox::computeOptimalViewFrame
     // Rotation around y-axis
     R(0,1) = R(1,1) = R(2,0) = R(2,2) = 0.;
     R(2,1) = 1.;
-    R(0, 0) = R(1, 2) = ::cos(alpha);
-    R(1, 0) = ::sin(alpha);
+    R(0, 0) = R(1, 2) = cos(alpha);
+    R(1, 0) = sin(alpha);
     R(0, 2) = - R(1, 0);
     err = __computeOptimalViewFrame(posE2, connectE2, W, R, P); // Try rotating around y-axis
   }
@@ -226,8 +226,8 @@ FittingBox::__fitByRotating
 
   best_R(0,0) = best_R(1,1) = best_R(2,2) = 1.0; // Identity matrix.
   R(2,2) = 1.;                                   // alpha-rotation matrix.
-  R(0,0) = R(1,1) = ::cos(alpha);
-  R(1,0) = ::sin(alpha);
+  R(0,0) = R(1,1) = cos(alpha);
+  R(1,0) = sin(alpha);
   R(0,1) = - R(1,0);
 
   /* Find out the reducing direction. */
@@ -245,8 +245,8 @@ FittingBox::__fitByRotating
     a = sign * alpha * i;
 
     // Rotation matrix.
-    R(0,0) = R(1,1) = ::cos(a);
-    R(1,0) = ::sin(a);
+    R(0,0) = R(1,1) = cos(a);
+    R(1,0) = sin(a);
     R(0,1) = - R(1,0);
 
     // Rotate

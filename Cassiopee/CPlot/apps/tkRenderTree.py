@@ -1,7 +1,6 @@
 # - tkRenderTree -
 # Add global rendering options to tree
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -89,8 +88,7 @@ def addTextureFile(event=None):
 
 #==============================================================================
 def chooseFile():
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     import os.path
     init = VARS[0].get()
     init = init.split(';')[0]

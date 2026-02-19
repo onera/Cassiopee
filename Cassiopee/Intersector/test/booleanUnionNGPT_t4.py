@@ -10,8 +10,8 @@ import KCore.test         as test
 h1 = G.cartHexa((0.,0.,0.), (1.,1.,1.), (13,12,7))
 h2 = G.cartHexa((2.,1.,-0.5), (0.5,0.5,0.5), (23,17,33))
 
-h1 = C.convertArray2NGon(h1); h1 = G.close(h1)
-h2 = C.convertArray2NGon(h2); h2 = G.close(h2)
+h1 = C.convertArray2NGon(h1)
+h2 = C.convertArray2NGon(h2)
 
 # BCs
 subz = G.cartNGon( (0,0,0), (1,1,1), (13,12,1) )

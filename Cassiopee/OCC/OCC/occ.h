@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -20,9 +20,22 @@
 #define _OCC_OCC_H_
 
 #include "kcore.h"
+#include "packet.h"
+
+#include "TopoDS_Shape.hxx"
+#include "TDocStd_Document.hxx"
+#include <map>
+
+// if defined, use XCAF instead of single topShape
+//#define USEXCAF
 
 namespace K_OCC
 {
+  TopoDS_Shape* copyOCAF2TopShape(TDocStd_Document& doc);
+  void addShape2OCAF(TopoDS_Shape& shape, char* labelName, TDocStd_Document& doc);
+  void getLabel2Faces(TDocStd_Document& doc, std::map< E_Int, std::vector<E_Int> >& label2Faces);
+  void copyTopShape2OCAF(TopoDS_Shape& topShape, std::map< E_Int, std::vector<E_Int> >& label2Faces, TDocStd_Document& doc);
+
   PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
   PyObject* convertCAD2Arrays2(PyObject* self, PyObject* args); // with T3Mesher
@@ -31,6 +44,7 @@ namespace K_OCC
   PyObject* writeCAD(PyObject* self, PyObject* args);
   PyObject* createEmptyCAD(PyObject* self, PyObject* args);
   PyObject* mergeCAD(PyObject* self, PyObject* args);
+  PyObject* _mergeCAD(PyObject* self, PyObject* args);
   PyObject* freeHook(PyObject* self, PyObject* args);
 
   PyObject* printOCAF(PyObject* self, PyObject* args);
@@ -41,9 +55,20 @@ namespace K_OCC
 
   PyObject* bottle(PyObject* self, PyObject* args);
   PyObject* addSphere(PyObject* self, PyObject* args);
-  PyObject* addSquare(PyObject* self, PyObject* args);
   PyObject* addCylinder(PyObject* self, PyObject* args);
   PyObject* addBox(PyObject* self, PyObject* args);
+  PyObject* addBox2(PyObject* self, PyObject* args);
+  PyObject* addSquare(PyObject* self, PyObject* args);
+  PyObject* addSquare2(PyObject* self, PyObject* args);
+  PyObject* addLine(PyObject* self, PyObject* args);
+  PyObject* addCircle(PyObject* self, PyObject* args);
+  PyObject* addEllipse(PyObject* self, PyObject* args);
+  PyObject* addSpline(PyObject* self, PyObject* args);
+  PyObject* addArc(PyObject* self, PyObject* args);
+  PyObject* addSuperEllipse(PyObject* self, PyObject* args);
+  
+  PyObject* addSplineSurface(PyObject* self, PyObject* args);
+  PyObject* addGordonSurface(PyObject* self, PyObject* args);
   
   PyObject* getNbFaces(PyObject* self, PyObject* args);
   PyObject* getNbEdges(PyObject* self, PyObject* args);
@@ -67,27 +92,40 @@ namespace K_OCC
   PyObject* updateNcadidFromFcadid(PyObject* self, PyObject* args);
   PyObject* getNodalParameters(PyObject* self, PyObject* args);
   PyObject* trimesh(PyObject* self, PyObject* args);
+  PyObject* occmesh(PyObject* self, PyObject* args);
 
   PyObject* meshOneEdge(PyObject* self, PyObject* args);
   PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
 
   PyObject* analyseEdges(PyObject* self, PyObject* args);
   PyObject* getFaceArea(PyObject* self, PyObject* args);
+  PyObject* getBoundingBox(PyObject* self, PyObject* args);
   PyObject* getFaceOrientation(PyObject* self, PyObject* args);
   PyObject* areEdgeIdentical(PyObject* self, PyObject* args);
 
   PyObject* splitFaces(PyObject* self, PyObject* args);
-  PyObject* fixShape(PyObject* self, PyObject* args);
-  PyObject* trimFaces(PyObject* self, PyObject* args);
-  PyObject* sewing(PyObject* self, PyObject* args);
+  PyObject* splitEdge(PyObject* self, PyObject* args);
+  PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* mergeEdges(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
+  
+  PyObject* fixShape(PyObject* self, PyObject* args);
+  PyObject* sewing(PyObject* self, PyObject* args);
   PyObject* fillHole(PyObject* self, PyObject* args);
   PyObject* addFillet(PyObject* self, PyObject* args);
-  PyObject* mergeFaces(PyObject* self, PyObject* args);
+  PyObject* offset(PyObject* self, PyObject* args);
+  
+  PyObject* loft(PyObject* self, PyObject* args);
+  PyObject* sweep(PyObject* self, PyObject* args);
+  PyObject* revolve(PyObject* self, PyObject* args);
 
   PyObject* translate(PyObject* self, PyObject* args);
   PyObject* scale(PyObject* self, PyObject* args);
   PyObject* rotate(PyObject* self, PyObject* args);
+
+  PyObject* intersectEdgeFace(PyObject* self, PyObject* args);
+  PyObject* trimFaces(PyObject* self, PyObject* args);
+  PyObject* boolean(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);

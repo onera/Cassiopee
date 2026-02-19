@@ -9,10 +9,13 @@ docs/doc/*.pdf
 docs/Download
 Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l
+Cassiopee/Modeler/merge.l
 Cassiopee/KCore/buildInfo.py
 Cassiopee/KCore/installPath.py
+Cassiopee/KCore/installBaseUser.py
+Cassiopee/Envs/sh_Cassiopee_user
 Cassiopee/KCore/doc/source/*.rst
-
+Cassiopee/CPlot/apps/Output
 ValidData*
 Data*
 *~
@@ -59,5 +62,6 @@ out_foam/
 chm000*
 out.step
 *.swp
-
+*.db
 tools/MigrationSVN
+.env

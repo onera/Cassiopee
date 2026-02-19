@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -29,17 +29,16 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 {
   PyObject*  array;
   E_Float eps;
-  if (!PYPARSETUPLE_(args, O_ R_,
-                    &array, &eps))
+  if (!PYPARSETUPLE_(args, O_ R_, &array, &eps))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
@@ -54,21 +53,21 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
                     "splitTBranches: unknown type of array.");
     return NULL;
   }
-  
+
   if (strcmp(eltType, "BAR") != 0)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitTBranches: must be used on a BAR-array.");
     return NULL;
   }
-  
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString); 
+  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitTBranches: cannot find coordinates in array.");
     return NULL;
@@ -77,7 +76,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *f, *cn);
 
   //determination des vertices de split
-  E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
+  E_Int npts = f->getSize(); E_Int nfld = f->getNfld(); E_Int api = f->getApi();
   vector< vector<E_Int> > cVE(npts);
   K_CONNECT::connectEV2VE(*cn, cVE);
   vector<E_Int> splitVertices;
@@ -88,9 +87,9 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
       splitVertices.push_back(nov);
   }
 
-  if (splitVertices.size() == 0) 
+  if (splitVertices.size() == 0)
   {
-    PyObject* tpl = K_ARRAY::buildArray(*f, varString, *cn, -1, eltType);
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
     delete f; delete cn;
     return tpl;
   }
@@ -131,14 +130,14 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 
     for (E_Int eq = 1; eq <= nfld; eq++)
     {
-      (*fnew)(nop,eq) = (*f)(v1,eq);(*fnew)(nop+1,eq) = (*f)(v2,eq); 
+      (*fnew)(nop,eq) = (*f)(v1,eq);(*fnew)(nop+1,eq) = (*f)(v2,eq);
       (*cnnew)(noet,1) = nop+1; (*cnnew)(noet,2) = nop+2;
     }
-    dejaVu[etstart] = 1; 
+    dejaVu[etstart] = 1;
     nop = nop+2; noet++;
 
     vnext = v2;
-    if (cVE[vnext].size() == 2 && vnext != vstart) 
+    if (cVE[vnext].size() == 2 && vnext != vstart)
     {
       vector<E_Int>& eltsVoisins2 = cVE[vnext];
       E_Int nvoisins2 = eltsVoisins2.size();
@@ -151,7 +150,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
       goto next;
     }
     else
-    {      
+    {
       fnew->reAllocMat(nop,nfld); cnnew->reAllocMat(noet,2);
       fields.push_back(fnew); cnt.push_back(cnnew);
     }
@@ -163,12 +162,13 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < nbars; ++i)
   {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR",*fields[i],*cnt[i]);
-    tpl = K_ARRAY::buildArray(*fields[i], varString, *cnt[i], -1, "BAR");
+    K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *fields[i], *cnt[i]);
+    E_Int api = fields[i]->getApi();
+    tpl = K_ARRAY::buildArray3(*fields[i], varString, *cnt[i], "BAR", api);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
   for (E_Int i = 0; i < nbars; i++)
   {delete fields[i]; delete cnt[i];}
-  delete f; delete cn;
+  RELEASESHAREDU(array, f, cn);
   return l;
 }

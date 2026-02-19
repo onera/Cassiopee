@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -171,25 +171,26 @@ namespace K_POST
                 point3d p4{coords[0][ind4],coords[1][ind4],coords[2][ind4]};
 
                 vector3d v1(p1,p2);
-                double d12 = norm(v1);
+                E_Float d12 = norm(v1);
                 vector3d v2(p1,p3);
-                double d13 = norm(v2);
+                E_Float d13 = norm(v2);
                 vector3d v3(p1,p4);
-                double d14 = norm(v3);
+                E_Float d14 = norm(v3);
                 vector3d v4(p2,p3);
-                double d23 = norm(v4);
+                E_Float d23 = norm(v4);
                 vector3d v5(p3,p4);
-                double d34 = norm(v5);
+                E_Float d34 = norm(v5);
                 vector3d v6(p2,p4);
-                double d24 = norm(v6);
+                E_Float d24 = norm(v6);
 
                 // CAlcul du carré du volume
-                double V2 = (d12*(-d12*d34 +d13*(-d23 + d24 + d34) + d14*(d23 -d24 +d34) + d34*(d23 + d24 - d34)) 
+                E_Float V2 = (d12*(-d12*d34 +d13*(-d23 + d24 + d34) + d14*(d23 -d24 +d34) + d34*(d23 + d24 - d34)) 
                              + d13* (-d13*d24 +d14*d23 +d14*d24 -d14*d34 +d23*d24 -d24*d24 +d24*d34) 
                              + d14* (-d14*d23 - d23*d23 +d23*d24 +d23*d34) - d23*d24*d34)/144.;
 
                 if ((V2<0) || (std::sqrt(V2) < 1.E-14))
-                { // A ce point, on considère le volume nul, non ?
+                { 
+                    // A ce point, on considère le volume nul, non ?
                     if (V2 > 0)
                         std::cerr << "L'élément n°" << ielt << " a un volume de " << std::sqrt(V2) << " ce qui est trop faible !" << std::endl;
                     else 
@@ -301,7 +302,7 @@ namespace K_POST
             if (nfaces > 4)
             {
                 // Calcul de la bouding box alignée:
-                double xmin, ymin, zmin;
+                E_Float xmin, ymin, zmin;
                 auto coords = this->getCoordinates();
                 E_Int nb_verts = m_beg_elt2verts[ielt+1] - m_beg_elt2verts[ielt];
                 E_Int beg_verts = m_beg_elt2verts[ielt];
@@ -338,9 +339,9 @@ namespace K_POST
                                 // On va calculer le point d'intersection :
                                 // Plan "moyen" de la face : (o,df)
                                 // Rayon : (r, d) où d = vector3d(ro)
-                                double nxdx = n.x*d.x;
+                                E_Float nxdx = n.x*d.x;
                                 if (std::abs(nxdx) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
-                                double t = -(ofr|n)/nxdx;
+                                E_Float t = -(ofr|n)/nxdx;
                                 if ((0<=t) && (t<=1)) nb_intersects += 1;  
                             } 
                         }
@@ -365,9 +366,9 @@ namespace K_POST
                                     // On va calculer le point d'intersection :
                                     // Plan "moyen" de la face : (o,df)
                                     // Rayon : (r, d) où d = vector3d(ro)
-                                    double nydy = n.y*d.y;
+                                    E_Float nydy = n.y*d.y;
                                     if (std::abs(nydy) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
-                                    double t = -(ofr|n)/nydy;
+                                    E_Float t = -(ofr|n)/nydy;
                                     if ((0<=t) && (t<=1)) nb_intersects += 1;  
                                 } 
                             }
@@ -392,9 +393,9 @@ namespace K_POST
                                         // On va calculer le point d'intersection :
                                         // Plan "moyen" de la face : (o,df)
                                         // Rayon : (r, d) où d = vector3d(ro)
-                                        double nzdz = n.z*d.z;
+                                        E_Float nzdz = n.z*d.z;
                                         if (std::abs(nzdz) < 1.E-14) throw std::underflow_error("Face parallèle à la direction");
-                                        double t = -(ofr|n)/nzdz;
+                                        E_Float t = -(ofr|n)/nzdz;
                                         if ((0<=t) && (t<=1)) nb_intersects += 1;  
                                     } 
                                 }
@@ -586,7 +587,7 @@ namespace K_POST
     ngon_data_view::Implementation::is_containing(E_Int ind_elt, const point3d& pt) const
     {
         const auto& crds = this->getCoordinates();
-        std::array<std::vector<double>,3> coords; // Nombre de sommet dépend du type d'élément (avec barycentre pour certains)
+        std::array<std::vector<E_Float>,3> coords; // Nombre de sommet dépend du type d'élément (avec barycentre pour certains)
         E_Int nb_verts = this->m_beg_elt2verts[ind_elt+1] - this->m_beg_elt2verts[ind_elt];
         // On va calculer le nombre de barycentres :
         // Remarque :
@@ -606,7 +607,7 @@ namespace K_POST
         coords[2].reserve(nb_verts+nb_barycenters);
         std::unordered_map<E_Int, E_Int> glob2loc;
         // On extrait tous les points de la cellule :
-        double xb = 0, yb = 0, zb = 0;
+        E_Float xb = 0, yb = 0, zb = 0;
         for (E_Int ivert = 0; ivert < nb_verts; ++ivert)
         {
             E_Int ind_vert = m_elt2verts[this->m_beg_elt2verts[ind_elt]+ivert];
@@ -753,9 +754,9 @@ namespace K_POST
         }
         // Construction du polyèdre :
         triangulated_polyhedron polyedre( faces, {
-                                     K_MEMORY::vector_view<const double>(coords[0].begin(),coords[0].end()),
-                                     K_MEMORY::vector_view<const double>(coords[1].begin(),coords[1].end()),
-                                     K_MEMORY::vector_view<const double>(coords[2].begin(),coords[2].end())
+                                     K_MEMORY::vector_view<const E_Float>(coords[0].begin(),coords[0].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[1].begin(),coords[1].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[2].begin(),coords[2].end())
                                                  } );
         bool is_inside;
         try {
@@ -776,7 +777,7 @@ namespace K_POST
     {
         if (not this->aabbox.contains(point)) return -1;
         E_Int ind_nearest_vertex;
-        double dist_nearest_vertex;
+        E_Float dist_nearest_vertex;
         std::tie(ind_nearest_vertex, dist_nearest_vertex) = this->tree.nearest(point);
         // On va chercher l'appartenance du point aux cellules contenant le point le plus proche :
         for (E_Int ielt = m_beg_vert2elts[ind_nearest_vertex]; ielt < m_beg_vert2elts[ind_nearest_vertex+1]; ++ielt )
@@ -816,7 +817,7 @@ namespace K_POST
         coords.reserve(nb_verts_per_elt);
         FldArrayF* fld = this->fields;
         E_Int nfld = fld->getNfld();
-        std::vector<std::vector<double>> values(nfld);
+        std::vector<std::vector<E_Float>> values(nfld);
         for (E_Int ifld = 0; ifld < nfld; ++ifld)
         {
             values[ifld].reserve(nb_verts_per_elt);
@@ -835,8 +836,8 @@ namespace K_POST
         std::vector<E_Int> vertices_index; vertices_index.reserve(nb_verts_per_elt);
         for ( E_Int ivert = 0; ivert < nb_verts_per_elt; ++ivert) vertices_index.push_back(ivert);
         std::sort(vertices_index.begin(), vertices_index.end(), [&](E_Int i, E_Int j) {
-            double dip = square_distance(coords[i], pt);
-            double djp = square_distance(coords[j], pt);
+            E_Float dip = square_distance(coords[i], pt);
+            E_Float djp = square_distance(coords[j], pt);
             return dip < djp;
         });
         // Interpolation sur le tetraèdre T(pᵢ₀, pᵢ₁, pᵢ₂, pᵢ₃)
@@ -867,10 +868,10 @@ namespace K_POST
                                               {e1.z,e2.z,e3.z}
                          };
         auto barycrds = inverse_linear_system(A, pp0);
-        double alpha = barycrds[0];
-        double beta  = barycrds[1];
-        double gamma = barycrds[2];
-        double umabg = 1. - alpha - beta - gamma;
+        E_Float alpha = barycrds[0];
+        E_Float beta  = barycrds[1];
+        E_Float gamma = barycrds[2];
+        E_Float umabg = 1. - alpha - beta - gamma;
         for ( E_Int ifld = 0; ifld < nfld; ++ifld)
         {
             interpolatedField(ipos,ifld+1) = umabg * values[ifld][vertices_index[0]] + 
@@ -904,7 +905,7 @@ namespace K_POST
                                           } );
     }
     //_ ___________________________ Calcul le volume d'un élément donné __________________________________
-    double ngon_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
+    E_Float ngon_data_view::Implementation::compute_volume_of_cell(E_Int ind_cell) const
     {
         auto faces = this->get_faces_of_element(ind_cell, 0);
         return compute_volume_ngon(faces);

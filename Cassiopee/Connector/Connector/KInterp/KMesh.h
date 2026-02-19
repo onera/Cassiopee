@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -73,8 +73,8 @@ class KMesh
         
     ///+ 3- GET methods communes a un KMesh structure et non structure :
     
-    /** Maillage structure ou non ? basé sur la taille de _cn */
-    E_Boolean isStructured();
+    /** Maillage structure ou non ? base sur la taille de _cn */
+    E_Bool isStructured();
 
     /** Get x-coordinate of (i,j,k)  point (l = getPos(i,j,k)) */
     E_Float getX(E_Int l) const;
@@ -122,7 +122,7 @@ class KMesh
                                 bounding box
     */
     void boundingBox(E_Float& xmax, E_Float& ymax, E_Float& zmax, 
-                     E_Float& xmin, E_Float& ymin, E_Float& zmin) const;
+                     E_Float& xmin, E_Float& ymin, E_Float& zmin);
     
     /** Find the bounding box of a mesh in the absolute frame.
         @param m   rotation matrix of mesh relatively to absolute frame
@@ -253,7 +253,7 @@ class KMesh
     E_Int    _jm;                // number of mesh-planes in j direction
     E_Int    _km;                // number of mesh-planes in k direction
     E_Int    _imjm;              // _im*_jm for optimization
-    E_Boolean _isStruct;         // KMesh struct ou non 
+    E_Bool _isStruct;         // KMesh struct ou non 
     FldArrayF _coord;            // coordinates array(nnodes,3)
     E_Int    _npts;              // taille de _coord 
     FldArrayF _cellVol;          // volume of cells 
@@ -266,7 +266,7 @@ inline E_Int K_KINTERP::KMesh::getNumberOfPts()
 {
   return _npts;
 }
-inline E_Boolean K_KINTERP::KMesh::isStructured()
+inline E_Bool K_KINTERP::KMesh::isStructured()
 {
   return _isStruct;
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -1297,12 +1297,15 @@ bool metric_sensor<mesh_t>::enforce_consistancy(E_Int PHi, mesh_t& hmesh, output
 
     face_incr_t f_incr[6];
 
-    for (int i = 0; i < 6; i++) {
+    for (E_Int i = 0; i < 6; i++) 
+    {
         PGi = pF[i] - 1;
-        if (swap[i]) {
+        if (swap[i]) 
+        {
             f_incr[i].n[0] = adap_incr.face_adap_incr[PGi].n[1];
             f_incr[i].n[1] = adap_incr.face_adap_incr[PGi].n[0];
-        } else {
+        } else 
+        {
             f_incr[i].n[0] = adap_incr.face_adap_incr[PGi].n[0];
             f_incr[i].n[1] = adap_incr.face_adap_incr[PGi].n[1];
         }
@@ -1922,7 +1925,8 @@ void metric_sensor<mesh_t>::metric_fix_2(mesh_t& hmesh, output_t& adap_incr)
         const auto& swap = _canon_info[PHi];
         pF = hmesh._ng.PHs.get_facets_ptr(PHi);
 
-        for (int i = 0; i < 6; i++) {
+        for (E_Int i = 0; i < 6; i++) 
+        {
             PGi = pF[i]-1;
             if (!is_FXY(PGi, adap_incr)) continue;
 
@@ -1933,7 +1937,8 @@ void metric_sensor<mesh_t>::metric_fix_2(mesh_t& hmesh, output_t& adap_incr)
 
             if (count == 1) {
                 if (alpha) {
-                    if (i != 2 && i != 3) {
+                    if (i != 2 && i != 3) 
+                    {
                         if (swap[i]) PG_incr.n[0] = 0;
                         else PG_incr.n[1] = 0;
                         if (ok_nei) {
@@ -2127,19 +2132,19 @@ E_Int metric_sensor<mesh_t>::assign_data(const sensor_input_t& data)
 template <typename mesh_t>
 void metric_sensor<mesh_t>::Q4_adap_compute(E_Int PGi, output_t& adap_incr)
 {
-    //int h[4];
     E_Float h[4];
     E_Int n1, n2;
     auto& metric = parent_t::_data;
-    const E_Int *pN = parent_t::_hmesh._ng.PGs.get_facets_ptr(PGi);
+    const E_Int* pN = parent_t::_hmesh._ng.PGs.get_facets_ptr(PGi);
 
-    for (int i = 0; i < 4; i++) {
+    for (E_Int i = 0; i < 4; i++) 
+    {
         n1 = pN[i]; n2 = pN[(i+1)%4];
         h[i] = metric.lengthEval(n1-1, metric[n1-1], n2-1, metric[n2-1]);
     }
 
-    auto f1 = log2(std::min(h[0], h[2]));
-    auto f2 = log2(std::min(h[1], h[3]));
+    auto f1 = log2(K_FUNC::E_min(h[0], h[2]));
+    auto f2 = log2(K_FUNC::E_min(h[1], h[3]));
 
     adap_incr.face_adap_incr[PGi].n[0] = round(f1);
     adap_incr.face_adap_incr[PGi].n[1] = round(f2);
@@ -2160,7 +2165,8 @@ void metric_sensor<mesh_t>::Hexa_adap_compute(E_Int PHi, output_t& adap_incr)
     const E_Int *pF = ng.PHs.get_facets_ptr(PHi);
     const auto& swap = _canon_info[PHi];
 
-    for (int i = 0; i < 6; i++) {
+    for (E_Int i = 0; i < 6; i++) 
+    {
         PGi = pF[i] - 1;
         if (swap[i] > 0) {
             f_incr[i].n[0] = adap_incr.face_adap_incr[PGi].n[1];
@@ -2218,7 +2224,8 @@ bool metric_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
     if (!parent_t::_hmesh._PHtree.is_enabled(PHi)) continue;
     stride = parent_t::_hmesh._ng.PHs.stride(PHi);
     const E_Int *pF = parent_t::_hmesh._ng.PHs.get_facets_ptr(PHi);
-    for (int j = 0; j < stride; j++) {
+    for (E_Int j = 0; j < stride; j++) 
+    {
       PGi = pF[j] - 1;
       // only hexa for now
       Q4_adap_compute(PGi, adap_incr);

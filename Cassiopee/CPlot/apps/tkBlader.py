@@ -1,7 +1,6 @@
 # - tkBlader -
 """App to create blade meshes."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Converter.Internal as Internal
@@ -169,9 +168,9 @@ def step1():
     import Converter
 
     # repere le culot si 2 courbes sont fournies
-    a = C.getAllFields(zones[0], 'nodes')[0]
+    a = C.getAllFields(zones[0], 'nodes', api=1)[0]
     if culot == 1:
-        ac = C.getAllFields(zones[1], 'nodes')[0]
+        ac = C.getAllFields(zones[1], 'nodes', api=1)[0]
         bb1 = G.bbox(a); bb2 = G.bbox(ac)
         if bb1[0] > bb2[0]: temp = a; a = ac; ac = temp
 
@@ -430,19 +429,19 @@ def step2():
     else: culot = 1
     if culot == 0:
         # 2 zones exterieures, le reste interieur
-        M2 = [C.getAllFields(zones[l-2], 'nodes')[0],
-              C.getAllFields(zones[l-1], 'nodes')[0]]
+        M2 = [C.getAllFields(zones[l-2], 'nodes', api=1)[0],
+              C.getAllFields(zones[l-1], 'nodes', api=1)[0]]
         M1 = []
         for z in zones[0:l-2]:
-            M1.append(C.getAllFields(z, 'nodes')[0])
+            M1.append(C.getAllFields(z, 'nodes', api=1)[0])
     else:
         # 3 zones exterieures, le reste interieur
-        M2 = [C.getAllFields(zones[l-2], 'nodes')[0],
-              C.getAllFields(zones[l-1], 'nodes')[0],
-              C.getAllFields(zones[l-3], 'nodes')[0]]
+        M2 = [C.getAllFields(zones[l-2], 'nodes', api=1)[0],
+              C.getAllFields(zones[l-1], 'nodes', api=1)[0],
+              C.getAllFields(zones[l-3], 'nodes', api=1)[0]]
         M1 = []
         for z in zones[0:l-3]:
-            M1.append(C.getAllFields(z, 'nodes')[0])
+            M1.append(C.getAllFields(z, 'nodes', api=1)[0])
 
     #==========================================================================
     # stack + resserement vers les extremites

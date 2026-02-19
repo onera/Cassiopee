@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -60,6 +60,6 @@ namespace K_POST
         virtual void compute_interpolated_field( const point3d& pt, E_Int ind_cell, 
                                                  E_Int ipos, FldArrayF& interpolatedField ) const override;
         virtual vector3d compute_rotational_in_cell( E_Int ind_cell ) const override;
-        virtual double   compute_volume_of_cell    ( E_Int ind_cell ) const override;
+        virtual E_Float compute_volume_of_cell( E_Int ind_cell ) const override;
     };
 }

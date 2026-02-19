@@ -1,4 +1,4 @@
-# - blankCellsTetra (pyTree)
+# - blankCellsTetra (pyTree) -
 import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
@@ -10,7 +10,7 @@ import KCore.test as test
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 mT4 = C.convertArray2Tetra(mT4)
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (30,30,30))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'nodes:cellN', 1.)
@@ -24,7 +24,7 @@ test.testT(t,1)
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 mT4 = C.convertArray2Tetra(mT4)
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (30,30,30))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'centers:cellN', 1.)
@@ -38,7 +38,7 @@ test.testT(t,2)
 mT4 = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,10))
 mT4 = C.convertArray2Tetra(mT4)
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (30,30,30))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'centers:cellN', 1.)
@@ -49,13 +49,13 @@ test.testT(t,3)
 
 # Test 4
 # Tet mask
-mT4 = D.sphere((0,0,0), 20., 50)
+mT4 = D.sphere((0,0,0), 10., 30)
 mT4 = C.convertArray2Tetra(mT4)
 mT4 = G.close(mT4)
 mT4 = G.tetraMesher(mT4, algo=1)
 #C.convertPyTree2File(mT4, 'sph.cgns')
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (40,40,40))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'nodes:cellN', 1.)
@@ -68,7 +68,7 @@ test.testT(t,4)
 # Tet mask
 #C.convertPyTree2File(mT4, 'sph.cgns')
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (40,40,40))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'centers:cellN', 1.)
@@ -79,7 +79,7 @@ test.testT(t,5)
 
 # Test 6
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (40,40,40))
 t = C.newPyTree(['Cart', a])
 # celln init
 t = C.initVars(t, 'centers:cellN', 1.)
@@ -91,7 +91,7 @@ test.testT(t,6)
 # Test 7
 # Tet mask
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (40,40,40))
 t = C.newPyTree(['Cart', a])
 t = C.convertArray2Tetra(t)
 # celln init
@@ -103,7 +103,7 @@ test.testT(t,7)
 # Test 8
 # Tet mask
 # Mesh to blank
-a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (100,100,100))
+a = G.cart((-5.,-5.,-5.), (0.5,0.5,0.5), (40,40,40))
 t = C.newPyTree(['Cart', a])
 t = C.initVars(t, 'nodes:cellN', 1.)
 # celln init
@@ -112,6 +112,3 @@ t = C.convertArray2NGon(t);
 t = X.blankCellsTetra(t, [[mT4]], [], blankingType="node_in", tol=1.e-12, cellnval=2, overwrite=1)
 #C.convertPyTree2File(t, 'out8.cgns')
 test.testT(t,8)
-
-def function():
-    pass

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -306,7 +306,7 @@ namespace NUGA
         eDIR d = NONE;
         auto v = adap_incr.cell_adap_incr[i];
 
-        int count = 0;
+        E_Int count = 0;
         if (v.n[0]) ++count;
         if (v.n[1]) ++count;
         if (v.n[2]) ++count;
@@ -1223,7 +1223,7 @@ namespace NUGA
 #ifndef DEBUG_HIERARCHICAL_MESH
 //#pragma omp parallel for
 #endif
-    int xyzG = 0;
+    E_Int xyzG = 0;
     for (E_Int i = 0; i < nb_phs_ref; ++i)
     {
       E_Int PHi = PH_to_ref[i];

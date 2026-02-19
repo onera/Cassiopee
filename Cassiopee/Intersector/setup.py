@@ -1,7 +1,3 @@
-from distutils.core import setup, Extension
-#from setuptools import setup, Extension
-import os
-
 #=============================================================================
 # Intersector requires:
 # ELSAPROD variable defined in environment
@@ -10,32 +6,32 @@ import os
 # Numpy
 # KCore library
 #=============================================================================
+import os
+from setuptools import setup, Extension
+import KCore.Dist as Dist
 
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Write setup.cfg file
-import KCore.Dist as Dist
 Dist.writeSetupCfg()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if xcore exists =======================================================
-#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkXCore()
-
-from KCore.config import *
+#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkModuleCassiopee("XCore")()
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
-(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py(additionalLibPaths,
-                                                        additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
+(mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
 # Compilation des fortrans ====================================================
-prod = os.getenv("ELSAPROD")
-if prod is None: prod = 'xx'
+prod = os.getenv("ELSAPROD") or "xx"
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -51,9 +47,9 @@ if mpi4py:
 
 if mpi: libraries += mpiLibs
 
-(ok, libs, paths) = Dist.checkFortranLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
@@ -62,7 +58,7 @@ setup(
     version="4.1",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="ONERA",
-    url="https://cassiopee.onera.fr",
+    url="https://onera.github.io/Cassiopee/",
     packages=['Intersector'],
     package_dir={"":"."},
     ext_modules=[Extension('Intersector.intersector',
@@ -75,5 +71,3 @@ setup(
                            )]
 )
 
-# Check PYTHONPATH ===========================================================
-Dist.checkPythonPath(); Dist.checkLdLibraryPath()

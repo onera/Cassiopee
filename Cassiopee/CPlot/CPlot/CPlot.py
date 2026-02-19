@@ -10,19 +10,30 @@ import KCore.Vector as Vector
 from . import ColorMaps
 
 import os.path
-import time
+import time, numpy
 from sys import version_info
+
+import importlib
+cplotm = None
+def getModule(offscreen=0):
+    global cplotm
+    if cplotm is None:
+        if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7:
+            cplotm = importlib.import_module("CPlot.cplotOSMesa")
+        else:
+            cplotm = importlib.import_module("CPlot.cplot")
+    return None
 
 __timeStep__ = 0.01
 __slot__ = None
 
 #==============================================================================
 # -- configuration --
-def configure(useRender):
+def configure(useRender, offscreen=0):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
-    from . import cplot
-    cplot.configure(useRender)
+    getModule(offscreen)
+    cplotm.configure(useRender)
 
 def hasDirectRendering():
     """Detect if direct rendering is available on host (may not work on windows)"""
@@ -56,52 +67,51 @@ def display(arrays,
             shadow=-1, lightOffset=(-999,-999),
             dof=-1, dofPower=-1, gamma=-1, toneMapping=-1,
             stereo=-1, stereoDist=-1., panorama=0,
-            export="None", exportResolution="None",
+            export="None", exportResolution="None", exportAA=-1,
             zoneNames=[], renderTags=[], frameBuffer=-1,
             offscreen=0,
             posCamList=None, posEyeList=None, dirCamList=None):
     """Display arrays.
     Usage: display(arrays)"""
     if arrays != [] and not isinstance(arrays[0], list): arrays = [arrays]
+    global __slot__
+    getModule(offscreen)
     if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7:
-        from . import cplotOSMesa
-        global __slot__
         if __slot__ is None:
             shaderPath = os.path.dirname(__file__)+'/OSMESA/'
-            cplotOSMesa.setShaderPath(shaderPath)
-            cplotOSMesa.displayNew(arrays, dim, mode, scalarField, vectorField1,
-                                   vectorField2, vectorField3, displayBB, displayInfo,
-                                   displayIsoLegend, meshStyle, solidStyle,
-                                   scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                                   vectorShowSurface, vectorShape, vectorProjection,
-                                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                                   niso, isoEdges, isoScales, win,
-                                   posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                                   shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                                   stereo, stereoDist, panorama,
-                                   export, exportResolution, zoneNames, renderTags,
-                                   frameBuffer, offscreen,
-                                   posCamList, posEyeList, dirCamList)
+            cplotm.setShaderPath(shaderPath)
+            cplotm.displayNew(arrays, dim, mode, scalarField, vectorField1,
+                              vectorField2, vectorField3, displayBB, displayInfo,
+                              displayIsoLegend, meshStyle, solidStyle,
+                              scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                              vectorShowSurface, vectorShape, vectorProjection,
+                              colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                              niso, isoEdges, isoScales, win,
+                              posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                              shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                              stereo, stereoDist, panorama,
+                              export, exportResolution, exportAA,
+                              zoneNames, renderTags, frameBuffer, offscreen,
+                              posCamList, posEyeList, dirCamList)
             __slot__ = 1
         else:
-            cplotOSMesa.displayAgain(arrays, dim, mode, scalarField, vectorField1,
-                                     vectorField2, vectorField3, displayBB, displayInfo,
-                                     displayIsoLegend, meshStyle, solidStyle,
-                                     scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                                     vectorShowSurface, vectorShape, vectorProjection,
-                                     colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                                     niso, isoEdges, isoScales, win,
-                                     posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                                     shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                                     stereo, stereoDist, panorama,
-                                     export, exportResolution, zoneNames, renderTags,
-                                     frameBuffer, offscreen,
-                                     posCamList, posEyeList, dirCamList)
+            cplotm.displayAgain(arrays, dim, mode, scalarField, vectorField1,
+                                vectorField2, vectorField3, displayBB, displayInfo,
+                                displayIsoLegend, meshStyle, solidStyle,
+                                scalarStyle, vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                                vectorShowSurface, vectorShape, vectorProjection,
+                                colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                                niso, isoEdges, isoScales, win,
+                                posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                                shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                                stereo, stereoDist, panorama,
+                                export, exportResolution, exportAA,
+                                zoneNames, renderTags, frameBuffer, offscreen,
+                                posCamList, posEyeList, dirCamList)
         return
-    from . import cplot
     if __slot__ is None:
         shaderPath = os.path.dirname(__file__)+'/'
-        cplot.setShaderPath(shaderPath)
+        cplotm.setShaderPath(shaderPath)
         displayNew__(arrays, dim, mode, scalarField, vectorField1,
                      vectorField2, vectorField3, displayBB, displayInfo,
                      displayIsoLegend, meshStyle, solidStyle,
@@ -112,9 +122,10 @@ def display(arrays,
                      posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                      shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                      stereo, stereoDist, panorama,
-                     export, exportResolution, zoneNames, renderTags,
-                     frameBuffer, offscreen,
+                     export, exportResolution, exportAA,
+                     zoneNames, renderTags, frameBuffer, offscreen,
                      posCamList, posEyeList, dirCamList)
+        __slot__ = 1
     else:
         displayAgain__(arrays, dim, mode, scalarField, vectorField1,
                        vectorField2, vectorField3, displayBB, displayInfo,
@@ -126,7 +137,7 @@ def display(arrays,
                        posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                        shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                        stereo, stereoDist, panorama,
-                       export, exportResolution,
+                       export, exportResolution, exportAA,
                        zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
 
@@ -134,16 +145,14 @@ def display(arrays,
 def render():
     """Force render.
     Usage: render()"""
-    from . import cplot
-    cplot.render()
+    cplotm.render()
 
 #==============================================================================
 def delete(zlist):
     """Delete zones from plotter.
     Usage: delete([i1,i2,...])"""
     if __slot__ is None: return
-    from . import cplot
-    cplot.delete(zlist)
+    cplotm.delete(zlist)
 
 #==============================================================================
 def add(arrays, no, array, zoneName=None, renderTag=None):
@@ -161,8 +170,7 @@ def add(arrays, no, array, zoneName=None, renderTag=None):
             display(arrays, zoneNames=[zoneName], renderTags=[renderTag])
         else: display(arrays)
     else:
-        from . import cplot
-        cplot.add(array, (nzs, nzu), zoneName, renderTag)
+        cplotm.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
 def replace(arrays, no, array, zoneName=None, renderTag=None):
@@ -181,12 +189,11 @@ def replace(arrays, no, array, zoneName=None, renderTag=None):
             display(arrays, zoneNames=[zoneName], renderTags=[renderTag])
         else: display(arrays)
     else:
-        from . import cplot
-        cplot.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
+        cplotm.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
 def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
-              bgBlend=1., var1='x', var2='y', r1=None, r2=None):
+              bgBlend=1., var1='x', var2='y', r1=None, r2=None, offscreen=0):
     """Display 1D plots.
     Usage: display1D(arrays, slot, ....)"""
     import Converter
@@ -214,128 +221,149 @@ def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
     except: pass
     if r1 is None: r1 = (0.,1.)
     if r2 is None: r2 = (0.,1.)
-    from . import cplot
-    cplot.display1D(arrays, slot, gridPos, gridSize,
-                    bgBlend, var1, var2, r1, r2)
+    getModule(offscreen)
+    cplotm.display1D(arrays, slot, gridPos, gridSize,
+                     bgBlend, var1, var2, r1, r2)
     time.sleep(__timeStep__)
 
 #==============================================================================
 def pressKey():
     """Wait for user to press a key.
     Usage: pressKey()"""
-    from . import cplot
-    cplot.pressKey()
+    cplotm.pressKey()
 
 #==============================================================================
 # -- get/set functions --
 def getState(mode):
     """Return a state in plotter.
     Usage: n = getState(mode)"""
-    from . import cplot
-    return cplot.getState(mode)
+    return cplotm.getState(mode)
 
 def getSelectedZone():
     """Return the selected zone in plotter.
     Usage: n = getSelectedZone()"""
-    from . import cplot
-    return cplot.getSelectedZone()
+    return cplotm.getSelectedZone()
 
 def getSelectedZones():
     """Return the selected zones in plotter.
     Usage: list = getSelectedZones()"""
-    from . import cplot
-    return cplot.getSelectedZones()
+    return cplotm.getSelectedZones()
 
 def getSelectedStatus(zone):
     """Return the selected status of a zone in plotter.
     Usage: status = getSelectedStatus(zone)"""
-    from . import cplot
-    return cplot.getSelectedStatus(zone)
+    return cplotm.getSelectedStatus(zone)
 
 def getActiveZones():
     """Return the active (displayed) zones in plotter.
     Usage: list = getActiveZones()"""
-    from . import cplot
-    return cplot.getActiveZones()
+    return cplotm.getActiveZones()
 
 def getActiveStatus(zone):
     """Return the active status of a zone in plotter.
     Usage: status = getActiveStatus(zone)"""
-    from . import cplot
-    return cplot.getActiveStatus(zone)
+    return cplotm.getActiveStatus(zone)
 
 def getActivePoint():
     """Return the active (clicked) point in plotter.
     Usage: n = getActivePoint()"""
-    from . import cplot
-    return cplot.getActivePoint()
+    return cplotm.getActivePoint()
 
 def getActivePointIndex():
     """Return the active (clicked) point index.
     Usage: n = getActivePointIndex()"""
-    from . import cplot
-    return cplot.getActivePointIndex()
+    return cplotm.getActivePointIndex()
 
 def getActivePointF():
     """Return the active (clicked) point field values.
     Usage: f = getActivePointF()"""
-    from . import cplot
-    return cplot.getActivePointF()
+    return cplotm.getActivePointF()
 
 def getMouseState():
     """Return mouse state (mouse position and button state)."""
-    from . import cplot
-    return cplot.getMouseState()
+    return cplotm.getMouseState()
 
 def getKeyboard():
     """Return the pressed keys.
     Usage: n = getKeyboard()"""
-    from . import cplot
-    return cplot.getKeyboard()
+    return cplotm.getKeyboard()
 
 def resetKeyboard():
     """Reset the keyboard string.
     Usage: resetKeyboard()"""
-    from . import cplot
-    return cplot.resetKeyboard()
+    return cplotm.resetKeyboard()
+
+# convert r,g,b in [0,1] to hexa color string
+def convertRGB2String(T):
+    """Convert r,g,b tuple to hexa color string."""
+    r,g,b = T
+    a1 = int(r*255.)
+    a2 = int(g*255.)
+    a3 = int(b*255.)
+    return f"#{a1:02X}{a2:02X}{a3:02X}"
 
 # Ajoute des colormaps indirectes
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
+    shift = colormap % 2
     if colormap == 16 or colormap == 17: # Viridis
-        colormapC = ColorMaps.Viridis
-        if colormap == 16: colormap = 10
-        elif colormap == 17: colormap = 11
+        colormapC = ColorMaps.cmapDict['Viridis']
+        colormap = 10+shift
     elif colormap == 18 or colormap == 19: # Inferno
-        colormapC = ColorMaps.Inferno
-        if colormap == 18: colormap = 10
-        elif colormap == 19: colormap = 11
+        colormapC = ColorMaps.cmapDict['Inferno']
+        colormap = 10+shift
     elif colormap == 20 or colormap == 21: # Magma
-        colormapC = ColorMaps.Magma
-        if colormap == 20: colormap = 10
-        elif colormap == 21: colormap = 11
+        colormapC = ColorMaps.cmapDict['Magma']
+        colormap = 10+shift
     elif colormap == 22 or colormap == 23: # Plasma
-        colormapC = ColorMaps.Plasma
-        if colormap == 22: colormap = 10
-        elif colormap == 23: colormap = 11
+        colormapC = ColorMaps.cmapDict['Plasma']
+        colormap = 10+shift
     elif colormap == 24 or colormap == 25: # Jet
-        colormapC = ColorMaps.Jet2
-        if colormap == 24: colormap = 10
-        elif colormap == 25: colormap = 11
+        colormapC = ColorMaps.cmapDict['Jet']
+        colormap = 10+shift
     elif colormap == 26 or colormap == 27: # Greys
-        colormapC = ColorMaps.Greys
-        if colormap == 26: colormap = 10
-        elif colormap == 27: colormap = 11
+        colormapC = ColorMaps.cmapDict['Greys']
+        colormap = 10+shift
     elif colormap == 28 or colormap == 29: # NiceBlue
         colormapC1='#000000'; colormapC2='#FFFFFF'; colormapC3='#0061A5'
-        if colormap == 28: colormap = 6
-        elif colormap == 29: colormap = 7
-    elif colormap == 30 or colormap == 31: # Greys
-        colormapC = ColorMaps.Greens
-        if colormap == 30: colormap = 10
-        elif colormap == 31: colormap = 11
+        colormap = 6+shift
+    elif colormap == 30 or colormap == 31: # Greens
+        colormapC = ColorMaps.cmapDict['Greens']
+        colormap = 10+shift
+
+    # if colormapC are given in rgb, convert to hexa string
+    if not isinstance(colormapC1, str):
+        colormapC1 = convertRGB2String(colormapC1)
+    if not isinstance(colormapC2, str):
+        colormapC2 = convertRGB2String(colormapC2)
+    if not isinstance(colormapC1, str):
+        colormapC3 = convertRGB2String(colormapC3)
 
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
+
+# when colormap is 10 or 11 from getState, return the correct colormap from colormapC
+def getFilteredColormap():
+    colormap = getState("colormap")
+    if colormap != 10 and colormap != 11: return colormap
+    if colormap == 10: shift = 0
+    else: shift = 1
+    colormapC = getState("colormapC")
+    CC = numpy.array([colormapC[i] for i in range(0,5)])
+    C1 = numpy.array([ColorMaps.Jet[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 24+shift
+    C1 = numpy.array([ColorMaps.Magma[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 20+shift
+    C1 = numpy.array([ColorMaps.Inferno[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 18+shift
+    C1 = numpy.array([ColorMaps.Viridis[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 16+shift
+    C1 = numpy.array([ColorMaps.Plasma[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 22+shift
+    C1 = numpy.array([ColorMaps.Greys[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 26+shift
+    C1 = numpy.array([ColorMaps.Greens[i] for i in range(0,5)])
+    if numpy.allclose(CC, C1): return 30+shift
+    return colormap
 
 def setState(dim=-1,
              mode=-1,
@@ -380,6 +408,7 @@ def setState(dim=-1,
              simplifyOnDrag=-1,
              export="None",
              exportResolution="None",
+             exportAA=-1,
              continuousExport=-1,
              envmap="None", message="None",
              stereo=-1, stereoDist=-1.,
@@ -395,135 +424,118 @@ def setState(dim=-1,
              offscreen=0):
     """Set CPlot state.
     Usage: setState(posCam=(12,0,0))"""
+    getModule(offscreen)
     if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     if offscreen == 1 or offscreen == 5 or offscreen == 6 or offscreen == 7: # must set in the right module
         from . import cplotOSMesa as cplot
     else:
         from . import cplot
-    cplot.setState(dim, mode, scalarField, vectorField1, vectorField2,
-                   vectorField3, displayBB, displayInfo, displayIsoLegend,
-                   meshStyle, solidStyle, scalarStyle,
-                   vectorStyle, vectorScale, vectorDensity, vectorNormalize,
-                   vectorShowSurface, vectorShape, vectorProjection,
-                   colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                   niso, isoEdges, isoScales, win,
-                   posCam, posEye, dirCam, viewAngle, lightOffset,
-                   bgColor, backgroundFile, shadow,
-                   dof, dofPower, gamma, toneMapping,
-                   sobelThreshold, sharpenPower, ssaoPower,
-                   ghostifyDeactivatedZones, edgifyActivatedZones,
-                   edgifyDeactivatedZones, simplifyOnDrag,
-                   export, exportResolution, continuousExport,
-                   envmap, message,
-                   stereo, stereoDist,
-                   cursor, gridSize, timer, selectionStyle,
-                   activateShortCuts, billBoards, billBoardSize,
-                   materials, bumpMaps, frameBuffer, offscreen)
+    cplotm.setState(dim, mode, scalarField, vectorField1, vectorField2,
+                    vectorField3, displayBB, displayInfo, displayIsoLegend,
+                    meshStyle, solidStyle, scalarStyle,
+                    vectorStyle, vectorScale, vectorDensity, vectorNormalize,
+                    vectorShowSurface, vectorShape, vectorProjection,
+                    colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                    niso, isoEdges, isoScales, win,
+                    posCam, posEye, dirCam, viewAngle, lightOffset,
+                    bgColor, backgroundFile, shadow,
+                    dof, dofPower, gamma, toneMapping,
+                    sobelThreshold, sharpenPower, ssaoPower,
+                    ghostifyDeactivatedZones, edgifyActivatedZones,
+                    edgifyDeactivatedZones, simplifyOnDrag,
+                    export, exportResolution, exportAA, continuousExport,
+                    envmap, message, stereo, stereoDist,
+                    cursor, gridSize, timer, selectionStyle,
+                    activateShortCuts, billBoards, billBoardSize,
+                    materials, bumpMaps, frameBuffer, offscreen)
 
 def setMode(mode):
     """Set CPlot display mode.
     Usage: setMode(0)"""
-    from . import cplot
-    cplot.setMode(mode)
+    cplotm.setMode(mode)
 
 def changeVariable():
     """Change displayed variable.
     Usage: changeVariable()"""
-    from . import cplot
-    cplot.changeVariable()
+    cplotm.changeVariable()
 
 def changeStyle():
     """Change CPlot display style.
     Usage: changeStyle()"""
-    from . import cplot
-    cplot.changeStyle()
+    cplotm.changeStyle()
 
 def changeInfoDisplay():
     """Change CPlot info display style.
     Usage: changeInfoDisplay()"""
-    from . import cplot
-    cplot.changeInfoDisplay()
+    cplotm.changeInfoDisplay()
 
 def changeBlanking():
     """Change the blanking procedure.
     Usage: changeBlanking()"""
-    from . import cplot
-    cplot.changeBlanking()
+    cplotm.changeBlanking()
 
 def setDim(dim):
     """Set CPlot display dim 3, 2 or 1.
     Usage: setDim(2)"""
-    from . import cplot
-    cplot.setDim(dim)
+    cplotm.setDim(dim)
 
 def setActivePoint(x,y,z):
     """Set the active (clicked) point in plotter.
     Usage: setActivePoint(x,y,z)"""
-    from . import cplot
-    return cplot.setActivePoint(x,y,z)
+    return cplotm.setActivePoint(x,y,z)
 
 def setSelectedZones(zlist):
     """Set selected zones.
     Usage: setSelectedZones([(0,1),(1,1),...])"""
-    from . import cplot
-    cplot.setSelectedZones(zlist)
+    cplotm.setSelectedZones(zlist)
 
 def unselectAllZones():
     """Unselect all zones.
     Usage: unselectAllZones()"""
-    from . import cplot
-    cplot.unselectAllZones()
+    cplotm.unselectAllZones()
 
 def setActiveZones(zlist):
     """Set active (displayed) zones.
     Usage: setActiveZones([(0,1)])"""
-    from . import cplot
-    cplot.setActiveZones(zlist)
+    cplotm.setActiveZones(zlist)
 
 def setZoneNames(zlist):
     """Set zone names.
     Usage: setZoneNames([(0,'myZone')])"""
-    from . import cplot
-    cplot.setZoneNames(zlist)
+    cplotm.setZoneNames(zlist)
 
 #==============================================================================
 def lookFor():
     """Look for selected zones.
     Usage: lookFor()"""
-    from . import cplot
-    cplot.lookFor()
+    cplotm.lookFor()
 
 def fitView():
     """Fit the view to objects.
     Usage: fitView()"""
-    from . import cplot
-    cplot.fitView()
+    cplotm.fitView()
 
 def finalizeExport(action=0):
     """Finalize export."""
     if action == 1 or action == 5 or action == 6 or action == 7:
-        from . import cplotOSMesa
-        cplotOSMesa.finalizeExport(action)
+        cplotm.finalizeExport(action)
         return
-    from . import cplot
-    while cplot.isDisplayRunning() == 0: pass
-    cplot.finalizeExport(action)
+    while cplotm.isDisplayRunning() == 0: pass
+    cplotm.finalizeExport(action)
 
 def hide():
     """Hide window."""
-    from . import cplot
-    cplot.hide()
+    cplotm.hide()
 
 def show():
     """Show window if it has been hidden with flush."""
-    from . import cplot
-    cplot.show()
+    cplotm.show()
 
 def setWindowTitle(file, path):
     """Set the CPlot window title."""
-    from . import cplot
-    cplot.setWindowTitle(file, path)
+    getModule()
+    cplotm.setWindowTitle(file, path)
 
 #==============================================================================
 # camera
@@ -757,17 +769,16 @@ def travelOut(xr=0.1, N=100):
 #==============================================================================
 def blur(a, blurSigma=0.8):
     """Blur an image array."""
-    from . import cplot
+    getModule()
     if isinstance(a[0], list):
-        for i in a: cplot.blur(i, blurSigma)
-    else: cplot.blur(a, blurSigma)
+        for i in a: cplotm.blur(i, blurSigma)
+    else: cplotm.blur(a, blurSigma)
     return None
 
 #==============================================================================
 # -- Internal functions --
 def setFileName__(name):
-    from . import cplot
-    cplot.setFileName(name)
+    cplotm.setFileName(name)
 
 def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  vectorField3, displayBB, displayInfo, displayIsoLegend,
@@ -779,7 +790,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                  shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                  stereo, stereoDist, panorama,
-                 export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                 export, exportResolution, exportAA,
+                 zoneNames, renderTags, frameBuffer, offscreen,
                  posCamList, posEyeList, dirCamList):
     global __slot__
     import threading
@@ -787,9 +799,8 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
     if offscreen > 0: daemon = True
     else: daemon = False
-    from . import cplot
     if version_info[0] == 2: # python 2 - no daemon
-        a = threading.Thread(None, cplot.displayNew, None,
+        a = threading.Thread(None, cplotm.displayNew, None,
                              (arrays, dim, mode, scalarField, vectorField1,
                               vectorField2, vectorField3, displayBB, displayInfo,
                               displayIsoLegend,
@@ -802,11 +813,11 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                               bgColor, backgroundFile,
                               shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                               stereo, stereoDist, panorama,
-                              export, exportResolution,
+                              export, exportResolution, exportAA,
                               zoneNames, renderTags, frameBuffer, offscreen,
                               posCamList, posEyeList, dirCamList), {})
     else: # python3 - daemon
-        a = threading.Thread(None, cplot.displayNew, None,
+        a = threading.Thread(None, cplotm.displayNew, None,
                              (arrays, dim, mode, scalarField, vectorField1,
                               vectorField2, vectorField3, displayBB, displayInfo,
                               displayIsoLegend,
@@ -819,7 +830,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                               bgColor, backgroundFile,
                               shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                               stereo, stereoDist, panorama,
-                              export, exportResolution,
+                              export, exportResolution, exportAA,
                               zoneNames, renderTags, frameBuffer, offscreen,
                               posCamList, posEyeList, dirCamList), {}, daemon=daemon)
     a.start()
@@ -835,23 +846,23 @@ def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
                    shadow, lightOffset, dof, dofPower, gamma, toneMapping,
                    stereo, stereoDist, panorama,
-                   export, exportResolution, zoneNames, renderTags, frameBuffer, offscreen,
+                   export, exportResolution, exportAA,
+                   zoneNames, renderTags, frameBuffer, offscreen,
                    posCamList, posEyeList, dirCamList):
     if colormap != -1:
         [colormap, colormapC1, colormapC2, colormapC3, colormapC] = filterColormap( [colormap, colormapC1, colormapC2, colormapC3, colormapC] )
-    from . import cplot
-    cplot.displayAgain(arrays, dim, mode, scalarField, vectorField1,
-                       vectorField2, vectorField3, displayBB, displayInfo,
-                       displayIsoLegend,
-                       meshStyle, solidStyle, scalarStyle, vectorStyle,
-                       vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
-                       vectorShape, vectorProjection,
-                       colormap, colormapC1, colormapC2, colormapC3, colormapC,
-                       niso, isoEdges, isoScales,
-                       win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
-                       shadow, lightOffset, dof, dofPower, gamma, toneMapping,
-                       stereo, stereoDist, panorama,
-                       export, exportResolution, zoneNames, renderTags,
-                       frameBuffer, offscreen,
-                       posCamList, posEyeList, dirCamList)
+    cplotm.displayAgain(arrays, dim, mode, scalarField, vectorField1,
+                        vectorField2, vectorField3, displayBB, displayInfo,
+                        displayIsoLegend,
+                        meshStyle, solidStyle, scalarStyle, vectorStyle,
+                        vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
+                        vectorShape, vectorProjection,
+                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
+                        niso, isoEdges, isoScales,
+                        win, posCam, posEye, dirCam, viewAngle, bgColor, backgroundFile,
+                        shadow, lightOffset, dof, dofPower, gamma, toneMapping,
+                        stereo, stereoDist, panorama,
+                        export, exportResolution, exportAA,
+                        zoneNames, renderTags, frameBuffer, offscreen,
+                        posCamList, posEyeList, dirCamList)
     time.sleep(__timeStep__)

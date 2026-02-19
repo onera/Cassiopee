@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -203,7 +203,7 @@ namespace K_POST
     structured_data_view::Implementation::is_containing( const std::array<E_Int,3>& indices_cell, const point3d& pt) const
     {
         const auto& crds = this->getCoordinates();
-        std::array<std::vector<double>,3> coords; // 8 points cellules + 6 points barycentres
+        std::array<std::vector<E_Float>,3> coords; // 8 points cellules + 6 points barycentres
         coords[0].reserve(14); coords[1].reserve(14); coords[2].reserve(14);
         // On extrait tous les points de la cellule :
         for (const std::array<E_Int,3>& indices : std::vector<std::array<E_Int,3>>{
@@ -298,9 +298,9 @@ namespace K_POST
 #       endif
         // Construction du polyèdre :
         triangulated_polyhedron hexaedre( faces, {
-                                     K_MEMORY::vector_view<const double>(coords[0].begin(),coords[0].end()),
-                                     K_MEMORY::vector_view<const double>(coords[1].begin(),coords[1].end()),
-                                     K_MEMORY::vector_view<const double>(coords[2].begin(),coords[2].end())
+                                     K_MEMORY::vector_view<const E_Float>(coords[0].begin(),coords[0].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[1].begin(),coords[1].end()),
+                                     K_MEMORY::vector_view<const E_Float>(coords[2].begin(),coords[2].end())
                                                  } );
         bool is_inside;
         try {
@@ -327,7 +327,7 @@ namespace K_POST
         std::cout << "ok, bien dans la boite englobante..." << std::endl;
 #       endif
         E_Int ind_nearest_vertex;
-        double dist_nearest_vertex;
+        E_Float dist_nearest_vertex;
         std::tie(ind_nearest_vertex, dist_nearest_vertex) = this->tree.nearest(point);
         std::array<E_Int,3> indices_nearest_vertex = this->get_indices_of_vertex_from_unique_index(ind_nearest_vertex);
 #       if defined(VERBOSE_DEBUG)
@@ -416,7 +416,7 @@ namespace K_POST
         // On extrait tous les points de la cellule ainsi que les champs à interpoler :
         FldArrayF* fld = this->fields;
         E_Int nfld = fld->getNfld();
-        std::vector<std::array<double,8>> values;
+        std::vector<std::array<E_Float,8>> values;
         values.reserve(nfld);
 
         E_Int ivert = 0;
@@ -452,7 +452,7 @@ namespace K_POST
         std::cout << "e100 = " << std::string(e100) << ", e010 = " << std::string(e010) << ", e001 = "
                   << std::string(e001) << std::endl;
 #       endif
-        matrix_3x3_type A{std::array<double,3>{ e100.x ,e010.x, e001.x},
+        matrix_3x3_type A{std::array<E_Float,3>{ e100.x ,e010.x, e001.x},
                                               { e100.y ,e010.y, e001.y},
                                               { e100.z ,e010.z, e001.z}
                          };
@@ -469,7 +469,7 @@ namespace K_POST
                   << ", bary pt : " << std::string(bary_pt) << std::endl;
 #       endif
         //      a₄.𝛼ᵢⱼₖ𝛽ᵢⱼₖ + a₅.𝛼ᵢⱼₖ𝛾ᵢⱼₖ + a₆.𝛽ᵢⱼₖ𝛾ᵢⱼₖ + a₇.𝛼ᵢⱼₖ𝛽ᵢⱼₖ𝛾ᵢⱼₖ = f(pᵢⱼₖ) - a₀ - a₁.𝛼ᵢⱼₖ - a₂.𝛽ᵢⱼₖ - a₃.𝛾ᵢⱼₖ
-        matrix_4x4_type B{ std::array<double,4>{bar110.x*bar110.y,bar110.x*bar110.z,bar110.y*bar110.z,bar110.x*bar110.y*bar110.z},
+        matrix_4x4_type B{ std::array<E_Float,4>{bar110.x*bar110.y,bar110.x*bar110.z,bar110.y*bar110.z,bar110.x*bar110.y*bar110.z},
                                                {bar101.x*bar101.y,bar101.x*bar101.z,bar101.y*bar101.z,bar101.x*bar101.y*bar101.z},
                                                {bar111.x*bar111.y,bar111.x*bar111.z,bar111.y*bar111.z,bar111.x*bar111.y*bar111.z},
                                                {bar011.x*bar011.y,bar011.x*bar011.z,bar011.y*bar011.z,bar011.x*bar011.y*bar011.z}
@@ -486,10 +486,10 @@ namespace K_POST
 #           if defined(VERBOSE_DEBUG)
             std::cout << "Pour le champs n°" << ifld << std::endl;
 #           endif
-            double a0 = values[ifld][0];        // a₀ = f(p₀₀₀)
-            double a1 = values[ifld][1] - a0;   // a₁ = f(p₁₀₀) - a₀
-            double a2 = values[ifld][3] - a0;   // a₂ = f(p₀₁₀) - a₀
-            double a3 = values[ifld][4] - a0;   // a₃ = f(p₀₀₁) - a₀
+            E_Float a0 = values[ifld][0];        // a₀ = f(p₀₀₀)
+            E_Float a1 = values[ifld][1] - a0;   // a₁ = f(p₁₀₀) - a₀
+            E_Float a2 = values[ifld][3] - a0;   // a₂ = f(p₀₁₀) - a₀
+            E_Float a3 = values[ifld][4] - a0;   // a₃ = f(p₀₀₁) - a₀
             vector4d b{
                 values[ifld][2] - a0 -a1*bar110.x -a2*bar110.y - a3*bar110.z, 
                 values[ifld][5] - a0 -a1*bar101.x -a2*bar101.y - a3*bar101.z, 
@@ -497,10 +497,10 @@ namespace K_POST
                 values[ifld][7] - a0 -a1*bar011.x -a2*bar011.y - a3*bar011.z
                       };
             auto x = inverse_linear_system(LUB, b);
-            double a4 = x[0];
-            double a5 = x[1];
-            double a6 = x[2];
-            double a7 = x[3];
+            E_Float a4 = x[0];
+            E_Float a5 = x[1];
+            E_Float a6 = x[2];
+            E_Float a7 = x[3];
 #           if defined(VERBOSE_DEBUG)
             std::cout << "a0 : " << a0 << ", a1 : " << a1 << ", a2 : " << a2 << ", a3 : " << a3
                       << ", a4 : " << a4 << ", a5 : " << a5 << ", a6 : " << a6 << ", a7 : " << a7 << std::endl;

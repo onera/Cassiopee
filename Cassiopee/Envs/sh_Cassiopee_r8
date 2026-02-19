@@ -6,10 +6,11 @@ if [ "$CASSIOPEE" = "" ]; then
     echo 'You must specify a CASSIOPEE variable in your environment.'
     echo 'This variable specifies the installation path of *Cassiopee*.'
 else
-    if test -e $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_local 
-    then
+    if [ -e $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_local ]; then
         . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_local
-    else
+    elif [ -e $CASSIOPEE/Dist/sh_Cassiopee_local ]; then
         . $CASSIOPEE/Dist/sh_Cassiopee_local
+    else
+        echo 'Could not load prod. File sh_Cassiopee_local not found'
     fi
 fi

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -63,7 +63,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
 
     if (ex > eps && ey < eps && ez < eps)
     {
-      posr = posy; postheta = posz; 
+      posr = posy; postheta = posz;
     }
     else if (ey > eps && ex < eps && ez < eps)
     {
@@ -81,7 +81,7 @@ PyObject* K_TRANSFORM::_cyl2CartA(PyObject* self, PyObject* args)
     }
     E_Float* rt = f->begin(posr);
     E_Float* thetat = f->begin(postheta);
-    
+
 #pragma omp parallel default(shared)
     {
       E_Float r, theta;

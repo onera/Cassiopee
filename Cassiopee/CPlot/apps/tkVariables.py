@@ -1,7 +1,6 @@
 # - tkVariables -
 """Variable manager."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
@@ -235,8 +234,7 @@ def node2CenterVar():
 
 #==============================================================================
 def chooseImportFile(event=None):
-    try: import tkFileDialog
-    except: import tkinter.filedialog as tkFileDialog
+    import tkinter.filedialog as tkFileDialog
     init = VARS[4].get()
     init = init.split(';')[0]
     files = tkFileDialog.askopenfilenames(
@@ -274,9 +272,8 @@ def importFile(event=None):
 
     # Essaie de trouver une methode adaptee
     method = 1 # match by geom
-    import sets
-    zoneNames = sets.Set(C.getZoneNames(CTK.t, prefixByBase=False))
-    zoneNames1 = sets.Set(C.getZoneNames(t1, prefixByBase=False))
+    zoneNames = set(C.getZoneNames(CTK.t, prefixByBase=False))
+    zoneNames1 = set(C.getZoneNames(t1, prefixByBase=False))
     inter = zoneNames & zoneNames1
     linter = len(inter)*1.
     comp = min(len(zoneNames), len(zoneNames1))*1.
@@ -317,28 +314,28 @@ def computeVariables():
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
     # If gamma exists -> suppose full RefState, we take all from it
-    gamma = Internal.getNodeFromName(state, 'Gamma')
+    gamma = Internal.getNodeFromName1(state, 'Gamma')
     fail = False
     if gamma is not None: gamma = Internal.getValue(gamma)
     else: fail = True
 
-    Cv = Internal.getNodeFromName(state, 'Cv')
+    Cv = Internal.getNodeFromName1(state, 'Cv')
     if Cv is not None: Cv = Internal.getValue(Cv)
     else: fail = True
 
-    TInf = Internal.getNodeFromName(state, 'Temperature')
+    TInf = Internal.getNodeFromName1(state, 'Temperature')
     if TInf is not None: TInf = Internal.getValue(TInf)
     else: fail = True
 
-    Ts = Internal.getNodeFromName(state, 'Ts')
+    Ts = Internal.getNodeFromName1(state, 'Ts')
     if Ts is not None: Ts = Internal.getValue(Ts)
     else: fail = True
 
-    Cs = Internal.getNodeFromName(state, 'Cs')
+    Cs = Internal.getNodeFromName1(state, 'Cs')
     if Cs is not None: Cs = Internal.getValue(Cs)
     else: fail = True
 
-    Mus = Internal.getNodeFromName(state, 'Mus')
+    Mus = Internal.getNodeFromName1(state, 'Mus')
     if Mus is not None: Mus = Internal.getValue(Mus)
     else: fail = True
 

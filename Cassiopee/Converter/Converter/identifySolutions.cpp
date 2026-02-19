@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -60,10 +60,10 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   K_SEARCH::KdTree<FldArrayF>* globalKdt = (K_SEARCH::KdTree<FldArrayF>*) packet[3];
   
   // Receptor zones
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = false;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = false;
   
   vector<E_Int> resR;  vector<char*> varStringR;
   vector<FldArrayF*> coordsR;
@@ -150,18 +150,19 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
     E_Float* yR = coordsR[nor]->begin(posy1);
     E_Float* zR = coordsR[nor]->begin(posz1);
     FldArrayF* fout = new FldArrayF(nptsR, nfldout); fout->setAllValuesAtNull();
+    E_Int api = fields[0]->getApi();
     if (resR[nor] == 1)
     {
       E_Int nir = *(E_Int*)aR2[nor];
       E_Int njr = *(E_Int*)aR3[nor];
       E_Int nkr = *(E_Int*)aR4[nor];
-      tpl = K_ARRAY::buildArray3(nfldout, varStringOut, nir, njr, nkr);
+      tpl = K_ARRAY::buildArray3(nfldout, varStringOut, nir, njr, nkr, api);
     }
     else // unstr: NGON or BE/ME
     {
       FldArrayI* cnR = (FldArrayI*)aR2[nor];
       char* eltTypeR = (char*)aR3[nor];
-      tpl = K_ARRAY::buildArray3(*fout, varStringOut, *cnR, eltTypeR);
+      tpl = K_ARRAY::buildArray3(*fout, varStringOut, *cnR, eltTypeR, api);
     }
     FldArrayI* cnout;
     K_ARRAY::getFromArray3(tpl, fout, cnout);

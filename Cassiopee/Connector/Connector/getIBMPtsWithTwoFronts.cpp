@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2020 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -169,10 +169,10 @@ PyObject* K_CONNECTOR::getIBMPtsWithTwoFronts(PyObject* self, PyObject* args)
     vector<E_Int> nit; vector<E_Int> njt; vector<E_Int> nkt;
     vector<FldArrayI*> cnt; vector<char*> eltType;
     vector<PyObject*> objst, objut;
-    E_Boolean skipNoCoord = true;
-    E_Boolean skipStructured = true;
-    E_Boolean skipUnstructured = false;
-    E_Boolean skipDiffVars = false;
+    E_Bool skipNoCoord = true;
+    E_Bool skipStructured = true;
+    E_Bool skipUnstructured = false;
+    E_Bool skipDiffVars = false;
     E_Int isOk = K_ARRAY::getFromArrays(allCorrectedPts, resl, structVarString, unstrVarString,
                                         structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
                                         skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);

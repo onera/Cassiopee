@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -41,10 +41,10 @@ PyObject* K_GENERATOR::snapSharpEdges(PyObject* self, PyObject* args)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objst, objut;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = false;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = false;
+  E_Bool skipDiffVars = true;
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, resl, structVarString, unstrVarString,
     structF, unstrF, nit, njt, nkt, cnt, eltType, objst, objut, 
@@ -109,8 +109,8 @@ PyObject* K_GENERATOR::snapSharpEdges(PyObject* self, PyObject* args)
   E_Int im2, jm2, km2;
   FldArrayF* f2; FldArrayI* cn2;
   char* varString2; char* eltType2;
-  E_Int res2 = K_ARRAY::getFromArray(surface, varString2, 
-                                     f2, im2, jm2, km2, cn2, eltType2, true); 
+  E_Int res2 = K_ARRAY::getFromArray3(surface, varString2, 
+                                      f2, im2, jm2, km2, cn2, eltType2); 
   if (res2 != 2)
   {
     for (E_Int nos = 0; nos < ns; nos++)
@@ -157,25 +157,25 @@ PyObject* K_GENERATOR::snapSharpEdges(PyObject* self, PyObject* args)
   vector<E_Float*> fs; vector<E_Float*> fu;
   for (E_Int nos = 0; nos < ns; nos++)
   {
-    E_Int nfld = structF[nos]->getNfld(); E_Int npts = structF[nos]->getSize();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, structVarString[nos], nit[nos], njt[nos], nkt[nos]);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *structF[nos];
-    fs.push_back(fp);
+    E_Int api = structF[nos]->getApi();
+    PyObject* tpl = K_ARRAY::buildArray3(*structF[nos], structVarString[nos],
+                                         nit[nos], njt[nos], nkt[nos], api);
+    FldArrayF* f;
+    K_ARRAY::getFromArray3(tpl, f);
+    fs.push_back(f->begin());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 
   for (E_Int nou = 0; nou < nu; nou++)
   {
-    E_Int nfld = unstrF[nou]->getNfld(); E_Int npts = unstrF[nou]->getSize();
-    E_Int nelts = cnt[nou]->getSize(); E_Int nvert = cnt[nou]->getNfld();
-    PyObject* tpl = K_ARRAY::buildArray(nfld, unstrVarString[nou], 
-                                        npts, nelts, -1, eltType[nou], false, nelts);
-    E_Float* fp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF f(npts, nfld, fp, true); f = *unstrF[nou];
-    E_Int* cnpo = K_ARRAY::getConnectPtr(tpl);
-    FldArrayI cno(nelts, nvert, cnpo, true); cno = *cnt[nou];
-    fu.push_back(fp);
+    E_Int api = unstrF[nou]->getApi();
+    PyObject* tpl = K_ARRAY::buildArray3(*unstrF[nou], unstrVarString[nou], 
+                                         *cnt[nou], eltType[nou], api);
+    FldArrayF* f;
+    K_ARRAY::getFromArray3(tpl, f);
+    fu.push_back(f->begin());
+    RELEASESHAREDS(tpl, f);
     PyList_Append(l, tpl); Py_DECREF(tpl);
   }
 

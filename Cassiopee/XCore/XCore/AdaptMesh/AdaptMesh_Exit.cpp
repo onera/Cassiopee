@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -23,12 +23,14 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
 {
     PyObject *MESH;
 
-    if (!PYPARSETUPLE_(args, O_, &MESH)) {
+    if (!PYPARSETUPLE_(args, O_, &MESH)) 
+    {
         RAISE("Wrong input.");
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(MESH, "AdaptMesh")) {
+    if (!PyCapsule_IsValid(MESH, "AdaptMesh")) 
+    {
         RAISE("Bad mesh hook.");
         return NULL;
     }
@@ -48,9 +50,11 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
     Mesh_reset_tags(M);
 
     XFREE(M->reqs);
-    delete [] M->mode_2D;
+        
+    XFREE(M->mode_2D); M->mode_2D = NULL;
 
     delete M;
-
+    
+    Py_INCREF(Py_None);
     return Py_None;
 }

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -196,7 +196,7 @@ void Hexahedron::reorder_pgs_top(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i,
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -215,16 +215,16 @@ void Hexahedron::reorder_pgs_top(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i,
 
   bool commonNodes[4];
 
-  for (int k = 0; k < 6; ++k)
+  for (E_Int k = 0; k < 6; ++k)
   {
     if (k == 1) continue;
 
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -261,7 +261,7 @@ void Hexahedron::reorder_pgs_top(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i,
   mol[4] = faces[FrontId];
   mol[5] = faces[BackId];
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -275,7 +275,7 @@ void Hexahedron::reorder_pgs_right(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -294,16 +294,16 @@ void Hexahedron::reorder_pgs_right(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
 
   bool commonNodes[4];
 
-  for (int k = 0; k < 6; ++k)
+  for (E_Int k = 0; k < 6; ++k)
   {
     if (k == 3) continue;
 
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -340,7 +340,7 @@ void Hexahedron::reorder_pgs_right(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
   mol[4] = faces[FrontId];
   mol[5] = faces[BackId];
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -354,7 +354,7 @@ void Hexahedron::reorder_pgs_front(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -373,16 +373,16 @@ void Hexahedron::reorder_pgs_front(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
 
   bool commonNodes[4];
 
-  for (int k = 0; k < 6; ++k)
+  for (E_Int k = 0; k < 6; ++k)
   {
     if (k == 4) continue;
 
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -419,7 +419,7 @@ void Hexahedron::reorder_pgs_front(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int 
   mol[4] = faces[4];
   mol[5] = faces[BackId];
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -433,7 +433,7 @@ void Hexahedron::reorder_pgs_back(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -452,16 +452,16 @@ void Hexahedron::reorder_pgs_back(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
 
   bool commonNodes[4];
 
-  for (int k = 0; k < 6; ++k)
+  for (E_Int k = 0; k < 6; ++k)
   {
     if (k == 5) continue;
 
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -498,7 +498,7 @@ void Hexahedron::reorder_pgs_back(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
   mol[4] = faces[FrontId];
   mol[5] = faces[5];
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -512,7 +512,7 @@ void Hexahedron::reorder_pgs_left(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
   E_Int* pN = ng.PGs.get_facets_ptr(PGi);
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -531,16 +531,16 @@ void Hexahedron::reorder_pgs_left(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
 
   bool commonNodes[4];
 
-  for (int k = 0; k < 6; ++k)
+  for (E_Int k = 0; k < 6; ++k)
   {
     if (k == 2) continue;
 
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -577,7 +577,7 @@ void Hexahedron::reorder_pgs_left(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i
   mol[4] = faces[FrontId];
   mol[5] = faces[BackId];
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -593,7 +593,7 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_I
   // by convention, first face is bottom, first node is 0 in local numbering (0 to 26)
 
   E_Int nodes[4];
-  for (int k = 0; k < 4; k++) nodes[k] = pN[k];
+  for (E_Int k = 0; k < 4; k++) nodes[k] = pN[k];
   K_CONNECT::IdTool::right_shift<4>(nodes, i0);
 
   glmap[*nodes] = 0; // PHi(2,0) -> 0  
@@ -613,14 +613,14 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_I
 
   bool commonNodes[4];
 
-  for (int k = 1; k < 6; ++k)
+  for (E_Int k = 1; k < 6; ++k)
   {
-    int count = 0;
+    E_Int count = 0;
     commonNodes[0] = commonNodes[1] = commonNodes[2] = commonNodes[3] = false;
     E_Int testedPG = faces[k]-1;
     E_Int* pNode = ng.PGs.get_facets_ptr(testedPG);
 
-    for (int j = 0; j < 4; ++j)
+    for (E_Int j = 0; j < 4; ++j)
     {
       auto it = glmap.find(pNode[j]);
       if (it != glmap.end())
@@ -657,7 +657,7 @@ void Hexahedron::reorder_pgs(ngo_t& ng, const K_FLD::IntArray& F2E, E_Int i, E_I
   assert (FrontId != IDX_NONE && FrontId != LeftId && FrontId != RightId && FrontId != TopId && FrontId != BackId);
   assert (BackId != IDX_NONE && BackId != LeftId && BackId != RightId && BackId != FrontId && BackId != TopId);
 
-  for (int i = 0; i < nb_faces; ++i)
+  for (E_Int i = 0; i < nb_faces; ++i)
     faces[i] = mol[i];
 }
 
@@ -676,7 +676,7 @@ E_Int Hexahedron::get_opposite(const ngunit_t & PGs, const E_Int* first_pg, E_In
     const E_Int* inodes = PGs.get_facets_ptr(first_pg[i]-1);
     tmp = bnodes;
 
-    int nb_common = 0;
+    E_Int nb_common = 0;
     for (size_t j = 0; j < 4; ++j)
     {
       if (!tmp.insert(inodes[j]).second) //already in
@@ -729,12 +729,12 @@ void Hexahedron::iso_barycenter(const CoordAcc& coord, E_Float* G)
     
     E_Int new_bary[8];
 
-    for (int i = 0; i < 2; ++i) // 8 points : bot and top nodes
+    for (E_Int i = 0; i < 2; ++i) // 8 points : bot and top nodes
     {
       const E_Int* nodes = PGs.get_facets_ptr(first_pg[i]-index_start);
       E_Int nb_nodes = PGs.stride(first_pg[i]-index_start);
       
-      for (int k = 0; k  < nb_nodes; ++k)
+      for (E_Int k = 0; k  < nb_nodes; ++k)
         new_bary[nb_nodes*i+k] = nodes[k];   
     }
     

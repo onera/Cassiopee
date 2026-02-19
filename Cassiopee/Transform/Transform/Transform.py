@@ -9,21 +9,25 @@ from . import transform
 try: import Converter
 except: raise ImportError("Transform: requires Converter module.")
 from Converter.Internal import E_NpyInt
-import numpy
 
-try: range = xrange
-except: pass
-
-__all__ = ['_translate', 'translate', 'addkplane', 'breakElements', 'cart2Cyl', '_cart2Cyl', 'collapse',
-           'computeDeformationVector', '_contract', 'contract', 'cyl2Cart', '_cyl2Cart', 'deform', 'deformNormals', 'deformPoint',
-           'dual', '_homothety', 'homothety', 'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart',
-           'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate', 'projectAllDirs', 'projectDir',
-           'projectOrtho', 'projectOrthoSmooth', 'projectRay', 'reorder', 'reorderAll',
-           'rotate', '_rotate', '_scale', 'scale',
-           'smooth', 'splitBAR', 'splitConnexity', 'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
-           'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize', 'splitTBranches',
-           'splitTRI', 'subzone', '_symetrize', 'symetrize', 'deformMesh', 'kround', 'smoothField', '_smoothField',
-           'alignVectorFieldWithRadialCylindricProjection', '_alignVectorFieldWithRadialCylindricProjection']
+__all__ = [
+    '_translate', 'translate', 'addkplane', 'breakElements',
+    'cart2Cyl', '_cart2Cyl', 'collapse', 'computeDeformationVector',
+    '_contract', 'contract', 'cyl2Cart', '_cyl2Cart',
+    'deform', 'deformNormals', 'deformPoint', 'dual', '_homothety', 'homothety',
+    'join', 'makeCartesianXYZ', 'makeDirect', 'merge', 'mergeCart',
+    'mergeCartByRefinementLevel', 'oneovern', 'patch', 'perturbate',
+    'projectAllDirs', 'projectDir', 'projectOrtho', 'projectOrthoSmooth',
+    'projectRay', 'reorder', 'reorderAll', 'rotate', '_rotate',
+    '_scale', 'scale', 'smooth', 'splitBAR', 'splitConnexity',
+    'splitCurvatureAngle', 'splitCurvatureRadius', 'splitManifold',
+    'splitMultiplePts', 'splitNParts', 'splitSharpEdges', 'splitSize',
+    'splitTBranches', 'splitTRI', 'subzone',
+    '_symmetrize', 'symmetrize', '_symetrize', 'symetrize', 'deformMesh',
+    'controlPoints', 'freeForm', 'kround', 'smoothField', '_smoothField',
+    'alignVectorFieldWithRadialCylindricProjection',
+    '_alignVectorFieldWithRadialCylindricProjection'
+]
 
 #========================================================================================
 # Merge a set of cart grids in A for each refinement level
@@ -286,22 +290,25 @@ def _scale(a, factor=1., X=None):
         _homothety(a, X, factor)
     return None
 
-def symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+def symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
     b = Converter.copy(a)
-    _symetrize(b, point, vector1, vector2)
+    _symmetrize(b, point, vector1, vector2)
     return b
 
-def _symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+def _symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
     if isinstance(a[0], list):
         for i in a:
-            transform.symetrize(i, point, vector1, vector2)
+            transform.symmetrize(i, point, vector1, vector2)
     else:
-        return transform.symetrize(a, point, vector1, vector2)
+        return transform.symmetrize(a, point, vector1, vector2)
     return None
+
+symetrize = symmetrize
+_symetrize = _symmetrize
 
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
@@ -680,6 +687,28 @@ def computeDeformationVector(array, surfDelta, beta=4.):
         return transform.computeDeformationVector(array, surfDelta, beta)
     else: return transform.computeDeformationVector([array], surfDelta, beta)
 
+def controlPoints(a, N=(2,2,2)):
+    """Create control points for free form."""
+    import Generator
+    bb = Generator.bbox(a)
+    b = Generator.cart((bb[0],bb[1],bb[2]),(bb[3]-bb[0],bb[4]-bb[1],bb[5]-bb[2]), N)
+    b = Converter.addVars(b, ['dx','dy','dz'])
+    return b
+
+def freeForm(array, controlPoints):
+    """Coupute free form deformation vector."""
+    if isinstance(array[0], list):
+        out = []
+        for a in array:
+            b = Converter.addVars(a, ['dx','dy','dz'])
+            transform._freeForm(b, controlPoints)
+            out.append(b)
+        return out
+    else:
+        b = Converter.addVars(array, ['dx','dy','dz'])
+        transform._freeForm(b, controlPoints)
+        return b
+
 def join(array, array2=[], arrayc=[], arrayc2=[], tol=1.e-10):
     """Join two arrays in one or join a list of arrays in one. 
     Usage: join(array, array2) or join(arrays)"""
@@ -822,9 +851,10 @@ def oneovern(a, N, add=1):
     else:
         return transform.oneovern(a, N, add)
 
-def subzone(array, minIndex, maxIndex=None, type=None):
+def subzone(array, minIndex, maxIndex=None, type=None, dimOut=None):
     """Take a subzone of mesh.
-    Usage: subzone(array, (imin,jmin,kmin), (imax,jmax,kmax))"""
+    Usage: subzone(array, (imin,jmin,kmin), (imax,jmax,kmax), dimOut)"""
+    if dimOut is None: dimOut = -99
     if maxIndex is None: # non structure
         if type == 'elements':
             if len(array) == 5:
@@ -838,11 +868,11 @@ def subzone(array, minIndex, maxIndex=None, type=None):
         elif type == 'nodes':
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
-            return  transform.subzoneUnstruct(array, minIndex)
+            return  transform.subzoneUnstruct(array, minIndex, dimOut)
         else:
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
-            return transform.subzoneUnstruct(array, minIndex)
+            return transform.subzoneUnstruct(array, minIndex, dimOut)
     else: # structure (subzone par range)
         if len(array) == 4:
             raise TypeError("subzone: subzone with two ranges is not valid for unstructured arrays.")
@@ -862,9 +892,10 @@ def split(a, dir, index):
         a2 = subzone(a, (1,1,index), (ni,nj,nk))
     return a1, a2
 
-def reorder(a, order):
+def reorder(a, order=None):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
+    if order is None: order = tuple()
     if isinstance(a[0], list):
         b = []
         for i in a:
@@ -884,7 +915,7 @@ def reorder(a, order):
 
 
 def reorderAll(arrays, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     btype = 0
@@ -1690,9 +1721,9 @@ def dual(array, extraPoints=1):
     except: # NODE forcement
         return array
 
-    if isinstance(array[0], list):
+    if isinstance(a[0], list):
         out = []
-        for i in array:
+        for i in a:
             out.append(transform.dualNGon(i, extraPoints))
         return out
     else: return transform.dualNGon(a, extraPoints)

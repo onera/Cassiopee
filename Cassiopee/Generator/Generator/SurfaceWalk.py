@@ -4,9 +4,6 @@ from . import Generator as G
 from . import generator
 __version__ = G.__version__
 
-try: range = xrange
-except: pass
-
 #=============================================================================
 # Python Interface to create surface grids by marching on surfaces
 #=============================================================================

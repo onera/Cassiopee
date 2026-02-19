@@ -4,7 +4,10 @@ SIZECF(type, meshtype, sizecoefs);
 
 nocf = 0;
 E_Float val = 1.;
-// - pas de cellule masquee, ni interpolee dans la molecule d interpolation, sauf si son cf associe est nul.
+E_Float threshold = 1.e-11; // thresold on coeff to ignore cellN
+
+// - pas de cellule masquee, ni interpolee dans la molecule d'interpolation, 
+// sauf si son cf associe est nul au sens de thresold.
 // - somme des cf = 1.
 // -----------------
 // cellN*(2-cellN) renvoie 0 si cellN = 0 ou 2 (pt masque ou interpolee) et 1 si cellN =1 (pt calcule)
@@ -15,38 +18,33 @@ switch (type)
     for (E_Int kk = 1; kk <= ncfLoc; kk++)
     {
       indD0 = donorPts[noi+kk];
-      val *= cellND[indD0]*(2.-cellND[indD0]);   
+      if (K_FUNC::E_abs(ptrCoefs[kk-1]) > threshold) { val *= cellND[indD0]*(2.-cellND[indD0]); }
     }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
-    
     sizecoefs = ncfLoc;
     noi += ncfLoc+1;
     break;
     
-  case 1:
+  case 1: // injection
     indD0 = donorPts[noi];
-    val = cellND[indD0]*(2.-cellND[indD0]);     
+    val = cellND[indD0]*(2.-cellND[indD0]); 
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     sizecoefs = 1;
-    noi+=1;
+    noi += 1;
     break;
     
   case 2: // Structure Lineaire O2 par tetra
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int kk=0; kk<2; kk++)
       for (E_Int jj=0; jj<2; jj++)
         for (E_Int ii=0; ii<2; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);   
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          if (K_FUNC::E_abs(ptrCoefs[nocf]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }
           nocf++;
-        }
-    
+        }    
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
     noi += 1;
@@ -54,13 +52,11 @@ switch (type)
     
   case 22:// O2CF 2D
     indD0 = donorPts[noind];
-    j = indD0/imd;
-    i = indD0-j*imd;
     for (E_Int jj=0; jj<2; jj++)
       for (E_Int ii=0; ii<2; ii++)
       {
-        indD = (i+ii)+(j+jj)*imd;
-        val *= cellND[indD]*(2.-cellND[indD]);   
+        indD = indD0 + ii + jj*imd;
+        if (K_FUNC::E_abs(ptrCoefs[nocf]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }
         nocf++;
       }      
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
@@ -69,17 +65,13 @@ switch (type)
     break;
     
   case 3: // Lagrange O3
-    indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
-    
+    indD0 = donorPts[noind];    
     for (E_Int kk=0; kk<3; kk++)
       for (E_Int jj=0; jj<3; jj++)
         for (E_Int ii=0; ii<3; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);             
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          if (K_FUNC::E_abs(ptrCoefs[ii]*ptrCoefs[jj+3]*ptrCoefs[kk+6]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
@@ -91,25 +83,36 @@ switch (type)
     // indD0 est le no de l elt, et les coefs sont aux noeuds
     for (E_Int nov = 1; nov <= 4; nov++)
     {
-      E_Int indv = ptrcnd[indD0*cnNfldD+nov-1]-1;
-      val *= cellND[indv]*(2.-cellND[indv]);        
-    }  
+      indD = ptrcnd[indD0*cnNfldD+nov-1]-1;
+      if (K_FUNC::E_abs(ptrCoefs[nov-1]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }     
+    }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
-    noi += 1;      
+    noi += 1;
     break;
-    
+
+  case 44: // Lagrange O4
+    indD0 = donorPts[noind];  //car type 0 est toujour traité en dernier. Sinon noind pas valable
+    for (E_Int kk=0; kk<4; kk++)
+      for (E_Int jj=0; jj<4; jj++)
+        for (E_Int ii=0; ii<4; ii++)
+        {
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          if (K_FUNC::E_abs(ptrCoefs[ii]*ptrCoefs[jj+4]*ptrCoefs[kk+8]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }
+        }
+    if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
+    else cellNR[indR] = 0.;
+    noi += 1;
+    break;
+
   case 5: // Lagrange O5
     indD0 = donorPts[noind];
-    k = indD0/imdjmd;
-    j = (indD0-k*imdjmd)/imd;
-    i = (indD0-j*imd-k*imdjmd);
     for (E_Int kk=0; kk<5; kk++)
       for (E_Int jj=0; jj<5; jj++)
         for (E_Int ii=0; ii<5; ii++)
         {
-          indD = (i+ii)+(j+jj)*imd+(k+kk)*imdjmd;
-          val *= cellND[indD]*(2.-cellND[indD]);         
+          indD = indD0 + ii + jj*imd + kk*imdjmd;
+          if (K_FUNC::E_abs(ptrCoefs[ii]*ptrCoefs[jj+5]*ptrCoefs[kk+10]) > threshold) { val *= cellND[indD]*(2.-cellND[indD]); }
         }
     if ( val > 0.5 ) cellNR[indR] = 1.;//egal a 1 
     else cellNR[indR] = 0.;
@@ -118,3 +121,4 @@ switch (type)
     
   default:;
 }
+ptrCoefs += sizecoefs;

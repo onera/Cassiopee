@@ -1,6 +1,8 @@
 # - run tkCassiopee from a python script -
+import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import tkCassiopee as K
+import Converter.PyTree as C
 
 t = C.convertFile2PyTree('out.cgns')
 

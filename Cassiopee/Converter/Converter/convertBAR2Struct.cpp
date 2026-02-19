@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -25,7 +25,7 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
 {
   E_Float eps = 1.e-10;
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   E_Int nil, njl, nkl;
@@ -35,13 +35,14 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
                                      cn, eltType);
   if (res != 2)
   {
-    if (res == 1) delete f;
+    if (res == 1) RELEASESHAREDS(array, f);
     return array;
   }
   if (K_STRING::cmp(eltType, "BAR") != 0)
   {
     PyErr_SetString(PyExc_TypeError, "convertBAR2Struct: array must be of BAR type.");
-    delete f; delete cn; return NULL;
+    RELEASESHAREDU(array, f, cn);
+    return NULL;
   }
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
@@ -49,7 +50,8 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
   if (posx == 0 || posy == 0 || posz == 0)
   {
     PyErr_SetString(PyExc_TypeError, "convertBAR2Struct: array must contain coordinates.");
-    delete f; delete cn; return NULL;
+    RELEASESHAREDU(array, f, cn);
+    return NULL;
   }
   K_CONNECT::cleanConnectivity(posx, posy, posz, eps, "BAR", *f, *cn);
   FldArrayI& cm = *(cn->getConnect(0));
@@ -59,9 +61,10 @@ PyObject* K_CONVERTER::convertBAR2Struct(PyObject* self, PyObject* args)
   if (nelts != npts-1) ni = ni+1; // BAR = loop
   FldArrayF* fout = new FldArrayF(ni, nfld);
   K_CONNECT::orderBAR2Struct(posx, posy, posz, *f, cm, *fout);
-  delete f; delete cn;
+  E_Int api = f->getApi();
+  RELEASESHAREDU(array, f, cn);  
   ni = fout->getSize();
-  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, ni, nj, nk);
-  delete fout; 
+  PyObject* tpl = K_ARRAY::buildArray3(*fout, varString, ni, nj, nk, api);
+  delete fout;
   return tpl;
 }

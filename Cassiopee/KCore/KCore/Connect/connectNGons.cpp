@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -47,7 +47,7 @@ using namespace std;
 //=============================================================================
 E_Int K_CONNECT::getPosFaces(FldArrayI& cn, FldArrayI& posFaces)
 {
-  if (cn.isNGon() == 2) // aray2
+  if (cn.getNGonType() == 2) // array2
     return getPosFacets(cn.getNGon(), 0, cn.getNFaces(), posFaces);
   else // array1
     return getPosFacets(cn.begin(), BEGINFACESARR+2, cn[BEGINFACESARR], posFaces);
@@ -74,7 +74,7 @@ E_Int K_CONNECT::getIndex(const E_Int* data, E_Int facetsStart,
 //=============================================================================
 E_Int K_CONNECT::getPosElts(FldArrayI& cn, FldArrayI& posElts)
 {
-  if (cn.isNGon() == 2) // array2
+  if (cn.getNGonType() == 2) // array2
     return getPosFacets(cn.getNFace(), 0, cn.getNElts(), posElts);
   else // array1
     return getPosFacets(cn.begin(), BEGINELTSARR+2, cn[BEGINELTSARR], posElts);
@@ -210,22 +210,18 @@ E_Int K_CONNECT::getVertexIndices(FldArrayI& cNG, E_Int* ngon, E_Int* nface,
                                   E_Int* indPG, E_Int* indPH, E_Int eltPos,
                                   vector<E_Int>& ind)
 {
-  // Acces universel element eltPos
-  E_Int nf;
+  E_Int nf, nvertex, dummy;
+  E_Int totVertex = 0;
+  E_Int dim = cNG.getDim();
   E_Int* elt = cNG.getElt(eltPos, nf, nface, indPH);
   ind.clear();
 
-  // dimension de l'elt
-  E_Int nvertex, dummy;
-  E_Int dim = 0; E_Int totVertex = 0;
   for (E_Int i = 0; i < nf; i++)
   {
     // Acces universel face elt[i]-1
     cNG.getFace(elt[i]-1, nvertex, ngon, indPG);
     totVertex += nvertex;
-    dim = max(nvertex, dim);
   }
-  dim = min(dim, E_Int(3));
 
   if (dim == 1)
   {
@@ -249,6 +245,8 @@ E_Int K_CONNECT::getVertexIndices(FldArrayI& cNG, E_Int* ngon, E_Int* nface,
     // deuxieme face, recupere les 2 premiers noeuds
     E_Int* face2 = cNG.getFace(elt[1]-1, dummy, ngon, indPG);
     n1f2 = face2[0]; n2f2 = face2[1];
+
+    ind.reserve(32);
     
     if ((n1==n1f2)||(n1==n2f2))
     {
@@ -342,9 +340,9 @@ E_Int K_CONNECT::getVertexIndices(const E_Int* connect, const E_Int* posFaces,
   }
   else if (dim == 2)
   {
-    int drawn=0;
-    int prev, j, first, n1, n2, next;
-    int n1f2,n2f2,face2;
+    E_Int drawn=0;
+    E_Int prev, j, first, n1, n2, next;
+    E_Int n1f2,n2f2,face2;
 
     // premiere face
     face = ptrelt[1]-1;

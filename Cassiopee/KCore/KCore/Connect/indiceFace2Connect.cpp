@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,14 +33,14 @@ using namespace std;
 PyObject* K_KCORE::indiceFace2Connect(PyObject* self, PyObject* args)
 {
   PyObject  *array, *listFaces;
-  if (!PyArg_ParseTuple(args, "OO", &array, &listFaces))  return NULL;
+  if (!PYPARSETUPLE_(args, OO_, &array, &listFaces))  return NULL;
   
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true); 
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType); 
 
   if (res != 1 && res != 2)
   {

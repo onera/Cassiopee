@@ -47,7 +47,7 @@ idx_t ComputeCut(graph_t *graph, idx_t *where)
 /*************************************************************************/
 idx_t ComputeVolume(graph_t *graph, idx_t *where)
 {
-  idx_t i, j, k, me, nvtxs, nparts, totalv;
+  idx_t i, j, k, nvtxs, nparts, totalv;
   idx_t *xadj, *adjncy, *vsize, *marker;
 
 
@@ -194,7 +194,7 @@ idx_t CheckBnd2(graph_t *graph)
 /*************************************************************************/
 idx_t CheckNodeBnd(graph_t *graph, idx_t onbnd) 
 {
-  idx_t i, j, nvtxs, nbnd;
+  idx_t i, nvtxs, nbnd;
   idx_t *xadj, *adjncy, *where, *bndptr, *bndind;
 
   nvtxs = graph->nvtxs;
@@ -254,7 +254,7 @@ idx_t CheckRInfo(ctrl_t *ctrl, ckrinfo_t *rinfo)
 /*************************************************************************/
 idx_t CheckNodePartitionParams(graph_t *graph)
 {
-  idx_t i, j, k, l, nvtxs, me, other;
+  idx_t i, j, nvtxs, me, other;
   idx_t *xadj, *adjncy, *adjwgt, *vwgt, *where;
   idx_t edegrees[2], pwgts[3];
 
@@ -338,8 +338,8 @@ idx_t IsSeparable(graph_t *graph)
 /*************************************************************************/
 void CheckKWayVolPartitionParams(ctrl_t *ctrl, graph_t *graph)
 {
-  idx_t i, ii, j, k, kk, l, nvtxs, nbnd, mincut, minvol, me, other, pid;
-  idx_t *xadj, *vsize, *adjncy, *pwgts, *where, *bndind, *bndptr;
+  idx_t i, ii, j, k, kk, nvtxs, me, other, pid;
+  idx_t *xadj, *vsize, *adjncy, *where;
   vkrinfo_t *rinfo, *myrinfo, *orinfo, tmprinfo;
   vnbr_t *mynbrs, *onbrs, *tmpnbrs;
 

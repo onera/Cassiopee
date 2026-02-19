@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -136,14 +136,14 @@ BAR_BooleanOperator::check_sanity()
   //check normals equality
   E_Float x = NUGA::dot<3>(_normal, normal2);
   
-  if (::fabs(x + 1.) < EPSILON) // opposite orientation, one needs a reverse
+  if (fabs(x + 1.) < EPSILON) // opposite orientation, one needs a reverse
   {
     for (E_Int i=0; i < _connects[1].cols(); ++i)
       std::swap(_connects[1](0,i), _connects[1](1,i));
     x = 1.;
   }
   
-  if (::fabs(x - 1.) > EPSILON) return 1; //not on the same plane
+  if (fabs(x - 1.) > EPSILON) return 1; //not on the same plane
   
   // check planarity
   E_Float Pt[3];

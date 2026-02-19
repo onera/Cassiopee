@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,15 +33,15 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   if (!PYPARSETUPLE_(args, O_ RR_ I_,
                     &array, &alpha, &beta, &n))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk; // number of points of array
 
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, ni, nj, nk, cn, 
-                                    eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, 
+                                     eltType);
 
   if (res != 1 && res != 2)
   {
@@ -71,34 +71,32 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
   posx++; posy++; posz++;
   E_Int nfld = f->getNfld()+1;
   E_Int npts = f->getSize();
+  E_Int api = f->getApi();
   PyObject* tpl;
-  if (res == 1) //structured
+  if (res == 1) // structured
   {
-    tpl = K_ARRAY::buildArray(nfld, varStringOut, 
-                              ni, nj, nk);
+    tpl = K_ARRAY::buildArray3(nfld, varStringOut, ni, nj, nk, api);
   } 
-  else //unstructured 
+  else // unstructured 
   {
-    E_Int csize = cn->getSize()*cn->getNfld(); 
-    tpl = K_ARRAY::buildArray(nfld, varStringOut,
-                              npts, cn->getSize(),
-                              -1, eltType, false, csize);
+    tpl = K_ARRAY::buildArray3(nfld, varStringOut, npts,
+                               *cn, eltType, false, api, true);
   }
 
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(npts, nfld, fnp, true);
+  FldArrayF* f2;
+  K_ARRAY::getFromArray3(tpl, f2);
   // Recopie
-  E_Float* fp = f->begin();
   for (E_Int v = 0; v < nfld-1; v++)
   {
-    for (E_Int i = 0; i < npts; i++) fnp[i] = fp[i];
-    fnp += npts; fp += npts;
+    E_Float* fp = f->begin(v+1);
+    E_Float* f2p = f2->begin(v+1);
+    for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
   }
   // Perlin
   K_NOISE::PDS data;
   K_NOISE::initPerlinNoise(100, data);
 
-  fnp = fn.begin(nfld);
+  E_Float* f2p = f2->begin(nfld);
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
@@ -112,22 +110,17 @@ PyObject* K_POST::perlinNoise(PyObject* self,PyObject* args)
     zmin = K_FUNC::E_min(zmin, z[i]);
     zmax = K_FUNC::E_max(zmax, z[i]);
   }
-  E_Float dx = xmax-xmin; if (dx == 0.) { dx = 1.; xmin = 0; } else dx = 1./dx;
-  E_Float dy = ymax-ymin; if (dy == 0.) { dy = 1.; ymin = 0; } else dy = 1./dy;
-  E_Float dz = zmax-zmin; if (dz == 0.) { dz = 1.; zmin = 0; } else dz = 1./dz;
+  E_Float dx = xmax-xmin; if (K_FUNC::fEqualZero(dx)) { dx = 1.; xmin = 0; } else dx = 1./dx;
+  E_Float dy = ymax-ymin; if (K_FUNC::fEqualZero(dy)) { dy = 1.; ymin = 0; } else dy = 1./dy;
+  E_Float dz = zmax-zmin; if (K_FUNC::fEqualZero(dz)) { dz = 1.; zmin = 0; } else dz = 1./dz;
   
   for (E_Int i = 0; i < npts; i++)
   {
-    fnp[i] = K_NOISE::perlinNoise3D( (x[i]-xmin)*dx, (y[i]-ymin)*dy, 
+    f2p[i] = K_NOISE::perlinNoise3D( (x[i]-xmin)*dx, (y[i]-ymin)*dy, 
                                      (z[i]-zmin)*dz, alpha, beta, n, data);
   }
 
-  if (res == 2)
-  {
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), cn->getSize()*cn->getNfld());
-  }
-
-  RELEASESHAREDB(res, array,f, cn);
+  RELEASESHAREDS(tpl, f2);
+  RELEASESHAREDB(res, array, f, cn);
   return tpl;
 }

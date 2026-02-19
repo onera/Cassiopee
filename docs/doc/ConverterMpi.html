@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter.Mpi: distributed pyTree services &#8212; Converter 4.0 documentation</title>
+    <title>Converter.Mpi: distributed pyTree services &#8212; Converter 4.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
       </ul>
     </div>  
@@ -148,7 +148,7 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <td><p>Write a trace of cpu and memory in a file or to stdout for current node.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.center2Node" title="Converter.Mpi.center2Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.center2Node</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Convert zone/fields defined at centers to nodes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -484,7 +484,7 @@ and returns None.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.Mpi.createBBoxTree">
-<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">createBBoxTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">createBBoxTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepOldNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>From a partial tree (<strong>P</strong>) or a loaded skeleton tree (<strong>LS</strong>), create a full tree containing
 the bbox of zones. A bbox is a structured grid made of 8 points englobing
 zone. The returned tree is identical on all processors.
@@ -494,6 +494,7 @@ Argument method can be &#8216;AABB&#8217; (axis aligned bbox) or &#8216;OBB&#821
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
 <li><p><strong>method</strong> &#8211; &#8216;AABB&#8217;: axis aligned bbox, &#8216;OBB&#8217;: oriented bbox</p></li>
+<li><p><strong>keepOldNodes</strong> (<em>boolean</em>) &#8211; if True, keep original zone attributes, if False, build a new zone with coordinates only.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -887,12 +888,13 @@ All processors then see the same tree.</p>
 <h3>Actions</h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.Mpi.trace">
-<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stdout'</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stdout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Enable to monitor CPU usage and memory usage for each node/process.
 If fileName=&#8221;stdout&#8221;, information is written to standard output with the processor number.
 If fileName is another name, information is written in &#8220;filenameXXX&#8221; files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended &#8220;%03d&#8221; and &#8220;.out&#8221;, respectively.
 If cpu=True, time elapsed since the previous call to &#8220;trace&#8221; by this node is written.
-If mem=True, the current usage of memory of each process is written.</p>
+If mem=True, the current usage of memory of each process is written.
+Method used to find memory: 0: Rss in smaps, 1: tracemalloc.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -900,6 +902,7 @@ If mem=True, the current usage of memory of each process is written.</p>
 <li><p><strong>cpu</strong> (<em>boolean</em>) &#8211; True to write cpu usage information</p></li>
 <li><p><strong>mem</strong> (<em>boolean</em>) &#8211; True to write memory usage information</p></li>
 <li><p><strong>fileName</strong> (<em>string</em>) &#8211; name of the file to write information to or &#8220;stdout&#8221;</p></li>
+<li><p><strong>method</strong> (<em>0: Rss</em><em>, </em><em>1: tracemalloc</em>) &#8211; method used to check memory</p></li>
 </ul>
 </dd>
 </dl>
@@ -1122,7 +1125,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
       </ul>
     </div>

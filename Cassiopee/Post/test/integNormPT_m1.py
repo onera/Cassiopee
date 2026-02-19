@@ -2,7 +2,6 @@
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
-import Post.PyTree as P
 import Post.Mpi as Pmpi
 import Converter.Mpi as Cmpi
 import KCore.test as test

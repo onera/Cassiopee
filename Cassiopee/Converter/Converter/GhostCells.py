@@ -1,13 +1,10 @@
 # - ghostcells -
 # Un module d'ajout/suppression de cellules fictives dans les arbres python
-try: range = xrange
-except: pass
-
 from . import Internal
 from . import Converter
 from . import converter
-import numpy
 from . import PyTree
+import numpy
 import math
 # global definition: coordinates name
 coordinate = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
@@ -286,14 +283,14 @@ def getFieldsInContainer__(zp, modified, coords=True):
     fieldsn = []; fieldsc = []
     for name in modified:
         if name == Internal.__GridCoordinates__ or name == Internal.__FlowSolutionNodes__:
-            if fieldsn == []: fieldsn = PyTree.getFields(name,zp)[0]
+            if fieldsn == []: fieldsn = PyTree.getFields(name,zp, api=1)[0]
             else:
-                sol = PyTree.getFields(name,zp)[0]
+                sol = PyTree.getFields(name,zp, api=1)[0]
                 if sol != []: fieldsn = Converter.addVars([fieldsn,sol])
         elif name == Internal.__FlowSolutionCenters__:
-            fieldsc = PyTree.getFields(name,zp)[0]
+            fieldsc = PyTree.getFields(name,zp, api=1)[0]
             if coords:
-                fieldsn = PyTree.getFields(Internal.__GridCoordinates__,zp)[0]
+                fieldsn = PyTree.getFields(Internal.__GridCoordinates__,zp, api=1)[0]
         else:
             if not isinstance(name, list): name = [name]
             for vname in name:
@@ -409,7 +406,7 @@ def fillJoinGhostCellsStruct__(zp, join, modified, joininfo,
             for coord in coordinate:
                 if coord in modified: isCoordPresent += 1
         if isCoordPresent == 3:
-            coords = PyTree.getFields(Internal.__GridCoordinates__,zdonor)
+            coords = PyTree.getFields(Internal.__GridCoordinates__,zdonor, api=1)
             coords = Transform.translate(coords, (tvx,tvy,tvz))
             PyTree.setFields(coords, zdonor, 'nodes', writeDim=False)
 
@@ -1023,7 +1020,7 @@ def _rmRindCells0(t):
         dimZone = dim[4]
         if dim[0] == 'Structured':
             imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
-            rindnode = Internal.getNodeFromType(zp,'Rind_t')
+            rindnode = Internal.getNodeFromType(zp, 'Rind_t')
             if rindnode is not None:
                 rindnode = Internal.getValue(rindnode)
                 rindimin = rindnode[0]; rindimax = rindnode[1]
@@ -2045,7 +2042,7 @@ def addGhostCellsNG(t, nlayers=2):
 
         if Internal.getZoneType(z)==1: continue
 
-        m = PyTree.getFields(Internal.__GridCoordinates__, z)[0]
+        m = PyTree.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         zone_ngons.append(m)
 
         F2Esep = Internal.getNodeFromName2(z, 'ParentElements')

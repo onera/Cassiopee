@@ -4,6 +4,11 @@ import CPlot.PyTree as CPlot
 import Geom.PyTree as D
 import KCore.test as test
 
+import KCore.Dist as Dist
+(osmesa, osmesaIncDir, osmesaLibDir, osmesalibs) = Dist.checkOSMesa()
+if not osmesa:
+    import sys; sys.exit()
+
 LOCAL = test.getLocal()
 
 a = D.sphere((0,0,0), 1, N=200)

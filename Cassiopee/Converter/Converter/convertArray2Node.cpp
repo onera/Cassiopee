@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,7 @@ using namespace std;
 PyObject* K_CONVERTER::convertArray2Node(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
 
   // Check array
   PyObject* tpl;
@@ -44,10 +44,11 @@ PyObject* K_CONVERTER::convertArray2Node(PyObject* self, PyObject* args)
                                f, nil, njl, nkl, cn, eltType);
   
   // Building numpy arrays and return it.
+  E_Int api = f->getApi();
   if (res == 1)      // Structured
   {
     FldArrayI* cnl = new FldArrayI();
-    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE");
+    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE", api);
     delete cnl;
     RELEASESHAREDS(array, f);
     return tpl;
@@ -55,7 +56,7 @@ PyObject* K_CONVERTER::convertArray2Node(PyObject* self, PyObject* args)
   else if (res == 2) // Unstructured
   {
     FldArrayI* cnl = new FldArrayI();
-    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE");
+    tpl = K_ARRAY::buildArray3(*f, varString, *cnl, "NODE", api);
     delete cnl;
     RELEASESHAREDU(array, f, cn);
     return tpl;

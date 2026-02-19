@@ -14,11 +14,11 @@ See doc/KCore.txt for installation requirements.
 installing KCore:
 =============================================================================
 - type "python installer.py". Use File/check All Paths. Correct paths
-if needed. Use File/Save installBase.
+if needed. Use File/Save installBaseUser.
 
 -or-
 
-- edit installBase.py. Set the correct compiler names and libraries.
+- edit installBaseUser.py. Set the correct compiler names and libraries.
 
 Then,
 

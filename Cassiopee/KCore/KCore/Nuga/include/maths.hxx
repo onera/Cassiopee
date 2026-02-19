@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -56,7 +56,7 @@ diff (InputIterator1 x, InputIterator2 y, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i) 
   {
-     *(z+i) = *(x+i) - *(y+i); 
+    *(z+i) = *(x+i) - *(y+i); 
   }
 
   return z + dim;
@@ -68,7 +68,7 @@ diff (InputIterator1 x, InputIterator2 y, E_Int stride, InputIterator3 z)
 {
   for (E_Int i = 0; i < dim; ++i)
   {
-     *(z+i) = *(x+i*stride) - *(y+i*stride);
+    *(z+i) = *(x+i*stride) - *(y+i*stride);
   }
 
   return z + dim;
@@ -80,7 +80,7 @@ inline InputIterator3
 sum (InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i) + *(y+i);
+    *(z+i) = *(x+i) + *(y+i);
 
   return z + dim;
 }
@@ -91,7 +91,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b;
+    *(z+i) = *(x+i)*a + *(y+i)*b;
 
   return z + dim;
 }
@@ -102,7 +102,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, E_Float b, InputIterator2 y,  InputIterator2 c, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
+    *(z+i) = *(x+i)*a + *(y+i)*b + *(c+i);
 
   return z + dim;
 }
@@ -113,7 +113,7 @@ inline InputIterator3
 sum (E_Float a, InputIterator1 x, InputIterator2 y, InputIterator3 z) 
 {
   for (E_Int i = 0; i < dim; ++i)
-   *(z+i) = *(x+i)*a + *(y+i);
+    *(z+i) = *(x+i)*a + *(y+i);
 
   return z + dim;
 }
@@ -202,9 +202,9 @@ E_Float dot<3> (const E_Float* x, const E_Float* y)
 
 template <E_Int dim, typename InputIterator>
 inline
-E_Float normalize (InputIterator it)
+E_Float normalize(InputIterator it)
 {
-  E_Float L0 = ::sqrt(sqrNorm<dim>(it));
+  E_Float L0 = sqrt(sqrNorm<dim>(it));
   if (L0 != 0.)
   {
     E_Float L1 = 1./L0;
@@ -245,12 +245,12 @@ E_Float sqrCross<3>(const E_Float* x, const E_Float* y)
 }
 
 ///
-inline double project(double const * plane_pt, double const * plane_dir, double const * pt, double const * dir, double* proj_pt)
+inline E_Float project(E_Float const* plane_pt, E_Float const* plane_dir, E_Float const* pt, E_Float const* dir, E_Float* proj_pt)
 {
-  double PPt[3];
+  E_Float PPt[3];
   NUGA::diff<3>(pt, plane_pt, PPt);
-  double k = -NUGA::dot<3>(PPt, plane_dir);
-  double c = NUGA::dot<3>(plane_dir, dir);
+  E_Float k = -NUGA::dot<3>(PPt, plane_dir);
+  E_Float c = NUGA::dot<3>(plane_dir, dir);
   //assert(SIGN(c, EPSILON) != 0); //fixme
   k /= c;
   NUGA::sum<3>(1., pt, k, dir, proj_pt); //project
@@ -258,7 +258,7 @@ inline double project(double const * plane_pt, double const * plane_dir, double 
 }
 
 ///
-inline double angle_measure
+inline E_Float angle_measure
 (const E_Float* ni, const E_Float* nj, const E_Float* E0, const E_Float* E1)
 {
   //
@@ -266,7 +266,7 @@ inline double angle_measure
   NUGA::crossProduct<3>(ni, nj, nk);
   E_Float c = NUGA::dot<3>(ni, nj);
 
-  E_Int s = zSIGN(::fabs(c) - 1., ZERO_M);
+  E_Int s = zSIGN(fabs(c) - 1., ZERO_M);
 
   if (s != 0) // non-degn case
   {
@@ -283,7 +283,7 @@ inline double angle_measure
     assert(signK2 != 0);
 #endif
 
-    E_Float alpha = ::atan2(::sqrt(s2), c);
+    E_Float alpha = atan2(sqrt(s2), c);
     alpha = NUGA::PI - signK2 * alpha;
 
     return alpha;
@@ -302,7 +302,7 @@ inline double angle_measure
 }
 
 ///
-inline double normals_angle (const E_Float* ni, const E_Float* nj)
+inline E_Float normals_angle (const E_Float* ni, const E_Float* nj)
 {
   // Angle between 2 normals (conical tolerance)
 
@@ -310,13 +310,13 @@ inline double normals_angle (const E_Float* ni, const E_Float* nj)
   NUGA::crossProduct<3>(ni, nj, nk);
   E_Float c = NUGA::dot<3>(ni, nj);
 
-  E_Int s = zSIGN(::fabs(c) - 1., ZERO_M);
+  E_Int s = zSIGN(fabs(c) - 1., ZERO_M);
 
   if (s != 0) // non-degn case
   {
     E_Float s2 = NUGA::sqrNorm<3>(nk);
 
-    E_Float alpha = ::atan2(::sqrt(s2), c);
+    E_Float alpha = atan2(sqrt(s2), c);
     return alpha;
   }
   else // (s == 0) : ni and nj are nearly colinear : 0, Pi or 2Pi
@@ -333,9 +333,9 @@ inline double normals_angle (const E_Float* ni, const E_Float* nj)
 }
 
 ///
-inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const double* Pip1, double* n)
+inline bool angular_weighted_normal(const E_Float* Pim1, const E_Float* Pi, const E_Float* Pip1, E_Float* n)
 {
-  double ray1[3], ray2[3];
+  E_Float ray1[3], ray2[3];
   NUGA::diff<3>(Pip1, Pi, ray1);
   NUGA::normalize<3>(ray1);
   NUGA::diff<3>(Pim1, Pi, ray2);
@@ -345,7 +345,7 @@ inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const 
   NUGA::normalize<3>(n);
 
   // E1 is such PiE1 is normal to Pim1PiPip1
-  double ni[3], nj[3], E1[3];
+  E_Float ni[3], nj[3], E1[3];
   NUGA::sum<3>(Pi, n, E1);
 
   // ni = E0E1 ^ PiPip1
@@ -354,8 +354,8 @@ inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const 
   // nj = PiPim1 ^ E0E1
   NUGA::crossProduct<3>(ray2, n, nj);
 
-  double alpha = angle_measure(ni, nj, Pi/*E0*/, E1);
-  if (alpha == 2.*NUGA::PI) return true;
+  E_Float alpha = angle_measure(ni, nj, Pi/*E0*/, E1);
+  if (K_FUNC::fEqualZero(alpha - 2.*NUGA::PI)) return true;
 
   n[0] *= alpha;
   n[1] *= alpha;
@@ -365,8 +365,7 @@ inline bool angular_weighted_normal(const double* Pim1, const double* Pi, const 
 }
 
 ///
-inline void __get_transform_matrix
-(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
+inline void __get_transform_matrix(E_Float* U, E_Float*V, E_Float* W, K_FLD::FloatArray& P)
 {
   P.resize(3, 3);
 
@@ -379,8 +378,7 @@ inline void __get_transform_matrix
 }
 
 ///
-inline void __get_normal_to
-(const E_Float* V, E_Float* N)
+inline void __get_normal_to(const E_Float* V, E_Float* N)
 {
   N[0] = 1.0;
   for (E_Int k = 1; k < 3; ++k)
@@ -441,16 +439,16 @@ void computeNodeRadiusAndAngles
   {
     const E_Float* pt = coord.col(i);
 
-    radius[i] = ::sqrt(((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)));
+    radius[i] = sqrt(((pt[0] - x0)*(pt[0] - x0)) + ((pt[1] - y0)*(pt[1] - y0)));
 
     E_Float c = (pt[0] - x0) / radius[i];
     E_Float s = (pt[1] - y0) / radius[i];
 
-    angles[i] = ::atan2(s, c);
+    angles[i] = atan2(s, c);
   }
 }
 
-inline void axial_rotate(K_FLD::FloatArray& crd, const double* axis_pt, const double* axis_dir, double angle)
+inline void axial_rotate(K_FLD::FloatArray& crd, const E_Float* axis_pt, const E_Float* axis_dir, E_Float angle)
 {
   crd.pushBack(axis_pt, axis_pt + 3); // to embark it in the transfo
 
@@ -460,15 +458,15 @@ inline void axial_rotate(K_FLD::FloatArray& crd, const double* axis_pt, const do
   K_FLD::FloatArray::inverse3(iP);
   transform(crd, iP);// Now we are in the reference cylindrical coordinate system.
 
-  double * axi_pt = crd.col(crd.cols() - 1);
+  E_Float* axi_pt = crd.col(crd.cols() - 1);
 
   for (E_Int i = 0; i < crd.cols(); ++i)
   {
-    double* pt = crd.col(i);
-    double X = pt[0] - axi_pt[0];
-    double Y = pt[1] - axi_pt[1];
-    pt[0] = ::cos(angle) * X - ::sin(angle) * Y + axi_pt[0];
-    pt[1] = ::sin(angle) * X + ::cos(angle) * Y + axi_pt[1];
+    E_Float* pt = crd.col(i);
+    E_Float X = pt[0] - axi_pt[0];
+    E_Float Y = pt[1] - axi_pt[1];
+    pt[0] = cos(angle) * X - sin(angle) * Y + axi_pt[0];
+    pt[1] = sin(angle) * X + cos(angle) * Y + axi_pt[1];
   }
 
   NUGA::transform(crd, P); // back to original ref frame  
@@ -491,7 +489,7 @@ inline long szudzik_pairing(int x, int y)
 
 inline void szudzik_unpairing(E_Int szudzic_val, E_Int& x, E_Int& y)
 {
-  E_Int a = (E_Int)(::sqrt(szudzic_val));
+  E_Int a = (E_Int)(sqrt(szudzic_val));
   E_Int a2 = a * a;
 
   if ((szudzic_val - a2) < a)

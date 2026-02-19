@@ -4,8 +4,8 @@ FROM ubuntu:latest
 # Set non-interactive mode for apt-get
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set the default Python version to 3.12.3, can be passed as an argument
-ARG PYTHON_VERSION=3.12.3
+# Set the default Python version to 3.12.4, can be passed as an argument
+ARG PYTHON_VERSION=3.12.4
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -46,9 +46,15 @@ RUN apt-get update && apt-get install -y \
     libpcap-dev \
     libmysqlclient-dev
 
-# Set-up necessary Env vars for PyEnv
-ENV PYENV_ROOT /root/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+# Set environment variables for compatibility with amd64 and arm64 architectures
+ARG TARGETARCH
+ENV MPI_HOME=/usr/lib/${TARGETARCH}-linux-gnu/openmpi
+ENV CPATH=${MPI_HOME}/include:${CPATH:-}
+ENV LIBRARY_PATH=${MPI_HOME}/lib:${LIBRARY_PATH:-}
+
+# Set environment variables for PyEnv
+ENV PYENV_ROOT=/root/.pyenv
+ENV PATH=$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # Install pyenv and the requested Python version
 RUN curl https://pyenv.run | bash \
@@ -56,19 +62,28 @@ RUN curl https://pyenv.run | bash \
     && pyenv install ${PYTHON_VERSION} \
     && pyenv global ${PYTHON_VERSION} \
     && pyenv rehash
-    
-# Install Python dependencies using pip
-RUN python -m ensurepip --upgrade && \
-    pip install --upgrade pip setuptools wheel build && \
-    pip install \
-        numpy>=1.23.3 \
-        mpi4py>=3.1.3 \
-        scons>=4.4.0
 
-# Verify the Python version
-RUN python3 --version && pip3 --version
+# Shadow python3 with pyenv
+RUN pyenv global ${PYTHON_VERSION} \
+    && ln -sf $(pyenv which python) /usr/local/bin/python \
+    && ln -sf $(pyenv which python) /usr/local/bin/python3 \
+    && ln -sf $(pyenv which pip) /usr/local/bin/pip \
+    && ln -sf $(pyenv which pip) /usr/local/bin/pip3
 
 ENV PIP_ROOT_USER_ACTION=ignore
+
+# Install Python dependencies using pip
+RUN python -m pip install --upgrade pip setuptools wheel build
+RUN python -m pip install \
+        numpy>=1.23.3 \
+        mpi4py>=3.1.3 \
+        scons>=4.4.0 \
+        matplotlib>=3.8.0
+
+# Verify the version of Python and numpy
+RUN python3 --version && pip3 --version
+RUN python3 -m pip list \
+    && python3 -c "import numpy; print(numpy.__version__)"
 
 # Install opencascade and remove cache files after installing packages
 RUN apt-get update && apt-get install -y \
@@ -118,9 +133,14 @@ RUN curl -fSL "https://github.com/CGNS/CGNS/archive/refs/tags/v$CGNS_VERSION.tar
 ENV LD_LIBRARY_PATH="${CGNS_INSTALL_DIR}/lib:${HDF5_INSTALL_DIR}/lib:${LD_LIBRARY_PATH}" PATH="${CGNS_INSTALL_DIR}/bin:${HDF5_INSTALL_DIR}/bin:$PATH"
 ENV CGNS_DIR="${CGNS_INSTALL_DIR}"
     
-# Set environment variables
+# Set environment variables for Cassiopee
 ENV CASSIOPEE=/Cassiopee
-ENV MACHINE=ubuntu
+#ENV MACHINE=ubuntu
+RUN case "${TARGETARCH}" in \
+        amd64) echo "MACHINE=ubuntu" ;; \
+        arm64) echo "MACHINE=ubuntu_arm64" ;; \
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+    esac > /etc/cassiopee-machine.env
 
 # Do not prevent mpirun to run as root
 ENV OMPI_ALLOW_RUN_AS_ROOT=1
@@ -132,14 +152,16 @@ WORKDIR $CASSIOPEE
 # Copy the current directory contents into the container
 COPY . $CASSIOPEE
 
+# Change the default shell to be the bash shell
+SHELL ["/bin/bash", "-c"]
+
 # Source environment and run install script
-RUN . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
+RUN . /etc/cassiopee-machine.env && echo "Using MACHINE=${MACHINE}" \
+    && . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
+    && export PRODMODE=3 \
+    && export OMP_NUM_THREADS=2 \
     && cd $CASSIOPEE/Cassiopee \
     && ./install
 
-# Change the default shell to be the bash shell
-SHELL ["/bin/bash", "-c"] 
-
-# Define the default command to run the application: start an interactive shell
-# session
-ENTRYPOINT . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 && /bin/bash
+# Default command to run the application: start an interactive shell session
+ENTRYPOINT ["/bin/bash", "-i", "-c", "source /etc/cassiopee-machine.env && source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 && exec /bin/bash -i"]

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -44,7 +44,7 @@ K_COMPGEOM::Triangle::~Triangle()
 //=============================================================================
 /*Return true if the point coord(ind,) is in the circumcircle of the triangle*/
 //=============================================================================
-E_Boolean K_COMPGEOM::Triangle::isPointInCircumCircle(
+E_Bool K_COMPGEOM::Triangle::isPointInCircumCircle(
   E_Int ind, FldArrayF& coord, E_Float tol)
 { 
   E_Float* xp = coord.begin(1);

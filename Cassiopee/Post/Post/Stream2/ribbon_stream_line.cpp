@@ -12,9 +12,9 @@ struct K_POST::ribbon_streamline::Implementation {
     FldArrayF fields;
     FldArrayI connectivity;
     Implementation( const point3d &init_pos, 
-                    const std::vector<zone_data_view> &zones,
+                    const std::vector<zone_data_view>& zones,
                     E_Int max_vertices_for_streamline, 
-                    double width, bool is_bidirectional );
+                    E_Float width, bool is_bidirectional );
 };
 
 
@@ -43,7 +43,7 @@ namespace
     std::tuple<E_Int, E_Int, vector3d, vector3d>
     init_ribbon_streamline( const point3d &init_pos, 
                             const std::vector<K_POST::zone_data_view> &zones,
-                            E_Int max_vertices_for_streamline, double width, 
+                            E_Int max_vertices_for_streamline, E_Float width, 
                             FldArrayF &streamPt, int istream, E_Int num_zone, 
                             bool is_with_perturbation = false )
     {
@@ -115,7 +115,7 @@ namespace
         if (istream == 0)
         {
             dir_ortho = vector3d{velocity_pt[1],-velocity_pt[0],0.};
-            double nrm_dir_ortho = abs(dir_ortho);
+            E_Float nrm_dir_ortho = abs(dir_ortho);
             if (nrm_dir_ortho < 1.E-14)
             {
                 dir_ortho = vector3d{0.,-velocity_pt[2],velocity_pt[1]};
@@ -149,7 +149,7 @@ namespace
     void build_ribbon_streamline( const point3d &init_pos,
                                  const std::vector<K_POST::zone_data_view> &zones,
                                  E_Int max_vertices_for_streamline,
-                                 FldArrayF &streamPt, double ribbon_width = 1., bool is_reversed = false )
+                                 FldArrayF &streamPt, E_Float ribbon_width = 1., bool is_reversed = false )
     {
         E_Int ind_cell = -1;
         E_Int num_blk = -1;
@@ -174,7 +174,10 @@ namespace
                 if ( ind_cell == -1 ) break;  // On n'a pas trouvé de zones correspondantes...
                 continue;
             }
-            E_Int facette_in = -1, facette_out = -1;
+#if defined( DEBUG_VERBOSE )
+            E_Int facette_in = -1;
+#endif
+            E_Int facette_out = -1;
             auto facettes_candidates = zones[ num_blk ].get_faces_of_element( ind_cell, num_blk );
 
 #if defined( DEBUG_VERBOSE )
@@ -211,7 +214,11 @@ namespace
                 std::tie( is_intersecting, is_entering ) = facette.is_intersecting_ray( cur_point, velocity );
                 if ( is_intersecting ) {
                     if ( is_entering )
+                    {
+#if defined( DEBUG_VERBOSE )
                         facette_in = ind_facette;
+#endif
+                    }
                     else
                         facette_out = ind_facette;
                 }
@@ -293,12 +300,12 @@ namespace
             std::cout << "rot2 : " << rot2 << std::flush << std::endl;
             std::cout << "Calcul Volume dans première cellule : " << std::flush;
 #endif
-            double   vol1 = zones[ num_blk ].compute_volume_of_cell(icell1);
+            E_Float vol1 = zones[ num_blk ].compute_volume_of_cell(icell1);
 #if defined( DEBUG_VERBOSE )
             std::cout << vol1 << std::flush << std::endl;
             std::cout << "Calcul volume dans deuxième cellule : "; 
 #endif
-            double   vol2 = zones[ num_blk ].compute_volume_of_cell(icell2);
+            E_Float vol2 = zones[ num_blk ].compute_volume_of_cell(icell2);
 #if defined( DEBUG_VERBOSE )
             std::cout << vol2 << std::flush << std::endl;
 #endif
@@ -329,7 +336,7 @@ namespace
             point3d pip1{interpfld[pos_crds[0]-1],
                          interpfld[pos_crds[1]-1],
                          interpfld[pos_crds[2]-1]};
-            double d = distance(pi,pip1);
+            E_Float d = distance(pi,pip1);
 #if defined( DEBUG_VERBOSE )
             std::cout << "istream : " << istream << "pi : " << pi << ", pi+1 : " << pip1 << " ";
             std::cout << "d : " << d << " " << std::flush;
@@ -345,13 +352,13 @@ namespace
 #endif
             vector3d u = 0.5*(ui + uip1);
             //std::cout << "u : " << u << ", rot : " << rot << std::endl;
-            double nrmu = abs(u);
+            E_Float nrmu = abs(u);
             u = (1./nrmu)*u;
             //std::cout << "||u||/||u|| ! : " << abs(u) << " ";
-            double t = d / nrmu;
+            E_Float t = d / nrmu;
             //std::cout << " t <= " << t << " ";
             // ? Calcul de l'angle en fonction de t :
-            double theta = 0.5*(rot|u)*t;
+            E_Float theta = 0.5*(rot|u)*t;
             //std::cout << "theta : " << theta << std::endl
              //         << "------------------------------------------------------------------------" << std::endl;
             // ? Orthogonalisation de dir_ortho par rapport à u :
@@ -390,7 +397,7 @@ namespace K_POST
     //_ _____________________________ Constructeur ____________________________
     ribbon_streamline::ribbon_streamline::Implementation::Implementation( 
         const point3d &init_pos, const std::vector<zone_data_view> &zones,
-        E_Int max_vertices_for_streamline, double width, bool is_bidirectional )
+        E_Int max_vertices_for_streamline, E_Float width, bool is_bidirectional )
     {
         if (!is_bidirectional)
             build_ribbon_streamline(init_pos, zones, max_vertices_for_streamline, 
@@ -423,7 +430,7 @@ namespace K_POST
     //_ _____________________________ Constructeur ____________________________
     ribbon_streamline::ribbon_streamline( 
         const point3d& init_pos, const std::vector<zone_data_view>&  zones, 
-        E_Int max_vertices_for_streamline, double width, bool is_bidirectional) :
+        E_Int max_vertices_for_streamline, E_Float width, bool is_bidirectional) :
         ptr_impl(new Implementation(init_pos, zones, max_vertices_for_streamline, 
                                     width, is_bidirectional))
     {}

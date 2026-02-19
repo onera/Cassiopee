@@ -292,7 +292,7 @@ Conversions
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.Mpi.createBBoxTree(t, method='AABB')
+.. py:function:: Converter.Mpi.createBBoxTree(t, method='AABB', keepOldNodes=True)
 
     From a partial tree (**P**) or a loaded skeleton tree (**LS**), create a full tree containing 
     the bbox of zones. A bbox is a structured grid made of 8 points englobing
@@ -302,6 +302,8 @@ Conversions
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]
     :param method: 'AABB': axis aligned bbox, 'OBB': oriented bbox
+    :param keepOldNodes: if True, keep original zone attributes, if False, build a new zone with coordinates only.
+    :type keepOldNodes: boolean
     :rtype: Identical to t
 
     *Example of use:*
@@ -483,13 +485,14 @@ Exchanges
 Actions
 -------------
 
-.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="stdout")
+.. py:function:: Converter.Mpi.trace(text, cpu=True, mem=True, fileName="stdout", method=0)
 
     Enable to monitor CPU usage and memory usage for each node/process.
     If fileName="stdout", information is written to standard output with the processor number. 
     If fileName is another name, information is written in "filenameXXX" files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended "%03d" and ".out", respectively.
     If cpu=True, time elapsed since the previous call to "trace" by this node is written.
     If mem=True, the current usage of memory of each process is written.
+    Method used to find memory: 0: Rss in smaps, 1: tracemalloc.
 
     :param text: text to write
     :type text: string
@@ -499,6 +502,8 @@ Actions
     :type mem: boolean
     :param fileName: name of the file to write information to or "stdout"
     :type fileName: string
+    :param method: method used to check memory
+    :type method: 0: Rss, 1: tracemalloc
 
     *Example of use:*
 

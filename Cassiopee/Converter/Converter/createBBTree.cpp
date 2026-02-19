@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -125,7 +125,7 @@ PyObject* K_CONVERTER::intersect2(PyObject* self, PyObject* args)
     K_SEARCH::BbTree3D* BBTree = (K_SEARCH::BbTree3D*)packet[0]; 
 
     FldArrayF* f;
-    K_NUMPY::getFromNumpyArray(inBB, f, true);
+    K_NUMPY::getFromNumpyArray(inBB, f);
     E_Int size = f->getSize()/6;
     E_Float* fp = f->begin();
 

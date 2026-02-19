@@ -8,9 +8,6 @@ from . import transform
 import numpy
 __version__ = Transform.__version__
 
-try: range = xrange
-except: pass
-
 try:
     import Converter.PyTree as C
     import Converter.Internal as Internal
@@ -137,29 +134,32 @@ def _scale(a, factor=1., X=None):
         except: pass
     return C.__TZGC3(a, Transform._scale, factor, X)
 
-def symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.TZGC3(a, 'nodes', False, Transform.symetrize, point, vector1, vector2)
+def symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+    return C.TZGC3(a, 'nodes', False, Transform.symmetrize, point, vector1, vector2)
 
-def _symetrize(a, point, vector1, vector2):
-    """Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.
-    Usage: symetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
-    return C.__TZGC3(a, Transform._symetrize, point, vector1, vector2)
+def _symmetrize(a, point, vector1, vector2):
+    """Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.
+    Usage: symmetrize(a, (xc,yc,zc), (v1x,v1y,v1z), (v2x,v2y,v2z))"""
+    return C.__TZGC3(a, Transform._symmetrize, point, vector1, vector2)
+
+symetrize = symmetrize
+_symetrize = _symmetrize
 
 def perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C.TZA1(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
+    return C.TZA3(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
 
 def _perturbate(a, radius, dim=3):
     """Perturbate a mesh randomly of radius
     Usage: perturbate(a, radius, dim)"""
-    return C._TZA1(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
+    return C._TZA3(a, 'nodes', 'nodes', False, Transform.perturbate, radius, dim)
 
 def smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
-    return C.TZA2(t, 'nodes', 'nodes', False, Transform.smoothField, eps, niter, type, varNames)
+    return C.TZA3(t, 'nodes', 'nodes', False, Transform.smoothField, eps, niter, type, varNames)
 
 def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
     """Smooth given fields."""
@@ -170,8 +170,8 @@ def _smoothField(t, eps=0.1, niter=1, type=0, varNames=[]):
             if s[0] == 'centers': varCenters.append(s[1])
             else: varNodes.append(s[0])
         else: varNodes.append(v)
-    if varNodes != []: C.__TZA2(t, 'nodes', Transform._smoothField, eps, niter, type, varNodes)
-    if varCenters != []: C.__TZA2(t, 'centers', Transform._smoothField, eps, niter, type, varCenters)
+    if varNodes != []: C.__TZA3(t, 'nodes', Transform._smoothField, eps, niter, type, varNodes)
+    if varCenters != []: C.__TZA3(t, 'centers', Transform._smoothField, eps, niter, type, varCenters)
     return None
 
 def smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
@@ -190,16 +190,16 @@ def _smooth(t, eps=0.5, niter=4, type=0, fixedConstraints=[],
     if fixedConstraints != []:
         c = []
         for z in fixedConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         fixedConstraints = c
     if projConstraints != []:
         c = []
         for z in projConstraints:
-            c.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+            c.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
         projConstraints = c
     zones = Internal.getZones(t)
     coords = []
-    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
+    for z in zones: coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
     coordsp = Transform.smooth(coords, eps, niter, type,
                                fixedConstraints, projConstraints, delta,
                                point, radius)
@@ -217,7 +217,7 @@ def _deform(t, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector (dx, dy, dz).
     Usage: deform(t, vector=['dx','dy','dz'])"""
     if len(vector) != 3: raise ValueError("deform: 3 variables are required.")
-    return C._TZA1(t, 'nodes', 'nodes', False, Transform.deform, vector)
+    return C._TZA3(t, 'nodes', 'nodes', False, Transform.deform, vector)
 
 def deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals.
@@ -229,7 +229,7 @@ def deformNormals(t, alpha, niter=1):
 
 def _deformNormals(t, alpha, niter=1):
     """Deform a a surface of alpha times the surface normals."""
-    alphat = C.getField(alpha, t)
+    alphat = C.getField(alpha, t, api=1)
     res = C.TLAGC(t, Transform.deformNormals, alphat, niter, None, None)
     C.setFields(res[0], t, 'nodes')
     return None
@@ -237,22 +237,44 @@ def _deformNormals(t, alpha, niter=1):
 def deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz).
     Usage: deformPoint(a, (x,y,z), (dx,dy,dz), width, depth)"""
-    return C.TZGC1(a, 'nodes', True, Transform.deformPoint, xyz, dxdydz, depth, width)
+    return C.TZGC3(a, 'nodes', True, Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def _deformPoint(a, xyz, dxdydz, depth, width):
     """Deform mesh by moving point (x,y,z) of a vector (dx, dy, dz)."""
-    return C._TZGC1(a, 'nodes', False, Transform.deformPoint, xyz, dxdydz, depth, width)
+    return C._TZGC3(a, 'nodes', False, Transform.deformPoint, xyz, dxdydz, depth, width)
 
 def deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it.
     Usage: deformMesh(a, surfDelta, beta, type)"""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C.TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
 
 def _deformMesh(a, surfDelta, beta=4., type='nearest'):
     """Deform a mesh a wrt surfDelta defining surface grids and deformation vector on it."""
-    info = C.getAllFields(surfDelta, 'nodes')
+    info = C.getAllFields(surfDelta, 'nodes', api=1)
     return C._TZA1(a, 'nodes', 'nodes', True, Transform.deformMesh, info, beta, type)
+
+def controlPoints(a, N=(2,2,2)):
+    """Create control points for free form."""
+    import Generator.PyTree as G
+    bb = G.bbox(a)
+    b = G.cart((bb[0],bb[1],bb[2]),(bb[3]-bb[0],bb[4]-bb[1],bb[5]-bb[2]),N)
+    C._addVars(b, ['dx','dy','dz'])
+    return b
+
+def freeForm(a, controlPoints):
+    """Coupute free form deformation vector."""
+    b = Internal.copyRef(a)
+    _freeForm(b, controlPoints)
+    return b
+
+def _freeForm(a, controlPoints):
+    """Compute free form deformation vector."""
+    array = C.getAllFields(a, 'nodes', api=3)
+    control = C.getAllFields(controlPoints, 'nodes', api=3)[0]
+    array = Transform.freeForm(array, control)
+    C.setFields(array, a, 'nodes', writeDim=False)
+    return None
 
 def join(t, t2=None, tol=1.e-10):
     """Join two zones in one or join a list of zones in one.
@@ -266,9 +288,9 @@ def join(t, t2=None, tol=1.e-10):
         allBCInfos += C.extractBCInfo(t2)
     Internal._orderFlowSolution(nodes, loc='both')
 
-    fieldn = C.getAllFields(nodes, 'nodes')
+    fieldn = C.getAllFields(nodes, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(nodes, 'centers'):
+    for f in C.getAllFields(nodes, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.join(fieldn, arrayc=fieldc, tol=tol)
     if not isinstance(res[0], list): # join sans les centres
@@ -285,9 +307,9 @@ def merge(t, sizeMax=1000000000, dir=0, tol=1.e-10, alphaRef=180., mergeBCs=Fals
     Usage: merge(t, sizeMax, dir, tol, alphaRef)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    fieldn = C.getAllFields(t, 'nodes')
+    fieldn = C.getAllFields(t, 'nodes', api=1)
     fieldc = []
-    for f in C.getAllFields(t, 'centers'):
+    for f in C.getAllFields(t, 'centers', api=1):
         if f != []: fieldc.append(f)
     res = Transform.merge(fieldn, Ac=fieldc, sizeMax=sizeMax,
                           dir=dir, tol=tol, alphaRef=alphaRef)
@@ -343,7 +365,7 @@ def mergeCart(t, sizeMax=1000000000, tol=1.e-10):
     Usage: mergeCart(t, sizeMax, tol)"""
     Internal._orderFlowSolution(t, loc='both')
     allBCInfos = C.extractBCInfo(t)
-    A = C.getAllFields(t, 'nodes', api=2)
+    A = C.getAllFields(t, 'nodes', api=3)
     A = Transform.mergeCart(A, sizeMax, tol)
     for noz in range(len(A)):
         A[noz] = C.convertArrays2ZoneNode('Cart',[A[noz]])
@@ -363,8 +385,8 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
     zones1 = Internal.getZones(t1)
     zones2 = Internal.getZones(t2)
     for z1,z2 in zip(zones1, zones2):
-        a2 = C.getAllFields(z2, 'nodes')[0]
-        C._TZA1(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
+        a2 = C.getAllFields(z2, 'nodes', api=3)[0]
+        C._TZA3(z1, 'nodes', 'nodes', True, Transform.patch, a2, position, nodes, order)
     return None
 
 #===============
@@ -375,7 +397,7 @@ def _oneovernBC__(t, N):
     C._rmBCOfType(t, 'BCMatch'); C._rmBCOfType(t, 'BCNearMatch')
     nodes = Internal.getZones(t)
     for z in nodes:
-        wins = Internal.getNodesFromType(z, 'BC_t')
+        wins = Internal.getNodesFromType2(z, 'BC_t')
         for w in wins:
             w0 = Internal.getNodeFromName1(w, 'PointRange')
             (parent, d) = Internal.getParentOfNode(z, w0)
@@ -400,7 +422,7 @@ def _oneovernBC__(t, N):
             r2 = Internal.window2Range(range0)
             parent[2][d][1] = r2
 
-        connect = Internal.getNodesFromType(z, 'ZoneGridConnectivity_t')
+        connect = Internal.getNodesFromType1(z, 'ZoneGridConnectivity_t')
         for cn in connect:
             wins = Internal.getNodesFromName2(cn, 'PointRange')
             for w in wins:
@@ -439,8 +461,13 @@ def oneovern(t, N):
 
 def _oneovern(t, N):
     """Take one over N points from mesh."""
-    C._TZA1(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
-    C._TZA1(t, 'centers', 'centers', False, Transform.oneovern, N, 0)
+    centers = C.getAllFields(t, 'centers', api=3)
+    C._TZA3(t, 'nodes', 'nodes', True, Transform.oneovern, N, 1)
+    zones = Internal.getZones(t)
+    for c, z in enumerate(zones):
+        if centers[c] != []:
+            fc = Transform.oneovern(centers[c], N, 0)
+            C.setFields([fc], z, 'centers', False)
     _oneovernBC__(t, N)
     return None
 
@@ -567,7 +594,7 @@ def subzoneGCStruct__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
             if val == 'Overset':
                 if isout == 0:
                     DDDnrName=None
-                    for UDN in Internal.getNodesFromType1(i,'UserDefinedData_t'):
+                    for UDN in Internal.getNodesFromType1(i, 'UserDefinedData_t'):
                         if Internal.getNodeFromName1(UDN,'doubly_defined') is not None:
                             DDDnrName=Internal.getValue(i)
                             break
@@ -601,13 +628,13 @@ def subzoneGCStruct__(z, dim, imin, imax, jmin, jmax, kmin, kmax, \
                           zoneDonor=[ddDnrs[nor]], rangeDonor='doubly_defined')
     return z
 
-def subzone(t, minIndex, maxIndex=None, type=None):
+def subzone(t, minIndex, maxIndex=None, type=None, dimOut=None):
     """Take a subzone of mesh.
     Usage: subzone(t, (imin,jmin,kmin), (imax,jmax,kmax))"""
-    if maxIndex is None: return subzoneUnstruct__(t, minIndex, type)
+    if maxIndex is None: return subzoneUnstruct__(t, minIndex, type, dimOut)
     else: return subzoneStruct__(t, minIndex, maxIndex)
 
-def subzoneUnstruct__(t, indices, type):
+def subzoneUnstruct__(t, indices, type, dimOut=None):
     tp = Internal.copyRef(t)
     nodes = Internal.getZones(tp)
     for z in nodes:
@@ -615,9 +642,10 @@ def subzoneUnstruct__(t, indices, type):
         fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+        C._deleteZoneBC__(z)
         if fa != []: fc = Converter.addVars([fc, fa])
         if fb == []: # no flow sol at centers
-            nodes = Transform.subzone(fc, indices, type=type)
+            nodes = Transform.subzone(fc, indices, type=type, dimOut=dimOut)
             C.setFields([nodes], z, 'nodes')
         else:
             if dimz[0] == 'Structured': # faceList as global indices of structured interfaces
@@ -746,7 +774,7 @@ def triracopp__(trirac):
         i1 = abs(trirac[no])-1
         m[i1,no] = signt
     mopp = numpy.linalg.inv(m)
-    triracopp=[1,2,3]
+    triracopp = [1,2,3]
     for i in range(3):
         for no in range(3):
             if mopp[no,i] != 0:
@@ -912,9 +940,6 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
         triracopp = triracopp__(trirac)
 
         if oppBlock == z[0]: # self attached BCMatch
-            #print("z,z1,z2",z[0],z1[0],z2[0])
-            #print('windonor',winDonor, winz1, winz2)
-            #print('windir',getWinDir(winz), getCutDir(winz1,winz2))
 
             #wins1 = intersectWins__(winz1, winDonor, ret=1)
             #wins2 = intersectWins__(winz2, winDonor, ret=1)
@@ -929,13 +954,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
             # Point de cut
             if wini is not None: # point de cut sur winz? Pt de cut sur winDonor
 
-                #print('intersect z1 en ',wini1)
                 # wini1 sur z, winopp sur z, winopp1 sur z1, winopp2 sur z2
                 ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
                 ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
                 winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                           min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                #print('correspond au donneur ',winopp)
 
                 # DBX
                 #winopp1 = intersectWins__(winz1, winopp, ret=0)
@@ -1030,13 +1053,11 @@ def _adaptBCMatch(z, z1, z2, winz1, winz2, t=None):
 
             if wini is not None:
 
-                #print('intersect z2 en ',wini1)
                 # wini1 sur z, winopp sur z, winopp1 sur z1, winopp2 sur z2
                 ind0 = donorIndex__(winz,winDonor,trirac,(wini1[0],wini1[2],wini1[4]))
                 ind1 = donorIndex__(winz,winDonor,trirac,(wini1[1],wini1[3],wini1[5]))
                 winopp = [min(ind0[0],ind1[0]),max(ind0[0],ind1[0]),
                           min(ind0[1],ind1[1]),max(ind0[1],ind1[1]),min(ind0[2],ind1[2]),max(ind0[2],ind1[2])]
-                #print('correspond au donneur ',winopp)
 
                 # DBX
                 #winopp1 = intersectWins__(winz1, winopp, ret=0)
@@ -1371,7 +1392,7 @@ def _reorderBC__(t, order):
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
-            wins = Internal.getNodesFromType(z, 'BC_t')
+            wins = Internal.getNodesFromType2(z, 'BC_t')
             for w in wins:
                 w0 = Internal.getNodeFromName1(w, 'PointRange')
                 range0 = reorderIndices__(w0[1], dim, oi, oj, ok)
@@ -1387,10 +1408,10 @@ def _reorderBCOverlap__(a, order):
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
-            connect = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            connect = Internal.getNodesFromType2(z, 'GridConnectivity_t')
             for i in connect:
                 pr = Internal.getNodeFromName1(i, 'PointRange')
-                r = Internal.getNodesFromType(i, 'GridConnectivityType_t')
+                r = Internal.getNodesFromType1(i, 'GridConnectivityType_t')
                 if r != []:
                     val = Internal.getValue(r[0])
                     if val == 'Overset':
@@ -1553,7 +1574,7 @@ def _reorderBCNearMatch__(a, order, zoneNames):
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured' and len(order) == 3:
             oi = order[0]; oj = order[1]; ok = order[2]
-            connect = Internal.getNodesFromType(z, 'GridConnectivity_t')
+            connect = Internal.getNodesFromType1(z, 'GridConnectivity_t')
             for cn in connect:
                 type = Internal.getNodeFromName1(cn, 'GridConnectivityType')
                 if type is not None: val = Internal.getValue(type)
@@ -1674,7 +1695,7 @@ def _reorderGC__(t, order):
     return None
 
 # Reorder the numbering of t. t and toptree are modified
-def reorder(t, order, topTree=[]):
+def reorder(t, order=None, topTree=[]):
     """Reorder the numerotation of mesh.
     Usage: reorder(a, (2,1,-3))"""
     a = Internal.copyRef(t)
@@ -1682,7 +1703,8 @@ def reorder(t, order, topTree=[]):
     return a
 
 # If topTree is given, must be used in place!
-def _reorder(t, order, topTree=[]):
+def _reorder(t, order=None, topTree=[]):
+    if order is None: order = tuple()
     if len(order) == 3: _reorderStruct__(t, order, topTree)
     else: _reorderUnstruct__(t, order)
     return None
@@ -1694,7 +1716,7 @@ def _reorderStruct__(t, order, topTree):
         _reorderBC__(t, order)
         _reorderBCOverlap__(t, order)
         zones = Internal.getZones(t)
-        zoneNames=[] # zones dont le PointRange est a modifier ou en tant que PointRangeDonor si c'est la zoneDonor
+        zoneNames = [] # zones dont le PointRange est a modifier ou en tant que PointRangeDonor si c'est la zoneDonor
         for z in zones: zoneNames.append(z[0])
         _reorderBCMatch__(t, order, zoneNames)
         _reorderBCNearMatch__(t, order, zoneNames)
@@ -1726,7 +1748,7 @@ def _reorderUnstruct__(t, order):
 # reorder all zones to get the same orientation of the normals
 #=============================================================
 def reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     tp = Internal.copyRef(t)
@@ -1734,7 +1756,7 @@ def reorderAll(t, dir=1):
     return tp
 
 def _reorderAll(t, dir=1):
-    """Orientate normals of all surface blocks consistently in one direction (1) or the opposite (-1).
+    """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
     For unstructured inputs, when dir is set to 1(-1), it means outward(inward).
     Usage: reorderAll(arrays, dir)"""
     C._fillMissingVariables(t)
@@ -1746,11 +1768,11 @@ def _reorderAll(t, dir=1):
     nofan=0; nofac=0
     for z in zones:
         # champs en noeuds
-        coords.append(C.getFields(Internal.__GridCoordinates__, z)[0])
-        fnz = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
+        coords.append(C.getFields(Internal.__GridCoordinates__, z, api=1)[0])
+        fnz = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
         if fnz == []: indirn.append(0)
         else: indirn.append(1); nofan += 1
-        fcz = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        fcz = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         if fcz == []: indirc.append(0)
         else: indirc.append(1); nofac += 1
         fn.append(fnz); fc.append(fcz)
@@ -1941,9 +1963,9 @@ def _addkplane(t, N=1):
     """Add N k-plane(s) to a mesh."""
     zones = Internal.getZones(t)
     for z in zones:
-        nodes = C.getFields(Internal.__GridCoordinates__, z)[0]
-        fn = C.getFields(Internal.__FlowSolutionNodes__, z)[0]
-        fc = C.getFields(Internal.__FlowSolutionCenters__, z)[0]
+        nodes = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
+        fn = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
+        fc = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
         # Coordinates + fields located at nodes
         if fn != []:
             if nodes == []: nodes = fn
@@ -1970,9 +1992,9 @@ def projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
 def _projectAllDirs(t1, t2, vect=['nx','ny','nz'], oriented=0):
     """Project points defined in arrays to surfaces according to the direction provided by vect."""
     zones = Internal.getZones(t1)
-    a1 = C.getAllFields(zones, loc='nodes')
+    a1 = C.getAllFields(zones, loc='nodes', api=1)
     a1 = Converter.extractVars(a1,['CoordinateX','CoordinateY','CoordinateZ']+vect)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectAllDirs(a1, a2, vect, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -1988,8 +2010,8 @@ def projectDir(t1, t2, dir, smooth=0, oriented=0):
 def _projectDir(t1, t2, dir, smooth=0, oriented=0): # t1 is modified
     """Project a surface array onto surface arrays following dir."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectDir(a1, a2, dir, smooth, oriented)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2005,8 +2027,8 @@ def projectOrtho(t1, t2):
 def _projectOrtho(t1, t2): # t1 is modified
     """Project a surface t1 onto surface t2 orthogonally."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrtho(a1, a2)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2022,8 +2044,8 @@ def projectOrthoSmooth(t1, t2, niter=1):
 def _projectOrthoSmooth(t1, t2, niter=1): # t1 is modified
     """Project a surface array onto surface arrays following smoothed normals."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectOrthoSmooth(a1, a2, niter)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2039,8 +2061,8 @@ def projectRay(t1, t2, Pt):
 def _projectRay(t1, t2, Pt): # t1 is modified
     """Project a surface array onto surface arrays following rays."""
     zones = Internal.getZones(t1)
-    a1 = C.getFields(Internal.__GridCoordinates__, zones)
-    a2 = C.getFields(Internal.__GridCoordinates__, t2)
+    a1 = C.getFields(Internal.__GridCoordinates__, zones, api=1)
+    a2 = C.getFields(Internal.__GridCoordinates__, t2, api=1)
     res = Transform.projectRay(a1, a2, Pt)
     for noz in range(len(zones)):
         C.setFields([res[noz]], zones[noz], 'nodes')
@@ -2048,11 +2070,11 @@ def _projectRay(t1, t2, Pt): # t1 is modified
 
 def alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    return C.TZA2(t, 'nodes', 'nodes', False, Transform.alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
+    return C.TZA3(t, 'nodes', 'nodes', False, Transform.alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 def _alignVectorFieldWithRadialCylindricProjection(t, axisPassingPoint=(0,0,0), axisDirection=(1,0,0), vectorNames=[]):
     """Perform a cylindric radial projection of a vector field."""
-    C.__TZA2(t, 'nodes', Transform._alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
+    C.__TZA3(t, 'nodes', Transform._alignVectorFieldWithRadialCylindricProjection, axisPassingPoint, axisDirection, vectorNames)
 
 # Split au milieu
 def _splitSize__(z, N, multigrid, dirs, t, stack):
@@ -2247,7 +2269,7 @@ def _splitSizeUpR__(t, N, R, multigrid, dirs, minPtsPerDir, topTree):
         import Distributor2.PyTree as D2
         for np, p in enumerate(procs):
             for zname in p[1]:
-                z = Internal.getNodeFromName(t, zname)
+                z = Internal.getNodeFromName2(t, zname)
                 D2._addProcNode(z, np)
     except: pass
     return None
@@ -2459,11 +2481,11 @@ def splitSizeUpR_OMP__(t, N, R, multigrid, dirs, minPtsPerDir):
     for b in bases:
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
-            solverParam=Internal.createChild(z,'.Solver#Param','UserDefinedData_t',value=None,children=[],pos=-1)
-            ompthread  =Internal.createChild(solverParam,  'omp_threads'  ,'UserDefinedData_t',value=None,children=[],pos=-1)
-            sol  = Internal.getNodeFromName1(z, 'FlowSolution#Centers')
-            solth=Internal.getNodeFromName1(sol, 'thread_number')
-            solsz=Internal.getNodeFromName1(sol, 'thread_subzone')
+            solverParam = Internal.createChild(z,'.Solver#Param','UserDefinedData_t',value=None,children=[],pos=-1)
+            ompthread = Internal.createChild(solverParam,  'omp_threads'  ,'UserDefinedData_t',value=None,children=[],pos=-1)
+            sol = Internal.getNodeFromName1(z, 'FlowSolution#Centers')
+            solth = Internal.getNodeFromName1(sol, 'thread_number')
+            solsz = Internal.getNodeFromName1(sol, 'thread_subzone')
             for i in range(1,R+1):
                 thnode=[]
                 thnode=Internal.createChild(ompthread,str(i),'UserDefinedData_t',value=None,children=[],pos=-1)
@@ -2521,7 +2543,7 @@ def _splitNParts(t, N, multigrid=0, dirs=[1,2,3], recoverBC=True, topTree=None):
     for i in range(len(zonesN)):
         z = zonesN[i]
         dim = Internal.getZoneDim(z)
-        a = C.getFields(Internal.__GridCoordinates__, z)[0]
+        a = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         zlist = []
         if NPart[i] > 1:
             if recoverBC: bcs = C.getBCs(z)
@@ -2665,7 +2687,7 @@ def _splitSize(t, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
 def splitCurvatureAngle(t, sensibility):
     """Split a curve following curvature angle.
     Usage: splitCurvatureAngle(t, sensibility)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureAngle(a, sensibility)
     zones = []
     for i in arrays:
@@ -2676,7 +2698,7 @@ def splitCurvatureAngle(t, sensibility):
 def splitConnexity(t):
     """Split zone into connex zones.
     Usage: splitConnexity(t)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitConnexity(a)
     zones = []
     for i in A:
@@ -2687,7 +2709,7 @@ def splitConnexity(t):
 def breakElements(t):
     """Break a NGON array in a set of arrays of BAR, TRI, ... elements.
     Usage: breakElements(t)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.breakElements(a)
     zones = []
     for i in A:
@@ -2710,7 +2732,7 @@ def _dual(t, extraPoints=1):
 def splitSharpEdges(t, alphaRef=30.):
     """Split zone into smooth zones.
     Usage: splitSharpEdges(t, alphaRef)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitSharpEdges(a, alphaRef)
     zones = []
     for i in A:
@@ -2721,7 +2743,7 @@ def splitSharpEdges(t, alphaRef=30.):
 def splitCurvatureRadius(t, Rs=100.):
     """Return the indices of the array where the curvature radius is low.
     Usage: splitCurvatureRadius(t, Rs)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     arrays = Transform.splitCurvatureRadius(a, Rs)
     zones = []
     for i in arrays:
@@ -2749,7 +2771,7 @@ def splitMultiplePts3D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1; ksplit = -1
@@ -2852,7 +2874,7 @@ def splitMultiplePts2D__(t):
         (parent0,nob) = Internal.getParentOfNode(t, b)
         zones = Internal.getNodesFromType1(b,'Zone_t')
         for z in zones:
-            taga = C.getField('definedBC', z)[0]
+            taga = C.getField('definedBC', z, api=1)[0]
             parent,d2 = Internal.getParentOfNode(b, z)
             dims = Internal.getZoneDim(z); ni = dims[1]; nj = dims[2]; nk = dims[3]; ninj = ni*nj
             isplit = -1; jsplit = -1
@@ -2972,7 +2994,7 @@ def splitMultiplePts(t, dim=3):
             stdNode = Internal.isStdNode(t)
             if stdNode == 0: type = 3 # liste de zones
             else: type = 4 # une zone
-            zones = Internal.getNodesFromType(t, 'Zone_t')
+            zones = Internal.getZones(t)
             tp = C.newPyTree(['Base']); tp[2][1][2] = zones
 
     count = 2
@@ -2987,7 +3009,7 @@ def splitMultiplePts(t, dim=3):
 def splitBAR(t, N, N2=-1):
     """Split a BAR at index N (start 0).
     Usage: splitBAR(t, N)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitBAR(a, N, N2)
     zones = []
     for i in A:
@@ -2998,7 +3020,7 @@ def splitBAR(t, N, N2=-1):
 def splitTBranches(t, tol=1.e-10):
     """Split a BAR at vertices where T-branches exist.
     Usage: splitTBranches(t, tol)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitTBranches(a, tol)
     zones = []
     for i in A:
@@ -3009,7 +3031,7 @@ def splitTBranches(t, tol=1.e-10):
 def splitTRI(t, idxList):
     """Split a TRI into several TRIs delimited by the input poly line.
     Usage: splitTRI(t, idxList)"""
-    a = C.getAllFields(t, 'nodes')[0]
+    a = C.getAllFields(t, 'nodes', api=1)[0]
     A = Transform.splitTRI(a, idxList)
     zones = []
     for i in A:
@@ -3020,7 +3042,7 @@ def splitTRI(t, idxList):
 def splitManifold(t):
     """Split an unstructured mesh (only TRI or BAR currently) into several manifold pieces.
     Usage: splitManifold(array)"""
-    a = C.getAllFields(t, 'nodes')
+    a = C.getAllFields(t, 'nodes', api=1)
     A = Transform.splitManifold(a)
     zones = []
     for i in A:
@@ -3032,8 +3054,8 @@ def _splitNGon(t, N, N2=-1, shift=1000):
     """Split a NGon putting result in a "part" field"""
     zones = Internal.getZones(t)
     for z in zones:
-        a1 = C.getAllFields(z, 'nodes')[0]
-        a2 = C.getAllFields(z, 'centers')[0] # must contain "part" field
+        a1 = C.getAllFields(z, 'nodes', api=1)[0]
+        a2 = C.getAllFields(z, 'centers', api=1)[0] # must contain "part" field
         Transform.transform.splitNGon2(a1, a2, N, N2, shift)
         C.setFields([a2], z, 'centers', writeDim=False)
     return None

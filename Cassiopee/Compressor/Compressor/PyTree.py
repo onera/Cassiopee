@@ -287,21 +287,21 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
                 for var in vars:
                     if 'centers:' in var:
                         var = var.replace('centers:', '')
-                        var = Internal.getNodeFromName(z, var)
+                        var = Internal.getNodeFromName2(z, var)
                         # order='F' is VERY important
                         Internal.setValue(var, numpy.array(var[1][xmin:xmax,ymin:ymax,zmin:zmax],order='F'))
                     else:
                         # if the data are stored in nodes, we need to go one step further for the numpy slices
-                        var = Internal.getNodeFromName(z, var)
+                        var = Internal.getNodeFromName2(z, var)
                         Internal.setValue(var, numpy.array(var[1][xmin:xmax+1,ymin:ymax+1,zmin:zmax+1],order='F'))
             else:
                 for var in vars:
                     if 'centers:' in var:
                         var = var.replace('centers:', '')
-                        var = Internal.getNodeFromName(z, var)
+                        var = Internal.getNodeFromName2(z, var)
                         Internal.setValue(var, numpy.array(var[1][xmin:xmax,ymin:ymax],order='F'))
                     else:
-                        var = Internal.getNodeFromName(z, var)
+                        var = Internal.getNodeFromName2(z, var)
                         Internal.setValue(var, numpy.array(var[1][xmin:xmax+1,ymin:ymax+1],order='F'))
 
             # Replace the old size information by the new ones
@@ -539,7 +539,7 @@ def _compressElements(t):
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, 0, 4)
             else:
-                (stype, net) = Internal.eltNo2EltName(eltno)
+                _, net = Internal.eltNo2EltName(eltno)
                 n = Internal.getNodeFromName1(e, 'ElementConnectivity')
                 _packNode(n, net, 3)
     return None

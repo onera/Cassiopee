@@ -3,11 +3,11 @@
 # arrays: testA, [outA], stdTestA, [outTestA]
 # pyTrees: testT, [outT], stdTestT, [outTestT]
 # objects: testO
-from __future__ import print_function
 import numpy, sys, os
 
 # global tolerance on float fields
-TOLERANCE = 1.e-11
+TOLERANCE = 1.e-11  # absolute
+RELTOLERANCE = 1.e-14 # relative
 
 # whether to diffArrays geometrically or topologically. default is topologically.
 GEOMETRIC_DIFF = False
@@ -60,19 +60,21 @@ def testA(arrays, number=1):
         if GEOMETRIC_DIFF:
             # geometrical check
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
-                ret = C.diffArrayGeom(arrays, old, tol=TOLERANCE)
+                ret = C.diffArraysGeom(arrays, old, atol=TOLERANCE, rtol=RELTOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(arrays, old)
+                    ret = C.diffArrays(arrays, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(arrays, old)
+                ret = C.diffArrays(arrays, old,
+                                   atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(arrays, old)
+            ret = C.diffArrays(arrays, old, atol=TOLERANCE, rtol=RELTOLERANCE)
 
         isSuccessful = True
         varNames = list(dict.fromkeys(','.join(i[0] for i in ret).split(',')))
@@ -82,8 +84,9 @@ def testA(arrays, number=1):
         for i in ret:
             for v in i[0].split(','):
                 vidx = varNames.index(v)
-                l0[vidx] = max(l0[vidx], C.normL0(i, v))
-                l2[vidx] = max(l2[vidx], C.normL2(i, v))
+                if C.getNPts(i) > 0:
+                    l0[vidx] = max(l0[vidx], C.getMaxValue(i, v))
+                    l2[vidx] = max(l2[vidx], C.normL2(i, v))
 
         for vidx, v in enumerate(varNames):
             if l0[vidx] > TOLERANCE:
@@ -109,7 +112,7 @@ def testT(t, number=1):
     import Converter.Internal as Internal
 
     # Transforme t en pyTree, pour pouvoir relire la reference
-    t, ntype = Internal.node2PyTree(t)
+    t, _ = Internal.node2PyTree(t)
 
     # Verifie la compatibilite avec la CGNS lib
     #checkCGNSlib(t, number)
@@ -144,31 +147,33 @@ def testT(t, number=1):
             nXYZ = [Internal.getNodesFromName(old, "Coordinate" + ax) for ax in 'XYZ']
             nXYZ = [arr[0] if len(arr) else [] for arr in nXYZ]
             if all(len(arr) for arr in nXYZ) and all(arr[1] is not None for arr in nXYZ):
-                ret = C.diffArrayGeom(t, old, tol=TOLERANCE)
+                ret = C.diffArraysGeom(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
                 if ret is None:
                     print('DIFF: geometrical diff, 1-to-1 match in '
                           'identifyNodes failed, topological diff performed '
                           'instead.')
-                    ret = C.diffArrays(t, old)
+                    ret = C.diffArrays(t, old,
+                                       atol=TOLERANCE, rtol=RELTOLERANCE)
             else:
                 print("Warning: missing coordinates for geometrical diff., "
                       "topological diff performed instead.")
-                ret = C.diffArrays(t, old)
+                ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         else:
             # topological check
-            ret = C.diffArrays(t, old)
+            ret = C.diffArrays(t, old, atol=TOLERANCE, rtol=RELTOLERANCE)
         C._fillMissingVariables(ret)
         mvars = C.getVarNames(ret)
         if len(mvars) > 0: mvars = mvars[0]
         else: mvars = []
 
         isSuccessful = True
-        for v in mvars:
-            l0 = C.normL0(ret, v)
-            l2 = C.normL2(ret, v)
-            if l0 > TOLERANCE:
-                print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v,l0,l2))
-                isSuccessful = False
+        if C.getNPts(ret) > 0:
+            for v in mvars:
+                l0 = C.getMaxValue(ret, v)
+                l2 = C.normL2(ret, v)
+                if l0 > TOLERANCE:
+                    print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0, l2))
+                    isSuccessful = False
         return isSuccessful
 
 def outT(t, number=1):
@@ -185,7 +190,7 @@ def testF(infile, number=1):
     # Chek infile
     a = os.access(infile, os.F_OK)
     if not a:
-        print("DIFF: file "+infile+' doesnt exist.')
+        print("DIFF: file "+infile+" doesnt exist.")
 
     # Check Data directory
     a = os.access(DATA, os.F_OK)
@@ -224,7 +229,8 @@ def checkObject_(objet, refObjet, reference):
         elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
               isinstance(objet, (numpy.float32, numpy.float64))): pass
         else:
-            print("DIFF: object type differs from "+reference+'.')
+            print(f"DIFF: object type differs from {reference}."
+                  f"current: {type(objet)}, ref: {type(refObjet)}.")
             return False
     # autres tests
     if isinstance(refObjet, bool):
@@ -238,7 +244,7 @@ def checkObject_(objet, refObjet, reference):
             return False
     elif isinstance(refObjet, (float, numpy.float32, numpy.float64)):
         diff = abs(refObjet-objet)
-        if diff > TOLERANCE:
+        if diff > TOLERANCE + RELTOLERANCE*abs(refObjet):
             print("DIFF: object value differs from %s (diff=%g)."%(reference, diff))
             return False
     elif isinstance(refObjet, dict):
@@ -249,19 +255,20 @@ def checkObject_(objet, refObjet, reference):
             if not ret: return False
     elif isinstance(refObjet, numpy.ndarray): # array
         if refObjet.shape != objet.shape:
-            print("DIFF: object shape differs from "+reference+'.')
+            print(f"DIFF: object shape differs from {reference}. "
+                  f"current: {objet.shape}, ref: {refObjet.shape}.")
             return False
         if refObjet.dtype == 'S1' or objet.dtype == 'S1':
             if refObjet.dtype != objet.dtype:
-                print("DIFF: object type differs from "+reference+'.')
+                print(f"DIFF: object type differs from {reference}.")
             if not numpy.all(refObjet == objet):
-                print("DIFF: object string differs from "+reference+'.')
+                print(f"DIFF: object string differs from {reference}.")
                 return False
         else:
             diff = numpy.abs(refObjet-objet)
-            diff = (diff < TOLERANCE)
-            if not diff.all():
-                print("DIFF: object value differs from "+reference+'.')
+            if (diff > TOLERANCE + RELTOLERANCE*numpy.abs(refObjet)).any():
+                print(f"DIFF: object value differs from {reference} "
+                      f"(max. diff={numpy.max(diff):g}).")
                 return False
     elif isinstance(refObjet, list): # liste
         for i, ai in enumerate(refObjet):
@@ -310,14 +317,13 @@ def testO(objet, number=1):
         file.close()
         return True
     else:
-        try: import cPickle as pickle
-        except ImportError: import pickle
+        import pickle
         file = open(reference, 'rb')
         oldData = False
         if oldData: a = pickle.load(file, encoding='latin1')
         else: a = pickle.load(file)
         file.close()
-        print("Reading '"+reference+"'... done.")
+        print(f"Reading {reference}... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True
         return checkObject_(objet, a, reference)
 
@@ -348,7 +354,7 @@ def checkTree(t1, t2):
             checkTree__(node1, node2)
 
 def buildDict__(curr, mdict, node):
-    d = curr+'/'+node[0]
+    d = f"{curr}/{node[0]}"
     mdict[d] = node
     for i in node[2]: buildDict__(d, mdict, i)
 
@@ -767,7 +773,7 @@ def stdTest1__(output, memory, heavy, F, *keywords):
 
     # 11- NGON 1D
     try:
-        a = G.cartNGon((0,0,0), (1,1,1), (10,1,1) )
+        a = G.cartNGon((0,0,0), (1,1,1), (10,1,1))
         C._initVars(a, '{F}={x}+{y}+{z}')
         b = F(a, *keywords)
         res = checkType__(b)
@@ -1013,3 +1019,125 @@ def printMem(msg, waitTime=0.1):
     else: print('{:<40} : {} kB '.format(msg,tot))
     sys.stdout.flush()
     return tot
+
+#==============================================================================
+# Create files for all types of grids in pytree (for testing)
+#==============================================================================
+def createTestT(N=10):
+    import Converter.PyTree as C
+    import Generator.PyTree as G
+    import Post.PyTree as P
+    import Transform.PyTree as T
+
+    h = 10./N
+
+    # 1D struct
+    z = G.cart((0,0,0), (h,h,h), (N,1,1))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C.convertPyTree2File(z, 'struct1d.cgns')
+
+    # 2D struct
+    z = G.cart((0,0,0), (h,h,h), (N,N,1))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C._addBC2Zone(z, 'wall', 'BCWall', 'imin')
+    C.convertPyTree2File(z, 'struct2d.cgns')
+
+    # 3D struct
+    z = G.cart((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C._addBC2Zone(z, 'wall', 'BCWall', 'imin')
+    C.convertPyTree2File(z, 'struct3d.cgns')
+
+    # hexa
+    z = G.cartHexa((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    p = P.exteriorFaces(z)
+    p = T.splitSharpEdges(p, 30.)
+    C._addBC2Zone(z, 'wall', 'BCWall', subzone=p[0])
+    C.convertPyTree2File(z, 'hexa.cgns')
+
+    # tetra
+    z = G.cartTetra((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    p = P.exteriorFaces(z)
+    p = T.splitSharpEdges(p, 30.)
+    C._addBC2Zone(z, 'wall', 'BCWall', subzone=p[0])
+    C.convertPyTree2File(z, 'tetra.cgns')
+
+    # tri
+    z = G.cartTetra((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C.convertPyTree2File(z, 'tri.cgns')
+
+    # quad
+    z = G.cartHexa((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C.convertPyTree2File(z, 'quad.cgns')
+
+    # penta+tetra
+    a = G.cartPenta((0,0,0), (h,h,h), (N,N,N))
+    T._rotate(a, (4.5,4.5,4.5), (0,1,0), 90.)
+    b = G.cartTetra((9,0,0), (h,h,h), (N,N,N))
+    z = C.mergeConnectivity(a, b, boundary=0)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    # add BC when addBC2Zone ready
+    C.convertPyTree2File(z, 'penta+tetra.cgns')
+
+    # hexa+hexa
+    a = G.cartHexa((0,0,0), (h,h,h), (N,N,N))
+    b = G.cartHexa((9,0,0), (h,h,h), (N,N,N))
+    z = C.mergeConnectivity(a, b, boundary=0)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    # add BC when addBC2Zone ready
+    C.convertPyTree2File(z, 'hexa+hexa.cgns')
+
+    # pyra+penta+hexa
+    a = G.cartPyra((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
+    b = G.cartPenta((0.4,0.,0.), (0.1,0.1,0.1), (5,5,5))
+    c = G.cartHexa((0.8,0.,0.), (0.1,0.1,0.1), (5,5,5))
+    z = C.mergeConnectivity([a, b, c], boundary=0)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    # add BC when addBC2Zone ready
+    C.convertPyTree2File(z, 'pyra+penta+hexa.cgns')
+
+    # tri+quad
+    a = G.cartHexa((0,0,0), (h,h,h), (N,N,1))
+    b = G.cartTetra((9,0,0), (h,h,h), (N,N,1))
+    z = C.mergeConnectivity(a, b, boundary=0)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C.convertPyTree2File(z, 'tri+quad.cgns')
+
+    # ngonv3
+    z = G.cartNGon((0,0,0), (h,h,h), (N,N,N))
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    p = P.exteriorFaces(z)
+    p = T.splitSharpEdges(p, 30.)
+    C._addBC2Zone(z, 'wall', 'BCWall', subzone=p[0])
+    C.convertPyTree2File(z, 'ngonv3.cgns')
+
+    # ngonv4
+    z = G.cartNGon((0,0,0), (h,h,h), (N,N,N), api=3)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    p = P.exteriorFaces(z)
+    p = T.splitSharpEdges(p, 30.)
+    C._addBC2Zone(z, 'wall', 'BCWall', subzone=p[0])
+    C.convertPyTree2File(z, 'ngonv4.cgns')
+
+    # ngonv4 2d
+    z = G.cartNGon((0,0,0), (h,h,h), (N,N,1), api=3)
+    C._initVars(z, '{Density}={CoordinateX}+{CoordinateY}')
+    C._initVars(z, '{centers:VelocityX}={centers:CoordinateX}+{centers:CoordinateY}')
+    C.convertPyTree2File(z, 'ngonv42d.cgns')

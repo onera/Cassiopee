@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,18 +38,17 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   PyObject *pyArrayTypes;
   PyObject *pyArrayCoefs;
   PyObject *arrayR, *arrayD;
-
   if (!PYPARSETUPLE_(args, OOOO_ OO_,
                     &pyIndRcv, &pyIndDonor, &pyArrayTypes, &pyArrayCoefs, &arrayR, &arrayD))
   {
-      return NULL;
+    return NULL;
   }
 
   /*--------------------------------------*/
   /* Extraction des indices des receveurs */
   /*--------------------------------------*/
   FldArrayI* rcvPtsI;
-  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI, true);
+  E_Int res = K_NUMPY::getFromNumpyArray(pyIndRcv, rcvPtsI);
   if (res == 0) 
   {
     PyErr_SetString(PyExc_TypeError, 
@@ -60,7 +59,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des indices des donneurs */
   /*-------------------------------------*/
   FldArrayI* donorPtsI;
-  res = K_NUMPY::getFromNumpyArray(pyIndDonor, donorPtsI, true);
+  res = K_NUMPY::getFromNumpyArray(pyIndDonor, donorPtsI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -72,7 +71,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des types */
   /*----------------------*/
   FldArrayI* typesI;
-  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayTypes, typesI);
   if (res == 0) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -86,7 +85,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   /* Extraction des coefs  */
   /*-----------------------*/
   FldArrayF* donorCoefsF;
-  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF, true);
+  res = K_NUMPY::getFromNumpyArray(pyArrayCoefs, donorCoefsF);
 
   if (res == 0) 
   {
@@ -109,8 +108,8 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   E_Int imr, jmr, kmr;
   FldArrayF* fr; FldArrayI* cnr;
   char* varStringr; char* eltTyper;
-  E_Int resr = K_ARRAY::getFromArray(arrayR, varStringr, fr, 
-                                     imr, jmr, kmr, cnr, eltTyper, true); 
+  E_Int resr = K_ARRAY::getFromArray3(arrayR, varStringr, fr, 
+                                      imr, jmr, kmr, cnr, eltTyper); 
   if (resr != 1) 
   {
     RELEASESHAREDN(pyIndRcv, rcvPtsI);
@@ -129,8 +128,8 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   E_Int imd, jmd, kmd;
   FldArrayF* fd; FldArrayI* cnd;
   char* varStringd; char* eltTyped;
-  E_Int resd = K_ARRAY::getFromArray(arrayD, varStringd, fd, 
-                                     imd, jmd, kmd, cnd, eltTyped, true); 
+  E_Int resd = K_ARRAY::getFromArray3(arrayD, varStringd, fd, 
+                                      imd, jmd, kmd, cnd, eltTyped); 
   if (resd != 1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -161,12 +160,13 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     posvarsR.erase(remove(posvarsR.begin(), posvarsR.end(), poscr), posvarsR.end());    
   
   /*---------------------------------------------------------------*/
-  /* Application de la formule d interpolation                     */
+  /* Application de la formule d'interpolation                     */
   /*---------------------------------------------------------------*/
-  PyObject* tpl = K_ARRAY::buildArray(fr->getNfld(), varStringr, imr, jmr, kmr);
-  E_Float* ptrFieldOut = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fieldROut(fr->getSize(), fr->getNfld(), ptrFieldOut, true);
-  fieldROut = *fr;
+  E_Int api = fr->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(*fr, varStringr, imr, jmr, kmr, api);
+  FldArrayF* fieldROut;
+  K_ARRAY::getFromArray3(tpl, fieldROut);
+
   E_Int nbRcvPts = rcvPtsI->getSize();
   E_Int ncoefs = 8;
   E_Int indR, indD, indDLoc;
@@ -199,7 +199,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
         i = (indD-j*imd-k*imdjmd);
         for (E_Int eq = 0; eq < nfldr0; eq++)
         {
-          E_Float* fieldR = fieldROut.begin(posvarsR[eq]);
+          E_Float* fieldR = fieldROut->begin(posvarsR[eq]);
           E_Float* fieldD = fd->begin(posvarsD[eq]);
           fieldR[indR] = 0.; nocf = 0; sumCf = 0.;
           for (E_Int kk=0; kk<2; kk++)
@@ -220,6 +220,7 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
     }
   }
   // sortie
+  RELEASESHAREDS(tpl, fieldROut);
   RELEASESHAREDB(resr, arrayR, fr, cnr); 
   RELEASESHAREDB(resd, arrayD, fd, cnd); 
   RELEASESHAREDN(pyIndRcv, rcvPtsI);

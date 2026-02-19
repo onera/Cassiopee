@@ -40,6 +40,7 @@ List of functions
    Geom.polyline
    Geom.circle
    Geom.naca
+   Geom.profile
    Geom.spline
    Geom.nurbs
    Geom.bezier
@@ -265,6 +266,29 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
 ---------------------------------------
 
+.. py:function:: Geom.profile(name=None)
+
+    Create a wing profile of given name. 
+    The name must be of type "series/profile".
+    If name is not provided, list available profiles.
+
+    :param name: profile name
+    :type name: string of type "series/profile"
+    :return: a profile
+    :rtype: one array/zone (1D STRUCT)
+
+    *Example of use:*
+
+    * `Creation of a profile (array) <Examples/Geom/profile.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/profile.py
+
+    * `Creation of a profile (pyTree) <Examples/Geom/profilePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/profilePT.py
+
+---------------------------------------
+
 .. py:function:: Geom.spline(Pts, order=3, N=100, M=100, density=-1)
 
     Create a Spline curve/surface using control points defined by Pts.
@@ -375,7 +399,7 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
 ---------------------------------------
 
-.. py:function:: Geom.surface(f, N=100)
+.. py:function:: Geom.surface(f, N=100, isVectorized)
 
     Create a surface defined by an parametric function or an expression.
 
@@ -383,6 +407,8 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
     :type f: Python function or string
     :param N: number of discretization points per direction
     :type N: integer
+    :param isVectorized: can be set to True if f is a function in vectorized form.
+    :type isVectorized: boolean
     :return: a parametric surface
     :rtype: one array/zone (2D STRUCT)
 

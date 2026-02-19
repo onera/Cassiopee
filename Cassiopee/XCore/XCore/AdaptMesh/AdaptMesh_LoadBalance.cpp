@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -49,5 +49,6 @@ PyObject *K_XCORE::AdaptMesh_LoadBalance(PyObject *self, PyObject *args)
 
     if (M->pid == 0) puts("OK LoadBalance.");
 
+    Py_INCREF(Py_None);
     return Py_None;
 }

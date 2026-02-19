@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -91,10 +91,10 @@ class zone_t
     
     zone_t& operator=(const zone_t& z)
     {
-      _id           = z._id;
-      _crd          = z._crd;
-      _ng           = z._ng;
-      _F2Es         = z._F2Es;
+      _id = z._id;
+      _crd = z._crd;
+      _ng = z._ng;
+      _F2Es = z._F2Es;
       _F2E_NONE = z._F2E_NONE;
             
       copy_boundaries(z);
@@ -108,7 +108,7 @@ class zone_t
       // find available id : the lowest minus 1 avail in each zone
       E_Int jid1 = (z1._joins.empty()) ? 0 : z1._joins.begin()->first;
       E_Int jid2 = (z2._joins.empty()) ? 0 : z2._joins.begin()->first;
-      E_Int jid = - (std::max(::fabs(jid1), ::fabs(jid2)) + 1) ; // negative and 1-based to not overwrite any join when changing colors in init_pgs_color
+      E_Int jid = - (std::max(fabs(1.*jid1), fabs(1.*jid2)) + 1) ; // negative and 1-based to not overwrite any join when changing colors in init_pgs_color
       
       Vector_t<E_Int> tmp;
       tmp.insert(tmp.begin(), r12, r12 + nbj);
@@ -122,8 +122,6 @@ class zone_t
 
       z1._rac_inId2outId[jid] = z2._rac_inId2outId[jid] = ojid;
     }
-    
-
     
     //E_Int nb_joins() { return _zone_to_join.size();}
     
@@ -578,7 +576,7 @@ void zone_t<crd_t, ngo_t>::set_pg_colors()
     }
     else // JOIN or INNER in layers
     {
-      E_Int m = std::min(typeL, typeR);
+      E_Int m = K_FUNC::E_min(typeL, typeR);
       if (m == PH_INNER_COL) // JOIN (form inner to 1st layer)
         _ng.PGs._type[i] = PG_JOIN_COL;
       else if (m == 1) // 1st layer

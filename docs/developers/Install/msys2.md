@@ -15,13 +15,33 @@ pacman -S mingw64/mingw-w64-x86_64-scons
 pacman -S mingw64/mingw-w64-x86_64-python-pip
 pacman -S mingw64/mingw-w64-x86_64-python-pip-tools
 pacman -S mingw64/mingw-w64-x86_64-hdf5
+pacman -S mingw64/mingw-w64-x86_64-opencascade
+```
+
+For parallel:
+First install Microsoft mpi redistribution. Then:
+```shell
 pacman -S mingw64/mingw-w64-x86_64-msmpi
-pacman -S mingw64/mingw-w64-x86_64-oce
+pacman -S mingw-w64-x86_64-python-mpi4py
+```
+
+<!-- For optional tigl:
+```shell
+pacman -S mingw64/mingw-w64-x86_64-libxml2
+pacman -S mingw-w64-x86_64-python-libxstl
+pacman -S mingw64/mingw-w64-x86_64-boost
+pacman -S mingw64/mingw-w64-x86_64-sympy
+``` -->
+
+and export system paths (if not already done):
+```shell
+export PATH=/mingw64/bin:$PATH
+export LD_LIBRARY_PATH=/mingw64/lib:$LD_LIBRARY_PATH
 ```
 
 ## Install Cassiopee
 ```shell
-export CASSIOPEE=/d/johndo/Cassiopee
+export CASSIOPEE=<your_path>/Cassiopee
 export MACHINE=msys2
     
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
@@ -48,7 +68,7 @@ pacman -S <package>
 
 List installed packages:
 ```shell
-pacman -Qe
+pacman -Q
 ```
 
 Remove package:

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,10 +33,9 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   // value: valeur de l'iso
   PyObject* surf;
   char* field; E_Float value;
-  if (!PYPARSETUPLE_(args, O_ S_ R_,
-                    &surf, &field, &value))
+  if (!PYPARSETUPLE_(args, O_ S_ R_, &surf, &field, &value))
   {
-      return NULL;
+    return NULL;
   }
 
   /*-----------------------------------------------*/
@@ -47,8 +46,8 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   E_Int nil, njl, nkl;
   FldArrayI* cn = NULL;
   E_Int res = 
-    K_ARRAY::getFromArray(surf, varString0, f, nil, njl, nkl, 
-                          cn, eltType0, true);
+    K_ARRAY::getFromArray3(surf, varString0, f, nil, njl, nkl, 
+                           cn, eltType0);
 
   if (res != 1 && res != 2)
   {
@@ -117,10 +116,11 @@ PyObject* K_POST::isoLine(PyObject* self, PyObject* args)
   }
 
   PyObject* t;
+  E_Int api = 1;  // f->getApi();
   if (strcmp(eltType0, "TRI") == 0)
-    t = K_ARRAY::buildArray(fiso, varString0, ciso, -1, "BAR");
+    t = K_ARRAY::buildArray3(fiso, varString0, ciso, "BAR", api);
   else
-    t = K_ARRAY::buildArray(fiso, varString0, ciso, -1, "NODE");
+    t = K_ARRAY::buildArray3(fiso, varString0, ciso, "NODE", api);
   return t;
 }
 

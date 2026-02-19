@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -81,11 +81,9 @@ public:
   template < typename T>
   static K_FLD::DynArray<T> compress_(K_FLD::DynArray<T> const & arr, const std::vector<E_Int>& keepids, E_Int idx_start);
  
-#ifndef NUGALIB
   ///
   template < typename T, typename Predicate_t>
   static E_Int compress(K_FLD::FldArray<T>& arr, const Predicate_t& P);
-#endif
   ///
   static E_Int max(const K_FLD::IntArray& connect);
   static E_Int max(const Vector_t<E_Int>& vec);
@@ -164,10 +162,10 @@ void IdTool::right_shift(E_Int* list, int shift)
   if (shift == 0) return;
 
   E_Int tmp[LIST_SZ];
-  for (int i =0; i < LIST_SZ; ++i)
+  for (E_Int i =0; i < LIST_SZ; ++i)
     tmp[i] = list[(i+shift)% LIST_SZ];
 
-  for (int i =0; i < LIST_SZ; ++i)
+  for (E_Int i =0; i < LIST_SZ; ++i)
     list[i] = tmp[i];    
 }
 

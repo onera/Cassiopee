@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -37,7 +37,7 @@ namespace K_POST
     //-                                                                        
     //- de sorte que le sommet de la boîte ayant  les  plus petites coordonnées
     //- soit le plus à gauche, le plus derrière et le plus bas.                
-    static constexpr const double tolerance_bbox = 1.E-14;
+    static constexpr const E_Float tolerance_bbox = 1.E-14;
     struct aligned_axis_bounding_box
     {
         point3d p_min; //_ Le point le plus à gauche, derrière et en bas
@@ -49,9 +49,9 @@ namespace K_POST
         aligned_axis_bounding_box() = default;
         //@brief Construit la boîte englobante avec  un nuage de  points
         aligned_axis_bounding_box( 
-            const vector_view<const double>& xcoords, 
-            const vector_view<const double>& ycoords,
-            const vector_view<const double>& zcoords )
+            const vector_view<const E_Float>& xcoords, 
+            const vector_view<const E_Float>& ycoords,
+            const vector_view<const E_Float>& zcoords )
         {
             auto minmax_x = std::minmax_element(xcoords.begin(), xcoords.end());
             auto minmax_y = std::minmax_element(ycoords.begin(), ycoords.end());
@@ -101,7 +101,7 @@ namespace K_POST
         //@brief      Retourne la dimension de la boîte                 
         //@return Retourne la longueur, la hauteur et la  profondeur  de
         //-       la boîte                                              
-        std::array<double,3> size() const
+        std::array<E_Float,3> size() const
         {
             return { p_max.x-p_min.x, p_max.y-p_min.y, p_max.z-p_min.z };
         }

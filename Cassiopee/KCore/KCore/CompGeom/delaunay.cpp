@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,7 +40,7 @@ void K_COMPGEOM::delaunay(E_Float coefa, E_Float coefb, E_Float coefc,
   E_Int indA, indB, indC;
 
   E_Float dmax2;
-  E_Boolean isInCC;
+  E_Bool isInCC;
   FldArrayF norm2; // SQUARED norm of points in field
   // Sort coordinates with respect to their norm
   K_SORT::sortCoordinates(coord, norm2);
@@ -130,9 +130,10 @@ void K_COMPGEOM::compAndTileBoundingBox(E_Float coefa, E_Float coefb,
 { 
   E_Float xmin, xmax, ymin, ymax, zmin, zmax;
   E_Float inv, pt1, pt2, pt3, pt4;
+  E_Int npts = field.getSize();
 
   // Compute the bbox
-  boundingBox(1, 2, 3, field, xmin, ymin, zmin, xmax, ymax, zmax);
+  boundingBoxUnstruct(npts, field.begin(1), field.begin(2), field.begin(3), xmin, ymin, zmin, xmax, ymax, zmax);
 
   // Realloc field array to put 4 new points
   E_Int sizeIni = field.getSize();
@@ -253,9 +254,9 @@ void K_COMPGEOM::insertTriangleEdgesInList(Triangle* oneTriangle,
   E_Int indA, indB, indC;
   oneTriangle->getVertexIndices(indA, indB, indC);
   
-  E_Boolean found1 = false;
-  E_Boolean found2 = false;
-  E_Boolean found3 = false;
+  E_Bool found1 = false;
+  E_Bool found2 = false;
+  E_Bool found3 = false;
 
   list<Edge*>::iterator itr;
   list<Edge*>::iterator itr2;

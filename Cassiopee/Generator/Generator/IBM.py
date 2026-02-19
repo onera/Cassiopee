@@ -147,8 +147,7 @@ def generateIBMMesh_legacy(tb, vmin=15, snears=0.01, dfar=10., dfarList=[], DEPT
 
     # retourne les 4 quarts (en 2D) de l'octree parent 2 niveaux plus haut
     # et les 8 octants en 3D sous forme de listes de zones non structurees
-    parento = buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfar=dfar, dfarList=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                   dimPb=dimPb, vmin=vmin, fileout=None, rank=0, dfarDir=dfarDir, octreeMode=octreeMode)
+    parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfar, dfarDir=dfarDir, to=to, tbox=tbox, snearsf=snearsf, octreeMode=octreeMode)
     res = generateCartMesh__(o, parento=parento, dimPb=dimPb, vmin=vmin, DEPTH=DEPTH, sizeMax=sizeMax,
                              check=check, externalBCType=externalBCType)
     return res
@@ -438,7 +437,7 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
     elif dim[3] == 'HEXA': dimPb = 3
 
     if ext == 1: ext = 2
-    a = C.getFields(Internal.__GridCoordinates__, o)[0]
+    a = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
     zones = Generator.generator.octree2Struct(a, [vmin])
     c = 1
     for noz in range(len(zones)):
@@ -626,10 +625,18 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
             del ZONEStbOneOverTmp
     print('After merging: nb Cartesian zones=%d (ext. =%d).'%(len(zones),ext))
     # Cas ext=-1, ne fait pas les extensions ni les BCs ou raccords
+
+    if optimized == -1:
+        if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
+        else: ratios = [[2,2,1],[4,4,1],[8,8,1],[16,16,1]]
+        zones = X.connectMatch(zones, dim=dimPb)
+        for ratio0 in ratios:
+            zones = X.connectNearMatch(zones, ratio=ratio0, dim=dimPb)
+
     if ext == -1: return zones
 
     if ext > 0:
-        coords = C.getFields(Internal.__GridCoordinates__, zones,api=2)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
         coords,rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=0)
         C.setFields(coords, zones, 'nodes')
         for noz in range(len(zones)):
@@ -690,7 +697,7 @@ def buildParentOctrees__(o, tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., d
 
 def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                       tbox=None, snearsf=None, check=False, to=None,
-                      expand=3, octreeMode=0):
+                      expand=3, octreeMode=0, optimized=1):
     ## tbox = tbox(area refinement)[legacy tbox] + tb(area for one over)[tbOneOver] + tb(zones to keep as F1)[tbF1]
     ## here we divide tbox into tbOneOver (rectilinear region)  & tbF1 (WM F1 approach region) & tbox; tbox will henceforth only consist of the area that will be refined.
     ## Note: tb(zones to keep as F1)[tbF1] is still in development, is experimental, & subject to major/minor changes with time. Please use with a lot of caution & see A.Jost @ DAAA/DEFI [28/08/2024] as
@@ -717,12 +724,12 @@ def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         parento = None
     else:
         o = buildOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=1., dfars=dfars, dfarDir=dfarDir,
-                        tbox=tbox, snearsf=snearsf, to=to, expand=expand, octreeMode=octreeMode)
+                        tbox=tbox, snearsf=snearsf, to=to, expand=expand, octreeMode=octreeMode, optimized=optimized)
 
-    # build parent octree 3 levels higher
-    # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir,
-                                   tbox=tbox, snearsf=snearsf, to=to, octreeMode=octreeMode)
+        # build parent octree 3 levels higher
+        # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
+        parento = buildParentOctrees__(o, tb, dimPb=dimPb, vmin=vmin, snears=snears, snearFactor=4., dfars=dfars, dfarDir=dfarDir,
+                                       tbox=tbox, snearsf=snearsf, to=to, octreeMode=octreeMode)
 
     # adjust the extent of the box defining the symmetry plane if in tb
     baseSYM = Internal.getNodeFromName1(tb,"SYM")
@@ -776,7 +783,7 @@ def generateIBMOctree(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         o = Internal.getZones(to)[0]
 
     if Cmpi.rank==0 and check: C.convertPyTree2File(o, 'octree.cgns')
-    return o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry
+    return o, parento, tbOneOver, tbF1, tbOneOverF1, [symmetry, dir_sym, X_SYM]
 
 # main function
 def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
@@ -789,9 +796,9 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         if isinstance(tbox, str): tbox = C.convertFile2PyTree(tbox)
         else: tbox = tbox
 
-    o, parento, tbOneOver, tbF1, tbOneOverF1, symmetry = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
-                                                                           tbox=tbox, snearsf=snearsf, check=check, to=to,
-                                                                           expand=expand, octreeMode=octreeMode)
+    o, parento, tbOneOver, tbF1, tbOneOverF1, infoSym = generateIBMOctree(tb, dimPb=dimPb, vmin=vmin, snears=snears, dfars=dfars, dfarDir=dfarDir,
+                                                                          tbox=tbox, snearsf=snearsf, check=check, to=to,
+                                                                          expand=expand, octreeMode=octreeMode, optimized=optimized)
 
     # Split octree
     bb = G.bbox(o)
@@ -801,11 +808,22 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
     del o
 
     # fill vmin + merge in parallel
-    res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
+    if optimized == -1:
+        res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=optimized, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
+    else:
+        res = octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000, tbOneOver=tbOneOverF1)
+
     del p
     if parento is not None:
         for po in parento: del po
-    t = C.newPyTree(['CARTESIAN', res])
+
+    #Split les zones qui possede des faces avec racord 1:1, 1:2  et 2:1 (zones voisines avec 3 niveau de resolution different)
+    if optimized==-1:
+        t1 = C.newPyTree(['CARTESIAN', res])
+        zones = Internal.getZones(t1)
+        t = splitZoneForConservative(t1,dimPb=dimPb )
+    else:
+        t = C.newPyTree(['CARTESIAN', res])
 
     zones = Internal.getZones(t)
     for z in zones: z[0] = z[0]+'X%d'%Cmpi.rank
@@ -815,14 +833,13 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     # Keep F1 regions - for F1 & F42 synergy
     if tbF1:
-        tbbBTmp         = G.BB(tbF1)
+        tbbBTmp = G.BB(tbF1)
         interDict_scale = X.getIntersectingDomains(tbbBTmp, t)
         for kk in interDict_scale:
             for kkk in interDict_scale[kk]:
-                z=Internal.getNodeFromName(t, kkk)
+                z = Internal.getNodeFromName(t, kkk)
                 Internal._createUniqueChild(z, '.Solver#defineTMP', 'UserDefinedData_t')
                 Internal._createUniqueChild(Internal.getNodeFromName1(z, '.Solver#defineTMP'), 'SaveF1', 'DataArray_t', value=1)
-                node=Internal.getNodeFromName(t, kkk)
 
     # Add xzones for ext
     tbb = Cmpi.createBBoxTree(t)
@@ -838,11 +855,11 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         test.printMem(">>> cart grids --> rectilinear grids [inside]")
         tbb = G.BB(t)
 
-        if dimPb==2:
+        if dimPb == 2:
             T._addkplane(tbb)
             T._contract(tbb, (0,0,0), (1,0,0), (0,1,0), 0.01)
-            tbOneOver=T.addkplane(tbOneOver)
-            tbOneOver=T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
+            tbOneOver = T.addkplane(tbOneOver)
+            tbOneOver = T.contract(tbOneOver, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
         ## RECTILINEAR REGION
         tzones2  = Internal.copyTree(tbb)
@@ -852,11 +869,14 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                 granularityLocal = 0
                 if Internal.getNodeByName(checkOneOver, 'granularity'):
                     granularityLocal = Internal.getNodeByName(checkOneOver, 'granularity')[1]
-                oneoverX         = int(Internal.getNodeByName(checkOneOver, 'dirx')[1])
-                oneoverY         = int(Internal.getNodeByName(checkOneOver, 'diry')[1])
-                oneoverZ         = int(Internal.getNodeByName(checkOneOver, 'dirz')[1])
+                oneoverX = Internal.getNodeByName(checkOneOver, 'dirx')
+                oneoverX = Internal.getValue(oneoverX)
+                oneoverY = Internal.getNodeByName(checkOneOver, 'diry')
+                oneoverY = Internal.getValue(oneoverY)
+                oneoverZ = Internal.getNodeByName(checkOneOver, 'dirz')
+                oneoverZ = Internal.getValue(oneoverZ)
                 ## Select regions that need to be coarsened
-                if granularityLocal==1:
+                if granularityLocal == 1:
                     C._initVars(tzones2, 'cellNOneOver', 1.)
                     X_IBM._blankByIBCBodies(tzones2, i, 'nodes', dimPb, cellNName='cellNOneOver')
 
@@ -867,7 +887,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
                                 T._oneovern(zLocal, (oneoverX,oneoverY,oneoverZ));
                                 ### Avoid a zone to be coarsened twice
                                 listDone.append(z[0])
-                elif granularityLocal==0:
+                elif granularityLocal == 0:
                     interDict_scale = X.getIntersectingDomains(G.BB(i), tbb)
                     ## Avoid a zone to be coarsened twice
                     for j in interDict_scale:
@@ -881,15 +901,19 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     test.printMem(">>> cart grids --> rectilinear grids [end]")
 
-    zones = Internal.getZones(t)
-    coords = C.getFields(Internal.__GridCoordinates__, zones, api=2)
-    if symmetry==0: extBnd = 0
+    symmetry, dir_sym, X_SYM = infoSym
+    if symmetry == 0: extBnd = 0
     else: extBnd = ext-1 # nb de ghost cells = ext-1
-    coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
-    C.setFields(coords, zones, 'nodes')
-    for noz in range(len(zones)):
-        Internal.newRind(value=rinds[noz], parent=zones[noz])
+    if ext > 0:
+        zones = Internal.getZones(t)
+        coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
+        coords, rinds = Generator.extendCartGrids(coords, ext=ext, optimized=optimized, extBnd=extBnd)
+        C.setFields(coords, zones, 'nodes')
+        for noz in range(len(zones)):
+            Internal.newRind(value=rinds[noz], parent=zones[noz])
+
     Cmpi._rmXZones(t)
+
     coords = None; zones = None
 
     if symmetry == 0:
@@ -1008,7 +1032,7 @@ def addRefinementZones__(o, tb, tbox, snearsf, vmin, dim):
     return Internal.getNodeFromType2(to, 'Zone_t')
 
 def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., dfarDir=0,
-                tbox=None, snearsf=None, to=None, balancing=2, expand=2, octreeMode=0):
+                tbox=None, snearsf=None, to=None, balancing=2, expand=2, octreeMode=0, optimized=1):
 
     """Builds an octree from the surface definitions."""
 
@@ -1068,8 +1092,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, 0, 2)
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 1, 0, 2) # CB
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 2, 0, 2) # CB
@@ -1082,8 +1106,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
             to = C.newPyTree(['Base',o])
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             indic = C.getField("centers:cellN",to)[0]
-            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = Converter.initVars(indic, 'indicator', 0.)
+            octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+            indic = Converter.initVars(indic, 'indicator', 0., api=1)
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0,0,1)
             indic = Converter.extractVars(indic, ["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1091,12 +1115,14 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 
         else: #expand = 2, 3 or 4
             corner = 0
+            if expand==2 and optimized==-1: corner = 1
+
             to = C.newPyTree(['Base',o])
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             C._initVars(o, "centers:indicator", 0.)
             cellN = C.getField("centers:cellN", to)[0]
-            octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-            indic = C.getField("centers:indicator", o)[0]
+            octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+            indic = C.getField("centers:indicator", o, api=1)[0]
             indic = Converter.addVars([indic,cellN])
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 3)
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1108,8 +1134,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Converter.addVars([indic,cellN])
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 4)
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1122,8 +1148,8 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
                 to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
                 C._initVars(o, "centers:indicator", 0.)
                 cellN = C.getField("centers:cellN", to)[0]
-                octreeA = C.getFields(Internal.__GridCoordinates__, o)[0]
-                indic = C.getField("centers:indicator", o)[0]
+                octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
+                indic = C.getField("centers:indicator", o, api=1)[0]
                 indic = Converter.addVars([indic,cellN])
                 indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0, corner, 6)
                 octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
@@ -1154,10 +1180,10 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
 #==============================================================================
 #
 #==============================================================================
-def createRefinementBodies(tb, dimPb=3, hmod=0.01, pointsPerUnitLength=None):
+def createRefinementBodies(tb, dimPb=3, hmod=0.01, hmax=None, pointsPerUnitLength=None):
     """Creates refinement bodies from the immersed boundaries to extend the finest resolution in the fluid domain."""
     import Geom.IBM as D_IBM
-    import Geom.Offset as O
+    import Geom.Offset
 
     if pointsPerUnitLength is None:
         print("Info: createRefinementBodies: pointsPerUnitLength is None, using default values (25 for 3D or 1000 for 2D).")
@@ -1168,19 +1194,20 @@ def createRefinementBodies(tb, dimPb=3, hmod=0.01, pointsPerUnitLength=None):
     tb = Internal.rmNodesFromName(tb, "SYM")
     tb = Internal.rmNodesFromName(tb, "*_sym")
 
-    snears    = Internal.getNodesFromName(tb, 'snear')
-    h         = min(snears, key=lambda x: x[1])[1][0]
+    if hmax is None:
+        snears = Internal.getNodesFromName(tb, 'snear')
+        hmax   = min(snears, key=lambda x: x[1])[1][0]
 
     for z in Internal.getZones(tb):
         snear = Internal.getNodeFromName(z, 'snear')[1]
         zname = z[0]
-        if snear <= 1.5*h:
+        if snear <= 1.5*hmax:
             if dimPb == 2:
                 z2 = D_IBM.closeContour(z)
             else:
                 z2 = D_IBM.closeSurface(z)
 
-            a = O.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
+            a = Geom.Offset.offsetSurface(z2, offset=hmod, pointsPerUnitLength=pointsPerUnitLength, algo=0, dim=dimPb)
 
             a = T.splitConnexity(a)
             a = max([za for za in Internal.getZones(a)], key=lambda za: len(Internal.getNodeFromName(za, 'CoordinateX')[1]))
@@ -1309,16 +1336,16 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
             Nk[z[0]] += 2*ific-1+c  # -1, for the mesh (already added in the mesh generation) || need to remove this as it is not the case for the geometry (tb)
 
         for z in Internal.getZones(tree):
-            yy_2d   = Internal.getNodeFromName(z, "CoordinateY")[1]
-            zz_2d   = Internal.getNodeFromName(z, "CoordinateZ")[1]
-            sh_2d   = numpy.shape(yy_2d)
+            yy_2d = Internal.getNodeFromName(z, "CoordinateY")[1]
+            zz_2d = Internal.getNodeFromName(z, "CoordinateZ")[1]
+            sh_2d = numpy.shape(yy_2d)
 
             T._addkplane(z   ,N=Nk[z[0]])
 
-            zz   = Internal.getNodeFromName(z, "CoordinateZ")[1]
-            yy   = Internal.getNodeFromName(z, "CoordinateY")[1]
-            sh   = numpy.shape(yy)
-            r    = numpy.sqrt( zz**2+yy**2)
+            zz = Internal.getNodeFromName(z, "CoordinateZ")[1]
+            yy = Internal.getNodeFromName(z, "CoordinateY")[1]
+            sh = numpy.shape(yy)
+            r  = numpy.sqrt( zz**2+yy**2)
 
             perio_loc = perio
             if c==1: period_loc= perio*1.5 #is periodic_loc a typo or a new variable that is not used anywhere else?
@@ -1353,7 +1380,7 @@ def extrudeCartesianZDir(t, tb, check=False, extrusion="cart", dz=0.01, NPas=10,
             rind = Internal.getNodeFromName1(z, "Rind")[1]
             rind[4] = ific; rind[5] = ific
             # Modif range BC
-            BCs = Internal.getNodesFromType(z, "BC_t")
+            BCs = Internal.getNodesFromType2(z, "BC_t")
             for bc in BCs:
                 ptrg = Internal.getNodeFromName(bc, "PointRange")[1]
                 ptrg[2,0] = 3
@@ -1485,9 +1512,6 @@ def checkCartesian(t, nghost=0):
     else:                cartesian=False
     return cartesian
 
-
-
-
 ##Files saved here - are not current supported for modified dist2walls but can plug-in if necessary
 def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers', model='NSLaminar'):
     import Dist2Walls.PyTree as DTW
@@ -1500,7 +1524,7 @@ def _dist2wallNearBody__(t, tb, type='ortho', signed=0, dim=3, loc='centers', mo
         tbBB=G.BB(tb)
 
         ##PRT1 - Zones flagged by the intersection of the bounding boxes of t and tb
-        interDict = X.getIntersectingDomains(tBB, tbBB)
+        interDict = X.getIntersectingDomains(tBB, tbBB, taabb=tBB, taabb2=tbBB)
         zt       = []
         zt_names = []
         for i in interDict:
@@ -1566,3 +1590,311 @@ def _add2listAdditionalZones__(list_additional_zones, tbBB_scale, tBB, mean_tb, 
                 list_additional_zones.append(i)
         count += 1
     return None
+
+###
+## Split les zones generere par generate Cartmesh pour empecher qu'une face possede 3 types de raccord: fin/fin, fin/grossier et grossier/fin
+## Sinon souci pour flux conservatif
+def splitZoneForConservative(t, dimPb=3):
+    zone_out=[]
+    candidat={}
+    for z in Internal.getZones(t):
+        matches = Internal.getNodesByType2(z, "GridConnectivity1to1_t")
+        nearmatches = Internal.getNodesByType2(z, "GridConnectivity_t")
+        totalRac = len(matches)+len(nearmatches)
+        #recherche des zones candidate au split
+        if totalRac > dimPb*2 and len(nearmatches) != 0:
+            #print("nb raccord", totalRac)
+            #recherche des faces problematique
+            imin=[];jmin=[];kmin=[];imax=[];jmax=[];kmax=[];
+            for rac in matches:
+                rg = Internal.getNodeByName(rac,'PointRange')[1]
+                #CL I
+                if rg[0][1] - rg[0][0]==0:
+                    if rg[0][1]==1: imin.append([rac, 1])
+                    else: imax.append( [rac,1])
+                #CL J
+                if rg[1][1] - rg[1][0]==0:
+                    if rg[1][1]==1: jmin.append([rac,1])
+                    else:  jmax.append( [rac,1])
+                #CL K
+                if dimPb==3:
+                    if rg[2][1] - rg[2][0]==0:
+                        if rg[2][1]==1: kmin.append( [rac,1])
+                        else:  kmax.append( [rac,1])
+
+            for rac in nearmatches:
+                rg    = Internal.getNodeByName1(rac,'PointRange')[1]
+                ratio = Internal.getNodeByName2(rac,'NMRatio')[1]
+                #CL I
+                if rg[0][1] - rg[0][0]==0:
+                    if rg[0][1]==1: imin.append([rac, ratio[1]])
+                    else: imax.append( [rac, ratio[1] ])
+                #CL J
+                if rg[1][1] - rg[1][0]==0:
+                    if rg[1][1]==1: jmin.append([rac, ratio[0]])
+                    else:  jmax.append( [rac, ratio[0]])
+                #CL K
+                if dimPb==3:
+                    if rg[2][1] - rg[2][0]==0:
+                        if rg[2][1]==1: kmin.append( [rac, ratio[0]])
+                        else:  kmax.append( [rac, ratio[0]])
+
+            ladd = True
+            for dir in [[imin,'imin'], [imax,'imax'], [jmin,'jmin'],[jmax,'jmax'], [kmin,'kmin'],[kmax,'kmax']]:
+                ratio=[]
+                for sf in dir[0]:
+                    if sf[1] not in ratio: ratio.append(sf[1])
+
+                if len(ratio) >=3:
+                    dims = Internal.getZoneDim(z)
+                    #print(z[0], ': zone a decouper en', dir[1],  'ratio:', ratio, 'dim:', dims[1:4])
+                    for sf in dir[0]:
+                        rg    = Internal.getNodeByName1(sf[0],'PointRange')[1]
+                        if sf[1]==0.5:
+                            print("zone a splitter", z[0], "dir", dir[1], 'ptrange', rg)
+                            ladd=False
+                            if z[0] in candidat:
+                                tmp = candidat[z[0]]
+                                tmp.append( [dir[1], rg])
+                                candidat[z[0]]= tmp
+                            else:
+                                candidat[z[0]]= [[dir[1], rg]]
+            if ladd:
+                zone_out.append(z)
+        else:
+            zone_out.append(z)
+
+    for key in candidat:
+        zone = Internal.getNodeFromName(t,key)
+        print("zone candidate au split", zone[0])
+        llist = candidat[key]
+        for tmp in llist:
+            rg2=tmp[1]
+            #print("verif init", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+        racFinal=[]
+        while len(llist)!=0:
+            l = llist[0]
+            rg = l[1]
+
+            if len(llist)==1:
+                ldel = False
+                for rac in racFinal:
+                    tmp = rac[1]
+                    if rg[1,1] == tmp[1,1] and rg[2,0] == tmp[2,0] and rg[1,0] == tmp[1,0] and  rg[2,1] == tmp[2,1] and  rg[0,1] == tmp[0,1] and rg[0,0] == tmp[0,0]:
+                        #print("on skippe: le dernier rac existe deja")
+                        ldel=True
+                if not ldel:
+                    racFinal.append(l)
+                llist.pop(0)
+
+            else:
+                i =1
+                fusion=False
+                same = False
+                for l2 in llist[1:]:
+                    fusion=False
+                    rg2= l2[1]
+                    if (l[0]=='imax' or l[0]=='imin') and (l2[0]=='imax' or l2[0]=='imin') :
+                        if rg[1,0] == rg2[1,1] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                            fusion=True
+                            rg[1,0]= rg2[1,0]
+                        elif rg[1,1] == rg2[1,0] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                            fusion=True
+                            rg[1,1]= rg2[1,1]
+                        elif rg[2,0] == rg2[2,1] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                            fusion=True
+                            rg[2,0]= rg2[2,0]
+                        elif rg[2,1] == rg2[2,0] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                            fusion=True
+                            rg[2,1]= rg2[2,1]
+                        elif rg[1,1] == rg2[1,1] and rg[2,0] == rg2[2,0] and rg[1,0] == rg2[1,0] and  rg[2,1] == rg2[2,1] :
+                            fusion=True
+                            same=True
+
+                    elif (l[0]=='jmax' or l[0]=='jmin') and (l2[0]=='jmax' or l2[0]=='jmin') :
+                        if rg[0,0] == rg2[0,1] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                            fusion=True
+                            rg[0,0]= rg2[0,0]
+                        elif rg[0,1] == rg2[0,0] and (rg[2,0] == rg2[2,0] and rg[2,1] == rg2[2,1]):
+                            fusion=True
+                            rg[0,1]= rg2[0,1]
+                        elif rg[2,0] == rg2[2,1] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                            fusion=True
+                            rg[2,0]= rg2[2,0]
+                        elif rg[2,1] == rg2[2,0] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                            fusion=True
+                            rg[2,1]= rg2[2,1]
+                        elif rg[0,1] == rg2[0,1] and rg[2,0] == rg2[2,0] and rg[0,0] == rg2[0,0] and  rg[2,1] == rg2[2,1]:
+                            fusion=True
+                            same=True
+
+                    elif (l[0]=='kmax' or l[0]=='kmin') and (l2[0]=='kmax' or l2[0]=='kmin') :
+                        if rg[0,0] == rg2[0,1] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                            fusion=True
+                            rg[0,0]= rg2[0,0]
+                        elif rg[0,1] == rg2[0,0] and (rg[1,0] == rg2[1,0] and rg[1,1] == rg2[1,1]):
+                            fusion=True
+                            rg[0,1]= rg2[0,1]
+                        elif rg[1,0] == rg2[1,1] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                            fusion=True
+                            rg[1,0]= rg2[1,0]
+                        elif rg[1,1] == rg2[1,0] and (rg[0,0] == rg2[0,0] and rg[0,1] == rg2[0,1]):
+                            fusion=True
+                            rg[1,1]= rg2[1,1]
+                        elif rg[0,1] == rg2[0,1] and rg[0,0] == rg2[0,0] and rg[1,0] == rg2[1,0] and  rg[1,1] == rg2[1,1]:
+                            same=True
+                            fusion=True
+                    else:
+                        print("skip")
+
+                    if fusion:
+                        print("dirF", l[0], rg[0,0], rg[0,1], rg[1,0], rg[1,1], rg[2,0], rg[2,1] )
+                        llist.pop(i)
+
+                    i +=1
+
+                if not same: racFinal.append(l)
+                if not fusion:
+                    llist.pop(0)
+                    for tmp in llist:
+                        rg2=tmp[1]
+                    for tmp in racFinal:
+                        rg2=tmp[1]
+                else:
+                    for tmp in llist:
+                        rg2=tmp[1]
+                    for tmp in racFinal:
+                        rg2=tmp[1]
+
+        dims = Internal.getZoneDim(zone)
+        for tmp in racFinal:
+            rg2=tmp[1]
+            #print("verif Final", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+            #passage surface volume
+            #print(zone[0], 'dim:', dims[1:4])
+            if tmp[0]=='imin': rg2[0,1]= dims[1]
+            if tmp[0]=='imax': rg2[0,0]= 1
+            if tmp[0]=='jmin': rg2[1,1]= dims[2]
+            if tmp[0]=='jmax': rg2[1,0]= 1
+            if tmp[0]=='kmin': rg2[2,1]= dims[3]
+            if tmp[0]=='kmax': rg2[2,0]= 1
+            #print("verif Final1", tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+
+        i=0
+        for rac in racFinal:
+            rg = rac[1]
+            j=0
+            for rac2 in racFinal:
+                tmp = rac2[1]
+                if rg[1,1] == tmp[1,1] and rg[2,0] == tmp[2,0] and rg[1,0] == tmp[1,0] and  rg[2,1] == tmp[2,1] and  rg[0,1] == tmp[0,1] and rg[0,0] == tmp[0,0] and j!=i:
+                    #print("on vire le rac: doublon ")
+                    racFinal.pop(i)
+                    break
+                j+=1
+            i+=1
+
+        for tmp in racFinal:
+            rg2=tmp[1]
+            print("Final filtre", zone[0], tmp[0], rg2[0,0], rg2[0,1], rg2[1,0], rg2[1,1], rg2[2,0], rg2[2,1] )
+
+        ni   = dims[1]; nj = dims[2]; nk = dims[3]
+        out=[ [zone, (1,1,1), (ni,nj,nk) ]]
+        count=0
+        for rac in  racFinal:
+            rg = rac[1]; ideb = rg[0,0]; jdeb= rg[1,0]; kdeb= rg[2,0]; ifin = rg[0,1]; jfin= rg[1,1]; kfin= rg[2,1]
+            start= (ideb, jdeb, kdeb)
+            end  = (ifin, jfin, kfin)
+            #print("Split", zone[0], tmp[0], rg[0,0], rg[0,1], rg[1,0], rg[1,1], rg[2,0], rg[2,1] )
+            #recherche de la zone de decouper
+            i=0
+            for sub in out:
+                start_tg= sub[1]; end_tg = sub[2]
+                if start[0] >= start_tg[0] and end[0] <= end_tg[0] and start[1] >= start_tg[1] and end[1] <= end_tg[1] and start[2] >= start_tg[2] and end[2] <= end_tg[2]:
+                    zone_tg = sub[0]
+                    i_tg=i
+                i+=1
+
+            #print('i_tg', i_tg, 'indice_tg', start_tg[0], end_tg[0], start_tg[1],  end_tg[1] ,start_tg[2], end_tg[2])
+            dims = Internal.getZoneDim(zone_tg)
+            ni   = dims[1]; nj = dims[2]; nk = dims[3]
+            ideb = start[0]-start_tg[0]+1; jdeb = start[1]-start_tg[1]+1; kdeb = start[2]-start_tg[2]+1
+            ifin = end[0]-start_tg[0]+1; jfin = end[1]-start_tg[1]+1; kfin = end[2]-start_tg[2]+1
+            start_loc=( ideb, jdeb, kdeb)
+            end_loc=  ( ifin, jfin, kfin)
+            #print("start", start)
+            #print("end  ",  end)
+            #print("start_loc", start_loc)
+            #print("end_loc  ",  end_loc)
+            #print("dim",  dims[1:4], zone_tg[0])
+
+            #print(' split centre', start_loc, end_loc ,  Internal.getZoneDim(zone_tg)[1:4], flush=True)
+            zp  = T.subzone(zone_tg, start_loc, end_loc )
+            #print(' split centre OK', flush=True)
+            Internal._rmNodesByName(zp,'ZoneGridConnectivity')
+            zp[0]=zone[0]+'split'+str(count)
+            count +=1
+            out.append( [zp, start_loc, end_loc] )
+            #decoupe de 6 sous zone potentiel
+            if ideb !=1:
+                start= (1   ,  1, kdeb)
+                end  = (ideb, nj, kfin)
+                start_loc=( 1   , 1   , kdeb)
+                end_loc=  ( ideb, nj, kfin)
+
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                zp[0]=zone[0]+'split'+str(count)
+                count +=1
+                out.append( [zp, start, end] )
+            if jfin != nj:
+                start= (ideb, jfin, kdeb)
+                end  = (ifin, nj  , kfin)
+                start_loc=( ideb, jfin, kdeb)
+                end_loc=  ( ifin, nj, kfin)
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                zp[0]=zone[0]+'split'+str(count)
+                count +=1
+                out.append( [zp, start, end] )
+            if ifin != ni:
+                start= (ifin,  1  , kdeb)
+                end  = ( ni , nj  , kfin)
+                start_loc=( ifin,   1 , kdeb)
+                end_loc=  (  ni ,  nj , kfin)
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                zp[0]=zone[0]+'split'+str(count)
+                count +=1
+                out.append( [zp, start, end] )
+            if jdeb != 1:
+                start= (ideb,  1   , kdeb)
+                end  = (ifin, jdeb , kfin)
+                start_loc=( ideb,  1  , kdeb)
+                end_loc=  ( ifin, jdeb, kfin)
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                out.append( [zp, start, end] )
+            if kdeb != 1:
+                start= (1,  1  , 1)
+                end  = (ni, nj , kdeb)
+                start_loc=(   1 ,  1  ,  1  )
+                end_loc=  (  ni ,  nj , kdeb)
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                zp[0]=zone[0]+'split'+str(count)
+                count +=1
+                out.append( [zp, start, end] )
+            if kfin != nk:
+                start= (1,  1  , kfin)
+                end  = (ni, nj , nk)
+                start_loc=(  1  ,  1  , kfin)
+                end_loc=  (  ni ,  nj ,  nk )
+                zp  = T.subzone(zone_tg, start_loc, end_loc )
+                zp[0]=zone[0]+'split'+str(count)
+                count +=1
+                out.append( [zp, start, end] )
+
+            out.pop(i_tg)
+
+        for z in out:
+            zone_out.append(z[0])
+
+    t = C.newPyTree(['CARTESIAN', zone_out])
+    Internal._rmNodesByName(t, 'ZoneGridConnectivity')
+
+    return t

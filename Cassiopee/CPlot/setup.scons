@@ -8,11 +8,13 @@ import KCore.Dist as Dist
 # GL
 # optional: OSMesa
 #==============================================================================
-from KCore.config import *
 
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
 installPath = Dist.getInstallPath(prefix)
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Get compilers from Distutils ================================================
 (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
@@ -24,42 +26,38 @@ installPath = Dist.getInstallPath(prefix)
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
 # Test if kcore exists =======================================================
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 libraries = ["kcore"]
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ['..', '.', pythonLibDir, kcoreLibDir, '/usr/X11R6/lib64']
 includeDirs = [pythonIncDir, numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include']
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # Test if MPEG exists =========================================================
 import srcs
 if srcs.MPEG:
-    (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg(additionalLibPaths,
-                                                additionalIncludePaths)
+    (mpeg, mpegIncDir, mpegLib) = Dist.checkMpeg()
     if mpeg:
         libraries += ["avcodec"]
         libraryDirs += [mpegLib]
         includeDirs += [mpegIncDir]
 
 # Test if libmpi exists ======================================================
-(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi(additionalLibPaths,
-                                                     additionalIncludePaths)
+(mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
 
 if mpi:
     libraryDirs.append(mpiLibDir)
     includeDirs.append(mpiIncDir)
 
 # Test if GL exists ==========================================================
-#(isGL, GLIncDir, GLLibDir) = Dist.checkGL(additionalLibPaths,
-#                                          additionalIncludePaths)
+#(isGL, GLIncDir, GLLibDir) = Dist.checkGL()
 isGL = True; GLIncDir = []; GLLibDir = []
 
 # Test if OSMesa exists =======================================================
-(OSMesa, OSMesaIncDir, OSMesaLibDir, OSMesaLibname) = Dist.checkOSMesa(additionalLibPaths,
-                                                                       additionalIncludePaths)
+(OSMesa, OSMesaIncDir, OSMesaLibDir, OSMesaLibname) = Dist.checkOSMesa()
 
 #libraries += ["GLU", "Xi", "Xmu"] # only for GL??
 

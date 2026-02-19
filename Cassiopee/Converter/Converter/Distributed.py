@@ -11,9 +11,6 @@ from . import Internal
 from . import PyTree
 import numpy
 
-try: range = xrange
-except: pass
-
 #==============================================================================
 # Lit un arbre squelette
 # Warning: pour l'instant limite a hdf et adf
@@ -29,7 +26,7 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
 # Lit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
 #==============================================================================
 def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1,
-                       dataShape=None, skipTypes=None, com=None):
+                       dataShape=None, skipTypes=None, com=None, readIntMode=0):
     """Read nodes from file given their paths."""
     if format is None: format = Converter.convertExt2Format__(fileName)
     if not isinstance(paths, list): p = [paths]
@@ -38,7 +35,7 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
     if skipTypes is not None and isinstance(skipTypes, str): skipTypes = [skipTypes]
     if skipTypes is not None and isinstance(skipTypes, (str, tuple)): skipTypes = [skipTypes]
 
-    ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, 0, dataShape, skipTypes, com)
+    ret = Converter.converter.readPyTreeFromPaths(fileName, p, format, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, com)
     if not isinstance(paths, list): return ret[0]
     else: return ret
 
@@ -47,15 +44,15 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
 # et complete t
 #==============================================================================
 def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
-                        dataShape=None, skipTypes=None, com=None):
+                        dataShape=None, skipTypes=None, com=None, readIntMode=0):
     """Read nodes from file given their path and complete t."""
     tp = Internal.copyRef(t)
-    _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, dataShape, skipTypes, com)
+    _readPyTreeFromPaths(tp, fileName, paths, format, maxFloatSize, maxDepth, setOnlyValue, dataShape, skipTypes, com, readIntMode)
     return tp
 
 def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
-                         dataShape=None, skipTypes=None, com=None):
-    nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, dataShape, skipTypes, com)
+                         dataShape=None, skipTypes=None, com=None, readIntMode=0):
+    nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, dataShape, skipTypes, com, readIntMode)
     if not isinstance(paths, list): nodes = [nodes]; paths = [paths]
     if len(paths) != len(nodes):
         print("Warning: readPyTreeFromPaths: some paths can not be loaded. Nothing added to pyTree.")
@@ -83,13 +80,13 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
 #==============================================================================
 # Ecrit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
 #==============================================================================
-def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0):
+def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0, isize=8, rsize=8):
     """Write nodes to file given their paths."""
     if format is None: format = Converter.convertExt2Format__(fileName)
     if not isinstance(paths, list): p = [paths]; n = [nodes]
     else: p = paths; n = nodes
     p = fixPaths__(p)
-    Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None)
+    Converter.converter.writePyTreePaths(fileName, n, p, format, maxDepth, mode, None, isize, rsize)
     return None
 
 def writePyTreeFromPaths(t, fileName, paths, format=None, maxDepth=-1):
@@ -290,13 +287,13 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
                 p[c] = loadedZones[m]; zr = p[c]
             else: p[2][c] = loadedZones[m]; zr = p[2][c]
             if rank is not None:
-                node = Internal.getNodeFromName(zr, '.Solver#Param')
+                node = Internal.getNodeFromName1(zr, '.Solver#Param')
                 if node is not None: param = node
                 else:
                     param = ['.Solver#Param', None, [], 'UserDefinedData_t']
                     zr[2].append(param)
                 v = numpy.zeros((1,1), Internal.E_NpyInt); v[0,0] = nproc
-                node = Internal.getNodeFromName(param, 'proc')
+                node = Internal.getNodeFromName1(param, 'proc')
                 if node is not None:
                     node[1] = v
                 else:
@@ -314,7 +311,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
 # si proc == -1: ecrit tout les zones de t
 # Warning: limite a adf et hdf
 #==============================================================================
-def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
+def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, isize=8, rsize=8):
     """Write some zones in an existing file (adf or hdf)."""
     if zoneNames is None and proc is None: return None
     tp, ntype = Internal.node2PyTree(t)
@@ -349,7 +346,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
 
     print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)
-    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links)
+    Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links, isize, rsize)
     print('done.')
     return None
 
@@ -656,14 +653,14 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
 
             list_graph_=[]
             for ssiter in range(3,4):#range(1,2*nssiter+1):
-                graph_={}
+                graph_ = {}
                 for z in zones:
                     proc = getProcLocal__(z, procDict)
                     subRegions2 = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
                     subRegions = []
                     for s in subRegions2:
                         sname = s[0][0:2]
-                        if sname=='ID': subRegions.append(s)
+                        if sname == 'ID': subRegions.append(s)
                     for s in subRegions:
                         donor = Internal.getValue(s)
                         levdnr_ = Internal.getNodesFromName1(s,'LevelZDnr')
@@ -713,7 +710,6 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     if idn != []: # la subRegion decrit des IBC
                         popp = getProcGlobal__(donor, t, procDict)
                         updateGraph__(graph, proc, popp, z[0])
-
 
         else:
             maxlevel=1
@@ -878,6 +874,11 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         for z in zones:
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+            GC2 = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+            for c in GC2:
+                r = Internal.getNodeFromType1(c, 'GridConnectivityType_t')
+                if r is not None and Internal.getValue(r) == 'Abutting1to1':
+                    GC.append(c)
             for c in GC:
                 donor = Internal.getValue(c)
                 popp = getProcGlobal__(donor, t, procDict)
@@ -888,7 +889,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity_t')
             for c in GC:
-                gctype = Internal.getNodeFromType(c,'GridConnectivityType_t')
+                gctype = Internal.getNodeFromType(c, 'GridConnectivityType_t')
                 if Internal.getValue(gctype)=='Abutting':
                     donor = Internal.getValue(c)
                     popp = getProcGlobal__(donor, t, procDict)
@@ -964,7 +965,7 @@ def _setProc(t, nproc):
             param = ['.Solver#Param', None, [], 'UserDefinedData_t']
             z[2].append(param)
         v = numpy.zeros((1,1), Internal.E_NpyInt); v[0,0] = nproc
-        node = Internal.getNodeFromName(param, 'proc')
+        node = Internal.getNodeFromName1(param, 'proc')
         if node is not None: node[1] = v
         else:
             a = ['proc', v, [], 'DataArray_t']

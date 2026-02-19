@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -41,6 +41,7 @@ static PyMethodDef Pypost [] =
   {"selectCells3", K_POST::selectCells3, METH_VARARGS},
   {"selectCellCenters", K_POST::selectCellCenters, METH_VARARGS},
   {"selectCellCentersBoth", K_POST::selectCellCentersBoth, METH_VARARGS},
+  {"exteriorVertices", K_POST::selectExteriorVertices, METH_VARARGS},
   {"interiorFaces", K_POST::selectInteriorFaces, METH_VARARGS},
   {"exteriorFaces", K_POST::selectExteriorFaces, METH_VARARGS},
   {"exteriorFacesStructured", K_POST::selectExteriorFacesStructured, METH_VARARGS},
@@ -53,8 +54,6 @@ static PyMethodDef Pypost [] =
   {"integNormProduct", K_POST::integNormProduct, METH_VARARGS},
   {"integMoment", K_POST::integMoment, METH_VARARGS},
   {"integMomentNorm", K_POST::integMomentNorm, METH_VARARGS},
-  {"zipper", K_POST::zipperF, METH_VARARGS},
-  {"usurp", K_POST::usurpF, METH_VARARGS},
   {"computeVariables", K_POST::computeVariables, METH_VARARGS},
   {"computeVariables2", K_POST::computeVariables2, METH_VARARGS},
   {"computeGrad", K_POST::computeGrad, METH_VARARGS},
@@ -68,7 +67,6 @@ static PyMethodDef Pypost [] =
   {"computeCurl", K_POST::computeCurl, METH_VARARGS},
   {"computeNormCurl", K_POST::computeNormCurl, METH_VARARGS},
   {"computeDiff", K_POST::computeDiff, METH_VARARGS},
-  {"perlinNoise", K_POST::perlinNoise, METH_VARARGS},
   {"compStreamLine", K_POST::compStreamLine, METH_VARARGS},
   {"comp_stream_line", K_POST::comp_stream_line, METH_VARARGS}, // version XJ
   {"compStreamRibbon", K_POST::compStreamRibbon, METH_VARARGS},
@@ -84,6 +82,11 @@ static PyMethodDef Pypost [] =
   {"sharpEdges", K_POST::sharpEdges, METH_VARARGS},
   {"silhouette", K_POST::silhouette, METH_VARARGS},
   {"computeIndicatorValue",K_POST::computeIndicatorValue,METH_VARARGS},
+  {"usurp", K_POST::usurpF, METH_VARARGS},
+  #ifndef E_ADOLC
+  {"zipper", K_POST::zipperF, METH_VARARGS},
+  {"perlinNoise", K_POST::perlinNoise, METH_VARARGS},
+  #endif
   {NULL, NULL}
 };
 

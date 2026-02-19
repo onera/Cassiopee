@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -32,7 +32,8 @@ static
 E_Int get_proc(E_Int element, const std::vector<E_Int> &distribution,
   E_Int nproc)
 {
-  for (E_Int j = 0; j < nproc; j++) {
+  for (E_Int j = 0; j < nproc; j++) 
+  {
     if (element >= distribution[j] && element < distribution[j+1])
       return j;
   }
@@ -44,7 +45,8 @@ E_Int get_proc(E_Int element, const std::vector<E_Int> &distribution,
 static
 E_Int get_chunk(E_Int element, const std::vector<E_Int> &dist)
 {
-  for (size_t i = 0; i < dist.size(); i++) {
+  for (size_t i = 0; i < dist.size(); i++) 
+  {
     if (element >= dist[i] && element < dist[i+1])
       return i;
   }
@@ -53,7 +55,8 @@ E_Int get_chunk(E_Int element, const std::vector<E_Int> &dist)
   return -1;
 }
 
-struct Poly {
+struct Poly 
+{
   E_Int n[8];
   E_Int stride;
 
@@ -63,23 +66,22 @@ struct Poly {
 
   void set(E_Int *p) 
   {
-    for (E_Int i = 0; i < stride; i++)
-      n[i] = p[i];
+    for (E_Int i = 0; i < stride; i++) n[i] = p[i];
     std::sort(n, n+stride);
   }
 
   bool operator==(const Poly &P) const
   {
-    for (E_Int i = 0; i < stride; i++) {
-      if (n[i] != P.n[i])
-        return false;
+    for (E_Int i = 0; i < stride; i++) 
+    {
+      if (n[i] != P.n[i]) return false;
     }
-    
     return true;
   }
 };
 
-struct Poly_hash {
+struct Poly_hash 
+{
   uint32_t hash(uint32_t val, uint32_t seed) const
   {
     uint32_t HASH = seed;
@@ -106,15 +108,18 @@ struct Poly_hash {
 static
 void add_facet(const Poly &P, E_Int &nfaces,
   std::unordered_map<Poly, E_Int, Poly_hash> &faces, std::vector<E_Int> &NFACE,
-  std::vector<Poly> &face2Poly)
+  std::vector<Poly>& face2Poly)
 {
   auto search = faces.find(P);
-  if (search == faces.end()) {
+  if (search == faces.end()) 
+  {
     faces[P] = nfaces;
     NFACE.push_back(nfaces);
     face2Poly.push_back(P);
     nfaces += 1;
-  } else {
+  } 
+  else 
+  {
     NFACE.push_back(search->second);
   }
 }
@@ -129,7 +134,8 @@ void make_facets_HEXA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   Poly Quad(4);
   E_Int n[4];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int *pn = &cn[8*i];
     
     // bot
@@ -176,7 +182,8 @@ void make_facets_TETRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   Poly Tri(3);
   E_Int n[3];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int *pn = &cn[4*i];
     
     // bot
@@ -221,7 +228,8 @@ void make_facets_PENTA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   Poly Tri(3), Quad(4);
   E_Int n[4];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int *pn = &cn[6*i];
     
     // bot
@@ -263,7 +271,8 @@ void make_facets_PYRA(E_Int *cn, E_Int ncells, E_Int &nfaces,
   Poly Tri(3), Quad(4);
   E_Int n[5];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int *pn = &cn[5*i];
     
     // bot
@@ -316,7 +325,8 @@ void make_facets_QUAD(E_Int *cn, E_Int ncells, E_Int &nfaces,
   Poly Edge(2);
   E_Int n[4];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int *pn = &cn[4*i];
     
     // bot
@@ -353,7 +363,8 @@ E_Int make_facets(E_Int *cn, E_Int ncells, E_Int stride,
   std::unordered_map<Poly, E_Int, Poly_hash> &faces,
   std::vector<Poly> &f2Q)
 {
-  if (stride == 5) {
+  if (stride == 5) 
+  {
     make_facets_PYRA(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else if (stride == 4 && strcmp(elemName, "TETRA") == 0) {
     make_facets_TETRA(cn, ncells, nfaces, NFACE, faces, f2Q);
@@ -363,7 +374,8 @@ E_Int make_facets(E_Int *cn, E_Int ncells, E_Int stride,
     make_facets_PENTA(cn, ncells, nfaces, NFACE, faces, f2Q);
   } else if (stride == 8) {
     make_facets_HEXA(cn, ncells, nfaces, NFACE, faces, f2Q);
-  } else {
+  } else 
+  {
     fprintf(stderr, "chunk2part_elt(): %s not supported.\n", elemName);
     return 1;
   }
@@ -371,7 +383,8 @@ E_Int make_facets(E_Int *cn, E_Int ncells, E_Int stride,
   return 0;
 }
 
-struct comm_patch {
+struct comm_patch 
+{
   E_Int nei; // nei proc
   std::vector<E_Int> local;
   std::vector<E_Int> remote;
@@ -395,7 +408,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   PyObject *XYZ, *CHUNKS;
 
-  if (!PyArg_ParseTuple(args, "OO", &XYZ, &CHUNKS)) {
+  if (!PYPARSETUPLE_(args, OO_, &XYZ, &CHUNKS)) 
+  {
     PyErr_SetString(PyExc_ValueError, "chunk2partElt(): bad input");
     return NULL;
   }
@@ -406,13 +420,13 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   E_Int npoints, nfld;
 
   Xi = PyList_GetItem(XYZ, 0);
-  K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Xi, X, npoints, nfld);
 
   Yi = PyList_GetItem(XYZ, 1);
-  K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Yi, Y, npoints, nfld);
 
   Zi = PyList_GetItem(XYZ, 2);
-  K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld, true);
+  K_NUMPY::getFromNumpyArray(Zi, Z, npoints, nfld);
 
   // chunks
   E_Int nchunks = PyList_Size(CHUNKS);
@@ -423,7 +437,6 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<E_Int> local_cdist(nchunks+1, 0);
   std::vector<E_Int> csize(nchunks);
   std::vector<E_Int> fstrides(nchunks);
-
 
   E_Int ncells = 0;
 
@@ -443,7 +456,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
     PyObject *CN = PyList_GetItem(o, 2);
     E_Int cnsize, nfld;
-    K_NUMPY::getFromNumpyArray(CN, cns[i], cnsize, nfld, true);
+    K_NUMPY::getFromNumpyArray(CN, cns[i], cnsize, nfld);
     csize[i] = cnsize / strides[i];
     local_cdist[i+1] = csize[i];
     ncells += local_cdist[i+1];
@@ -497,7 +510,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nchunks-1; i++)
     cellLabels[i+1] += cellLabels[i];
   
-  for (E_Int i = 0; i < nchunks; i++) {
+  for (E_Int i = 0; i < nchunks; i++) 
+  {
     cellLabels[i] -= csize[i];
     cellLabels[i] += cdist[rank];
   }
@@ -507,11 +521,11 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<std::vector<E_Int>> NFACES(nchunks);
   std::unordered_map<Poly, E_Int, Poly_hash> faces;
   std::vector<Poly> face2Poly;
-  for (E_Int i = 0; i < nchunks; i++) {
+  for (E_Int i = 0; i < nchunks; i++) 
+  {
     E_Int res = make_facets(cns[i], csize[i], strides[i], eltNames[i], nfaces,
       NFACES[i], faces, face2Poly);
-    if (res == 1)
-      return NULL;
+    if (res == 1) return NULL;
   }
 
   nfaces--;
@@ -529,17 +543,19 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     for (auto &face : NFACE)
       face = face + firstFace;
   
-  // make local ParentElement
+  // make local ParentElements
 
   std::unordered_map<E_Int, std::vector<E_Int>> lPE;
 
-  for (E_Int chunk = 0; chunk < nchunks; chunk++) {
+  for (E_Int chunk = 0; chunk < nchunks; chunk++) 
+  {
     auto& NFACE = NFACES[chunk];
     E_Int nc = csize[chunk];
     E_Int fstr = fstrides[chunk];
     E_Int cstart = cellLabels[chunk];
 
-    for (E_Int i = 0; i < nc; i++) {
+    for (E_Int i = 0; i < nc; i++) 
+    {
       E_Int *pf = &NFACE[fstr*i];
       for (E_Int j = 0; j < fstr; j++) {
         lPE[pf[j]].push_back(i+cstart);
@@ -550,8 +566,10 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   // potential pface data to exchange with every proc
   std::vector<E_Int> SEND;
 
-  for (auto &face : lPE) {
-    if (face.second.size() == 1) {
+  for (auto &face : lPE) 
+  {
+    if (face.second.size() == 1) 
+    {
       assert(face.first > 0);
       SEND.push_back(face.first);
       const auto &P = face2Poly[face.first - firstFace - 1];
@@ -581,10 +599,12 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<E_Int> spfaces;
   std::vector<int> spcount(nproc, 0), rpcount(nproc);
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ptr = &RECV[RDIST[i]];
     if (i == rank) continue;
-    for (E_Int j = 0; j < RCOUNT[i];) {
+    for (E_Int j = 0; j < RCOUNT[i];) 
+    {
       E_Int face = ptr[j++];
       E_Int stride = ptr[j++];
       Poly P(stride);
@@ -594,7 +614,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
       P.set(n);
       auto search = faces.find(P);
 
-      if (search != faces.end()) {
+      if (search != faces.end()) 
+      {
         spfaces.push_back(face);
         spfaces.push_back(search->second);
         spcount[i] += 2;
@@ -621,12 +642,14 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   E_Int ndup = 0;
   std::set<E_Int> dups;
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     if (rank == i) continue;
     E_Int *ptr = &rpfaces[rpdist[i]];
 
     comm_patch cpatch(i);
-    for (E_Int j = 0; j < rpcount[i];) {
+    for (E_Int j = 0; j < rpcount[i];) 
+    {
       E_Int lf = ptr[j++];
       E_Int rf = ptr[j++];
 
@@ -643,13 +666,15 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   }
 
   // sort cpatches faces following master rank
-  for (auto& p : cpatches) {
+  for (auto& p : cpatches) 
+  {
     std::vector<E_Int> indices(p.local.size());
 
     for (size_t i = 0; i < indices.size(); i++)
       indices[i] = i;
 
-    if (rank < p.nei) {
+    if (rank < p.nei) 
+    {
       // local rules
       std::sort(indices.begin(), indices.end(),
       [&](E_Int a, E_Int b)
@@ -657,7 +682,9 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
         return p.local[a] < p.local[b];
       });
 
-    } else {
+    } 
+    else 
+    {
       // remote rules
       std::sort(indices.begin(), indices.end(),
       [&](E_Int a, E_Int b)
@@ -669,7 +696,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     std::vector<E_Int> tmplocal(p.local);
     std::vector<E_Int> tmpremote(p.remote);
 
-    for (size_t i = 0; i < indices.size(); i++) {
+    for (size_t i = 0; i < indices.size(); i++) 
+    {
       p.local[i] = tmplocal[indices[i]];
       p.remote[i] = tmpremote[indices[i]];
     }
@@ -685,16 +713,24 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   E_Int nf = gstart+1;
 
-  for (auto &NFACE : NFACES) {
-    for (auto &face : NFACE) {
-      if (dups.find(face) != dups.end()) {
+  for (auto &NFACE : NFACES) 
+  {
+    for (auto &face : NFACE) 
+    {
+      if (dups.find(face) != dups.end()) 
+      {
         face = -face;
-      } else {
+      } 
+      else 
+      {
         auto search = old2new.find(face);
-        if (search == old2new.end()) {
+        if (search == old2new.end()) 
+        {
           old2new[face] = nf;
           face = nf++;
-        } else {
+        } 
+        else 
+        {
           face = search->second;
         }
       }
@@ -705,7 +741,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   // how many faces do i control?
   E_Int ncontrol = 0;
-  for (E_Int i = 0; i < npatches; i++) {
+  for (E_Int i = 0; i < npatches; i++) 
+  {
     const auto &patch = cpatches[i];
     E_Int nei = patch.nei;
     if (rank > nei) continue;
@@ -726,15 +763,18 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<MPI_Request> req(npatches);
   E_Int nreq = 0;
   
-  for (E_Int i = 0; i < npatches; i++) {
+  for (E_Int i = 0; i < npatches; i++) 
+  {
     auto& patch = cpatches[i];
     E_Int nei = patch.nei;
     auto& local = patch.local;
     auto& remote = patch.remote;
 
-    if (rank < nei) {
+    if (rank < nei) 
+    {
       // renumber faces i control
-      for (auto& face : local) {
+      for (auto& face : local) 
+      {
         old2new[-face] = my_start;
         face = my_start++;
       }
@@ -751,7 +791,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   MPI_Waitall(nreq, &req[0], MPI_STATUSES_IGNORE);
   nreq = 0;
 
-  for (E_Int i = 0; i < npatches; i++) {
+  for (E_Int i = 0; i < npatches; i++) 
+  {
     auto& patch = cpatches[i];
     E_Int nei = patch.nei;
     auto& local = patch.local;
@@ -760,15 +801,18 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     if (rank < nei) continue;
     
     // update
-    for (size_t i = 0; i < local.size(); i++) {
+    for (size_t i = 0; i < local.size(); i++) 
+    {
       E_Int rf = remote[i];
       E_Int lf = local[i];
       old2new[-lf] = rf;
     }
   }
 
-  for (auto& NFACE : NFACES) {
-    for (auto &face : NFACE) {
+  for (auto& NFACE : NFACES) 
+  {
+    for (auto &face : NFACE) 
+    {
       if (face < 0)
         face = old2new[face];
     }
@@ -783,7 +827,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   if (rank == 0)
     printf("total number of unique faces: " SF_D_ "\n", gnfaces);
   E_Int k = gnfaces;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int l = k / (nproc-i);
     fdist[i+1] = fdist[i] + l;
     k -= l;
@@ -793,15 +838,18 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   // update lPE
   // Note(Imad): for now we create a new map
   std::unordered_map<E_Int, std::vector<E_Int>> PE;
-  for (E_Int chunk = 0; chunk < nchunks; chunk++) {
+  for (E_Int chunk = 0; chunk < nchunks; chunk++) 
+  {
     auto& NFACE = NFACES[chunk];
     E_Int nc = csize[chunk];
     E_Int fstr = fstrides[chunk];
     E_Int cstart = cellLabels[chunk];
 
-    for (E_Int i = 0; i < nc; i++) {
+    for (E_Int i = 0; i < nc; i++) 
+    {
       E_Int *pf = &NFACE[fstr*i];
-      for (E_Int j = 0; j < fstr; j++) {
+      for (E_Int j = 0; j < fstr; j++) 
+      {
         PE[pf[j]].push_back(i+cstart);
       }
     }
@@ -809,7 +857,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   // we know PE of every face
   std::vector<int> f_scount(nproc, 0);
-  for (auto& face : PE) {
+  for (auto& face : PE) 
+  {
     E_Int gf = face.first;
     assert(gf > 0);
     E_Int target = get_proc(gf-1, fdist, nproc);
@@ -821,7 +870,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   std::vector<int> f_sdist(nproc+1), f_rdist(nproc+1);
   f_sdist[0] = f_rdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     f_sdist[i+1] = f_sdist[i] + f_scount[i];
     f_rdist[i+1] = f_rdist[i] + f_rcount[i];
   }
@@ -830,7 +880,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = f_sdist[i];
 
-  for (const auto& face : PE) {
+  for (const auto& face : PE) 
+  {
     E_Int target = get_proc(face.first-1, fdist, nproc);
     f_sdata[idx[target]++] = face.first;
     f_sdata[idx[target]++] = face.second.size();
@@ -842,17 +893,19 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
                 &f_rdata[0], &f_rcount[0], &f_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
-
   std::vector<E_Int> A(2*nf, -1);
   std::vector<E_Int> c(nf, 0);
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ptr = &f_rdata[f_rdist[i]];
-    for (E_Int j = 0; j < f_rcount[i]; ) {
+    for (E_Int j = 0; j < f_rcount[i]; ) 
+    {
       assert(rank == get_proc(ptr[j]-1, fdist, nproc));
       E_Int face = ptr[j++] - 1 - fdist[rank];
       E_Int size = ptr[j++];
-      for (E_Int k = 0; k < size; k++) {
+      for (E_Int k = 0; k < size; k++) 
+      {
         A[2*face + c[face]++] = ptr[j++];
         assert(c[face] <= 2);
       }
@@ -864,9 +917,11 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   // dual graph
   std::unordered_map<E_Int, std::vector<E_Int>> CADJ;
-  for (E_Int i = 0; i < nf; i++) {
+  for (E_Int i = 0; i < nf; i++) 
+  {
     E_Int nei = A[2*i+1];
-    if (nei >= 0) {
+    if (nei >= 0) 
+    {
       E_Int own = A[2*i];
       CADJ[own].push_back(nei);
       CADJ[nei].push_back(own);
@@ -875,7 +930,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   std::vector<int> scount(nproc, 0), rcount(nproc);
   
-  for (const auto &cell : CADJ) {
+  for (const auto &cell : CADJ) 
+  {
     E_Int target = get_proc(cell.first, cdist, nproc);
     scount[target] += 1 + 1 + cell.second.size(); // id + size + neis
   }
@@ -884,7 +940,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   std::vector<int> sdist(nproc+1), rdist(nproc+1);
   sdist[0] = rdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     sdist[i+1] = sdist[i] + scount[i];
     rdist[i+1] = rdist[i] + rcount[i];
   }
@@ -895,7 +952,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
 
-  for (const auto& cell : CADJ) {
+  for (const auto& cell : CADJ) 
+  {
     E_Int target = get_proc(cell.first, cdist, nproc);
     sdata[idx[target]++] = cell.first;
     sdata[idx[target]++] = cell.second.size();
@@ -910,14 +968,17 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<std::vector<E_Int>> cadj(ncells);
   E_Int nedges = 0;
   E_Int firstCell = cdist[rank];
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ptr = &rdata[rdist[i]];
-    for (E_Int j = 0; j < rcount[i];) {
+    for (E_Int j = 0; j < rcount[i];) 
+    {
       assert(get_proc(ptr[j], cdist, nproc) == rank);
       E_Int cell = ptr[j++] - firstCell;
       E_Int size = ptr[j++];
       nedges += size;
-      for (E_Int k = 0; k < size; k++) {
+      for (E_Int k = 0; k < size; k++) 
+      {
         cadj[cell].push_back(ptr[j++]);
       }
     }
@@ -928,7 +989,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<E_Int> xadj(ncells+1);
   xadj[0] = 0;
   E_Int count = 0;
-  for (const auto& adj : cadj) {
+  for (const auto& adj : cadj) 
+  {
     ADJ.insert(ADJ.end(), adj.begin(), adj.end());
     xadj[count+1] = xadj[count] + adj.size();
     count++;
@@ -958,18 +1020,21 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     NULL,         // edgegsttab
     NULL);        // edloloctab
 
-  if (ret != 0) {
+  if (ret != 0) 
+  {
     fprintf(stderr, "SCOTCH_dgraphBuild(): Failed to load graph\n");
   }
 
   ret = SCOTCH_dgraphCheck(&graph);
-  if (ret != 0) {
+  if (ret != 0) 
+  {
     fprintf(stderr, "SCOTCH_dgraphCheck(): Failed graph check\n");
   }
 
   SCOTCH_Strat strat;
   ret = SCOTCH_stratInit(&strat);
-  if (ret != 0) {
+  if (ret != 0) 
+  {
     fprintf(stderr, "SCOTCH_startInit(): Failed to init strat\n");
   }
 
@@ -984,7 +1049,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   //ret = SCOTCH_dgraphPart(&graph, nproc, &strat, &part[0]); 
   ret = SCOTCH_dgraphMap(&graph, &arch, &strat, &part[0]);
 
-  if (ret != 0) {
+  if (ret != 0) 
+  {
     fprintf(stderr, "SCOTCH_dgraphPart(): Failed to map graph\n");
   }
 
@@ -998,7 +1064,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   // distribute
   std::vector<int> c_scount(nproc, 0), c_rcount(nproc);
   
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int target = part[i];
     c_scount[target] += 1;
   }
@@ -1007,7 +1074,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   std::vector<int> c_sdist(nproc+1, 0);
   std::vector<int> c_rdist(nproc+1, 0);
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     c_sdist[i+1] = c_sdist[i] + c_scount[i];
     c_rdist[i+1] = c_rdist[i] + c_rcount[i];
   }
@@ -1018,7 +1086,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   for (E_Int i = 0; i < nproc; i++) idx[i] = c_sdist[i];
 
-  for (E_Int i = 0; i < ncells; i++) {
+  for (E_Int i = 0; i < ncells; i++) 
+  {
     E_Int target = part[i];
     assert(target >= 0 && target < nproc);
     scells[idx[target]] = i + cdist[rank];
@@ -1029,14 +1098,15 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
                 &rcells[0], &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
-
   // send connectivity
   for (E_Int i = 0; i < nproc; i++)
     scount[i] = 0;
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ptr = &scells[c_sdist[i]];
-    for (E_Int j = 0; j < c_scount[i]; j++) {
+    for (E_Int j = 0; j < c_scount[i]; j++) 
+    {
       E_Int cell = ptr[j] - cdist[rank];
       E_Int chunk = get_chunk(cell, local_cdist);
       scount[i] += strides[chunk];
@@ -1046,7 +1116,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   MPI_Alltoall(&scount[0], 1, MPI_INT, &rcount[0], 1, MPI_INT, MPI_COMM_WORLD);
 
   sdist[0] = rdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     sdist[i+1] = sdist[i] + scount[i];
     rdist[i+1] = rdist[i] + rcount[i];
   }
@@ -1060,11 +1131,13 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nproc; i++)
     idx[i] = sdist[i];
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ptr = &scells[c_sdist[i]];
     E_Int *sp = &sstride[c_sdist[i]];
 
-    for (E_Int j = 0; j < c_scount[i]; j++) {
+    for (E_Int j = 0; j < c_scount[i]; j++) 
+    {
       E_Int cell = ptr[j];
 
       E_Int lc = cell - cdist[rank];
@@ -1093,8 +1166,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
                 &rstride[0], &c_rcount[0], &c_rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
 
-  if (rank == 0)
-    puts("Connectivity OK");
+  if (rank == 0) puts("Connectivity OK");
 
   // hash cells
   std::unordered_map<E_Int, E_Int> CT;
@@ -1106,14 +1178,18 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::unordered_map<E_Int, E_Int> PT;
   std::vector<int> p_rcount(nproc, 0), p_scount(nproc);
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ps = &rstride[c_rdist[i]];
     E_Int *pr = &rdata[rdist[i]];
-    for (E_Int j = 0; j < c_rcount[i]; j++) {
+    for (E_Int j = 0; j < c_rcount[i]; j++) 
+    {
       E_Int stride = ps[j];
-      for (E_Int k = 0; k < stride; k++) {
+      for (E_Int k = 0; k < stride; k++) 
+      {
         E_Int point = *pr++;
-        if (PT.find(point) == PT.end()) {
+        if (PT.find(point) == PT.end()) 
+        {
           PT[point] = nnpoints++;
           E_Int src = get_proc(point-1, pdist, nproc);
           p_rcount[src]++;
@@ -1127,7 +1203,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<int> p_rdist(nproc+1);
   std::vector<int> p_sdist(nproc+1);
   p_rdist[0] = p_sdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     p_rdist[i+1] = p_rdist[i] + p_rcount[i];
     p_sdist[i+1] = p_sdist[i] + p_scount[i];
   }
@@ -1141,14 +1218,18 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
 
   std::vector<E_Int> vpoints(nnpoints, 0);
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ps = &rstride[c_rdist[i]];
     E_Int *pr = &rdata[rdist[i]];
-    for (E_Int j = 0; j < c_rcount[i]; j++) {
+    for (E_Int j = 0; j < c_rcount[i]; j++) 
+    {
       E_Int stride = ps[j];
-      for (E_Int k = 0; k < stride; k++) {
+      for (E_Int k = 0; k < stride; k++) 
+      {
         E_Int point = *pr++;
-        if (!vpoints[PT[point]]) {
+        if (!vpoints[PT[point]]) 
+        {
           vpoints[PT[point]]++;
           E_Int src = get_proc(point-1, pdist, nproc);
           rpoints[idx[src]++] = point;
@@ -1172,7 +1253,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<int> sxdist(nproc+1);
   std::vector<int> rxdist(nproc+1);
   sxdist[0] = rxdist[0] = 0;
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     sxcount[i] = 3*p_scount[i];
     rxcount[i] = 3*p_rcount[i];
     sxdist[i+1] = sxdist[i] + sxcount[i];
@@ -1182,10 +1264,12 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::vector<E_Float> sxyz(sxdist[nproc]);
   std::vector<E_Float> rxyz(rxdist[nproc]);
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *pp = &spoints[p_sdist[i]];
     E_Float *px = &sxyz[sxdist[i]];
-    for (E_Int j = 0; j < p_scount[i]; j++) {
+    for (E_Int j = 0; j < p_scount[i]; j++) 
+    {
       E_Int point = pp[j] - 1 - pdist[rank];
       *px++ = X[point];
       *px++ = Y[point];
@@ -1201,8 +1285,7 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     puts("Coordinates OK");
   
   // build output
-  if (rank == 0)
-    puts("Exporting...");
+  if (rank == 0) puts("Exporting...");
 
   PyObject *out = PyList_New(0);
 
@@ -1215,17 +1298,19 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   for (E_Int i = 0; i < nchunks; i++)
     stride2nelem[strides[i]] = 0;
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ps = &rstride[c_rdist[i]];
     E_Int *pr = &rdata[rdist[i]];
 
-    for (E_Int j = 0; j < c_rcount[i]; j++) {
+    for (E_Int j = 0; j < c_rcount[i]; j++) 
+    {
       E_Int stride = ps[j];
 
       stride2nelem[stride]++;
 
-
-      for (E_Int k = 0; k < stride; k++) {
+      for (E_Int k = 0; k < stride; k++) 
+      {
         E_Int point = *pr++;
         stride2points[stride].insert(point);
       }
@@ -1239,7 +1324,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
   std::unordered_map<E_Int, E_Int> stride2count;
   std::unordered_map<E_Int, std::unordered_map<E_Int, E_Int>> stride2localp;
 
-  for (auto& zone : stride2points) {
+  for (auto& zone : stride2points) 
+  {
     E_Int stride = zone.first;
     const auto& points = zone.second;
     E_Int ncells = stride2nelem[stride];
@@ -1271,25 +1357,30 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
       localp[point] = np++;
     
     // fill in xyz
-    for (E_Int n = 0; n < 3; n++) {
+    for (E_Int n = 0; n < 3; n++) 
+    {
       E_Float *px = stride2fo[stride]->begin(n+1);
-      for (auto& point : points) {
+      for (auto& point : points) 
+      {
         E_Int pt = localp[point];
         px[pt] = rxyz[3*PT[point]+n];
       }
     }
   }
 
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     E_Int *ps = &rstride[c_rdist[i]];
     E_Int *pn = &rdata[rdist[i]];
 
-    for (E_Int j = 0; j < c_rcount[i]; j++) {
+    for (E_Int j = 0; j < c_rcount[i]; j++) 
+    {
       E_Int stride = ps[j];
       E_Int& where = stride2count[stride];
       E_Int *ptr = begin_ptr[stride];
       auto& localp = stride2localp[stride];
-      for (E_Int k = 0; k < stride; k++) {
+      for (E_Int k = 0; k < stride; k++) 
+      {
         ptr[where] = localp[*pn]+1;
         where++;
         pn++;
@@ -1297,7 +1388,8 @@ PyObject *K_XCORE::chunk2partElt(PyObject *self, PyObject *args)
     }
   }
 
-  for (auto& m : stride2arr) {
+  for (auto& m : stride2arr) 
+  {
     //E_Int stride = m.first;
     //if (stride2nelem[stride] == 0) continue;
     PyList_Append(out, m.second);

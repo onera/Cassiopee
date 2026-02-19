@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -98,16 +98,20 @@ bool nodal_sensor<mesh_t>::fill_adap_incr(output_t& adap_incr, bool do_agglo)
 
   if (Ln.empty()) return false;
 
-  for (int i=0; i< nb_elt; i++){
-    if (parent_t::_hmesh._PHtree.is_enabled(i)){
+  for (E_Int i=0; i< nb_elt; i++)
+  {
+    if (parent_t::_hmesh._PHtree.is_enabled(i))
+    {
       const E_Int* faces= parent_t::_hmesh._ng.PHs.get_facets_ptr(i);
       E_Int n_faces= parent_t::_hmesh._ng.PHs.stride(i);
-      for (int k=0; k< n_faces; k++){
+      for (E_Int k=0; k< n_faces; k++)
+      {
         E_Int PGk= *(faces+k)-1;
         const E_Int* pN= parent_t::_hmesh._ng.PGs.get_facets_ptr(PGk);
         E_Int n_face_nodes = parent_t::_hmesh._ng.PGs.stride(PGk);
         
-        for (int l=0; l< n_face_nodes; l++){
+        for (E_Int l=0; l< n_face_nodes; l++)
+        {
           E_Int nodes_faces= *(pN+l)-1;
           if (Ln[nodes_faces]>0){
             adap_incr.cell_adap_incr[i]= 1;
@@ -137,7 +141,7 @@ bool nodal_sensor<mesh_t>::update()
 
   //std::cout << "updating..." << std::endl;
   
-  for (int i=0; i< nb_pts; i++)
+  for (E_Int i=0; i< nb_pts; i++)
   {
     if (Ln[i] > 0 && Ln[i] != IDX_NONE)
     {

@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -24,29 +24,28 @@ using namespace K_FLD;
 using namespace std;
 
 //=============================================================================
-/* 
-   splitBAR: 
+/*
+   splitBAR:
    Split a bar into 2 bits given 2 nodes of the bar.
 */
 //=============================================================================
 PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
 {
   PyObject* array; E_Int N; E_Int N2;
-  if (!PYPARSETUPLE_(args, O_ II_,
-                    &array, &N, &N2))
+  if (!PYPARSETUPLE_(args, O_ II_, &array, &N, &N2))
   {
-      return NULL;
+    return NULL;
   }
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType); 
+  E_Int res =
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res == 1)
   {
-    delete f;
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "splitBAR: can not be used on a structured array.");
     return NULL;
@@ -57,22 +56,22 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
                     "splitBAR: invalid array.");
     return NULL;
   }
-  
+
   if (strcmp(eltType, "BAR") != 0)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "splitBAR: must be used on a BAR-array.");
     return NULL;
   }
-  
+
   // Duplique le pt et c'est tout. Le reste sera fait par un splitConnexity.
   E_Int npts = f->getSize();
   E_Int N1 = N;
- 
+
   if (N1 < 0 || N1 > npts-1)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_ValueError,
                     "splitBAR: N is incorrect.");
     return NULL;
@@ -81,34 +80,36 @@ PyObject* K_TRANSFORM::splitBAR(PyObject* self, PyObject* args)
   E_Int nptsf = npts+1;
   if (N2 > 0) nptsf = npts+2;
   E_Int nfld = f->getNfld();
-  E_Int csize = cn->getSize()*cn->getNfld(); 
-  PyObject* tpl = K_ARRAY::buildArray(nfld, varString,
-                                      nptsf, cn->getSize(),
-                                      -1, eltType, false, csize);
-  E_Float* fnp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF fn(nptsf, nfld, fnp, true);
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString,
+                                       nptsf, cn->getSize(),
+                                       eltType, false, f->getApi());
+
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
 
   for (E_Int v = 1; v <= nfld; v++)
   {
-    E_Float* f1 = f->begin(v);
-    E_Float* f2 = fn.begin(v);
+    E_Float* fp1 = f->begin(v);
+    E_Float* fp2 = f2->begin(v);
 
-    for (E_Int i = 0; i < npts; i++) f2[i] = f1[i];
-    f2[npts] = f1[N1];
-  if (N2 > 0) f2[npts+1] = f1[N2];
+    for (E_Int i = 0; i < npts; i++) fp2[i] = fp1[i];
+    fp2[npts] = fp1[N1];
+    if (N2 > 0) fp2[npts+1] = fp1[N2];
   }
-  
+
   // copie connectivite
-  E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-  memcpy(cnnp, cn->begin(), cn->getSize()*cn->getNfld()*sizeof(E_Int));
-   
+  for (E_Int n = 1; n <= cn2->getNfld(); n++)
+    for (E_Int i = 0; i < cn2->getSize(); i++)
+      (*cn2)(i,n) = (*cn)(i,n);
+
   // change le pts
   for (E_Int i = 0; i < cn->getSize(); i++)
   {
-    if (cnnp[i] == N1+1) { cnnp[i] = npts+1; }
-    if (cnnp[i] == N2+1) { cnnp[i] = npts+2; }
+    if ((*cn2)(i,1) == N1+1) { (*cn2)(i,1) = npts+1; }
+    if ((*cn2)(i,1) == N2+1) { (*cn2)(i,1) = npts+2; }
   }
 
-  delete f; delete cn;
+  RELEASESHAREDU(tpl, f2, cn2);
+  RELEASESHAREDU(array, f, cn);
   return tpl;
 }

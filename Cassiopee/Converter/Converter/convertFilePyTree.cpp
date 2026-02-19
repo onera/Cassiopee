@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,9 +38,9 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   char* fileName; char* format; 
   PyObject* skeletonData; PyObject* dataShape; 
   PyObject* links; PyObject* skipTypes;
-  E_Int readMode;
+  E_Int readIntMode;
   if (!PYPARSETUPLE_(args, SS_ OOOO_ I_, &fileName, &format, &skeletonData, 
-                     &dataShape, &links, &skipTypes, &readMode))
+                     &dataShape, &links, &skipTypes, &readIntMode))
     return NULL;
   
   if (dataShape == Py_None) { dataShape = NULL; }
@@ -75,7 +75,7 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   else if (strcmp(myFormat, "bin_hdf") == 0)
     ret = K_IO::GenIO::getInstance()->hdfcgnsread(fileName, tree, dataShape, links, skeleton, maxFloatSize, 
-                                                  maxDepth, readMode, skipTypes);
+                                                  maxDepth, readIntMode, skipTypes);
   else
     ret = K_IO::GenIO::getInstance()->adfcgnsread(fileName, tree, skeleton, maxFloatSize, maxDepth);
   printf("done.\n");
@@ -97,8 +97,8 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
 PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args)
 {
   char* fileName;
-  char* format; PyObject* paths; E_Int readMode;
-  if (!PYPARSETUPLE_(args, SS_ O_ I_, &fileName, &format, &paths, &readMode))
+  char* format; PyObject* paths; E_Int readIntMode;
+  if (!PYPARSETUPLE_(args, SS_ O_ I_, &fileName, &format, &paths, &readIntMode))
     return NULL;
 
   E_Int l = strlen(format);
@@ -106,7 +106,7 @@ PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args
   if (strcmp(myFormat, "bin_cgns") == 0) strcpy(myFormat, "bin_adf");
   
   PyObject* ret = NULL;
-  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, 1.e6, -1, readMode);
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, 1.e6, -1, readIntMode);
   printf("done.\n");
  
   delete [] myFormat;
@@ -121,19 +121,29 @@ PyObject* K_CONVERTER::convertPyTree2File(PyObject* self, PyObject* args)
 {
   char* fileName; char* format;
   PyObject* t; PyObject* links;
-  if (!PYPARSETUPLE_(args, O_ SS_ O_, &t, &fileName, &format, &links)) return NULL;
+  E_Int isize; E_Int rsize;
+  if (!PYPARSETUPLE_(args, O_ SS_ O_ II_, &t, &fileName, &format, &links, 
+                    &isize, &rsize)) return NULL;
 
   printf("Writing %s (%s)...", fileName, format);
   fflush(stdout);
 
+  int writeIntMode = 0;
+  if (isize == 4) writeIntMode = 1; // force best i4/i8 write
+  int writeRealMode = 0;
+  if (rsize == 4) writeRealMode = 1; // force r4 write
+
   if (strcmp(format, "bin_cgns") == 0)
-    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
+    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links, 
+      writeIntMode, writeRealMode);
   else if (strcmp(format, "bin_hdf") == 0)
-    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);  
+    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links,
+      writeIntMode, writeRealMode);  
   else if (strcmp(format, "bin_adf") == 0)
     K_IO::GenIO::getInstance()->adfcgnswrite(fileName, t);
   else
-    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links);
+    K_IO::GenIO::getInstance()->hdfcgnswrite(fileName, t, links,
+      writeIntMode, writeRealMode);
   printf("done.\n");
 
   Py_INCREF(Py_None);
@@ -150,9 +160,9 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   PyObject* skeletonData;
   PyObject* mpi4pyCom;
   PyObject* filter; // dictionnaire des slices
-  E_Int readMode;
+  E_Int readIntMode;
   if (!PYPARSETUPLE_(args, SS_ OOO_ I_, &fileName, &format, &skeletonData,
-                        &mpi4pyCom, &filter, &readMode))
+                        &mpi4pyCom, &filter, &readIntMode))
     return NULL;
   
   E_Int l = strlen(format);
@@ -167,7 +177,7 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   printf("Reading %s (%s, partial)...", fileName, myFormat);
 
   PyObject* ret;
-  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, readMode, filter, mpi4pyCom);
+  ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, readIntMode, filter, mpi4pyCom);
   printf("done.\n");
   delete [] myFormat;
   return ret;
@@ -213,3 +223,86 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   return Py_None;
 }
 
+//=============================================================================
+// Lit les paths specifies dans le fichier file (seult HDF).
+// Retourne une liste d'objets pythons contenant les noeuds pointes par les
+// chemins 
+//=============================================================================
+PyObject* K_CONVERTER::readPyTreeFromPaths(PyObject* self, PyObject* args)
+{
+  char* fileName; char* format; 
+  E_Int maxFloatSize; E_Int maxDepth; E_Int readIntMode;
+  PyObject* paths; PyObject* skipTypes; PyObject* dataShape; PyObject* mpi4pyCom;
+  if (!PYPARSETUPLE_(args, S_ O_ S_ III_ OOO_,
+                     &fileName, &paths, &format, 
+                     &maxFloatSize, &maxDepth, &readIntMode, 
+                     &dataShape, &skipTypes, &mpi4pyCom)) return NULL;
+  
+  if (skipTypes == Py_None) skipTypes = NULL;
+  if (dataShape == Py_None) dataShape = NULL;
+  PyObject* ret = NULL;
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, mpi4pyCom);
+  else if (K_STRING::cmp(format, "bin_hdf") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth, readIntMode, dataShape, skipTypes, mpi4pyCom);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsReadFromPaths(fileName, paths, maxFloatSize, maxDepth);
+  else
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "readPyTreeFromPaths: unknown file format.");
+    return NULL;
+  }
+  return ret;
+} 
+
+//=============================================================================
+// Ecrit les paths specifies dans le fichier file (ADF/HDF).
+//=============================================================================
+PyObject* K_CONVERTER::writePyTreePaths(PyObject* self, PyObject* args)
+{
+  char* fileName; char* format; E_Int maxDepth; E_Int mode;
+  PyObject* paths; PyObject* nodeList; PyObject* links;
+  E_Int isize, rsize;
+  if (!PYPARSETUPLE_(args, S_ OO_ S_ II_ O_ II_,
+                     &fileName, &nodeList, &paths, &format, &maxDepth, &mode, &links, &isize, &rsize))
+    return NULL;
+  
+  if (links == Py_None) { links = NULL; }
+  
+  E_Int ret = 1;
+
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode, isize, rsize);
+  else if (K_STRING::cmp(format, "bin_hdf") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsWritePaths(fileName, nodeList, paths, links, maxDepth, mode, isize, rsize);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsWritePaths(fileName, nodeList, paths, maxDepth, mode);
+  if (ret == 1) return NULL; // exceptions deja levees
+
+  Py_INCREF(Py_None);
+  return Py_None;
+} 
+
+//=============================================================================
+// Delete des paths du fichier (ADF/HDF).
+//=============================================================================
+PyObject* K_CONVERTER::deletePyTreePaths(PyObject* self, PyObject* args)
+{
+  char* fileName; char* format;
+  PyObject* paths;
+  if (!PYPARSETUPLE_(args, S_ O_ S_, &fileName, &paths, &format))
+    return NULL;
+  
+  E_Int ret = 1;
+  if (K_STRING::cmp(format, "bin_cgns") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
+  else if (K_STRING::cmp(format, "bin_hdf") == 0)
+    ret = K_IO::GenIO::getInstance()->hdfcgnsDeletePaths(fileName, paths);
+  else if (K_STRING::cmp(format, "bin_adf") == 0)
+    ret = K_IO::GenIO::getInstance()->adfcgnsDeletePaths(fileName, paths);
+  if (ret == 1) return NULL; // exceptions deja levees
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}

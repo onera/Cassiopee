@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -45,8 +45,8 @@ PyObject* K_CONVERTER::convertTri2Quad(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(pArray, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(pArray, varString,
+                                     f, ni, nj, nk, cn, eltType);
 
   // Test non structure ?
   if (res != 2)
@@ -323,9 +323,10 @@ PyObject* K_CONVERTER::convertTri2Quad(PyObject* self, PyObject* args)
   
   PyObject* tpl = PyList_New(0);
   PyObject* o;
-  o = K_ARRAY::buildArray(fq, varString, cq, 3, NULL);
+  E_Int api = f->getApi();
+  o = K_ARRAY::buildArray3(fq, varString, cq, "QUAD", api);
   PyList_Append(tpl, o); Py_DECREF(o);
-  o = K_ARRAY::buildArray(ft, varString, ct, 2, NULL);
+  o = K_ARRAY::buildArray3(ft, varString, ct, "TRI", api);
   PyList_Append(tpl, o); Py_DECREF(o);
   
   return tpl;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -18,8 +18,6 @@
 */
 # include "connector.h"
 
-using namespace std;
-using namespace K_FLD;
 //=============================================================================
 /* Met le cellN a 2 pour les points situes sur une frontiere overlap sur depth
    rangees. Peut etre localise en centres ou en noeuds. array doit deja
@@ -33,8 +31,8 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   E_Int depth; E_Int loc; E_Int cellNInterpValue;
   char* cellNName; 
   if (!PYPARSETUPLE_(args, O_ TIII_ TIII_ III_ S_,
-                    &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
-                    &depth, &loc, &cellNInterpValue, &cellNName))
+                     &array, &imin, &jmin, &kmin, &imax, &jmax, &kmax, 
+                     &depth, &loc, &cellNInterpValue, &cellNName))
     return NULL;
   
   E_Int shift = 0;
@@ -43,7 +41,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray2(array, varString, f, im, jm, km, 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
   if (res != 1) 
   {    
@@ -82,7 +80,6 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
       RELEASESHAREDS(array, f); return NULL;
     }
   }
-  //E_Int npts = f->getSize(); E_Int nfld = f->getNfld();
   
   if (imin == imax)
   {
@@ -112,7 +109,7 @@ PyObject* K_CONNECTOR::applyBCOverlapStruct(PyObject* self, PyObject* args)
 #pragma omp parallel default(shared)
   {
     E_Int ind;
-# pragma omp for
+# pragma omp for collapse(3)
     for (E_Int k = kmin; k <= kmax; k++)
       for (E_Int j = jmin; j <= jmax; j++)
         for (E_Int i = imin; i <= imax; i++)
@@ -140,15 +137,15 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
                     &array, &faceList, &depth, &loc, 
                     &cellNInterpValue, &cellNName))
   {
-      return NULL;
+    return NULL;
   }
 
   // Check array
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, 
-                                    cn, eltType, true); 
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
+                                     cn, eltType); 
   if (res != 2) 
   {    
     PyErr_SetString(PyExc_TypeError, 
@@ -157,7 +154,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   }
   
   // verif cellN 
-  E_Int posc = K_ARRAY::isNamePresent(cellNName,varString);
+  E_Int posc = K_ARRAY::isNamePresent(cellNName, varString);
   if (posc == -1) 
   {
     PyErr_SetString(PyExc_TypeError,
@@ -168,7 +165,7 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   
   // Get list of face indices defined as a numpy array
   FldArrayI* indicesF;
-  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF, true);
+  E_Int ret = K_NUMPY::getFromPointList(faceList, indicesF);
   if (ret != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -179,14 +176,15 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   E_Float interpolatedValue = cellNInterpValue;
   
   PyObject* tpl;
-  E_Int csize, nfldout, npts, nelts, sizeFN, nov1, dummy;
-  E_Int nvoisins, nvertexV, neltsV, etv;
-  E_Int* ptr;
+  E_Int npts, nelts, nov1;
+  E_Int nvoisins, nvertexV, neltsV, etv, nv;
   FldArrayI cFE;
   E_Int nfacesBC = indicesF->getSize()*indicesF->getNfld();
-  vector<E_Int> voisins; vector<E_Int> voisinsL;  
+  std::vector<E_Int> voisins; std::vector<E_Int> voisinsL;
+  voisins.reserve(nfacesBC*4);  // ballpark
+  voisinsL.reserve(nfacesBC*4);
  
-  if (strcmp(eltType, "NGON") != 0 && strcmp(eltType, "NGON*") != 0)
+  if (K_STRING::cmp(eltType, 4, "NGON") != 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "applyBCOverlaps: unstructured array must be a NGON or NGON*.");
@@ -197,134 +195,138 @@ PyObject* K_CONNECTOR::applyBCOverlapsNG(PyObject* self, PyObject* args)
   E_Int* indicesFp = indicesF->begin();
   if (loc == 0) // loc='nodes'
   {
-    csize = cn->getSize()*cn->getNfld();
-    nfldout = f->getNfld();
     npts = f->getSize();
-      
-    ptr = cn->begin();
-    sizeFN = ptr[1]; ptr += sizeFN+2;
-    nelts = ptr[0];
-    ptr += 2;
+    E_Int api = f->getApi();
+    nelts = cn->getNElts();
+    E_Int* ngon = cn->getNGon(); E_Int* indPG = cn->getIndPG();
 
     FldArrayI tag(nelts); tag.setAllValuesAtNull();
-    tpl = K_ARRAY::buildArray(nfldout, varString,
-                              npts, nelts, -1,
-                              "NGON", false, csize);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
-    out = *f;
+    
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, "NGON", api);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* f2p = f2->begin(posc);
 
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), csize);
-    E_Float* cellNp = out.begin(posc);
-    FldArrayI posFaces;
-    K_CONNECT::getPosFaces(*cn, posFaces);
-    ptr = cn->begin();
     // identify vertices in tagged face 
-    for (E_Int nof = 0; nof < nfacesBC; nof++)
+    for (E_Int i = 0; i < nfacesBC; i++)
     {
-      E_Int numFace = indicesFp[nof]-1;
-      E_Int* ptrfn = ptr+posFaces[numFace];
-      for (E_Int nov = 0; nov < ptrfn[0]; nov++)
+      E_Int numFace = indicesFp[i]-1;
+      E_Int* face = cn->getFace(numFace, nv, ngon, indPG);
+      for (E_Int j = 0; j < nv; j++)
       {
-        nov1 = ptrfn[nov+1];
-        cellNp[nov1-1] = interpolatedValue;
+        nov1 = face[j];
+        f2p[nov1-1] = interpolatedValue;
         voisins.push_back(nov1-1);
       }
     }
-    unique(voisins.begin(), voisins.end());
+    std::sort(voisins.begin(), voisins.end());
+    voisins.erase(
+        std::unique(voisins.begin(), voisins.end()),
+        voisins.end()
+    );
 
     // depth voisinage
     if (depth > 1)
-    {        
-      vector< vector<E_Int> > cVN(npts);
+    {
+      std::vector<std::vector<E_Int> > cVN(npts);
       K_CONNECT::connectNG2VNbrs(*cn, cVN);
       for (E_Int d = 1; d < depth; d++)
       {
         nvoisins = voisins.size();
-        for (E_Int no = 0; no < nvoisins; no++)
+        for (E_Int i = 0; i < nvoisins; i++)
         {
-          E_Int vertex = voisins[no];
+          E_Int vertex = voisins[i];
 
           //parcours de ses voisins
-          vector<E_Int> vertexN = cVN[vertex];
+          const std::vector<E_Int>& vertexN = cVN[vertex];
           nvertexV = vertexN.size();
-          for (E_Int novv = 0; novv < nvertexV; novv++)
+          for (E_Int j = 0; j < nvertexV; j++)
           {
-            nov1 = vertexN[novv]-1;
-            cellNp[nov1] = interpolatedValue;
+            nov1 = vertexN[j]-1;
+            f2p[nov1] = interpolatedValue;
             voisinsL.push_back(nov1);
           }
         }
-        unique(voisinsL.begin(), voisinsL.end());
-        voisins.clear(); voisins = voisinsL; voisinsL.clear();
+
+        std::sort(voisinsL.begin(), voisinsL.end());
+        voisinsL.erase(
+            std::unique(voisinsL.begin(), voisinsL.end()),
+            voisinsL.end()
+        );
+        voisins = std::move(voisinsL);
       }
     }
-  } // cellN at nodes for NGON 
+    RELEASESHAREDS(tpl, f2);
+  }
   else 
   {
     K_CONNECT::connectNG2FE(*cn, cFE);
-    csize = cn->getSize()*cn->getNfld();
-    nelts = f->getSize(); // nombre total d elements
-    nfldout = f->getNfld();
-    dummy = nelts;
-    tpl = K_ARRAY::buildArray(nfldout, varString,
-                              dummy, nelts, -1,
-                              "NGON", true, csize);
-    E_Float* foutp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF out(f->getSize(), f->getNfld(), foutp, true);
-    out = *f;
+    nelts = f->getSize(); // nombre total d'elements
 
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), csize);
-    E_Float* cellNp = out.begin(posc);
-      
+    E_Int api = f->getApi();
+    tpl = K_ARRAY::buildArray3(*f, varString, *cn, "NGON", api);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* f2p = f2->begin(posc);
+
     E_Int* cFE1 = cFE.begin(1);
     E_Int* cFE2 = cFE.begin(2);
-      
+
     // identify elements with tagged face 
-    for (E_Int nof = 0; nof < nfacesBC; nof++)
+    for (E_Int i = 0; i < nfacesBC; i++)
     {
-      E_Int numFace = indicesFp[nof]-1;
+      E_Int numFace = indicesFp[i]-1;
       E_Int e1 = cFE1[numFace];
       E_Int e2 = cFE2[numFace];
       if (e1 > 0) 
       {
-        cellNp[e1-1] = 2.;
+        f2p[e1-1] = 2.;
         voisins.push_back(e1-1);
       }
       if (e2 > 0)
       {
-        cellNp[e2-1] = 2.;
+        f2p[e2-1] = 2.;
         voisins.push_back(e2-1);
       }
     }
-    unique(voisins.begin(), voisins.end());
+
+    std::sort(voisins.begin(), voisins.end());
+    voisins.erase(
+        std::unique(voisins.begin(), voisins.end()),
+        voisins.end()
+    );
+    
     // depth elements
     if (depth > 1)
     {
-      vector< vector<E_Int> > cEEN(nelts);
-      K_CONNECT::connectFE2EENbrs(cFE,cEEN);
+      std::vector<std::vector<E_Int> > cEEN(nelts);
+      K_CONNECT::connectFE2EENbrs(cFE, cEEN);
       for (E_Int d = 1; d < depth; d++)
       {
         nvoisins = voisins.size();
-        for (E_Int noe = 0; noe < nvoisins; noe++)
+        for (E_Int i = 0; i < nvoisins; i++)
         {
-          E_Int et = voisins[noe];
-          vector<E_Int>& eltsV = cEEN[et]; // demarrent a 0
+          E_Int et = voisins[i];
+          std::vector<E_Int>& eltsV = cEEN[et]; // demarrent a 0
           neltsV = eltsV.size();
-          for (E_Int vv = 0; vv < neltsV; vv++)
+          for (E_Int j = 0; j < neltsV; j++)
           {
-            etv = eltsV[vv];
-            cellNp[etv] = interpolatedValue;
+            etv = eltsV[j];
+            f2p[etv] = interpolatedValue;
             voisinsL.push_back(etv);
           }
         }
-        unique(voisinsL.begin(), voisinsL.end());
-        voisins.clear(); voisins = voisinsL; voisinsL.clear();
+
+        std::sort(voisinsL.begin(), voisinsL.end());
+        voisinsL.erase(
+            std::unique(voisinsL.begin(), voisinsL.end()),
+            voisinsL.end()
+        );
+        voisins = std::move(voisinsL);
       }
-    }     
-  }// End cellN at elements
+    }
+    RELEASESHAREDS(tpl, f2);  
+  }
   
   RELEASESHAREDN(faceList, indicesF);
   RELEASESHAREDU(array, f, cn);

@@ -77,7 +77,7 @@ cpp_srcs = ["Generator/cart.cpp",
             "Generator/surfaceWalk.cpp",
             "Generator/extrusionTbx.cpp",
             "Generator/getEdgeRatio.cpp",
-            "Generator/getMaxLength.cpp",
+            "Generator/getEdgeLength.cpp",
             "Generator/quad2pyra.cpp",
             "Generator/blankSelf.cpp",
             "Generator/extrapWithCellN.cpp"

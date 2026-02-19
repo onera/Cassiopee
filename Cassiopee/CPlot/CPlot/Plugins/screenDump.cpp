@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -519,13 +519,20 @@ void Data::dumpWindow()
     
     char* buffer; char* buffer2;
     E_Int antialiasing = 0;
-    if (ptrState->offscreen == 2)
+    if (ptrState->offscreen == 0 || ptrState->offscreen == 2 || ptrState->offscreen == 4) // only for direct or FBO rendering
     { 
       exportWidth = (exportWidth/2)*2;
       exportHeight = (exportHeight/2)*2; // doit etre pair
-      antialiasing = 1; // FBO rendering with no compositing
+      if (ptrState->exportAA == 1)
+        antialiasing = 1; // SSAA
     }
-    if (antialiasing == 1)
+    else if (ptrState->offscreen == 1 || ptrState->offscreen == 6) // osmesa
+    { 
+      if (ptrState->exportAA == 1)
+        antialiasing = 2; // FXAA
+    }
+    
+    if (antialiasing == 1) // SSAA
     {
       // get image X2
       buffer = export2Image(2*exportWidth, 2*exportHeight);
@@ -541,6 +548,14 @@ void Data::dumpWindow()
       free(buffer);
       buffer = (char*)malloc(3*exportWidth*exportHeight*sizeof(char));
       superSample(exportWidth, exportHeight, buffer2, buffer, 2);
+      free(buffer2);
+    }
+    else if (antialiasing == 2) // FXAA
+    {
+      buffer = export2Image(exportWidth, exportHeight);
+      buffer2 = (char*)malloc(3*exportWidth*exportHeight*sizeof(char));
+      localBlur(exportWidth, exportHeight, buffer, buffer2);
+      for (E_Int i = 0; i < 3*exportWidth*exportHeight; i++) buffer[i] = buffer2[i];
       free(buffer2);
     }
     else

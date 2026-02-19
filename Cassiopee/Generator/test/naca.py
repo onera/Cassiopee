@@ -31,7 +31,7 @@ distrib = G.enforceX(distrib, (l1*0.5)/(0.5*l1+l2), 1.25e-3, 30, 20)
 
 distrib = G.enforcePoint(distrib, (l1*0.5)/(0.5*l1+l2))
 
-distrib2 = T.symetrize(distrib, (0.,0.,0.), (0,1,0), (0,0,1))
+distrib2 = T.symmetrize(distrib, (0.,0.,0.), (0,1,0), (0,0,1))
 distrib2 = T.reorder(distrib2, (-1,2,3))
 distrib = T.join(distrib2, distrib)
 distrib = T.contract(distrib, (0,0,0), (0,1,0), (0,0,1), 0.5)

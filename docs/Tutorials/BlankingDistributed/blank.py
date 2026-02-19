@@ -11,7 +11,7 @@ rank = Cmpi.rank ; size = Cmpi.size
 
 # lecture des corps servant a masquer
 bodies = C.convertFile2PyTree('walls.cgns')
-bodies = Internal.getNodesFromType(bodies, 'Zone_t')
+bodies = Internal.getZones(bodies)
 
 # lecture du squelette
 a = Cmpi.convertFile2SkeletonTree('in.cgns')

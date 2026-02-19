@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,8 +38,8 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(array, varString, f, 
-                                    ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(array, varString, f, 
+                                     ni, nj, nk, cn, eltType);
   
   if (res != 1 && res != 2) 
   {
@@ -81,6 +81,7 @@ PyObject* K_GENERATOR::obbox(PyObject* self, PyObject* args)
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
   E_Int nt = f->getSize();
+  E_Int api = f->getApi();
   
   // Initializes the mean point vector and covariance matrix
   FldArrayF mu(3); mu.setAllValuesAtNull();
@@ -636,18 +637,16 @@ if ( (K_FUNC::E_abs(lambda0-lambda1)<Tol)
                 zt[0],zt[1],zt[2],zt[3],zt[4],zt[5],zt[6],zt[7]);
 */
   
-
-
   // Constructs the Python array
   if (res == 1) 
   {
-    PyObject* tpl = K_ARRAY::buildArray(fobb, "x,y,z", 2,2,2);
+    PyObject* tpl = K_ARRAY::buildArray3(fobb, "x,y,z", 2, 2, 2, api);
     RELEASESHAREDS(array, f);
     return tpl;
   }
   else 
   {
-    PyObject* tpl = K_ARRAY::buildArray(fobb, "x,y,z", 2,2,2);
+    PyObject* tpl = K_ARRAY::buildArray3(fobb, "x,y,z", 2, 2, 2, api);
     RELEASESHAREDU(array, f, cn);
     return tpl;
   }

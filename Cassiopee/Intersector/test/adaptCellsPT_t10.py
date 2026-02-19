@@ -16,7 +16,7 @@ t = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (N,2,2))
 P=2
 t = T.splitNParts(t, P, multigrid=0, dirs=[1])
 
-t = C.convertArray2NGon(t); t = G.close(t)
+t = C.convertArray2NGon(t)
 
 t = X.connectMatch(t)
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall')

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -40,8 +40,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
 { 
   PyObject* blkArrays;
   PyObject* ibArrays;
-  
-  if (!PyArg_ParseTuple(args, "OO",  &blkArrays, &ibArrays)) return NULL;
+  if (!PYPARSETUPLE_(args, OO_,  &blkArrays, &ibArrays)) return NULL;
   
   // Check every arrays  
   if (PyList_Check(blkArrays) == 0)
@@ -87,7 +86,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   for (int i = 0; i < nblkArrays; i++)
   {
     tpl = PyList_GetItem(blkArrays, i);
-    res = K_ARRAY::getFromArray(tpl, varString, f, nil, njl, nkl, cn, eltType);
+    res = K_ARRAY::getFromArray3(tpl, varString, f, nil, njl, nkl, cn, eltType);
     
     if (res == 1) // structured
     {
@@ -111,7 +110,6 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
       {        
         ni.push_back(nil); nj.push_back(njl); nk.push_back(nkl);
         fieldc.push_back(f);
-        
       }
       else 
       {
@@ -158,7 +156,7 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   for (int i = 0; i < nibArrays; i++)
   {
     tpl = PyList_GetItem(ibArrays, i);
-    res = K_ARRAY::getFromArray(
+    res = K_ARRAY::getFromArray3(
       tpl, varString, f, nil, njl, nkl, cn, eltType);
     
     if (res == 1)
@@ -286,11 +284,9 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   // Deleting fields
   E_Int fieldcSize = fieldc.size();
   E_Int listOfCellNFSize = listOfCellNF.size();
-  for (E_Int i = 0; i < fieldcSize; i++)
-    delete fieldc[i];
   
-  for (E_Int i = 0; i < listOfCellNFSize; i++)
-    delete listOfCellNF[i];
+  for (E_Int i = 0; i < fieldcSize; i++) delete fieldc[i];
+  for (E_Int i = 0; i < listOfCellNFSize; i++) delete listOfCellNF[i];
 
   ni.clear();
   nj.clear();
@@ -352,8 +348,8 @@ PyObject* K_POST::usurpF(PyObject* self, PyObject* args)
   PyObject* l = PyList_New(0);
   for (E_Int i = 0; i < nzone; i++)
   {
-    tpl = K_ARRAY::buildArray(*vectOfRatios[i], "ratio",
-                              nis[i], njs[i], nks[i]);
+    tpl = K_ARRAY::buildArray3(*vectOfRatios[i], "ratio",
+                               nis[i], njs[i], nks[i], api);
     delete vectOfRatios[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);

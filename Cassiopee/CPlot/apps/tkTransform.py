@@ -1,7 +1,6 @@
 # - tkTransform -
 """Basic transformations of mesh."""
-try: import tkinter as TK
-except: import Tkinter as TK
+import tkinter as TK
 import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import Generator.PyTree as G
@@ -17,7 +16,7 @@ import time
 WIDGETS = {}; VARS = []
 
 #==============================================================================
-def symetrize():
+def symmetrize():
     if CTK.t == []: return
     if CTK.__MAINTREE__ <= 0:
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
@@ -67,7 +66,7 @@ def symetrize():
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        a = T.symetrize(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe1, axe2)
+        a = T.symmetrize(CTK.t[2][nob][2][noz], (X[0],X[1],X[2]), axe1, axe2)
         CTK.replace(CTK.t, nob, noz, a)
     CTK.TXT.insert('START', 'Zones have been symmetrized.\n')
     CTK.TKTREE.updateApp()
@@ -128,10 +127,9 @@ def rotate(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.rotate(CTK.CADHOOK, X, axe, angle, faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh all only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -196,10 +194,9 @@ def translate(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.translate(CTK.CADHOOK, (v[0], v[1], v[2]), faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -210,7 +207,6 @@ def translate(event=None):
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
             CTK.display(CTK.t)
-
 
     CTK.TXT.insert('START', 'Zones have been translated.\n')
     CTK.TKTREE.updateApp()
@@ -337,10 +333,9 @@ def scale(event=None):
             z = CTK.t[2][nob][2][noz]
             no = OCC.getNo(z)
             faceList.append(no)
-        faceList = [] # forced for debug
-        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = []
+        if len(faceList) == len(Internal.getZones(CTK.t)): faceList = None
         OCC.occ.scale(CTK.CADHOOK, v[0], X, faceList)
-        if faceList != []:
+        if faceList is not None and faceList != []: # remesh only if not all faces are concerned
             [hmin, hmax, hausd] = OCC.getCADcontainer(CTK.t)
             edges = Internal.getNodeFromName1(CTK.t, 'EDGES')
             edges[2] = []
@@ -351,7 +346,6 @@ def scale(event=None):
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
             CTK.TKTREE.updateApp()
             CTK.display(CTK.t)
-
 
     CTK.TXT.insert('START', 'Zones have been scaled.\n')
     CTK.TKTREE.updateApp()
@@ -433,7 +427,7 @@ def createApp(win):
     V = TK.StringVar(win); V.set('around X'); VARS.append(V)
     # -3- Rotation angle
     V = TK.StringVar(win); V.set('0.'); VARS.append(V)
-    # -4- Symetry axis
+    # -4- Symmetry axis
     V = TK.StringVar(win); V.set('around XY-'); VARS.append(V)
     # -5- Scale axis
     V = TK.StringVar(win); V.set('along XYZ'); VARS.append(V)
@@ -487,11 +481,11 @@ def createApp(win):
     B.grid(row=3, column=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='angle (degrees) or \nangle; Xc;Yc;Zc (angle+rotation center)\nIf center is not specified, rotate around barycenter of zones.')
 
-    # - Symetrize -
-    B = TTK.Button(Frame, text="Mirror", command=symetrize)
+    # - Symmetrize -
+    B = TTK.Button(Frame, text="Mirror", command=symmetrize)
     B.grid(row=4, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
-                       text='Symetrize zone(s) of pyTree.')
+                       text='Symmetrize zone(s) of pyTree.')
     B = TTK.OptionMenu(Frame, VARS[4], 'around XY-', 'around XY+', 'around YZ-',
                        'around YZ+', 'around XZ-', 'around XZ+', 'around view')
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)

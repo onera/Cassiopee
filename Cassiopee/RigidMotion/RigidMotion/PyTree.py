@@ -399,6 +399,7 @@ def _moveZone__(z, time):
 
 # Recopie GridCoordinates#Init (s'il existe) dans GridCoordinates
 def copyGridInit2Grid(t):
+    """Copy GridCoordinates#Init to GridCoordinates."""
     tp = Internal.copyRef(t)
     _copyGridInit2Grid(tp)
     return tp
@@ -423,6 +424,7 @@ def _copyGridInit2Grid(t):
 # si mode=0, ne recopie que si TimeMotion est present
 # si mode=1, recopie toujours
 def copyGrid2GridInit(t, mode=0):
+    """Copy GridCoordinates to GridCoordinates#Init."""
     tp = Internal.copyRef(t)
     _copyGrid2GridInit(tp, mode)
     return tp
@@ -553,13 +555,13 @@ def evalPosition___(a, time, F):
     """Move the mesh with defined motion to time t. Return an array with
     moved mesh coordinates.
     Usage: evalPosition(a, time, F)"""
-    return C.TZGC2(a, 'nodes', False, RigidMotion.evalPosition, time, F)
+    return C.TZGC3(a, 'nodes', False, RigidMotion.evalPosition, time, F)
 
 def _evalPosition___(a, time, F):
     """Move the mesh with defined motion to time t. Return an array with
     moved mesh coordinates.
     Usage: evalPosition(a, time, F)"""
-    return C.__TZGC2(a, 'nodes', False, RigidMotion._evalPosition, time, F)
+    return C.__TZGC3(a, 'nodes', False, RigidMotion._evalPosition, time, F)
 
 #==============================================================================
 # Evalue la position reelle de la zone a l'instant t
@@ -838,7 +840,8 @@ def evalPositionM1(coords, z, time):
             if dtype == 3: # constant rotation + translation speeds
                 axis_pnt = getNodeValue__(m, 'axis_pnt')
                 axis_vct = getNodeValue__(m, 'axis_vct')
-                omega = getNodeValue__(m, 'omega')
+                #omega = getNodeValue__(m, 'omega')
+                omega = Internal.getValue(Internal.getNodeFromName(m, 'omega'))
                 speed = getNodeValue__(m, 'transl_speed')
                 coordsD = [-speed[0]*time+axis_pnt[0], -speed[1]*time+axis_pnt[1], -speed[2]*time+axis_pnt[2]]
                 coordsC = [axis_pnt[0], axis_pnt[1], axis_pnt[2]]
@@ -1070,8 +1073,8 @@ def _evalPositionIBC(tc,time):
             a32         = ey*ez*(1.-numpy.cos(angle)) + ex*numpy.sin(angle)
             a33         = numpy.cos(angle)            + ez**2*(1.-numpy.cos(angle))
 
-            for subz in Internal.getNodesFromType(z,'ZoneSubRegion_t'):
-                if subz[0][0:3]=="IBC":
+            for subz in Internal.getNodesFromType(z, 'ZoneSubRegion_t'):
+                if subz[0][0:3] == "IBC":
                     for var in list_vars:
                         coordX_PC     = Internal.getNodeFromName(subz,'CoordinateX_P'+var)[1]
                         coordX_PCInit = Internal.getNodeFromName(subz,'CoordinateX_P'+var+'#Init')[1]

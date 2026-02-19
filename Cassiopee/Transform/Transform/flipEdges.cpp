@@ -1,5 +1,5 @@
-/*    
-    Copyright 2013-2025 Onera.
+/*
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 // ct: connectivite TRI
-# include "transform.h" 
+# include "transform.h"
 # include "kcore.h"
 
 using namespace K_FLD;
@@ -31,13 +31,13 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 {
   PyObject* o; E_Int mode; E_Int nit;
   if (!PYPARSETUPLE_(args, O_ II_, &o, &mode, &nit)) return NULL;
-   
+
   // Check array
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray(o, varString,
-                                    f, ni, nj, nk, cn, eltType, true);
+  E_Int res = K_ARRAY::getFromArray3(o, varString,
+                                     f, ni, nj, nk, cn, eltType);
   // Test non structure ?
   if (res != 2)
   {
@@ -74,6 +74,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
   FldArrayI ct = *cn;
+  E_Int api = f->getApi();
 
   for (E_Int i = 0; i < nit; i++)
   {
@@ -81,7 +82,7 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
     flipEdges(ct, f->getSize(), x,y,z, indic, mode);
   }
 
-  PyObject* tpl = K_ARRAY::buildArray(*f, varString, ct, 2, NULL);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, ct, "TRI", api);
   RELEASESHAREDU(o, f, cn);
   return tpl;
 }
@@ -94,8 +95,8 @@ PyObject* K_TRANSFORM::flipEdges(PyObject* self, PyObject* args)
 //           2 flip mailles ecrasees sans check inverse
 //           3 flip toutes mailles avec optimisation du radius (qualite)
 //=======================================================================
-void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np, 
-                            E_Float* x, E_Float* y, E_Float* z, 
+void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
+                            E_Float* x, E_Float* y, E_Float* z,
                             E_Float* indic, E_Int mode)
 {
   E_Int ntr = ct.getSize();
@@ -113,8 +114,8 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
   E_Float ptA[3], ptB[3], ptC[3], dir1[3];
   E_Float ptD[3], dir2[3], dir3[3], dir4[3];
   E_Float inverse1=0, inverse2, rad1, rad2, rad3, rad4, ndirl;
-  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1, pos2;
-  E_Int tA, tB, tC, tD;
+  E_Int indA, indB, indC, indD, ind5, ind6, swap, ie, iv1, iv2, iv, pos1=0, pos2=0;
+  E_Int /*tA,*/ tB, tC /*tD*/;
   E_Int maillesEcrasees = 0;
   E_Int maillesInversees = 0;
 
@@ -157,7 +158,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       else if (ind2 == ind5 && ind3 == ind6) {indA = ind1; indB = ind2; indC = ind3; indD = ind4;}
       else if (ind2 == ind6 && ind3 == ind4) {indA = ind1; indB = ind2; indC = ind3; indD = ind5;}
       else if (ind2 == ind6 && ind3 == ind5) {indA = ind1; indB = ind2; indC = ind3; indD = ind4;}
-      else 
+      else
       {
         indA = 0; indB = 0; indC = 0; indD = 0;
       }
@@ -170,7 +171,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
       ptC[0] = x[indC]; ptC[1] = y[indC]; ptC[2] = z[indC];
       ptD[0] = x[indD]; ptD[1] = y[indD]; ptD[2] = z[indD];
 
-      // AB ^ AC  
+      // AB ^ AC
       dir1[0] = (ptB[1]-ptA[1])*(ptC[2]-ptA[2])-(ptB[2]-ptA[2])*(ptC[1]-ptA[1]);
       dir1[1] = (ptB[2]-ptA[2])*(ptC[0]-ptA[0])-(ptB[0]-ptA[0])*(ptC[2]-ptA[2]);
       dir1[2] = (ptB[0]-ptA[0])*(ptC[1]-ptA[1])-(ptB[1]-ptA[1])*(ptC[0]-ptA[0]);
@@ -211,18 +212,18 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
                                             ptD[0], ptD[1], ptD[2]);
 
       if (indic != NULL)
-      { 
-        tA = floor(indic[indA]+0.5); tB = floor(indic[indB]+0.5); 
-        tC = floor(indic[indC]+0.5); tD = floor(indic[indD]+0.5);
+      {
+        /*tA = floor(indic[indA]+0.5);*/ tB = floor(indic[indB]+0.5);
+        tC = floor(indic[indC]+0.5); /*tD = floor(indic[indD]+0.5);*/
         //printf("" SF_D4_ "\n", tA, tB, tC, tD);
       }
-      else {tA = 0; tB = 0; tC = 0; tD = 0;}
+      else {/*tA = 0;*/ tB = 0; tC = 0; /*tD = 0;*/}
       if (tB == 1 && tC == 1 && ndir1 > 1.e-12) // no swap
       {
         goto next;
       }
 
-      if (ndir1 < 1.e-11) printf("Warning: flipEdges: " SF_D_ ": " SF_F_ " ecrase. inv1=" SF_F_ ",inv2=" SF_F_ ",ndirs=" SF_F2_ " " SF_F_ "\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4); 
+      if (ndir1 < 1.e-11) printf("Warning: flipEdges: " SF_D_ ": " SF_F_ " ecrase. inv1=" SF_F_ ",inv2=" SF_F_ ",ndirs=" SF_F2_ " " SF_F_ "\n", i, ndir1,inverse1,inverse2,ndir2,ndir3,ndir4);
 
       if (mode == 2)
       {
@@ -248,7 +249,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         }
         else if (ndir1 < 1.e-12 && ndir3 > 1.e-12 && ndir4 > 1.e-12)
         {
-          // corrige mailles ecrasees 
+          // corrige mailles ecrasees
           printf("Warning: flipEdges: " SF_D_ ": swap maille ecrasee1\n", i);
           printf("Warning: flipEdges: " SF_D_ ": improving " SF_F2_ " -> " SF_F2_ "\n",
                  i, ndir1, ndir2, ndir3, ndir4);
@@ -281,15 +282,15 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         }
       }
     }
-    
+
     next:;
     // DBX
     //swap = -1;
-    //if (swap != -1) 
+    //if (swap != -1)
     //{ printf("I can swap " SF_D2_ "\n", i, swap); printf("improving " SF_F2_ " -> " SF_F2_ "\n", ndir1, ndir2, ndir3, ndir4);}
     //if (i != 0 && i != 1 && i != 2 && i != 3) swap = -1;
     //if (i != 3) swap = -1;
-    
+
     if (swap < 0)
     {
       if (inverse1 < -0.9) maillesInversees++;
@@ -298,7 +299,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
     else
     {
       if (inverse2 < -0.9) maillesInversees++;
-      if (ndir3 < 1.e-12) maillesEcrasees++; 
+      if (ndir3 < 1.e-12) maillesEcrasees++;
     }
 
     // update cEEN
@@ -328,7 +329,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         iv = voisins2[v];
         ind1 = ct1[iv]-1; ind2 = ct2[iv]-1; ind3 = ct3[iv]-1;
         //printf("vois ie " " SF_D3_ " "\n", ind1,ind2,ind3);
-      
+
         if      (ind1 == indB && ind2 == indD) { iv2 = iv; pos2 = v; break; }
         else if (ind1 == indB && ind3 == indD) { iv2 = iv; pos2 = v; break; }
         else if (ind2 == indB && ind3 == indD) { iv2 = iv; pos2 = v; break; }
@@ -355,7 +356,7 @@ void K_TRANSFORM::flipEdges(FldArrayI& ct, E_Int np,
         cEEN[i].push_back(iv2);
         cEEN[ie].erase(cEEN[ie].begin()+pos2);
       }
-   
+
       if (iv1 != -1)
       {
         vector< E_Int >& voisins = cEEN[iv1];

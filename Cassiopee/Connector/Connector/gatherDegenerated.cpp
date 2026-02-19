@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -81,10 +81,10 @@ PyObject* K_CONNECTOR::gatherDegenerated(PyObject* self, PyObject* args)
   vector<FldArrayI*> cntt;
   vector<char*> eltTypett;
   vector<PyObject*> objstt, objutt;
-  E_Boolean skipNoCoord = false;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true;
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = false;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true;
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     listOfAllTags, rest, structVarStringt, unstrVarStringt,

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,9 +38,9 @@
 #define at3(rx, ry, rz) (rx * q[0] + ry * q[1] + rz * q[2])
 
 //=============================================================================
-void K_NOISE::normalize2(double* v)
+void K_NOISE::normalize2(E_Float* v)
 {
-  double s, si;
+  E_Float s, si;
   s = sqrt(v[0]*v[0] + v[1]*v[1]);
   si = 1./s;
   v[0] = v[0] * si;
@@ -48,9 +48,9 @@ void K_NOISE::normalize2(double* v)
 }
 
 //=============================================================================
-void K_NOISE::normalize3(double* v)
+void K_NOISE::normalize3(E_Float* v)
 {
-  double s, si;
+  E_Float s, si;
   s = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
   si = 1./s;
   v[0] = v[0] * si;
@@ -77,14 +77,14 @@ void K_NOISE::initNoise(K_NOISE::PDS& data)
   for (i = 0; i < B; i++)
   {
     data.p[i] = i;
-    data.g1[i] = (double)((rand() % (B + B)) - B) / B;
+    data.g1[i] = (E_Float)((rand() % (B + B)) - B) / B;
     
     for (j = 0; j < 2; j++)
-      data.g2[i][j] = (double)((rand() % (B + B)) - B) / B;
+      data.g2[i][j] = (E_Float)((rand() % (B + B)) - B) / B;
     normalize2(data.g2[i]);
 
     for (j = 0; j < 3; j++)
-      data.g3[i][j] = (double)((rand() % (B + B)) - B) / B;
+      data.g3[i][j] = (E_Float)((rand() % (B + B)) - B) / B;
     normalize3(data.g3[i]);
   }
 
@@ -107,10 +107,10 @@ void K_NOISE::initNoise(K_NOISE::PDS& data)
 }
 
 //=============================================================================
-double K_NOISE::noise1(double arg, K_NOISE::PDS& data)
+E_Float K_NOISE::noise1(E_Float arg, K_NOISE::PDS& data)
 {
   int bx0, bx1;
-  double rx0, rx1, sx, t, u, v, vec[1];
+  E_Float rx0, rx1, sx, t, u, v, vec[1];
   
   vec[0] = arg;
   if (data.start)
@@ -128,10 +128,10 @@ double K_NOISE::noise1(double arg, K_NOISE::PDS& data)
 }
 
 //=============================================================================
-double K_NOISE::noise2(double vec[2], K_NOISE::PDS& data)
+E_Float K_NOISE::noise2(E_Float vec[2], K_NOISE::PDS& data)
 {
   int bx0, bx1, by0, by1, b00, b10, b01, b11;
-  double rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
+  E_Float rx0, rx1, ry0, ry1, *q, sx, sy, a, b, t, u, v;
   int i, j;
   
   if (data.start)
@@ -165,10 +165,10 @@ double K_NOISE::noise2(double vec[2], K_NOISE::PDS& data)
 }
 
 //=============================================================================
-double K_NOISE::noise3(double vec[3], K_NOISE::PDS& data)
+E_Float K_NOISE::noise3(E_Float vec[3], K_NOISE::PDS& data)
 {
   int bx0, bx1, by0, by1, bz0, bz1, b00, b10, b01, b11;
-  double rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
+  E_Float rx0, rx1, ry0, ry1, rz0, rz1, *q, sy, sz, a, b, c, d, t, u, v;
   int i, j;
   
   if (data.start)
@@ -216,12 +216,12 @@ double K_NOISE::noise3(double vec[3], K_NOISE::PDS& data)
 }
 
 //=============================================================================
-double K_NOISE::perlinNoise1D(double x, double alpha, double beta, int n, 
+E_Float K_NOISE::perlinNoise1D(E_Float x, E_Float alpha, E_Float beta, int n, 
                               K_NOISE::PDS& data)
 {
   int i;
-  double val, sum=0;
-  double p, scale=1;
+  E_Float val, sum=0;
+  E_Float p, scale=1;
   
   p = x;
   for (i = 0; i < n; i++)
@@ -235,12 +235,12 @@ double K_NOISE::perlinNoise1D(double x, double alpha, double beta, int n,
 }
 
 //=============================================================================
-double K_NOISE::perlinNoise2D(double x, double y, double alpha, double beta, 
+E_Float K_NOISE::perlinNoise2D(E_Float x, E_Float y, E_Float alpha, E_Float beta, 
                               int n, K_NOISE::PDS& data)
 {
   int i;
-  double val, sum=0;
-  double p[2], scale=1;
+  E_Float val, sum=0;
+  E_Float p[2], scale=1;
   
   p[0] = x;
   p[1] = y;
@@ -256,12 +256,12 @@ double K_NOISE::perlinNoise2D(double x, double y, double alpha, double beta,
 }
 
 //=============================================================================
-double K_NOISE::perlinNoise3D(double x, double y, double z, double alpha,
-                              double beta, int n, K_NOISE::PDS& data)
+E_Float K_NOISE::perlinNoise3D(E_Float x, E_Float y, E_Float z, E_Float alpha,
+                               E_Float beta, int n, K_NOISE::PDS& data)
 {
   int i;
-  double val, sum=0;
-  double p[3], scale=1.;
+  E_Float val, sum=0;
+  E_Float p[3], scale=1.;
   
   p[0] = x;
   p[1] = y;

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -256,7 +256,8 @@ namespace NUGA
 
       // the 8 children of PH
       E_Int PHichildr[8];
-      for (int j = 0; j < 8; ++j) {
+      for (E_Int j = 0; j < 8; ++j) 
+      {
         PHichildr[j] = firstPHChild + j;
       }
 

@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -61,11 +61,25 @@ using namespace K_FLD;
 //=============================================================================
 PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
 {
-  PyObject* arrays1; PyObject* arrays2; PyObject* arrays3;
+  PyObject* arrays1; PyObject* arrays2; PyObject* arrays3=NULL;
+  E_Int narrays = 2;
+  E_Float atol = 1.e-11, rtol = 0.;
 
-  E_Int narrays = 3;
-  if (!PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3))
-    return NULL;
+  // Check different signatures
+  if (!PYPARSETUPLE_(args, OO_, &arrays1, &arrays2))
+  {
+    PyErr_Clear();
+    if (!PYPARSETUPLE_(args, OO_ R_, &arrays1, &arrays2, &atol))
+    {
+      PyErr_Clear();
+      if (!PYPARSETUPLE_(args, OO_ RR_, &arrays1, &arrays2, &atol, &rtol))
+      {
+        PyErr_Clear();
+        if (PYPARSETUPLE_(args, OOO_, &arrays1, &arrays2, &arrays3)) narrays = 3;
+        else return NULL;
+      }
+    }
+  }
 
   // Check every arrays
   if (PyList_Check(arrays1) == 0 || PyList_Check(arrays2) == 0)
@@ -76,18 +90,20 @@ PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  if (narrays == 3 && PyList_Check(arrays3) == 0)
+  if (narrays == 3)
   {
-    PyErr_SetString(
-      PyExc_TypeError, 
-      "diffArrays: third argument must be a list.");
-    return NULL;
+    if (PyList_Check(arrays3) == 0)
+    {
+      PyErr_SetString(
+        PyExc_TypeError, 
+        "diffArrays: third argument must be a list.");
+      return NULL;
+    }
+    else if (PyList_Size(arrays3) == 0) narrays = 2;
   }
 
-  if (PyList_Size(arrays3) == 0) narrays = 2; 
-
   if (narrays == 2) // compares solution on the same grid
-    return diff2(arrays1, arrays2);
+    return diff2(arrays1, arrays2, atol, rtol);
 
   else if (narrays == 3) // compare solution to the reference
     return diff3(arrays1, arrays2, arrays3);
@@ -104,7 +120,8 @@ PyObject* K_CONVERTER::diffArrays(PyObject* self, PyObject* args)
 //=============================================================================
 /* Diff2: for 2 arrays defining the same mesh */
 //=============================================================================
-PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
+PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
+                             E_Float atol, E_Float rtol)
 {
   PyObject* tpl;
   E_Int res;
@@ -143,12 +160,12 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
           if (f->getNfld() != nfld1)
           {
             PyErr_SetString(PyExc_ValueError,
-                            "diffArrays: number of fields must be equal in 1st list.");
+                            "diff2: number of fields must be equal in 1st list.");
             return NULL;
           }
         }
       }
-      else printf("Warning: diffArrays: one array is empty.\n");
+      else printf("Warning: diff2: one array is empty.\n");
     }
     else if (res == 2) 
     {
@@ -160,7 +177,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
     else
     {
-      printf("Warning: diffArrays: not an array. Array skipped...\n");
+      printf("Warning: diff2: not an array. Array skipped...\n");
     }
   }
 
@@ -191,13 +208,13 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
           if (f->getNfld() != nfld2)
           {
             PyErr_SetString(PyExc_ValueError,
-                            "diffArrays: number of fields must be equal in "
+                            "diff2: number of fields must be equal in "
                             "2nd list.");
             return NULL;
           }
         }
       }
-      else printf("Warning: diffArrays: one array is empty.\n");
+      else printf("Warning: diff2: one array is empty.\n");
     }
     else if (res == 2)
     {
@@ -208,22 +225,22 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     }
     else
     {
-      printf("Warning: diffArrays: not an array. Array skipped...\n");
+      printf("Warning: diff2: not an array. Array skipped...\n");
     }
   }
 
   if (nfld1 != nfld2) 
-    printf("Warning: diffArrays: number of fields are different. Only common "
+    printf("Warning: diff2: number of fields are different. Only common "
            "fields are compared.\n");
 
   if (field1.size() != field2.size())
-    printf("Warning: diffArrays: the number of arrays is different in arrays1 "
+    printf("Warning: diff2: the number of arrays is different in arrays1 "
            "and arrays2.\n");
 
   if (field1.size() == 0 || field2.size() == 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "diffArrays: no valid field to compare.");
+                    "diff2: no valid field to compare.");
     return NULL;
   }
 
@@ -239,8 +256,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<vector<E_Int> > pos1, pos2;
   char** varString = new char* [field1.size()];
   char** varStringl = new char* [field1.size()];
-  for (size_t i = 0; i < field1.size(); i++) varString[i] = new char [K_ARRAY::VARSTRINGLENGTH];
-  for (size_t i = 0; i < field1.size(); i++) varStringl[i] = new char [K_ARRAY::VARSTRINGLENGTH];
+  for (size_t i = 0; i < field1.size(); i++)
+    varString[i] = new char [K_ARRAY::VARSTRINGLENGTH];
+  for (size_t i = 0; i < field1.size(); i++)
+    varStringl[i] = new char [K_ARRAY::VARSTRINGLENGTH];
   
   for (size_t i = 0; i < field1.size(); i++)
   {
@@ -252,12 +271,12 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
     
     if (pos[i] == -1)
     {
-      printf("diffArrays: no common variables found in array %zu.", i);
+      printf("diff2: no common variables found in array %zu.", i);
       continue;
     }
     else if (pos[i] == 0) // des variables sont differentes
     {
-      printf("Warning: diffArrays: some variables are different in both "
+      printf("Warning: diff2: some variables are different in both "
              "arguments in array %zu. Only common fields are compared.\n", i);
     }
     
@@ -286,7 +305,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   if (sumpos < 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "diffArrays: no common variables found all arrays.");
+                    "diff2: no common variables found all arrays.");
+    for (size_t i = 0; i < field1.size(); i++) delete [] varString[i];
+    delete [] varString;
+    for (size_t i = 0; i < field1.size(); i++) delete [] varStringl[i];
+    delete [] varStringl;
     return NULL;
   }
   
@@ -299,41 +322,39 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
   vector<FldArrayF*> errors;
   for (size_t i = 0; i < field1.size(); i++)
   {
+    E_Int api = field1[i]->getApi();
     if (ni1[i] != -1)
     {
       tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], 
-                                 ni1[i], nj1[i], nk1[i]);
+                                 ni1[i], nj1[i], nk1[i], api);
     }
     else
     {
       E_Int npts = field1[i]->getSize();
-      E_Int api = field1[i]->getApi();
       tpl = K_ARRAY::buildArray3(pos1[i].size(), varString[i], npts,
                                  *cn1[i], elt1[i], 0, api, true);
       
     }
     FldArrayF* f2;
-    K_ARRAY::getFromArray3(tpl, f2); 
+    K_ARRAY::getFromArray3(tpl, f2);
     errors.push_back(f2);
     PyList_Append(l, tpl); Py_DECREF(tpl);
-    //RELEASESHAREDS(tpl, f2); // to fix
   }
 
   for (size_t i = 0; i < field1.size(); i++)
   {
     FldArrayF& f1 = *field1[i];
-    //E_Int n1 = f1.getSize();
-    //FldArrayF error(n1, pos1.size(), errors[i], true);
     FldArrayF& error = *(errors[i]);
     error.setAllValuesAt(1.e6);
-    E_Boolean found = false;
+    E_Bool found = false;
     
     found = searchField2(f1, error,
                          field2,
                          pos1[i], pos2[i],
                          posx1[i], posy1[i], posz1[i],
                          posx2[i], posy2[i], posz2[i],
-                         coordPresent[i]);
+                         coordPresent[i],
+                         atol, rtol);
 
     if (!found && coordPresent[i])
       found = searchField2(f1, error,
@@ -341,10 +362,11 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2)
                            pos1[i], pos2[i],
                            posx1[i], posy1[i], posz1[i],
                            posx2[i], posy2[i], posz2[i],
-                           false);
+                           false,
+                           atol, rtol);
 
     if (!found)
-      printf("Warning: diffArrays: a field on a block can not be compared.\n");
+      printf("Warning: diff2: a field on a block can not be compared.\n");
   }
   
   /*------------------*/
@@ -400,7 +422,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray(tpl, varString1, f, ni, nj, nk, cn, eltType1);
+    res = K_ARRAY::getFromArray3(tpl, varString1, f, ni, nj, nk, cn, eltType1);
 
     if ( res == 1 )
     {
@@ -435,10 +457,10 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int n2 = PyList_Size(arrays2);
   vector<FldArrayF*> fieldsr;
 
-  for (int i = 0; i < n2; i++)
+  for (E_Int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray(tpl, varString2, f, ni, nj, nk, cn, eltType2);
+    res = K_ARRAY::getFromArray3(tpl, varString2, f, ni, nj, nk, cn, eltType2);
     if (res == 1)
     {
       if (ni*nj*nk > 0)
@@ -471,10 +493,10 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
   E_Int n3 = PyList_Size(arrays3);
   vector<FldArrayF*> fieldsm;
 
-  for (int i = 0; i < n3; i++)
+  for (E_Int i = 0; i < n3; i++)
   {
     tpl = PyList_GetItem(arrays3, i);
-    res = K_ARRAY::getFromArray(tpl, varString3, f, ni, nj, nk, cn, eltType3);
+    res = K_ARRAY::getFromArray3(tpl, varString3, f, ni, nj, nk, cn, eltType3);
     if (res == 1)
     {
       if (ni*nj*nk > 0)
@@ -684,7 +706,7 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     }
   }
   /* Checking solid points */
-  if ( poscelln != 0) // chimera
+  if (poscelln != 0) // chimera
   {
     for (E_Int v = 0; v < sizeerrors; v++)
     {
@@ -707,109 +729,109 @@ PyObject* K_CONVERTER::diff3(PyObject* arrays1, PyObject* arrays2, PyObject* arr
     delete vectOfExtCenters[no];
     delete adts[no];
   }
+
+  for (size_t i = 0; i < fieldmr.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays1, i), fieldmr[i]);
+  }
+  for (size_t i = 0; i < fieldsr.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays2, i), fieldsr[i]);
+  }
+
   /* Sauvegarde de errors sous forme de liste python */
   PyObject* l = PyList_New(0);
-
   for (E_Int i = 0; i < sizeerrors; i++)
   {
-    tpl = K_ARRAY::buildArray(*errors[i], varString, 
-                              imsm[i], jmsm[i], kmsm[i]);
+    E_Int api = fieldsm[i]->getApi();
+    tpl = K_ARRAY::buildArray3(*errors[i], varString, 
+                               imsm[i], jmsm[i], kmsm[i], api);
     delete errors[i];
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
+  }
+
+  for (size_t i = 0; i < fieldsm.size(); i++)
+  {
+    RELEASESHAREDS(PyList_GetItem(arrays3, i), fieldsm[i]);
   }
   return l;
 }
 
 //=============================================================================
-E_Boolean K_CONVERTER::searchField2(FldArrayF& f1,
-                                    FldArrayF& error,
-                                    vector<FldArrayF*>& field2,
-                                    vector<E_Int>& pos1,
-                                    vector<E_Int>& pos2,
-                                    E_Int posx1, E_Int posy1, E_Int posz1,
-                                    E_Int posx2, E_Int posy2, E_Int posz2,
-                                    E_Boolean coordPresent)
+E_Bool K_CONVERTER::searchField2(
+  FldArrayF& f1, FldArrayF& error,
+  vector<FldArrayF*>& field2,
+  vector<E_Int>& pos1, vector<E_Int>& pos2,
+  E_Int posx1, E_Int posy1, E_Int posz1,
+  E_Int posx2, E_Int posy2, E_Int posz2,
+  E_Bool coordPresent, E_Float atol, E_Float rtol
+)
 {
-  const E_Float EPS = 1.e-12;
-  int sizefield2 = field2.size();
+  E_Int n1 = f1.getSize();
+  E_Int sizefield2 = field2.size();
   E_Int sizepos1 = pos1.size();
 
-  // Check for invalid values in f1
-  E_Int n1 = f1.getSize();
-  E_Int nthreads = __NUMTHREADS__;
-  E_Int *hasNan = new E_Int [nthreads]; for (E_Int i = 0; i < nthreads; i++) hasNan[i] = 0;
-  E_Int* hasInf = new E_Int [nthreads]; for (E_Int i = 0; i < nthreads; i++) hasInf[i] = 0;
+  E_Bool hasNan = false, hasInf = false, found = false;
 
-#pragma omp parallel default(shared)
+  // Check for invalid values in f1
+  #pragma omp parallel reduction(||: hasNan, hasInf)
   {
-    E_Int ithread = __CURRENT_THREAD__;
     for (E_Int v = 0; v < sizepos1; v++)
     {
       E_Int npos1 = pos1[v];
       E_Float* f1p = f1.begin(npos1);
-#pragma omp for
+      #pragma omp for
       for (E_Int ind = 0; ind < n1; ind++)
       {
-        if (isnan(f1p[ind])) hasNan[ithread] = 1;
-        if (isinf(f1p[ind])) hasInf[ithread] = 1;
+        if (isnan(f1p[ind])) hasNan = true;
+        else if (isinf(f1p[ind])) hasInf = true;
       }
     }
   }
 
-  for (E_Int i = 0; i < nthreads; i++)
-  { 
-    if (hasNan[i] == 1)
-    {
-      delete [] hasNan; delete [] hasInf;
-      PyErr_SetString(PyExc_TypeError,
-                      "diffArrays: arrays1 contains Nan values.");
-      return false;
-    }
-    if (hasInf[i] == 1)
-    {
-      delete [] hasNan; delete [] hasInf;
-      PyErr_SetString(PyExc_TypeError,
-                      "diffArrays: arrays1 contains infinite values.");
-      return false;
-    }
+  if (hasNan)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "diffArrays2: arrays1 contains NaN values.");
+    return false;
+  }
+  else if (hasInf)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "diffArrays2: arrays1 contains infinite values.");
+    return false;
   }
 
-  // PRe requisite
-  for (int i2 = 0; i2 < sizefield2; i2++)
+  // Pre-requisite
+  for (E_Int i2 = 0; i2 < sizefield2; i2++)
   {
     FldArrayF& f2 = *field2[i2];
     E_Int n2 = f2.getSize();
-      
-    if (n1 == 0 && n2 == 0)
-    { 
-      delete [] hasNan; delete [] hasInf;
-      return true;
-    }
+    if (n1 == 0 && n2 == 0) return true;
   }
 
-  E_Int* found = new E_Int [nthreads]; for (E_Int i = 0; i < nthreads; i++) found[i] = 0;
-
-#pragma omp parallel default(shared)
+  // Check for invalid values in f2
+  #pragma omp parallel reduction(||: hasNan, hasInf, found)
   {
-    E_Int ithread = __CURRENT_THREAD__;
-
-    for (int i2 = 0; i2 < sizefield2; i2++)
+    for (E_Int i2 = 0; i2 < sizefield2; i2++)
     {
       FldArrayF& f2 = *field2[i2];
       E_Int n2 = f2.getSize();
-      if (
-        (n1 == n2 && coordPresent == false) ||
-        (n1 == n2 &&
-         E_abs(f2(0,posx2) - f1(0,posx1)) < EPS &&
-         E_abs(f2(0,posy2) - f1(0,posy1)) < EPS &&
-         E_abs(f2(0,posz2) - f1(0,posz1)) < EPS &&
-         E_abs(f2(n2-1,posx2) - f1(n1-1,posx1)) < EPS &&
-         E_abs(f2(n2-1,posy2) - f1(n1-1,posy1)) < EPS &&
-         E_abs(f2(n2-1,posz2) - f1(n1-1,posz1)) < EPS &&
-         E_abs(f2(n2/2,posx2) - f1(n1/2,posx1)) < EPS &&
-         E_abs(f2(n2/2,posy2) - f1(n1/2,posy1)) < EPS &&
-         E_abs(f2(n2/2,posz2) - f1(n1/2,posz1)) < EPS ))
+      if (n1 == n2 && (
+          !coordPresent || (
+            E_abs(f2(0, posx2) - f1(0, posx1)) < atol &&
+            E_abs(f2(0, posy2) - f1(0, posy1)) < atol &&
+            E_abs(f2(0, posz2) - f1(0, posz1)) < atol &&
+            E_abs(f2(n2-1, posx2) - f1(n1-1, posx1)) < atol &&
+            E_abs(f2(n2-1, posy2) - f1(n1-1, posy1)) < atol &&
+            E_abs(f2(n2-1, posz2) - f1(n1-1, posz1)) < atol &&
+            E_abs(f2(n2/2, posx2) - f1(n1/2, posx1)) < atol &&
+            E_abs(f2(n2/2, posy2) - f1(n1/2, posy1)) < atol &&
+            E_abs(f2(n2/2, posz2) - f1(n1/2, posz1)) < atol
+          )
+        )
+      )
       {
         for (E_Int v = 0; v < sizepos1; v++)
         {
@@ -819,45 +841,33 @@ E_Boolean K_CONVERTER::searchField2(FldArrayF& f1,
           E_Float* f2p = f2.begin(npos2);
           E_Float* errorp = error.begin(v+1);
 
-#pragma omp for
+          #pragma omp for
           for (E_Int ind = 0; ind < n1; ind++)
           {
-            if (isnan(f2p[ind])) { hasNan[ithread] = 1; }
-            if (isinf(f2p[ind])) { hasInf[ithread] = 1; }
-            errorp[ind] = E_abs(f1p[ind] - f2p[ind]);
+            if (isnan(f2p[ind])) hasNan = true;
+            else if (isinf(f2p[ind])) hasInf = true;
+            // error = abs(current - ref) - rtol * abs(ref), element-wise
+            // error is compared to atol in KCore.test
+            // similar to numpy.isclose
+            errorp[ind] = E_abs(f1p[ind] - f2p[ind]) - rtol*E_abs(f2p[ind]);
           }
         }
-        found[ithread] = 1;
+        found = true;
       }
-    } // loop on field2
-  }
-
-  for (E_Int i = 0; i < nthreads; i++)
-  { 
-    if (hasNan[i] == 1)
-    {
-      delete [] hasNan; delete [] hasInf; delete [] found;
-      PyErr_SetString(PyExc_TypeError,
-                      "diffArrays: arrays2 contains Nan values.");
-      return false;
-    }
-    if (hasInf[i] == 1)
-    {
-      delete [] hasNan; delete [] hasInf; delete [] found;
-      PyErr_SetString(PyExc_TypeError,
-                      "diffArrays: arrays2 contains infinite values.");
-      return false;
     }
   }
 
-  for (E_Int i = 0; i < nthreads; i++)
-  { 
-    if (found[i] == 1) 
-    { 
-      delete [] hasNan; delete [] hasInf; delete [] found;
-      return true;
-    }
+  if (hasNan)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "searchField2: arrays2 contains NaN values.");
+    return false;
   }
-  delete [] hasNan; delete [] hasInf; delete [] found;
-  return false;
+  else if (hasInf)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "searchField2: arrays2 contains infinite values.");
+    return false;
+  }
+  return found;
 }

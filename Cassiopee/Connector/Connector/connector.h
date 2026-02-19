@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -25,12 +25,13 @@
 # include "KInterp/BlkInterp.h"
 
 # define SIZECF(type,meshtype,sizecf){                                  \
-    if      (type == 1                 ) sizecf=1;                      \
-    else if (type == 2 && meshtype == 1) sizecf=8;                      \
-    else if (type == 3 && meshtype == 1) sizecf=9;                      \
-    else if (type == 4 && meshtype == 1) sizecf=8;                      \
-    else if (type == 4 && meshtype == 2) sizecf=4;                      \
-    else if (type == 5 && meshtype == 1) sizecf=15;                     \
+    if      (type == 1                  ) sizecf=1;                     \
+    else if (type == 2  && meshtype == 1) sizecf=8;                     \
+    else if (type == 3  && meshtype == 1) sizecf=9;                     \
+    else if (type == 44 && meshtype == 1) sizecf=12;                    \
+    else if (type == 4  && meshtype == 1) sizecf=8;                     \
+    else if (type == 4  && meshtype == 2) sizecf=4;                     \
+    else if (type == 5  && meshtype == 1) sizecf=15;                    \
     else if (type == 22 && meshtype == 1) sizecf=4;                     \
     else sizecf=-1;                                                     \
   }
@@ -601,10 +602,10 @@ namespace K_CONNECTOR
                                          E_Int dir,
                                          K_FLD::FldArrayI& blankedCells,
                                          K_FLD::FldArrayI& cellN);
-    void searchMaskInterpolatedCellsStruct_opt( E_Int imc, E_Int jmc, E_Int kmc, E_Int depth,
-                                                E_Int dir,
-                                                E_Float* cellN,
-                                                E_Float* cellN_tmp);
+  void searchMaskInterpolatedCellsStructOpt(E_Int imc, E_Int jmc, E_Int kmc, E_Int depth,
+                                            E_Int dir,
+                                            E_Float* cellN,
+                                            E_Float* cellN_tmp);
 
   /* Functions used for gatherMatching functions */
   void compIncrement(E_Int indwA1, E_Int imw1, E_Float* oppositeWins, E_Float* oppositePts,

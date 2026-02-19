@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -78,8 +78,8 @@ Plaster::make
     return 0;
   }
 
-  bump_factor = std::max(bump_factor, -1.); // factor must be in [-1., 1.]
-  bump_factor = std::min(bump_factor, 1.);
+  bump_factor = K_FUNC::E_max(bump_factor, -1.); // factor must be in [-1., 1.]
+  bump_factor = K_FUNC::E_min(bump_factor, 1.);
 
   // Work only on connect points.
   NUGA::MeshTool::compact_to_mesh(posE2, connectE2, new_IDs);
@@ -125,13 +125,11 @@ Plaster::make
 
   //std::cout << "devmin : " << devmin << std::endl;
   //std::cout << "devmax : " << devmax << std::endl;
-  bool is_planar = (std::max(::fabs(devmin), ::fabs(devmax)) < EPSILON);
+  bool is_planar = (std::max(fabs(devmin), fabs(devmax)) < EPSILON);
   //std::cout << "is planar ? " << is_planar << std::endl;
   
-  //std::cout << "plaster 8" << std::endl;
-
   // if the contour is planar no need for a fine patch
-  E_Float dx = 0.2 *std::min((maxB[0] - minB[0]), (maxB[1] - minB[1]));
+  E_Float dx = 0.2 *K_FUNC::E_min((maxB[0] - minB[0]), (maxB[1] - minB[1]));
   //std::cout << "refine : " << refine << std::endl;
   //std::cout << "bump_factor : " << bump_factor << std::endl;
   //std::cout << "is_planar : " << is_planar << std::endl;
@@ -152,15 +150,17 @@ Plaster::make
   
   E_Float nif = 1. + (maxB[0] - minB[0]) / dx;
   E_Float njf = 1. + (maxB[1] - minB[1]) / dx;
-  nif *= ::fabs(bump_factor) + 1.; // 2 times more if factor is 1 or -1.
-  njf *= ::fabs(bump_factor) + 1.;
+  nif *= fabs(bump_factor) + 1.; // 2 times more if factor is 1 or -1.
+  njf *= fabs(bump_factor) + 1.;
+#ifdef E_ADOLC
+  ni = E_Int(nif.value());
+  nj = E_Int(njf.value());
+#else
   ni = E_Int(nif);
   nj = E_Int(njf);
+#endif
   ni = std::min(ni, NIJMAX);
   nj = std::min(nj, NIJMAX);
-
-  //std::cout << "ni : " << ni << std::endl;
-  //std::cout << "nj : " << nj << std::endl;
 
   // Generate the plaster (a cartesian mesh) on the top side 
   minB[2] = z0;
@@ -266,12 +266,8 @@ Plaster::__cartesian
   else
     return; // error because not handled yet...
 
-  //std::cout << "cart : div" << std::endl;
-
   dx /= ni;
   dy /= nj;
-
-  //std::cout << "cart : norma" << std::endl;
 
   for (E_Int k = 0; k < 3; ++k)
   {
@@ -279,11 +275,7 @@ Plaster::__cartesian
     Xj[k] *= dy;
   }
 
-  //std::cout << "cart : norma 1" << std::endl;
-
   cart.reserve(3, ni*nj);
-
-  //std::cout << "reserved" << std::endl;
 
   for (E_Int j = 0; j < nj; ++j)
   {
@@ -295,7 +287,6 @@ Plaster::__cartesian
       cart.pushBack(Pi, Pi+3);
     }
   }
-  //std::cout << "ok cart" << std::endl;
 }
 
 ///
@@ -303,7 +294,7 @@ void
 Plaster::__smooth
 (std::vector<E_Float>& z, E_Int ni, E_Float bump_factor, E_Float tol)
 {
-  if (bump_factor == 0.)
+  if (K_FUNC::fEqualZero(bump_factor))
     __smooth_1(z, ni, tol);
   else
     __smooth_2(z, ni, tol);
@@ -314,19 +305,18 @@ void
 Plaster::__smooth_1
 (std::vector<E_Float>& z, E_Int ni, E_Float tol)
 {
-  E_Int               iter(0), iterMax(5000);
-  E_Int               indH, indB, indD, indG;
-  E_Int               NBPOINTS(E_Int(z.size())), ind, J;
-  E_Float             threshold(tol), dMax, d, q;
-  bool                carry_on(true);
-  bool_vector_type    processed(NBPOINTS, false);
+  E_Int iter(0), iterMax(5000);
+  E_Int indH, indB, indD, indG;
+  E_Int NBPOINTS(E_Int(z.size())), ind, J;
+  E_Float threshold(tol), dMax, d, q;
+  bool carry_on(true);
+  bool_vector_type processed(NBPOINTS, false);
   
   // Reset nodes to be computed to 0.
   for (E_Int i = 0; i < NBPOINTS; ++i)
   {
     processed[i] = (z[i] != -NUGA::FLOAT_MAX);
-    if (!processed[i])
-      z[i] = 0.;
+    if (!processed[i]) z[i] = 0.;
   }
 
   while (carry_on)
@@ -346,15 +336,13 @@ Plaster::__smooth_1
 
       q = 0.25 * ( z[indH] + z[indB] + z[indG] + z[indD] );
       
-      d = ::fabs(z[ind] - q);
+      d = fabs(z[ind] - q);
       dMax = (dMax < d) ? d : dMax;
       z[ind] = q;
     }
 
     carry_on = (++iter < iterMax) && (dMax > threshold);
   }
-
-  //std::cout << "iter : " << iter << std::endl;
 }
 
 
@@ -363,12 +351,12 @@ void
 Plaster::__smooth_2
 (std::vector<E_Float>& z, E_Int ni, E_Float tol)
 {
-  E_Int               iter(0), iterMax(5000);
-  E_Int               indH, indB, indD, indG, indH2, indB2, indD2, indG2;
-  E_Int               NBPOINTS(E_Int(z.size())), ind, J;
-  E_Float             threshold(tol), dMax, d, q;
-  bool                carry_on(true);
-  bool_vector_type    processed(NBPOINTS, false);
+  E_Int iter(0), iterMax(5000);
+  E_Int indH, indB, indD, indG, indH2, indB2, indD2, indG2;
+  E_Int NBPOINTS(E_Int(z.size())), ind, J;
+  E_Float threshold(tol), dMax, d, q;
+  bool carry_on(true);
+  bool_vector_type processed(NBPOINTS, false);
 
    E_Float zh, zb, zg, zd, k(0.333333), k1(1.+k);
   
@@ -385,8 +373,7 @@ Plaster::__smooth_2
 
     for (ind = 0; ind < NBPOINTS; ++ind)
     {
-      if (processed[ind])
-        continue;
+      if (processed[ind]) continue;
 
       J = ind % (ni);
 
@@ -407,7 +394,7 @@ Plaster::__smooth_2
 
       q = 0.25 * (zh +zb +zg +zd);
 
-      d = ::fabs(z[ind] - q);
+      d = fabs(z[ind] - q);
       dMax = (dMax < d) ? d : dMax;
       z[ind] = q;
     }
@@ -502,19 +489,19 @@ Plaster::__bumpPlaster
  E_Float bump_factor, const NUGA::int_set_type& onodes,
  std::vector<E_Float>& z)
 {
-  bump_factor = std::max(bump_factor, -1.); // factor must be in [-1., 1.]
-  bump_factor = std::min(bump_factor, 1.);
+  bump_factor = K_FUNC::E_max(bump_factor, -1.); // factor must be in [-1., 1.]
+  bump_factor = K_FUNC::E_min(bump_factor, 1.);
 
-  if (bump_factor == 0.) return;
+  if (K_FUNC::fEqualZero(bump_factor)) return;
 
-  const E_Float BUMP_ANGLE_MAX =  1.5 * NUGA::PI_4; //3PI/8
-  E_Float ta = ::tan(bump_factor * BUMP_ANGLE_MAX);
+  const E_Float BUMP_ANGLE_MAX = 1.5 * NUGA::PI_4; //3PI/8
+  E_Float ta = tan(bump_factor * BUMP_ANGLE_MAX);
 
   std::vector<E_Int> oonodes;
   oonodes.insert(oonodes.end(), onodes.begin(), onodes.end());
 
   K_FLD::ArrayAccessor<K_FLD::FloatArray> pA(plaster2D);
-  K_SEARCH::KdTree<>  tree(pA, oonodes);
+  K_SEARCH::KdTree<> tree(pA, oonodes);
 
   int_set_type inodes;
   __getPlasterBoundary(mask, ni, false/*inside*/, inodes);
@@ -522,7 +509,7 @@ Plaster::__bumpPlaster
   for (int_set_type::iterator it = inodes.begin(); it != inodes.end(); ++it)
   {
     E_Int N = tree.getClosest(plaster2D.col(*it));
-    E_Float dx = ::sqrt(NUGA::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
+    E_Float dx = sqrt(NUGA::sqrDistance(plaster2D.col(N), plaster2D.col(*it), 2));
     z[*it] = z[N] + (ta * dx);
   }
 }
@@ -552,18 +539,18 @@ Plaster::__mask
 (const K_FLD::FloatArray& pos2D, const K_FLD::FloatArray& plaster2D,
  const K_FLD::IntArray& connectT3, NUGA::bool_vector_type& mask)
 {
-  const E_Int                       NB_POINTS(plaster2D.cols());
-  E_Int                             S;
-  std::vector<E_Int>                T3s;
-  const E_Float                     *P, *P0, *P1, *P2;
-  K_FLD::IntArray::const_iterator   pS;
+  const E_Int NB_POINTS(plaster2D.cols());
+  E_Int S;
+  std::vector<E_Int> T3s;
+  const E_Float *P, *P0, *P1, *P2;
+  K_FLD::IntArray::const_iterator pS;
 
-  typedef K_SEARCH::BoundingBox<2>  BBox2DType;
+  typedef K_SEARCH::BoundingBox<2> BBox2DType;
 
   mask.clear();
   mask.resize(NB_POINTS, true);
 
-  if (pos2D.cols() == 0)     return;
+  if (pos2D.cols() == 0) return;
   if (connectT3.cols() == 0) return;
   if (plaster2D.cols() == 0) return;
 
@@ -652,7 +639,7 @@ Plaster::__blockNodes
   // Build the box tree.
   K_SEARCH::BbTree2D E2tree(E2boxes);
 
-  E_Float dx = ::sqrt(2. * NUGA::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
+  E_Float dx = sqrt(2. * NUGA::sqrDistance(plaster2D.col(0), plaster2D.col(1), 2));
   std::vector<E_Int> E2s;
   E_Float mB[2], MB[2], min_d, de, lambda;
   E_Int N;
@@ -699,9 +686,9 @@ Plaster::__computeCharacteristicLength
   NUGA::MeshTool::computeEdgesSqrLengths<2>(pos2D, connectE2, Lengths);
   for (E_Int l = 0; l < Lengths.cols(); ++l)
   {
-    L = ::sqrt(Lengths(0,l));
-    min_d = std::min(min_d, L);
-    max_d = std::max(max_d, L);
+    L = sqrt(Lengths(0,l));
+    min_d = K_FUNC::E_min(min_d, L);
+    max_d = K_FUNC::E_max(max_d, L);
     perimeter += L;
   }
   return perimeter/connectE2.cols()/*0.5*(min_d+max_d)*/;

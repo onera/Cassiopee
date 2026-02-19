@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,7 +34,7 @@ void Data::getAllVars(std::vector<char*>& structVarString,
     K_ARRAY::extractVars(v, vars);
     for (size_t j = 0; j < vars.size(); j++)
     {
-      E_Boolean found = false;
+      E_Bool found = false;
       char* v1 = vars[j];
       for (size_t k = 0; k < allvars.size(); k++)
       {
@@ -61,7 +61,7 @@ void Data::getAllVars(std::vector<char*>& structVarString,
     K_ARRAY::extractVars(v, vars);
     for (size_t j = 0; j < vars.size(); j++)
     {
-      E_Boolean found = false;
+      E_Bool found = false;
       char* v1 = vars[j];
       for (size_t k = 0; k < allvars.size(); k++)
       {

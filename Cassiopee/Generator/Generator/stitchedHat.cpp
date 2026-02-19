@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,11 +34,18 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   
   E_Int res = 
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
+
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+      "stitchedHat: invalid array.");
+    return NULL;
+  }
 
   if (res != 1)
   {
-    if (res == 2) {delete f; delete cn;}
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "stitchedHat: array must be a structured array.");
     return NULL;
@@ -68,6 +75,7 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
   }
   
   posx++; posy++; posz++;
+  E_Int api = f->getApi();
   E_Int npts = im*jm;
   FldArrayF* sol = new FldArrayF(2*npts,3);
   E_Float* xt = sol->begin(1);
@@ -185,8 +193,9 @@ PyObject* K_GENERATOR::stitchedHat(PyObject* self, PyObject* args)
 
   E_Int im2 = im; E_Int jm2 = jm; E_Int km2 = 2;
   if (jm == 1) {jm2 = 2; km2 = 1;}
-  PyObject* tpl = K_ARRAY::buildArray(*sol, "x,y,z", im2, jm2, km2);
-  delete f; delete sol;
+  PyObject* tpl = K_ARRAY::buildArray3(*sol, "x,y,z", im2, jm2, km2, api);
+  delete sol;
+  RELEASESHAREDS(array, f);  
   delete [] hanging;
   return tpl;
 }

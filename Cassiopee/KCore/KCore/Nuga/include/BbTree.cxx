@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -62,7 +62,6 @@ BbTree<3>::BbTree
 (const K_FLD::FloatArray& crd, const array_t& ng, E_Float tolerance)
 : _tolerance(tolerance), _owes_boxes(true), _pool(NULL)
 {
-    
   E_Int nb_elts = ng.PHs.size();
   _pool = new K_SEARCH::BBox3D[nb_elts];
 
@@ -70,7 +69,8 @@ BbTree<3>::BbTree
   
   Vector_t<E_Int> nodes;
 
-  for (int i = 0; i < nb_elts; i++){
+  for (E_Int i = 0; i < nb_elts; i++)
+  {
     ng.nodes_ph(i, nodes, true);
     K_SEARCH::BBox3D* box = &_pool[i];
     box->compute(crd, nodes);
@@ -102,8 +102,8 @@ BbTree<3>::BbTree
 
   _boxes.reserve(nb_elts);
 
-  for (int i = 0; i < nb_elts; i++){
-    
+  for (E_Int i = 0; i < nb_elts; i++)
+  {  
     const E_Int* nodes = PGs.get_facets_ptr(i);
     E_Int stride = PGs.stride(i);
     K_SEARCH::BBox3D* box = &_pool[i];
@@ -137,8 +137,8 @@ BbTree<3>::BbTree
 
   E_Int stride = cnt.rows();
 
-  for (int i = 0; i < nb_elts; i++){
-    
+  for (E_Int i = 0; i < nb_elts; i++)
+  {  
     const E_Int* nodes = cnt.col(i);
     
     K_SEARCH::BBox3D* box = &_pool[i];
@@ -244,8 +244,8 @@ K_SEARCH::BbTree<DIM, BBoxType>::getIntersectingBoxes
     BBox3D boxSeg;
     for (size_t i=0; i < DIM; ++i)
     {
-      boxSeg.minB[i]=std::min(P0[i], P1[i]);
-      boxSeg.maxB[i]=std::max(P0[i], P1[i]);
+      boxSeg.minB[i] = K_FUNC::E_min(P0[i], P1[i]);
+      boxSeg.maxB[i] = K_FUNC::E_max(P0[i], P1[i]);
     }
     __getIntersectingBoxesStrict(P0, P1, _root_id, tolerance, out, boxSeg);
   }
@@ -304,8 +304,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__getIntersectingBoxesStrict
 
 ///
 template <short DIM, typename BBoxType>
-E_Int
-K_SEARCH::BbTree<DIM, BBoxType>::__insert
+E_Int K_SEARCH::BbTree<DIM, BBoxType>::__insert
 (const std::vector<size_type>::const_iterator& begin,
  const std::vector<size_type>::const_iterator& end)
 {
@@ -315,8 +314,7 @@ K_SEARCH::BbTree<DIM, BBoxType>::__insert
 #endif
 
   size_type size = end - begin;
-  if (size == 1)
-    return *begin;
+  if (size == 1) return *begin;
 
 #ifdef E_TIME1
   c1.start();

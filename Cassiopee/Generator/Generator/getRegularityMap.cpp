@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -34,25 +34,6 @@ using namespace K_FUNC;
 
 extern "C"
 {
-  void k6compstructmetric_(
-    const E_Int& im, const E_Int& jm, const E_Int& km,
-    const E_Int& nbcells, const E_Int& nintt,
-    const E_Int& ninti, const E_Int& nintj, 
-    const E_Int& nintk, 
-    E_Float* x, E_Float* y, E_Float* z, 
-    E_Float* vol, E_Float* surfx, E_Float* surfy, E_Float* surfz, 
-    E_Float* snorm, E_Float* cix, E_Float* ciy, E_Float* ciz);
-
-  void k6structsurft_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk, const E_Int& ncells, 
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
-  void k6structsurf1dt_(
-    const E_Int& ni, const E_Int& nj, const E_Int& nk,
-    const E_Float* xt, const E_Float* yt, const E_Float* zt, 
-    E_Float* length);
-
   void k6compunstrmetric_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
                           E_Int& nnodes, E_Int* cn, 
                           E_Float* coordx, E_Float* coordy, E_Float* coordz, 
@@ -67,7 +48,7 @@ extern "C"
 PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PyArg_ParseTuple(args, "O", &array)) return NULL;
+  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -75,8 +56,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   char* varString; char* eltType;
   E_Int posx, posy, posz;
   E_Int res;
-  res = K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, 
-                              eltType, true);
+  res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
 
   if (res != 1 && res != 2)
   {
@@ -103,6 +83,9 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   E_Float* xp = f->begin(posx);
   E_Float* yp = f->begin(posy);
   E_Float* zp = f->begin(posz);
+
+  E_Int api = f->getApi();
+  E_Int npts = f->getSize();
   
   if (res == 1) // cas structure
   {
@@ -179,27 +162,25 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
 
     // Construction du tableau numpy stockant les champs 
     // definissant la regularite
-    tpl = K_ARRAY::buildArray(1, "regularity", im1, jm1, km1);
+    tpl = K_ARRAY::buildArray3(1, "regularity", im1, jm1, km1, api);
     // pointeur sur le tableau
-    E_Float* reg = K_ARRAY::getFieldPtr(tpl);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* reg = f2->begin(1);
       
     // calcul du volume
     FldArrayF vol(ncells);
     if (dim == 1)
-      k6structsurf1dt_(
-        im, jm , km , 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compSurfStruct1D(im, jm, km, xp, yp, zp, vol.begin());
     else if (dim == 2)
-      k6structsurft_(
-        im, jm, km, ncells, 
-        xp, yp, zp, vol.begin());
+      K_METRIC::compSurfStruct2D(im, jm, km, xp, yp, zp, vol.begin());
     else
     {
       FldArrayF surf(nint,3);
       FldArrayF snorm(nint);
       FldArrayF centerInt(nint, 3);
-      k6compstructmetric_(
-        im, jm, km, ncells, nint, ninti, nintj, nintk,
+      K_METRIC::compMetricStruct(
+        im, jm, km, ninti, nintj, nintk,
         xp, yp, zp,
         vol.begin(), surf.begin(1), surf.begin(2), surf.begin(3), 
         snorm.begin(), 
@@ -589,24 +570,23 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
+
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDS(array, f);
     return tpl;
   }
-  else // if (res == 2)
+  else // cas non structure
   {
-    // cas non structure
-    E_Int nelts = cn->getSize();
-    E_Int nnodes = cn->getNfld(); // nb de noeuds ds 1 element
-    E_Int npts = f->getSize();
     E_Float etVol; E_Int eti; E_Int indi;
+    E_Int nelts = cn->getSize(); // nb d'elements
+    E_Int nnodes = cn->getNfld();
 
     // Construction du tableau numpy stockant le ratio max de volumes entre elements voisins, 
     // definissant la regularite
-    PyObject* tpl = K_ARRAY::buildArray(1, "regularity", nelts, nelts, -1, eltType, true);
-    E_Int* cnnp = K_ARRAY::getConnectPtr(tpl);
-    K_KCORE::memcpy__(cnnp, cn->begin(), nelts*nnodes);
-    E_Float* regp = K_ARRAY::getFieldPtr(tpl);
-    FldArrayF reg(nelts,1, regp, true);
+    PyObject* tpl = K_ARRAY::buildArray3(1, "regularity", npts, *cn, eltType, 1, api, true);
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);
+    E_Float* reg = f2->begin(1);
 
     // Calcul de la connectivite vertex->elements
     vector< vector<E_Int> > cVE(npts); 
@@ -740,6 +720,8 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       // volume computation not implemented for PYRA
       PyErr_SetString(PyExc_TypeError,
                       "getRegularityMap: not yet implemented for PYRA.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn); 
       return NULL;
     }
     else if (strcmp(eltType, "PENTA") == 0)
@@ -847,10 +829,12 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     {
         PyErr_SetString(PyExc_TypeError,
                         "getRegularityMap: unknown type of element.");
+        RELEASESHAREDS(tpl, f2);
         RELEASESHAREDU(array, f, cn);
         return NULL;
     }
     
+    RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
   }

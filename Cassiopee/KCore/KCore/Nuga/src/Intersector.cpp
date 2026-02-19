@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -75,7 +75,7 @@ Intersector::getXPairs
     MinT3Lengths[c].resize(L2.cols());
 
     for (E_Int i = 0; i < L2.cols(); ++i)
-      MinT3Lengths[c][i] = ::sqrt(L2(0, i));
+      MinT3Lengths[c][i] = sqrt(L2(0, i));
   }
 
   // Bounding Boxes Trees.
@@ -255,7 +255,7 @@ Intersector::__edgeOverlaps
 
       K_MESH::Triangle::planeLineMinDistance<3>(pos.col(*(pS1+m)), pos.col(*(pS1+(m+1)%3)), Qi, pos.col(Ni), pos.col(Nj), tol, tol_is_absolute, lambda, UV, parallel, coincident, min_d);
 
-      ret = (UV[0] > -eps) && (UV[0] < 1. + eps) && (::fabs(UV[1]) < 1. + eps)  && (lambda > -edge_tol_rel) && (lambda < 1. + edge_tol_rel);
+      ret = (UV[0] > -eps) && (UV[0] < 1. + eps) && (fabs(UV[1]) < 1. + eps)  && (lambda > -edge_tol_rel) && (lambda < 1. + edge_tol_rel);
     }
   }
 
@@ -273,7 +273,7 @@ Intersector::__edgeOverlaps
 
       K_MESH::Triangle::planeLineMinDistance<3>(pos.col(*(pS2+m)), pos.col(*(pS2+(m+1)%3)), Qi, pos.col(Ni), pos.col(Nj), tol, tol_is_absolute, lambda, UV, parallel, coincident, min_d);
 
-      ret = (UV[0] > -eps) && (UV[0] < 1. + eps) && (::fabs(UV[1]) < 1. + eps)  && (lambda > -edge_tol_rel) && (lambda < 1. + edge_tol_rel);
+      ret = (UV[0] > -eps) && (UV[0] < 1. + eps) && (fabs(UV[1]) < 1. + eps)  && (lambda > -edge_tol_rel) && (lambda < 1. + edge_tol_rel);
     }
   }
     

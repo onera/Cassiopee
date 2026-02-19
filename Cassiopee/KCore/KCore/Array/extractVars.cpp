@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -33,7 +33,7 @@ void K_ARRAY::extractVars(const char* varString, vector<char*>& vars)
   E_Int l = strlen(varString);
   E_Int c = 0;
   
-  E_Int p = 0; E_Int n = 0;
+  E_Int p = 0;
   char* temp = new char [l+1];
   
   while (c < l)
@@ -46,7 +46,7 @@ void K_ARRAY::extractVars(const char* varString, vector<char*>& vars)
         temp[p] = '\0';
         for (E_Int i = 0; i <= p; i++) m[i] = temp[i];
         vars.push_back(m);
-        n++; p = 0;
+        p = 0;
       }
       else
       {

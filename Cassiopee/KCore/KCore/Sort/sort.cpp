@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -87,7 +87,7 @@ E_Int K_SORT::pivoting(E_Int bg, E_Int bd, FldArrayF& coord, FldArrayF& norm2)
   {
     while (l <= bd && norm2p[l] <= piv) l++;
     while (r >=  0 && norm2p[r] > piv) r--;
-    if ( l < r )
+    if (l < r)
     {
       // swap norm(indr) and norm(indl)
       tmp = norm2p[r];
@@ -133,7 +133,7 @@ void K_SORT::removeDoublePoints(FldArrayF& vectOfPoints, FldArrayF& norm2)
   FldArrayF work(npts, nfld);
   FldArrayF workn2(npts);
   E_Float dx, dy, dz;
-  E_Boolean found;
+  E_Bool found;
   E_Int c=0;
   E_Float* vx = vectOfPoints.begin(1);
   E_Float* vy = vectOfPoints.begin(2);
@@ -147,8 +147,7 @@ void K_SORT::removeDoublePoints(FldArrayF& vectOfPoints, FldArrayF& norm2)
     found = false;
    
     j = i-1; 
-    while (j >=0 && 
-           K_FUNC::fEqualZero(norm2p[i]-norm2p[j], 1.e-6) == true)
+    while (j >=0 && K_FUNC::fEqualZero(norm2p[i]-norm2p[j], 1.e-6))
     {
       dx = vx[i] - vx[j];
       dy = vy[i] - vy[j];

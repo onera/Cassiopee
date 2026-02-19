@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -38,7 +38,7 @@ PyObject* K_CONNECTOR::maximizeBlankedCells(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res =
-    K_ARRAY::getFromArray(array, varString, f, im, jm, km, cn, eltType, true);
+    K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
   
   if (res != 1)
   {
@@ -55,13 +55,13 @@ PyObject* K_CONNECTOR::maximizeBlankedCells(PyObject* self, PyObject* args)
      return NULL;
   }
   
+  E_Int api = f->getApi();
   E_Float* cellnp = f->begin(poscelln+1);
   
   E_Int c = 1;
-  while (c != 0) c = getRidOfInterpPoints(cellnp, 
-                                          im, jm, km, depth, dir);
+  while (c != 0) c = getRidOfInterpPoints(cellnp, im, jm, km, depth, dir);
 
-  PyObject* tpl =  K_ARRAY::buildArray(*f, varString, im, jm, km);
+  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
   RELEASESHAREDS(array, f);
   return tpl;
 }

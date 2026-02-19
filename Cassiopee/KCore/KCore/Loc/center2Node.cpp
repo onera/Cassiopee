@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -171,7 +171,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           ind3 = ind2 + alpha;
 
           for (E_Int n = 1; n <= nv; n++)
-              FNode(ind,n) = 0.25*(FCenter(ind0,n)+FCenter(ind1,n)+FCenter(ind2,n)+FCenter(ind3,n));
+            FNode(ind,n) = 0.25*(FCenter(ind0,n)+FCenter(ind1,n)+FCenter(ind2,n)+FCenter(ind3,n));
         }
       }
     }
@@ -210,10 +210,10 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           ind7 = ind6 + alpha;
 
           for (E_Int n = 1; n <= nv; n++)
-              FNode(ind,n) = 0.125*(FCenter(ind0,n)+FCenter(ind1,n)+
-                FCenter(ind2,n)+FCenter(ind3,n)+
-                FCenter(ind4,n)+FCenter(ind5,n)+
-                FCenter(ind6,n)+FCenter(ind7,n));
+            FNode(ind,n) = 0.125*(FCenter(ind0,n)+FCenter(ind1,n)+
+              FCenter(ind2,n)+FCenter(ind3,n)+
+              FCenter(ind4,n)+FCenter(ind5,n)+
+              FCenter(ind6,n)+FCenter(ind7,n));
         }
       }
     }
@@ -245,14 +245,14 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           cellN1 = E_min(cellNp[ind1], 1.);
                
           w = cellN0 + cellN1;
-          if (w == 0.)
+          if (K_FUNC::fEqualZero(w))
           {
             w = 0.5; cellN0 = 1.; cellN1 = 1.;
           }
           else w = 1./w;
                
           for (E_Int n = 1; n <= nv; n++)
-              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n));
+            FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n));
         }
       }
     }
@@ -290,7 +290,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           cellN3 = E_min(cellNp[ind3], 1.);
                
           w = cellN0 + cellN1 + cellN2 + cellN3;
-          if (w == 0.)
+          if (K_FUNC::fEqualZero(w))
           {
             w = 0.5; cellN0 = 1.; cellN1 = 1.; cellN2 = 1.;
             cellN3 = 1.; 
@@ -298,8 +298,8 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           else w = 1./w;
                
           for (E_Int n = 1; n <= nv; n++)
-              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
-                cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n));
+            FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
+              cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n));
         }
       }
     }
@@ -351,7 +351,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                
           w = cellN0 + cellN1 + cellN2 + cellN3 + cellN4 + 
               cellN5 + cellN6 + cellN7;
-          if (w == 0.)
+          if (K_FUNC::fEqualZero(w))
           {
             w = 0.125; cellN0 = 1.; cellN1 = 1.; cellN2 = 1.;
             cellN3 = 1.; cellN4 = 1.; cellN5 = 1.; cellN6 = 1.;
@@ -360,10 +360,10 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           else w = 1./w;
                
           for (E_Int n = 1; n <= nv; n++)
-              FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
-                cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n)+
-                cellN4*FCenter(ind4,n)+cellN5*FCenter(ind5,n)+
-                cellN6*FCenter(ind6,n)+cellN7*FCenter(ind7,n));
+            FNode(ind,n) = w*(cellN0*FCenter(ind0,n)+cellN1*FCenter(ind1,n)+
+              cellN2*FCenter(ind2,n)+cellN3*FCenter(ind3,n)+
+              cellN4*FCenter(ind4,n)+cellN5*FCenter(ind5,n)+
+              cellN6*FCenter(ind6,n)+cellN7*FCenter(ind7,n));
         }
       }
     }
@@ -401,15 +401,14 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           Fnz[ind] = 0.5*(Fcz[ind0]+Fcz[ind1]);
         }
         // i = 0
-        Fnx[0] = 2*Fnx[1]-Fnx[2];
-        Fny[0] = 2*Fny[1]-Fny[2];
-        Fnz[0] = 2*Fnz[1]-Fnz[2];
+        Fnx[0] = 2.*Fnx[1]-Fnx[2];
+        Fny[0] = 2.*Fny[1]-Fny[2];
+        Fnz[0] = 2.*Fnz[1]-Fnz[2];
         // i = im
-        Fnx[im1-1] = 2*Fnx[im1-2]-Fnx[im1-3];
-        Fny[im1-1] = 2*Fny[im1-2]-Fny[im1-3];
-        Fnz[im1-1] = 2*Fnz[im1-2]-Fnz[im1-3];
+        Fnx[im1-1] = 2.*Fnx[im1-2]-Fnx[im1-3];
+        Fny[im1-1] = 2.*Fny[im1-2]-Fny[im1-3];
+        Fnz[im1-1] = 2.*Fnz[im1-2]-Fnz[im1-3];
       }
-
     }
     else if (dim == 2)
     {
@@ -457,17 +456,17 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           ind0 = j*im1;
           ind2 = ind0+1;
           ind3 = ind2+1;
-          Fnx[ind0] = 2*Fnx[ind2]-Fnx[ind3];
-          Fny[ind0] = 2*Fny[ind2]-Fny[ind3];
-          Fnz[ind0] = 2*Fnz[ind2]-Fnz[ind3];
+          Fnx[ind0] = 2.*Fnx[ind2]-Fnx[ind3];
+          Fny[ind0] = 2.*Fny[ind2]-Fny[ind3];
+          Fnz[ind0] = 2.*Fnz[ind2]-Fnz[ind3];
 
           // i = im
           ind0 = im + j*im1;
           ind2 = ind0-1;
           ind3 = ind2-1;
-          Fnx[ind0] = 2*Fnx[ind2]-Fnx[ind3];
-          Fny[ind0] = 2*Fny[ind2]-Fny[ind3];
-          Fnz[ind0] = 2*Fnz[ind2]-Fnz[ind3];
+          Fnx[ind0] = 2.*Fnx[ind2]-Fnx[ind3];
+          Fny[ind0] = 2.*Fny[ind2]-Fny[ind3];
+          Fnz[ind0] = 2.*Fnz[ind2]-Fnz[ind3];
         }
         // edges imin, imax
         #pragma omp for
@@ -477,34 +476,34 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           ind0 = i;
           ind2 = ind0+im1;
           ind3 = ind2+im1;
-          Fnx[ind0] = 2*Fnx[ind2]-Fnx[ind3];
-          Fny[ind0] = 2*Fny[ind2]-Fny[ind3];
-          Fnz[ind0] = 2*Fnz[ind2]-Fnz[ind3];
+          Fnx[ind0] = 2.*Fnx[ind2]-Fnx[ind3];
+          Fny[ind0] = 2.*Fny[ind2]-Fny[ind3];
+          Fnz[ind0] = 2.*Fnz[ind2]-Fnz[ind3];
 
           // j = jm
           ind0 = i + jm*im1;
           ind2 = ind0-im1;
           ind3 = ind2-im1;
-          Fnx[ind0] = 2*Fnx[ind2]-Fnx[ind3];
-          Fny[ind0] = 2*Fny[ind2]-Fny[ind3];
-          Fnz[ind0] = 2*Fnz[ind2]-Fnz[ind3];
+          Fnx[ind0] = 2.*Fnx[ind2]-Fnx[ind3];
+          Fny[ind0] = 2.*Fny[ind2]-Fny[ind3];
+          Fnz[ind0] = 2.*Fnz[ind2]-Fnz[ind3];
         }
         // i = 0, j = 0
-        Fnx[0] = 2*Fnx[1]-Fnx[2];
-        Fny[0] = 2*Fny[1]-Fny[2];
-        Fnz[0] = 2*Fnz[1]-Fnz[2];
+        Fnx[0] = 2.*Fnx[1]-Fnx[2];
+        Fny[0] = 2.*Fny[1]-Fny[2];
+        Fnz[0] = 2.*Fnz[1]-Fnz[2];
         // i = im1, j = 0
-        Fnx[im1-1] = 2*Fnx[im1-2]-Fnx[im1-3];
-        Fny[im1-1] = 2*Fny[im1-2]-Fny[im1-3];
-        Fnz[im1-1] = 2*Fnz[im1-2]-Fnz[im1-3];
+        Fnx[im1-1] = 2.*Fnx[im1-2]-Fnx[im1-3];
+        Fny[im1-1] = 2.*Fny[im1-2]-Fny[im1-3];
+        Fnz[im1-1] = 2.*Fnz[im1-2]-Fnz[im1-3];
         // i = 0, j = jm1
-        Fnx[(jm1-1)*im1] = 2*Fnx[1+(jm1-1)*im1]-Fnx[2+(jm1-1)*im1];
-        Fny[(jm1-1)*im1] = 2*Fny[1+(jm1-1)*im1]-Fny[2+(jm1-1)*im1];
-        Fnz[(jm1-1)*im1] = 2*Fnz[1+(jm1-1)*im1]-Fnz[2+(jm1-1)*im1];
+        Fnx[(jm1-1)*im1] = 2.*Fnx[1+(jm1-1)*im1]-Fnx[2+(jm1-1)*im1];
+        Fny[(jm1-1)*im1] = 2.*Fny[1+(jm1-1)*im1]-Fny[2+(jm1-1)*im1];
+        Fnz[(jm1-1)*im1] = 2.*Fnz[1+(jm1-1)*im1]-Fnz[2+(jm1-1)*im1];
         // i = im1, j = jm1
-        Fnx[(im1-1)+(jm1-1)*im1] = 2*Fnx[(im1-2)+(jm1-1)*im1]-Fnx[(im1-3)+(jm1-1)*im1];
-        Fny[(im1-1)+(jm1-1)*im1] = 2*Fny[(im1-2)+(jm1-1)*im1]-Fny[(im1-3)+(jm1-1)*im1];
-        Fnz[(im1-1)+(jm1-1)*im1] = 2*Fnz[(im1-2)+(jm1-1)*im1]-Fnz[(im1-3)+(jm1-1)*im1];
+        Fnx[(im1-1)+(jm1-1)*im1] = 2.*Fnx[(im1-2)+(jm1-1)*im1]-Fnx[(im1-3)+(jm1-1)*im1];
+        Fny[(im1-1)+(jm1-1)*im1] = 2.*Fny[(im1-2)+(jm1-1)*im1]-Fny[(im1-3)+(jm1-1)*im1];
+        Fnz[(im1-1)+(jm1-1)*im1] = 2.*Fnz[(im1-2)+(jm1-1)*im1]-Fnz[(im1-3)+(jm1-1)*im1];
       }
     }
     else
@@ -555,7 +554,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           Fnz[ind] = 0.125*(Fcz[ind0]+Fcz[ind1]+Fcz[ind2]+Fcz[ind3]+Fcz[ind4]+Fcz[ind5]+Fcz[ind6]+Fcz[ind7]);
         }
         //faces imin & imax
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 1; k < km1-1; k++)
         {
           for (E_Int j = 1; j < jm1-1; j++)
@@ -620,7 +619,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           }
         }
         //faces jmin & jmax
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int k = 1; k < km1-1; k++)
         {
           for (E_Int i = 1; i < im1-1; i++)
@@ -685,7 +684,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
           }
         }
         //faces kmin & kmax
-        #pragma omp for
+        #pragma omp for collapse(2)
         for (E_Int j = 1; j < jm1-1; j++)
         {
           for (E_Int i = 1; i < im1-1; i++)
@@ -1180,7 +1179,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1223,7 +1222,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1279,7 +1278,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3*cellN4*cellN5*cellN6*cellN7;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1316,11 +1315,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (cellN0 == 2. || cellN1 == 2.)
+                if (K_FUNC::fEqualZero(cellN0 - 2.) || K_FUNC::fEqualZero(cellN1 - 2.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -1368,11 +1367,12 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (cellN0 == 2. || cellN1 == 2. || cellN2 == 2. || cellN3 == 2.)
+                if (K_FUNC::fEqualZero(cellN0 - 2.) || K_FUNC::fEqualZero(cellN1 - 2.) || 
+                    K_FUNC::fEqualZero(cellN2 - 2.) || K_FUNC::fEqualZero(cellN3 - 2.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -1399,7 +1399,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -1426,7 +1426,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -1457,7 +1457,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -1484,7 +1484,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -1546,7 +1546,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3*cellN4*cellN5*cellN6*cellN7;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -1558,7 +1558,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
               }
             }
             //faces imin & imax
-            #pragma omp for
+            #pragma omp for collapse(2)
             for (E_Int k = 0; k < km1; k++)
             {
               for (E_Int j = 0; j < jm1; j++)
@@ -1590,11 +1590,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1627,11 +1627,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1639,7 +1639,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
               }
             }
             //faces jmin & jmax
-            #pragma omp for
+            #pragma omp for collapse(2)
             for (E_Int k = 0; k < km1; k++)
             {
               for (E_Int i = 0; i < im1; i++)
@@ -1671,11 +1671,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1708,11 +1708,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1720,7 +1720,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
               }
             }
             //faces kmin & kmax
-            #pragma omp for
+            #pragma omp for collapse(2)
             for (E_Int j = 0; j < jm1; j++)
             {
               for (E_Int i = 0; i < im1; i++)
@@ -1752,11 +1752,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1789,11 +1789,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0*cellN1*cellN2*cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 16.)
+                  if (K_FUNC::fEqualZero(w - 16.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -1833,7 +1833,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0*cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w - 0.))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1876,7 +1876,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1932,7 +1932,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0*cellN1*cellN2*cellN3*cellN4*cellN5*cellN6*cellN7;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -1978,7 +1978,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0 + cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2021,7 +2021,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2077,7 +2077,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3+cellN4+cellN5+cellN6+cellN7;
               
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2114,11 +2114,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0+cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (cellN0 == 2. || cellN1 == 2.)
+                if (K_FUNC::fEqualZero(cellN0 - 2.) || K_FUNC::fEqualZero(cellN1 - 2.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2166,11 +2166,12 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (cellN0 == 2. || cellN1 == 2. || cellN2 == 2. || cellN3 == 2.)
+                if (K_FUNC::fEqualZero(cellN0 - 2.) || K_FUNC::fEqualZero(cellN1 - 2.) ||
+                    K_FUNC::fEqualZero(cellN2 - 2.) || K_FUNC::fEqualZero(cellN3 - 2.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2197,11 +2198,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (w == 4.)
+                if (K_FUNC::fEqualZero(w - 4.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2224,11 +2225,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
-                if (w == 4.)
+                if (K_FUNC::fEqualZero(w - 4.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2255,11 +2256,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w - 0.))
                 cellNpn[ind] = 0.;
               else
               {
-                if (w == 4.)
+                if (K_FUNC::fEqualZero(w - 4.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2282,11 +2283,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w - 0.))
                 cellNpn[ind] = 0.;
               else
               {
-                if (w == 4.)
+                if (K_FUNC::fEqualZero(w - 4.))
                   cellNpn[ind] = 2.;
                 else
                   cellNpn[ind] = 1.;
@@ -2344,7 +2345,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3+cellN4+cellN5+cellN6+cellN7;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
               {
@@ -2388,11 +2389,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2425,11 +2426,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2469,11 +2470,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2506,11 +2507,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2550,11 +2551,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2587,11 +2588,11 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                     
                 w = cellN0+cellN1+cellN2+cellN3;
 
-                if (w == 0.)
+                if (K_FUNC::fEqualZero(w))
                   cellNpn[ind] = 0.;
                 else
                 {
-                  if (w == 8.)
+                  if (K_FUNC::fEqualZero(w - 8.))
                     cellNpn[ind] = 2.;
                   else
                     cellNpn[ind] = 1.;
@@ -2631,7 +2632,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 
               w = cellN0 + cellN1;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2674,7 +2675,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3;
 
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2730,7 +2731,7 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
                   
               w = cellN0+cellN1+cellN2+cellN3+cellN4+cellN5+cellN6+cellN7;
               
-              if (w == 0.)
+              if (K_FUNC::fEqualZero(w))
                 cellNpn[ind] = 0.;
               else
                 cellNpn[ind] = 1.;
@@ -2755,14 +2756,14 @@ E_Int K_LOC::center2nodeStruct(FldArrayF& FCenter,
 // IN: algo: type de traitement pour le cellN
 //=============================================================================
 E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter, 
-                                 FldArrayI& c,
+                                 FldArrayI& cn,
                                  E_Int cellN, E_Int mod,
                                  E_Int posx, E_Int posy, E_Int posz,
                                  FldArrayF& FNode,
                                  E_Int algo)
 {
   // Acces universel sur BE/ME
-  E_Int nc = c.getNConnect();
+  E_Int nc = cn.getNConnect();
   E_Int nfld = FCenter.getNfld();
   E_Int nb = FNode.getSize();
   FNode.setAllValuesAtNull();
@@ -2774,7 +2775,7 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
   // Boucle sur toutes les connectivites une premiere fois
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    FldArrayI& cm = *(c.getConnect(ic));
+    FldArrayI& cm = *(cn.getConnect(ic));
     E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
     E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
 
@@ -2827,10 +2828,9 @@ E_Int K_LOC::center2nodeUnstruct(FldArrayF& FCenter,
   // champs aux noeuds par countp et traiter le cas special du champs cellN
   for (E_Int ic = 0; ic < nc; ic++)
   {
-    FldArrayI& cm = *(c.getConnect(ic));
+    FldArrayI& cm = *(cn.getConnect(ic));
     E_Int ne = cm.getSize(); // nombre de centres = nombre d'elements
     E_Int nt = cm.getNfld(); // nombre de points par elements de cette connectivite
-    
 
     // Traitement special pour le champ "cellnaturefield" - reecriture
     // de fnode(cellN), ie, cellNNode
@@ -2922,14 +2922,14 @@ E_Int K_LOC::center2nodeNGon(
   E_Int ind, nvert; E_Float inv;
   E_Int nelts = FCenter.getSize();
 
-  for (E_Int et = 0; et < nelts; et++)
+  for (E_Int i = 0; i < nelts; i++)
   {
-    vector<E_Int>& vertices = cEV[et];
+    const vector<E_Int>& vertices = cEV[i];
     nvert = vertices.size();
-    for (E_Int nov = 0; nov < nvert; nov++)
+    for (E_Int j = 0; j < nvert; j++)
     {
-      ind = vertices[nov]-1;
-      for (E_Int eq = 1; eq <= nfld; eq++) FNode(ind,eq) += FCenter(et,eq);
+      ind = vertices[j]-1;
+      for (E_Int eq = 1; eq <= nfld; eq++) FNode(ind,eq) += FCenter(i,eq);
       countp[ind]++;
     }
   }
@@ -2964,18 +2964,18 @@ E_Int K_LOC::center2nodeNGon(
       case 1: // cellN=0 (blanked or interpolated) or 1 (normal) 
       case 2: // cellN=0 (blanked), 1 (normal) or 2 (interpoled)
         temp.setAllValuesAt(1.);
-        for (E_Int et = 0; et < nelts; et++)
+        for (E_Int i = 0; i < nelts; i++)
         {
-          vector<E_Int>& vertices = cEV[et];
+          const vector<E_Int>& vertices = cEV[i];
           nvert = vertices.size();
-          for (E_Int nov = 0; nov < nvert; nov++)
+          for (E_Int j = 0; j < nvert; j++)
           {
-            ind = vertices[nov]-1;
-            temp[ind] =  temp[ind]*cellNCenter[et];
+            ind = vertices[j]-1;
+            temp[ind] *= cellNCenter[i];
           }
         }
         for (E_Int indn = 0; indn < nb; indn++)
-          cellNNode[indn] = K_FUNC::E_min(temp[indn],K_CONST::ONE);
+          cellNNode[indn] = K_FUNC::E_min(temp[indn], K_CONST::ONE);
         break;
       case 3: // cellN=0 (blanked), cellN=1 (normal), cellN=-interpolationblock (interpoled)
         printf("Warning: center2node: this case is not implemented yet.\n");
@@ -3002,14 +3002,14 @@ E_Int K_LOC::center2nodeNGon(
       case 1: // cellN=0 (blanked or interpolated) or 1 (normal)
       case 2: // cellN=0 (blanked), 1 (normal) or 2 (interpoled)
         temp.setAllValuesAt(0.);
-        for (E_Int et = 0; et < nelts; et++)
+        for (E_Int i = 0; i < nelts; i++)
         {
-          vector<E_Int>& vertices = cEV[et];
+          const vector<E_Int>& vertices = cEV[i];
           nvert = vertices.size();
-          for (E_Int nov = 0; nov < nvert; nov++)
+          for (E_Int j = 0; j < nvert; j++)
           {
-            ind = vertices[nov]-1;
-            temp[ind] =  temp[ind]+cellNCenter[et];
+            ind = vertices[j]-1;
+            temp[ind] += cellNCenter[i];
           }
         }
         for (E_Int indn = 0; indn < nb; indn++)

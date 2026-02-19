@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -41,15 +41,15 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   vector<FldArrayI*> cnt;
   vector<char*> eltType;
   vector<PyObject*> objs, obju;
-  E_Boolean skipNoCoord = true;
-  E_Boolean skipStructured = false;
-  E_Boolean skipUnstructured = true; 
-  E_Boolean skipDiffVars = true;
+  E_Bool skipNoCoord = true;
+  E_Bool skipStructured = false;
+  E_Bool skipUnstructured = true; 
+  E_Bool skipDiffVars = true;
 
   E_Int isOk = K_ARRAY::getFromArrays(
     arrays, res, structVarString, unstrVarString,
     fields, unstrF, nit, njt, nkt, cnt, eltType, objs, obju, 
-    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured);
+    skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
 
   E_Int nzones = fields.size();
   E_Int nfld = 0;
@@ -58,7 +58,7 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   {
     PyErr_SetString(PyExc_TypeError,
                     "TFI: invalid list of arrays.");
-    for (E_Int v = 0; v < nzones; v++) delete fields[v];
+    for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
     return NULL;
   }
   // verification que les arrays sont bien 1D
@@ -68,15 +68,14 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
     E_Int ni = nit[v]; E_Int nj = njt[v]; E_Int nk = nkt[v];
     if ( ni < 2 || nj != 1 || nk != 1 )
     {
-       for (E_Int v2 = 0; v2 < nzones; v2++)
-         delete fields[v2];
+      for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
       PyErr_SetString(PyExc_TypeError,
                       "TFI: one array is invalid: must be i-varying only.");
       return NULL;
     }
     if (ni != ni0) 
     {
-      for (E_Int v2 = 0; v2 < nzones; v2++) delete fields[v2];
+      for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
       PyErr_SetString(PyExc_TypeError,
                       "TFI: all arrays must have the same size.");
       return NULL;
@@ -116,15 +115,14 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Float ip, jp, ip1; E_Float invni1 = 1./ni1;
   E_Int npts = (ni+1)*ni/2; E_Int nelts = ni1*ni1;
 
-  PyObject* tpl = K_ARRAY::buildArray(3, varString, npts, nelts, -1, "TRI");
-  E_Float* coordp = K_ARRAY::getFieldPtr(tpl);
-  FldArrayF coord(npts, 3, coordp, true);
-  E_Int* cnp = K_ARRAY::getConnectPtr(tpl);
-  FldArrayI cn(nelts,3, cnp, true);
+  E_Int api = fields[0]->getApi();
+  PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nelts, "TRI", false, api);
+  FldArrayF* coord; FldArrayI* cn;
+  K_ARRAY::getFromArray3(tpl, coord, cn);
 
-  E_Float* xt = coord.begin(1);
-  E_Float* yt = coord.begin(2);
-  E_Float* zt = coord.begin(3);
+  E_Float* xt = coord->begin(1);
+  E_Float* yt = coord->begin(2);
+  E_Float* zt = coord->begin(3);
   
   E_Int ind = 0;
   for (E_Int j = 0; j < ni; j++)
@@ -150,9 +148,9 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Int et = 0;
   E_Int off1 = 0;
   E_Int off2;
-  E_Int* cn1 = cn.begin(1);
-  E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3);
+  E_Int* cn1 = cn->begin(1);
+  E_Int* cn2 = cn->begin(2);
+  E_Int* cn3 = cn->begin(3);
 
   for (E_Int j = ni1-1; j >= 0; j--)
   {
@@ -174,7 +172,9 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
     et++;
     off1 = off2;
   }
-  delete Fimin; delete Fjmin; delete Fdiag;
+
+  RELEASESHAREDU(tpl, coord, cn);
+  for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
   return tpl;
 }
 

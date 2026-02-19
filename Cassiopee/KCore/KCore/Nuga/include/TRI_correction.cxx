@@ -1,5 +1,5 @@
 /*    
-    Copyright 2013-2025 Onera.
+    Copyright 2013-2026 ONERA.
 
     This file is part of Cassiopee.
 
@@ -478,12 +478,10 @@ TRI_Conformizer<DIM>::__IsNodeFarFromSurface
   {
     pS = connectZ.col(boxes[i]);
     d = K_MESH::Triangle::minDistanceToPoint(pos, pS, pos.col(N), UV, inside);
-    if (inside)
-      dMax = std::max(dMax, d);
+    if (inside) dMax = std::max(dMax, d);
   }
 
-  if (dMax < 0.)
-    return true;
+  if (dMax < 0.) return true;
 
   return (dMax >= tolerance);
 }
@@ -498,8 +496,7 @@ TRI_Conformizer<DIM>::__computeAveragedNormal
 
   E_Int sz = nodes.size();
   
-  if (sz == 0)
-    return;
+  if (sz == 0) return;
 
   for (size_t i = 0; i < nodes.size(); ++i)
   {
@@ -524,9 +521,9 @@ TRI_Conformizer<DIM>::__get_common_edges
   // After intersection, intersectiong edge are those which are shared by more than 2 triangles.
 
   NUGA::EltAlgo<K_MESH::Triangle>::BoundToEltType::const_iterator it;
-  E_Int                           COLS(connect.cols());
-  size_t                          Si, nb_elts;
-  std::set<E_Int>                 unique_elts;
+  E_Int COLS(connect.cols());
+  size_t Si, nb_elts;
+  std::set<E_Int> unique_elts;
 
   common_edges.clear();
   patho_elts.clear();
@@ -546,8 +543,8 @@ TRI_Conformizer<DIM>::__get_common_edges
 
     nb_elts = unique_elts.size();
 
-    if (nb_elts == 2)
-      continue;
+    if (nb_elts == 2) continue;
+    
     else if (nb_elts == 1)  // Free.
     {
       nb_elts = elts.size();
