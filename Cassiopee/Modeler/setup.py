@@ -52,7 +52,7 @@ if OCCPresent:
     libraryDirs += [OCCLibDir]
     includeDirs += [OCCIncDir]
 
-libOCC = Dist.getOCCModules(OCCIncDir)
+libOCC = Dist.getOCCModules()
 if OCCPresent and Dist.getSystem()[0] == 'mingw':
     libOCC = [i+".dll" for i in libOCC]
 if OCCPresent: libraries += libOCC + libOCC
