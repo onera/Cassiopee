@@ -81,6 +81,11 @@ if [ -z "$MAC" ]; then
     return 1
 fi
 
+# PATH, LD_LIBRARY_PATH, and PYTHONPATH specific to a prod
+PROD_PATH=""
+PROD_LD_LIBRARY_PATH=""
+PROD_PYTHONPATH=""
+
 # ----------------------------- Prods ------------------------------------------
 if [ -f "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user" ]; then
     . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
@@ -117,10 +122,13 @@ elif [ "$MAC" = "ld_coda" ]; then
     module purge
     module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
-    module load gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    module load gcc/12.1.0
+    module load openmpi/4.0.5-gnu831
+    module load python/3.10.8-gnu831
+    module load swig/4.2.1-gnu850
     module load fmt/8.1.1-gnu850
-    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
-    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    PROD_PATH=/stck/rhea/opt/python3.10_modules/bin
+    PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
     module use /stck/rhea/juno_coda_v2025_11/modules/linux-rocky8-x86_64_v3
     module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
     export PRODMODE=3
@@ -158,9 +166,9 @@ elif [ "$MAC" = "ld_spack2" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh
     module purge
-    export PATH="/tmp_user/ldaaa2323z/benoit/spack_installed/install2/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
-    export LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/x64:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/emu:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/host/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/compiler/lib/intel64_lin:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/libfabric/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib/release:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib64
-    export PYTHONPATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib/python3.9/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib/python3.9/site-packages
+    PROD_PATH="/tmp_user/ldaaa2323z/benoit/spack_installed/install2/bin":"/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/bin":"/tmp_user/ldaaa2323z/benoit/spack/bin":"/usr/local/sbin":"/usr/bin:/usr/sbin:/usr/local/bin"
+    PROD_LD_LIBRARY_PATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/x64:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/emu:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/host/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/lib/oclfpga/linux64/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/compiler/2021.4.0/linux/compiler/lib/intel64_lin:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/libfabric/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib/release:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/mpi/2021.4.0/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib:/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib64
+    PROD_PYTHONPATH=/tmp_user/ldaaa2323z/benoit/spack_installed/install2/lib/python3.9/site-packages:/tmp_user/ldaaa2323z/benoit/spack/var/spack/environments/dassault/.spack-env/view/lib/python3.9/site-packages
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export PYTHONEXE=python3
@@ -414,10 +422,13 @@ elif [ "$MAC" = "juno_coda" ]; then
     module purge
     module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
-    module load gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
+    module load gcc/12.1.0
+    module load openmpi/4.0.5-gnu831
+    module load python/3.10.8-gnu831
+    module load swig/4.2.1-gnu850
     module load fmt/8.1.1-gnu850
-    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
-    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    PROD_PATH=/stck/rhea/opt/python3.10_modules/bin
+    PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
     module use /stck/rhea/juno_coda_v2025_11/modules/linux-rocky8-x86_64_v3
     module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
     export PYTHONEXE=python3
@@ -533,9 +544,12 @@ elif [ "$MAC" = "sator_coda" ]; then
     module purge
     module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
-    module load gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
-    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
-    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    module load gcc/12.1.0
+    module load openmpi/4.0.5-gnu831
+    module load python/3.10.8-gnu831
+    module load swig/4.2.1-gnu850
+    PROD_PATH=/stck/rhea/opt/python3.10_modules/bin
+    PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
     module use /tmp_user/sator/rhea/sator_coda_v2025_08/modules/linux-rocky8-x86_64_v3
     module load coda/2025.08.0-gnu12.1.0 fszoltanintegration/2025.08.0-gnu12.1.0 fsoversetblanking/2025.08.0-gnu12.1.0 fsui-coda/2025.08.0-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.08.0-gnu12.1.0 fsgridvelocity/2025.08.0-gnu12.1.0
     module load openblas/0.3.15-gnu12.1.0
@@ -558,36 +572,16 @@ elif [ "$MAC" = "sator_coda_2511" ]; then
     module purge
     module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
-    module load gcc/12.1.0 openmpi/4.0.5-gnu831 python/3.10.8-gnu831 swig/4.2.1-gnu850
-    export PATH=/stck/rhea/opt/python3.10_modules/bin:${PATH}
-    export PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages:${PYTHONPATH}
+    module load gcc/12.1.0
+    module load openmpi/4.0.5-gnu831
+    module load python/3.10.8-gnu831
+    module load swig/4.2.1-gnu850
+    PROD_PATH=/stck/rhea/opt/python3.10_modules/bin
+    PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
     module use /tmp_user/sator/rhea/sator_coda_v2025_11/modules/linux-rocky8-x86_64_v3
     module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
     module load openblas/0.3.15-gnu12.1.0
     module load fmt/8.1.1-gnu12.1.0
-    export OMP_PLACES=cores
-    export PYTHONEXE=python3
-    export PRODMODE=1
-    export PIP_DISABLE_PIP_VERSION_CHECK=1
-    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
-
-elif [ "$MAC" = "sator_coda2" ]; then
-#----------------------------- sator coda --------------------------------------
-    export ELSAPROD=sator_coda2
-    export ELSAPROD=$ELSAPROD$EXT
-    # Nbre de threads
-    export OMP_NUM_THREADS=48
-    export MODULEPATH=/tmp_user/sator/rhea/coda_modules:$MODULEPATH
-    CASSIOPEESAVE=$CASSIOPEE
-    ELSAPRODSAVE=$ELSAPROD
-    module purge
-    module load emacs
-    module load fssuite/2025.02.0-gnu1210
-    export CASSIOPEE=$CASSIOPEESAVE
-    export ELSAPROD=$ELSAPRODSAVE
-    module load occt/7.6.1-gnu831
     export OMP_PLACES=cores
     export PYTHONEXE=python3
     export PRODMODE=1
@@ -612,11 +606,11 @@ elif [ "$MAC" = "adastra" ]; then
     #module load CCE-CPU-3.1.0
     # CPU GCC
     module load PrgEnv-gnu
-    export LD_LIBRARY_PATH="/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12":$LD_LIBRARY_PATH
+    PROD_LD_LIBRARY_PATH="/opt/rh/gcc-toolset-12/root/usr/lib/gcc/x86_64-redhat-linux/12"
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
-    export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
+    PROD_LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$PROD_LD_LIBRARY_PATH"
+    PROD_LD_LIBRARY_PATH="$PROD_LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
 
 elif [ "$MAC" = "adastra_gpu" ]; then
@@ -638,8 +632,7 @@ elif [ "$MAC" = "adastra_gpu" ]; then
     module load rocm
     module load cray-python/3.11.5
     module load cray-hdf5-parallel/1.12.2.5
-    #export LD_LIBRARY_PATH="$CRAY_LD_LIBRARY_PATH":"$LD_LIBRARY_PATH"
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"/opt/cray/pe/python/3.11.5/lib"
+    export PROD_LD_LIBRARY_PATH="/opt/cray/pe/python/3.11.5/lib"
     export PYTHONEXE=python3
     
 elif [ "$MAC" = "atlas" ]; then
@@ -718,20 +711,15 @@ else
     fi
 fi
 
-export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin
-export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib"
-export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pysite"
+export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PROD_PATH
+export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib":$PROD_LD_LIBRARY_PATH
+export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pysite":$PROD_PYTHONPATH
 
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths
     PATH="${PATH//$OLD_PATHL/}"
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH//$OLD_LD_LIBRARY_PATHL/}"
     PYTHONPATH="${PYTHONPATH//$OLD_PYTHONPATHL/}"
-    
-    # Remove empty paths
-    PATH=$(echo "$PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
-    LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
-    PYTHONPATH=$(echo "$PYTHONPATH" | sed 's/::\+/:/g; s/^:\|:$//g')
 fi
 
 # Prefix with new paths
@@ -750,5 +738,10 @@ if [ -n "$PYTHONPATH" ]; then
 else
     export PYTHONPATH=$PYTHONPATHL
 fi
+
+# Remove empty paths
+PATH=$(echo "$PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
+LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
+PYTHONPATH=$(echo "$PYTHONPATH" | sed 's/::\+/:/g; s/^:\|:$//g')
 
 echo '>> Hello from '$MAC', '$ELSAPROD' production is set.'
