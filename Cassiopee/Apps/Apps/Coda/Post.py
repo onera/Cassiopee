@@ -192,7 +192,7 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
         return zw, coefs
 
 
-def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, check=False, verbose=False):
+def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt', check=False, verbose=False):
     """ Surface quantity post-processing for CODA IBM computation using FSUI-CODA.
     Usage: computeSurfValues(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, check, verbose)"""
     import json
@@ -287,14 +287,22 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
 
     if Cmpi.master:
-        print("\nIntegrated coefficients:")
-        print("CD=      %g"%coefs[0])
-        print("CDfric=  %g"%coefs[2])
-        print("CDpres=  %g"%coefs[3])
-        print("CL=      %g"%coefs[1])
-        print("CLfric=  %g"%coefs[4])
-        print("CLpres=  %g"%coefs[5])
-
+        with open(fileNameCoefOut, 'w') as f:
+            lines = [
+                "\nIntegrated coefficients:",
+                "\n ==== DRAG ==== :",
+                "CD=      %g" % coefs[0],
+                "CDfric=  %g" % coefs[2],
+                "CDpres=  %g" % coefs[3],
+                "\n ==== LIFT ==== :",
+                "CL=      %g" % coefs[1],
+                "CLfric=  %g" % coefs[4],
+                "CLpres=  %g" % coefs[5],
+            ]
+            output = "\n".join(lines)
+            print(output, flush=True) 
+            f.write(output + "\n") # file
+        
     if fileNameResultOut is not None:
         if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
         return None
