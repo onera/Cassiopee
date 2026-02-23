@@ -1,0 +1,65 @@
+##Comments on Proxy & GitHub
+
+## ==========================================
+## ============= SETTING UP GIT =============
+## ==========================================
+##Taken from Notus Open source code: https://doc.notus-cfd.org/da/dcb/howto_gitusage.html
+
+Follow these instructions to setup essential information on your machine.
+
+#User information.
+
+Your name and your email address must be joined to your commits. These commands set values to use (change "First Last" by your first and last names and change first.last@domaine.tld by your e-mail address):
+
+git config --global user.name "First Last"
+git config --global user.email first.last@onera.fr
+
+
+#Interface preferences.
+
+Set your preferred text editor to edit commit messages:
+
+git config --global core.editor emacs
+
+Enable colored messages in your terminal, which is more convenient to read:
+
+git config --global color.diff auto
+git config --global color.status auto
+git config --global color.branch auto
+
+Caution: Git uses the less pager which may not display colors correctly (as in condor). If you encounter this issue, type the following command:
+
+git config --global core.pager "less -R"
+
+
+## ==========================================
+## ============= PROXY SETTINGS =============
+## ==========================================
+#To clone remote repositories in github the following proxy settings are needed:
+export no_proxy=.onera.net,.onera.fr,.onecert.fr
+export http_proxy=http://proxy.onera:80
+export https_proxy=http://proxy.onera:80
+
+## ==================================================
+## ============= Personal Access Token  =============
+## ==================================================
+##Taken from stackoverflow (https://stackoverflow.com/questions/68775869/message-support-for-password-authentication-was-removed-please-use-a-personal) with comment with highest score.
+
+From 2021-08-13, GitHub is no longer accepting account passwords when authenticating Git operations.
+You need to add a PAT (Personal Access Token) instead, and you can follow the below method to add a PAT on your system.
+
+##Create Personal Access Token on GitHub
+From your GitHub account, go to Settings → Developer Settings → Personal Access Token → Generate New Token (Give your password) → Fillup the form → click Generate token → Copy the generated Token
+
+$ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+> Cloning into `YOUR-REPOSITORY`...
+Username: <type your username>
+Password: <type your password or personal access token (GitHub)
+
+Now cache the given record in your computer to remembers the token:
+
+$ git config --global credential.helper cache
+If needed, anytime you can delete the cache record by:
+
+$ git config --global --unset credential.helper
+$ git config --system --unset credential.helper

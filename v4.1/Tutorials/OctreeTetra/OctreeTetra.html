@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+
+<body>
+<h1>Generator : generate an unstructured octree</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+
+    <p>This tutorial demonstrates how to generate an unstructured octree mesh
+    and adapt it according to a sensor defined on the octree. <br></p>
+<hr>
+  <table class="tableGalleryTwoColumns">
+    <tr>  
+      <td>
+        <img src="cat.png" onclick="img_box(this)"><br>
+        Unstructured octree mesh without boundary layer around a cat body.<br><br><br>
+      </td>
+      <td>
+        <img src="catBL.png" onclick="img_box(this)"><br>
+        Unstructured octree mesh with a boundary layer around a cat body.<br><br><br>
+      </td>
+    </tr>
+  </table>
+
+     <p>The input of the script must be a triangulated surface mesh, closed and watertight, and already 
+     correctly meshed for CFD.<br><br>
+
+     If the parameter hWall is positive, a prismatic boundary layer is generated from the input surface using <span style="font-family: courier new,monospace;">G.addNormalLayers</span>. By default, the boundary layer consists in two extrusions with different geometric series.<br><br>
+
+     An unstructured octree is generated around the surface (the body surface or the external face of the boundary layer)
+     using <span style="font-family: courier new,monospace;">G.octree</span>. By default, the snear parameter is automatically calculated with respect to the averaged size of the surface elements. By default, the dfar parameter is equal to 10 times the maximum size of the body. If needed, these parameters can be modified in the script.<br><br>
+
+     If the input case contains a 'Refine' base, then the surfaces defined in this base are used to 
+     refine locally the octree using <span style="font-family: courier new,monospace;">G.adaptOctree</span>.<br><br>
+
+     An offset surface, located to a certain distance of the input surface (the body surface or the external face of the boundary layer) is then computed.
+     This surface digs a hole in the octree using <span style="font-family: courier new,monospace;">X.blankCells</span>.<br><br>
+      
+     Then the space is filled with tetras using <span style="font-family: courier new,monospace;">G.tetraMesher</span>.<br>
+
+      <br><br>
+      <a href="catR.cgns">[Download case file].</a><br><br>
+      <a href="octree.py">[Download python script].</a><br>
+
+     
+      <hr>
+    </p>
+<p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+          
+<footer class="footerIndex">
+  <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+</footer>
+        
+</body>
+</html>

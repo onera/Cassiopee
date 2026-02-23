@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>Python: running Cassiopee scripts</h1>
+<hr>
+
+   This tutorial shows how to run Cassiopee scripts using python.<br>
+   If you dont have a script, you can try this one:
+    <a href="tuto1.py">[Download python script].</a><br>
+<hr>
+
+   This tutorial supposed that Cassiopee is installed in the directory
+   CASSIOPEE.
+
+   <h3> Environement </h3>
+   <strong>Under Windows:</strong>
+   In the windows menu, open the Cassiopee folder. Click on the "Command Shell"
+   of Cassiopee. This will open a dos interpreter with the ready environment
+   to run Cassiopee scripts. If you don't want to use this short cut,
+   you can load by yourself the file CASSIOPEE/Dist/env_Cassiopee.bat
+   depending on the version you have downloaded.<br><br>
+
+   Cassiopee can take advantage of multi cores using (here 4 cores):<br>
+   set OMP_NUM_THREADS=4<br><br>
+
+   Running python script is done with:<br>
+   python tuto1.py<br><br>
+
+
+   <strong>Under Unix shell (sh/bash/ksh):</strong>
+   Loading environment is done with:<br>
+   . $CASSIOPEE/Dist/sh_Cassiopee<br><br>
+
+   Cassiopee can take advantage of multi cores using (here 4 cores):<br>
+   export OMP_NUM_THREADS=4<br><br>
+
+   Running python script is done with:<br>
+   python tuto1.py <br><br>
+
+   If you use mpi in your script (C.mpi, etc...), you must run:<br>
+   mpirun -np 2 python tuto.py<br><br>
+
+   <strong>Under Unix C-shell (csh/tcsh):</strong>
+   Loading environment is done with:<br>
+   source $CASSIOPEE/Dist/env_Cassiopee<br><br>
+
+   Cassiopee can take advantage of multi cores using:
+   setenv OMP_NUM_THREADS=4<br><br>
+
+   Running python script is done with:<br>
+   python tuto1.py <br><br>
+
+   If you use mpi in your script (C.mpi, etc...), you must run:<br>
+   mpirun -np 2 python tuto.py<br><br>
+
+
+   <br><br>
+     
+   <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

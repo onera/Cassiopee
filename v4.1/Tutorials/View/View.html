@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiopée* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../Images/iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+
+<h1>tkCassiopee : viewing</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+
+   <p>This page describes how to change and customize the view. </p>
+
+<hr>
+
+   <p>You should already have read <a href="../Controls/Controls.html">how to select zones</a> and <a href="../OpeningApplets/OpeningApplets.html">how to open applets</a>.</p>
+
+   <p>
+   If you don't have a file to manipulate, try this sample file:
+   <a href="tryView.cgns">[tryView.cgns].</a></p>
+
+<hr>
+
+<h3>View</h3>
+
+<p>
+Open <strong>Visu::tkView</strong> by right clicking on Visu and choosing tkView:</p>
+
+<p>
+<img src="tkView.png" onclick="img_box(this)", width=200><br>
+<strong>tkView applet.</strong>
+</p>
+
+<p>
+- The first line of widgets (XY - YZ - XZ) are used to quickly set a
+view aligned with the axis.<br><br>
+
+- The 3D/2D widget is used to switch to a 2D view. Note that in 2D mode,
+the view is automatically XY.<br><br>
+
+- The next widget is used to toggle the view type between 
+Mesh/Solid/Render/Scalar/Vector.  Mesh view displays wireframe meshes.
+Solid view displays plain mesh faces. Render is a mode, where
+you can customize the display style zone by zone. It will be further
+explained in the "Render mode" section. Scalar is used to display 
+a simple scalar field using color maps.
+Vector can display vector fields. Those two modes are detailed in
+next tutorials.<br>
+
+For each view type, you can change your prefered style.<br><br>
+
+- The AEdges and DEdges button are used to display the activated/deactivated
+ zone contours. <br><br>
+
+- The next line is used to save the view settings into the CGNS tree.
+Thanks to that you can save your view settings and reload it later.
+Note that you can save different settings in different slots.<br>
+</p>
+
+<h3>Render mode</h3>
+
+<p>
+- In tkView: switch to render mode using the view type toggle 
+button (second line).<br>
+In this mode, you will be allowed to set a different rendering type for
+each zone.</p>
+
+<p>- Open <strong>Render::tkRenderSet</strong>: </p>
+
+<p>
+<img border="0" src="tkRenderSet.png" onclick="img_box(this)", width=200><br>
+<strong>tkRenderSet applet.</strong></p>
+
+<p>
+- Select a zone (either by shift+click in the graphic window) or by shift-click
+in the tkTree window).<br>
+Select a material in tkRenderSet (Solid/Flat/Glass...),<br>
+Then choose a color. If a field is defined in zones, you can use it as a color.<br>
+Then click on "Set all properties". <br><br>
+
+- You can refine the settings using the two first line widgets:<br>
+The first slider enable to use transparency. <br>
+The second enables to display an additional wireframe mesh.<br>
+The third and fourth widgets enable fine tuning of the material settings. </p>
+
+<p>
+<img src="sample.png" onclick="img_box(this)", width=300><br>
+Example of rendering.</p>
+
+<h3>Render effects</h3>
+
+<p>
+Additional effects can be added with <strong>Render::tkEffects</strong>.<br>
+With this applet, you can add shadow and set the shadow angles.<br> 
+Depth of field can also be added. This effect blurs far objects as for real
+photography.<br>
+You can finally set the gamma correction of the global image. The enables
+to make the image looks brighter or darker.<br>
+</p>
+
+
+<hr>
+<p><a href="../Tutorials.html">Return to the tutorials page.</a></p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+</footer>
+     
+
+
+</body>
+</html>

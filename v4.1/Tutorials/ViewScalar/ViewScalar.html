@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiopée* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../Images/iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+
+<h1>tkCassiopee : viewing a scalar field</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+<p>
+      This page describes how to display a scalar field with Cassiopee. <br>
+      If you don't have a file to manipulate, try this sample file:
+      <a href="tryScalar.cgns">[tryScalar.cgns].</a></p>
+
+<hr>
+<p>
+      Open the file by typing: cassiopee tryScalar.cgns.<br>
+
+      Open the <strong>Visu::tkView</strong> applet by right clicking on the Visu icon and selecting tkView.<br>
+
+      Finally choose "Scalar" for the display mode instead of "Mesh".<br>
+      You can move the iso line slider to make the isolines appear in black.</p>
+
+      <p>
+      <img src="tkViewScalar.png" onclick="img_box(this)", width=300></p>
+      
+      <p>
+      - The widget "Field" is used to select the field to display. <br><br>
+
+      - The second one enables to choose the style for scalar display. You can switch between Iso-colored Bands or Iso-Colored lines. You
+      can also add a surimposed mesh.<br><br>
+
+      - The third row enables to choose the number of Iso-colored bands or lines and the slider
+      enables to grow the line size.<br><br>
+
+      - The fourth row is for setting the min/max displayed values. You can adjust those values by typing
+      them or by using the slider. Furthermore, if you select a zone and click on the min or max button,
+      the values will be set to the min and max values of the field for this zone.<br><br>
+
+      - The fifth row is for adding color legend, choosing the colormap and toggling light.<br><br>
+
+      - The sixth row enables to add the edges of activated or deactivated zones (only for structured grids).<br><br>
+
+      - The last row enables to save your view settings in the tree, such that you can recover them later.
+      The camera view and the min/max values are saved.</p>
+
+
+      <br><br>
+      
+      <p>
+      <img src="sphere2.png" onclick="img_box(this)", width=300><br>
+      Example of view using diverging colormap with Iso-colored bands.</p>
+
+
+<hr>
+<p><a href="../Tutorials.html">Return to the tutorials page.</a></p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+</footer>     
+
+
+</body>
+</html>

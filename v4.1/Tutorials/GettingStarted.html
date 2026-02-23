@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Getting started</title>
+    <link href="../Cassiopee.css" rel="stylesheet" type="text/css">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head>
+
+  
+<body>
+<h1>Getting started</h1>
+    <h2>Author : Onera / DSNA</h2>
+    <h2>Date   : 11/11/2010</h2>
+
+<hr>
+This page describes how to use *Cassiopee* package for simple
+pre- and post-processing tasks of Computational Fluid Dynamics workflow. 
+Functions of the package can be accessed through python scripts or 
+through the Graphical User Interface. Examples are given for each module.
+
+<h3>Converter</h3>
+<table border="2" cellspacing="1" cellpadding="1">
+<tr><td>Python script</td> <td>GUI</td> <td>View of the result</td></tr>
+<tr>
+<td>
+<div class="code">
+# Reading data from a file in a pyTree t <br>
+import Converter.PyTree as C  <br>
+t = C.convertFile2PyTree('file1.plt')  <br>
+# Read another file  <br>
+t2 = C.convertFile2PyTree('file2.cgns')  <br>
+# Merge in one tree  <br>
+t = C.merge(t, t2) <br> 
+# Save full tree  <br>
+C.convertPyTree2File(t, 'out.cgns')
+</div>
+</td>
+<td>
+<div class="code">
+File/Open. Select file 'file1.plt'. <br>
+File/Add. Select file 'file2.cgns'. <br>
+File/Save. Enter 'out.cgns'.
+</div>
+</td>
+<td><img src="converter1.png" border="0"></td>
+</tr>
+</table>
+
+<h3>Geom</h3>
+Create analytical surface.
+
+<h3>Generator</h3>
+Basic grids. <br>
+Boolean operators. <br>
+Gap fixing. <br>
+Cartesian mesh generator. <br>
+
+<h3>Transform</h3>
+
+<hr>
+    <a href="Userguide.html">Return to main userguide</a><p>
+    <address><a href="mailto: benoit.christophe@onera.fr"></a></address>
+  </body>
+</html>

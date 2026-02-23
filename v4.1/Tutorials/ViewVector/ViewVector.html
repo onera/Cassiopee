@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiopée* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../Images/iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+<h1>tkCassiopee : viewing a vector field</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+
+      <p>
+      This page describes how to display a vector fields with Cassiopee. <br>
+      If you don't have a file to manipulate, try this sample file:
+      <a href="tryVector.cgns">[tryVector.cgns].</a></p>
+
+<hr>
+      <p>
+      Open the file by typing: cassiopee tryVector.cgns.<br>
+
+      Open the <strong>Visu::tkView</strong> applet by right clicking on the Visu icon and selecting tkView.<br>
+
+      Finally choose "Vector" for the display mode instead of "Mesh".<br>
+      Choose "Vector arrows" for vector style.<br>
+      Reduce the size of arrows, by moving the first slider.<br>
+      </p>
+
+      <p>
+     <img src="tkViewVector.png" onclick="img_box(this)", width=300></p>
+      
+     <p>
+      - The widget "Style" enables to choose the style for rendering vectors. They can be dispayed as
+      lines or arrows. For lines, the tail of vector is white and the head is colored by
+      the vector norm. Arrows are also colored by the vector norm. The colormap used
+      is the one of the Scalar mode.<br><br>
+
+      - The second row enables to define the scale of vectors, that is the length of lines or arrows.<br><br>
+
+      - The third row enables to define the density of vectors. When set to zero, every mesh element
+      will emit a vector. When non null, you can display less or more vectors than the number of mesh cells.<br><br>
+
+      - The following rows are used to define the variables used for vectors.<br><br>
+
+      - Finally a set of options is available. If you select "Normalize", normalized vectors will be displayed.
+      When using the "Vector arrows" style, you can also toggle the surface and eventually project the vector on the mesh surface.
+     </p>
+
+      
+      
+      <p>
+      <img border="0" src="sphere1.png" onclick="img_box(this)", width=300><br>
+      Example of view using arrows.</p>
+
+<hr>
+<p><a href="../Tutorials.html">Return to the tutorials page.</a></p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+</footer>
+
+
+</body>
+</html>

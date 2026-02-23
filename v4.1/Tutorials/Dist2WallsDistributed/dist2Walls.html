@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>Dist2Walls: computes the distance field with a distributed tree</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to compute the distance to walls for a 
+    distributed pyTree. A distributed pyTree means that zones are
+    distributed on different processors.<br>
+</p>
+<hr>
+        
+<br>
+<center>
+<img src="dist2Walls.png" onclick="img_box(this)" width=600><br>
+<strong> Distance field for a distributed pyTree.</strong><br><br><br>
+</center>
+
+<p>
+   The first script is only used to setup the case.
+   Second script performs the computation of wall distance. 
+   It is executed on each processor and must be launched with 
+   <span style="font-family: courier new,monospace;">mpirun -np 10 python dist2Walls.py.</span>
+
+   It loads walls.cgns on every processors, then it loads only the skeleton
+   of the pyTree to be computed. Then a distribution is performed
+   to determine which zone must be loaded on each processor.
+   Since wall distance computation doesn't require any communications
+   once the walls are defined, useCom=0 and fast algorithm are chosen.
+   
+   Then, only certain zones are loaded on processor according to the 
+   distribution using <span style="font-family: courier new,monospace;">C.readZones</span>. Skeleton tree is then converted to
+   a partial tree, that is a tree where only loaded zones are defined.
+   Dist2Walls are computed on local zones.
+
+   Finally, each processor write its zones to a common file using
+   <span style="font-family: courier new,monospace;">Cmpi.convertPyTree2File</span>.<br><br>
+
+
+    <a href="case.py">[Download case script].</a><br><br>
+    <a href="dist2Walls.py">[Download python script].</a><br>
+</p>
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

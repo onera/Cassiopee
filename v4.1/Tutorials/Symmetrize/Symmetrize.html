@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiopée* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../Images/iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+<h1>Transform : symmetrize a configuration</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+
+      <p>This tutorial demonstrates how to get a full configuration case
+      from a symmetric case with respect to a plane, keeping solution, 
+      boundary conditions and connectivity. </p>
+<hr>
+    <table class="tableGalleryTwoColumns">
+        <tr>  
+          <td>
+            <img src="symmetrize1.png" onclick="img_box(this)"><br>
+            Half cylinder.<br><br><br>
+          </td>
+          <td>
+            <img src="symmetrize2.png" onclick="img_box(this)"><br>
+            Symmetrize half a cylinder case with respect to y=0 plane.<br><br><br>
+          </td>
+        </tr>
+      </table>
+
+
+
+    <p>
+     <!-- Symmetrize half a cylinder case with respect to y=0 plane by S. Péron.<br><br> -->
+     To get a full configuration from a symmetric case according to a plane 
+     x=a (resp. y=a, z=a), 
+     we first symmetrize the mesh using the function
+     <span style="font-family: courier new,monospace;">T.symetrize</span>.
+    <br>
+     The generated blocks are generally ordered in an indirect way.
+     To get this right, we use 
+     <span style="font-family: courier new,monospace;">T.reorder</span>.     
+     Finally, the BCSymmetryPlane boundary condition is removed
+     and replaced by match boundary conditions using
+      <span style="font-family: courier new,monospace;">X.connectMatch</span>. 
+      <br>
+
+      As a result, a full configuration with 
+      solution and correct boundary conditions is obtained.<br><br>
+      </p>
+
+     <p>
+     <a href="symmetrize.py">[Download python script].</a><br>
+     </p>
+
+<br>
+<hr>
+<p><a href="../Tutorials.html">Return to the tutorials page.</a></p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+</footer>
+
+
+</body>
+</html>
+

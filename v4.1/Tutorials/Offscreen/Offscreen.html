@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>CPlot : offscreen rendering</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to use offscreen rendering and
+    dump an image or a mpeg movie.<br>
+
+</p>
+<hr>
+    
+<br>
+<center>
+<img src="film.gif" onclick="img_box(this)" width=400><br>
+<strong> Rotating cube.</strong><br><br><br>
+</center>
+
+<p>
+
+     CPlot can render in an image file or in a mpeg movie file. <br>
+     User graphic card's or graphic library will impact the ability to dump a mpeg file. 
+     If you are using CPlot on a cluster (with no graphic card),
+     it must be installed with mesa. Then, when using 
+     <span style="font-family: courier new,monospace;">CPlot.display</span>,
+     offscreen is triggered with offscreen=1.<br>
+     If you are using CPlot on a computer with a graphic card,
+     you must use offscreen=2. <br>
+     In this tutorial, we consider a Cartesian grid, make it rotate
+     with  <span style="font-family: courier new,monospace;">T.rotate</span>,
+     and dump image to a file at each step.
+     The movie must be finalized at the end. A wait time is added before
+     finalizing to be sure that render is finished.<br><br>
+     
+     <a href="export.py">[Download python script].</a><br>
+
+</p>   
+     
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

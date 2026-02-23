@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>ExtractMesh: interpolation in a distributed context</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to interpolate the field of a donor
+    mesh to a receiver mesh in a distributed context.<br>
+</p>
+<hr>
+<table class="tableGalleryTwoColumns">
+    <tr>  
+      <td>
+        <img src="interpol0.png" onclick="img_box(this)"><br>
+        The donor (with density field) and receiver meshes.<br><br><br>
+      </td>
+      <td>
+        <img src="interpol1.png" onclick="img_box(this)"><br>
+        Interpolated mesh with distributed pyTrees.<br><br><br>
+      </td>
+    </tr>
+  </table>
+<br>
+
+<p>
+   Function <span style="font-family: courier new,monospace;">P.extractMesh</span> provides interpolation from one donor mesh to a receiver mesh.
+   In order to make interpolation process faster, it is possible to use it
+   in a distributed context on N processors.
+
+   First the case must be prepared. We suggest to over split the donor
+   mesh in 3*N parts and to split to the receiver mesh in N parts. 
+   When this is done, <span style="font-family: courier new,monospace;">Pmpi.extractMesh</span> will only get the necessary blocks for interpolation
+   on one processor. 
+
+   <br><br>
+
+    <a href="case.py">[Download case script].</a><br><br>
+    <a href="extractMesh.py">[Download python script].</a><br>
+</p>
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>
+

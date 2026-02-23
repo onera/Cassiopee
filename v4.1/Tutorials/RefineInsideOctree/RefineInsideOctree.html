@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+<h1>Generator : refine an octree inside a surface</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+      This tutorial demonstrates how to refine an octree mesh inside a surface until the finest level is set to the inside elements. <br>
+</p>
+
+<hr>
+    <table class="tableGalleryTwoColumns">
+      <tr>  
+        <td>
+          <img src="refineOctree2.png" onclick="img_box(this)"><br>
+          Cut of a not refined Octree.<br><br><br>
+        </td>
+        <td>
+          <img src="refineOctree+sph.png" onclick="img_box(this)"><br>
+          Cut of a refined Octree according to a sphere.<br><br><br>
+        </td>
+      </tr>
+    </table>
+
+      <!-- Refinement of an octree inside a circle by S. Peron.<br><br> -->
+<p>
+By default, an octree is refined in the vicinity of an input surface.
+      
+To refine an octree everywhere in the surface inside, we use 
+the functions <span style="font-family: courier new,monospace;">X.blankCells</span> and <span style="font-family: courier new,monospace;">G.adaptOctree</span>.<br>
+
+<span style="font-family: courier new,monospace;">X.blankCells</span> is used to  determine which points are inside the provided surface. The cellN value equal to 0 corresponds to a point inside the surface.
+A refinement indicator is computed according to the cellN value and 
+according to the volume of cells of the initial finest level. Points of finest levels marked with a cellN=0 are not refined.
+<br><br>
+      
+<a href="refineInsideOctree.py">[Download python script].</a><br>
+<br>
+</p>
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

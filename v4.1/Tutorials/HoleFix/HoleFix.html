@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : closing/fixing holes in a surface</h1>
+<hr>
+
+      This tutorial demonstrates how to obtain a closed surface from 
+      an open surface. Using a closed surface is usefull for
+      a variety of algorithms.<br>
+
+      You should already have read <a href="../Controls/Controls.html">how to select zones</a> and <a href="../OpeningApplets/OpeningApplets.html">how to open applets</a>.<br>
+      <a href="tryHoleFix.cgns">[Dowload sample file].</a><br>
+<hr>
+      &nbsp; &nbsp;
+      <a href="sphere1.png"><img border="0" src="sphere1_.png"></a>
+      <a href="sphere2.png"><img border="0" src="sphere2_.png"></a><br>
+      &nbsp; &nbsp;
+      <a href="sphere3.png"><img border="0" src="sphere3_.png"></a>
+      <a href="sphere4.png"><img border="0" src="sphere4_.png"></a>
+
+<br>
+     &nbsp; &nbsp; &nbsp; 
+     Closing/fixing a hole in a sphere by C. Benoit.<br><br>
+
+     As a start, we consider an open sphere (Fig. 1) made of structured patches.
+ 
+     We want to obtained a close, 
+     watertight surface from this sphere. <br><br>
+
+     <strong>Step 1: get a single triangular zone</strong><br>
+     First, we will convert structured blocks to a single triangle zone.
+     You can of course bypass this step if your surface is already 
+     triangular.<br>
+
+     First open <strong>Block::tkBlock</strong> and  
+     <strong>Block::tkSplit</strong>. Then, select all 
+     blocks and convert them 
+     to triangles using <strong>Block::tkBlock::convert2Tetra</strong>. 
+     Once done,
+     join all zones in a single zone using 
+     <strong>Block::tkSplit::join</strong> (Fig. 2). <br><br>
+
+     <strong>Step 2: get the hole contours</strong><br>
+     Get the exterior edges of this surface using 
+     <strong>Block::tkBlock::ExteriorFaces</strong> (Fig. 3). <br><br>
+
+     <strong>Step 3: fill the hole contours</strong><br>
+     Open <strong>Surf::tkFixer2</strong>.
+     Select the exterior edges, and
+     create the filling surface with 
+     <strong>Surf::tkFixer2::Fix gap in contour</strong>.
+     You can bump more or less the filling surface using the slider.<br><br>
+     Finally, delete the exterior edges zone and join all zone in one (Fig. 4).<br>
+     
+     <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

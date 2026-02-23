@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+<h1>Connector: computation of periodic match connectivity</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to compute the periodic match connectivity in the case of an azimuthal periodicity. <br>
+</p>
+
+<hr>
+<br>
+<center>
+<img src="connectMatchPer.png" onclick="img_box(this)" width=400><br>
+<strong> Periodic match connectivity (in blue) of a quarter of cylinder.</strong><br><br><br>
+</center>
+
+<p>
+    Suppose you have a periodic mesh in azimuth and want to compute
+    the periodic match connectivity. <br>
+
+    The idea is to duplicate the meshes by rotation and then perform
+    a <span style="font-family: courier new,monospace;">X.connectMatch</span>
+    on the full mesh. Since zone names in the duplicated mesh
+    are the same as in original mesh, this will result in a correct
+    connectivity. Then, we perform the same thing for the other direction.
+    <br><br>
+    
+    <a href="connectMatchPer.py">[Download python script].</a><br><br>
+</p>
+
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

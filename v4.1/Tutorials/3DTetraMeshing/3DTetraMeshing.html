@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : 3D tetra meshing</h1>
+<hr>
+
+      This tutorial demonstrates how to generate a tetra mesh
+      around surface geometry made of triangles.<br>
+      If you don't have a surface geometry, try this sample file:<br>
+      <a href="try2DGeometry.cgns">[Dowload sample file].</a>
+<hr>
+
+     <h3>Checking surface</h3>
+
+     To be meshed with tetras, the surface must be water-tight and
+     the normals must be externally oriented to mesh the domain interior.
+     <br><br>
+     
+     <h3>Tetra mesh generation</h3>
+     Select all border lines either by shift+ctrl on the border in
+     the graphics window or by clicking on "tree" in the TkTree.<br>
+     Open <strong>Mesh::tkTetraMesher</strong> and click on 'tetraMesher'.<br><br>
+
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+     <a href="step1.png"><img border="0" src="step1_.png"></a><br>
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+     
+     Eventually, if the profile is badly oriented and a triangle mesh
+      has been generated inside the profile,
+      you can get it right: open 
+     <strong>Block::tkReorder</strong>. Select I->-I, select the profile 
+     and click on 'Reorder', then regenerate the triangle mesh.<br>
+
+     <h3>Smoothing</h3>
+
+     If you want to smooth the mesh, open <strong>Mesh::tkSmooth</strong>.
+     Select the mesh and click on 'Smooth'.<br><br>
+     
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step2.png"><img border="0" src="step2_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+
+      <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+      <table border="1", width="90%", height="40">
+      <tr>
+      <td>
+      <font size="-1" face="sans-serif">
+      <strong>More:</strong>
+      <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+      <br>
+
+      </td>
+      </tr>
+      </table>
+      </div> 
+
+
+      <hr>
+
+</body>
+</html>

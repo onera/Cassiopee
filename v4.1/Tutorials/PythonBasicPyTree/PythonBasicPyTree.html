@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>Python: basic python programming with pyTree interface</h1>
+<hr>
+
+   This tutorial shows some basics using Cassiopee pyTree API.
+   The pyTree is a mapping of CGNS standard.<br>
+<hr>
+
+<br>
+We need first to provide access to the module functions 
+(here <span style="font-family: courier new,monospace;">Converter</span>
+and <span style="font-family: courier new,monospace;">Generator</span>):
+<div class="code">
+      import Converter.PyTree as C<br>
+      import Generator.PyTree as G
+</div>
+<br>
+
+  Create a structured array corresponding to a regular Cartesian grid:
+<div class="code">
+     a = G.cart( (0,0,0), (1,1,1), (10,11,12) )
+</div>
+<br>
+
+  a is then a zone node. Each node of a pyTree is a python list of
+  of type: ['Name', n, [], 'NodeType_t'] where
+  'Name' is the name if the node, n is a numpy containing the data,
+  [] is a list of sons of this node, 'NodeType_t' describes the type of node.<br>
+  You can of course manipulate the nodes with direct access:
+<div class="code">
+  print(a[2][0])
+</div>
+  But, it is easier to use the Internal module.
+<br><br>
+  Print to screen the zone node:
+<div class="code">
+  Internal.printTree(a)
+</div>
+<br>
+  You can always access the numpy storing data, for example
+  'CoordinateX' by:
+<div class="code">
+  n = Internal.getNodeFromName(a, 'CoordinateX')[1]
+</div>
+<br>
+   Convert the previous array as an HEXA unstructured array:
+<div class="code">
+   b = C.convertArray2Hexa(a)
+</div>
+   Cassiopee functions return a copy of zone a.
+
+   It is possible to modify directly a without copy (the so called
+   in-place treatment). Simply call the function preceded by a _:
+   
+<div class="code">
+   C._convertArray2Hexa(a)
+</div>
+   a is then modified.
+
+   <br><br>     
+   <a href="tuto1.py">[Download python script].</a><br>
+     
+   <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
+

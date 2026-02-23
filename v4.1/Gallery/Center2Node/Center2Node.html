@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Gallery</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+
+<body>
+<hr>
+<h1>Post : visualizing/manipulating fields defined on mesh centers</h1>
+<hr>
+     CFD solvers often provide a solution defined on mesh centers.
+     For visualisation of structured grids, Cassiopee provides the 
+     <span style="font-family: courier new,monospace;">C.center2Node</span> 
+     function that takes into account the matching connectivity if it is
+     defined in the computational tree:
+
+<hr>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="sans_raccords.png"><img border="0" src="sans_raccords_.png"></a>
+      <a href="raccords.png"><img border="0" src="raccords_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      A center field solution visualized on nodes without matching boundary conditions (left) and with (right).<br><br>
+
+      Similarily, gradients and gradient based computations of variables
+      using <span style="font-family: courier new,monospace;">P.grad</span> 
+      <span style="font-family: courier new,monospace;">P.computeVariables</span> or <span style="font-family: courier new,monospace;">P.computeExtraVariables</span> use matching connectivity if defined:<br>
+      
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="gradDensity2.png"><img border="0" src="gradDensity2_.png"></a>
+      <a href="gradDensity.png"><img border="0" src="gradDensity_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      Gradient's norm of density visualized on nodes without matching boundary conditions (left) and with (right).<br><br>
+      
+
+      <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+      <table border="1", width="90%", height="40">
+      <tr>
+      <td>
+      <font size="-1" face="sans-serif">
+      <strong>More:</strong>  
+      <a href="../Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Tutorials/Tutorials.html">Tutorials</a> -
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a> -
+      <br>
+      </td>
+      </tr>
+      </table>
+      </div> 
+
+
+      <hr>
+
+</body>
+</html>
