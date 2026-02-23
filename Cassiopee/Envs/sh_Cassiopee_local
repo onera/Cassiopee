@@ -740,8 +740,10 @@ else
 fi
 
 # Remove empty paths
-PATH=$(echo "$PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
-LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed 's/::\+/:/g; s/^:\|:$//g')
-PYTHONPATH=$(echo "$PYTHONPATH" | sed 's/::\+/:/g; s/^:\|:$//g')
+for var in PATH PATHL LD_LIBRARY_PATH LD_LIBRARY_PATHL PYTHONPATH PYTHONPATHL; do
+    value="${!var}"
+    value=$(printf '%s' "$value" | sed -e 's/::\+/:/g' -e 's/^://' -e 's/:$//')
+    printf -v "$var" '%s' "$value"
+done
 
 echo '>> Hello from '$MAC', '$ELSAPROD' production is set.'
