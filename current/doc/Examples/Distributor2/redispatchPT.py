@@ -36,7 +36,7 @@ Cmpi._convert2PartialTree(a)
 D2mpi._redispatch(a)
 
 # force toutes les zones sur 0
-zones = Internal.getNodesFromType(a, 'Zone_t')
+zones = Internal.getZones(a)
 for z in zones:
     nodes = Internal.getNodesFromName(z, 'proc')
     Internal.setValue(nodes[0], 0)

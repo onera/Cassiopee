@@ -5,7 +5,7 @@ import Converter.Internal as Internal
 
 a = G.cart((0,0,0), (1,1,1), (10,10,10))
 t = C.newPyTree(['Base',a])
-b = Internal.getNodeFromName(t, 'Base')
+b = Internal.getNodeFromName1(t, 'Base')
 n = Internal.newBaseIterativeData(name='BaseIterativeData', nsteps=1, itype='IterationValues', parent=b)
 Internal.newDataArray('TimeValues', value=[0.], parent=n)
 Internal.newDataArray('NumberOfZones', value=[1], parent=n)

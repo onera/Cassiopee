@@ -114,8 +114,8 @@ possible. In particular, splitting a mesh does not maintain the grid connectivit
 <tr class="row-even"><td><p><a class="reference internal" href="#Transform.scale" title="Transform.scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.scale</span></code></a></p></td>
 <td><p>Scale a mesh following factor (constant) or (f1,f2,f3) following dir.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Transform.symetrize" title="Transform.symetrize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.symetrize</span></code></a></p></td>
-<td><p>Make a symetry of mesh from plane passing by point and of director vector: vector1 and vector2.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Transform.symmetrize" title="Transform.symmetrize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.symmetrize</span></code></a></p></td>
+<td><p>Make a symmetry of mesh from plane passing by point and of director vector: vector1 and vector2.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Transform.perturbate" title="Transform.perturbate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform.perturbate</span></code></a></p></td>
 <td><p>Perturbate a mesh randomly of radius Usage: perturbate(a, radius, dim)</p></td>
@@ -1026,17 +1026,17 @@ given, it is set to the barycenter of a.</p>
 
 <hr class="docutils" />
 <dl class="py function">
-<dt class="sig sig-object py" id="Transform.symetrize">
-<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">symetrize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector2</span></span></em><span class="sig-paren">)</span></dt>
+<dt class="sig sig-object py" id="Transform.symmetrize">
+<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">symmetrize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector2</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Symmetrize a mesh with respect to a plane defined by point P and vectors vector1 and vector2.</p>
-<p>Exists also as an in-place version (_symetrize) which modifies a and returns None.</p>
+<p>Exists also as an in-place version (_symmetrize) which modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>base</em><em>, </em><em>pyTree</em><em>]</em>) &#8211; mesh</p></li>
 <li><p><strong>C</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; point of the symmetry plane</p></li>
-<li><p><strong>vector1</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; first vector of the symetry plane</p></li>
-<li><p><strong>vector2</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; second vector of the symetry plane</p></li>
+<li><p><strong>vector1</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; first vector of the symmetry plane</p></li>
+<li><p><strong>vector2</strong> (<em>3-tuple</em><em> of </em><em>floats</em>) &#8211; second vector of the symmetry plane</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1050,28 +1050,28 @@ given, it is set to the barycenter of a.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Transform/symetrize.py">Symmetrize a mesh (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symetrize (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symmetrize (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="c1"># Symetrize regarding plane (x,z)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">symetrize</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="c1"># Symmetrize regarding plane (x,z)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Transform/symetrizePT.py">Symmetrize a mesh (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symetrize (PyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symmetrize (PyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-<span class="c1"># Symetrize regarding plane (x,z)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">symetrize</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;cart2&#39;</span>
+<span class="c1"># Symmetrize regarding plane (x,z)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">symmetrize</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">));</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s1">&#39;cart2&#39;</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">],</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1285,7 +1285,7 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 
 <span class="n">ni</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="n">nj</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="n">nk</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="n">ni</span><span class="p">,</span><span class="n">nj</span><span class="p">,</span><span class="n">nk</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dual</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">res</span><span class="p">],</span><span class="s1">&#39;out.tp&#39;</span><span class="p">)</span>
 </pre></div>
@@ -1300,7 +1300,7 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 
 <span class="n">ni</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="n">nj</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="n">ni</span><span class="p">,</span><span class="n">nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">dual</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
@@ -1334,7 +1334,6 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">breakElements</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
@@ -1351,7 +1350,6 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">breakElements</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
@@ -1366,7 +1364,7 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 <h3>Mesh splitting and merging</h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="Transform.subzone">
-<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">subzone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minIndex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxIndex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Transform.</span></span><span class="sig-name descname"><span class="pre">subzone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minIndex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxIndex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimOut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Extract a subzone.</p>
 <p>Extract a subzone of a structured mesh a, where min and max ranges  must be specified. Negative indices can be used (as in Python): -1 means max index:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">subzone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="n">imin</span><span class="p">,</span><span class="n">jmin</span><span class="p">,</span><span class="n">kmin</span><span class="p">),</span> <span class="p">(</span><span class="n">imax</span><span class="p">,</span><span class="n">jmax</span><span class="p">,</span><span class="n">kmax</span><span class="p">))</span>
@@ -1374,6 +1372,10 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 </div>
 <p>Extract a subzone of an unstructured mesh a, where the vertex list of the subzone must be specified (indices start at 1):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">subzone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">...</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Extract a subzone composed of 2D faces from a 3D unstructured mesh a, where the vertex list of the subzone must be specified (indices start at 1):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">subzone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">...</span><span class="p">],</span> <span class="n">dimOut</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Extract a subzone of an unstructured mesh providing the indices of elements (index starts at 0):</p>
@@ -1391,6 +1393,7 @@ Constraints can be defined in order to avoid smoothing of some points (for insta
 <li><p><strong>minIndex</strong> (<em>3-tuple</em><em> of </em><em>integers</em>) &#8211; (imin,jmin,kmin) for a structured grid, list of indices otherwise</p></li>
 <li><p><strong>maxIndex</strong> (<em>3-tuple</em><em> of </em><em>integers</em>) &#8211; (imax,jmax,kmax) for a structured grid, None otherwise</p></li>
 <li><p><strong>type</strong> (<em>None</em><em> or </em><em>string</em>) &#8211; type of subzone to perform (None, &#8216;elements&#8217;, &#8216;faces&#8217;)</p></li>
+<li><p><strong>dimOut</strong> (<em>integer</em>) &#8211; dimension of the output unstructured connectivity when type is None (None means same as the intput, -1 means 2D for a 3D input connectivity)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

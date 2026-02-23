@@ -117,37 +117,40 @@ pre- and post-processor for CFD simulations.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Post.selectCells2" title="Post.selectCells2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.selectCells2</span></code></a></p></td>
 <td><p>Select cells in a given array following tag.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.interiorFaces" title="Post.interiorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.interiorFaces</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.exteriorVertices" title="Post.exteriorVertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorVertices</span></code></a></p></td>
+<td><p>Exterior vertices of an array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.interiorFaces" title="Post.interiorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.interiorFaces</span></code></a></p></td>
 <td><p>Interior faces of an array a.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.exteriorFaces" title="Post.exteriorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorFaces</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.exteriorFaces" title="Post.exteriorFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorFaces</span></code></a></p></td>
 <td><p>Exterior faces of an array.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.exteriorFacesStructured" title="Post.exteriorFacesStructured"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorFacesStructured</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.exteriorFacesStructured" title="Post.exteriorFacesStructured"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorFacesStructured</span></code></a></p></td>
 <td><p>Return the list of exterior faces for a structured array Usage: exteriorFacesStructured(a,indices)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.exteriorElts" title="Post.exteriorElts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorElts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.exteriorElts" title="Post.exteriorElts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.exteriorElts</span></code></a></p></td>
 <td><p>Exterior elements of an array.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.frontFaces" title="Post.frontFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.frontFaces</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.frontFaces" title="Post.frontFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.frontFaces</span></code></a></p></td>
 <td><p>Select faces located in the front of tag=0 and tag=1.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.sharpEdges" title="Post.sharpEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.sharpEdges</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.sharpEdges" title="Post.sharpEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.sharpEdges</span></code></a></p></td>
 <td><p>Detect sharp edges between adjacent cells of a surface.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.silhouette" title="Post.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.silhouette</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.silhouette" title="Post.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.silhouette</span></code></a></p></td>
 <td><p>Detect shape of an unstructured surface.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.coarsen" title="Post.coarsen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.coarsen</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.coarsen" title="Post.coarsen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.coarsen</span></code></a></p></td>
 <td><p>Coarsen a surface TRI-type mesh given a coarsening indicator for each element.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id0" title="Post.refine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.refine</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#id0" title="Post.refine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.refine</span></code></a></p></td>
 <td><p>Refine a surface TRI-type mesh given an indicator for each element.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.computeIndicatorValue" title="Post.computeIndicatorValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.computeIndicatorValue</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Post.computeIndicatorValue" title="Post.computeIndicatorValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.computeIndicatorValue</span></code></a></p></td>
 <td><p>Computes the indicator value on the octree mesh based on the maximum value of the absolute value of indicField.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.computeIndicatorField" title="Post.computeIndicatorField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.computeIndicatorField</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Post.computeIndicatorField" title="Post.computeIndicatorField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.computeIndicatorField</span></code></a></p></td>
 <td><p>Compute the indicator -1, 0 or 1 for each element of the HEXA octree with respect to the indicatorValue field located at element centers.</p></td>
 </tr>
 </tbody>
@@ -173,18 +176,6 @@ pre- and post-processor for CFD simulations.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Post.usurp" title="Post.usurp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.usurp</span></code></a></p></td>
 <td><p>Extract unique surfaces using ranked polygons.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe" title="Post.Probe.Probe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Probe.Probe</span></code></a></p></td>
-<td><p>Probe for extracting data from fields during computations.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.Probe.Probe.extract" title="Post.Probe.Probe.extract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Probe.Probe.extract</span></code></a></p></td>
-<td><p>Extract XYZ or Ind fields from t.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Post.Probe.Probe.flush" title="Post.Probe.Probe.flush"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Probe.Probe.flush</span></code></a></p></td>
-<td><p>Flush probe to file.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Post.Probe.Probe.read" title="Post.Probe.Probe.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.Probe.Probe.read</span></code></a></p></td>
-<td><p>Reread all data from probe file.</p></td>
-</tr>
 </tbody>
 </table>
 <p><strong>&#8211; Streams/Isos</strong></p>
@@ -206,7 +197,7 @@ pre- and post-processor for CFD simulations.</p>
 <td><p>Compute an isoSurf corresponding to value of field 'var' in volume arrays.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Post.isoSurfMC" title="Post.isoSurfMC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Post.isoSurfMC</span></code></a></p></td>
-<td><p>Compute an isoSurf correponding to value of field 'var' in volume arrays.</p></td>
+<td><p>Compute an isoSurf corresponding to value of field 'var' in volume arrays.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1245,6 +1236,56 @@ located at cell centers or nodes.</p>
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id="Post.exteriorVertices">
+<span class="sig-prename descclassname"><span class="pre">Post.</span></span><span class="sig-name descname"><span class="pre">exteriorVertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Select the exterior vertices of a mesh, and return them in a single
+unstructured NODE zone. If indices=[], the indices of the original exterior
+vertices are returned.</p>
+<p>Exists also as in place version (_exteriorVertices) that modifies a and return None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>indices</strong> (<em>list</em><em> of </em><em>integers</em>) &#8211; indices of original exterior vertices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>zone</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/exteriorVertices.py">Select exterior vertices (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorVertices (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
+<span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorVertices</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">indices</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Post/exteriorVerticesPT.py">Select exterior vertices (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorVertices (pyTree)-</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">exteriorVertices</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="Post.interiorFaces">
 <span class="sig-prename descclassname"><span class="pre">Post.</span></span><span class="sig-name descname"><span class="pre">interiorFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Select the interior faces of a mesh. Interior faces are faces with
@@ -1307,6 +1348,7 @@ that have only interior nodes.</p>
 indices of the original exterior faces are returned.
 For structured grids, indices are the global index containing i faces, then j faces, then k faces, starting from 0.
 For NGON grids, indices are the NGON face indices, starting from 1.</p>
+<p>Exists also as in place version (_exteriorFaces) that modifies a and return None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1396,6 +1438,7 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <dt class="sig sig-object py" id="Post.exteriorElts">
 <span class="sig-prename descclassname"><span class="pre">Post.</span></span><span class="sig-name descname"><span class="pre">exteriorElts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Select the exterior elements of a mesh, that is the first border fringe of cells.</p>
+<p>Exists also as in place version (_exteriorElts) that modifies a and return None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
@@ -2280,110 +2323,6 @@ oriented in the same direction.</p>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Post.Probe.Probe">
-<span class="sig-prename descclassname"><span class="pre">Post.Probe.</span></span><span class="sig-name descname"><span class="pre">Probe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">z)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blockName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tPermeable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bufferSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Create a probe. 4 modes are possible :</p>
-<ul class="simple">
-<li><p>mode 0 : if t and (x,y,z) are provided, the probe will extract given fields from t at single position (x,y,z).</p></li>
-<li><p>mode 1 : if t and (ind, blockName) are provided, the probe will extract given fields from block of t at single index ind of blockName.</p></li>
-<li><p>mode 2 : if t, (x,y,z) and ind are not provided, the probe will store the zones given at extract.</p></li>
-<li><p>mode 3 : if tPermeable is provided, the probe will interpolate on tPermeable.</p></li>
-</ul>
-<p>Result is periodically flush to file when buffer size exceeds bufferSize.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fileName</strong> (<em>string</em>) &#8211; name of file to dump to</p></li>
-<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; pyTree containing solution</p></li>
-<li><p><strong>(</strong><strong>x</strong><strong>,</strong><strong>y</strong><strong>,</strong><strong>z</strong><strong>)</strong> (<em>tuple</em><em> of </em><em>3 floats</em>) &#8211; position of single probe (mode 0)</p></li>
-<li><p><strong>ind</strong> (<em>integer</em>) &#8211; index of single probe in blockName (mode 1)</p></li>
-<li><p><strong>blockName</strong> (<em>string</em>) &#8211; name of block containing probe (mode 1)</p></li>
-<li><p><strong>tPermeable</strong> (<em>pyTree</em><em>, </em><em>zone</em><em> or </em><em>list</em><em> of </em><em>zones</em>) &#8211; surface to interpolate to.</p></li>
-<li><p><strong>fields</strong> (<em>list</em><em> of </em><em>strings</em><em> or </em><em>None</em>) &#8211; list of fields to extract</p></li>
-<li><p><strong>append</strong> (<em>Boolean</em>) &#8211; if True, append result to existing file</p></li>
-<li><p><strong>bufferSize</strong> (<em>int</em>) &#8211; size of internal buffer</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>probe instance</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Post/probePT.py">Probe extraction (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Probe (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Post.Probe</span> <span class="k">as</span> <span class="nn">Probe</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-
-<span class="c1"># test case</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartRx</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">addCellN</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:F}</span><span class="s1"> = {centers:CoordinateX}&#39;</span><span class="p">)</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
-
-<span class="c1"># create a probe</span>
-<span class="n">p1</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe1.cgns&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">,</span><span class="mf">10.</span><span class="p">),</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;centers:F&#39;</span><span class="p">],</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">p1</span><span class="o">.</span><span class="n">printInfo</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">110</span><span class="p">):</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">i</span>
-    <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{centers:F}</span><span class="s1"> = {centers:CoordinateX}+10.*sin(</span><span class="si">%20.16g</span><span class="s1">)&#39;</span><span class="o">%</span><span class="n">time</span><span class="p">)</span>
-    <span class="n">p1</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
-<span class="n">p1</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-
-<span class="c1"># reread probe from file</span>
-<span class="n">p1</span> <span class="o">=</span> <span class="n">Probe</span><span class="o">.</span><span class="n">Probe</span><span class="p">(</span><span class="s1">&#39;probe1.cgns&#39;</span><span class="p">)</span>
-<span class="n">out</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Post.Probe.Probe.extract">
-<span class="sig-prename descclassname"><span class="pre">Post.Probe.Probe.</span></span><span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Extract probe at given time from t.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; pyTree containing solution</p></li>
-<li><p><strong>time</strong> (<em>float</em>) &#8211; extraction time</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Post.Probe.Probe.flush">
-<span class="sig-prename descclassname"><span class="pre">Post.Probe.Probe.</span></span><span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
-<dd><p>Force probe flush to disk.</p>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Post.Probe.Probe.read">
-<span class="sig-prename descclassname"><span class="pre">Post.Probe.Probe.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probeName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Read all data stored in probe file and return a zone.
-Can be used in two ways:</p>
-<ul class="simple">
-<li><p>cont: extract the given time container (all probe points)</p></li>
-<li><p>ind, probeName: extract the given index, zone (all times)</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cont</strong> (<em>integer</em>) &#8211; number of time container</p></li>
-<li><p><strong>ind</strong> (<em>integer</em>) &#8211; index to extract</p></li>
-<li><p><strong>probeName</strong> (<em>string</em>) &#8211; name of probe zone to extract</p></li>
-</ul>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

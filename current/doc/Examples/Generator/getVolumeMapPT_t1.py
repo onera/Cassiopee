@@ -62,22 +62,21 @@ test.testT(vol, 6)
 # 3D unstructured pyra
 a = G.cartPyra((0., 0., 0.), (1., 1., 1.), (5, 5, 5))
 G._getVolumeMap(a)
-test.testT(a,9)
+test.testT(a, 9)
 
 # 3D unstructured penta
 a = G.cartPenta((0., 0., 0.), (1., 1., 1.), (5, 5, 5))
 G._getVolumeMap(a)
-test.testT(a,10)
+test.testT(a, 10)
 
-"""
 # 1D unstructured ME
-a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.2), (5,1,1))
-b = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.2), (1,10,1))
-c = G.cartHexa((0.8,0.,0.), (0.1,0.1,0.2), (4,1,1))
-d = G.cartHexa((0.4,-0.9,0.), (0.1,0.1,0.2), (1,1,12))
+a = G.cartHexa((0.,0.,0.), (0.1,0.0,0.0), (5,1,1))
+b = G.cartHexa((0.4,0.,0.), (0.0,0.1,0.0), (1,11,1))
+c = G.cartHexa((0.4,1.,0.), (0.1,0.0,0.), (4,1,1))
+d = G.cartHexa((0.7,1.,0.), (0.1,0.1,0.05), (1,1,12))
 a = C.mergeConnectivity([a, b, c, d], None)
-#G._getVolumeMap(a)
-#test.testT(a,11)
+G._getVolumeMap(a)
+test.testT(a, 11)
 
 # --- ME ---
 # 2D unstructured ME: tri-quad-tri
@@ -88,17 +87,16 @@ b = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.2), (5,10,1))
 c = G.cartTetra((0.8,0.,0.), (0.1,0.1,0.2), (5,10,1))
 d = G.cartTetra((0.4,-0.9,0.), (0.1,0.1,0.2), (5,10,1))
 a = C.mergeConnectivity([a, b, c, d], None)
-#G._getVolumeMap(a)
-#test.testT(a,12)
+G._getVolumeMap(a)
+test.testT(a, 12)
 
-# 3D unstructured ME: tetra - pyra
-#                       |      |
-#                     penta   hexa
-a = G.cartTetra((0.,0.4,0.), (0.1,0.1,0.1), (5,5,5))
+# 3D unstructured ME: tetra   pyra
+#                              |
+#                     penta - hexa
+a = G.cartTetra((-0.05,0.45,0.05), (0.1,0.1,0.1), (5,5,5))
 b = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 c = G.cartPenta((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 d = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.mergeConnectivity([a, b, c, d], None)
-#G._getVolumeMap(a)
-#test.testT(a,13)
-"""
+G._getVolumeMap(a)
+test.testT(a, 13)

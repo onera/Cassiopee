@@ -1,9 +1,7 @@
 # - initWissocq (pyTree) -
 import Generator.PyTree as G
-import Converter.PyTree as C
 import Initiator.PyTree as I
 import KCore.test as test
-test.TOLERANCE=1.e-10
 
 NI = 200; NJ = 200
 HI = 1./(NI-1); HJ = 1./(NJ-1)

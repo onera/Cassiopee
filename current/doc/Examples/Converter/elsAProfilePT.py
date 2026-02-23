@@ -51,7 +51,7 @@ t = T.addkplane(t)
 DEPTH = 2
 # bodies description
 bodies = []
-bases = Internal.getNodesFromType(t,'CGNSBase_t')
+bases = Internal.getBases(t)
 for b in bases:
     walls = C.extractBCOfType(b, 'BCWall')
     if walls != []: bodies.append(walls)
@@ -59,13 +59,11 @@ for b in bases:
 # blanking
 BM = numpy.array([[0],[1]])
 t = X.blankCells(t, bodies, BM,depth=DEPTH, dim=2)
-t = X.setHoleInterpolatedPoints(t,depth=DEPTH)
-t = X.applyBCOverlaps(t,depth=DEPTH)
-t = X.optimizeOverlap(t,priorities=['Cylindre1',0,'CARTESIAN',1])
-t = X.maximizeBlankedCells(t,depth=DEPTH)
-t = X.setInterpolations(t,loc='cell')
-
-
+t = X.setHoleInterpolatedPoints(t, depth=DEPTH)
+t = X.applyBCOverlaps(t, depth=DEPTH)
+t = X.optimizeOverlap(t, priorities=['Cylindre1',0,'CARTESIAN',1])
+t = X.maximizeBlankedCells(t, depth=DEPTH)
+t = X.setInterpolations(t, loc='cell')
 
 # Arbre a la Cassiopee
 C.convertPyTree2File(t, 'out_cassiopee.cgns')

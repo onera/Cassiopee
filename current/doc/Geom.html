@@ -162,7 +162,7 @@ a CGNS/Python tree zone or set of zones, depending on the selected interface.</p
 <td><p>Generate a surface mesh starting from a curve and a driving orthogonally to curve defined by d.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#.Geom.axisym" title=".Geom.axisym"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.axisym</span></code></a></p></td>
-<td><p>Create an axisymetrical mesh given an azimuthal 1D or 2D mesh.</p></td>
+<td><p>Create an axisymmetrical mesh given an azimuthal 1D or 2D mesh.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#.Geom.connect1D" title=".Geom.connect1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.connect1D</span></code></a></p></td>
 <td><p>Connect 1D curves in a single curve.</p></td>
@@ -484,7 +484,7 @@ serie 4 of NACA profiles.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">naca</span><span class="p">(</span><span class="mf">12.</span><span class="p">)</span>
 
 <span class="c1"># Naca serie 4 by name</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">naca</span><span class="p">(</span><span class="s1">&#39;0012&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">301</span><span class="p">,</span> <span class="n">sharpte</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">naca</span><span class="p">(</span><span class="s1">&#39;0012&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span> <span class="n">sharpte</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Naca serie 5 by name</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">naca</span><span class="p">(</span><span class="s1">&#39;23012&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">301</span><span class="p">,</span> <span class="n">sharpte</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -877,13 +877,14 @@ If name is not provided, list available profiles.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id=".Geom.surface">
-<span class="sig-prename descclassname"><span class="pre">Geom.</span></span><span class="sig-name descname"><span class="pre">surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Geom.</span></span><span class="sig-name descname"><span class="pre">surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N=100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isVectorized</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create a surface defined by an parametric function or an expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f</strong> (<em>Python function</em><em> or </em><em>string</em>) &#8211; Python function or set of expressions separated by &#8220;;&#8221;&#8221;</p></li>
 <li><p><strong>N</strong> (<em>integer</em>) &#8211; number of discretization points per direction</p></li>
+<li><p><strong>isVectorized</strong> (<em>boolean</em>) &#8211; can be set to True if f is a function in vectorized form.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -905,7 +906,6 @@ If name is not provided, list available profiles.</p>
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">u</span><span class="p">):</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">t</span><span class="o">+</span><span class="n">u</span><span class="p">;</span> <span class="n">y</span> <span class="o">=</span> <span class="n">t</span><span class="o">*</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">u</span><span class="o">*</span><span class="n">u</span><span class="p">;</span> <span class="n">z</span> <span class="o">=</span> <span class="n">u</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
-
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 <span class="c1"># Definition by formula</span>

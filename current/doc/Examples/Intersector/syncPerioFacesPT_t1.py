@@ -13,8 +13,8 @@ import Converter.Internal as I
 # TEST 1
 # ----------------------------------------------------------------
 # Maillages
-a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
-a    = C.convertArray2NGon(a)
+a = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
+a = C.convertArray2NGon(a)
 
 XOR._reorient(a)
 
@@ -25,7 +25,7 @@ aF = P.exteriorFaces(a)
 aF = T.splitSharpEdges(aF)
 top = I.getZones(aF)[5]
 
-BCs = [top]
+BCs = [[top]]
 BCNames = ['wall']
 BCTypes = ['BCWallViscous']
 

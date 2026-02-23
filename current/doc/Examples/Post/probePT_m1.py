@@ -44,20 +44,19 @@ if Cmpi.rank == 0: test.testT(p2._probeZones, 2)
 Cmpi.barrier()
 
 # create a probe from zones
-p3 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=False, bufferSize=15)
+a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,1))
+a[0] = 'cart%d'%Cmpi.rank
+
+p3 = Probe.Probe(LOCAL+'/probe3.cgns', a, fields=['centers:F'], append=False, bufferSize=15)
 for i in range(20):
     time = 0.1*i
-    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,1))
-    a[0] = 'cart%d'%Cmpi.rank
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p3.extract(a, time=time)
 p3.flush()
 
-p3 = Probe.Probe(LOCAL+'/probe3.cgns', fields=['centers:F'], append=True, bufferSize=15)
+p3 = Probe.Probe(LOCAL+'/probe3.cgns', a, fields=['centers:F'], append=True, bufferSize=15)
 for i in range(20):
     time = 2+0.1*i
-    a = G.cart((Cmpi.rank,0,0), (0.1,0.1,0.1), (11,11,1))
-    a[0] = 'cart%d'%Cmpi.rank
     C._initVars(a, '{centers:F} = %20.16g'%time)
     p3.extract(a, time=time)
 p3.flush()

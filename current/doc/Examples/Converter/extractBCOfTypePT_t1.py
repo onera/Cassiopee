@@ -68,8 +68,8 @@ test.testT(ext, 6)
 a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
 b = G.cartHexa((0,0,0), (1,1,1), (10,10,1))
 C._addBC2Zone(a, 'wall', 'BCWall', subzone=b)
-bc = Internal.getNodeFromType(a,'BC_t')
-ER = Internal.getNodeFromName(bc,'ElementRange')
+bc = Internal.getNodeFromType2(a, 'BC_t')
+ER = Internal.getNodeFromName1(bc, 'ElementRange')
 ER = Internal.getValue(ER)[0]
 ermin = ER[0]
 ermax = ER[1]
@@ -83,3 +83,10 @@ r = r.reshape((1,r.size), order='F')
 bc[2].append([Internal.__FACELIST__, r, [], 'IndexArray_t'])
 ext = C.extractBCOfType(a, 'BCWall')
 test.testT(ext, 7)
+
+# BC sur un basic elements avec une pointList
+a = G.cartHexa((0,0,0), (1,1,1), (10,10,10))
+pointList = [i for i in range(1,100+1)]
+C._addBC2Zone(a, 'wall', 'BCWall', pointList=pointList)
+ext = C.extractBCOfType(a, 'BCWall')
+test.testT(ext, 8)

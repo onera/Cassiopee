@@ -200,10 +200,11 @@ groups ${USER}
 <ul>
 <li>Please pull the official image of Cassiopee from DockerHub </li>
 </ul>
-<pre><code class="language-sh">docker pull cassiopee486/cassiopee:&lt;tag&gt;
+<pre><code class="language-sh">docker pull cassiopee486/cassiopee:&lt;tag&gt;-&lt;pyversion&gt;
 </code></pre>
-<p>where <em>tag</em> is a version tag such as <code>v4.0b</code> (in the remainder of these notes, <code>v4.0b</code> is used).
-Available tags, <strong>from <code>v4.0b</code> onwards</strong>, are recalled <a href="https://github.com/onera/Cassiopee/tags">on this page</a>.</p>
+<p>where <em>tag</em> is a Cassiopee version tag (e.g.,<code>v4.1</code>) and <em>pyversion</em> is a version of python (e.g., <code>py3.12.4</code>).
+Available tags are recalled <a href="https://hub.docker.com/r/cassiopee486/cassiopee/tags">on this page</a>.
+In the remainder of these notes, <code>v4.1-py3.12.4</code> is used.</p>
 <ul>
 <li>Verify that the image is now present in the list of downloaded images</li>
 </ul>
@@ -211,22 +212,44 @@ Available tags, <strong>from <code>v4.0b</code> onwards</strong>, are recalled <
 </code></pre>
 <p><br></br></p>
 <h2 id="3-running-a-container">3. Running a container</h2>
-<ul>
-<li>The Cassiopee container can be run interactively for version <code>v4.0b</code> like so</li>
-</ul>
+<h3 id="31-manual-configuration">3.1 Manual configuration</h3>
+<p>The Cassiopee container can be run interactively for version <code>v4.1</code> with:</p>
 <pre><code class="language-sh">xhost +local:docker
-docker run -it --rm --network=host --privileged --volume=&quot;$HOME/.Xauthority:/root/.Xauthority:rw&quot; -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -e DISPLAY=unix$DISPLAY cassiopee486/cassiopee:v4.0b
-</code></pre>
-<p>and the instance of the container will be removed after it execution thanks to <code>--rm</code>.<br />
-<strong>Note that none of the modifications you may have made in the container will persist.</strong> Please consider using <em>volumes</em> or <em>bind mounts</em> if this is something you may benefit from. An example is given below for a bind mount with read and write permissions using the command-line flag <code>-v /home/user/git/io:/io</code>, where the local folder <code>/home/user/git/io</code> is mapped to the <code>/io</code> folder in the container</p>
-<pre><code class="language-sh">xhost +local:docker
-docker run -it --rm --network=host --privileged --volume=&quot;$HOME/.Xauthority:/root/.Xauthority:rw&quot; -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev/dri:/dev/dri -v /home/user/git/io:/io -e DISPLAY=unix$DISPLAY cassiopee486/cassiopee:v4.0b
+docker run -it --rm --network=host --privileged \
+    --volume=&quot;$HOME/.Xauthority:/root/.Xauthority:rw&quot; \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /dev/dri:/dev/dri \
+    -e DISPLAY=unix$DISPLAY \
+    cassiopee486/cassiopee:v4.1-py3.12.4
 </code></pre>
 <ul>
-<li>After execution, feel free to check the list of running instances (it should be none)</li>
+<li>The <code>--rm</code> flag ensures that the container is automatically removed after it exits.  </li>
+<li>Any changes made inside the container will not persist. To retain data, consider using volumes or bind mounts.  </li>
 </ul>
+<p>For example, to map a local folder <code>/home/user/git/io</code> to <code>/io</code> in the container with read-write access:</p>
+<pre><code class="language-sh">xhost +local:docker
+docker run -it --rm --network=host --privileged \
+    --volume=&quot;$HOME/.Xauthority:/root/.Xauthority:rw&quot; \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /dev/dri:/dev/dri \
+    -v $HOME/io:/io \
+    -e DISPLAY=unix$DISPLAY \
+    cassiopee486/cassiopee:v4.1-py3.12.4
+</code></pre>
+<p>After execution, you can verify that no containers are still running:</p>
 <pre><code class="language-sh">docker ps -a
 </code></pre>
+<h3 id="32-docker-compose">3.2 Docker Compose</h3>
+<p>A <code>docker-compose.yml</code> file is provided in the root directory of Cassiopee, preconfigured with the same settings as in section 3.1.</p>
+<p>To run the container interactively using Docker Compose:</p>
+<pre><code class="language-sh">xhost +local:docker
+cd $CASSIOPEE
+cp .env.template .env  # configure any environment variables if needed
+docker compose run --rm cassiopee
+</code></pre>
+<p>Docker Compose automatically sets up the container with the correct volumes, display, and privileges.</p>
+<p>As with manual execution, <code>--rm</code> ensures the container is removed when you exit.</p>
+<p>Use the <code>.env</code> file to configure the tag and python version used without modifying the Compose file directly.</p>
 <p><br></br></p>
 <h2 id="4-deleting-a-docker-image">4. Deleting a Docker image</h2>
 <p>To delete an outdated docker image, first list all existing images, copy the <em>hash</em> of the image you would like to delete and remove from hash as</p>

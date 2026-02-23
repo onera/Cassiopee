@@ -530,7 +530,7 @@ a and returns None.</p>
 <span class="n">D2mpi</span><span class="o">.</span><span class="n">_redispatch</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
 <span class="c1"># force toutes les zones sur 0</span>
-<span class="n">zones</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromType</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;Zone_t&#39;</span><span class="p">)</span>
+<span class="n">zones</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getZones</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zones</span><span class="p">:</span>
     <span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;proc&#39;</span><span class="p">)</span>
     <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>

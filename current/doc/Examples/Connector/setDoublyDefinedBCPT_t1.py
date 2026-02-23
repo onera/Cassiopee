@@ -38,15 +38,15 @@ import Converter.Internal as Internal
 a = G.cart((0,0,0),(1,1,1),(10,10,10))
 b = G.cart((2.5,2.5,-2.5),(0.5,0.5,0.5),(10,10,30)); b[0] = 'fente'
 C._addBC2Zone(a, 'overlap1', 'BCOverlap', 'kmin',zoneDonor=['FENTE'],rangeDonor='doubly_defined')
-ovdd = Internal.getNodesFromName(a,'overlap*')[0]
+ovdd = Internal.getNodesFromName(a, 'overlap*')[0]
 Internal.setValue(ovdd,None)
-ovdd = Internal.getNodeFromName(ovdd,'UserDefinedData')
-Internal.createNode('DonorFamilyName','DataArray_t',value='FENTE',parent=ovdd)
-C._tagWithFamily(b,'FENTE')
+ovdd = Internal.getNodeFromName(ovdd, 'UserDefinedData')
+Internal.createNode('DonorFamilyName', 'DataArray_t', value='FENTE', parent=ovdd)
+C._tagWithFamily(b, 'FENTE')
 t = C.newPyTree(['Base1','Base2'])
 t[2][1][2].append(a); t[2][2][2].append(b)
 C._addFamily2Base(t[2][2], 'FENTE')
-C._initVars(t, 'centers:cellN',1.)
+C._initVars(t, 'centers:cellN', 1.)
 t = X.applyBCOverlaps(t)
 t = X.setDoublyDefinedBC(t)
 test.testT(t,4)

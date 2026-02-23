@@ -144,6 +144,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#Geom.IBM.setFluidInside" title="Geom.IBM.setFluidInside"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM.setFluidInside</span></code></a></p></td>
 <td><p>Set fluid inside a geometry tree.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Geom.IBM._symmetrizePb" title="Geom.IBM._symmetrizePb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Geom.IBM._symmetrizePb</span></code></a></p></td>
+<td><p>Symmetrize the geometry tree and add a symmetry plane.</p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -220,7 +223,6 @@ The function names must be prefixed by an &#8216;_&#8217; (e.g. _setSnear for th
 <hr class="docutils" />
 <blockquote>
 <div></div></blockquote>
-<hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Geom.IBM.snearFactor">
 <span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">snearFactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfactor</span></span></em><span class="sig-paren">)</span></dt>
@@ -370,33 +372,39 @@ The function names must be prefixed by an &#8216;_&#8217; (e.g. _setSnear for th
 
 <hr class="docutils" />
 <dl class="py function">
-<dt class="sig sig-object py" id="Geom.IBM.symetrizePb">
-<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">symetrizePb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Add a symmetry plane and symmetrize the body base; input surface must be y&gt;=0 if the symmetry plane is at y=0.
-Creates the geometry for the symmetry plane, the snear and slip IBC type.
-:param tb: geometry tree
-:type  tb: [zone, list of zones, tree]
-:param bodyNameSym: name of the base where
-:type bodyNameSym: string
-:param snear_sym: mesh resolution at the symmetry plane
-:type snear_sym: float
-:param dir_sym: direction of the symmetry plane
-:type dir_sym: integer (1:x,2:y,3:z)
-:return: same as input</p>
+<dt class="sig sig-object py" id="Geom.IBM._symmetrizePb">
+<span class="sig-prename descclassname"><span class="pre">Geom.IBM.</span></span><span class="sig-name descname"><span class="pre">_symmetrizePb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bodySymName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snear_sym</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_sym</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Add a symmetry plane and symmetrize the body base. The geometry must be aligned with the input direction (dir_sym).</p>
+<p>The symmetry plane is located at the local minimum found in the case coordinates (xmin, ymin, or zmin), based on the input direction, and is placed in a separate base labeled &#8216;BOX&#8217;.</p>
+<p>The symmetrized body zones are labeled zname_sym, where zname is the name of a given zone. These zones are located in the same base as the original zones (bodySymName).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> (<em>[</em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>tree</em><em>]</em>) &#8211; geometry tree</p></li>
+<li><p><strong>bodyNameSym</strong> (<em>string</em>) &#8211; name of the base in which the body is defined</p></li>
+<li><p><strong>snear_sym</strong> (<em>float</em>) &#8211; mesh resolution at the symmetry plane</p></li>
+<li><p><strong>dir_sym</strong> (<em>integer</em><em> (</em><em>1:x</em><em>,</em><em>2:y</em><em>,</em><em>3:z</em><em>)</em>) &#8211; direction of the symmetry plane</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>same as input</p>
+</dd>
+</dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Geom/symetrizePbPT.py">Symmetrize the surface (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symetrizePb (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - symmetrizePb (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.IBM</span> <span class="k">as</span> <span class="nn">D_IBM</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
+
 <span class="c1"># Geometry</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">cone</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
 <span class="n">D_IBM</span><span class="o">.</span><span class="n">_setDfar</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">10.</span><span class="p">)</span>
-<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mf">0.01</span><span class="p">)</span>
-<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
-<span class="n">D_IBM</span><span class="o">.</span><span class="n">_symetrizePb</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">dir_sym</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_setSnear</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">D_IBM</span><span class="o">.</span><span class="n">_symmetrizePb</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span><span class="s2">&quot;BODY&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">dir_sym</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

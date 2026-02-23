@@ -27,7 +27,7 @@ t[2][1][2] += b
 t = C.initVars(t, 'F', 1.); t = C.initVars(t, 'centers:G', 2.)
 res = T.merge(t, dir=2)
 t[2][1][2] = res; test.testT(t,1)
-res = T.merge(t,dir=1)
+res = T.merge(t, dir=1)
 t[2][1][2] = res; test.testT(t,2)
 
 # volume grids
@@ -43,10 +43,10 @@ for i in range(10):
         b.append(T.subzone(a,(i1,j1,1),(i2,j2,10)))
         j1 = j2
     i1 = i2
-t = C.newPyTree(['Base']); t[2][1][2]+=b
-t = C.addBC2Zone(t,'wall','BCWall','kmin')
-t = C.addBC2Zone(t,'overlap','BCOverlap','kmax')
-t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
+t = C.newPyTree(['Base']); t[2][1][2] += b
+t = C.addBC2Zone(t, 'wall', 'BCWall', 'kmin')
+t = C.addBC2Zone(t, 'overlap', 'BCOverlap', 'kmax')
+t = C.initVars(t, 'F', 1.); t = C.initVars(t, 'centers:G',2.)
 res = T.merge(t, dir=2)
 t[2][1][2] = res; test.testT(t,3)
 res = T.merge(t, dir=1)
@@ -54,27 +54,27 @@ t[2][1][2] = res; test.testT(t,4)
 res = T.merge(t, dir=3)
 t[2][1][2] = res; test.testT(t,5)
 
-a1 = G.cart((0,0,0),(1,1,1),(11,11,1))
-a3 = G.cart((10,0,0),(1,1,1),(11,11,1))
-a2 = T.rotate(a1,(0,0,0),(1,0,0),90.)
-a2 = T.reorder(a2,(-1,2,3))
+a1 = G.cart((0,0,0), (1,1,1), (11,11,1))
+a3 = G.cart((10,0,0), (1,1,1), (11,11,1))
+a2 = T.rotate(a1, (0,0,0), (1,0,0), 90.)
+a2 = T.reorder(a2, (-1,2,3))
 t = C.newPyTree(['Base', 2]); t[2][1][2] += [a1,a2,a3]
 t = C.addBC2Zone(t,'wall','BCWall','imin')
 t = C.addBC2Zone(t,'overlap','BCOverlap','imax')
-t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
+C._initVars(t, 'F', 1.); C._initVars(t, 'centers:G', 2.)
 res = T.merge(t, dir=1, alphaRef=45.)
 t[2][1][2] = res; test.testT(t,6)
 
-t = C.newPyTree(['Base',2]); t[2][1][2]+=[a1,a2,a3]
+t = C.newPyTree(['Base',2]); t[2][1][2] += [a1,a2,a3]
 t = C.addBC2Zone(t,'wall','BCWall','kmin')
 t = C.addBC2Zone(t,'overlap','BCOverlap','kmax')
-t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
-res = T.merge(t,dir=2,alphaRef=45.)
+C._initVars(t, 'F', 1.); C._initVars(t, 'centers:G', 2.)
+res = T.merge(t, dir=2, alphaRef=45.)
 t[2][1][2] = res; test.testT(t,7)
 
-t = C.newPyTree(['Base',2]); t[2][1][2]+=[a1,a2,a3]
-t = C.addBC2Zone(t,'wall','BCWall','kmin')
-t = C.addBC2Zone(t,'overlap','BCOverlap','kmax')
-t = C.initVars(t,'F',1.); t = C.initVars(t,'centers:G',2.)
-res = T.merge(t,dir=2)
+t = C.newPyTree(['Base',2]); t[2][1][2] += [a1,a2,a3]
+t = C.addBC2Zone(t, 'wall', 'BCWall', 'kmin')
+t = C.addBC2Zone(t, 'overlap', 'BCOverlap', 'kmax')
+C._initVars(t,'F',1.); C._initVars(t,'centers:G',2.)
+res = T.merge(t, dir=2)
 t[2][1][2] = res; test.testT(t,8)

@@ -2,11 +2,9 @@
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
-import Post.PyTree as P
 import Post.Mpi as Pmpi
 import Converter.Mpi as Cmpi
 import KCore.test as test
-test.TOLERANCE = 1.e-10
 
 def f1(x,y): return 2*x + y
 def f2(x,y): return 3*x*y + 4

@@ -247,91 +247,94 @@ recognised. Naming convention is described in the following table.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.mergeConnectivity" title="Converter.PyTree.mergeConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.mergeConnectivity</span></code></a></p></td>
 <td><p>Gather an additional zone connectivity in z1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.sliceNGonFaces" title="Converter.PyTree.sliceNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.sliceNGonFaces</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.mergeByEltType</span></code></p></td>
+<td><p>Merge an unstructured array by element type, thus ensuring each element type is listed only once.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.sliceNGonFaces" title="Converter.PyTree.sliceNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.sliceNGonFaces</span></code></a></p></td>
 <td><p>Slice an NGON connectivity using a list of face indices.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
 <td><p>Delete zones with null number of points or elements.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
 <td><p>Add single state value or a full reference state.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
 <td><p>Add chimera setting as node in base.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
 <td><p>Add a BC to a zone node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
 <td><p>Fill empty BCs with given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
 <td><p>Remove BCs of given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
 <td><p>Remove BCs of given name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
 <td><p>Remove variables var from t in every BCDataSet.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC type as zones.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC name as zones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
 <td><p>Return the range or facelist of unset boundary conditions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
 <td><p>Return geometry, names and types of boundary conditions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
 <td><p>Recover given BCs on a tree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
 <td><p>Extract fields on BCs.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
 <td><p>Return the list of zones connected to a through match or nearMatch.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
 <td><p>Add a family node to a base node.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
 <td><p>Tag a zone node or a BC node with a familyName.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
 <td><p>Return all zones that have this familyName.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCs" title="Converter.PyTree.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCs</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCs" title="Converter.PyTree.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCs</span></code></a></p></td>
 <td><p>Return all BC nodes that have this familyName.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
 <td><p>Return the family zone names in a tree or a base.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesOfType" title="Converter.PyTree.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesOfType</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesOfType" title="Converter.PyTree.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesOfType</span></code></a></p></td>
 <td><p>Return the family BC names of a given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
 <td><p>Return the dictionary of familyBCs.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
 <td><p>Return the values for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
 <td><p>Set the values in an array for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
 <td><p>Set some field values for given indices.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
 <td><p>Add variables to a pyTree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
 <td><p>Fill FlowSolution nodes with variables, such that all the zones have the same variables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
 <td><p>Copy field variables.</p></td>
 </tr>
 </tbody>
@@ -401,6 +404,9 @@ recognised. Naming convention is described in the following table.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.signNGonFaces" title="Converter.PyTree.signNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.signNGonFaces</span></code></a></p></td>
 <td><p>Sign NFACE connectivity in NGON zones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.unsignNGonFaces" title="Converter.PyTree.unsignNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.unsignNGonFaces</span></code></a></p></td>
+<td><p>Unsign NFACE connectivity in NGON zones.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1011,6 +1017,27 @@ connectivity. If boundary=1, b will be a BC connectivity in a
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id=".Converter.mergeByEltType">
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">mergeByEltType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Merge an unstructured array by element type, thus ensuring each element type
+is listed only once. For example, if the input zone is TRI,TRI,QUAD,
+return a TRI,QUAD zone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/mergeByEltTypePT.py">Merge an unstructured array by element type (pyTree)</a>:</p></li>
+</ul>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="Converter.PyTree.sliceNGonFaces">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">sliceNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Slice an NGON connectivity using a list of face indices. Return two numpy
@@ -1335,7 +1362,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/fillEmptyBCWith.py">Fill empty BC (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/fillEmptyBCWithPT.py">Fill empty BC (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - fillEmpyBCWith (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1612,7 +1639,7 @@ angle between neighbouring elements exceeds splitFactor in degrees
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/getEmptyBC.py">Get empty BCs (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/getEmptyBCPT.py">Get empty BCs (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getEmptyBC (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1695,14 +1722,15 @@ Exists also as in place version (_recoverBCs) that modifies t and returns None.<
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
+<span class="c1"># recover on NGON</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">fillEmptyBCWith</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="p">(</span><span class="n">BCs</span><span class="p">,</span><span class="n">BCNames</span><span class="p">,</span><span class="n">BCTypes</span><span class="p">)</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getBCs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2NGon</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">_recoverBCs</span><span class="p">(</span><span class="n">b</span><span class="p">,(</span><span class="n">BCs</span><span class="p">,</span><span class="n">BCNames</span><span class="p">,</span><span class="n">BCTypes</span><span class="p">))</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_recoverBCs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">BCs</span><span class="p">,</span><span class="n">BCNames</span><span class="p">,</span><span class="n">BCTypes</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -2574,7 +2602,7 @@ or a list of strings.</p>
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
 <li><p><strong>varNameString</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; string describing variable or formula</p></li>
 <li><p><strong>value</strong> (<em>float</em><em> or </em><em>function and parameters</em>) &#8211; value in case of constant init or function.</p></li>
-<li><p><strong>isVectorized</strong> (<em>boolean</em>) &#8211; when using functions, indicates that function is vectorized.</p></li>
+<li><p><strong>isVectorized</strong> (<em>boolean</em>) &#8211; when using functions, indicates that function is in vectorized form.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -3435,12 +3463,15 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.PyTree.signNGonFaces">
-<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">signNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">signNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>For NGON zones, sign the NFACE connectivity with cell external normals.</p>
 <p>Exists also as in place version (_signNGonFaces) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; tree</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; tree</p></li>
+<li><p><strong>force</strong> (<em>boolean</em>) &#8211; if True, always sign NFACE, else restore signness found when reading the pyTree.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>t with signed NFACE</p>
@@ -3456,6 +3487,57 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">signNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.PyTree.unsignNGonFaces">
+<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">unsignNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>For NGON zones, unsign the NFACE connectivity.</p>
+<p>Exists also as in place version (_unsignNGonFaces) that modifies t and returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; tree</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>t with unsigned NFACE</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/unsignNGonFacesPT.py">Unsign NGon faces (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - unsignNGonFaces (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="c1"># Structured</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_unsignNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># Unstructured - BE</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartTetra</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_unsignNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># Unstructured - NGon</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_unsignNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># Unstructured - unsigned NGon v4</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_unsignNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+
+<span class="c1"># Unstructured - signed NGon v4</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">api</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_signNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_unsignNGonFaces</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4727,16 +4809,18 @@ zone number of each index.</p>
 <h3>Geometrical identification</h3>
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.identifyNodes">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-14</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Identify nodes of a with nodes stored in hook. Return the indices of hook
-corresponding to the nodes of a. If a point is not identified,
-its returned index is -1.</p>
+corresponding to the nodes of a. If a point is not identified, its returned index is -1.
+The effective tolerance is computed as tol + rtol*L where L is the largest
+edge of the mesh bounding box.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hook</strong> (<em>created by createHook</em>) &#8211; hook</p></li>
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>,</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching tolerance</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching absolute tolerance</p></li>
+<li><p><strong>rtol</strong> (<em>float</em>) &#8211; relative tolerance</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -4807,16 +4891,18 @@ its returned index is -1.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.identifyFaces">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-12</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Identify face centers of a with points stored in hook. Return the indices of hook
-corresponding to the faces of a. If a face is not identified,
-its returned index is -1.</p>
+corresponding to the faces of a. If a face is not identified, its returned index is -1.
+The effective tolerance is computed as tol + rtol*L where L is the largest
+edge of a given face.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hook</strong> (<em>created by createHook</em>) &#8211; hook</p></li>
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>,</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching tolerance</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching absolute tolerance</p></li>
+<li><p><strong>rtol</strong> (<em>float</em>) &#8211; relative tolerance</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -4866,16 +4952,18 @@ its returned index is -1.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.identifyElements">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyElements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">identifyElements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hook</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-12</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Identify element centers of a with points stored in hook. Return the indices of hook
-corresponding to the elements of a. If a elements is not identified,
-its returned index is -1.</p>
+corresponding to the elements of a. If a elements is not identified, its returned index is -1.
+The effective tolerance is computed as tol + rtol*L where L is the largest
+edge of a given element.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>hook</strong> (<em>created by createHook</em>) &#8211; hook</p></li>
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>,</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching tolerance</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) &#8211; matching absolute tolerance</p></li>
+<li><p><strong>rtol</strong> (<em>float</em>) &#8211; relative tolerance</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

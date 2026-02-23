@@ -8,8 +8,8 @@ import KCore.test as test
 
 a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
 aTH4 = C.convertArray2Tetra(a, split='withBarycenters')
-a = C.convertArray2NGon(a); a = G.close(a)
-aTH4 = C.convertArray2NGon(aTH4); aTH4 = G.close(aTH4)
+a = C.convertArray2NGon(a)
+aTH4 = C.convertArray2NGon(aTH4)
 #C.convertArrays2File([a], 'a.plt')
 
 n = C.getNPts(a)

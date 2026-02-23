@@ -15,7 +15,7 @@ C._initVars(t, 'centers:cellN', 0)
 t = X.applyBCOverlaps(t)
 t = X.cellN2OversetHoles(t)
 
-zones = Internal.getNodesFromType(t, 'Zone_t')
+zones = Internal.getZones(t)
 for z in zones:
     ho = Internal.getNodesFromType(z, 'OversetHoles_t')
     if ho != []:

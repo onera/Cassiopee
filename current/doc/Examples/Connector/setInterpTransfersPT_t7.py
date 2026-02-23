@@ -38,7 +38,7 @@ X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=100)
 X.miseAPlatDonorTree__(t, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
-ZSR=Internal.getNodesFromType(tc, "ZoneSubRegion_t")
+ZSR = Internal.getNodesFromType(tc, "ZoneSubRegion_t")
 for zsr in ZSR:
     kcurv = Internal.getNodeFromName(zsr, XOD.__KCURV__)
     if kcurv is not None:
