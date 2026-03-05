@@ -148,7 +148,6 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
 
     E_Int *cmap = IntArray(M->nc);
 
-    MPI_Barrier(MPI_COMM_WORLD);
     if (M->pid == 0) puts("Partitioning graph...[START]");
 
     ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, cmap);
@@ -156,7 +155,6 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
         merr("Failed to map dual graph.");
         XFREE(cmap);
     }
-    MPI_Barrier(MPI_COMM_WORLD);
     if (M->pid == 0) puts("Partitioning graph...[END]");
 
     SCOTCH_dgraphExit(&graph);

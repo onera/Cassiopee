@@ -43,7 +43,7 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     ## CODA :: image point --> donor point ... ghost cells --> integration point/face
     _checkRepartitionOption(fsmesh, clac)
 
-    if Cmpi.rank==0: print("Interpolation of the flow solution on the donor points...", flush=True)
+    Cmpi.trace('[INTERPOLATIONDONORPOINTS] Interpolation of the flow solution on the donor points..start', master=True)
 
     wall        = fsmesh.GetUnstructDataset("WallPointCoordinates").GetValues()
     donor       = fsmesh.GetUnstructDataset("DonorPointCoordinates").GetValues()
@@ -57,7 +57,8 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     fsBoundaryMarkersCelltype = fsmesh.GetCellAttribute("CADGroupID",4)
     npBoundaryMarkersCelltype = numpy.array(fsBoundaryMarkersCelltype.Buffer(), copy=True)
 
-    indices      = numpy.ravel(numpy.argwhere(npBoundaryMarkersCelltype == markerIBM[0]))
+    #indices      = numpy.ravel(numpy.argwhere(npBoundaryMarkersCelltype == markerIBM[0]))
+    indices = numpy.ravel(numpy.argwhere(numpy.isin(npBoundaryMarkersCelltype, markerIBM)))
     nb_nodes_IBM = len(indices)
     if wallBoundaryMarkers != []:
         ##This makes no sense...i have no indices_wall...taken directory from original toolbox
@@ -134,7 +135,7 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     nodeWallPoints  = Cmpi.allgather(numpy.array(nodeWallPoints.Buffer() , copy=True))
     augStateData    = Cmpi.allgather(numpy.array(augStateData.Buffer()   , copy=True))
 
-
+    Cmpi.trace('[INTERPOLATIONDONORPOINTS] Interpolation of the flow solution on the donor points..end', master=True)
     return nodeDonorPoints, nodeWallPoints, augStateData
 
 
@@ -227,7 +228,6 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         if "CFD" in boundary_data and "wall model" in boundary_data["CFD"]:
             treatment["wall model"] = boundary_data["CFD"]["wall model"]
         bndy_treat.append(treatment)
-
     discParaDict = {
         **discParaDictTmp,
         "boundary treatments": bndy_treat
@@ -282,10 +282,10 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
                                                               discSelectionParaDict)
         if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
         zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict)
-
+    
     zw       = Cmpi.bcast(zw, root=0)
     zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
-
+    
     if Cmpi.master:
         with open(fileNameCoefOut, 'w') as f:
             lines = [

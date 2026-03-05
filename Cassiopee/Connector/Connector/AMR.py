@@ -245,7 +245,10 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if different_front_flag == False: #True is default
             Internal._rmNodesFromName(t, "TurbulentDistance")
             Internal._renameNode(t, "TurbulentDistanceForCFDComputation","TurbulentDistance")
-
+    if OPT:
+        varnames = C.getVarNames(t, loc="centers")[0]
+        if "TurbulentDistance" not in varnames:
+            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     Internal._renameNode(t, 'FlowSolution#Centers', 'FlisWallDistance')
     Cmpi.trace('AMR prepare IBM...end', master=True, cpu=True)
     return t
