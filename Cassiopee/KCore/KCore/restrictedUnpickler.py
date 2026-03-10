@@ -14,7 +14,7 @@ class RestrictedUnpickler(pickle.Unpickler):
 
     def __init__(self, file, *, encoding="ASCII", errors="strict"):
         super().__init__(file, encoding=encoding, errors=errors)
-        
+
     def find_class(self, module, name):
         if module in self.SAFE_GLOBALS and name in self.SAFE_GLOBALS[module]:
             mod = importlib.import_module(module)
