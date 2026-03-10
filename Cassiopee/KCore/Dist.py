@@ -2616,7 +2616,7 @@ def writeInstallBase(config):
 
     with open("installBaseUser.py", "w") as p:
         p.write("# This is the dictionary keeping track of user installation configs.\n")
-        p.write("installDictUser = {\n")
+        p.write("installDict = {\n")
         for machine, cfgList in config.items():
             cfg = dict(zip(configKeys, cfgList))
             p.write(f"    '{machine}': {{\n")

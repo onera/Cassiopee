@@ -35,14 +35,6 @@ List of functions
 
    Compressor.deltaIndex
 
-**-- Object serializer/compression**
-
-.. autosummary::
-   :nosignatures:
-
-   Compressor.pack
-   Compressor.unpack
-
 **-- CGNS Zones/tree compression**
 
 .. autosummary::
@@ -81,43 +73,6 @@ Index field compression
     * `Compression by delta (numpy) <Examples/Compressor/deltaIndex.py>`_:
 
     .. literalinclude:: ../build/Examples/Compressor/deltaIndex.py
-
-
----------------------------------------------------------------------------
-
-
-Object serialize/compression
------------------------------
-
-.. py:function:: Compressor.pack(a)
-
-    Serialize/compress a python object a. For now, this is only a general interface
-    to pickle module.
-
-    :param a: any python object
-    :type a: python object
-    :return: serialized stream
-
-    * `Object serialization (numpy) <Examples/Compressor/pack.py>`_:
-
-    .. literalinclude:: ../build/Examples/Compressor/pack.py
-    
-
----------------------------------------------------------------------------
-
-
-.. py:function:: Compressor.unpack(a)
-
-    Deserialize/decompress a serialized stream b. For now, this is only a general interface
-    to pickle module.
-
-    :param a: a serialized stream as produced by pack
-    :type a: serialized stream
-    :return: python object
-
-    * `Object deserialization (numpy) <Examples/Compressor/unpack.py>`_:
-
-    .. literalinclude:: ../build/Examples/Compressor/unpack.py
 
 
 ---------------------------------------------------------------------------

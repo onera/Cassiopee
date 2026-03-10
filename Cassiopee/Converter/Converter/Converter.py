@@ -1946,8 +1946,7 @@ def createSockets(nprocs=1, port=15555):
 #==============================================================================
 def listen(s):
     """Listen for sends."""
-    import socket
-    import Compressor
+    from KCore.restrictedUnpickler import restrictedPickleLoads
     while True:
         #s.listen(5)
         s.setblocking(1)
@@ -1956,7 +1955,7 @@ def listen(s):
         nb = client.recv(255)
         if nb != b"":
             nb = nb.rstrip()
-            (size,sizeBuf) = Compressor.unpack(nb, method=0)
+            size, sizeBuf = restrictedPickleLoads(nb)
             data = b''
             nbytes = 0
             while nbytes < size:
@@ -1965,7 +1964,7 @@ def listen(s):
                 else:
                     received = client.recv(size-nbytes)
                 data += received; nbytes += len(received)
-            data = Compressor.unpack(data, method=0)
+            data = restrictedPickleLoads(data)
             client.close()
             return data
 

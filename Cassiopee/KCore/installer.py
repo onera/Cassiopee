@@ -22,10 +22,21 @@ except: raise ImportError('Cassiopee installer requires tkinter.\nIf your python
 
 import Dist
 import os.path
+import json
 
 #==============================================================================
 def quit(event=None):
     import os; os._exit(0)
+
+#==============================================================================
+# Parse a list of strings safely using json
+#==============================================================================
+def parseList(value):
+    try:
+        res = json.loads(value)
+        if isinstance(res, list): return res
+    except json.JSONDecodeError: pass
+    return []
 
 #==============================================================================
 # Met les valeurs par defaut dans l'interface
@@ -45,42 +56,51 @@ def setDefaultVars():
     VadditionalLibPaths.set("[]")
 
 #==============================================================================
-# Remplace les variables de l'interfaces par celles fournies dans la liste v
+# Remplace les variables de l'interface par celles fournies dans le dict d
 #==============================================================================
-def setVars(v):
-    Vdescription.set(v[0])
-    Vf77compiler.set(v[1])
-    Vf90compiler.set(v[2])
-    VCppcompiler.set(v[3])
+def setVars(d):
+    Vdescription.set(d.get('description', ''))
+    Vf77compiler.set(d.get('f77compiler', 'gfortran'))
+    Vf90compiler.set(d.get('f90compiler', 'gfortran'))
+    VCppcompiler.set(d.get('Cppcompiler', 'gcc'))
 
-    VuseOMP.set(v[6])
-    VuseStatic.set(v[7])
+    VuseOMP.set(d.get('useOMP', True))
+    VuseStatic.set(d.get('useStatic', False))
 
-    VadditionalIncludePaths.set(v[9])
-    VadditionalLibs.set(v[10])
-    VadditionalLibPaths.set(v[11])
+    VadditionalIncludePaths.set(d.get('additionalIncludePaths', []))
+    VadditionalLibs.set(d.get('additionalLibs', []))
+    VadditionalLibPaths.set(d.get('additionalLibPaths', []))
 
 #==============================================================================
 def saveConfigFile(event=None):
     machine = Vmachine.get()
 
-    try: additionalIncludePaths = eval(VadditionalIncludePaths.get())
+    try: additionalIncludePaths = parseList(VadditionalIncludePaths.get())
     except: additionalIncludePaths = []
 
-    try: additionalLibs = eval(VadditionalLibs.get())
+    try: additionalLibs = parseList(VadditionalLibs.get())
     except: additionalLibs = []
 
-    try: additionalLibPaths = eval(VadditionalLibPaths.get())
+    try: additionalLibPaths = parseList(VadditionalLibPaths.get())
     except: additionalLibPaths = []
 
-    dict[machine] = [Vdescription.get(),
-                     Vf77compiler.get(),
-                     Vf90compiler.get(),
-                     VCppcompiler.get(),
-                     VuseOMP.get(), VuseStatic.get(),
-                     additionalIncludePaths, additionalLibs,
-                     additionalLibPaths]
-    Dist.writeInstallBase(dict)
+    dict[machine] = [
+        Vdescription.get(),
+        Vf77compiler.get(),
+        Vf90compiler.get(),
+        VCppcompiler.get(),
+        [],
+        [],
+        bool(VuseOMP.get()),
+        bool(VuseStatic.get()),
+        additionalIncludePaths,
+        additionalLibs,
+        additionalLibPaths,
+        False,
+        []
+    ]
+    userDict = {machine: dict[machine]}
+    Dist.writeInstallBase(userDict)
     return
 
 #==============================================================================
@@ -112,9 +132,8 @@ def changeMachineName(event=None):
         if re.compile(i).search(machine) is not None:
             key = i; break
 
-    if key != '': # already defined in install base
-        v = dict[key]
-        setVars(v)
+    if key in dict: # already defined in install base
+        setVars(dict[key])
     else: setDefaultVars()
 
 #==============================================================================
@@ -134,42 +153,42 @@ def check__(name):
             out = ['Numpy: %s'%numpyVersion]
         except: out = ['Numpy: is missing or numpy includes are missing.']
     elif name == 'Cpp': # C++
-        additionalLibPaths = eval(VadditionalLibPaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
         (ok, CppLibs, CppLibPaths) = Dist.checkCppLibs(
             [], additionalLibPaths, VCppcompiler.get(), VuseOMP.get())
         if ok: out = ['C++: OK']
         else: out = ['C++: Fail']
     elif name == 'f77': # Fortran
-        additionalLibPaths = eval(VadditionalLibPaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
         (ok, FLibs, FLibPaths) = Dist.checkFortranLibs(
             [], additionalLibPaths, Vf77compiler.get(), VuseOMP.get())
         if ok: out = ['f77: OK']
         else: out = ['f77: Fail']
     elif name == 'f90': # Fortran
-        additionalLibPaths = eval(VadditionalLibPaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
         (ok, FLibs, FLibPaths) = Dist.checkFortranLibs(
             [], additionalLibPaths, Vf90compiler.get(), VuseOMP.get())
         if ok: out = ['f90: OK']
         else: out = ['f90: Fail']
 
     elif name == 'png':
-        additionalLibPaths = eval(VadditionalLibPaths.get())
-        additionalIncludePaths = eval(VadditionalIncludePaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
+        additionalIncludePaths = parseList(VadditionalIncludePaths.get())
         (ok, pngIncDir, pngLib) = Dist.checkPng()
         if ok: out = ['png: OK']
         else: out = ['png: libpng or png.h is missing']
 
     elif name == 'mpeg':
-        additionalLibPaths = eval(VadditionalLibPaths.get())
-        additionalIncludePaths = eval(VadditionalIncludePaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
+        additionalIncludePaths = parseList(VadditionalIncludePaths.get())
         (ok, mpgIncDir, mpgLib) = Dist.checkMpeg(additionalLibPaths,
                                                  additionalIncludePaths)
         if ok: out = ['mpeg: OK']
         else: out = ['mpeg: missing']
 
     elif name == 'hdf':
-        additionalLibPaths = eval(VadditionalLibPaths.get())
-        additionalIncludePaths = eval(VadditionalIncludePaths.get())
+        additionalLibPaths = parseList(VadditionalLibPaths.get())
+        additionalIncludePaths = parseList(VadditionalIncludePaths.get())
         (ok, hdfIncDir, hdfLib, hdflibs) = Dist.checkHdf(additionalLibPaths,
                                                          additionalIncludePaths)
         if ok: out = ['hdf: OK']
@@ -288,33 +307,32 @@ prod = os.getenv("ELSAPROD") or 'xx'
 master = TK.Tk()
 
 # - VARS -
-Vdescription = TK.StringVar(master) ; Vdescription.set('')
-Vmachine = TK.StringVar(master) ; Vmachine.set(host)
-VCppcompiler = TK.StringVar(master) ; VCppcompiler.set('')
-Vf77compiler = TK.StringVar(master) ; Vf77compiler.set('')
-Vf90compiler = TK.StringVar(master) ; Vf90compiler.set('')
-VuseOMP = TK.IntVar(master) ; VuseOMP.set(0)
-VuseStatic = TK.IntVar(master) ; VuseStatic.set(0)
-VadditionalIncludePaths = TK.StringVar(master) ; VadditionalIncludePaths.set('')
-VadditionalLibs = TK.StringVar(master) ; VadditionalLibs.set('')
-VadditionalLibPaths = TK.StringVar(master) ; VadditionalLibPaths.set('')
+Vdescription = TK.StringVar(master); Vdescription.set('')
+Vmachine = TK.StringVar(master); Vmachine.set(host)
+VCppcompiler = TK.StringVar(master); VCppcompiler.set('')
+Vf77compiler = TK.StringVar(master); Vf77compiler.set('')
+Vf90compiler = TK.StringVar(master); Vf90compiler.set('')
+VuseOMP = TK.IntVar(master); VuseOMP.set(0)
+VuseStatic = TK.IntVar(master); VuseStatic.set(0)
+VadditionalIncludePaths = TK.StringVar(master); VadditionalIncludePaths.set('')
+VadditionalLibs = TK.StringVar(master); VadditionalLibs.set('')
+VadditionalLibPaths = TK.StringVar(master); VadditionalLibPaths.set('')
 
 # Widgets
 WIDGETS = {}
 
 # Init
 key = ''
-for i in dict.keys():
+for i in dict:
     if (re.compile(i).search(host) is not None or
             re.compile(i).search(prod) is not None):
-        key = i ; break
+        key = i; break
 
 if (re.compile(key).search(host) is not None): setMachineName(host)
 if (re.compile(key).search(prod) is not None): setMachineName(prod)
 
-if key != '': # already defined in install base
-    v = dict[key]
-    setVars(v)
+if key in dict: # already defined in install base
+    setVars(dict[key])
 
 #==============================================================================
 def instructions():
