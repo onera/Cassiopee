@@ -9,14 +9,15 @@ import Post.PyTree as P
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.ExtraVariables2 as PE
-import os, sys, numpy, math
+import os, sys, numpy, math, time
 
 def createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, augStateNumpy, discSelectionParaDict):
     """ Create a CGNS IBM PyTree from IBM numpy data. 
     Usage: createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, augStateNumpy, discSelectionParaDict)"""
 
     ##Serial functions
-    print("Creating pyTree of the quantities from the FSMesh of the donorPoints..", flush=True)
+    startTime = time.perf_counter()
+    print('[CREATING PYTREE] Creating pyTree of the quantities from the FSMesh of the donorPoints...start', flush=True)
     nb_node     = donorPointsNumpy.shape[0]
     utauVector  = numpy.zeros(nb_node)
     yplusVector = numpy.zeros(nb_node)
@@ -53,16 +54,20 @@ def createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, au
     Internal.newDataArray('utau' , value=utauVector , parent=FS)
     Internal.newDataArray('yplus', value=yplusVector, parent=FS)
 
+    endTime = time.perf_counter()
+    elapsedTimed = endTime - startTime
+    print('[CREATING PYTREE] Creating pyTree of the quantities from the FSMesh of the donorPoints...end...time:%g s | %g min | %g hr'%(elapsedTimed,elapsedTimed/60,elapsedTimed/3600), flush=True)
     return pytree
 
 
-def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
+def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3, isRevertToOld=False):
     """ Extract IBM wall data. Interface between the CODA approach and the FastIBM function.
     Usage: extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype)"""
     #ibctype = 3 --> Musker
     from numpy.linalg import norm
 
-    print("Extracting Wall Fields..")
+    startTime = time.perf_counter()
+    print('[EXTRACTING IBM] Extracting Wall Fields...start', flush=True)
     z = Internal.getZones(pytree)[0]
 
     X_IBM._computeFrictionVelocity(z)
@@ -76,8 +81,10 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
     info[2].append(FS[2][1:])
     info[2] = info[2][0]
 
-    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=True, isPreProjectOrtho=True)
-
+    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=isRevertToOld, isPreProjectOrtho=True)
+    endTime = time.perf_counter()
+    elapsedTimed = endTime - startTime
+    print('[EXTRACTING IBM] Extracting Wall Fields...end...time:%g s | %g min | %g hr'%(elapsedTimed,elapsedTimed/60,elapsedTimed/3600), flush=True)
     return zw
 
 

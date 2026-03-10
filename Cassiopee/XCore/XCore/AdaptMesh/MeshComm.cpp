@@ -129,15 +129,33 @@ E_Int *map_cell_graph(Mesh *M, E_Int *cwgts)
         return NULL;
     }
 
+    // [TODO] Please keep this here for future tests. Thank you [AJ]
+    //ret = SCOTCH_stratDgraphMapBuild(&strat, SCOTCH_STRATDEFAULT, M->npc, M->npc, 0.0);
+    //ret = SCOTCH_stratDgraphMapBuild(&strat, SCOTCH_STRATBALANCE, M->npc, M->npc, 0.0);
+    //if (ret != 0) {
+    //  merr("Failed to configure Scotch partitioning strategy.");
+    //  SCOTCH_stratExit(&strat);
+    //  return NULL;
+    //}
+    //if (M->pid == 0) {
+    //  FILE *f = fopen("scotch_stratBalance00.txt", "w");
+    //  if (f) {
+    //    SCOTCH_stratSave(&strat, f);
+    //    fflush(f);
+    //    fclose(f);
+    //  }
+    //}
+
     E_Int *cmap = IntArray(M->nc);
 
-    if (M->pid == 0) puts("Partitioning graph...");
+    if (M->pid == 0) puts("Partitioning graph...[START]");
 
     ret = SCOTCH_dgraphPart(&graph, M->npc, &strat, cmap);
     if (ret != 0) {
         merr("Failed to map dual graph.");
         XFREE(cmap);
     }
+    if (M->pid == 0) puts("Partitioning graph...[END]");
 
     SCOTCH_dgraphExit(&graph);
     SCOTCH_stratExit(&strat);

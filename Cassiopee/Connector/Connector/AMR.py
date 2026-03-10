@@ -25,6 +25,13 @@ from .QuadratureDG import *
 __TOL__ = 1e-9
 
 OPT = True # distance aux noeuds uniquement - a valider !!!
+def outputTime(startTime,functionName='FunctionName'):
+    endTime     = time.perf_counter()
+    elapsedTime = endTime-startTime
+    elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
+    if Cmpi.rank==0: print('Elapsed Time: %s: %g [s] | %g [min] | %g [hr]'%(functionName,elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    return None
+
 def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./', forceAlignment=False):
     sym3D=False; VPM = False
     Cmpi.trace('AMR prepare IBM...start', master=True)
@@ -175,6 +182,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
+    if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
+    startTime = time.perf_counter()
     f = Internal.getZones(f_pytree)
     if f != []:
         f = f[0]
@@ -193,6 +202,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     else:
         frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
         dimfrontIP = 0
+    outputTime(startTime,functionName='identifyElementsPrt2')
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [end]  ", master=True, cpu=False)
 
     if VPM == False:
@@ -235,9 +245,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if different_front_flag == False: #True is default
             Internal._rmNodesFromName(t, "TurbulentDistance")
             Internal._renameNode(t, "TurbulentDistanceForCFDComputation","TurbulentDistance")
-
+    if OPT:
+        varnames = C.getVarNames(t, loc="centers")[0]
+        if "TurbulentDistance" not in varnames:
+            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
     Internal._renameNode(t, 'FlowSolution#Centers', 'FlisWallDistance')
-    Cmpi.trace('AMR prepare IBM...end', master=True)
+    Cmpi.trace('AMR prepare IBM...end', master=True, cpu=True)
     return t
 
 def computationDistancesNormals(t, tb, dim=3):
@@ -576,6 +589,7 @@ def moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_b
 
 def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
+    f = None
     for z in Internal.getZones(t):
         if z is not None:
             nobc = len(zbcs)
@@ -612,7 +626,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
 
                 C.freeHook(hook)
             z[0] = z[0]+str(Cmpi.rank)
-    if meshgen == "AMR": f_pytree[2][1][2] = [f]
+    if meshgen == "AMR" and f is not None: f_pytree[2][1][2] = [f]
     return None
 
 def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):

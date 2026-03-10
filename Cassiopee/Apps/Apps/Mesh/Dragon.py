@@ -664,7 +664,7 @@ def createDragonMeshForBladeInChannel(ts, dictOfParams={}, check=False, director
         surfs = C.convertArray2Tetra(surfs_wall,split='withBarycenters')
 
         surfs = T.join(surfs); surfs = T.reorderAll(surfs)
-        mesh_final = G.tetraMesher(surfs)
+        mesh_final = G.tetraMesher(surfs, grading=2.)
         npts = Internal.getZoneDim(mesh_final)[1]
         if npts == 0:
             raise ValueError("createDragonMesh: tetraMesher failed. Please check input data.")
@@ -921,7 +921,7 @@ def createInternalTetraMesh__(ext_TRI, ts, hext):
     surfs = Internal.getZones(ZONES)+Internal.getZones(ext_TRI)
     surfs = T.join(surfs)
     surfs = T.reorder(surfs,(1,))
-    tetMesh = G.tetraMesher(surfs)
+    tetMesh = G.tetraMesher(surfs, grading=2.)
     return tetMesh
 
 def remapSurf__(z, hmin=1e-6, dir=1):
@@ -1065,7 +1065,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
     Internal._rmNodesFromName(line_ext0, 'FlowSol*')
 
     contour = T.join([line_ext0,line_ext])
-    tri_ext = G.tetraMesher(contour)
+    tri_ext = G.tetraMesher(contour, grading=2.)
 
     # check qu on a bien triangule la zone entre les deux ??
     # par distance des frontieres exterieures aux lignes en entree
@@ -1077,7 +1077,7 @@ def generateTriMeshBetweenContours__(lineb, surfp, hmin=1e-6,remeshBorders=False
         Internal._rmNodesFromName(line_ext, 'FlowSol*')
 
         contour = T.join([line_ext0,line_ext])
-        tri_ext = G.tetraMesher(contour)
+        tri_ext = G.tetraMesher(contour, grading=2.)
 
     # projection sur la surface de depart...
     #...sans bouger les frontieres...

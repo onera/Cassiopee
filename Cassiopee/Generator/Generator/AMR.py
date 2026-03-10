@@ -1011,7 +1011,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     # [TODO] check if 4 cells is a global limit
                     # it was found that at least 4 cells are required if not the PT-Scotch partitioning can have partitions with 0 cells. This is empirical and subject to change as the sample
                     # size of the test cases increases
-                    if loadBalancing and Ncells//Cmpi.size>3: XC.AdaptMesh_LoadBalance(hookAM)
+                    if loadBalancing and Ncells//Cmpi.size>3 and adaptPass<1: XC.AdaptMesh_LoadBalance(hookAM)
                     XC.AdaptMesh_Adapt(hookAM)
                     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                     o = Internal.getZones(o)[0]

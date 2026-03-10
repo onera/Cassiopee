@@ -416,13 +416,13 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
         return transform.smooth(a, eps, niter, type, fixedConstraint,
                                 projConstraint, delta, point, radius)
 
-def consSmooth(a):
+def consSmooth(a, sweeps):
     """Conservative smoothing."""
     if isinstance(a[0], list):
         for i in a:
-            transform.consSmooth(i)
+            transform.consSmooth(i, sweeps)
     else:
-        return transform.consSmooth(a)
+        return transform.consSmooth(a, sweeps)
     return None
 
 def projectAllDirs(arrays, surfaces, vect=['nx','ny','nz'], oriented=0):

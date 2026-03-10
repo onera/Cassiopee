@@ -15,6 +15,13 @@ try:
 except:
     raise ImportError("interpolationDonorPoints: FSDataManager and CODA")
 
+def outputTime(startTime,functionName='FunctionName'):
+    endTime     = time.perf_counter()
+    elapsedTime = endTime-startTime
+    elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
+    if Cmpi.rank==0: print('Elapsed Time: %s: %g [s] | %g [min] | %g [hr]'%(functionName,elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    return None
+
 
 def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, markerIBM, wallBoundaryMarkers=[], check=False):
     """ Interpolate the CODA flow field to the IBM donor points (image points in ghost cell IBM approach). 
@@ -43,7 +50,7 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     ## CODA :: image point --> donor point ... ghost cells --> integration point/face
     _checkRepartitionOption(fsmesh, clac)
 
-    if Cmpi.rank==0: print("Interpolation of the flow solution on the donor points...", flush=True)
+    Cmpi.trace('[INTERPOLATIONDONORPOINTS] Interpolation of the flow solution on the donor points..start', master=True)
 
     wall        = fsmesh.GetUnstructDataset("WallPointCoordinates").GetValues()
     donor       = fsmesh.GetUnstructDataset("DonorPointCoordinates").GetValues()
@@ -57,7 +64,8 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     fsBoundaryMarkersCelltype = fsmesh.GetCellAttribute("CADGroupID",4)
     npBoundaryMarkersCelltype = numpy.array(fsBoundaryMarkersCelltype.Buffer(), copy=True)
 
-    indices      = numpy.ravel(numpy.argwhere(npBoundaryMarkersCelltype == markerIBM[0]))
+    #indices      = numpy.ravel(numpy.argwhere(npBoundaryMarkersCelltype == markerIBM[0]))
+    indices = numpy.ravel(numpy.argwhere(numpy.isin(npBoundaryMarkersCelltype, markerIBM)))
     nb_nodes_IBM = len(indices)
     if wallBoundaryMarkers != []:
         ##This makes no sense...i have no indices_wall...taken directory from original toolbox
@@ -134,11 +142,11 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     nodeWallPoints  = Cmpi.allgather(numpy.array(nodeWallPoints.Buffer() , copy=True))
     augStateData    = Cmpi.allgather(numpy.array(augStateData.Buffer()   , copy=True))
 
-
+    Cmpi.trace('[INTERPOLATIONDONORPOINTS] Interpolation of the flow solution on the donor points..end', master=True)
     return nodeDonorPoints, nodeWallPoints, augStateData
 
 
-def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, check=False, verbose=False):
+def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, check=False, verbose=False, isRevertToOld=False):
     """ Surface quantity post-processing for CODA IBM computation. 
     Usage: computeSurfValues(fileNameResultIn, tb, CODAInputs, dim, fileNameIBMPnts, fileNameResultOut, check, verbose)"""
 
@@ -149,6 +157,8 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
 
     if not isinstance(fileNameResultIn,str):
         ValueError('fileNameResultIn MUST the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
+    if isRevertToOld and Cmpi.master:
+        print("WARNING: Reverting to previous projection approach - extrapolation based...", flush=True)
 
     discParaDict            = CODAInputs[0]
     discSelectionParaDict   = CODAInputs[1]
@@ -171,7 +181,7 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
                                                               numpy.concatenate(augStateNumpy),
                                                               discSelectionParaDict)
         if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
-        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict)
+        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
 
     zw       = Cmpi.bcast(zw, root=0)
     zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose)
@@ -192,7 +202,7 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
         return zw, coefs
 
 
-def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, check=False, verbose=False):
+def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt', check=False, verbose=False, isRevertToOld=False):
     """ Surface quantity post-processing for CODA IBM computation using FSUI-CODA.
     Usage: computeSurfValues(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, check, verbose)"""
     import json
@@ -201,6 +211,9 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     ## fileNameRelations = (e.g) relations.json (the json file created after fsui-coda create)
     if isinstance(tb, str): tb = C.convertFile2PyTree(tb)
     else: tb = Internal.copyTree(tb)
+
+    if isRevertToOld and Cmpi.master:
+        print("WARNING: Reverting to previous projection approach - extrapolation based...", flush=True)
 
     if not isinstance(fileNameResultIn,str):
         ValueError('fileNameResultIn MUST be the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
@@ -227,7 +240,6 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         if "CFD" in boundary_data and "wall model" in boundary_data["CFD"]:
             treatment["wall model"] = boundary_data["CFD"]["wall model"]
         bndy_treat.append(treatment)
-
     discParaDict = {
         **discParaDictTmp,
         "boundary treatments": bndy_treat
@@ -281,19 +293,27 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
                                                               numpy.concatenate(augStateNumpy),
                                                               discSelectionParaDict)
         if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
-        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict)
+        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
 
     zw       = Cmpi.bcast(zw, root=0)
     zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
 
     if Cmpi.master:
-        print("\nIntegrated coefficients:")
-        print("CD=      %g"%coefs[0])
-        print("CDfric=  %g"%coefs[2])
-        print("CDpres=  %g"%coefs[3])
-        print("CL=      %g"%coefs[1])
-        print("CLfric=  %g"%coefs[4])
-        print("CLpres=  %g"%coefs[5])
+        with open(fileNameCoefOut, 'w') as f:
+            lines = [
+                "\nIntegrated coefficients:",
+                "\n ==== DRAG ==== :",
+                "CD=      %g" % coefs[0],
+                "CDfric=  %g" % coefs[2],
+                "CDpres=  %g" % coefs[3],
+                "\n ==== LIFT ==== :",
+                "CL=      %g" % coefs[1],
+                "CLfric=  %g" % coefs[4],
+                "CLpres=  %g" % coefs[5],
+            ]
+            output = "\n".join(lines)
+            print(output, flush=True)
+            f.write(output + "\n") # file
 
     if fileNameResultOut is not None:
         if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
