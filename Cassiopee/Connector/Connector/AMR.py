@@ -202,7 +202,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     else:
         frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
         dimfrontIP = 0
-    outputTime(startTime,functionName='identifyElementsPrt2')    
+    outputTime(startTime,functionName='identifyElementsPrt2')
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [end]  ", master=True, cpu=False)
 
     if VPM == False:

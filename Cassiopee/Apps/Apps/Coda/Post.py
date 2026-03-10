@@ -214,7 +214,7 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
 
     if isRevertToOld and Cmpi.master:
         print("WARNING: Reverting to previous projection approach - extrapolation based...", flush=True)
-    
+
     if not isinstance(fileNameResultIn,str):
         ValueError('fileNameResultIn MUST be the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
     if not isinstance(fileNameRelations,str):
@@ -294,10 +294,10 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
                                                               discSelectionParaDict)
         if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
         zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
-    
+
     zw       = Cmpi.bcast(zw, root=0)
     zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
-    
+
     if Cmpi.master:
         with open(fileNameCoefOut, 'w') as f:
             lines = [
@@ -312,9 +312,9 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
                 "CLpres=  %g" % coefs[5],
             ]
             output = "\n".join(lines)
-            print(output, flush=True) 
+            print(output, flush=True)
             f.write(output + "\n") # file
-        
+
     if fileNameResultOut is not None:
         if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
         return None
