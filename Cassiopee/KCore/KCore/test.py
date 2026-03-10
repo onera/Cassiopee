@@ -317,11 +317,11 @@ def testO(objet, number=1):
         file.close()
         return True
     else:
-        import pickle
+        from KCore.restrictedUnpickler import restrictedPickleLoad
         file = open(reference, 'rb')
         oldData = False
-        if oldData: a = pickle.load(file, encoding='latin1')
-        else: a = pickle.load(file)
+        if oldData: a = restrictedPickleLoad(file, encoding='latin1')
+        else: a = restrictedPickleLoad(file)
         file.close()
         print(f"Reading {reference}... done.")
         if isinstance(a, str) and a == 'Undumpable object': return True

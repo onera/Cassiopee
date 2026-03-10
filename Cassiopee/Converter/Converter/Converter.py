@@ -782,13 +782,13 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
     if not exists: raise IOError("convertFile2Arrays: file %s not found."%fileName)
 
     if format == 'bin_pickle':
-        import pickle
+        from KCore.restrictedUnpickler import restrictedPickleLoad
         print('Reading \''+fileName+'\'...', end="")
         try:
             file = open(fileName, 'rb')
             oldData = False
-            if oldData: a = pickle.load(file, encoding='latin1')
-            else: a = pickle.load(file)
+            if oldData: a = restrictedPickleLoad(file, encoding='latin1')
+            else: a = restrictedPickleLoad(file)
             file.close()
         except:
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)

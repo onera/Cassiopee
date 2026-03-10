@@ -1156,13 +1156,13 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         return t
 
     if format == 'bin_pickle':
-        import pickle
+        from KCore.restrictedUnpickler import restrictedPickleLoad
         print('Reading %s (bin_pickle)...'%fileName, end='')
         try:
             file = open(fileName, 'rb')
             oldData = False
-            if oldData: a = pickle.load(file, encoding='latin1')
-            else: a = pickle.load(file)
+            if oldData: a = restrictedPickleLoad(file, encoding='latin1')
+            else: a = restrictedPickleLoad(file)
             file.close()
         except:
             raise TypeError("convertFile2PyTree: file %s can not be read."%fileName)
