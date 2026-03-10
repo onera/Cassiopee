@@ -591,7 +591,6 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
-        f = None
         if z is not None:
             nobc = len(zbcs)
             f = Internal.getZones(f_pytree)[0]
