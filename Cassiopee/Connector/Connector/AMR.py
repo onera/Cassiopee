@@ -589,7 +589,9 @@ def moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_b
 
 def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
+    f = None
     for z in Internal.getZones(t):
+        f = None
         if z is not None:
             nobc = len(zbcs)
             f = Internal.getZones(f_pytree)[0]
@@ -625,7 +627,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
 
                 C.freeHook(hook)
             z[0] = z[0]+str(Cmpi.rank)
-    if meshgen == "AMR": f_pytree[2][1][2] = [f]
+    if meshgen == "AMR" and f is not None: f_pytree[2][1][2] = [f]
     return None
 
 def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):

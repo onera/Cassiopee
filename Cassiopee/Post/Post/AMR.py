@@ -60,7 +60,7 @@ def createPyTreeForIBMWallFieldsExtraction(donorPointsNumpy, wallPointsNumpy, au
     return pytree
 
 
-def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
+def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3, isRevertToOld=False):
     """ Extract IBM wall data. Interface between the CODA approach and the FastIBM function.
     Usage: extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype)"""
     #ibctype = 3 --> Musker
@@ -81,7 +81,7 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3):
     info[2].append(FS[2][1:])
     info[2] = info[2][0]
 
-    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=True, isPreProjectOrtho=True)
+    zw = P_IBM.extractIBMWallFields(z, tb=tb, famZones=[], isRevertToOld=isRevertToOld, isPreProjectOrtho=True)
     endTime = time.perf_counter()
     elapsedTimed = endTime - startTime
     print('[EXTRACTING IBM] Extracting Wall Fields...end...time:%g s | %g min | %g hr'%(elapsedTimed,elapsedTimed/60,elapsedTimed/3600), flush=True)
