@@ -65,8 +65,6 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
 # Fichiers fortran
 #==============================================================================
 for_srcs = ['Connector/Fortran/spalart_1d.for', # called in setIBCTRansfers.cpp/connector.h (spalart_1d_)
-            'Connector/Fortran/CompMotionCentersF.for', # never called
-            'Connector/Fortran/CompMotionCentersEXF.for', # never called
             'Connector/Fortran/BlkAdjustCellNatureFieldF.for', # called in blankCells.cpp (k6adjustcellnaturefield_)
             'Connector/Fortran/MaskSearchBlankedNodesXF.for', # called in blankCells.cpp (k6searchblankednodesx_)
             'Connector/Fortran/MaskSearchBlankedNodesX2DF.for', # called in blankCells.cpp (k6searchblankednodesx2d)
