@@ -9,4 +9,4 @@ cpp_srcs = ["RigidMotion/move.cpp",
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ["RigidMotion/Fortran/EvalRotF.for"]
+for_srcs = ["RigidMotion/Fortran/EvalRotF.for"] # called in rotorMotion.cpp (evalrotfor_)

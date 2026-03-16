@@ -56,8 +56,3 @@ cpp_srcs = ["Transform/coordTransform.cpp",
             "Transform/contractEdges.cpp",
             "Transform/checkTriMesh.cpp"
             ]
-
-#==============================================================================
-# Fichiers fortran
-#==============================================================================
-#for_srcs = [ 'Transform/Fortran/DeformF.for' ]

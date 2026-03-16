@@ -24,7 +24,7 @@ using namespace K_FLD;
 /*
   naca avec fermeture de Van Rouzaud
 */
-void k6naca1(E_Float e, E_Int npt,
+void naca1(E_Float e, E_Int npt,
              E_Float* x, E_Float* y, E_Float* z)
 {
   E_Int np, nps2, n;
@@ -60,7 +60,7 @@ void k6naca1(E_Float e, E_Int npt,
 /*
   Naca mais avec fermeture a la leballeur
 */
-void k6naca2(E_Float e, E_Int& npt,
+void naca2(E_Float e, E_Int& npt,
              E_Float* x, E_Float* y, E_Float* z)
 {
   E_Int np, nps2, n, no, nr;
@@ -120,7 +120,7 @@ void k6naca2(E_Float e, E_Int& npt,
 /*
   Naca Serie 4 airfoils by Dr Moens
 */
-void k6nacas4g(E_Int im, E_Int ip, E_Int it,
+void nacas4g(E_Int im, E_Int ip, E_Int it,
                E_Int sharpte, E_Int npt,
                E_Float* x, E_Float* y, E_Float* z,
                E_Float* xl)
@@ -223,7 +223,7 @@ void k6nacas4g(E_Int im, E_Int ip, E_Int it,
 /*
   Naca Serie 5 airfoils by Dr Moens
 */
-void k6nacas5g(E_Int il, E_Int ip, E_Int iq, E_Int it,
+void nacas5g(E_Int il, E_Int ip, E_Int iq, E_Int it,
                E_Int sharpte, E_Int npt,
                E_Float* x, E_Float* y, E_Float* z,
                E_Float* xl)
@@ -360,7 +360,7 @@ void k6nacas5g(E_Int il, E_Int ip, E_Int iq, E_Int it,
 /*
   Naca Serie 4 modified airfoils by Dr Moens
 */
-void k6nacas4m(E_Int im, E_Int ip, E_Int ith,
+void nacas4m(E_Int im, E_Int ip, E_Int ith,
                E_Int it, E_Int ii,
                E_Int sharpte, E_Int npt,
                E_Float* x, E_Float* y, E_Float* z,
@@ -519,7 +519,7 @@ PyObject* K_GEOM::naca(PyObject* self, PyObject* args)
     E_Int n = E_Int(N);
     FldArrayF coord(N, 3);
     coord.setAllValuesAtNull();
-    k6naca2(e, n, coord.begin(1), coord.begin(2), coord.begin(3));
+    naca2(e, n, coord.begin(1), coord.begin(2), coord.begin(3));
     coord.reAllocMat(n, 3);
     tpl = K_ARRAY::buildArray3(coord, "x,y,z", n, 1, 1, api);
   }
@@ -554,18 +554,18 @@ PyObject* K_GEOM::naca(PyObject* self, PyObject* args)
     if (im > -0.5 && ip > -0.5 && ith > -0.5 && it > -0.5 && iq > -0.5)
     {
       // iq used as ii
-      k6nacas4m(im, ip, ith, it, iq, sharpte,
+      nacas4m(im, ip, ith, it, iq, sharpte,
                 npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && iq > -0.5 && it > -0.5)
     {
       // im used as il
-      k6nacas5g(im, ip, iq, it, sharpte,
+      nacas5g(im, ip, iq, it, sharpte,
                 npt, x, y , z, xl.begin());
     }
     else if (im > -0.5 && ip > -0.5 && it > -0.5)
     {
-      k6nacas4g(im, ip, it, sharpte,
+      nacas4g(im, ip, it, sharpte,
                 npt, x, y , z, xl.begin());
     }
     // change numerotation

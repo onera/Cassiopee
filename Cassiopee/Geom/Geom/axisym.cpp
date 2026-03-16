@@ -21,7 +21,7 @@
 
 using namespace K_FLD;
 
-void k6axisym(E_Int npts,
+void axisym_(E_Int npts,
               const E_Float* x, const E_Float* y, const E_Float* z,
               const E_Float& xc, const E_Float& yc, const E_Float& zc,
               const E_Float& nx, const E_Float& ny, const E_Float& nz,
@@ -37,7 +37,7 @@ void k6axisym(E_Int npts,
   norm = nx*nx + ny*ny + nz*nz;
   if (norm <= 1.e-12)
   {
-    printf("Warning: k6axisym: nx,ny,nz has null norm.\n");
+    printf("Warning: axisym_: nx,ny,nz has null norm.\n");
     return;
   }
 
@@ -305,7 +305,7 @@ PyObject* K_GEOM::axisym(PyObject* self, PyObject* args)
       rm = sqrt(omx*omx+omy*omy+omz*omz); // r(teta) factor
     }
     else tetai = k*dteta;
-    k6axisym(npts0, xt0, yt0, zt0, xc, yc, zc, nx, ny, nz, tetai, rm,
+    axisym_(npts0, xt0, yt0, zt0, xc, yc, zc, nx, ny, nz, tetai, rm,
              xo, yo, zo);
 
     for (E_Int eq = 1; eq <= nfld0; eq++)

@@ -64,26 +64,26 @@ cpp_srcs = ['Connector/KInterp/BlkInterp.cpp',
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Connector/Fortran/spalart_1d.for',
-            'Connector/Fortran/CompMotionCentersF.for',
-            'Connector/Fortran/CompMotionCentersEXF.for',
-            'Connector/Fortran/BlkAdjustCellNatureFieldF.for',
-            'Connector/Fortran/MaskSearchBlankedNodesXF.for',
-            'Connector/Fortran/MaskSearchBlankedNodesX2DF.for',
-            'Connector/Fortran/MaskSearchBlankedNodesXDF.for',
-            'Connector/Fortran/MaskSearchBlankedNodesXD2DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsX2DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsX12DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsX1F.for',
-            'Connector/Fortran/MaskSearchBlankedCellsX22DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsX2F.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXDF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXD2DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXD2F.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXD22DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXD1F.for',
-            'Connector/Fortran/MaskSearchBlankedCellsXD12DF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsUnstrXF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsUnstrXDF.for',
-            'Connector/Fortran/MaskSearchBlankedCellsUnstrX2F.for']
+for_srcs = ['Connector/Fortran/spalart_1d.for', # called in setIBCTRansfers.cpp/connector.h (spalart_1d_)
+            'Connector/Fortran/CompMotionCentersF.for', # never called
+            'Connector/Fortran/CompMotionCentersEXF.for', # never called
+            'Connector/Fortran/BlkAdjustCellNatureFieldF.for', # called in blankCells.cpp (k6adjustcellnaturefield_)
+            'Connector/Fortran/MaskSearchBlankedNodesXF.for', # called in blankCells.cpp (k6searchblankednodesx_)
+            'Connector/Fortran/MaskSearchBlankedNodesX2DF.for', # called in blankCells.cpp (k6searchblankednodesx2d)
+            'Connector/Fortran/MaskSearchBlankedNodesXDF.for', # called in blankCells.cpp (k6searchblankednodesxd)
+            'Connector/Fortran/MaskSearchBlankedNodesXD2DF.for', # called in blankCells.cpp (k6searchblankednodesxd2d_)
+            'Connector/Fortran/MaskSearchBlankedCellsX2DF.for', # called in blankCells.cpp (k6searchblankedcellsx2d_)
+            'Connector/Fortran/MaskSearchBlankedCellsXF.for', # called in blankCells.cpp (k6searchblankedcellsx_)
+            'Connector/Fortran/MaskSearchBlankedCellsX12DF.for', # called in blankCells.cpp (k6searchblankedcellsx12d_)
+            'Connector/Fortran/MaskSearchBlankedCellsX1F.for', # called in blankCells.cpp (k6searchblankedcellsx1_)
+            'Connector/Fortran/MaskSearchBlankedCellsX22DF.for', # called in blankCells.cpp (k6searchblankedcellsx22d_)
+            'Connector/Fortran/MaskSearchBlankedCellsX2F.for', # called in blankCells.cpp (k6searchblankedcellsx2_)
+            'Connector/Fortran/MaskSearchBlankedCellsXDF.for', # called in blankCells.cpp (k6searchblankedcellsxd_)
+            'Connector/Fortran/MaskSearchBlankedCellsXD2DF.for', # called in blankCells.cpp (k6searchblankedcellsxd2d_)
+            'Connector/Fortran/MaskSearchBlankedCellsXD2F.for', # called in blankCells.cpp (k6searchblankedcellsxd2_)
+            'Connector/Fortran/MaskSearchBlankedCellsXD22DF.for', # called in blankCells.cpp (k6searchblankedcellsxd22d_)
+            'Connector/Fortran/MaskSearchBlankedCellsXD1F.for', # called in blankCells.cpp (k6searchblankedcellsxd1_)
+            'Connector/Fortran/MaskSearchBlankedCellsXD12DF.for', # called in blankCells.cpp (k6searchblankedcellsxd12d_)
+            'Connector/Fortran/MaskSearchBlankedCellsUnstrXF.for', # called in blankCells.cpp (k6searchblankedcellstrix_)
+            'Connector/Fortran/MaskSearchBlankedCellsUnstrXDF.for', # called in blankCells.cpp (k6searchblankedcellstrixd_)
+            'Connector/Fortran/MaskSearchBlankedCellsUnstrX2F.for'] # called in blankCells.cpp (k6searchblankedcellstrix2_)

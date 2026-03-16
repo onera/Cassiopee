@@ -196,18 +196,18 @@ else:
 #==============================================================================
 # Fichiers fortran
 #==============================================================================
-for_srcs = ['Generator/Fortran/MeshqualF.for',
-            'Generator/Fortran/HgF.for',
-            'Generator/Fortran/Hg2F.for',
-            'Generator/Fortran/Hg3F.for',
-            'Generator/Fortran/Hg4F.for',
-            'Generator/Fortran/DecbtF.for',
-            'Generator/Fortran/SolbtF.for',
-            'Generator/Fortran/PtridF.for',
-            'Generator/Fortran/DecF.for',
-            'Generator/Fortran/SolF.for',
-            'Generator/Fortran/GelgF.for',
-            'Generator/Fortran/StretchF.for',
-            'Generator/Fortran/MetsF.for',
-            'Generator/Fortran/CoeffttmF.for',
-            'Generator/Fortran/Sor9ptF.for']
+for_srcs = ['Generator/Fortran/MeshqualF.for', # called in checkMesh.cpp (k6checkmesh_)
+            'Generator/Fortran/HgF.for', # called in hyper2d.cpp (k6hyper2d_)
+            'Generator/Fortran/Hg2F.for', # called in hyper2d.cpp (k6hyper2d2)
+            'Generator/Fortran/Hg3F.for', # called in hyper2d.cpp (k6hyper2d3_)
+            'Generator/Fortran/Hg4F.for', # called in hyper2d.cpp (k6hyper2d4_)
+            'Generator/Fortran/DecbtF.for', # required for HgF*.for files
+            'Generator/Fortran/SolbtF.for', # required for HgF*.for files
+            'Generator/Fortran/PtridF.for', # required for HgF*.for files
+            'Generator/Fortran/DecF.for', # required for HgF*.for files
+            'Generator/Fortran/SolF.for', # required for HgF*.for files
+            'Generator/Fortran/GelgF.for', # required for HgF*.for files
+            'Generator/Fortran/StretchF.for', # called in enforce.cpp and generator3.cpp (k6stretch_)
+            'Generator/Fortran/MetsF.for', # required for CoeffttmF.for
+            'Generator/Fortran/CoeffttmF.for', # called in elliptic.cpp (k6coeffttm_)
+            'Generator/Fortran/Sor9ptF.for'] # called in elliptic.cpp (k6sor_)

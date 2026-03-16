@@ -27,7 +27,7 @@ using namespace std;
 /*
   Lamb-Oseen vortex initialization
 */
-void k6lamb(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
+void lamb(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
             E_Int npts,
             const E_Float* xc, const E_Float* yc, const E_Float* zc,
             E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -129,7 +129,7 @@ void k6lamb(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
 /*
   Initialization of Visbal vortex in field with constant density
 */
-void k6visbal(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
+void visbal(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
               E_Int npts,
               const E_Float* xc, const E_Float* yc, const E_Float* zc,
               E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -222,7 +222,7 @@ void k6visbal(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
   Initialization of Scully vortex in field
   Adimensionalization with ro_inf = 1 and u_inf = 1
 */
-void k6scully(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
+void scully(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
               E_Int npts,
               const E_Float* xc, const E_Float* yc, const E_Float* zc,
               E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -289,7 +289,7 @@ void k6scully(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
   Initialization of Scully vortex (variant 2) in field
   Adimensionalization with ro_inf = 1 and u_inf = 1
 */
-void k6scully2(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
+void scully2(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
                E_Int npts,
                const E_Float* xc, const E_Float* yc, const E_Float* zc,
                E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -344,7 +344,7 @@ void k6scully2(E_Float x0, E_Float y0, E_Float Gamma, E_Float a, E_Float MInf,
   Initialization of Yee vortex in field
   Adimensionalization: ro_inf = 1, u_inf = Minf
 */
-void k6yee(E_Float x0, E_Float y0, E_Float Gamma, E_Float Minf,
+void yee(E_Float x0, E_Float y0, E_Float Gamma, E_Float Minf,
            E_Int npts,
            const E_Float* xc, const E_Float* yc, const E_Float* zc,
            E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -402,7 +402,7 @@ void k6yee(E_Float x0, E_Float y0, E_Float Gamma, E_Float Minf,
   Initialization of Wissocq vortex
   Dimensional: ro_inf = 1.1765, p_inf = 101320 Pa
 */
-void k6wissocq(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
+void wissocq(E_Float x0, E_Float y0, E_Float Gamma, E_Float MInf,
                E_Int npts,
                const E_Float* xc, const E_Float* yc, const E_Float* zc,
                E_Float* u1, E_Float* u2, E_Float* u3, E_Float* u4, E_Float* u5)
@@ -537,7 +537,7 @@ PyObject* K_INITIATOR::initLamb(PyObject* self, PyObject* args)
     }
   }
   // init with lamb
-  k6lamb(x0, y0, Gam, MInf, npts,
+  lamb(x0, y0, Gam, MInf, npts,
          f->begin(posx), f->begin(posy), f->begin(posz),
          f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
          f2->begin(posrow), f2->begin(posroe));
@@ -637,7 +637,7 @@ PyObject* K_INITIATOR::initVisbal(PyObject* self, PyObject* args)
   }
 
   // init with visbal
-  k6visbal(x0, y0, Gam, MInf, npts,
+  visbal(x0, y0, Gam, MInf, npts,
            f->begin(posx), f->begin(posy), f->begin(posz),
            f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
            f2->begin(posrow), f2->begin(posroe));
@@ -740,12 +740,12 @@ PyObject* K_INITIATOR::initScully(PyObject* self, PyObject* args)
   switch (model)
   {
     case 0:
-      k6scully(x0, y0, Gam, coreRadius, MInf, npts,
+      scully(x0, y0, Gam, coreRadius, MInf, npts,
                f->begin(posx), f->begin(posy), f->begin(posz),
                f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
                f2->begin(posrow), f2->begin(posroe));
     default:
-      k6scully2(x0, y0, Gam, coreRadius, MInf, npts,
+      scully2(x0, y0, Gam, coreRadius, MInf, npts,
                  f->begin(posx), f->begin(posy), f->begin(posz),
                  f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
                  f2->begin(posrow), f2->begin(posroe));
@@ -845,7 +845,7 @@ PyObject* K_INITIATOR::initYee(PyObject* self, PyObject* args)
     }
   }
 
-  k6yee(x0, y0, Gam, Minf, npts,
+  yee(x0, y0, Gam, Minf, npts,
         f->begin(posx), f->begin(posy), f->begin(posz),
         f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
         f2->begin(posrow), f2->begin(posroe));
@@ -944,7 +944,7 @@ PyObject* K_INITIATOR::initWissocq(PyObject* self, PyObject* args)
     }
   }
 
-  k6wissocq(x0, y0, Gam, MInf, npts,
+  wissocq(x0, y0, Gam, MInf, npts,
             f->begin(posx), f->begin(posy), f->begin(posz),
             f2->begin(posro), f2->begin(posrou), f2->begin(posrov),
             f2->begin(posrow), f2->begin(posroe));
