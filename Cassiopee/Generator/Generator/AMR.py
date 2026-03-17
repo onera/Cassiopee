@@ -238,7 +238,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         bodies = [tbLocalTmp]; nbodies = 1
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
         t = C.newPyTree(["BASE", Internal.getZones(b)])
-        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+        # using the input bodies provided (tb & tbox) - safe to use blankCellsTri
+        if dim == 2: X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
@@ -395,6 +396,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn", 1.)
 
+    # tbTMP - offset body - blankCells is more tested due to uncertainties on the quality of the offset
     if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                                                XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                                                cellNName='cellN')
@@ -424,8 +426,11 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     if dim==2:
         offset1 = T.addkplane(offset1)
         offset2 = T.addkplane(offset2)
-    bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1
+    bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1 (cgns base of tb or tbox)
     bodies2 = [Internal.getZones(offset2)] # tag for refinement inside of offset2
+
+    # bodies1 - tb & tbox - blankCellsTri is safe due to assure quality of the input
+    # bodies2 - offset body - blankCells is more tested due to uncertainties on the quality of the offset
 
     BM = numpy.ones((1,1), dtype=Internal.E_NpyInt)
 
@@ -466,9 +471,9 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
 
     if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
-        if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                                                                   XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
-                                                                   cellNName='cellNOut')
+        if dim == 2 : to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+                                        XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                        cellNName='cellNOut') #or blankCellsAlgo == 'xray'
         else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
 
         # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)

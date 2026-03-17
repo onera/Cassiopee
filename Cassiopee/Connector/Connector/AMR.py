@@ -251,7 +251,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     # Chosen approach: OPT=True - use only the dist2wall@Node for the IBM prep & if needed recalculate the dist2wall@Centers at the end of the function.
     #                  Options for OPT=False have not been tested but do not seem like the appropriate solution : calcs on dist2wall@Centers + center2Node is counterintuitive
     # TODO: Remove OPT=False options ONLY after testing with IBM Local options. F. Basile prototype did some operations with dist2wall@Centers.
-    if OPT:
+    node = Internal.getNodeFromName(t, 'FlowSolution#Centers') #select cells after blanking may yields an empty zone
+    if OPT and node:
         varnames = C.getVarNames(t, loc="centers")[0]
         if "TurbulentDistance" not in varnames:
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
@@ -597,7 +598,6 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
-        f = None
         if z is not None:
             nobc = len(zbcs)
             f = Internal.getZones(f_pytree)[0]
