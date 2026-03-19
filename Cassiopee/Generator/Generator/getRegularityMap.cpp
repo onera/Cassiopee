@@ -599,40 +599,37 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     }
 
     // Pre-compute total number of elements and facets
+    E_Int ierr;
+    E_Int ntotFacets = 0, ntotElts = 0;
     E_Int nc = cn->getNConnect();
     std::vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
 
-    E_Int ntotFacets = 0, ntotElts = 0;
-    std::vector<E_Int> nfpe(nc);  // number of facets per element
+    // Number of facets per element
+    std::vector<E_Int> nfpe;
+    ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+    if (ierr != 0)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "getRegularityMap: Error computing nfpe.");
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
+      return NULL;
+    }
 
+    // Total number of elements/facets
     for (E_Int ic = 0; ic < nc; ic++)
     {
       K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
       E_Int nelts = cm.getSize();
-      if (strcmp(eltTypes[ic], "BAR") == 0) nfpe[ic] = 1;
-      else if (strcmp(eltTypes[ic], "TRI") == 0) nfpe[ic] = 1;
-      else if (strcmp(eltTypes[ic], "QUAD") == 0) nfpe[ic] = 1;
-      else if (strcmp(eltTypes[ic], "TETRA") == 0) nfpe[ic] = 4;
-      else if (strcmp(eltTypes[ic], "PYRA") == 0) nfpe[ic] = 5;
-      else if (strcmp(eltTypes[ic], "PENTA") == 0) nfpe[ic] = 5;
-      else if (strcmp(eltTypes[ic], "HEXA") == 0) nfpe[ic] = 6;
-      else
-      {
-        PyErr_SetString(PyExc_TypeError,
-                        "getRegularityMap: Unknown type of BE element.");
-        for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-        RELEASESHAREDS(tpl, f2);
-        RELEASESHAREDU(array, f, cn);
-        return NULL;
-      }
       ntotFacets += nfpe[ic]*nelts;
       ntotElts += nelts;
     }
 
     // Calcul de la connectivite element -> elements voisins
     std::vector<std::vector<E_Int> > cEEN(ntotElts);
-    E_Int ierr = K_CONNECT::connectEV2EENbrs(eltType, npts, *cn, cEEN);
+    ierr = K_CONNECT::connectEV2EENbrs(eltType, npts, *cn, cEEN);
     if (ierr == 0)
     {
       PyErr_SetString(PyExc_TypeError,
