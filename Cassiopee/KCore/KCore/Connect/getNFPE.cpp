@@ -45,7 +45,8 @@ E_Int K_CONNECT::getNFPE(
         K_STRING::cmp(eltTypeConn, "BAR*") == 0)
     {
       if (expandToLowerDim) nfpe[ic] = 2;
-      else nfpe[ic] = 0;
+      else nfpe[ic] = 1; // having nfpe = 0 would prevent the computation of 
+      // fctOffset within various unstructured functions of the code that support ME.
     }
     else if (K_STRING::cmp(eltTypeConn, "TRI") == 0 ||
              K_STRING::cmp(eltTypeConn, "TRI*") == 0)
