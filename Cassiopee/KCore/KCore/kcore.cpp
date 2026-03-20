@@ -79,12 +79,6 @@ extern "C"
 //=============================================================================
 extern "C"
 {
-  void k6compunstrmetric_(E_Int& npts, E_Int& nbcell, 
-                          E_Int& nedges, E_Int& nnodes, 
-                          E_Int* cn, E_Float* x, E_Float* y, E_Float* z, 
-                          E_Float* xint, E_Float* yint, E_Float* zint,
-                          E_Float* surfx, E_Float* surfy, E_Float* surfz,
-                          E_Float* snorm, E_Float* vol);
   void k6unstructsurf_(E_Int& npts, E_Int& nelts, E_Int& nedges, 
                        E_Int& nnodes, E_Int* cn, 
                        E_Float* xt, E_Float* yt, E_Float* zt,
@@ -109,11 +103,6 @@ void K_KCORE::testFooKCore()
   
   k6unstructsurf_(i, i, i, i, NULL, NULL, NULL, NULL,
                   NULL, NULL, NULL, NULL); 
-  k6compunstrmetric_(i, i, i, i, 
-                     NULL, NULL, NULL, NULL, 
-                     NULL, NULL, NULL,
-                     NULL, NULL, NULL,
-                     NULL, NULL);
   k6compstructcellcenter_(i, i, i, i, i, 
                           NULL, NULL, 
                           NULL, NULL);

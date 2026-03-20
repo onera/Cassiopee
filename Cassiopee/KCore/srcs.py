@@ -387,7 +387,5 @@ for_srcs = [
     'KCore/Metric/CompTetraCellCenterF.for', # called in KMesh.cpp (k6comptetracellcenter_)
     'KCore/Metric/CompStructCellCenterF.for', # called in KMesh.cpp (k6compstructcellcenter_)
     'KCore/Metric/CompVolOfTetraCellF.for', # called in BlkInterp.cpp, Interp.cpp, and commonTypesForExtrapAndInterp.h (k6compvoloftetracell_)
-    'KCore/Metric/CompUnstrSurfF.for', # required for CompUnstrMetricF.for
-    'KCore/Metric/CompUnstrCenterIntF.for', # required for CompUnstrMetricF.for
-    'KCore/Metric/CompUnstrMetricF.for', # called in getRegularityMap.cpp (k6compunstrmetric_)
+    'KCore/Metric/CompUnstrSurfF.for', # required for CompVolOfTetraCellF.for
 ]
