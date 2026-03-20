@@ -79,9 +79,6 @@ extern "C"
 //=============================================================================
 extern "C"
 {
-  void k6conv2center1_(const E_Int& ni, const E_Int& nj, const E_Int& nk, 
-                       const E_Int& nfld, E_Float* fieldnode, 
-                       E_Float* fieldcenter);
   void k6compunstrmetric_(E_Int& npts, E_Int& nbcell, 
                           E_Int& nedges, E_Int& nnodes, 
                           E_Int* cn, E_Float* x, E_Float* y, E_Float* z, 
@@ -110,7 +107,6 @@ void K_KCORE::testFooKCore()
 {
   E_Int i=0; E_Float f=0.;
   
-  k6conv2center1_(i, i, i, i, NULL, NULL);
   k6unstructsurf_(i, i, i, i, NULL, NULL, NULL, NULL,
                   NULL, NULL, NULL, NULL); 
   k6compunstrmetric_(i, i, i, i, 
