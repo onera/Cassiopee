@@ -21,11 +21,11 @@ b = T.consSmooth(b,sweeps)
 test.testT(b, 2)
 
 # standard bar1D tests on closed curve
-c = C.convertArray2Tetra(a) 
+c = C.convertArray2Tetra(a)
 c = T.consSmooth(c,sweeps)
 test.testA([c], 3)
 
 # standard bar1D tests on open curve
-d = C.convertArray2Tetra(b) 
+d = C.convertArray2Tetra(b)
 d = T.consSmooth(d,sweeps)
 test.testA([d], 4)
