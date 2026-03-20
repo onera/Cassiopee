@@ -82,9 +82,7 @@ namespace K_CONVERTER
   PyObject* convertStrand2Penta(PyObject* self, PyObject* args);
   PyObject* convertPenta2Strand(PyObject* self, PyObject* args);
   PyObject* center2Node(PyObject* self, PyObject* args);
-  PyObject* center2Node_OLD(PyObject* self, PyObject* args);
   PyObject* node2Center(PyObject* self, PyObject* args);
-  PyObject* node2Center_OLD(PyObject* self, PyObject* args);
   PyObject* node2ExtCenter(PyObject* self, PyObject* args);
   PyObject* extCenter2Node(PyObject* self, PyObject* args);
   PyObject* center2ExtCenter(PyObject* self, PyObject* args);

@@ -110,12 +110,10 @@ cpp_srcs = [
     'KCore/Connect/prefixSum.cpp',
     'KCore/Sort/sort.cpp',
     'KCore/Loc/node2Center.cpp',
-    'KCore/Loc/node2Center_OLD.cpp',
     'KCore/Loc/node2ExtCenters.cpp',
     'KCore/Loc/center2ExtCenters.cpp',
     'KCore/Loc/extCenters2Node.cpp',
     'KCore/Loc/center2Node.cpp',
-    'KCore/Loc/center2Node_OLD.cpp',
     'KCore/Loc/fromExtCenters2StdCenters.cpp',
     'KCore/Loc/cart2Cyl.cpp',
     'KCore/Loc/cyl2Cart.cpp',
@@ -386,12 +384,6 @@ for_srcs = [
     'KCore/Interp/Cp_coord_in_stable_frame_3dF.for', # required for CompInterpolatedPtInRefElementF.for
     'KCore/Interp/CompInterpolatedPtInRefElementF.for', # called in Interp2.cpp and BlkInterpWithKMesh.cpp (compinterpolatedptinrefelt_)
     'KCore/Linear/GaussjF.for', # called in solve.cpp (kgaussj_) / required in CompInterpolatedPtInRefElementF.for
-    'KCore/Loc/Conv2CenterF.for',  # called in OLD version
-    'KCore/Loc/Conv2Center2DF.for', # called in OLD version
-    'KCore/Loc/Conv2Center1DF.for', # called in OLD version
-    'KCore/Loc/Conv2NodeF.for', # called in OLD version
-    'KCore/Loc/Conv2Node2DF.for', # called in OLD version
-    'KCore/Loc/Conv2Node1DF.for', # called in OLD version
     'KCore/Metric/CompTetraCellCenterF.for', # called in KMesh.cpp (k6comptetracellcenter_)
     'KCore/Metric/CompStructCellCenterF.for', # called in KMesh.cpp (k6compstructcellcenter_)
     'KCore/Metric/CompVolOfTetraCellF.for', # called in BlkInterp.cpp, Interp.cpp, and commonTypesForExtrapAndInterp.h (k6compvoloftetracell_)
