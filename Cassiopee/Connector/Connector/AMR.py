@@ -251,7 +251,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     # Chosen approach: OPT=True - use only the dist2wall@Node for the IBM prep & if needed recalculate the dist2wall@Centers at the end of the function.
     #                  Options for OPT=False have not been tested but do not seem like the appropriate solution : calcs on dist2wall@Centers + center2Node is counterintuitive
     # TODO: Remove OPT=False options ONLY after testing with IBM Local options. F. Basile prototype did some operations with dist2wall@Centers.
-    node = Internal.getNodeFromName(t, 'FlowSolution#Centers') #select cells after blanking may yields an empty zone
+    node = Internal.getZones(t) #select cells after blanking may yields an empty zone - yields empty list or list with elements 
     if OPT and node:
         varnames = C.getVarNames(t, loc="centers")[0]
         if "TurbulentDistance" not in varnames:
