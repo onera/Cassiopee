@@ -151,78 +151,34 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
       {
         E_Int nc = cn->getNConnect();
 
+        // Total number of elements/facets
+        for (E_Int ic = 0; ic < nc; ic++)
+        {
+          K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+          E_Int nelts = cm.getSize();
+          ntotFacets += nfpe[ic]*nelts;
+          ntotElts += nelts;
+        }
+
         // Get dimensionality
         E_Int dim = K_CONNECT::getDimME(eltType);
         
-        if (dim == 1)
-        {
-          E_Int offset = 0;
-          for (E_Int ic = 0; ic < nc; ic++)
-          {
-            K_FLD::FldArrayI& cm = *(cn->getConnect(ic)); // TODO
-            E_Int nelts = cm.getSize();
-            E_Int ind1, ind2;
-            E_Float dx, dy, dz;
-            for (E_Int i = 0; i < nelts; i++)
-            {
-              ind1 = cm(i, 1) - 1; 
-              ind2 = cm(i, 2) - 1;
-              dx = xt[ind2] - xt[ind1];
-              dy = yt[ind2] - yt[ind1];
-              dz = zt[ind2] - zt[ind1];
-              vol[i+offset] = std::sqrt(dx*dx + dy*dy + dz*dz);
-            }
-            offset += nelts;
-          }
-        }
-        else if (dim == 2)
-        {
-          // Compute total number of elements
-          E_Int ntotElts = 0;
-          for (E_Int ic = 0; ic < nc; ic++)
-          {
-            K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
-            E_Int nelts = cm.getSize();
-            ntotElts += nelts;
-          }
+        K_FLD::FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
+        K_FLD::FldArrayF surf(ntotFacets);
+        K_FLD::FldArrayF vol(ntotElts);
 
-          // Allocate memory to store facet normals and their areas for all
-          // connectivities
-          FldArrayF snx(ntotElts), sny(ntotElts), snz(ntotElts);
-          
-          // Compute surface of elements
-          K_METRIC::compSurfUnstruct(
-            *cn, eltType, xt, yt, zt,
-            snx.begin(), sny.begin(), snz.begin(), vol
+        if (dim == 3)
+        {
+          K_METRIC::compMetricUnstruct(
+            *cn, eltType, xp, yp, zp,
+            snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol.begin()
           );
         }
-        else if (dim == 3)
+        else // 1D/2D
         {
-          // Number of facets per element
-          std::vector<E_Int> nfpe;
-          E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
-          if (ierr != 0)
-          {
-            RELEASESHAREDS(tpl, f2);
-            RELEASESHAREDU(array, f, cn);
-            return NULL;
-          }
-          
-          // Compute total number of facets
-          E_Int ntotFacets = 0;
-          for (E_Int ic = 0; ic < nc; ic++)
-          {
-            K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
-            E_Int nelts = cm.getSize();
-            ntotFacets += nfpe[ic]*nelts;
-          }
-          
-          FldArrayF snx(ntotFacets), sny(ntotFacets), snz(ntotFacets);
-          FldArrayF surf(ntotFacets);
-          K_METRIC::compMetricUnstruct(
-            *cn, eltType,
-            xt, yt, zt,
-            snx.begin(), sny.begin(), snz.begin(), surf.begin(), vol
+          K_METRIC::compSurfUnstruct(
+            *cn, eltType, xp, yp, zp,
+            snx.begin(), sny.begin(), snz.begin(), vol.begin()
           );
         }
       }
