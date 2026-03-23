@@ -387,7 +387,6 @@ def computeVariables(array, varname,
     else:
         return post.computeVariables(array, varname, gamma, rgp, s0, betas, Cs, mus, Ts)
 
-
 def computeVariables2(array, varname,
                       gamma=1.4, rgp=287.053, s0=0., betas=1.458e-6,
                       Cs=110.4, mus=1.76e-5, Ts=273.15):
