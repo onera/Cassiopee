@@ -583,7 +583,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   {
     // Construction du tableau numpy stockant le ratio max de volumes entre
     // elements voisins, definissant la regularite
-    PyObject* tpl = K_ARRAY::buildArray3(
+    tpl = K_ARRAY::buildArray3(
       1, "regularity", npts, *cn, eltType, 1, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
@@ -602,8 +602,6 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     E_Int ierr;
     E_Int ntotFacets = 0, ntotElts = 0;
     E_Int nc = cn->getNConnect();
-    std::vector<char*> eltTypes;
-    K_ARRAY::extractVars(eltType, eltTypes);
 
     // Number of facets per element
     std::vector<E_Int> nfpe;
@@ -612,7 +610,6 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "getRegularityMap: Error computing nfpe.");
-      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -634,7 +631,6 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "getRegularityMap: Error computing cEEN.");
-      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -686,7 +682,6 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       }
     }     
 
-    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn);
     return tpl;
