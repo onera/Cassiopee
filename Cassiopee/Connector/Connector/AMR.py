@@ -149,7 +149,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
 
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
-    t = P.selectCells(t,"{cellN}==1.", strict=1)
+    t = P.selectCells(t, "{cellN}==1.", strict=1)
     Internal._rmNodesFromName(t,"FlowSolution")
     for node in Internal.getNodesFromType(t, "Elements_t"):
         if node[0] != "GridElements":
@@ -207,14 +207,14 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
 
     if VPM == False:
         Cmpi.trace(" Extracting front of the donor points [start]", master=True, cpu=False)
-        if frontTypeDP=="1":
+        if frontTypeDP == "1":
             frontDP_gath = extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir=localDir)
         else:
             frontDP_gath = None
         del frontIP_gath
         Cmpi.trace(" Extracting front of the donor points [end]  ", master=True, cpu=False)
 
-        if dimfrontIP>0:
+        if dimfrontIP > 0:
             if IBM_parameters["spatial discretization"]["type"] == "FV":
                 Cmpi.trace(" Computing normals via project ortho [start]", master=False, cpu=False)
                 _computeNormalsViaProjectOrtho__(frontIP, tb2)
@@ -409,18 +409,18 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
             nzonesR         = len(allInterpPts)
 
             nameZone = ['IBM', 'Wall', 'Image']
-            tLocal3   = C.newPyTree(nameZone)
-            tLocal4   = C.newPyTree(nameZone)
-            isWrite3  = 0
-            isWrite4  = 0
+            tLocal3 = C.newPyTree(nameZone)
+            tLocal4 = C.newPyTree(nameZone)
+            isWrite3 = 0
+            isWrite4 = 0
             allProjectPts = res[3]
             allProjectPts = Converter.extractVars(allProjectPts, ['ProjectionType'])
             outputProjection3 = [[],[],[],[],[],[],[],[],[]]
             outputProjection4 = [[],[],[],[],[],[],[],[],[]]
             for noz in range(nzonesR):
                 arrayLocal = allProjectPts[noz][1][0]
-                type_3     = numpy.count_nonzero(arrayLocal==3)
-                type_4     = numpy.count_nonzero(arrayLocal==4)
+                type_3 = numpy.count_nonzero(arrayLocal==3)
+                type_4 = numpy.count_nonzero(arrayLocal==4)
 
                 if type_3 > 0: X_IBM._prepOutputProject__(outputProjection3, 3, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
                 if type_4 > 0: X_IBM._prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
@@ -995,7 +995,7 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
 
     Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
     tb2  = Internal.copyTree(tb)
-    if dim == 2:tb2 = T.addkplane(tb)
+    if dim == 2: tb2 = T.addkplane(tb)
     else:
         baseSYM = Internal.getNodesFromName1(tb2, "SYM")
         if baseSYM:
@@ -1009,8 +1009,8 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
 
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
     ## Ncells output
-    Ncells=C.getNCells(t_AMR)
-    Ncells=Cmpi.allreduce(Ncells, op=Cmpi.SUM)
+    Ncells = C.getNCells(t_AMR)
+    Ncells = Cmpi.allreduce(Ncells, op=Cmpi.SUM)
     if Cmpi.master: print("[MESH GEN.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
 
     ## ==================
@@ -1018,8 +1018,8 @@ def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=
     ## ==================
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir, forceAlignment=forceAlignment)
     ## Ncells output
-    Ncells=C.getNCells(t_AMR)
-    Ncells=Cmpi.allreduce(Ncells, op=Cmpi.SUM)
+    Ncells = C.getNCells(t_AMR)
+    Ncells = Cmpi.allreduce(Ncells, op=Cmpi.SUM)
     if Cmpi.master: print("[IBM PREP.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
 
     if fileName is not None:
