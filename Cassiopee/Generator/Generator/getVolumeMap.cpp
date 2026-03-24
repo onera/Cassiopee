@@ -120,7 +120,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
     RELEASESHAREDS(array, f);
     return tpl;
   }
-  else if (res == 2) // cas non-structure
+  else // cas non-structure
   {
     // Build array contenant le volume des elements au centre des elements
     tpl = K_ARRAY::buildArray3(
