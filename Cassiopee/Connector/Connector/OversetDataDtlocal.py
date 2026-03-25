@@ -140,9 +140,9 @@ def setInterpData3(tR, tD, double_wall=0, order=2, penalty=1, nature=0,
 
         # Zones receveuses : on determine les 1ers points paroi (centres ou noeuds)
         # recup des familles de type paroi dans les zones receveuses
-        famwallsR = C.getFamilyBCNamesOfType(ttreeR, 'BCWall')
-        famwallsR += C.getFamilyBCNamesOfType(ttreeR, 'BCWallViscous')
-        famwallsR += C.getFamilyBCNamesOfType(ttreeR, 'BCWallInviscid')
+        famwallsR = Internal.getFamilyBCNamesOfType(ttreeR, 'BCWall')
+        famwallsR += Internal.getFamilyBCNamesOfType(ttreeR, 'BCWallViscous')
+        famwallsR += Internal.getFamilyBCNamesOfType(ttreeR, 'BCWallInviscid')
 
         # interpWallPts : selon la loc, on recupere les premiers centres ou noeuds
         for zr in zonesRcv:

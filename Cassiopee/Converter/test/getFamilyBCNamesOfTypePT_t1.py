@@ -1,5 +1,6 @@
 # - getFamilyBCNamesOfType (pyTree) -
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
@@ -16,8 +17,8 @@ t[2][1] = C.addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
 t[2][1] = C.addFamily2Base(t[2][1], 'LOIN', bndType='BCFarfield')
 
 # Toutes les familyBCs de type BCwall
-names1 = C.getFamilyBCNamesOfType(t, 'BCWall')
+names1 = Internal.getFamilyBCNamesOfType(t, 'BCWall')
 # Toutes les familyBCs de l'arbre
-names2 = C.getFamilyBCNamesOfType(t)
+names2 = Internal.getFamilyBCNamesOfType(t)
 names1.sort(); names2.sort()
 test.testO([names1, names2], 1)

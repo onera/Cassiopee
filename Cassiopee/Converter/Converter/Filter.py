@@ -109,12 +109,12 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
                         if Internal.getValue(f) == fz:
                             znp.append('/'+b[0]+'/'+z[0])
     elif BCType is not None:
-        families = PyTree.getFamilyBCNamesOfType(a, BCType)
+        families = Internal.getFamilyBCNamesOfType(a, BCType)
         s = BCType.split(':',1)
         if len(s) == 2: families.append(s[1])
         if BCType == 'BCWall':
-            families1 = PyTree.getFamilyBCNamesOfType(a, 'BCWallInviscid')
-            families2 = PyTree.getFamilyBCNamesOfType(a, 'BCWallViscous*')
+            families1 = Internal.getFamilyBCNamesOfType(a, 'BCWallInviscid')
+            families2 = Internal.getFamilyBCNamesOfType(a, 'BCWallViscous*')
             families += families1
             families += families2
         znp = []
@@ -125,7 +125,7 @@ def readZoneHeaders(fileName, format=None, baseNames=None, familyZoneNames=None,
                 path = '/'+b[0]+'/'+z[0]
                 _readPyTreeFromPaths(a, fileName, path+'/ZoneBC', format)
                 nodes = Internal.getNodesFromValue(z, BCType)
-                nodes += PyTree.getFamilyBCs(z, families)
+                nodes += Internal.getFamilyBCs(z, families)
                 #_convert2SkeletonTree(z)
                 if nodes != []: znp.append(path)
     else:

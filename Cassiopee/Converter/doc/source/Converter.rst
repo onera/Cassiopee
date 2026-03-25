@@ -169,9 +169,7 @@ List of functions
     Converter.PyTree.addFamily2Base
     Converter.PyTree.tagWithFamily
     Converter.PyTree.getFamilyZones
-    Converter.PyTree.getFamilyBCs
     Converter.PyTree.getFamilyZoneNames
-    Converter.PyTree.getFamilyBCNamesOfType
     Converter.PyTree.getFamilyBCNamesDict
     Converter.PyTree.getValue
     Converter.PyTree.setValue
@@ -191,6 +189,7 @@ List of functions
     Converter.getNPts
     Converter.getNCells
     Converter.initVars
+    Converter._initBCDataSet
     Converter.extractVars
     Converter.rmVars
     Converter.convertArray2Tetra
@@ -991,7 +990,7 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.extractBCFields(a,varList=None)
+.. py:function:: Converter.PyTree.extractBCFields(a, varList=None)
 
     Extract fields defined at BCs of a zone *z*. If no BCDataSet is defined then a 0th-order extrapolation from interior cells is done. If a BCDataSet is defined, it has priority on the extrapolation. List of variables can be specified by the user. If not, the variables that are extracted are those defined in the FlowSolution node located at cell centers. Currently, this function works for structured and NGON zones. It returns the list of variables that could have been extracted and the indices of the face centers of the corresponding BCs.
 
@@ -1097,22 +1096,6 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
-.. py:function:: Converter.PyTree.getFamilyBCs(a, familyName)
-
-    Get all BC nodes corresponding to a given familyName (family of BCs).
-
-    :param a: input data 
-    :type a: [pyTree, base, zone, list of zones]
-    :rtype: list of BC nodes (shared with a)
-
-    *Example of use:*
-
-    * `Get family BC nodes (pyTree) <Examples/Converter/getFamilyBCsPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/getFamilyBCsPT.py
-
----------------------------------------------------------------------------
-
 .. py:function:: Converter.PyTree.getFamilyZoneNames(a)
 
     Return all family zone names defined in a. 
@@ -1126,23 +1109,6 @@ pyTree creation and manipulation
     * `Get familyZone names (pyTree) <Examples/Converter/getFamilyZoneNamesPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getFamilyZoneNamesPT.py
-
----------------------------------------------------------------------------
-
-.. py:function:: Converter.PyTree.getFamilyBCNamesOfType(a, bndType=None)
-
-    Return all family BC names of a given type. If type is None, 
-    return all family BC names.
-    
-    :param a: input data 
-    :type a: [pyTree, base]
-    :rtype: list of familyBC names
-
-    *Example of use:*
-
-    * `Get familyBC names of given type (pyTree) <Examples/Converter/getFamilyBCNamesOfTypePT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Converter/getFamilyBCNamesOfTypePT.py
 
 ---------------------------------------------------------------------------
 
@@ -1424,7 +1390,7 @@ Array / PyTree common manipulations
 
 -----------------------------------------------------------------------------------
 
-.. py:function:: Converter.initVars(a, varNameString, value, isVectorized=False)
+.. py:function:: Converter.initVars(a, varNameString, v1=None, v2=None, isVectorized=False)
 
     Initialize one or several variables as given by varNameString.
 
@@ -1435,12 +1401,16 @@ Array / PyTree common manipulations
 
     If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.
 
+    Exists also as in place version (_initVars) that modifies a and returns None.
+
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param varNameString: string describing variable or formula
     :type varNameString: string or list of strings
-    :param value: value in case of constant init or function.
-    :type value: float or function and parameters
+    :param v1: value in case of constant init or function.
+    :type v1: float or function
+    :param v2: function's arguments if v1 is a function, None otherwise
+    :type v2: list of strings
     :param isVectorized: when using functions, indicates that function is in vectorized form.
     :type isVectorized: boolean
     :rtype: identical to input
@@ -1472,6 +1442,43 @@ Array / PyTree common manipulations
     * `Init a variable with a formula (pyTree) <Examples/Converter/initVarsByEqPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/initVarsByEqPT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter._initBCDataSet(t, varNameString, v1=None, v2=None, bndName=None, bndType=None, isVectorized=False)
+
+    Initialize one or several variables, as listed in varNameString, in the
+    BCDataSets of BC nodes. BC nodes can be filtered by their names and/or types
+    and wildcards are accepted.
+
+    For an initialisation by a formula string, only one variable can be set at a time.
+
+    For an initialisation by a function or a constant, varNameString can be a string
+    or a list of strings.
+
+    If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param varNameString: string describing variable or formula
+    :type varNameString: string or list of strings
+    :param v1: value in case of constant init or function.
+    :type v1: float or function
+    :param v2: function's arguments if v1 is a function, None otherwise
+    :type v2: list of strings
+    :param bndName: name(s) of the BC node(s) to get
+    :type bndName: string or list of strings
+    :param bndType: name(s) of the BC type(s) to get
+    :type bndType: string or list of strings
+    :param isVectorized: when using functions, indicates that function is in vectorized form.
+    :type isVectorized: boolean
+    :rtype: None
+
+    *Example of use:*
+
+    * `Init a variable to a constant value (pyTree) <Examples/Converter/initBCDataSetPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/initBCDataSetPT.py
 
 -----------------------------------------------------------------------------------
 

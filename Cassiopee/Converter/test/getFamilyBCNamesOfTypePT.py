@@ -1,5 +1,6 @@
 # - getFamilyBCNamesOfType (pyTree) -
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import Generator.PyTree as G
 
 a = G.cart((0.,0.,0), (0.01,0.01,1.), (20,20,2))
@@ -13,8 +14,8 @@ t = C.newPyTree(['Base',a,b])
 C._addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
 
 # Toutes les familyBCs de type BCwall
-names = C.getFamilyBCNamesOfType(t, 'BCWall'); print(names)
+names = Internal.getFamilyBCNamesOfType(t, 'BCWall'); print(names)
 #>> ['CARTER']
 # Toutes les familyBCs de l'arbre
-names = C.getFamilyBCNamesOfType(t); print(names)
+names = Internal.getFamilyBCNamesOfType(t); print(names)
 #>> ['CARTER']
