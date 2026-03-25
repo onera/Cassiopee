@@ -21,5 +21,3 @@ test.testO(n, 2)
 
 n = Internal.getBCNodesFromType(t, 'BCWallViscous')  # by BC type
 test.testO(n, 3)
-
-

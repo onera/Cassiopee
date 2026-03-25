@@ -30,4 +30,3 @@ print([n[0] for n in nodes])
 nodes = Internal.getBCNodesFromType(bc, 'BCInflow')
 print([n[0] for n in nodes])
 #>> ['inlet']
-

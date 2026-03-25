@@ -76,4 +76,3 @@ test.testO(n, 16)
 
 n = Internal.getBCNodesFromName(zones, 'wall*')  # wildcard
 test.testO(n, 17)
-

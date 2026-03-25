@@ -74,4 +74,3 @@ test.testO(n, 15)
 
 n = Internal.getBCNodesFromNameAndType(zones, bndName='wall*', bndType='BCWallViscous*')  # combination
 test.testO(n, 16)
-

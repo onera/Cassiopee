@@ -29,4 +29,3 @@ print([n[0] for n in nodes])
 nodes = Internal.getBCNodesFromName(bc, 'wall1')
 print([n[0] for n in nodes])
 #>> ['wall1']
-

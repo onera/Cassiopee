@@ -21,4 +21,3 @@ print([n[0] for n in nodes])
 nodes = Internal.getBCNodesFromNameAndType(t, bndName='wall*', bndType='BCWallViscous')
 print([n[0] for n in nodes])
 #>> ['wall1', 'wall2']
-
