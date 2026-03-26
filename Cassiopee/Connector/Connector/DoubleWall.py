@@ -30,7 +30,7 @@ def getBCWallRanges__(z, familyNames=[]):
             walls.append([i1,i2,j1,j2,k1,k2])
         elif v == 'FamilySpecified':
             for fname in familyNames:
-                nodes = C.getFamilyBCs(z, fname)
+                nodes = Internal.getFamilyBCs(z, fname)
                 for fambc in nodes:
                     range0 = Internal.getNodeFromName1(fambc, 'PointRange')
                     r = Internal.range2Window(range0[1])
@@ -231,9 +231,9 @@ def extractDoubleWallInfo__(t):
     wallBndIndicesN = [] # indices des parois
     # 1. Extraction des surfaces paroi et indices correspondants
     # liste des familles "paroi"
-    famwalls = C.getFamilyBCNamesOfType(t, 'BCWall')
-    famwalls += C.getFamilyBCNamesOfType(t, 'BCWallViscous')
-    famwalls += C.getFamilyBCNamesOfType(t, 'BCWallInviscid')
+    famwalls = Internal.getFamilyBCNamesOfType(t, 'BCWall')
+    famwalls += Internal.getFamilyBCNamesOfType(t, 'BCWallViscous')
+    famwalls += Internal.getFamilyBCNamesOfType(t, 'BCWallInviscid')
     for base1 in bases:
         firstCentersb = [] # liste des surfaces de la base
         wallsb = []

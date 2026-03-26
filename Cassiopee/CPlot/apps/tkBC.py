@@ -121,7 +121,7 @@ def updateFamilyBCNameList2_2(event=None):
 # Pour set BC
 def updateFamilyBCNameList3(event=None):
     if CTK.t == []: return
-    varsl = C.getFamilyBCNamesOfType(CTK.t)
+    varsl = Internal.getFamilyBCNamesOfType(CTK.t)
     m = WIDGETS['BCs2'].children['menu']
     m.delete(0, TK.END)
     varsp = Internal.KNOWNBCS[:]
@@ -131,7 +131,7 @@ def updateFamilyBCNameList3(event=None):
 
 def updateFamilyBCNameList3_2(event=None):
     if CTK.t == []: return
-    varsl = C.getFamilyBCNamesOfType(CTK.t)
+    varsl = Internal.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
     if len(varsl) != 0:
         varsl.sort(key=str.lower)
@@ -142,7 +142,7 @@ def updateFamilyBCNameList3_2(event=None):
 # Pour fillEmptyBC
 def updateFamilyBCNameList4(event=None):
     if CTK.t == []: return
-    varsl = C.getFamilyBCNamesOfType(CTK.t)
+    varsl = Internal.getFamilyBCNamesOfType(CTK.t)
     m = WIDGETS['BCs4'].children['menu']
     m.delete(0, TK.END)
     varsp = Internal.KNOWNBCS[:]
@@ -152,7 +152,7 @@ def updateFamilyBCNameList4(event=None):
 
 def updateFamilyBCNameList4_2(event=None):
     if CTK.t == []: return
-    varsl = C.getFamilyBCNamesOfType(CTK.t)
+    varsl = Internal.getFamilyBCNamesOfType(CTK.t)
     varsp = Internal.KNOWNBCS[:]
     if len(varsl) != 0:
         varsl.sort(key=str.lower)

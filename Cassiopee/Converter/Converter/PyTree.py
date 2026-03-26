@@ -2793,30 +2793,27 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
         locI = 0; FSCont = Internal.__FlowSolutionNodes__
 
     zones = Internal.getZones(t)
-    families = getFamilyBCNamesOfType(t, bndType)
+    families = Internal.getFamilyBCNamesOfType(t, bndType)
     for z in zones:
         dimZ = Internal.getZoneDim(z)
         niZ = dimZ[1]; njZ = dimZ[2]; nkZ = dimZ[3]
         allbcs = Internal.getNodesFromType2(z, 'BC_t')
         bcs = Internal.getNodesFromValue(allbcs, bndType)
-        bcs += getFamilyBCs(z, families)    # CW : plutot allbcs ??
+        bcs += Internal.getFamilyBCs(z, families)    # CW : plutot allbcs ??
         for bc in bcs:
             PR = Internal.getNodeFromName1(bc, 'PointRange')
             PL = Internal.getNodeFromName1(bc, 'PointList')
             np = 0
             if PR is not None:
-                win =  Internal.range2Window(PR[1])
-                imin = win[0]; imax = win[1]
-                jmin = win[2]; jmax = win[3]
-                kmin = win[4]; kmax = win[5]
+                imin, imax, jmin, jmax, kmin, kmax = Internal.range2Window(PR[1])
                 if locI == 0:
-                    di = max(1,imax-imin+1)
-                    dj = max(1,jmax-jmin+1)
-                    dk = max(1,kmax-kmin+1)
+                    di = max(1, imax-imin+1)
+                    dj = max(1, jmax-jmin+1)
+                    dk = max(1, kmax-kmin+1)
                 else:
-                    di = max(1,imax-imin)
-                    dj = max(1,jmax-jmin)
-                    dk = max(1,kmax-kmin)
+                    di = max(1, imax-imin)
+                    dj = max(1, jmax-jmin)
+                    dk = max(1, kmax-kmin)
                 np = di*dj*dk
             elif PL is not None:
                 np = PL[1].size
@@ -2830,14 +2827,17 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
                 d = Internal.newBCData('BCDirichlet', parent=d)
                 cont, noc = Internal.getParentOfNode(z, d)
                 for vect in vectors:
-                    vxname = vect[0]; fxInt = numpy.zeros((np),numpy.float64)
-                    vyname = vect[1]; fyInt = numpy.zeros((np),numpy.float64)
-                    vzname = vect[2]; fzInt = numpy.zeros((np),numpy.float64)
+                    vxname = vect[0]; fxInt = numpy.zeros((np), numpy.float64)
+                    vyname = vect[1]; fyInt = numpy.zeros((np), numpy.float64)
+                    vzname = vect[2]; fzInt = numpy.zeros((np), numpy.float64)
                     if PR is not None:
-                        Converter.converter.nullifyVectorAtBCFaceStruct(z, fxInt, fyInt, fzInt,
-                                                                        imin, imax, jmin, jmax, kmin, kmax, locI,
-                                                                        vxname, vyname, vzname,
-                                                                        Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+                        Converter.converter.nullifyVectorAtBCFaceStruct(
+                            z, fxInt, fyInt, fzInt,
+                            imin, imax, jmin, jmax, kmin, kmax, locI,
+                            vxname, vyname, vzname,
+                            Internal.__GridCoordinates__,
+                            Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__
+                        )
 
                     elif PL is not None:
                         print("Warning: nullifyVectorAtBCDataSet: not implemented for PointList.")
@@ -2848,13 +2848,16 @@ def _nullifyBCDataSetVectors(t, bndType, loc='FaceCenter',
             else: # BCDataSet exists: add missing variables
                 d = Internal.getNodeFromType2(bc,'BCData_t')
                 for vect in vectors:
-                    vxname = vect[0]; fxInt = numpy.zeros((np),numpy.float64)
-                    vyname = vect[1]; fyInt = numpy.zeros((np),numpy.float64)
-                    vzname = vect[2]; fzInt = numpy.zeros((np),numpy.float64)
-                    Converter.converter.nullifyVectorAtBCFaceStruct(z, fxInt, fyInt, fzInt,
-                                                                    imin, imax, jmin, jmax, kmin, kmax, locI,
-                                                                    vxname, vyname, vzname,
-                                                                    Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+                    vxname = vect[0]; fxInt = numpy.zeros((np), numpy.float64)
+                    vyname = vect[1]; fyInt = numpy.zeros((np), numpy.float64)
+                    vzname = vect[2]; fzInt = numpy.zeros((np), numpy.float64)
+                    Converter.converter.nullifyVectorAtBCFaceStruct(
+                        z, fxInt, fyInt, fzInt,
+                        imin, imax, jmin, jmax, kmin, kmax, locI,
+                        vxname, vyname, vzname,
+                        Internal.__GridCoordinates__,
+                        Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__
+                    )
                     Internal._createUniqueChild(d, vxname, 'DataArray_t', value=fxInt)
                     Internal._createUniqueChild(d, vyname, 'DataArray_t', value=fyInt)
                     Internal._createUniqueChild(d, vzname, 'DataArray_t', value=fzInt)
@@ -2869,13 +2872,13 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
     else: locI = 0; FSCont = Internal.__FlowSolutionNodes__
 
     zones = Internal.getZones(t)
-    families = getFamilyBCNamesOfType(t, bndType)
+    families = Internal.getFamilyBCNamesOfType(t, bndType)
     for z in zones:
         dimZ = Internal.getZoneDim(z)
         niZ = dimZ[1]; njZ = dimZ[2]; nkZ = dimZ[3]
         allbcs = Internal.getNodesFromType2(z, 'BC_t')
         bcs = Internal.getNodesFromValue(allbcs, bndType)
-        bcs += getFamilyBCs(z, families)
+        bcs += Internal.getFamilyBCs(z, families)
         FSNode = Internal.getNodeFromName1(z, FSCont)
         varnames=[]
         for fs in FSNode[2]:
@@ -2886,9 +2889,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
             np = 0
             if PR is not None:
                 win =  Internal.range2Window(PR[1])
-                imin = win[0]; imax = win[1]
-                jmin = win[2]; jmax = win[3]
-                kmin = win[4]; kmax = win[5]
+                imin, imax, jmin, jmax, kmin, kmax = win
                 if locI == 0:
                     di = max(1,imax-imin+1)
                     dj = max(1,jmax-jmin+1)
@@ -2914,8 +2915,11 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                         varname = fs[0]
                         fInt = numpy.zeros((np),numpy.float64)
                         if PR is not None:
-                            Converter.converter.extrapInterior2BCFaceStruct(z, fInt, imin, imax, jmin, jmax, kmin, kmax, locI, varname,
-                                                                            Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+                            Converter.converter.extrapInterior2BCFaceStruct(
+                                z, fInt, imin, imax, jmin, jmax, kmin, kmax, locI, varname,
+                                Internal.__GridCoordinates__,
+                                Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__
+                            )
 
                         elif PL is not None:
                             print("Warning: createBCDataSetOfType: extrapolation from interior cells not implemented for PointList. Fields are initialized by O in BCDataSet.")
@@ -2927,9 +2931,12 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                 for dataSet in d[2]: dataSetNames.append(dataSet[0])
                 for varname in varnames:
                     if varname not in dataSetNames or update is True:
-                        fInt = numpy.zeros((np),numpy.float64)
-                        Converter.converter.extrapInterior2BCFaceStruct(z, fInt, imin, imax, jmin, jmax, kmin, kmax, locI, varname,
-                                                                        Internal.__GridCoordinates__, Internal.__FlowSolutionNodes__,Internal.__FlowSolutionCenters__)
+                        fInt = numpy.zeros((np), numpy.float64)
+                        Converter.converter.extrapInterior2BCFaceStruct(
+                            z, fInt, imin, imax, jmin, jmax, kmin, kmax, locI, varname,
+                            Internal.__GridCoordinates__,
+                            Internal.__FlowSolutionNodes__, Internal.__FlowSolutionCenters__
+                        )
                         Internal._createUniqueChild(d, varname, 'DataArray_t', value=fInt)
     if bndType == 'BCWallInviscid':
         _nullifyBCDataSetVectors(t, bndType, loc=loc, vectors=[['VelocityX','VelocityY','VelocityZ']])
@@ -2940,15 +2947,15 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
             _nullifyBCDataSetVectors(t, bndType, loc=loc, vectors=[['VelocityX','VelocityY','VelocityZ']]+vectors)
     return None
 
-# Apply init to all BCDataSets
-def _initBCDataSet(t, varNameString, val1=None, val2=None):
+# Initialize BCDataSets of BC nodes given by their names and/or types
+def _initBCDataSet(t, varNameString, v1=None, v2=None,
+                   bndName=None, bndType=None, isVectorized=False):
     zones = Internal.getZones(t)
     if zones == []: zones = [t] # must be a BC node
     for z in zones:
-        bcs = Internal.getNodesFromType2(z, 'BC_t')
+        bcs = Internal.getBCNodesFromNameAndType(z, bndName, bndType)
         for b in bcs:
             datas = Internal.getBCDataSet(z, b)
-
             fields = []; connects = []
             for d in datas: # build array
                 np = d[1].size; ne = np-1
@@ -2966,26 +2973,22 @@ def _initBCDataSet(t, varNameString, val1=None, val2=None):
                 elif np2 is not None:
                     if np2[1].size == 6: # structured range
                         win = Internal.range2Window(np2[1])
-                        imin = win[0]; imax = win[1]
-                        jmin = win[2]; jmax = win[3]
-                        kmin = win[4]; kmax = win[5]
-                        np = max(imax-imin,1)*max(jmax-jmin,1)*max(kmax-kmin,1)
+                        imin, imax, jmin, jmax, kmin, kmax = win
+                        np = max(imax-imin, 1)*max(jmax-jmin, 1)*max(kmax-kmin, 1)
                     elif np2[1].size == 2: # element range
                         npr = np2[1].ravel("k")
                         np = npr[1] - npr[0]
                 elif np3 is not None:
                     if np3[1].size == 6: # structured range
                         win = Internal.range2Window(np3[1])
-                        imin = win[0]; imax = win[1]
-                        jmin = win[2]; jmax = win[3]
-                        kmin = win[4]; kmax = win[5]
-                        np = max(imax-imin,1)*max(jmax-jmin,1)*max(kmax-kmin,1)
+                        imin, imax, jmin, jmax, kmin, kmax = win
+                        np = max(imax-imin, 1)*max(jmax-jmin, 1)*max(kmax-kmin, 1)
                     elif np3[1].size == 2: # element range
                         npr = np3[1].ravel("k")
                         np = npr[1] - npr[0]
                 else: raise ValueError('initBCDataSet: no PointRange or PointList in BC.')
-                fields = Converter.array('empty',np,1,1)
-            fn = Converter.initVars(fields, varNameString, val1, val2)
+                fields = Converter.array('empty', np, 1, 1)
+            fn = Converter.initVars(fields, varNameString, v1, v2, isVectorized=isVectorized)
             varName = varNameString.split('=')[0]
             varName = varName.replace('{', '')
             varName = varName.replace('}', '')
@@ -2994,7 +2997,7 @@ def _initBCDataSet(t, varNameString, val1=None, val2=None):
             f = Converter.extractVars(fn, [varName])
             fieldFaceNode = Internal.createDataNode(varName, f, 0, cellDim=1)
             if datas != []:
-                cont, c = Internal.getParentOfNode(z, datas[0])
+                cont, _ = Internal.getParentOfNode(z, datas[0])
                 Internal._createUniqueChild(cont, varName, 'DataArray_t', value=fieldFaceNode[1])
             else:
                 d = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
@@ -4310,8 +4313,8 @@ def convertStringRange2Range__(wrange, z):
 
 # -- converti un BCRange en tableau de BCFaces
 def convertBCRange2BCFace__(ni, nj, nk, range0):
-    win = Internal.range2Window(range0)
-    imin, imax, jmin, jmax, kmin, kmax = win
+    imin, imax, jmin, jmax, kmin, kmax = Internal.range2Window(range0)
+
     dir = 0
     di = imax-imin; dj = jmax-jmin; dk = kmax-kmin
     if di == 0:
@@ -4511,7 +4514,7 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
                                 Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
                 else:  # topologic
                     #print("*"*30+BCNames[c]+"*"*30)
-                    print("b", b)
+                    #print("b", b)
                     if isinstance(b, tuple) and len(b) == 2:  # input formatted by getBC__
                         if b[0] == 'Window':
                             pointList = Converter.converter.range2PointList(*b[1], ni, nj, nk)
@@ -4570,7 +4573,8 @@ def pushBC(t1, t2, type='F', tol=1.e-12, overwriteBC=True):
                 BCType = Internal.getValue(b)
                 if BCType == 'FamilySpecified':
                     familyName = Internal.getNodeFromType1(b, 'FamilyName_t')
-                    if familyName is not None: BCType = 'FamilySpecified:%s'%Internal.getValue(familyName)
+                    if familyName is not None:
+                        BCType = 'FamilySpecified:%s'%Internal.getValue(familyName)
                 ext = extractBCOfName(z1, name)
                 if outBCC == 0:
                     n = identifyElements(KDT, ext, tol)
@@ -4628,7 +4632,7 @@ def identifyBC(t, infos, tol=1.e-12):
                                 niw = dimW[1]; njw = dimW[2]
                                 idHook = identifyNodes(globalHook, face, tol)
                                 if max(idHook) > -1:
-                                    ranges,nowins = Internal.gatherInStructPatch2D__(idHook,indirWins,niw,njw,dirf,niZ,njZ,nkZ)
+                                    ranges, nowins = Internal.gatherInStructPatch2D__(idHook, indirWins, niw, njw, dirf, niZ, njZ, nkZ)
                                     if ranges != []:
                                         nor = 0
                                         for r in ranges:
@@ -4640,24 +4644,27 @@ def identifyBC(t, infos, tol=1.e-12):
                                             if bcdata is not None: bcdata = bcdata[1]
                                             win = info[3]
                                             famName = ''
-                                            if bctype.split(':')[0] == 'FamilySpecified': famName=bctype.split(':')[1]
+                                            if bctype.split(':')[0] == 'FamilySpecified':
+                                                famName = bctype.split(':')[1]
 
                                             # Passage en noeuds des indices
-                                            istart=r[0]; iend=r[1]
-                                            jstart=r[2]; jend=r[3]
-                                            kstart=r[4]; kend=r[5]
+                                            istart, iend, jstart, jend, kstart, kend = r
                                             if istart != iend:
-                                                if iend>1: iend=min(niZ,iend+1)
+                                                if iend > 1: iend = min(niZ, iend+1)
                                             if jstart != jend:
-                                                if jend>1: jend=min(njZ,jend+1)
+                                                if jend > 1: jend = min(njZ, jend+1)
                                             if kstart != kend:
-                                                if kend>1: kend=min(nkZ,kend+1)
+                                                if kend > 1: kend = min(nkZ, kend+1)
                                             else: # cas 2D
                                                 if nkZ == 2 and kend == 1: kend = 2
                                             nor += 1
 
                                             # addBC
-                                            _addBC2Zone(z,bcname,bctype,[istart,iend,jstart,jend,kstart,kend],data=bcdata)
+                                            _addBC2Zone(
+                                                z, bcname, bctype,
+                                                [istart, iend, jstart, jend, kstart, kend],
+                                                data=bcdata
+                                            )
                                             tpp[2][nob][2][noz] = z
     Converter.freeHook(globalHook)
     tp = Internal.pyTree2Node(tpp, typen)
@@ -4885,20 +4892,20 @@ def _rmBCOfType(t, bndType):
                         (parent, d) = Internal.getParentOfNode(z, i)
                         del parent[2][d]
     else: # physical BC
-        families = getFamilyBCNamesOfType(t, bndType)
+        families = Internal.getFamilyBCNamesOfType(t, bndType)
         if bndType == 'BCWall':
-            familiesI = getFamilyBCNamesOfType(t, 'BCWallInviscid')
-            familiesV = getFamilyBCNamesOfType(t, 'BCWallViscous*')
+            familiesI = Internal.getFamilyBCNamesOfType(t, 'BCWallInviscid')
+            familiesV = Internal.getFamilyBCNamesOfType(t, 'BCWallViscous*')
         for z in zones:
             BCnodes = Internal.getNodesFromType1(z, 'ZoneBC_t')
             for n in BCnodes:
                 nodes = Internal.getNodesFromValue(n, bndType)
-                nodes += getFamilyBCs(z, families)
+                nodes += Internal.getFamilyBCs(z, families)
                 if bndType == 'BCWall':
                     nodes += Internal.getNodesFromValue(n, 'BCWallInviscid')
                     nodes += Internal.getNodesFromValue(n, 'BCWallViscous*')
-                    nodes += getFamilyBCs(z, familiesI)
-                    nodes += getFamilyBCs(z, familiesV)
+                    nodes += Internal.getFamilyBCs(z, familiesI)
+                    nodes += Internal.getFamilyBCs(z, familiesV)
                 for i in nodes:
                     (parent, d) = Internal.getParentOfNode(z, i)
                     del parent[2][d]
@@ -4925,7 +4932,7 @@ def _rmBCOfName(t, bndName):
     else: # family specified BC
         zones = Internal.getZones(t)
         for z in zones:
-            nodes = getFamilyBCs(z, names[1])
+            nodes = Internal.getFamilyBCs(z, names[1])
             for i in nodes:
                 (parent, d) = Internal.getParentOfNode(z, i)
                 del parent[2][d]
@@ -5105,7 +5112,9 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
         nfacesExt = indicesF.size
         nfacesDef = indicesBC.size
         if nfacesExt < nfacesDef:
-            print('Warning: zone %s: number of faces defined by BCs is greater than the number of external faces. Try to reduce the matching tolerance.'%(z[0]))
+            print('Warning: zone %s: number of faces defined by BCs is greater '
+                  'than the number of external faces. Try to reduce the '
+                  'matching tolerance.'%(z[0]))
         elif nfacesExt > nfacesDef:
             indicesBC = indicesBC.reshape( (indicesBC.size) )
             indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
@@ -5325,10 +5334,10 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True, extrapFlow=True,
                             extrapFlow=extrapFlow, shift=shift, method=method)
     else: # BC physiques
         if topTree is None: topTree = t
-        families = getFamilyBCNamesOfType(topTree, bndType)
+        families = Internal.getFamilyBCNamesOfType(topTree, bndType)
         if bndType == 'BCWall':
-            families1 = getFamilyBCNamesOfType(topTree, 'BCWallInviscid')
-            families2 = getFamilyBCNamesOfType(topTree, 'BCWallViscous*')
+            families1 = Internal.getFamilyBCNamesOfType(topTree, 'BCWallInviscid')
+            families2 = Internal.getFamilyBCNamesOfType(topTree, 'BCWallViscous*')
 
         for z in zones:
             nodes = []
@@ -5336,14 +5345,14 @@ def extractBCOfType(t, bndType, topTree=None, reorder=True, extrapFlow=True,
             for zbc in zbcs:
                 for i in zbc[2]:
                     if Internal.isValue(i, bndType) and i[3] == 'BC_t': nodes.append(i)
-            nodes += getFamilyBCs(z, families)
+            nodes += Internal.getFamilyBCs(z, families)
             if bndType == 'BCWall':
                 for zbc in zbcs:
                     for i in zbc[2]:
                         if (Internal.isValue(i, 'BCWallInviscid') or Internal.isValue(i, 'BCWallViscous*')) and i[3] == 'BC_t':
                             nodes.append(i)
-                nodes += getFamilyBCs(z, families1)
-                nodes += getFamilyBCs(z, families2)
+                nodes += Internal.getFamilyBCs(z, families1)
+                nodes += Internal.getFamilyBCs(z, families2)
             for i in nodes:
                 getBC__(i, z, T, res, reorder=reorder, extrapFlow=extrapFlow,
                         shift=shift, method=method)
@@ -5369,7 +5378,7 @@ def extractBCOfName(t, bndName, reorder=True, extrapFlow=True, shift=0, method="
                             extrapFlow=extrapFlow, shift=shift, method=method)
     else: # family specified BC
         for z in Internal.getZones(t):
-            nodes = getFamilyBCs(z, names[1])
+            nodes = Internal.getFamilyBCs(z, names[1])
             for i in nodes: getBC__(i, z, T, res, reorder=reorder,
                                     extrapFlow=extrapFlow, shift=shift, method=method)
     return res
@@ -5400,7 +5409,8 @@ def extractBCOfSubRegionName__(t, zsrName, reorder=True, extrapFlow=True, shift=
 # Retourne la geometrie ou la topologie de toutes les BCs
 # IN: t: une zone, une liste de zones, une base ou un arbre
 # IN: extrapFlow: extrapolate flow solution if True
-# IN: reorder: if True, extracted zones are reordered such that normals are oriented towards the interior of a
+# IN: reorder: if True, extracted zones are reordered such that normals are
+# #            oriented towards the interior of a
 # IN: method: geometric or topologic
 # OUT: BCs: liste des geometries ou topologies de bcs (a plat)
 # OUT: BCNames: liste des noms des BCs (a plat)
@@ -5489,7 +5499,7 @@ def _mergeBCs(z):
         BCNames.append(i)
         BCTypes.append(i)
 
-    _recoverBCs(z, (BCs,BCNames,BCTypes))
+    _recoverBCs(z, (BCs, BCNames, BCTypes))
     return None
 
 def isXZone(zone):
@@ -6014,9 +6024,7 @@ def extractBCFields(z, varList=None):
         else:
             PR = Internal.getNodeFromName1(bc,'PointRange')
             win = Internal.range2Window(PR[1])
-            imin = win[0]; imax = win[1]
-            jmin = win[2]; jmax = win[3]
-            kmin = win[4]; kmax = win[5]
+            imin, imax, jmin, jmax, kmin, kmax = win
             ni = dimZone[1]; nj = dimZone[2]; nk = dimZone[3]
             indicesL = Converter.converter.range2PointList(imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk)
 
@@ -6239,41 +6247,13 @@ def getFamilyBCZones(t, familyBCName):
 def getFamilyBCs(t, familyName):
     """Return all BC nodes that have this familyName.
     Usage: getFamilyBCs(t, familyName)"""
-    out = []
-    if isinstance(familyName, str): families = [familyName]
-    else: families = familyName
-    for z in Internal.getZones(t):
-        nodes = Internal.getNodesFromType2(z, 'BC_t')
-        nodes += Internal.getNodesFromType2(z, 'GridConnectivity_t')
-        nodes += Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
-        for n in nodes:
-            res = Internal.getNodesFromType1(n, 'FamilyName_t')
-            for i in res:
-                val = Internal.getValue(i)
-                val = val.strip()
-                for f in families:
-                    if ('*' in f)|('?' in f)|('[' in f):
-                        if fnmatch.fnmatch(val, f): out.append(n)
-                    else:
-                        if val == f: out.append(n)
-    return out
+    return Internal.getFamilyBCs(t, familyName)
 
 # -- getFamilyBCNamesOfType (wildcards possible on bndType)
 def getFamilyBCNamesOfType(t, bndType=None):
     """Return the family BC names of a given type.
     Usage: names = getFamilyBCNamesOfType(t, 'BCWall')"""
-    out = set()
-    nodes = Internal.getNodesFromType2(t, 'Family_t')
-    if bndType is None:
-        for n in nodes:
-            p = Internal.getNodeFromType1(n, 'FamilyBC_t')
-            if p is not None: out.add(n[0])
-    else:
-        for n in nodes:
-            p = Internal.getNodeFromType1(n, 'FamilyBC_t')
-            if p is not None:
-                if Internal.isValue(p, bndType): out.add(n[0])
-    return list(out)
+    return Internal.getFamilyBCNamesOfType(t, bndType)
 
 # -- getFamilyBCNamesDict
 def getFamilyBCNamesDict(t):
@@ -8189,8 +8169,8 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
 
                 for zbc in Internal.getZones(myZone):
                     zbc[0] = getZoneName(znamebc)
-                    Internal.createNode("BCName","UserDefinedData_t",value=b[0], parent=zbc)
-                    Internal.createNode("BCType","UserDefinedData_t",value=bctype, parent=zbc)
+                    Internal.createNode("BCName", "UserDefinedData_t", value=b[0], parent=zbc)
+                    Internal.createNode("BCType", "UserDefinedData_t", value=bctype, parent=zbc)
                     AllBCs.append(zbc)
 
     Internal._rmNodesFromType(a, 'ZoneBC_t')

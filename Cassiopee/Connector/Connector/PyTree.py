@@ -1989,10 +1989,10 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surf
     for b in Internal.getBases(t):
         for z in Internal.getZones(b):
             for f1 in familyBC1:
-                wall1 = C.getFamilyBCs(z, f1)
+                wall1 = Internal.getFamilyBCs(z, f1)
                 for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0])
             for f2 in familyBC2:
-                wall2 = C.getFamilyBCs(z, f2)
+                wall2 = Internal.getFamilyBCs(z, f2)
                 for w in wall2: listOfMismatch2.append(b[0]+'/'+z[0]+'/'+w[0])
 
     # project interpolated points (cellN=2) from listOfMismatch2 onto listOfMismatch1
@@ -2013,7 +2013,7 @@ def initDoubleWall(t, familyBC1, check=False):
     for b in Internal.getBases(t):
         for z in Internal.getZones(b):
             for f1 in familyBC1:
-                wall1 = C.getFamilyBCs(z, f1)
+                wall1 = Internal.getFamilyBCs(z, f1)
                 for w in wall1: listOfMismatch1.append(b[0]+'/'+z[0]+'/'+w[0])
 
     return DoubleWall.getProjSurfaceForDoubleWall(t, listOfMismatch1, '_'.join(familyBC1), check)

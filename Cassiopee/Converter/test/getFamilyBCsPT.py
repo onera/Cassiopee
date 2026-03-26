@@ -11,7 +11,7 @@ b = C.addBC2Zone(b, 'wallb', 'FamilySpecified:CARTER', 'jmin')
 
 t = C.newPyTree(['Base',a,b])
 C._addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
-B1 = C.getFamilyBCs(t, 'CARTER'); Internal.printTree(B1)
+B1 = Internal.getFamilyBCs(t, 'CARTER'); Internal.printTree(B1)
 #>> ['walla',array('FamilySpecified',dtype='|S1'),[2 sons],'BC_t']
 #>>   |_['PointRange',array(shape=(3, 2),dtype='int32',order='F'),[0 son],'IndexRange_t']
 #>>   |_['FamilyName',array('CARTER',dtype='|S1'),[0 son],'FamilyName_t']

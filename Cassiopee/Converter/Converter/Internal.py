@@ -62,7 +62,7 @@ VARNAME2CGNS = {
 
 # Known CGNS BC types
 KNOWNBCS = [
-    'BCWall', 'BCWallInviscid','BCWallViscous', 'BCWallViscousIsothermal',
+    'BCWall', 'BCWallInviscid', 'BCWallViscous', 'BCWallViscousIsothermal',
     'BCFarfield', 'BCExtrapolate',
     'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
     'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
@@ -3848,6 +3848,152 @@ def _correctBaseZonesDim(t, splitBases=False):
 #==============================================================================
 # -- BC management --
 #==============================================================================
+
+# -- getFamilyBCs (wildcards possible on familyName)
+def getFamilyBCs(t, familyName):
+  """Return all BC nodes that have this familyName.
+  Usage: getFamilyBCs(t, familyName)"""
+  out = []
+  if isinstance(familyName, str): families = [familyName]
+  else: families = familyName
+  for z in getZones(t):
+    nodes = getNodesFromType2(z, 'BC_t')
+    nodes += getNodesFromType2(z, 'GridConnectivity_t')
+    nodes += getNodesFromType2(z, 'GridConnectivity1to1_t')
+    for n in nodes:
+      res = getNodesFromType1(n, 'FamilyName_t')
+      for i in res:
+        val = getValue(i)
+        val = val.strip()
+        for f in families:
+          if any(c in f for c in ['*', '?', '!', '[']):
+            if fnmatch.fnmatch(val, f): out.append(n)
+          elif val == f: out.append(n)
+  return out
+
+# -- getFamilyBCNamesOfType (wildcards possible on bndType)
+def getFamilyBCNamesOfType(t, bndType=None):
+  """Return the family BC names of a given type.
+  Usage: names = getFamilyBCNamesOfType(t, 'BCWall')"""
+  out = set()
+  nodes = getNodesFromType2(t, 'Family_t')
+  if bndType is None:
+    for n in nodes:
+      p = getNodeFromType1(n, 'FamilyBC_t')
+      if p is not None: out.add(n[0])
+  else:
+    for n in nodes:
+      p = getNodeFromType1(n, 'FamilyBC_t')
+      if p is not None:
+        if isValue(p, bndType): out.add(n[0])
+  return list(out)
+
+# -- getBCNodesFromName
+def getBCNodesFromName(t, bndName=None):
+  """Return all BC nodes matching an input list of BC names. Wildcards are
+  accepted. If bndName is None, return all BC nodes (no filter).
+  """
+  bcs = []
+  zones = getZones(t)
+  if zones == []: zones = [t]  # must be a BC node
+  if bndName is None:
+    for z in zones:
+      bcs.extend(getNodesFromType2(z, 'BC_t'))
+    return bcs
+  if isinstance(bndName, list): bndList = bndName
+  else: bndList = [bndName]
+
+  for z in zones:
+    nodes = getNodesFromType2(z, 'BC_t')
+    for n in nodes:
+      name = getName(n)
+      for bnd in bndList:
+        if any(c in bnd for c in ['*', '?', '!', '[']):
+          if fnmatch.fnmatch(name, bnd): bcs.append(n); break
+        elif name == bnd: bcs.append(n); break
+  return bcs
+
+# -- getBCNodesFromType
+def getBCNodesFromType(t, bndType=None):
+  """Return all BC nodes matching an input list of BC types. Wildcards are
+  accepted. If bndType is None, return all BC nodes (no filter).
+  """
+  bcs = []
+  zones = getZones(t)
+  if zones == []: zones = [t]  # must be a BC node
+  if bndType is None:
+    for z in zones:
+      bcs.extend(getNodesFromType2(z, 'BC_t'))
+    return bcs
+  elif isinstance(bndType, list): bndList = bndType
+  else: bndList = [bndType]
+
+  familyNames = []
+  for bnd in bndList: familyNames.extend(getFamilyBCNamesOfType(t, bnd))
+
+  for z in zones:
+    nodes = getNodesFromType2(z, 'BC_t')
+    for n in nodes:
+      val = getValue(n)
+      if val == 'FamilySpecified':
+        fname = getNodeFromType1(n, 'FamilyName_t')
+        fname = getValue(fname)
+        if fname in familyNames: bcs.append(n)
+      else:
+        for bnd in bndList:
+          if any(c in bnd for c in ['*', '?', '!', '[']):
+            if fnmatch.fnmatch(val, bnd): bcs.append(n); break
+          elif val == bnd: bcs.append(n); break
+  return bcs
+
+# -- getBCNodesFromNameAndType
+def getBCNodesFromNameAndType(t, bndName=None, bndType=None):
+  """Return all BC nodes matching an input list of BC names and BC types.
+  Wildcards are accepted. If bndName and bndType are None, return all BC nodes
+  (no filter).
+  """
+  bcs = []
+  zones = getZones(t)
+  if zones == []: zones = [t]  # must be a BC node
+  if bndName is None and bndType is None:
+    for z in zones:
+      bcs.extend(getNodesFromType2(z, 'BC_t'))
+    return bcs
+  elif bndName is None:
+    return getBCNodesFromType(t, bndType=bndType)
+  elif bndType is None:
+    return getBCNodesFromName(t, bndName=bndName)
+  else:
+    if isinstance(bndName, list): bndNameList = bndName
+    else: bndNameList = [bndName]
+    if isinstance(bndType, list): bndTypeList = bndType
+    else: bndTypeList = [bndType]
+
+    familyNames = []
+    for bnd in bndTypeList: familyNames.extend(getFamilyBCNamesOfType(t, bnd))
+
+    for z in zones:
+      nodes = getNodesFromType2(z, 'BC_t')
+      for n in nodes:
+        name = getName(n)
+        isNameMatching = False
+        for bnd in bndNameList:
+          if any(c in bnd for c in ['*', '?', '!', '[']):
+            if fnmatch.fnmatch(name, bnd): isNameMatching = True; break
+          elif name == bnd: isNameMatching = True; break
+        if not isNameMatching: continue
+
+        val = getValue(n)
+        if val == 'FamilySpecified':
+          fname = getNodeFromType1(n, 'FamilyName_t')
+          fname = getValue(fname)
+          if fname in familyNames: bcs.append(n)
+        else:
+          for bnd in bndTypeList:
+            if any(c in bnd for c in ['*', '?', '!', '[']):
+              if fnmatch.fnmatch(val, bnd): bcs.append(n); break
+            elif val == bnd: bcs.append(n); break
+    return bcs
 
 # -- Add one layer to BCs. dir=1,2,3 (strctured zones)
 def addOneLayer2BC(t, dir, N=1):
