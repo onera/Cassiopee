@@ -34,19 +34,17 @@ inline bool relativeDist(E_Float p1x, E_Float p1y, E_Float p1z, E_Float nbg1x, E
 
 inline E_Int stepCorrection(E_Int isOpen, E_Int nUnique) 
 {
-  printf("--> DEBUG: Appel de stepCorrection avec isOpen = %d et nUnique = %d\n", isOpen, nUnique);
-
-  // Case of a CLOSED curve with an EVEN number of points
+  // Case of a CLOSED curve with an ODD number of points
   if ((isOpen == 0) && (nUnique % 2 != 0)) 
   {
-    printf("WARNING: consSmooth: step=2 is invalid for closed curve with even number of points. Forcing step=1.\n");
+    printf("WARNING: consSmooth: step=2 is invalid for closed curve with odd number of points. Forcing step=1.\n");
     return 1;
   }
   
-  // Case of an OPEN curve with an ODD number of points
+  // Case of an OPEN curve with an EVEN number of points
   if ((isOpen == 1) && (nUnique % 2 == 0)) 
   {
-    printf("WARNING: consSmooth: step=2 is invalid for open curve with odd number of points. Forcing step=1.\n");
+    printf("WARNING: consSmooth: step=2 is invalid for open curve with even number of points. Forcing step=1.\n");
     return 1;
   }
 
@@ -138,6 +136,16 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
     // open or closed ?
     E_Int isOpen = relativeDist(x[0], y[0], z[0], x[1], y[1], z[1], x[npts-1], y[npts-1], z[npts-1]);
+
+    if (isOpen)
+    {
+      printf("consSmooth: open geometry: fixed nodes %d and %d.\n", 0, npts-1);
+    }
+    {
+      printf("consSmooth: closed geometry with double points");
+    }
+
+
     E_Int nUnique = (isOpen == 0) ? npts - 1 : npts; 
     E_Int start = 0;
     E_Int end   = (isOpen == 0) ? nUnique : nUnique - 3; 
@@ -219,8 +227,6 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   }
   else if (res == 2) // unstructured
   {  
-
-    printf("Le maillage est non structuré.\n");
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString,
                                f->getSize(), cn->getSize(),
                                eltType, false, f->getApi());
@@ -265,22 +271,27 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
     if (n1 != -1 && n2 != -1)
     {
-      E_Int n1Ngb = nodeAdj[n1][0];
+      E_Int elt = nodeAdj[n1][0]; // ID de l'élément
+      E_Int nA = (*cn)(elt, 1) - 1;
+      E_Int nB = (*cn)(elt, 2) - 1;
+      E_Int n1Ngb = (nA == n1) ? nB : nA;
 
       isOpen = relativeDist(x[n1], y[n1], z[n1], x[n1Ngb], y[n1Ngb], z[n1Ngb], x[n2], y[n2], z[n2]);
 
       if (isOpen == 0)
       {
         // CASE 2: mesh is topologically OPEN, but geometrically CLOSED.
-
         printf("consSmooth: closed geometry with double points: %d and %d.\n", n1, n2);
       }
       else // CASE 3: mesh is OPEN (extremities will stay fixed)
 
       {
         printf("consSmooth: open geometry: fixed nodes %d and %d.\n", n1, n2);
-
       } 
+    }
+    else 
+    {
+      printf("consSmooth: closed geometry \n");
     }
 
     // Create a chained of ordered nodes

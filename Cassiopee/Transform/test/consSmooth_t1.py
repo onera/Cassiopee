@@ -5,7 +5,7 @@ import KCore.test as test
 import Converter as C
 
 sweeps = 5
-l1 = D.line((0.,0.,0.), (0.,1.,0.), N=5)
+l1 = D.line((0.,0.,0.), (0.,1.,0.), N=5+1)
 l2 = D.line((0.,1.,0.), (1.,1.,0.), N=5)
 l3 = D.line((1.,1.,0.), (1.,0.,0.), N=5)
 l4 = D.line((1.,0.,0.), (0.,0.,0.), N=5)
@@ -22,10 +22,13 @@ test.testA([b], 2)
 
 # standard bar1D tests on closed curve
 c = C.convertArray2Tetra(a)
-c = T.consSmooth(c, sweeps)
+c = T.consSmooth(c, sweeps, 1,2)
 test.testA([c], 3)
+
+C.convertArrays2File(c, "out3.plt")
 
 # standard bar1D tests on open curve
 d = C.convertArray2Tetra(b)
-d = T.consSmooth(d, sweeps)
+d = T.consSmooth(d, sweeps, 1, 2)
 test.testA([d], 4)
+C.convertArrays2File(d, "out4.plt")
