@@ -447,7 +447,7 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
             #if N <= 2: print('Error: distrib2: not enough point to remesh.')
             N = max(N, 2)
             a = G.cartr1((0,0,0), (h1,1,1), (q,1,1), (N,1,1))
-    
+
     if normalized: a = D.getDistribution(a)
     return a
 

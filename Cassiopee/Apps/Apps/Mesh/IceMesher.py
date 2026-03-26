@@ -89,7 +89,7 @@ def mesher(BAR1, BAR3, ht, hf, extruder=0):
         profile2 = T.reorder(profile, (-1,2,3))
         bl = G.hyper2D(profile2, distrib, "O", etaStart=5, etaEnd=100, beta=0., forced=True)
     C.convertPyTree2File(bl, 'bl.cgns')
-    
+
     # k-remeshing - weakness: no control of outer cell height
     #d = D.line((0,0,0), (1,0,0), N=40)
     #d = G.enforcePlusX(d, hf/ht, 40, 50)
@@ -102,7 +102,7 @@ def mesher(BAR1, BAR3, ht, hf, extruder=0):
     # conversion en quad
     bl = C.convertArray2Hexa(bl)
     bl = G.close(bl)
-    
+
     #=========================
     # exterior of bl mesh - OK
     #=========================
@@ -147,17 +147,17 @@ def mesher(BAR1, BAR3, ht, hf, extruder=0):
     T._contract(e3, (0,0,0), (1,0,0), (0,1,0), dz)
     e3[0] = 'far'
     C._addBC2Zone(m2, 'far', 'BCFarfield', subzone=e3)
-    
+
     # recover symmetry planes
     es1 = P.selectCells(e0, '{CoordinateZ}<%g'%(0.5*dz), strict=True)
     es2 = P.selectCells(e0, '{CoordinateZ}>%g'%(dz-0.5*dz), strict=True)
-    
+
     c = 0
     for e in es1+es2:
         if C.getNCells(e) > 0:
             e[0] = 'sym%d'%c
             C._addBC2Zone(m2, 'sym%d'%c, 'BCSymmetryPlane', subzone=e); c += 1
-        
+
     return m2
 
 #============================================================================
@@ -179,7 +179,7 @@ def mapper(BAR1, hmin, hmax, hx, fp=0.5, ft=2.):
 
     # closed?
     x0, y0, z0 = C.getValue(profile, 'GridCoordinates', 0)
-    x1, y1, z1 = C.getValue(profile, 'GridCoordinates', -1)    
+    x1, y1, z1 = C.getValue(profile, 'GridCoordinates', -1)
     nn = Vector.norm( (x1-x0,y1-y0,z1-z0))
     closed = False
     if nn < 1.e-10: closed = True
@@ -189,18 +189,18 @@ def mapper(BAR1, hmin, hmax, hx, fp=0.5, ft=2.):
     bs = T.splitSharpEdges(profile, alphaRef=30.)
     for c, b in enumerate(bs):
         bs[c] = C.convertBAR2Struct(b)
-    
+
     # compute left and right vectors
     dxLeft = []; dxRight = []
     for b in bs:
         # left
         x0, y0, z0 = C.getValue(b, 'GridCoordinates', 0)
-        x1, y1, z1 = C.getValue(b, 'GridCoordinates', 1)            
+        x1, y1, z1 = C.getValue(b, 'GridCoordinates', 1)
         dxLeft.append((x1-x0,y1-y0,z1-z0))
-        
+
         # right
         x0, y0, z0 = C.getValue(b, 'GridCoordinates', -1)
-        x1, y1, z1 = C.getValue(b, 'GridCoordinates', -2)            
+        x1, y1, z1 = C.getValue(b, 'GridCoordinates', -2)
         dxRight.append((x1-x0,y1-y0,z1-z0))
 
     # compute angle left
@@ -214,7 +214,7 @@ def mapper(BAR1, hmin, hmax, hx, fp=0.5, ft=2.):
         else:
             dx1 = dxLeft[c]
             dx2 = dxRight[c-1]
-            
+
         h1 = Vector.norm(dx1)
         h2 = Vector.norm(dx2)
         co = Vector.dot(dx1,dx2)
@@ -239,7 +239,7 @@ def mapper(BAR1, hmin, hmax, hx, fp=0.5, ft=2.):
     # creux: angle > 0, pointe: angle < 0
     for c, b in enumerate(bs):
         print(c, 'angleLeft=', angLeft[c]*180./numpy.pi, 'angleRight=',  angRight[c]*180./numpy.pi)
-        
+
     # set h
     out = []
     critc = 100.*numpy.pi/180.
