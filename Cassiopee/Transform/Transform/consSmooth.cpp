@@ -25,9 +25,30 @@ using namespace K_SEARCH;
 /* Local functions */
 //=============================================================================
 
-inline bool isSamePoint(E_Float p1x, E_Float p1y, E_Float p1z, E_Float p2x, E_Float p2y, E_Float p2z) 
+inline bool relativeDist(E_Float p1x, E_Float p1y, E_Float p1z, E_Float nbg1x, E_Float nbg1y, E_Float nbg1z, E_Float p2x, E_Float p2y, E_Float p2z) 
 {
-  return (std::abs(p1x - p2x) < 1e-10 && std::abs(p1y - p2y) < 1e-10 && std::abs(p1z - p2z) < 1e-10);
+  E_Float refL2 = (p1x - nbg1x)*(p1x - nbg1x) + (p1y - nbg1y)*(p1y - nbg1y) + (p1z - nbg1z)*(p1z - nbg1z);
+  E_Float dist2 = (p1x - p2x)*(p1x - p2x) + (p1y - p2y)*(p1y - p2y) + (p1z - p2z)*(p1z - p2z);
+  return (dist2 >= 1e-12 * refL2);
+}
+
+inline E_Int stepCorrection(E_Int isOpen, E_Int nUnique) 
+{
+  // Case of a CLOSED curve with an ODD number of points
+  if ((isOpen == 0) && (nUnique % 2 != 0)) 
+  {
+    printf("WARNING: consSmooth: step=2 is invalid for closed curve with odd number of points. Forcing step=1.\n");
+    return 1;
+  }
+  
+  // Case of an OPEN curve with an EVEN number of points
+  if ((isOpen == 1) && (nUnique % 2 == 0)) 
+  {
+    printf("WARNING: consSmooth: step=2 is invalid for open curve with even number of points. Forcing step=1.\n");
+    return 1;
+  }
+
+  return 2;
 }
 
 // ============================================================================
@@ -35,7 +56,7 @@ inline bool isSamePoint(E_Float p1x, E_Float p1y, E_Float p1z, E_Float p2x, E_Fl
 // IN: array: mesh (Structured i-array ou unstructured 1D in the (x,y) plane)
 // IN: sweeps: number of smoothing sweeps
 // IN: twoWays: 0 = one way smoothing, 1 = one way and back (default 0, may lead to assymetry) 
-// IN: step: way step (1, 2 ou 3) default 1
+// IN: step: way step (1 ou 2) default 1
 // OUT: smoothed mesh (same as input)
 // ============================================================================
 PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
@@ -43,8 +64,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   PyObject* array;
 
   E_Int sweeps = 1;
-  E_Int step = 2;
-  E_Int twoWays = 1;
+  E_Int step = 1;
+  E_Int twoWays = 0;
   
   if (!PYPARSETUPLE_(args, O_ III_, &array, &sweeps,  &twoWays, &step))
   {
@@ -114,16 +135,27 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     E_Int idx3;
 
     // open or closed ?
-    E_Float dx = x[1]-x[0], dy = y[1]-y[0], dz = z[1]-z[0];
-    E_Float refL = std::sqrt(dx*dx + dy*dy + dz*dz); // length of first segment
+    E_Int isOpen = relativeDist(x[0], y[0], z[0], x[1], y[1], z[1], x[npts-1], y[npts-1], z[npts-1]);
 
-    E_Float distBouts = std::sqrt((x[0]-x[npts-1])*(x[0]-x[npts-1]) + (y[0]-y[npts-1])*(y[0]-y[npts-1]) + (z[0]-z[npts-1])*(z[0]-z[npts-1]));
+    if (isOpen)
+    {
+      printf("consSmooth: open geometry: fixed nodes %d and %d.\n", 0, npts-1);
+    }
+    {
+      printf("consSmooth: closed geometry with double points");
+    }
 
-    E_Int ouvert = (distBouts < 1e-6 * refL) ? 0 : 1;
-    E_Int nUnique = (ouvert == 0) ? npts - 1 : npts; 
+
+    E_Int nUnique = (isOpen == 0) ? npts - 1 : npts; 
     E_Int start = 0;
-    E_Int end   = (ouvert == 0) ? nUnique : nUnique - 3; 
-    
+    E_Int end   = (isOpen == 0) ? nUnique : nUnique - 3; 
+
+    // step 2 invalid for some cases, correction by taking step = 1
+    if (step == 2)
+    {
+      step = stepCorrection (isOpen, nUnique);
+    }
+
     for (E_Int k = 0; k < sweeps; k++)
     {
 
@@ -133,7 +165,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         for (E_Int i = start; i < end; i = i + step)
         {
           
-          if (ouvert == 0)
+          if (isOpen == 0)
 
           {
             // Cycle, always in [0, nUnique-1]
@@ -151,15 +183,15 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
           }
 
           /* Get points i, i+1, i+2, i+3 */
-          E_Float xi = x[idx0]; E_Float yi = y[idx0]; E_Float zi = z[idx0]; 
-          E_Float xip1 = x[idx1]; E_Float yip1 = y[idx1]; E_Float zip1 = z[idx1]; 
-          E_Float xip2 = x[idx2]; E_Float yip2 = y[idx2]; E_Float zip2 = z[idx2]; 
-          E_Float xip3 = x[idx3]; E_Float yip3 = y[idx3]; E_Float zip3 = z[idx3];
+          E_Float xi = x[idx0], yi = y[idx0], zi = z[idx0]; 
+          E_Float xip1 = x[idx1], yip1 = y[idx1], zip1 = z[idx1]; 
+          E_Float xip2 = x[idx2], yip2 = y[idx2], zip2 = z[idx2]; 
+          E_Float xip3 = x[idx3], yip3 = y[idx3], zip3 = z[idx3];
 
           /* Compute deltas (i+3 - i), (i+2 - i) et (i+1 - i) */
-          E_Float dv1x = xip1 - xi; E_Float dv1y = yip1 - yi; E_Float dv1z = zip1 - zi; /* xi+1 - xi */
-          E_Float dv2x = xip2 - xi; E_Float dv2y = yip2 - yi; E_Float dv2z = zip2 - zi; /* xi+2 - xi */
-          E_Float dv3x = xip3 - xi; E_Float dv3y = yip3 - yi; E_Float dv3z = zip3 - zi; /* xi+3 - xi */
+          E_Float dv1x = xip1 - xi, dv1y = yip1 - yi, dv1z = zip1 - zi; /* xi+1 - xi */
+          E_Float dv2x = xip2 - xi, dv2y = yip2 - yi, dv2z = zip2 - zi; /* xi+2 - xi */
+          E_Float dv3x = xip3 - xi, dv3y = yip3 - yi, dv3z = zip3 - zi; /* xi+3 - xi */
 
           /* Set uNormal = unit normal to baseline (i+3;i) */
           E_Float normeDv3 = (dv3x * dv3x) + (dv3y * dv3y) + (dv3z * dv3z); /*  ||{xi+3-xi}**||² = ||xi+3-xi||² */
@@ -167,7 +199,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
           if (normeDv3 < 1e-12) continue;
           E_Float divNorme = 1.0 / normeDv3 ;/*  1 / ||xi+3-xi||² */
 
-          E_Float uNormalx = divNorme * (-dv3y); E_Float uNormaly = divNorme * (dv3x); E_Float uNormalz = 0;  /* {xi+3-xi}** / ||xi+3-xi||² */
+          E_Float uNormalx = divNorme * (-dv3y), uNormaly = divNorme * (dv3x), uNormalz = 0;  /* {xi+3-xi}** / ||xi+3-xi||² */
 
           /* Compute signed area */
           E_Float aire = 0.5 * (dv3x * dv2y - dv3y * dv2x) + \
@@ -183,7 +215,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     
     }
 
-    if (ouvert == 0)
+    if (isOpen == 0)
     {
       x[nUnique] = x[0]; 
       y[nUnique] = y[0]; 
@@ -225,8 +257,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     K_CONNECT::connectEV2VE(*cn, nodeAdj);
   
     // Open or closed, find boundary nodes
-    E_Int n1 = -1; E_Int n2 = -1;
-    E_Int ouvert = 0;
+    E_Int n1 = -1, n2 = -1;
+    E_Int isOpen = 0;
 
     for (E_Int p = 0; p < npts; p++) 
     {
@@ -239,23 +271,33 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
     if (n1 != -1 && n2 != -1)
     {
-      if (isSamePoint(x[n1], y[n1], z[n1], x[n2], y[n2], z[n2])) 
+      E_Int elt = nodeAdj[n1][0]; // ID de l'élément
+      E_Int nA = (*cn)(elt, 1) - 1;
+      E_Int nB = (*cn)(elt, 2) - 1;
+      E_Int n1Ngb = (nA == n1) ? nB : nA;
+
+      isOpen = relativeDist(x[n1], y[n1], z[n1], x[n1Ngb], y[n1Ngb], z[n1Ngb], x[n2], y[n2], z[n2]);
+
+      if (isOpen == 0)
       {
-        // CASE 2: mesh is topologically OPEN, but geometrically CLOSED. 
-        ouvert = 0;
-        printf("INFO: consmooth: closed geometry with double points: %d and %d.\n", n1, n2);
+        // CASE 2: mesh is topologically OPEN, but geometrically CLOSED.
+        printf("consSmooth: closed geometry with double points: %d and %d.\n", n1, n2);
       }
-      else  // CASE 3: mesh is OPEN (extremities will stay fixed)
+      else // CASE 3: mesh is OPEN (extremities will stay fixed)
+
       {
-        ouvert = 1;
-        printf("INFO: consmooth: open geometry: fixed nodes %d and %d.\n", n1, n2);
-      }
+        printf("consSmooth: open geometry: fixed nodes %d and %d.\n", n1, n2);
+      } 
+    }
+    else 
+    {
+      printf("consSmooth: closed geometry \n");
     }
 
     // Create a chained of ordered nodes
     std::vector<E_Int> bar;
     
-    E_Int firstNode = (ouvert == 1) ? n1
+    E_Int firstNode = (isOpen == 1) ? n1
                     : (n1 != -1) ? n1 // CASE 2: start from first double point
                     : ((*cn)(0, 1) - 1); // CASE 1: closed, start from any node 
     E_Int cur = firstNode, prev = -1;
@@ -274,19 +316,25 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       }
 
       if (next == -1) break;                              // CASE 3: node with only one node reached = end of open chain
-      if (ouvert == 0 && next == firstNode) break;        // CASE 1: return to start
-      if (ouvert == 0 && n1 != -1 && next == n2) break;   // CASE 2: we dont keep double point
+      if (isOpen == 0 && next == firstNode) break;        // CASE 1: return to start
+      if (isOpen == 0 && n1 != -1 && next == n2) break;   // CASE 2: we dont keep double point
       
       bar.push_back(next);
       prev = cur;
       cur  = next;
-      if (ouvert == 1 && cur == n2) break; // we reach the end of opened curve
+      if (isOpen == 1 && cur == n2) break; // we reach the end of opened curve
     }
 
     E_Int nUnique = (E_Int)bar.size();
 
     E_Int start = 0;
-    E_Int end   = (ouvert == 0) ? nUnique : nUnique - 3;
+    E_Int end   = (isOpen == 0) ? nUnique : nUnique - 3;
+
+    // step 2 invalid for some cases, correction by taking step = 1
+    if (step == 2)
+    {
+      step = stepCorrection (isOpen, nUnique);
+    }
   
     for (E_Int k = 0; k < sweeps; k++)
     {
@@ -294,8 +342,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       {
         for (E_Int i = start; i < end; i += step)
         {
-          E_Int c0, c1, c2, c3; // indices in BAR
-          if (ouvert == 0)
+          E_Int c0, c1, c2, c3; // indexes in BAR
+          if (isOpen == 0)
           {
             // Closed case
             c0 = (j == 0) ? i % nUnique : (nUnique - i % nUnique) % nUnique;
@@ -318,15 +366,15 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
           E_Int idx2 = bar[c2];
           E_Int idx3 = bar[c3];
 
-          E_Float xi = x[idx0]; E_Float yi = y[idx0]; E_Float zi = z[idx0]; 
-          E_Float xip1 = x[idx1]; E_Float yip1 = y[idx1]; E_Float zip1 = z[idx1]; 
-          E_Float xip2 = x[idx2]; E_Float yip2 = y[idx2]; E_Float zip2 = z[idx2]; 
-          E_Float xip3 = x[idx3]; E_Float yip3 = y[idx3]; E_Float zip3 = z[idx3];
+          E_Float xi = x[idx0], yi = y[idx0], zi = z[idx0]; 
+          E_Float xip1 = x[idx1], yip1 = y[idx1], zip1 = z[idx1]; 
+          E_Float xip2 = x[idx2], yip2 = y[idx2], zip2 = z[idx2]; 
+          E_Float xip3 = x[idx3], yip3 = y[idx3], zip3 = z[idx3];
 
           /* Compute deltas (i+3 - i), (i+2 - i) et (i+1 - i) */
-          E_Float dv1x = xip1 - xi; E_Float dv1y = yip1 - yi; E_Float dv1z = zip1 - zi; /* xi+1 - xi */
-          E_Float dv2x = xip2 - xi; E_Float dv2y = yip2 - yi; E_Float dv2z = zip2 - zi; /* xi+2 - xi */
-          E_Float dv3x = xip3 - xi; E_Float dv3y = yip3 - yi; E_Float dv3z = zip3 - zi; /* xi+3 - xi */
+          E_Float dv1x = xip1 - xi, dv1y = yip1 - yi, dv1z = zip1 - zi; /* xi+1 - xi */
+          E_Float dv2x = xip2 - xi, dv2y = yip2 - yi, dv2z = zip2 - zi; /* xi+2 - xi */
+          E_Float dv3x = xip3 - xi, dv3y = yip3 - yi, dv3z = zip3 - zi; /* xi+3 - xi */
 
           /* Set uNormal = unit normal to baseline (i+3;i) */
           E_Float normeDv3 = (dv3x * dv3x) + (dv3y * dv3y) + (dv3z * dv3z); /*  ||{xi+3-xi}**||² = ||xi+3-xi||² */
@@ -334,7 +382,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
           if (normeDv3 < 1e-12) continue;
           E_Float divNorme = 1.0 / normeDv3 ;/*  1 / ||xi+3-xi||² */
 
-          E_Float uNormalx = divNorme * (-dv3y); E_Float uNormaly = divNorme * (dv3x); E_Float uNormalz = 0;  /* {xi+3-xi}** / ||xi+3-xi||² */
+          E_Float uNormalx = divNorme * (-dv3y), uNormaly = divNorme * (dv3x), uNormalz = 0;  /* {xi+3-xi}** / ||xi+3-xi||² */
 
           /* Compute signed area */
           E_Float aire = 0.5 * (dv3x * dv2y - dv3y * dv2x) + \
@@ -349,7 +397,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       }
     }
 
-    if (ouvert == 0 && n1 != -1 && n2 != -1)
+    if (isOpen == 0 && n1 != -1 && n2 != -1)
     {
       x[n2] = x[n1];
       y[n2] = y[n1];
