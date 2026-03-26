@@ -219,6 +219,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   }
   else if (res == 2) // unstructured
   {  
+
+    printf("Le maillage est non structuré.\n");
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString,
                                f->getSize(), cn->getSize(),
                                eltType, false, f->getApi());
