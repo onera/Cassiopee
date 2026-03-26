@@ -277,10 +277,10 @@ C                 vol(indv) = MODIFIED_VOLUME(vol(indv))
                  C(1,2,i1) = -ba2
                  C(2,2,i1) = ba1+beta2
                  
-                 A(1,1,i1) = 1.-2*beta2
-                 A(2,1,i1) = 0.
-                 A(1,2,i1) = 0.
-                 A(2,2,i1) = 1.-2*beta2
+                 A(1,1,i1) = 1.D0-2*beta2
+                 A(2,1,i1) = 0.D0
+                 A(1,2,i1) = 0.D0
+                 A(2,2,i1) = 1.D0-2.D0*beta2
          
                  indp2 = indice(i+2,j)
                  indp1 = indice(i+1,j)
@@ -290,12 +290,12 @@ C                 vol(indv) = MODIFIED_VOLUME(vol(indv))
 
                  S = sqrt(g11*g22)*cos_alpha
                  
-                 RHS(1,i1)=-2*vol(indv)*b2+2*S*b1+
-     &              xd(ind)+beta*(xd(indm2)-
-     &              4*xd(indm1)+6*xd(ind)-4*xd(indp1)+xd(indp2))
-                 RHS(2,i1)= 2*vol(indv)*b1+2*S*b2+
-     &              yd(ind)+beta*(yd(indm2)-
-     &              4*yd(indm1)+6*yd(ind)-4*yd(indp1)+yd(indp2))
+                 RHS(1,i1)=-2.D0*vol(indv)*b2+2.D0*S*b1+
+     &            xd(ind)+beta*(xd(indm2)-
+     &            4.D0*xd(indm1)+6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+                 RHS(2,i1)= 2.D0*vol(indv)*b1+2.D0*S*b2+
+     &            yd(ind)+beta*(yd(indm2)-
+     &            4.D0*yd(indm1)+6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
               ENDDO
 
 C Point i=2
@@ -361,17 +361,17 @@ C              vol(indv) = MODIFIED_VOLUME(vol(indv))
               a6 = -sin_teta1/sin_alpha*( cost1pa*yd(indb) -
      &              sint1pa*xd(indb) )
 
-              RHS(1,1)=-2*vol(indv)*b2+2*S*b1+
+              RHS(1,1)=-2.D0*vol(indv)*b2+2.D0*S*b1+
      &          xd(ind)+
-     &          beta*(-xd(indm1)+3*xd(ind)- 
-     &                3*xd(indp1)+ xd(indp2))+
+     &          beta*(-xd(indm1)+3.D0*xd(ind)- 
+     &                3.D0*xd(indp1)+ xd(indp2))+
      &                ba1*a5+ba2*a6
                 
-              RHS(2,1)= 2*vol(indv)*b1+2*S*b2+
+              RHS(2,1)= 2.D0*vol(indv)*b1+2.D0*S*b2+
      &          yd(ind)+
-     &          beta*(-yd(indm1)+3*yd(ind)- 
-     &          3*yd(indp1)+ yd(indp2))+
-     &                ba2*a5-ba1*a6
+     &          beta*(-yd(indm1)+3.D0*yd(ind)- 
+     &          3.D0*yd(indp1)+ yd(indp2))+
+     &          ba2*a5-ba1*a6
 
 C Point ni-1                
               ni1 = ni-1
@@ -437,16 +437,16 @@ C              vol(indv) = MODIFIED_VOLUME(vol(indv))
               a6 = -sin_teta2/sin_alpha*( cost2pa*yd(indb) -
      &              sint2pa*xd(indb) )
 
-              RHS(1,ni1-1)=-2*vol(indv)*b2+2*S*b1+
+              RHS(1,ni1-1)=-2.D0*vol(indv)*b2+2.D0*S*b1+
      &               xd(ind)+
      &               beta*(-xd(indp1)+ 
-     &                 3*xd(ind)-3*xd(indm1)+xd(indm2))-
+     &               3.D0*xd(ind)-3.D0*xd(indm1)+xd(indm2))-
      &               ba1*a5-ba2*a6
                 
-              RHS(2,ni1-1)= 2*vol(indv)*b1+2*S*b2+
+              RHS(2,ni1-1)= 2.D0*vol(indv)*b1+2.D0*S*b2+
      &               yd(ind)+
      &               beta*(-yd(indp1)+ 
-     &                     3*yd(ind)-3*yd(indm1)+yd(indm2))
+     &               3.D0*yd(ind)-3.D0*yd(indm1)+yd(indm2))
      &               -ba2*a5+ba1*a6
 
 C             Inversion      
@@ -561,10 +561,10 @@ C------------------------------------------------------------------------------
               indm1 = indice(i-1,j)
               indm2 = indice(i-2,j)
                                 
-              RHS(1,i1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
-     &                    4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
-              RHS(2,i1)= 2*vol(indv)*b1+beta*(yd(indm2)- 
-     &                    4*yd(indm1)+ 6*yd(ind)-4*yd(indp1)+yd(indp2))
+              RHS(1,i1)=-2.D0*vol(indv)*b2+beta*(xd(indm2)- 
+     &         4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+              RHS(2,i1)= 2.D0*vol(indv)*b1+beta*(yd(indm2)- 
+     &         4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
 
            ENDDO
 C i=2
@@ -604,10 +604,10 @@ C i=2
            indm1 = indice(ONE_I,j)
            indm2 = indice(ni-1,j)
                                 
-           RHS(1,1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
-     &        4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
-           RHS(2,1)= 2*vol(indv)*b1+beta*(yd(indm2)- 
-     &        4*yd(indm1)+ 6*yd(ind)-4*yd(indp1)+yd(indp2))
+           RHS(1,1)=-2.D0*vol(indv)*b2+beta*(xd(indm2)- 
+     &      4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+           RHS(2,1)= 2.D0*vol(indv)*b1+beta*(yd(indm2)- 
+     &      4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
         
 C i = ni        
            indv = ni+(j-1)*ni
@@ -635,10 +635,10 @@ C i = ni
            C(1,2,ni-1) = -ba2
            C(2,2,ni-1) = ba1+beta2
            
-           A(1,1,ni-1) = 1.D0-2*beta2
+           A(1,1,ni-1) = 1.D0-2.D0*beta2
            A(2,1,ni-1) = 0.D0
            A(1,2,ni-1) = 0.D0
-           A(2,2,ni-1) = 1.D0-2*beta2        
+           A(2,2,ni-1) = 1.D0-2.D0*beta2        
 
            indp1 = indice(ni+1,j)
            ind = indice(ni,j)
@@ -646,10 +646,10 @@ C i = ni
            indm2 = indice(ni-2,j)   
            indp2 = indice(THREE_I,j)
                                 
-           RHS(1,ni-1)=-2*vol(indv)*b2+beta*(xd(indm2)- 
-     &        4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
-           RHS(2,ni-1)= 2*vol(indv)*b1+beta*(yd(indm2)- 
-     &        4*yd(indm1)+ 6*yd(ind)-4*yd(indp1)+yd(indp2))   
+           RHS(1,ni-1)=-2.D0*vol(indv)*b2+beta*(xd(indm2)- 
+     &      4.D0*xd(indm1)+ 6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+           RHS(2,ni-1)= 2.D0*vol(indv)*b1+beta*(yd(indm2)- 
+     &      4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))   
 
 C          Inversion
            CALL k6PTRID(deux,ni-1,C,A,B,RHS,Z,ZA,IP)

@@ -178,7 +178,7 @@ C* dissipation variant lineairement
 C* Modification pour coupure non verticale
 C* teta=0 <=> coupure verticale
         
-           IF (type.EQ.0) THEN        ! conditions aux limites type C
+           IF (type.EQ.0) THEN  ! conditions aux limites type C
                                 ! dirichlet en x, neuman en y
                         
               DO i = 3, ni-2
@@ -220,10 +220,10 @@ C                 WRITE(*,*) 'vol',i,j,vol(indv)
                  indm1 = indice(i-1,j)
                  indm2 = indice(i-2,j)
                  
-                 RHS(1,i1)=-2*vol(indv)*b2+xd(ind)+beta*(xd(indm2)-
-     &                4*xd(indm1)+ 6*xd(ind)-4*xd(indp1)+xd(indp2))
-                 RHS(2,i1)= 2*vol(indv)*b1+yd(ind)+beta*(yd(indm2)-
-     &                4*yd(indm1)+ 6*yd(ind)-4*yd(indp1)+yd(indp2))
+                 RHS(1,i1)=-2.D0*vol(indv)*b2+xd(ind)+beta*(xd(indm2)-
+     &            4.D0*xd(indm1)+6.D0*xd(ind)-4.D0*xd(indp1)+xd(indp2))
+                 RHS(2,i1)= 2.D0*vol(indv)*b1+yd(ind)+beta*(yd(indm2)-
+     &            4.D0*yd(indm1)+ 6.D0*yd(ind)-4.D0*yd(indp1)+yd(indp2))
               ENDDO
                 
               indp1 = indice(THREE_I,j) ! points particuliers 

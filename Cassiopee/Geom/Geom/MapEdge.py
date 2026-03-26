@@ -132,7 +132,7 @@ def convertStringRange2Range__(wrange, a):
     return wrange
 
 # set h step in place
-# ind : indice ou [imin,imax,jmin,jmax,kmin,kmax] ou 'imin'
+# ind: indice ou [imin,imax,jmin,jmax,kmin,kmax] ou 'imin'
 def setH(a, ind, h):
     """Set the mesh step for a given index."""
     pos = KCore.isNamePresent(a, 'h')
@@ -413,6 +413,13 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
     """Enforce h1,h2 in line. Return distribution."""
     L = D.getLength(a)
 
+    if h2 >= L or h1 >= L: # cas degenere
+        N = 2
+        h = L/N
+        a = G.cart((0,0,0), (h,1,1), (N,1,1))
+        if normalized: a = D.getDistribution(a)
+        return a
+
     if algo == 0: # tanh
         if h1 > h2:
             N = int(T.kround(L / h1))+1 # correspondant a hf
@@ -420,16 +427,12 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
             a = G.cart((0,0,0), (h1,1,1), (N,1,1)) # match h1
             if forceAdd: a = G.enforceMoinsX(a, h2, (N-1, add)) # match h2
             else: a = G.enforceMoinsX(a, h2, N-1, add) # match h2
-            if normalized: a = D.getDistribution(a)
-            return a
         else:
             N = int(T.kround(L / h2))+1 # correspondant a hf
             if N <= 2: print('Error: distrib2: not enough point to remesh.')
             a = G.cart((0,0,0), (h2,1,1), (N,1,1)) # match h2
             if forceAdd: a = G.enforcePlusX(a, h1, (N-1, add)) # match h1
             else: a = G.enforcePlusX(a, h1, N-1, add)
-            if normalized: a = D.getDistribution(a)
-            return a
     else: # geometrique
         if abs(h2-h1) < 1.e-6: # constant step
             N = int(T.kround(L / h1))
@@ -444,8 +447,9 @@ def distrib2(a, h1, h2, add=20, forceAdd=False, normalized=True, algo=0, verbose
             #if N <= 2: print('Error: distrib2: not enough point to remesh.')
             N = max(N, 2)
             a = G.cartr1((0,0,0), (h1,1,1), (q,1,1), (N,1,1))
-        if normalized: a = D.getDistribution(a)
-        return a
+    
+    if normalized: a = D.getDistribution(a)
+    return a
 
 # Super smooth - OK
 def smooth(a, eps=0.1, niter=5, sharpAngle=30.):

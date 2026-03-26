@@ -74,10 +74,10 @@ namespace K_GENERATOR
   PyObject* enforcePoint(PyObject* self, PyObject* args);
   PyObject* enforceCurvature(PyObject* self, PyObject* args);
   PyObject* addPointInDistribution(PyObject* self, PyObject* args);
-  PyObject* hyper2DMesh(PyObject* self, PyObject* args);
-  PyObject* hyper2D2Mesh(PyObject* self, PyObject* args);
-  PyObject* hyper2D3Mesh(PyObject* self, PyObject* args);
-  PyObject* hyper2D4Mesh(PyObject* self, PyObject* args);
+  PyObject* hyper2D(PyObject* self, PyObject* args);
+  PyObject* hyper2D2(PyObject* self, PyObject* args);
+  PyObject* hyper2D3(PyObject* self, PyObject* args);
+  PyObject* hyper2D4(PyObject* self, PyObject* args);
   PyObject* closeMesh(PyObject* self, PyObject* args);
   PyObject* closeMeshLegacy(PyObject* self, PyObject* args);
   PyObject* closeBorders(PyObject* self, PyObject* args);

@@ -611,7 +611,7 @@ int MMG5_eigenv(int symmat,double *mat,double lambda[3],double v[3][3]) {
   lambda[2] *= maxm;
 
   /* check accuracy */
-  if ( getenv("MMG_EIGENV_DDEBUG") && symmat ) {
+  if ( symmat ) {
     if ( !MMG5_check_accuracy ( mat, lambda, v, w1, w2, w3, maxm, n, symmat ) )
       return 0;
   }

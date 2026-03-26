@@ -40,7 +40,7 @@ extern "C"
                   E_Float* xo, E_Float* yo, E_Float* zo,
                   E_Int* IP, E_Float* A, E_Float* B, E_Float* C,
                   E_Float* RHS, E_Float* Z, E_Float* ZA, E_Float* vol,
-                  const E_Int& eta_start, const E_Int& eta_end, const E_Float& beta);
+                  const E_Int& etaStart, const E_Int& etaEnd, const E_Float& beta);
 
   void k6hyper2d2_(const E_Int& ni, const E_Int& nj,
                    const E_Float* distrib,
@@ -72,16 +72,17 @@ extern "C"
 // ============================================================================
 /* Hyperbolic mesh generation for a mesh. Orthogonal. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::hyper2D(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayd;
   char* meshType;
-  E_Int eta_start, eta_end;
+  E_Int etaStart, etaEnd;
   E_Float beta;
+  E_Int forced;
 
-  if (!PYPARSETUPLE_(args, OO_ S_ II_ R_, 
+  if (!PYPARSETUPLE_(args, OO_ S_ II_ R_ I_, 
                     &array, &arrayd, &meshType, 
-                    &eta_start, &eta_end, &beta))
+                    &etaStart, &etaEnd, &beta, &forced))
     return NULL;
 
   E_Int type = 0;
@@ -159,9 +160,10 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 
     // check forcing : si la distribution est a peu 
     // pres celle de la grille fournie, on ne remaille pas le profil
-    E_Bool forced = false;
-    if (nid == ni)
+    if (forced == false) // not forced auto
     {
+      if (nid == ni)
+      {
         // abscisse curv
         s.malloc(ni);
         E_Float* fx = f->begin(posx);
@@ -173,70 +175,70 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
         s[0] = 0.;
         for (E_Int i = 0; i < ni-1; i++)
         {
-            lx = fx[i+1]-fx[i];
-            ly = fy[i+1]-fy[i];
-            lz = fz[i+1]-fz[i];
-            l = sqrt(lx*lx+ly*ly+lz*lz);
-            s[i+1] = s[i]+l;
-            L += l; 
+          lx = fx[i+1]-fx[i];
+          ly = fy[i+1]-fy[i];
+          lz = fz[i+1]-fz[i];
+          l = sqrt(lx*lx+ly*ly+lz*lz);
+          s[i+1] = s[i]+l;
+          L += l; 
         }
         for (E_Int i = 0; i < ni; i++)
         {
-            s[i] = s[i]/L;
+          s[i] = s[i]/L;
         }
         forced = true;
         for (E_Int i = 0; i < ni; i++)
         {
-            if (std::abs(s[i]-fdx[i])>1.e-6) forced = false;
+          if (std::abs(s[i]-fdx[i])>1.e-6) forced = false;
         }
+      }
     }
-
     // Make the one D mapping
     coord1.malloc(nid, 3);
     if (forced == false)
     {
-        s.malloc(ni);
-        dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-	K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-			    nid, fd->begin(posxd),
-			    coord1.begin(1), coord1.begin(2), coord1.begin(3),
-			    s.begin(), dx.begin(), dy.begin(), dz.begin());
+      s.malloc(ni);
+      dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
+      K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
+          nid, fd->begin(posxd),
+          coord1.begin(1), coord1.begin(2), coord1.begin(3),
+          s.begin(), dx.begin(), dy.begin(), dz.begin());
     }
     else
     {
-        printf("forcing...\n");
-        E_Float* fx = f->begin(posx);
-        E_Float* fy = f->begin(posy);
-        E_Float* fz = f->begin(posz);
-        E_Float* c1x = coord1.begin(1);
-        E_Float* c1y = coord1.begin(2);
-        E_Float* c1z = coord1.begin(3);
-        for (E_Int i = 0; i < nid; i++)
-        {
-            c1x[i] = fx[i]; c1y[i] = fy[i]; c1z[i] = fz[i];
-        }
+      printf("forcing...\n");
+      E_Float* fx = f->begin(posx);
+      E_Float* fy = f->begin(posy);
+      E_Float* fz = f->begin(posz);
+      E_Float* c1x = coord1.begin(1);
+      E_Float* c1y = coord1.begin(2);
+      E_Float* c1z = coord1.begin(3);
+      for (E_Int i = 0; i < nid; i++)
+      {
+        c1x[i] = fx[i]; c1y[i] = fy[i]; c1z[i] = fz[i];
+      }
     }
 
     // Generate the mesh using hyperbolic grid generator
     coord.malloc(nid*njd, 3);
 
-    if (type == 0)
+    if (type == 0) // en "C"
     {
-        IP.malloc(2*(nid-2));
-        A.malloc(2*2*(nid-2));
-        B.malloc(2*2*(nid-2));
-        C.malloc(2*2*(nid-2));
-        RHS.malloc(2*(nid-2));
+      IP.malloc(2*(nid-2));
+      A.malloc(2*2*(nid-2));
+      B.malloc(2*2*(nid-2));
+      C.malloc(2*2*(nid-2));
+      RHS.malloc(2*(nid-2));
     }
-    else
+    else // en "O"
     {
-        IP.malloc(2*(nid-2));
-        A.malloc(2*2*(nid-1));
-        B.malloc(2*2*(nid-1));
-        C.malloc(2*2*(nid-1));
-        RHS.malloc(2*(nid-1));
-        Z.malloc(2*2*(nid-1));
-        ZA.malloc(2*(nid-2));
+      IP.malloc(2*(nid-2));
+      A.malloc(2*2*(nid-1));
+      B.malloc(2*2*(nid-1));
+      C.malloc(2*2*(nid-1));
+      RHS.malloc(2*(nid-1));
+      Z.malloc(2*2*(nid-1));
+      ZA.malloc(2*(nid-2));
     }
     vol.malloc(nid*njd);
     
@@ -247,7 +249,7 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
                coord.begin(1), coord.begin(2), coord.begin(3),
                IP.begin(), A.begin(), B.begin(), C.begin(),
                RHS.begin(), Z.begin(), ZA.begin(), vol.begin(),
-               eta_start, eta_end, beta);
+               etaStart, etaEnd, beta);
     
     // Array Creation 
     RELEASESHAREDS(array, f);
@@ -276,13 +278,13 @@ PyObject* K_GENERATOR::hyper2DMesh(PyObject* self, PyObject* args)
 // ============================================================================
 /* Hyperbolic mesh generation for a mesh. Constant alpha angle. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::hyper2D2(PyObject* self, PyObject* args)
 {
   PyObject* array; PyObject* arrayd;
   char* meshType;
   E_Float alpha;
   if ( !PYPARSETUPLE_(args, OO_ S_ R_, &array, &arrayd,
-                      &meshType, &alpha ) )
+                      &meshType, &alpha))
   {
     return NULL;
   }
@@ -367,10 +369,10 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
     coord1.malloc(nid, 3);
     s.malloc(ni);
     dx.malloc(ni); dy.malloc(ni); dz.malloc(ni);
-    K_COMPGEOM::onedmap( ni,  f->begin(posx), f->begin(posy), f->begin(posz),
-			 nid, fd->begin(posxd),
-			 coord1.begin(1), coord1.begin(2), coord1.begin(3),
-			 s.begin(), dx.begin(), dy.begin(), dz.begin());
+    K_COMPGEOM::onedmap(ni,  f->begin(posx), f->begin(posy), f->begin(posz),
+        nid, fd->begin(posxd),
+        coord1.begin(1), coord1.begin(2), coord1.begin(3),
+        s.begin(), dx.begin(), dy.begin(), dz.begin());
     
     // Generate the mesh using hyperbolic grid generator
     coord.malloc((nid+1)*(njd+1), 3);
@@ -419,7 +421,7 @@ PyObject* K_GENERATOR::hyper2D2Mesh(PyObject* self, PyObject* args)
 // ============================================================================
 /* Hyperbolic mesh generation for a mesh. Given alpha boundary angles. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::hyper2D3(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* arrayd;
@@ -472,7 +474,7 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
 
   E_Int api = f->getApi();
  
-  if ( res == 1 && resd == 1)
+  if (res == 1 && resd == 1)
   {
     char* varString0 = new char [strlen(varString)+strlen(varStringd)+4];
     E_Int res0 = 
@@ -569,8 +571,7 @@ PyObject* K_GENERATOR::hyper2D3Mesh(PyObject* self, PyObject* args)
 /* Hyperbolic mesh generation for a mesh. Orthogonal. 
    New version. */
 // ============================================================================
-PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
-                                    PyObject* args)
+PyObject* K_GENERATOR::hyper2D4(PyObject* self, PyObject* args)
 {
   PyObject* array;
   PyObject* arrayd;
@@ -663,9 +664,9 @@ PyObject* K_GENERATOR::hyper2D4Mesh(PyObject* self,
     dz.malloc(ni);
 
     K_COMPGEOM::onedmap(ni, f->begin(posx), f->begin(posy), f->begin(posz),
-			nid, fd->begin(posxd),
-			coord1.begin(1), coord1.begin(2), coord1.begin(3),
-			s.begin(), dx.begin(), dy.begin(), dz.begin());
+        nid, fd->begin(posxd),
+        coord1.begin(1), coord1.begin(2), coord1.begin(3),
+        s.begin(), dx.begin(), dy.begin(), dz.begin());
   
     // Generate the mesh using hyperbolic grid generator
     coord.malloc((nid+1)*(njd+1), 3);
