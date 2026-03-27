@@ -59,6 +59,19 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
     BB = G.bbox(a)
     xmin = BB[0]; ymin = BB[1]; zmin = BB[2]
     xmax = BB[3]; ymax = BB[4]; zmax = BB[5]
+
+    xc = (xmax+xmin)*0.5
+    yc = (ymax+ymin)*0.5
+    zc = (zmax+zmin)*0.5
+
+    if dim == 3: # security for quasi-2D tridimensional cases
+        dmax = max((xmax-xmin), (ymax-ymin), (zmax-zmin))
+
+        # each direction is scaled to at least 10% of dmax
+        if xmax-xmin < 0.1*dmax: xmin = xc - 0.05*dmax; xmax = xc + 0.05*dmax
+        if ymax-ymin < 0.1*dmax: ymin = yc - 0.05*dmax; ymax = yc + 0.05*dmax
+        if zmax-zmin < 0.1*dmax: zmin = zc - 0.05*dmax; zmax = zc + 0.05*dmax
+
     ni = pointsPerUnitLength*(xmax-xmin);
     nj = pointsPerUnitLength*(ymax-ymin)
     nk = pointsPerUnitLength*(zmax-zmin)
@@ -73,9 +86,9 @@ def withCart__(a, offset, pointsPerUnitLength, dim=3):
     ni = int((xmax-xmin)/h)+7; nj = int((ymax-ymin)/h)+7
     nk = int((zmax-zmin)/h)+7
     ni += int(2*abs(offset)/h); nj += int(2*abs(offset)/h); nk += int(2*abs(offset)/h)
-    xc = (xmax+xmin)*0.5; Lx = ni*h*0.5
-    yc = (ymax+ymin)*0.5; Ly = nj*h*0.5
-    zc = (zmax+zmin)*0.5; Lz = nk*h*0.5
+    Lx = ni*h*0.5
+    Ly = nj*h*0.5
+    Lz = nk*h*0.5
 
     if dim == 2:
         nk = 1
