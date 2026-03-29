@@ -948,7 +948,7 @@ def newZoneSubRegion(name='SubRegion', pointRange=None, pointList=None,
     if pointList is not None: newPointList(value=pointList, parent=node)
     if gridLocation is not None: newGridLocation(gridLocation, parent=node)
   if (bcName is not None) and (gcName is not None):
-    raise AttributeError('newZoneSubRegion: bcName and gcName could not be both defined !')
+    raise AttributeError('newZoneSubRegion: bcName and gcName cannot be both defined.')
   if bcName is not None:
     createChild(node, 'BCRegionName', 'Descriptor_t', value=bcName)
   if gcName is not None:
@@ -5528,7 +5528,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
       l = 'Vertex'
       l = getNodeFromType1(dataSet, 'GridLocation_t')
       if l is not None: ploc = getValue(l)
-      return datas,ploc
+      return datas, ploc
     else: return datas
 
   # Try from old style etc
@@ -5541,7 +5541,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
       l = 'Vertex'
       l = getNodeFromType1(node, 'GridLocation_t')
       if l is not None: ploc = getValue(l)
-      return datas,ploc
+      return datas, ploc
     else: return datas
 
   # Try from FFD extraction
@@ -5553,7 +5553,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
       l = 'Vertex'
       l = getNodeFromType1(node, 'GridLocation_t')
       if l is not None: ploc = getValue(l)
-      return datas,ploc
+      return datas, ploc
     else: return datas
 
   # Try from other BCDataSet
@@ -5565,7 +5565,7 @@ def getBCDataSet(z, bcNode, withLoc=False):
       l = 'Vertex'
       l = getNodeFromType1(dataSet, 'GridLocation_t')
       if l is not None: ploc = getValue(l)
-      return datas,ploc
+      return datas, ploc
     else: return datas
 
   # Try from ZoneSubRegion
@@ -5581,11 +5581,44 @@ def getBCDataSet(z, bcNode, withLoc=False):
           l = getNodeFromType1(zoneSubRegion, 'GridLocation_t')
           if l is not None: ploc = getValue(l)
           else: ploc = 'Vertex'
-          return datas,ploc
+          return datas, ploc
         else: return datas
 
   if withLoc: return None
   else: return datas
+
+# Returns whether a PyTree or a zone or a list of zones has BCDataSets
+# BCDataSets at a location which can be filtered with loc, None meaning
+# no filtering
+def hasBCDataSets(t, loc=None):
+  if isinstance(loc, str): loc = [loc]
+  zones = getZones(t)
+  for z in zones:
+    zonebc = getNodeFromType1(z, 'ZoneBC_t')
+    if zonebc is None: continue
+    bcs = getNodesFromType1(zonebc, 'BC_t')
+    nodes1 = []
+    for bc in bcs: nodes1 += getNodesFromType1(bc, 'BCDataSet_t')
+    if nodes1 and loc is None: return True
+    for n in nodes1:
+      l = getNodeFromType1(n, 'GridLocation_t')
+      ploc = 'Vertex' if l is None else getValue(l)
+      if ploc in loc: return True
+    
+    nodes2 = getNodesFromType1(z, 'ZoneSubRegion_t')
+    for n in nodes2:
+      bcRegionNameNode = getNodeFromName1(n, 'BCRegionName')
+      if bcRegionNameNode is None: continue
+      if loc is None: return True
+      ploc = 'Vertex' if l is None else getValue(l)
+      if ploc in loc: return True
+
+      gcRegionNameNode = getNodeFromName1(n, 'GridConnectivityRegionName')
+      if gcRegionNameNode is None: continue
+      if loc is None: return True
+      ploc = 'Vertex' if l is None else getValue(l)
+      if ploc in loc: return True
+  return False
 
 # Retourne une liste des BCDataSets et BCZoneSubRegions de z
 # Retourne un dictionnaire
@@ -5644,8 +5677,7 @@ def getBCFaceNode(z, bcNode, donor=False):
   r = getNodeFromName1(bcNode, name) # structure maintenant
   ni = dims[1]; nj = dims[2]; nk = dims[3]
   wins = range2Window(r[1])
-  listIndices = converter.range2PointList(wins[0], wins[1], wins[2], wins[3], wins[4], wins[5],
-                                          ni, nj, nk)
+  listIndices = converter.range2FacePointList(*wins, ni, nj, nk)
   return createNode(__FACELIST__, 'DataArray_t', value=listIndices)
 
 # Return a container per variable available in a BCDataSet

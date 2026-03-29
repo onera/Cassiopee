@@ -169,7 +169,8 @@ namespace K_CONVERTER
   PyObject* diffIndex(PyObject* self, PyObject* args);
   PyObject* pointList2Ranges(PyObject* self, PyObject* args);
   PyObject* pointList2SPL(PyObject* self, PyObject* args);
-  PyObject* range2PointList(PyObject* self, PyObject* args);
+  PyObject* range2FacePointList(PyObject* self, PyObject* args);
+  PyObject* range2VertexPointList(PyObject* self, PyObject* args);
   PyObject* PR2VL(PyObject* self, PyObject* args);
   // Extraction d'infos ou de champs
   PyObject* extractFields(PyObject* self, PyObject* args); 

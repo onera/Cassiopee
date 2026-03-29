@@ -1460,11 +1460,7 @@ def _create1To1Connectivity(t, tskel=None, dim=3, convertOnly=True):
             PR = Internal.getNodeFromName1(gc,'PointRange')
             PRD = Internal.getNodeFromName1(gc,'PointRangeDonor')
             win = Internal.range2Window(PR[1])
-            imin = win[0]; imax = win[1]
-            jmin = win[2]; jmax = win[3]
-            kmin = win[4]; kmax = win[5]
-            indicesL = Converter.converter.range2PointList(imin,imax,jmin,jmax,kmin,kmax,
-                                                           ni, nj, nk)
+            indicesL = Converter.converter.range2FacePointList(*win, ni, nj, nk)
             if isinstance(indicesL, numpy.ndarray): r = indicesL
             else:
                 r = numpy.array(indicesL, dtype=numpy.int32)
@@ -1476,10 +1472,7 @@ def _create1To1Connectivity(t, tskel=None, dim=3, convertOnly=True):
                 dimZd = dictOfDnrZoneDims[gc[0]]
                 nid = dimZd[0]; njd = dimZd[1]; nkd = dimZd[2]
                 win = Internal.range2Window(PRD[1])
-                imin = win[0]; imax = win[1]
-                jmin = win[2]; jmax = win[3]
-                kmin = win[4]; kmax = win[5]
-                indicesOppL = Converter.converter.range2PointList(imin, imax, jmin, jmax, kmin, kmax, nid, njd, nkd)
+                indicesOppL = Converter.converter.range2FacePointList(*win, nid, njd, nkd)
 
                 if isinstance(indicesOppL, numpy.ndarray): r = indicesOppL
                 else:

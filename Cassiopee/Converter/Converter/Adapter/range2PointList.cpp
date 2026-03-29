@@ -21,76 +21,166 @@
 using namespace K_FLD;
 
 //=============================================================================
-/* Convert a Range of a structured block into a face indices numpy. 
-   The return indices of faces start 0 and contains i faces, then j
-   faces and then k faces */
+// Convert the range of a structured block into a face indices numpy. 
+// Face indices start at 0 and contain all i faces, followed by all j faces and
+// k faces.
 //=============================================================================
-PyObject* K_CONVERTER::range2PointList(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::range2FacePointList(PyObject* self, PyObject* args)
 {
   E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
-  if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax, &kmin, &kmax,
-                     &ni, &nj, &nk)) return NULL;
+  if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax,
+                     &kmin, &kmax, &ni, &nj, &nk)) return NULL;
   
-  E_Int ni1 = std::max(ni-1,E_Int(1));
-  E_Int nj1 = std::max(nj-1,E_Int(1));
-  E_Int nk1 = std::max(nk-1,E_Int(1));
-  E_Int shift, size, ind;
-  E_Int ii = 0;
-  if ( kmin == kmax && nk == 1) kmax = 2;// 2D
-
-  // fenetre en i
-  if (imin == imax)
+  if (kmin == kmax && nk == 1) kmax = 2; // 2D
+  
+  E_Int shift, size;
+  E_Int ni1 = K_FUNC::E_max(ni - 1, 1);
+  E_Int nj1 = K_FUNC::E_max(nj - 1, 1);
+  E_Int nk1 = K_FUNC::E_max(nk - 1, 1);
+  E_Int imin1 = imin - 1, jmin1 = jmin - 1, kmin1 = kmin - 1;
+  E_Int imax1 = imax - 1, jmax1 = jmax - 1, kmax1 = kmax - 1;
+  E_Int di = imax - imin;
+  E_Int dj = jmax - jmin;
+  E_Int dk = kmax - kmin;
+  
+  if (imin == imax)  // window in i
   {
-    size = (kmax-kmin)*(jmax-jmin);
+    size = dj*dk;
     PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
     E_Int* p = K_NUMPY::getNumpyPtrI(o);
-    for (E_Int k = kmin-1; k < kmax-1; k++)
+    #pragma omp parallel
     {
-      for (E_Int j = jmin-1; j < jmax-1; j++)
+      E_Int ind;
+      #pragma omp for collapse(2)
+      for (E_Int k = kmin1; k < kmax1; k++)
+      for (E_Int j = jmin1; j < jmax1; j++)
       {
-        ind = imin-1 + j*ni + k*ni*nj1;
-        p[ii] = ind; ii++;
+        ind = (k - kmin + 1)*dj + (j - jmin + 1);
+        p[ind] = imin - 1 + j*ni + k*ni*nj1;
       }
     }
     return o;
   }
-  // fenetre en j
-  else if (jmin == jmax)
+  else if (jmin == jmax)  // window in j
   {
     shift = ni*nj1*nk1;
-    size = (kmax-kmin)*(imax-imin);
+    size = di*dk;
     PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
     E_Int* p = K_NUMPY::getNumpyPtrI(o);
-    for (E_Int k = kmin-1; k < kmax-1; k++)
+    #pragma omp parallel
     {
-      for (E_Int i = imin-1; i < imax-1; i++)
+      E_Int ind;
+      #pragma omp for collapse(2)
+      for (E_Int k = kmin1; k < kmax1; k++)
+      for (E_Int i = imin1; i < imax1; i++)
       {
-        ind = shift + i + (jmin-1)*ni1 + k*ni1*nj;
-        p[ii] = ind; ii++;
+        ind = (k - kmin + 1)*di + (i - imin + 1);
+        p[ind] = shift + i + (jmin - 1)*ni1 + k*ni1*nj;
       }
     }
     return o;
   }
-  // fenetre en k
-  else if (kmin == kmax)
+  else if (kmin == kmax)  // window in k
   {
     shift = ni*nj1*nk1 + ni1*nj*nk1;
-    size = (jmax-jmin)*(imax-imin);
+    size = di*dj;
     PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
     E_Int* p = K_NUMPY::getNumpyPtrI(o);
-    for (E_Int j = jmin-1; j < jmax-1; j++)
+    #pragma omp parallel
     {
-      for (E_Int i = imin-1; i < imax-1; i++)
+      E_Int ind;
+      #pragma omp for collapse(2)
+      for (E_Int j = jmin1; j < jmax1; j++)
+      for (E_Int i = imin1; i < imax1; i++)
       {
-        ind = shift + i + j*ni1 + (kmin-1)*ni1*nj1;
-        p[ii] = ind; ii++;
+        ind = (j - jmin + 1)*di + (i - imin + 1);
+        p[ind] = shift + i + j*ni1 + (kmin - 1)*ni1*nj1;
       }
     }
     return o;
   }
   else
   {
-    printf("Warning: range2PointList: requires a 2D range.\n");
+    PyErr_SetString(PyExc_ValueError,
+                    "range2FacePointList: requires a 2D range.\n");
+    return NULL;
+  }
+}
+
+//=============================================================================
+// Convert the range of a structured block into a vertex indices numpy. 
+// Vertex indices start at 0 and contain all i vertices, followed by all
+// j vertices and k vertices.
+//=============================================================================
+PyObject* K_CONVERTER::range2VertexPointList(PyObject* self, PyObject* args)
+{
+  E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
+  if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax,
+                     &kmin, &kmax, &ni, &nj, &nk)) return NULL;
+
+  E_Int size;
+  E_Int di = imax - imin + 1;
+  E_Int dj = jmax - jmin + 1;
+  E_Int dk = kmax - kmin + 1;
+  E_Int imin1 = imin - 1, jmin1 = jmin - 1, kmin1 = kmin - 1;
+
+  if (imin == imax)  // window in i
+  {
+    size = dj*dk;
+    PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
+    E_Int* p = K_NUMPY::getNumpyPtrI(o);
+    #pragma omp parallel
+    {
+        #pragma omp for collapse(2)
+        for (E_Int k = kmin1; k < kmax; k++)
+        for (E_Int j = jmin1; j < jmax; j++)
+        {
+          E_Int ind = (k - kmin1)*dj + (j - jmin1);
+          p[ind] = imin1 + j*ni + k*ni*nj;
+        }
+    }
+    return o;
+  }
+  else if (jmin == jmax)
+  {
+    size = di*dk;
+    PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
+    E_Int* p = K_NUMPY::getNumpyPtrI(o);
+
+    #pragma omp parallel
+    {
+      #pragma omp for collapse(2)
+      for (E_Int k = kmin1; k < kmax; k++)
+      for (E_Int i = imin1; i < imax; i++)
+      {
+        E_Int ind = (k - kmin1)*di + (i - imin1);
+        p[ind] = i + jmin1*ni + k*ni*nj;
+      }
+    }
+    return o;
+  }
+  else if (kmin == kmax)
+  {
+    size = di*dj;
+    PyObject* o = K_NUMPY::buildNumpyArray(size, 1, 1);
+    E_Int* p = K_NUMPY::getNumpyPtrI(o);
+
+    #pragma omp parallel
+    {
+      #pragma omp for collapse(2)
+      for (E_Int j = jmin1; j < jmax; j++)
+      for (E_Int i = imin1; i < imax; i++)
+      {
+        E_Int ind = (j - jmin1)*di + (i - imin1);
+        p[ind] = i + j*ni + kmin1*ni*nj;
+      }
+    }
+    return o;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_ValueError,
+                    "range2VertexPointList: requires a 2D range.");
     return NULL;
   }
 }

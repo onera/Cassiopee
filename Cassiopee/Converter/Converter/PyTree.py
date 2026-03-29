@@ -6026,7 +6026,7 @@ def extractBCFields(z, varList=None):
             win = Internal.range2Window(PR[1])
             imin, imax, jmin, jmax, kmin, kmax = win
             ni = dimZone[1]; nj = dimZone[2]; nk = dimZone[3]
-            indicesL = Converter.converter.range2PointList(imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk)
+            indicesL = Converter.converter.range2FacePointList(imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk)
 
         #2. extract fields from BCDataSet nodes
         bcdata = Internal.getNodesFromType1(bc, 'BCDataSet_t')
