@@ -651,8 +651,8 @@ PyObject* K_CONNECTOR::writeCoefs(PyObject* self, PyObject* args)
       #else
       sprintf(strId,"%04d",BlockDonorId);
       #endif
-      strcat(file,strId);
-      strcat(file,"_Blanking");
+      strcat(file, strId);
+      strcat(file, "_Blanking");
       ptr_file = fopen(file, "w");
       printf("Open file %s\n",file);fflush(stdout);
       // Ecriture du nombre de points du domaine d interpolation

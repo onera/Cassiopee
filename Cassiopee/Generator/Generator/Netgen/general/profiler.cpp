@@ -44,19 +44,19 @@ namespace netgen
     // thus we use the C-variant:
 
     if (getenv ("NGPROFILE"))
-      {
-  char filename[100];
+    {
+      char filename[100];
 #ifdef PARALLEL
-  sprintf (filename, "netgen.prof.%d", id);
+      sprintf (filename, "netgen.prof.%d", id);
 #else
-  sprintf (filename, "netgen.prof");
+      sprintf (filename, "netgen.prof");
 #endif
   
-  if (id == 0) printf ("write profile to file netgen.prof\n"); 
-  FILE *prof = fopen(filename,"w");
-  Print (prof);
-  fclose(prof);
-      }
+      if (id == 0) printf ("write profile to file netgen.prof\n"); 
+      FILE *prof = fopen(filename,"w");
+      Print (prof);
+      fclose(prof);
+    }
   }
 
 
