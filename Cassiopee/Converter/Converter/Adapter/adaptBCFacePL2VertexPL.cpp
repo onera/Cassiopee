@@ -154,7 +154,6 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL_ME(
       E_Int off = offsets[ic];
       E_Int nfaces = offsets[ic+1] - off;
       K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
-      nvpe = cm.getNfld();
 
       std::vector<std::vector<E_Int> > facets;
       K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
