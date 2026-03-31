@@ -18,7 +18,7 @@
 #if PY_VERSION_HEX >= 0x03000000
             else if (PyUnicode_Check(tpl0)) varname = (char*)PyUnicode_AsUTF8(tpl0); 
 #endif
-            strcat(varStringOut,","); strcat(varStringOut,varname);
+            strcat(varStringOut, ","); strcat(varStringOut, varname);
           }
        }
        if( vartype <= 3 &&  vartype >= 1) nvars =5;

@@ -322,13 +322,13 @@ PyObject* K_CONNECTOR::transferFields(PyObject* self, PyObject* args)
     char*& varname = listOfVars[nov];
     if (nov > 0) 
     {
-      strcat(varStringOut,",");      
-      strcat(varStringOut,varname);
+      strcat(varStringOut, ",");      
+      strcat(varStringOut, varname);
     }
-    else strcpy(varStringOut,varname);
+    else strcpy(varStringOut, varname);
   }
   listOfVars.clear();
-  strcat(varStringOut,",donorVol");
+  strcat(varStringOut, ",donorVol");
 
   /*---------------------------------------------------*/
   E_Float* xr = coordX->begin();

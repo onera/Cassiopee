@@ -211,7 +211,7 @@ static char *fghJoystickWalkUSBdev(int f, char *dev, char *out, int outlen)
     for (i = 0; i < USB_MAX_DEVNAMES; i++)
       if (di.udi_devnames[i][0] &&
           strcmp(di.udi_devnames[i], dev) == 0) {
-        cp =  calloc( 1, strlen(di.udi_vendor) + strlen(di.udi_product) + 2);
+        cp = calloc( 1, strlen(di.udi_vendor) + strlen(di.udi_product) + 2);
         strcpy(cp, di.udi_vendor);
         strcat(cp, " ");
         strcat(cp, di.udi_product);
@@ -1346,7 +1346,11 @@ static void fghJoystickOpen( SFG_Joystick* joy )
         if( joy->error )
             return;
 
-        snprintf( joyfname, sizeof(joyfname), "%s/.joy%drc", getenv( "HOME" ), joy->id );
+        char* home = getenv( "HOME" );
+        if (home != NULL) 
+          snprintf( joyfname, sizeof(joyfname), "%s/.joy%drc", home, joy->id );
+        else 
+          snprintf( joyfname, sizeof(joyfname), ".joy%drc", joy->id );
 
         joyfile = fopen( joyfname, "r" );
         joy->error =( joyfile == NULL );

@@ -1708,7 +1708,7 @@ PyObject* K_CONNECTOR::getInterpolatedPoints(PyObject* self, PyObject* args)
   E_Int api = f->getApi();
   char varStringOut[K_ARRAY::VARSTRINGLENGTH]; varStringOut[0] = '\0';
   E_Int nfldOut = nfld+1;
-  strcpy(varStringOut,varString); strcat(varStringOut,",indcell");
+  strcpy(varStringOut, varString); strcat(varStringOut, ",indcell");
   E_Float* cellnp = f->begin(posc);
 
   FldArrayF* fout = new FldArrayF(npts, nfldOut);

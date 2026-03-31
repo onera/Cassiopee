@@ -253,10 +253,13 @@ int ShaderManager::init()
 //=============================================================================
 int ShaderManager::load()
 {
-  char vert[256*8]; char frag[256*8];
   Data* d = Data::getInstance();
   char* path = d->ptrState->shaderPath;
+  E_Int len = strlen(path);
 
+  char* vert = new char[ len+32 ]; 
+  char* frag = new char[ len+32 ];
+  
   // - 0 - None
   strcpy(vert, path); strcat(vert, "phong.vert");
   strcpy(frag, path); strcat(frag, "phong.frag");
@@ -451,5 +454,8 @@ int ShaderManager::load()
   strcat(frag, "panorama.frag");
   addFromFile(vert, frag);
 
+  delete [] vert;
+  delete [] frag;
+  
   return 1;
 }

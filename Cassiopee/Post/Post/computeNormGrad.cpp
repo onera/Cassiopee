@@ -86,7 +86,7 @@ PyObject* K_POST::computeNormGrad(PyObject* self, PyObject* args)
   FldArrayF* f2;
   E_Int sizeVarStringOut = strlen(var) + 5; // grad var
   char* varStringOut = new char[sizeVarStringOut];
-  strcpy(varStringOut, "grad"); strcat(varStringOut,var);
+  strcpy(varStringOut, "grad"); strcat(varStringOut, var);
 
   if (res == 1)
   {
