@@ -27,28 +27,52 @@
   IN: allow_degenerated: whether to allow degenerated elements (in which case
                          the last vertex of a degenerated facet is a repetition
                          of the first)
+  IN: expandToLowerDim: 'faces' of 1D and 2D elements are vertices and edges, 
+                         respectively if expandToLowerDim is set to True
   OUT: facets: vertex indices for each of the facets - indexing starts at 1
   Return: error index 0 (ok), 1 (error) */
 //=============================================================================
 E_Int K_CONNECT::getEVFacets(std::vector<std::vector<E_Int> >& facets,
-                             const char* eltType, E_Bool allow_degenerated)
+  const char* eltType, E_Bool allow_degenerated, E_Bool expandToLowerDim
+)
 {
   E_Int ierr = 0;
   facets.clear();
 
   if (K_STRING::cmp(eltType, "BAR") == 0 || K_STRING::cmp(eltType, "BAR*") == 0)
   {
-    facets.push_back({1}); facets.push_back({2});
+    if (expandToLowerDim)
+    {
+      facets.push_back({1}); facets.push_back({2});
+    }
+    else
+    {
+      facets.push_back({1, 2});
+    }
   }
   else if (K_STRING::cmp(eltType, "TRI") == 0 || K_STRING::cmp(eltType, "TRI*") == 0)
   {
-    facets.push_back({1, 2}); facets.push_back({2, 3});
-    facets.push_back({3, 1});
+    if (expandToLowerDim)
+    {
+      facets.push_back({1, 2}); facets.push_back({2, 3});
+      facets.push_back({3, 1});
+    }
+    else
+    {
+      facets.push_back({1, 2, 3});
+    }
   }
   else if (K_STRING::cmp(eltType, "QUAD") == 0 || K_STRING::cmp(eltType, "QUAD*") == 0)
   {
-    facets.push_back({1, 2}); facets.push_back({2, 3});
-    facets.push_back({3, 4}); facets.push_back({4, 1});
+    if (expandToLowerDim)
+    {
+      facets.push_back({1, 2}); facets.push_back({2, 3});
+      facets.push_back({3, 4}); facets.push_back({4, 1});
+    }
+    else
+    {
+      facets.push_back({1, 2, 3, 4});
+    }
   }
   else if (K_STRING::cmp(eltType, "TETRA") == 0 || K_STRING::cmp(eltType, "TETRA*") == 0)
   {
