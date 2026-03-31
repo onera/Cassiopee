@@ -5677,7 +5677,7 @@ def getBCFaceNode(z, bcNode, donor=False):
   r = getNodeFromName1(bcNode, name) # structure maintenant
   ni = dims[1]; nj = dims[2]; nk = dims[3]
   wins = range2Window(r[1])
-  listIndices = converter.range2FacePointList(*wins, ni, nj, nk)
+  listIndices = converter.window2FacePointList(*wins, ni, nj, nk)
   return createNode(__FACELIST__, 'DataArray_t', value=listIndices)
 
 # Return a container per variable available in a BCDataSet

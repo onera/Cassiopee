@@ -329,7 +329,7 @@ def getEmptyWindowsInfoHybrid__(t, dim=3):
                 C._initVars(winp,'centers:tag1',-1.) # defines the opposite window
                 C._initVars(winp,'centers:tag2',-2.) # defines the opp index in opp window
                 allTags += [winp]; indirBlkOfWins += [noz]
-                ind = Converter.converter.range2FacePointList(*r, dimZ[1], dimZ[2], dimZ[3])
+                ind = Converter.converter.window2FacePointList(*r, dimZ[1], dimZ[2], dimZ[3])
                 allExtIndices += [ind]
     return allTags, indirBlkOfWins, allExtIndices
 

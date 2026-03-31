@@ -8,7 +8,7 @@ import KCore.test as test
 
 t = G.cartNGon((2,0,0), (0.1,0.1,1), (10,10,2))
 t = C.addBC2Zone(t, 'wall', 'BCWall', faceList=[1, 11, 21, 31, 41])
-t = C.addBC2Zone(t, 'wall', 'BCViscousWall', faceList=[10, 20, 30, 40, 50])
+t = C.addBC2Zone(t, 'wall', 'BCWallViscous', faceList=[10, 20, 30, 40, 50])
 C._initBCDataSet(t, '{var}=1.')
 Internal._adaptBCFacePL2VertexPL(t, remove=False)
 
@@ -23,7 +23,7 @@ bcs = Internal.getNodesFromName(a, 'wall*')
 Internal._adaptBCVertexPL2FacePL(a, bcs=bcs, remove=False)
 test.testT(a, 2)
 
-# Adapt vertex PL into face PL for all BCViscousWall nodes (in place), remove BCDatasets
+# Adapt vertex PL into face PL for all BCWallViscous nodes (in place), remove BCDatasets
 a = Internal.copyTree(t)
-Internal._adaptBCVertexPL2FacePL(a, btype='BCViscousWall', remove=True)
+Internal._adaptBCVertexPL2FacePL(a, btype='BCWallViscous', remove=True)
 test.testT(a, 3)

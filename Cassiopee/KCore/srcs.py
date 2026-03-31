@@ -107,6 +107,7 @@ cpp_srcs = [
     'KCore/Connect/indiceFace2Connect.cpp',
     'KCore/Connect/ngonTools.cpp',
     'KCore/Connect/colorConnexParts.cpp',
+    'KCore/Connect/computeStartOffsets.cpp',
     'KCore/Connect/prefixSum.cpp',
     'KCore/Sort/sort.cpp',
     'KCore/Loc/node2Center.cpp',

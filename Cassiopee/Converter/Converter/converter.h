@@ -169,8 +169,8 @@ namespace K_CONVERTER
   PyObject* diffIndex(PyObject* self, PyObject* args);
   PyObject* pointList2Ranges(PyObject* self, PyObject* args);
   PyObject* pointList2SPL(PyObject* self, PyObject* args);
-  PyObject* range2FacePointList(PyObject* self, PyObject* args);
-  PyObject* range2VertexPointList(PyObject* self, PyObject* args);
+  PyObject* window2FacePointList(PyObject* self, PyObject* args);
+  PyObject* window2VertexPointList(PyObject* self, PyObject* args);
   PyObject* PR2VL(PyObject* self, PyObject* args);
   // Extraction d'infos ou de champs
   PyObject* extractFields(PyObject* self, PyObject* args); 
@@ -191,7 +191,8 @@ namespace K_CONVERTER
 
   // Adapt BC face point list to vertex point list and vice versa, NGON and ME
   PyObject* adaptBCFacePL2VertexPL_NGON(FldArrayI* cn, FldArrayI* fpl);
-  PyObject* adaptBCFacePL2VertexPL_ME(FldArrayI* cn, FldArrayI* fpl);
+  PyObject* adaptBCFacePL2VertexPL_ME(FldArrayI* cn, const char* eltType,
+                                      const E_Int npts, FldArrayI* fpl);
   PyObject* adaptBCVertexPL2FacePL_NGON(FldArrayI* cn, FldArrayI* vpl, E_Int npts);
   PyObject* adaptBCVertexPL2FacePL_ME(FldArrayI* cn, FldArrayI* vpl, E_Int npts);
   
