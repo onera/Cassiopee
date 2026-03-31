@@ -5604,7 +5604,7 @@ def hasBCDataSets(t, loc=None):
       l = getNodeFromType1(n, 'GridLocation_t')
       ploc = 'Vertex' if l is None else getValue(l)
       if ploc in loc: return True
-    
+
     nodes2 = getNodesFromType1(z, 'ZoneSubRegion_t')
     for n in nodes2:
       bcRegionNameNode = getNodeFromName1(n, 'BCRegionName')
