@@ -65,4 +65,3 @@ print(res)
 res = Internal.hasBCDataSets(a, loc='Vertex')
 print(res)
 """
-

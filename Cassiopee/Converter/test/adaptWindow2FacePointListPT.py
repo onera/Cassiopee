@@ -24,4 +24,3 @@ C._addBC2Zone(a, 'inlet', 'BCInflow', faceList=inletFPL+1)
 C._addBC2Zone(a, 'wall', 'BCWallViscous', faceList=wallFPL+1)
 C._addBC2Zone(a, 'symm', 'BCSymmetry', faceList=symmFPL+1)
 C.convertPyTree2File(a, 'out.cgns')
-
