@@ -609,18 +609,18 @@ def runSingleUnitaryTest(no, module, test, update=False):
     nthreads = KCore.kcore.getOmpMaxThreads()
     nthreads = int(Threads.get())
     env = os.environ.copy()
-    
+
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
         pythonExec = os.getenv('PYTHONEXE', 'python')
         cmd = [pythonExec, test]
-        if seq: 
+        if seq:
             env["OMP_NUM_THREADS"] = str(nthreads)
         else:
             env["OMP_NUM_THREADS"] = str(nthreads//2)
             cmd = ["mpiexec", "-np", "2"] + cmd
-            
+
     else:  # Unix
         if seq:
             env["OMP_NUM_THREADS"] = str(nthreads)
