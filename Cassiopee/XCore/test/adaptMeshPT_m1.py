@@ -7,8 +7,10 @@ import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import KCore.test as test
 import numpy
+import os
 
 LOCAL = test.getLocal()
+filename = os.path.join(LOCAL, 'tmp.cgns')
 
 # 2D QUAD
 no_test = 0
@@ -16,10 +18,10 @@ a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
 a = C.convertArray2NGon(a)
 C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=2)
 Internal._adaptNGon32NGon4(a)
-if Cmpi.rank == 0: C.convertPyTree2File(a, LOCAL+'/tmp.cgns')
+if Cmpi.rank == 0: C.convertPyTree2File(a, filename)
 Cmpi.barrier()
 
-a, res = XC.loadAndSplitNGon(LOCAL+'/tmp.cgns')
+a, res = XC.loadAndSplitNGon(filename)
 gcells = res[5]
 gfaces = res[6]
 comm = res[1]
@@ -53,10 +55,10 @@ a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))
 a = C.convertArray2NGon(a)
 C._fillEmptyBCWith(a, 'nref', 'BCFarfield', dim=3)
 Internal._adaptNGon32NGon4(a)
-if Cmpi.rank == 0: C.convertPyTree2File(a, LOCAL+'/tmp.cgns')
+if Cmpi.rank == 0: C.convertPyTree2File(a, filename)
 Cmpi.barrier()
 
-a, res = XC.loadAndSplitNGon(LOCAL+'/tmp.cgns')
+a, res = XC.loadAndSplitNGon(filename)
 gcells = res[5]
 gfaces = res[6]
 comm = res[1]
