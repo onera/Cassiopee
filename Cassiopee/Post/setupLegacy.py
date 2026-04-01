@@ -1,6 +1,7 @@
 #from distutils.core import setup, Extension
 from setuptools import setup, Extension
 import os, sys
+import subprocess
 
 #=============================================================================
 # Post requires:
@@ -29,15 +30,27 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Compilation des fortrans ===================================================
+def runMakeFortran(f77compiler, opt, f90compiler=None):
+    targets = ["Post/Fortran", "Post/zipper"]
+    for wdir in targets:
+        subprocess.run(
+            ["make", "-e", f"FC={f77compiler}", "F90=true", f"WDIR={wdir}", *opt.split()],
+            check=True
+        )
+    usurp_dir = "Post/usurp"
+    if f90compiler is not None and os.access(usurp_dir, os.F_OK):
+        subprocess.run(
+            ["make", "-e", f"FC={f77compiler}", f"F90={f90compiler}", *opt.split()],
+            cwd=usurp_dir,
+            check=True
+        )
+
 if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling Post.")
     sys.exit()
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/Fortran "+opt)
-os.system("make -e FC="+f77compiler+" F90=true WDIR=Post/zipper "+opt)
-if f90compiler is not None and os.access('Post/usurp', os.F_OK):
-    os.system("(cd Post/usurp; make -e FC="+f77compiler+" F90="+f90compiler+" "+opt+")")
+runMakeFortran(f77compiler, opt, f90compiler=f90compiler)
 prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs and libraries ===========================================

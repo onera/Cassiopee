@@ -43,7 +43,7 @@ if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling Converter.")
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=Converter/Fortran "+opt)
+Dist.runMakeFortran(f77compiler, opt, wdir="Converter/Fortran")
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
 

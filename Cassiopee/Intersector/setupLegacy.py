@@ -38,7 +38,7 @@ if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling Intersector.")
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=Intersector/Fortran "+opt)
+Dist.runMakeFortran(f77compiler, opt, wdir="Intersector/Fortran")
 prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs and libraries ===========================================

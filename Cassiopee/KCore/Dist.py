@@ -258,46 +258,42 @@ def getInstallPath(prefix, type=0):
 # Functions returning the names of the remote repo & branch and the commit hash
 #==============================================================================
 def getGitOrigin(cassiopeeIncDir):
-    if not shutil.which("git"): return "unknown"
-    mySystem = getSystem()[0]
-    if mySystem == 'mingw' or mySystem == 'Windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git config --get remote.origin.url".format(lpath)
-    else: # unix
-        lpath = cassiopeeIncDir
-        cmd = "cd {}; git config --get remote.origin.url 2>/dev/null".format(lpath)
+    if not shutil.which("git"):
+        return "unknown"
     try:
-        origin = subprocess.check_output(cmd, shell=True)
-        return origin.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
+        return subprocess.check_output(
+            ["git", "-C", cassiopeeIncDir,
+             "config", "--get", "remote.origin.url"],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+    except Exception:
+        return "unknown"
 
 def getGitBranch(cassiopeeIncDir):
-    if not shutil.which("git"): return "unknown"
-    mySystem = getSystem()[0]
-    if mySystem == 'mingw' or mySystem == 'Windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git rev-parse --abbrev-ref HEAD".format(lpath)
-    else: # unix
-        lpath = cassiopeeIncDir
-        cmd = "cd {}; git rev-parse --abbrev-ref HEAD 2>/dev/null".format(lpath)
+    if not shutil.which("git"):
+        return "unknown"
     try:
-        branchName = subprocess.check_output(cmd, shell=True)
-        return branchName.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
+        return subprocess.check_output(
+            ["git", "-C", cassiopeeIncDir, "rev-parse", "--abbrev-ref", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+    except Exception:
+        return "unknown"
+
 
 def getGitHash(cassiopeeIncDir):
-    if not shutil.which("git"): return "unknown"
-    mySystem = getSystem()[0]
-    if mySystem == 'mingw' or mySystem == 'Windows':
-        lpath = cassiopeeIncDir.replace('/', '\\')
-        cmd = "cd {} && git rev-parse --short HEAD".format(lpath)
-    else: # unix
-        lpath = cassiopeeIncDir
-        cmd = "cd {}; git rev-parse --short HEAD 2>/dev/null".format(lpath)
+    if not shutil.which("git"):
+        return "unknown"
     try:
-        sha = subprocess.check_output(cmd, shell=True)
-        return sha.decode('utf-8', 'ignore').strip()
-    except: return "unknown"
+        return subprocess.check_output(
+            ["git", "-C", cassiopeeIncDir, "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+    except Exception:
+        return "unknown"
 
 #=============================================================================
 # nom de l'egg cree par setup tools
@@ -2215,6 +2211,14 @@ def checkFortranLibs():
         #    else: ret = False
 
     return (ret, libs, paths)
+
+# Run the make command to build the wdir target
+def runMakeFortran(forCompiler, opt, wdir):
+    import shlex
+    subprocess.run(
+        ["make", "-e", f"FC={forCompiler}", f"WDIR={wdir}", *shlex.split(opt)],
+        check=True
+    )
 
 #=============================================================================
 # Check Cpp libs

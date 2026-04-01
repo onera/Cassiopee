@@ -35,7 +35,7 @@ Dist.writeSetupCfg()
 #args = Dist.getForArgs(); opt = ''
 #for c in range(len(args)):
 #    opt += 'FOPT'+str(c)+'='+args[c]+' '
-#os.system("make -e FC="+f77compiler+" WDIR=Template/Fortran "+opt)
+#Dist.runMakeFortran(f77compiler, opt, wdir="Template/Fortran")
 prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs, include dirs and libraries =============================

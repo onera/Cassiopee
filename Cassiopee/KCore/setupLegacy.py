@@ -31,12 +31,12 @@ if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling KCore.")
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT%d=%s '%(c, v)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Fld "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Interp "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Metric "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/CompGeom "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Loc "+opt)
-os.system("make -e FC="+f77compiler+" WDIR=KCore/Linear "+opt)
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/Fld")
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/Interp")
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/Metric")
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/CompGeom")
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/Loc")
+Dist.runMakeFortran(f77compiler, opt, wdir="KCore/Linear")
 prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraries path =====================================================
