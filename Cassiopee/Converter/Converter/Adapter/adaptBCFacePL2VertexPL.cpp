@@ -174,9 +174,9 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL_ME(
         // std::cout << "eidx = " << eidx << std::endl;
         // std::cout << "f = " << f << std::endl;
         // std::cout << "nvpf = " << nvpf << std::endl;
-        for (E_Int j = 1; j <= nvpf; j++)
+        for (E_Int j = 0; j < nvpf; j++)
         {
-          ind = cm(eidx, j) - 1;
+          ind = cm(eidx, facets[f][j]) - 1;
           vindir[ind] = 1;
         }
       }
