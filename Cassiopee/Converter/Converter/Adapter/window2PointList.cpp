@@ -25,7 +25,7 @@ using namespace K_FLD;
 // Face indices start at 0 and contain all i faces, followed by all j faces and
 // k faces.
 //=============================================================================
-PyObject* K_CONVERTER::range2FacePointList(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::window2FacePointList(PyObject* self, PyObject* args)
 {
   E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
   if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax,
@@ -102,7 +102,7 @@ PyObject* K_CONVERTER::range2FacePointList(PyObject* self, PyObject* args)
   else
   {
     PyErr_SetString(PyExc_ValueError,
-                    "range2FacePointList: requires a 2D range.\n");
+                    "window2FacePointList: requires a 2D range.\n");
     return NULL;
   }
 }
@@ -112,7 +112,7 @@ PyObject* K_CONVERTER::range2FacePointList(PyObject* self, PyObject* args)
 // Vertex indices start at 0 and contain all i vertices, followed by all
 // j vertices and k vertices.
 //=============================================================================
-PyObject* K_CONVERTER::range2VertexPointList(PyObject* self, PyObject* args)
+PyObject* K_CONVERTER::window2VertexPointList(PyObject* self, PyObject* args)
 {
   E_Int imin, imax, jmin, jmax, kmin, kmax, ni, nj, nk;
   if (!PYPARSETUPLE_(args, IIII_ IIII_ I_, &imin, &imax, &jmin, &jmax,
@@ -180,7 +180,7 @@ PyObject* K_CONVERTER::range2VertexPointList(PyObject* self, PyObject* args)
   else
   {
     PyErr_SetString(PyExc_ValueError,
-                    "range2VertexPointList: requires a 2D range.");
+                    "window2VertexPointList: requires a 2D range.");
     return NULL;
   }
 }

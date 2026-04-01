@@ -140,7 +140,7 @@ cpp_srcs = [
     'Converter/Adapter/createElsaHybrid.cpp',
     'Converter/Adapter/pointList2Ranges.cpp',
     'Converter/Adapter/pointList2SPL.cpp',
-    'Converter/Adapter/range2PointList.cpp',
+    'Converter/Adapter/window2PointList.cpp',
     'Converter/Adapter/PR2VL.cpp',
     'Converter/Adapter/diffIndex.cpp',
     'Converter/setBCDataInGhostCells.cpp',
