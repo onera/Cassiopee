@@ -54,14 +54,21 @@ inline E_Float computeAngle(
 inline E_Float computeSkewness(
   const E_Float* x, const E_Float* y, const E_Float* z,
   E_Int ind1, E_Int ind2, E_Int ind3,
-  E_Float refAngle
+  E_Float refAngle, E_Int normalized
 )
 {
   E_Float pi = 4*atan(1.);
   E_Float degconst = 180.0 / pi;
-  E_Float alpha = computeAngle(x, y, z, ind1, ind2, ind3);
+  E_Float alpha = computeAngle(x, y, z, ind1, ind2, ind3)*degconst;
+  
+  E_Float skewness = E_abs(alpha - refAngle);
+  if (normalized) // skewness in [0,1] range
+  {  
+    if (alpha > refAngle) skewness = skewness/(180.-refAngle);
+    else skewness = skewness/refAngle;
+  }
 
-  return E_abs(alpha*degconst - refAngle);
+  return skewness;
 }
 
 // ============================================================================
@@ -74,7 +81,9 @@ inline E_Float computeSkewness(
 PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
+  E_Int normalized;
+
+  if (!PYPARSETUPLE_(args, O_ B_, &array, &normalized)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -197,7 +206,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
           ind1 = j*ni+i;
           ind2 = j*ni+inext;
           ind3 = jnext*ni+i;
-          skewness[ind] = computeSkewness(x, y, z, ind1, ind2, ind3, 90.);
+          skewness[ind] = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
         }
       }
       else // dim == 3
@@ -217,13 +226,13 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
           ind2 = k*ni*nj+j*ni+inext;
           ind3 = k*ni*nj+jnext*ni+i;
           // ... angle correspondant aux indices (ij)
-          skewness1 = computeSkewness(x, y, z, ind1, ind2, ind3, 90.);
+          skewness1 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
           // ... angle correspondant aux indices (ik)
           ind3 = knext*ni*nj+j*ni+i;
-          skewness2 = computeSkewness(x, y, z, ind1, ind2, ind3, 90.);
+          skewness2 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
           // ... angle correspondant aux indices (jk)
           ind2 = k*ni*nj+jnext*ni+i;
-          skewness3 = computeSkewness(x, y, z, ind1, ind2, ind3, 90.);
+          skewness3 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
           // max skewness
           skewness[ind] = E_max(E_max(skewness1,skewness2),skewness3);
         }
@@ -301,10 +310,10 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind3 = cm(i,facets[f][2])-1;
               ind4 = cm(i,facets[f][3])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90.);
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90.);
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90.);
-              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90.);
+              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90., normalized);
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90., normalized);
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90., normalized);
+              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90., normalized);
 
               skewness[i] = E_max(E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness4),skewness[i]);
             }
@@ -314,9 +323,9 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind2 = cm(i,facets[f][1])-1;
               ind3 = cm(i,facets[f][2])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60.);
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60.);
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60.);
+              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60., normalized);
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60., normalized);
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60., normalized);
 
               skewness[i] = E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness[i]);
             }
