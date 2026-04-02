@@ -265,11 +265,16 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
       return NULL;
     }
 
+    // get eltTypes
+    std::vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
     
     // calcul de l'orthogonalite
     #pragma omp parallel
     {
       E_Float skewness1, skewness2, skewness3, skewness4;
+      E_Int ind1, ind2, ind3, ind4;
       E_Int nelts, nvpf;
       // loop over all connectivities
       for (E_Int ic = 0; ic < nc; ic++)
@@ -277,7 +282,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
         K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
         nelts = cm.getSize();
         std::vector<std::vector<E_Int> > facets;
-        // K_CONNECT::getEVFacets(facets, eltTypes[ic], true); // say yes to degenerated elements
+        K_CONNECT::getEVFacets(facets, eltTypes[ic], false, false);
         
         // loop over all elements of connectivity cm
         #pragma omp for
@@ -288,267 +293,39 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
           // loop over all faces of element i
           for (E_Int f = 0; f < nfpe[ic]; f++)
           {
-            // nvpf = facets[f].size();  // number of vertices per facet
+            nvpf = facets[f].size();  // number of vertices per facet
             if (nvpf == 4) // QUAD face
-            { 
-              //
+            {
+              ind1 = cm(i,facets[f][0])-1;
+              ind2 = cm(i,facets[f][1])-1;
+              ind3 = cm(i,facets[f][2])-1;
+              ind4 = cm(i,facets[f][3])-1;
+
+              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90.);
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90.);
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90.);
+              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90.);
+
+              skewness[i] = E_max(E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness4),skewness[i]);
             }
             else if (nvpf == 3) // TRI face
             {
-              // do somtehing
+              ind1 = cm(i,facets[f][0])-1;
+              ind2 = cm(i,facets[f][1])-1;
+              ind3 = cm(i,facets[f][2])-1;
+
+              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60.);
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60.);
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60.);
+
+              skewness[i] = E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness[i]);
             }
           }
         }
       }
     }
- 
-    // if (strcmp(eltType, "TRI") == 0)
-    // {
-    //   E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3);
-    //   E_Float eps = 1.e-6;
-    //   #pragma omp parallel
-    //   {
-    //     E_Float d1, d2, d3, alpha12, alpha23, alpha31, sqrtd1, sqrtd2, sqrtd3;
-    //     E_Int ind1, ind2, ind3;
-    //     #pragma omp for
-    //     for (E_Int et = 0; et < nelts; et++)
-    //     {
-    //       ind1 = cn1[et]-1;
-    //       ind2 = cn2[et]-1;
-    //       ind3 = cn3[et]-1;
 
-    //       d1 = (x[ind2]-x[ind1])*(x[ind2]-x[ind1])+(y[ind2]-y[ind1])*(y[ind2]-y[ind1])+(z[ind2]-z[ind1])*(z[ind2]-z[ind1]); sqrtd1 = sqrt(d1);
-    //       d2 = (x[ind3]-x[ind2])*(x[ind3]-x[ind2])+(y[ind3]-y[ind2])*(y[ind3]-y[ind2])+(z[ind3]-z[ind2])*(z[ind3]-z[ind2]); sqrtd2 = sqrt(d2);
-    //       d3 = (x[ind1]-x[ind3])*(x[ind1]-x[ind3])+(y[ind1]-y[ind3])*(y[ind1]-y[ind3])+(z[ind1]-z[ind3])*(z[ind1]-z[ind3]); sqrtd3 = sqrt(d3);
-
-    //       if (( K_FUNC::fEqualZero(d1,eps) == true )||
-    //           ( K_FUNC::fEqualZero(d2,eps) == true )||
-    //           ( K_FUNC::fEqualZero(d3,eps) == true ))
-    //       {
-    //         // degenerated element
-    //         skewness[et] = 120.; // 180. - 60.
-    //       }
-    //       else
-    //       {
-    //         alpha12 = E_abs(acos((d1 + d2 - d3)/(E_max(TWO*sqrtd1*sqrtd2,E_GEOM_CUTOFF)))*degconst - 60.);
-    //         alpha23 = E_abs(acos((d2 + d3 - d1)/(E_max(TWO*sqrtd2*sqrtd3,E_GEOM_CUTOFF)))*degconst - 60.);
-    //         alpha31 = E_abs(acos((d3 + d1 - d2)/(E_max(TWO*sqrtd3*sqrtd1,E_GEOM_CUTOFF)))*degconst - 60.);
-    //         skewness[et] = E_max(E_max(alpha12,alpha23),alpha31);
-    //       }
-    //     }
-    //   }
-    // }
-    // else if (strcmp(eltType, "QUAD") == 0)
-    // {
-    //   E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3); E_Int* cn4 = cn->begin(4);
-    //   E_Int ind1, ind2, ind3, ind4;
-    //   E_Float d1, d2, d3, d4, diag13, diag24, alpha12, alpha14, alpha32, alpha34;
-    //   E_Float sqrtd1, sqrtd2, sqrtd3, sqrtd4;
-    //   #pragma omp for
-    //   for (E_Int et = 0; et < nelts; et++)
-    //   {
-    //     ind1 = cn1[et]-1;
-    //     ind2 = cn2[et]-1;
-    //     ind3 = cn3[et]-1;
-    //     ind4 = cn4[et]-1;
-
-    //     d1     = (x[ind2]-x[ind1])*(x[ind2]-x[ind1])+(y[ind2]-y[ind1])*(y[ind2]-y[ind1])+(z[ind2]-z[ind1])*(z[ind2]-z[ind1]); sqrtd1 = sqrt(d1);
-    //     d2     = (x[ind3]-x[ind2])*(x[ind3]-x[ind2])+(y[ind3]-y[ind2])*(y[ind3]-y[ind2])+(z[ind3]-z[ind2])*(z[ind3]-z[ind2]); sqrtd2 = sqrt(d2);
-    //     d3     = (x[ind4]-x[ind3])*(x[ind4]-x[ind3])+(y[ind4]-y[ind3])*(y[ind4]-y[ind3])+(z[ind4]-z[ind3])*(z[ind4]-z[ind3]); sqrtd3 = sqrt(d3);
-    //     d4     = (x[ind1]-x[ind4])*(x[ind1]-x[ind4])+(y[ind1]-y[ind4])*(y[ind1]-y[ind4])+(z[ind1]-z[ind4])*(z[ind1]-z[ind4]); sqrtd4 = sqrt(d4);
-    //     diag13 = (x[ind1]-x[ind3])*(x[ind1]-x[ind3])+(y[ind1]-y[ind3])*(y[ind1]-y[ind3])+(z[ind1]-z[ind3])*(z[ind1]-z[ind3]);
-    //     diag24 = (x[ind2]-x[ind4])*(x[ind2]-x[ind4])+(y[ind2]-y[ind4])*(y[ind2]-y[ind4])+(z[ind2]-z[ind4])*(z[ind2]-z[ind4]);
-
-    //     alpha12 = E_abs(acos((d1 + d2 - diag13)/(E_max(TWO*sqrtd1*sqrtd2,E_GEOM_CUTOFF)))*degconst - 90.);
-    //     alpha14 = E_abs(acos((d1 + d4 - diag24)/(E_max(TWO*sqrtd1*sqrtd4,E_GEOM_CUTOFF)))*degconst - 90.);
-    //     alpha32 = E_abs(acos((d3 + d2 - diag24)/(E_max(TWO*sqrtd3*sqrtd2,E_GEOM_CUTOFF)))*degconst - 90.);
-    //     alpha34 = E_abs(acos((d3 + d4 - diag13)/(E_max(TWO*sqrtd3*sqrtd4,E_GEOM_CUTOFF)))*degconst - 90.);
-    //     skewness[et] = E_max(E_max(alpha12,alpha14),E_max(alpha32,alpha34));
-    //   }
-    // }
-    // else if (strcmp(eltType, "TETRA") == 0)
-    // {
-    //   // Compute surface normals
-    //   E_Int nvpe = cn->getNfld();
-    //   FldArrayF nsurfx(nelts, nvpe);
-    //   FldArrayF nsurfy(nelts, nvpe);
-    //   FldArrayF nsurfz(nelts, nvpe);
-    //   FldArrayF surf(nelts, nvpe);
-    //   K_METRIC::compSurfUnstruct(
-    //     *cn, "TETRA", 
-    //     f->begin(posx), f->begin(posy), f->begin(posz), 
-    //     nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
-
-    //   // Compute dihedral angle
-    //   E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2);
-    //   E_Float* nsurf3x = nsurfx.begin(3);E_Float* nsurf4x = nsurfx.begin(4);
-    //   E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2);
-    //   E_Float* nsurf3y = nsurfy.begin(3);E_Float* nsurf4y = nsurfy.begin(4);
-    //   E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2);
-    //   E_Float* nsurf3z = nsurfz.begin(3);E_Float* nsurf4z = nsurfz.begin(4);
-    //   E_Float* surf1 = surf.begin(1); E_Float* surf2 = surf.begin(2); 
-    //   E_Float* surf3 = surf.begin(3); E_Float* surf4 = surf.begin(4);
-    
-    //   #pragma omp parallel
-    //   {
-    //     E_Float s1, s2, s3,s4, s12, s13, s23, s14, s24, s34;
-    //     E_Float alpha12, alpha14, alpha24, alpha13, alpha23, alpha34;
-    //     E_Float skewness1, skewness2, skewness3;
-    //     #pragma omp for
-    //     for (E_Int et = 0; et < nelts; et++)
-    //     {
-    //       s1 = surf1[et]; s2 = surf2[et]; s3 = surf3[et]; s4 = surf4[et];
-    //       s12 = s1*s2; s13 = s1*s3; s14 = s1*s4;  
-    //       s23 = s2*s3; s24 = s2*s4; s34 = s3*s4;
-    //       alpha12 = E_abs(acos((nsurf1x[et]*nsurf2x[et] + nsurf1y[et]*nsurf2y[et] + nsurf1z[et]*nsurf2z[et])/s12)*degconst - 120.);
-    //       alpha14 = E_abs(acos((nsurf1x[et]*nsurf4x[et] + nsurf1y[et]*nsurf4y[et] + nsurf1z[et]*nsurf4z[et])/s14)*degconst - 120.);
-    //       alpha24 = E_abs(acos((nsurf2x[et]*nsurf4x[et] + nsurf2y[et]*nsurf4y[et] + nsurf2z[et]*nsurf4z[et])/s24)*degconst - 120.);
-    //       alpha13 = E_abs(acos((nsurf1x[et]*nsurf3x[et] + nsurf1y[et]*nsurf3y[et] + nsurf1z[et]*nsurf3z[et])/s13)*degconst - 120.);
-    //       alpha23 = E_abs(acos((nsurf2x[et]*nsurf3x[et] + nsurf2y[et]*nsurf3y[et] + nsurf2z[et]*nsurf3z[et])/s23)*degconst - 120.);
-    //       alpha34 = E_abs(acos((nsurf3x[et]*nsurf4x[et] + nsurf3y[et]*nsurf4y[et] + nsurf3z[et]*nsurf4z[et])/s34)*degconst - 120.);
-    //       skewness1 = E_max(alpha12,alpha14);
-    //       skewness2 = E_max(alpha24,alpha13);
-    //       skewness3 = E_max(alpha23,alpha34);
-    //       skewness[et] = E_max(E_max(skewness1,skewness2),skewness3);
-    //     }
-    //   }
-    // }
-    // else if (strcmp(eltType, "PYRA") == 0)
-    // {
-    //   PyErr_SetString(PyExc_TypeError,
-    //                 "getOrthogonalityMap: not yet implemented for PYRA.");
-    //   RELEASESHAREDS(tpl, f2);
-    //   RELEASESHAREDU(array, f, cn);
-    //   return NULL;
-    // }
-    // else if (strcmp(eltType, "PENTA") == 0)
-    // {
-    //   // Compute surface normals
-    //   E_Int nvpe = cn->getNfld();
-    //   FldArrayF nsurfx(nelts, nvpe);
-    //   FldArrayF nsurfy(nelts, nvpe);
-    //   FldArrayF nsurfz(nelts, nvpe);
-    //   FldArrayF surf(nelts, nvpe);
-    //   K_METRIC::compSurfUnstruct(
-    //     *cn, "PENTA",
-    //     f->begin(posx), f->begin(posy), f->begin(posz), 
-    //     nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
-
-    //   // Compute dihedral angle
-    //   E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2);
-    //   E_Float* nsurf3x = nsurfx.begin(3);
-    //   E_Float* nsurf4x = nsurfx.begin(4); E_Float* nsurf5x = nsurfx.begin(5);
-    //   E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2);
-    //   E_Float* nsurf3y = nsurfy.begin(3);
-    //   E_Float* nsurf4y = nsurfy.begin(4); E_Float* nsurf5y = nsurfy.begin(5);
-    //   E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2);
-    //   E_Float* nsurf3z = nsurfz.begin(3);
-    //   E_Float* nsurf4z = nsurfz.begin(4); E_Float* nsurf5z = nsurfz.begin(5);
-    //   E_Float* surf1 = surf.begin(1); E_Float* surf2 = surf.begin(2); 
-    //   E_Float* surf3 = surf.begin(3); E_Float* surf4 = surf.begin(4); E_Float* surf5 = surf.begin(5);
-      
-    //   #pragma omp parallel
-    //   {
-    //     E_Float s1, s2, s3, s4, s5, s13, s14, s15, s23, s24, s25, s34, s35, s45;
-    //     E_Float alpha13, alpha14, alpha15, alpha23, alpha24, alpha25, alpha34, alpha35, alpha45;
-    //     E_Float skewness1, skewness2, skewness3;  
-    //     #pragma omp for
-    //     for (E_Int et = 0; et < nelts; et++)
-    //     {
-    //       s1 = surf1[et]; s2 = surf2[et]; s3 = surf3[et]; s4 = surf4[et]; s5 = surf5[et];
-    //       s13 = s1*s3; s14 = s1*s4; s15 = s1*s5;  
-    //       s23 = s2*s3; s24 = s2*s4; s25 = s2*s5;  
-    //       s34 = s3*s4; s35 = s3*s5; s45 = s4*s5;  
-    //       alpha13 = E_abs(acos((nsurf1x[et]*nsurf3x[et] + nsurf1y[et]*nsurf3y[et] + nsurf1z[et]*nsurf3z[et])/s13)*degconst - 90.);
-    //       alpha14 = E_abs(acos((nsurf1x[et]*nsurf4x[et] + nsurf1y[et]*nsurf4y[et] + nsurf1z[et]*nsurf4z[et])/s14)*degconst - 90.);
-    //       alpha15 = E_abs(acos((nsurf1x[et]*nsurf5x[et] + nsurf1y[et]*nsurf5y[et] + nsurf1z[et]*nsurf5z[et])/s15)*degconst - 90.);
-    //       alpha23 = E_abs(acos((nsurf2x[et]*nsurf3x[et] + nsurf2y[et]*nsurf3y[et] + nsurf2z[et]*nsurf3z[et])/s23)*degconst - 90.);
-    //       alpha24 = E_abs(acos((nsurf2x[et]*nsurf4x[et] + nsurf2y[et]*nsurf4y[et] + nsurf2z[et]*nsurf4z[et])/s24)*degconst - 90.);
-    //       alpha25 = E_abs(acos((nsurf2x[et]*nsurf5x[et] + nsurf2y[et]*nsurf5y[et] + nsurf2z[et]*nsurf5z[et])/s25)*degconst - 90.);
-    //       alpha34 = E_abs(acos((nsurf3x[et]*nsurf4x[et] + nsurf3y[et]*nsurf4y[et] + nsurf3z[et]*nsurf4z[et])/s34)*degconst - 120.);
-    //       alpha35 = E_abs(acos((nsurf3x[et]*nsurf5x[et] + nsurf3y[et]*nsurf5y[et] + nsurf3z[et]*nsurf5z[et])/s35)*degconst - 120.);
-    //       alpha45 = E_abs(acos((nsurf4x[et]*nsurf5x[et] + nsurf4y[et]*nsurf5y[et] + nsurf4z[et]*nsurf5z[et])/s45)*degconst - 120.);
-    //       skewness1 = E_max(E_max(alpha13,alpha14),alpha15);
-    //       skewness2 = E_max(E_max(alpha23,alpha24),alpha25);
-    //       skewness3 = E_max(E_max(alpha34,alpha35),alpha45);
-    //       skewness[et] = E_max(E_max(skewness1,skewness2),skewness3);
-    //     }
-    //   }
-    // }
-    // else if (strcmp(eltType, "HEXA") == 0)
-    // {
-    //   // Compute surface normals
-    //   E_Int nvpe = cn->getNfld();
-    //   FldArrayF nsurfx(nelts, nvpe);
-    //   FldArrayF nsurfy(nelts, nvpe);
-    //   FldArrayF nsurfz(nelts, nvpe);
-    //   FldArrayF surf(nelts, nvpe);
-    //   K_METRIC::compSurfUnstruct(
-    //     *cn, "HEXA",
-    //     f->begin(posx), f->begin(posy), f->begin(posz), 
-    //     nsurfx.begin(), nsurfy.begin(), nsurfz.begin(), surf.begin());
-
-    //   // Compute dihedral angle
-    //   E_Float* nsurf1x = nsurfx.begin(1); E_Float* nsurf2x = nsurfx.begin(2); E_Float* nsurf3x = nsurfx.begin(3);
-    //   E_Float* nsurf4x = nsurfx.begin(4); E_Float* nsurf5x = nsurfx.begin(5); E_Float* nsurf6x = nsurfx.begin(6);
-    //   E_Float* nsurf1y = nsurfy.begin(1); E_Float* nsurf2y = nsurfy.begin(2); E_Float* nsurf3y = nsurfy.begin(3);
-    //   E_Float* nsurf4y = nsurfy.begin(4); E_Float* nsurf5y = nsurfy.begin(5); E_Float* nsurf6y = nsurfy.begin(6);
-    //   E_Float* nsurf1z = nsurfz.begin(1); E_Float* nsurf2z = nsurfz.begin(2); E_Float* nsurf3z = nsurfz.begin(3);
-    //   E_Float* nsurf4z = nsurfz.begin(4); E_Float* nsurf5z = nsurfz.begin(5); E_Float* nsurf6z = nsurfz.begin(6);
-    //   E_Float* surf1 = surf.begin(1); E_Float* surf2 = surf.begin(2); E_Float* surf3 = surf.begin(3);
-    //   E_Float* surf4 = surf.begin(4); E_Float* surf5 = surf.begin(5); E_Float* surf6 = surf.begin(6);
-      
-    //   #pragma omp parallel
-    //   {
-    //     E_Float s1, s2, s3, s4, s5, s6;
-    //     E_Float s13, s14, s15, s16, s23, s24, s25, s26, s35, s36, s45, s46;
-    //     E_Float alpha13, alpha14, alpha15, alpha16, alpha23, alpha24, alpha25, alpha26;
-    //     E_Float alpha35, alpha36, alpha45, alpha46;
-    //     E_Float skewness1, skewness2, skewness3, skewness4;
-        
-    //     #pragma omp for
-    //     for (E_Int et = 0; et < nelts; et++)
-    //     {
-    //       s1 = surf1[et]; s2 = surf2[et]; s3 = surf3[et];
-    //       s4 = surf4[et]; s5 = surf5[et]; s6 = surf6[et];
-    //       s13 = s1*s3; s14 = s1*s4; s15 = s1*s5; s16 = s1*s6; 
-    //       s23 = s2*s3; s24 = s2*s4; s25 = s2*s5; s26 = s2*s6; 
-    //       s35 = s3*s5; s36 = s3*s6; s45 = s4*s5; s46 = s4*s6; 
-    //       alpha13 = E_abs(acos((nsurf1x[et]*nsurf3x[et] + nsurf1y[et]*nsurf3y[et] + nsurf1z[et]*nsurf3z[et])/s13)*degconst - 90.);
-    //       alpha14 = E_abs(acos((nsurf1x[et]*nsurf4x[et] + nsurf1y[et]*nsurf4y[et] + nsurf1z[et]*nsurf4z[et])/s14)*degconst - 90.);
-    //       alpha15 = E_abs(acos((nsurf1x[et]*nsurf5x[et] + nsurf1y[et]*nsurf5y[et] + nsurf1z[et]*nsurf5z[et])/s15)*degconst - 90.);
-    //       alpha16 = E_abs(acos((nsurf1x[et]*nsurf6x[et] + nsurf1y[et]*nsurf6y[et] + nsurf1z[et]*nsurf6z[et])/s16)*degconst - 90.);
-    //       alpha23 = E_abs(acos((nsurf2x[et]*nsurf3x[et] + nsurf2y[et]*nsurf3y[et] + nsurf2z[et]*nsurf3z[et])/s23)*degconst - 90.);
-    //       alpha24 = E_abs(acos((nsurf2x[et]*nsurf4x[et] + nsurf2y[et]*nsurf4y[et] + nsurf2z[et]*nsurf4z[et])/s24)*degconst - 90.);
-    //       alpha25 = E_abs(acos((nsurf2x[et]*nsurf5x[et] + nsurf2y[et]*nsurf5y[et] + nsurf2z[et]*nsurf5z[et])/s25)*degconst - 90.);
-    //       alpha26 = E_abs(acos((nsurf2x[et]*nsurf6x[et] + nsurf2y[et]*nsurf6y[et] + nsurf2z[et]*nsurf6z[et])/s26)*degconst - 90.);
-    //       alpha35 = E_abs(acos((nsurf3x[et]*nsurf5x[et] + nsurf3y[et]*nsurf5y[et] + nsurf3z[et]*nsurf5z[et])/s35)*degconst - 90.);
-    //       alpha36 = E_abs(acos((nsurf3x[et]*nsurf6x[et] + nsurf3y[et]*nsurf6y[et] + nsurf3z[et]*nsurf6z[et])/s36)*degconst - 90.);
-    //       alpha45 = E_abs(acos((nsurf4x[et]*nsurf5x[et] + nsurf4y[et]*nsurf5y[et] + nsurf4z[et]*nsurf5z[et])/s45)*degconst - 90.);
-    //       alpha46 = E_abs(acos((nsurf4x[et]*nsurf6x[et] + nsurf4y[et]*nsurf6y[et] + nsurf4z[et]*nsurf6z[et])/s46)*degconst - 90.);
-    //       skewness1 = E_max(E_max(alpha13,alpha14),alpha15);
-    //       skewness2 = E_max(E_max(alpha16,alpha23),alpha24);
-    //       skewness3 = E_max(E_max(alpha25,alpha26),alpha35);
-    //       skewness4 = E_max(E_max(alpha36,alpha45),alpha46);
-    //       skewness[et] = E_max(E_max(skewness1,skewness2),E_max(skewness3,skewness4));
-    //     }
-    //   }
-    // }
-    // else if (strcmp(eltType, "BAR") == 0)
-    // {
-    //   for (E_Int et = 0; et < nelts; et++)
-    //   {
-    //     skewness[et] = 0.;
-    //   }
-    // }
-    // else
-    // {
-    //   PyErr_SetString(PyExc_TypeError,
-    //                   "getOrthogonalityMap: unknown type of element.");
-    //   RELEASESHAREDS(tpl, f2);
-    //   RELEASESHAREDU(array, f, cn);
-    //   return NULL;
-    // }
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn); 
     return tpl;
