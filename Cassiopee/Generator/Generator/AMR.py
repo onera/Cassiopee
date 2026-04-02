@@ -14,6 +14,27 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
+def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=0, functionName='Tagging'):
+    # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
+    # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
+    depthLocal = -1 # This should be number of cells. --> x2 to go from nodes to cells
+    if opt:
+        if noffsets == 0:   depthLocal = -3
+        elif noffsets == 1: depthLocal = -2
+    depthLocalFactor=1
+    depthLocal=depthLocal*depthLocalFactor
+    if depthLocal<-2 and depthLocalFactor>1:
+        for i in range(int(abs(depthLocal)/2)):
+            if Cmpi.master: print('%s :: recursive X.setHoleInterpolatedPoints: %d/%d'%(functionName,i,int(abs(depthLocal)/2)),flush=True)
+            C._initVars(to, '{cellNOut}={cellNOut}>0.')
+            to = X.setHoleInterpolatedPoints(to, depth=-2, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+    else:
+        if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
+        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+    #if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
+    #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+    return to
+
 def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
     import copy
     vminsTMP = copy.deepcopy(vminsIN)
@@ -374,7 +395,7 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
 
 def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
-    # It tags the inside of the bodies as cellN=0 and then multuiplies the indicator. i.e. the parts inside the body will be zero.
+    # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
 
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to, 'centers:indicatorTmp', 0.)
@@ -398,17 +419,12 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
     C._initVars(to, "cellNIn", 1.)
 
     # tbTMP - offset body - blankCells is more tested due to uncertainties on the quality of the offset
-    if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies1, BM, blankingType='node_in',
+    if dim == 2: to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                                                XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
-                                                               cellNName='cellN')
+                                                               cellNName='cellN') # or blankCellsAlgo == 'xray'
     else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellN')
 
-    if opt:
-        ## needed - see comment in tagInsideOffset
-        depthLocal = 0
-        if noffsets == 0:   depthLocal = -2
-        elif noffsets == 1: depthLocal = -1
-        if abs(depthLocal) > 0: to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellN', loc='nodes')
+    to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=int(dim), functionName='tagOutsideBody')
     to = C.node2Center(to,["cellN"])
     C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0)")
     C._rmVars(to, ["cellN","centers:cellN"])
@@ -466,25 +482,17 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     C._initVars(to, "cellNIn", 1.)
 
     if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies2, BM, blankingType='node_in',
-                                                               XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                                               XRaydim1=XRAYDIM2, XRaydim2=XRAYDIM2, dim=dim,
                                                                cellNName='cellNIn')
     else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
 
     if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
         if dim == 2 : to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                                        XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                        XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                         cellNName='cellNOut') #or blankCellsAlgo == 'xray'
         else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
-
-        # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
-        # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
-        depthLocal = -1
-        if opt:
-            if noffsets == 0:   depthLocal = -3
-            elif noffsets == 1: depthLocal = -2
-
-        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName='cellNOut', loc='nodes')
+        to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellNOut', functionName='tagInsideOffset', dirLocal=int(dim))
         C._initVars(to, '{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
 
     to = C.node2Center(to, ["cellN"])
@@ -996,11 +1004,10 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
                 # Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
-                for offsetlocTmp in offset_inside[0]:
-                    # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
-                    o = tagOutsideBody__(o, tbTMP=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
-                    C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
-                    C._rmVars(o, ["centers:indicatorTmp"])
+                # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
+                o = tagOutsideBody__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
+                C._rmVars(o, ["centers:indicatorTmp"])
                 ## AdaptMesh -> 0=no refinement | >=1 refinement
                 ## To avoid unexpected behaviors the indicator needs to be binary --> 0=no refinement & 1=refinement
                 C._initVars(o,"{centers:indicator}=({centers:indicator}>=1)")
