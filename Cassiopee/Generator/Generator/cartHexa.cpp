@@ -54,21 +54,27 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   
   // 1D, 2D or 3D ?
   E_Int dim0 = 3;
+  E_Int im = 1, jm = 1; // local ni/nj for dim0 < 3
   if (ni == 1)
   {
-    if (nj == 1 || nk == 1) dim0 = 1;
-    else dim0 = 2;
+    if (nj == 1) {dim0 = 1; im = nk;}
+    else if (nk == 1) {dim0 = 1; im = nj;}
+    else {dim0 = 2; im = nj; jm = nk;}
   }
   else if (nj == 1)
   {
-    if (ni == 1 || nk == 1) dim0 = 1;
-    else dim0 = 2;
+    if (ni == 1) {dim0 = 1; im = nk;}
+    else if (nk == 1) {dim0 = 1; im = ni;}
+    else {dim0 = 2; im = ni; jm = nk;}
   }
   else if (nk == 1)
   {
-    if (ni == 1 || nj == 1) dim0 = 1;
-    else dim0 = 2;
+    if (ni == 1) {dim0 = 1; im = nj;}
+    else if (nj == 1) {dim0 = 1; im = ni;}
+    else {dim0 = 2; im = ni; jm = nj;}
   }
+  E_Int im1 = E_max(1, E_Int(im)-1);
+  E_Int jm1 = E_max(1, E_Int(jm)-1);
 
   // Create cartesian mesh
   E_Int ninj = ni*nj; E_Int npts = ninj*nk;
@@ -92,11 +98,11 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   E_Float* zt = f->begin(3);
 
   // Build the unstructured mesh (BE connectivity and fields)
-#pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
+  #pragma omp parallel if (ncells > __MIN_SIZE_MEAN__)
   {
     E_Int i, j, k, c;
     E_Int ind1, ind2, ind3, ind4;
-#pragma omp for
+    #pragma omp for
     for (E_Int ind = 0; ind < npts; ind++)
     {
       k = ind/ninj;
@@ -109,114 +115,57 @@ PyObject* K_GENERATOR::cartHexa(PyObject* self,  PyObject* args)
   
     if (dim0 == 1)
     {
-      if (nk1 == 1 && nj1 == 1)
+      #pragma omp for
+      for (E_Int i = 0; i < im1; i++)
       {
-#pragma omp for
-        for (E_Int i = 0; i < ni1; i++)
-        {
-          cm(i,1) = i+1;
-          cm(i,2) = i+2;
-        }
-      }
-      else if (ni1 == 1 && nj1 == 1)
-      {
-#pragma omp for
-        for (E_Int k = 0; k < nk1; k++)
-        {
-          ind1 = k*ni*nj + 1;
-          ind2 = ind1 + ni*nj;
-          cm(k,1) = ind1;
-          cm(k,2) = ind2;
-        }
-      }
-      else if (ni1 == 1 && nk1 == 1)
-      {
-#pragma omp for
-        for (E_Int j = 0; j < nj1; j++)
-        {
-          ind1 = j*ni + 1;
-          ind2 = ind1 + ni;
-          cm(j,1) = ind1;
-          cm(j,2) = ind2;
-        }
+        //starts from 1
+        ind1 = 1 + i;    //(i,1,1)
+        ind2 = ind1 + 1; //(i+1,1,1)
+
+        cm(i,1) = ind1;
+        cm(i,2) = ind2;
       }
     }
     else if (dim0 == 2)
     {
-      if (nk1 == 1)
+      #pragma omp for collapse(2)
+      for (E_Int j = 0; j < jm1; j++)
+      for (E_Int i = 0; i < im1; i++)
       {
-#pragma omp for
-        for (E_Int j = 0; j < nj1; j++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            //starts from 1
-            ind1 = i + j*ni + 1; //(i,j,1)
-            ind2 = ind1 + 1;     //(i+1,j,1)
-            ind3 = ind2 + ni;    //(i+1,j+1,1)
-            ind4 = ind3 - 1;     //(i,j+1,1)
-            c = j*ni1 + i;
-            cm(c,1) = ind1;
-            cm(c,2) = ind2;
-            cm(c,3) = ind3;
-            cm(c,4) = ind4;
-          }
+        //starts from 1
+        ind1 = 1 + i + j*im; //(i,j,1)
+        ind2 = ind1 + 1;     //(i+1,j,1)
+        ind3 = ind2 + im;    //(i+1,j+1,1)
+        ind4 = ind3 - 1;     //(i,j+1,1)
+        c = j*im1 + i;
+        cm(c,1) = ind1;
+        cm(c,2) = ind2;
+        cm(c,3) = ind3;
+        cm(c,4) = ind4;
       }
-      else if (nj1 == 1)
-      {
-#pragma omp for
-        for (E_Int k = 0; k < nk1; k++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            ind1 = i + k*ninj + 1;  //(i,1,k)
-            ind2 = ind1 + ninj;     //(i,1,k+1)
-            ind3 = ind2 + 1;        //(i+1,1,k+1)
-            ind4 = ind3 - 1;        //(i,1,k+1)
-            c = k*ni1 + i;
-            cm(c,1) = ind1;
-            cm(c,2) = ind2;
-            cm(c,3) = ind3;
-            cm(c,4) = ind4;
-          }
-      }
-      else // ni1 = 1 
-      {
-#pragma omp for
-        for (E_Int j = 0; j < nj1; j++)
-          for (E_Int k = 0; k < nk1; k++)
-          {
-            ind1 = 1 + j*ni + k*ninj; //(1,j,k)
-            ind2 = ind1 + ni;         //(1,j+1,k)
-            ind3 = ind2 + ninj;       //(1,j+1,k+1)
-            ind4 = ind3 - ni;         //(1,j,k+1)
-            c = j*nk1 + k;
-            cm(c,1) = ind1;
-            cm(c,2) = ind2;
-            cm(c,3) = ind3;
-            cm(c,4) = ind4;
-          }
-      }// ni1 = 1
     }
     else
     {
-#pragma omp for
-      for(E_Int k = 0; k < nk1; k++)
-        for (E_Int j = 0; j < nj1; j++)
-          for (E_Int i = 0; i < ni1; i++)
-          {
-            ind1 = 1 + i + j*ni + k*ninj; //(i,j,k)
-            ind2 = ind1 + 1;              // (i+1,j,k)
-            ind3 = ind2 + ni;             // (i+1,j+1,k)
-            ind4 = ind3 -1;               // (i,j+1,k)
-            c = (k*nj1 + j)*ni1 + i;
-            cm(c,1) = ind1;
-            cm(c,2) = ind2;
-            cm(c,3) = ind3;
-            cm(c,4) = ind4;
-            cm(c,5) = ind1 + ninj;
-            cm(c,6) = ind2 + ninj;
-            cm(c,7) = ind3 + ninj;
-            cm(c,8) = ind4 + ninj;
-          }
+      #pragma omp for collapse(3)
+      for (E_Int k = 0; k < nk1; k++)
+      for (E_Int j = 0; j < nj1; j++)
+      for (E_Int i = 0; i < ni1; i++)
+      {
+        //starts from 1
+        ind1 = 1 + i + j*ni + k*ninj; // (i,j,k)
+        ind2 = ind1 + 1;              // (i+1,j,k)
+        ind3 = ind2 + ni;             // (i+1,j+1,k)
+        ind4 = ind3 -1;               // (i,j+1,k)
+        c = (k*nj1 + j)*ni1 + i;
+        cm(c,1) = ind1;
+        cm(c,2) = ind2;
+        cm(c,3) = ind3;
+        cm(c,4) = ind4;
+        cm(c,5) = ind1 + ninj;
+        cm(c,6) = ind2 + ninj;
+        cm(c,7) = ind3 + ninj;
+        cm(c,8) = ind4 + ninj;
+      }
     }
   }
 
