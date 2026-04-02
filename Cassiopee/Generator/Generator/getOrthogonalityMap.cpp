@@ -283,21 +283,23 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Float skewness1, skewness2, skewness3, skewness4;
-      E_Int ind1, ind2, ind3, ind4;
+      E_Int ind, ind1, ind2, ind3, ind4;
       E_Int nelts, nvpf;
+      E_Int elOffset = 0;
+      std::vector<std::vector<E_Int> > facets;
       // loop over all connectivities
       for (E_Int ic = 0; ic < nc; ic++)
       {
         K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
         nelts = cm.getSize();
-        std::vector<std::vector<E_Int> > facets;
         K_CONNECT::getEVFacets(facets, eltTypes[ic], false, false);
         
         // loop over all elements of connectivity cm
         #pragma omp for
         for (E_Int i = 0; i < nelts; i++)
         {
-          skewness[i] = 0.;
+          ind = i + elOffset; // true element index
+          skewness[ind] = 0.;
 
           // loop over all faces of element i
           for (E_Int f = 0; f < nfpe[ic]; f++)
@@ -310,12 +312,12 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind3 = cm(i,facets[f][2])-1;
               ind4 = cm(i,facets[f][3])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90., normalized);
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90., normalized);
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90., normalized);
-              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90., normalized);
+              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90., normalized); // angle 412
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90., normalized); // angle 123
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90., normalized); // angle 234
+              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90., normalized); // angle 341
 
-              skewness[i] = E_max(E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness4),skewness[i]);
+              skewness[ind] = E_max(E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness4),skewness[ind]);
             }
             else if (nvpf == 3) // TRI face
             {
@@ -323,14 +325,15 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind2 = cm(i,facets[f][1])-1;
               ind3 = cm(i,facets[f][2])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60., normalized);
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60., normalized);
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60., normalized);
+              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60., normalized); // angle 312
+              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60., normalized); // angle 123
+              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60., normalized); // angle 231
 
-              skewness[i] = E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness[i]);
+              skewness[ind] = E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness[ind]);
             }
           }
         }
+        elOffset += nelts;
       }
     }
 
