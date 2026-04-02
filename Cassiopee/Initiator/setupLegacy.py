@@ -33,7 +33,7 @@ if f77compiler is None:
     print("Error: a fortran 77 compiler is required for compiling Initiator.")
 args = Dist.getForArgs(); opt = ''
 for c, v in enumerate(args): opt += 'FOPT'+str(c)+'='+v+' '
-os.system("make -e FC="+f77compiler+" WDIR=Initiator/Fortran "+opt)
+Dist.runMakeFortran(f77compiler, opt, wdir="Initiator/Fortran")
 prod = os.getenv("ELSAPROD") or 'xx'
 
 # Setting libraryDirs and libraries ===========================================

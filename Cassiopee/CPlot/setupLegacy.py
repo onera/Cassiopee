@@ -1,6 +1,8 @@
 #from distutils.core import setup, Extension
 from setuptools import setup, Extension
 import os
+import shutil
+from glob import glob
 
 #=============================================================================
 # CPlot requires:
@@ -97,12 +99,14 @@ setup(
 )
 
 # Install shaders + textures ==================================================
-os.system("cp CPlot/Shaders/*.vert %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.frag %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.geom %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.tcs %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Shaders/*.tes %s/CPlot/"%KCore.installPath.installPath)
-os.system("cp CPlot/Textures/*.png %s/CPlot/"%KCore.installPath.installPath)
+dest = os.path.join(KCore.installPath.installPath, "CPlot")
+os.makedirs(dest, exist_ok=True)
+for src in glob("CPlot/Shaders/*.vert"): shutil.copy(src, dest)
+for src in glob("CPlot/Shaders/*.frag"): shutil.copy(src, dest)
+for src in glob("CPlot/Shaders/*.geom"): shutil.copy(src, dest)
+for src in glob("CPlot/Shaders/*.tcs"): shutil.copy(src, dest)
+for src in glob("CPlot/Shaders/*.tes"): shutil.copy(src, dest)
+for src in glob("CPlot/Shaders/*.png"): shutil.copy(src, dest)
 
 # Check PYTHONPATH ===========================================================
 Dist.checkPythonPath(); Dist.checkLdLibraryPath()
