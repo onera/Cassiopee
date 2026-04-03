@@ -57,8 +57,7 @@ inline E_Float computeSkewness(
   E_Float refAngle, E_Int normalized
 )
 {
-  E_Float pi = 4*atan(1.);
-  E_Float degconst = 180.0 / pi;
+  E_Float degconst = 180.0 / K_CONST::E_PI;
   E_Float alpha = computeAngle(x, y, z, ind1, ind2, ind3)*degconst;
   
   E_Float skewness = E_abs(alpha - refAngle);
@@ -122,10 +121,6 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
-
-  // valeur de pi pour exprimer les angles en degre
-  E_Float pi = 4*atan(1.);
-  E_Float degconst = 180.0 / pi;
 
   if (res == 1) // cas structure
   {
