@@ -2383,16 +2383,16 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille
-def getOrthogonalityMap(array):
+def getOrthogonalityMap(array, normalized=False):
     """Return the orthogonality map in an array.
     Usage: getOrthogonalityMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getOrthogonalityMap(i))
+            b.append(generator.getOrthogonalityMap(i, normalized))
         return b
     else:
-        return generator.getOrthogonalityMap(array)
+        return generator.getOrthogonalityMap(array, normalized)
 
 # Fonction retournant la carte de regularite d'une grille
 def getRegularityMap(array):

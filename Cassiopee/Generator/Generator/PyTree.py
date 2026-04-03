@@ -1869,13 +1869,13 @@ def mapSplit(z, d, split_crit, dens_max=1000):
 # 2D: retourne un tableau d'angles alpha
 # 3D: retourne 3 tableaux d'angles alpha (dans l'ordre alpha_IJ, alpha_IK and alpha_JK pour les grilles structures)
 #------------------------------------------------------------------------------
-def getOrthogonalityMap(t):
+def getOrthogonalityMap(t, normalized=False):
     """Return the orthogonality map in an array.
     Usage: getOrthogonalityMap(t)"""
-    return C.TZGC1(t, 'centers', True, Generator.getOrthogonalityMap)
+    return C.TZGC3(t, 'centers', True, Generator.getOrthogonalityMap, normalized)
 
-def _getOrthogonalityMap(t):
-    return C._TZGC1(t, 'centers', False, Generator.getOrthogonalityMap)
+def _getOrthogonalityMap(t, normalized=False):
+    return C._TZGC3(t, 'centers', False, Generator.getOrthogonalityMap, normalized)
 
 #------------------------------------------------------------------------------
 # Calcul de la regularite (ratio entre des mailles adjacentes) d'une grille

@@ -172,7 +172,8 @@ namespace K_CONNECT
 
   /* Get all facets of a basic element*/
   E_Int getEVFacets(std::vector<std::vector<E_Int> >& facets,
-                    const char* eltType, E_Bool allow_degenerated=true);
+                    const char* eltType, E_Bool allow_degenerated=true,
+                    E_Bool expandToLowerDim=true);
   
   /* Change a Elts-Vertex connectivity to a Vertex-Elts connectivity.
      cVE doit deja etre alloue au nombre de noeuds. */
