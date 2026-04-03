@@ -481,17 +481,17 @@ Mesh size
     :param UInf:   Inflow reference speed
     :type  UInf:   float
     :param RoInf:  Inflow reference density
-    :type  RoInf:   float
+    :type  RoInf:  float
     :param ReInf:  Inflow reference Reynolds
-    :type  ReInf:   float
-    :param LInf:  Reference length for Reynolds
+    :type  ReInf:  float
+    :param LInf:   Reference length for Reynolds
     :type  LInf:   float
     :param esurc:  profile thickness over chord (used only in Corr algorithms)
-    :type  esurC:   float
-    :param yplus: target y+ to match
-    :type yplus: float
-    :param algo: type of algorithm in 'Turbulent', 'TurbulentCorr', 'LaminarCorr'
-    :type algo: string
+    :type  esurC:  float
+    :param yplus:  target y+ to match
+    :type yplus:   float
+    :param algo:   type of algorithm in 'Turbulent', 'TurbulentCorr', 'LaminarCorr'
+    :type algo:    string
     :return: height of first cell
     :rtype: float
 

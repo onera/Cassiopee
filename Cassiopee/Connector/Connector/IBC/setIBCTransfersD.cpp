@@ -361,7 +361,7 @@ PyObject* K_CONNECTOR::_setIBCTransfersD(PyObject* self, PyObject* args)
             {
               posvarsD.push_back(posvd);
               if (varStringOut[0]=='\0') strcpy(varStringOut,varname);
-              else {strcat(varStringOut,","); strcat(varStringOut,varname);}
+              else {strcat(varStringOut, ","); strcat(varStringOut,varname);}
             }
           }
 #if PY_VERSION_HEX >= 0x03000000

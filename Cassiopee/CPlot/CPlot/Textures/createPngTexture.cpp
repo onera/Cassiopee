@@ -37,7 +37,9 @@ E_Int Data::createPngTexture(const char* filename, GLuint &tex,
   //if (mipmap == true) mipMap = GL_TRUE;
 
   // Shader path
-  char path[256*8];
+  E_Int len1 = strlen(d->ptrState->shaderPath);
+  E_Int len2 = strlen(filename);
+  char* path = new char [ len1+len2+2 ];
   strcpy(path, d->ptrState->shaderPath);
 #ifdef __SHADERS__
   strcat(path, filename);
@@ -46,9 +48,11 @@ E_Int Data::createPngTexture(const char* filename, GLuint &tex,
 #endif
 
   // local path name
-  char path2[256*8];
   //char* file = ptrState->file;
   char* lpn = ptrState->filePath;
+  len1 = strlen(lpn);
+  char* path2 = new char [ len1+len2+2 ];
+  
   strcpy(path2, lpn);
   strcat(path2, "/");
   strcat(path2, filename);
@@ -62,6 +66,9 @@ E_Int Data::createPngTexture(const char* filename, GLuint &tex,
   { printf("Warning: CPlot: can't open texture file %s.\n", path2); 
     return 0; }
   
+  delete [] path;
+  delete [] path2;
+
   png_structp png_ptr;
   png_byte color_type;
   png_byte bit_depth;

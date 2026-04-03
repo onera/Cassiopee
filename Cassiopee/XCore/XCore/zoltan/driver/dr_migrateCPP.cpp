@@ -415,7 +415,7 @@ char msg[256];
       Gen_Error(0, "fatal: insufficient memory");
       *ierr = ZOLTAN_MEMERR;
       delete [] proc_ids;
-      delete [] change;
+      //delete [] change;
       return;
     }
 
