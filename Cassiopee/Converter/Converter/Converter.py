@@ -866,7 +866,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
 
             format = checkFileType(fileName)
             try:
-                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, centerArrays, api)
+                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
             except:
                 FORMATS = [
                     'bin_ply', 'fmt_tp', 'fmt_v3d',

@@ -82,7 +82,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   PyObject* array;
   E_Int normalized;
 
-  if (!PYPARSETUPLE_(args, O_ B_, &array, &normalized)) return NULL;
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &normalized)) return NULL;
   
   // Check array
   E_Int im, jm, km;
