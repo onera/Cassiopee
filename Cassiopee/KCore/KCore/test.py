@@ -986,17 +986,21 @@ def writeCoverage(coverage):
 # Retourne 0 (FAIL), 1 (SUCCESS)
 #==============================================================================
 def checkCGNSlib(t, number=1):
-    import Converter.PyTree as C
-    C.convertPyTree2File(t, '.test%d.cgns'%number)
     import subprocess
-    cmd = "cgnscheck .test%d.cgns"%number
+    import Converter.PyTree as C
+    filename = f".test{number:d}.cgns"
+    C.convertPyTree2File(t, filename)
+    cmd = ["cgnscheck", filename]
     try:
-        s = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        # Look for errors in output
-        i1 = s.find("ERROR:")
-        if i1 != -1: print("FAILED: CGNSlib check."); return 0
-        return 1
-    except: print("FAILED: CGNSlib check."); return 0
+        s = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
+    except subprocess.CalledProcessError as e:
+        s = e.output  # capture output on error
+    try: os.remove(filename)
+    except (FileNotFoundError, PermissionError): pass
+    if "ERROR:" in s:
+        print("FAILED: CGNSlib check.")
+        return 0
+    return 1
 
 #==============================================================================
 # Ecrit la memoire prise par le process

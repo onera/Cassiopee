@@ -323,16 +323,12 @@ def runSingleCase(string, no):
 # IN: file: file name
 #==============================================================================
 def rmFile(path, file):
-    if (mySystem == 'mingw' or mySystem == 'windows'):
-        path = path.replace('/', '\\')
-        cmd = 'cd '+path+' && del '+file
-    else:
-        cmd = 'cd '+path+'; rm -f '+file
     try:
-        subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
-        subprocess.call(cmd2, shell=True, stderr=subprocess.STDOUT)
-    except: pass
-    return
+        filepath = os.path.join(path, file)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    except (FileNotFoundError, PermissionError):
+        pass
 
 #==============================================================================
 # Fait un rm de restart.cgns
@@ -346,7 +342,7 @@ def cleanCases():
     for s in selection:
         t = listbox.get(s)
         info = getInfoFromString(t)
-        rmFile(path+'/'+info[0], 'restart.cgns')
+        rmFile(os.path.join(path, info[0]), 'restart.cgns')
 
 #==============================================================================
 def addCase2List():
@@ -388,39 +384,41 @@ def getInfoFromString(string):
 # Lance l'editeur sur run.py
 #==============================================================================
 def editCase(event=None):
-    path = CASSIOPEE+'/Cases/'
+    editor = "emacs"
+    testFile = "run.py"
+    path = os.path.join(CASSIOPEE, "Cases")
     selection = listbox.curselection()
     for s in selection:
         t = listbox.get(s)
         splits = t.split(separator)
         case = splits[0]
         case = case.strip()
-        pathl = path+'/'+case
-        if (mySystem == 'mingw' or mySystem == 'windows'):
-            pathl = pathl.replace('/', '\\')
-            cmd = 'cd '+pathl+' && emacs run.py'
-        else:
-            cmd = 'cd '+pathl+'; emacs run.py'
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        pathl = os.path.join(path, case)
+        subprocess.Popen(
+            [editor, testFile],
+            stdout=subprocess.PIPE,
+            cwd=pathl
+        )
 
 #==============================================================================
 # Archive un cas
 #==============================================================================
 def archiveCases(event=None):
-    path = CASSIOPEE+'/Cases/'
+    import shutil
+    path = os.path.join(CASSIOPEE, "Cases")
     selection = listbox.curselection()
     for s in selection:
         t = listbox.get(s)
         splits = t.split(separator)
         case = splits[0]
         case = case.strip()
-        pathl = path+'/'+case
+        pathl = os.path.join(path, case)
         dirname = time.strftime("%d-%m-%Y_%H-%M")
-        try: os.mkdir(pathl+'/'+dirname)
+        pathdir = os.path.join(pathl, dirname)
+        try: os.mkdir(pathdir)
         except: pass
-        import shutil
-        shutil.copyfile(pathl+'/run.py', pathl+'/'+dirname+'/run.py')
-        shutil.copyfile(pathl+'/restart.cgns', pathl+'/'+dirname+'/restart.cgns')
+        shutil.copyfile(pathl+'/run.py', pathdir+'/run.py')
+        shutil.copyfile(pathl+'/restart.cgns', pathdir+'/restart.cgns')
 
 #==============================================================================
 # Remonte le premier selectionne d'un cran
@@ -444,20 +442,19 @@ def Del(event=None):
 # Lance la visu sur restart.cgns
 #==============================================================================
 def viewCase(event=None):
-    path = CASSIOPEE+'/Cases/'
+    path = os.path.join(CASSIOPEE, "Cases")
     selection = listbox.curselection()
     for s in selection:
         t = listbox.get(s)
         splits = t.split(separator)
         case = splits[0]
         case = case.strip()
-        pathl = path+'/'+case
-        if (mySystem == 'mingw' or mySystem == 'windows'):
-            pathl = pathl.replace('/', '\\')
-            cmd = 'cd '+pathl+' && cassiopee restart.cgns'
-        else:
-            cmd = 'cd '+pathl+'; cassiopee restart.cgns'
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        pathl = os.path.join(path, case)
+        subprocess.Popen(
+            ["cassiopee", "restart.cgns"],
+            stdout=subprocess.PIPE,
+            cwd=pathl
+        )
 
 #==============================================================================
 # Main

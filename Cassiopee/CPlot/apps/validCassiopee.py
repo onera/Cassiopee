@@ -233,61 +233,21 @@ def checkEnvironment():
 # Simulate check_output since it doesn't exist for early version of python
 # Retourne le resultat de cmd comme une string
 #==============================================================================
-def check_output(cmd, shell, stderr):
+def checkOutput(cmd, path='.', env=None, stderr=None):
     global PROCESS
-    version = sys.version_info
-    version0 = version[0]
-    version1 = version[1]
     mode = 4
 
-    #if (version0 == 2 and version1 >= 7) or (version0 == 3 and version1 >= 2) or version0 > 3:
-
     if mode == 0: # avec check_output
-        out = subprocess.check_output(cmd, shell=shell, stderr=stderr)
+        out = subprocess.check_output(cmd, stderr=stderr, cwd=path, env=env)
         return out
     elif mode == 1: # avec run
-        PROCESS = subprocess.run(cmd, check=True, shell=shell, stderr=stderr,
-                                 stdout=subprocess.PIPE)
+        PROCESS = subprocess.run(cmd, check=True, stderr=stderr,
+                                 stdout=subprocess.PIPE, cwd=path, env=env)
         return PROCESS.stdout
-    elif mode == 2: # avec Popen + python 2.7
-        import shlex
-        cmd = shlex.split(cmd)
-
-        wdir = '.'
-        # modifie cd en working dir
-        if cmd[0] == 'cd': wdir = cmd[1]; cmd = cmd[3:]
-        PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, cwd=wdir)
-        out = ''
-        while True:
-            line = PROCESS.stdout.readline()
-            if line != '': out += line
-            else: break
-        ti = ''
-        while True:
-            line = PROCESS.stderr.readline()
-            if line != '': ti += line
-            else: break
-        # change le retour de time pour etre identique a celui du shell
-        i1 = ti.find('elapsed')
-        i2 = ti.find('system')
-        if i1 != -1 and i2 != -1:
-            ti = 'real '+ti[i2+7:i1]
-            ti = ti.replace(':', 'm')
-            ti += 's'
-            out += ti
-        return out
-
     elif mode == 3: # avec Popen + python 3
         cmd = cmd.split(' ')
-        wdir = '.'
-        # modifie cd en working dir
-        if cmd[0] == 'cd': wdir = cmd[1]
-        if mySystem == 'windows' or mySystem == 'mingw': cmd = cmd[3:]
-        else: cmd = cmd[2:]
-        if wdir[-1] == ';': wdir = wdir[:-1]
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, cwd=wdir, shell=shell)
+                                   stderr=subprocess.PIPE, cwd=path, env=env)
         out = b''
         while True:
             line = PROCESS.stdout.readline()
@@ -309,21 +269,23 @@ def check_output(cmd, shell, stderr):
         return out
 
     elif mode == 4: # inspire de python
-        wdir = '.'; ossid = None
         if mySystem == 'windows' or mySystem == 'mingw': ossid = None
         else: ossid = os.setsid
         PROCESS = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, cwd=wdir,
-                                   shell=shell, preexec_fn=ossid)
+                                   stderr=subprocess.PIPE, cwd=path,
+                                   env=env, preexec_fn=ossid)
 
         # max accepted time is between 2 to 6 minutes
         nthreads = float(Threads.get())
         timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
 
-        if PROCESS.wait() != 0: stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
+        if PROCESS.wait() != 0:
+            stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
         PROCESS = None # fini!
         return stdout+stderr
+    else:
+        raise ValueError(f"validCassiopee: checkOutput: mode {mode} not supported")
 
 # retourne une chaine justifiee en fonction de la font et
 # d'une taille voulue
@@ -480,10 +442,10 @@ def getUnitaryTests(module):
         m3 = expTest3.search(f)
         if m3 is not None: continue
         if f[0] == '#': continue
-        m1 = expTest1.search(f)
-        m4 = expTest4.search(f)
-        if m1 is not None and TESTS_FILTER != 2: tests.append(f) # test seq
-        elif isMpi and m4 is not None and TESTS_FILTER != 1: tests.append(f) # test mpi
+        seq = expTest1.search(f)
+        par = expTest4.search(f)
+        if seq and TESTS_FILTER != 2: tests.append(f) # test seq
+        elif isMpi and par and TESTS_FILTER != 1: tests.append(f) # test mpi
     return sorted(tests)
 
 #==============================================================================
@@ -588,7 +550,6 @@ def extractCPUTimeWindows(output1, output2):
 
 #=============================================================================
 # Extrait le temps CPU d'une sortie time -p (unix)
-# Moyenne si plusieurs repetitions d'un meme cas unitaire
 #=============================================================================
 def extractCPUTimeUnix(output):
     CPUtime = 'Unknown'
@@ -621,6 +582,19 @@ def extractCPUTimeUnix(output):
     except: pass
     return CPUtime
 
+#=============================================================================
+# Format the CPU time
+#=============================================================================
+def formatCPUTime(cpuTime):
+    hf = cpuTime//3600
+    tf = cpuTime%3600
+    output = [int(hf), int(tf//60), float(tf%60)]
+    if hf > 0.: cpuTimeStr = '{:d}h{:d}m{:.2f}'.format(*output)
+    elif output[1] > 0.: cpuTimeStr = '{:d}m{:.2f}'.format(*output[1:])
+    else: cpuTimeStr = '0m{:.2f}'.format(output[-1])
+    cpuTimeStr = cpuTimeStr.rstrip('0').rstrip('.') + 's'
+    return cpuTimeStr
+
 #==============================================================================
 # Lance un seul test unitaire de module
 #==============================================================================
@@ -631,47 +605,46 @@ def runSingleUnitaryTest(no, module, test, update=False):
     path = os.path.join(modulesDir, module, 'test')
     testName = module+'/'+test
 
-    m1 = expTest1.search(test) # seq (True) ou distribue (False)
-
+    seq = expTest1.search(test) # seq (True) ou distribue (False)
     nthreads = KCore.kcore.getOmpMaxThreads()
     nthreads = int(Threads.get())
-    bktest = "bk_{0}".format(test) # backup
+    env = os.environ.copy()
 
     if mySystem == 'mingw' or mySystem == 'windows':
         # Commande Dos (sans time)
         path = path.replace('/', '\\')
         pythonExec = os.getenv('PYTHONEXE', 'python')
-        if m1 is not None: cmd = 'cd %s && %s %s'%(path, pythonExec, test)
-        else: cmd = 'cd %s && set OMP_NUM_THREADS=%d && mpiexec -np 2 %s %s'%(path, nthreads//2, pythonExec, test)
-        cmd2 = 'echo %time%'
-    else:
-        # Unix - le shell doit avoir l'environnement cassiopee
-        #sformat = r'"real\t%E\nuser\t%U\nsys\t%S"'
-        if m1 is None:
-            sanitizerFlag = '' # LSAN always return a seg fault in parallel
-            cmd = 'cd %s; time kpython %s -n 2 -t %d %s'%(
-                path, sanitizerFlag, nthreads//2, test)
+        cmd = [pythonExec, test]
+        if seq:
+            env["OMP_NUM_THREADS"] = str(nthreads)
         else:
-            sanitizerFlag = '-s' if any(USE_ASAN) else ''
+            env["OMP_NUM_THREADS"] = str(nthreads//2)
+            cmd = ["mpiexec", "-np", "2"] + cmd
+
+    else:  # Unix
+        if seq:
+            env["OMP_NUM_THREADS"] = str(nthreads)
+            cmd = ["kpython"]
+            if any(USE_ASAN): cmd.append('-s')
             if module.startswith('FS'):
-                cmd = 'cd %s; time kpython %s -n 1 -t %d %s'%(
-                    path, sanitizerFlag, nthreads, test)
+                cmd += ["-n", "1", "-t", str(nthreads), test]
             else:
-                cmd = 'cd %s; time kpython %s -t %d %s'%(
-                    path, sanitizerFlag, nthreads, test)
+                cmd += ["-t", str(nthreads), test]
+        else:
+            # LSAN always return a seg fault in parallel
+            env["OMP_NUM_THREADS"] = str(nthreads//2)
+            cmd = ["kpython", "-n", "2", "-t", str(nthreads//2), test]
 
     try:
-        if mySystem == 'mingw' or mySystem == 'windows':
-            output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            if sys.version_info[0] == 3: output1 = output1.decode()
-        output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        if sys.version_info[0] == 3: output = output.decode()
-
-        if mySystem == 'mingw' or mySystem == 'windows':
-            output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            if sys.version_info[0] == 3: output2 = output2.decode()
-
+        t0 = time.perf_counter()
+        output = checkOutput(cmd, path=path, env=env, stderr=subprocess.STDOUT)
+        t1 = time.perf_counter()
+        output = output.decode()
         print(output)
+
+        # Format the CPU time
+        CPUtime = formatCPUTime(t1-t0)
+        print(f"Elapsed CPU time: {CPUtime}")
 
         # Recupere success/failed
         success = 0
@@ -679,12 +652,6 @@ def runSingleUnitaryTest(no, module, test, update=False):
         if regDiff.search(output) is not None: success = 1
         if regFailed.search(output) is not None: success = 1
         if regError.search(output) is not None: success = 1
-
-        # Recupere le CPU time
-        if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTimeWindows(output1, output2)
-        else:
-            CPUtime = extractCPUTimeUnix(output)
 
         # Recupere le coverage
         i1 = output.find('coverage=')
@@ -751,38 +718,36 @@ def runSingleCFDTest(no, module, test, update=False):
     path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH, test)
     testName = module+'/'+test
 
-    m1 = None # si False=seq
+    seq = True
     # force mpi test pour certains cas
-    if test == 'RAE2822_IBC': m1 = True
+    if test == 'RAE2822_IBC': seq = False
 
-    if m1 is not None:
+    if not seq:
         try: import mpi4py
-        except: m1 = None
+        except: seq = True
 
     nthreads = KCore.kcore.getOmpMaxThreads()
     nthreads = int(Threads.get())
+    env = os.environ.copy()
 
     if mySystem == 'mingw' or mySystem == 'windows':
-        # Commande Dos (sans time)
         path = path.replace('/', '\\')
-        if m1 is None: cmd = 'cd %s && ./valid check'%(path)
-        else: cmd = 'cd %s && ./valid check 0 0 0 2 %d'%(path, nthreads//2)
-        cmd2 = 'echo %time%'
+    if seq:
+        env["OMP_NUM_THREADS"] = str(nthreads)
+        cmd = ["./valid", "check"]
     else:
-        # Unix - le shell doit avoir l'environnement cassiopee
-        if m1 is None: cmd = 'cd %s; ./valid check'%(path)
-        else: cmd = 'cd %s; ./valid check 0 0 0 2 %d'%(path, nthreads//2)
+        env["OMP_NUM_THREADS"] = str(nthreads//2)
+        cmd = ["./valid", "check", "0", "0", "0", "2", str(nthreads//2)]
     try:
-        if mySystem == 'mingw' or mySystem == 'windows':
-            output1 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            if sys.version_info[0] == 3: output1 = output1.decode()
-        output = check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        if sys.version_info[0] == 3: output = output.decode()
-        if mySystem == 'mingw' or mySystem == 'windows':
-            output2 = check_output(cmd2, shell=True, stderr=subprocess.STDOUT)
-            if sys.version_info[0] == 3: output2 = output2.decode()
-
+        t0 = time.perf_counter()
+        output = checkOutput(cmd, path=path, env=env, stderr=subprocess.STDOUT)
+        t1 = time.perf_counter()
+        output = output.decode()
         print(output)
+
+        # Format the CPU time
+        CPUtime = formatCPUTime(t1-t0)
+        print(f"Elapsed CPU time: {CPUtime}")
 
         # Recupere success/failed
         success = 0
@@ -790,12 +755,6 @@ def runSingleCFDTest(no, module, test, update=False):
         if regDiff.search(output) is not None: success = 1
         if regFailed.search(output) is not None: success = 1
         if regError.search(output) is not None: success = 1
-
-        # Recupere le CPU time
-        if mySystem == 'mingw' or mySystem == 'windows':
-            CPUtime = extractCPUTimeWindows(output1, output2)
-        else:
-            CPUtime = extractCPUTimeUnix(output)
         # Recupere le coverage
         coverage = '100%'
 
@@ -1016,14 +975,12 @@ def writeTestMetadata():
 # IN: file: file name
 #==============================================================================
 def rmFile(path, fileName):
-    if mySystem == 'mingw' or mySystem == 'windows':
-        path = path.replace('/', '\\')
-        cmd = 'cd '+path+' && del '+DATA+'\\'+fileName
-    else:
-        cmd = 'cd '+path+'; rm -f '+DATA+'/'+fileName
     try:
-        subprocess.call(cmd, shell=True, stderr=subprocess.STDOUT)
-    except: pass
+        filepath = os.path.join(path, fileName)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    except Exception:
+        pass
 
 #==============================================================================
 # Construit la liste des tests
@@ -1314,22 +1271,20 @@ def viewTest(event=None):
     for s in selection:
         t = Listbox.get(s)
         splits = t.split(separator)
-        module = splits[0]
-        test = splits[1]
-        module = module.strip()
-        test = test.strip()
+        module = splits[0].strip()
+        test = splits[1].strip()
         modulesDir = MODULESDIR[BASE4COMPARE][module]
         if module == 'CFDBase':
             pathl = os.path.join(modulesDir, CFDBASEPATH, test)
-            test = 'compute.py'
+            testFile = 'compute.py'
         else:
             pathl = os.path.join(modulesDir, module, 'test')
-        if mySystem == 'mingw' or mySystem == 'windows':
-            pathl = pathl.replace('/', '\\')
-            cmd = f"cd {pathl} && {editor} {test}"
-        else:
-            cmd = f"cd {pathl}; {editor} {test}"
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+            testFile = test
+        subprocess.Popen(
+            [editor, testFile],
+            stdout=subprocess.PIPE,
+            cwd=pathl
+        )
 
 #==============================================================================
 # Selectionne les tests affiche

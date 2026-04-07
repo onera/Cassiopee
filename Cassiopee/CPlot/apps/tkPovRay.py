@@ -375,7 +375,19 @@ def render():
     savePovFile()
     size = VARS[1].get()
     size = size.split('x')
-    proc = subprocess.Popen('cd '+rep+'; povray -W'+size[0]+' -H'+size[1]+' +a0.3 +SP16 scene.pov +P', stdout=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen(
+        [
+            "povray",
+            "-W" + str(size[0]),
+            "-H" + str(size[1]),
+            "+a0.3",
+            "+SP16",
+            "scene.pov",
+            "+P"
+        ],
+        stdout=subprocess.PIPE,
+        cwd=rep  # sets the working directory
+    )
 
 #==============================================================================
 # Create app widgets
