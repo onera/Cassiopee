@@ -1667,7 +1667,7 @@ def _loads0CODAv2(ts, Sref=None, Lref=None, Pref=None, Qref=None, alpha=0., beta
 
     if Internal.getNodeFromName(ts, 'gradxPressure') is not None: variables += ['gradnP', 'gradtP']
 
-    _computeExtraVariables(ts, Pref, Qref, variables=variables)
+    _computeExtraVariables(ts, Pref, 1, variables=variables)
 
     #===================================
     # Compute aerodynamic forces (pressure & friction)
@@ -1678,9 +1678,6 @@ def _loads0CODAv2(ts, Sref=None, Lref=None, Pref=None, Qref=None, alpha=0., beta
 
     forceFriction = PE.integTaun(ts)
     forceFriction = [i for i in forceFriction]
-
-    print(forcePressure,forceFriction)
-    Cmpi.abort()
 
     #===================================
     # Compute aerodynamic moments (pressure & friction)
