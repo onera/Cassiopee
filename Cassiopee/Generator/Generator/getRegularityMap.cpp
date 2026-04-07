@@ -209,96 +209,36 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       E_Int ithread = __CURRENT_THREAD__;
       // variables locales pour les indices
       E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6;
+      E_Int iprev, jprev, kprev, inext, jnext, knext;
       if (dimC == 1) // dimension 1D
       {
-        // Aux frontieres, traitement degenere.
-        if (ithread == 0)
-        {
-          reg[0] = ratioMax1(vol[0], vol[1]);
-          reg[ni1-1] = ratioMax1(vol[ni1-1], vol[ni1-2]);
-        }
-
-        // Boucle sur les indices
         #pragma omp for
-        for (E_Int i = 1; i < ni1-1; i++)
+        for (E_Int i = 0; i < ni1; i++)
         {
-          reg[i] = ratioMax2(vol[i], vol[i-1], vol[i+1]);
+          inext = K_FUNC::E_min(i+1, ni1-1);
+          iprev = K_FUNC::E_max(i-1, 0);
+
+          reg[i] = ratioMax2(vol[i], vol[iprev], vol[inext]);
         }
       }
       else if (dimC == 2) // dimension = 2D
       {
         E_Float etVol;
-        // Aux coins, traitement degenere.
-        if (ithread == 0)
-        {
-          // imin, jmin
-          reg[0] = ratioMax2(vol[0], vol[1], vol[ni1]);
-          // imax, jmin
-          ind  = ni1-1;
-          ind1 = ind-1;
-          ind2 = ind+ni1;
-          reg[ind] = ratioMax2(vol[ind], vol[ind1], vol[ind2]);
-          // imin, jmax
-          ind  = (nj1-1)*ni1;
-          ind1 = ind+1;
-          ind2 = ind-ni1;
-          reg[ind] = ratioMax2(vol[ind], vol[ind1], vol[ind2]);
-          // imax, jmax
-          ind  = nj1*ni1-1;
-          ind1 = ind-1;
-          ind2 = ind-ni1;
-          reg[ind] = ratioMax2(vol[ind], vol[ind1], vol[ind2]);
-        }
-        
-        // Aux aretes, traitement degenere.
-        #pragma omp for nowait
-        for (E_Int i = 1; i < ni1-1; i++)
-        {
-          // jmin
-          ind  = i;
-          ind1 = ind-1;
-          ind2 = ind+1;
-          ind3 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol, vol[ind1], vol[ind2], vol[ind3]);
-          // jmax
-          ind  = (nj1-1)*ni1 + i;
-          ind1 = ind-1;
-          ind2 = ind+1;
-          ind3 = ind - ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol, vol[ind1], vol[ind2], vol[ind3]);
-        }
 
-        #pragma omp for nowait
-        for (E_Int j = 1; j < nj1-1; j++)
-        {
-          // imin
-          ind  = j*ni1;
-          ind1 = ind + 1;
-          ind2 = ind - ni1;
-          ind3 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol, vol[ind1], vol[ind2], vol[ind3]);
-          // imax
-          ind  = j*ni1 + ni1-1;
-          ind1 = ind - 1;
-          ind2 = ind - ni1;
-          ind3 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol, vol[ind1], vol[ind2], vol[ind3]);
-        }
-
-        // Boucle generale sur les indices des cellules interieures
         #pragma omp for collapse(2)
-        for (E_Int j = 1; j < nj1-1; j++)
-        for (E_Int i = 1; i < ni1-1; i++)
+        for (E_Int j = 0; j < nj1; j++)
+        for (E_Int i = 0; i < ni1; i++)
         {
+          inext = K_FUNC::E_min(i+1, ni1-1);
+          iprev = K_FUNC::E_max(i-1, 0);
+          jnext = K_FUNC::E_min(j+1, nj1-1);
+          jprev = K_FUNC::E_max(j-1, 0);
+
           ind  = j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
+          ind1 = j*ni1 + iprev;
+          ind2 = j*ni1 + inext;
+          ind3 = jprev*ni1 + i;
+          ind4 = jnext*ni1 + i;
           etVol = vol[ind];
           reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
         }
@@ -307,268 +247,26 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
       {	      
         E_Int ni1nj1 = ni1*nj1;
         E_Float etVol;
-        // Aux coins, traitement degenere.
-        if (ithread == 0)
-        {
-          // imin, jmin, kmin
-          ind  = 0;
-          ind1 = ind + 1;
-          ind2 = ind + ni1;
-          ind3 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imax, jmin, kmin
-          ind  = ni1 - 1;
-          ind1 = ind - 1;
-          ind2 = ind + ni1;
-          ind3 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imin, jmax, kmin
-          ind  = (nj1-1)*ni1;
-          ind1 = ind + 1;
-          ind2 = ind - ni1;
-          ind3 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imax, jmax, kmin
-          ind  = ni1nj1 - 1;
-          ind1 = ind - 1;
-          ind2 = ind - ni1;
-          ind3 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imin, jmin, kmax
-          ind  = ni1nj1*(nk1-1);
-          ind1 = ind + 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imax, jmin, kmax
-          ind  = ni1nj1*(nk1-1)+ni1-1;
-          ind1 = ind - 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imin, jmax, kmax
-          ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1;
-          ind1 = ind + 1;
-          ind2 = ind - ni1;
-          ind3 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-          // imax, jmax, kmax
-          ind  = ni1nj1*(nk1-1)+ni1nj1 - 1;
-          ind1 = ind - 1;
-          ind2 = ind - ni1;
-          ind3 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax3(etVol,vol[ind1],vol[ind2],vol[ind3]);
-        }
-    
-        // Aux aretes, traitement degenere.
-        #pragma omp for nowait
-        for (E_Int i=1; i<ni1-1; i++)
-        {
-          // jmin, kmin
-          ind  = i;
-          ind1 = ind + 1;
-          ind2 = ind - 1;
-          ind3 = ind + ni1nj1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // jmax, kmin
-          ind  = (nj1-1)*ni1+i;
-          ind1 = ind + 1;
-          ind2 = ind - 1;
-          ind3 = ind + ni1nj1;
-          ind4 = ind - ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // jmin, kmax
-          ind  = ni1nj1*(nk1-1)+i;
-          ind1 = ind + 1;
-          ind2 = ind - 1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // jmax, kmax
-          ind  = ni1nj1*(nk1-1)+(nj1-1)*ni1+i;
-          ind1 = ind + 1;
-          ind2 = ind - 1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind - ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        }
 
-        #pragma omp for nowait
-        for (E_Int j=1; j< nj1-1; j++)
-        {
-          // imin, kmin
-          ind  = j*ni1;
-          ind1 = ind + 1;
-          ind2 = ind + ni1nj1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imax, kmin
-          ind  = j*ni1 + ni1-1;
-          ind1 = ind - 1;
-          ind2 = ind + ni1nj1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imin, kmax
-          ind  = ni1nj1*(nk1-1)+j*ni1;
-          ind1 = ind + 1;
-          ind2 = ind - ni1nj1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imax, kmax
-          ind  = ni1nj1*(nk1-1)+j*ni1 + ni1-1;
-          ind1 = ind - 1;
-          ind2 = ind - ni1nj1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        }
-
-        #pragma omp for nowait
-        for (E_Int k = 1; k < nk1-1; k++)
-        {
-          // imin, jmin
-          ind  = k*ni1nj1;
-          ind1 = ind + 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imax, jmin
-          ind = k*ni1nj1 + ni1-1;
-          ind1 = ind - 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imin, jmax
-          ind = k*ni1nj1+ni1*(nj1-1);
-          ind1 = ind + 1;
-          ind2 = ind - ni1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-          // imax, jmax
-          ind = k*ni1nj1+ni1nj1 -1;
-          ind1 = ind - 1;
-          ind2 = ind - ni1;
-          ind3 = ind - ni1nj1;
-          ind4 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax4(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4]);
-        }
-
-        // Aux faces, traitement degenere.
-        #pragma omp for nowait collapse(2)
-        for (E_Int k=1; k < nk1-1; k++)
-        for (E_Int j=1; j < nj1-1; j++)
-        {
-          // face imin
-          ind  = k*ni1nj1 + j*ni1;
-          ind1 = ind + 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1nj1;
-          ind5 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-
-          // face imax
-          ind  = k*ni1nj1 + j*ni1 + ni1 - 1;
-          ind1 = ind - 1;
-          ind2 = ind + ni1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1nj1;
-          ind5 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-        }
-
-        #pragma omp for nowait collapse(2)
-        for (E_Int k = 1; k < nk1-1; k++)
-        for (E_Int i = 1; i < ni1-1; i++)
-        {
-          // face jmin
-          ind  = k*ni1nj1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind + ni1;
-          ind4 = ind - ni1nj1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-
-          // face jmax
-          ind  = k*ni1nj1 + (nj1-1)*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind - ni1nj1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-        }
-
-        #pragma omp for nowait collapse(2)
-        for (E_Int j = 1; j < nj1-1; j++)
-        for (E_Int i = 1; i < ni1-1; i++)
-        {
-          // face kmin
-          ind  =  j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          ind5 = ind + ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-
-          // face kmax
-          ind  = (nk1-1)*ni1nj1 + j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          ind5 = ind - ni1nj1;
-          etVol = vol[ind];
-          reg[ind] = ratioMax5(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5]);
-        }
-
-        // Boucle generale sur les indices des cellules interieures
         #pragma omp for collapse(3)
-        for (E_Int k = 1; k < nk1-1; k++)
-        for (E_Int j = 1; j < nj1-1; j++)
-        for (E_Int i = 1; i < ni1-1; i++)
+        for (E_Int k = 0; k < nk1; k++)
+        for (E_Int j = 0; j < nj1; j++)
+        for (E_Int i = 0; i < ni1; i++)
         {
+          inext = K_FUNC::E_min(i+1, ni1-1);
+          iprev = K_FUNC::E_max(i-1, 0);
+          jnext = K_FUNC::E_min(j+1, nj1-1);
+          jprev = K_FUNC::E_max(j-1, 0);
+          knext = K_FUNC::E_min(k+1, nk1-1);
+          kprev = K_FUNC::E_max(k-1, 0);
+
           ind  = k*ni1nj1 + j*ni1 + i;
-          ind1 = ind - 1;
-          ind2 = ind + 1;
-          ind3 = ind - ni1;
-          ind4 = ind + ni1;
-          ind5 = ind - ni1nj1;
-          ind6 = ind + ni1nj1;
+          ind1 = k*ni1nj1 + j*ni1 + iprev;
+          ind2 = k*ni1nj1 + j*ni1 + inext;
+          ind3 = k*ni1nj1 + jprev*ni1 + i;
+          ind4 = k*ni1nj1 + jnext*ni1 + i;
+          ind5 = kprev*ni1nj1 + j*ni1 + i;
+          ind6 = knext*ni1nj1 + j*ni1 + i;
           etVol = vol[ind];
           reg[ind] = ratioMax6(etVol,vol[ind1],vol[ind2],vol[ind3],vol[ind4],vol[ind5],vol[ind6]);
         }
