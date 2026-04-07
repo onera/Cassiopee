@@ -12,7 +12,7 @@ def subfunction(args, dir, file):
     (root,ext) = OP.splitext(f)
     tot = '%s/%s'%(dir,f)
     t = OP.islink(tot)
-    if (ext in [".C",".h",".hxx",".hpp",".for",".f90",".html",".htm",".c",".cpp",".cxx",".py",".scons",".pyx",".pxi",".pxd",".rst"] and not t):
+    if (ext in [".C",".h",".hxx",".hpp",".for",".f90",".html",".htm",".c",".cpp",".cxx",".py",".scons",".pyx",".pxi",".pxd",".rst",".rs"] and not t):
 
       f1 = open("%s/%s"%(dir,f), 'rb')
       l1 = f1.readlines()

@@ -2649,7 +2649,7 @@ def createWallAdapt(tc):
         # Creation d une seule zone
         zsize = numpy.empty((1,3), Internal.E_NpyInt, order='F')
         zsize[0,0] = xcNP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
-        z = Internal.newZone(name=zname,zsize=zsize,ztype='Unstructured')
+        z = Internal.newZone(name=zname, zsize=zsize, ztype='Unstructured')
         gc = Internal.newGridCoordinates(parent=z)
         coordx = ['CoordinateX',xcNP,[],'DataArray_t']
         coordy = ['CoordinateY',ycNP,[],'DataArray_t']

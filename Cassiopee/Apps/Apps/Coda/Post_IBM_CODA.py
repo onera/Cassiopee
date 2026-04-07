@@ -170,8 +170,8 @@ def createPyTreeForIBMWallFieldsExtraction(donorPoints_numpy,wallPoints_numpy,au
 
     zsize = numpy.empty((1,3), numpy.int32, order='F')
     zsize[0,0] = nb_node; zsize[0,1] = 0; zsize[0,2] = 0
-    z = Internal.newZone(name='IBMWall',zsize=zsize,ztype='Unstructured')
-    pytree = C.newPyTree(["DonorPointsPyTree",z])
+    z = Internal.newZone(name='IBMWall', zsize=zsize, ztype='Unstructured')
+    pytree = C.newPyTree(["DonorPointsPyTree", z])
 
     coordx = numpy.ravel(donorPoints_numpy[:,0])
     coordy = numpy.ravel(donorPoints_numpy[:,1])

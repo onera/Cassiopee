@@ -20,5 +20,5 @@ n = Internal.newZoneSubRegion(name='SubRegion', pointList=[1, 2, 3, 4], gridLoca
 #>>    |_['GridLocation',array('FaceCenter',dtype='|S1'),[0 son],'GridLocation_t']
 
 # Attach it to a parent node
-z = Internal.newZone('Zone', zsize=[[10, 2, 2]], ztype='Structured')
+z = Internal.newZone('Zone', zsize=[[10,9,0]], ztype='Structured')
 Internal.newZoneSubRegion(name='SubRegion', pointRange=[1,10,2,2,1,1], gridLocation='FaceCenter', parent=z)

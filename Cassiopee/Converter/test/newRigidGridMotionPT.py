@@ -8,5 +8,5 @@ n = Internal.newRigidGridMotion(name='Motion', origin=[0.,0.,0.], mtype='Constan
 #>>    |_['RigidGridMotionType',array('ConstantRate',dtype='|S1'),[0 son],'RigidGridMotionType_t']
 
 # Attach it to a parent node
-z = Internal.newZone('Zone', zsize=[[10],[2],[0]], ztype='Structured')
+z = Internal.newZone('Zone', zsize=[[10,9,0]], ztype='Structured')
 Internal.newRigidGridMotion(name='Motion', origin=[0.,0.,0.], mtype='ConstantRate', parent=z)

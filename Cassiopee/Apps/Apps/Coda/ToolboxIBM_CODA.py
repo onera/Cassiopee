@@ -1334,7 +1334,7 @@ def extractIBMWallFields(XCP, YCP, ZCP, arrayOfFields, tb, variables):
     # 1. Creation of a CGNS zone O-D of cloud points
     zsize = numpy.empty((1,3), numpy.int32, order='F')
     zsize[0,0] = XCP.shape[0]; zsize[0,1] = 0; zsize[0,2] = 0
-    z = Internal.newZone(name='IBW_Wall',zsize=zsize,ztype='Unstructured')
+    z = Internal.newZone(name='IBW_Wall', zsize=zsize, ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=z)
     coordx = ['CoordinateX',XCP,[],'DataArray_t']
     coordy = ['CoordinateY',YCP,[],'DataArray_t']

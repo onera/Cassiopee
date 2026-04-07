@@ -12,7 +12,7 @@ def subfunction(args, dir, file):
   regexp = args[0]
   exts = args[1]
   if exts is None:
-    exts = [".C",".h",".hpp",".hxx",".F",".for",".f90",".html",".htm",".c",".cpp",".cxx",".py",".scons",".pyx",".pxi",".pxd",".rst"]
+    exts = [".C",".h",".hpp",".hxx",".F",".for",".f90",".html",".htm",".c",".cpp",".cxx",".py",".scons",".pyx",".pxi",".pxd",".rst",".rs"]
   for f in file:
     (root,ext) = OP.splitext(f)
     tot = '%s/%s'%(dir,f)
