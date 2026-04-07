@@ -1474,6 +1474,10 @@ def _loads0(ts, Sref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, ver
     res    = [-i/Sref for i in res]
     res2   = [ i/Qadim for i in res2]
 
+    print(res,res2)
+    Cmpi.abort()
+    
+
     calpha = math.cos(alpha); cbeta = math.cos(beta)
     salpha = math.sin(alpha); sbeta = math.sin(beta)
 
@@ -1631,6 +1635,76 @@ def loads(tb_in, tc_in=None, tc2_in=None, wall_out=None, alpha=0., beta=0., Sref
 
     if isinstance(wall_out, str): C.convertPyTree2File(ts, wall_out)
     return ts, CL, CD
+
+
+def _loads0CODAv2(ts, Sref=None, Lref=None, Pref=None, Qref=None, alpha=0., beta=0., dimPb=3, verbose=0, center=(0.,0.,0.), time=-1):
+    import Post.ExtraVariables2 as PE
+
+    if not Internal.getZones(ts):
+        print('INFO: loads0: no zones in ts. Returning res(integCp) and res2 (integTaun).')
+        res  = PE.integCp(ts)[0]
+        res2 = PE.integTaun(ts)
+        return [res, res2, [0,0], [0,0]]
+
+    if Sref is None:
+        C._initVars(ts, '__ONE__',1.)
+        Sref = P.integ(ts, '__ONE__')[0]
+        C._rmVars(ts, ['__ONE__', 'centers:vol'])
+
+    RefState = Internal.getNodeFromType(ts,'ReferenceState_t')
+    PInf     = Internal.getValue(Internal.getNodeFromName(RefState,"Pressure"))
+    RoInf    = Internal.getValue(Internal.getNodeFromName(RefState,"Density"))
+    VxInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityX"))
+    VyInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityY"))
+    VzInf    = Internal.getValue(Internal.getNodeFromName(RefState,"VelocityZ"))
+    VInf2    = VxInf*VxInf+VyInf*VyInf+VzInf*VzInf
+    q        = 0.5*RoInf*VInf2
+
+    if Qref is None: Qref = q
+    if Pref is None: Pref = PInf
+
+    variables = ['Cp','Cf','frictionX','frictionY','frictionZ','frictionMagnitude','ShearStress']
+
+    if Internal.getNodeFromName(ts, 'gradxPressure') is not None: variables += ['gradnP', 'gradtP']
+
+    _computeExtraVariables(ts, Pref, Qref, variables=variables)
+
+    #===================================
+    # Compute aerodynamic forces (pressure & friction)
+    # R = int(F.n ds) where n is outward-pointing & F = -(p-pinf) + tau
+    #===================================
+    forcePressure = PE.integCp(ts)[0]
+    forcePressure = [-i for i in forcePressure]
+
+    forceFriction = PE.integTaun(ts)
+    forceFriction = [i for i in forceFriction]
+
+    print(forcePressure,forceFriction)
+    Cmpi.abort()
+
+    #===================================
+    # Compute aerodynamic moments (pressure & friction)
+    # M = int(CM^F ds) where C is the center argument & F = -(p-pinf) + tau
+    #===================================
+    momentPressure = PE.integMomentCp(ts, center)[0]
+    momentPressure = [-i for i in momentPressure]
+
+    momentFriction = PE.integMomentTaun(ts, center)
+    momentFriction = [i for i in momentFriction]
+
+    FSC = Internal.getNodesFromName(ts, Internal.__FlowSolutionCenters__)
+    Internal._rmNodesFromName(FSC, 'ShearStress*')
+
+    if verbose and Cmpi.rank == 0:
+        print("Vector of dimensionalized pressure forces in the body frame:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
+        print("Vector of dimensionalized friction forces in the body frame:  (Fx_F,Fy_F,Fz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*forceFriction))
+
+        print("Vector of dimensionalized pressure moments in the body frame: (Mx_P,My_P,Mz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*momentPressure))
+        print("Vector of dimensionalized friction moments in the body frame: (Mx_F,My_F,Mz_F) = ({:.4e}, {:.4e}, {:.4e})".format(*momentFriction))
+    aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
+    ts, [forcePressure, forceFriction, momentPressure, momentFriction] = computeAerodynamicCoefficients(ts, aeroLoads, dimPb=dimPb, Sref=Sref, Lref=Lref, Qref=Qref, alpha=alpha, beta=beta, verbose=verbose)
+    return ts, [forcePressure, forceFriction, momentPressure, momentFriction] 
+
 
 #==========================================================================================
 # IN:  ts            : skin (TRI zones) distributed already (partial tree here)

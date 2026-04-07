@@ -98,6 +98,7 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=Fa
     if reorderFlag == True: T._reorder(zw, (-1,))
 
     Sref = dictReferenceQuantities["Sref"]
+    Lref = dictReferenceQuantities["Lref"]
     if invertYZ == False:
         alpha= dictReferenceQuantities["alpha"]
         beta = dictReferenceQuantities["beta"]
@@ -116,25 +117,11 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=Fa
     ref[2].append(["VelocityZ", dictReferenceQuantities["velZ_ref"]    , [], 'DataArray_t'])
     ref[2].append(["Density"  , dictReferenceQuantities["density_ref"] , [], 'DataArray_t'])
     ref[2].append(["Pressure" , dictReferenceQuantities["pressure_ref"], [], 'DataArray_t'])
-    [res, res2, PressureCoef, FrictionCoef] = P_IBM._loads0(zw, Sref=Sref, alpha=alpha, beta=beta, dimPb=dim, verbose=False)
-    ## The division with Cmpi.size is taken 'as is' from the original Post_IBM_CODA.py
-    for lst in [res, res2, PressureCoef, FrictionCoef]: lst[:] = [x / Cmpi.size for x in lst]
-    [clp, cdp] = PressureCoef
-    [clf, cdf] = FrictionCoef
-    if verbose and Cmpi.master:
-        print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
-        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P) = (%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
+    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM._loads0CODAv2(zw, Sref=Sref, alpha=alpha, beta=beta,
+                                                                                             dimPb=dim, verbose=verbose)
+    for lst in [forcePressure, forceFriction, momentPressure, momentFriction]: lst[:] = [x / Cmpi.size for x in lst]    
 
-        print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
-        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f) = (%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
-
-        infoTime = ' (time = %.4e)'%time if time >= 0 else ''
-        print("******************************************")
-        print("Total Drag%s: %.12e"%(infoTime,(cdp+cdf)))
-        print("Total Lift%s: %.12e"%(infoTime,(clp+clf)))
-        print("******************************************")
-    #skin surface, C_(D,total), C_(L,total), C_(D,friction), C_(D,pressure), C_(L,friction), C_(L,pressure)
-    return zw, [cdp + cdf, clp + clf, cdf, cdp, clf, clp]
+    return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
 
 
 ##========================================================================
