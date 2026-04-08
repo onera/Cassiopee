@@ -372,6 +372,55 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
+def generateSkeletonMeshCart__(tb, cartbgExtent, cartbgBC, snearsFlat, dim):
+    nCellsCartesian = [10, 10, 10] #10 is the minimum
+    dxBG            = [1, 1, 1]
+    lengthBG        = [0, 0, 0]
+    for i in range(dim):
+        lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
+        dxBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])/nCellsCartesian[i]
+    if dim == 2:
+        nCellsCartesian[2] = 0
+        maxval = C.getMaxValue(tb, 'GridCoordinates');
+        cartbgExtent[2] = maxval[2]
+        lengthBG[2] = 1
+    o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
+               (dxBG[0], dxBG[1], dxBG[2]),
+               (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
+    while(C.getNCells(o) < Cmpi.size):
+        # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
+        # yields procs with 0 cells. This is a safeguard to avoid this.
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("======================== Background Mesh Mod.! ========================", flush=True)
+            print("======= The background has been divided due to Nmpi > Ncells!!  =======", flush=True)
+            print("=== The background has been divided due to Nmpi [%d]> Ncells [%d]!! ==="%(Cmpi.size, C.getNCells(o)), flush=True)
+            print("=======================================================================", flush=True)
+        nCellsCartesian[0] *= 2
+        nCellsCartesian[1] *= 2
+        if dim == 3: nCellsCartesian[2] *= 2
+        o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
+                   (dxBG[0], dxBG[1], dxBG[2]),
+                   (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
+    if dim == 2: T._addkplane(o)
+    for i, loc in enumerate(['imin','jmin','imax','jmax']): C._addBC2Zone(o, cartbgBC[i], cartbgBC[i], loc)
+    if dim == 2:
+        C._addBC2Zone(o,'BCSymmetryPlane',"BCSymmetryPlane",'kmin')
+        C._addBC2Zone(o,'BCSymmetryPlane',"BCSymmetryPlane",'kmax')
+    else:
+        C._addBC2Zone(o,cartbgBC[2], cartbgBC[2],'kmin')
+        C._addBC2Zone(o,cartbgBC[5], cartbgBC[5],'kmin')
+
+    o = C.convertArray2NGon(o)
+    o = G.close(o)
+    Internal._adaptNGon32NGon4(o)
+    snearMin = min(snearsFlat)
+    lengthBGMax = max(lengthBG[2], lengthBG[1])
+    if dim == 3: lengthBGMax=max(lengthBGMax, lengthBG[3])
+    newLevelMax = int(math.log2(lengthBGMax/snearMin))+1
+    return o, newLevelMax
+
 def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multuiplies the indicator. i.e. the parts inside the body will be zero.
@@ -1185,9 +1234,11 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # MAIN FUNCTION
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
-def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None,
-                    blankCellsAlgo='xray'):
+def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
+                    tbv2=None, blankCellsAlgo='xray',
+                    GridType='octree', cartbgExtent=[-100, -100, -100, 100, 100, 100],
+                    cartbgBC=['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']):
     NumMinDxLarge=1
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1284,10 +1335,17 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
-    # levelSkel: initial refinement level of the skeleton octree
-    # might be tuned
-    # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
-    o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+    if GridType=='cartesian':
+        if isSymLocal:
+            if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
+            Cmpi.barrier(); Cmpi.abort()
+        o, newLevelMax = generateSkeletonMeshCart__(tb, cartbgExtent, cartbgBC, snearsFlat, dim) 
+    else:
+        # levelSkel: initial refinement level of the skeleton octree
+        # might be tuned
+        # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
+        o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+
     if newLevelMax != levelMax:
         if Cmpi.master:
             print("=======================================================================", flush=True)
@@ -1300,6 +1358,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
             vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
             levelMax = newLevelMax
+
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
