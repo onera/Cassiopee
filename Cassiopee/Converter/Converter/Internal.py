@@ -3041,21 +3041,21 @@ def createZoneNode(name, array, array2=[],
   if createFlow:
     vars = array[0].split(',')
     info.append([FlowSolutionNodes, None, [], 'FlowSolution_t'])
-    info = info[len(info)-1]
+    info2 = info[len(info)-1]
     for i in range(nvar):
       if i != px and i != py and i != pz:
         node = createDataNode(vars[i], array, i, cellDim)
-        info[2].append(node)
+        info2[2].append(node)
   if array2 != []:
     if isinstance(array2[1], list): nvar = len(array2[1])
     else: nvar = array2[1].shape[0]
     vars = array2[0].split(',')
     info.append([FlowSolutionCenters, None, [], 'FlowSolution_t'])
-    info = info[len(info)-1]
+    info2 = info[len(info)-1]
     _createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
     for i in range(nvar):
       node = createDataNode(vars[i], array2, i, cellDim)
-      info[2].append(node)
+      info2[2].append(node)
   return zone
 
 # -- convert a data node to an array (array1)

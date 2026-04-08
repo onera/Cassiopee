@@ -740,6 +740,7 @@ def convertExt2Format__(fileName):
         '.hdf': 'bin_hdf',
         '.mod': 'bin_hdf',
         '.grid': 'bin_tau',
+        '.cdf': 'bin_tau',
         '.h5': 'bin_fsdm',
         '.pickle': 'bin_pickle',
         '.df3': 'bin_df3',
