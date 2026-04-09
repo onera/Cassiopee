@@ -485,7 +485,7 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
         offset1 = Internal.copyTree(offset2)
         isTbox = True
 
-    if dim==2:
+    if dim == 2:
         offset1 = T.addkplane(offset1)
         offset2 = T.addkplane(offset2)
     bodies1 = [Internal.getZones(offset1)] # tag for refinement outside of offset1 (cgns base of tb or tbox)
@@ -1290,10 +1290,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     #      |   |   |   |
     #      |   |   |---|
     #      |   |   |   |
-    if NumMinDxLarge<1:
+    if NumMinDxLarge < 1:
         if Cmpi.master: print("NumMinDxLarge - the min. num. of cells in any direction for the max. Dx - cannot be less than 1. Setting NumMinDxLarge to at least 1.", flush=True)
-        NumMinDxLarge=1
-    NumMinDxLarge+=1 # we add one as the check later on is on nodes & not cells.
+        NumMinDxLarge = 1
+    NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
     # check to see if the sym bases have snear?
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
@@ -1316,20 +1316,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # This section::
     # ================== SECTION START ==================
     # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
-    vmins=vminsInputCheck__(vmins, numBase, levelMax)
+    vmins = vminsInputCheck__(vmins, numBase, levelMax)
 
     snearsTbox = []
     numTbox    = 0
     tb_tbox    = Internal.copyTree(tb)
     if tbox:
-        numTbox    = len(Internal.getBases(tbox))
-        tb_tbox[2]+=Internal.getBases(tbox)
+        numTbox     = len(Internal.getBases(tbox))
+        tb_tbox[2] += Internal.getBases(tbox)
 
         if vminsTbox is None:
             vminsTbox = numpy.ones((numTbox,levelMax))*5
             vminsTbox = vminsTbox.tolist()
         else:
-            vminsTbox=vminsInputCheck__(vminsTbox, numTbox, levelMax)
+            vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
 
         Cmpi.barrier()
         snearsTbox, tmpRMV = getListSnear__(tbox, 1)
@@ -1435,9 +1435,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
 
     # Old dfar max calc. Stays here in case it is needed in the future
     dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
-    if dim==3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
+    if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
-    if toffset==None:
+    if toffset == None:
         offsetValues = []
         for nBase in range(numBase):
             offsetprev       = 0.
