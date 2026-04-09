@@ -184,22 +184,34 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
         zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
 
     zw       = Cmpi.bcast(zw, root=0)
-    zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose)
-
+    zw, aeroCoefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
+    forcePressure, forceFriction, momentPressure, momentFriction = aeroCoefs
     if Cmpi.master:
-        print("\nIntegrated coefficients:")
-        print("CD=      %g"%coefs[0])
-        print("CDfric=  %g"%coefs[2])
-        print("CDpres=  %g"%coefs[3])
-        print("CL=      %g"%coefs[1])
-        print("CLfric=  %g"%coefs[4])
-        print("CLpres=  %g"%coefs[5])
+        with open(fileNameCoefOut, 'w') as f:
+            lines = [
+                "\nIntegrated coefficients:",
+                "\n ==== Total Coefficients ==== :",
+                "x-dir=  %g" % (forcePressure[0]+forceFriction[0]),
+                "y-dir=  %g" % (forcePressure[1]+forceFriction[1]),
+                "z-dir=  %g" % (forcePressure[2]+forceFriction[2]),
+                "\n ==== Pressure Coefs ==== :",
+                "x-dir=  %g" % forcePressure[0],
+                "y-dir=  %g" % forcePressure[1],
+                "z-dir=  %g" % forcePressure[2],
+                "\n ==== Friction Coefs ==== :",
+                "x-dir=  %g" % forceFriction[0],
+                "y-dir=  %g" % forceFriction[1],
+                "z-dir=  %g" % forceFriction[2],
+            ]
+            output = "\n".join(lines)
+            print(output, flush=True)
+            f.write(output + "\n") # file
 
     if fileNameResultOut is not None:
         if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
         return None
     else:
-        return zw, coefs
+        return zw, aeroCoefs
 
 
 def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt',
