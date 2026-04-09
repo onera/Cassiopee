@@ -252,6 +252,7 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     Reynolds = discParaDict["reference state"]["viscosity specification"]["Reynolds"]
     Lref     = discParaDict["reference state"]["viscosity specification"]["Reynolds_Length"]
     Aref     = discParaDict["boundary integral quantities"]["Coef_Area"]
+    MmntCntr = discParaDict["boundary integral quantities"]["Moment_Center"]
     ## Post Values
     pressureRef    = 1
     densityRef     = 1
@@ -278,6 +279,7 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         "beta" : beta,
         "Sref": Aref,
         "Lref": Lref,
+        "MomentCenters": MmntCntr
     }
 
     clac   = FSClac()
@@ -299,7 +301,6 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
 
     zw = Cmpi.bcast(zw, root=0)
-    Cmpi.convertPyTree2File(zw,'check_zw.cgns')
     zw, aeroCoefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
     forcePressure, forceFriction, momentPressure, momentFriction = aeroCoefs
     if Cmpi.master:

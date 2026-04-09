@@ -88,7 +88,7 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3, isRevertT
     return zw
 
 
-def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=False, verbose=False, center=center, time=-1):
+def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=False, verbose=False, time=-1):
     """  Computes the aerodynamic loads at the wall.
     Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, reorderFlag, verbose, time)"""
     if Cmpi.master: print("Computing integral coefficients..")
@@ -99,6 +99,9 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=Fa
 
     Sref = dictReferenceQuantities["Sref"]
     Lref = dictReferenceQuantities["Lref"]
+    center = dictReferenceQuantities["MomentCenters"]
+    alpha = dictReferenceQuantities["alpha"]
+    beta = dictReferenceQuantities["beta"]
     
     zw = C.convertArray2Tetra(zw); zw = G.close(zw)
     zw = C.node2Center(zw, Internal.__FlowSolutionNodes__)
