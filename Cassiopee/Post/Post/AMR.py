@@ -114,7 +114,7 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False,
     tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicLoads(zw, dimPb=dim, verbose=verbose, center=center)
     aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
     tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicCoefficients(tw, aeroLoads, dimPb=dim, Sref=Sref, Lref=Lref,
-                                                                                                        alpha=alpha, beta=beta, verbose=verbose)
+                                                                                                              alpha=alpha, beta=beta, verbose=verbose)
     for lst in [forcePressure, forceFriction, momentPressure, momentFriction]: lst[:] = [x / Cmpi.size for x in lst]
 
     return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
