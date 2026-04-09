@@ -88,34 +88,33 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3, isRevertT
     return zw
 
 
-def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=False, verbose=False, time=-1):
+def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False, time=-1):
     """  Computes the aerodynamic loads at the wall.
-    Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, reorderFlag, verbose, time)"""
+    Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, verbose, time)"""
     if Cmpi.master: print("Computing integral coefficients..")
-    if dim == 2:
-        zw = C.convertBAR2Struct(zw)
-        T._addkplane(zw)
-    if reorderFlag == True: T._reorder(zw, (-1,))
 
+    # Get Info from dictReferenceQuantities
     Sref = dictReferenceQuantities["Sref"]
     Lref = dictReferenceQuantities["Lref"]
     center = dictReferenceQuantities["MomentCenters"]
     alpha = dictReferenceQuantities["alpha"]
     beta = dictReferenceQuantities["beta"]
     
-    zw = C.convertArray2Tetra(zw); zw = G.close(zw)
-    zw = C.node2Center(zw, Internal.__FlowSolutionNodes__)
     # add reference state for computation of integrated coefficients
     ref1 = Internal.getNodesFromName(zw, "ReferenceState")
     if ref1 != []: Internal._rmNodesByName(zw, "ReferenceState")
+
     ref = Internal.newReferenceState("ReferenceState", parent=zw)
     ref[2].append(["VelocityX", dictReferenceQuantities["velX_ref"]    , [], 'DataArray_t'])
     ref[2].append(["VelocityY", dictReferenceQuantities["velY_ref"]    , [], 'DataArray_t'])
     ref[2].append(["VelocityZ", dictReferenceQuantities["velZ_ref"]    , [], 'DataArray_t'])
     ref[2].append(["Density"  , dictReferenceQuantities["density_ref"] , [], 'DataArray_t'])
     ref[2].append(["Pressure" , dictReferenceQuantities["pressure_ref"], [], 'DataArray_t'])
-    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM._loads0(zw, Sref=Sref, alpha=alpha, beta=beta,
-                                                                                       dimPb=dim, verbose=verbose, center=center)
+
+    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicLoads(zw, dimPb=dim, verbose=verbose, center=center)
+    aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
+    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicCoefficients(tw, aeroLoads, dimPb=dim, Sref=Sref, Lref=Lref,
+                                                                                                        alpha=alpha, beta=beta, verbose=verbose)
     for lst in [forcePressure, forceFriction, momentPressure, momentFriction]: lst[:] = [x / Cmpi.size for x in lst]
 
     return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
