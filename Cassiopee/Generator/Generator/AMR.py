@@ -372,13 +372,17 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def generateSkeletonMeshCart__(tb, cartbgExtent, cartbgBC, snearsFlat, dim):
+def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
+    cartbgExtent    = dictGridCart['cartbgExtent']
+    cartbgBC        = dictGridCart['cartbgBC']
+
     nCellsCartesian = [10, 10, 10] #10 is the minimum
     dxBG            = [1, 1, 1]
     lengthBG        = [0, 0, 0]
     for i in range(dim):
         lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
         dxBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])/nCellsCartesian[i]
+
     if dim == 2:
         nCellsCartesian[2] = 0
         maxval = C.getMaxValue(tb, 'GridCoordinates');
@@ -404,20 +408,22 @@ def generateSkeletonMeshCart__(tb, cartbgExtent, cartbgBC, snearsFlat, dim):
                    (dxBG[0], dxBG[1], dxBG[2]),
                    (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
     if dim == 2: T._addkplane(o)
-    for i, loc in enumerate(['imin','jmin','imax','jmax']): C._addBC2Zone(o, cartbgBC[i], cartbgBC[i], loc)
+
+    ## BCs
+    C._addBC2Zone(o,cartbgBC[0], cartbgBC[0],'imin'); C._addBC2Zone(o,cartbgBC[3], cartbgBC[3], 'imax')
+    C._addBC2Zone(o,cartbgBC[1], cartbgBC[1],'jmin'); C._addBC2Zone(o,cartbgBC[4], cartbgBC[4], 'jmax')
     if dim == 2:
-        C._addBC2Zone(o,'BCSymmetryPlane',"BCSymmetryPlane",'kmin')
-        C._addBC2Zone(o,'BCSymmetryPlane',"BCSymmetryPlane",'kmax')
+        C._addBC2Zone(o,'BCSymmetryPlane', 'BCSymmetryPlane', 'kmin')
+        C._addBC2Zone(o,'BCSymmetryPlane', 'BCSymmetryPlane', 'kmax')
     else:
         C._addBC2Zone(o,cartbgBC[2], cartbgBC[2],'kmin')
-        C._addBC2Zone(o,cartbgBC[5], cartbgBC[5],'kmin')
-
+        C._addBC2Zone(o,cartbgBC[5], cartbgBC[5],'kmax')
     o = C.convertArray2NGon(o)
     o = G.close(o)
     Internal._adaptNGon32NGon4(o)
     snearMin = min(snearsFlat)
-    lengthBGMax = max(lengthBG[2], lengthBG[1])
-    if dim == 3: lengthBGMax=max(lengthBGMax, lengthBG[3])
+    lengthBGMax = max(lengthBG[1], lengthBG[0])
+    if dim == 3: lengthBGMax=max(lengthBGMax, lengthBG[2])
     newLevelMax = int(math.log2(lengthBGMax/snearMin))+1
     return o, newLevelMax
 
@@ -1236,10 +1242,16 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
-                    tbv2=None, blankCellsAlgo='xray',
-                    GridType='octree', cartbgExtent=[-100, -100, -100, 100, 100, 100],
-                    cartbgBC=['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']):
+                    tbv2=None, blankCellsAlgo='xray', dictGridCart=None):
     NumMinDxLarge=1
+    if dictGridCart is None: dictGridCart['gridType'] = 'octree'
+    # e.g. for dictGridCart
+    #dictGridCart={
+    #    'gridType': 'cartesian',
+    #    'cartbgExtent': [-100, -100, -100, 100, 100, 100],
+    #    'cartbgBC': ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
+    #}
+
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
@@ -1335,11 +1347,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
-    if GridType=='cartesian':
+    if dictGridCart['gridType']=='cartesian':
         if isSymLocal:
             if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
             Cmpi.barrier(); Cmpi.abort()
-        o, newLevelMax = generateSkeletonMeshCart__(tb, cartbgExtent, cartbgBC, snearsFlat, dim) 
+        o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim)
     else:
         # levelSkel: initial refinement level of the skeleton octree
         # might be tuned
