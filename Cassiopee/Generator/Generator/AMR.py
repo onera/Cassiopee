@@ -375,21 +375,25 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
 def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
     cartbgExtent    = dictGridCart['cartbgExtent']
     cartbgBC        = dictGridCart['cartbgBC']
+    matchExtent     = dictGridCart['matchExtent']
 
-    nCellsCartesian = [10, 10, 10] #10 is the minimum
-    dxBG            = [1, 1, 1]
-    lengthBG        = [0, 0, 0]
-    for i in range(dim):
-        lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
-        dxBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])/nCellsCartesian[i]
+    nCellsCartesian = [0, 0, 0]
+    lengthBG        = [1, 1, 1]
+    for i in range(dim): lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
 
-    if dim == 2:
-        nCellsCartesian[2] = 0
-        maxval = C.getMaxValue(tb, 'GridCoordinates');
-        cartbgExtent[2] = maxval[2]
-        lengthBG[2] = 1
+    snearMin = min(snearsFlat)
+    lengthBGMin = min(lengthBG[1], lengthBG[0])
+    if dim == 3: lengthBGMin=min(lengthBGMin, lengthBG[2])
+    levelSkel = int(math.log2(lengthBGMin/snearMin))+1
+    snearloc = 2**levelSkel*snearMin
+    while snearloc > lengthBGMin/8: # security so that levelSkel is not too big
+        snearloc  /= 2.; levelSkel -= 1
+    for i in range(dim): nCellsCartesian[i]=int(lengthBG[i]/snearloc)
+
+    if dim == 2: cartbgExtent[2] = C.getMaxValue(tb, 'GridCoordinates')[2]
+
     o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
-               (dxBG[0], dxBG[1], dxBG[2]),
+               (snearloc, snearloc, snearloc),
                (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
     while(C.getNCells(o) < Cmpi.size):
         # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
@@ -407,6 +411,12 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
         o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
                    (dxBG[0], dxBG[1], dxBG[2]),
                    (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
+    for i in range(dim):
+        if matchExtent[i+3]:
+            maxVal = C.getMaxValue(o, 'GridCoordinates')[i]
+            if i==0: T._translate(o, (cartbgExtent[i+3]-maxVal, 0., 0.))
+            elif i==1: T._translate(o, (0., cartbgExtent[i+3]-maxVal, 0.))
+            else: T._translate(o, (0., 0., cartbgExtent[i+3]-maxVal))
     if dim == 2: T._addkplane(o)
 
     ## BCs
@@ -421,11 +431,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
     o = C.convertArray2NGon(o)
     o = G.close(o)
     Internal._adaptNGon32NGon4(o)
-    snearMin = min(snearsFlat)
-    lengthBGMax = max(lengthBG[1], lengthBG[0])
-    if dim == 3: lengthBGMax=max(lengthBGMax, lengthBG[2])
-    newLevelMax = int(math.log2(lengthBGMax/snearMin))+1
-    return o, newLevelMax
+    return o, levelSkel
 
 def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
@@ -521,14 +527,14 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
     C._initVars(to, "cellNIn", 1.)
 
     if dim == 2 or blankCellsAlgo == 'xray': to = X.blankCells(to, bodies2, BM, blankingType='node_in',
-                                                               XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                                               XRaydim1=XRAYDIM2, XRaydim2=XRAYDIM2, dim=dim,
                                                                cellNName='cellNIn')
     else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
 
     if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
     else:
         if dim == 2 : to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                                        XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2, dim=dim,
+                                        XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                         cellNName='cellNOut') #or blankCellsAlgo == 'xray'
         else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
 
@@ -1244,12 +1250,18 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
                     tbv2=None, blankCellsAlgo='xray', dictGridCart=None):
     NumMinDxLarge=1
-    if dictGridCart is None: dictGridCart['gridType'] = 'octree'
+    if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
+    if dictGridCart['gridType'] == 'cartesian':
+        if 'cartbgExtent' not in dictGridCart: dictGridCart['cartbgExtent'] = [-100, -100, -100, 100, 100, 100]
+        if 'cartbgBC' not in dictGridCart: dictGridCart['cartbgBC'] = ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
+        if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
+
     # e.g. for dictGridCart
     #dictGridCart={
     #    'gridType': 'cartesian',
     #    'cartbgExtent': [-100, -100, -100, 100, 100, 100],
     #    'cartbgBC': ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
+    #    'matchExtent': [False, False, False, True, True, False]
     #}
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
