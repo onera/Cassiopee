@@ -499,7 +499,7 @@ def getAllPos(t):
 # IN: aniso: si true, anisotropic mesher
 # OUT: meshed CAD with CAD links
 #=================================================
-def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False):
+def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False, order=1):
     """Get a first TRI meshed tree linked to CAD."""
 
     t = C.newPyTree(['EDGES', 'FACES'])
@@ -509,7 +509,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False):
     _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd)
 
     # - Edges -
-    edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, -1)
+    edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, -1, order=order)
 
     b = Internal.getNodeFromName1(t, 'EDGES')
     for c, e in enumerate(edges):
@@ -541,7 +541,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False):
     else:
         hList = [(hmin,hmax,hausd)]*len(faceList)
 
-    faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList, True, aniso)
+    faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList, True, aniso, order)
 
     for c, f in enumerate(faces):
         if f is None: continue # Failed face

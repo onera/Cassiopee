@@ -3052,7 +3052,7 @@ def createZoneNode(name, array, array2=[],
     vars = array2[0].split(',')
     info.append([FlowSolutionCenters, None, [], 'FlowSolution_t'])
     info2 = info[len(info)-1]
-    _createChild(info, 'GridLocation', 'GridLocation_t', value='CellCenter')
+    _createChild(info2, 'GridLocation', 'GridLocation_t', value='CellCenter')
     for i in range(nvar):
       node = createDataNode(vars[i], array2, i, cellDim)
       info2[2].append(node)

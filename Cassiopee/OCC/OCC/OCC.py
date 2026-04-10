@@ -60,14 +60,21 @@ def convertCAD2Arrays(fileName, format=None,
         a = occ.meshGlobalEdges(hook, h)
     return a
 
-# IN: edges: liste d'arrays STRUCT possedant x,y,z,u,v
-# OUT: liste d'arrays STRUCT ayant uv dans x,y et z=0
+# IN: edges: liste d'arrays STRUCT/BAR/TRI possedant x,y,z,u,v
+# OUT: liste d'arrays STRUCT/BAR/TRI ayant uv dans x,y et z=0
 def switch2UV(edges):
     """Switch uv to coordinates."""
     out = []
     for e in edges:
-        ni = e[2]; nj = e[3]; nk = e[4]
-        uv = Converter.array('x,y,z',ni,nj,nk)
+        if len(e) == 5:
+            ni = e[2]; nj = e[3]; nk = e[4]
+            uv = Converter.array('x,y,z',ni,nj,nk)
+        else:
+            np = e[1].shape[1]
+            ne = e[2].shape[1]
+            uv = Converter.array('x,y,z',np,ne,e[3])
+            uv[2][:,:] = e[2][:,:]
+
         uv[1][0,:] = e[1][3,:]
         uv[1][1,:] = e[1][4,:]
         uv[1][2,:] = 0.
@@ -650,7 +657,7 @@ def meshFaceWithPointedHat(hook, i, edges, close, mesh):
     return True
 
 # mesh all CAD edges with hmin, hmax, hausd
-def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
+def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None, order=1):
     """Mesh all CAD edges with hmin, hmax, hausd."""
     if edgeList is None:
         nbEdges = occ.getNbEdges(hook)
@@ -660,6 +667,12 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
         e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
     dedges = Generator.zip(dedges, tol=hmin/100.) # safe and necessary for corner/seam points
+    #if order > 1:
+    #    dedges = switch2UV(dedges)
+    #    for i, e in enumerate(dedges):
+    #        e = Converter.convertLO2HO(e, order=order)
+    #        dedges[i] = occ.evalEdge(hook, e, i+1)
+
     return dedges
 
 #=================================================================
@@ -674,7 +687,7 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None):
 # IN: close: if true, close meshes
 # IN: aniso: if true, anisotropic mesher
 #==================================================================
-def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[], close=True, aniso=False):
+def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[], close=True, aniso=False, order=1):
     nbFaces = len(faceList)
     FAILED1 = []; FAILED2 = []; dfaces = []
     for c, i in enumerate(faceList):
@@ -709,6 +722,12 @@ def meshAllFacesTri(hook, dedges, metric=True, faceList=[], hList=[], close=True
             edges = edgesSav
             #dfaces.append(None)
             SUCCESS = meshFaceWithPointedHat(hook, i, edges, close, dfaces)
+
+    if order > 1:
+        dfaces = switch2UV(dfaces)
+        for i, f in enumerate(dfaces):
+            f = Converter.convertLO2HO(f, order=order)
+            dfaces[i] = occ.evalFace(hook, f, i+1)
 
     FAIL1 = len(FAILED1)
     print("METRICFAILURE = %d / %d"%(FAIL1, nbFaces))
