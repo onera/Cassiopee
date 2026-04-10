@@ -1546,7 +1546,6 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
         allMatchTNC = {}
 
     for z in zones:
-
         # Test if vol present
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
@@ -1715,13 +1714,11 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False):
         allMatch = {}; allMatchTNC = {}
 
     for z in zones:
-
         # Test if vol present
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         vol  = Internal.getNodeFromName1(cont, 'vol')
         if vol is not None: vol = vol[1]
-
-        cellN  = Internal.getNodeFromName1(cont, 'cellN')
+        cellN = Internal.getNodeFromName1(cont, 'cellN')
         if cellN is not None: cellN = cellN[1]
 
         flist, f = [], []
