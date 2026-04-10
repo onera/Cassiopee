@@ -167,7 +167,8 @@ def streamLine2(t, X0, vector, N=2000, eps=1.e-2, maxCompt=20):
 #=============================================================================
 def _computeGrad2(t, var, withCellN=True):
     """Compute the gradient of a variable defined in array."""
-    if Cmpi.size == 1: return P._computeGrad2(t, var, withCellN)
+    if Cmpi.size == 1:
+        return P._computeGrad2(t, var, withCellN=withCellN)
 
     import Converter.converter
     import Post
@@ -203,13 +204,13 @@ def _computeGrad2(t, var, withCellN=True):
                 if oppNode not in export: export[oppNode] = [n]
                 else: export[oppNode] += [n]
         elif dim[0] == 'Structured':
-            fields = C.getField(vare, z, api=3)
+            fields = C.getField(var, z, api=3)[0]
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
             for gc in GCs:
                 donor = Internal.getValue(gc)
-                #PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
-                #PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
                 prr = Internal.getNodeFromName1(gc, 'PointRange')
                 prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
                 wr = Internal.range2Window(prr[1])
@@ -247,7 +248,7 @@ def _computeGrad2(t, var, withCellN=True):
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
             elif dim[0] == 'Structured':
-                fields = C.getAllFields(z, 'centers', api=3)
+                fields = C.getAllFields(z, 'centers', api=3)[0]
                 fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
             else:
                 raise(TypeError, "computeGrad2: invalid grid type.")
@@ -265,20 +266,16 @@ def _computeGrad2(t, var, withCellN=True):
 
     for z in zones:
         zn = z[0]
-        # Test if vol present
+        # Test if vol and cellN are present
         vol = None
+        cellN = None
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
             vol = Internal.getNodeFromName1(cont, 'vol')
             if vol is not None: vol = vol[1]
-
-        # Test if cellN present
-        cellN = None
-        if withCellN:
-            if cont is not None:
-                cellN  = Internal.getNodeFromName1(cont, 'cellN')
+            if withCellN:
+                cellN = Internal.getNodeFromName1(cont, 'cellN')
                 if cellN is not None: cellN = cellN[1]
-        else: cellN = None
 
         # get BCDataSet
         isghost = Internal.getNodeFromType1(z, 'Rind_t')
@@ -316,18 +313,21 @@ def _computeGrad2(t, var, withCellN=True):
     return None
 
 #=============================================================================
-# Parallel computeFiv2 for NGON zones
+# Parallel computeDiv2 for NGON zones
 # BCMatch must be set in t
 #=============================================================================
-def _computeDiv2(t, var, withCellN=True):
+def _computeDiv2(t, var, rmVar=False):
     """Compute the divergence of a variable defined in array."""
-    if Cmpi.size == 1: return P._computeDiv2(t, var, withCellN)
+    if Cmpi.size == 1:
+        return P._computeDiv2(t, var, rmVar=rmVar)
 
     import Converter.converter
     import Post
 
     vare = var.split(':')
-    if len(vare) > 1: vare = vare[1]
+    if len(vare) > 1: loc, vare = vare[:2]
+    varList = [var + d for d in ["X", "Y", "Z"]]
+    vareList = [vare + d for d in ["X", "Y", "Z"]]
 
     # Compute graph of match
     procDict = Cmpi.getProcDict(t)
@@ -357,13 +357,13 @@ def _computeDiv2(t, var, withCellN=True):
                 if oppNode not in export: export[oppNode] = [n]
                 else: export[oppNode] += [n]
         elif dim[0] == 'Structured':
-            fields = C.getField(vare, z, api=3)
+            fields = C.getFields(loc, z, vars=vareList, api=3)[0]
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
             for gc in GCs:
                 donor = Internal.getValue(gc)
-                #PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
-                #PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
                 prr = Internal.getNodeFromName1(gc, 'PointRange')
                 prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
                 wr = Internal.range2Window(prr[1])
@@ -400,7 +400,7 @@ def _computeDiv2(t, var, withCellN=True):
                                                                Internal.__FlowSolutionNodes__,
                                                                Internal.__FlowSolutionCenters__)
             elif dim[0] == 'Structured':
-                fields = C.getAllFields(z, 'centers', api=3)
+                fields = C.getAllFields(z, 'centers', api=3)[0]
                 fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
             else:
                 raise(TypeError, "computeDiv2: invalid grid type.")
@@ -411,20 +411,15 @@ def _computeDiv2(t, var, withCellN=True):
 
     for z in zones:
         zn = z[0]
-        # Test if vol present
+        # Test if vol and cellN are present
         vol = None
+        cellN = None
         cont = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
         if cont is not None:
             vol = Internal.getNodeFromName1(cont, 'vol')
             if vol is not None: vol = vol[1]
-
-        # Test if cellN present
-        cellN = None
-        if withCellN:
-            if cont is not None:
-                cellN  = Internal.getNodeFromName1(cont, 'cellN')
-                if cellN is not None: cellN = cellN[1]
-        else: cellN = None
+            cellN = Internal.getNodeFromName1(cont, 'cellN')
+            if cellN is not None: cellN = cellN[1]
 
         # get BCDataSet
         isghost = Internal.getNodeFromType1(z, 'Rind_t')
@@ -447,7 +442,7 @@ def _computeDiv2(t, var, withCellN=True):
                             if zn not in BCField: BCField[zn] = bcfp
                             else: BCField[zn] = numpy.concatenate((BCField[zn], bcfp))
 
-        f = C.getField(var, z, api=1)[0]
+        f = C.getFields(loc, z, vars=vareList, api=1)[0]
         x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
 
         if f != []:
@@ -456,7 +451,12 @@ def _computeDiv2(t, var, withCellN=True):
             if zn in BCField: bcf = BCField[zn]
             else: bcf = None
 
-            centers = Post.computeDiv2(x, f, vol, cellN, indices=inds, BCField=bcf)
+            centers = Post.computeDiv2(x, f, vol, cellN, indices=inds) #, BCField=bcf) # TODO
             C.setFields([centers], z, 'centers')
+
+    # Conditional clean up of partial derivatives
+    if rmVar:
+        C._rmVars(t, varList)
+        C._rmBCDataVars(t, vareList)
 
     return None

@@ -832,10 +832,8 @@ def runTests(update=False):
         no = int(s)
         t = Listbox.get(s)
         splits = t.split(separator)
-        module = splits[0]
-        test = splits[1]
-        module = module.strip()
-        test = test.strip()
+        module = splits[0].strip()
+        test = splits[1].strip()
         if update:  # Delete reference
             modulesDir = MODULESDIR[BASE4COMPARE][module]
             if module == 'CFDBase':
@@ -975,11 +973,10 @@ def writeTestMetadata():
 # IN: file: file name
 #==============================================================================
 def rmFile(path, fileName):
+    filepath = os.path.join(path, DATA, fileName)
     try:
-        filepath = os.path.join(path, fileName)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-    except Exception:
+        for f in glob.glob(filepath): os.remove(f)
+    except (FileNotFoundError, PermissionError):
         pass
 
 #==============================================================================
