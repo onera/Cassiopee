@@ -376,6 +376,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
     cartbgExtent    = dictGridCart['cartbgExtent']
     cartbgBC        = dictGridCart['cartbgBC']
     matchExtent     = dictGridCart['matchExtent']
+    extrudedInY     = dictGridCart['extrudedInY']
 
     nCellsCartesian = [0, 0, 0]
     lengthBG        = [1, 1, 1]
@@ -383,11 +384,17 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
 
     snearMin = min(snearsFlat)
     lengthBGMin = min(lengthBG[1], lengthBG[0])
+    if extrudedInY: lengthBGMin = lengthBG[0] # determine levelSkel for the x-z plane - disregarding the y direction
     if dim == 3: lengthBGMin=min(lengthBGMin, lengthBG[2])
     levelSkel = int(math.log2(lengthBGMin/snearMin))+1
     snearloc = 2**levelSkel*snearMin
     while snearloc > lengthBGMin/8: # security so that levelSkel is not too big
         snearloc  /= 2.; levelSkel -= 1
+
+    if extrudedInY: # Deltax_i needs to the same in each direction
+        while snearloc > (cartbgExtent[4]-cartbgExtent[1]): # security so that levelSkel is not too big
+            snearloc  /= 2.; levelSkel -= 1
+
     for i in range(dim): nCellsCartesian[i]=int(lengthBG[i]/snearloc)
 
     if dim == 2: cartbgExtent[2] = C.getMaxValue(tb, 'GridCoordinates')[2]
@@ -1255,7 +1262,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         if 'cartbgExtent' not in dictGridCart: dictGridCart['cartbgExtent'] = [-100, -100, -100, 100, 100, 100]
         if 'cartbgBC' not in dictGridCart: dictGridCart['cartbgBC'] = ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
         if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
+        if 'extrudedInY' not in dictGridCart: dictGridCart['extrudedInY'] = False
 
+    extrudedInY = dictGridCart['extrudedInY']
     # e.g. for dictGridCart
     #dictGridCart={
     #    'gridType': 'cartesian',
@@ -1326,7 +1335,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         tb_tbox[2] += Internal.getBases(tbox)
 
         if vminsTbox is None:
-            vminsTbox = numpy.ones((numTbox,levelMax))*5
+            vminsTbox = numpy.ones((numTbox,levelMax))*3
             vminsTbox = vminsTbox.tolist()
         else:
             vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
@@ -1356,7 +1365,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     vmins=[]
     for nBase in range(numBase):
         vmins.append(list(vminsLocal[nBase]))
-        vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
+        vmins[nBase] = [max(3,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
     if dictGridCart['gridType']=='cartesian':
@@ -1437,7 +1446,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             if dictGridCart['gridType'] == 'cartesian':
                 if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
                 if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
-
+            if extrudedInY and i==1: continue
             if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
             elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
             else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
