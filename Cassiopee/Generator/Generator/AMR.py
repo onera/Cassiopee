@@ -1068,7 +1068,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                 indicMax = C.getMaxValue(o,"centers:indicator")
                 indicMax = Cmpi.allgather(indicMax)
                 indicMax = max(indicMax)
-                if indicMax<1. or (i == 0 and adaptPass > 0):
+                if indicMax<1. or (i == 0 and adaptPass > 0 and nBase == 0):
                     adapting=False
                     C._rmVars(o,["centers:indicator"])
                     break
@@ -1410,6 +1410,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     Cmpi.barrier()
 
     bbo = G.bbox(o)
+    minval_bbo = C.getMinValue(o, 'GridCoordinates');
+    maxval_bbo = C.getMaxValue(o, 'GridCoordinates');
 
     dir_sym      = getSymmetryPlaneInfo__(tb, dim=dim)
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
@@ -1426,10 +1428,19 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     dfarmaxLocal = []
     for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
         bbTbLocal = G.bbox(tbLocal)
+
+        minval_bbTbLocal = C.getMinValue(tbLocal, 'GridCoordinates');
+        maxval_bbTbLocal = C.getMaxValue(tbLocal, 'GridCoordinates');
         dfarmax   = 1e10
         for i in range(dim):
-            if i+1 == dir_sym: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
-            else:              dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
+            isSkipMin=False; isSkipMax=False;
+            if dictGridCart['gridType'] == 'cartesian':
+                if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
+                if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
+
+            if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
+            elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
+            else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
             dfarmax    = min(dfarmaxTmp, dfarmax)
         dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
 
@@ -1451,10 +1462,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             if not offsetValuesBase:
-                no_adapt = 0
-                offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
-                Cmpi.abort(errorcode=1)
+                if dictGridCart['gridType'] == 'octree':
+                    no_adapt = 0
+                    offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
+                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
+                    Cmpi.abort(errorcode=1)
+                elif dictGridCart['gridType'] == 'cartesian':
+                    hminLocal = snearsTbTbox[nBase][0]
+                    offsetloc = hminLocal*1
+                    offsetValuesBase.append(offsetloc)
             offsetValues.append(offsetValuesBase)
 
         # generate list of offsets
