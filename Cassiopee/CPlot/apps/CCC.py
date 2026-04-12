@@ -323,10 +323,9 @@ def runSingleCase(string, no):
 # IN: file: file name
 #==============================================================================
 def rmFile(path, file):
+    filepath = os.path.join(path, file)
     try:
-        filepath = os.path.join(path, file)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        os.remove(filepath)
     except (FileNotFoundError, PermissionError):
         pass
 
