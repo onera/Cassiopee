@@ -29,7 +29,8 @@
 void K_METRIC::compUnstructCenterInt(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* xint, E_Float* yint, E_Float* zint
+  E_Float* xint, E_Float* yint, E_Float* zint,
+  E_Bool expandToLowerDim
 )
 {
   E_Int fctOffset = 0;
@@ -39,7 +40,7 @@ void K_METRIC::compUnstructCenterInt(
 
   // Number of facets per element
   std::vector<E_Int> nfpe;
-  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
   if (ierr != 0) return;
 
   for (E_Int ic = 0; ic < nc; ic++)
@@ -48,7 +49,50 @@ void K_METRIC::compUnstructCenterInt(
     E_Int nelts = cm.getSize();
     E_Int nfpc;  // number of facets per connectivity
 
-    if (strcmp(eltTypes[ic], "TRI") == 0)
+    if (strcmp(eltTypes[ic], "BAR") == 0)
+    {
+      #pragma omp parallel
+      {
+        E_Int ind1, ind2, pos;
+        E_Float x1, x2;
+        E_Float y1, y2;
+        E_Float z1, z2;
+
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          ind1 = cm(i, 1) - 1;
+          ind2 = cm(i, 2) - 1;
+
+          x1 = xt[ind1]; x2 = xt[ind2];
+          y1 = yt[ind1]; y2 = yt[ind2];
+          z1 = zt[ind1]; z2 = zt[ind2];
+
+          if (expandToLowerDim) // two facets per elt
+          {
+            // facette 1
+            pos = fctOffset + i * nfpe[ic];
+            xint[pos] = x1;
+            yint[pos] = y1;
+            zint[pos] = z1;
+
+            // facette 2
+            pos += 1;
+            xint[pos] = x2;
+            yint[pos] = y2;
+            zint[pos] = z2;
+          }
+          else // one facet per elt
+          {
+            pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
+            xint[pos] = K_CONST::ONE_HALF * (x1 + x2);
+            yint[pos] = K_CONST::ONE_HALF * (y1 + y2);
+            zint[pos] = K_CONST::ONE_HALF * (z1 + z2);
+          }
+        }
+      }
+    }
+    else if (strcmp(eltTypes[ic], "TRI") == 0)
     {
       #pragma omp parallel
       {
@@ -68,10 +112,33 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3];
 
-          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
-          xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
-          yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
-          zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
+          if (expandToLowerDim) // three facets per elt
+          {
+            // facette 12
+            pos = fctOffset + i * nfpe[ic];
+            xint[pos] = K_CONST::ONE_HALF * (x1 + x2);
+            yint[pos] = K_CONST::ONE_HALF * (y1 + y2);
+            zint[pos] = K_CONST::ONE_HALF * (z1 + z2);
+
+            // facette 23
+            pos += 1;
+            xint[pos] = K_CONST::ONE_HALF * (x2 + x3);
+            yint[pos] = K_CONST::ONE_HALF * (y2 + y3);
+            zint[pos] = K_CONST::ONE_HALF * (z2 + z3);
+
+            // facette 31
+            pos += 1;
+            xint[pos] = K_CONST::ONE_HALF * (x3 + x1);
+            yint[pos] = K_CONST::ONE_HALF * (y3 + y1);
+            zint[pos] = K_CONST::ONE_HALF * (z3 + z1);
+          }
+          else // one facet per elt
+          {
+            pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
+            xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
+            yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
+            zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
+          }
         }
       }
     }
@@ -96,10 +163,39 @@ void K_METRIC::compUnstructCenterInt(
           y1 = yt[ind1]; y2 = yt[ind2]; y3 = yt[ind3]; y4 = yt[ind4];
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
 
-          pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
-          xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
-          yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
-          zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
+          if (expandToLowerDim) // four facets per elt
+          {
+            // facette 12
+            pos = fctOffset + i * nfpe[ic];
+            xint[pos] = K_CONST::ONE_HALF * (x1 + x2);
+            yint[pos] = K_CONST::ONE_HALF * (y1 + y2);
+            zint[pos] = K_CONST::ONE_HALF * (z1 + z2);
+
+            // facette 23
+            pos += 1;
+            xint[pos] = K_CONST::ONE_HALF * (x2 + x3);
+            yint[pos] = K_CONST::ONE_HALF * (y2 + y3);
+            zint[pos] = K_CONST::ONE_HALF * (z2 + z3);
+
+            // facette 34
+            pos += 1;
+            xint[pos] = K_CONST::ONE_HALF * (x3 + x4);
+            yint[pos] = K_CONST::ONE_HALF * (y3 + y4);
+            zint[pos] = K_CONST::ONE_HALF * (z3 + z4);
+
+            // facette 41
+            pos += 1;
+            xint[pos] = K_CONST::ONE_HALF * (x4 + x1);
+            yint[pos] = K_CONST::ONE_HALF * (y4 + y1);
+            zint[pos] = K_CONST::ONE_HALF * (z4 + z1);
+          }
+          else // one facet per elt
+          {
+            pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe[ic]
+            xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
+            yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
+            zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
+          }
         }
       }
     }

@@ -242,7 +242,8 @@ namespace K_METRIC
   void compUnstructCenterInt(
     K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
-    E_Float* xint, E_Float* yint, E_Float* zint);
+    E_Float* xint, E_Float* yint, E_Float* zint,
+    E_Bool expandToLowerDim=true);
 
   /* Calcul du volume de toutes les cellules et des surfaces des interfaces
      CAS NON STRUCTURE
