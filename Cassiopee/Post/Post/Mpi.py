@@ -397,7 +397,6 @@ def _computeDiv2(t, var, rmVar=False):
 
     # Mean on faces (we must find the opposite face from donor name)
     indices = {}; BCFieldX = {}; BCFieldY = {}; BCFieldZ = {}
-    if Cmpi.master: print("BOOM")
     for i in recvDatas:
         for n in recvDatas[i]:
             # donor is supposed to have a unique matching match
