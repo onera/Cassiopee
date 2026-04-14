@@ -195,10 +195,12 @@ def _computeGrad2(t, var, withCellN=True):
                 donor = Internal.getValue(gc)
                 PL = Internal.getBCFaceNode(z, gc)[1] # PointList
                 PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
-                fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
-                                                           Internal.__GridCoordinates__,
-                                                           Internal.__FlowSolutionNodes__,
-                                                           Internal.__FlowSolutionCenters__)
+                fld = Converter.converter.extractBCMatchNG(
+                    z, PL, [vare],
+                    Internal.__GridCoordinates__,
+                    Internal.__FlowSolutionNodes__,
+                    Internal.__FlowSolutionCenters__
+                )
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -221,9 +223,12 @@ def _computeGrad2(t, var, withCellN=True):
                 tri = Internal.getNodeFromName1(gc, 'Transform')
                 tri = Internal.getValue(tri)
                 (t1,t2,t3) = tri
-                [indR,fld]  = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                                       (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                       (niR,njR,nkR),(t1,t2,t3))
+                indR, fld = Converter.converter.extractBCMatchStruct(
+                    fields, (iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                    (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                    (niR,njR,nkR),
+                    (t1,t2,t3)
+                )
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -243,10 +248,12 @@ def _computeGrad2(t, var, withCellN=True):
             zn = z[0]
             dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured' and dim[3] == 'NGON':
-                fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
-                                                               Internal.__GridCoordinates__,
-                                                               Internal.__FlowSolutionNodes__,
-                                                               Internal.__FlowSolutionCenters__)
+                fld1 = Converter.converter.buildBCMatchFieldNG(
+                    z, PLD, fld, [vare],
+                    Internal.__GridCoordinates__,
+                    Internal.__FlowSolutionNodes__,
+                    Internal.__FlowSolutionCenters__
+                )
             elif dim[0] == 'Structured':
                 fields = C.getAllFields(z, 'centers', api=3)[0]
                 fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
@@ -341,17 +348,18 @@ def _computeDiv2(t, var, rmVar=False):
             # adaptation needed by actual computeDiv2
             Internal._adaptNGon42NGon3(z)
             Internal._adaptNFace2PE(z, remove=False)
-
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
             for gc in GCs:
                 donor = Internal.getValue(gc)
                 PL = Internal.getBCFaceNode(z, gc)[1] # PointList
                 PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
-                fld = Converter.converter.extractBCMatchNG(z, PL, [vare],
-                                                           Internal.__GridCoordinates__,
-                                                           Internal.__FlowSolutionNodes__,
-                                                           Internal.__FlowSolutionCenters__)
+                fld = Converter.converter.extractBCMatchNG(
+                    z, PL, vareList,
+                    Internal.__GridCoordinates__,
+                    Internal.__FlowSolutionNodes__,
+                    Internal.__FlowSolutionCenters__
+                )
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -368,15 +376,17 @@ def _computeDiv2(t, var, rmVar=False):
                 prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
                 wr = Internal.range2Window(prr[1])
                 wd = Internal.range2Window(prd[1])
-                (iminR,imaxR,jminR,jmaxR,kminR,kmaxR) = wr
-                (iminD,imaxD,jminD,jmaxD,kminD,kmaxD) = wd
+                iminR, imaxR, jminR, jmaxR, kminR, kmaxR = wr
+                iminD, imaxD, jminD, jmaxD, kminD, kmaxD = wd
                 niR = dim[1]; njR = dim[2]; nkR = dim[3]
                 tri = Internal.getNodeFromName1(gc, 'Transform')
                 tri = Internal.getValue(tri)
-                (t1,t2,t3) = tri
-                [indR,fld] = Converter.converter.extractBCMatchStruct(fields,(iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
-                                                                      (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
-                                                                      (niR,njR,nkR),(t1,t2,t3))
+                t1, t2, t3 = tri
+                indR, fld = Converter.converter.extractBCMatchStruct(
+                    fields, (iminD,jminD,kminD,imaxD,jmaxD,kmaxD),
+                    (iminR,jminR,kminR,imaxR,jmaxR,kmaxR),
+                    (niR,njR,nkR), (t1,t2,t3)
+                )
                 oppNode = procDict[donor]
                 n = [donor, z[0], fld, PLD.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
@@ -386,19 +396,21 @@ def _computeDiv2(t, var, rmVar=False):
     recvDatas = Cmpi.sendRecv(export, graph)
 
     # Mean on faces (we must find the opposite face from donor name)
-    indices = {}; BCField = {}
+    indices = {}; BCFieldX = {}; BCFieldY = {}; BCFieldZ = {}
     for i in recvDatas:
         for n in recvDatas[i]:
             # donor is supposed to have a unique matching match
-            (donor, source, fld, PLD) = n
+            donor, source, fld, PLD = n
             z = Internal.getNodeFromName2(t, donor)
             zn = z[0]
             dim = Internal.getZoneDim(z)
             if dim[0] == 'Unstructured' and dim[3] == 'NGON':
-                fld1 = Converter.converter.buildBCMatchFieldNG(z, PLD, fld, [vare],
-                                                               Internal.__GridCoordinates__,
-                                                               Internal.__FlowSolutionNodes__,
-                                                               Internal.__FlowSolutionCenters__)
+                fld1 = Converter.converter.buildBCMatchFieldNG(
+                    z, PLD, fld, vareList,
+                    Internal.__GridCoordinates__,
+                    Internal.__FlowSolutionNodes__,
+                    Internal.__FlowSolutionCenters__
+                )
             elif dim[0] == 'Structured':
                 fields = C.getAllFields(z, 'centers', api=3)[0]
                 fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
@@ -406,8 +418,13 @@ def _computeDiv2(t, var, rmVar=False):
                 raise(TypeError, "computeDiv2: invalid grid type.")
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))
-            if zn not in BCField: BCField[zn] = fld1[1][0].ravel('k')
-            else: BCField[zn] = numpy.concatenate((BCField[zn], fld1[1][0].ravel('k')))
+            # TODO: change path fld1[1][0] now that there is a list of vars
+            if zn not in BCFieldX: BCFieldX[zn] = fld1[1][0].ravel('k')
+            else: BCFieldX[zn] = numpy.concatenate((BCFieldX[zn], fld1[1][0].ravel('k')))
+            if zn not in BCFieldY: BCFieldY[zn] = fld1[1][0].ravel('k')
+            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], fld1[1][0].ravel('k')))
+            if zn not in BCFieldZ: BCFieldZ[zn] = fld1[1][0].ravel('k')
+            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], fld1[1][0].ravel('k')))
 
     for z in zones:
         zn = z[0]
@@ -431,27 +448,37 @@ def _computeDiv2(t, var, rmVar=False):
                     datas = Internal.getBCDataSet(z, b)
                     inds = Internal.getBCFaceNode(z, b)
                     if datas != [] and inds != []:
-                        bcf = None
+                        bcfx, bcfy, bcfz = None, None, None
                         for i in datas:
-                            if i[0] == vare: bcf = i; break
-                        if bcf is not None:
+                            if bcfx is None and i[0] == vareList[0]: bcfx = i
+                            elif bcfy is None and i[0] == vareList[1]: bcfy = i
+                            elif bcfz is None and i[0] == vareList[2]: bcfz = i
+                        if bcfx is not None and bcfy is not None and bcfz is not None:
                             indsp = inds[1].ravel(order='K')
-                            bcfp = bcf[1].ravel(order='K')
+                            bcfpx = bcfx[1].ravel(order='K')
+                            bcfpy = bcfy[1].ravel(order='K')
+                            bcfpz = bcfz[1].ravel(order='K')
                             if zn not in indices: indices[zn] = indsp
-                            else: indices[zn] = numpy.concatenate((indices[zn], indsp))
-                            if zn not in BCField: BCField[zn] = bcfp
-                            else: BCField[zn] = numpy.concatenate((BCField[zn], bcfp))
+                            else: indices[zn] = numpy.concatenate((indices[zn], indsp), axis=1)
+                            if zn not in BCFieldX: BCFieldX[zn] = bcfpx
+                            else: BCFieldX[zn] = numpy.concatenate((BCFieldX[zn], bcfpx), axis=1)
+                            if zn not in BCFieldY: BCFieldY[zn] = bcfpy
+                            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], bcfpy), axis=1)
+                            if zn not in BCFieldZ: BCFieldZ[zn] = bcfpz
+                            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], bcfpz), axis=1)
 
         f = C.getFields(loc, z, vars=vareList, api=1)[0]
         x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
 
         if f != []:
-            if zn in indices: inds = indices[zn]
-            else: inds = None
-            if zn in BCField: bcf = BCField[zn]
-            else: bcf = None
-
-            centers = Post.computeDiv2(x, f, vol, cellN, indices=inds) #, BCField=bcf) # TODO
+            inds = indices[zn] if zn in indices else None
+            bcfx = BCFieldX[zn] if zn in BCFieldX else None
+            bcfy = BCFieldY[zn] if zn in BCFieldY else None
+            bcfz = BCFieldZ[zn] if zn in BCFieldX else None
+            centers = Post.computeDiv2(
+                x, f, vol, cellN, indices=inds,
+                BCFieldX=bcfx, BCFieldY=bcfy, BCFieldZ=bcfz
+            )
             C.setFields([centers], z, 'centers')
 
     # Conditional clean up of partial derivatives
