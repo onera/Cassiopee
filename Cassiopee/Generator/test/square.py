@@ -1,4 +1,4 @@
-# - square -
+# - square (array) -
 import Converter as C
 from Generator.Shapes import square
 

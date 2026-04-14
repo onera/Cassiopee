@@ -1174,7 +1174,7 @@ class Eq:
 
     def analyse(self):
         """Analyse equation to return vars and symbols."""
-        keywords = ["=", "length", "\*", "\+", "\-", "\/", "cos", "sin", "\(", "\)"]
+        keywords = ["=", "length", "*", "+", "-", "/", "cos", "sin", "(", ")"]
         pattern = f"({'|'.join(keywords)})"
         segments = re.split(pattern, self.expr)
         segments = [s.strip() for s in segments if s]  # nettoyage

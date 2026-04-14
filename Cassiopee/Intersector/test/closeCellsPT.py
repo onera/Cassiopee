@@ -1,4 +1,4 @@
-# - triangulateExteriorFaces (array) -
+# - closeCells (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import KCore.test as test

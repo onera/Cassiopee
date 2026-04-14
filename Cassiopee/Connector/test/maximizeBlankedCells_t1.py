@@ -1,4 +1,4 @@
-# - maximizeBlankedCells (array) 2D-
+# - maximizeBlankedCells (array) -
 import Converter as C
 import Connector as X
 import Generator as G

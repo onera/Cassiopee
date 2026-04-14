@@ -1,4 +1,4 @@
-# - TFITri (array)
+# - TFITri (array) -
 import Converter as C
 import Generator as G
 import Geom as D

@@ -1,4 +1,4 @@
-# test - enforceCurvature2 (array)
+# - enforceCurvature2 (array) -
 import Converter as C
 import Geom as D
 import Generator as G

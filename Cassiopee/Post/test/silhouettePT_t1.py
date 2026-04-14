@@ -1,11 +1,10 @@
-# - silhouette (array) -
+# - silhouette (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Post.PyTree as P
 import Transform.PyTree as T
 import Geom.PyTree as D
 import KCore.test as test
-
 
 # 1D structure
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,1,1))

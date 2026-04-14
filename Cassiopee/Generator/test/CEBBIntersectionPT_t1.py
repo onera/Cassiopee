@@ -1,4 +1,4 @@
-# - CEBBIntersection (pyTree)-
+# - CEBBIntersection (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Transform.PyTree as T

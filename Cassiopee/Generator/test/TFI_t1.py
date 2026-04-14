@@ -1,4 +1,4 @@
-# - TFI 2D structure -
+# - TFI (array) -
 import Generator as G
 import Geom as D
 import Converter as C

@@ -1,4 +1,4 @@
-# - check if mesh is cartesian -
+# - checkCartesian (pyTree) -
 import Transform.PyTree as T
 import KCore.test as test
 import Converter.PyTree as C

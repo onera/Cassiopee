@@ -1,4 +1,4 @@
-# - convertCAD2Arrays (arrays) -
+# - convertCAD2Arrays (array) -
 import OCC
 import KCore.test as test
 

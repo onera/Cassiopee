@@ -1,4 +1,4 @@
-# - exteriorFacesStructured (pyTree)-
+# - exteriorFacesStructured (pyTree) -
 import Converter.PyTree as C
 import Post.PyTree as P
 import Generator.PyTree as G

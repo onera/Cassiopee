@@ -1,4 +1,4 @@
-# - blankIntersectingCells (array)
+# - blankIntersectingCells (array) -
 import Converter as C
 import Generator as G
 import Transform as T
@@ -9,4 +9,4 @@ a2 = T.translate(a2, (7.,5.,5.))
 A = [a1,a2]
 Ac = C.node2Center(A); Ac = C.initVars(Ac,'cellN',1.);
 Ac = X.blankIntersectingCells(A, Ac, tol=1.e-10)
-C.convertArrays2File(Ac,"out.plt")
+C.convertArrays2File(Ac, "out.plt")

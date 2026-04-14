@@ -1,4 +1,4 @@
-# - cartHexa (array) -
+# - cartPyra (array) -
 import Generator as G
 import Converter as C
 

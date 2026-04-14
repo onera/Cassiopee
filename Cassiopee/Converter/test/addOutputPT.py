@@ -1,4 +1,4 @@
-# - addOutput(pyTree) -
+# - addOutput (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Internal as Internal
@@ -13,4 +13,4 @@ dict['loc'] = 1
 dict['fluxcoef'] = 1.
 dict['period'] = 10
 for b in bcs: elsAProfile._addOutput(b,dict)
-C.convertPyTree2File(a,'out.cgns')
+C.convertPyTree2File(a, 'out.cgns')

@@ -1,4 +1,4 @@
-# - extractPressureGradients (pyTree) -
+# - extractPressureHighOrder (pyTree) -
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Post.IBM as P_IBM

@@ -1,4 +1,4 @@
-# - boolean reorientExternalFaces (array) -
+# - checkCellsClosure (array) -
 import Generator as G
 import Converter as C
 import Intersector as XOR

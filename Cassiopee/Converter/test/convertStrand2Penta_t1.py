@@ -1,4 +1,4 @@
-# - convertSTrand2Penta (array) -
+# - convertStrand2Penta (array) -
 import Converter as C
 import Generator as G
 import KCore.test as test

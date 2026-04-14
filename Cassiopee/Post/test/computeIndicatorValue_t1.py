@@ -1,9 +1,10 @@
-# - compIndicatorValue(array) -
+# - computeIndicatorValue (array) -
 import Generator as G
 import Converter as C
 import Geom as D
 import Post as P
 import KCore.test as test
+
 #2D
 s = D.circle((0,0,0),1.)
 snear = 0.1

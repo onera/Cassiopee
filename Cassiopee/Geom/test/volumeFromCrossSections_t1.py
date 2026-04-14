@@ -1,4 +1,4 @@
-# - volumeFromCrossSections -
+# - volumeFromCrossSections (array) -
 import Geom as D
 import KCore.test as test
 contours = []

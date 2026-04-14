@@ -1,4 +1,4 @@
-# - extractionIBM a la paroi (pyTree) -
+# - extractIBMWallFields (pyTree) -
 import Converter.PyTree as C
 import Post.IBM as P_IBM
 import Geom.PyTree as D

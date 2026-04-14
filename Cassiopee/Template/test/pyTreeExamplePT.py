@@ -1,4 +1,4 @@
-# - pyTreeExample -
+# - pyTreeExample (pyTree) -
 import Generator.PyTree as G
 import Template.PyTree as T
 

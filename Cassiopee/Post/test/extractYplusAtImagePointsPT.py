@@ -1,4 +1,4 @@
-# - computePressureGradients (pyTree) -
+# - extractYplusAtImagePoints (pyTree) -
 import Converter.Internal as Internal
 import Converter.PyTree as C
 import Generator.PyTree as G

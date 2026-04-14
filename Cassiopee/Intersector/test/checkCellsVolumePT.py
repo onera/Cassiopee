@@ -1,4 +1,4 @@
-# - boolean checkCellsClosure (array) -
+# - checkCellsVolume (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Intersector.PyTree as XOR

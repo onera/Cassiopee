@@ -1,4 +1,4 @@
-# - polyC1Mesher (pyTree)-
+# - polyC1Mesher (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Geom.PyTree as D

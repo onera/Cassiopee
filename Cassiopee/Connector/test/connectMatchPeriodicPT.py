@@ -1,4 +1,4 @@
-# - connectMatch (pyTree) -
+# - connectMatchPeriodic (pyTree) -
 import Generator.PyTree as G
 import Connector.PyTree as X
 import Converter.PyTree as C

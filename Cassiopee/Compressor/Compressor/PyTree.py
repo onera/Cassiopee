@@ -29,9 +29,9 @@ def deltaInterpolations(interpData, ref, loc='cell'):
         oldFaceDir = ref[4]
     else:
         newFaceDir = None
-    r1 = numpy.in1d(newRcvIndices, oldRcvIndices)
-    r2 = numpy.in1d(newRcvIndices, oldRcvIndices, invert=True)
-    r3 = numpy.in1d(oldRcvIndices, newRcvIndices, invert=True)
+    r1 = numpy.isin(newRcvIndices, oldRcvIndices)
+    r2 = numpy.isin(newRcvIndices, oldRcvIndices, invert=True)
+    r3 = numpy.isin(oldRcvIndices, newRcvIndices, invert=True)
     alreadyExistingIndices = newRcvIndices[r1] # indices in oldRcvIndices and newRcvIndices
     newIndices = newRcvIndices[r2]             # indices in newRcvIndices but not in oldRcvIndices
     indicesToDelete = oldRcvIndices[r3]        # indices in oldRcvIndices but not in newRcvIndices

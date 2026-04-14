@@ -1849,7 +1849,7 @@ def getPathsByNameFilter(tree: TreeNode, filter: str) -> List[str]:
 
      import CGNS.PAT.cgnskeywords as CK
 
-     for path in getPathsByNameFilter(T,'/Base[0-1]/domain\..*/.*/.*/FamilyName'):
+     for path in getPathsByNameFilter(T,'/Base[0-1]/domain/..*/.*/.*/FamilyName'):
         print 'FamilyName ',path,' is ',path[2]
 
     :arg CGNS/Python tree: target tree to parse

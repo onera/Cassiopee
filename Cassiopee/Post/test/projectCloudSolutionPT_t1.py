@@ -1,4 +1,4 @@
-# - projectCloudSolution(pyTree) -
+# - projectCloudSolution (pyTree) -
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Post.PyTree as P

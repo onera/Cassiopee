@@ -1,4 +1,4 @@
-# - integMomentNorm (pyTree)-
+# - integMomentNorm (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Post.PyTree as P

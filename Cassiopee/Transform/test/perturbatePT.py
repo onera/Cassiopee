@@ -1,4 +1,4 @@
-# - perturbate (PyTree) -
+# - perturbate (pyTree) -
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C

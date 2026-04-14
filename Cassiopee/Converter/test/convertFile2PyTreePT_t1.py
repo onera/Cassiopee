@@ -1,4 +1,4 @@
-# - convert2File2PyTree (pyTree) -
+# - convertFile2PyTree (pyTree) -
 # - formated tecplot -
 import Converter.PyTree as C
 import Generator.PyTree as G

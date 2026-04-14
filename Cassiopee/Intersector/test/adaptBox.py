@@ -1,5 +1,4 @@
-# - adapt the bounding box of a point cloud (array) -
-
+# - adaptBox (array) -
 import Converter as C
 import Generator as G
 import Intersector as XOR

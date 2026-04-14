@@ -1,4 +1,4 @@
-# - convexify any concave polygon in the mesh (array) -
+# - simplifyCells (array) -
 import Intersector as XOR
 import Converter as C
 import KCore.test as test

@@ -1,4 +1,4 @@
-# - deltaIndex -
+# - deltaIndex (array) -
 import numpy
 import Compressor
 

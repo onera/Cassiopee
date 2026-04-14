@@ -1,4 +1,4 @@
-# - boolean intersection (array) -
+# - booleanIntersection (array) -
 import Intersector as XOR
 import Generator as G
 import Converter as C

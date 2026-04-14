@@ -460,7 +460,7 @@ class ColorControler(object):
         elif var == 'html':
             html = self.html_new.get()
 
-            re_pattern = re_pattern = re.compile('''^\#[0-9A-Fa-f]{6}$''')
+            re_pattern = re_pattern = re.compile('''^#[0-9A-Fa-f]{6}$''')
             # Check the input to be an html color code #AABBCC where AA,BB,CC are hexadecimal number between 0 and 255
             if not re.match(re_pattern,html):
                 return

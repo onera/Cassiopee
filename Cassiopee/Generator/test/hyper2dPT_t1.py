@@ -1,4 +1,4 @@
-# - hyper2D (pyTree)-
+# - hyper2D (pyTree) -
 import Geom.PyTree as D
 import Generator.PyTree as G
 import KCore.test as test

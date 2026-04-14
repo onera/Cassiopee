@@ -1,4 +1,4 @@
-# - arrayExample -
+# - arrayExample (array) -
 import Generator as G
 import Converter as C
 import Template as T

@@ -1,4 +1,4 @@
-# - hyper2D4 (pyTree)-
+# - hyper2D4 (pyTree) -
 import Geom.PyTree as D
 import Generator.PyTree as G
 import Converter.PyTree as C

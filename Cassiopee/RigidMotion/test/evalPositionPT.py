@@ -1,4 +1,4 @@
-# - evalPosition (PyTree) -
+# - evalPosition (pyTree) -
 import RigidMotion.PyTree as R
 import Generator.PyTree as G
 import Converter.PyTree as C

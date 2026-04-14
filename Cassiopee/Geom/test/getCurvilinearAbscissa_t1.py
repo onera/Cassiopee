@@ -1,4 +1,4 @@
-# - getCurvilinearAbscissa -
+# - getCurvilinearAbscissa (array) -
 import Geom as D
 import KCore.test as test
 import Converter as C

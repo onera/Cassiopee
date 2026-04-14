@@ -1,4 +1,4 @@
-# - convertArray2NGon(pyTree) -
+# - convertArray2NGon (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 

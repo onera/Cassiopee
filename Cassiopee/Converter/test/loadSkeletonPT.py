@@ -1,4 +1,4 @@
-# - loadSkeleton -
+# - loadSkeleton (pyTree) -
 import Converter.Filter as Filter
 import Converter.PyTree as C
 import Generator.PyTree as G
