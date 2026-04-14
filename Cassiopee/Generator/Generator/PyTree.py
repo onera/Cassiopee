@@ -1910,7 +1910,7 @@ def getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
     Usage: getAngleRegularityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
+    t = C.TZGC3(t, 'centers', True, Generator.getAngleRegularityMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
@@ -1918,7 +1918,7 @@ def _getAngleRegularityMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
     Usage: getAngleRegularityMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
+    C._TZGC3(t, 'centers', False, Generator.getAngleRegularityMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 

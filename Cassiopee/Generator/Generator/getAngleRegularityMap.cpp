@@ -75,7 +75,10 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     return NULL;
   }
 
+  E_Int api = f->getApi();
+  E_Int npts = f->getSize();
   PyObject* tpl = NULL;
+  FldArrayF* f2;
   
   posx = K_ARRAY::isCoordinateXPresent(varString);
   posy = K_ARRAY::isCoordinateYPresent(varString);
@@ -93,9 +96,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
-
-  E_Int api = f->getApi();
-  E_Int nvertex = f->getSize();
   
   if (res == 1) // cas structure
   {
@@ -142,7 +142,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     // definissant l'orthogonalite
     tpl = K_ARRAY::buildArray3(1, "regularityAngle", im1, jm1, km1, api);
     // pointeur sur le tableau d'angle
-    FldArrayF* f2;
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1);
 
@@ -287,10 +286,101 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   }
   else // if (res == 2)
   {
-    PyObject* tpl = K_ARRAY::buildArray3(1, "regularityAngle", nvertex, *cn, eltType, 1, api, true);
-    FldArrayF* f2;
+    PyObject* tpl = K_ARRAY::buildArray3(
+      1, "regularityAngle", npts, *cn, eltType, true, api, true
+    );
     K_ARRAY::getFromArray3(tpl, f2);
-    f2->setAllValuesAtNull();
+    E_Float* alphamax = f2->begin(1); // pointeur sur le tableau d'angle
+
+    if (strcmp(eltType, "NGON") == 0)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "getAngleRegumarityMap: not implemented for NGON arrays.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
+      return NULL;
+    }
+
+    E_Int nc = cn->getNConnect();
+
+    // Number of facets per element
+    std::vector<E_Int> nfpe;
+    E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+    if (ierr != 0)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "getAngleRegularityMap: Error computing nfpe.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
+      return NULL;
+    }
+
+    // Total number of elements/facets
+    E_Int ntotFacets = 0;
+    E_Int ntotElts = 0;
+    std::vector<E_Int> nepc(nc+1), nfpc(nc+1);
+    nepc[0] = 0; nfpc[0] = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+      E_Int nelts = cm.getSize();
+      nepc[ic+1] = nepc[ic] + nelts;
+      nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
+      ntotElts += nelts;
+      ntotFacets += nfpe[ic]*nelts;
+    }
+
+    // Compute center of facets
+    K_FLD::FldArrayF fxint(ntotFacets), fyint(ntotFacets), fzint(ntotFacets);
+    K_METRIC::compUnstructCenterInt(*cn, eltType, x, y, z,
+      fxint.begin(), fyint.begin(), fzint.begin(), true
+    );
+    E_Float* xint = fxint.begin(1);
+    E_Float* yint = fyint.begin(1);
+    E_Float* zint = fzint.begin(1);
+
+    // Compute center of elements
+    K_FLD::FldArrayF fxb(ntotElts), fyb(ntotElts), fzb(ntotElts);
+    K_METRIC::compUnstructCellCenter(*cn, x, y, z,
+      fxb.begin(), fyb.begin(), fzb.begin()
+    );
+    E_Float* xb = fxb.begin(1);
+    E_Float* yb = fyb.begin(1);
+    E_Float* zb = fzb.begin(1);
+
+    // for (E_Int j=0; j<ntotFacets; j++) printf("(facet %d): xint/yint = %2.3f/%2.3f\n", j, xint[j], yint[j]);
+    // for (E_Int j=0; j<ntotElts; j++) printf("(elt %d): xb/yb = %2.3f/%2.3f\n", j, xb[j], yb[j]);
+    // printf("ntotElts = %d, ntotFacets = %d\n", ntotElts, ntotFacets);
+
+    // calcul de la regularite
+    #pragma omp parallel
+    {
+      E_Int nelts, ind, pos;
+      E_Int elOffset, fctOffset;
+      // loop over all connectivities
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        nelts = cm.getSize();
+        elOffset = nepc[ic];
+        fctOffset = nfpc[ic];
+        
+        // loop over all elements of connectivity cm
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          ind = i + elOffset; // true element index
+          alphamax[ind] = 0.;
+
+          // loop over all faces of element i
+          for (E_Int f = 0; f < nfpe[ic]; f++)
+          {
+            pos = f + i*nfpe[ic] + fctOffset;
+          }
+        }
+      }
+    }
+
     RELEASESHAREDS(tpl, f2);
     return tpl;
   }
