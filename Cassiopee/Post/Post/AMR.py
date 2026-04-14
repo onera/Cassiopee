@@ -111,13 +111,17 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False,
     ref[2].append(["Density"  , dictReferenceQuantities["density_ref"] , [], 'DataArray_t'])
     ref[2].append(["Pressure" , dictReferenceQuantities["pressure_ref"], [], 'DataArray_t'])
 
-    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicLoads(zw, dimPb=dim, verbose=verbose, center=center)
-    aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
-    tw, [forcePressure, forceFriction, momentPressure, momentFriction] = P_IBM.computeAerodynamicCoefficients(tw, aeroLoads, dimPb=dim, Sref=Sref, Lref=Lref,
-                                                                                                              alpha=alpha, beta=beta, verbose=verbose)
-    for lst in [forcePressure, forceFriction, momentPressure, momentFriction]: lst[:] = [x / Cmpi.size for x in lst]
+    tw, aeroLoads = P_IBM.computeAerodynamicLoads(zw, dimPb=dim, verbose=verbose, center=center)
+    tw, aeroLoads = P_IBM.computeAerodynamicCoefficients(tw, aeroLoads, dimPb=dim, Sref=Sref, Lref=Lref, alpha=alpha, beta=beta, verbose=verbose)
 
-    return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
+    # Due to the current Mpi, Serial, Mpi workflow for Post AMR-IBM for CODA, we need to divide my Cmpi.size
+    # zw = Cmpi.bcast(zw, root=0) in Apps/Coda/Post.py --> all procs see the same values
+    # This will no longer be needed when the workflow is 100% Mpi :: it is in the TODO pipeline !
+    aeroLoads = [[x / Cmpi.size for x in y] for y in aeroLoads] 
+
+    # Important Note:
+    # aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
+    return tw, aeroLoads
 
 
 ##========================================================================
