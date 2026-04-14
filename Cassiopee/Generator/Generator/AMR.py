@@ -268,12 +268,12 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
     return t_offset
 
 # Generates an isotropic skeleton mesh to be adapted then by AMR
-def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode=0):
+def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     surfaces=[]; dfarList=[]; snearsList=[]; levelSkelList=[]
-    # This clips the upper limit on the number of offset level to the input value. Important for tests & devs.
-    # This is an expert expert parameter & should be used with (a lot of) caution.
+    # This clips the upper limit on the number of offset level to the input value. 
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
-    forceUpperLimitOffset = False
+    if levelSkel==50: forceUpperLimitOffset = False
+    else: forceUpperLimitOffset = True
 
     # list of dfars
     bodies = Internal.getZones(tb)
@@ -293,6 +293,7 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
             levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
             #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
             if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+            else: levelSkel = min(levelSkel, levelSkelLoc) 
             dfarloc = dfars[c]
             snearloc = 2**levelSkel*snears[c]
             while snearloc > dfarloc/2: # security so that levelSkel is not too big
@@ -326,12 +327,12 @@ def generateSkeletonMesh__(tb, snears, dfars=10., dim=3, levelSkel=7, octreeMode
         dxdydz_local      = min(snearsList)
         nCellsCartesian_x = int((box[3]-box[0])/dxdydz_local)
         nCellsCartesian_y = int((box[4]-box[1])/dxdydz_local)
-        nCellsCartesian_z = 1
+        nCellsCartesian_z = 0
         dz_local          = box[5]-box[2]
         if dim == 3:
             nCellsCartesian_z = int((box[5]-box[2])/dxdydz_local)
             dz_local          = dxdydz_local
-        o = G.cart((box[0],box[1],box[2]), (dxdydz_local, dxdydz_local, dz_local), (nCellsCartesian_x+1, nCellsCartesian_y+1,nCellsCartesian_z+1))
+        o = G.cart((box[0],box[1],box[2]), (dxdydz_local, dxdydz_local, dz_local), (nCellsCartesian_x+1, nCellsCartesian_y+1, nCellsCartesian_z+1))
     else:
         # adapt the mesh to get a single refinement level - uniform grid
         refined = True
@@ -1184,7 +1185,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # MAIN FUNCTION
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
-def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
+def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None, tbv2=None,
                     blankCellsAlgo='xray'):
     NumMinDxLarge=1
@@ -1192,6 +1193,19 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
+    # levelMax is not required.
+    #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
+    #  b) If levelMax/=0 :
+    #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
+    #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
+    if levelMax<1:
+        levelMax=50 #random large number
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("================== Automatic # of Refinement Levels ===================", flush=True)
+            print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
+            print("=======================================================================", flush=True)
     # NumMinDxLarge : min. number of cells at the largest Deltax between the first refinement & the domain boundary conditions
     # e.g. NumMinDxLarge = 1
     #      |   |   |
@@ -1275,7 +1289,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
     o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
     if newLevelMax != levelMax:
-        if Cmpi.master: print('Warning: modified number of AMR Levels. Old levelMax = %d || New levelMax = %d'%(levelMax, newLevelMax), flush=True)
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("================= Input Number of AMR Levels too high =================", flush=True)
+            print("=============== Using Automatic # of Refinement Levels ================", flush=True)
+            print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
+            print("=======================================================================", flush=True)
         for nBase in range(numBase):
             while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
             vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
