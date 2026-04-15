@@ -372,26 +372,41 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     if Cmpi.master: print('Generating skeleton mesh...end', flush=True)
     return o, levelSkel
 
-def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
+def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
+    # This clips the upper limit on the number of offset level to the input value.
+    # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
+    if levelSkel==50: forceUpperLimitOffset = False
+    else: forceUpperLimitOffset = True
+
     cartbgExtent    = dictGridCart['cartbgExtent']
     cartbgBC        = dictGridCart['cartbgBC']
     matchExtent     = dictGridCart['matchExtent']
     extrudedInY     = dictGridCart['extrudedInY']
 
+    # Max length of the edges of the background Cartesian grid
     nCellsCartesian = [0, 0, 0]
     lengthBG        = [1, 1, 1]
     for i in range(dim): lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
 
+    # The highest # of AMR levels corresponds to the min(snear) and max(edge length)
+    # Cannot use dfar as it is possible the tb intersects the edges/faces of the background grid domain
     snearMin = min(snearsFlat)
-    lengthBGMin = min(lengthBG[1], lengthBG[0])
-    if extrudedInY: lengthBGMin = lengthBG[0] # determine levelSkel for the x-z plane - disregarding the y direction
-    if dim == 3: lengthBGMin=min(lengthBGMin, lengthBG[2])
-    levelSkel = int(math.log2(lengthBGMin/snearMin))+1
+    lengthBGMin = min(lengthBG[1], lengthBG[0]); lengthBGMax = max(lengthBG[1], lengthBG[0]);
+    if extrudedInY:
+        # determine levelSkel for the x-z plane - disregarding the y direction - needed for the y-extruded case
+        lengthBGMin = lengthBG[0]; lengthBGMax = lengthBG[0]
+    if dim == 3:
+        lengthBGMin=min(lengthBGMax, lengthBG[2]); lengthBGMax=max(lengthBGMax, lengthBG[2])
+    levelSkelLoc = int(math.log2(lengthBGMax/snearMin))+1
+
+    if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
+    else: levelSkel = min(levelSkel, levelSkelLoc)
+
     snearloc = 2**levelSkel*snearMin
-    while snearloc > lengthBGMin/8: # security so that levelSkel is not too big
+    while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - atleast
         snearloc  /= 2.; levelSkel -= 1
 
-    if extrudedInY: # Deltax_i needs to the same in each direction
+    if extrudedInY: # Deltax_i needs to the same in each direction - want only 1 background cells in the y-direction
         while snearloc > (cartbgExtent[4]-cartbgExtent[1]): # security so that levelSkel is not too big
             snearloc  /= 2.; levelSkel -= 1
 
@@ -402,6 +417,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim):
     o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
                (snearloc, snearloc, snearloc),
                (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
+
     while(C.getNCells(o) < Cmpi.size):
         # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
         # yields procs with 0 cells. This is a safeguard to avoid this.
@@ -1255,23 +1271,8 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
-                    tbv2=None, blankCellsAlgo='xray', dictGridCart=None):
+                    tbv2=None, blankCellsAlgo='xray', tIn=None):
     NumMinDxLarge=1
-    if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
-    if dictGridCart['gridType'] == 'cartesian':
-        if 'cartbgExtent' not in dictGridCart: dictGridCart['cartbgExtent'] = [-100, -100, -100, 100, 100, 100]
-        if 'cartbgBC' not in dictGridCart: dictGridCart['cartbgBC'] = ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
-        if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
-        if 'extrudedInY' not in dictGridCart: dictGridCart['extrudedInY'] = False
-
-    extrudedInY = dictGridCart['extrudedInY']
-    # e.g. for dictGridCart
-    #dictGridCart={
-    #    'gridType': 'cartesian',
-    #    'cartbgExtent': [-100, -100, -100, 100, 100, 100],
-    #    'cartbgBC': ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
-    #    'matchExtent': [False, False, False, True, True, False]
-    #}
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1368,16 +1369,34 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         vmins[nBase] = [max(3,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
-    if dictGridCart['gridType']=='cartesian':
-        if isSymLocal:
-            if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
-            Cmpi.barrier(); Cmpi.abort()
-        o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim)
-    else:
+    CartT           = False
+    CartExtrudedInY = False
+    if tIn is None:
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("================ Automatic backgroudn grid generation  ================", flush=True)
+            print("=======================================================================", flush=True)
         # levelSkel: initial refinement level of the skeleton octree
         # might be tuned
         # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
         o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+    else:
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("===================== Using input backgroudn grid  ====================", flush=True)
+            print("=======================================================================", flush=True)
+        CartT = True; newLevelMax = levelMax
+        if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)
+        else: o = Internal.copyTree(tIn)
+        del tIn
+        DeltaY = (C.getMinValue(o,"centers:vol"))**(1/dim)
+        Ymin = C.getMinValue(o, 'CoordinateY'); Ymax = C.getMaxValue(o, 'CoordinateY')
+        if abs((Ymax-Ymin)-DeltaY)< 1.e-08: CartExtrudedInY=True
+        if Cmpi.master and CartExtrudedInY:
+            print("=======================================================================", flush=True)
+            print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
+            print("=======================================================================", flush=True)
+
 
     if newLevelMax != levelMax:
         if Cmpi.master:
@@ -1443,10 +1462,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         dfarmax   = 1e10
         for i in range(dim):
             isSkipMin=False; isSkipMax=False;
-            if dictGridCart['gridType'] == 'cartesian':
+            if CartT:
                 if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
                 if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
-            if extrudedInY and i==1: continue
+            if CartExtrudedInY and i==1: continue
             if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
             elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
             else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
@@ -1471,15 +1490,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             if not offsetValuesBase:
-                if dictGridCart['gridType'] == 'octree':
+                if CartT:
+                    hminLocal = snearsTbTbox[nBase][0]
+                    offsetloc = hminLocal*1
+                    offsetValuesBase.append(offsetloc)
+                else:
                     no_adapt = 0
                     offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                     raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
                     Cmpi.abort(errorcode=1)
-                elif dictGridCart['gridType'] == 'cartesian':
-                    hminLocal = snearsTbTbox[nBase][0]
-                    offsetloc = hminLocal*1
-                    offsetValuesBase.append(offsetloc)
             offsetValues.append(offsetValuesBase)
 
         # generate list of offsets
@@ -1502,6 +1521,72 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
+def generateCartBackgroundGrid(tb, levelMax=7, snears=0.01, dim=3, dictGridCart=None):
+    # levelMax is not required.
+    #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
+    #  b) If levelMax/=0 :
+    #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
+    #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
+    if levelMax<1:
+        levelMax=50 #random large number
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("================== Automatic # of Refinement Levels ===================", flush=True)
+            print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
+            print("=======================================================================", flush=True)
+
+    # snears & numBase for the input tb only.
+    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
+    # NumBase is only the num. of 'real' bodies
+    snears, numBase = getListSnear__(tb, snears)
+    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+
+    if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
+    if dictGridCart['gridType'] == 'cartesian':
+        if 'cartbgExtent' not in dictGridCart: dictGridCart['cartbgExtent'] = [-100, -100, -100, 100, 100, 100]
+        if 'cartbgBC' not in dictGridCart: dictGridCart['cartbgBC'] = ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
+        if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
+        if 'extrudedInY' not in dictGridCart: dictGridCart['extrudedInY'] = False
+
+    extrudedInY = dictGridCart['extrudedInY']
+    # e.g. for dictGridCart
+    #dictGridCart={
+    #    'gridType': 'cartesian',
+    #    'cartbgExtent': [-100, -100, -100, 100, 100, 100],
+    #    'cartbgBC': ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
+    #    'matchExtent': [False, False, False, True, True, False]
+    #}
+
+    # check to see if the sym bases have snear?
+    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
+    isSymLocal = False
+    if baseSYM:
+        zoneTmp = Internal.getZones(baseSYM)
+        if Internal.getNodeFromName(baseSYM, 'snear'):
+            isSymLocal = True
+
+    if isSymLocal:
+        if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
+        Cmpi.barrier(); Cmpi.abort()
+    o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelMax)
+
+    if newLevelMax != levelMax:
+        if Cmpi.master:
+            print("=======================================================================", flush=True)
+            print("========================       WARNING!        ========================", flush=True)
+            print("================= Input Number of AMR Levels too high =================", flush=True)
+            print("=============== Using Automatic # of Refinement Levels ================", flush=True)
+            print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
+            print("=======================================================================", flush=True)
+        levelMax = newLevelMax
+
+    G._getVolumeMap(o)
+    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
+    hmin = hmin_skel * 2 ** (-levelMax)
+    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+
+    return o, newLevelMax
 
 
 # ORIG F.Basile files - kept 'just in case' - TO BE DELETED AFTER [06/2026]
