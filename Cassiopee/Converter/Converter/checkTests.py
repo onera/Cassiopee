@@ -3,7 +3,7 @@
 import os, ast, subprocess
 
 MODULEBLACKLIST = []
-FILEBLACKLIST = ['__init__', 'cgnslib', 'cgnserrors', 'cgnskeywords', 'cgnstypes', 
+FILEBLACKLIST = ['__init__', 'cgnslib', 'cgnserrors', 'cgnskeywords', 'cgnstypes',
                  'cgnsutils', 'vera', 'text1', 'chancery', 'courier', 'nimbus']
 FUNCTIONBLACKLIST = ['send']
 
@@ -25,7 +25,7 @@ def getModules():
     for mod in mods:
         a = os.access(os.path.join(cassiopeeIncDir, mod, 'test'), os.F_OK)
         if a:
-            if mod not in MODULEBLACKLIST: 
+            if mod not in MODULEBLACKLIST:
                 out.append(mod)
     return out
 
@@ -39,7 +39,7 @@ def getFunctions(module):
         if not f.endswith(".py"): continue
 
         name = f.replace(".py", "")
-        
+
         # filter by file name
         if name in FILEBLACKLIST: continue
 
@@ -48,7 +48,7 @@ def getFunctions(module):
         file = os.path.join(path, f)
         with open(file, "r", encoding="utf-8") as f:
             tree = ast.parse(f.read())
-            
+
         functions = []
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
@@ -61,7 +61,7 @@ def getFunctions(module):
         # filter by function names
         for fu in functions:
             if fu.endswith('__'): continue
-            if fu[0] == '_': continue 
+            if fu[0] == '_': continue
             out[name].append(fu)
 
     return out
@@ -73,7 +73,7 @@ def checkUnitaryTests(module, functionName, runTest=False, runHeader=False, runM
     ret = 0
     cassiopeeIncDir = getCassiopeeSourceDir()
     path = os.path.join(cassiopeeIncDir, module, 'test')
-    
+
     # check name.py (doc test)
     file = os.path.join(path, functionName+'.py')
     a = os.path.exists(file)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         for file in fileNames: # for each python file
             functionNames = funcs[file]
             for functionName in functionNames:
-                e = checkUnitaryTests(module, functionName, 
+                e = checkUnitaryTests(module, functionName,
                                       runMissing=False, runHeader=True, runTest=False)
                 errors += e
         if errors > 0:
