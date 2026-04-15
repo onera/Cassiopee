@@ -45,7 +45,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Roms",
-    version="4.1",
+    version="4.2",
     description="Roms module.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

@@ -50,7 +50,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="RigidMotion",
-    version="4.1",
+    version="4.2",
     description="Rigid motion module.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

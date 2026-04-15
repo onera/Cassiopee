@@ -61,7 +61,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="Compressor",
-    version="4.1",
+    version="4.2",
     description="Compress CFD solutions.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

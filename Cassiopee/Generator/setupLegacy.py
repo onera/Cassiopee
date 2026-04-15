@@ -60,7 +60,7 @@ listExtensions.append(
 # setup =======================================================================
 setup(
     name="Generator",
-    version="4.1",
+    version="4.2",
     description="*Cassiopee* module of mesh generation.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

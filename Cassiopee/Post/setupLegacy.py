@@ -80,7 +80,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Post",
-    version="4.1",
+    version="4.2",
     description="Post-processing of CFD solutions.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

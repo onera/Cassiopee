@@ -76,7 +76,7 @@ listExtensions.append(
 # setup ======================================================================
 setup(
     name="Modeler",
-    version="4.1",
+    version="4.2",
     description="Modeler module.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

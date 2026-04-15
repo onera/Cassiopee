@@ -49,7 +49,7 @@ import srcs
 # setup =======================================================================
 setup(
     name="Initiator",
-    version="4.1",
+    version="4.2",
     description="Initiator for *Cassiopee* modules.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

@@ -49,7 +49,7 @@ listExtensions.append(
 # Setup ======================================================================
 setup(
     name="RigidMotion",
-    version="4.1",
+    version="4.2",
     description="Compute/define rigid motion.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

@@ -12,7 +12,7 @@ prod = os.getenv("ELSAPROD") or "xx"
 # setup ======================================================================
 setup(
     name="Apps",
-    version="4.1",
+    version="4.2",
     description="Application modules",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

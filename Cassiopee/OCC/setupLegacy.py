@@ -35,7 +35,7 @@ libraryDirs += paths; libraries += libs
 import srcs
 setup(
     name="OCC",
-    version="4.1",
+    version="4.2",
     description="OpenCascade link.",
     author="ONERA",
     package_dir={"":"."},

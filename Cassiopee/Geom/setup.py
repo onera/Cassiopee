@@ -44,7 +44,7 @@ if adolc:
 # setup ======================================================================
 setup(
     name="Geom",
-    version="4.1",
+    version="4.2",
     description="Geometry definition for *Cassiopee* modules.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

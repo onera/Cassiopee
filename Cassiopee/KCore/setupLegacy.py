@@ -63,7 +63,7 @@ extensions = [
 # Setup ======================================================================
 setup(
     name="KCore",
-    version="4.1",
+    version="4.2",
     description="Core for *Cassiopee* modules.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",

@@ -115,7 +115,7 @@ if OSMesa:
 # Setup ======================================================================
 setup(
     name="CPlot",
-    version="4.1",
+    version="4.2",
     description="A plotter for *Cassiopee* Modules.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",
