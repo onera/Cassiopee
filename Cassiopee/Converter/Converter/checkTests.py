@@ -55,7 +55,7 @@ def getFunctions(module):
         functions = []
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
-                functions.append( (node.name, ast.get_docstring(node)) ) 
+                functions.append( (node.name, ast.get_docstring(node)) )
             if isinstance(node, ast.ClassDef):
                 for sub in node.body:
                     if isinstance(sub, ast.FunctionDef):
@@ -64,7 +64,7 @@ def getFunctions(module):
         # filter by function names
         for fu in functions:
             if fu[0].endswith('__'): continue
-            if fu[0][0] == '_': continue 
+            if fu[0][0] == '_': continue
             modFuncs[name].append(fu)
 
     return modFuncs
@@ -73,7 +73,7 @@ def getFunctions(module):
 # IN: runHeader: if true, check test headers
 # IN: runMissing: if true, check if tests are missing for functionName
 # IN: runDoc: if true, check doc string and rst for functionName
-def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=False, 
+def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=False,
                       runMissing=False, runDoc=False):
 
     if functionName in FUNCTIONBLACKLIST: return 0
@@ -81,10 +81,10 @@ def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=
     ret = 0
     cassiopeeIncDir = getCassiopeeSourceDir()
     path = os.path.join(cassiopeeIncDir, module, 'test')
-    
+
     # check doc string
     if runDoc:
-        if docString is None: 
+        if docString is None:
             print("Warning: %s docstring is missing."%(functionName))
             ret += 1
 
@@ -192,17 +192,17 @@ if __name__ == "__main__":
             functionNames = funcs[file]
             for functionName in functionNames:
 <<<<<<< Updated upstream
-                e = checkUnitaryTests(module, functionName,
-                                      runMissing=False, runHeader=True, runTest=False)
+e = checkUnitaryTests(module, functionName,
+                      runMissing=False, runHeader=True, runTest=False)
 =======
-                e = checkUnitaryTests(module, functionName[0], functionName[1], 
-                                      runMissing=False, runHeader=False, runTest=False, runDoc=True)
+e = checkUnitaryTests(module, functionName[0], functionName[1],
+                      runMissing=False, runHeader=False, runTest=False, runDoc=True)
 >>>>>>> Stashed changes
-                errors += e
-        if errors > 0:
-            print("%s has %d python files."%(module, len(fileNames)))
-            for file in fileNames:
-                print("     %s/%s has %d functions."%(module, file, len(functionNames)))
-            print("%s has %d errors."%(module, errors))
+errors += e
+if errors > 0:
+    print("%s has %d python files."%(module, len(fileNames)))
+    for file in fileNames:
+        print("     %s/%s has %d functions."%(module, file, len(functionNames)))
+        print("%s has %d errors."%(module, errors))
         errorTot += errors
     print("Total of %s errors."%errorTot)
