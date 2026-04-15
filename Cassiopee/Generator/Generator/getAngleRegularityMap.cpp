@@ -51,6 +51,29 @@ inline E_Float computeAngle2(
   return E_abs(acos(cosalpha)*degconst - 180.);
 }
 
+inline E_Float computeAngle3(
+  E_Float x1, E_Float y1, E_Float z1,
+  E_Float x2, E_Float y2, E_Float z2,
+  E_Float x3, E_Float y3, E_Float z3
+)
+{
+  E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
+  E_Float b2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
+  E_Float c2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
+
+  if (a2 < E_GEOM_CUTOFF || b2 < E_GEOM_CUTOFF) // security check
+  { 
+    return 0.;
+  }
+
+  E_Float a = sqrt(a2);
+  E_Float b = sqrt(b2);
+  E_Float cosalpha = E_max(E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
+  E_Float degconst = 180.0 / K_CONST::E_PI;
+
+  return E_abs(acos(cosalpha)*degconst - 180.);
+}
+
 // ============================================================================
 /* Return angle regularity map */
 // ============================================================================
@@ -330,6 +353,18 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       ntotFacets += nfpe[ic]*nelts;
     }
 
+    // Calcul de la connectivite face -> elements
+    FldArrayI cFE(ntotFacets,2);
+    ierr = K_CONNECT::connectEV2FE(eltType, *cn, cFE, true);
+    if (ierr == 1)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "getRegularityMap: Error computing cFE.");
+      RELEASESHAREDS(tpl, f2);
+      RELEASESHAREDU(array, f, cn);
+      return NULL;
+    }
+
     // Compute center of facets
     K_FLD::FldArrayF fxint(ntotFacets), fyint(ntotFacets), fzint(ntotFacets);
     K_METRIC::compUnstructCenterInt(*cn, eltType, x, y, z,
@@ -356,7 +391,12 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int nelts, ind, pos;
+      E_Int ind1, ind2;
       E_Int elOffset, fctOffset;
+      E_Int nneis;
+      E_Float x1, y1, z1;
+      E_Float x2, y2, z2;
+      E_Float x3, y3, z3;
       // loop over all connectivities
       for (E_Int ic = 0; ic < nc; ic++)
       {
@@ -371,11 +411,24 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         {
           ind = i + elOffset; // true element index
           alphamax[ind] = 0.;
+          x2 = xb[ind]; y2 = yb[ind]; z2 = zb[ind]; // cell center
 
           // loop over all faces of element i
           for (E_Int f = 0; f < nfpe[ic]; f++)
           {
             pos = f + i*nfpe[ic] + fctOffset;
+            ind1 = cFE(pos, 1) - 1;
+            ind2 = cFE(pos, 2) - 1;
+            // printf("elt %d (facet %d): ind1/ind2 = %d/%d\n", ind+1, pos+1, ind1, ind2);
+            if (ind2 < 0) continue; // facet has only one element
+            x1 = xint[pos]; y1 = yint[pos]; z1 = zint[pos]; // facet center
+            x3 = xb[ind2]; y3 = yb[ind2]; z3 = zb[ind2]; // neighbor element center
+
+            alphamax[ind] = E_max(computeAngle3(x1,y1,z1,x2,y2,z2,x3,y3,z3), alphamax[ind]);
+
+            // printf("x1/y1/z1 = %f/%f/%f\n", x1, y1, z1);
+            // printf("x2/y2/z2 = %f/%f/%f\n", x2, y2, z2);
+            // printf("x3/y3/z3 = %f/%f/%f\n", x3, y3, z3);
           }
         }
       }
