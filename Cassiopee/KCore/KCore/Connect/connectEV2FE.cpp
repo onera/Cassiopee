@@ -91,7 +91,7 @@ E_Int K_CONNECT::connectEV2FE(
 
       for (E_Int i = 0; i < nelts; i++)
       {
-        eidx = cumnepc[ic] + i;  // global element index
+        eidx = cumnepc[ic] + i + 1;  // global element index, 1-based
         // Loop over each facet of this element
         for (E_Int f = 0; f < nfpe[ic]; f++)
         {
