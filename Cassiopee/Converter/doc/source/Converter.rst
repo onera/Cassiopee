@@ -429,9 +429,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Create pyTree (pyTree) <Examples/Converter/newPyTree.py>`_:
+    * `Create pyTree (pyTree) <Examples/Converter/newPyTreePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/newPyTree.py
+    .. literalinclude:: ../build/Examples/Converter/newPyTreePT.py
 
 ---------------------------------------------------------------------------
 
@@ -453,9 +453,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Add base to pyTree (pyTree) <Examples/Converter/addBase2PyTree.py>`_:
+    * `Add base to pyTree (pyTree) <Examples/Converter/addBase2PyTreePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/addBase2PyTree.py
+    .. literalinclude:: ../build/Examples/Converter/addBase2PyTreePT.py
 
 ---------------------------------------------------------------------------
 
@@ -588,9 +588,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Delete empty zones (pyTree) <Examples/Converter/deleteEmptyZones.py>`_:
+    * `Delete empty zones (pyTree) <Examples/Converter/deleteEmptyZonesPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/deleteEmptyZones.py
+    .. literalinclude:: ../build/Examples/Converter/deleteEmptyZonesPT.py
 
 ---------------------------------------------------------------------------
 
@@ -664,9 +664,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Add Chimera to base (pyTree) <Examples/Converter/addChimera2Base.py>`_:
+    * `Add Chimera to base (pyTree) <Examples/Converter/addChimera2BasePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/addChimera2Base.py
+    .. literalinclude:: ../build/Examples/Converter/addChimera2BasePT.py
 
 ---------------------------------------------------------------------------
 
@@ -747,9 +747,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Add boundary condition to zone (pyTree) <Examples/Converter/addBC2Zone.py>`_:
+    * `Add boundary condition to zone (pyTree) <Examples/Converter/addBC2ZonePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/addBC2Zone.py
+    .. literalinclude:: ../build/Examples/Converter/addBC2ZonePT.py
 
     * `Add boundary condition to NGON zone (pyTree) <Examples/Converter/addBC2ZoneU.py>`_:
 
@@ -802,9 +802,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Remove BC of type (pyTree) <Examples/Converter/rmBCOfType.py>`_:
+    * `Remove BC of type (pyTree) <Examples/Converter/rmBCOfTypePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/rmBCOfType.py    
+    .. literalinclude:: ../build/Examples/Converter/rmBCOfTypePT.py    
 
 ---------------------------------------------------------------------------
 
@@ -1047,9 +1047,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Add family to base (pyTree) <Examples/Converter/addFamily2Base.py>`_:
+    * `Add family to base (pyTree) <Examples/Converter/addFamily2BasePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/addFamily2Base.py
+    .. literalinclude:: ../build/Examples/Converter/addFamily2BasePT.py
 
 ---------------------------------------------------------------------------
 
@@ -1283,9 +1283,9 @@ pyTree creation and manipulation
 
     *Example of use:*
 
-    * `Variables copy (pyTree) <Examples/Converter/cpVars.py>`_:
+    * `Variables copy (pyTree) <Examples/Converter/cpVarsPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Converter/cpVars.py
+    .. literalinclude:: ../build/Examples/Converter/cpVarsPT.py
 
 ---------------------------------------------------------------------------
 

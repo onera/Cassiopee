@@ -1,4 +1,4 @@
-# - connectMatch (pyTree) -
+# - addPeriodicDataInSolverParam (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.elsAProfile as elsAProfile

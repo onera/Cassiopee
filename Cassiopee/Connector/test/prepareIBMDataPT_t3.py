@@ -1,4 +1,5 @@
-# - prepareIBMData Serial (pyTree) -
+# - prepareIBMData (pyTree) -
+# Serial
 import Converter.PyTree as C
 import Connector.IBM as X_IBM
 import KCore.test as test

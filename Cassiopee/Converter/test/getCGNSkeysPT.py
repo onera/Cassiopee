@@ -1,4 +1,4 @@
-# - getCGNSKey (pyTree) -
+# - getCGNSkeys (pyTree) -
 import Converter.elsAProfile as elsAProfile
 
 for elsAkey in elsAProfile.keyselsA2CGNS:

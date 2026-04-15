@@ -1,6 +1,4 @@
-# Test des fonctions :
-# - convertArrays3D2Arrays
-
+# - convertArray3D2Array (array) -
 import Generator as G
 import Converter.Array3D
 import KCore.test as test

@@ -1,4 +1,4 @@
-# - adaptsCells (array) -
+# - adaptCellsNodal (array) -
 import Intersector as XOR
 import Converter as C
 import Generator as G
