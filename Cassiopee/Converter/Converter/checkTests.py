@@ -1,12 +1,23 @@
 # check unitary tests
 # for every cassiopee functions
-import os, ast, subprocess
+import sys, os, ast, subprocess
 
+# Checks to perform
+MISSINGTESTS = False
+RUNTESTS = False
+FUNCDOC = False
+TESTHEADERS = False
+
+# Modules to exclude
 MODULEBLACKLIST = []
+# python files to exclude
 FILEBLACKLIST = ['__init__', 'cgnslib', 'cgnserrors', 'cgnskeywords', 'cgnstypes',
-                 'cgnsutils', 'vera', 'text1', 'chancery', 'courier', 'nimbus']
+                 'cgnsutils', 'test',
+                 'vera', 'text1', 'chancery', 'courier', 'nimbus']
+# functions to exclude
 FUNCTIONBLACKLIST = ['send']
 
+# get the cassiopee source dir
 def getCassiopeeSourceDir():
     try:
         # Check installPath
@@ -17,6 +28,7 @@ def getCassiopeeSourceDir():
         raise SystemError("Error: KCore module is required to use this script.")
     return cassiopeeIncDir
 
+# get the module list
 def getModules():
     cassiopeeIncDir = getCassiopeeSourceDir()
     try: mods = os.listdir(cassiopeeIncDir)
@@ -29,6 +41,21 @@ def getModules():
                 out.append(mod)
     return out
 
+# get the module rst
+def getModuleRST(module):
+    cassiopeeIncDir = getCassiopeeSourceDir()
+    docdir = os.path.join(cassiopeeIncDir, module, 'doc', 'source')
+    docs = []
+    if os.path.exists(docdir):
+        files = os.listdir(docdir)
+        for f in files:
+            if f.endswith('.rst'): docs.append(os.path.join(docdir, f))
+    doclines = []
+    for doc in docs:
+        with open(doc, "r", encoding="utf-8") as f:
+            doclines += f.readlines()
+    return doclines
+
 # get the functions of module
 # return a dict for each module python file containing
 # (function name, function doc string)
@@ -40,14 +67,11 @@ def getFunctions(module):
     for f in files: # python files in module
 
         if not f.endswith(".py"): continue
-
         name = f.replace(".py", "")
-
         # filter by file name
         if name in FILEBLACKLIST: continue
 
         modFuncs[name] = []
-
         file = os.path.join(path, f)
         with open(file, "r", encoding="utf-8") as f:
             tree = ast.parse(f.read())
@@ -73,7 +97,7 @@ def getFunctions(module):
 # IN: runHeader: if true, check test headers
 # IN: runMissing: if true, check if tests are missing for functionName
 # IN: runDoc: if true, check doc string and rst for functionName
-def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=False,
+def checkUnitaryTests(module, functionName, docString, docLines, runTest=False, runHeader=False,
                       runMissing=False, runDoc=False):
 
     if functionName in FUNCTIONBLACKLIST: return 0
@@ -82,11 +106,20 @@ def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=
     cassiopeeIncDir = getCassiopeeSourceDir()
     path = os.path.join(cassiopeeIncDir, module, 'test')
 
-    # check doc string
+    # check functionName docString
     if runDoc:
         if docString is None:
             print("Warning: %s docstring is missing."%(functionName))
             ret += 1
+        if docLines is not None:
+            found = False
+            for l in docLines:
+                if functionName in l:
+                    found = True
+                    break
+            if not found:
+                print("Warning: function %s is missing in rst."%(functionName))
+                ret += 1
 
     # check name.py (doc test)
     file = os.path.join(path, functionName+'.py')
@@ -182,27 +215,28 @@ def checkUnitaryTests(module, functionName, docString, runTest=False, runHeader=
 
 #==============================================================================
 if __name__ == "__main__":
-    modules = getModules()
+    argv = sys.argv
+    if len(argv) == 1: # pas de module specifie
+        modules = getModules()
+    else:
+        modules = argv[1:]
     errorTot = 0
     for module in modules: # for each module
         errors = 0
+        docLines = getModuleRST(module)
         funcs = getFunctions(module)
         fileNames = funcs.keys()
         for file in fileNames: # for each python file
             functionNames = funcs[file]
             for functionName in functionNames:
-<<<<<<< Updated upstream
-e = checkUnitaryTests(module, functionName,
-                      runMissing=False, runHeader=True, runTest=False)
-=======
-e = checkUnitaryTests(module, functionName[0], functionName[1],
-                      runMissing=False, runHeader=False, runTest=False, runDoc=True)
->>>>>>> Stashed changes
-errors += e
-if errors > 0:
-    print("%s has %d python files."%(module, len(fileNames)))
-    for file in fileNames:
-        print("     %s/%s has %d functions."%(module, file, len(functionNames)))
-        print("%s has %d errors."%(module, errors))
+                e = checkUnitaryTests(module, functionName[0], functionName[1], docLines, 
+                                      runMissing=MISSINGTESTS, runHeader=TESTHEADERS, 
+                                      runTest=RUNTESTS, runDoc=FUNCDOC)
+                errors += e
+        if errors > 0:
+            print("%s has %d python files."%(module, len(fileNames)))
+            for file in fileNames:
+                print("     %s/%s has %d functions."%(module, file, len(functionNames)))
+            print("%s has %d errors."%(module, errors))
         errorTot += errors
     print("Total of %s errors."%errorTot)

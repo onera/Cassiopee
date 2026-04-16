@@ -934,6 +934,7 @@ def getCutDir(winz1, winz2):
 # Retourne false si les fenetres sont identiques
 # Retourne true si wins1 correspond a une sous fenetre de win
 def isWinCut(wins1, win):
+    """Return true if wins1 is a sub window of win."""
     if wins1[0] == win[0] and wins1[1] == win[1] and \
             wins1[2] == win[2] and wins1[3] == win[3] and \
             wins1[4] == win[4] and wins1[5] == win[5]:
@@ -1820,11 +1821,13 @@ def _reorderAll(t, dir=1):
 # Order the mesh such that it is direct
 #=============================================================================
 def makeCartesianXYZ(t, tol=1.e-10):
+    """Reorder a Cartesian mesh in order to get i,j,k aligned with X,Y,Z."""
     t2 = Internal.copyRef(t)
     _makeCartesianXYZ(t2, tol)
     return t2
 
 def _makeCartesianXYZ(t, tol=1.e-10):
+    """Reorder a Cartesian mesh in order to get i,j,k aligned with X,Y,Z."""
     for z in Internal.getZones(t):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Structured':

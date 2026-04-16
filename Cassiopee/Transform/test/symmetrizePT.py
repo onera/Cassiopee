@@ -1,4 +1,4 @@
-# - symmetrize (PyTree) -
+# - symmetrize (pyTree) -
 import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.PyTree as C

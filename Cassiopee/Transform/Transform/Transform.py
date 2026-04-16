@@ -34,6 +34,7 @@ __all__ = [
 # Merge a set of cart grids in A for each refinement level
 #========================================================================================
 def mergeCartByRefinementLevel(A, sizeMax):
+    """Merge a set of cart grids by refinement levels."""
     dhmin = 1.e10
     allDh = []
     for a in A:
@@ -1102,6 +1103,7 @@ def addkplane__(a, N):
         return res
 
 def addkplaneCenters(arrayC, arrayK, N=1):
+    """Add kplane to a center field."""
     if isinstance(arrayC[0], list):
         b = []
         for noi in range(len(arrayC)):
@@ -1380,6 +1382,7 @@ def splitSize(array, N=0, multigrid=0, dirs=[1,2,3], type=0, R=None,
 
 # kround identique a round en python2
 def kround(r):
+    """Round a real to an int."""
     k = int(r)
     if r >= 0:
         if r-k >= 0.5: return k+1

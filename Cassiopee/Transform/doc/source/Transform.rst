@@ -605,13 +605,13 @@ Mesh transformation
 
     *Example of use:*
 
-    * `Symmetrize a mesh (array) <Examples/Transform/symetrize.py>`_:
+    * `Symmetrize a mesh (array) <Examples/Transform/symmetrize.py>`_:
 
-    .. literalinclude:: ../build/Examples/Transform/symetrize.py
+    .. literalinclude:: ../build/Examples/Transform/symmetrize.py
 
-    * `Symmetrize a mesh (pyTree) <Examples/Transform/symetrizePT.py>`_:
+    * `Symmetrize a mesh (pyTree) <Examples/Transform/symmetrizePT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Transform/symetrizePT.py
+    .. literalinclude:: ../build/Examples/Transform/symmetrizePT.py
 
 
 ---------------------------------------

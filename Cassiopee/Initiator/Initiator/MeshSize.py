@@ -3,6 +3,7 @@ import math
 
 # Mesh size comme pointwise (couche limite turbulente attachee)
 def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
+    """Return first cell height to match y+."""
     ReInf = RoInf*UInf*LInf/MuInf
     Cf = 0.026/ReInf**(1./7.)
     tauw = Cf*RoInf*(UInf**2)/2.
@@ -14,12 +15,14 @@ def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
 
 # a partir du Reynolds
 def meshSize2(UInf, RoInf, ReInf, LInf, yplus=1.):
+    """Return first cell height to match y+."""
     MuInf = RoInf*UInf*LInf/ReInf
     return meshSize1(UInf, RoInf, MuInf, LInf, yplus)
 
 # Marco - couche limite turbulente attachee
 # avec correction de e/c = rapport de epaisseur sur corde
 def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
+    """Return first cell height to match y+."""
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf
     correction = math.exp(4.5*pow(esurc, 1.3))
@@ -31,6 +34,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
 
 # Marco - couche limite laminaire
 def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
+    """Return first cell height to match y+."""
     xsurL = 0.5
     MuInf = RoInf*UInf*LInf/ReInf
     correction = math.exp(4.5*pow(esurc, 1.3))
@@ -52,6 +56,7 @@ def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
         raise ValueError('meshSize: unknown algo.')
 
 def boundaryLayerHeight(ReInf, algo='Turbulent'):
+    """Return boundary layer height."""
     if algo == 'Laminar':
         delta = 0.75*5*ReInf**(-0.5)
     elif algo == 'Turbulent':
