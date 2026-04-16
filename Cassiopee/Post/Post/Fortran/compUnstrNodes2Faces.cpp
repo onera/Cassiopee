@@ -158,7 +158,6 @@ void K_POST::compUnstrNodes2Faces(
           fieldf[pos + 4] = K_CONST::ONE_THIRD * (f4 + f1 + f5);    // A4A1A5
         }
       }
-      
       else if (strcmp(eltTypes[ic], "PENTA") == 0)
       {
         E_Int ind1, ind2, ind3, ind4, ind5, ind6, pos;
@@ -182,11 +181,11 @@ void K_POST::compUnstrNodes2Faces(
           f6 = fieldn[ind6];
 
           pos = fctOffset + i * 5;
-          fieldf[pos] = K_CONST::ONE_THIRD * (f1 + f2 + f3);            // A1A2A3
-          fieldf[pos + 1] = K_CONST::ONE_THIRD * (f4 + f5 + f6);        // A4A5A6
-          fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f1 + f2 + f5 + f4);  // 1254
-          fieldf[pos + 3] = K_CONST::ONE_FOURTH * (f2 + f3 + f6 + f5);  // 2365
-          fieldf[pos + 4] = K_CONST::ONE_FOURTH * (f3 + f1 + f4 + f6);  // 3146
+          fieldf[pos] = K_CONST::ONE_FOURTH * (f1 + f2 + f5 + f4);      // 1254
+          fieldf[pos + 1] = K_CONST::ONE_FOURTH * (f2 + f3 + f6 + f5);  // 2365
+          fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f3 + f1 + f4 + f6);  // 3146
+          fieldf[pos + 3] = K_CONST::ONE_THIRD * (f1 + f2 + f3);        // 123
+          fieldf[pos + 4] = K_CONST::ONE_THIRD * (f4 + f5 + f6);        // 456
         }
       }
       else if (strcmp(eltTypes[ic], "HEXA") == 0)
@@ -217,11 +216,11 @@ void K_POST::compUnstrNodes2Faces(
 
           pos = fctOffset + i * 6;
           fieldf[pos] = K_CONST::ONE_FOURTH * (f1 + f2 + f3 + f4);      // A1A2A3A4
-          fieldf[pos + 1] = K_CONST::ONE_FOURTH * (f5 + f6 + f7 + f8);  // A5A6A7A8
-          fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f4 + f1 + f5 + f8);  // 4158
-          fieldf[pos + 3] = K_CONST::ONE_FOURTH * (f2 + f3 + f7 + f6);  // A2A3A7A6
-          fieldf[pos + 4] = K_CONST::ONE_FOURTH * (f1 + f2 + f6 + f5);  // A1A2A6A5
-          fieldf[pos + 5] = K_CONST::ONE_FOURTH * (f3 + f4 + f8 + f7);  // A3A4A8A7
+          fieldf[pos + 1] = K_CONST::ONE_FOURTH * (f1 + f2 + f6 + f5);  // A1A2A6A5
+          fieldf[pos + 2] = K_CONST::ONE_FOURTH * (f2 + f3 + f7 + f6);  // A2A3A7A6
+          fieldf[pos + 3] = K_CONST::ONE_FOURTH * (f3 + f4 + f8 + f7);  // A3A4A8A7
+          fieldf[pos + 4] = K_CONST::ONE_FOURTH * (f4 + f1 + f5 + f8);  // A4A1A5A8
+          fieldf[pos + 5] = K_CONST::ONE_FOURTH * (f5 + f6 + f7 + f8);  // A5A6A7A8
         }
       }
     }

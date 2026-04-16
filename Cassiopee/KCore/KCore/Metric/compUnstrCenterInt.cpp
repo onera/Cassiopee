@@ -234,41 +234,41 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3]; z4 = zt[ind4];
           z5 = zt[ind5]; z6 = zt[ind6]; z7 = zt[ind7]; z8 = zt[ind8];
 
-          // facette 1234
+          // First face: 1234
           pos = fctOffset + i * nfpe[ic];
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x3 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y3 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z3 + z4);
 
-          // facette 5678
-          pos += 1;
-          xint[pos] = K_CONST::ONE_FOURTH * (x5 + x6 + x7 + x8);
-          yint[pos] = K_CONST::ONE_FOURTH * (y5 + y6 + y7 + y8);
-          zint[pos] = K_CONST::ONE_FOURTH * (z5 + z6 + z7 + z8);
-
-          // facette 1485
-          pos += 1;
-          xint[pos] = K_CONST::ONE_FOURTH * (x1 + x4 + x8 + x5);
-          yint[pos] = K_CONST::ONE_FOURTH * (y1 + y4 + y8 + y5);
-          zint[pos] = K_CONST::ONE_FOURTH * (z1 + z4 + z8 + z5);
-
-          // facette 2376
-          pos += 1;
-          xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x7 + x6);
-          yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y7 + y6);
-          zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z7 + z6);
-
-          // facette 1265
+          // Second face: 1265
           pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z6 + z5);
 
-          // facette 4378
+          // Third face: 2376
+          pos += 1;
+          xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x7 + x6);
+          yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y7 + y6);
+          zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z7 + z6);
+
+          // Fourth face: 4378
           pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x4 + x3 + x7 + x8);
           yint[pos] = K_CONST::ONE_FOURTH * (y4 + y3 + y7 + y8);
           zint[pos] = K_CONST::ONE_FOURTH * (z4 + z3 + z7 + z8);
+
+          // Fifth face: 1485
+          pos += 1;
+          xint[pos] = K_CONST::ONE_FOURTH * (x1 + x4 + x8 + x5);
+          yint[pos] = K_CONST::ONE_FOURTH * (y1 + y4 + y8 + y5);
+          zint[pos] = K_CONST::ONE_FOURTH * (z1 + z4 + z8 + z5);
+
+          // Sixth face: 5678
+          pos += 1;
+          xint[pos] = K_CONST::ONE_FOURTH * (x5 + x6 + x7 + x8);
+          yint[pos] = K_CONST::ONE_FOURTH * (y5 + y6 + y7 + y8);
+          zint[pos] = K_CONST::ONE_FOURTH * (z5 + z6 + z7 + z8);
         }
       }
     }
@@ -300,35 +300,35 @@ void K_METRIC::compUnstructCenterInt(
           z1 = zt[ind1]; z2 = zt[ind2]; z3 = zt[ind3];
           z4 = zt[ind4]; z5 = zt[ind5]; z6 = zt[ind6];
 
-          // facette triangle 1 : 123
+          // premiere facette quad 1254
           pos = fctOffset + i * nfpe[ic];
-          xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
-          yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
-          zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
-
-          // facette triangle 2 : 456
-          pos += 1;
-          xint[pos] = K_CONST::ONE_THIRD * (x4 + x5 + x6);
-          yint[pos] = K_CONST::ONE_THIRD * (y4 + y5 + y6);
-          zint[pos] = K_CONST::ONE_THIRD * (z4 + z5 + z6);
-
-          // troisieme facette quad 1254
-          pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x1 + x2 + x5 + x4);
           yint[pos] = K_CONST::ONE_FOURTH * (y1 + y2 + y5 + y4);
           zint[pos] = K_CONST::ONE_FOURTH * (z1 + z2 + z5 + z4);
 
-          // quatrieme facette quad 2365
+          // deuxieme facette quad 2365
           pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x2 + x3 + x6 + x5);
           yint[pos] = K_CONST::ONE_FOURTH * (y2 + y3 + y6 + y5);
           zint[pos] = K_CONST::ONE_FOURTH * (z2 + z3 + z6 + z5);
 
-          // cinquieme facette quad 3146
+          // troisieme facette quad 3146
           pos += 1;
           xint[pos] = K_CONST::ONE_FOURTH * (x3 + x1 + x4 + x6);
           yint[pos] = K_CONST::ONE_FOURTH * (y3 + y1 + y4 + y6);
           zint[pos] = K_CONST::ONE_FOURTH * (z3 + z1 + z4 + z6);
+
+          // cinquieme facette tri : 123
+          pos += 1;
+          xint[pos] = K_CONST::ONE_THIRD * (x1 + x2 + x3);
+          yint[pos] = K_CONST::ONE_THIRD * (y1 + y2 + y3);
+          zint[pos] = K_CONST::ONE_THIRD * (z1 + z2 + z3);
+
+          // sixieme facette tri : 456
+          pos += 1;
+          xint[pos] = K_CONST::ONE_THIRD * (x4 + x5 + x6);
+          yint[pos] = K_CONST::ONE_THIRD * (y4 + y5 + y6);
+          zint[pos] = K_CONST::ONE_THIRD * (z4 + z5 + z6);
         }
       }
     }
