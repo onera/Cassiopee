@@ -381,7 +381,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     cartbgExtent    = dictGridCart['cartbgExtent']
     cartbgBC        = dictGridCart['cartbgBC']
     matchExtent     = dictGridCart['matchExtent']
-    extrudedInY     = dictGridCart['extrudedInY']
+    extrude         = dictGridCart['extrude']
 
     # Max length of the edges of the background Cartesian grid
     nCellsCartesian = [0, 0, 0]
@@ -392,7 +392,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     # Cannot use dfar as it is possible the tb intersects the edges/faces of the background grid domain
     snearMin = min(snearsFlat)
     lengthBGMin = min(lengthBG[1], lengthBG[0]); lengthBGMax = max(lengthBG[1], lengthBG[0]);
-    if extrudedInY:
+    if extrude:
         # determine levelSkel for the x-z plane - disregarding the y direction - needed for the y-extruded case
         lengthBGMin = lengthBG[0]; lengthBGMax = lengthBG[0]
     if dim == 3:
@@ -406,7 +406,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - atleast
         snearloc  /= 2.; levelSkel -= 1
 
-    if extrudedInY: # Deltax_i needs to the same in each direction - want only 1 background cells in the y-direction
+    if extrude: # Deltax_i needs to the same in each direction - want only 1 background cells in the y-direction
         while snearloc > (cartbgExtent[4]-cartbgExtent[1]): # security so that levelSkel is not too big
             snearloc  /= 2.; levelSkel -= 1
 
@@ -1369,8 +1369,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         vmins[nBase] = [max(3,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
-    CartT           = False
-    CartExtrudedInY = False
+    tCartin = False
+    extrude = False
     if tIn is None:
         if Cmpi.master:
             print("=======================================================================", flush=True)
@@ -1385,14 +1385,14 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
             print("=======================================================================", flush=True)
             print("===================== Using input backgroudn grid  ====================", flush=True)
             print("=======================================================================", flush=True)
-        CartT = True; newLevelMax = levelMax
+        tCartin = True; newLevelMax = levelMax
         if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)
         else: o = Internal.copyTree(tIn)
         del tIn
-        DeltaY = (C.getMinValue(o,"centers:vol"))**(1/dim)
-        Ymin = C.getMinValue(o, 'CoordinateY'); Ymax = C.getMaxValue(o, 'CoordinateY')
-        if abs((Ymax-Ymin)-DeltaY)< 1.e-08: CartExtrudedInY=True
-        if Cmpi.master and CartExtrudedInY:
+        deltaY = (C.getMinValue(o,"centers:vol"))**(1/dim)
+        ymin = C.getMinValue(o, 'CoordinateY'); ymax = C.getMaxValue(o, 'CoordinateY')
+        if abs((ymax-ymin)-deltaY)< 1.e-08: extrude=True
+        if Cmpi.master and extrude:
             print("=======================================================================", flush=True)
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
@@ -1462,10 +1462,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
         dfarmax   = 1e10
         for i in range(dim):
             isSkipMin=False; isSkipMax=False;
-            if CartT:
+            if tCartin:
                 if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
                 if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
-            if CartExtrudedInY and i==1: continue
+            if extrude and i==1: continue
             if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
             elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
             else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
@@ -1490,7 +1490,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             if not offsetValuesBase:
-                if CartT:
+                if tCartin:
                     hminLocal = snearsTbTbox[nBase][0]
                     offsetloc = hminLocal*1
                     offsetValuesBase.append(offsetloc)
@@ -1547,9 +1547,9 @@ def generateCartBackgroundGrid(tb, levelMax=7, snears=0.01, dim=3, dictGridCart=
         if 'cartbgExtent' not in dictGridCart: dictGridCart['cartbgExtent'] = [-100, -100, -100, 100, 100, 100]
         if 'cartbgBC' not in dictGridCart: dictGridCart['cartbgBC'] = ['BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield', 'BCFarfield']
         if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
-        if 'extrudedInY' not in dictGridCart: dictGridCart['extrudedInY'] = False
+        if 'extrude' not in dictGridCart: dictGridCart['extrude'] = False
 
-    extrudedInY = dictGridCart['extrudedInY']
+    extrude = dictGridCart['extrude']
     # e.g. for dictGridCart
     #dictGridCart={
     #    'gridType': 'cartesian',
