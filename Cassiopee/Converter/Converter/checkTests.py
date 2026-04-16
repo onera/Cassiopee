@@ -229,8 +229,8 @@ if __name__ == "__main__":
         for file in fileNames: # for each python file
             functionNames = funcs[file]
             for functionName in functionNames:
-                e = checkUnitaryTests(module, functionName[0], functionName[1], docLines, 
-                                      runMissing=MISSINGTESTS, runHeader=TESTHEADERS, 
+                e = checkUnitaryTests(module, functionName[0], functionName[1], docLines,
+                                      runMissing=MISSINGTESTS, runHeader=TESTHEADERS,
                                       runTest=RUNTESTS, runDoc=FUNCDOC)
                 errors += e
         if errors > 0:
