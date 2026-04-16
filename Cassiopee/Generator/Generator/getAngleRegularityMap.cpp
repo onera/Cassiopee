@@ -383,10 +383,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     E_Float* yb = fyb.begin(1);
     E_Float* zb = fzb.begin(1);
 
-    // for (E_Int j=0; j<ntotFacets; j++) printf("(facet %d): xint/yint = %2.3f/%2.3f\n", j, xint[j], yint[j]);
-    // for (E_Int j=0; j<ntotElts; j++) printf("(elt %d): xb/yb = %2.3f/%2.3f\n", j, xb[j], yb[j]);
-    // printf("ntotElts = %d, ntotFacets = %d\n", ntotElts, ntotFacets);
-
     // calcul de la regularite
     #pragma omp parallel
     {
@@ -419,16 +415,11 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
             pos = f + i*nfpe[ic] + fctOffset;
             ind1 = cFE(pos, 1) - 1;
             ind2 = cFE(pos, 2) - 1;
-            // printf("elt %d (facet %d): ind1/ind2 = %d/%d\n", ind+1, pos+1, ind1, ind2);
             if (ind2 < 0) continue; // facet has only one element
             x1 = xint[pos]; y1 = yint[pos]; z1 = zint[pos]; // facet center
             x3 = xb[ind2]; y3 = yb[ind2]; z3 = zb[ind2]; // neighbor element center
 
             alphamax[ind] = E_max(computeAngle3(x1,y1,z1,x2,y2,z2,x3,y3,z3), alphamax[ind]);
-
-            // printf("x1/y1/z1 = %f/%f/%f\n", x1, y1, z1);
-            // printf("x2/y2/z2 = %f/%f/%f\n", x2, y2, z2);
-            // printf("x3/y3/z3 = %f/%f/%f\n", x3, y3, z3);
           }
         }
       }
