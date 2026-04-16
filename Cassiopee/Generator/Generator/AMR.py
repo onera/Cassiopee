@@ -272,8 +272,8 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     surfaces=[]; dfarList=[]; snearsList=[]; levelSkelList=[]
     # This clips the upper limit on the number of offset level to the input value. 
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
+    forceUpperLimitOffset = True
     if levelSkel==50: forceUpperLimitOffset = False
-    else: forceUpperLimitOffset = True
 
     # list of dfars
     bodies = Internal.getZones(tb)
@@ -292,8 +292,8 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
             # Pull request note: levelSkelLoc causes regressions in the mesh generation
             levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
             #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
-            if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
-            else: levelSkel = min(levelSkel, levelSkelLoc) 
+            #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe. 
+            if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc) 
             dfarloc = dfars[c]
             snearloc = 2**levelSkel*snears[c]
             while snearloc > dfarloc/2: # security so that levelSkel is not too big
