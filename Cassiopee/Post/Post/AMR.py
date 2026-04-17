@@ -88,53 +88,40 @@ def extractIBMWallFields(pytree, tb, discSelectionParaDict, ibctype=3, isRevertT
     return zw
 
 
-def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, reorderFlag=False, invertYZ=False, verbose=False, time=-1):
+def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False, time=-1):
     """  Computes the aerodynamic loads at the wall.
-    Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, reorderFlag, invertYZ, verbose, time)"""
+    Usage: computeBoundaryQuantities(zw, dictReferenceQuantities, dim, verbose, time)"""
     if Cmpi.master: print("Computing integral coefficients..")
-    if dim == 2:
-        zw = C.convertBAR2Struct(zw)
-        T._addkplane(zw)
-    if reorderFlag == True: T._reorder(zw, (-1,))
 
+    # Get Info from dictReferenceQuantities
     Sref = dictReferenceQuantities["Sref"]
-    if invertYZ == False:
-        alpha= dictReferenceQuantities["alpha"]
-        beta = dictReferenceQuantities["beta"]
-    else:
-        alpha= dictReferenceQuantities["beta"]
-        beta =-dictReferenceQuantities["alpha"]
+    Lref = dictReferenceQuantities["Lref"]
+    center = dictReferenceQuantities["MomentCenters"]
+    alpha = dictReferenceQuantities["alpha"]
+    beta = dictReferenceQuantities["beta"]
 
-    zw = C.convertArray2Tetra(zw); zw = G.close(zw)
-    zw = C.node2Center(zw, Internal.__FlowSolutionNodes__)
     # add reference state for computation of integrated coefficients
     ref1 = Internal.getNodesFromName(zw, "ReferenceState")
     if ref1 != []: Internal._rmNodesByName(zw, "ReferenceState")
+
     ref = Internal.newReferenceState("ReferenceState", parent=zw)
     ref[2].append(["VelocityX", dictReferenceQuantities["velX_ref"]    , [], 'DataArray_t'])
     ref[2].append(["VelocityY", dictReferenceQuantities["velY_ref"]    , [], 'DataArray_t'])
     ref[2].append(["VelocityZ", dictReferenceQuantities["velZ_ref"]    , [], 'DataArray_t'])
     ref[2].append(["Density"  , dictReferenceQuantities["density_ref"] , [], 'DataArray_t'])
     ref[2].append(["Pressure" , dictReferenceQuantities["pressure_ref"], [], 'DataArray_t'])
-    [res, res2, PressureCoef, FrictionCoef] = P_IBM._loads0(zw, Sref=Sref, alpha=alpha, beta=beta, dimPb=dim, verbose=False)
-    ## The division with Cmpi.size is taken 'as is' from the original Post_IBM_CODA.py
-    for lst in [res, res2, PressureCoef, FrictionCoef]: lst[:] = [x / Cmpi.size for x in lst]
-    [clp, cdp] = PressureCoef
-    [clf, cdf] = FrictionCoef
-    if verbose and Cmpi.master:
-        print("Normalized pressure drag = %.4e and lift = %.4e"%(cdp, clp))
-        print("Vector of pressure loads: (Fx_P,Fy_P,Fz_P) = (%.4e, %.4e, %.4e)"%(res[0],res[1],res[2]))
 
-        print("Normalized skin friction drag = %.4e and lift = %.4e"%(cdf, clf))
-        print("Vector of skin friction loads: (Fx_f,Fy_f,Fz_f) = (%.4e,%.4e,%.4e)"%(res2[0], res2[1], res2[2]))
+    tw, aeroLoads = P_IBM.computeAerodynamicLoads(zw, dimPb=dim, verbose=verbose, center=center)
+    tw, aeroLoads = P_IBM.computeAerodynamicCoefficients(tw, aeroLoads, dimPb=dim, Sref=Sref, Lref=Lref, alpha=alpha, beta=beta, verbose=verbose)
 
-        infoTime = ' (time = %.4e)'%time if time >= 0 else ''
-        print("******************************************")
-        print("Total Drag%s: %.12e"%(infoTime,(cdp+cdf)))
-        print("Total Lift%s: %.12e"%(infoTime,(clp+clf)))
-        print("******************************************")
-    #skin surface, C_(D,total), C_(L,total), C_(D,friction), C_(D,pressure), C_(L,friction), C_(L,pressure)
-    return zw, [cdp + cdf, clp + clf, cdf, cdp, clf, clp]
+    # Due to the current Mpi, Serial, Mpi workflow for Post AMR-IBM for CODA, we need to divide my Cmpi.size
+    # zw = Cmpi.bcast(zw, root=0) in Apps/Coda/Post.py --> all procs see the same values
+    # This will no longer be needed when the workflow is 100% Mpi :: it is in the TODO pipeline !
+    aeroLoads = [[x / Cmpi.size for x in y] for y in aeroLoads]
+
+    # Important Note:
+    # aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
+    return tw, aeroLoads
 
 
 ##========================================================================

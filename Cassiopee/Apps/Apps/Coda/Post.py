@@ -146,24 +146,9 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     return nodeDonorPoints, nodeWallPoints, augStateData
 
 
-def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, check=False, verbose=False, isRevertToOld=False):
-    """ Surface quantity post-processing for CODA IBM computation. 
-    Usage: computeSurfValues(fileNameResultIn, tb, CODAInputs, dim, fileNameIBMPnts, fileNameResultOut, check, verbose)"""
-
-    ## CODAInputs = [discParaDictAllStages, discSelectionParaDict, IBM_markers, dictReferenceQuantities]
-    ## fileNameResultIn = (e.g) output_stage3.h5 (the h5 from the CODA run)
-    if isinstance(tb, str): tb = C.convertFile2PyTree(tb)
-    else: tb = Internal.copyTree(tb)
-
-    if not isinstance(fileNameResultIn,str):
-        ValueError('fileNameResultIn MUST the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
-    if isRevertToOld and Cmpi.master:
-        print("WARNING: Reverting to previous projection approach - extrapolation based...", flush=True)
-
-    discParaDict            = CODAInputs[0]
-    discSelectionParaDict   = CODAInputs[1]
-    IBMMarkers              = CODAInputs[2]
-    dictReferenceQuantities = CODAInputs[3]
+def surfValuesCore__(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, fileNameCoefOut,
+                     check, verbose, isRevertToOld,
+                     discParaDict, discSelectionParaDict, dictReferenceQuantities, IBMMarkers):
 
     clac   = FSClac()
     fsmesh = FSMesh(clac)
@@ -183,28 +168,67 @@ def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=N
         if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
         zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
 
-    zw       = Cmpi.bcast(zw, root=0)
-    zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose)
-
+    zw = Cmpi.bcast(zw, root=0)
+    zw, aeroCoefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
+    forcePressure, forceFriction, momentPressure, momentFriction = aeroCoefs
     if Cmpi.master:
-        print("\nIntegrated coefficients:")
-        print("CD=      %g"%coefs[0])
-        print("CDfric=  %g"%coefs[2])
-        print("CDpres=  %g"%coefs[3])
-        print("CL=      %g"%coefs[1])
-        print("CLfric=  %g"%coefs[4])
-        print("CLpres=  %g"%coefs[5])
+        with open(fileNameCoefOut, 'w') as f:
+            lines = [
+                "\nIntegrated coefficients:",
+                "\n ==== Total Coefficients ==== :",
+                "x-dir=  %g" % (forcePressure[0]+forceFriction[0]),
+                "y-dir=  %g" % (forcePressure[1]+forceFriction[1]),
+                "z-dir=  %g" % (forcePressure[2]+forceFriction[2]),
+                "\n ==== Pressure Coefs ==== :",
+                "x-dir=  %g" % forcePressure[0],
+                "y-dir=  %g" % forcePressure[1],
+                "z-dir=  %g" % forcePressure[2],
+                "\n ==== Friction Coefs ==== :",
+                "x-dir=  %g" % forceFriction[0],
+                "y-dir=  %g" % forceFriction[1],
+                "z-dir=  %g" % forceFriction[2],
+            ]
+            output = "\n".join(lines)
+            print(output, flush=True)
+            f.write(output + "\n") # file
 
     if fileNameResultOut is not None:
         if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
         return None
     else:
-        return zw, coefs
+        return zw, aeroCoefs
 
 
-def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt', check=False, verbose=False, isRevertToOld=False):
+def computeSurfValues(fileNameResultIn, tb, CODAInputs, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt',
+                      check=False, verbose=False, isRevertToOld=False):
+    """ Surface quantity post-processing for CODA IBM computation.
+    Usage: computeSurfValues(fileNameResultIn, tb, CODAInputs, dim, fileNameIBMPnts, fileNameResultOut, fileNameCoefOut, check, verbose, isRevertToOld)"""
+
+    ## CODAInputs = [discParaDictAllStages, discSelectionParaDict, IBM_markers, dictReferenceQuantities]
+    ## fileNameResultIn = (e.g) output_stage3.h5 (the h5 from the CODA run)
+    if isinstance(tb, str): tb = C.convertFile2PyTree(tb)
+    else: tb = Internal.copyTree(tb)
+
+    if not isinstance(fileNameResultIn,str):
+        ValueError('fileNameResultIn MUST the name of the file. Importing of this file is done in this file through "fsmesh.ImportMeshHDF5".')
+    if isRevertToOld and Cmpi.master:
+        print("WARNING: Reverting to previous projection approach - extrapolation based...", flush=True)
+
+    discParaDict            = CODAInputs[0]
+    discSelectionParaDict   = CODAInputs[1]
+    IBMMarkers              = CODAInputs[2]
+    dictReferenceQuantities = CODAInputs[3]
+
+    valsTmp = surfValuesCore__(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, fileNameCoefOut,
+                               check, verbose, isRevertToOld,
+                               discParaDict, discSelectionParaDict, dictReferenceQuantities, IBMMarkers)
+    return valsTmp
+
+
+def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNameIBMPnts=None, fileNameResultOut=None, fileNameCoefOut='coefLiftDrag.txt',
+                          check=False, verbose=False, isRevertToOld=False, GeomName='DDDMesh'):
     """ Surface quantity post-processing for CODA IBM computation using FSUI-CODA.
-    Usage: computeSurfValues(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, check, verbose)"""
+    Usage: computeSurfValues(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, fileNameCoefOut, check, verbose, isRevertToOld, GeomName)"""
     import json
 
     ## fileNameResultIn  = (e.g) solution.h5    (the h5 from the fsui-coda run)
@@ -223,9 +247,9 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     ## READ relations.json file
     with open(fileNameRelations, 'r') as f: data = json.load(f)
 
-    discSelectionParaDict = data['CFD']['GeomIBM']['DiscretizationSelection']
-    discParaDictTmp       = data['CFD']['GeomIBM']['DiscretizationPara']
-    domain                = data['CFD']['GeomIBM']['Domain']
+    discSelectionParaDict = data['CFD'][GeomName]['DiscretizationSelection']
+    discParaDictTmp       = data['CFD'][GeomName]['DiscretizationPara']
+    domain                = data['CFD'][GeomName]['Domain']
     # Convert domain to boundary treatments
     IBMMarkers = []
     bndy_treat  = []
@@ -251,6 +275,7 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     Reynolds = discParaDict["reference state"]["viscosity specification"]["Reynolds"]
     Lref     = discParaDict["reference state"]["viscosity specification"]["Reynolds_Length"]
     Aref     = discParaDict["boundary integral quantities"]["Coef_Area"]
+    MmntCntr = discParaDict["boundary integral quantities"]["Moment_Center"]
     ## Post Values
     pressureRef    = 1
     densityRef     = 1
@@ -264,6 +289,7 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
     velYRef = velooRef*numpy.cos(alpha_rad)*numpy.sin(beta_rad)
     velZRef = velooRef*numpy.sin(alpha_rad)
 
+    #Missing data on the center for moment calc.
     dictReferenceQuantities = {
         "Mach_ref" : Mach,
         "Reynolds_ref" : Reynolds,
@@ -275,51 +301,13 @@ def computeSurfValuesFSUI(fileNameResultIn, tb, fileNameRelations, dim=3, fileNa
         "alpha" : alpha,
         "beta" : beta,
         "Sref": Aref,
+        "Lref": Lref,
+        "MomentCenters": MmntCntr
     }
-
-    clac   = FSClac()
-    fsmesh = FSMesh(clac)
-    fsmesh.ImportMeshHDF5(Filename=fileNameResultIn) or FSError.PrintAndExit()
-
-    # Reconstruction of the solution at the donor points (in parallel).
-    donorPointsNumpy, wallPointsNumpy, augStateNumpy = interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict,
-                                                                                IBMMarkers, check=check)
-
-    # Serial part of the post-processing.
-    zw = None
-    if Cmpi.master:
-        pytree = P_AMR.createPyTreeForIBMWallFieldsExtraction(numpy.concatenate(donorPointsNumpy),
-                                                              numpy.concatenate(wallPointsNumpy),
-                                                              numpy.concatenate(augStateNumpy),
-                                                              discSelectionParaDict)
-        if fileNameIBMPnts is not None: C.convertPyTree2File(pytree, fileNameIBMPnts)
-        zw = P_AMR.extractIBMWallFields(pytree, tb, discSelectionParaDict, isRevertToOld=isRevertToOld)
-
-    zw       = Cmpi.bcast(zw, root=0)
-    zw,coefs = P_AMR.computeBoundaryQuantities(zw, dictReferenceQuantities, dim=dim, verbose=verbose) #ok
-
-    if Cmpi.master:
-        with open(fileNameCoefOut, 'w') as f:
-            lines = [
-                "\nIntegrated coefficients:",
-                "\n ==== DRAG ==== :",
-                "CD=      %g" % coefs[0],
-                "CDfric=  %g" % coefs[2],
-                "CDpres=  %g" % coefs[3],
-                "\n ==== LIFT ==== :",
-                "CL=      %g" % coefs[1],
-                "CLfric=  %g" % coefs[4],
-                "CLpres=  %g" % coefs[5],
-            ]
-            output = "\n".join(lines)
-            print(output, flush=True)
-            f.write(output + "\n") # file
-
-    if fileNameResultOut is not None:
-        if Cmpi.master: C.convertPyTree2File(zw, fileNameResultOut)
-        return None
-    else:
-        return zw, coefs
+    valsTmp = surfValuesCore__(fileNameResultIn, tb, fileNameRelations, dim, fileNameIBMPnts, fileNameResultOut, fileNameCoefOut,
+                               check, verbose, isRevertToOld,
+                               discParaDict, discSelectionParaDict, dictReferenceQuantities, IBMMarkers)
+    return valsTmp
 
 ##========================================================================
 ##========================================================================
