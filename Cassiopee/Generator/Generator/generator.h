@@ -152,7 +152,7 @@ namespace K_GENERATOR
     E_Int loop, E_Int niter, std::vector<E_Int>& constrainedPts, 
     std::vector<FldArrayF*>& constraints,
     FldArrayF& vect, E_Float toldist);
-/* Moteur enforce */
+  /* Moteur enforce */
   E_Int enforceCommon(const char* name, char* varString, 
 		      E_Int ni, E_Int nj, E_Int nk,
 		      FldArrayF& f, E_Float P0, E_Float eh,
@@ -160,10 +160,10 @@ namespace K_GENERATOR
 		      E_Int& niout, E_Int& njout, E_Int& nkout,
 		      E_Int autoAdd=1);
 
-/* Curvilinear absciss calculation */
+  /* Curvilinear absciss calculation */
   void fa(E_Float x, FldArrayF& s, E_Int* i);
 
-/* Cassiopee Kernel dependent functions 
+  /* Cassiopee Kernel dependent functions 
    Attention : si les options de gencart sont basees sur un DesNumerics
    le DesNum n'est pas detruit a la fin, ni le DesAutomesh */
   PyObject* gencart(PyObject* self, PyObject* args);
@@ -175,8 +175,8 @@ namespace K_GENERATOR
                    E_Float& snearMul, E_Int& maxLevels, E_Int& startLevel, 
                    E_Float& stepFactor, E_Int& patchedGrids);
 
-// void getListOfBlocks(PyObject* O, list<BlkBaseBlock*>& listOfBlks);
-// void getListOfMeshes(PyObject* O, list<BlkMesh*>& listOfMeshes);
+  // void getListOfBlocks(PyObject* O, list<BlkBaseBlock*>& listOfBlks);
+  // void getListOfMeshes(PyObject* O, list<BlkMesh*>& listOfMeshes);
 
   void cellPlanarityStructured(E_Int ni, E_Int nj, E_Int nk,
                                FldArrayF& f, E_Int posx, E_Int posy, E_Int posz,
@@ -185,13 +185,13 @@ namespace K_GENERATOR
   void cellPlanarityUnstructured(FldArrayF& f, FldArrayI& cn,
                                  E_Int posx, E_Int posy, E_Int posz,
                                  FldArrayF& dist);
-/* close a structured mesh */
+  /* close a structured mesh */
   void closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
                            E_Int ni, E_Int nj, E_Int nk, E_Float eps);    
-/* close an unstructured mesh */
+  /* close an unstructured mesh */
   void closeUnstructuredMesh(E_Int posx, E_Int posy,E_Int posz,E_Float eps,
                              char* eltType, FldArrayF& f, FldArrayI& cn, E_Int removeDegen=0);
-/* close a BAR mesh */
+  /* close a BAR mesh */
   void closeBARMesh(E_Int posx, E_Int posy, E_Int posz, 
                     FldArrayF& f, FldArrayI& cn);
   E_Int closeBARMeshElt(E_Int posx, E_Int posy, E_Int posz,
@@ -207,7 +207,7 @@ namespace K_GENERATOR
 
   PyObject* TFIPENTA(PyObject* arrays);
 
-/* TFI 2D structure. Retourne 0 si echec.*/
+  /* TFI 2D structure. Retourne 0 si echec.*/
   short TFIstruct2D(E_Int ni, E_Int nj, E_Int nfld, 
                     E_Int imin, E_Int imax, E_Int jmin, E_Int jmax, 
                     std::vector<FldArrayF*>& fields,
@@ -217,7 +217,7 @@ namespace K_GENERATOR
                      E_Int imin, E_Int imax, E_Int jmin, E_Int jmax,
                      std::vector<FldArrayF*>& fields,
                      FldArrayF& coords);
-/* TFI 3D structure. Retourne 0 si echec.*/
+  /* TFI 3D structure. Retourne 0 si echec.*/
   short TFIstruct3D(E_Int ni, E_Int nj, E_Int nk, E_Int nfld, 
                     E_Int imin, E_Int imax, E_Int jmin, E_Int jmax, E_Int kmin, E_Int kmax, 
                     std::vector<FldArrayF*>& fields,
@@ -240,7 +240,7 @@ namespace K_GENERATOR
                       std::vector<E_Int>& nit, 
                       std::vector<FldArrayF*>& fields, 
                       FldArrayIS& newOrder);
-/* Verifie la continuite des frontieres imin, imax, ...
+  /* Verifie la continuite des frontieres imin, imax, ...
    aux coins. Vaut 0 si pas continu, 1 sinon  */
   short checkContinuousBnds3D(E_Int ni, E_Int nj, E_Int nk,
                               E_Float* ximin, E_Float* yimin, E_Float* zimin,
@@ -269,16 +269,16 @@ namespace K_GENERATOR
     E_Float* xjmin, E_Float* yjmin, E_Float* zjmin,
     E_Float* xdiag, E_Float* ydiag, E_Float* zdiag);
 
-/* Calcul des coefficients de l 'eq. du plan ax + by + cz + d = 0*/
+  /* Calcul des coefficients de l 'eq. du plan ax + by + cz + d = 0*/
   E_Int compPlaneCoefficients(E_Int posx, E_Int posy, E_Int posz, 
                               FldArrayF& f, 
                               E_Float& a, E_Float& b, E_Float& c, E_Float& d);
 
-/* Calcul des normales a une courbe */
+  /* Calcul des normales a une courbe */
   void normals(E_Int n, E_Float* x, E_Float* y, E_Float* z,
                E_Float* nx, E_Float *ny, E_Float* nz);
 
-/* Calcul de la distance a une courbe sauf le point ind */
+  /* Calcul de la distance a une courbe sauf le point ind */
   E_Float dist2Curve(E_Int n, E_Float* x, E_Float* y, E_Float* z, E_Int* found,
                      E_Float px, E_Float py, E_Float pz, E_Int ind,
                      E_Int& nearest);
@@ -394,13 +394,13 @@ namespace K_GENERATOR
     std::vector<E_Int>& posx, std::vector<E_Int>& posy, std::vector<E_Int>& posz,
     E_Float eps);
 
-void closeAllUnstructuredMeshes(
-  std::vector<FldArrayF*>& unstructF,  std::vector<FldArrayI*>& connectsEV,
-  std::vector<E_Int>& posxt, std::vector<E_Int>& posyt, std::vector<E_Int>& poszt,
-  std::vector<FldArrayF*>& exteriorFacesF,  std::vector<FldArrayI*>& connectsEF,
-  std::vector<E_Int>& posxe, std::vector<E_Int>& posye, std::vector<E_Int>& posze,
-  E_Float eps);
-/* determination des blocs intersectants noz1 ds bboxes
+  void closeAllUnstructuredMeshes(
+    std::vector<FldArrayF*>& unstructF,  std::vector<FldArrayI*>& connectsEV,
+    std::vector<E_Int>& posxt, std::vector<E_Int>& posyt, std::vector<E_Int>& poszt,
+    std::vector<FldArrayF*>& exteriorFacesF,  std::vector<FldArrayI*>& connectsEF,
+    std::vector<E_Int>& posxe, std::vector<E_Int>& posye, std::vector<E_Int>& posze,
+    E_Float eps);
+  /* determination des blocs intersectants noz1 ds bboxes
    IN : noz1 : numero de la zone dans bboxes
    IN : minB : xmin(z1), ymin(z1), zmin(z1) 
    IN : maxB: xmin(z1), ymin(z1), zmin(z1)
@@ -431,6 +431,64 @@ void closeAllUnstructuredMeshes(
                 std::vector<E_Float*>& coordx, std::vector<E_Float*>& coordy, 
                 std::vector<E_Float*>& coordz, std::vector<E_Float*>& indic,
                 std::vector<FldArrayI*>& connect);
+
+  inline E_Float computeAngle(
+    E_Float x1, E_Float y1, E_Float z1,
+    E_Float x2, E_Float y2, E_Float z2,
+    E_Float x3, E_Float y3, E_Float z3
+  )
+  {
+    E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
+    E_Float b2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
+    E_Float c2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
+  
+    if (a2 < K_CONST::E_GEOM_CUTOFF || b2 < K_CONST::E_GEOM_CUTOFF) // security check
+    { 
+      return 0.;
+    }
+  
+    E_Float a = sqrt(a2);
+    E_Float b = sqrt(b2);
+    E_Float cosalpha = K_FUNC::E_max(K_FUNC::E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
+  
+    return acos(cosalpha);
+  }
+  
+  inline E_Float computeSkewness(
+    E_Float x1, E_Float y1, E_Float z1,
+    E_Float x2, E_Float y2, E_Float z2,
+    E_Float x3, E_Float y3, E_Float z3,
+    E_Float refAngle, E_Int normalized=0
+  )
+  {
+    E_Float degconst = 180.0 / K_CONST::E_PI;
+    E_Float alpha = computeAngle(x1,y1,z1,x2,y2,z2,x3,y3,z3);
+
+    if (alpha < K_CONST::E_GEOM_CUTOFF) return 0.; // security check
+    
+    E_Float skewness = K_FUNC::E_abs(alpha*degconst - refAngle);
+    if (normalized) // skewness in [0,1] range
+    {  
+      if (alpha > refAngle) skewness = skewness/(180.-refAngle);
+      else skewness = skewness/refAngle;
+    }
+  
+    return skewness;
+  }
+
+  inline E_Float computeSkewness(
+    const E_Float* x, const E_Float* y, const E_Float* z,
+    E_Int ind1, E_Int ind2, E_Int ind3,
+    E_Float refAngle, E_Int normalized=0
+  )
+  {
+    E_Float x1 = x[ind1], x2 = x[ind2], x3 = x[ind3];
+    E_Float y1 = y[ind1], y2 = y[ind2], y3 = y[ind3];
+    E_Float z1 = z[ind1], z2 = z[ind2], z3 = z[ind3];
+
+    return computeSkewness(x1,y1,z1,x2,y2,z2,x3,y3,z3,refAngle,normalized);
+  }
+
 }
 # undef FldArrayF
 # undef FldArrayI
