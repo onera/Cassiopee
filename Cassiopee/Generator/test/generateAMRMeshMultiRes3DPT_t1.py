@@ -8,7 +8,6 @@ import KCore.test as test
 LOCAL      = test.getLocal()
 snear      = 0.2
 dFar       = 5
-levelMax   = 0
 vmins      = [[6,6]]
 vminsTbox  = [[5,5]]
 dim        = 3

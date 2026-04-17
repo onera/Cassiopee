@@ -1269,7 +1269,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # MAIN FUNCTION
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
-def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
+def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
     NumMinDxLarge=1
@@ -1366,7 +1366,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     vmins=[]
     for nBase in range(numBase):
         vmins.append(list(vminsLocal[nBase]))
-        vmins[nBase] = [max(3,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
+        vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
     tCartin = False
@@ -1521,7 +1521,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=7, vmins=11, snears=0.01, dfars=1
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
-def generateCartBackgroundGrid(tb, levelMax=7, snears=0.01, dim=3, dictGridCart=None):
+def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None):
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
     #  b) If levelMax/=0 :
