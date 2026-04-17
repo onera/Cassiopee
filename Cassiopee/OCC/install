@@ -43,6 +43,7 @@ fi
 # Compilation et installation
 if [ $PRODMODE -ge 0 ]; then
     sconsf=`which scons`
+    [ $? != 0 ] && echo "Error: scons not found." && exit 1;
     if [ "$OMP_NUM_THREADS" != "" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
     else
@@ -55,8 +56,7 @@ if [ $PRODMODE -ge 0 ]; then
             $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
         fi
     else
-        echo "Error: scons not found."
-        exit 1
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     fi
     [ $? != 0 ] && exit 1;
     #touch OCC/occ.cpp

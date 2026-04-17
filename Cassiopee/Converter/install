@@ -51,8 +51,7 @@ if [ $PRODMODE -ge 0 ]; then
             $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
         fi
     else
-        echo "Error: scons not found."
-        exit 1
+        python $sconsf install prefix="$INSTALLPATH" "$SCONSOPT"
     fi
     [ $? != 0 ] && exit 1;
     #touch Converter/converter.cpp
