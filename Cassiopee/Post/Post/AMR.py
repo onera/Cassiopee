@@ -99,7 +99,7 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False,
     center = dictReferenceQuantities["MomentCenters"]
     alpha = dictReferenceQuantities["alpha"]
     beta = dictReferenceQuantities["beta"]
-    
+
     # add reference state for computation of integrated coefficients
     ref1 = Internal.getNodesFromName(zw, "ReferenceState")
     if ref1 != []: Internal._rmNodesByName(zw, "ReferenceState")
@@ -117,7 +117,7 @@ def computeBoundaryQuantities(zw, dictReferenceQuantities, dim=3, verbose=False,
     # Due to the current Mpi, Serial, Mpi workflow for Post AMR-IBM for CODA, we need to divide my Cmpi.size
     # zw = Cmpi.bcast(zw, root=0) in Apps/Coda/Post.py --> all procs see the same values
     # This will no longer be needed when the workflow is 100% Mpi :: it is in the TODO pipeline !
-    aeroLoads = [[x / Cmpi.size for x in y] for y in aeroLoads] 
+    aeroLoads = [[x / Cmpi.size for x in y] for y in aeroLoads]
 
     # Important Note:
     # aeroLoads = [forcePressure, forceFriction, momentPressure, momentFriction]
