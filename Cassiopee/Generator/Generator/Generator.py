@@ -2406,16 +2406,16 @@ def getRegularityMap(array):
     else:
         return generator.getRegularityMap(array)
 
-def getAngleRegularityMap(array):
+def getAngleRegularityMap(array, normalized=False):
     """Return the regularity map in an array.
     Usage: getAngleRegularityMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getAngleRegularityMap(i))
+            b.append(generator.getAngleRegularityMap(i, normalized))
         return b
     else:
-        return generator.getAngleRegularityMap(array)
+        return generator.getAngleRegularityMap(array, normalized)
 
 # Fonction retournant la carte de qualite d'une maillage TRI
 # (0. pour un triangle degenere. pour un triangle equilateral)

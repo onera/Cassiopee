@@ -30,7 +30,9 @@ using namespace K_FUNC;
 PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
-  if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
+  E_Int normalized;
+
+  if (!PYPARSETUPLE_(args, O_ I_, &array, &normalized)) return NULL;
   
   // Check array
   E_Int im, jm, km;
@@ -47,8 +49,6 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
                     "getAngleOrthogonalityMap: unknown type of array.");
     return NULL;
   }
-
-  E_Int normalized = 0;
 
   E_Int api = f->getApi();
   E_Int npts = f->getSize();
