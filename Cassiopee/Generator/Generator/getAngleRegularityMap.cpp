@@ -21,7 +21,6 @@
 
 # include "generator.h"
 
-using namespace K_CONST;
 using namespace K_FLD;
 using namespace K_FUNC;
 
@@ -143,13 +142,13 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         #pragma omp for
         for (E_Int i = 0; i < ni1; i++)
         {
-          iprev = K_FUNC::E_max(i-1, 0);
+          iprev = E_max(i-1, 0);
           inext = i+1;
-          inext2 = K_FUNC::E_min(i+2, ni-1);
+          inext2 = E_min(i+2, ni-1);
           
           alphamax[i] = 0.;
-          alphamax[i] = E_max(K_GENERATOR::computeSkewness(x, y, z, i, iprev, inext, 180., normalized), alphamax[i]);
-          alphamax[i] = E_max(K_GENERATOR::computeSkewness(x, y, z, inext, i, inext2, 180., normalized), alphamax[i]);
+          alphamax[i] = E_max(K_GENERATOR::computeSkewness(x, y, z, iprev, i, inext, 180., normalized), alphamax[i]);
+          alphamax[i] = E_max(K_GENERATOR::computeSkewness(x, y, z, i, inext, inext2, 180., normalized), alphamax[i]);
         }        
       }
       else if (dim == 2) // dimension = 2D
@@ -158,41 +157,41 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          iprev = K_FUNC::E_max(i-1, 0);
+          iprev = E_max(i-1, 0);
           inext = i+1;
-          inext2 = K_FUNC::E_min(i+2, ni-1);
+          inext2 = E_min(i+2, ni-1);
 
-          jprev = K_FUNC::E_max(j-1, 0);
+          jprev = E_max(j-1, 0);
           jnext = j+1;
-          jnext2 = K_FUNC::E_min(j+2, nj-1);
+          jnext2 = E_min(j+2, nj-1);
 
           ind  = j*ni1+i;
           indn = j*ni+i;
           alphamax[ind] = 0.;
 
-          // calcul de l'angle | i->(i+1)
+          // angle i->(i+1)
           ind1 = indn;
           ind2 = j*ni+inext;
           ind3 = j*ni+inext2;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
           
-          // calcul de l'angle | (i-1)->i
+          // angle (i-1)->i
           ind1 = j*ni+iprev;
           ind2 = indn;
           ind3 = j*ni+inext;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | j->(j+1)
+          // angle j->(j+1)
           ind1 = indn;
           ind2 = jnext*ni+i;
           ind3 = jnext2*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | (j-1)->j
+          // angle (j-1)->j
           ind1 = jprev*ni+i;
           ind2 = indn;
           ind3 = jnext*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
         }
       }
       else  // dimension = 3D
@@ -202,57 +201,57 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          iprev = K_FUNC::E_max(i-1, 0);
+          iprev = E_max(i-1, 0);
           inext = i+1;
-          inext2 = K_FUNC::E_min(i+2, ni-1);
+          inext2 = E_min(i+2, ni-1);
 
-          jprev = K_FUNC::E_max(j-1, 0);
+          jprev = E_max(j-1, 0);
           jnext = j+1;
-          jnext2 = K_FUNC::E_min(j+2, nj-1);
+          jnext2 = E_min(j+2, nj-1);
 
-          kprev = K_FUNC::E_max(k-1, 0);
+          kprev = E_max(k-1, 0);
           knext = k+1;
-          knext2 = K_FUNC::E_min(k+2, nk-1);
+          knext2 = E_min(k+2, nk-1);
 
           ind  = k*ni1nj1+j*ni1+i;
           indn = k*ninj+j*ni+i;
           alphamax[ind] = 0.;
 
-          // calcul de l'angle | i->(i+1)
+          // angle i->(i+1)
           ind1 = indn;
           ind2 = k*ninj+j*ni+inext;
           ind3 = k*ninj+j*ni+inext2;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
           
-          // calcul de l'angle | (i-1)->i
+          // angle (i-1)->i
           ind1 = k*ninj+j*ni+iprev;
           ind2 = indn;
           ind3 = k*ninj+j*ni+inext;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | j->(j+1)
+          // angle j->(j+1)
           ind1 = indn;
           ind2 = k*ninj+jnext*ni+i;
           ind3 = k*ninj+jnext2*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | (j-1)->j
+          // angle (j-1)->j
           ind1 = k*ninj+jprev*ni+i;
           ind2 = indn;
           ind3 = k*ninj+jnext*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | k->(k+1)
+          // angle k->(k+1)
           ind1 = indn;
           ind2 = knext*ninj+j*ni+i;
           ind3 = knext2*ninj+j*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
 
-          // calcul de l'angle | (k-1)->k
+          // angle (k-1)->k
           ind1 = kprev*ninj+j*ni+i;
           ind2 = indn;
           ind3 = knext*ninj+j*ni+i;
-          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind2, ind1, ind3, 180., normalized), alphamax[ind]);
+          alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x, y, z, ind1, ind2, ind3, 180., normalized), alphamax[ind]);
         }
       }
     }
@@ -298,7 +297,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     nepc[0] = 0; nfpc[0] = 0;
     for (E_Int ic = 0; ic < nc; ic++)
     {
-      K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+      FldArrayI& cm = *(cn->getConnect(ic));
       E_Int nelts = cm.getSize();
       nepc[ic+1] = nepc[ic] + nelts;
       nfpc[ic+1] = nfpc[ic] + nfpe[ic]*nelts;  // number of facets per connectivity
@@ -319,7 +318,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     }
 
     // Compute center of facets
-    K_FLD::FldArrayF fxint(ntotFacets), fyint(ntotFacets), fzint(ntotFacets);
+    FldArrayF fxint(ntotFacets), fyint(ntotFacets), fzint(ntotFacets);
     K_METRIC::compUnstructCenterInt(*cn, eltType, x, y, z,
       fxint.begin(), fyint.begin(), fzint.begin(), true
     );
@@ -328,7 +327,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     E_Float* zint = fzint.begin(1);
 
     // Compute center of elements
-    K_FLD::FldArrayF fxb(ntotElts), fyb(ntotElts), fzb(ntotElts);
+    FldArrayF fxb(ntotElts), fyb(ntotElts), fzb(ntotElts);
     K_METRIC::compUnstructCellCenter(*cn, x, y, z,
       fxb.begin(), fyb.begin(), fzb.begin()
     );
@@ -349,7 +348,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
       // loop over all connectivities
       for (E_Int ic = 0; ic < nc; ic++)
       {
-        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        FldArrayI& cm = *(cn->getConnect(ic));
         nelts = cm.getSize();
         elOffset = nepc[ic];
         fctOffset = nfpc[ic];
@@ -359,8 +358,8 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         for (E_Int i = 0; i < nelts; i++)
         {
           ind = i + elOffset; // true element index
-          alphamax[ind] = 0.;
-          x2 = xb[ind]; y2 = yb[ind]; z2 = zb[ind]; // cell center
+          x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
+          alphamax[ind] = 0.; // initialization
 
           // loop over all faces of element i
           for (E_Int f = 0; f < nfpe[ic]; f++)
@@ -368,8 +367,8 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
             pos = f + i*nfpe[ic] + fctOffset;
             ind1 = cFE(pos, 1) - 1;
             ind2 = cFE(pos, 2) - 1;
-            if (ind2 < 0) continue; // facet has only one element
-            x1 = xint[pos]; y1 = yint[pos]; z1 = zint[pos]; // facet center
+            if (ind2 < 0) continue; // facet has only one neighbor element
+            x2 = xint[pos]; y2 = yint[pos]; z2 = zint[pos]; // facet center
             x3 = xb[ind2]; y3 = yb[ind2]; z3 = zb[ind2]; // neighbor element center
 
             alphamax[ind] = E_max(K_GENERATOR::computeSkewness(x1,y1,z1,x2,y2,z2,x3,y3,z3,180.,normalized), alphamax[ind]);

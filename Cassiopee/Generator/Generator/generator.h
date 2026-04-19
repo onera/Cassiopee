@@ -439,8 +439,8 @@ namespace K_GENERATOR
   )
   {
     E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
-    E_Float b2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
-    E_Float c2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
+    E_Float b2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
+    E_Float c2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
   
     if (a2 < K_CONST::E_GEOM_CUTOFF || b2 < K_CONST::E_GEOM_CUTOFF) // security check
     { 
