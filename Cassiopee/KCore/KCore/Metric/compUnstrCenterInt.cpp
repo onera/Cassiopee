@@ -40,7 +40,7 @@ void K_METRIC::compUnstructCenterInt(
 
   // Number of facets per element
   std::vector<E_Int> nfpe;
-  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, expandToLowerDim);
   if (ierr != 0) return;
 
   for (E_Int ic = 0; ic < nc; ic++)
