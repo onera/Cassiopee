@@ -14,16 +14,22 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
-def _addExtensionInfo(tb, dictExtension):
-    for zoneNameTmp in dictExtension:
+def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
+    for i, zoneNameTmp in enumerate(dictExtension):
         node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
         Internal._createUniqueChild(node, '.Solver#define', 'UserDefinedData_t')
         n = Internal.getNodeFromName1(node, '.Solver#define')
         Internal._createUniqueChild(n, 'isAddKplane', 'DataArray_t', dictExtension[zoneNameTmp])
+        if dictTolerance: Internal._createUniqueChild(n, 'tolerancePlane', 'DataArray_t', list(dictTolerance.values())[i])
     return None
 
 def createExtension__(tbIn):
     tb = Internal.copyTree(tbIn)
+    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
+    if baseSYM:
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     bases = Internal.getBases(tb)
     # do each base separately
     for bTmp in bases:
@@ -33,6 +39,10 @@ def createExtension__(tbIn):
         for z  in zones:
             n = Internal.getNodeFromName(z, 'isAddKplane')
             if n:
+                tolLocalPlane = 100*__TOL__
+                tolLocal = Internal.getNodeFromName(z, 'tolerancePlane')
+                if tolLocal: tolLocalPlane = Internal.getValue(tolLocal)
+                
                 zoneNameRmv.append(z[0])
                 directionNormal = Internal.getValue(n) # normal points in the - or + direction
                 G._getNormalMap(z)
@@ -43,10 +53,10 @@ def createExtension__(tbIn):
 
                 varName  = 'sx'
                 varName2 = 'CoordinateX'
-                if abs(maxval[1]-minval[1]) < 2*__TOL__:
+                if abs(maxval[1]-minval[1]) < tolLocalPlane:
                     varName  = 'sy'
                     varName2 = 'CoordinateY'
-                elif abs(maxval[2]-minval[2]) < 2*__TOL__:
+                elif abs(maxval[2]-minval[2]) < tolLocalPlane:
                     varName  = 'sz'
                     varName2 = 'CoordinateZ'
 
@@ -54,25 +64,25 @@ def createExtension__(tbIn):
                 # reorder if : normals point + but extrudes in -1 or vice versa
                 if minval>0.0 and directionNormal == -1 : T._reorder(z, (-1,))
                 if minval<0.0 and directionNormal == 1: T._reorder(z, (-1,))
-
+                
                 # extrusion
                 d = G.cart((0,0,0), (0.05,1,1),(4,1,1))
                 b = G.addNormalLayers(z, d)
-
+                
                 # only keep the exterior faces & turn into BE
                 b = P.exteriorFaces(b)
                 b = T.splitSharpEdges(b, 45.)
                 b = T.breakElements(b)
-
+                
                 saveZones  = []  # keep the new planar face & extrusion - not the orignal planar face
                 minvalOrig = C.getMinValue(z, '%s'%varName2)
                 maxvalOrig = C.getMaxValue(z, '%s'%varName2)
-
+                
                 zonesb = Internal.getZones(b)
                 for zb in zonesb:
                     minval = C.getMinValue(zb, '%s'%varName2)
                     maxval = C.getMaxValue(zb, '%s'%varName2)
-                    if abs(maxval-maxvalOrig) > 2*__TOL__ or abs(minval-maxvalOrig) > 2*__TOL__: saveZones.append(zb) # save zones that are not superimposed on the orignal planar
+                    if abs(maxval-maxvalOrig) > tolLocalPlane or abs(minval-maxvalOrig) > tolLocalPlane: saveZones.append(zb) # save zones that are not superimposed on the orignal planar
                 # convert the extruded faces QUAD -> Tri
                 for zb in saveZones:
                     dim = Internal.getZoneDim(zb);
@@ -85,11 +95,14 @@ def createExtension__(tbIn):
 
         # add new zones - planar & extrusions
         for zb in saveZones2: Internal.addChild(bTmp, zb, pos=-1)
-
+        
         # remove old zones - planar zones only
         for zoneNameTmp in zoneNameRmv:
             node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
             Internal._rmNode(tb, node)
+    Internal._rmNodesFromType(tb, "FlowSolution_t")
+    Internal._rmNodesFromType(tb, "UserDefinedData_t")
+        
     return tb
 
 def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=0, functionName='Tagging'):
@@ -1403,7 +1416,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     snears, numBase = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
-    tbv2 = createExtension(tb)
+    tbv2 = createExtension__(tb)
     if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb)): tbv2 = None
     if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
