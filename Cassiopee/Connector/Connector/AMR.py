@@ -979,7 +979,7 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
     return None
 
 ## IMPORTANT NOTE:: this is a template of a python wrapper. Not to be used. It is a placeholder and is very likely to change in subsequent version.
-def prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset=None, check=False, opt=False, octreeMode=1,
+def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
                   localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False):
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 

@@ -9,7 +9,6 @@ LOCAL +='/'
 ## ===================
 snear      = 0.002
 dFar       = 10
-levelMax   = 20
 vmins      = [25,24,24,20,21,5,4]
 dim        = 2
 
@@ -36,5 +35,5 @@ tb = D_IBM.naca0012(snear, 'Musker', 0.)
 D_IBM._setDfar(tb, dFar)
 ##C.convertPyTree2File(tb, 'tb.cgns')
 
-tIBM = X_AMR.prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, OutputAMRMesh=False, check=False, localDir=LOCAL)
+tIBM = X_AMR.prepareAMRIBM(tb, vmins, dim, IBM_parameters, OutputAMRMesh=False, check=False, localDir=LOCAL)
 test.testT(tIBM,1)

@@ -10,7 +10,6 @@ LOCAL +='/'
 ## ===================
 snear      = 0.002
 dFar       = 10
-levelMax   = 20
 vmins      = [25,24,24,20,21,5,4]
 dim        = 2
 
@@ -37,7 +36,7 @@ tb = D_IBM.naca0012(snear, 'Musker', 0.)
 D_IBM._setDfar(tb, dFar)
 Cmpi.barrier()
 
-X_AMR.prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, OutputAMRMesh=True, check=False, localDir=LOCAL, fileName='tIBM.cgns')
+X_AMR.prepareAMRIBM(tb, vmins, dim, IBM_parameters, OutputAMRMesh=True, check=False, localDir=LOCAL, fileName='tIBM.cgns')
 
 tAMR = C.convertFile2PyTree(LOCAL+'tAMRMesh.cgns')
 if Cmpi.rank==0:test.testT(tAMR,1)
