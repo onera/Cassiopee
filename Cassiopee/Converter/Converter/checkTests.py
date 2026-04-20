@@ -231,7 +231,7 @@ if __name__ == "__main__":
             a = os.path.exists(path)
             if not a:
                 raise ValueError("Module %s not found."%module)
-            
+
     errorTot = 0
     for module in modules: # for each module
         errors = 0

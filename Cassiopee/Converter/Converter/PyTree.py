@@ -5203,7 +5203,7 @@ def _reorderSubzoneNGON2__(z, a, PL, T):
     face0 = PL[0]
     elt0 = PE[face0-1,0]
     print('found=', face0, elt0)
-    
+
     # barycenter de la face 0 dans a
     PF = (0., 0., 0.)
     off = off1[face0-1]
@@ -5215,7 +5215,7 @@ def _reorderSubzoneNGON2__(z, a, PL, T):
     PF = Vector.mul(1./np, PF)
     print('face np=', np)
     print('face center', PF)
-    
+
     # normale a face 0 dans a
     nF = (0., 0., 0.)
     off = off1[face0-1]
@@ -5263,13 +5263,13 @@ def _reorderSubzoneNGON2__(z, a, PL, T):
     else:
         print("Normal vers l'interieur du domaine")
         #T._reorder(z, (+1,))
-    return None    
+    return None
 
 def _reorderSubzoneNGON3__(z, a, PL, T):
     print("NGON3")
     import KCore.Vector as Vector
     T._reorder(z, (+1,))
-    
+
     # get pointers
     if Internal.getNodeFromName(a, 'ParentElements') is None:
         Internal._adaptNFace2PE(a)
@@ -5288,7 +5288,7 @@ def _reorderSubzoneNGON3__(z, a, PL, T):
     face0 = PL[0]
     elt0 = PE[face0-1,0]
     print('found=', face0, elt0)
-    
+
     # barycenter de la face 0 dans a
     np = off1[face0]-off1[face0-1]
     PF = (0., 0., 0.)
