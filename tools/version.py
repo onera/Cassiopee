@@ -29,7 +29,7 @@ def update(path, version1, version2):
       print("Updating %s."%m)
       w = os.walk(path+'/'+m)
       for f in w:
-          # exclude .svn, .git,  build
+          # exclude .svn, .git, build
           dirName = f[0]
           if dirName.find('build') == -1 and dirName.find('.svn') == -1 and dirName.find('.git') == -1:
               files = f[2]

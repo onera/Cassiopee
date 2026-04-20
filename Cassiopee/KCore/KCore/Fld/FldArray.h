@@ -298,6 +298,12 @@ class FldArray
     ///- Adds val to all values.
     void shift(T val);
 
+    // used in etc
+    T& getitems(int i, int j);
+    T& getitem(int i);
+    void setitem(int i, T value);
+    void setitems(int i, int j, T value);
+
   private:
     // set all elements to val
     void __setAllValuesAt(E_Int sizetotloc, T* to, T val);
@@ -461,6 +467,35 @@ const T* FldArray<T>::end(E_Int fld) const
   assert (fld <= _nfldLoc);
   return _rake[fld-1]+_sizeLoc*_stride;
 }
+
+//OK============================================================================
+TEMPLATE_T
+inline T& FldArray<T>::getitems(int i, int j)
+{
+  return this->operator()(i,j);
+}
+
+//OK============================================================================
+TEMPLATE_T
+inline T& FldArray<T>::getitem(int i)
+{
+  return this->operator[](i);
+}
+
+//OK============================================================================
+TEMPLATE_T
+void FldArray<T>::setitem(int i, T value)
+{
+  this->operator[](i) = value;
+}
+
+//OK============================================================================
+TEMPLATE_T
+void FldArray<T>::setitems(int i, int j, T value)
+{
+  this->operator()(i,j) = value;
+}
+
 //==============================================================================
 TEMPLATE_T
 E_Int FldArray<T>::getNFaces()

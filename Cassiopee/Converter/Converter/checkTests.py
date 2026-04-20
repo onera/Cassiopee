@@ -122,17 +122,19 @@ def checkUnitaryTests(module, functionName, docString, docLines, runTest=False, 
                 ret += 1
 
     # check name.py (doc test)
-    file = os.path.join(path, functionName+'.py')
+    name = functionName+'.py'
+    file = os.path.join(path, name)
     a = os.path.exists(file)
     if not a:
         if runMissing:
-            print("Warning: file %s is missing."%(functionName+'.py'))
+            print("Warning: file %s is missing."%(name))
             ret += 1
     else:
         # check test
         if runTest:
             try:
-                subprocess.check_output(["python", file], stderr=subprocess.STDOUT, text=True)
+                print("Running %s"%name)
+                subprocess.check_output(["python", name], cwd=path, stderr=subprocess.STDOUT, text=True)
             except Exception:
                 print("Error: test %s fails."%file)
                 ret += 1
@@ -149,17 +151,18 @@ def checkUnitaryTests(module, functionName, docString, docLines, runTest=False, 
                     ret += 1
 
     # check namePT.py (doc test)
-    file = os.path.join(path, functionName+'PT.py')
+    name = functionName+'PT.py'
+    file = os.path.join(path, name)
     a = os.path.exists(file)
     if not a:
         if runMissing:
-            print("Warning: file %s is missing."%(functionName+'PT.py'))
+            print("Warning: file %s is missing."%(name))
             ret += 1
     else:
         # check test
         if runTest:
             try:
-                subprocess.check_output(["python", file], stderr=subprocess.STDOUT, text=True)
+                subprocess.check_output(["python", name], cwd=path, stderr=subprocess.STDOUT, text=True)
             except Exception:
                 print("Error: test %s fails."%file)
                 ret += 1
@@ -175,11 +178,12 @@ def checkUnitaryTests(module, functionName, docString, docLines, runTest=False, 
                     ret += 1
 
     # check unitary test (array)
-    file = os.path.join(path, functionName+'_t1.py')
+    name = functionName+'_t1.py'
+    file = os.path.join(path, name)
     a = os.path.exists(file)
     if not a:
         if runMissing:
-            print("Warning: file %s is missing."%(functionName+'_t1.py'))
+            print("Warning: file %s is missing."%(name))
             ret += 1
     else:
         # check header
@@ -194,11 +198,12 @@ def checkUnitaryTests(module, functionName, docString, docLines, runTest=False, 
                     ret += 1
 
     # check unitary test (pyTree)
-    file = os.path.join(path, functionName+'PT_t1.py')
+    name = functionName+'PT_t1.py'
+    file = os.path.join(path, name)
     a = os.path.exists(file)
     if not a:
         if runMissing:
-            print("Warning: file %s is missing."%(functionName+'PT_t1.py'))
+            print("Warning: file %s is missing."%(name))
             ret += 1
     else:
         # check header
@@ -220,6 +225,13 @@ if __name__ == "__main__":
         modules = getModules()
     else:
         modules = argv[1:]
+        cassiopeeIncDir = getCassiopeeSourceDir()
+        for module in modules:
+            path = os.path.join(cassiopeeIncDir, module, 'test')
+            a = os.path.exists(path)
+            if not a:
+                raise ValueError("Module %s not found."%module)
+            
     errorTot = 0
     for module in modules: # for each module
         errors = 0

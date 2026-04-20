@@ -5165,13 +5165,191 @@ def getEmptyBCForNGonZone__(z, dims, pbDim, splitFactor):
 #==============================================================================
 # IN: z: zone subzone (structure)
 # IN: w: window [imin,imax, jmin, jmax, kmin, kmax]
-# Reorder unz subzone pour garder les normales exterieures
+# Reorder subzone z to have normals towards volume mesh
 #==============================================================================
-def _reorderSubzone__(z, w, T):
+def _reorderSubzoneStruct__(z, w, T):
     imin, imax, jmin, jmax, kmin, kmax = w
     if imin == imax and imin > 1: T._reorder(z, (1,-2,3))
     elif jmin == jmax and jmin == 1: T._reorder(z, (-1,2,3))
     elif kmin == kmax and kmin > 1: T._reorder(z, (-1,2,3))
+    return None
+
+# Reorder subzone z extracted from NGON a with Point List to have normals towards
+# volume mesh a
+def _reorderSubzoneNGON2__(z, a, PL, T):
+    print("NGON2")
+    import KCore.Vector as Vector
+    T._reorder(z, (+1,))
+
+    # get pointers on a
+    if Internal.getNodeFromName(a, 'ParentElements') is None:
+        Internal._adaptNFace2PE(a)
+    PE = Internal.getNodeFromName(a, 'ParentElements')[1]
+    NFACE = Internal.getNFaceNode(a)
+    NGON = Internal.getNGonNode(a)
+    if Internal.getNodeFromName1(NGON, 'FaceIndex') is None:
+        Internal._adaptNGon2Index(a)
+    if Internal.getNodeFromName1(NFACE, 'ElementIndex') is None:
+        Internal._adaptNFace2Index(a)
+    con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
+    off1 = Internal.getNodeFromName1(NGON, 'FaceIndex')[1]
+    con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
+    off2 = Internal.getNodeFromName1(NFACE, 'ElementIndex')[1]
+    xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
+    yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
+    zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
+
+    # face 0 et elt 0
+    face0 = PL[0]
+    elt0 = PE[face0-1,0]
+    print('found=', face0, elt0)
+    
+    # barycenter de la face 0 dans a
+    PF = (0., 0., 0.)
+    off = off1[face0-1]
+    np = con1[off]
+    for i in range(np):
+        ind = con1[off+i+1]-1
+        print(i, ind, (xp[ind],yp[ind],zp[ind]))
+        PF = Vector.add(PF, (xp[ind],yp[ind],zp[ind]))
+    PF = Vector.mul(1./np, PF)
+    print('face np=', np)
+    print('face center', PF)
+    
+    # normale a face 0 dans a
+    nF = (0., 0., 0.)
+    off = off1[face0-1]
+    np = con1[off]
+    for i in range(np-1):
+        ind1 = con1[off+i+1]-1
+        ind2 = con1[off+i+2]-1
+        P1 = (xp[ind1],yp[ind1],zp[ind1])
+        P2 = (xp[ind2],yp[ind2],zp[ind2])
+        v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
+        nF = Vector.add(nF, v)
+    ind1 = con1[off+np]-1
+    ind2 = con1[off+1]-1
+    P1 = (xp[ind1],yp[ind1],zp[ind1])
+    P2 = (xp[ind2],yp[ind2],zp[ind2])
+    v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
+    nF = Vector.add(nF, v)
+    nF = Vector.mul(1./np, nF)
+    print('face normal', nF)
+
+    # normales de la premiere face dans z
+
+    # barycenter de l'element 0
+    PE = (0., 0., 0.)
+    cur = 0
+    offf = off2[elt0-1]
+    nf = con2[offf]
+    print("number of faces=", nf)
+    for j in range(nf):
+        facei = con2[offf+j+1]
+        off = off1[facei-1]
+        np = con1[off]
+        for i in range(np):
+            ind = con1[off+i+1]-1
+            PE = Vector.add(PE, (xp[ind],yp[ind],zp[ind]))
+            cur += 1
+    PE = Vector.mul(1./cur, PE)
+    print('element center', PE)
+
+    # produit scalaire
+    prod = Vector.dot(nF, Vector.sub(PE, PF))
+    if prod < 0:
+        print("Normal vers l'exterieur du domaine, reordered")
+        T._reorder(z, (-1,))
+    else:
+        print("Normal vers l'interieur du domaine")
+        #T._reorder(z, (+1,))
+    return None    
+
+def _reorderSubzoneNGON3__(z, a, PL, T):
+    print("NGON3")
+    import KCore.Vector as Vector
+    T._reorder(z, (+1,))
+    
+    # get pointers
+    if Internal.getNodeFromName(a, 'ParentElements') is None:
+        Internal._adaptNFace2PE(a)
+    PE = Internal.getNodeFromName(a, 'ParentElements')[1]
+    NFACE = Internal.getNFaceNode(a)
+    NGON = Internal.getNGonNode(a)
+    off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')[1]
+    con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
+    off2 = Internal.getNodeFromName1(NFACE, 'ElementStartOffset')[1]
+    con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
+    xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
+    yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
+    zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
+
+    # face 0 et elt 0
+    face0 = PL[0]
+    elt0 = PE[face0-1,0]
+    print('found=', face0, elt0)
+    
+    # barycenter de la face 0 dans a
+    np = off1[face0]-off1[face0-1]
+    PF = (0., 0., 0.)
+    off = off1[face0-1]
+    for i in range(np):
+        ind = con1[off+i]-1
+        print(i, ind, (xp[ind],yp[ind],zp[ind]))
+        PF = Vector.add(PF, (xp[ind],yp[ind],zp[ind]))
+    PF = Vector.mul(1./np, PF)
+    print('face np=', np)
+    print('face center', PF)
+
+    # normale a la face 0 dans a
+    nF = (0., 0., 0.)
+    off = off1[face0-1]
+    for i in range(np-1):
+        ind1 = con1[off+i]-1
+        ind2 = con1[off+i+1]-1
+        P1 = (xp[ind1],yp[ind1],zp[ind1])
+        P2 = (xp[ind2],yp[ind2],zp[ind2])
+        v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
+        nF = Vector.add(nF, v)
+    ind1 = con1[off+np-1]-1
+    ind2 = con1[off]-1
+    P1 = (xp[ind1],yp[ind1],zp[ind1])
+    P2 = (xp[ind2],yp[ind2],zp[ind2])
+    v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
+    nF = Vector.add(nF, v)
+    nF = Vector.mul(1./np, nF)
+    print('face normal', nF)
+
+    # barycenter de l'element 0 dans a
+    PE = (0., 0., 0.)
+    cur = 0
+    nf = off2[elt0]-off2[elt0-1]
+    offf = off2[elt0-1]
+    for j in range(nf):
+        facei = con2[offf+j]
+        np = off1[facei]-off1[facei-1]
+        off = off1[facei-1]
+        for i in range(np):
+            ind = con1[off+i]-1
+            PE = Vector.add(PE, (xp[ind],yp[ind],zp[ind]))
+            cur += 1
+    PE = Vector.mul(1./cur, PE)
+    print('element center', PE)
+
+    # produit scalaire
+    prod = Vector.dot(nF, Vector.sub(PE, PF))
+    if prod < 0:
+        print("Normal vers l'exterieur du domaine, reordered")
+        T._reorder(z, (-1,))
+    else:
+        print("Normal vers l'interieur du domaine")
+        #T._reorder(z, (+1,))
+    return None
+
+def _reorderSubzoneNGON__(z, a, PL, T):
+    node = Internal.getNodeFromName(a, 'ElementStartOffset')
+    if node is not None: _reorderSubzoneNGON3__(z, a, PL, T)
+    else: _reorderSubzoneNGON2__(z, a, PL, T)
     return None
 
 #==============================================================================
@@ -5198,6 +5376,8 @@ def _keepBCDataSet(zbc, zorig, bc, extrapFlow=True):
 # IN: reorder: if True, reorder BC to get external normals
 # IN: extrapFlow: if True, get the BCDataSet field
 # IN: shift: if not 0, shift BC of index for structured grids only
+# IN: method: geometric or topologic
+# OUT: res
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geometric"):
     def _add2Res__(i, z, zp, res, extrapFlow=True):
         zp[0] = z[0]+Internal.SEP1+i[0]
@@ -5239,7 +5419,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
             zp[0] = z[0]+Internal.SEP1+i[0]
             # Get BCDataSet if any
             _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)
-            if reorder: _reorderSubzone__(zp, w, T) # normales ext
+            if reorder: _reorderSubzoneStruct__(zp, w, T)
             _deleteZoneBC__(zp)
             _deleteGridConnectivity__(zp)
             res.append(zp)
@@ -5284,6 +5464,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                         res.append(("VertexList", vPL))
                         return None
                     zp = T.subzone(z, faceList2, type='faces')
+                    #if reorder: _reorderSubzoneNGON__(zp, z, faceList2, T)
                 else:
                     connects = Internal.getNodesFromType1(z, "Elements_t")
                     if len(connects) > 1 and ztype != 'NGON':  # ME
@@ -5319,6 +5500,9 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                             res.append(("VertexList", vPL))
                             return None
                         zp = T.subzone(z, faceList, type='faces')
+                        #if reorder:
+                        #    if ztype == 'NGON':  _reorderSubzoneNGON__(zp, z, faceList, T)
+
             elif val == 'Vertex': # vertex indices
                 pointList = r[1]
                 if method != "geometric":
@@ -5501,9 +5685,9 @@ def getBCs(t, reorder=True, extrapFlow=True, method="geometric"):
             BCs.append(zBC); BCNames.append(name); BCTypes.append(typeBC)
 
         # Raccords Stage* definis par des familles
-        nodes = Internal.getNodesFromType2(z, "ZoneGridConnectivity_t")
+        nodes = Internal.getNodesFromType2(z, 'ZoneGridConnectivity_t')
         for n in nodes:
-            for gc in Internal.getNodesFromType1(n, "GridConnectivity_t"):
+            for gc in Internal.getNodesFromType1(n, 'GridConnectivity_t'):
                 name = Internal.getName(gc)
                 fname = Internal.getNodeFromType1(gc, 'FamilyName_t')
                 if fname is not None:
@@ -5517,16 +5701,16 @@ def getBCs(t, reorder=True, extrapFlow=True, method="geometric"):
 # Warning: different GridConnectivityProperty are not considered yet
 def _mergeGCs(z):
     dictOfGCs = {}
-    nodes = Internal.getNodesFromType2(z,'GridConnectivity_t')
+    nodes = Internal.getNodesFromType2(z, 'GridConnectivity_t')
     for gc in nodes:
         gcname = Internal.getName(gc)
         zoppname = Internal.getValue(gc)
-        gctype = Internal.getNodeFromType(gc,'GridConnectivityType_t')
+        gctype = Internal.getNodeFromType(gc, 'GridConnectivityType_t')
         gctype = Internal.getValue(gctype)
         if gctype == 'Abutting1to1':
-            #GCP = Internal.getNodeFromType(gc,'GridConnectivityProperty_t')
-            PL = Internal.getNodeFromName(gc,'PointList')[1]
-            PLD = Internal.getNodeFromName(gc,'PointListDonor')[1]
+            #GCP = Internal.getNodeFromType(gc, 'GridConnectivityProperty_t')
+            PL = Internal.getNodeFromName(gc, 'PointList')[1]
+            PLD = Internal.getNodeFromName(gc, 'PointListDonor')[1]
             if zoppname not in dictOfGCs:
                 dictOfGCs[zoppname]=[PL,PLD,gcname]
             else:
