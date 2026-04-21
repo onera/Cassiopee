@@ -205,7 +205,7 @@ void K_COMPGEOM::rectifyNormals(const E_Int ni1, const E_Int nj1, const E_Int in
 }
 
 // ============================================================================
-// Compute the minimum squared distance between 2 blocks and return
+// Computes the minimum squared distance between 2 blocks and return
 // the corresponding cell indices
 // ============================================================================
 void K_COMPGEOM::compMeanDist(const E_Int ni1, const E_Int nj1,
@@ -359,6 +359,73 @@ void K_COMPGEOM::compMeanDist(const E_Int ni1, const E_Int nj1,
   }
   
   return;
+}
+
+// ============================================================================
+// Computes an angle formed by three points (P1,P2,P3)
+// Returns a float between 0 and pi
+// Returns 0 if two points are superimposed
+// ============================================================================
+E_Float K_COMPGEOM::computeAngle(
+  E_Float x1, E_Float y1, E_Float z1,
+  E_Float x2, E_Float y2, E_Float z2,
+  E_Float x3, E_Float y3, E_Float z3
+)
+{
+  E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
+  E_Float b2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
+  E_Float c2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
+
+  if (a2 < K_CONST::E_GEOM_CUTOFF || b2 < K_CONST::E_GEOM_CUTOFF) // security check
+  { 
+    return 0.;
+  }
+
+  E_Float a = sqrt(a2);
+  E_Float b = sqrt(b2);
+  E_Float cosalpha = K_FUNC::E_max(K_FUNC::E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
+
+  return acos(cosalpha);
+}
+
+// ============================================================================
+// Computes a skewness value from three points (P1,P2,P3) and a reference angle
+// Returns a skewness angle or a float if normalized=1
+// Returns 0 if two points are superimposed
+// ============================================================================
+E_Float K_COMPGEOM::computeSkewness(
+  E_Float x1, E_Float y1, E_Float z1,
+  E_Float x2, E_Float y2, E_Float z2,
+  E_Float x3, E_Float y3, E_Float z3,
+  E_Float refAngle, E_Int normalized
+)
+{
+  E_Float degconst = 180.0 / K_CONST::E_PI;
+  E_Float alpha = K_COMPGEOM::computeAngle(x1,y1,z1,x2,y2,z2,x3,y3,z3);
+
+  if (alpha < K_CONST::E_GEOM_CUTOFF) return 0.; // security check
+  
+  E_Float skewness = K_FUNC::E_abs(alpha*degconst - refAngle);
+  if (normalized) // skewness in [0,1] range
+  {  
+    if (alpha > refAngle) skewness = skewness/(180.-refAngle);
+    else skewness = skewness/refAngle;
+  }
+
+  return skewness;
+}
+
+E_Float K_COMPGEOM::computeSkewness(
+  const E_Float* x, const E_Float* y, const E_Float* z,
+  E_Int ind1, E_Int ind2, E_Int ind3,
+  E_Float refAngle, E_Int normalized
+)
+{
+  E_Float x1 = x[ind1], x2 = x[ind2], x3 = x[ind3];
+  E_Float y1 = y[ind1], y2 = y[ind2], y3 = y[ind3];
+  E_Float z1 = z[ind1], z2 = z[ind2], z3 = z[ind3];
+
+  return K_COMPGEOM::computeSkewness(x1,y1,z1,x2,y2,z2,x3,y3,z3,refAngle,normalized);
 }
 
 //===========================================================================

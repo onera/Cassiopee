@@ -432,63 +432,6 @@ namespace K_GENERATOR
                 std::vector<E_Float*>& coordz, std::vector<E_Float*>& indic,
                 std::vector<FldArrayI*>& connect);
 
-  inline E_Float computeAngle(
-    E_Float x1, E_Float y1, E_Float z1,
-    E_Float x2, E_Float y2, E_Float z2,
-    E_Float x3, E_Float y3, E_Float z3
-  )
-  {
-    E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
-    E_Float b2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
-    E_Float c2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
-  
-    if (a2 < K_CONST::E_GEOM_CUTOFF || b2 < K_CONST::E_GEOM_CUTOFF) // security check
-    { 
-      return 0.;
-    }
-  
-    E_Float a = sqrt(a2);
-    E_Float b = sqrt(b2);
-    E_Float cosalpha = K_FUNC::E_max(K_FUNC::E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
-  
-    return acos(cosalpha);
-  }
-  
-  inline E_Float computeSkewness(
-    E_Float x1, E_Float y1, E_Float z1,
-    E_Float x2, E_Float y2, E_Float z2,
-    E_Float x3, E_Float y3, E_Float z3,
-    E_Float refAngle, E_Int normalized=0
-  )
-  {
-    E_Float degconst = 180.0 / K_CONST::E_PI;
-    E_Float alpha = computeAngle(x1,y1,z1,x2,y2,z2,x3,y3,z3);
-
-    if (alpha < K_CONST::E_GEOM_CUTOFF) return 0.; // security check
-    
-    E_Float skewness = K_FUNC::E_abs(alpha*degconst - refAngle);
-    if (normalized) // skewness in [0,1] range
-    {  
-      if (alpha > refAngle) skewness = skewness/(180.-refAngle);
-      else skewness = skewness/refAngle;
-    }
-  
-    return skewness;
-  }
-
-  inline E_Float computeSkewness(
-    const E_Float* x, const E_Float* y, const E_Float* z,
-    E_Int ind1, E_Int ind2, E_Int ind3,
-    E_Float refAngle, E_Int normalized=0
-  )
-  {
-    E_Float x1 = x[ind1], x2 = x[ind2], x3 = x[ind3];
-    E_Float y1 = y[ind1], y2 = y[ind2], y3 = y[ind3];
-    E_Float z1 = z[ind1], z2 = z[ind2], z3 = z[ind3];
-
-    return computeSkewness(x1,y1,z1,x2,y2,z2,x3,y3,z3,refAngle,normalized);
-  }
-
 }
 # undef FldArrayF
 # undef FldArrayI
