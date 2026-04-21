@@ -82,6 +82,7 @@ cpp_srcs = [
     'KCore/Connect/connectEV2EENbrs.cpp',
     'KCore/Connect/connectEV2FV.cpp',
     'KCore/Connect/connectEV2VF.cpp',
+    'KCore/Connect/connectEV2FE.cpp',
     'KCore/Connect/connectNG2FE.cpp',
     'KCore/Connect/connectNG2EV.cpp',
     'KCore/Connect/connectNG2VF.cpp',

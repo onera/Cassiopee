@@ -56,6 +56,9 @@ void K_METRIC::compUnstructCellCenter(
       for (E_Int i = 0; i < nelts; i++)
       {
         pos = nepc[ic] + i;
+        xb[pos] = 0.;
+        yb[pos] = 0.;
+        zb[pos] = 0.;
         for (E_Int j = 1; j <= nvpe; j++)
         {
           ind = cm(i, j) - 1;

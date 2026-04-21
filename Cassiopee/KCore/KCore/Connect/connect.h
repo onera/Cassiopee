@@ -218,7 +218,13 @@ namespace K_CONNECT
    (commencant a 0) et nof la numero local de la face 0,1,2,...
   */
   void connectEV2VF(K_FLD::FldArrayI& cEV, const char* eltType,
-                    std::vector< std::vector<E_Int> >& cVF);
+                    std::vector<std::vector<E_Int> >& cVF);
+  /* Change a Elts-Vertex connectivity to a Face-Element connectivity.
+      IN: eltType: type d'element (TRI, QUAD,...).
+      IN: cEV: Elts-Vertex connectivity.
+      IN: keepDuplicates: whether to keep duplicates of internal faces.*/
+  E_Int connectEV2FE(const char* eltType, K_FLD::FldArrayI& cEV,
+                      K_FLD::FldArrayI& cFE, E_Bool keepDuplicates=true);
   /* Change HO EV connectivity to LO EV connectivity.
      mode=0: sub-select, mode=1: tesselate */
   E_Int connectHO2LO(const char* eltTypeHO, K_FLD::FldArrayI& cEVHO,

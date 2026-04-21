@@ -22,53 +22,8 @@
 # include "generator.h"
 # include <math.h>
 
-using namespace K_CONST;
 using namespace K_FLD;
 using namespace K_FUNC;
-
-inline E_Float computeAngle(
-  const E_Float* x, const E_Float* y, const E_Float* z,
-  E_Int ind1, E_Int ind2, E_Int ind3
-)
-{
-  E_Float x1 = x[ind1], x2 = x[ind2], x3 = x[ind3];
-  E_Float y1 = y[ind1], y2 = y[ind2], y3 = y[ind3];
-  E_Float z1 = z[ind1], z2 = z[ind2], z3 = z[ind3];
-
-  E_Float a2 = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)+(z2-z1)*(z2-z1);
-  E_Float b2 = (x3-x1)*(x3-x1)+(y3-y1)*(y3-y1)+(z3-z1)*(z3-z1);
-  E_Float c2 = (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2);
-
-  if (a2 < E_GEOM_CUTOFF || b2 < E_GEOM_CUTOFF) // security check
-  { 
-    return 0.;
-  }
-
-  E_Float a = sqrt(a2);
-  E_Float b = sqrt(b2);
-  E_Float cosalpha = E_max(E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
-
-  return acos(cosalpha);
-}
-
-inline E_Float computeSkewness(
-  const E_Float* x, const E_Float* y, const E_Float* z,
-  E_Int ind1, E_Int ind2, E_Int ind3,
-  E_Float refAngle, E_Int normalized
-)
-{
-  E_Float degconst = 180.0 / K_CONST::E_PI;
-  E_Float alpha = computeAngle(x, y, z, ind1, ind2, ind3)*degconst;
-  
-  E_Float skewness = E_abs(alpha - refAngle);
-  if (normalized) // skewness in [0,1] range
-  {  
-    if (alpha > refAngle) skewness = skewness/(180.-refAngle);
-    else skewness = skewness/refAngle;
-  }
-
-  return skewness;
-}
 
 // ============================================================================
 /* Return orthogonality map */
@@ -193,15 +148,14 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          // indices pour le calcul de l'angle definissant l'orthogonalite
           inext = i+1;
           jnext = j+1;
-          // calcul de l'angle
           ind = j*ni1+i;
-          ind1 = j*ni+i;
-          ind2 = j*ni+inext;
+          // (i,j) angle
+          ind1 = j*ni+inext;
+          ind2 = j*ni+i;
           ind3 = jnext*ni+i;
-          skewness[ind] = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
+          skewness[ind] = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
         }
       }
       else // dim == 3
@@ -211,23 +165,21 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
         for (E_Int j = 0; j < nj1; j++)
         for (E_Int i = 0; i < ni1; i++)
         {
-          // indices pour le calcul des angles definissant l'orthogonalite
           inext = i+1;
           jnext = j+1;
           knext = k+1;
-          // calcul des angles
           ind  = k*ni1*nj1+j*ni1+i;
-          ind1 = k*ni*nj+j*ni+i;
-          ind2 = k*ni*nj+j*ni+inext;
+          // (i,j) angle
+          ind1 = k*ni*nj+j*ni+inext;
+          ind2 = k*ni*nj+j*ni+i;
           ind3 = k*ni*nj+jnext*ni+i;
-          // ... angle correspondant aux indices (ij)
-          skewness1 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
-          // ... angle correspondant aux indices (ik)
+          skewness1 = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
+          // (i,k) angle
           ind3 = knext*ni*nj+j*ni+i;
-          skewness2 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
-          // ... angle correspondant aux indices (jk)
-          ind2 = k*ni*nj+jnext*ni+i;
-          skewness3 = computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
+          skewness2 = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
+          // (j,k) angle
+          ind1 = k*ni*nj+jnext*ni+i;
+          skewness3 = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized);
           // max skewness
           skewness[ind] = E_max(E_max(skewness1,skewness2),skewness3);
         }
@@ -285,7 +237,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
       // loop over all connectivities
       for (E_Int ic = 0; ic < nc; ic++)
       {
-        K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
+        FldArrayI& cm = *(cn->getConnect(ic));
         nelts = cm.getSize();
         K_CONNECT::getEVFacets(facets, eltTypes[ic], false, false);
         
@@ -307,10 +259,10 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind3 = cm(i,facets[f][2])-1;
               ind4 = cm(i,facets[f][3])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind4, ind2, 90., normalized); // angle 412
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 90., normalized); // angle 123
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind4, 90., normalized); // angle 234
-              skewness4 = computeSkewness(x, y, z, ind4, ind3, ind1, 90., normalized); // angle 341
+              skewness1 = K_COMPGEOM::computeSkewness(x, y, z, ind4, ind1, ind2, 90., normalized); // angle 412
+              skewness2 = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 90., normalized); // angle 123
+              skewness3 = K_COMPGEOM::computeSkewness(x, y, z, ind2, ind3, ind4, 90., normalized); // angle 234
+              skewness4 = K_COMPGEOM::computeSkewness(x, y, z, ind3, ind4, ind1, 90., normalized); // angle 341
 
               skewness[ind] = E_max(E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness4),skewness[ind]);
             }
@@ -320,9 +272,9 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
               ind2 = cm(i,facets[f][1])-1;
               ind3 = cm(i,facets[f][2])-1;
 
-              skewness1 = computeSkewness(x, y, z, ind1, ind3, ind2, 60., normalized); // angle 312
-              skewness2 = computeSkewness(x, y, z, ind2, ind1, ind3, 60., normalized); // angle 123
-              skewness3 = computeSkewness(x, y, z, ind3, ind2, ind1, 60., normalized); // angle 231
+              skewness1 = K_COMPGEOM::computeSkewness(x, y, z, ind3, ind1, ind2, 60., normalized); // angle 312
+              skewness2 = K_COMPGEOM::computeSkewness(x, y, z, ind1, ind2, ind3, 60., normalized); // angle 123
+              skewness3 = K_COMPGEOM::computeSkewness(x, y, z, ind2, ind3, ind1, 60., normalized); // angle 231
 
               skewness[ind] = E_max(E_max(E_max(skewness1,skewness2),skewness3),skewness[ind]);
             }
