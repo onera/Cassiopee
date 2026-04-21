@@ -1,5 +1,4 @@
-import Converter.PyTree as C
-# - generateAMRMesh (pyTree) -
+# generateAMRMeshCartIn (pyTree)
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
@@ -10,10 +9,10 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-vmins      = [5]
+vmins = [5]
 
 # 3D
-a   = D.sphere((0,0,0), 1.0, 20)
+a = D.sphere((0,0,0), 1.0, 20)
 dim = 3
 D_IBM._setSnear(a, 5.e-01)
 D_IBM._setIBCType(a,"Musker")
