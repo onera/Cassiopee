@@ -27,10 +27,10 @@ def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLoca
         for i in range(int(abs(depthLocal)/2)):
             if Cmpi.master: print('%s :: recursive X.setHoleInterpolatedPoints: %d/%d'%(functionName,i,int(abs(depthLocal)/2)),flush=True)
             C._initVars(to, '{%s}={%s}>0.'%(cellNNameLocal,cellNNameLocal))
-            to = X.setHoleInterpolatedPoints(to, depth=-2, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+            to = X.setHoleInterpolatedPoints(to, depth=-2, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
     else:
         if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
-        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
     #if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
     #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
     return to
