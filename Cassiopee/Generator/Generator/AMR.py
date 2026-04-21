@@ -24,6 +24,16 @@ def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
     return None
 
 def createExtension__(tbIn):
+    ## Function objection: add a small extension to the previously marked symmetry/boundary planes. │
+    ## Note: it is not an extrusion for simulation purposes. It is a very limited extension for offset generation purposes.
+    ##    │││                    │││         
+    ##    │││───────┐         ┌──│││───────┐             
+    ##    │││ GEOM  │    -->  │  │││ GEOM  │          
+    ##    │││───────┘         └──│││───────┘            
+    ##    │││                    │││
+    ##     ↑                      ↑
+    ## Domain boundary        Domain boundary 
+
     tb = Internal.copyTree(tbIn)
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM:
