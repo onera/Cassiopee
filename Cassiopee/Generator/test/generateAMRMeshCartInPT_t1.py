@@ -1,5 +1,4 @@
-import Converter.PyTree as C
-# - generateAMRMesh (pyTree) -
+# - generateAMRMeshCartIn (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
@@ -10,10 +9,10 @@ import KCore.test as test
 
 LOCAL = test.getLocal()
 
-vmins      = [8,7,6,5]
+vmins = [8,7,6,5]
 
 # 2D
-a   = D.naca(12.)
+a = D.naca(12.)
 dim = 2
 D_IBM._setSnear(a, 1.e-03)
 D_IBM._setIBCType(a,"Musker")
