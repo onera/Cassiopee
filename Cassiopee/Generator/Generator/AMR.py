@@ -420,8 +420,8 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
 
     # tbTMP - offset body - blankCells is more tested due to uncertainties on the quality of the offset
     if dim == 2: to = X.blankCells(to, bodies1, BM, blankingType='node_in',
-                                                               XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
-                                                               cellNName='cellN') # or blankCellsAlgo == 'xray'
+                                   XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
+                                   cellNName='cellN') # or blankCellsAlgo == 'xray'
     else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellN')
 
     to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=int(dim), functionName='tagOutsideBody')
