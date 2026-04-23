@@ -39,7 +39,8 @@ void *xcalloc(E_Int, E_Int, const char *, E_Int);
 void xfree(void *, const char *, E_Int);
 void *xresize(void *, E_Int, const char *, E_Int);
 
-struct Mem_arena {
+struct Mem_arena 
+{
     void *arena;
 
     size_t size;

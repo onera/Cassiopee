@@ -374,7 +374,7 @@ void Data::initState()
   ptrState->mouseFirstClicked = 0;
 
   // Export
-  strcpy(ptrState->exportFile, "CPlot");
+  strcpy(ptrState->exportFile, "Image.png");
   ptrState->exportWidth = -1;
   ptrState->exportHeight = -1;
   ptrState->exportAA = 0;

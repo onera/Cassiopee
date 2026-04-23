@@ -412,25 +412,11 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   }
 
   // Image dump
-  // case 'y':
-  // {
-  //   stateHeader = ptrState->header;
-  //   stateInfo = ptrState->info;
-  //   stateMenu = ptrState->menu;
-  //   stateBB = ptrState->bb;
-  //   ptrState->header = 0;
-  //   ptrState->info = 0;
-  //   ptrState->menu = 0;
-  //   ptrState->bb = 0;
-  //   display();
-  //   dumpWindow();
-  //   ptrState->header = stateHeader;
-  //   ptrState->info = stateInfo;
-  //   ptrState->menu = stateMenu;
-  //   ptrState->bb = stateBB;
-  //   printTmpMessage("Image dumped to file.");
-  //   break;
-  // }
+  case 'y':
+  {
+    exportFile();
+    break;
+  }
 
   // Change render appearance
   case 'c':

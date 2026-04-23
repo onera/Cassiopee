@@ -1,7 +1,5 @@
 # - generateAMRMesh (pyTree) -
 import Converter.PyTree as C
-import Converter.Internal as Internal
-import Converter.Mpi as Cmpi
 import Generator.AMR as G_AMR
 import Geom.PyTree as D
 import Geom.IBM as D_IBM
@@ -25,7 +23,7 @@ test.testT(t,1)
 a = D.sphere((0.,0.,0.),0.1)
 dimPb = 3
 D_IBM._setSnear(a, 0.5)
-D_IBM._setIBCType(a,"Musker")
+D_IBM._setIBCType(a, "Musker")
 D_IBM._setDfar(a, 5.)
 
 tb = C.newPyTree(["BODY",a])

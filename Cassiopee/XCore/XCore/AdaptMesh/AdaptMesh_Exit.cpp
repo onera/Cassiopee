@@ -29,7 +29,7 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    if (!PyCapsule_IsValid(MESH, "AdaptMesh")) 
+    if (!PyCapsule_IsValid(MESH, "AdaptMesh"))
     {
         RAISE("Bad mesh hook.");
         return NULL;
@@ -49,7 +49,7 @@ PyObject *K_XCORE::AdaptMesh_Exit(PyObject *self, PyObject *args)
 
     Mesh_reset_tags(M);
 
-    XFREE(M->reqs);
+    XFREE(M->reqs); M->reqs = NULL;
         
     XFREE(M->mode_2D); M->mode_2D = NULL;
 

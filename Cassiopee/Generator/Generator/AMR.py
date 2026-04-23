@@ -430,9 +430,10 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
             print("=======================================================================", flush=True)
         nCellsCartesian[0] *= 2
         nCellsCartesian[1] *= 2
+        snearloc /= 2
         if dim == 3: nCellsCartesian[2] *= 2
         o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
-                   (dxBG[0], dxBG[1], dxBG[2]),
+                   (snearloc, snearloc, snearloc),
                    (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
     for i in range(dim):
         if matchExtent[i+3]:
@@ -1374,7 +1375,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if tIn is None:
         if Cmpi.master:
             print("=======================================================================", flush=True)
-            print("================ Automatic backgroudn grid generation  ================", flush=True)
+            print("================ Automatic background grid generation  ================", flush=True)
             print("=======================================================================", flush=True)
         # levelSkel: initial refinement level of the skeleton octree
         # might be tuned
@@ -1383,7 +1384,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     else:
         if Cmpi.master:
             print("=======================================================================", flush=True)
-            print("===================== Using input backgroudn grid  ====================", flush=True)
+            print("===================== Using input background grid  ====================", flush=True)
             print("=======================================================================", flush=True)
         tCartin = True; newLevelMax = levelMax
         if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)

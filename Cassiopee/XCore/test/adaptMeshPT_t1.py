@@ -42,6 +42,7 @@ test.testT(a, 2)
 
 a = XC.AdaptMesh_ExtractMesh(AM, conformize=1)
 test.testT(a, 3)
+XC.AdaptMesh_Exit(AM)
 
 # 3D HEXA
 a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,11))

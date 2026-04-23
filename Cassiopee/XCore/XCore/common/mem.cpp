@@ -53,7 +53,8 @@ void *xcalloc(E_Int count, E_Int size, const char *file, E_Int line)
 
 void xfree(void *ptr, const char *file, E_Int line)
 {
-  if (ptr) {
+  if (ptr) 
+  {
     free(ptr);
     ptr = NULL;
   }

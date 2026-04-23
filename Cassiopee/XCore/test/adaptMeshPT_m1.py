@@ -72,7 +72,7 @@ REF = f.astype(dtype=Internal.E_NpyInt)
 XC.AdaptMesh_AssignRefData(AM, REF)
 XC.AdaptMesh_Adapt(AM)
 a = XC.AdaptMesh_ExtractMesh(AM, conformize=0)
-test.testT(a,no_test*Cmpi.size+Cmpi.rank)
+test.testT(a, no_test*Cmpi.size+Cmpi.rank)
 no_test += 1
 
 C._initVars(a, '{centers:indicator}=({centers:CoordinateX}<0.5)')

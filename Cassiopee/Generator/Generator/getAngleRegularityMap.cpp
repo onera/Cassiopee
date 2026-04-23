@@ -376,8 +376,8 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
         }
       }
     }
-
     RELEASESHAREDS(tpl, f2);
+    RELEASESHAREDU(array, f, cn);
     return tpl;
   }
 }

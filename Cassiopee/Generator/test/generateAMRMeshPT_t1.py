@@ -1,7 +1,5 @@
 # - generateAMRMesh (pyTree) -
 import Converter.PyTree as C
-import Converter.Internal as Internal
-import Converter.Mpi as Cmpi
 import Generator.AMR as G_AMR
 import Geom.PyTree as D
 import Geom.IBM as D_IBM

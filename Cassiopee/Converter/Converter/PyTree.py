@@ -5174,182 +5174,239 @@ def _reorderSubzoneStruct__(z, w, T):
     elif kmin == kmax and kmin > 1: T._reorder(z, (-1,2,3))
     return None
 
-# Reorder subzone z extracted from NGON a with Point List to have normals towards
-# volume mesh a
-def _reorderSubzoneNGON2__(z, a, PL, T):
-    print("NGON2")
+def getFaceCenter__(a, face0):
     import KCore.Vector as Vector
-    T._reorder(z, (+1,))
-
-    # get pointers on a
-    if Internal.getNodeFromName(a, 'ParentElements') is None:
-        Internal._adaptNFace2PE(a)
-    PE = Internal.getNodeFromName(a, 'ParentElements')[1]
-    NFACE = Internal.getNFaceNode(a)
     NGON = Internal.getNGonNode(a)
-    if Internal.getNodeFromName1(NGON, 'FaceIndex') is None:
-        Internal._adaptNGon2Index(a)
-    if Internal.getNodeFromName1(NFACE, 'ElementIndex') is None:
-        Internal._adaptNFace2Index(a)
+    NFACE = Internal.getNFaceNode(a)
     con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
-    off1 = Internal.getNodeFromName1(NGON, 'FaceIndex')[1]
     con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
-    off2 = Internal.getNodeFromName1(NFACE, 'ElementIndex')[1]
     xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
     yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
     zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
 
-    # face 0 et elt 0
-    face0 = PL[0]
-    elt0 = PE[face0-1,0]
-    print('found=', face0, elt0)
-
-    # barycenter de la face 0 dans a
-    PF = (0., 0., 0.)
-    off = off1[face0-1]
-    np = con1[off]
-    for i in range(np):
-        ind = con1[off+i+1]-1
-        print(i, ind, (xp[ind],yp[ind],zp[ind]))
-        PF = Vector.add(PF, (xp[ind],yp[ind],zp[ind]))
-    PF = Vector.mul(1./np, PF)
-    print('face np=', np)
-    print('face center', PF)
-
-    # normale a face 0 dans a
-    nF = (0., 0., 0.)
-    off = off1[face0-1]
-    np = con1[off]
-    for i in range(np-1):
-        ind1 = con1[off+i+1]-1
-        ind2 = con1[off+i+2]-1
+    off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')
+    if off1 is not None: # NGON3
+        off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementStartOffset')[1]
+        # face center
+        CF = (0., 0., 0.)
+        off = off1[face0-1]
+        np = off1[face0]-off1[face0-1]
+        for i in range(np):
+            ind = con1[off+i]-1
+            CF = Vector.add(CF, (xp[ind],yp[ind],zp[ind]))
+        CF = Vector.mul(1./np, CF)
+        # face normal
+        nF = (0., 0., 0.)
+        for i in range(np-1):
+            ind1 = con1[off+i]-1
+            ind2 = con1[off+i+1]-1
+            P1 = (xp[ind1],yp[ind1],zp[ind1])
+            P2 = (xp[ind2],yp[ind2],zp[ind2])
+            v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+            nF = Vector.add(nF, v)
+        ind1 = con1[off+np-1]-1
+        ind2 = con1[off]-1
         P1 = (xp[ind1],yp[ind1],zp[ind1])
         P2 = (xp[ind2],yp[ind2],zp[ind2])
-        v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
+        v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
         nF = Vector.add(nF, v)
-    ind1 = con1[off+np]-1
-    ind2 = con1[off+1]-1
-    P1 = (xp[ind1],yp[ind1],zp[ind1])
-    P2 = (xp[ind2],yp[ind2],zp[ind2])
-    v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
-    nF = Vector.add(nF, v)
-    nF = Vector.mul(1./np, nF)
-    print('face normal', nF)
-
-    # normales de la premiere face dans z
-
-    # barycenter de l'element 0
-    PE = (0., 0., 0.)
-    cur = 0
-    offf = off2[elt0-1]
-    nf = con2[offf]
-    print("number of faces=", nf)
-    for j in range(nf):
-        facei = con2[offf+j+1]
-        off = off1[facei-1]
+        nF = Vector.mul(0.5/np, nF)
+    else: # NGON2
+        if Internal.getNodeFromName1(NGON, 'FaceIndex') is None:
+            Internal._adaptNGon2Index(a)
+        if Internal.getNodeFromName1(NFACE, 'ElementIndex') is None:
+            Internal._adaptNFace2Index(a)
+        off1 = Internal.getNodeFromName1(NGON, 'FaceIndex')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementIndex')[1]
+        # face center
+        CF = (0., 0., 0.)
+        off = off1[face0-1]
         np = con1[off]
         for i in range(np):
             ind = con1[off+i+1]-1
-            PE = Vector.add(PE, (xp[ind],yp[ind],zp[ind]))
-            cur += 1
-    PE = Vector.mul(1./cur, PE)
-    print('element center', PE)
+            CF = Vector.add(CF, (xp[ind],yp[ind],zp[ind]))
+        CF = Vector.mul(1./np, CF)
+        # face normal
+        nF = (0., 0., 0.)
+        for i in range(np-1):
+            ind1 = con1[off+i+1]-1
+            ind2 = con1[off+i+2]-1
+            P1 = (xp[ind1],yp[ind1],zp[ind1])
+            P2 = (xp[ind2],yp[ind2],zp[ind2])
+            v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+            nF = Vector.add(nF, v)
+        ind1 = con1[off+np]-1
+        ind2 = con1[off+1]-1
+        P1 = (xp[ind1],yp[ind1],zp[ind1])
+        P2 = (xp[ind2],yp[ind2],zp[ind2])
+        v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+        nF = Vector.add(nF, v)
+        nF = Vector.mul(0.5/np, nF)
+    return CF, nF
 
-    # produit scalaire
-    prod = Vector.dot(nF, Vector.sub(PE, PF))
-    if prod < 0:
-        print("Normal vers l'exterieur du domaine, reordered")
-        T._reorder(z, (-1,))
-    else:
-        print("Normal vers l'interieur du domaine")
-        #T._reorder(z, (+1,))
-    return None
-
-def _reorderSubzoneNGON3__(z, a, PL, T):
-    print("NGON3")
+def getEltCenter__(a, elt0):
     import KCore.Vector as Vector
-    T._reorder(z, (+1,))
-
-    # get pointers
-    if Internal.getNodeFromName(a, 'ParentElements') is None:
-        Internal._adaptNFace2PE(a)
-    PE = Internal.getNodeFromName(a, 'ParentElements')[1]
-    NFACE = Internal.getNFaceNode(a)
     NGON = Internal.getNGonNode(a)
-    off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')[1]
+    NFACE = Internal.getNFaceNode(a)
     con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
-    off2 = Internal.getNodeFromName1(NFACE, 'ElementStartOffset')[1]
     con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
     xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
     yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
     zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
 
+    off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')
+    if off1 is not None: # NGON3
+        off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementStartOffset')[1]
+        CE = (0., 0., 0.)
+        cur = 0
+        nf = off2[elt0]-off2[elt0-1]
+        offf = off2[elt0-1]
+        for j in range(nf):
+            facei = con2[offf+j]
+            np = off1[facei]-off1[facei-1]
+            off = off1[facei-1]
+            for i in range(np):
+                ind = con1[off+i]-1
+                CE = Vector.add(CE, (xp[ind],yp[ind],zp[ind]))
+                cur += 1
+        CE = Vector.mul(1./cur, CE)
+    else: # NGON2
+        if Internal.getNodeFromName1(NGON, 'FaceIndex') is None:
+            Internal._adaptNGon2Index(a)
+        if Internal.getNodeFromName1(NFACE, 'ElementIndex') is None:
+            Internal._adaptNFace2Index(a)
+        off1 = Internal.getNodeFromName1(NGON, 'FaceIndex')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementIndex')[1]
+        CE = (0., 0., 0.)
+        cur = 0
+        offf = off2[elt0-1]
+        nf = con2[offf]
+        for j in range(nf):
+            facei = con2[offf+j+1]
+            off = off1[facei-1]
+            np = con1[off]
+            for i in range(np):
+                ind = con1[off+i+1]-1
+                CE = Vector.add(CE, (xp[ind],yp[ind],zp[ind]))
+                cur += 1
+        CE = Vector.mul(1./cur, CE)
+    return CE
+
+def getFaceCenter2D__(a, elt0):
+    import KCore.Vector as Vector
+    NGON = Internal.getNGonNode(a)
+    NFACE = Internal.getNFaceNode(a)
+    con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
+    con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
+    xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
+    yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
+    zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
+
+    off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')
+    if off1 is not None: # NGON3
+        off1 = Internal.getNodeFromName1(NGON, 'ElementStartOffset')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementStartOffset')[1]
+        CF = (0., 0., 0.)
+        cur = 0
+        nf = off2[elt0]-off2[elt0-1]
+        offf = off2[elt0-1]
+        for j in range(nf):
+            facei = con2[offf+j]
+            np = off1[facei]-off1[facei-1]
+            off = off1[facei-1]
+            for i in range(np):
+                ind = con1[off+i]-1
+                CF = Vector.add(CF, (xp[ind],yp[ind],zp[ind]))
+                cur += 1
+        CF = Vector.mul(1./cur, CF)
+        nF = (0., 0., 0.)
+        for i in range(nf-1):
+            facei = con2[offf+j]
+            off = off1[facei-1]
+            ind1 = con1[off+i]-1
+            ind2 = con1[off+i+1]-1
+            P1 = (xp[ind1],yp[ind1],zp[ind1])
+            P2 = (xp[ind2],yp[ind2],zp[ind2])
+            v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+            nF = Vector.add(nF, v)
+        ind1 = con1[off+nf-1]-1
+        ind2 = con1[off]-1
+        P1 = (xp[ind1],yp[ind1],zp[ind1])
+        P2 = (xp[ind2],yp[ind2],zp[ind2])
+        v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+        nF = Vector.add(nF, v)
+        nF = Vector.mul(0.5/np, nF)
+    else: # NGON2
+        if Internal.getNodeFromName1(NGON, 'FaceIndex') is None:
+            Internal._adaptNGon2Index(a)
+        if Internal.getNodeFromName1(NFACE, 'ElementIndex') is None:
+            Internal._adaptNFace2Index(a)
+        off1 = Internal.getNodeFromName1(NGON, 'FaceIndex')[1]
+        off2 = Internal.getNodeFromName1(NFACE, 'ElementIndex')[1]
+        CF = (0., 0., 0.)
+        cur = 0
+        offf = off2[elt0-1]
+        nf = con2[offf]
+        for j in range(nf):
+            facei = con2[offf+j+1]
+            off = off1[facei-1]
+            np = con1[off]
+            for i in range(np):
+                ind = con1[off+i+1]-1
+                CF = Vector.add(CF, (xp[ind],yp[ind],zp[ind]))
+                cur += 1
+        CF = Vector.mul(1./cur, CF)
+        nF = (0., 0., 0.)
+        for i in range(nf-1):
+            facei = con2[offf+j+1]
+            off = off1[facei-1]
+            ind1 = con1[off+i+1]-1
+            ind2 = con1[off+i+2]-1
+            P1 = (xp[ind1],yp[ind1],zp[ind1])
+            P2 = (xp[ind2],yp[ind2],zp[ind2])
+            v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+            nF = Vector.add(nF, v)
+        ind1 = con1[off+nf]-1
+        ind2 = con1[off+1]-1
+        P1 = (xp[ind1],yp[ind1],zp[ind1])
+        P2 = (xp[ind2],yp[ind2],zp[ind2])
+        v = Vector.cross(Vector.sub(P1,CF), Vector.sub(P2,CF))
+        nF = Vector.add(nF, v)
+        nF = Vector.mul(0.5/np, nF)
+    return CF, nF
+
+# Reorder subzone z extracted from NGON a with Point List to have normals towards
+# volume mesh a
+def _reorderSubzoneNGON__(z, a, PL, T):
+    import KCore.Vector as Vector
+    T._reorder(z, (+1,))
+
+    if Internal.getNodeFromName(a, 'ParentElements') is None:
+        Internal._adaptNFace2PE(a)
+    PE = Internal.getNodeFromName(a, 'ParentElements')[1]
+
     # face 0 et elt 0
     face0 = PL[0]
     elt0 = PE[face0-1,0]
-    print('found=', face0, elt0)
-
-    # barycenter de la face 0 dans a
-    np = off1[face0]-off1[face0-1]
-    PF = (0., 0., 0.)
-    off = off1[face0-1]
-    for i in range(np):
-        ind = con1[off+i]-1
-        print(i, ind, (xp[ind],yp[ind],zp[ind]))
-        PF = Vector.add(PF, (xp[ind],yp[ind],zp[ind]))
-    PF = Vector.mul(1./np, PF)
-    print('face np=', np)
-    print('face center', PF)
-
-    # normale a la face 0 dans a
-    nF = (0., 0., 0.)
-    off = off1[face0-1]
-    for i in range(np-1):
-        ind1 = con1[off+i]-1
-        ind2 = con1[off+i+1]-1
-        P1 = (xp[ind1],yp[ind1],zp[ind1])
-        P2 = (xp[ind2],yp[ind2],zp[ind2])
-        v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
-        nF = Vector.add(nF, v)
-    ind1 = con1[off+np-1]-1
-    ind2 = con1[off]-1
-    P1 = (xp[ind1],yp[ind1],zp[ind1])
-    P2 = (xp[ind2],yp[ind2],zp[ind2])
-    v = Vector.cross(Vector.sub(P1,PF), Vector.sub(P2,PF))
-    nF = Vector.add(nF, v)
-    nF = Vector.mul(1./np, nF)
-    print('face normal', nF)
-
-    # barycenter de l'element 0 dans a
-    PE = (0., 0., 0.)
-    cur = 0
-    nf = off2[elt0]-off2[elt0-1]
-    offf = off2[elt0-1]
-    for j in range(nf):
-        facei = con2[offf+j]
-        np = off1[facei]-off1[facei-1]
-        off = off1[facei-1]
-        for i in range(np):
-            ind = con1[off+i]-1
-            PE = Vector.add(PE, (xp[ind],yp[ind],zp[ind]))
-            cur += 1
-    PE = Vector.mul(1./cur, PE)
-    print('element center', PE)
+    
+    CF, nF = getFaceCenter__(a, face0)
+    #print('face center', CF)
+    #print('face normal', nF)
+    CE = getEltCenter__(a, elt0)
+    #print('elt center', CE)
+    CF, nF = getFaceCenter2D__(z, 1)
+    #print('face center', CF)
+    #print('face normal', nF)
 
     # produit scalaire
-    prod = Vector.dot(nF, Vector.sub(PE, PF))
+    prod = Vector.dot(nF, Vector.sub(CE, CF))
     if prod < 0:
         print("Normal vers l'exterieur du domaine, reordered")
         T._reorder(z, (-1,))
     else:
         print("Normal vers l'interieur du domaine")
-        #T._reorder(z, (+1,))
-    return None
-
-def _reorderSubzoneNGON__(z, a, PL, T):
-    node = Internal.getNodeFromName(a, 'ElementStartOffset')
-    if node is not None: _reorderSubzoneNGON3__(z, a, PL, T)
-    else: _reorderSubzoneNGON2__(z, a, PL, T)
     return None
 
 #==============================================================================

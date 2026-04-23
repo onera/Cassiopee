@@ -1,7 +1,5 @@
 # - generateAMRMeshCartIn (pyTree) -
 import Converter.PyTree as C
-import Converter.Internal as Internal
-import Converter.Mpi as Cmpi
 import Generator.AMR as G_AMR
 import Geom.PyTree as D
 import Geom.IBM as D_IBM
@@ -26,7 +24,7 @@ dictGridCart={
 }
 
 o, levelMax = G_AMR.generateCartBackgroundGrid(tb=tb, dim=dim, dictGridCart=dictGridCart)
-test.testT(o,1)
+test.testT(o, 1)
 t = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim, tIn=o)
-test.testT(t,2)
+test.testT(t, 2)
 #C.convertPyTree2File(t,'check_t.cgns')
