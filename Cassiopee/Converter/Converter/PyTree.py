@@ -5390,7 +5390,7 @@ def _reorderSubzoneNGON__(z, a, PL, T):
     # face 0 et elt 0
     face0 = PL[0]
     elt0 = PE[face0-1,0]
-    
+
     CF, nF = getFaceCenter__(a, face0)
     #print('face center', CF)
     #print('face normal', nF)
