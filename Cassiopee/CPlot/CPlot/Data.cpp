@@ -491,8 +491,9 @@ void Data::initCam()
   dist = MAX(dist, distz);
   dist = dist*1.2;
 
-  if (ptrState->dim == 3)
+  if (ptrState->dim == 3) // 3D
   {
+    // default: put y in distance x and dirCam to z
     _view.xcam = _view.xeye + dist;
     _view.ycam = _view.yeye;
     _view.zcam = _view.zeye;
@@ -502,8 +503,9 @@ void Data::initCam()
     _view.diry = 0.;
     _view.dirz = 1.;
 
-    // Auto set best view (added)
-    if (fabs(xmin+1.e-4) < 1.e-11 && fabs(xmax-1.e-4) < 1.e-11) //YZ
+    // Auto set best view if thickness is 0 (previous)
+    /*
+    if (fabs(xmin+1.e-4) < 1.e-11 && fabs(xmax-1.e-4) < 1.e-11) // YZ
     {
      _view.xcam = _view.xeye + dist;
      _view.ycam = _view.yeye;
@@ -530,14 +532,45 @@ void Data::initCam()
       _view.diry = 1.;
       _view.dirz = 0.;
     }
+    */
+   
+    // chose position from dimensions of bbox
+    E_Float factor = 5.;
+    if (distx <= factor*disty && distx <= factor*distz) // dir x
+    {
+      _view.xcam = _view.xeye + dist;
+      _view.ycam = _view.yeye;
+      _view.zcam = _view.zeye;
+      _view.dirx = 0.;
+      _view.diry = 0.;
+      _view.dirz = 1.;
+    } 
+    else if (disty <= factor*distx && disty <= factor*distz) // dir y
+    {
+      _view.xcam = _view.xeye;
+      _view.ycam = _view.yeye - dist;
+      _view.zcam = _view.zeye;
+      _view.dirx = 0.;
+      _view.diry = 0.;
+      _view.dirz = 1.;
+    }
+    else if (distz <= factor*distx && distz <= factor*disty) // dirz
+    {
+      _view.xcam = _view.xeye;
+      _view.ycam = _view.yeye;
+      _view.zcam = _view.zeye + dist;
+      _view.dirx = 0.;
+      _view.diry = 1.;
+      _view.dirz = 0.;
+    }
   }
-  else
+  else // 2D
   {
     _view.xcam = _view.xeye;
     _view.ycam = _view.yeye;
     _view.zcam = _view.zeye + dist;
 
-    // Camera direction is z axis in 3D mode
+    // Camera direction is y axis in 2D mode
     _view.dirx = 0.;
     _view.diry = 1.;
     _view.dirz = 0.;

@@ -51,7 +51,7 @@ PyObject* K_CONVERTER::adaptShiftedPE2PE(PyObject* self, PyObject* args)
   const E_Int PAD = CACHELINE/sizeof(E_Int);  // Elements per cache line
   
   E_Int eIdxMin = std::numeric_limits<E_Int>::max();
-  E_Int threadMin[numThreads*PAD];
+  E_Int* threadMin = new E_Int [numThreads*PAD];
   for (E_Int i = 0; i < numThreads; i++) threadMin[i*PAD] = eIdxMin;
   
   // Find the smallest element index in the FE connectivity, eIdxMin
@@ -73,7 +73,7 @@ PyObject* K_CONVERTER::adaptShiftedPE2PE(PyObject* self, PyObject* args)
   {
       eIdxMin = K_FUNC::E_min(threadMin[i*PAD], eIdxMin);
   }
-  
+  delete [] threadMin;
   if (eIdxMin > 1 and eIdxMin == nelts+1)
   {
     // Shift element indices such that they start at 1

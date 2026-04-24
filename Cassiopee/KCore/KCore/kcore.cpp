@@ -99,7 +99,7 @@ extern "C"
 //=============================================================================
 void K_KCORE::testFooKCore()
 {
-  E_Int i=0; E_Float f=0.;
+  E_Int i=0;
   
   k6unstructsurf_(i, i, i, i, NULL, NULL, NULL, NULL,
                   NULL, NULL, NULL, NULL); 

@@ -131,7 +131,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     // calcul de l'orthogonalite globale
     #pragma omp parallel
     {
-      E_Int ithread = __CURRENT_THREAD__;
+      //E_Int ithread = __CURRENT_THREAD__;
       E_Int ind, indn, ind1, ind2, ind3;
       E_Int iprev, jprev, kprev;
       E_Int inext, jnext, knext;
@@ -339,9 +339,8 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int nelts, ind, pos;
-      E_Int ind1, ind2;
+      E_Int ind2;
       E_Int elOffset, fctOffset;
-      E_Int nneis;
       E_Float x1, y1, z1;
       E_Float x2, y2, z2;
       E_Float x3, y3, z3;
@@ -365,7 +364,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
           for (E_Int f = 0; f < nfpe[ic]; f++)
           {
             pos = f + i*nfpe[ic] + fctOffset;
-            ind1 = cFE(pos, 1) - 1;
+            //ind1 = cFE(pos, 1) - 1;
             ind2 = cFE(pos, 2) - 1;
             if (ind2 < 0) continue; // facet has only one neighbor element
             x2 = xint[pos]; y2 = yint[pos]; z2 = zint[pos]; // facet center

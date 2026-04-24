@@ -206,7 +206,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     // calcul de la regularite
     #pragma omp parallel
     {
-      E_Int ithread = __CURRENT_THREAD__;
+      //E_Int ithread = __CURRENT_THREAD__;
       // variables locales pour les indices
       E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6;
       E_Int iprev, jprev, kprev, inext, jnext, knext;

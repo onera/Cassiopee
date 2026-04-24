@@ -1446,7 +1446,8 @@ def createApp(win):
     Frame2.columnconfigure(0, weight=1)
     Frame2.grid(sticky=TK.NSEW)
 
-    aw = 230; ah = 210
+    aw = 260; ah = 250 # default tkinter window size is set here
+    
     if 'tkTreeWidth' in CTK.PREFS: aw = int(CTK.PREFS['tkTreeWidth'])
     if 'tkTreeHeight' in CTK.PREFS: ah = int(CTK.PREFS['tkTreeHeight'])
 

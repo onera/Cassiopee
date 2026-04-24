@@ -274,7 +274,7 @@ void zone_t<crd_t, ngo_t>::set_join_types(E_Int& color)
       for (E_Int i = 0; i < nbj; ++i) 
       {
         E_Int id = itbi.second.second[i] - 1;
-        assert (id > -1 && id < _ng.PGs._type.size());
+        assert (id > -1 && (size_t)id < _ng.PGs._type.size());
         _ng.PGs._type[id] = ojid;
       }
       continue;
@@ -838,7 +838,7 @@ void zone_t<crd_t, ngo_t>::append( zone_t& that_z, bool keep_joins)
       const Vector_t<E_Int>&  that_ids = that_z.get_join_pg_list(jids[jj]);
       
       E_Int nb_pgsj = this_ids.size();
-      assert (nb_pgsj == that_ids.size());
+      assert ((size_t)nb_pgsj == that_ids.size());
 
       // replace join ids
       for (E_Int i = 0; i < nb_pgsj; ++i)

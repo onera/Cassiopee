@@ -92,10 +92,10 @@ PyObject* K_CONNECTOR::setInterpData_IBMWall(PyObject* self, PyObject* args)
   vector<PyObject*> objs;
   E_Bool skipNoCoord = true;  E_Bool skipStructured = false;
   E_Bool skipUnstructured = false;  E_Bool skipDiffVars = true;
-  E_Int isOk = K_ARRAY::getFromArrays(arraysD, resl, varStringd, vectOfDnrZones,
-                                      a2, a3, a4, objs,  
-                                      skipDiffVars, skipNoCoord, skipStructured,
-                                      skipUnstructured, true);
+  K_ARRAY::getFromArrays(arraysD, resl, varStringd, vectOfDnrZones,
+                          a2, a3, a4, objs,  
+                          skipDiffVars, skipNoCoord, skipStructured,
+                          skipUnstructured, true);
   E_Int nzonesD = objs.size();
   
   vector<E_Int> posxtd; vector<E_Int> posytd; vector<E_Int> posztd;

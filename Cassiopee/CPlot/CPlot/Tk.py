@@ -1539,6 +1539,7 @@ def minimal(title, show=True, mode=0):
     win.rowconfigure(2, weight=0)
     win.rowconfigure(3, weight=1)
     win.resizable(0,0) # fixed size window
+    win.geometry("+0+0")
     #win.minsize(325, 325)
 
     menu = TK.Menu(win, bg=TTK.BACKGROUNDCOLOR, fg=TTK.FOREGROUNDCOLOR)
