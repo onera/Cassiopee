@@ -81,6 +81,8 @@ void Data::openGfx()
   // Window size base sur la taille de l'ecran
   int screenWidth = glutGet(GLUT_SCREEN_WIDTH); 
   int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
+  if (screenWidth/screenHeight >= 2.5) // suppose extended screen
+    screenWidth *= 0.5;
   if (_view.w == 0 || _view.h == 0)
   {
     _view.w = MAX(screenWidth-350, screenWidth*0.5); // default gfx win size is set here

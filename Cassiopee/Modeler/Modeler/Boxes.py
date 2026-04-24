@@ -139,7 +139,7 @@ def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     a = C.convertArray2Tetra(a)
     a = T.join(a)
     a = G.close(a)
-    a = T.reorder(a, (1,))
+    a = T.reorder(a, (-1,))
     if fill: a = G.tetraMesher(a)
     if uv:
         a = C.initVars(a, '{_u_}=({x}-%f)/%f'%(xmin, (xmax-xmin)))

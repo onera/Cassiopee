@@ -670,7 +670,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   H5Gget_info(gid, &info);
   E_Int nds = info.nlinks; // number of dataSets
   
-  if (nds > 0)
+  if (nds > 1) // because of coordinates always present I hope
   {
     // Create FlowSolution#Centers and GridLocation
     PyObject* childrenFS = PyList_New(0);
@@ -691,7 +691,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
     #else
       H5Literate2(gid, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, feed_children_names, (void*)names);
     #endif
-    for (E_Int i = 0; i < nds; i++) printf(" %s ", names[i]);
+    //for (E_Int i = 0; i < nds; i++) printf(" %s ", names[i]);
     char str[1028];
 
     for (E_Int i = 0; i < nds; i++)

@@ -912,7 +912,10 @@ def reorder(a, order=None):
         for i in a:
             if i[3] == 'BAR':
                 c = Converter.convertBAR2Struct(i)
-                c = transform.reorder(c, (-1,2,3))
+                if len(order) > 0:
+                    n = (order[0]>0)-(order[0]<0)
+                    c = transform.reorder(c, (n,2,3))
+                else: c = transform.reorder(c, (-1,2,3))
                 b.append(Converter.convertArray2Hexa(c))
             else:
                 b.append(transform.reorder(i, order))
@@ -920,10 +923,12 @@ def reorder(a, order=None):
     else:
         if a[3] == 'BAR':
             b = Converter.convertBAR2Struct(a)
-            b = transform.reorder(b, (-1,2,3))
+            if len(order) > 0:
+                n = (order[0]>0)-(order[0]<0)
+                b = transform.reorder(b, (n,2,3))
+            else: b = transform.reorder(b, (-1,2,3))
             return Converter.convertArray2Hexa(b)
         else: return transform.reorder(a, order)
-
 
 def reorderAll(arrays, dir=1):
     """Orient normals of all surface blocks consistently in one direction (1) or the opposite (-1).
