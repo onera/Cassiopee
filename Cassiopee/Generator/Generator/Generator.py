@@ -2417,6 +2417,17 @@ def getAngleRegularityMap(array, normalized=False):
     else:
         return generator.getAngleRegularityMap(array, normalized)
 
+def getNonOrthogonalityMap(array, normalized=False):
+    """Return the non-orthogonality map in an array.
+    Usage: getNonOrthogonalityMap(array)"""
+    if isinstance(array[0], list):
+        b = []
+        for i in array:
+            b.append(generator.getNonOrthogonalityMap(i, normalized))
+        return b
+    else:
+        return generator.getNonOrthogonalityMap(array, normalized)
+
 # Fonction retournant la carte de qualite d'une maillage TRI
 # (0. pour un triangle degenere. pour un triangle equilateral)
 def getTriQualityMap(array):

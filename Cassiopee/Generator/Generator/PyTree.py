@@ -1916,6 +1916,21 @@ def _getAngleRegularityMap(t, addGC=False, normalized=False):
     return None
 
 #------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+def getNonOrthogonalityMap(t, addGC=False, normalized=False):
+    if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    t = C.TZGC3(t, 'centers', True, Generator.getNonOrthogonalityMap, normalized)
+    if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return t
+
+def _getNonOrthogonalityMap(t, addGC=False, normalized=False):
+    if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
+    C._TZGC3(t, 'centers', False, Generator.getNonOrthogonalityMap, normalized)
+    if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
+    return None
+
+#------------------------------------------------------------------------------
 # Compute the quality for a TRI mesh (0. for degenerated triangle, 1. for equilateral)
 #------------------------------------------------------------------------------
 def getTriQualityMap(t):
