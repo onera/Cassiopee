@@ -218,7 +218,8 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
 
     // Get dimensionality
     E_Int dim = K_CONNECT::getDimME(eltType);
-    if (dim < 3) // dim 1/2 -> early exit
+
+    if (dim == 1) // dim 1 -> early exit
     {
       #pragma omp parallel
       {
@@ -254,72 +255,163 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
     E_Float* yb = fyb.begin(1);
     E_Float* zb = fzb.begin(1);
 
-    // Compute facet normals
-    FldArrayF fsnx(ntotFacets), fsny(ntotFacets), fsnz(ntotFacets), surf(ntotFacets);
-    K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
-      fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin()
-    );
-    E_Float* snx = fsnx.begin(1);
-    E_Float* sny = fsny.begin(1);
-    E_Float* snz = fsnz.begin(1);
-
-    E_Float degconst = 180.0 / K_CONST::E_PI;
-
-    // calcul de la regularite
-    #pragma omp parallel
+    if (dim == 3)
     {
-      E_Int nelts, ind, pos;
-      E_Int ind2;
-      E_Int elOffset, fctOffset;
-      E_Float x1, y1, z1;
-      E_Float x2, y2, z2;
-      E_Float ux, uy, uz;
-      E_Float vx, vy, vz;
-      E_Float normu, normv;
-      E_Float cosalpha, alpha, skewness;
-      // loop over all connectivities
-      for (E_Int ic = 0; ic < nc; ic++)
+      // Compute facet normals
+      FldArrayF fsnx(ntotFacets), fsny(ntotFacets), fsnz(ntotFacets), surf(ntotFacets);
+      K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
+        fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin()
+      );
+      E_Float* snx = fsnx.begin(1);
+      E_Float* sny = fsny.begin(1);
+      E_Float* snz = fsnz.begin(1);
+
+      E_Float degconst = 180.0 / K_CONST::E_PI;
+
+      // calcul de la regularite
+      #pragma omp parallel
       {
-        FldArrayI& cm = *(cn->getConnect(ic));
-        nelts = cm.getSize();
-        elOffset = nepc[ic];
-        fctOffset = nfpc[ic];
-        
-        // loop over all elements of connectivity cm
-        #pragma omp for
-        for (E_Int i = 0; i < nelts; i++)
+        E_Int nelts, ind, pos;
+        E_Int ind2;
+        E_Int elOffset, fctOffset;
+        E_Float x1, y1, z1;
+        E_Float x2, y2, z2;
+        E_Float ux, uy, uz;
+        E_Float vx, vy, vz;
+        E_Float normu, normv;
+        E_Float cosalpha, alpha, skewness;
+        // loop over all connectivities
+        for (E_Int ic = 0; ic < nc; ic++)
         {
-          ind = i + elOffset; // true element index
-          x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
-          alphamax[ind] = 0.; // initialization
-
-          // loop over all faces of element i
-          for (E_Int f = 0; f < nfpe[ic]; f++)
+          FldArrayI& cm = *(cn->getConnect(ic));
+          nelts = cm.getSize();
+          elOffset = nepc[ic];
+          fctOffset = nfpc[ic];
+          
+          // loop over all elements of connectivity cm
+          #pragma omp for
+          for (E_Int i = 0; i < nelts; i++)
           {
-            pos = f + i*nfpe[ic] + fctOffset;
-            ind2 = cFE(pos, 2) - 1;
-            if (ind2 < 0) continue; // facet has only one neighbor element
-            x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
-            
-            ux = fsnx[pos]; uy = fsny[pos]; uy = fsny[pos]; // face normal
-            vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
+            ind = i + elOffset; // true element index
+            x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
+            alphamax[ind] = 0.; // initialization
 
-            normu = sqrt(ux*ux + uy*uy + uz*uz);
-            normv = sqrt(vx*vx + vy*vy + vz*vz);
+            // loop over all faces of element i
+            for (E_Int f = 0; f < nfpe[ic]; f++)
+            {
+              pos = f + i*nfpe[ic] + fctOffset;
+              ind2 = cFE(pos, 2) - 1;
+              if (ind2 < 0) continue; // facet has only one neighbor element
+              x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
+              
+              ux = snx[pos]; uy = sny[pos]; uy = sny[pos]; // face normal
+              vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
 
-            cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
-            alpha = acos(cosalpha);
-            skewness = K_FUNC::E_abs(alpha*degconst);
+              normu = sqrt(ux*ux + uy*uy + uz*uz);
+              normv = sqrt(vx*vx + vy*vy + vz*vz);
 
-            printf("vec1 : %f/%f/%f\n", ux,uy,uz);
-            printf("vec2 : %f/%f/%f\n", vx,vy,vz);
-            printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
+              cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
+              alpha = acos(cosalpha);
+              skewness = K_FUNC::E_abs(alpha*degconst);
 
-            alphamax[ind] = E_max(skewness, alphamax[ind]);
+              alphamax[ind] = E_max(skewness, alphamax[ind]);
+            }
           }
         }
       }
     }
+    else // dim == 2
+    {
+      // Compute QUAD/TRI element normals
+      FldArrayF fsnx(ntotElts), fsny(ntotElts), fsnz(ntotElts), surf(ntotElts);
+      K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
+        fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin()
+      );
+      E_Float* snx = fsnx.begin(1);
+      E_Float* sny = fsny.begin(1);
+      E_Float* snz = fsnz.begin(1);
+
+      E_Float degconst = 180.0 / K_CONST::E_PI;
+
+      // get eltTypes
+      std::vector<char*> eltTypes;
+      K_ARRAY::extractVars(eltType, eltTypes);
+
+      // calcul de la regularite
+      #pragma omp parallel
+      {
+        E_Int nelts, ind, pos;
+        E_Int ind1, ind2;
+        E_Int iver1, iver2;
+        E_Int elOffset, fctOffset;
+        E_Float x1, y1, z1;
+        E_Float x2, y2, z2;
+        E_Float xver1, yver1, zver1;
+        E_Float xver2, yver2, zver2;
+        E_Float ux, uy, uz;
+        E_Float vx, vy, vz;
+        E_Float nx, ny, nz;
+        E_Float ex, ey, ez;
+        E_Float normu, normv;
+        E_Float cosalpha, alpha, skewness;
+        std::vector<std::vector<E_Int> > facets;
+        // loop over all connectivities
+        for (E_Int ic = 0; ic < nc; ic++)
+        {
+          FldArrayI& cm = *(cn->getConnect(ic));
+          nelts = cm.getSize();
+          elOffset = nepc[ic];
+          fctOffset = nfpc[ic];
+          K_CONNECT::getEVFacets(facets, eltTypes[ic], false, true);
+          
+          // loop over all elements of connectivity cm
+          #pragma omp for
+          for (E_Int i = 0; i < nelts; i++)
+          {
+            ind = i + elOffset; // true element index
+            x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
+            nx = snx[ind]; ny = sny[ind]; nz = snz[ind]; // face normal
+            alphamax[ind] = 0.; // initialization
+
+            // loop over all faces of element i
+            for (E_Int f = 0; f < nfpe[ic]; f++)
+            {
+              pos = f + i*nfpe[ic] + fctOffset;
+              ind2 = cFE(pos, 2) - 1;
+              if (ind2 < 0) continue; // facet has only one neighbor element
+              x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
+
+              iver1 = cm(i,facets[f][0])-1;
+              iver2 = cm(i,facets[f][1])-1;
+              xver1 = x[iver1]; yver1 = y[iver1]; zver1 = z[iver1]; // first edge vertex
+              xver2 = x[iver2]; yver2 = y[iver2]; zver2 = z[iver2]; // second edge vertex
+
+              ex = xver2-xver1; ey = yver2-yver1; ez = zver2-zver1; // edge vector
+              ux = ey*nz-ez*ny; uy = ez*nx-ex*nz; uz = ex*ny-ey*nx; // edge normal vector = e x n
+              vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
+
+              // printf("n : %f/%f/%f\n", nx,ny,nz);
+              // printf("e : %f/%f/%f\n", ex,ey,ez);
+              // printf("u : %f/%f/%f\n", ux,uy,uz);
+              // printf("v : %f/%f/%f\n", vx,vy,vz);
+
+              normu = sqrt(ux*ux + uy*uy + uz*uz);
+              normv = sqrt(vx*vx + vy*vy + vz*vz);
+
+              cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
+              alpha = acos(cosalpha);
+              skewness = K_FUNC::E_abs(alpha*degconst);
+              
+              // printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
+
+              alphamax[ind] = E_max(skewness, alphamax[ind]);
+            }
+          }
+        }
+      }
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+    }
+    
     RELEASESHAREDS(tpl, f2);
     RELEASESHAREDU(array, f, cn);
     return tpl;
