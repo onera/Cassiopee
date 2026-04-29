@@ -16,3 +16,4 @@ rank = Cmpi.rank
 size = Cmpi.size
 print(rank, size)
 if rank == 0: test.testO([rank, size], 2)
+MPI.Finalize()

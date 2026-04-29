@@ -629,6 +629,7 @@ installDict = {
         'additionalIncludePaths': [
             '/usr/include',
             '/usr/include/hdf5/openmpi',
+            '/usr/include/x86_64-linux-gnu/openblas-pthread',
             '/usr/lib/x86_64-linux-gnu/openmpi/include'
         ],
         'additionalLibs': ['gfortran', 'gomp'],
