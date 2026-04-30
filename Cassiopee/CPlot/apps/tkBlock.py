@@ -226,7 +226,7 @@ def exteriorFaces():
             ext = P.exteriorFaces(CTK.t[2][nob][2][noz])
             ext = T.splitConnexity(ext)
             for i in ext:
-                empty = False 
+                empty = False
                 CTK.add(CTK.t, gnob, -1, i)
         except TypeError as e: # type d'element non reconnu
             fail = True; errors += [0,str(e)]
@@ -235,7 +235,7 @@ def exteriorFaces():
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    if not fail: 
+    if not fail:
         if not empty: CTK.TXT.insert('START', 'Exterior faces extracted.\n')
         else: CTK.TXT.insert('START', 'Exterior faces: empty set (closed/watertight mesh).\n')
     else:
