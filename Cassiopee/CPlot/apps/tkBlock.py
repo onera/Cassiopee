@@ -218,14 +218,16 @@ def exteriorFaces():
     p = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     gnob = C.getNobOfBase(p[0], CTK.t)
 
-    fail = False; errors = []
+    fail = False; empty = True; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         try:
             ext = P.exteriorFaces(CTK.t[2][nob][2][noz])
             ext = T.splitConnexity(ext)
-            for i in ext: CTK.add(CTK.t, gnob, -1, i)
+            for i in ext:
+                empty = False 
+                CTK.add(CTK.t, gnob, -1, i)
         except TypeError as e: # type d'element non reconnu
             fail = True; errors += [0,str(e)]
         except ValueError: # empty set
@@ -233,7 +235,9 @@ def exteriorFaces():
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    if not fail: CTK.TXT.insert('START', 'Exterior faces done.\n')
+    if not fail: 
+        if not empty: CTK.TXT.insert('START', 'Exterior faces extracted.\n')
+        else: CTK.TXT.insert('START', 'Exterior faces: empty set (closed/watertight mesh).\n')
     else:
         Panels.displayErrors(errors, header='Error: exteriorFaces')
         CTK.TXT.insert('START', 'Exterior faces fails for at least one zone.\n')
