@@ -362,7 +362,7 @@ void K_COMPGEOM::compMeanDist(const E_Int ni1, const E_Int nj1,
 }
 
 // ============================================================================
-// Computes an angle formed by three points (P1,P2,P3)
+// Computes an angle formed by three points (P1,P2,P3) or two vectors (u,v)
 // Returns a float between 0 and pi
 // Returns 0 if two points are superimposed
 // ============================================================================
@@ -384,6 +384,24 @@ E_Float K_COMPGEOM::computeAngle(
   E_Float a = sqrt(a2);
   E_Float b = sqrt(b2);
   E_Float cosalpha = K_FUNC::E_max(K_FUNC::E_min((a2+b2-c2)/(2.*a*b),1.),-1.); // law of cosines
+
+  return acos(cosalpha);
+}
+
+E_Float K_COMPGEOM::computeAngle(
+  E_Float ux, E_Float uy, E_Float uz,
+  E_Float vx, E_Float vy, E_Float vz
+)
+{
+  E_Float normu = sqrt(ux*ux + uy*uy + uz*uz);
+  E_Float normv = sqrt(vx*vx + vy*vy + vz*vz);
+
+  if (normu < K_CONST::E_GEOM_CUTOFF || normv < K_CONST::E_GEOM_CUTOFF) // security check
+  { 
+    return 0.;
+  }
+
+  E_Float cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
 
   return acos(cosalpha);
 }

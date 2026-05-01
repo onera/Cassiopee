@@ -72,6 +72,9 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
   E_Float* x = f->begin(posx);
   E_Float* y = f->begin(posy);
   E_Float* z = f->begin(posz);
+
+  // rad to degrees
+  E_Float degconst = 180.0 / K_CONST::E_PI;
   
   if (res == 1) // cas structure
   {
@@ -266,8 +269,6 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
       E_Float* sny = fsny.begin(1);
       E_Float* snz = fsnz.begin(1);
 
-      E_Float degconst = 180.0 / K_CONST::E_PI;
-
       // calcul de la regularite
       #pragma omp parallel
       {
@@ -278,8 +279,8 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
         E_Float x2, y2, z2;
         E_Float ux, uy, uz;
         E_Float vx, vy, vz;
-        E_Float normu, normv;
-        E_Float cosalpha, alpha, skewness;
+        E_Float alpha;
+        
         // loop over all connectivities
         for (E_Int ic = 0; ic < nc; ic++)
         {
@@ -299,31 +300,18 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
             // loop over all faces of element i
             for (E_Int f = 0; f < nfpe[ic]; f++)
             {
-              pos = f + i*nfpe[ic] + fctOffset;
-              ind2 = cFE(pos, 2) - 1;
+              pos = f + i*nfpe[ic] + fctOffset; // true face index
+              ind2 = cFE(pos, 2) - 1; // neighbor element index
               if (ind2 < 0) continue; // facet has only one neighbor element
               x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
               
-              ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; // face normal
+              ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; // face normal vector
               vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
 
-              normu = sqrt(ux*ux + uy*uy + uz*uz);
-              normv = sqrt(vx*vx + vy*vy + vz*vz);
-
-              cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
-              alpha = acos(cosalpha);
-              skewness = K_FUNC::E_abs(alpha*degconst);
-
-              if (false)
-              {
-                printf("center 1: %f/%f/%f\n", x1,y1,z1);
-                printf("center 2: %f/%f/%f\n", x2,y2,z2);
-                printf("u : %f/%f/%f\n", ux,uy,uz);
-                printf("v : %f/%f/%f\n", vx,vy,vz);
-                printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
-              }
-
-              alphamax[ind] = E_max(skewness, alphamax[ind]);
+              alpha = K_COMPGEOM::computeAngle(ux,uy,uz,vx,vy,vz); // non-orthogonality angle
+              // alpha = 0: perfect orthogonality at the facet
+              // alpha > 0: non-ortogonality at the facet
+              alphamax[ind] = E_max(alpha*degconst, alphamax[ind]);
             }
           }
         }
@@ -340,8 +328,6 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
       E_Float* sny = fsny.begin(1);
       E_Float* snz = fsnz.begin(1);
 
-      E_Float degconst = 180.0 / K_CONST::E_PI;
-
       // get eltTypes
       std::vector<char*> eltTypes;
       K_ARRAY::extractVars(eltType, eltTypes);
@@ -350,8 +336,7 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
       #pragma omp parallel
       {
         E_Int nelts, ind, pos;
-        E_Int ind1, ind2;
-        E_Int iver1, iver2;
+        E_Int iver1, iver2, ind2;
         E_Int elOffset, fctOffset;
         E_Float x1, y1, z1;
         E_Float x2, y2, z2;
@@ -361,9 +346,9 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
         E_Float vx, vy, vz;
         E_Float nx, ny, nz;
         E_Float ex, ey, ez;
-        E_Float normu, normv;
-        E_Float cosalpha, alpha, skewness;
+        E_Float alpha;
         std::vector<std::vector<E_Int> > facets;
+
         // loop over all connectivities
         for (E_Int ic = 0; ic < nc; ic++)
         {
@@ -371,7 +356,7 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
           nelts = cm.getSize();
           elOffset = nepc[ic];
           fctOffset = nfpc[ic];
-          K_CONNECT::getEVFacets(facets, eltTypes[ic], false, true);
+          K_CONNECT::getEVFacets(facets, eltTypes[ic], false, true); // expandToLowerDim=True
           
           // loop over all elements of connectivity cm
           #pragma omp for
@@ -385,8 +370,8 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
             // loop over all faces of element i
             for (E_Int f = 0; f < nfpe[ic]; f++)
             {
-              pos = f + i*nfpe[ic] + fctOffset;
-              ind2 = cFE(pos, 2) - 1;
+              pos = f + i*nfpe[ic] + fctOffset; // true face index
+              ind2 = cFE(pos, 2) - 1; // neighbor element index
               if (ind2 < 0) continue; // facet has only one neighbor element
               x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
 
@@ -399,25 +384,10 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
               ux = ey*nz-ez*ny; uy = ez*nx-ex*nz; uz = ex*ny-ey*nx; // edge normal vector = e x n
               vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
 
-              normu = sqrt(ux*ux + uy*uy + uz*uz);
-              normv = sqrt(vx*vx + vy*vy + vz*vz);
-
-              cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
-              alpha = acos(cosalpha);
-              skewness = K_FUNC::E_abs(alpha*degconst);
-              
-              if (false)
-              {
-                printf("center 1: %f/%f/%f\n", x1,y1,z1);
-                printf("center 2: %f/%f/%f\n", x2,y2,z2);
-                printf("n : %f/%f/%f\n", nx,ny,nz);
-                printf("e : %f/%f/%f\n", ex,ey,ez);
-                printf("u : %f/%f/%f\n", ux,uy,uz);
-                printf("v : %f/%f/%f\n", vx,vy,vz);
-                printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
-              }
-
-              alphamax[ind] = E_max(skewness, alphamax[ind]);
+              alpha = K_COMPGEOM::computeAngle(ux,uy,uz,vx,vy,vz); // non-orthogonality angle
+              // alpha = 0: perfect orthogonality at the facet
+              // alpha > 0: non-ortogonality at the facet
+              alphamax[ind] = E_max(alpha*degconst, alphamax[ind]);
             }
           }
         }
