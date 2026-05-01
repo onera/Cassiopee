@@ -981,7 +981,8 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
 ## IMPORTANT NOTE:: this is a template of a python wrapper. Not to be used. It is a placeholder and is very likely to change in subsequent version.
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
-                  localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False):
+                  localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False,
+                  tIn=None):
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
@@ -991,7 +992,9 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     ## =========================
     t_AMR = G_AMR.generateAMRMesh(tb=tb, levelMax=levelMax, vmins=vmins, dim=dim,
                                   toffset=toffset, check=check, opt=opt, octreeMode=octreeMode, localDir=localDir,
-                                  snears=0.01, dfars=10, loadBalancing=loadBalancing, tbox=tbox, vminsTbox=vminsTbox, tbv2=tbv2)
+                                  snears=0.01, dfars=10, loadBalancing=loadBalancing,
+                                  tbox=tbox, vminsTbox=vminsTbox, tbv2=tbv2,
+                                  tIn=tIn)
 
     Cmpi.trace('AMR Mesh Dist2Walls...start', master=True)
     tb2  = Internal.copyTree(tb)
