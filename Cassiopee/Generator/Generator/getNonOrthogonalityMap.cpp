@@ -304,7 +304,7 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
               if (ind2 < 0) continue; // facet has only one neighbor element
               x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
               
-              ux = snx[pos]; uy = sny[pos]; uy = sny[pos]; // face normal
+              ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; // face normal
               vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
 
               normu = sqrt(ux*ux + uy*uy + uz*uz);
@@ -313,6 +313,15 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
               cosalpha = K_FUNC::E_max(K_FUNC::E_min((ux*vx + uy*vy + uz*vz)/(normu*normv),1.),-1.);
               alpha = acos(cosalpha);
               skewness = K_FUNC::E_abs(alpha*degconst);
+
+              if (false)
+              {
+                printf("center 1: %f/%f/%f\n", x1,y1,z1);
+                printf("center 2: %f/%f/%f\n", x2,y2,z2);
+                printf("u : %f/%f/%f\n", ux,uy,uz);
+                printf("v : %f/%f/%f\n", vx,vy,vz);
+                printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
+              }
 
               alphamax[ind] = E_max(skewness, alphamax[ind]);
             }
@@ -390,11 +399,6 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
               ux = ey*nz-ez*ny; uy = ez*nx-ex*nz; uz = ex*ny-ey*nx; // edge normal vector = e x n
               vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
 
-              // printf("n : %f/%f/%f\n", nx,ny,nz);
-              // printf("e : %f/%f/%f\n", ex,ey,ez);
-              // printf("u : %f/%f/%f\n", ux,uy,uz);
-              // printf("v : %f/%f/%f\n", vx,vy,vz);
-
               normu = sqrt(ux*ux + uy*uy + uz*uz);
               normv = sqrt(vx*vx + vy*vy + vz*vz);
 
@@ -402,7 +406,16 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
               alpha = acos(cosalpha);
               skewness = K_FUNC::E_abs(alpha*degconst);
               
-              // printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
+              if (false)
+              {
+                printf("center 1: %f/%f/%f\n", x1,y1,z1);
+                printf("center 2: %f/%f/%f\n", x2,y2,z2);
+                printf("n : %f/%f/%f\n", nx,ny,nz);
+                printf("e : %f/%f/%f\n", ex,ey,ez);
+                printf("u : %f/%f/%f\n", ux,uy,uz);
+                printf("v : %f/%f/%f\n", vx,vy,vz);
+                printf("alpha : %f (degree: %f)\n", alpha, alpha*degconst);
+              }
 
               alphamax[ind] = E_max(skewness, alphamax[ind]);
             }
