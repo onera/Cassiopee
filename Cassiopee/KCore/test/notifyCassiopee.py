@@ -27,8 +27,8 @@ except ImportError:
 IGNORE_TESTS_NDBG = []
 # Tests to ignore in debug mode
 IGNORE_TESTS_DBG = [
-    #"Ael/quantum_t1.py", 
-    #"Converter/mpi4py_t1.py", 
+    #"Ael/quantum_t1.py",
+    #"Converter/mpi4py_t1.py",
     #"KCore/empty_t1.py",
     #"Connector/prepAMRFull_t1.py",
     #"Connector/prepAMRFull_t2.py",
