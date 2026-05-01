@@ -91,9 +91,6 @@ cp test/notifyFast.py test/notifyFast "$INSTALLPATH"
 
 # LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
 cat > "$INSTALLPATH"/asan.supp <<EOF
-leak:numpy/core/*
-leak:numpy/_core/*
-leak:mpi4py/*
 leak:libOSMesa.so.*
 leak:libopen-pal.so.*
 leak:libopen-rte.so.*
@@ -116,8 +113,15 @@ leak:OCC/Atomic/readCAD.cpp
 leak:PyObject_Malloc
 leak:PyUnicode_FromKindAndData
 leak:PyImport_ImportModuleLevelObject
-leak:unknown
+leak:PyUFunc_FromFuncAndDataAndSignatureAndIdentity
+leak:NpyString_new_allocator
+leak:PyDataMem_UserNEW
 EOF
+
+#leak:numpy/core/*
+#leak:numpy/_core/*
+#leak:mpi4py/*
+#leak:unknown
 
 # Check installation
 python test/t1.py

@@ -879,6 +879,7 @@ E_Int K_IO::GenIO::su2read(
 
   PyObject* tpl = K_ARRAY::buildArray3(3, varString, npts, nepc,
                                        eltString, 0, 3); // forcing api 3
+  
   FldArrayI* cn2; FldArrayF* f2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
 

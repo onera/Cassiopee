@@ -49,7 +49,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   }
   if (res == 1 || strcmp(eltType, "NGON") != 0)
   {
-    RELEASESHAREDB(res,array,f,cn);
+    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv2: only for NGons.");
     return NULL;
@@ -63,7 +63,7 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv2: coordinates not found in array.");
-    RELEASESHAREDU(array,f,cn); return NULL;
+    RELEASESHAREDU(array, f, cn); return NULL;
   }
   posx++; posy++; posz++;
 
@@ -86,8 +86,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   K_ARRAY::extractVars(varStringc, vars);
   if (nfld % dimPb != 0)
   {
-    RELEASESHAREDU(array,f,cn);
-    RELEASESHAREDU(arrayc,fc,cnc);
+    RELEASESHAREDU(array, f, cn);
+    RELEASESHAREDU(arrayc, fc, cnc);
     PyErr_SetString(PyExc_TypeError,
                     "computeDiv2: not all components were found for each vector field.");
     return NULL;
@@ -101,8 +101,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     {
       if (strncmp(vars[dimPb*i+m], vars[dimPb*i+m+1], strlen(vars[dimPb*i+m])-1) != 0)
       {
-        RELEASESHAREDU(array,f,cn);
-        RELEASESHAREDU(arrayc,fc,cnc);
+        RELEASESHAREDU(array, f, cn);
+        RELEASESHAREDU(arrayc, fc, cnc);
         PyErr_SetString(PyExc_TypeError,
                         "computeDiv2: invalid names for vector component fields.");
         return NULL;
@@ -114,6 +114,8 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
     char s2 = sv2[strlen(sv2)-1];
     if (s0 != 'X' || s1 != 'Y' || s2 != 'Z')
     {
+      RELEASESHAREDU(array, f, cn);
+      RELEASESHAREDU(arrayc, fc, cnc);
       PyErr_SetString(PyExc_TypeError,
                       "computeDiv2: error with the order of given scalar fields.");
       return NULL;
@@ -314,7 +316,6 @@ PyObject* K_POST::computeDiv2NGon(PyObject* self, PyObject* args)
   RELEASESHAREDU(arrayc, fc, cnc);
   RELEASESHAREDS(tpl, gn);
   if (cellNc != Py_None) Py_DECREF(cellNc);
-
   delete [] varStringOut;
   return tpl;
 }

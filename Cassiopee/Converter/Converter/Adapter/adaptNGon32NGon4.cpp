@@ -63,16 +63,16 @@ PyObject* K_CONVERTER::adaptNGon32NGon4(PyObject* self, PyObject* args)
   p = 0; p2 = 0; c = connect->begin(); off[0] = 0;
   for (E_Int i = 0; i < ne; i++)
   {
-      np = c[0];
-      for (E_Int j = 0; j < np; j++) co[j] = c[j+1];
-      p2 += np;
-      off[i+1] = p2;
-      c += np+1;
-      co += np;
+    np = c[0];
+    for (E_Int j = 0; j < np; j++) co[j] = c[j+1];
+    p2 += np;
+    off[i+1] = p2;
+    c += np+1;
+    co += np;
   }
  
   RELEASESHAREDN(arrayConnect, connect);
 
   // Retour du numpy de sortie
-  return Py_BuildValue("(OO)", tpl,tpl2);
+  return Py_BuildValue("(OO)", tpl, tpl2);
 }

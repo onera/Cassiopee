@@ -53,9 +53,9 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
                     "getCurvatureRadius: structured array must be an i-array.");
     return NULL;
   }
-  else if ( res == 2  )
+  else if (res == 2)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: not for unstructured arrays.");
     return NULL;
@@ -66,7 +66,7 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "getCurvatureRadius: can't find coordinates in array.");
     return NULL;
@@ -88,14 +88,14 @@ PyObject* K_GEOM::getCurvatureRadius(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < npts; i++)
   {
     c = curv[i];
-    if ( K_FUNC::fEqualZero(c) && c >= 0)
+    if (K_FUNC::fEqualZero(c) && c >= 0)
       rad[i] = K_CONST::E_MAX_FLOAT;
-    else if ( K_FUNC::fEqualZero(c) && c <= 0)
+    else if (K_FUNC::fEqualZero(c) && c <= 0)
       rad[i] = -K_CONST::E_MAX_FLOAT;
     else rad[i] = 1./c;
   }
   PyObject* tpl = K_ARRAY::buildArray3(rad, "radius", npts, 1, 1, api);
   delete radp;
-  RELEASESHAREDB(res, array, f, cn);  
+  RELEASESHAREDS(array, f);  
   return tpl;
 }

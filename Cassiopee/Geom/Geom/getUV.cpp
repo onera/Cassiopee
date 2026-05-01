@@ -491,7 +491,6 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   delete [] connect;
   delete [] fvc;
 
-
   //=========================
   // Export mesh with seams
   //=========================
@@ -533,7 +532,7 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
       pvzo[i] = pvz[iref];
     }
   }
-
+    
   uint32_t currentIndex = 0;
   for (E_Int i = 0; i < nelts; i++)
   {
@@ -547,7 +546,8 @@ PyObject* K_GEOM::getUV(PyObject* self, PyObject* args)
   }
 
   PyObject* tpl = PyList_New(0);
-  PyList_Append(tpl, o); RELEASESHAREDU(o, fo, cno);
+  PyList_Append(tpl, o); 
+  RELEASESHAREDU(o, fo, cno);
 
   if (atlas->width <= 0 || atlas->height <= 0) return tpl;
 

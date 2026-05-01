@@ -107,6 +107,7 @@ PyObject* K_TRANSFORM::splitCurvatureRadius(PyObject* self, PyObject* args)
     PyList_Append(l, tpl);
     Py_DECREF(tpl);
   }
+  RELEASESHAREDS(array, f);
   return l;
 }
 
@@ -164,17 +165,15 @@ void K_TRANSFORM::splitSplineStruct(E_Float dmax, E_Float cmax,
     {
       for (E_Int fld=1;fld<=nfld;fld++)
       {
-	E_Float* f0fld = f0->begin(fld);
-	E_Float* ffld  = f->begin(fld);
-	f0fld[cc] = ffld[ind];
+        E_Float* f0fld = f0->begin(fld);
+        E_Float* ffld  = f->begin(fld);
+        f0fld[cc] = ffld[ind];
       }
       cc++;
     }
     fsplit.push_back(f0);
     iprev = ii;
   }
-
-  delete f;
 }
 // //===========================================================================
 // /* Split d'une courbe structuree 1D  */

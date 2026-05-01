@@ -41,14 +41,15 @@ PyObject* K_TRANSFORM::collapse(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "collapse: array must be unstructured.");
-    if (res == 1) delete f;
+    RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
   if (K_STRING::cmp(eltType, "TRI") != 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "collapse: array must be TRI.");
-    delete f; delete cn; return NULL;
+    RELEASESHAREDB(res, array, f, cn);
+    return NULL;
   }
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);

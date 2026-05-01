@@ -46,7 +46,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   }
   if (res == 2)
   {
-    delete f; delete cn;
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "bezier: array must be an i-array or a i,j-array.");
     return NULL;
@@ -57,7 +57,7 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    delete f;
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "bezier: coordinates not found in array.");
     return NULL;
@@ -75,8 +75,8 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
     {
       K_FLD::FldArrayF PF;
       K_COMPGEOM::regularBezier(im, N, density, xt, yt, zt, PF);
-      delete f;
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", PF.getSize(), 1, 1, api);
+      RELEASESHAREDS(array, f);
       return tpl;
     }
     else
@@ -85,13 +85,14 @@ PyObject* K_GEOM::bezier(PyObject* self, PyObject* args)
       E_Int niout, njout;
       K_COMPGEOM::regularBezier2D(im, jm, N, M, density, xt, yt, zt, PF,
                                   niout, njout);
-      delete f;
       PyObject* tpl = K_ARRAY::buildArray3(PF, "x,y,z", niout, njout, 1, api);
+      RELEASESHAREDS(array, f);
       return tpl;
     }
   }
   else
   {
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "bezier: control points array must be i-array or i,j-array.");
     return  NULL;

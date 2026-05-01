@@ -77,7 +77,7 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
   posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(res,array, f, cnl);
+    RELEASESHAREDB(res, array, f, cnl);
     PyErr_SetString(PyExc_TypeError, 
                     "nearestNodes: array must have coordinates.");
     return NULL; 
@@ -118,8 +118,7 @@ PyObject* K_CONVERTER::nearestNodes(PyObject* self, PyObject* args)
   }
 
   RELEASESHAREDB(res, array, f, cnl);
-  PyObject* tpl;
-  tpl = Py_BuildValue("[OO]", ac, dist);
+  PyObject* tpl = Py_BuildValue("[OO]", ac, dist);
   return tpl;
 }
 
@@ -268,7 +267,7 @@ PyObject* K_CONVERTER::nearestFaces(PyObject* self, PyObject* args)
   RELEASESHAREDU(array, f, cnl);
 
   PyObject* tpl;
-  tpl = Py_BuildValue("[OO]",ac,dist);
+  tpl = Py_BuildValue("[OO]", ac, dist);
   return tpl;
 }
 

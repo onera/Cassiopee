@@ -63,7 +63,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   {
     //std::cout << "res : " << res << std::endl;
     //std::cout << "eltTypeV : " << *eltTypeV << std::endl;
-    
+    RELEASESHAREDB(res, maskV, fV, cV);    
     PyErr_SetString(PyExc_TypeError,
 		    "blankCellsTetra: input mask must be an unstructured Tetrahedral volume mesh.");
     return NULL;
@@ -84,12 +84,12 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   {
     //std::cout << "res : " << res << std::endl;
     //std::cout << "eltS : " << *eltS << std::endl;
-    
+    RELEASESHAREDB(res, maskS, fS, cS);
     PyErr_SetString(PyExc_TypeError,
 		    "blankCellsTetra: input mask skin must be triangular.");
     return NULL;
   }
-       
+
   posx = K_ARRAY::isCoordinateXPresent(varStringS);
   posy = K_ARRAY::isCoordinateYPresent(varStringS);
   posz = K_ARRAY::isCoordinateZPresent(varStringS);
@@ -118,7 +118,7 @@ PyObject* K_CONNECTOR::createTetraMask(PyObject* self, PyObject* args)
   
   //RELEASESHAREDU(maskV, fV, cV);
   //RELEASESHAREDU(maskS, fS, cS);
-  
+  //Py_DECREF(maskV); Py_DECREF(maskS);
   return hook;
 }
 
@@ -136,7 +136,6 @@ PyObject* K_CONNECTOR::createTriMask(PyObject* self, PyObject* args)
   
   if (!PYPARSETUPLE_(args, O_ R_, &maskT, &tol)) return NULL;
   
-
   /////////////////////////////////////////////////////////////////////////
   // Extraction des donnees
   

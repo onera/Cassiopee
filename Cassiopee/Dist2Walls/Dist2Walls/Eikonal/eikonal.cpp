@@ -58,7 +58,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "eikonal: only for structured grids.");
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDU(array, f, cn);
     return NULL;
   }
 
@@ -67,7 +67,7 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "eikonal: can't find coordinates in array.");
     return NULL;
@@ -88,7 +88,8 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   E_Int pos = K_ARRAY::isNamePresent("Phi", varString);
   if (pos == -1)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(tpl, f2);
     PyErr_SetString(PyExc_TypeError,
                     "eikonal: cannot find Phi in array.");
     return NULL;
@@ -102,7 +103,8 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   E_Int posv = K_ARRAY::isNamePresent("speed", varString);
   if (posv == -1)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDS(array, f);
+    RELEASESHAREDS(tpl, f2);
     PyErr_SetString(PyExc_TypeError,
                     "eikonal: cannot find front speed in array.");
     return NULL;
@@ -141,6 +143,6 @@ PyObject* K_DIST2WALLS::eikonal(PyObject* self, PyObject* args)
   //seconds = (double)((end.tv_sec+end.tv_nsec*1.E-9) - (beg.tv_sec+beg.tv_nsec*1.E-9));
   //std::cout << "Temps passé pour Eikonal solver : " << seconds << "secondes" << std::endl;
   RELEASESHAREDS(tpl, f2);
-  RELEASESHAREDB(res, array, f, cn);
+  RELEASESHAREDS(array, f);
   return tpl;
 }

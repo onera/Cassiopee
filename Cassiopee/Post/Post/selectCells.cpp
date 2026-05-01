@@ -64,6 +64,7 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
   
   if (resC != 1 && resC != 2)
   {
+    RELEASESHAREDB(res, arrayNodes, f, cnp);
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: arrayCenters is invalid.");
   	return NULL;
@@ -720,7 +721,6 @@ PyObject* K_POST::selectCellsBoth(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < size2; i++) coutp[i] = cn2p[i];
 
     RELEASESHAREDB(res2, tag, f2, cnp2);
-
 
     if (PE != Py_None)
     {
