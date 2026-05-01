@@ -33,7 +33,7 @@ namespace K_GENERATOR
 {
 struct stackData3
 {
-    OctreeNode* current;
+  OctreeNode* current;
 };
 
 OctreeNode* splitNode27(OctreeNode* current, E_Int levelMax, E_Int dim, E_Int& split);
@@ -126,10 +126,10 @@ PyObject* octree3(PyObject* self, PyObject* args)
   E_Int dim = -1;
   for (E_Int i = 0; i < nzones; i++)
   {
-    if ( strcmp(eltTypet[i],"TRI") == 0 ) 
+    if ( strcmp(eltTypet[i], "TRI") == 0 ) 
     {
-      if ( dim == -1 ) dim = 3;
-      else if ( dim != 3) 
+      if (dim == -1) dim = 3;
+      else if (dim != 3) 
       {
         for (size_t v = 0; v < structF.size(); v++) RELEASESHAREDS(objst[v], structF[v]);
         for (size_t v = 0; v < unstrF.size(); v++) RELEASESHAREDU(objut[v], unstrF[v], cnt[v]);                
@@ -328,7 +328,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
     }
 
     l0 = current->getLevel();
-    if ( found == 1 && l0 < levelMax) //decouper la cellule en 27 si dh > snear
+    if (found == 1 && l0 < levelMax) //decouper la cellule en 27 si dh > snear
     {
       current = splitNode27(current, levelMax, dim, split);
       if ( split != 1 ) goto next;
@@ -460,7 +460,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
       dataForStack.current = current->getNext8(); stack.push(dataForStack);
       dataForStack.current = current->getNext9(); stack.push(dataForStack);
 
-      if ( dim == 3 ) 
+      if (dim == 3) 
       {
         dataForStack.current = current->getNext10(); stack.push(dataForStack);
         dataForStack.current = current->getNext11(); stack.push(dataForStack);

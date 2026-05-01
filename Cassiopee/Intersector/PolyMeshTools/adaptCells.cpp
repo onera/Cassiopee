@@ -77,8 +77,8 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
   if (err) return nullptr;
   
-  K_FLD::FloatArray & crd = *f;
-  K_FLD::IntArray & cnt = *cn;
+  K_FLD::FloatArray& crd = *f;
+  K_FLD::IntArray& cnt = *cn;
   
   // std::cout << "crd : " << crd.cols() << "/" << crd.rows() << std::endl;
   // std::cout << "cnt : " << cnt.cols() << "/" << cnt.rows() << std::endl;
@@ -95,7 +95,6 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
     delete f; delete cn;
     return nullptr;
   }
-
 
   // We reorient the PG of our NGON
   ngi.flag_externals(1);
@@ -134,7 +133,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
         E_Int pti = ptlist[i] -1;
 
         E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
-        int nnodes = ngi.PGs.stride(pti);
+        E_Int nnodes = ngi.PGs.stride(pti);
 
         K_MESH::Polygon::shift_geom(crd_tmp, nodes, nnodes, 1);
       }
@@ -147,7 +146,7 @@ PyObject* K_INTERSECTOR::initForAdaptCells(PyObject* self, PyObject* args)
         E_Int pti = ptlist[i] -1;
 
         E_Int* nodes = ngi.PGs.get_facets_ptr(pti);
-        int nnodes = ngi.PGs.stride(pti);
+        E_Int nnodes = ngi.PGs.stride(pti);
 
         K_MESH::Polygon::shift_geom(crd, nodes, nnodes, 1);
       }

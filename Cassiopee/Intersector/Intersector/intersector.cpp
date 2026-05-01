@@ -251,10 +251,9 @@ E_Int K_INTERSECTOR::get_of_type
 (const std::vector<std::string>& types, PyObject* arr, K_FLD::FloatArray& f1, bool only_coords, K_FLD::IntArray& cn1, char*& varString, char*& eltType)
 {
   E_Int ni, nj, nk;
-  
   E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk, cn1, eltType);
 
-  //std::cout << "eltType ???????" << eltType << std::endl;
+  //std::cout << "eltType =" << eltType << std::endl;
      
   bool err = (res != 2);
 

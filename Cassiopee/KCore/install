@@ -116,11 +116,11 @@ leak:PyImport_ImportModuleLevelObject
 leak:PyUFunc_FromFuncAndDataAndSignatureAndIdentity
 leak:NpyString_new_allocator
 leak:PyDataMem_UserNEW
+leak:numpy/core/*
+leak:numpy/_core/*
+leak:mpi4py/*
 EOF
 
-#leak:numpy/core/*
-#leak:numpy/_core/*
-#leak:mpi4py/*
 #leak:unknown
 
 # Check installation
