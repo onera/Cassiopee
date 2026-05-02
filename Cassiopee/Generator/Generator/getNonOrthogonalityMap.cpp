@@ -194,7 +194,7 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
 
     // Number of facets per element
     std::vector<E_Int> nfpe;
-    E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
+    E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true); // expandToLowerDim=true
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -258,141 +258,66 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
     E_Float* yb = fyb.begin(1);
     E_Float* zb = fzb.begin(1);
 
-    if (dim == 3)
-    {
-      // Compute facet normals
-      FldArrayF fsnx(ntotFacets), fsny(ntotFacets), fsnz(ntotFacets), surf(ntotFacets);
-      K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
-        fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin()
-      );
-      E_Float* snx = fsnx.begin(1);
-      E_Float* sny = fsny.begin(1);
-      E_Float* snz = fsnz.begin(1);
+    // Compute facet normals
+    FldArrayF fsnx(ntotFacets), fsny(ntotFacets), fsnz(ntotFacets), surf(ntotFacets);
+    K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
+      fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin(), true // expandToLowerDim=true
+    );
+    E_Float* snx = fsnx.begin(1);
+    E_Float* sny = fsny.begin(1);
+    E_Float* snz = fsnz.begin(1);
 
-      // calcul de la regularite
-      #pragma omp parallel
+    // calcul de la regularite
+    #pragma omp parallel
+    {
+      E_Int nelts, ind, pos;
+      E_Int ind2;
+      E_Int elOffset, fctOffset;
+      E_Float x1, y1, z1;
+      E_Float x2, y2, z2;
+      E_Float ux, uy, uz;
+      E_Float vx, vy, vz;
+      E_Float alpha;
+
+      // loop over all connectivities
+      for (E_Int ic = 0; ic < nc; ic++)
       {
-        E_Int nelts, ind, pos;
-        E_Int ind2;
-        E_Int elOffset, fctOffset;
-        E_Float x1, y1, z1;
-        E_Float x2, y2, z2;
-        E_Float ux, uy, uz;
-        E_Float vx, vy, vz;
-        E_Float alpha;
+        FldArrayI& cm = *(cn->getConnect(ic));
+        nelts = cm.getSize();
+        elOffset = nepc[ic];
+        fctOffset = nfpc[ic];
         
-        // loop over all connectivities
-        for (E_Int ic = 0; ic < nc; ic++)
+        // loop over all elements of connectivity cm
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
         {
-          FldArrayI& cm = *(cn->getConnect(ic));
-          nelts = cm.getSize();
-          elOffset = nepc[ic];
-          fctOffset = nfpc[ic];
-          
-          // loop over all elements of connectivity cm
-          #pragma omp for
-          for (E_Int i = 0; i < nelts; i++)
+          ind = i + elOffset; // true element index
+          x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
+          alphamax[ind] = 0.; // initialization
+
+          // loop over all faces of element i
+          for (E_Int f = 0; f < nfpe[ic]; f++)
           {
-            ind = i + elOffset; // true element index
-            x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
-            alphamax[ind] = 0.; // initialization
+            pos = f + i*nfpe[ic] + fctOffset; // true facet index
+            ind2 = cFE(pos, 2) - 1; // neighbor element index
+            if (ind2 < 0) continue; // facet has only one neighbor element
+            x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor cell center
+            
+            // facet normal vector
+            // 2D: edge normal vector
+            // 3D: face normal vector
+            ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; 
 
-            // loop over all faces of element i
-            for (E_Int f = 0; f < nfpe[ic]; f++)
-            {
-              pos = f + i*nfpe[ic] + fctOffset; // true face index
-              ind2 = cFE(pos, 2) - 1; // neighbor element index
-              if (ind2 < 0) continue; // facet has only one neighbor element
-              x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
-              
-              ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; // face normal vector
-              vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
+            // centroid to centroid vector
+            vx = x2-x1; vy = y2-y1; vz = z2-z1;
 
-              alpha = K_COMPGEOM::computeAngle(ux,uy,uz,vx,vy,vz); // non-orthogonality angle
-              // alpha = 0: perfect orthogonality at the facet
-              // alpha > 0: non-ortogonality at the facet
-              alphamax[ind] = E_max(alpha*degconst, alphamax[ind]);
-            }
+            alpha = K_COMPGEOM::computeAngle(ux,uy,uz,vx,vy,vz); // non-orthogonality angle
+            // alpha = 0: perfect orthogonality at the facet
+            // alpha > 0: non-ortogonality at the facet (worse = 90)
+            alphamax[ind] = E_max(alpha*degconst, alphamax[ind]);
           }
         }
       }
-    }
-    else // dim == 2
-    {
-      // Compute QUAD/TRI element normals
-      FldArrayF fsnx(ntotElts), fsny(ntotElts), fsnz(ntotElts), surf(ntotElts);
-      K_METRIC::compSurfUnstruct(*cn, eltType, x, y, z,
-        fsnx.begin(), fsny.begin(), fsnz.begin(), surf.begin()
-      );
-      E_Float* snx = fsnx.begin(1);
-      E_Float* sny = fsny.begin(1);
-      E_Float* snz = fsnz.begin(1);
-
-      // get eltTypes
-      std::vector<char*> eltTypes;
-      K_ARRAY::extractVars(eltType, eltTypes);
-
-      // calcul de la regularite
-      #pragma omp parallel
-      {
-        E_Int nelts, ind, pos;
-        E_Int iver1, iver2, ind2;
-        E_Int elOffset, fctOffset;
-        E_Float x1, y1, z1;
-        E_Float x2, y2, z2;
-        E_Float xver1, yver1, zver1;
-        E_Float xver2, yver2, zver2;
-        E_Float ux, uy, uz;
-        E_Float vx, vy, vz;
-        E_Float nx, ny, nz;
-        E_Float ex, ey, ez;
-        E_Float alpha;
-        std::vector<std::vector<E_Int> > facets;
-
-        // loop over all connectivities
-        for (E_Int ic = 0; ic < nc; ic++)
-        {
-          FldArrayI& cm = *(cn->getConnect(ic));
-          nelts = cm.getSize();
-          elOffset = nepc[ic];
-          fctOffset = nfpc[ic];
-          K_CONNECT::getEVFacets(facets, eltTypes[ic], false, true); // expandToLowerDim=True
-          
-          // loop over all elements of connectivity cm
-          #pragma omp for
-          for (E_Int i = 0; i < nelts; i++)
-          {
-            ind = i + elOffset; // true element index
-            x1 = xb[ind]; y1 = yb[ind]; z1 = zb[ind]; // cell center
-            nx = snx[ind]; ny = sny[ind]; nz = snz[ind]; // face normal
-            alphamax[ind] = 0.; // initialization
-
-            // loop over all faces of element i
-            for (E_Int f = 0; f < nfpe[ic]; f++)
-            {
-              pos = f + i*nfpe[ic] + fctOffset; // true face index
-              ind2 = cFE(pos, 2) - 1; // neighbor element index
-              if (ind2 < 0) continue; // facet has only one neighbor element
-              x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor element center
-
-              iver1 = cm(i,facets[f][0])-1;
-              iver2 = cm(i,facets[f][1])-1;
-              xver1 = x[iver1]; yver1 = y[iver1]; zver1 = z[iver1]; // first edge vertex
-              xver2 = x[iver2]; yver2 = y[iver2]; zver2 = z[iver2]; // second edge vertex
-
-              ex = xver2-xver1; ey = yver2-yver1; ez = zver2-zver1; // edge vector
-              ux = ey*nz-ez*ny; uy = ez*nx-ex*nz; uz = ex*ny-ey*nx; // edge normal vector = e x n
-              vx = x2-x1; vy = y2-y1; vz = z2-z1; // centroid to centroid vector
-
-              alpha = K_COMPGEOM::computeAngle(ux,uy,uz,vx,vy,vz); // non-orthogonality angle
-              // alpha = 0: perfect orthogonality at the facet
-              // alpha > 0: non-ortogonality at the facet
-              alphamax[ind] = E_max(alpha*degconst, alphamax[ind]);
-            }
-          }
-        }
-      }
-      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     }
     
     RELEASESHAREDS(tpl, f2);

@@ -29,7 +29,8 @@
 void K_METRIC::__AD(compSurfUnstruct)(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
+  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface, 
+  E_Bool expandToLowerDim
 )
 {
   E_Int fctOffset = 0;
@@ -39,7 +40,7 @@ void K_METRIC::__AD(compSurfUnstruct)(
 
   // Number of facets per element
   std::vector<E_Int> nfpe;
-  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, false);
+  E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, expandToLowerDim);
   if (ierr != 0) return;
 
   for (E_Int ic = 0; ic < nc; ic++)
@@ -50,15 +51,15 @@ void K_METRIC::__AD(compSurfUnstruct)(
 
     if (strcmp(eltTypes[ic], "BAR") == 0)
     {
-      compBarSurf(cm, fctOffset, xt, yt, zt, surface);
+      compBarSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
     }
     else if (strcmp(eltTypes[ic], "TRI") == 0)
     {
-      compTriSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
+      compTriSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface, expandToLowerDim);
     }
     else if (strcmp(eltTypes[ic], "QUAD") == 0)
     {
-      compQuadSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
+      compQuadSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface, expandToLowerDim);
     }
     else if (strcmp(eltTypes[ic], "TETRA") == 0)
     {
@@ -94,13 +95,16 @@ void K_METRIC::__AD(compSurfUnstruct)(
 void K_METRIC::__AD(compTriSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
+  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface,
+  E_Bool expandToLowerDim
 )
 {
   E_Int nelts = cm.getSize();
   E_Int ind1, ind2, ind3, pos;
   E_Float surf, surfx, surfy, surfz;
   E_Float l1x, l1y, l1z, l2x, l2y, l2z;
+  E_Float ex, ey, ez, nx, ny, nz;
+  std::vector<std::vector<E_Int> > facets;
 
   for (E_Int i = 0; i < nelts; i++)
   {
@@ -121,18 +125,46 @@ void K_METRIC::__AD(compTriSurf)(
     surfz = (l1x * l2y - l1y * l2x);
     surf = sqrt(surfx * surfx + surfy * surfy + surfz * surfz);
 
-    pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
-    surfnx[pos] = K_CONST::ONE_HALF * surfx;
-    surfny[pos] = K_CONST::ONE_HALF * surfy;
-    surfnz[pos] = K_CONST::ONE_HALF * surfz;
-    surface[pos] = K_CONST::ONE_HALF * surf;
+    if (expandToLowerDim)
+    {
+      nx = K_CONST::ONE_HALF * surfx;
+      ny = K_CONST::ONE_HALF * surfy;
+      nz = K_CONST::ONE_HALF * surfz;
+
+      K_CONNECT::getEVFacets(facets, "TRI", false, true); // expandToLowerDim=True
+
+      for (E_Int f = 0; f < 3; f++)
+      {
+        pos = f + fctOffset + i*3;
+        ind1 = cm(i, facets[f][0]) - 1;
+        ind2 = cm(i, facets[f][1]) - 1;
+        // edge vector
+        ex = xt[ind2] - xt[ind1]; 
+        ey = yt[ind2] - yt[ind1]; 
+        ez = zt[ind2] - zt[ind1];
+        // edge normal vector = e x n
+        surfnx[pos] = ey * nz - ez * ny;
+        surfny[pos] = ez * nx - ex * nz;
+        surfnz[pos] = ex * ny - ey * nx;
+        surface[pos] = sqrt(ex * ex + ey * ey + ez * ez);
+      }
+    }
+    else
+    {
+      pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+      surfnx[pos] = K_CONST::ONE_HALF * surfx;
+      surfny[pos] = K_CONST::ONE_HALF * surfy;
+      surfnz[pos] = K_CONST::ONE_HALF * surfz;
+      surface[pos] = K_CONST::ONE_HALF * surf;
+    }
   }
 }
 
 void K_METRIC::__AD(compQuadSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
+  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface,
+  E_Bool expandToLowerDim
 )
 {
   E_Int nelts = cm.getSize();
@@ -140,6 +172,8 @@ void K_METRIC::__AD(compQuadSurf)(
   E_Float surf, surfx, surfy, surfz;
   E_Float surf1x, surf1y, surf1z, surf2x, surf2y, surf2z;
   E_Float l1x, l1y, l1z, l2x, l2y, l2z;
+  E_Float ex, ey, ez, nx, ny, nz;
+  std::vector<std::vector<E_Int> > facets;
 
   for (E_Int i = 0; i < nelts; i++)
   {
@@ -179,11 +213,38 @@ void K_METRIC::__AD(compQuadSurf)(
     surfz = surf1z + surf2z;
     surf = sqrt(surfx * surfx + surfy * surfy + surfz * surfz);
 
-    pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
-    surfnx[pos] = K_CONST::ONE_HALF * surfx;
-    surfny[pos] = K_CONST::ONE_HALF * surfy;
-    surfnz[pos] = K_CONST::ONE_HALF * surfz;
-    surface[pos] = K_CONST::ONE_HALF * surf;
+    if (expandToLowerDim)
+    {
+      nx = K_CONST::ONE_HALF * surfx;
+      ny = K_CONST::ONE_HALF * surfy;
+      nz = K_CONST::ONE_HALF * surfz;
+
+      K_CONNECT::getEVFacets(facets, "QUAD", false, true); // expandToLowerDim=True
+
+      for (E_Int f = 0; f < 4; f++)
+      {
+        pos = f + fctOffset + i*4;
+        ind1 = cm(i, facets[f][0]) - 1;
+        ind2 = cm(i, facets[f][1]) - 1;
+        // edge vector
+        ex = xt[ind2] - xt[ind1]; 
+        ey = yt[ind2] - yt[ind1]; 
+        ez = zt[ind2] - zt[ind1];
+        // edge normal vector = e x n
+        surfnx[pos] = ey * nz - ez * ny;
+        surfny[pos] = ez * nx - ex * nz;
+        surfnz[pos] = ex * ny - ey * nx;
+        surface[pos] = sqrt(ex * ex + ey * ey + ez * ez);
+      }
+    }
+    else
+    {
+      pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+      surfnx[pos] = K_CONST::ONE_HALF * surfx;
+      surfny[pos] = K_CONST::ONE_HALF * surfy;
+      surfnz[pos] = K_CONST::ONE_HALF * surfz;
+      surface[pos] = K_CONST::ONE_HALF * surf;
+    }
   }
 }
 
@@ -835,7 +896,7 @@ void K_METRIC::__AD(compHexaSurf)(
 void K_METRIC::__AD(compBarSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surface
+  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
 )
 {
   E_Int nelts = cm.getSize();
@@ -852,6 +913,9 @@ void K_METRIC::__AD(compBarSurf)(
     lz = zt[ind1] - zt[ind2];
 
     pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+    surfnx[pos] = 0.;
+    surfny[pos] = 0.;
+    surfnz[pos] = 0.;
     surface[pos] = sqrt(lx * lx + ly * ly + lz * lz);
   }
 }
