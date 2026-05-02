@@ -51,7 +51,7 @@ void K_METRIC::__AD(compSurfUnstruct)(
 
     if (strcmp(eltTypes[ic], "BAR") == 0)
     {
-      compBarSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface);
+      compBarSurf(cm, fctOffset, xt, yt, zt, surfnx, surfny, surfnz, surface, expandToLowerDim);
     }
     else if (strcmp(eltTypes[ic], "TRI") == 0)
     {
@@ -127,6 +127,7 @@ void K_METRIC::__AD(compTriSurf)(
 
     if (expandToLowerDim)
     {
+      // face normal vector
       nx = K_CONST::ONE_HALF * surfx;
       ny = K_CONST::ONE_HALF * surfy;
       nz = K_CONST::ONE_HALF * surfz;
@@ -135,7 +136,7 @@ void K_METRIC::__AD(compTriSurf)(
 
       for (E_Int f = 0; f < 3; f++)
       {
-        pos = f + fctOffset + i*3;
+        pos = f + fctOffset + i * 3;
         ind1 = cm(i, facets[f][0]) - 1;
         ind2 = cm(i, facets[f][1]) - 1;
         // edge vector
@@ -215,6 +216,7 @@ void K_METRIC::__AD(compQuadSurf)(
 
     if (expandToLowerDim)
     {
+      // face normal vector
       nx = K_CONST::ONE_HALF * surfx;
       ny = K_CONST::ONE_HALF * surfy;
       nz = K_CONST::ONE_HALF * surfz;
@@ -223,7 +225,7 @@ void K_METRIC::__AD(compQuadSurf)(
 
       for (E_Int f = 0; f < 4; f++)
       {
-        pos = f + fctOffset + i*4;
+        pos = f + fctOffset + i * 4;
         ind1 = cm(i, facets[f][0]) - 1;
         ind2 = cm(i, facets[f][1]) - 1;
         // edge vector
@@ -896,7 +898,8 @@ void K_METRIC::__AD(compHexaSurf)(
 void K_METRIC::__AD(compBarSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
+  E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface,
+  E_Bool expandToLowerDim
 )
 {
   E_Int nelts = cm.getSize();
@@ -912,10 +915,24 @@ void K_METRIC::__AD(compBarSurf)(
     ly = yt[ind1] - yt[ind2];
     lz = zt[ind1] - zt[ind2];
 
-    pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
-    surfnx[pos] = 0.;
-    surfny[pos] = 0.;
-    surfnz[pos] = 0.;
-    surface[pos] = sqrt(lx * lx + ly * ly + lz * lz);
+    if (expandToLowerDim)
+    {
+      for (E_Int f = 0; f < 2; f++)
+      {
+        pos = f + fctOffset + i * 2;
+        surfnx[pos] = 0.;
+        surfny[pos] = 0.;
+        surfnz[pos] = 0.;
+        surface[pos] = 0.;
+      }
+    }
+    else
+    {
+      pos = fctOffset + i;  // fctOffset + i = fctOffset + i * nfpe
+      surfnx[pos] = 0.;
+      surfny[pos] = 0.;
+      surfnz[pos] = 0.;
+      surface[pos] = sqrt(lx * lx + ly * ly + lz * lz);
+    }
   }
 }

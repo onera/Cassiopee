@@ -219,24 +219,6 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
       ntotFacets += nfpe[ic]*nelts;
     }
 
-    // Get dimensionality
-    E_Int dim = K_CONNECT::getDimME(eltType);
-
-    if (dim == 1) // dim 1 -> early exit
-    {
-      #pragma omp parallel
-      {
-        #pragma omp for
-        for (E_Int i = 0; i < ntotElts; i++)
-        {
-          alphamax[i] = 0.;
-        }
-      }
-      RELEASESHAREDS(tpl, f2);
-      RELEASESHAREDU(array, f, cn);
-      return tpl;
-    } 
-
     // Calcul de la connectivite face -> elements
     FldArrayI cFE(ntotFacets,2);
     ierr = K_CONNECT::connectEV2FE(eltType, *cn, cFE, true);
@@ -304,6 +286,7 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
             x2 = xb[ind2]; y2 = yb[ind2]; z2 = zb[ind2]; // neighbor cell center
             
             // facet normal vector
+            // 1D: zero vector
             // 2D: edge normal vector
             // 3D: face normal vector
             ux = snx[pos]; uy = sny[pos]; uz = snz[pos]; 
