@@ -26,6 +26,10 @@ if [ -n "${ASAN_LIB}" ]; then
    env | grep ASAN_LIB | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
 fi
 
+if [ -n "${XMODIFIERS}" ]; then
+   env | grep XMODIFIERS | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+fi
+
 if [[ "$MAC" == juno* ]]; then
     echo "unsetenv SLURM*" >> /tmp/.vars.csh
     echo "unsetenv OMP_PLACES" >> /tmp/.vars.csh
