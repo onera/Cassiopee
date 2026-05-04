@@ -892,7 +892,6 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
 
   if (nptsExt == 0) // exterior face is empty -> early exit
   {
-    printf("exteriorFaces: empty set of exterior faces.\n");
     tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, 0, 
       "NGON", 0, 0,
       ngonType, center, api
@@ -1086,7 +1085,6 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
 
   if (nptsExt == 0) // exterior face is empty -> early exit
   {
-    printf("exteriorFaces: empty set of exterior faces.\n");
     tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, 0, 
       "NGON", 0, 0,
       ngonType, center, api
@@ -1812,7 +1810,6 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
 	  delete [] eltType2;
 	  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
     
-    printf("exteriorFaces: empty set of exterior faces.\n");
     tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api); // returns empty array
     return tpl;
   }

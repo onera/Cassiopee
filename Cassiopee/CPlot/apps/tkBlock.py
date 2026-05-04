@@ -237,7 +237,7 @@ def exteriorFaces():
     CTK.TKTREE.updateApp()
     if not fail:
         if not empty: CTK.TXT.insert('START', 'Exterior faces extracted.\n')
-        else: CTK.TXT.insert('START', 'Exterior faces: empty set (closed/watertight mesh).\n')
+        else: CTK.TXT.insert('START', 'Exterior faces: empty set.\n')
     else:
         Panels.displayErrors(errors, header='Error: exteriorFaces')
         CTK.TXT.insert('START', 'Exterior faces fails for at least one zone.\n')
