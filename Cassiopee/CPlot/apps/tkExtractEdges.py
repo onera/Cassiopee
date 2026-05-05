@@ -70,7 +70,7 @@ def exteriorFaces():
     CTK.t = C.addBase2PyTree(CTK.t, 'CONTOURS', 1)
     p = C.Internal.getNodeFromName1(CTK.t, 'CONTOURS')
 
-    fail = False; exts = []; errors = []
+    exts = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -78,30 +78,20 @@ def exteriorFaces():
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Unstructured':
             z = G.close(z)
-            try:
-                ext = P.exteriorFaces(z)
-                ext = G.close(ext)
-                ext = T.splitConnexity(ext)
-                exts += ext
-            except Exception as e:
-                fail = True; errors += [0,str(e)]
+            ext = P.exteriorFaces(z)
+            ext = G.close(ext)
+            ext = T.splitConnexity(ext)
+            exts += ext
         else:
             ext = P.exteriorFacesStructured(z)
             exts += ext
-
-    if fail:
-        Panels.displayErrors(errors, header='Error: exteriorFaces')
 
     if exts == []:
         CTK.TXT.insert('START', 'External edges set is empty.\n')
     else:
         nob = C.getNobOfBase(p, CTK.t)
         for i in exts: CTK.add(CTK.t, nob, -1, i)
-        if not fail:
-            CTK.TXT.insert('START', 'External edges extracted.\n')
-        else:
-            CTK.TXT.insert('START', 'External edges fails for at least one zone.\n')
-            CTK.TXT.insert('START', 'Warning: ', 'Warning')
+        CTK.TXT.insert('START', 'External edges extracted.\n')
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CPlot.render()

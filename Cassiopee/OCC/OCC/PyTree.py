@@ -1577,9 +1577,8 @@ def isWatertight(component, leaks=[]):
     """Tell of componenent is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T
-    try:
-        leaks += P.exteriorFaces(component)
-        leaks += T.splitConnexity(leaks)
-    except: pass
-    if len(leaks) != 0: return False
+    ext = P.exteriorFaces(component)
+    ext = T.splitConnexity(ext)
+    leaks += ext
+    if leaks != []: return False
     else: return True

@@ -868,11 +868,11 @@ def zip(array, tol=1e-12):
     Usage: zip(array, tol)"""
     if isinstance(array[0], list):
         extFaces = []
-        try:
-            import Post as P
-            for a in array:
-                if len(a) == 4: extFaces.append(P.exteriorFaces(a))
-        except: pass
+        import Post as P
+        for a in array:
+            if len(a) == 4:
+                ext = P.exteriorFaces(a)
+                if C.getNCells(ext) > 0: extFaces.append(ext)
         return generator.closeBorders(array, extFaces, tol)
     else:
         return generator.closeBorders([array], [], tol)[0]
