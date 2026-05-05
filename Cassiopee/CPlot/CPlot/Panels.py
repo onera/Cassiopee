@@ -199,7 +199,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     textWidget.image_create(TK.INSERT, image=logoImg)
     textWidget.image = logoImg
 
-    myText = "\n\n Licensed under GPL3.\n\n"
+    myText = "\n\n Licensed under LGPL3.\n\n"
     textWidget.insert(TK.END, myText)
     authors = KCore.__allAuthors__
     authors = authors.split(',')

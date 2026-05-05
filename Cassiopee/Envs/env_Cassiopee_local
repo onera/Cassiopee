@@ -27,7 +27,7 @@ if [ -n "${ASAN_LIB}" ]; then
 fi
 
 if [ -n "${XMODIFIERS}" ]; then
-   env | grep XMODIFIERS | awk -F= '{printf "setenv %s %s\n", $1, $2}' >> /tmp/.vars.csh
+   env | grep XMODIFIERS | awk -F= '{printf "setenv %s %s=%s\n", $1, $2, $3}' >> /tmp/.vars.csh
 fi
 
 if [[ "$MAC" == juno* ]]; then

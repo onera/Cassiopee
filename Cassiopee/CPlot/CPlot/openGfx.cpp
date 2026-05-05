@@ -85,14 +85,14 @@ void Data::openGfx()
     screenWidth *= 0.5;
   if (_view.w == 0 || _view.h == 0)
   {
-    _view.w = MAX(screenWidth-350, screenWidth*0.5); // default gfx win size is set here
+    _view.w = MAX(screenWidth-385, screenWidth*0.5); // default gfx win size is set here
     _view.h = screenHeight-80;
   }
   
   /* Window */
   if (ptrState->offscreen >= 2) glutInitWindowSize(1, 1);
   else glutInitWindowSize(_view.w, _view.h);
-  glutInitWindowPosition(350, 0); // default gfx win position is set here
+  glutInitWindowPosition(355, 0); // default gfx win position is set here
   _winId = glutCreateWindow(ptrState->winTitle);
   if (ptrState->offscreen >= 2) glutHideWindow();
   init();

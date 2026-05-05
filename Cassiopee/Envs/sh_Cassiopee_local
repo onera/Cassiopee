@@ -251,6 +251,7 @@ elif [ "$MAC" = "visio" ]; then
     export OMP_NUM_THREADS=16
     export PYTHONEXE=python3
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
 
 elif [ "$MAC" = "visung_gcc" ]; then
@@ -267,6 +268,7 @@ elif [ "$MAC" = "visung_gcc" ]; then
     export OMP_NUM_THREADS=36
     export OMP_PLACES=cores
     export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
 
 elif [ "$MAC" = "visung" ]; then
@@ -283,6 +285,7 @@ elif [ "$MAC" = "visung" ]; then
     export OMP_PLACES=cores
     export PRODMODE=1
     export I_MPI_FABRICS=shm
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
 
 elif [ "$MAC" = "cobalt" ]; then
