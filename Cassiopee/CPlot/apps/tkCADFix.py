@@ -412,7 +412,7 @@ def checkWatertight(event=None):
         ext = P.exteriorFaces(f)
         ext = T.splitConnexity(ext)
         for i in ext:
-            isWatertight = False 
+            isWatertight = False
             CTK.add(CTK.t, gnob, -1, i)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
