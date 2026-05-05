@@ -148,6 +148,10 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     frontIP = computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
 
+    maxDistanceFrontIP = C.getMaxValue(frontIP, 'TurbulentDistance')
+    maxDistanceFrontIP = Cmpi.allreduce(maxDistanceFrontIP, op=Cmpi.MAX)
+    if Cmpi.master: print('WARNING=maxDistanceFrontIP=%g'%maxDistanceFrontIP, flush=True)
+        
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
     t = P.selectCells(t, "{cellN}==1.", strict=1)
     Internal._rmNodesFromName(t,"FlowSolution")
@@ -173,6 +177,12 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
 
+    ### for debugging - keep here for now
+    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=True)
+    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=False)
+    #Cmpi.barrier()
+    #Cmpi.abort()
+
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
     f_pytree = P.exteriorFaces(t)
     for elt_t in Internal.getNodesFromType(f_pytree, "Elements_t"):
@@ -180,6 +190,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             Internal._rmNode(f_pytree, elt_t)
     _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
+    Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
 
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
     if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
@@ -208,7 +219,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if VPM == False:
         Cmpi.trace(" Extracting front of the donor points [start]", master=True, cpu=False)
         if frontTypeDP == "1":
-            frontDP_gath = extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir=localDir)
+            frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=True)
         else:
             frontDP_gath = None
         del frontIP_gath
@@ -288,14 +299,123 @@ def computationDistancesNormals(t, tb, dim=3):
     if not OPT: t = C.center2Node(t, 'centers:TurbulentDistance')
     return t
 
-def extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir='./'):
-    if Cmpi.master:
-        C._deleteEmptyZones(frontIP_gath)
-        frontIP_gath = T.join(frontIP_gath)
-        frontIP_gath = C.convertArray2Tetra(frontIP_gath)
-        frontIP_gath = G.close(frontIP_gath)
-        frontIP_gath[0] = "frontIP_gath"
-        if dim == 3 and sym3D:
+def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
+    # A lot of redundancies with Generator/AMR.py - TODO: can some parts be generalized
+    import Geom.IBM as D_IBM
+    
+    distOffset = distIP + 7*minSnear # 5 (real) & 2 for security
+
+    # [Connector/AMR.py specific]
+    # Copy tb about the symmetry plane
+    tbSym = Internal.copyTree(tbLocal)
+    D_IBM._setSnear(tbSym, minSnear)
+    D_IBM._setDfar(tbSym, 10)
+    D_IBM._symmetrizePb(tbSym, 'Base', snear_sym=minSnear, dir_sym=dir_sym)
+    baseSYM = Internal.getNodesFromName1(tbSym, "SYM")
+    if baseSYM is not None: tbSym=Internal.rmNodesByNameAndType(tbSym, 'SYM', 'CGNSBase_t')
+
+    # [Connector/AMR.py specific]
+    # coarsening the tb offset - like in Generator/AMR.py
+    if dim == 3:
+        for nob in range(len(tbSym[2])):
+            if Internal.getType(tbSym[2][nob]) == 'CGNSBase_t':
+                z = Internal.getZones(tbSym[2][nob])
+                z = C.convertArray2Tetra(z)
+                z = T.join(z)
+                bbz = G.bbox(z)
+                # [TODO] this needs to be related to the hmin
+                # hausd is a length and must be adapted to the dimensions of each case
+                hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
+                hmax = hausd*1000
+                if Cmpi.master:
+                    print('Remeshing (tbSym) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
+                # exteriorFaces currently crashes if the surface is closed
+                try:
+                    fixedConstraints = P.exteriorFaces(z)
+                except:
+                    fixedConstraints = []
+                z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
+                tbSym[2][nob][2] = Internal.getZones(z)
+
+    # Background mesh for offset - only around orig. tb & not its symmetry one
+    BB = G.bbox(tbLocal)
+    ni = 150; nj = 150; nk = 150
+    XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
+
+    # CARTRX
+    delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
+    xmin_core = BB[0]-delta2
+    ymin_core = BB[1]-delta2
+    zmin_core = BB[2]-delta2
+    xmax_core = BB[3]+delta2
+    ymax_core = BB[4]+delta2
+    zmax_core = BB[5]+delta2
+
+    # [Connector/AMR.py specific]
+    xmin = BB[0]-2*delta2; ymin = BB[1]-2*delta2; zmin = BB[2]-2*delta2
+    xmax = BB[3]+2*delta2; ymax = BB[4]+2*delta2; zmax = BB[5]+2*delta2
+
+    ## Get factor of lengths - cartRX core is rectilinear [Connector/AMR.py specific]
+    lenX = xmax_core-xmin_core; lenY = ymax_core-ymin_core; lenZ = zmax_core-zmin_core   
+    minLen = min(lenX, lenY)
+    if dim == 3: minLen = min(minLen, lenZ)
+    factorX = int(lenX/minLen); factorY = int(lenY/minLen); factorZ = 1
+    if dim == 3: factorZ = int(lenZ/minLen)
+
+    if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
+    else: ni_core = 61; nj_core = 61; nk_core = 61
+    hi_core = (xmax_core-xmin_core)/(ni_core-1)
+    hj_core = (ymax_core-ymin_core)/(nj_core-1)
+    hk_core = (zmax_core-zmin_core)/(nk_core-1)
+    h_core = min(hi_core, hj_core)
+    if dim == 3: h_core = min(h_core, hk_core)
+    if dim == 2:
+        zmin = 0; zmax = 0
+        zmin_core = 0.; zmax_core = 0.
+        hk_core = 0.
+    h_core = min(h_core, 4.*minSnear)
+
+    # Do not extend the CartCore beyond the symmetry plane (symClose)
+    if dir_sym > 0:
+        if   dir_sym == 1: xmin_core += delta2
+        elif dir_sym == 2: ymin_core += delta2
+        elif dir_sym == 3: zmin_core += delta2
+    # smaller and finer Cartesian core, bigger geometric factor
+    XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
+    XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
+    b = G.cartRx3(XC0, XC1, (factorX*h_core, factorY* h_core, factorZ*h_core), XF0, XF1, (1.3, 1.3, 1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
+
+    t0 = time.perf_counter()
+    DTW._distance2Walls(b, tbSym, type='ortho', loc='nodes', signed=0)
+    tElapse = time.perf_counter()-t0
+    tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
+    if Cmpi.master: print("Generate offset frontDP: dist2wall: %.2fs"%tElapse, flush=True)
+
+    C._initVars(b,"cellN",1.)
+    # merging of symmetrical bodies in the original blanking bodies
+    # required for blankCells as a closed set of surfaces
+    bodies = [Internal.getZones(tbSym)]; nbodies = len(bodies)
+    BM = numpy.ones((1, nbodies), dtype=numpy.int32)
+    t = C.newPyTree(["BASE", Internal.getZones(b)])
+    X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
+    C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
+    iso = P.isoSurfMC(t, 'TurbulentDistance', distOffset)
+    iso = Cmpi.allgatherZones(iso)
+    iso = C.convertArray2Tetra(iso)
+    iso = T.join(iso)
+    return iso
+
+def extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP, localDir='./', isNewApproach=True):
+    if not isNewApproach:
+        ##Orig Approach - Based on Integration points front (frontIP_gath)
+        frontIP_gathSave = Internal.copyTree(frontIP_gath)
+        if Cmpi.master:
+            C._deleteEmptyZones(frontIP_gath)
+            frontIP_gath = T.join(frontIP_gath)
+            frontIP_gath = C.convertArray2Tetra(frontIP_gath)
+            frontIP_gath = G.close(frontIP_gath)
+            frontIP_gath[0] = "frontIP_gath"
+            #if dim == 3 and sym3D:
             print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
             # symmetry plane xz
             point = (0.0, 0.0, 0.0)
@@ -307,27 +427,75 @@ def extractFrontDP(t, frontIP_gath, dim, sym3D, check, localDir='./'):
             z_sym = Internal.getZones(z_sym)[0]
             frontIP_gath = T.join(frontIP_gath, z_sym)
             frontIP_gath = G.close(frontIP_gath)
+        else:
+            frontIP_gath = Internal.newZone(name="front", zsize=[[0,0]], ztype="Unstructured")
+            gc = Internal.newGridCoordinates(parent=frontIP_gath)
+            Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
+            Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
+            Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
+        frontIP_gath = Cmpi.bcastZone(frontIP_gath, root=0, coord=True)
+        frontIP_gath = C.newPyTree(["body", frontIP_gath])
+        C._initVars(t, 'cellNFront', 1.)
+        X_IBM._blankByIBCBodies(t, frontIP_gath, 'nodes', 3, cellNName="cellNFront")
+        del frontIP_gath
+        frontDP = P.frontFaces(t, 'cellNFront')
+        del t
     else:
-        frontIP_gath = Internal.newZone(name="front", zsize=[[0,0]], ztype="Unstructured")
-        gc = Internal.newGridCoordinates(parent=frontIP_gath)
-        Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
-        Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
-        Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
-    frontIP_gath = Cmpi.bcastZone(frontIP_gath, root=0, coord=True)
-    frontIP_gath = C.newPyTree(["body", frontIP_gath])
-    C._initVars(t, 'cellNFront', 1.)
-    X_IBM._blankByIBCBodies(t, frontIP_gath, 'nodes', 3, cellNName="cellNFront")
-    del frontIP_gath
-    frontDP = P.frontFaces(t, 'cellNFront')
-    del t
+        ## Proposed - based on tb (input geomtery) & dist2wall approach
+        # Get snear
+        G._getVolumeMap(t)
+        hminTmp = (C.getMinValue(t,"centers:vol"))**(1/dim)
+        
+        # Generate Offset - scaled tb
+        frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=2, minSnear=hminTmp, distIP=distIP)
+        Cmpi.convertPyTree2File(frontIP_gath, 'check_frontIP_gathScale.cgns')
+        
+        # blankcells - what is inside the offset
+        C._initVars(t, 'cellNTmp', 1.)
+        bodiesTmp = [Internal.getZones(frontIP_gathScale)]
+        nbodies = len(bodiesTmp)
+        nbases = len(Internal.getBases(t))
+        XRAYDIM1 = 2500
+        BM = numpy.ones((nbases,nbodies),dtype=Internal.E_NpyInt)
+        t = X.blankCells(t, bodiesTmp, BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1,
+                         dim=dim, cellNName='cellNTmp')
+        
+        # select cells - small region to do dist2wall
+        tTmp = P.selectCells(t, "{cellNTmp}<1", strict=0)
+        C._rmVars(t,['cellNTmp','vol'])
+        
+        # dist2wall on region of select cells
+        if len(Internal.getZones(tTmp))>0:
+            DTW._distance2Walls(tTmp, frontIP_gath, type='ortho', signed=0, dim=dim, loc='nodes')
+            # new cellNFront
+            C._initVars(tTmp, '{cellNFront}=({TurbulentDistance}>0.9*%g)'%hminTmp)
+            C.convertPyTree2File(tTmp, 'check_tTmp_final_proc%d.cgns'%Cmpi.rank)
+            del frontIP_gath
+            del t
+            frontDP = P.frontFaces(tTmp, 'cellNFront')
+            del frontIP_gathScale
+            del tTmp
+        else:
+            frontDP = Internal.newZone(name="front", zsize=[[0,0]], ztype="Unstructured")
+            gc = Internal.newGridCoordinates(parent=frontDP)
+            Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
+            Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
+            Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
+
+    ## Continue - same as orig.
+
     frontDP_gath = Cmpi.allgatherZones(frontDP)
     frontDP_gath = T.join(frontDP_gath)
     frontDP_gath = C.newPyTree(["frontDP", frontDP_gath])
 
     if Cmpi.master and check:
         print("Exporting front DP...", flush=True)
-        C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath.cgns")
-        C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath.plt")
+        if isNewApproach:
+            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath.cgns")
+            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath.plt")
+        else:
+            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gathOrig.cgns")
+            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gathOrig.plt")
 
     return frontDP_gath
 
