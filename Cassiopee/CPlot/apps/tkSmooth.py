@@ -72,7 +72,7 @@ def smooth():
     strength = strength[0]
 
     # Constraints
-    fixedConstraints = []; projConstraints = []
+    fixedConstraints = []; projConstraints = []; ext = []
 
     name = VARS[1].get()
     names = name.split(';')
@@ -111,9 +111,9 @@ def smooth():
 
     # Keep external faces
     if VARS[3].get() == 1 or pbDim == 3:
-        try: ext = P.exteriorFaces(A)
-        except: ext = []
-    if VARS[3].get() == 1 and ext != []: fixedConstraints.append(ext)
+        ext = P.exteriorFaces(A)
+        ext = T.splitConnexity(ext)
+    if VARS[3].get() == 1: fixedConstraints += ext
 
     # Keep sharp edges
     if VARS[5].get() == 1:

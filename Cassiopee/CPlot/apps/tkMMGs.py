@@ -8,6 +8,7 @@ import CPlot.Tk as CTK
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Post.PyTree as P
+import Transform.PyTree as T
 import CPlot.iconics as iconics
 
 # local widgets list
@@ -97,10 +98,9 @@ def remesh():
             nob = CTK.Nb[nz]+1
             noz = CTK.Nz[nz]
             z = CTK.t[2][nob][2][noz]
-            try:
-                ext = P.exteriorFaces(z)
-                fixedConstraints.append(ext)
-            except: pass
+            ext = P.exteriorFaces(z)
+            ext = T.splitConnexity(ext)
+            fixedConstraints += ext
 
     # Other given constraints
     name = VARS[4].get()

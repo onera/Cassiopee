@@ -365,11 +365,9 @@ def getFix(t):
     for z in zones:
         dim = Internal.getZoneDim(z)
         if dim[3] == 'TRI': zonesF.append(z)
-    try: ext = P.exteriorFaces(zonesF)
-    except: ext = []
-    if ext != []:
-        ext = T.splitManifold(ext)
-        #ext = T.splitSharpEdges(ext)
+    ext = P.exteriorFaces(zonesF)
+    ext = T.splitConnexity(ext)
+    if ext != []: ext = T.splitManifold(ext)
     return ext
 
 def displayFix(event=None):

@@ -161,10 +161,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                 if Cmpi.master:
                     print('Remeshing (tb) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
                 # exteriorFaces currently crashes if the surface is closed
-                try:
-                    fixedConstraints = P.exteriorFaces(z)
-                except:
-                    fixedConstraints = []
+                fixedConstraints = P.exteriorFaces(z)
+                fixedConstraints = T.splitConnexity(fixedConstraints)
                 z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                 tb[2][nob][2] = Internal.getZones(z)
 
@@ -185,10 +183,8 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
                     if Cmpi.master:
                         print('Remeshing aux. temp. (tbv2) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
                     # exteriorFaces currently crashes if the surface is closed
-                    try:
-                        fixedConstraints = P.exteriorFaces(z)
-                    except:
-                        fixedConstraints = []
+                    fixedConstraints = P.exteriorFaces(z)
+                    fixedConstraints = T.splitConnexity(fixedConstraints)
                     z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
                     tbv2[2][nob][2] = Internal.getZones(z)
 

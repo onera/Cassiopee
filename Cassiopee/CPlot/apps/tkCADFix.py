@@ -407,17 +407,13 @@ def checkWatertight(event=None):
 
     VARS[6].set('Components: %d'%(len(ef)))
 
-    isWatertight = False
-    #try:
     isWatertight = True
     for f in ef:
-        try:
-            ext = P.exteriorFaces(f)
-            ext = T.splitConnexity(ext)
-            for i in ext: CTK.add(CTK.t, gnob, -1, i)
-            if len(ext) != 0: isWatertight = False; break
-        except: isWatertight = True
-
+        ext = P.exteriorFaces(f)
+        ext = T.splitConnexity(ext)
+        for i in ext:
+            isWatertight = False
+            CTK.add(CTK.t, gnob, -1, i)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

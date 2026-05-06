@@ -680,7 +680,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
   E_Int* prev = new E_Int [nthreads];
   vector< vector<E_Int> > vectOfFaces(nthreads);
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
   E_Int ithread = __CURRENT_THREAD__;
   E_Int* indir = new E_Int [net];
@@ -688,7 +688,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
 
   E_Int ne = 0;
   // nbre d'elements exterieurs + indirection
-#pragma omp for
+  #pragma omp for
   for (E_Int e = 0; e < nelts; e++)
   {
     if (cEEN[e].size() != nvoisins)
@@ -760,7 +760,7 @@ short K_POST::exteriorFacesBasic3(FldArrayF& f, FldArrayI& cn,
       sizeL += vectOfFaces[ithread].size();
     }
   }
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
     E_Int  ithread = __CURRENT_THREAD__;
     E_Int ne = nes[ithread];
@@ -885,18 +885,30 @@ PyObject* K_POST::selectExteriorFacesNGon3D(char* varString, FldArrayF& f,
     
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
+  cFE.malloc(0);
+  // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
+  E_Bool center = false;
+  PyObject* tpl;
+
+  if (nptsExt == 0) // exterior face is empty -> early exit
+  {
+    tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, 0, 
+      "NGON", 0, 0,
+      ngonType, center, api
+    );
+    return tpl;
+  }
+
   if (boolIndir)
   {
     indir = K_NUMPY::buildNumpyArray(nfacesExt, 1, 1, 0);
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
-  cFE.malloc(0);
   
-  // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
-  E_Bool center = false;
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nfacesExt,
-                                       nedgesExt, "NGON", sizeFN2, sizeEF2,
-                                       ngonType, center, api);
+  tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nfacesExt,
+    nedgesExt, "NGON", sizeFN2, sizeEF2,
+    ngonType, center, api
+  );
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
   E_Int* ngon2 = cn2->getNGon();
@@ -1066,17 +1078,30 @@ PyObject* K_POST::selectExteriorFacesNGon2D(char* varString, FldArrayF& f,
 
   PyObject* indir = NULL;
   E_Int* indirp = NULL;
+  cFE.malloc(0);
+  // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
+  E_Bool center = false;
+  PyObject* tpl;
+
+  if (nptsExt == 0) // exterior face is empty -> early exit
+  {
+    tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, 0, 
+      "NGON", 0, 0,
+      ngonType, center, api
+    );
+    return tpl;
+  }
+
   if (boolIndir)
   {
     indir = K_NUMPY::buildNumpyArray(nedgesExt, 1, 1, 0);
     indirp = K_NUMPY::getNumpyPtrI(indir);
   }
-  cFE.malloc(0);
-  // Calcul des nouvelles connectivites Elmt/Faces et Face/Noeuds
-  E_Bool center = false;
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nedgesExt,
-                                       nptsExt, "NGON", sizeFN2, sizeEF2,
-                                       ngonType, center, api);
+
+  tpl = K_ARRAY::buildArray3(nfld, varString, nptsExt, nedgesExt,
+    nptsExt, "NGON", sizeFN2, sizeEF2,
+    ngonType, center, api
+  );
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
   E_Int* ngon2 = cn2->getNGon();
@@ -1389,11 +1414,11 @@ short K_POST::exteriorFacesBasic2(E_Int nfaces, E_Int nvertex,
   E_Float* interfacez = interfaceCenters.begin(3);
   E_Float fvertex = 1./nvertex;
 
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
   {
     E_Float xm, ym, zm;
     E_Int ind, ff;
-#pragma omp for
+    #pragma omp for
     for (E_Int et = 0; et < ne; et++)
     {
       for (E_Int j = 0; j < nfaces; j++)
@@ -1769,7 +1794,9 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
     }
   }
 
-  if (ntotUniqueFaces == 0)  // can only happen for a closed 1D contour
+  PyObject* tpl;
+
+  if (ntotUniqueFaces == 0)  // can happen for closed 1D/2D contours
   {
 		// Free memory
 	  for (E_Int i = 0; i < nthreads; i++)
@@ -1782,7 +1809,9 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
 	
 	  delete [] eltType2;
 	  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-		return NULL;
+    
+    tpl = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api); // returns empty array
+    return tpl;
   }
 
   if (boolIndir)
@@ -1792,8 +1821,9 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
   }
 
   // Build new connectivity (containing a max. 2 BE conns)
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
-                                       nfpc2, eltType2, false, api);
+  tpl = K_ARRAY::buildArray3(nfld, varString, npts2,
+    nfpc2, eltType2, false, api
+  );
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
   std::vector<FldArrayI*> cms2(nc2);

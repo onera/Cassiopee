@@ -218,26 +218,17 @@ def exteriorFaces():
     p = Internal.getNodesFromName1(CTK.t, 'CONTOURS')
     gnob = C.getNobOfBase(p[0], CTK.t)
 
-    fail = False; errors = []
     for nz in nzs:
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
-        try:
-            ext = P.exteriorFaces(CTK.t[2][nob][2][noz])
-            ext = T.splitConnexity(ext)
-            for i in ext: CTK.add(CTK.t, gnob, -1, i)
-        except TypeError as e: # type d'element non reconnu
-            fail = True; errors += [0,str(e)]
-        except ValueError: # empty set
-            pass
+        ext = P.exteriorFaces(CTK.t[2][nob][2][noz])
+        ext = T.splitConnexity(ext)
+        for i in ext: CTK.add(CTK.t, gnob, -1, i)
     #C._fillMissingVariables(CTK.t)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
-    if not fail: CTK.TXT.insert('START', 'Exterior faces done.\n')
-    else:
-        Panels.displayErrors(errors, header='Error: exteriorFaces')
-        CTK.TXT.insert('START', 'Exterior faces fails for at least one zone.\n')
-        CTK.TXT.insert('START', 'Warning: ', 'Warning')
+    if ext != []: CTK.TXT.insert('START', 'Exterior faces extracted.\n')
+    else: CTK.TXT.insert('START', 'External faces set is empty.\n')
     CPlot.render()
 
 #=========================================================================
