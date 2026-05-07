@@ -1574,7 +1574,7 @@ def getComponents(t):
 
 # tell if component (as obtained by getComponent) is watertight
 def isWatertight(component, leaks=[]):
-    """Tell of componenent is watertight."""
+    """Tell if componenent is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T
     ext = P.exteriorFaces(component)

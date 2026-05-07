@@ -412,11 +412,11 @@ void Data::keyboard(unsigned char key, E_Int x, E_Int y)
   }
 
   // Image dump
-  case 'y':
-  {
-    exportFile();
-    break;
-  }
+  //case 'y':
+  //{
+  //  exportFile();
+  //  break;
+  //}
 
   // Change render appearance
   case 'c':

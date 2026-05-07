@@ -5403,10 +5403,9 @@ def _reorderSubzoneNGON__(z, a, PL, T):
     # produit scalaire
     prod = Vector.dot(nF, Vector.sub(CE, CF))
     if prod < 0:
-        print("Normal vers l'exterieur du domaine, reordered")
+        #print("Normal vers l'exterieur du domaine, reordered")
         T._reorder(z, (-1,))
-    else:
-        print("Normal vers l'interieur du domaine")
+    #else: print("Normal vers l'interieur du domaine")
     return None
 
 #==============================================================================
@@ -5521,7 +5520,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                         res.append(("VertexList", vPL))
                         return None
                     zp = T.subzone(z, faceList2, type='faces')
-                    #if reorder: _reorderSubzoneNGON__(zp, z, faceList2, T)
+                    if reorder: _reorderSubzoneNGON__(zp, z, faceList2, T)
                 else:
                     connects = Internal.getNodesFromType1(z, "Elements_t")
                     if len(connects) > 1 and ztype != 'NGON':  # ME
@@ -5551,14 +5550,14 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                             array = getFields('GridCoordinates', z, api=3)[0]
                             fPL = faceList.reshape(1, faceList.size, order='F')
                             fPL = numpy.sort(fPL)
-                            print(fPL)
+                            #print(fPL)
                             vPL = converter.adaptBCFacePL2VertexPL(array, fPL)
-                            print(vPL)
+                            #print(vPL)
                             res.append(("VertexList", vPL))
                             return None
                         zp = T.subzone(z, faceList, type='faces')
-                        #if reorder:
-                        #    if ztype == 'NGON':  _reorderSubzoneNGON__(zp, z, faceList, T)
+                        if reorder:
+                            if ztype == 'NGON':  _reorderSubzoneNGON__(zp, z, faceList, T)
 
             elif val == 'Vertex': # vertex indices
                 pointList = r[1]
