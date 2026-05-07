@@ -26,13 +26,13 @@ def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
 def createExtension__(tbIn):
     ## Function objection: add a small extension to the previously marked symmetry/boundary planes. │
     ## Note: it is not an extrusion for simulation purposes. It is a very limited extension for offset generation purposes.
-    ##    │││                    │││         
-    ##    │││───────┐         ┌──│││───────┐             
-    ##    │││ GEOM  │    -->  │  │││ GEOM  │          
-    ##    │││───────┘         └──│││───────┘            
+    ##    │││                    │││
+    ##    │││───────┐         ┌──│││───────┐
+    ##    │││ GEOM  │    -->  │  │││ GEOM  │
+    ##    │││───────┘         └──│││───────┘
     ##    │││                    │││
     ##     ↑                      ↑
-    ## Domain boundary        Domain boundary 
+    ## Domain boundary        Domain boundary
 
     tb = Internal.copyTree(tbIn)
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
@@ -52,7 +52,7 @@ def createExtension__(tbIn):
                 tolLocalPlane = 100*__TOL__
                 tolLocal = Internal.getNodeFromName(z, 'tolerancePlane')
                 if tolLocal: tolLocalPlane = Internal.getValue(tolLocal)
-                
+
                 zoneNameRmv.append(z[0])
                 directionNormal = Internal.getValue(n) # normal points in the - or + direction
                 G._getNormalMap(z)
@@ -74,20 +74,20 @@ def createExtension__(tbIn):
                 # reorder if : normals point + but extrudes in -1 or vice versa
                 if minval>0.0 and directionNormal == -1 : T._reorder(z, (-1,))
                 if minval<0.0 and directionNormal == 1: T._reorder(z, (-1,))
-                
+
                 # extrusion
                 d = G.cart((0,0,0), (0.05,1,1),(4,1,1))
                 b = G.addNormalLayers(z, d)
-                
+
                 # only keep the exterior faces & turn into BE
                 b = P.exteriorFaces(b)
                 b = T.splitSharpEdges(b, 45.)
                 b = T.breakElements(b)
-                
+
                 saveZones  = []  # keep the new planar face & extrusion - not the orignal planar face
                 minvalOrig = C.getMinValue(z, '%s'%varName2)
                 maxvalOrig = C.getMaxValue(z, '%s'%varName2)
-                
+
                 zonesb = Internal.getZones(b)
                 for zb in zonesb:
                     minval = C.getMinValue(zb, '%s'%varName2)
@@ -105,14 +105,14 @@ def createExtension__(tbIn):
 
         # add new zones - planar & extrusions
         for zb in saveZones2: Internal.addChild(bTmp, zb, pos=-1)
-        
+
         # remove old zones - planar zones only
         for zoneNameTmp in zoneNameRmv:
             node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
             Internal._rmNode(tb, node)
     Internal._rmNodesFromType(tb, "FlowSolution_t")
     Internal._rmNodesFromType(tb, "UserDefinedData_t")
-        
+
     return tb
 
 def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=0, functionName='Tagging'):
