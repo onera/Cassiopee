@@ -291,7 +291,7 @@ class Entity:
 
         # hook on cad
         self.hook = None
-        
+
         # register
         DRIVER.registerEdge(self)
 
@@ -499,7 +499,7 @@ class Sketch():
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
         """Write CAD to file."""
-        if self.hook is None: 
+        if self.hook is None:
             raise ValueError("writeCAD: hook is not instantiated yet.")
         OCC.writeCAD(self.hook, fileName, format)
 
@@ -747,7 +747,7 @@ class Surface():
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
         """Export to CAD file."""
-        if self.hook is None: 
+        if self.hook is None:
             raise ValueError("writeCAD: hook is not instantiated yet.")
         OCC.writeCAD(self.hook, fileName, format)
 
