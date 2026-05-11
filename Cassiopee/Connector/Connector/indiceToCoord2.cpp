@@ -58,7 +58,7 @@ PyObject* K_CONNECTOR::indiceToCoord2(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOOO_ OO_ IIII_ I_,
 		     &indiceslist, &rangedonor,&transfo, &profondeur, &dirD, &typ, &dir, &nb_ind, &ni, &nj, &nk))
   {
-      return NULL;
+    return NULL;
   }
 
   //cout <<"ni= "<< ni <<" "<<"nj= "<<nj<<" "<<"nk= " << nk << endl;

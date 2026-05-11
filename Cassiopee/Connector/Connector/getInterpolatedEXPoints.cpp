@@ -31,7 +31,7 @@ PyObject* K_CONNECTOR::getEXPoints(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_,
                       &coordArray, &cellNArray))
   {
-      return NULL;
+    return NULL;
   }
   
   /*--------------------------------------------------*/

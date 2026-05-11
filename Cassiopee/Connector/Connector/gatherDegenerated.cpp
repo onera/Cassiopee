@@ -35,7 +35,7 @@ PyObject* K_CONNECTOR::gatherDegenerated(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOOO_ OO_ I_,
                     &listOfAllTags, &listOfWinTypes, &listOfBlks, &listOfNI, &listOfNJ, &listOfNK, &dimPb))
   {
-      return NULL;
+    return NULL;
   }
   if (PyList_Check(listOfAllTags) == 0)
   {

@@ -93,14 +93,14 @@ namespace K_CONNECTOR
 #endif
        
     private:
-      ACoord_t   _coordT4;
+      ACoord_t _coordT4;
       AConnec_t* _connT4;
       E_Float _tolerance;
       Vector_t<K_SEARCH::BBox3D*> _boxes;
       K_SEARCH::BbTree3D         *_tree;
       bool _reoriented;
       eType _ELType;
-      //Tri specific
+      // Tri specific
       K_SEARCH::KdTree<K_FLD::FldArrayF>* _kdtree;
       Vector_t<E_Int> _ancestors;
       K_FLD::FloatArray _isoG, _normals;
@@ -131,8 +131,7 @@ namespace K_CONNECTOR
     }
     
     size_t s = elts_to_reorient.size();
-    if (s == 0)
-      return false;
+    if (s == 0) return false;
     
     //need to create a copy of the input connectivity
     typedef AConnec_t::array_type acon_t;
@@ -223,7 +222,7 @@ if (dbg_switch && sz)
     if (d2 < tol2)
       return true; //lying on the mask
     
-    E_Float* A=_isoG.col(_ancestors[N]);
+    E_Float* A = _isoG.col(_ancestors[N]);
              
     candidates.clear();
     _tree->getIntersectingBoxes(pt, A, candidates, E_EPSILON, true);//segment intersection

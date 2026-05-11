@@ -66,7 +66,7 @@ def exportEdges(edges):
 
 #============================================================
 class Scalar( sympy.core.symbol.Symbol ):
-    """Define a parametric scalar"""
+    """Define a parametric scalar."""
     def __new__(cls, name=None, value=0., **assumptions):
         if name is None: name = getName("scalar")
         obj = sympy.core.symbol.Symbol.__new__(cls, name, **assumptions)
@@ -75,9 +75,7 @@ class Scalar( sympy.core.symbol.Symbol ):
     def __init__(self, name=None, value=0.):
         # scalar name is symbol name
         self.name = super().name
-
         # symbol sympy: self by derivation
-
         # instantiated value
         self.v = value
         # range
@@ -85,12 +83,18 @@ class Scalar( sympy.core.symbol.Symbol ):
         # register
         DRIVER.registerScalar(self)
 
-    # return value
+    # return instantiated value
     def v(self):
+        """Get values."""
         return self.v
+
+    def setv(self, value):
+        """Set values."""
+        self.x.v = value
 
     # print content
     def print(self, shift=0):
+        """Display informations."""
         #print(" "*shift, "name", self.name)
         print(" "*shift, "value", self.v)
         if self.range is not None:
@@ -98,6 +102,7 @@ class Scalar( sympy.core.symbol.Symbol ):
 
     # check if instantiated value are in range, return 1 if ok, 0 else
     def check(self):
+        """Check that values are in range."""
         # check if value is in range
         if self.range is not None:
             if self.v < self.range[0]: return 0
@@ -106,6 +111,7 @@ class Scalar( sympy.core.symbol.Symbol ):
 
     # is parameter free?
     def isFree(self):
+        """Return true if parameter is free."""
         if self.range is not None: return True
         else: return False
 
@@ -113,7 +119,7 @@ Vec1 = Scalar # alias
 
 #============================================================
 class Vec2:
-    """Define a parametric vector of two components"""
+    """Define a parametric vector of two components."""
     def __init__(self, name=None, value=(0.0,0.0)):
         # name
         if name is not None: self.name = name
@@ -124,10 +130,21 @@ class Vec2:
 
     # return value
     def v(self):
+        """Get values."""
         return (self.x.v, self.y.v)
+
+    def setv(self, valuex, valuey=None):
+        """Set values."""
+        if valuey is None:
+            self.x.v = valuex[0]
+            self.y.v = valuey[1]
+        else:
+            self.x.v = valuex
+            self.y.v = valuey
 
     # print content
     def print(self, shift=0):
+        """Display informations."""
         print(" "*shift, "x")
         self.x.print(shift+4)
         print(" "*shift, "y")
@@ -135,6 +152,7 @@ class Vec2:
 
     # check instantiated values
     def check(self):
+        """Check that values are in range."""
         ret = self.x.check()
         if ret == 0: return 0
         ret = self.y.check()
@@ -143,7 +161,7 @@ class Vec2:
 
 #============================================================
 class Point:
-    """Define a parametric point"""
+    """Define a parametric point."""
     def __init__(self, name=None, value=(0.0,0.0,0.0)):
         # name
         if name is not None: self.name = name
@@ -157,9 +175,22 @@ class Point:
 
     # return value
     def v(self):
+        """Get values."""
         return (self.x.v, self.y.v, self.z.v)
 
+    def setv(self, valuex, valuey=None, valuez=None):
+        """Set values."""
+        if valuey is None or valuez is None:
+            self.x.v = valuex[0]
+            self.y.v = valuex[1]
+            self.z.v = valuex[2]
+        else:
+            self.x.v = valuex
+            self.y.v = valuey
+            self.z.v = valuez
+
     def print(self, shift=0):
+        """Display informations."""
         print(" "*shift, self.x.name)
         self.x.print(shift+4)
         print(" "*shift, self.y.name)
@@ -168,6 +199,7 @@ class Point:
         self.z.print(shift+4)
 
     def check(self):
+        """Check that values are in range."""
         ret = self.x.check()
         if ret == 0: return 0
         ret = self.y.check()
@@ -180,7 +212,7 @@ Vec3 = Point # alias
 
 #============================================================
 class Grid:
-    """Define a parametric grid (cartesian)"""
+    """Define a parametric grid (cartesian)."""
     def __init__(self, name=None, Xo=(0.0,0.0,0.0), Xf=(0.0,0.0,0.0), N=(2,2,2)):
         # name
         if name is not None: self.name = name
@@ -223,7 +255,7 @@ class Grid:
 # Entities
 #============================================================
 class Entity:
-    """Define a parametric entity"""
+    """Define a parametric entity."""
     def __init__(self, name=None, listP=[], type=None, mesh=None):
         # name
         if name is not None: self.name = name
@@ -258,8 +290,8 @@ class Entity:
             c += 1
 
         # hook on cad
-        self.update()
-
+        self.hook = None
+        
         # register
         DRIVER.registerEdge(self)
 
@@ -267,6 +299,8 @@ class Entity:
         OCC.occ.freeHook(self.hook)
 
     def update(self):
+        """Update CAD hook for entity."""
+        if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.createEmptyCAD()
         if self.type == "line":
             OCC._addLine(self.hook, self.P[0].v(), self.P[1].v())
@@ -326,12 +360,16 @@ class Entity:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
     def print(self, shift=0):
+        """Display informations."""
         for c, P in enumerate(self.P):
             print(" "*shift, P.name)
             P.print(shift+4)
 
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
+        """Write CAD to file."""
+        if self.hook is None:
+            raise ValueError("writeCAD: hook is not instantiated yet.")
         OCC.writeCAD(self.hook, fileName, format)
 
     # check parameters validity
@@ -344,38 +382,47 @@ class Entity:
 #============================================================
 # line from two parametric points
 def Line(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.)):
+    """Define a parametric line."""
     return Entity(name, [P1, P2], type="line")
 
 # polyline from list of parametric points
 def Polyline(name=None, Points=[]):
+    """Define a parametric polyline."""
     return Entity(name, Points, type="polyline")
 
 # spline from parametric control points
 def Spline1(name=None, CPs=[]):
+    """Define a parametric spline from control points."""
     return Entity(name, CPs, type="spline1")
 
 # spline from parametric approximated points
 def Spline2(name=None, Ps=[]):
+    """Define parametric spline from approcmiated points."""
     return Entity(name, Ps, type="spline2")
 
 # spline from parametric grid
 def Spline3(name=None, PGrid=None, mesh=None):
+    """Define parametric spline from grid."""
     return Entity(name, [PGrid], mesh=mesh, type="spline3")
 
 # circle from parametric center and radius
 def Circle(name=None, C=(0.,0.,0.), R=1.):
+    """Define parametric circle."""
     return Entity(name, [C, R], type="circle")
 
 # superellipse from parametric center and R1, R2
 def SuperEllipse(name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36):
+    """Define parametric super ellipse."""
     return Entity(name, [C, R1, R2, N, samples], type="superellipse")
 
 # arc from 3 parametric points
 def Arc(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), P3=(0.,0.,0.)):
+    """"Define parametric arc."""
     return Entity(name, [P1, P2, P3], type="arc")
 
 # naca from parametric 4 digits
 def Naca(name=None, M=0., P=0., e=12.):
+    """Define parametric NACA profile."""
     return Entity(name, [M, P, e], type="naca4")
 
 #============================================================
@@ -405,8 +452,6 @@ class Sketch():
         P = Scalar('%s.rotAngle'%self.name, 0.)
         self.P.append(P)
         self.rotAngle = P
-        # update hook
-        self.update()
         # register
         DRIVER.registerSketch(self)
         # meshing: (hmin,hmax,hausd)
@@ -420,7 +465,6 @@ class Sketch():
     def add(self, entity):
         """Add an entity to sketch"""
         self.entities.append(entity)
-        self.update()
 
     # update the CAD hook from parameters
     def update(self):
@@ -455,6 +499,8 @@ class Sketch():
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
         """Write CAD to file."""
+        if self.hook is None: 
+            raise ValueError("writeCAD: hook is not instantiated yet.")
         OCC.writeCAD(self.hook, fileName, format)
 
     # mesh sketch, return arrays
@@ -567,8 +613,6 @@ class Surface():
         P = Scalar('%s.rotAngle'%self.name, 0.)
         self.P.append(P)
         self.rotAngle = P
-        # update hook
-        self.update()
         # register
         DRIVER.registerSurface(self)
         # meshing: (hmin,hmax,hausd). supersedes sketch settings.
@@ -703,6 +747,8 @@ class Surface():
     # export CAD to file
     def writeCAD(self, fileName, format="fmt_step"):
         """Export to CAD file."""
+        if self.hook is None: 
+            raise ValueError("writeCAD: hook is not instantiated yet.")
         OCC.writeCAD(self.hook, fileName, format)
 
     # mesh surface, return arrays
@@ -1016,6 +1062,7 @@ class Volume2D():
         return m
 
     def Mesh(self):
+        """Mesh suface."""
         m = self.mesh()
         z = Internal.createZoneNode(self.name, m, [],
                                     Internal.__GridCoordinates__,
@@ -1153,10 +1200,12 @@ class Volume3D():
             if c < len(self.orders) and self.orders[c] == -1: m = Transform.reorder(m, (-1,))
             borders += m
         borders = Transform.join(borders)
+        # call volume mesher
         m = Generator.TetraMesher(borders)
         return m
 
     def Mesh(self):
+        """Call the volume mesher."""
         m = self.mesh()
         z = Internal.createZoneNode(self.name, m, [],
                                     Internal.__GridCoordinates__,
@@ -1166,7 +1215,7 @@ class Volume3D():
 
 #============================================================
 class Eq:
-    """Equation"""
+    """Define an equation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'equation sympy
         self.s = sympy.Eq(expr1, expr2)
@@ -1190,7 +1239,7 @@ class Eq:
 
 #============================================================
 class Lt:
-    """Constraint inequation"""
+    """Define constraint inequation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'inequation sympy
         self.s = sympy.Lt(expr1, expr2)
@@ -1198,7 +1247,7 @@ class Lt:
 
 #============================================================
 class Le:
-    """Constraint inequation"""
+    """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'inequation sympy
         self.s = sympy.Le(expr1, expr2)
@@ -1206,7 +1255,7 @@ class Le:
 
 #============================================================
 class Gt:
-    """Constraint inequation"""
+    """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'inequation sympy
         self.s = sympy.Gt(expr1, expr2)
@@ -1214,7 +1263,7 @@ class Gt:
 
 #============================================================
 class Ge:
-    """Constraint inequation"""
+    """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'inequation sympy
         self.s = sympy.Ge(expr1, expr2)
@@ -1222,7 +1271,7 @@ class Ge:
 
 #============================================================
 class Ne:
-    """Constraint inequation"""
+    """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
         # references sur l'inequation sympy
         self.s = sympy.Ne(expr1, expr2)
@@ -1230,7 +1279,7 @@ class Ne:
 
 #============================================================
 class Driver:
-    """Driver is Model"""
+    """Driver is parametric model."""
     def __init__(self):
         # all parameters
         self.scalars = {} # id -> scalar

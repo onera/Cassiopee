@@ -17,7 +17,6 @@ c1 = D.Lt(b, c)
 c2 = D.Ne(a, 0.)
 
 D.DRIVER.solve()
-
 D.DRIVER.instantiate({'a':1., 'c':1.})
 
 # replace here by walkDOE1 or walkDOE2 for parallel

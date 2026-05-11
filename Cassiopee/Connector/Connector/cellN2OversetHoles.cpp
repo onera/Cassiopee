@@ -31,7 +31,7 @@ PyObject* K_CONNECTOR::cellN2OversetHolesStruct(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ IIII_,
                     &PointList, &CellN, &Im, &Jm, &CellDim, &SizeCellN))
   {
-      return NULL;
+    return NULL;
   }
   // Get E_Int values
   E_Int im            = Im;

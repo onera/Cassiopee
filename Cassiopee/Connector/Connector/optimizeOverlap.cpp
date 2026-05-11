@@ -37,7 +37,7 @@ PyObject* K_CONNECTOR::optimizeOverlap(PyObject* self, PyObject* args)
                     &coordArray1, &centerArray1, &coordArray2, &centerArray2,
                     &priorite1, &priorite2, &isDWO, &hook1, &hook2))
   {
-      return NULL;
+    return NULL;
   }
   E_Int prio1 = 0; E_Int prio2 = 0;
   if (priorite1 < 0)

@@ -28,8 +28,7 @@
 PyObject* K_CONNECTOR::_modCellN1(PyObject* self, PyObject* args)
 {
   PyObject* array; char* cellNName;
-  if (!PYPARSETUPLE_(args, O_ S_, &array, &cellNName))
-      return NULL;
+  if (!PYPARSETUPLE_(args, O_ S_, &array, &cellNName)) return NULL;
   
   // Check array
   E_Int ni, nj, nk;

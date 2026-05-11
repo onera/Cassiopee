@@ -25,7 +25,6 @@ sketch1 = D.Sketch('sketch1', [spline1])
 # Create sketch 2
 sketch2 = D.Sketch('sketch2', [spline1])
 sketch2.position.z.v = 1.
-sketch2.update()
 
 # surface
 surface1 = D.Loft('surface1', [sketch1, sketch2], h=[0.01,0.01,0.01])

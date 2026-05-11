@@ -40,7 +40,7 @@ PyObject* K_CONNECTOR::identifyMatchingP(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ R_,
                     &listOfAllWins, &listOfAllWinsP, &tolmatch))
   {
-      return NULL;
+    return NULL;
   }
 
   if (PyList_Check(listOfAllWins) == 0 )

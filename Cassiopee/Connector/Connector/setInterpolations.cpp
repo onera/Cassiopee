@@ -48,7 +48,7 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, II_ OOO_ II_ R_,
                      &Nir, &Njr, &coordArrays, &interpArrays, &interpCellN, &isEX, &Zid, &cfMax))
   {
-      return NULL;
+    return NULL;
   }
   // numero Id de la zone (commence a zero)
   E_Int zid = Zid;
@@ -174,7 +174,7 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
     structF, unstrF, nit, njt, nkt, cnt, eltTypet, objst, objut, 
     skipDiffVars, skipNoCoord, skipStructured, skipUnstructured, true);
   E_Int structFsize = structF.size();
-  if ( isOk == -1 )
+  if (isOk == -1)
   {
     for (E_Int is = 0; is < structFsize; is++)
       RELEASESHAREDS(objst[is], structF[is]);
@@ -226,7 +226,7 @@ PyObject* K_CONNECTOR::setInterpolations(PyObject* self, PyObject* args)
     structFc, unstrFc, nitc, njtc, nktc, cntc, eltTypec, objsc, objuc, 
     skipDiffVarsc, skipNoCoordc, skipStructuredc, skipUnstructuredc, true);
   E_Int nsc = structFc.size();
-  if ( isOk == -1 )
+  if (isOk == -1)
   {
     for (E_Int is = 0; is < structFsize; is++)
       RELEASESHAREDS(objst[is], structF[is]);

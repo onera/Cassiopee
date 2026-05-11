@@ -33,7 +33,7 @@ PyObject* K_CONNECTOR::changeWall(PyObject* self, PyObject* args)
   E_Float planarTol; // tolerance de shift double wall dans les cas planaires
   if (!PYPARSETUPLE_(args, OOO_ R_, 
                      &arrayCenters, &firstWallCenters, &projectSurfArrays, &planarTol))
-     return NULL;
+    return NULL;
 
   if (PyList_Check(firstWallCenters) == 0)
   {

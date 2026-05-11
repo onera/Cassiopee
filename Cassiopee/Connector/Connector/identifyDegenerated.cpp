@@ -34,7 +34,7 @@ PyObject* K_CONNECTOR::identifyDegenerated(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ R_,
                     &listOfAllWins, &tol))
   {
-      return NULL;
+    return NULL;
   }
 
   if (PyList_Check(listOfAllWins) == 0)

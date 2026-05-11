@@ -32,7 +32,7 @@ PyObject* K_CONNECTOR::maximizeBlankedCells(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ II_ S_,
                     &array, &depth, &dir, &varCellN))
   {
-      return NULL;
+    return NULL;
   }
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;

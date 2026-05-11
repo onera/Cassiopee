@@ -31,7 +31,7 @@ PyObject* K_CONNECTOR::setDoublyDefinedBC(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OOOO_ O_ I_,
                     &a1, &celln1, &arrays, &cellns, &range1, &depth))
   {
-      return NULL;
+    return NULL;
   }
   
   if (PyList_Check(arrays) == 0)

@@ -38,9 +38,7 @@ namespace K_CONNECTOR
   ///
   maskGen::~maskGen()
   {
-    //std::cout << "clearing the tree" << std::endl;
-    for (size_t i = 0; i < _boxes.size(); ++i)
-      delete _boxes[i];
+    for (size_t i = 0; i < _boxes.size(); ++i) delete _boxes[i];
     delete _tree;
     if (_reoriented)
     {
@@ -79,8 +77,7 @@ namespace K_CONNECTOR
       isBlanked.resize(1, b.size(), VISIBLE);
   
     for (size_t i = 0; i < bsz; ++i)
-      if (b[i] == MASKED) 
-        isBlanked[i]=cellnval;
+      if (b[i] == MASKED) isBlanked[i]=cellnval;
     
 #ifdef DEBUG_MASK
     E_Int count_blk(0);
@@ -117,21 +114,8 @@ namespace K_CONNECTOR
     for (size_t i = 0; i < sz; ++i)
     {
       coord.getEntry(i, P);
-      
-#ifdef DEBUG_MASK
-  //if (i == 10+(99*11)+(99*99*12))
-    if (i == 101111)
-    {
-      maskGen::dbg_switch=true;
-      //bool b = is_inside<T>(P, caught_boxes);
-      //maskGen::dbg_switch=false;
-      //std::cout << "is [" << P[0] << "," << P[1] << "," << P[2] << "] in ?? : " << b << std::endl;
-    }
-#endif
-      
-      //if (i == 111011)
-        if (is_inside<T>(P, caught_boxes))
-          isBlanked[i] = MASKED;
+            
+      if (is_inside<T>(P, caught_boxes)) isBlanked[i] = MASKED;
       
 #ifdef DEBUG_MASK
       nb_box_av += caught_boxes.size();
@@ -153,7 +137,7 @@ namespace K_CONNECTOR
   void maskGen::__init()
   {
     //std::cout << "init : box creation" << std::endl;
-     // compute T4 boxes
+    // compute T4 boxes
     __create_boxes(_boxes);
     //std::cout << "init : tree creation" << std::endl;
     // build the tree.
@@ -177,7 +161,7 @@ namespace K_CONNECTOR
     
     if (_ELType == TRI)
     {
-      _kdtree= new K_SEARCH::KdTree<K_FLD::FldArrayF>(_coordT4, _tolerance);
+      _kdtree = new K_SEARCH::KdTree<K_FLD::FldArrayF>(_coordT4, _tolerance);
       
       _ancestors.resize(_coordT4.size(), E_IDX_NONE);
       for (E_Int i=0; i < _connT4->size(); ++i)
@@ -198,7 +182,7 @@ namespace K_CONNECTOR
         K_MESH::Triangle::isoG(_coordT4, T3, _isoG.col(_ancestors[i]));
       }
       
-      // Pre-compue normals
+      // Pre-compute normals
       _normals.resize(3, sz);
       E_Float Q0[3], Q1[3], Q2[3];
       E_Int Ti[3];
@@ -298,7 +282,7 @@ namespace K_CONNECTOR
     E_Float* xminp = bbox.begin(1); E_Float* xmaxp = bbox.begin(4);
     E_Float* yminp = bbox.begin(2); E_Float* ymaxp = bbox.begin(5);
     E_Float* zminp = bbox.begin(3); E_Float* zmaxp = bbox.begin(6);
-    E_Float minB[3];  E_Float maxB[3];
+    E_Float minB[3]; E_Float maxB[3];
     for (size_t et = 0; et < nb_elts; et++)
     {
       minB[0] = xminp[et]; minB[1] = yminp[et]; minB[2] = zminp[et];

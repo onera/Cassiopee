@@ -54,7 +54,7 @@ PyObject* K_CONNECTOR::setInterpDataLS(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, OO_ III_ O_ I_,
                     &receiverArray, &donorArrays, &Order, &Nature, &PenalizeBorders, &hook, &Dim))
   {
-      return NULL;
+    return NULL;
   }
   E_Int order = E_Int(Order);  //Ordre de la formule = ordre maximal dans la base de polynome-1
   if (order < 1 || order > 4)

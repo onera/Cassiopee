@@ -46,7 +46,7 @@ PyObject* K_CONNECTOR::gatherMatchingNM(PyObject* self, PyObject* args)
                     &listOfAllWins, &listOfAllTags, &listOfWinTypes, &listOfBlks, 
                     &listOfNI, &listOfNJ, &listOfNK, &dimPb, &tol))
   {
-      return NULL;
+    return NULL;
   }
 
   if (PyList_Check(listOfAllWins) == 0)

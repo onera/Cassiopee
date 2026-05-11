@@ -25,7 +25,6 @@
 using namespace std;
 using namespace K_FLD;
                                  
-
 #define RELEASEDATA                                                     \
   RELEASESHAREDB(resr, receiverArray, fr, cnr);                         \
   RELEASESHAREDN(numpyIndicesR, IndicesR);                              \

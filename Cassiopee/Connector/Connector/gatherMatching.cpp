@@ -48,7 +48,7 @@ PyObject* K_CONNECTOR::gatherMatching(PyObject* self, PyObject* args)
                     &listOfWinTypes, &listOfBlks, &listOfNI, &listOfNJ, 
                     &listOfNK, &dimPb, &tol))
   {
-      return NULL;
+    return NULL;
   }
 
   if (PyList_Check(listOfAllWins) == 0)

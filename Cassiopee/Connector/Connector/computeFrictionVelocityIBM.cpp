@@ -29,7 +29,7 @@ PyObject* K_CONNECTOR::_computeFrictionVelocityIBM(PyObject* self, PyObject* arg
     char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
     if (!PYPARSETUPLE_(args, O_ SSS_,
                        &zone, &GridCoordinates, &FlowSolutionNodes, &FlowSolutionCenters))
-        return NULL;
+      return NULL;
 
     vector<PyArrayObject*> hook;
     E_Int im, jm, km, cnSize, cnNfld;
