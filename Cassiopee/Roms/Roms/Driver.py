@@ -752,22 +752,25 @@ class Surface():
         OCC.writeCAD(self.hook, fileName, format)
 
     # mesh surface, return arrays
-    def mesh(self, close=True):
+    def mesh(self, close=True, method=1):
         """Mesh surface."""
         if self.h is None: raise ValueError("mesh: h settings are undefined.")
         (hmin,hmax,hausd) = self.h
-        edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
-        nbFaces = OCC.getNbFaces(self.hook)
-        faceList = range(1, nbFaces+1)
-        if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
-        else: hList = [(hmin,hmax,hausd)]*len(faceList)
-        faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList, close)
+        if method == 1: # isotropic hmin,hmax,hausd
+            edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
+            nbFaces = OCC.getNbFaces(self.hook)
+            faceList = range(1, nbFaces+1)
+            if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+            else: hList = [(hmin,hmax,hausd)]*len(faceList)
+            faces = OCC.meshAllFacesTri(self.hook, edges, True, faceList, hList, close)
+        else: # anisotropic only hausd
+            edges, faces = OCC.meshAllOCC(self.hook, hausd, 5.)
         return faces
 
     # mesh surface, return zones
-    def Mesh(self, close=True):
+    def Mesh(self, close=True, method=1):
         """Mesh surface."""
-        faces = self.mesh(close)
+        faces = self.mesh(close, method)
         out = []
         for c, e in enumerate(faces):
             z = Internal.createZoneNode('%s%03d'%(self.name, c+1), e, [],
@@ -790,7 +793,7 @@ class Surface():
         self.refEdges = dedges
 
         # build refMesh in x,y (not closed)
-        self.RefMesh = self.Mesh(close=False)
+        self.RefMesh = self.Mesh(close=False, method=1)
 
         # save refMesh in UV
         self.RefMeshUV = Internal.copyRef(self.RefMesh)
@@ -1027,6 +1030,20 @@ def Inter(name="inter", listSurfaces1=[], listSurfaces2=[], h=None):
                    listSurfaces2=listSurfaces2,
                    type="inter", h=h)
 
+def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None):
+    """Fill a surface by lines between points."""
+    lines = []
+    ls = len(listPoints)
+    for c in range(ls):
+        if c < ls-1:
+            l = Line(None, listPoints[c], listPoints[c+1])
+        else:
+            l = Line(None, listPoints[ls-1], listPoints[0])
+        lines.append(l)
+    sketch1 = Sketch(None, lines)
+    surface1 = Fill(name, sketch1, continuity, h)
+    return surface1
+ 
 #============================================================
 class Volume2D():
     """Define a parametric 2D volume."""

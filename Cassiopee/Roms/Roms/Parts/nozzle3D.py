@@ -1,4 +1,4 @@
-# parametric 2D nozzle
+# parametric 3D nozzle
 import Roms.Driver as D
 
 #==============
@@ -42,35 +42,36 @@ P2 = D.Point('P2')
 D.Eq(P2.x, -Lc)
 D.Eq(P2.y, Hi)
 
+P2a = D.Point('P2a')
+D.Eq(P2a.x, -0.1*Lc)
+D.Eq(P2a.y, Ht)
+
+P2b = D.Point('P2b')
+D.Eq(P2b.x, -0.5*Lc)
+D.Eq(P2b.y, Ht+0.5*(Ht+Hi))
+
 # Create points P3 (exit)
 P3 = D.Point('P3')
 D.Eq(P3.x, Ld)
 D.Eq(P3.y, He)
 
+P3a = D.Point('P3a')
+D.Eq(P3a.x, 0.1*Ld)
+D.Eq(P3a.y, Ht)
+
+P3b = D.Point('P3b')
+D.Eq(P3b.x, 0.5*Ld)
+D.Eq(P3b.y, Ht+0.5*(Ht+He))
+
 #=================
 # create entities
 #=================
 # basic with lines
-line1 = D.Line('line1', P2, P1)
-line2 = D.Line('line2', P1, P3)
+spline1 = D.Spline1('spline1', [P2, P2b, P2a, P1])
+spline2 = D.Spline1('spline2', [P1, P3a, P3b, P3])
 
-# create symmetric part
-P1S = D.Point('P1S')
-D.Eq(P1S.x, P1.x)
-D.Eq(P1S.y, -P1.y)
-P2S = D.Point('P2S')
-D.Eq(P2S.x, P2.x)
-D.Eq(P2S.y, -P2.y)
-P3S = D.Point('P3S')
-D.Eq(P3S.x, P3.x)
-D.Eq(P3S.y, -P3.y)
-line3 = D.Line('line3', P2S, P1S)
-line4 = D.Line('line4', P1S, P3S)
-
-line5 = D.Line('line5', P2, P2S)
-line6 = D.Line('line6', P3, P3S)
-
-sketch1 = D.Sketch('sketch1', [line1,line2,line5,line4,line3,line6])
+sketch1 = D.Sketch('sketch1', [spline1,spline2])
+surface1 = D.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360.)
 
 #=======================
 # solve and instantiate
@@ -83,4 +84,5 @@ D.DRIVER.instantiate({'P1.x':0.,
                       'He': 1.,
                       'Lc': 2.,
                       'Ld': 2.})
-sketch1.writeCAD('out.step')
+surface1.writeCAD('out.step')
+

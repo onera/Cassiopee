@@ -5179,7 +5179,7 @@ def getFaceCenter__(a, face0):
     NGON = Internal.getNGonNode(a)
     NFACE = Internal.getNFaceNode(a)
     con1 = Internal.getNodeFromName1(NGON, 'ElementConnectivity')[1]
-    con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
+    #con2 = Internal.getNodeFromName1(NFACE, 'ElementConnectivity')[1]
     xp = Internal.getNodeFromName2(a, 'CoordinateX')[1]
     yp = Internal.getNodeFromName2(a, 'CoordinateY')[1]
     zp = Internal.getNodeFromName2(a, 'CoordinateZ')[1]
@@ -5520,7 +5520,7 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                         res.append(("VertexList", vPL))
                         return None
                     zp = T.subzone(z, faceList2, type='faces')
-                    if reorder: _reorderSubzoneNGON__(zp, z, faceList2, T)
+                    #if reorder: _reorderSubzoneNGON__(zp, z, faceList2, T)
                 else:
                     connects = Internal.getNodesFromType1(z, "Elements_t")
                     if len(connects) > 1 and ztype != 'NGON':  # ME
@@ -5556,8 +5556,8 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                             res.append(("VertexList", vPL))
                             return None
                         zp = T.subzone(z, faceList, type='faces')
-                        if reorder:
-                            if ztype == 'NGON':  _reorderSubzoneNGON__(zp, z, faceList, T)
+                        #if reorder:
+                        #    if ztype == 'NGON':  _reorderSubzoneNGON__(zp, z, faceList, T)
 
             elif val == 'Vertex': # vertex indices
                 pointList = r[1]
