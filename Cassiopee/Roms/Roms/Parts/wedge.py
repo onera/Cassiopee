@@ -65,9 +65,9 @@ surface = D.Merge('surface', [surface1,surface2,surface3,surface4,surface5,surfa
 solution, freevars = D.DRIVER.solve()
 
 D.DRIVER.instantiate({'Lf': 2,
-                       'Lb': 0.1,
-                       'Ht': 0.1,
-                       'Hb': 0.1,
-                       'Ls': 1.})
+                      'Lb': 0.1,
+                      'Ht': 0.1,
+                      'Hb': 0.1,
+                      'Ls': 1.})
 
 surface.writeCAD('out.step')

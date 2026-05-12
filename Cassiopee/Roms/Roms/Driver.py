@@ -1043,7 +1043,7 @@ def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None):
     sketch1 = Sketch(None, lines)
     surface1 = Fill(name, sketch1, continuity, h)
     return surface1
- 
+
 #============================================================
 class Volume2D():
     """Define a parametric 2D volume."""

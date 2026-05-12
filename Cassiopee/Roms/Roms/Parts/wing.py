@@ -58,4 +58,3 @@ surface1.writeCAD('out.step')
 
 m = surface1.mesh(method=0)
 Converter.convertArrays2File(m, 'out.plt')
-
