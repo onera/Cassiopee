@@ -291,6 +291,18 @@ def getTangent(t):
     C._TZGC1(tp, 'nodes', True, Geom.getTangent)
     return tp
 
+def getArea(a):
+    """Get area of surface a."""
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    area = Geom.getArea(a)
+    return area
+
+def getVolume(a):
+    """Get volume of closed surface a."""
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    vol = Geom.getVolume(a)
+    return vol
+
 def addSeparationLine(t, line0):
     """Add a separation line defined in line0 to a mesh defined in t.
     Usage: addSeparationLine(t, line0)"""

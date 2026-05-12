@@ -145,7 +145,7 @@ PyObject* K_OCC::occmesh(PyObject* self, PyObject* args)
     if (!poly3d.IsNull())
     {
       const TColgp_Array1OfPnt& nodes = poly3d->Nodes();
-      std::cout << "Edge discretized points (3D):\n";
+      //std::cout << "Edge discretized points (3D):\n";
       E_Int nbNodes = nodes.Upper()-nodes.Lower()+1;
       o = K_ARRAY::buildArray3(3, "x,y,z", nbNodes, 1, 1, 1);
       K_ARRAY::getFromArray3(o, f);

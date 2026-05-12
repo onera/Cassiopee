@@ -26,13 +26,13 @@ Ls = D.Scalar('Ls', 1.)
 
 # forward point
 P0 = D.Point('P0')
-D.Eq(P0.y, Lf)
+D.Eq(P0.x, -Lf)
 
 P1 = D.Point('P1')
-D.Eq(P1.x, -Ls)
+D.Eq(P1.y, -Ls)
 
 P2 = D.Point('P2')
-D.Eq(P2.x, +Ls)
+D.Eq(P2.y, +Ls)
 
 P3 = D.Point('P3')
 D.Eq(P3.z, Ht)
@@ -41,7 +41,7 @@ P4 = D.Point('P4')
 D.Eq(P4.z, -Hb)
 
 P5 = D.Point('P5')
-D.Eq(P5.y, -Lb)
+D.Eq(P5.x, +Lb)
 
 #=================
 # create entities

@@ -401,8 +401,7 @@ def surface__(f, N, isVectorized=False):
 
 # - informations -
 def getLength(a):
-    """Return the length of 1D-mesh.
-    Usage: l = getLength(a)"""
+    """Return the length of 1D-mesh."""
     if isinstance(a[0], list):
         l = 0.
         for i in a: l += geom.getLength(i)
@@ -539,6 +538,39 @@ def getTangent(a):
         b.append(t)
     if len(b)==1: return b[0]
     else: return b
+
+def getArea(a):
+    """Get area of surface a."""
+    import Post, Converter
+    b = Converter.initVars(a, 'F=1.')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): area = Post.integ(a, b, [])
+    else: area = Post.integ([a], [b], [])
+    return area[0]
+
+def getVolume(a):
+    """Get volume of a closed surface a."""
+    import Post, Converter, KCore
+    if Converter.isNamePresent(a, 'x') >= 0: b = Converter.initVars(a, 'F={x}')
+    else: b = Converter.initVars(a, 'F={CoordinateX}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): volx = Post.integNorm(a, b, [])
+    else: volx = Post.integNorm([a], [b], [])
+    volx = volx[0]
+    if Converter.isNamePresent(a, 'y') >= 0: b = Converter.initVars(a, 'F={y}')
+    else: b = Converter.initVars(a, 'F={CoordinateY}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): voly = Post.integNorm(a, b, [])
+    else: voly = Post.integNorm([a], [b], [])
+    voly = voly[0]
+    if Converter.isNamePresent(a, 'z') >= 0: b = Converter.initVars(a, 'F={z}')
+    else: b = Converter.initVars(a, 'F={CoordinateZ}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): volz = Post.integNorm(a, b, [])
+    else: volz = Post.integNorm([a], [b], [])
+    volz = volz[0]
+    vol = volx[0]+voly[1]+volz[2]
+    return vol/3.
 
 # Obsolete (use lineDrive)
 def lineGenerate(a, d):

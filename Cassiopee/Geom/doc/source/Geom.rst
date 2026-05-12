@@ -108,6 +108,8 @@ List of functions
    Geom.getTangent
    Geom.getUV
    Geom.getUVFromIJ
+   Geom.getArea
+   Geom.getVolume
 
 Contents
 ########
@@ -1407,6 +1409,44 @@ all the points of the geometry.
     .. literalinclude:: ../build/Examples/Geom/getUVFromIJPT.py
 
 ---------------------------------------
+
+.. py:function:: Geom.getArea(a)
+  
+    Return area of surface a.
+
+    :param a: input surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get area of surface (array) <Examples/Geom/getArea.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getArea.py
+
+    * `Get are of surface (pyTree) <Examples/Geom/getAreaPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getAreaPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.getVolume(a)
+  
+    Return volume of closed surface.
+
+    :param a: input closed surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Get volume of surface (array) <Examples/Geom/getVolume.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getVolume.py
+
+    * `Get volume of surface (pyTree) <Examples/Geom/getVolumePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getVolumePT.py
 
 .. toctree::
    :maxdepth: 2   

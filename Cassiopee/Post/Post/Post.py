@@ -329,17 +329,17 @@ def exteriorEltsStructured(array, depth=1):
     else:
         return post.exteriorEltsStructured(array, depth)
 
-def integ(coordArrays, FArrays, ratioArrays):
+def integ(coordArrays, FArrays, ratioArrays=[]):
     """Integral of fields.
     Usage: integ(coordArrays, FArrays, ratioArrays)"""
     return post.integ(coordArrays, FArrays, ratioArrays)
 
-def integNorm(coordArrays, FArrays, ratioArrays):
+def integNorm(coordArrays, FArrays, ratioArrays=[]):
     """Integral of fields times normal.
     Usage: integNorm(coordArrays, FArrays, ratioArrays)"""
     return post.integNorm(coordArrays, FArrays, ratioArrays)
 
-def integNormProduct(coordArrays, FArrays, ratioArrays):
+def integNormProduct(coordArrays, FArrays, ratioArrays=[]):
     """Integral of scalar product fields times normal.
     Usage: integNormProduct( coordArrays, FArrays, ratioArrays )"""
     return post.integNormProduct(coordArrays, FArrays, ratioArrays)

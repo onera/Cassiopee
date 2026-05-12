@@ -30,18 +30,18 @@ D.Eq(P1.y, radius1)
 
 P2 = D.Point('P2')
 D.Eq(P2.y, radius1)
-D.Eq(P2.x, length1)
+D.Eq(P2.x, -length1)
 
 P3 = D.Point('P3')
 D.Eq(P3.y, radius2)
-D.Eq(P3.x, length1+length2)
+D.Eq(P3.x, -length1-length2)
 
 P4 = D.Point('P4')
-D.Eq(P4.x, length1+length2+length3)
+D.Eq(P4.x, -length1-length2-length3)
 D.Eq(P4.y, P3.y/20.)
 
 P5 = D.Point('P5')
-D.Eq(P5.x, length1+length2+length3)
+D.Eq(P5.x, -length1-length2-length3)
 
 line1 = D.Line('line1', P1, P2)
 line2 = D.Line('line2', P2, P3)

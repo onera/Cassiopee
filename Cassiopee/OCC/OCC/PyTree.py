@@ -1094,6 +1094,7 @@ def _meshDeviation2(hook, t, loc="nodes"):
 
 # set color red to lonelyEdges
 def _setLonelyEdgesColor(t):
+    """Set color red to lonely edges."""
     import CPlot.PyTree as CPlot
     import Geom.PyTree as D
     b = Internal.getNodeFromName1(t, 'EDGES')
@@ -1116,6 +1117,7 @@ def _setLonelyEdgesColor(t):
 
 # Return the number of lonely edges in t
 def getNbLonelyEdges(t):
+    """Return the number of lonely edges."""
     import Geom.PyTree as D
     b = Internal.getNodeFromName1(t, 'EDGES')
     if b is None: return 0
@@ -1195,6 +1197,7 @@ def _setInterpData(t, tc):
 
 # Retourne l'edge a partir de edgeNo (numero global CAD)
 def getEdge(t, pos, edgeNo):
+    """Return edge from no."""
     be = Internal.getNodeFromName1(t, 'EDGES')
     ze = be[2][pos[0][edgeNo]]
     return ze
@@ -1208,6 +1211,7 @@ def getEdges(t, pos, edgeNos):
 
 # Retourne la face de faceNo (numero global CAD)
 def getFace(t, pos, faceNo):
+    """Return face from no."""
     bf = Internal.getNodeFromName1(t, 'FACES')
     zf = bf[2][pos[1][faceNo]]
     return zf
