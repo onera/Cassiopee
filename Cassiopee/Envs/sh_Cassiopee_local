@@ -452,8 +452,8 @@ elif [ "$MAC" = "juno_coda" ]; then
     #module load coda/2025.11.0-gnu12.1.1 fszoltanintegration/2025.11.0-gnu12.1.1 fsoversetblanking/2025.11.0-gnu12.1.1 fsui-coda/2025.11.0-gnu12.1.1 fsui-coda-plugin-coda-coupling/2025.11.0-gnu12.1.1 fsgridvelocity/2025.08.0-gnu12.1.1
 
     module use /stck/rhea/juno_coda_v2026_02/modules/linux-rocky8-x86_64_v3
-    module load coda/2026.02.0-gnu12.1.0 fszoltanintegration/2026.02.0-gnu12.1.0 fsoversetblanking/2026.02.0-gnu12.1.0 fsgridvelocity/2026.02.0-gnu12.1.0
-    
+    module load coda/2026.02.0-gnu12.1.0 fszoltanintegration/2026.02.0-gnu12.1.0 fsoversetblanking/2026.02.0-gnu12.1.0  fsui-coda/2026.02.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2026.02.1-gnu12.1.0 fsgridvelocity/2026.02.0-gnu12.1.0
+
     export PYTHONEXE=python3
     export PRODMODE=1
     export PIP_DISABLE_PIP_VERSION_CHECK=1
