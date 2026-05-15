@@ -9,10 +9,10 @@ if (-e $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local) then
 else
    bash $CASSIOPEE/Dist/env_Cassiopee_local
 endif
-chmod +x /tmp/.vars.csh
-source /tmp/.vars.csh
-rm -f /tmp/.vars.csh
+chmod +x $HOME/.vars.csh
+source $HOME/.vars.csh
+rm -f $HOME/.vars.csh
 if ("$PYTHONEXE" == "python3") then
    alias python python3
 endif
-#cat .vars.csh
+#cat $HOME/.vars.csh
