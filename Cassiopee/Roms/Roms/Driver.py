@@ -207,7 +207,7 @@ class Point:
         ret = self.z.check()
         if ret == 0: return 0
         return 1
-    
+
     def ShiftPoint(self, name=None, vector=(0.,0.,0.)):
         """Create new point shifted from self of a given vector."""
         P = Point(name)
@@ -215,7 +215,7 @@ class Point:
         Eq(P.y, self.y + vector[1])
         Eq(P.z, self.z + vector[2])
         return P
-    
+
     def SymPoint(self, name=None, plane='xz'):
         """Create new point that is the symetric of self."""
         P = Point(name)
@@ -227,7 +227,7 @@ class Point:
             Eq(P.x, +self.x)
             Eq(P.y, -self.y)
             Eq(P.z, +self.z)
-        
+
         return P
 
 Vec3 = Point # alias

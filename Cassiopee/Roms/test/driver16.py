@@ -19,4 +19,3 @@ D.DRIVER.instantiate({'P0.x': -1.,
                       'P0.z': 0.})
 
 sketch1.writeCAD('out.step')
-
