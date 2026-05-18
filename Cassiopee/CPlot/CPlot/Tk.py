@@ -1338,6 +1338,7 @@ def stt__(s, mode=0):
 # type=0 -> string; type=1 -> float; type=2 -> int; type=3 -> indices
 #==============================================================================
 def varsFromWidget(varString, type=0):
+    """Return a value from a string widget."""
     if type == 0: # string
         return stt__(varString)
     elif type == 1: # float

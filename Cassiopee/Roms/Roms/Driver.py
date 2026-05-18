@@ -1523,6 +1523,20 @@ class Driver:
         # return True if valid in range and inequation constraints
         return valid
 
+    # Display an interactive GUI for given entity
+    def plot(self, entity):
+        """Trigger the GUI enabling interactive manipulation and visualization."""
+        import CPlot.Tk as CTK
+        (win, menu, file, tools) = CTK.minimal("Driver", mode=1)
+        module = __import__("tkDriver")
+        CTK.TKMODULES["tkDriver"] = module
+        tools.add_command(label="tkDriver", command=module.showApp)
+        module.setDriver(self, entity)
+        module.createApp(win)
+        module.showApp()
+        win.deiconify(); win.focus_set()
+        win.mainloop()
+
     # FD of free parameters on discrete mesh
     # if freevars is None, derivate for all free parameters else derivate for given parameters
     def _dXdmu(self, entity, mesh, freeParams=None, deps=1.e-10):

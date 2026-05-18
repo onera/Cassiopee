@@ -198,7 +198,7 @@ class Probe:
             #print('Warning: probe not found on block %s.'%blockName)
 
         if isinstance(ind, tuple):
-            b = Internal.getNodeFromName(t, blockName)
+            b = Internal.getNodeFromName2(t, blockName)
             if b is not None and Cmpi.rank == proc:
                 loc = self.getFieldLoc(self._fields)
                 dim = Internal.getZoneDim(b)
@@ -213,7 +213,7 @@ class Probe:
                 else: ind = ind[0]
             else: ind = -1
 
-        b = Internal.getNodeFromName(t, blockName)
+        b = Internal.getNodeFromName2(t, blockName)
         if b is not None and Cmpi.rank == proc:
             px = Internal.getNodeFromName2(b, 'CoordinateX')[1]
             px = px.ravel('k')

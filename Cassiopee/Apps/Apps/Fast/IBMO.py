@@ -83,9 +83,9 @@ def buildAllBodies__(t_case, distrib, motion=False):
                 baseov = Internal.newCGNSBase(b[0], parent=tbov)
                 zones = Internal.getZones(b)
                 for z in zones:
-                    TM = Internal.getNodeFromName(z,'TimeMotion')
-                    SD = Internal.getNodeFromName(z,'.Solver#define')
-                    SP = Internal.getNodeFromName(z,'.Solver#Param')
+                    TM = Internal.getNodeFromName(z, 'TimeMotion')
+                    SD = Internal.getNodeFromName(z, '.Solver#define')
+                    SP = Internal.getNodeFromName(z, '.Solver#Param')
 
                     zwalls = C.extractBCOfType(z, 'BCWall')
                     now = 1
@@ -110,14 +110,14 @@ def buildAllBodies__(t_case, distrib, motion=False):
         else:
             zoneIBMNames = []
             for z in Internal.getZones(b):
-                proc = Internal.getNodeFromName2(z,'proc')
+                proc = Internal.getNodeFromName2(z, 'proc')
                 proc = Internal.getValue(proc)
                 if proc == rank:
                     zoneIBMNames.append(z[0])
                 else:
-                    Internal._rmNodesFromName1(b,z[0])
+                    Internal._rmNodesFromName1(b, z[0])
 
-            if zoneIBMNames!=[]:
+            if zoneIBMNames != []:
                 Cmpi._readZones(tb, t_case, rank=rank, zoneNames=zoneIBMNames)
                 tbibm[2].append(b)
 
