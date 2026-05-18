@@ -9,7 +9,7 @@ import Converter.PyTree as C
 # local widgets list
 WIDGETS = {}; VARS = []
 
-# DRIVER 
+# DRIVER
 DRIVER = None
 ENTITY = None
 
@@ -27,7 +27,7 @@ def getParamFromDriver():
     params = {}
     for f in DRIVER.freeParams:
         params[f.name] = DRIVER.scalars[f.name].v
-    return params 
+    return params
 
 #==============================================================================
 def setParameterName(event=None):
