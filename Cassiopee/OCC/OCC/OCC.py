@@ -21,9 +21,9 @@ __all__ = ['convertCAD2Arrays',
            'readCAD', 'writeCAD', 'createEmptyCAD', 'freeHook',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat',
            'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF',
-           'getFaceNos', 'getEdgeNos', 'getFaceArea', 'getBoundingBox',
+           'getFaceNos', 'getEdgeNos', 
+           'getFaceArea', 'getFaceVolume', 'getBoundingBox',
            '_translate', '_rotate', '_scale', '_sewing', '_reverse',
-
            '_splitFaces', '_mergeFaces', '_trimFaces', '_removeFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
            '_splitEdge',
@@ -870,6 +870,11 @@ def getFaceArea(hook, faceList=None):
     """Return the area of given faces."""
     faceList = getFaceList__(hook, faceList)
     return occ.getFaceArea(hook, faceList)
+
+def getFaceVolume(hook, faceList=None):
+    """Return the volume of given closed faces."""
+    faceList = getFaceList__(hook, faceList)
+    return occ.getFaceVolume(hook, faceList)
 
 # Return the bounding box of specified faces
 def getBoundingBox(hook, faceList=None):

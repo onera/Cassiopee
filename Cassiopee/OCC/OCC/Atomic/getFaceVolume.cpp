@@ -19,7 +19,6 @@
 
 #include "occ.h"
 
-#include "TColStd_HSequenceOfTransient.hxx"
 #include "TopoDS.hxx"
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "TopExp.hxx"
@@ -27,43 +26,48 @@
 #include "ShapeAnalysis.hxx"
 #include "GProp_GProps.hxx"
 #include "BRepGProp.hxx"
+#include "BRep_Builder.hxx"
 
 // ============================================================================
-/* Return the face area of given face */
+/* Return the face volume of given face */
 // ============================================================================
-PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
+PyObject* K_OCC::getFaceVolume(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* listFaces;
   if (!PYPARSETUPLE_(args, O_ O_, &hook, &listFaces)) return NULL;
 
   GETPACKET;
-  
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  TopExp_Explorer expl;
+  GETSHAPE;
+  GETMAPSURFACES;
 
-  E_Float area = 0.;
+  // Build compound of faces
+  BRep_Builder builder;
+  TopoDS_Compound shc;
+  builder.MakeCompound(shc); 
   if (listFaces == Py_None) // all faces of topshape
   {
     for (E_Int i=1; i <= surfaces.Extent(); i++)
     {
-      GProp_GProps props;
-      BRepGProp::SurfaceProperties(surfaces(i), props);
-      area += props.Mass();
+      const TopoDS_Face& F = TopoDS::Face(surfaces(i));
+      builder.Add(shc, F);
     }
   }
-  else
+  else // list of faces
   {
     E_Int nfaces = PyList_Size(listFaces);
     for (E_Int no = 0; no < nfaces; no++)
     {
       PyObject* noFaceO = PyList_GetItem(listFaces, no);
       E_Int noFace = PyInt_AsLong(noFaceO);
-
-      GProp_GProps props;
-      BRepGProp::SurfaceProperties(surfaces(noFace), props);
-      area += props.Mass();
+      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+      builder.Add(shc, F);
     }
   }
-  return Py_BuildValue("d", area);
+
+  GProp_GProps volumeProps;
+  BRepGProp::VolumeProperties(shc, volumeProps);
+  E_Float volume = volumeProps.Mass();  // Mass = volume when density = 1
+  gp_Pnt center = volumeProps.CentreOfMass();
+
+  return Py_BuildValue("d", volume);
 } 
