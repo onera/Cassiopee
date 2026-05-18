@@ -594,7 +594,7 @@ def getMassCenter(a):
     if isinstance(a[0], list): zc = Post.integNorm(a, b, [])
     else: zc = Post.integNorm([a], [b], [])
     zc = zc[0][2]*0.5/vol
-    
+
     return (xc,yc,zc)
 
 # Obsolete (use lineDrive)
