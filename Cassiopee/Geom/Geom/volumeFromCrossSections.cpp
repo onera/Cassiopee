@@ -53,7 +53,7 @@ PyObject* K_GEOM::volumeFromCrossSections(PyObject* self, PyObject* args)
 
   if (resc1 == 2 && resc2 == 2)
   {
-    if ( strcmp(eltTypec1, "BAR") != 0 || strcmp(eltTypec2, "BAR") != 0)
+    if (strcmp(eltTypec1, "BAR") != 0 || strcmp(eltTypec2, "BAR") != 0)
     {
       RELEASESHAREDU(contour1, fc1, cnpoly1);
       RELEASESHAREDU(contour2, fc2, cnpoly2);
@@ -469,7 +469,7 @@ void K_GEOM::compTetraType1(E_Int type0,
 void K_GEOM::compVoronoiEdges(E_Int nvertex, FldArrayI& cn, FldArrayI& vedges)
 {
   char* eltType = new char[10];
-  strcpy(eltType,"TRI");
+  strcpy(eltType, "TRI");
   E_Int nelts = cn.getSize();
   vedges.malloc(3*nelts,2); // allocation max
   vector< vector<E_Int> > cEEN(nelts);

@@ -110,6 +110,7 @@ List of functions
    Geom.getUVFromIJ
    Geom.getArea
    Geom.getVolume
+   Geom.getMassCenter
 
 Contents
 ########
@@ -1447,6 +1448,27 @@ all the points of the geometry.
     * `Get volume of surface (pyTree) <Examples/Geom/getVolumePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/getVolumePT.py
+
+---------------------------------------
+
+.. py:function:: Geom.getMassCenter(a)
+  
+    Return center of mass of closed surface.
+
+    :param a: input closed surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Get center of mass of surface (array) <Examples/Geom/getMassCenter.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getMassCenter.py
+
+    * `Get center of mass of surface (pyTree) <Examples/Geom/getMassCenterPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getMassCenterPT.py
+
 
 .. toctree::
    :maxdepth: 2   

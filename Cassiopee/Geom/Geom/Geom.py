@@ -550,27 +550,52 @@ def getArea(a):
 
 def getVolume(a):
     """Get volume of a closed surface a."""
-    import Post, Converter, KCore
+    import Post, Converter
     if Converter.isNamePresent(a, 'x') >= 0: b = Converter.initVars(a, 'F={x}')
     else: b = Converter.initVars(a, 'F={CoordinateX}')
     b = Converter.extractVars(b, 'F')
     if isinstance(a[0], list): volx = Post.integNorm(a, b, [])
     else: volx = Post.integNorm([a], [b], [])
-    volx = volx[0]
+    volx = volx[0][0]
     if Converter.isNamePresent(a, 'y') >= 0: b = Converter.initVars(a, 'F={y}')
     else: b = Converter.initVars(a, 'F={CoordinateY}')
     b = Converter.extractVars(b, 'F')
     if isinstance(a[0], list): voly = Post.integNorm(a, b, [])
     else: voly = Post.integNorm([a], [b], [])
-    voly = voly[0]
+    voly = voly[0][1]
     if Converter.isNamePresent(a, 'z') >= 0: b = Converter.initVars(a, 'F={z}')
     else: b = Converter.initVars(a, 'F={CoordinateZ}')
     b = Converter.extractVars(b, 'F')
     if isinstance(a[0], list): volz = Post.integNorm(a, b, [])
     else: volz = Post.integNorm([a], [b], [])
-    volz = volz[0]
-    vol = volx[0]+voly[1]+volz[2]
+    volz = volz[0][2]
+    vol = volx+voly+volz
     return vol/3.
+
+def getMassCenter(a):
+    """Get center of mass of a closed surface a."""
+    import Post, Converter
+    vol = getVolume(a)
+    if Converter.isNamePresent(a, 'x') >= 0: b = Converter.initVars(a, 'F={x}*{x}')
+    else: b = Converter.initVars(a, 'F={CoordinateX}*{CoordinateX}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): xc = Post.integNorm(a, b, [])
+    else: xc = Post.integNorm([a], [b], [])
+    xc = xc[0][0]*0.5/vol
+    if Converter.isNamePresent(a, 'y') >= 0: b = Converter.initVars(a, 'F={y}*{y}')
+    else: b = Converter.initVars(a, 'F={CoordinateY}*{CoordinateY}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): yc = Post.integNorm(a, b, [])
+    else: yc = Post.integNorm([a], [b], [])
+    yc = yc[0][1]*0.5/vol
+    if Converter.isNamePresent(a, 'z') >= 0: b = Converter.initVars(a, 'F={z}*{z}')
+    else: b = Converter.initVars(a, 'F={CoordinateZ}*{CoordinateZ}')
+    b = Converter.extractVars(b, 'F')
+    if isinstance(a[0], list): zc = Post.integNorm(a, b, [])
+    else: zc = Post.integNorm([a], [b], [])
+    zc = zc[0][2]*0.5/vol
+    
+    return (xc,yc,zc)
 
 # Obsolete (use lineDrive)
 def lineGenerate(a, d):

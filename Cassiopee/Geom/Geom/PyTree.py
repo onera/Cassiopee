@@ -303,6 +303,12 @@ def getVolume(a):
     vol = Geom.getVolume(a)
     return vol
 
+def getMassCenter(a):
+    """Get center of mass of closed surface a."""
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    Xc = Geom.getMassCenter(a)
+    return Xc
+
 def addSeparationLine(t, line0):
     """Add a separation line defined in line0 to a mesh defined in t.
     Usage: addSeparationLine(t, line0)"""

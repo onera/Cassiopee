@@ -295,6 +295,24 @@ CAD manipulation
 
 ------------------------------------------
 
+.. py:function:: OCC.getFaceMassCenter(hook, faceList=[])
+
+    Return the center of mass of given closed faces.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param faceList: list of faces number to calculate the center of mass
+    :type faceList: list of face index (starts 1)
+    :rtype: 3 floats
+
+    *Example of use:*
+
+    * `Get face center of mass <Examples/OCC/getFaceMassCenterPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/getFaceMassCenterPT.py
+
+------------------------------------------
+
 .. py:function:: OCC._translate(hook, vector, faceList=None)
 
     Translate a CAD hook by a given vector.
