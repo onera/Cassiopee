@@ -55,6 +55,7 @@ List of functions
     OCC.getNbEdges
     OCC.getNbFaces
     OCC.getFaceArea
+    OCC.getFaceVolume
     OCC._translate
     OCC._rotate
     OCC._scale
@@ -273,6 +274,24 @@ CAD manipulation
     * `Get face area <Examples/OCC/getFaceAreaPT.py>`_:
 
     .. literalinclude:: ../build/Examples/OCC/getFaceAreaPT.py
+
+------------------------------------------
+
+.. py:function:: OCC.getFaceVolume(hook, faceList=[])
+
+    Return the volume of given closed faces.
+
+    :param hook: CAD hook
+    :type hook: CAD hook
+    :param faceList: list of faces number to calculate the volume
+    :type faceList: list of face index (starts 1)
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get face volume <Examples/OCC/getFaceVolumePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/OCC/getFaceVolumePT.py
 
 ------------------------------------------
 

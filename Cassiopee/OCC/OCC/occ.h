@@ -113,6 +113,7 @@ namespace K_OCC
   PyObject* analyseEdges(PyObject* self, PyObject* args);
   PyObject* getFaceArea(PyObject* self, PyObject* args);
   PyObject* getFaceVolume(PyObject* self, PyObject* args);
+  PyObject* getFaceMassCenter(PyObject* self, PyObject* args);
   PyObject* getBoundingBox(PyObject* self, PyObject* args);
   PyObject* getFaceOrientation(PyObject* self, PyObject* args);
   PyObject* areEdgeIdentical(PyObject* self, PyObject* args);

@@ -80,6 +80,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/analyse.cpp',
         'OCC/Atomic/getFaceArea.cpp',
         'OCC/Atomic/getFaceVolume.cpp',
+        'OCC/Atomic/getFaceMassCenter.cpp',
         'OCC/Atomic/getBoundingBox.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
 
