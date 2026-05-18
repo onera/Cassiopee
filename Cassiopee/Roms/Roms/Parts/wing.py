@@ -13,8 +13,10 @@ rootChord = D.Scalar('rootChord', 1.)
 tipChord = D.Scalar('tipChord', 1.)
 
 tipPosx = D.Scalar('tipPosx', 0.)
+tipPosx.range = [0., 2.]
 
 tipPosz = D.Scalar('tipPosz', 2.)
+tipPosz.range = [1.,3.]
 
 #=================
 # create entities
@@ -41,7 +43,7 @@ D.Eq(sketch2.position.z, tipPosz)
 
 # surface
 #surface1 = D.MergeEdges('surface1', listSketches=[sketch1, sketch2])
-surface1 = D.Loft('surface1', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-2))
+surface1 = D.Loft('surface1', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-1))
 
 #=======================
 # solve and instantiate
@@ -58,3 +60,5 @@ surface1.writeCAD('out.step')
 
 m = surface1.mesh(method=0)
 Converter.convertArrays2File(m, 'out.plt')
+
+D.DRIVER.plot(surface1)

@@ -14,7 +14,7 @@ def checkImport():
     if not importOK:
         raise ImportError("mapEdge requires Converter, Generator, Transform.")
 
-# uniformize a 1D mesh (regular step) - OK
+# uniformize a 1D mesh (regular step)
 def uniformize(a, N=100, h=-1., factor=-1, density=-1., sharpAngle=30.):
     """Uniformize the distribution of points on a 1D-mesh."""
     if checkImport is None: return None
@@ -488,17 +488,17 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
     h = L/(N-1)
     ang = D.getSharpestAngle(a)
     radius = D.getCurvatureRadius(a)
-    # split at local max of radius + angles
+    # split if angle > sharpAngle
     alpha = ang[1][0]
     #rad = radius[1][0]
     npts = alpha.size
     out = []
     #radiusp = 0.
     split = [0]
-    for i in range(npts):
+    for i in range(1, npts-1):
         alpha0 = abs(alpha[i]-180.)
         #radius0 = rad[i]
-        if alpha0 > 30.: split.append(i)
+        if alpha0 > sharpAngle: split.append(i)
     split.append(npts-1)
 
     nsplit = len(split)
@@ -507,8 +507,13 @@ def mapCurvature(a, N, factor=1., sharpAngle=30.):
         alp = abs(alpha[isp]-180.)/180.
         alp = max(1.-alp,0.1)
         # set in split
-        setH(a, split[x], h*alp)
+        hp = h
+        if alpha[isp] == 0.: hp = h
+        elif alpha[isp] > 200.: hp = hp*0.5
+        elif alpha[isp] < 160.: hp = hp*0.5
+        print(isp, alpha[isp], hp)
+        setH(a, isp, hp)
         # set middle
-        if x < nsplit-1: setH(a, 0.5*(split[x]+split[x+1]), h)
+        #if x < nsplit-1: setH(a, 0.5*(split[x]+split[x+1]), h)
     out = enforceh(a, N)
     return out

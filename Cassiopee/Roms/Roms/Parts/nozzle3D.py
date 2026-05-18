@@ -19,9 +19,11 @@ He.range = [0.1, 2., 0.1]
 
 # convergent length
 Lc = D.Scalar('Lc', 2.)
+Lc.range = [0.1, 3.]
 
 # divergent length
 Ld = D.Scalar('Ld', 2.)
+Ld.range = [0.1, 3.]
 
 # convergent curvature
 Rc = D.Scalar('Rc', 1.)
@@ -35,6 +37,7 @@ Rd = D.Scalar('Rd', 1.)
 
 # Create points P1 (throat)
 P1 = D.Point('P1')
+P1.x.range = [0., 2.]
 D.Eq(P1.y, Ht)
 
 # Create points P2 (inlet)
@@ -71,7 +74,7 @@ spline1 = D.Spline1('spline1', [P2, P2b, P2a, P1])
 spline2 = D.Spline1('spline2', [P1, P3a, P3b, P3])
 
 sketch1 = D.Sketch('sketch1', [spline1,spline2])
-surface1 = D.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360.)
+surface1 = D.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360., h=(0.1,0.1,0.01))
 
 #=======================
 # solve and instantiate
@@ -85,3 +88,5 @@ D.DRIVER.instantiate({'P1.x':0.,
                       'Lc': 2.,
                       'Ld': 2.})
 surface1.writeCAD('out.step')
+
+D.DRIVER.plot(surface1)

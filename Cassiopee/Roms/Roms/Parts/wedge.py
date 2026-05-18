@@ -7,18 +7,23 @@ import Roms.Driver as D
 
 # forward length
 Lf = D.Scalar('Lf', 2.)
+Lf.range = [0.1, 3.]
 
 # backward length
 Lb = D.Scalar('Lb', 0.1)
+Lb.range = [0.1, 1.]
 
 # top height
 Ht = D.Scalar('Ht', 0.1)
+Ht.range = [0.1, 1.]
 
 # bottom height
 Hb = D.Scalar('Hb', 0.1)
+Hb.range = [0.1, 1.]
 
 # side length
 Ls = D.Scalar('Ls', 1.)
+Ls.range = [0.1, 2.]
 
 #=======================
 # create points
@@ -57,7 +62,7 @@ surface6 = D.FillLinear('surface6', [P5,P3,P2])
 surface7 = D.FillLinear('surface7', [P5,P4,P1])
 surface8 = D.FillLinear('surface8', [P5,P4,P2])
 
-surface = D.Merge('surface', [surface1,surface2,surface3,surface4,surface5,surface6,surface7, surface8])
+surface = D.Merge('surface', [surface1,surface2,surface3,surface4,surface5,surface6,surface7, surface8], h=(0.1,0.1,0.01))
 
 #=======================
 # solve and instantiate
@@ -71,3 +76,4 @@ D.DRIVER.instantiate({'Lf': 2,
                       'Ls': 1.})
 
 surface.writeCAD('out.step')
+D.DRIVER.plot(surface)

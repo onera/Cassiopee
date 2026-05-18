@@ -37,7 +37,8 @@ def setParameterName(event=None):
     r = DRIVER.scalars[paramName].range
     value = params[paramName] # current value
     VARS[1].set(str(value))
-    alpha = 100./(r[1]-r[0])
+    delta = max(r[1]-r[0], 1.e-6)
+    alpha = 100./delta
     beta = 100. - alpha*r[1]
     scaleValue = beta + alpha*value
     WIDGETS['valueSlider'].set(scaleValue)
@@ -50,7 +51,8 @@ def setParameterValue(event=None):
     params = getParamFromDriver()
     r = DRIVER.scalars[paramName].range
     value = CTK.varsFromWidget(VARS[1].get(), type=1)[0]
-    alpha = 100./(r[1]-r[0])
+    delta = max(r[1]-r[0], 1.e-6)
+    alpha = 100./delta
     beta = 100. - alpha*r[1]
     scaleValue = beta + alpha*value
     WIDGETS['valueSlider'].set(scaleValue)
@@ -77,7 +79,7 @@ def update(event=None):
     params = getParamFromDriver()
     params[paramName] = paramValue
     DRIVER.instantiate(params)
-    m = ENTITY.Mesh()
+    m = ENTITY.Mesh(method=0)
     CPlot.display(m)
 
 #==============================================================================
@@ -113,7 +115,8 @@ def createApp(win):
     paramName = list(params.keys())[0]
     r = DRIVER.scalars[paramName].range
     paramValue = params[paramName]
-    alpha = 100./(r[1]-r[0])
+    delta = max(r[1]-r[0], 1.e-6)
+    alpha = 100./delta
     beta = 100. - alpha*r[1]
     scaleValue = beta + alpha*paramValue
 
@@ -141,7 +144,6 @@ def createApp(win):
                          values=freeParams, state='normal')
         B.bind("<<ComboboxSelected>>", setParameterName)
         B.grid(sticky=TK.EW)
-        F.bind('<Enter>', setParameterName)
         B.bind('<Return>', setParameterName)
         F.grid(row=0, column=1, sticky=TK.EW)
         WIDGETS['ParameterName'] = B

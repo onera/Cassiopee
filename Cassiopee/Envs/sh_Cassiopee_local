@@ -106,6 +106,7 @@ if [ "$MAC" = "ld" ]; then
     #module load hdf5/1.10.5-gnu831-ompi405
     export PRODMODE=3
     export PYTHONEXE=python3
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     # Nbre de threads
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
     ncpu=$((ncpu + 1))

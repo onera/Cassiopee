@@ -526,7 +526,7 @@ class Sketch():
         OCC.writeCAD(self.hook, fileName, format)
 
     # mesh sketch, return arrays
-    def mesh(self):
+    def mesh(self, method=1):
         """Mesh edges."""
         if self.distribs is not None:
             edges = []
@@ -540,7 +540,7 @@ class Sketch():
         return edges
 
     # mesh sketch, return zones
-    def Mesh(self):
+    def Mesh(self, method=1):
         """Mesh edges."""
         edges = self.mesh()
         out = []
