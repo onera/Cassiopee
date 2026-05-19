@@ -293,21 +293,28 @@ def getTangent(t):
 
 def getArea(a):
     """Get area of surface a."""
-    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)
     area = Geom.getArea(a)
     return area
 
 def getVolume(a):
     """Get volume of closed surface a."""
-    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)
     vol = Geom.getVolume(a)
     return vol
 
 def getMassCenter(a):
     """Get center of mass of closed surface a."""
-    a = C.getFields(Internal.__GridCoordinates__, a, api=3)[0]
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)
     Xc = Geom.getMassCenter(a)
     return Xc
+
+def distance(a, b):
+    """Get the distance from one curve or surface to another."""
+    a = C.getFields(Internal.__GridCoordinates__, a, api=3)
+    b = C.getFields(Internal.__GridCoordinates__, b, api=3)
+    maxValue = Geom.distance(a, b)
+    return maxValue
 
 def addSeparationLine(t, line0):
     """Add a separation line defined in line0 to a mesh defined in t.

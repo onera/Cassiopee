@@ -338,7 +338,7 @@ def curve(f, N=100):
     if isinstance(f, str): return curve_(f, N)
     else: return curve__(f, N)
 
-# Courbe parametree a partir d'une formule
+# Parametric curve from a formula
 def curve_(f, N):
     import Converter; import Generator
     a = Generator.cart( (0,0,0), (1./(N-1),1,1), (N,1,1))
@@ -347,7 +347,7 @@ def curve_(f, N):
     a = Converter.extractVars(a, ['x','y','z'])
     return a
 
-# Courbe parametree a partir d'une fonction
+# Parametric curve from a function
 def curve__(f, N):
     a = numpy.zeros((3, N), dtype=numpy.float64)
     r = f(0)
@@ -366,7 +366,7 @@ def surface(f, N=100, isVectorized=False):
     if isinstance(f, str): return surface_(f, N)
     else: return surface__(f, N, isVectorized)
 
-# Surface parametree a partir d'une formule
+# Parametric surface from a formula
 def surface_(f, N):
     import Converter; import Generator
     a = Generator.cart((0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
@@ -375,7 +375,7 @@ def surface_(f, N):
     a = Converter.extractVars(a, ['x','y','z'])
     return a
 
-# Surface parametree a partir d'une fonction
+# Parametric surface from a function
 def surface__(f, N, isVectorized=False):
     import Generator
     a = numpy.zeros((3, N*N), dtype=numpy.float64)
@@ -399,7 +399,7 @@ def surface__(f, N, isVectorized=False):
                 a[2,ind] = r[2]
     return ['x,y,z', a, N, N, 1]
 
-# - informations -
+# - informations on geometries -
 def getLength(a):
     """Return the length of 1D-mesh."""
     if isinstance(a[0], list):
@@ -426,7 +426,6 @@ def getNearestPointIndex(a, pointList):
     Usage: getNearestPointIndex(a, pointList)"""
     if isinstance(pointList, tuple): pL = [pointList]
     else: pL = pointList
-
     if isinstance(a[0], list):
         # keep nearest
         npts = len(pL)
@@ -536,7 +535,7 @@ def getTangent(a):
         OrientationRelative = OrientationAbsolute/Norm
         t[1] = OrientationRelative
         b.append(t)
-    if len(b)==1: return b[0]
+    if len(b) == 1: return b[0]
     else: return b
 
 def getArea(a):
@@ -594,13 +593,21 @@ def getMassCenter(a):
     if isinstance(a[0], list): zc = Post.integNorm(a, b, [])
     else: zc = Post.integNorm([a], [b], [])
     zc = zc[0][2]*0.5/vol
-
     return (xc,yc,zc)
 
-# Obsolete (use lineDrive)
-def lineGenerate(a, d):
-    return lineDrive(a, d)
+def distance(a, b):
+    """Get the distance from one curve or surface to another."""
+    import Dist2Walls, numpy
+    if not isinstance(b[0], list): b = [b] 
+    d = Dist2Walls.distance2Walls(a, b, type='ortho', loc='nodes')
+    maxValue = 0.
+    if isinstance(d[0], list):
+        for e in d: maxValue = max(maxValue, numpy.max(e[1]))
+    else: 
+        maxValue = numpy.max(d[1])
+    return maxValue
 
+# - generate surfaces from curves
 def lineDrive(a, d):
     """Generate a surface mesh starting from a curve and a driving curve defined by d.
     Usage: lineDrive(a, d)"""
@@ -620,6 +627,10 @@ def lineDrive(a, d):
             return b
         else:
             return geom.lineGenerate(a, d)
+
+# Obsolete (use lineDrive)
+def lineGenerate(a, d):
+    return lineDrive(a, d)
 
 def lineGenerate2__(array, drivingCurves):
     import Converter; import Generator

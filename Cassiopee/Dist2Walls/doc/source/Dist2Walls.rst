@@ -66,7 +66,7 @@ Wall distance computation
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
     :param bodies: body definition
-    :type bodies: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :type bodies: [list of arrays] or [pyTree, base, zone, list of zones]
     :param type: type of wall distance computation in ['ortho', 'mininterf']
     :type type: string
     :param loc: location of distance field in ['nodes', 'centers'] 

@@ -111,6 +111,8 @@ List of functions
    Geom.getArea
    Geom.getVolume
    Geom.getMassCenter
+   Geom.distance
+
 
 Contents
 ########
@@ -1468,6 +1470,29 @@ all the points of the geometry.
     * `Get center of mass of surface (pyTree) <Examples/Geom/getMassCenterPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Geom/getMassCenterPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.distance(a, b)
+  
+    Return the distance between a and b (curve or surface).
+
+    :param a: input closed curve or surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :param b: compared closed curve or surface
+    :type b: [array, arrays] or [zone, zones, base, tree]
+    
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get the distance between two cruves or surfaces (array) <Examples/Geom/distance.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distance.py
+
+    * `Get the distance between two curves or surfaces (pyTree) <Examples/Geom/distancePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distancePT.py
 
 
 .. toctree::
