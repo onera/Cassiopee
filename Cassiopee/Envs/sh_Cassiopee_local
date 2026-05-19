@@ -373,6 +373,7 @@ elif [ "$MAC" = "juno" ]; then
     alias vtune="vtune -collect hotspots -result-dir result -quiet"
     export PYTHONEXE=python3
     export PRODMODE=3
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     unset I_MPI_FABRICS_LIST
     unset I_MPI_FABRICS
