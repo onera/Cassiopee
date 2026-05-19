@@ -598,12 +598,12 @@ def getMassCenter(a):
 def distance(a, b):
     """Get the distance from one curve or surface to another."""
     import Dist2Walls, numpy
-    if not isinstance(b[0], list): b = [b] 
+    if not isinstance(b[0], list): b = [b]
     d = Dist2Walls.distance2Walls(a, b, type='ortho', loc='nodes')
     maxValue = 0.
     if isinstance(d[0], list):
         for e in d: maxValue = max(maxValue, numpy.max(e[1]))
-    else: 
+    else:
         maxValue = numpy.max(d[1])
     return maxValue
 
