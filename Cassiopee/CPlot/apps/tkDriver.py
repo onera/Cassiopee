@@ -22,12 +22,24 @@ def setDriver(driver, entity):
     return None
 
 #==============================================================================
-# get the current free params as set in driver
+# get the free params as set in driver
 def getParamFromDriver():
     params = {}
     for f in DRIVER.freeParams:
         params[f.name] = DRIVER.scalars[f.name].v
     return params
+
+#==============================================================================
+# get the entities as set in driver
+def getEntitiesFromDriver():
+    entities = []
+    #for f in DRIVER.edges:
+    #    entities.append(f)
+    for f in DRIVER.sketches:
+        entities.append(f)
+    for f in DRIVER.surfaces:
+        entities.append(f)
+    return entities
 
 #==============================================================================
 def setParameterName(event=None):
@@ -48,7 +60,6 @@ def setParameterName(event=None):
 #==============================================================================
 def setParameterValue(event=None):
     paramName = VARS[0].get()
-    params = getParamFromDriver()
     r = DRIVER.scalars[paramName].range
     value = CTK.varsFromWidget(VARS[1].get(), type=1)[0]
     delta = max(r[1]-r[0], 1.e-6)
@@ -72,6 +83,18 @@ def setParameterValueWithScale(event=None):
     return None
 
 #==============================================================================
+def setEntityName(event=None):
+    global ENTITY
+    name = VARS[2].get()
+    if name in DRIVER.surfaces:
+        ENTITY = DRIVER.surfaces[name]
+    elif name in DRIVER.sketches:
+        ENTITY = DRIVER.sketches[name]
+    elif name in DRIVER.edges:
+        ENTITY = DRIVER.edges[name]
+    update()
+
+#==============================================================================
 # update driver, hook, mesh from current parameter
 def update(event=None):
     paramName = VARS[0].get()
@@ -79,6 +102,8 @@ def update(event=None):
     params = getParamFromDriver()
     params[paramName] = paramValue
     DRIVER.instantiate(params)
+    if ENTITY.h is None:
+        ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
     m = ENTITY.Mesh(method=0)
     CPlot.display(m)
 
@@ -110,6 +135,7 @@ def createApp(win):
     WIDGETS['frameMenu'] = FrameMenu
 
     # Get default values from driver
+    entities = getEntitiesFromDriver()
     freeParams = DRIVER.freeParams
     params = getParamFromDriver()
     paramName = list(params.keys())[0]
@@ -127,9 +153,33 @@ def createApp(win):
     # -1- Current parameter value -
     V = TK.StringVar(win); V.set(paramValue); VARS.append(V)
 
-    # - Parameter chooser -
-    B = TTK.Label(Frame, text="Parameters")
+    # -2- Current entity
+    V = TK.StringVar(win); V.set(ENTITY.name); VARS.append(V)
+
+    # - Entity chooser -
+    B = TTK.Label(Frame, text="Entity")
     B.grid(row=0, column=0, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Current entity name.')
+    F = TTK.Frame(Frame, borderwidth=0)
+    F.columnconfigure(0, weight=1)
+    if ttk is None:
+        B = TK.Entry(F, textvariable=VARS[2], background='White')
+        B.grid(sticky=TK.EW)
+        F.bind('<Return>', setEntityName)
+        F.grid(row=0, column=1, sticky=TK.EW)
+        WIDGETS['EntityName'] = B
+    else:
+        B = TTK.Combobox(F, textvariable=VARS[2],
+                         values=entities, state='readonly')
+        B.bind("<<ComboboxSelected>>", setEntityName)
+        B.grid(sticky=TK.EW)
+        B.bind('<Return>', setEntityName)
+        F.grid(row=0, column=1, sticky=TK.EW)
+        WIDGETS['ParameterName'] = B
+
+    # - Parameter chooser -
+    B = TTK.Label(Frame, text="Parameter")
+    B.grid(row=1, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Current parameter name.')
     F = TTK.Frame(Frame, borderwidth=0)
     F.columnconfigure(0, weight=1)
@@ -137,20 +187,20 @@ def createApp(win):
         B = TK.Entry(F, textvariable=VARS[0], background='White')
         B.grid(sticky=TK.EW)
         F.bind('<Return>', setParameterName)
-        F.grid(row=0, column=1, sticky=TK.EW)
+        F.grid(row=1, column=1, sticky=TK.EW)
         WIDGETS['ParameterName'] = B
     else:
-        B = ttk.Combobox(F, textvariable=VARS[0],
-                         values=freeParams, state='normal')
+        B = TTK.Combobox(F, textvariable=VARS[0],
+                         values=freeParams, state='readonly')
         B.bind("<<ComboboxSelected>>", setParameterName)
         B.grid(sticky=TK.EW)
         B.bind('<Return>', setParameterName)
-        F.grid(row=0, column=1, sticky=TK.EW)
+        F.grid(row=1, column=1, sticky=TK.EW)
         WIDGETS['ParameterName'] = B
 
     # - current parameter value -
     B = TTK.Entry(Frame, textvariable=VARS[1], background='White', width=10)
-    B.grid(row=1, column=0, columnspan=2, sticky=TK.EW)
+    B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Parameter value.')
     B.bind('<Return>', setParameterValue)
 
@@ -158,7 +208,7 @@ def createApp(win):
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   command=setParameterValueWithScale, borderwidth=1, value=scaleValue)
     WIDGETS['valueSlider'] = B
-    B.grid(row=2, columnspan=2, sticky=TK.EW)
+    B.grid(row=3, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Parameter value.')
 
     # update for first time

@@ -37,7 +37,7 @@ Rd = D.Scalar('Rd', 1.)
 
 # Create points P1 (throat)
 P1 = D.Point('P1')
-P1.x.range = [0., 2.]
+P1.x.range = [-2., 2.]
 D.Eq(P1.y, Ht)
 
 # Create points P2 (inlet)

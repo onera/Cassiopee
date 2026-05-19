@@ -367,7 +367,6 @@ if ttk is not None:
             keysym = event.keysym
             if keysym == 'underscore': keysym = "_"
             values = self['values']
-
             if len(keysym) == 1: # not code
                 key = keysym[0]
                 self._searchString += key

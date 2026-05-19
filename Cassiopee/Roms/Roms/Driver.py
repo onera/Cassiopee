@@ -477,6 +477,7 @@ class Sketch():
         # register
         DRIVER.registerSketch(self)
         # meshing: (hmin,hmax,hausd)
+        self.h = None
         if h is not None: self.h = h
         # meshing: list of distribs for each entity
         self.distribs = None
@@ -638,6 +639,7 @@ class Surface():
         # register
         DRIVER.registerSurface(self)
         # meshing: (hmin,hmax,hausd). supersedes sketch settings.
+        self.h = None
         if h is not None: self.h = h
         # reference mesh for Dmesh
         self.RefMesh = None # mesh (pytree)
