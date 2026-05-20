@@ -19,13 +19,14 @@
 # include "metric.h"
 # include "Array/Array.h"
 #include "Connect/connect.h"
+#include "kadolc.h"
 
 //=============================================================================
 // Calcul des normales pour un maillage Multi-Elements.
 // Les normales aux surfaces sont orientees vers l'exterieur de l'element.
 // IN: xt, yt, zt: pointeurs sur les coordonnees du maillage
 //=============================================================================
-void K_METRIC::compSurfUnstruct(
+void K_METRIC::__AD(compSurfUnstruct)(
   K_FLD::FldArrayI& cn, const char* eltType,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -90,7 +91,7 @@ void K_METRIC::compSurfUnstruct(
   for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
 }
 
-void K_METRIC::compTriSurf(
+void K_METRIC::__AD(compTriSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -128,7 +129,7 @@ void K_METRIC::compTriSurf(
   }
 }
 
-void K_METRIC::compQuadSurf(
+void K_METRIC::__AD(compQuadSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -186,7 +187,7 @@ void K_METRIC::compQuadSurf(
   }
 }
 
-void K_METRIC::compTetraSurf(
+void K_METRIC::__AD(compTetraSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -279,7 +280,7 @@ void K_METRIC::compTetraSurf(
   }
 }
 
-void K_METRIC::compPyraSurf(
+void K_METRIC::__AD(compPyraSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -421,7 +422,7 @@ void K_METRIC::compPyraSurf(
   }
 }
 
-void K_METRIC::compPentaSurf(
+void K_METRIC::__AD(compPentaSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -577,7 +578,7 @@ void K_METRIC::compPentaSurf(
   }
 }
 
-void K_METRIC::compHexaSurf(
+void K_METRIC::__AD(compHexaSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface
@@ -831,7 +832,7 @@ void K_METRIC::compHexaSurf(
   }
 }
 
-void K_METRIC::compBarSurf(
+void K_METRIC::__AD(compBarSurf)(
   K_FLD::FldArrayI& cm, const E_Int fctOffset,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
   E_Float* surface

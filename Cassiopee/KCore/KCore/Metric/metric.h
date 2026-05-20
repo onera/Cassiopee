@@ -22,6 +22,7 @@
 # include "Def/DefTypes.h"
 # include "Fld/FldArray.h"
 # include "Def/DefFunction.h"
+# include "kadolc.h"
 
 namespace K_METRIC
 {
@@ -197,7 +198,7 @@ namespace K_METRIC
      IN: xt, yt, zt: Vertex coordinates
      OUT: surface: Mesh area
   */
-  void compSurfStruct2D(
+  void __AD(compSurfStruct2D)(
     const E_Int ni, const E_Int nj, const E_Int nk,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surface);
@@ -207,7 +208,7 @@ namespace K_METRIC
      IN: xt, yt, zt: Vertex coordinates
      OUT: length: Longueur entre chaque sommet
   */
-  void compSurfStruct1D(
+  void __AD(compSurfStruct1D)(
     const E_Int ni, const E_Int nj, const E_Int nk,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* length);
@@ -217,7 +218,7 @@ namespace K_METRIC
      IN: xt, yt, zt: Vertex coordinates
      OUT: surface: Aire
   */
-  void compSurfOfStructCell(
+  void __AD(compSurfOfStructCell)(
     const E_Int ni, const E_Int nj, const E_Int nk, const E_Int indcell,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float& surface);
@@ -266,37 +267,37 @@ namespace K_METRIC
      Les normales aux surfaces sont orientees vers l'exterieur de l'element.
      IN: xt, yt, zt: pointeurs sur les coordonnees du maillage
   */
-  void compSurfUnstruct(
+  void __AD(compSurfUnstruct)(
     K_FLD::FldArrayI& cn, const char* eltType,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
 
   // depend du type d'element considere 
-  void compTriSurf(
+  void __AD(compTriSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compQuadSurf(
+  void __AD(compQuadSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compTetraSurf(
+  void __AD(compTetraSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compPyraSurf(
+  void __AD(compPyraSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compPentaSurf(
+  void __AD(compPentaSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compHexaSurf(
+  void __AD(compHexaSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surfnx, E_Float* surfny, E_Float* surfnz, E_Float* surface);
-  void compBarSurf(
+  void __AD(compBarSurf)(
     K_FLD::FldArrayI& cm, const E_Int fcOffset,
     const E_Float* xt, const E_Float* yt, const E_Float* zt,
     E_Float* surface);

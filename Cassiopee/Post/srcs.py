@@ -214,3 +214,12 @@ if USURP and f90compiler is not None and os.access(dirName+'/usurp', os.F_OK):
         'Post/usurp/RTreeProceduresM.f90',
         'Post/usurp/Usurp.f90'
     ]
+
+#==============================================================================
+# Fichiers AD
+#==============================================================================
+import KCore.Dist as Dist
+adolc, adolcIncDir, adolcLibDir, adolcLib = Dist.checkAdolc()
+if adolc:
+    cpp_srcs += ["Post/dinteg.cpp"]
+adolc_srcs = []

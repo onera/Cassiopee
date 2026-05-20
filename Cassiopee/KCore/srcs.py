@@ -395,4 +395,5 @@ for_srcs = [
 #==============================================================================
 # Fichiers AD
 #==============================================================================
-adolc_srcs = []
+adolc_srcs = ["KCore/Metric/compSurfStruct.cpp",
+              "KCore/Metric/compSurfUnstruct.cpp"]

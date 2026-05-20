@@ -37,7 +37,6 @@ PyObject* K_OCC::getFaceVolume(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ O_, &hook, &listFaces)) return NULL;
 
   GETPACKET;
-  GETSHAPE;
   GETMAPSURFACES;
 
   // Build compound of faces
@@ -67,7 +66,7 @@ PyObject* K_OCC::getFaceVolume(PyObject* self, PyObject* args)
   GProp_GProps volumeProps;
   BRepGProp::VolumeProperties(shc, volumeProps);
   E_Float volume = volumeProps.Mass();  // Mass = volume when density = 1
-  gp_Pnt center = volumeProps.CentreOfMass();
+  //gp_Pnt center = volumeProps.CentreOfMass();
 
   return Py_BuildValue("d", volume);
 } 

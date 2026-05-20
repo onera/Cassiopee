@@ -20,7 +20,7 @@
 
 using namespace K_FLD;
 
-#include "KCore/kadolc.h"
+#include "kadolc.h"
 
 //===========================================================================
 /* dLength: differentiated getLength */

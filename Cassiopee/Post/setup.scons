@@ -83,3 +83,19 @@ modDir = 'build/'+ELSAPROD
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])
+
+#==============================================================================
+
+adolc, adolcIncDir, adolcLibDir, adolcLib = Dist.checkAdolc()
+if adolc:
+    env.Replace(CFLAGS=Dist.getCArgs()+["-DE_ADOLC"])
+    env.Replace(CXXFLAGS=Dist.getCppArgs()+["-DE_ADOLC"])
+    env.Replace(CPPPATH=["Post"]+additionalIncludePaths+[pythonIncDir, numpyIncDir, kcoreIncDir, adolcIncDir])
+    env2 = env.Clone()
+    env2.Replace(CFLAGS=Dist.getCArgs()+["-DE_ADOLC", "-DE_ADOUBLE"])
+    env2.Replace(CXXFLAGS=Dist.getCppArgs()+["-DE_ADOLC", "-DE_ADOUBLE"])
+    myMod2 = env.StaticLibrary('dpost', srcs.adolc_srcs)
+    dp2 = env.Install(modDir, myMod2)
+    env.Alias(target="install", source=[dp1,dp2])
+else:
+    env.Alias(target="install", source=[dp1])

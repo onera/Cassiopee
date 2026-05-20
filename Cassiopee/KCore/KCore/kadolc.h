@@ -4,8 +4,8 @@
 #endif
 
 #ifdef E_ADOUBLE
-#define AD__ d__
+#define __AD(name) d__#name
 #define E_Float adouble
 #else
-#define AD__
+#define __AD(name) name
 #endif

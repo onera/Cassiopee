@@ -85,6 +85,10 @@ namespace K_POST
   PyObject* enforceIndicatorForCoarsestLevel(PyObject* self, PyObject* args);
   PyObject* sharpEdges(PyObject* self, PyObject* args);
   PyObject* silhouette(PyObject* self, PyObject* args);
+#ifdef E_ADOLC
+  PyObject* dinteg(PyObject* self, PyObject* args);
+  PyObject* dinteg2(PyObject* self, PyObject* args);
+#endif
 
 // ******************************* INTEGRATION ****************************** //
 // ============================================================================
