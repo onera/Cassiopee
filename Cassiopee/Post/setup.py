@@ -24,7 +24,9 @@ Dist.writeSetupCfg()
 
 prod = os.getenv("ELSAPROD") or "xx"
 
-# Setting libraryDirs and libraries ===========================================
+# Setting includeDirs, libraryDirs and libraries ===========================================
+ADDITIONALCPPFLAGS = []
+includeDirs = [numpyIncDir, kcoreIncDir]
 libraryDirs = ["build/"+prod, kcoreLibDir]
 libraries = ["post", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs()
@@ -32,16 +34,23 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
+adolc, adolcIncDir, adolcLibDir, adolcLib = Dist.checkAdolc()
+if adolc:
+    includeDirs += [adolcIncDir]
+    ADDITIONALCPPFLAGS = ["-DE_ADOLC"]
+    libraryDirs += [adolcLibDir]
+    libraries.append(adolcLib)
+
 # extensions =================================================================
 listExtensions = []
 listExtensions.append(
     Extension('Post.post',
               sources=["Post/post.cpp"],
-              include_dirs=["Post"]+additionalIncludePaths+[numpyIncDir,kcoreIncDir],
+              include_dirs=["Post"]+additionalIncludePaths+includeDirs,
               library_dirs=additionalLibPaths+libraryDirs,
               libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
+              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+              extra_link_args=Dist.getLinkArgs()+ADDITIONALCPPFLAGS
               ) )
 
 # setup ======================================================================

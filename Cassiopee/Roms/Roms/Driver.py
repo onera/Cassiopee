@@ -274,10 +274,10 @@ class Grid:
         return 1
 
 #============================================================
-# Entities
+# Entities (1D, parametric)
 #============================================================
 class Entity:
-    """Define a parametric entity."""
+    """Define a 1D parametric entity."""
     def __init__(self, name=None, listP=[], type=None, mesh=None):
         # name
         if name is not None: self.name = name
@@ -288,7 +288,7 @@ class Entity:
         self.type = type
         # optional reference mesh
         self.mesh = mesh
-        # parameters
+        # parameter list
         self.P = []; c = 1
         for P in listP:
             if isinstance(P, Scalar):
@@ -498,8 +498,8 @@ class Sketch():
         for e in self.entities: hooks.append(e.hook)
         self.hook = OCC.mergeCAD(hooks)
         # global positionning
-        OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
-        OCC._translate(self.hook, self.P[0].v())
+        OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
+        OCC._translate(self.hook, self.position.v())
 
     # check if parameters are valid
     def check(self):
@@ -619,11 +619,40 @@ class Surface():
         # optional surfaces
         self.surfaces2 = listSurfaces2
         # optional data
-        self.data = data
+        self.P = []
+        self.data = {}; c = 1
+        for n in data:
+            P = data[n]
+            if isinstance(P, Scalar):
+                self.data[n] = P
+                self.P.append(P)
+            elif isinstance(P, float):
+                self.data[n] = Scalar(name+'.P%d'%c, P)
+                self.P.append(self.data[n])
+            elif isinstance(P, int):
+                self.data[n] = Scalar(name+'.P%d'%c, P)
+                self.P.append(self.data[n])
+            elif isinstance(P, tuple) and len(P) == 3:
+                self.data[n] = Point(name+'.P%d'%c, P)
+                self.P.append(self.data[n])
+            elif isinstance(P, Point):
+                self.data[n] = P
+                self.P.append(P)
+            elif isinstance(P, tuple) and len(P) == 2:
+                self.data[n] = Vec2(name+'.P%d'%c, P)
+                self.P.append(self.data[n])
+            elif isinstance(P, Vec2):
+                self.data[n] = P
+                self.P.append(P)
+            elif isinstance(P, Grid):
+                self.data[n] = P
+                self.P.append(P)
+            else:
+                self.data[n] = P
+            c += 1
         # hook
         self.hook = None
-        # global parameters (always added)
-        self.P = []
+        # global position parameters (always added)
         P = Vec3('%s.position'%self.name, (0,0,0))
         self.P.append(P)
         self.position = P
@@ -659,7 +688,7 @@ class Surface():
         """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.createEmptyCAD('surface.step')
-        if self.type == "loft":
+        if self.type == "loft": # by lofting
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             n1 = len(self.sketches)
@@ -670,12 +699,12 @@ class Surface():
             guideList = [i for i in range(n1+1, n2+1)]
             self.hook = OCC.mergeCAD(hooks)
             OCC._loft(self.hook, edgeList, guideList)
-            if 'close' in self.data and self.data['close']:
+            if 'close' in self.data and self.data['close'].v:
                 h0 = hooks[0]; h1 = hooks[-1]
                 OCC._fillHole(h0, [1], [], 0)
                 OCC._fillHole(h1, [1], [], 0)
-                self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
-        if self.type == "loftSet":
+                self.hook = OCC.mergeCAD([h0,self.hook,h1])
+        if self.type == "loftSet": # by loft set
             hooks = []
             for e in self.sketches:
                 hooks.append(e.hook)
@@ -690,34 +719,34 @@ class Surface():
             if len(out) > 1:
                 self.hook = OCC.mergeCAD(out)
             else: self.hook = out[0]
-            if 'close' in self.data and self.data['close']:
+            if 'close' in self.data and self.data['close'].v:
                 h0 = hooks[0]; h1 = hooks[-1]
                 OCC._fillHole(h0, [1], [], 0)
                 OCC._fillHole(h1, [1], [], 0)
-                self.hook = OCC.occ.mergeCAD([h0,self.hook,h1])
-        elif self.type == "revolve":
+                self.hook = OCC.mergeCAD([h0,self.hook,h1])
+        elif self.type == "revolve": # by revolving sketch
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
-            OCC._revolve(self.hook, edgeList, self.data['center'], self.data['axis'], self.data['angle'])
-        elif self.type == "merge":
+            OCC._revolve(self.hook, edgeList, self.data['center'].v(), self.data['axis'].v(), self.data['angle'].v)
+        elif self.type == "merge": # by merging surfaces
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
-        elif self.type == "fill":
+            self.hook = OCC.mergeCAD(hooks)
+        elif self.type == "fill": # by filling sketch
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
+            self.hook = OCC.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
-            OCC._fillHole(self.hook, edgeList, [], self.data['continuity'])
+            OCC._fillHole(self.hook, edgeList, [], self.data['continuity'].v)
         elif self.type == "mergeEdges": # for debug
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
-        elif self.type == "union":
+            self.hook = OCC.mergeCAD(hooks)
+        elif self.type == "union": # by boolean union
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
                 n1 += OCC.getNbFaces(e.hook)
@@ -725,11 +754,13 @@ class Surface():
             for e in self.surfaces2:
                 n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
-            rev1 = self.data.get('rev1',1)
-            rev2 = self.data.get('rev2',1)
+            self.hook = OCC.mergeCAD(hooks)
+            if 'rev1' in self.data: rev1 = self.data['rev1'].v
+            else: rev1 = 1
+            if 'rev2' in self.data: rev2 = self.data['rev2'].v
+            else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
-        elif self.type == "inter":
+        elif self.type == "inter": # by boolean intersection
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
                 n1 += OCC.getNbFaces(e.hook)
@@ -737,11 +768,13 @@ class Surface():
             for e in self.surfaces2:
                 n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
-            rev1 = self.data.get('rev1',1)
-            rev2 = self.data.get('rev2',1)
+            self.hook = OCC.mergeCAD(hooks)
+            if 'rev1' in self.data: rev1 = self.data['rev1'].v
+            else: rev1 = 1
+            if 'rev2' in self.data: rev2 = self.data['rev2'].v
+            else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
-        elif self.type == "sub":
+        elif self.type == "sub": # by boolean substraction
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
                 n1 += OCC.getNbFaces(e.hook)
@@ -749,14 +782,18 @@ class Surface():
             for e in self.surfaces2:
                 n2 += OCC.getNbFaces(e.hook)
                 hooks.append(e.hook)
-            self.hook = OCC.occ.mergeCAD(hooks)
-            rev1 = self.data.get('rev1',1)
-            rev2 = self.data.get('rev2',1)
+            self.hook = OCC.mergeCAD(hooks)
+            if 'rev1' in self.data: rev1 = self.data['rev1'].v
+            else: rev1 = 1
+            if 'rev2' in self.data: rev2 = self.data['rev2'].v
+            else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
-
+        elif self.type == "sphere":
+            self.hook = OCC.createEmptyCAD()
+            OCC._addSphere(self.hook, self.data['center'].v(), self.data['radius'].v, name=self.name)
         # global positionning
-        OCC._rotate(self.hook, self.P[1].v(), self.P[2].v(), self.P[3].v)
-        OCC._translate(self.hook, self.P[0].v())
+        OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
+        OCC._translate(self.hook, self.position.v())
 
     # print information
     def print(self, shift=0):
@@ -764,7 +801,7 @@ class Surface():
         for e in self.sketches:
             print(" "*shift, e.name)
             e.print(shift+4)
-        for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
+        for e in self.P:
             print(" "*shift, e.name)
             e.print(shift+4)
 
@@ -1066,6 +1103,11 @@ def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None):
         lines.append(l)
     sketch1 = Sketch(None, lines)
     surface1 = Fill(name, sketch1, continuity, h)
+    return surface1
+
+def Sphere(name="sphere", C=(0.,0.,0.), R=1., h=None):
+    """Create a sphere of center C and radius R."""
+    surface1 = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h)
     return surface1
 
 #============================================================
@@ -1541,7 +1583,7 @@ class Driver:
 
     # FD of free parameters on discrete mesh
     # if freevars is None, derivate for all free parameters else derivate for given parameters
-    def _dXdmu(self, entity, mesh, freeParams=None, deps=1.e-10):
+    def _dXdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-10):
         """Compute derivatives dX/dmu on entity."""
         import KCore
 
@@ -1562,31 +1604,63 @@ class Driver:
         else:
             raise TypeError("Warning: dXdmu: incorrect freevars.")
 
-        mesho = Converter.copy(mesh)
-
-        for c, f in enumerate(listVars):
-            # free vars value dict
-            d = {}
-            for q in self.freeParams:
-                d[q.name] = self.scalars[q.name].v
-            d[f.name] += deps
-
-            print("DIFF on: ", f.name)
-
-            # update CAD at param+eps
-            self.instantiate(d)
-            mesho = entity.rmesh(mesh)
-            # get derivatives
-            Converter._addVars(mesh, ['dXd%d'%c, 'dYd%d'%c, 'dZd%d'%c])
-            for p, m in enumerate(mesh):
-                pos1 = KCore.isNamePresent(m, 'dXd%d'%c)
-                pos2 = KCore.isNamePresent(m, 'dYd%d'%c)
-                pos3 = KCore.isNamePresent(m, 'dZd%d'%c)
-                p1x = m[1]
-                p2x = mesho[p][1]
-                p1x[pos1,:] = (p2x[0,:]-p1x[0,:])/deps
-                p1x[pos2,:] = (p2x[1,:]-p1x[1,:])/deps
-                p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps
+        if mesh is not None: # array (by rmesh)
+            mesho = Converter.copy(mesh)
+            for c, f in enumerate(listVars):
+                # free vars value dict
+                d = {}
+                for q in self.freeParams:
+                    d[q.name] = self.scalars[q.name].v
+                d[f.name] += deps
+                print("DIFF on: ", f.name)
+                # update CAD at param+eps
+                self.instantiate(d)
+                mesho = entity.rmesh(mesh)
+                # get derivatives
+                Converter._addVars(mesh, ['dXd%d'%c, 'dYd%d'%c, 'dZd%d'%c])
+                for p, m in enumerate(mesh):
+                    pos1 = KCore.isNamePresent(m, 'dXd%d'%c)
+                    pos2 = KCore.isNamePresent(m, 'dYd%d'%c)
+                    pos3 = KCore.isNamePresent(m, 'dZd%d'%c)
+                    p1x = m[1]
+                    p2x = mesho[p][1]
+                    p1x[pos1,:] = (p2x[0,:]-p1x[0,:])/deps
+                    p1x[pos2,:] = (p2x[1,:]-p1x[1,:])/deps
+                    p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps
+        else: # pyTree (by deformation)
+            Mesho = Internal.copyTree(Mesh)
+            for c, f in enumerate(listVars):
+                # free vars value dict
+                d = {}
+                for q in self.freeParams:
+                    d[q.name] = self.scalars[q.name].v
+                d[f.name] += deps
+                print("DIFF on: ", f.name)
+                # update CAD at param+eps
+                self.instantiate(d)
+                # suppose Mesh is a reference
+                Mesh2 = entity.Dmesh()
+                zones1 = Internal.getZones(Mesho)
+                zones2 = Internal.getZones(Mesh2)
+                C._initVars(Mesh, 'dXd%d'%c, 0.)
+                C._initVars(Mesh, 'dYd%d'%c, 0.)
+                C._initVars(Mesh, 'dZd%d'%c, 0.)
+                for i, z1 in enumerate(zones1):
+                    z2 = zones2[i]
+                    cont1 = Internal.getNodeFromName1(z1, 'GridCoordinates')
+                    cont2 = Internal.getNodeFromName1(z2, 'GridCoordinates')
+                    p1x = Internal.getNodeFromName2(cont1, 'CoordinateX')[1]
+                    p2x = Internal.getNodeFromName2(cont2, 'CoordinateX')[1]
+                    dx = Internal.getNodeFromName2(z1, 'dXd%d'%c)[1]
+                    dx[:] = (p2x[:]-p1x[:])/deps
+                    p1y = Internal.getNodeFromName2(cont1, 'CoordinateY')[1]
+                    p2y = Internal.getNodeFromName2(cont2, 'CoordinateY')[1]
+                    dy = Internal.getNodeFromName2(z1, 'dYd%d'%c)[1]
+                    dy[:] = (p2y[:]-p1y[:])/deps
+                    p1z = Internal.getNodeFromName2(cont1, 'CoordinateZ')[1]
+                    p2z = Internal.getNodeFromName2(cont2, 'CoordinateZ')[1]
+                    dz = Internal.getNodeFromName2(z1, 'dZd%d'%c)[1]
+                    dz[:] = (p2z[:]-p1z[:])/deps
 
         # remet le hook original
         d = {}

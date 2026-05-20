@@ -108,6 +108,12 @@ def update(event=None):
     CPlot.display(m)
 
 #==============================================================================
+# sensibility dXdmu: compute and visualize
+def dXdmu(event=None):
+    #DRIVER._dxdmu(ENTITY, freeParams=VARS[0].get())
+    raise NotImplementedError("dxdmu")
+
+#==============================================================================
 # Create app widgets
 #==============================================================================
 def createApp(win):

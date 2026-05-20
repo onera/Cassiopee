@@ -89,4 +89,6 @@ D.DRIVER.instantiate({'P1.x':0.,
                       'Ld': 2.})
 surface1.writeCAD('out.step')
 
+surface1.print()
+
 D.DRIVER.plot(surface1)

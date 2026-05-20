@@ -19,9 +19,11 @@ He.range = [0.1, 2., 0.1]
 
 # convergent length
 Lc = D.Scalar('Lc', 2.)
+Lc.range = [0.1,3]
 
 # divergent length
 Ld = D.Scalar('Ld', 2.)
+Ld.range = [0.1,3]
 
 # convergent curvature
 Rc = D.Scalar('Rc', 1.)
@@ -35,6 +37,7 @@ Rd = D.Scalar('Rd', 1.)
 
 # Create points P1 (throat)
 P1 = D.Point('P1')
+P1.x.range = [-1,1]
 D.Eq(P1.y, Ht)
 
 # Create points P2 (inlet)
@@ -84,3 +87,7 @@ D.DRIVER.instantiate({'P1.x':0.,
                       'Lc': 2.,
                       'Ld': 2.})
 sketch1.writeCAD('out.step')
+
+sketch1.print()
+
+D.DRIVER.plot(sketch1)
