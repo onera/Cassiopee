@@ -32,8 +32,8 @@ def outputTime(startTime,functionName='FunctionName'):
     if Cmpi.rank==0: print('Elapsed Time: %s: %g [s] | %g [min] | %g [hr]'%(functionName,elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
     return None
 
-def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./', forceAlignment=False):
-    sym3D=False; VPM = False
+def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir='./', forceAlignment=False, isFastApproach=True):
+    VPM = False
     Cmpi.trace('AMR prepare IBM...start', master=True)
 
     frontTypeIP = IBM_parameters["integration points"]["front type"]
@@ -64,6 +64,15 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if "method" in IBM_parameters["IBM type"].keys():
         if IBM_parameters["IBM type"]["method"] == "VPM":
             VPM = True
+
+    # symmetry & direction
+    dir_sym = 0
+    if "symmetryPlane" in IBM_parameters["IBM type"].keys():
+        dir_sym = int(IBM_parameters["IBM type"]["symmetryPlane"])
+        if IBM_parameters["IBM type"]["symmetryPlane"] < 1 or IBM_parameters["IBM type"]["symmetryPlane"] > 3:
+            if Cmpi.master: print("Warning: Symmetry plane direction can only be : 1 (x-direction), 2 (y-direction) or 3 (z-direction)... exiting", flush=True)
+            raise ValueError("Choose a valid symmetry plane direction. Exiting..")
+            Cmpi.abort(errorcode=1)
 
     different_front_flag = True
     if "use different front for different BCs" in IBM_parameters["integration points"]:
@@ -178,8 +187,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
 
     ### for debugging - keep here for now
-    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=True)
-    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=False)
+    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP=maxDistanceFrontIP, localDir=localDir, isFastApproach=False)
+    #frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP=maxDistanceFrontIP, localDir=localDir, isFastApproach=True)
     #Cmpi.barrier()
     #Cmpi.abort()
 
@@ -219,7 +228,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if VPM == False:
         Cmpi.trace(" Extracting front of the donor points [start]", master=True, cpu=False)
         if frontTypeDP == "1":
-            frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP=maxDistanceFrontIP, localDir=localDir, isNewApproach=True)
+            frontDP_gath = extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP=maxDistanceFrontIP, localDir=localDir, isFastApproach=isFastApproach)
         else:
             frontDP_gath = None
         del frontIP_gath
@@ -405,9 +414,10 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     iso = T.join(iso)
     return iso
 
-def extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP, localDir='./', isNewApproach=True):
-    if not isNewApproach:
+def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
+    if isFastApproach:
         ##Orig Approach - Based on Integration points front (frontIP_gath)
+        ##                fast approach but can lead to errors in the IBM points - encountered when running CODA
         frontIP_gathSave = Internal.copyTree(frontIP_gath)
         if Cmpi.master:
             C._deleteEmptyZones(frontIP_gath)
@@ -415,18 +425,17 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP, localDir='./
             frontIP_gath = C.convertArray2Tetra(frontIP_gath)
             frontIP_gath = G.close(frontIP_gath)
             frontIP_gath[0] = "frontIP_gath"
-            #if dim == 3 and sym3D:
-            print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
-            # symmetry plane xz
-            point = (0.0, 0.0, 0.0)
-            vector1 = (1.0, 0.0, 0.0)
-            vector2 = (0.0, 0.0, 1.0)
-            z_sym = T.symmetrize(frontIP_gath, point, vector1, vector2)
-            z_sym[0] = "sym"
-            frontIP_gath = Internal.getZones(frontIP_gath)[0]
-            z_sym = Internal.getZones(z_sym)[0]
-            frontIP_gath = T.join(frontIP_gath, z_sym)
-            frontIP_gath = G.close(frontIP_gath)
+            if dim == 3 and dir_sym > 0:
+                print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
+                # Copy tb about the symmetry plane
+                z_sym = Internal.copyTree(frontIP_gath)
+                D_IBM._setSnear(z_sym, 1e-06) # dummy  snear value
+                D_IBM._setDfar(z_sym, 10) # dummy dfar value
+                D_IBM._symmetrizePb(z_sym, 'Base', snear_sym=1e-06, dir_sym=dir_sym)
+                baseSYM = Internal.getNodesFromName1(z_sym, "SYM")
+                if baseSYM is not None: z_sym = Internal.rmNodesByNameAndType(z_sym, 'SYM', 'CGNSBase_t')
+                frontIP_gath = G.close(z_sym)
+                del z_sym
         else:
             frontIP_gath = Internal.newZone(name="front", zsize=[[0,0]], ztype="Unstructured")
             gc = Internal.newGridCoordinates(parent=frontIP_gath)
@@ -441,13 +450,15 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, sym3D, check, distIP, localDir='./
         frontDP = P.frontFaces(t, 'cellNFront')
         del t
     else:
-        ## Proposed - based on tb (input geomtery) & dist2wall approach
+        ## Robust - based on tb (input geomtery), offset, selectcells, & dist2wall approach
+        ##          more expensive but proven to be more robust
+
         # Get snear
         G._getVolumeMap(t)
         hminTmp = (C.getMinValue(t,"centers:vol"))**(1/dim)
         
         # Generate Offset - scaled tb
-        frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=2, minSnear=hminTmp, distIP=distIP)
+        frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=dir_sym, minSnear=hminTmp, distIP=distIP)
         Cmpi.convertPyTree2File(frontIP_gath, 'check_frontIP_gathScale.cgns')
         
         # blankcells - what is inside the offset
