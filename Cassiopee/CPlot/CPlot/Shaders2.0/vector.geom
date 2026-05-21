@@ -18,7 +18,7 @@ out vec4 vertex_color;
 void main()
 {
   int i;
-  for(i=0; i<gl_in.length(); i++)
+  for (i=0; i<gl_in.length(); i++)
   {
     vec3 P = gl_in[i].gl_Position.xyz;
     vec3 N = vertex[i].normal.xyz;

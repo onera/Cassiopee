@@ -26,8 +26,8 @@
 #include "Shader.h"
 
 // prepare the shadow texture
-#define SHADOWTEXTURE if (ptrState->shadow > 0) {          \
-  glActiveTexture(GL_TEXTURE0);                         \
+#define SHADOWTEXTURE if (ptrState->shadow > 0) {                       \
+  glActiveTexture(GL_TEXTURE0);                                         \
   glBindTexture(GL_TEXTURE_2D, _shadowMap);                             \
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);    \
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);    \
@@ -84,7 +84,7 @@ namespace CPlot
     void deactivate();
     
     // Fake functions
-    void set_tesselation( unsigned short idTes );
+    void set_tesselation(unsigned short idTes);
     void unset_tesselation();
     bool has_tesselation() const;
     

@@ -2533,7 +2533,7 @@ def copyTree(node, order='F'):
     d = []
     for n in node:
       o = copyTree__(n, order=order)
-      d.append(d)
+      d.append(o)
     return d
   else: return node
 

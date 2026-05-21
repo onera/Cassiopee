@@ -24,18 +24,20 @@ void show_trig_surf()
 {
     int i;
     // Emission du triangle de base :
-    for ( i = 0; i < gl_in.length(); ++i ) {
+    for ( i = 0; i < gl_in.length(); ++i ) 
+    {
         gl_Position = vertex[i].P0;
-        color  = vec4(0.85,0.85,0.85,1.0);
-        Nv     = gl_NormalMatrix * vertex[i].normal.xyz;
-        P      = vertex[i].vP.xyz;
-        //vert   = vertex[i].position;
+        color = vec4(0.85,0.85,0.85,1.0);
+        Nv = gl_NormalMatrix * vertex[i].normal.xyz;
+        P = vertex[i].vP.xyz;
+        //vert = vertex[i].position;
         EmitVertex();
     }
     EndPrimitive();
 }
 
-float rand(vec2 co){                            //2147483647
+float rand(vec2 co)
+{                            //2147483647
     // uniform random
     //return (int(dot(co.xy ,co.xy) * 1664525 + 1013904223)%2147483647)/2147483647.f;
     
@@ -317,9 +319,11 @@ void generate_uniform_field()
     n = ( n > 2 ? 2 : n );
     //int n = int(density);
     if (n>0) {
-    for ( int i = 0; i <= n+1; ++i ) {
+    for ( int i = 0; i <= n+1; ++i ) 
+    {
         float psi = float(i)/(n+2.f);
-        for ( int j= 0; j <= n+1-i; ++j ) {
+        for ( int j= 0; j <= n+1-i; ++j ) 
+        {
             float ki = float(j)/(n+2.f);
             float te = 1.f-ki-psi;
             vec4 p = psi*v0P0 + ki*v1P0 + te*v2P0;
@@ -337,8 +341,9 @@ void generate_uniform_field()
             else if ( style_arrow == 2 ) draw_tetra_arrow(p, be3, nr, c);
         }
     } }
-    else {
-    //if ( n == 0 ) {
+    else 
+    {
+        //if ( n == 0 ) {
         float ust = 0.33333333333;
         // On va tirer une proba pour voir si on emet un vecteur
         vec4 bary1 = ust*(v0P0+v1P0+v2P0);
