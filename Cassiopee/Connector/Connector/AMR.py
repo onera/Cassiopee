@@ -420,6 +420,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         isFastApproach = True
         if Cmpi.master: print("WARNING: extractFrontDP based on the Robust approach is incomptabile with 2D test cases. Forcing Fast Approach...", flush=True)
     if isFastApproach:
+        startTimeExtract = time.perf_counter()
         if Cmpi.master: print("WARNING: extractFrontDP - using Fast approach based on the integration points. This approach may yield unsatisfactory results for small resolutions", flush=True)
         ##Orig Approach - Based on Integration points front (frontIP_gath)
         ##                fast approach but can lead to errors in the IBM points - encountered when running CODA
@@ -429,9 +430,9 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
             frontIP_gath = C.convertArray2Tetra(frontIP_gath)
             frontIP_gath = G.close(frontIP_gath)
             frontIP_gath[0] = "frontIP_gath"
-            frontIP_gath = C.newPyTree(["Base", frontIP_gath])     
             if dim == 3 and dir_sym > 0:           
                 print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
+                frontIP_gath = C.newPyTree(["Base", frontIP_gath])
                 frontIP_gath= Internal.getNodeFromName(frontIP_gath, 'Base')
                 minval = C.getMinValue(frontIP_gath, ['CoordinateX', 'CoordinateY','CoordinateZ'])
                 minval = minval[dir_sym-1]
@@ -448,7 +449,9 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         del frontIP_gath
         frontDP = P.frontFaces(t, 'cellNFront')
         del t
+        outputTime(startTimeExtract,functionName='extractFrontDP - Fast Approach')
     else:
+        startTimeExtract = time.perf_counter()
         if Cmpi.master: print("WARNING: extractFrontDP - using Robust approach based on the offsets & dist2wall. This approach can take some time.", flush=True)
         ## Robust - based on tb (input geomtery), offset, selectcells, & dist2wall approach
         ##          more expensive but proven to be more robust
@@ -494,7 +497,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
             Internal.newDataArray('CoordinateX', value=numpy.empty(0), parent=gc)
             Internal.newDataArray('CoordinateY', value=numpy.empty(0), parent=gc)
             Internal.newDataArray('CoordinateZ', value=numpy.empty(0), parent=gc)
-
+        outputTime(startTimeExtract,functionName='extractFrontDP - Robust Approach')
     ## Continue - same as orig.
     frontDP_gath = Cmpi.allgatherZones(frontDP)
     C._deleteEmptyZones(frontDP_gath)
