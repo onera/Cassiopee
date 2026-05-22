@@ -331,11 +331,13 @@ void Data::displayActivePoint()
       {
         sprintf(msg, "%s=%g, %s=%g, %s=%g",
                 zone->varnames[ptrState->vectorField1], 
-                zone->f[ptrState->vectorField1][ptrState->activePointI],
+                ptrState->activePointF[ptrState->vectorField1],
                 zone->varnames[ptrState->vectorField2],
-                zone->f[ptrState->vectorField2][ptrState->activePointI],
+                ptrState->activePointF[ptrState->vectorField2],
                 zone->varnames[ptrState->vectorField3],
-                zone->f[ptrState->vectorField3][ptrState->activePointI]);
+                ptrState->activePointF[ptrState->vectorField3]);
+                
+
       }
       else // mode SOLID, display zone name
         sprintf(msg,"%s (STRUCT)", zone->zoneName);

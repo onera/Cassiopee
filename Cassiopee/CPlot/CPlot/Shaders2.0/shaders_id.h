@@ -3,8 +3,8 @@
 
 namespace shader
 {
-enum shaders_id
-{
+  enum shaders_id
+  {
     None = 0,
     unidirectionnel_phong, // 1
     bidirectionnel_phong,  // 2
@@ -44,6 +44,6 @@ enum shaders_id
     iso_sphere_billboarding, // 36
     
     end_of_shaders_id // 37 !
-};
+  };
 }
 #endif

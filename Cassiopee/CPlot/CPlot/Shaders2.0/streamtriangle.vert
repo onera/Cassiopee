@@ -17,8 +17,8 @@ void main()
 {
     gl_Position = ftransform();
     vertex.position = gl_Vertex;
-    vertex.P0    = gl_Position;
-    vertex.vP    = gl_ModelViewMatrix * gl_Vertex;
+    vertex.P0 = gl_Position;
+    vertex.vP = gl_ModelViewMatrix * gl_Vertex;
     vertex.color = gl_Color;
     vertex.translation = gl_ModelViewProjectionMatrix*(5.E-2*scale*vec4(gl_Normal,0.));
     if ( vertex.translation.z > 0. ) 

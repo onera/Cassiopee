@@ -23,9 +23,11 @@ uniform int   show_surface;
 void main()
 {
     int i;
-    if ( show_surface == 1 ) {
+    if ( show_surface == 1 ) 
+    {
         // Emission du triangle de base :
-        for ( i = 0; i < gl_in.length(); ++i ) {
+        for ( i = 0; i < gl_in.length(); ++i ) 
+        {
 	       gl_Position = vertex[i].P0;
 	       color  = vec4(vertex[i].color.xyz,0.5); //vec4(0.5,0.35,0.5,1.0);
            Nv     = vertex[i].normal.xyz;

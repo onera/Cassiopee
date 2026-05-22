@@ -12,6 +12,7 @@ WIDGETS = {}; VARS = []
 # DRIVER
 DRIVER = None
 ENTITY = None
+MODE = 0 # 0: mesh, 1: dxdmu
 
 #==============================================================================
 # set driver and current entity
@@ -102,16 +103,31 @@ def update(event=None):
     params = getParamFromDriver()
     params[paramName] = paramValue
     DRIVER.instantiate(params)
-    if ENTITY.h is None:
-        ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
-    m = ENTITY.Mesh(method=0)
-    CPlot.display(m)
+    if MODE == 0: # mesh
+        if ENTITY.h is None:
+            ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
+        m = ENTITY.Mesh(method=0)
+        CPlot.display(m, mode='Mesh', meshStyle=4, bgColor=1)
+    elif MODE == 1: # dXdmu
+        if ENTITY.h is None:
+            ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
+        m = ENTITY.MeshAsReference()
+        DRIVER._dXdmu(ENTITY, Mesh=m, freeParams=[VARS[0].get()], deps=1.e-6)
+        CPlot.display(m, mode='Vector',
+                      vectorField1='dXd0', vectorField2='dYd0', vectorField3='dZd0',
+                      vectorStyle=1, bgColor=1)
 
 #==============================================================================
-# sensibility dXdmu: compute and visualize
-def dXdmu(event=None):
-    #DRIVER._dxdmu(ENTITY, freeParams=VARS[0].get())
-    raise NotImplementedError("dxdmu")
+# switch mode:
+# 0: display mesh
+# 1: display dXdmu
+def switchMode(event=None):
+    global MODE
+    MODE += 1
+    if MODE == 2: MODE = 0
+    if MODE == 0: WIDGETS['Mode'].config(text='dXdmu')
+    elif MODE == 1: WIDGETS['Mode'].config(text='mesh')
+    update()
 
 #==============================================================================
 # Create app widgets
@@ -214,8 +230,14 @@ def createApp(win):
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
                   command=setParameterValueWithScale, borderwidth=1, value=scaleValue)
     WIDGETS['valueSlider'] = B
-    B.grid(row=3, columnspan=2, sticky=TK.EW)
+    B.grid(row=3, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Parameter value.')
+
+    # - trigger mode -
+    B = TTK.Button(Frame, text="dXdmu", command=switchMode)
+    B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
+    BB = CTK.infoBulle(parent=B, text='Switch mode.')
+    WIDGETS['Mode'] = B
 
     # update for first time
     update()

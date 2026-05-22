@@ -462,14 +462,15 @@
   // Pour les lignes
   if (ni*nj == 1 || ni*nk == 1 || nj*nk == 1)
   {
-    glLineWidth(3.);
-    glPolygonOffset(-1.,-10.); // force offset
-    glBegin(GL_LINES);
     E_Int nie, nje, nke;
     nie = ni; nje = nj; nke = nk;
     if (ni*nj == 1) nke = nke-1;
     if (ni*nk == 1) nje = nje-1;
     if (nj*nk == 1) nie = nie-1;
+    /*
+    glLineWidth(3.);
+    glPolygonOffset(-1.,-10.); // force offset
+    glBegin(GL_LINES);
     if (zonep->blank == 0)
     {
       // No blanking
@@ -479,14 +480,14 @@
           {
             n1 = i+j*ni+k*nij;
             n2 = n1+1;
-            r = (f1[n1]-fmin1)*deltai;                                 
-            g = (f2[n1]-fmin2)*deltai;                                 
-            b = (f3[n1]-fmin3)*deltai;                                 
+            r = f1[n1]*deltai+0.5; 
+            g = f2[n1]*deltai+0.5;  
+            b = f3[n1]*deltai+0.5;
             glColor3f(r, g, b);             
             glVertex3d(x[n1], y[n1], z[n1]);
-            r = (f1[n2]-fmin1)*deltai;                                 
-            g = (f2[n2]-fmin2)*deltai;                                 
-            b = (f3[n2]-fmin3)*deltai;
+            r = f1[n2]*deltai+0.5; 
+            g = f2[n2]*deltai+0.5;  
+            b = f3[n2]*deltai+0.5; 
             glColor3f(r, g, b);
             glVertex3d(x[n2], y[n2], z[n2]);
           }
@@ -503,27 +504,24 @@
             ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
             if (ret1*ret2 != 0)
             { 
-              r = (f1[n1]-fmin1)*deltai;                                 
-              g = (f2[n1]-fmin2)*deltai;              
-              b = (f3[n1]-fmin3)*deltai;
+              r = f1[n1]*deltai+0.5; 
+              g = f2[n1]*deltai+0.5;  
+              b = f3[n1]*deltai+0.5; 
               glColor3f(r, g, b);                  
               glVertex3d(x[n1], y[n1], z[n1]);
-              r = (f1[n2]-fmin1)*deltai;                                 
-              g = (f2[n2]-fmin2)*deltai;                                 
-              b = (f3[n2]-fmin3)*deltai;
+              r = f1[n2]*deltai+0.5; 
+              g = f2[n2]*deltai+0.5;  
+              b = f3[n2]*deltai+0.5; 
               glColor3f(r, g, b);
               glVertex3d(x[n2], y[n2], z[n2]);
             }
           }
     }
     glEnd();
-
+    glLineWidth(1.);
+    */
     // added for vector shader that works only on TRIs
     glBegin(GL_TRIANGLES);
-    nie = ni; nje = nj; nke = nk;
-    if (ni*nj == 1) nke = nke-1;
-    if (ni*nk == 1) nje = nje-1;
-    if (nj*nk == 1) nie = nie-1;
     if (zonep->blank == 0)
     {
       // No blanking
@@ -533,18 +531,21 @@
           {
             n1 = i+j*ni+k*nij;
             n2 = n1+1;
-            r = (f1[n1]-fmin1)*deltai;                                 
-            g = (f2[n1]-fmin2)*deltai;                                 
-            b = (f3[n1]-fmin3)*deltai;                                 
-            glColor3f(r, g, b);             
-            glVertex3d(x[n1], y[n1], z[n1]);
-            r = (f1[n2]-fmin1)*deltai;                                 
-            g = (f2[n2]-fmin2)*deltai;                                 
-            b = (f3[n2]-fmin3)*deltai;
+            r = f1[n1]*deltai+0.5; 
+            g = f2[n1]*deltai+0.5; 
+            b = f3[n1]*deltai+0.5;
             glColor3f(r, g, b);
+            glNormal3f(0., 0., 1.);            
+            glVertex3d(x[n1], y[n1], z[n1]);
+            r = f1[n2]*deltai+0.5; 
+            g = f2[n2]*deltai+0.5;  
+            b = f3[n2]*deltai+0.5; 
+            glColor3f(r, g, b);
+            glNormal3f(0., 0., 1.);                   
             glVertex3d(x[n2], y[n2], z[n2]);
             glColor3f(r, g, b);
-            glVertex3d(x[n2]+1.e-6, y[n2], z[n2]);
+            glNormal3f(0., 0., 1.);
+            glVertex3d(x[n2], y[n2], z[n2]);
           }
     }
     else
@@ -559,19 +560,23 @@
             ret2 = _pref.blanking->f(this, n2, zonep->blank, zone);
             if (ret1*ret2 != 0)
             { 
-              r = (f1[n1]-fmin1)*deltai;                                 
-              g = (f2[n1]-fmin2)*deltai;              
-              b = (f3[n1]-fmin3)*deltai;     
+              r = f1[n1]*deltai+0.5; 
+              g = f2[n1]*deltai+0.5;  
+              b = f3[n1]*deltai+0.5; 
+              glColor3f(r, g, b);     
+              glNormal3f(0., 0., 1.);
               glVertex3d(x[n1], y[n1], z[n1]);
-              r = (f1[n2]-fmin1)*deltai;                                 
-              g = (f2[n2]-fmin2)*deltai;                                 
-              b = (f3[n2]-fmin3)*deltai;
+              r = f1[n2]*deltai+0.5; 
+              g = f2[n2]*deltai+0.5;
+              b = f3[n2]*deltai+0.5; 
+              glColor3f(r, g, b);
+              glNormal3f(0., 0., 1.);
               glVertex3d(x[n2], y[n2], z[n2]);
-              glVertex3d(x[n2]+1.e-6, y[n2], z[n2]);
+              glColor3f(r, g, b);
+              glNormal3f(0., 0., 1.);
+              glVertex3d(x[n2], y[n2], z[n2]);
             }
           }
     }
     glEnd();
-
-    glLineWidth(1.);
   }
