@@ -30,7 +30,6 @@ namespace CPlot
     virtual ~GeomShader();
 
     const GeomShader& operator = (const GeomShader& obj);
-
   };
 }
 

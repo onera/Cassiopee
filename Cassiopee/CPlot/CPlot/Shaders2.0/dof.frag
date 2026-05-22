@@ -1,18 +1,15 @@
 // Depth of field shader (post shader)
+#version 150 compatibility
+
 uniform sampler2D FrameBuffer;
 uniform sampler2D depthMap;
-
 uniform float focalDepth; // DOF: position de la focale
 uniform float radius; // DOF: taille du rayon de blur 
 uniform float ext; // DOF: extension du blur
-
 uniform int toneMapping; // TONE: type de tone mapping
 uniform float gamma; // TONE: gamma correction
-
 uniform float sobelThreshold; // SOBEL: threshold for sobel
-
 uniform float sharpenCoeff; // SHARPEN: coeff
-
 uniform float ssaoRadius; // SSAO: radius for evaluation
 
 vec2 poisson0, poisson1, poisson2, poisson3, poisson4;

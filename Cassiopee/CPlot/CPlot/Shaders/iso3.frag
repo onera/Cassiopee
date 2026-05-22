@@ -1,4 +1,5 @@
 // Shader iso colored lines
+#version 150 compatibility
 
 varying vec4 color;
 varying vec3 Nv;

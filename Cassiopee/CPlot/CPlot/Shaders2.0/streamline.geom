@@ -3,11 +3,11 @@ layout(triangles) in;
 layout(line_strip, max_vertices=2) out;
 
 in Vertex {
-    vec4 P0;
-    vec4 P1;
-    vec4 position;
-    vec4 normal;
-    vec4 color;
+  vec4 P0;
+  vec4 P1;
+  vec4 position;
+  vec4 normal;
+  vec4 color;
 } vertex[];
 
 out vec4 color;

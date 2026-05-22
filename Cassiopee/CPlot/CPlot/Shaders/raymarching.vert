@@ -1,6 +1,8 @@
 //
 // Vertex shader for ray marching through a 3D texture
 //
+#version 150 compatibility
+
 varying vec4 color;
 varying vec3 cam;
 uniform vec3 dx;

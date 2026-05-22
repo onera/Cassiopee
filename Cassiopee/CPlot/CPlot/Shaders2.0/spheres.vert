@@ -1,5 +1,6 @@
 // Sphere billboarding
 // Remplace un quad par une sphere
+#version 150 compatibility
 
 varying vec4 initColor;
 varying vec3 P;

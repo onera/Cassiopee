@@ -2,6 +2,8 @@
     Textured material + phong
     use r,g,b to get r=u, g=v, b=no of texture
 */
+#version 150 compatibility
+
 varying vec3 Nv;
 varying vec3 P;
 varying vec4 color;

@@ -1,5 +1,6 @@
 // Shader iso + brick
 // = color bands + bump mapped edges
+#version 150 compatibility
 varying vec4 color;
 varying vec3 Nv;
 varying vec3 P;
@@ -43,10 +44,10 @@ void main()
   borne = (edgeStyle+5.)*df;
   if (fs-f < borne)
   { 
-     borne1 = 0.8*borne; borne2 = 0.2*borne;
-     if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = val * df; }
-     else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = val * df; }
-     else { val = vec3(1.); }
+    borne1 = 0.8*borne; borne2 = 0.2*borne;
+    if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = val * df; }
+    else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = val * df; }
+    else { val = vec3(1.); }
   } 
   
   vec4 color2 = vec4(val.r, val.g, val.b, blend);

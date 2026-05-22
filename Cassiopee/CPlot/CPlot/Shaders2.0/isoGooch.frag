@@ -1,5 +1,7 @@
 // Shader iso + gooch
 // = color isolines + blended background
+#version 150 compatibility
+
 varying vec4 color;
 
 // Number of iso
@@ -42,11 +44,11 @@ void main()
   vec4 color2; 
   if (fs-f < borne)
   { 
-     borne1 = 0.8*borne; borne2 = 0.2*borne;
-     if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = mix(val, bgColor, df); }
-     else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = mix(val, bgColor, df); }
+    borne1 = 0.8*borne; borne2 = 0.2*borne;
+    if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = mix(val, bgColor, df); }
+    else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = mix(val, bgColor, df); }
     color2 = vec4(val.r, val.g, val.b,  blend);
-  } 
+  }
   else color2 = vec4(bgColor.r, bgColor.g, bgColor.b, 0.);
  
   gl_FragColor = color2;

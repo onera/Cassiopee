@@ -1,6 +1,7 @@
 //
 // Glass shader
 //
+#version 150 compatibility
 const vec3 Xunitvec = vec3(1.0, 0.0, 0.0);
 const vec3 Yunitvec = vec3(0.0, 1.0, 0.0);
 
@@ -60,10 +61,10 @@ void main (void)
   borne = edgeStyle*df;
   if (fs-f < borne) 
   { 
-     borne1 = 0.8*borne; borne2 = 0.2*borne;
-     if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = val * df; }
-     else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = val * df; }
-     else { val = vec3(0.); }
+    borne1 = 0.8*borne; borne2 = 0.2*borne;
+    if (fs-f > borne1) { df = (fs-f-borne1)/borne2; val = val * df; }
+    else if (fs-f < borne2) { df = (-fs+f+borne2)/borne2; val = val * df; }
+    else { val = vec3(0.); }
   }  
   vec4 color2 = vec4(val.r, val.g, val.b, blend);
 
@@ -89,11 +90,11 @@ void main (void)
   // Translate index values into proper range
 
   if (reflectDir.z >= 0.0)
-     index = (index + 1.0) * 0.5;
+    index = (index + 1.0) * 0.5;
   else
   {
-      index.t = (index.t + 1.0) * 0.5;
-      index.s = (-index.s) * 0.5 + 1.0;
+    index.t = (index.t + 1.0) * 0.5;
+    index.s = (-index.s) * 0.5 + 1.0;
   }
     
   // if reflectDir.z >= 0.0, s will go from 0.25 to 0.75
@@ -109,40 +110,40 @@ void main (void)
   fresnel *= MixRatio2;
   fresnel = clamp(fresnel, 0.1, 0.9);
 
-   // calc refraction
-   vec3 refractionDir = normalize(EyeDir) - normalize(N);
+  // calc refraction
+  vec3 refractionDir = normalize(EyeDir) - normalize(N);
 
-   // Scale the refraction so the z element is equal to depth
-   float depthVal = Depth / -refractionDir.z;
+  // Scale the refraction so the z element is equal to depth
+  float depthVal = Depth / -refractionDir.z;
 	
-   // perform the div by w
-   float recipW = 1.0 / EyePos.w;
-   vec2 eye = EyePos.xy * vec2(recipW);
+  // perform the div by w
+  float recipW = 1.0 / EyePos.w;
+  vec2 eye = EyePos.xy * vec2(recipW);
 
-   // calc the refraction lookup
-   index.s = (eye.x + refractionDir.x * depthVal);
-   index.t = (eye.y + refractionDir.y * depthVal);
+  // calc the refraction lookup
+  index.s = (eye.x + refractionDir.x * depthVal);
+  index.t = (eye.y + refractionDir.y * depthVal);
 	
-   // scale and shift so we're in the range 0-1
-   index.s = index.s / 2.0 + 0.5;
-   index.t = index.t / 2.0 + 0.5;
+  // scale and shift so we're in the range 0-1
+  index.s = index.s / 2.0 + 0.5;
+  index.t = index.t / 2.0 + 0.5;
 	
-    // as we're looking at the framebuffer, we want it clamping at the edge of the rendered scene, not the edge of the texture,
-    // so we clamp before scaling to fit
-    float recip1k = 1.0 / 2048.0;
-    index.s = clamp(index.s, 0.0, 1.0 - recip1k);
-    index.t = clamp(index.t, 0.0, 1.0 - recip1k);
+  // as we're looking at the framebuffer, we want it clamping at the edge of the rendered scene, not the edge of the texture,
+  // so we clamp before scaling to fit
+  float recip1k = 1.0 / 2048.0;
+  index.s = clamp(index.s, 0.0, 1.0 - recip1k);
+  index.t = clamp(index.t, 0.0, 1.0 - recip1k);
 	
-    // scale the texture so we just see the rendered framebuffer
-    index.s = index.s * FrameWidth * recip1k;
-    index.t = index.t * FrameHeight * recip1k;
+  // scale the texture so we just see the rendered framebuffer
+  index.s = index.s * FrameWidth * recip1k;
+  index.t = index.t * FrameHeight * recip1k;
 	
-    vec3 RefractionColor = vec3(texture2D(RefractionMap, index));
+  vec3 RefractionColor = vec3(texture2D(RefractionMap, index));
     
-    // Add lighting to base color and mix
-    vec3 base = LightIntensity * BaseColor;
-    envColor = mix(envColor, RefractionColor, fresnel);
-    envColor = mix(envColor, base, MixRatio);
+  // Add lighting to base color and mix
+  vec3 base = LightIntensity * BaseColor;
+  envColor = mix(envColor, RefractionColor, fresnel);
+  envColor = mix(envColor, base, MixRatio);
 
-    gl_FragColor = vec4(envColor, blend);
+  gl_FragColor = vec4(envColor, blend);
 }

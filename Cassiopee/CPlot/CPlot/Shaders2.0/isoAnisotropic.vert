@@ -1,4 +1,5 @@
 // isos + anisotropic
+#version 150 compatibility
 
 varying vec4 color;
 varying vec3 normal;

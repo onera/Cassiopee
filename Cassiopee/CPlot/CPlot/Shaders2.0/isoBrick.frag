@@ -1,5 +1,7 @@
 // Shader iso + brick
 // = color bands + bump mapped edges
+#version 150 compatibility
+
 varying vec4 color;
 varying vec3 Nv;
 varying vec3 P;

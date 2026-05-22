@@ -1,5 +1,6 @@
 // Sphere billboarding
 // Remplace un quad avec texcoord (0,0)-(1,1) par une sphere
+#version 150 compatibility
 
 varying vec4 initColor;
 varying vec3 P;

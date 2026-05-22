@@ -1,4 +1,6 @@
 // panorama - 360 texture from 6 cube textures of cube map
+#version 150 compatibility
+
 varying vec4 color;
 void main()
 {

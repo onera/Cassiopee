@@ -1,4 +1,5 @@
 // iso + Sphere billboarding
+#version 150 compatibility
 
 varying vec3 P;
 varying vec4 color;

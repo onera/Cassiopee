@@ -1,9 +1,11 @@
 //
 // Glass shader
 //
-varying vec3  Normal;
-varying vec3  EyeDir;
-varying vec4  EyePos;
+#version 150 compatibility
+
+varying vec3 Normal;
+varying vec3 EyeDir;
+varying vec4 EyePos;
 varying vec4 color;
 
 void main(void) 

@@ -1,3 +1,5 @@
+#version 150 compatibility
+
 varying vec3 normal, lightDir;
 varying vec4 color;
 

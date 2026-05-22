@@ -40,20 +40,20 @@ void main()
   {
     vec3 N = normalize(color.xyz);
     vec3 L = normalize(gl_LightSource[0].position.xyz-color.xyz);
-     // Coords -> texCoords
-     vec4 ShadowCoord = gl_TextureMatrix[0] * color;
-     vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
+    // Coords -> texCoords
+    vec4 ShadowCoord = gl_TextureMatrix[0] * color;
+    vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
 
-     // Used to lower moire pattern and self-shadowing
-     //shadowCoordinateW.z -= 0.00001;
-     float dotNL = dot(N, L);
-     shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
+    // Used to lower moire pattern and self-shadowing
+    //shadowCoordinateW.z -= 0.00001;
+    float dotNL = dot(N, L);
+    shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
 
-     // Z buffer du point dans la texture rendu du pt de vue de la lumiere
-     float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
-     float s = shadowCoordinateW.s;
-     float t = shadowCoordinateW.t;      
-     if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
+    // Z buffer du point dans la texture rendu du pt de vue de la lumiere
+    float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
+    float s = shadowCoordinateW.s;
+    float t = shadowCoordinateW.t;      
+    if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
        shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
   }
 

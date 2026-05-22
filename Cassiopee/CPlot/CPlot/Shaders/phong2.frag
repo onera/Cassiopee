@@ -1,7 +1,7 @@
-#version 400 compatibility
 /*
     Phong (two sides)
 */
+#version 400 compatibility
 
 in V2F_OUT
 {

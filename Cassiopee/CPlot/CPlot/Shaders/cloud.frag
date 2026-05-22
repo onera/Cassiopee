@@ -1,20 +1,20 @@
-#version 400 compatibility
 //
 // Fragment shader for producing clouds (mostly sunny)
 //
+#version 400 compatibility
 /*varying float LightIntensity; 
 varying vec3 MCposition;
 varying vec4 initColor;
 varying vec4 vertex;*/
 in V2F_OUT
 {
-    vec4 position;
-    vec4 mv_position;
-    vec4 mvp_position;
-    vec4 view_normal;
-    vec4 nrm_view_normal;
-    vec4 color;
-    vec4 vdata1, vdata2, vdata3, vdata4;
+  vec4 position;
+  vec4 mv_position;
+  vec4 mvp_position;
+  vec4 view_normal;
+  vec4 nrm_view_normal;
+  vec4 color;
+  vec4 vdata1, vdata2, vdata3, vdata4;
 } v2f_out;
 
 uniform sampler3D Noise;
@@ -25,25 +25,25 @@ uniform sampler2D ShadowMap;
 
 void main (void)
 {
-    float LightIntensity = v2f_out.vdata1.w;
-    vec3  MCposition     = v2f_out.vdata1.xyz;
-    vec4 initColor       = v2f_out.color;
-    vec4 vertex          = v2f_out.position;
+  float LightIntensity = v2f_out.vdata1.w;
+  vec3  MCposition     = v2f_out.vdata1.xyz;
+  vec4 initColor       = v2f_out.color;
+  vec4 vertex          = v2f_out.position;
     
-    vec3 SkyColor = vec3(initColor.r, initColor.g, initColor.b); 
-    vec4 noisevec = texture3D(Noise, 1.2 * (vec3(0.5) + MCposition + Offset));
+  vec3 SkyColor = vec3(initColor.r, initColor.g, initColor.b); 
+  vec4 noisevec = texture3D(Noise, 1.2 * (vec3(0.5) + MCposition + Offset));
 
-    float intensity = (noisevec[0] + noisevec[1] +
-                       noisevec[2] + noisevec[3]) * 1.7;
+  float intensity = (noisevec[0] + noisevec[1] +
+                      noisevec[2] + noisevec[3]) * 1.7;
 
-    intensity = 1.95 * abs(2.0 * intensity - 1.0);
-    intensity = clamp(intensity, 0.0, 1.0);
-    vec3 color = mix(CloudColor, SkyColor, intensity) * LightIntensity;
-    color = clamp(color, 0.0, 1.0);
+  intensity = 1.95 * abs(2.0 * intensity - 1.0);
+  intensity = clamp(intensity, 0.0, 1.0);
+  vec3 color = mix(CloudColor, SkyColor, intensity) * LightIntensity;
+  color = clamp(color, 0.0, 1.0);
 
-    float shadowValue = 1.;
-    if (shadow > 0)
-    {
+  float shadowValue = 1.;
+  if (shadow > 0)
+  {
     // Coords -> texCoords
     vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
     vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
@@ -57,16 +57,15 @@ void main (void)
     float s = shadowCoordinateW.s;
     float t = shadowCoordinateW.t;      
     if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-      {
+    {
       //shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
       if (distanceFromLight < shadowCoordinateW.z - 0.001) shadowValue = 0.5;
       else if (distanceFromLight >= shadowCoordinateW.z) shadowValue = 1.;
       else shadowValue = 500.*distanceFromLight-499.*shadowCoordinateW.z;
-      }
     }
+  }
 
-
-    color = shadowValue * color;
-    gl_FragColor = vec4(color, initColor.a);
-    gl_FragColor.a = initColor.a;
+  color = shadowValue * color;
+  gl_FragColor = vec4(color, initColor.a);
+  gl_FragColor.a = initColor.a;
 }

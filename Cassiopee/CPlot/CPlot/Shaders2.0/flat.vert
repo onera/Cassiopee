@@ -1,4 +1,6 @@
 // flat shader
+#version 150 compatibility
+
 varying vec3 Nv;
 varying vec3 P;
 varying vec4 color;

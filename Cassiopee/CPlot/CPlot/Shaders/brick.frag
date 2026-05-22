@@ -1,7 +1,7 @@
-#version 400 compatibility
 //
 // Fragment shader for procedural bricks (with bumps)
 //
+#version 400 compatibility
 uniform vec3 MortarColor;
 uniform vec2 BrickSize;
 uniform vec2 BrickPct;

@@ -1,6 +1,8 @@
 // Shader iso + anisotropic
 //
 // iso + metal
+#version 150 compatibility
+
 varying vec4 color;
 varying vec3 normal;
 varying vec3 tangent;

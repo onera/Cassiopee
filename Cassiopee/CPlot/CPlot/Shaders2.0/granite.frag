@@ -1,6 +1,8 @@
 //
 // Granite shader
 //
+#version 150 compatibility
+
 varying vec3 MCposition;
 varying vec3 Nv;
 varying vec3 P;

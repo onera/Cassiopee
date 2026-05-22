@@ -1,4 +1,6 @@
 // Metal (anisotropic)
+#version 150 compatibility
+
 varying vec3 MCposition;
 varying vec4 color;
 varying vec3 normal;
@@ -25,45 +27,45 @@ void main(void)
   
   if (bump > 0.) // bump map, modifie tangent
   {  
-     // granite noise
-     /*
-     vec4  noisevec = texture3D(Noise, MCposition);
-     float val = min(1.0, noisevec[3] * 18.0);
-     noisevec = texture3D(Noise, MCposition+vec3(0.001,0.,0.));
-     float nx = min(1.0, noisevec[3] * 18.0) - val;
-     noisevec = texture3D(Noise, MCposition+vec3(0.,0.001,0.));
-     float ny = min(1.0, noisevec[3] * 18.0) - val;
-     noisevec = texture3D(Noise, MCposition+vec3(0.,0.,0.001));
-     float nz = min(1.0, noisevec[3] * 18.0) - val;
-     */
+    // granite noise
+    /*
+    vec4  noisevec = texture3D(Noise, MCposition);
+    float val = min(1.0, noisevec[3] * 18.0);
+    noisevec = texture3D(Noise, MCposition+vec3(0.001,0.,0.));
+    float nx = min(1.0, noisevec[3] * 18.0) - val;
+    noisevec = texture3D(Noise, MCposition+vec3(0.,0.001,0.));
+    float ny = min(1.0, noisevec[3] * 18.0) - val;
+    noisevec = texture3D(Noise, MCposition+vec3(0.,0.,0.001));
+    float nz = min(1.0, noisevec[3] * 18.0) - val;
+    */
 
-     // cloud noise
-     vec4  noisevec = texture3D(Noise, MCposition);
-     float val = (noisevec[0] + noisevec[1] + noisevec[2]+ noisevec[3])*1.7;
-     val = abs(2.0 * val - 1.0);
-     noisevec = texture3D(Noise, MCposition+vec3(0.001,0.,0.));
-     float val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
-     val2 = abs(2.0 * val2 - 1.0);
-     float nx = val2 - val;
-     noisevec = texture3D(Noise, MCposition+vec3(0.,0.001,0.));
-     val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
-     val2 = abs(2.0 * val2 - 1.0);
-     float ny = val2 - val;
-     noisevec = texture3D(Noise, MCposition+vec3(0.,0.,0.001));
-     val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
-     val2 = abs(2.0 * val2 - 1.0);
-     float nz = val2 - val;
+    // cloud noise
+    vec4  noisevec = texture3D(Noise, MCposition);
+    float val = (noisevec[0] + noisevec[1] + noisevec[2]+ noisevec[3])*1.7;
+    val = abs(2.0 * val - 1.0);
+    noisevec = texture3D(Noise, MCposition+vec3(0.001,0.,0.));
+    float val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
+    val2 = abs(2.0 * val2 - 1.0);
+    float nx = val2 - val;
+    noisevec = texture3D(Noise, MCposition+vec3(0.,0.001,0.));
+    val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
+    val2 = abs(2.0 * val2 - 1.0);
+    float ny = val2 - val;
+    noisevec = texture3D(Noise, MCposition+vec3(0.,0.,0.001));
+    val2 = (noisevec[0] + noisevec[1] + noisevec[2] + noisevec[3])*1.7;
+    val2 = abs(2.0 * val2 - 1.0);
+    float nz = val2 - val;
 
-     // Theoriquement juste 
-     //vec3 bumpN = n + bump * 0.5 * gl_NormalMatrix * vec3(nx, ny ,nz);
-     //bumpN = normalize(bumpN);
-     //t = t-dot(bumpN,t)*bumpN;
-     //t = normalize(t);
+    // Theoriquement juste 
+    //vec3 bumpN = n + bump * 0.5 * gl_NormalMatrix * vec3(nx, ny ,nz);
+    //bumpN = normalize(bumpN);
+    //t = t-dot(bumpN,t)*bumpN;
+    //t = normalize(t);
 
-     // joli
-     vec3 bumpN = bump * 1.5 * gl_NormalMatrix * vec3(nx, ny ,nz);
-     t = t-dot(bumpN,t)*bumpN;
-     t = normalize(t);
+    // joli
+    vec3 bumpN = bump * 1.5 * gl_NormalMatrix * vec3(nx, ny ,nz);
+    t = t-dot(bumpN,t)*bumpN;
+    t = normalize(t);
   }
 
   vec3 l = normalize(light);
@@ -86,25 +88,25 @@ void main(void)
   float shadowValue = 1.;
   if (shadow > 0)
   {
-  vec3 L = normalize(gl_LightSource[0].position.xyz+eye);
+    vec3 L = normalize(gl_LightSource[0].position.xyz+eye);
     
-  // Coords -> texCoords
-  vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
-  vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
+    // Coords -> texCoords
+    vec4 ShadowCoord = gl_TextureMatrix[0] * vertex;
+    vec4 shadowCoordinateW = ShadowCoord / ShadowCoord.w;
 
-  // Used to lower moire pattern and self-shadowing
-  //shadowCoordinateW.z -= 0.00001;
-  float dotNL = dot(n, L);
-  shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
+    // Used to lower moire pattern and self-shadowing
+    //shadowCoordinateW.z -= 0.00001;
+    float dotNL = dot(n, L);
+    shadowCoordinateW.z -= (abs(dotNL)+0.1)*0.00001;
 
-  // Z buffer du point dans la texture rendu du pt de vue de la lumiere
-  float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
-  float s = shadowCoordinateW.s;
-  float t = shadowCoordinateW.t;      
-  if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
-      shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
+    // Z buffer du point dans la texture rendu du pt de vue de la lumiere
+    float distanceFromLight = texture2D(ShadowMap, shadowCoordinateW.st).r;
+    float s = shadowCoordinateW.s;
+    float t = shadowCoordinateW.t;      
+    if (ShadowCoord.w > 0.0 && s > 0.001 && s < 0.999 && t > 0.001 && t < 0.999)
+        shadowValue = distanceFromLight < shadowCoordinateW.z ? 0.5 : 1.0;
   }
 
-   gl_FragColor = shadowValue * color2;
-   gl_FragColor.a = color.a;
+  gl_FragColor = shadowValue * color2;
+  gl_FragColor.a = color.a;
 }
