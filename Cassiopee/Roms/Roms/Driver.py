@@ -1628,7 +1628,7 @@ class Driver:
                     p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps
                 #Converter.convertArrays2File(mesh, "out1.plt")
                 #Converter.convertArrays2File(mesho, "out2.plt")
-                                     
+
         else: # pyTree (by deformation)
             Mesho = Internal.copyTree(Mesh)
             zoneso = Internal.getZones(Mesho)
@@ -1645,7 +1645,7 @@ class Driver:
                 Mesh = entity.Dmesh()
                 C.convertPyTree2File(Mesh, 'out1.cgns')
                 C.convertPyTree2File(Mesho, 'out2.cgns')
-                
+
                 C._initVars(Mesh, 'dXd%d'%c, 0.)
                 C._initVars(Mesh, 'dYd%d'%c, 0.)
                 C._initVars(Mesh, 'dZd%d'%c, 0.)
