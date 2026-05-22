@@ -14,7 +14,7 @@ uniform float scale;
 void main()
 {
   gl_Position = ftransform();
-  vertex.P0    = gl_Vertex;
+  vertex.P0 = gl_Vertex;
   vertex.color = gl_Color;
   vec4 transpos = vec4(gl_Color.xyz,0.) - vec4(0.5,0.5,0.5,0.0);
   transpos = (1-fix_length)*transpos + 0.5*fix_length*normalize(transpos);

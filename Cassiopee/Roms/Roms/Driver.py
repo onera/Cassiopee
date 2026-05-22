@@ -1037,7 +1037,6 @@ class Surface():
             a = C.getFields(Internal.__GridCoordinates__, z1, api=3)[0]
             o = OCC.occ.evalFace(self.hook, a, i+1)
             zones3[i] = C.setFields([o], zones3[i], 'nodes')
-
             #C.convertPyTree2File(self.RefMeshUV2, 'out2.cgns')
 
         return self.RefMesh
@@ -1605,7 +1604,7 @@ class Driver:
             raise TypeError("Warning: dXdmu: incorrect freevars.")
 
         if mesh is not None: # array (by rmesh)
-            mesho = Converter.copy(mesh)
+            #mesho = Converter.copy(mesh)
             for c, f in enumerate(listVars):
                 # free vars value dict
                 d = {}
@@ -1627,8 +1626,12 @@ class Driver:
                     p1x[pos1,:] = (p2x[0,:]-p1x[0,:])/deps
                     p1x[pos2,:] = (p2x[1,:]-p1x[1,:])/deps
                     p1x[pos3,:] = (p2x[2,:]-p1x[2,:])/deps
+                #Converter.convertArrays2File(mesh, "out1.plt")
+                #Converter.convertArrays2File(mesho, "out2.plt")
+                                     
         else: # pyTree (by deformation)
             Mesho = Internal.copyTree(Mesh)
+            zoneso = Internal.getZones(Mesho)
             for c, f in enumerate(listVars):
                 # free vars value dict
                 d = {}
@@ -1638,29 +1641,45 @@ class Driver:
                 print("DIFF on: ", f.name)
                 # update CAD at param+eps
                 self.instantiate(d)
-                # suppose Mesh is a reference
-                Mesh2 = entity.Dmesh()
-                zones1 = Internal.getZones(Mesho)
-                zones2 = Internal.getZones(Mesh2)
+                # deform reference mesh to match parameters
+                Mesh = entity.Dmesh()
+                C.convertPyTree2File(Mesh, 'out1.cgns')
+                C.convertPyTree2File(Mesho, 'out2.cgns')
+                
                 C._initVars(Mesh, 'dXd%d'%c, 0.)
                 C._initVars(Mesh, 'dYd%d'%c, 0.)
                 C._initVars(Mesh, 'dZd%d'%c, 0.)
+                zones1 = Internal.getZones(Mesh)
                 for i, z1 in enumerate(zones1):
-                    z2 = zones2[i]
+                    z2 = zoneso[i]
                     cont1 = Internal.getNodeFromName1(z1, 'GridCoordinates')
                     cont2 = Internal.getNodeFromName1(z2, 'GridCoordinates')
                     p1x = Internal.getNodeFromName2(cont1, 'CoordinateX')[1]
                     p2x = Internal.getNodeFromName2(cont2, 'CoordinateX')[1]
                     dx = Internal.getNodeFromName2(z1, 'dXd%d'%c)[1]
-                    dx[:] = (p2x[:]-p1x[:])/deps
+                    dx[:] = (p1x[:]-p2x[:])/deps
                     p1y = Internal.getNodeFromName2(cont1, 'CoordinateY')[1]
                     p2y = Internal.getNodeFromName2(cont2, 'CoordinateY')[1]
                     dy = Internal.getNodeFromName2(z1, 'dYd%d'%c)[1]
-                    dy[:] = (p2y[:]-p1y[:])/deps
+                    dy[:] = (p1y[:]-p2y[:])/deps
                     p1z = Internal.getNodeFromName2(cont1, 'CoordinateZ')[1]
                     p2z = Internal.getNodeFromName2(cont2, 'CoordinateZ')[1]
                     dz = Internal.getNodeFromName2(z1, 'dZd%d'%c)[1]
-                    dz[:] = (p2z[:]-p1z[:])/deps
+                    dz[:] = (p1z[:]-p2z[:])/deps
+                # restore initital coordinates
+                for i, z1 in enumerate(zones1):
+                    z2 = zoneso[i]
+                    cont1 = Internal.getNodeFromName1(z1, 'GridCoordinates')
+                    cont2 = Internal.getNodeFromName1(z2, 'GridCoordinates')
+                    p1x = Internal.getNodeFromName2(cont1, 'CoordinateX')[1]
+                    p2x = Internal.getNodeFromName2(cont2, 'CoordinateX')[1]
+                    p1x[:] = p2x[:]
+                    p1y = Internal.getNodeFromName2(cont1, 'CoordinateY')[1]
+                    p2y = Internal.getNodeFromName2(cont2, 'CoordinateY')[1]
+                    p1y[:] = p2y[:]
+                    p1z = Internal.getNodeFromName2(cont1, 'CoordinateZ')[1]
+                    p2z = Internal.getNodeFromName2(cont2, 'CoordinateZ')[1]
+                    p1z[:] = p2z[:]
 
         # remet le hook original
         d = {}

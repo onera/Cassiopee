@@ -30,5 +30,5 @@ print("dLdR by FD:", dLdR)
 
 # compute dL/dR by dL/dX * dX/dR by FD and AD
 D.DRIVER.instantiate({'radius': 1.5})
-D.DRIVER._dXdmu(sketch1, m1, freeParams=['radius'])
+D.DRIVER._dXdmu(sketch1, mesh=m1, freeParams=['radius'])
 print(m1)

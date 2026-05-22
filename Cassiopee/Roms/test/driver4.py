@@ -31,7 +31,7 @@ D.DRIVER.solve()
 D.DRIVER.instantiate({'epaisseur': 0.8})
 sketch1.writeCAD('out.step')
 mesh = sketch1.mesh()
-D.DRIVER._dXdmu(sketch1, mesh)
+D.DRIVER._dXdmu(sketch1, mesh=mesh, deps=1.e-3)
 Converter.convertArrays2File(mesh, 'dout.plt')
 
 # Build DOE

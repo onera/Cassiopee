@@ -112,7 +112,7 @@ def update(event=None):
         if ENTITY.h is None:
             ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
         m = ENTITY.MeshAsReference()
-        DRIVER._dXdmu(ENTITY, Mesh=m, freeParams=[VARS[0].get()], deps=1.e-6)
+        DRIVER._dXdmu(ENTITY, Mesh=m, freeParams=[VARS[0].get()], deps=1.e-4)
         CPlot.display(m, mode='Vector',
                       vectorField1='dXd0', vectorField2='dYd0', vectorField3='dZd0',
                       vectorStyle=1, bgColor=1)
