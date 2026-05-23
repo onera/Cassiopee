@@ -1,13 +1,6 @@
 // Metal (anisotropic)
 #version 400 compatibility
 
-/*varying vec3 MCposition;
-varying vec4 color;
-varying vec3 normal;
-varying vec3 tangent;
-varying vec3 light;
-varying vec3 eye;
-varying vec4 vertex;*/
 in V2F_OUT
 {
   vec4 position;

@@ -25,11 +25,6 @@ in V2F_OUT
   vec4 color;
   vec4 vdata1, vdata2, vdata3, vdata4;
 } v2f_out;
-/*varying vec4 color;
-varying vec3 Normal;
-varying vec3 EyeDir;
-varying vec4 EyePos;
-*/
 
 void main (void)
 {

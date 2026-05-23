@@ -1,5 +1,6 @@
 // Depth of field shader
-#version 130
+#version 150 compatibility
+
 void main()
 {
   gl_TexCoord[0] = gl_MultiTexCoord0;

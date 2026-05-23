@@ -25,7 +25,9 @@ void main()
 {
   float f, fs;
   int vali;
-  f = color.r; 
+  f = color.r;
+
+  // discard
   if (amax > amin)
   { 
     if (f > amax) discard;

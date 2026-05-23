@@ -102,6 +102,9 @@ void DataDL::displaySIsoSolid()
     if (ptrState->vectorStyle == 1) s = _shaders.shader_id(shader::vector_arrow);
     else if (ptrState->vectorStyle == 2) s = _shaders.shader_id(shader::vector_line);
     
+    // try: no depth check for vector
+    //if (ptrState->vectorStyle == 1 || ptrState->vectorStyle == 2) glDepthMask(GL_FALSE);
+
     if (_shaders.currentShader() != s) _shaders.activate((short unsigned int)s);
     if (s == _shaders.shader_id(shader::vector_rgb))
     {
@@ -191,6 +194,8 @@ void DataDL::displaySIsoSolid()
   }
 
   noLight();
+  //glDepthMask(GL_TRUE);
+
 #ifdef __SHADERS__
   _shaders.activate((short unsigned int)0);
 #endif

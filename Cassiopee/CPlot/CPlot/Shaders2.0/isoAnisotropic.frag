@@ -1,5 +1,4 @@
 // Shader iso + anisotropic
-//
 // iso + metal
 #version 150 compatibility
 

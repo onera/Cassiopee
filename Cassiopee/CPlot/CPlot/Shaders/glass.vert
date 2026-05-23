@@ -21,18 +21,8 @@ out V2CT_OUT
   vec4 vdata1, vdata2, vdata3, vdata4;
 } v2ct_out;
 
-/*varying vec3  Normal;
-varying vec3  EyeDir;
-varying vec4  EyePos;
-varying vec4 color;
-*/
 void main(void) 
 {
-  /*Normal = normalize(gl_NormalMatrix * gl_Normal);
-  vec4 pos = gl_ModelViewMatrix * gl_Vertex;
-  EyeDir = pos.xyz;
-  EyePos = gl_ModelViewProjectionMatrix * gl_Vertex;
-  color = gl_Color;*/
   v2f_out.position = gl_Vertex;
   v2f_out.mv_position  = gl_ModelViewMatrix * gl_Vertex;
   v2f_out.mvp_position = gl_ModelViewProjectionMatrix * gl_Vertex;

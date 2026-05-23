@@ -2,10 +2,6 @@
 // Fragment shader for producing clouds (mostly sunny)
 //
 #version 400 compatibility
-/*varying float LightIntensity; 
-varying vec3 MCposition;
-varying vec4 initColor;
-varying vec4 vertex;*/
 in V2F_OUT
 {
   vec4 position;

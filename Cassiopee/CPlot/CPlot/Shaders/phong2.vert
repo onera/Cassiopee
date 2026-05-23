@@ -29,6 +29,5 @@ void main(void)
   v2ct_out.position = gl_Vertex;
   v2ct_out.data_comp = ivec4(0,0,0,0);
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-
   //gl_Position = ftransform();
 }

@@ -12,12 +12,6 @@ in V2F_OUT
   vec4 color;
   vec4 vdata1, vdata2, vdata3, vdata4;
 } v2f_out;
-/*varying vec3 MCposition;
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 initColor;
-varying vec4 vertex;
-*/
 uniform float bump;
 uniform sampler3D Noise;
 uniform int shadow;

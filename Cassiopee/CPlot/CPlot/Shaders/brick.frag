@@ -8,11 +8,6 @@ uniform vec2 BrickPct;
 uniform int shadow;
 uniform sampler2D ShadowMap;
 
-/*varying vec2 MCposition;
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 initColor;
-varying vec4 vertex;*/
 in V2F_OUT
 {
   vec4 position;

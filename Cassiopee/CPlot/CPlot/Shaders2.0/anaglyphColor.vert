@@ -1,5 +1,5 @@
 //
-// Vertex shader for anaglyph
+// Vertex shader for anaglyph with color
 //
 #version 150 compatibility
 

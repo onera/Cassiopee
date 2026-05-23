@@ -1,13 +1,6 @@
 // Gooch (hand drawing) shader
 #version 400 compatibility
 
-/*varying float NdotL;
-varying vec3 ReflectVec;
-varying vec3 ViewVec;
-varying vec4 color;
-varying vec3 ecPos;
-varying vec3 tnorm;
-varying vec4 vertex;*/
 in V2F_OUT
 {
   vec4 position;

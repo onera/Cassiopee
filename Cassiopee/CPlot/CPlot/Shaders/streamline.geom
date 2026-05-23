@@ -149,11 +149,11 @@ float compute_u(float zeta_u, float zeta_v)
 float compute_v( float phi_u, float phi_v, float u )
 {
   float r = uniform_rand();
-  const float epsilon = 1.E-6;
+  const float epsilon = 1.e-6;
   if ( abs(phi_v) < epsilon ) return (1.0f-u)*r;
   float tau = 1.f/3.f - (1.f + (u-1.f/3.f)*phi_u)/phi_v;
   float tmp = tau + u - 1.f;
-  float q   = sqrt(tau*tau*(1.f-r) + tmp*tmp*r);
+  float q = sqrt(tau*tau*(1.f-r) + tmp*tmp*r);
   return tau <= 0.5f*(1.f-u) ? tau + q : tau - q;
 }
 /*
@@ -230,6 +230,6 @@ void uniform_line_draw()
 
 void main()
 {
-  if ( density < 1.E-8 ) simple_line_draw();
+  if ( density < 1.e-8 ) simple_line_draw();
   else uniform_line_draw();
 }

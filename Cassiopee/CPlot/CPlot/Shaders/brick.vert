@@ -1,10 +1,5 @@
 // Procedural bricks
 #version 400 compatibility
-/*varying vec2 MCposition;
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 initColor;
-varying vec4 vertex;*/
 out V2F_OUT
 {
   vec4 position;
@@ -26,14 +21,9 @@ out V2CT_OUT
 
 void main(void)
 {
-  // P = vec3(gl_ModelViewMatrix * gl_Vertex);
   v2f_out.mv_position = gl_ModelViewMatrix * gl_Vertex;
-  // Nv = gl_NormalMatrix * gl_Normal;
   v2f_out.view_normal = vec4(gl_NormalMatrix * gl_Normal,0.);
-  // vertex = gl_Vertex;
   v2f_out.position = gl_Vertex;
-  // MCposition = gl_Vertex.xy
-  // initColor = gl_Color;
   v2f_out.color = gl_Color;
 
   v2ct_out.position = gl_Vertex;

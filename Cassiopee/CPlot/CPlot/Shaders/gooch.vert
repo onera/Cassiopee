@@ -1,12 +1,5 @@
 // Gooch (hand drawing) shader
 #version 400 compatibility
-/*varying float NdotL;
-varying vec3 ReflectVec;
-varying vec3 ViewVec;
-varying vec3 ecPos;
-varying vec3 tnorm;
-varying vec4 color;
-varying vec4 vertex;*/
 out V2F_OUT
 {
   vec4 position;
@@ -39,8 +32,6 @@ void main(void)
   //ViewVec = normalize(-ecPos);
   float NdotL = (dot(lightVec, tnorm) + 1.0) * 0.5;
   v2f_out.vdata2 = vec4(normalize(-ecPos), NdotL);
-  /*vertex = gl_Vertex;
-  color = gl_Color;*/
   v2f_out.position = gl_Vertex;
   v2f_out.color    = gl_Color;
 

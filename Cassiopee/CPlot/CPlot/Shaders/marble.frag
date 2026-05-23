@@ -2,11 +2,6 @@
 // Marble shader
 //
 #version 400 compatibility
-/*varying vec3  MCposition;
-varying vec3 Nv;
-varying vec3 P;
-varying vec4 initColor;
-varying vec4 vertex;*/
 
 in V2F_OUT
 {

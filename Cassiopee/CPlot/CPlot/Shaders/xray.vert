@@ -19,10 +19,6 @@ out V2CT_OUT
   ivec4 data_comp; // Raconte si vdata1,2,3 ou 4 est utilise
   vec4 vdata1, vdata2, vdata3, vdata4;
 } v2ct_out;
-/*varying vec3 N;
-varying vec3 I;
-varying vec4 color;
-*/
 
 void main()
 {

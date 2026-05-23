@@ -12,10 +12,6 @@ in V2F_OUT
     vec4 vdata1, vdata2, vdata3, vdata4;
 } v2f_out;
 
-/*varying vec3 N;
-varying vec3 I;
-varying vec4 color;*/
-
 uniform float EdgeFalloff;
 uniform float intensity;
 

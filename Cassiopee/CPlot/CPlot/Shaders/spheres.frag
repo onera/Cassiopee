@@ -38,5 +38,5 @@ void main()
 	
   gl_FragDepth = depth;
   gl_FragColor = col;
-  gl_FragColor.a = initColor.a;  
+  gl_FragColor.a = initColor.a;
 }

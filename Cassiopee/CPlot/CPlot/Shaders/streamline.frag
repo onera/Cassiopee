@@ -1,3 +1,4 @@
+// vector as simple lines
 #version 150 compatibility
 
 in vec4 color;
