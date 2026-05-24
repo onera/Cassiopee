@@ -1116,56 +1116,6 @@
   // Pour les BAR
   if (eltType == 1)
   {
-    /*
-    glLineWidth(3.);
-    glPolygonOffset(-1.,-10.); // force offset
-    glBegin(GL_LINES);
-    if (zonep->blank == 0)
-    {
-      for (i = 0; i < ne; i++)
-      {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
-        r = f1[n1]*deltai+0.5; 
-        g = f2[n1]*deltai+0.5;  
-        b = f3[n1]*deltai+0.5;
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        r = f1[n2]*deltai+0.5; 
-        g = f2[n2]*deltai+0.5;  
-        b = f3[n2]*deltai+0.5; 
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
-      }
-    }
-    else
-    {
-      for (i = 0; i < ne; i++)
-      {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
-        ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
-        ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
-        
-        if (ret1*ret2 != 0)
-        {
-          r = f1[n1]*deltai+0.5; 
-          g = f2[n1]*deltai+0.5;  
-          b = f3[n1]*deltai+0.5; 
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          r = f1[n2]*deltai+0.5; 
-          g = f2[n2]*deltai+0.5;  
-          b = f3[n2]*deltai+0.5; 
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n2], y[n2], z[n2]);
-        }
-      }
-    }
-    glEnd();
-    glLineWidth(1.);
-    */
-    // added for vector shader that works only on TRIs
     glBegin(GL_TRIANGLES);
     if (zonep->blank == 0)
     {
@@ -1187,7 +1137,7 @@
         glVertex3d(x[n2], y[n2], z[n2]);
         glColor3f(r, g, b+offb);
         glNormal3f(0., 0., 1.);            
-        glVertex3d(x[n2]+0.01, y[n2], z[n2]);
+        glVertex3d(x[n2]+1.e-7, y[n2]+1.e-7, z[n2]+1.e-7);
       }
     }
     else
@@ -1215,7 +1165,7 @@
           glVertex3d(x[n2], y[n2], z[n2]);
           glColor3f(r, g, b+offb);
           glNormal3f(0., 0., 1.); 
-          glVertex3d(x[n2]+1.e-6, y[n2], z[n2]);
+          glVertex3d(x[n2]+1.e-7, y[n2]+1.e-7, z[n2]+1.e-7);
         }
       }
     }
@@ -1225,66 +1175,6 @@
   // Pour les NGONS 1D
   if (eltType == 10 && zonep->nelts1D > 0)
   {
-    /*
-    glLineWidth(3.);
-    glBegin(GL_LINES);
-    if (zonep->blank == 0)
-    {
-      for (i = 0; i < zonep->nelts1D; i++)
-      {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
-        r = f1[n1]*deltai+0.5; 
-        g = f2[n1]*deltai+0.5;  
-        b = f3[n1]*deltai+0.5; 
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        r = f1[n2]*deltai+0.5; 
-        g = f2[n2]*deltai+0.5;  
-        b = f3[n2]*deltai+0.5; 
-        glColor3f(r, g, b+offb); 
-        glVertex3d(x[n2], y[n2], z[n2]);
-      }
-    }
-    else
-    {
-      for (i = 0; i < zonep->nelts1D; i++)
-      {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
-        ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
-        ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
-        if (ret1*ret2 != 0)
-        {
-          r = f1[n1]*deltai+0.5; 
-          g = f2[n1]*deltai+0.5;  
-          b = f3[n1]*deltai+0.5; 
-          glColor3f(r, g, b+offb); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          r = f1[n2]*deltai+0.5; 
-          g = f2[n2]*deltai+0.5;  
-          b = f3[n2]*deltai+0.5; 
-          glColor3f(r, g, b+offb);
-          glVertex3d(x[n2], y[n2], z[n2]);
-        }
-      }
-    }
-    glEnd();
-    glLineWidth(1.);
-    */
-    // added for vector shader that works only on TRIs
     glBegin(GL_TRIANGLES);
     if (zonep->blank == 0)
     {
@@ -1312,7 +1202,7 @@
         glVertex3d(x[n2], y[n2], z[n2]);
         glColor3f(r, g, b+offb); 
         glNormal3f(0., 0., 1.);            
-        glVertex3d(x[n2]+1.e-6, y[n2], z[n2]);
+        glVertex3d(x[n2]+1.e-7, y[n2]+1.e-7, z[n2]+1.e-7);
       }
     }
     else
@@ -1345,7 +1235,7 @@
           glVertex3d(x[n2], y[n2], z[n2]);
           glColor3f(r, g, b+offb);
           glNormal3f(0., 0., 1.);            
-          glVertex3d(x[n2]+1.e-6, y[n2], z[n2]);
+          glVertex3d(x[n2]+1.e-7, y[n2]+1.e-7, z[n2]+1.e-7);
         }
       }
     }

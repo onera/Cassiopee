@@ -31,7 +31,7 @@ uniform int style_arrow;
 void show_trig_surf()
 {
   int i;
-  // Emission du triangle de base :
+  // Emission du triangle de base
   for ( i = 0; i < gl_in.length(); ++i ) 
   {
     gl_Position = vertex[i].P0;
@@ -129,7 +129,7 @@ float rand(vec3 co)
 
 void draw_flat_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
 {
-  float ust = (1./3.);
+  float ust = 1./3.;
   if ( project_vectors == 1 ) be3 = be3 - dot(be3,trn) * trn;
   vec4 end  = origin + be3;
 
@@ -315,7 +315,7 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
   float ust = (1./3.);
     
   if ( project_vectors == 1 ) be3 = be3 - dot(be3,trn) * trn;
-  vec4 be1  = vec4(cross(be3.xyz, trn.xyz),0.);
+  vec4 be1 = vec4(cross(be3.xyz, trn.xyz),0.);
   be3 = gl_ModelViewProjectionMatrix * be3;
   be1 = gl_ModelViewProjectionMatrix * be1;
   float nrmbe1 = length(be1);
@@ -325,7 +325,7 @@ void draw_tetra_arrow( vec4 origin, vec4 be3, vec4 trn, vec4 bcol )
     be1 = vec4(be3.y, -be3.x, 0., 0.);
     nrmbe1 = length(be1);
   }
-  vec4 vbary= ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
+  vec4 vbary = ust*(vertex[0].vP+vertex[1].vP+vertex[2].vP);
   vec4 bary = gl_ModelViewProjectionMatrix * origin;
   trn.xyz = (gl_ModelViewProjectionMatrix * vec4(trn.xyz,0.)).xyz;
   if ( project_vectors == 1 )
@@ -486,14 +486,14 @@ void main()
   if ( show_surface == 1 ) show_trig_surf();        // Emission du triangle de base
 
   // Emission des triangles pour le champs de vecteur
-	if (density < 1.E-8)
+	if (density < 1.e-8)
   {
     float ust = (1./3.);
     vec4 bary = ust*(vertex[0].position+vertex[1].position+vertex[2].position);// + vertex[0].translation;
     vec4 be3  = ust*(vertex[0].e3+vertex[1].e3+vertex[2].e3);
     vec4 trn  = normalize(ust*(vertex[0].normal+vertex[1].normal+vertex[2].normal));//cross(be1.xyz,be3.xyz);
     vec4 bcol = ust*(vertex[0].color+vertex[1].color+vertex[2].color);
-    float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543;
+    float f = length(bcol.rgb - vec3(0.5,0.5,0.5))*1.154700543; // 2/sqrt(3)
     f = clamp(f, 0.0f, 1.0f);
     vec3 val = vec3(texture(colormap, f));
     bcol = vec4(val.r, val.g, val.b, 1.);

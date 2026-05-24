@@ -76,11 +76,9 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet, E_Int nofield
 void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
 				 E_Int nofield1, E_Int nofield2, E_Int nofield3)
 {
-  E_Int i, n1, n2;
   float offb;
   double blend;
-  E_Int ret1, ret2;
-
+  
   ZoneImplDL* zoneImpl = static_cast<ZoneImplDL*>(zonep->ptrImpl);
   
   // Blending
@@ -92,96 +90,6 @@ void DataDL::renderUIsoSolidZone(UnstructZone* zonep, E_Int zonet,
   if (curr != 0) _shaders[curr]->setUniform("blend", (float)blend);
   glColor4f(0.,0.,0., blend); // pour imposer blend
 #endif
-
-  double* x = zonep->x; double* y = zonep->y; double* z = zonep->z;
-  E_Int ne = zonep->nec[0];
-  E_Int eltType0 = zonep->eltType[0];
-  E_Int* connect = zonep->connect[0];
   
   glCallList(zoneImpl->_DLiso);
-
-  // Pour les BAR
-  if (eltType0 == 1)
-  {
-    glBegin(GL_LINES);
-    if (zonep->blank == 0)
-    {
-      for (i = 0; i < ne; i++)
-      {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
-        glColor4f(0., 0., 0.+offb, blend);   
-        glVertex3d(x[n1], y[n1], z[n1]);
-        glColor4f(0., 0., 0.+offb, blend);   
-        glVertex3d(x[n2], y[n2], z[n2]);
-      }
-    }
-    else
-    {
-      for (i = 0; i < ne; i++)
-      {
-        n1 = connect[i]-1;
-        n2 = connect[i+ne]-1;
-        ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
-        ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
-        
-        if (ret1*ret2 != 0)
-        {
-          glColor4f(0., 0., 0.+offb, blend); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          glColor4f(0., 0., 0.+offb, blend); 
-          glVertex3d(x[n2], y[n2], z[n2]);
-        }
-      }
-    }
-    glEnd();
-  }
-
-  // Pour les NGONS 1D
-  if (eltType0 == 10 && zonep->nelts1D > 0)
-  {
-    glBegin(GL_LINES);
-    if (zonep->blank == 0)
-    {
-      for (i = 0; i < zonep->nelts1D; i++)
-      {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
-        glColor4f(0., 0., 0.+offb, blend); 
-        glVertex3d(x[n1], y[n1], z[n1]);
-        glColor4f(0., 0., 0.+offb, blend); 
-        glVertex3d(x[n2], y[n2], z[n2]);
-      }
-    }
-    else
-    {
-      for (i = 0; i < zonep->nelts1D; i++)
-      {
-        E_Int elt = zonep->posElts1D[i];
-        E_Int* ptrelt = &connect[elt];
-        E_Int face1 = ptrelt[1]-1;
-        E_Int face2 = ptrelt[2]-1;
-        E_Int posface1 = zonep->posFaces[face1];
-        E_Int posface2 = zonep->posFaces[face2];
-        n1 = connect[posface1+1]-1;
-        n2 = connect[posface2+1]-1;
-        ret1 = _pref.blanking->f(this, n1, zonep->blank, zonet);
-        ret2 = _pref.blanking->f(this, n2, zonep->blank, zonet);
-        if (ret1*ret2 != 0)
-        {
-          glColor4f(0., 0., 0.+offb, blend); 
-          glVertex3d(x[n1], y[n1], z[n1]);
-          glColor4f(0., 0., 0.+offb, blend); 
-          glVertex3d(x[n2], y[n2], z[n2]);
-        }
-      }
-    }
-    glEnd();
-  }
 }
