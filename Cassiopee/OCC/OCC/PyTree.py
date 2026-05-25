@@ -348,7 +348,7 @@ def _unlinkCAD2Tree(t):
     return None
 
 # Get the first tree for structured CAD meshing
-def getTree(hook, N=11, hmin=-1, hmax=-1, hausd=-1.):
+def getTree(hook, N=11, hmin=-1., hmax=-1., hausd=-1.):
     """Get a first TRI meshed tree linked to CAD."""
 
     t = C.newPyTree(['EDGES', 'FACES'])
@@ -500,8 +500,8 @@ def getAllPos(t):
 # IN: aniso: si true, anisotropic mesher
 # OUT: meshed CAD with CAD links
 #=================================================
-def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False, order=1):
-    """Get a first TRI meshed tree linked to CAD."""
+def meshAll(hook, hmin=-1., hmax=-1., hausd=-1., faceList=None, aniso=False, order=1, angularDeflection=28.):
+    """Get a TRI meshed tree linked to CAD."""
 
     t = C.newPyTree(['EDGES', 'FACES'])
 
@@ -509,9 +509,26 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False, orde
     fileName, fileFmt = OCC.occ.getFileAndFormat(hook)
     _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd)
 
-    # - Edges -
-    edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, -1, order=order)
+    if hmin < 0 and hmax < 0: # OCC mesher
+        edges, faces = OCC.meshAllOCC(hook, hausd, angularDeflection)
+    else: # Cassiopee mesher
+        # - Edges -
+        edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, -1, order=order)
+        # - Faces -
+        b = Internal.getNodeFromName1(t, 'FACES')
+        nbFaces = getNbFaces(hook)
+        # distribution parallele (CAD already split)
+        if faceList is None:
+            N = nbFaces // Cmpi.size
+            nstart = Cmpi.rank*N
+            nend = nstart+N
+            if Cmpi.rank == Cmpi.size-1: nend = nbFaces
+            faceList = range(nstart+1, nend+1)
+        if hausd < 0: hList = [(hmax,hmax,hausd)]*len(faceList)
+        else: hList = [(hmin,hmax,hausd)]*len(faceList)
+        faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList, True, aniso, order)
 
+    # create edge zones
     b = Internal.getNodeFromName1(t, 'EDGES')
     for c, e in enumerate(edges):
         z = Internal.createZoneNode('edge%03d'%(c+1), e, [],
@@ -526,24 +543,8 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False, orde
         #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
         b[2].append(z)
 
-    # - Faces -
+    # create face zones
     b = Internal.getNodeFromName1(t, 'FACES')
-    nbFaces = getNbFaces(hook)
-    # distribution parallele (CAD already split)
-    if faceList is None:
-        N = nbFaces // Cmpi.size
-        nstart = Cmpi.rank*N
-        nend = nstart+N
-        if Cmpi.rank == Cmpi.size-1: nend = nbFaces
-        faceList = range(nstart+1, nend+1)
-
-    if hausd < 0:
-        hList = [(hmax,hmax,hausd)]*len(faceList)
-    else:
-        hList = [(hmin,hmax,hausd)]*len(faceList)
-
-    faces = OCC.meshAllFacesTri(hook, edges, True, faceList, hList, True, aniso, order)
-
     for c, f in enumerate(faces):
         if f is None: continue # Failed face
         noface = faceList[c]
@@ -569,7 +570,7 @@ def meshAll(hook, hmin=-1, hmax=-1., hausd=-1., faceList=None, aniso=False, orde
     return t
 
 # the first version of parallel CAD split and TRI meshing
-def meshAllPara(hook, hmin=-1, hmax=-1., hausd=-1.):
+def meshAllPara(hook, hmin=-1., hmax=-1., hausd=-1.):
     import Distributor2
     import Distributor2.PyTree as D2
 
@@ -648,7 +649,7 @@ def meshAllOCC(hook, hausd, angularDeflection=28.):
         Internal._createChild(r, "type", "DataArray_t", value="face")
         Internal._createChild(r, "no", "DataArray_t", value=noface)
         Internal._createChild(r, "edgeList", "DataArray_t", value=edgeNo)
-        Internal._createChild(r, "hsize", "DataArray_t", value=-1)
+        Internal._createChild(r, "hsize", "DataArray_t", value=-1.)
         #Internal._createChild(r, "hook", "UserDefinedData_t", value=hook)
         b[2].append(z)
 
@@ -801,13 +802,17 @@ def _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd):
     return None
 
 # mesh all edges
-def _meshAllEdges(hook, t, hmin=-1., hmax=-1, hausd=-1, N=-1, edgeList=None):
+def _meshAllEdges(hook, t, hmin=-1., hmax=-1, hausd=-1, N=-1, edgeList=None, angularDeflection=28.):
 
     if edgeList is None:
         nbEdges = getNbEdges(hook)
         edgeList = range(1, nbEdges+1)
 
-    edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, N)
+    if hmin < 0 and hmax < 0:
+        edges = OCC.meshAllEdgesOCC(hook, hausd, angularDeflection)
+    else: # Cassiopee mesher
+        edges = OCC.meshAllEdges(hook, hmin, hmax, hausd, N)
+
     b = Internal.getNodeFromName1(t, 'EDGES')
     if b is None: b = Internal.newCGNSBase('EDGES', parent=t)
 
@@ -852,6 +857,7 @@ def _remeshAllEdgesOdd(hook, t):
     return None
 
 def getCADcontainer(t):
+    """Return hmin,hmax,hausd from CAD container."""
     hmin = None; hmax = None; hausd = None
     CAD = Internal.getNodeFromName1(t, 'CAD')
     if CAD is None: return [hmin, hmax, hausd]
@@ -865,7 +871,6 @@ def getCADcontainer(t):
 
 # build or update edges:FaceList
 def _updateEdgesFaceList__(t):
-
     # build edgeOfFaces
     edgeOfFaces = {}
     b = Internal.getNodeFromName1(t, 'EDGES')
@@ -893,7 +898,7 @@ def _updateEdgesFaceList__(t):
     return None
 
 # mesh all faces or a subset from edges U
-def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1, hmax=-1, hausd=-1):
+def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1., hmax=-1., hausd=-1., angularDeflection=28.):
 
     b = Internal.getNodeFromName1(t, 'EDGES')
     dedges = []
@@ -916,7 +921,10 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1, hma
         elif hausd > 0 and hmax < 0: hList = [(1.e-5,10000.,hausd)]*len(faceList)
         else: hList = [(hmin,hmax,hausd)]*len(faceList)
 
-    faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
+    if hmin < 0 and hmax < 0: 
+        faces = OCC.meshAllFacesTriOCC(hook, hausd, angularDeflection)
+    else: # cassiopee mesher
+        faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
 
     b = Internal.getNodeFromName1(t, 'FACES')
     if b is None: b = Internal.newCGNSBase('FACES', parent=t)

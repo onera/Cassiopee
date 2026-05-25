@@ -64,10 +64,10 @@ def fixGap():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): contours.append(z)
+                if z[0] == sname[1]: contours.append(z)
     # Surfaces
     name = VARS[1].get()
     names = name.split(';')
@@ -76,10 +76,10 @@ def fixGap():
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
         bases = Internal.getNodesFromName1(CTK.t, sname[0])
-        if (bases != []):
+        if bases != []:
             nodes = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in nodes:
-                if (z[0] == sname[1]): surfaces.append(z)
+                if z[0] == sname[1]: surfaces.append(z)
 
     p = G.plaster(contours, surfaces)
     contours = C.convertArray2Tetra(contours)

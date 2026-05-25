@@ -2140,6 +2140,7 @@ def rmNode(t, node):
   return None
 
 def _rmNode(t, node):
+  """Remove given node from t."""
   (p, c) = getParentOfNode(t, node)
   if p is not None:
     if isStdNode(t) == 0 and id(p) == id(t): del p[c]
@@ -2156,6 +2157,7 @@ def rmNodeByPath(t, path):
 rmNodeFromPath = rmNodeByPath # alias
 
 def _rmNodeByPath(t, path):
+  """Remove node by specifying its path."""
   if path == '' or path == '/': t = None; return None
   if path[0] == '/': path = path[1:]
   if path[-1] == '/': path = path[:-1]
@@ -2189,6 +2191,7 @@ def rmNodesByName(t, name):
 rmNodesFromName = rmNodesByName # alias
 
 def _rmNodesByName(t, name):
+  """Remove nodes of given name."""
   isStd = isStdNode(t)
   if isStd >= 0:
     for c in t: rmNodesByName__(c, name)
@@ -2205,6 +2208,7 @@ def rmNodesByName__(t, name):
   return None
 
 def _rmNodesByName1(t, name):
+  """Remove nodes of given name (one level)."""
   children = list(range(len(t[2])-1,-1,-1))
   for ichild in children:
     if t[2][ichild][0] == name: t[2].pop(ichild)
@@ -2213,6 +2217,7 @@ def _rmNodesByName1(t, name):
 _rmNodesFromName1 = _rmNodesByName1 # alias
 
 def _rmNodesByName2(t, name):
+  """Remove nodes of given name (two levels)."""
   children = list(range(len(t[2])-1,-1,-1))
   for ichild in children:
     if t[2][ichild][0] == name: t[2].pop(ichild)
@@ -2235,6 +2240,7 @@ def rmNodesByType(t, ntype):
 rmNodesFromType = rmNodesByType # alias
 
 def _rmNodesByType(t, ntype):
+  """Remove nodes of given type."""
   isStd = isStdNode(t)
   if isStd >= 0:
     for c in t: rmNodesByType__(c, ntype)
@@ -2251,6 +2257,7 @@ def rmNodesByType__(t, ntype):
   return None
 
 def _rmNodesByType1(t, ntype):
+  """Remove nodes of given type (one level)."""
   children = list(range(len(t[2])-1,-1,-1))
   for ichild in children:
     if t[2][ichild][3] == ntype: t[2].pop(ichild)
@@ -2259,6 +2266,7 @@ def _rmNodesByType1(t, ntype):
 _rmNodesFromType1 = _rmNodesByType1 # alias
 
 def _rmNodesByType2(t, ntype):
+  """Remove nodes of given type (rwo levels)."""
   children = list(range(len(t[2])-1,-1,-1))
   for ichild in children:
     if t[2][ichild][3] == ntype: t[2].pop(ichild)
@@ -2281,6 +2289,7 @@ def rmNodesByNameAndType(t, name, ntype):
 rmNodesFromPathAndType = rmNodesByNameAndType # alias
 
 def _rmNodesByNameAndType(t, name, ntype):
+  """Remove nodes of that match given name and given type at the same time."""
   isStd = isStdNode(t)
   if isStd >= 0:
     for c in t: rmNodesByNameAndType__(c, name, ntype)
@@ -2314,6 +2323,7 @@ def rmNodesByValue(t, value):
 rmNodesFromValue = rmNodesByValue # alias
 
 def _rmNodesByValue(t, value):
+  """Remove nodes that patch given value."""
   isStd = isStdNode(t)
   if isStd >= 0:
     for c in t: rmNodesByValue__(c, value)

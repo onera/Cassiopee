@@ -16,7 +16,8 @@ __all__ = ['convertCAD2Arrays',
            'meshSTRUCT', 'meshSTRUCT__', 'meshTRI', 'meshTRI__', 'meshTRIU__',
            'meshTRIHO', 'meshQUAD', 'meshQUAD__', 'meshQUADHO', 'meshQUADHO__',
            'ultimate', 'meshAllEdges', 'meshAllFacesTri', 'meshAllFacesStruct',
-           'meshAllFacesTri', 'meshFaceWithMetric', 'meshAllOCC',
+           'meshAllFacesTri', 'meshFaceWithMetric', 
+           'meshAllOCC', 'meshAllEdgesOCC', 'meshAllFacesTriOCC',
            'identifyTags__',
            'readCAD', 'writeCAD', 'createEmptyCAD', 'freeHook',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat',
@@ -794,6 +795,14 @@ def meshAllOCC(hook, hausd, angularDeflection=28.):
     dedges = ret[0]
     dfaces = ret[1]
     return dedges, dfaces
+
+def meshAllEdgesOCC(hook, hausd, angularDeflection=28.):
+    ret = occ.occmesh(hook, hausd, angularDeflection)
+    return ret[0]
+
+def meshAllFacesTriOCC(hook, hausd, angularDeflection=28.):
+    ret = occ.occmesh(hook, hausd, angularDeflection)
+    return ret[1]
 
 #=============================================================================
 # CAD information

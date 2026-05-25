@@ -1642,31 +1642,36 @@ class Driver:
                 # update CAD at param+eps
                 self.instantiate(d)
                 # deform reference mesh to match parameters
-                Mesh = entity.Dmesh()
-                C.convertPyTree2File(Mesh, 'out1.cgns')
-                C.convertPyTree2File(Mesho, 'out2.cgns')
+                # if entity is sketch, new mesh
+                # if entity is surface, ref surface deformed
+                Meshd = entity.Dmesh()
+                #C.convertPyTree2File(Meshd, 'out1.cgns')
+                #C.convertPyTree2File(Mesho, 'out2.cgns')
 
                 C._initVars(Mesh, 'dXd%d'%c, 0.)
                 C._initVars(Mesh, 'dYd%d'%c, 0.)
                 C._initVars(Mesh, 'dZd%d'%c, 0.)
                 zones1 = Internal.getZones(Mesh)
-                for i, z1 in enumerate(zones1):
-                    z2 = zoneso[i]
+                zones2 = Internal.getZones(Meshd)
+                for i, z1 in enumerate(zones1): # Mesh
+                    z2 = zoneso[i] # Mesho
+                    z3 = zones2[i] # Meshd
                     cont1 = Internal.getNodeFromName1(z1, 'GridCoordinates')
                     cont2 = Internal.getNodeFromName1(z2, 'GridCoordinates')
-                    p1x = Internal.getNodeFromName2(cont1, 'CoordinateX')[1]
+                    cont3 = Internal.getNodeFromName1(z3, 'GridCoordinates')
+                    p1x = Internal.getNodeFromName2(cont3, 'CoordinateX')[1]
                     p2x = Internal.getNodeFromName2(cont2, 'CoordinateX')[1]
                     dx = Internal.getNodeFromName2(z1, 'dXd%d'%c)[1]
                     dx[:] = (p1x[:]-p2x[:])/deps
-                    p1y = Internal.getNodeFromName2(cont1, 'CoordinateY')[1]
+                    p1y = Internal.getNodeFromName2(cont3, 'CoordinateY')[1]
                     p2y = Internal.getNodeFromName2(cont2, 'CoordinateY')[1]
                     dy = Internal.getNodeFromName2(z1, 'dYd%d'%c)[1]
                     dy[:] = (p1y[:]-p2y[:])/deps
-                    p1z = Internal.getNodeFromName2(cont1, 'CoordinateZ')[1]
+                    p1z = Internal.getNodeFromName2(cont3, 'CoordinateZ')[1]
                     p2z = Internal.getNodeFromName2(cont2, 'CoordinateZ')[1]
                     dz = Internal.getNodeFromName2(z1, 'dZd%d'%c)[1]
                     dz[:] = (p1z[:]-p2z[:])/deps
-                # restore initital coordinates
+                # restore initital coordinates in mesh
                 for i, z1 in enumerate(zones1):
                     z2 = zoneso[i]
                     cont1 = Internal.getNodeFromName1(z1, 'GridCoordinates')
