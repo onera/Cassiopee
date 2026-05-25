@@ -921,7 +921,7 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1., hm
         elif hausd > 0 and hmax < 0: hList = [(1.e-5,10000.,hausd)]*len(faceList)
         else: hList = [(hmin,hmax,hausd)]*len(faceList)
 
-    if hmin < 0 and hmax < 0: 
+    if hmin < 0 and hmax < 0:
         faces = OCC.meshAllFacesTriOCC(hook, hausd, angularDeflection)
     else: # cassiopee mesher
         faces = OCC.meshAllFacesTri(hook, dedges, metric, faceList, hList)
