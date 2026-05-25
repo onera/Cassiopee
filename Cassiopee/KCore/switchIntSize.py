@@ -73,7 +73,7 @@ def writeDist(contents):
     return
 
 # Check ELSAPROD
-def check_elsaprod(intSize):
+def checkElsaProd(intSize):
     elsaprod = os.getenv("ELSAPROD")
     if elsaprod is not None:
         if intSize == 4 and "_i8" in elsaprod:
@@ -93,4 +93,4 @@ if __name__ == '__main__':
     contents = readDist()
     editDist(contents, intState)
     writeDist(contents)
-    check_elsaprod(args.int)
+    checkElsaProd(args.int)

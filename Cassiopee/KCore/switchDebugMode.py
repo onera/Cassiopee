@@ -56,7 +56,7 @@ def writeDist(contents):
     return
 
 # Check ELSAPROD
-def check_elsaprod(dbgMode):
+def checkElsaProd(dbgMode):
     elsaprod = os.getenv("ELSAPROD")
     if elsaprod is not None:
         if dbgMode and not "_DBG" in elsaprod:
@@ -71,4 +71,4 @@ if __name__ == '__main__':
     contents = readDist()
     editDist(contents, dbgMode)
     writeDist(contents)
-    check_elsaprod(args.activate)
+    checkElsaProd(args.activate)

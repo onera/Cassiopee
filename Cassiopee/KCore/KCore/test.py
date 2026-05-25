@@ -168,8 +168,8 @@ def testT(t, number=1):
         if C.getNPts(ret) > 0:
             for v in mvars:
                 l0 = C.getMaxValue(ret, v)
-                l2 = C.normL2(ret, v)
                 if l0 > TOLERANCE:
+                    l2 = C.normL2(ret, v)
                     print('DIFF: Variable=%s, L0=%.12f, L2=%.12f'%(v, l0, l2))
                     isSuccessful = False
         return isSuccessful
@@ -298,13 +298,12 @@ def testO(objet, number=1):
 
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
-    a = os.access(reference, os.R_OK)
-
+    
     # OWNDATA check / copy
     if isinstance(objet, numpy.ndarray) and not objet.flags['OWNDATA']:
         objet = numpy.copy(objet)
 
-    if not a:
+    if not os.access(reference, os.R_OK):
         print("Can not open file "+reference+" for reading.")
         print("Reference file "+reference+" has been created.")
         import pickle as pickle

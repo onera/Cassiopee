@@ -45,7 +45,7 @@ def normalize(v):
     n = v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
     n = math.sqrt(n)
     ni = 1./max(1.e-10, n)
-    return [ v[0]*ni, v[1]*ni, v[2]*ni ]
+    return [v[0]*ni, v[1]*ni, v[2]*ni]
 
 # square distance
 def squareDist(p1, p2):
@@ -69,4 +69,4 @@ def matprod(m, v):
     vx = l1[0]*v[0]+l1[1]*v[1]+l1[2]*v[2]
     vy = l2[0]*v[0]+l2[1]*v[1]+l2[2]*v[2]
     vz = l3[0]*v[0]+l3[1]*v[1]+l3[2]*v[2]
-    return [ vx, vy, vz ]
+    return [vx, vy, vz]
