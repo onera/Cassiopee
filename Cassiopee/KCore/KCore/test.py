@@ -298,7 +298,7 @@ def testO(objet, number=1):
 
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
-    
+
     # OWNDATA check / copy
     if isinstance(objet, numpy.ndarray) and not objet.flags['OWNDATA']:
         objet = numpy.copy(objet)
