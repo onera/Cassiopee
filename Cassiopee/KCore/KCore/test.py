@@ -48,7 +48,7 @@ def testA(arrays, number=1):
     fileName = os.path.splitext(baseName)[0]
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
-    
+
     if not os.access(reference, os.R_OK):
         print("Warning: reference file %s has been created." % reference)
         C.convertArrays2File(arrays, reference, 'bin_pickle')
@@ -79,7 +79,7 @@ def testA(arrays, number=1):
         nvarNames = len(varNames)
         l0 = [0.]*nvarNames
         l2 = [0.]*nvarNames
-        
+
         for i in ret:
             npts = C.getNPts(i)
             if npts > 0:

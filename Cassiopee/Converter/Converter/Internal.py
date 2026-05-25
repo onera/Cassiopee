@@ -172,7 +172,7 @@ def isStdNode(node):
   # Check if this is a list of standard nodes
   first = node[0]
   if (isinstance(first, list) and len(first) == 4 and
-      isinstance(first[0], str) and isinstance(first[2], list)):
+          isinstance(first[0], str) and isinstance(first[2], list)):
     return 0
   return -2
 
