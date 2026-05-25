@@ -141,10 +141,10 @@ def getApi(a):
     elif len(a) == 4: # non structure
         if not isinstance(a[0], str): return -1
         if not isinstance(a[3], str): return -1
-        eltType = a[3]
         if isinstance(a[1], numpy.ndarray) and isinstance(a[2], numpy.ndarray): return 1
         if isinstance(a[1], list):
             if not isinstance(a[2], list): return -1
+            eltType = a[3]
             if eltType == "NGON" or eltType == "NGON*":
                 if len(a[2]) == 2: return 2
                 if len(a[2]) == 4 or len(a[2]) == 5:
@@ -171,9 +171,9 @@ def getNPts(a):
 
 def getNPts__(a):
     npts = 0
-    if len(a) == 5: # structure
+    if len(a) == 5: # structured
         npts = a[2]*a[3]*a[4]
-    elif len(a) == 4: # non structure
+    elif len(a) == 4: # unstructured
         if a[3][-1] != '*':
             if isinstance(a[1], list): npts = a[1][0].size
             else: npts = a[1].shape[1]
@@ -191,11 +191,11 @@ def getNCells(a):
 
 def getNCells__(a):
     ncells = 0
-    if len(a) == 5: # structure
+    if len(a) == 5: # structured
         nic = a[2]-1; njc = a[3]-1; nkc = a[4]-1
         nic = max(nic, 1); njc = max(njc, 1); nkc = max(nkc, 1)
         ncells = nic*njc*nkc
-    elif len(a) == 4: # non structure
+    elif len(a) == 4: # unstructured
         if isinstance(a[1], list):
             if a[3] == 'NGON' or a[3] == 'NGON*':
                 ncells = a[2][3].size

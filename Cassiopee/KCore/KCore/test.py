@@ -37,22 +37,20 @@ def testA(arrays, number=1):
     if not isinstance(arrays[0], list): arrays = [arrays]
 
     # Check Data directory
-    a = os.access(DATA, os.F_OK)
-    if not a:
+    if not os.access(DATA, os.F_OK):
         print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
 
-    # Construit le nom du fichier de reference
+    # Build reference file path once
     fileName = sys.argv[0]
     baseName = os.path.basename(fileName)
     dirName = os.path.dirname(fileName)
     fileName = os.path.splitext(baseName)[0]
-
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
-    a = os.access(reference, os.R_OK)
-    if not a:
-        print("Warning: reference file %s has been created."%reference)
+    
+    if not os.access(reference, os.R_OK):
+        print("Warning: reference file %s has been created." % reference)
         C.convertArrays2File(arrays, reference, 'bin_pickle')
         return True
     else:
@@ -79,12 +77,14 @@ def testA(arrays, number=1):
         isSuccessful = True
         varNames = list(dict.fromkeys(','.join(i[0] for i in ret).split(',')))
         nvarNames = len(varNames)
-        l0 = [0. for _ in range(nvarNames)]
-        l2 = [0. for _ in range(nvarNames)]
+        l0 = [0.]*nvarNames
+        l2 = [0.]*nvarNames
+        
         for i in ret:
-            for v in i[0].split(','):
-                vidx = varNames.index(v)
-                if C.getNPts(i) > 0:
+            npts = C.getNPts(i)
+            if npts > 0:
+                for v in i[0].split(','):
+                    vidx = varNames.index(v)
                     l0[vidx] = max(l0[vidx], C.getMaxValue(i, v))
                     l2[vidx] = max(l2[vidx], C.normL2(i, v))
 
@@ -121,8 +121,7 @@ def testT(t, number=1):
     C._ownNumpyArrays(t)
 
     # Check Data directory
-    a = os.access(DATA, os.F_OK)
-    if not a:
+    if not os.access(DATA, os.F_OK):
         print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
 
@@ -134,8 +133,7 @@ def testT(t, number=1):
 
     if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
     else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
-    a = os.access(reference, os.R_OK)
-    if not a:
+    if not os.access(reference, os.R_OK):
         print("Warning: reference file %s has been created."%reference)
         C.convertPyTree2File(t, reference, 'bin_pickle')
         return True
@@ -290,8 +288,7 @@ def testO(objet, number=1):
         objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
 
     # Check Data directory
-    a = os.access(DATA, os.F_OK)
-    if not a:
+    if not os.access(DATA, os.F_OK):
         print("{} directory doesn't exist. Created.".format(DATA))
         os.mkdir(DATA)
     fileName = sys.argv[0]
@@ -536,19 +533,14 @@ def heavyTestA(F, *keywords):
 # retourne 2: sinon
 #==============================================================================
 def checkType__(a):
-    if isinstance(a, list):
-        l = len(a)
-        if l == 0: return 2
-        if isinstance(a[0], str) and (l == 4 or l == 5):
-            return 0
-        else:
-            b = a[0]
-            if not isinstance(b, list): return 2
-            if len(b) == 0: return 2
-            if isinstance(b[0], str) and (len(b) == 4 or len(b) == 5):
-                return 1
-            else: return 2
-    else: return 2
+    if not isinstance(a, list): return 2
+    l = len(a)
+    if l == 0: return 2
+    if l in (4, 5) and isinstance(a[0], str): return 0
+    if not isinstance(a[0], list): return 2
+    lb = len(a[0])
+    if lb == 0 or not isinstance(a[0][0], str): return 2
+    return 1 if lb in (4, 5) else 2
 
 #==============================================================================
 # IN: output=1: ecrit les fichiers resultats

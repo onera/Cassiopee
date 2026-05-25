@@ -156,27 +156,33 @@ def isTopTree(node):
   return False
 
 # -- is node a standard node?
-# Retourne -2 si node n'est pas un noeud standard
-# Retourne -1 si node est un noeud standard de l'arbre
-# Retourne 0 si node est une liste de noeuds standards (meme vide)
+# Return -2 if node is not standard
+# Return -1 if node is standard
+# Return 0 if node is a list of standard nodes (even if empty)
 def isStdNode(node):
   """Return 0 if node is a list of standard pyTree nodes,
   -1 if node is a standard pyTree node, -2 otherwise."""
   if not isinstance(node, list): return -2
+  # Handle empty list case
   if len(node) == 0: return 0
-  node0 = node[0]
-  if isinstance(node0, str) and len(node) == 4 and isinstance(node[2], list): return -1
-  if not isinstance(node0, list): return -2
-  if len(node0) == 4 and isinstance(node0[0], str) and isinstance(node0[2], list): return 0
+  # Check if this is a single standard node [name, value, children, type]
+  # Standard node: len == 4, name is str, children is list
+  if len(node) == 4 and isinstance(node[0], str) and isinstance(node[2], list):
+    return -1
+  # Check if this is a list of standard nodes
+  first = node[0]
+  if (isinstance(first, list) and len(first) == 4 and
+      isinstance(first[0], str) and isinstance(first[2], list)):
+    return 0
   return -2
 
 # -- typeOfNode
-# Retourne 1 si node est une zone
-# Retourne 2 si node est une liste de zones
-# Retourne 3 si node est un arbre
-# Retourne 4 si node est une base
-# Retourne 5 si node est une liste de base
-# Retourne -1 sinon
+# Return 1 if node is a zone
+# Return 2 if node is a list of zones
+# Return 3 if node is a tree
+# Return 4 if node is a base
+# Return 5 if node is a list of bases
+# Return -1 otherwise
 def typeOfNode(node):
   """Return the type of node as an integer."""
   l = len(node)
@@ -206,7 +212,7 @@ def typeOfNode(node):
 def isType(node, ntype):
   """Return True if node is of given type."""
   tnode = node[3]
-  if ('*' in ntype)|('?' in ntype)|('[' in ntype): return fnmatch.fnmatch(tnode, ntype)
+  if any(c in ntype for c in '*?['): return fnmatch.fnmatch(tnode, ntype)
   else: return tnode == ntype
 
 # -- isName
@@ -218,7 +224,7 @@ def isName(node, name):
   if isinstance(name, numpy.ndarray): sname = name.tobytes().decode()
   else: sname = str(name)
   snode = node[0]
-  if ('*' in sname)|('?' in sname)|('[' in sname): return fnmatch.fnmatch(snode, sname)
+  if any(c in sname for c in '*?['): return fnmatch.fnmatch(snode, sname)
   else: return snode == sname
 
 # -- isValue
@@ -2514,6 +2520,9 @@ def _adaptZoneNamesForSlash(t):
 #==============================================================================
 
 # -- Duplique un arbre ou un sous-arbre par references
+# IN: node: node to duplicate
+# IN: parent: parent node (if empty list, no parent attachment)
+# OUT: duplicated node/tree
 def duptree__(node, parent):
   d = [node[0], node[1], [], node[3]]
   if len(parent) == 4: parent[2].append(d)
@@ -2521,31 +2530,39 @@ def duptree__(node, parent):
   return d
 
 # -- Copy un arbre en gardant des references sur les numpys
+# Optimized version: direct checks instead of isStdNode for performance
 def copyRef(node):
   """Copy a tree sharing node values."""
-  ret = isStdNode(node)
-  if ret == -1:
-    dup = duptree__(node, []); return dup
-  elif ret == 0:
-    l = list(node); lg = len(l)
-    for i in range(lg): l[i] = duptree__(l[i], [])
-    return l
-  else: return node
+  # Fast path: return as-is if not a list
+  if not isinstance(node, list): return node
+  # Handle empty list case
+  if len(node) == 0: return []
+  # Check if this is a single standard node [name, value, children, type]
+  if len(node) == 4 and isinstance(node[0], str) and isinstance(node[2], list):
+    return duptree__(node, [])
+  # List of nodes case: check first element to determine type
+  first = node[0]
+  if isinstance(first, list) and len(first) == 4 and isinstance(first[0], str) and isinstance(first[2], list):
+    return [duptree__(n, []) for n in node]
+  # Not a standard node, return as-is
+  return node
 
 # -- Copie un arbre ou un sous-arbre en copiant aussi les numpy.array
+# Optimized version: direct checks instead of isStdNode for performance
 def copyTree(node, order='F'):
   """Full copy of a tree."""
-  ret = isStdNode(node)
-  if ret == -1:
-    d = copyTree__(node, order=order)
-    return d
-  elif ret == 0:
-    d = []
-    for n in node:
-      o = copyTree__(n, order=order)
-      d.append(o)
-    return d
-  else: return node
+  # Fast path: return as-is if not a list
+  if not isinstance(node, list): return node
+  # Handle empty list case
+  if len(node) == 0: return []
+  # Check if this is a single standard node
+  if len(node) == 4 and isinstance(node[0], str) and isinstance(node[2], list):
+    return copyTree__(node, order=order)
+  # List of nodes case
+  first = node[0]
+  if isinstance(first, list) and len(first) == 4 and isinstance(first[0], str) and isinstance(first[2], list):
+    return [copyTree__(n, order=order) for n in node]
+  return node
 
 def copyTree__(node, parent=None, order='F'):
   if node[1] is not None and isinstance(node[1], numpy.ndarray):
@@ -2556,25 +2573,29 @@ def copyTree__(node, parent=None, order='F'):
   return d
 
 # -- Copie un noeud (pas de recursivite)
+# Optimized version: direct checks instead of isStdNode for performance
 def copyNode(node):
   """Copy only this node (no recursion). Share children with node."""
-  ret = isStdNode(node)
-  if ret == -1:
+  # Fast path: return as-is if not a list
+  if not isinstance(node, list): return node
+  # Check if this is a single standard node
+  if len(node) == 4 and isinstance(node[0], str) and isinstance(node[2], list):
     if node[1] is not None and isinstance(node[1], numpy.ndarray):
-      d = [node[0], node[1].copy('F'), node[2], node[3]]
-    else: d = [node[0], node[1], node[2], node[3]]
-    return d
-  elif ret == 0:
-    d = []
+      return [node[0], node[1].copy('F'), node[2], node[3]]
+    else:
+      return [node[0], node[1], node[2], node[3]]
+  # List of nodes case
+  if len(node) == 0: return []
+  first = node[0]
+  if isinstance(first, list) and len(first) == 4 and isinstance(first[0], str) and isinstance(first[2], list):
+    result = []
     for n in node:
       if n[1] is not None and isinstance(n[1], numpy.ndarray):
-        o = [n[0], n[1].copy('F'), n[2], n[3]]
-        d.append(o)
+        result.append([n[0], n[1].copy('F'), n[2], n[3]])
       else:
-        o = [n[0], n[1], n[2], n[3]]
-        d.append(o)
-    return d
-  else: return node
+        result.append([n[0], n[1], n[2], n[3]])
+    return result
+  return node
 
 # -- copyOnly(node) --
 # Copie recursivement les noms (si names=True), les types (si types=True)
@@ -2593,14 +2614,18 @@ def duptree1__(node, byName, byType, parent):
 
 def copyValue(node, byName=None, byType=None):
   """Copy the value of nodes specified by byName or byType string."""
-  ret = isStdNode(node)
-  if ret == -1:
-    dup = duptree1__(node, byName, byType, []); return dup
-  elif ret == 0:
-    l = list(node); lg = len(l)
-    for i in range(lg): l[i] = duptree1__(l[i], byName, byType, [])
-    return l
-  else: return node
+  # Fast path: return as-is if not a list
+  if not isinstance(node, list): return node
+  # Handle empty list case
+  if len(node) == 0: return []
+  # Check if this is a single standard node
+  if len(node) == 4 and isinstance(node[0], str) and isinstance(node[2], list):
+    return duptree1__(node, byName, byType, [])
+  # List of nodes case
+  first = node[0]
+  if isinstance(first, list) and len(first) == 4 and isinstance(first[0], str) and isinstance(first[2], list):
+    return [duptree1__(n, byName, byType, []) for n in node]
+  return node
 
 # -- Merge nodes
 # Merge une liste d'arbres en un seul. Noeud a noeud, niveaux a niveaux,
@@ -3665,7 +3690,7 @@ def getZoneDim(zone):
   # zone type
   info = zone[2]
   for i in info:
-    # Noeud zone type
+    # zone type node
     if i[3] == 'ZoneType_t':
       cellDim = 3
       gtype = getValue(i)
@@ -3731,10 +3756,10 @@ def getZoneDim(zone):
   raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
 
 # -- getZoneType --
-# Retourne 1 si la zone est structuree
-# Retourne 2 si la zone est non structuree
-# Retourne 0 sinon.
-# Cette routine est plus rapide que getZoneDim
+# Return 1 if zone is structured
+# Return 2 if zone is non structured
+# Return 0 otherwise.
+# This routine is faster than getZoneDim
 def getZoneType(zone):
   """Return 1 for structured zones, 2 for unstructured zones."""
   info = zone[2]
@@ -4057,6 +4082,7 @@ def groupBCByBCType(t, btype='BCWall', name='FamWall'):
   return a
 
 def _groupBCByBCType(t, btype='BCWall', name='FamWall'):
+  """Tag all BCs of given type with family named FamilyName."""
   for base in getBases(t):
     found = False
     for bc in getNodesFromType3(base,'BC_t'):
@@ -5837,6 +5863,7 @@ def fixVarName(var):
 # IN: soit loc2glob: numpy de 9 entiers
 # IN: soit winloc2glob+sourceDim en listes 6 + 3 entiers
 # Unstructured zones: zone source name, index loc/glob
+#===============================================================================
 def setLoc2Glob(z, source, loc2glob=None, win=None, sourceDim=None):
   zp = copyRef(z)
   _setLoc2Glob(z, source, loc2glob, win, sourceDim)
