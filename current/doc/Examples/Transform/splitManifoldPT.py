@@ -1,4 +1,4 @@
-# - conformUnstr (pyTree) -
+# - splitManifold (pyTree) -
 # Conforming 1 or 2 TRI/BAR together (same type for both operands
 import Converter.PyTree as C
 import Generator.PyTree as G

@@ -1,4 +1,4 @@
-# - adapt the bounding box of a point cloud (array) -
+# - adaptBox (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import Generator.PyTree as G

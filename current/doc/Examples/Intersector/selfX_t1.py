@@ -1,4 +1,4 @@
-# - boolean difference (array) -
+# - selfX (array) -
 import Intersector as XOR
 import Converter as C
 import Transform as T

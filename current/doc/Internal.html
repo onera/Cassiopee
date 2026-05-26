@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter.Internal: CGNS/Python tree management &#8212; Converter 4.1 documentation</title>
+    <title>Converter.Internal: CGNS/Python tree management &#8212; Converter 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Internal: CGNS/Python tree management</a></li> 
       </ul>
     </div>  
@@ -223,6 +223,18 @@ list of pyTree nodes that are the children of this node.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getZonePaths" title="Converter.Internal.getZonePaths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZonePaths</span></code></a></p></td>
 <td><p>Return the list of paths of zones.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getFamilyBCs" title="Converter.Internal.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getFamilyBCs</span></code></a></p></td>
+<td><p>Return all BC nodes that have this familyName.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getFamilyBCNamesOfType" title="Converter.Internal.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getFamilyBCNamesOfType</span></code></a></p></td>
+<td><p>Return the family BC names of a given type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getBCNodesFromName" title="Converter.Internal.getBCNodesFromName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getBCNodesFromName</span></code></a></p></td>
+<td><p>Return all BC nodes matching an input list of BC names.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Internal.getBCNodesFromType" title="Converter.Internal.getBCNodesFromType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getBCNodesFromType</span></code></a></p></td>
+<td><p>Return all BC nodes matching an input list of BC types.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.Internal.getZones" title="Converter.Internal.getZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Internal.getZones</span></code></a></p></td>
 <td><p>Return a list of all Zone_t nodes.</p></td>
@@ -1250,9 +1262,9 @@ numpy array. It differs from node[1], which is always a numpy array.</p>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
 <span class="c1"># getVal returns always numpys</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getVal</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
-<span class="c1"># &gt;&gt; [[10  2  0]]</span>
+<span class="c1"># &gt;&gt; [[10  9  0]]</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneType&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getVal</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
 <span class="c1">#&gt;&gt; [b&#39;S&#39; b&#39;t&#39; b&#39;r&#39; b&#39;u&#39; b&#39;c&#39; b&#39;t&#39; b&#39;u&#39; b&#39;r&#39; b&#39;e&#39; b&#39;d&#39;]</span>
@@ -1455,7 +1467,7 @@ If not found, return None.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getChildFromName (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getChildFromName</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneType&#39;</span><span class="p">))</span>
 <span class="c1">#&gt;&gt; [&#39;ZoneType&#39;, array([b&#39;S&#39;, b&#39;t&#39;, b&#39;r&#39;, b&#39;u&#39;, b&#39;c&#39;, b&#39;t&#39;, b&#39;u&#39;, b&#39;r&#39;, ...]</span>
 </pre></div>
@@ -1618,7 +1630,7 @@ If not found, return None.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getChildFromType (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getChildFromType</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneType_t&#39;</span><span class="p">))</span>
 <span class="c1">#&gt;&gt; [&#39;ZoneType&#39;, array([b&#39;S&#39;, b&#39;t&#39;, b&#39;r&#39;, b&#39;u&#39;, b&#39;c&#39;, b&#39;t&#39;, b&#39;u&#39;, b&#39;r&#39;, ...]</span>
 </pre></div>
@@ -1653,7 +1665,7 @@ If not found, return [].</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getChildrenFromType (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Internal</span><span class="o">.</span><span class="n">getChildrenFromType</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;ZoneType_t&#39;</span><span class="p">))</span>
 <span class="c1">#&gt;&gt; [[&#39;ZoneType&#39;, array([b&#39;S&#39;, b&#39;t&#39;, b&#39;r&#39;, b&#39;u&#39;, b&#39;c&#39;, b&#39;t&#39;, b&#39;u&#39;, b&#39;r&#39;, b&#39;e&#39;, b&#39;d&#39;]...&#39;]]</span>
 </pre></div>
@@ -2260,6 +2272,252 @@ to node t.</p>
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.getFamilyBCs">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getFamilyBCs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">familyName</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Get all BC nodes corresponding to a given familyName (family of BCs).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of BC nodes (shared with a)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getFamilyBCsPT.py">Get family BC nodes (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getFamilyBCs (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;walla&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wallb&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
+<span class="n">B1</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getFamilyBCs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">);</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">B1</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;walla&#39;,array(&#39;FamilySpecified&#39;,dtype=&#39;|S1&#39;),[2 sons],&#39;BC_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;FamilyName&#39;,array(&#39;CARTER&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;FamilyName_t&#39;]</span>
+<span class="c1">#&gt;&gt; [&#39;wallb&#39;,array(&#39;FamilySpecified&#39;,dtype=&#39;|S1&#39;),[2 sons],&#39;BC_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
+<span class="c1">#&gt;&gt;   |_[&#39;FamilyName&#39;,array(&#39;CARTER&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;FamilyName_t&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.getFamilyBCNamesOfType">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getFamilyBCNamesOfType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return all family BC names of a given type. If type is None,
+return all family BC names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>]</em>) &#8211; input data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of familyBC names</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getFamilyBCNamesOfTypePT.py">Get familyBC names of given type (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getFamilyBCNamesOfType (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;walla&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wallb&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
+
+<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
+
+<span class="c1"># Toutes les familyBCs de type BCwall</span>
+<span class="n">names</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getFamilyBCNamesOfType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;CARTER&#39;]</span>
+<span class="c1"># Toutes les familyBCs de l&#39;arbre</span>
+<span class="n">names</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getFamilyBCNamesOfType</span><span class="p">(</span><span class="n">t</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+<span class="c1">#&gt;&gt; [&#39;CARTER&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.getBCNodesFromName">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getBCNodesFromName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return all BC nodes of a given name. If name is None, return all BC nodes.
+Wildcards are accepted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>BC_t node</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>bndName</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC node(s) to get</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of BC nodes (shared with a)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getBCNodesFromNamePT.py">Get BC nodes of given name (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getBCNodesFromName (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;inlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCInflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;outlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOutflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmax&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">bc</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;BC_t&#39;</span><span class="p">)</span>
+
+<span class="c1"># On a PyTree</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromName</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;]</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromName</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;outlet&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;, &#39;outlet&#39;]</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromName</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;wall*&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;, &#39;wall2&#39;]</span>
+
+<span class="c1"># On a BC_t</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromName</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Internal.getBCNodesFromType">
+<span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getBCNodesFromType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Return all BC nodes of a given type. If type is None, return all BC nodes.
+Wildcards are accepted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>BC_t node</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>bndType</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC type(s) to get</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of BC nodes (shared with a)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getBCNodesFromTypePT.py">Get BC nodes of given type (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getBCNodesFromType (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;inlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCInflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;outlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOutflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmax&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CYLINDER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CYLINDER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CYLINDER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWallViscous&#39;</span><span class="p">)</span>
+<span class="n">bc</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;BC_t&#39;</span><span class="p">)</span>
+
+<span class="c1"># On a PyTree</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;BCOutflow&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;outlet&#39;]</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;BCInflow&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOutflow&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;inlet&#39;, &#39;outlet&#39;]</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;BCWall*&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;, &#39;wall2&#39;]</span>
+
+<span class="c1"># On a BC_t that is not FamilySpecified</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromType</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="s1">&#39;BCInflow&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;inlet&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Converter.Internal.getBCNodesFromNameAndType(a,</span> <span class="pre">bndType=None,</span> <span class="pre">bndType=None)</span></span></dt>
+<dd><p>Return all BC nodes of a given name and type. If name and type are noth None,
+return all BC nodes. Wildcards are accepted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>, </em><em>BC_t node</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>bndName</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC node(s) to get</p></li>
+<li><p><strong>bndType</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC type(s) to get</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of BC nodes (shared with a)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/getBCNodesFromNameAndTypePT.py">Get BC nodes of given type (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getBCNodesFromNameAndType (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;inlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCInflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;outlet&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOutflow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmax&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;match1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall1&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CYLINDER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CYLINDER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmax&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CYLINDER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWallViscous&#39;</span><span class="p">)</span>
+<span class="n">bc</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;BC_t&#39;</span><span class="p">)</span>
+
+<span class="c1"># On a PyTree</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromNameAndType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bndName</span><span class="o">=</span><span class="s1">&#39;wall2&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWallViscous&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall2&#39;]</span>
+
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getBCNodesFromNameAndType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bndName</span><span class="o">=</span><span class="s1">&#39;wall*&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWallViscous&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">])</span>
+<span class="c1">#&gt;&gt; [&#39;wall1&#39;, &#39;wall2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="Converter.Internal.getZones">
 <span class="sig-prename descclassname"><span class="pre">Converter.Internal.</span></span><span class="sig-name descname"><span class="pre">getZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Return the list of Zone_t nodes.</p>
@@ -2321,7 +2579,7 @@ If none is set, return a list of list of zones for each iterations.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/getZonesPerIterationPT.py">Return zone nodes of tree of given iteration (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getZonesPerIterations (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getZonesPerIteration (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
@@ -2885,7 +3143,7 @@ Wildcards are accepted.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/rmNodePT.py">Remove a node (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - _rmNode (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - rmNode (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
@@ -3370,7 +3628,7 @@ The family node is created and the BC is tagged with BC family.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/groupBCByBCTypePT.py">Group BC from their types (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - groupBCByType (PyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - groupBCByBCType (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -3517,7 +3775,7 @@ zone family node. If parent is not None, attach it to parent node.</p>
 <span class="c1"># Create a zone node and attach it to tree</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newCGNSTree</span><span class="p">()</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newCGNSBase</span><span class="p">(</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Structured&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Structured&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -3554,9 +3812,9 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;GridCoordinates&#39;, None, [], &#39;GridCoordinates_t&#39;]</span>
 
 <span class="c1"># Create a zone node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Unstructured&#39;</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newGridCoordinates</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">);</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-<span class="c1">#&gt;&gt; [&#39;Zone&#39;,array(shape=(3, 1),dtype=&#39;int32&#39;,order=&#39;F&#39;),[2 sons],&#39;Zone_t&#39;]</span>
+<span class="c1">#&gt;&gt; [&#39;Zone&#39;,array(shape=(1, 3),dtype=&#39;int32&#39;,order=&#39;F&#39;),[2 sons],&#39;Zone_t&#39;]</span>
 <span class="c1">#&gt;&gt;   |_[&#39;ZoneType&#39;,array(&#39;Structured&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;ZoneType_t&#39;]</span>
 <span class="c1">#&gt;&gt;   |_[&#39;GridCoordinates&#39;,None,[0 son],&#39;GridCoordinates_t&#39;]</span>
 </pre></div>
@@ -4081,7 +4339,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;Ordinal&#39;,array([1],dtype=&#39;int32&#39;),[0 son],&#39;Ordinal_t&#39;]</span>
 
 <span class="c1"># Attach it to zone</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newOrdinal</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4119,7 +4377,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;DiscreteData&#39;,None,[0 son],&#39;DiscreteData_t&#39;]</span>
 
 <span class="c1"># Attach it to zone</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Unstructured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newDiscreteData</span><span class="p">(</span><span class="s1">&#39;DiscreteData&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4201,7 +4459,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt;   |_[&#39;ElementRange&#39;,None,[0 son],&#39;IndexRange_t&#39;]</span>
 
 <span class="c1"># Attach it to zone</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Unstructured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="s1">&#39;Unstructured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newElements</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Elements&#39;</span><span class="p">,</span> <span class="n">etype</span><span class="o">=</span><span class="s1">&#39;UserDefined&#39;</span><span class="p">,</span> <span class="n">econnectivity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eboundary</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4312,7 +4570,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;ZoneBC&#39;,None,[0 son],&#39;ZoneBC_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneBC</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4605,7 +4863,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt;    |_[&#39;GridLocation&#39;,array(&#39;Vertex&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;GridLocation_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newFlowSolution</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;FlowSolution&#39;</span><span class="p">,</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;Vertex&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4643,7 +4901,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;ZoneGridConnectivity&#39;,None,[0 son],&#39;ZoneGridConnectivity_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneGridConnectivity</span><span class="p">(</span><span class="s1">&#39;ZoneGridConnectivity&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4904,7 +5162,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt;    |_[&#39;GridLocation&#39;,array(&#39;FaceCenter&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;GridLocation_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneSubRegion</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;SubRegion&#39;</span><span class="p">,</span> <span class="n">pointRange</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;FaceCenter&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -5010,7 +5268,7 @@ If parent is not None, attach it to parent node.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/newGoverningEquationsPT.py">Create a new GoverningEquations node (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - newGoverningEquation (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - newGoverningEquations (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
 
 <span class="c1"># Create a node</span>
@@ -5476,7 +5734,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt; [&#39;ZoneIterativeData&#39;,None,[0 son],&#39;ZoneIterativeData_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newZoneIterativeData</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ZoneIterativeData&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -5518,7 +5776,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt;    |_[&#39;RigidGridMotionType&#39;,array(&#39;ConstantRate&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;RigidGridMotionType_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newRigidGridMotion</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Motion&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],</span> <span class="n">mtype</span><span class="o">=</span><span class="s1">&#39;ConstantRate&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -5793,7 +6051,7 @@ If parent is not None, attach it to parent node.</p>
 <span class="c1">#&gt;&gt;    |_[&#39;ArbitraryGridMotion&#39;,array(&#39;DeformingGrid&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;ArbitraryGridMotionType_t&#39;]</span>
 
 <span class="c1"># Attach it to a parent node</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">],[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newZone</span><span class="p">(</span><span class="s1">&#39;Zone&#39;</span><span class="p">,</span> <span class="n">zsize</span><span class="o">=</span><span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ztype</span><span class="o">=</span><span class="s1">&#39;Structured&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">newArbitraryGridMotion</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Motion&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;NonDeformingGrid&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -6092,7 +6350,7 @@ to (B: NGON=polygon, NFACE=NULL), or vice versa.</p>
 <span class="c1"># Adapt face PL into vertex PL for all BC nodes with name &#39;wall*&#39;, keep BCDatasets</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">41</span><span class="p">])</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCViscousWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWallViscous&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">=1.&#39;</span><span class="p">)</span>
 <span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall*&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">_adaptBCFacePL2VertexPL</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bcs</span><span class="o">=</span><span class="n">bcs</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -6130,7 +6388,7 @@ to (B: NGON=polygon, NFACE=NULL), or vice versa.</p>
 <span class="c1"># Adapt vertex PL into face PL for all BC nodes with name &#39;wall*&#39;, keep BCDatasets</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">41</span><span class="p">])</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCViscousWall&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWallViscous&#39;</span><span class="p">,</span> <span class="n">faceList</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{var}</span><span class="s1">=1.&#39;</span><span class="p">)</span>
 <span class="n">bcs</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodesFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall*&#39;</span><span class="p">)</span>
 <span class="n">Internal</span><span class="o">.</span><span class="n">_adaptBCFacePL2VertexPL</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">bcs</span><span class="o">=</span><span class="n">bcs</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># create a vertex PL</span>
@@ -6284,7 +6542,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Internal: CGNS/Python tree management</a></li> 
       </ul>
     </div>

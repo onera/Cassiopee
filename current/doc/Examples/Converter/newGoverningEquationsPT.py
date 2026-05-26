@@ -1,4 +1,4 @@
-# - newGoverningEquation (pyTree) -
+# - newGoverningEquations (pyTree) -
 import Converter.Internal as Internal
 
 # Create a node

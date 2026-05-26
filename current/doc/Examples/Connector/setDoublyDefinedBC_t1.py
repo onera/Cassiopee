@@ -1,4 +1,5 @@
-# - setDoublyDefinedBC (array) 3D -
+# - setDoublyDefinedBC (array) -
+# 3D
 import Converter as C
 import Connector as X
 import Generator as G

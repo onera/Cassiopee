@@ -1,4 +1,4 @@
-# - enforceMoinsX (pyTree) -
+# - enforceMoinsY (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 

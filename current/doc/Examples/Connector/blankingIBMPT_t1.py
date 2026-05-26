@@ -1,4 +1,5 @@
-# - blankingIBM 2D (pyTree) -
+# - blankingIBM (pyTree) -
+# 2D
 import Generator.PyTree as G
 import Geom.IBM as DIBM
 import Connector.IBM as XIBM

@@ -5,7 +5,7 @@ import Generator as G
 import Transform as T
 import KCore.test as test
 
-# deraffinement de toutes les cellules d un carre
+# deraffinement de toutes les cellules d'un carre
 tol = 1.e-2; argqual = 0.25
 
 ni = 21; nj = 21; nk = 11

@@ -1,4 +1,4 @@
-# - lineDrive (pyTree)-
+# - lineDrive (pyTree) -
 import Geom.PyTree as D
 import Converter.PyTree as C
 

@@ -1,4 +1,5 @@
-# - connectMatch 2D (pyTree)-
+# - connectMatch (pyTree) -
+# 2D
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Connector.PyTree as X

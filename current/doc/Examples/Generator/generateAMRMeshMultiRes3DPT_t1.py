@@ -8,7 +8,6 @@ import KCore.test as test
 LOCAL      = test.getLocal()
 snear      = 0.2
 dFar       = 5
-levelMax   = 2
 vmins      = [[6,6]]
 vminsTbox  = [[5,5]]
 dim        = 3
@@ -23,7 +22,7 @@ D_IBM._setIBCType(tb,"Musker")
 
 tbox= None
 
-t_AMR = G_AMR.generateAMRMesh(tb=tb, toffset=None, levelMax=levelMax, vmins=vmins, dim=dim,
+t_AMR = G_AMR.generateAMRMesh(tb=tb, toffset=None, vmins=vmins, dim=dim,
                               check=True, opt=False, octreeMode=1, tbox=tbox, localDir=LOCAL)
 test.testT(t_AMR,1)
 #C.convertPyTree2File(t_AMR,'check_multi_t1_3D.cgns')

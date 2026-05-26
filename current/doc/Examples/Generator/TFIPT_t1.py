@@ -1,4 +1,4 @@
-# - TFI 2D structure -
+# - TFI (pyTree) -
 import Generator.PyTree as G
 import Geom.PyTree as D
 import KCore.test as test

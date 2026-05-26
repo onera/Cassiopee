@@ -14,6 +14,8 @@ a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 a = G.getOrthogonalityMap(a)
 t = C.newPyTree(['Base']); t[2][1][2].append(a)
 test.testT(t, 1)
+t = G.getOrthogonalityMap(t, normalized=True)
+test.testT(t, 11)
 
 # Test 2D structure
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
@@ -21,9 +23,13 @@ a = C.addBC2Zone(a, 'wall1','BCWall','imin')
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getOrthogonalityMap(a)
 test.testT(t, 2)
+t = G.getOrthogonalityMap(t, normalized=True)
+test.testT(t, 21)
 
-# Test 2D structure
+# Test 1D structure
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (1,10,1))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getOrthogonalityMap(a)
 test.testT(t, 3)
+t = G.getOrthogonalityMap(t, normalized=True)
+test.testT(t, 31)

@@ -1,5 +1,6 @@
 # - getFamilyBCs (pyTree) -
 import Converter.PyTree as C
+import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
@@ -13,5 +14,5 @@ t = C.newPyTree(['Base']); t[2][1][2] += [a,b]
 
 t[2][1] = C.addFamily2Base(t[2][1], 'CARTER', bndType='BCWall')
 
-B1 = C.getFamilyBCs(t, 'CARTER')
+B1 = Internal.getFamilyBCs(t, 'CARTER')
 test.testO(B1, 1)

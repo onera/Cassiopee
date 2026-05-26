@@ -1,3 +1,4 @@
+# - extractMassFlowThroughSurface (pyTree) -
 import Converter.PyTree as C
 import Post.IBM as P_IBM
 import Geom.IBM as D_IBM

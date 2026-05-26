@@ -1,4 +1,4 @@
-# test - enforceCurvature2 (pyTree)
+# - enforceCurvature2 (pyTree) -
 import Converter.PyTree as C
 import Geom.PyTree as D
 import Generator.PyTree as G

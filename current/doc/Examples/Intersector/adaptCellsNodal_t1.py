@@ -1,4 +1,4 @@
-# - adapts a cells with respect to b points (array) -
+# - adaptCellsNodal (array) -
 import Intersector as XOR
 import Converter as C
 import Generator as G

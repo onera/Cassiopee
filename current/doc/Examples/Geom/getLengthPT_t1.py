@@ -1,4 +1,4 @@
-# - getLength (pyTree)-
+# - getLength (pyTree) -
 import Geom.PyTree as D
 import Converter.PyTree as C
 import KCore.test as test

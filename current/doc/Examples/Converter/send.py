@@ -1,4 +1,4 @@
-# - send (array) -
+# - Send (array) -
 import Converter as C
 import Generator as G
 import Transform as T

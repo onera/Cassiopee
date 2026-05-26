@@ -1,4 +1,4 @@
-# - triangle -
+# - triangle (array) -
 import Geom as D
 import KCore.test as test
 

@@ -1,4 +1,4 @@
-# - -
+# - extractUncomputables (array) -
 import Converter as C
 import Intersector as XOR
 

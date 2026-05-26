@@ -1,4 +1,4 @@
-# - convertArrays2File (arrays) -
+# - convertArrays2File (array) -
 import Generator as G
 import Converter as C
 import Geom as D

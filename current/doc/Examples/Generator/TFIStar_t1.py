@@ -1,4 +1,4 @@
-# - TFIStar (array)
+# - TFIStar (array) -
 import Converter as C
 import Generator as G
 import Geom as D

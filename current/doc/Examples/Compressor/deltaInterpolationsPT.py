@@ -1,4 +1,4 @@
-# - deltaInterpolations -
+# - deltaInterpolations (pyTree) -
 import numpy
 import Compressor.PyTree as Compressor
 

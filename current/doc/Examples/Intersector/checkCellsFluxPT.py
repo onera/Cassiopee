@@ -1,4 +1,4 @@
-# - selectCells (pyTree) -
+# - checkCellsFlux (pyTree) -
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
 import Converter.Internal as I

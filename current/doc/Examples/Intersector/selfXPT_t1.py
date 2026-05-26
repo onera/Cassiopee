@@ -1,4 +1,4 @@
-# - boolean difference (array) -
+# - selfX (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import Transform.PyTree as T

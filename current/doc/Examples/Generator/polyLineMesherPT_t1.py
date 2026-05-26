@@ -1,4 +1,4 @@
-# - polyLineMesher (pyTree)-
+# - polyLineMesher (pyTree) -
 import Generator.PyTree as G
 import Geom.PyTree as D
 import KCore.test as test

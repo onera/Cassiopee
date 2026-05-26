@@ -1,4 +1,5 @@
-# - setInterpDataIBM 2D (pyTree) -
+# - setInterpDataIBM (pyTree) -
+# 2D
 import Generator.PyTree as G
 import Geom.IBM as DIBM
 import Connector.IBM as XIBM

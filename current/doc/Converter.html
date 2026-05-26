@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter: CFD data conversion module &#8212; Converter 4.1 documentation</title>
+    <title>Converter: CFD data conversion module &#8212; Converter 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>  
@@ -307,14 +307,8 @@ recognised. Naming convention is described in the following table.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
 <td><p>Return all zones that have this familyName.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCs" title="Converter.PyTree.getFamilyBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCs</span></code></a></p></td>
-<td><p>Return all BC nodes that have this familyName.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
 <td><p>Return the family zone names in a tree or a base.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesOfType" title="Converter.PyTree.getFamilyBCNamesOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesOfType</span></code></a></p></td>
-<td><p>Return the family BC names of a given type.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
 <td><p>Return the dictionary of familyBCs.</p></td>
@@ -795,7 +789,7 @@ attached zones eventually. See below example for all possibilities of input.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/newPyTree.py">Create pyTree (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/newPyTreePT.py">Create pyTree (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - newPyTree (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -844,7 +838,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/addBase2PyTree.py">Add base to pyTree (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/addBase2PyTreePT.py">Add base to pyTree (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addBase2PyTree (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1087,7 +1081,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/deleteEmptyZones.py">Delete empty zones (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/deleteEmptyZonesPT.py">Delete empty zones (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deleteEmptyZones (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1232,7 +1226,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/addChimera2Base.py">Add Chimera to base (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/addChimera2BasePT.py">Add Chimera to base (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addChimera2Base (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1286,7 +1280,7 @@ name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zo
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/addBC2Zone.py">Add boundary condition to zone (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/addBC2ZonePT.py">Add boundary condition to zone (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addBC2Zone (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1364,7 +1358,7 @@ returns None.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/fillEmptyBCWithPT.py">Fill empty BC (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - fillEmpyBCWith (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - fillEmptyBCWith (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -1400,7 +1394,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/rmBCOfType.py">Remove BC of type (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/rmBCOfTypePT.py">Remove BC of type (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - rmBCOfType (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1699,7 +1693,7 @@ angle between neighbouring elements exceeds splitFactor in degrees
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id="Converter.PyTree.recoverBCs">
-<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">recoverBCs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(BCs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCTypes)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1.e-11</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">recoverBCs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(BCs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCTypes)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeBC=True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Recover given BCs onto a NGon tree. BCs are given by a tuple of geometries, names and types has obtained
 by getBCs.
 Exists also as in place version (_recoverBCs) that modifies t and returns None.</p>
@@ -1708,6 +1702,7 @@ Exists also as in place version (_recoverBCs) that modifies t and returns None.<
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input NGon data</p></li>
 <li><p><strong>BCTypes</strong><strong>)</strong> (<em>(</em><em>BCs</em><em>, </em><em>BCNames</em><em>,</em>) &#8211; tuple (BCs, BCNames, BCTypes) where BCs is a list of BC nodes, BCNames a list of BC names and BCTypes a list of BC types.</p></li>
+<li><p><strong>removeBC</strong> &#8211; if True, removes existing BCs in t before recovering those in BCs.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -1849,7 +1844,7 @@ returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/addFamily2Base.py">Add family to base (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/addFamily2BasePT.py">Add family to base (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addFamily2Base (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1953,47 +1948,6 @@ returns None.</p>
 
 <hr class="docutils" />
 <dl class="py function">
-<dt class="sig sig-object py" id="Converter.PyTree.getFamilyBCs">
-<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">getFamilyBCs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">familyName</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Get all BC nodes corresponding to a given familyName (family of BCs).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list of BC nodes (shared with a)</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/getFamilyBCsPT.py">Get family BC nodes (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getFamilyBCs (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;walla&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wallb&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
-<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
-<span class="n">B1</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getFamilyBCs</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">);</span> <span class="n">Internal</span><span class="o">.</span><span class="n">printTree</span><span class="p">(</span><span class="n">B1</span><span class="p">)</span>
-<span class="c1">#&gt;&gt; [&#39;walla&#39;,array(&#39;FamilySpecified&#39;,dtype=&#39;|S1&#39;),[2 sons],&#39;BC_t&#39;]</span>
-<span class="c1">#&gt;&gt;   |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
-<span class="c1">#&gt;&gt;   |_[&#39;FamilyName&#39;,array(&#39;CARTER&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;FamilyName_t&#39;]</span>
-<span class="c1">#&gt;&gt; [&#39;wallb&#39;,array(&#39;FamilySpecified&#39;,dtype=&#39;|S1&#39;),[2 sons],&#39;BC_t&#39;]</span>
-<span class="c1">#&gt;&gt;   |_[&#39;PointRange&#39;,array(shape=(3, 2),dtype=&#39;int32&#39;,order=&#39;F&#39;),[0 son],&#39;IndexRange_t&#39;]</span>
-<span class="c1">#&gt;&gt;   |_[&#39;FamilyName&#39;,array(&#39;CARTER&#39;,dtype=&#39;|S1&#39;),[0 son],&#39;FamilyName_t&#39;]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
 <dt class="sig sig-object py" id="Converter.PyTree.getFamilyZoneNames">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">getFamilyZoneNames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Return all family zone names defined in a.</p>
@@ -2023,48 +1977,6 @@ returns None.</p>
 
 <span class="c1"># Toutes les family zone names de l&#39;arbre</span>
 <span class="n">names</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getFamilyZoneNames</span><span class="p">(</span><span class="n">t</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
-<span class="c1">#&gt;&gt; [&#39;CARTER&#39;]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Converter.PyTree.getFamilyBCNamesOfType">
-<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">getFamilyBCNamesOfType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Return all family BC names of a given type. If type is None,
-return all family BC names.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>]</em>) &#8211; input data</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list of familyBC names</p>
-</dd>
-</dl>
-<p><em>Example of use:</em></p>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/getFamilyBCNamesOfTypePT.py">Get familyBC names of given type (pyTree)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getFamilyBCNamesOfType (pyTree) -</span>
-<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">0.01</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;walla&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wallb&#39;</span><span class="p">,</span> <span class="s1">&#39;FamilySpecified:CARTER&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
-
-<span class="n">C</span><span class="o">.</span><span class="n">_addFamily2Base</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;CARTER&#39;</span><span class="p">,</span> <span class="n">bndType</span><span class="o">=</span><span class="s1">&#39;BCWall&#39;</span><span class="p">)</span>
-
-<span class="c1"># Toutes les familyBCs de type BCwall</span>
-<span class="n">names</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getFamilyBCNamesOfType</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
-<span class="c1">#&gt;&gt; [&#39;CARTER&#39;]</span>
-<span class="c1"># Toutes les familyBCs de l&#39;arbre</span>
-<span class="n">names</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">getFamilyBCNamesOfType</span><span class="p">(</span><span class="n">t</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
 <span class="c1">#&gt;&gt; [&#39;CARTER&#39;]</span>
 </pre></div>
 </div>
@@ -2357,7 +2269,7 @@ and returns None.</p>
 </dl>
 <p><em>Example of use:</em></p>
 <ul class="simple">
-<li><p><a class="reference external" href="Examples/Converter/cpVars.py">Variables copy (pyTree)</a>:</p></li>
+<li><p><a class="reference external" href="Examples/Converter/cpVarsPT.py">Variables copy (pyTree)</a>:</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - cpVars (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -2476,7 +2388,7 @@ contain varName.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/isNamePresentPT.py">Is variable present (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - isNamePresent (PyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - isNamePresent (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -2590,18 +2502,20 @@ contain varName.</p>
 <hr class="docutils" />
 <dl class="py function">
 <dt class="sig sig-object py" id=".Converter.initVars">
-<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">initVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNameString</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isVectorized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">initVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNameString</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isVectorized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Initialize one or several variables as given by varNameString.</p>
 <p>For initialisation by a formula string, only one variable can be set at a time.</p>
 <p>For initialisation by a function or by a constant, varNameString can be a string
 or a list of strings.</p>
 <p>If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.</p>
+<p>Exists also as in place version (_initVars) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
 <li><p><strong>varNameString</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; string describing variable or formula</p></li>
-<li><p><strong>value</strong> (<em>float</em><em> or </em><em>function and parameters</em>) &#8211; value in case of constant init or function.</p></li>
+<li><p><strong>v1</strong> (<em>float</em><em> or </em><em>function</em>) &#8211; value in case of constant init or function.</p></li>
+<li><p><strong>v2</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; function&#8217;s arguments if v1 is a function, None otherwise</p></li>
 <li><p><strong>isVectorized</strong> (<em>boolean</em>) &#8211; when using functions, indicates that function is in vectorized form.</p></li>
 </ul>
 </dd>
@@ -2693,6 +2607,62 @@ or a list of strings.</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{Density}</span><span class="s1"> = 3 * </span><span class="si">{CoordinateX}</span><span class="s1"> + sin(</span><span class="si">{CoordinateY}</span><span class="s1">)&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;{centers:MomentumX} = 3 * {centers:CoordinateX} + sin({centers:CoordinateY})&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id=".Converter._initBCDataSet">
+<span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">_initBCDataSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNameString</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isVectorized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Initialize one or several variables, as listed in varNameString, in the
+BCDataSets of BC nodes. BC nodes can be filtered by their names and/or types
+and wildcards are accepted.</p>
+<p>For an initialisation by a formula string, only one variable can be set at a time.</p>
+<p>For an initialisation by a function or a constant, varNameString can be a string
+or a list of strings.</p>
+<p>If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>varNameString</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; string describing variable or formula</p></li>
+<li><p><strong>v1</strong> (<em>float</em><em> or </em><em>function</em>) &#8211; value in case of constant init or function.</p></li>
+<li><p><strong>v2</strong> (<em>list</em><em> of </em><em>strings</em>) &#8211; function&#8217;s arguments if v1 is a function, None otherwise</p></li>
+<li><p><strong>bndName</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC node(s) to get</p></li>
+<li><p><strong>bndType</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em>) &#8211; name(s) of the BC type(s) to get</p></li>
+<li><p><strong>isVectorized</strong> (<em>boolean</em>) &#8211; when using functions, indicates that function is in vectorized form.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/initBCDataSetPT.py">Init a variable to a constant value (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - initBCDataSet (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">nfaces</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBCDataSet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;BCDataSet&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s1">&#39;UserDefined&#39;</span><span class="p">,</span>
+                          <span class="n">gridLocation</span><span class="o">=</span><span class="s1">&#39;FaceCenter&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newBCData</span><span class="p">(</span><span class="s1">&#39;BCNeumann&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">newDataArray</span><span class="p">(</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">nfaces</span><span class="o">*</span><span class="p">[</span><span class="mf">1.</span><span class="p">],</span> <span class="n">parent</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+
+<span class="c1"># Init all BCs</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;MomentumX=2.*numpy.min(</span><span class="si">{Density}</span><span class="s1">,0)&#39;</span><span class="p">)</span>
+<span class="c1"># Init only BC node</span>
+<span class="n">bc</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initBCDataSet</span><span class="p">(</span><span class="n">bc</span><span class="p">,</span> <span class="s1">&#39;MomentumY=3.&#39;</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2940,7 +2910,7 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/convertArray2NGon.py">Convert structured mesh to NGON (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArray2NGon(array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArray2NGon (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -2952,7 +2922,7 @@ If split=&#8217;withBarycenters&#8217;, barycenters of elements and faces are ad
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/convertArray2NGonPT.py">Convert structured mesh to NGON (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArray2NGon(pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArray2NGon (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -3562,7 +3532,7 @@ Always checks the validity of input mesh. Raises error if mesh is invalid.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/makeParentElementsPT.py">Construct parent elements array from NFACE connectivity (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - signNGonFaces (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - makeParentElements (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
@@ -4170,7 +4140,7 @@ For a list of available options, see <a class="reference internal" href="#readop
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/convertFile2Arrays.py">Binary tecplot file read</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertFile2Arrays (arrays) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertFile2Arrays (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
@@ -5479,7 +5449,7 @@ MPI run with nprocs, set nprocs accordingly.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/send.py">Send arrays to server (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - send (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Send (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -5495,7 +5465,7 @@ MPI run with nprocs, set nprocs accordingly.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/sendPT.py">Send pyTrees to server (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - send (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Send (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
@@ -5563,7 +5533,7 @@ corresponding to variable x, and so on&#8230;</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Converter/convertArray3D2Array.py">Create Converter arrays from 3D arrays (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArrays3D2Arrays -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - convertArray3D2Array (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Array3D</span>
@@ -5720,7 +5690,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>

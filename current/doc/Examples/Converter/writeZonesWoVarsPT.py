@@ -1,4 +1,4 @@
-# - writeZones (pyTree) -
+# - writeZonesWoVars (pyTree) -
 # with Filter
 import Converter.PyTree as C
 import Generator.PyTree as G

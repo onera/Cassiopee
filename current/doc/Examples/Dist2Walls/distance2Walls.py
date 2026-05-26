@@ -12,7 +12,7 @@ sphere = D.sphere((1.2,0.,0.), 0.2, 30)
 cellN = C.initVars(sphere,'cellN',1.)
 # Calcul de la distance a la paroi
 dist = Dist2Walls.distance2Walls(a, [sphere], cellnbodies=[cellN],
-                                 loc='centers',type='ortho')
+                                 loc='centers', type='ortho')
 ac = C.node2Center(a)
 ac = C.addVars([ac, dist])
 C.convertArrays2File([ac], 'out.plt')

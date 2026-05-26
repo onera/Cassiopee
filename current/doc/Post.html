@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Post: post-processing module &#8212; Post 4.1 documentation</title>
+    <title>Post: post-processing module &#8212; Post 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Post 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Post 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Post: post-processing module</a></li> 
       </ul>
     </div>  
@@ -709,7 +709,8 @@ If volume has already been computed and volume field is present in tree, it is n
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/computeGradLSQPT.py">Gradient of fields f and g defined by functions F and G with computeGradLSQ (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeGradLSQ (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">I</span>
@@ -1272,7 +1273,7 @@ vertices are returned.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/exteriorVerticesPT.py">Select exterior vertices (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorVertices (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorVertices (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1379,7 +1380,7 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/exteriorFacesPT.py">Select exterior faces (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorFaces (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorFaces (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1421,7 +1422,7 @@ For NGON grids, indices are the NGON face indices, starting from 1.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/exteriorFacesStructuredPT.py">Select structured exterior faces (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorFacesStructured (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - exteriorFacesStructured (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1552,7 +1553,7 @@ Adjacent cells having an angle deviating from more than alphaRef to 180 degrees 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/sharpEdges.py">Detect sharp edges of a surface (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - sharpEdges ( array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - sharpEdges (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
@@ -1560,7 +1561,7 @@ Adjacent cells having an angle deviating from more than alphaRef to 180 degrees 
 <span class="n">a1</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a2</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">a1</span><span class="p">,(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">100.</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">sharpEdges</span><span class="p">([</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">],</span><span class="n">alphaRef</span><span class="o">=</span><span class="mf">45.</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">]</span><span class="o">+</span><span class="n">res</span><span class="p">,</span><span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">]</span><span class="o">+</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -1600,7 +1601,7 @@ Adjacent cells having an angle deviating from more than alphaRef to 180 degrees 
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/silhouette.py">Detect silhouette of a surface (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - silhouette ( array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - silhouette (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
@@ -1706,7 +1707,7 @@ whereas a value near zero corresponds to a bad triangle shape.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/coarsenPT.py">Coarsen all cells in a 2D mesh (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - coarsen (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - coarsen (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1834,7 +1835,7 @@ The resulting projected field is stored at centers in the octree mesh.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/.py">Project the maximum value of the indicator field on the octree mesh (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compIndicatorValue(array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeIndicatorValue (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
@@ -1853,7 +1854,7 @@ The resulting projected field is stored at centers in the octree mesh.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/PT.py">Project the maximum value of the indicator field on the octree mesh (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compIndicatorValue(pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeIndicatorValue (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
@@ -1866,7 +1867,7 @@ The resulting projected field is stored at centers in the octree mesh.</p>
 <span class="n">res</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getVolumeMap</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">o</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeIndicatorValue</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="n">res</span><span class="p">,</span><span class="s1">&#39;centers:vol&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">]);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span><span class="p">[</span><span class="n">o</span><span class="p">]</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1896,7 +1897,7 @@ the indicator must be specified:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/computeIndicatorField.py">Compute the adaptation indicator (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compIndicatorField (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeIndicatorField (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
@@ -1916,7 +1917,7 @@ the indicator must be specified:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/computeIndicatorFieldPT.py">Compute the adaptation indicator (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - compIndicatorField (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - computeIndicatorField (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
@@ -2120,28 +2121,28 @@ to a body defined by a &#8216;TRI&#8217; mesh in 3D and &#8216;BAR&#8217; mesh i
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/projectCloudSolution.py">projectCloudSolution (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -projectCloudSolution (array)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - projectCloudSolution (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Post</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere6</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mf">1.</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">sphere6</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">1.</span> <span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">b</span><span class="p">);</span> <span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 <span class="n">pts</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Node</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="n">pts</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span><span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{x}</span><span class="s1">*</span><span class="si">{y}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">projectCloudSolution</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span><span class="n">a</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">pts</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{x}</span><span class="s1">*</span><span class="si">{y}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">projectCloudSolution</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/projectCloudSolutionPT.py">projectCloudSolution (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># -projectCloudSolution (pyTree)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - projectCloudSolution (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
@@ -2303,7 +2304,7 @@ oriented in the same direction.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/usurpPT.py">Ratio generation for the surface elements (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - usurp (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - usurp (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -2821,7 +2822,7 @@ is specified, all the fields located at nodes and centers are integrated:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/integNormPT.py">Integration dot the surface normal (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - integNorm (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - integNorm (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
@@ -3044,7 +3045,7 @@ is specified, all the fields located at nodes and centers are integrated:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Post/integMomentNormPT.py">Moment integration with normal (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - integMomentNorm (pyTree)-</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - integMomentNorm (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
@@ -3201,7 +3202,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Post 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Post 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Post: post-processing module</a></li> 
       </ul>
     </div>

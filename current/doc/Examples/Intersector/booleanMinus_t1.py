@@ -1,4 +1,4 @@
-# - boolean difference (array) -
+# - booleanMinus (array) -
 import Intersector as XOR
 import Generator as G
 import Converter as C

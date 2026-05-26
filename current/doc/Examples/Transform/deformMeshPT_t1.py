@@ -1,4 +1,4 @@
-# - deformMesh(pyTree) -
+# - deformMesh (pyTree) -
 # tests en structure
 import Generator.PyTree as G
 import Transform.PyTree as T

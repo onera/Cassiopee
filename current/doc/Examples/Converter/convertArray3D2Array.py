@@ -1,4 +1,4 @@
-# - convertArrays3D2Arrays -
+# - convertArray3D2Array (array) -
 import Converter as C
 import Generator as G
 import Converter.Array3D

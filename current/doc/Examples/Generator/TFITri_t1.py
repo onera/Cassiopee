@@ -1,4 +1,4 @@
-# - TFITri (array)
+# - TFITri (array) -
 import Generator as G
 import Geom as D
 import KCore.test as test

@@ -1,4 +1,4 @@
-# - boolean union (pyTree) -
+# - booleanUnion (pyTree) -
 import Intersector.PyTree as XOR
 import Generator.PyTree as G
 import Converter.PyTree as C

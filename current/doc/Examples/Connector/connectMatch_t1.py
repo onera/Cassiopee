@@ -1,4 +1,5 @@
-# - connectMatch 2D (array)-
+# - connectMatch (array) -
+# 2D
 import Generator as G
 import Connector as X
 import KCore.test as test

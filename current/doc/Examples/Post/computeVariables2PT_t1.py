@@ -1,4 +1,4 @@
-# - computeVariables2PT (pyTree) -
+# - computeVariables2 (pyTree) -
 import Converter.PyTree  as CP
 import Post.PyTree       as PT
 import Generator.PyTree  as GP

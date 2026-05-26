@@ -1,4 +1,4 @@
-# - adaptNFace2PE (pyTree) -
+# - adaptPE2NFace (pyTree) -
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G

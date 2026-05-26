@@ -1,4 +1,4 @@
-# - playSound -
+# - playSound (array) -
 try: import Modeler.Sound as Sound
 except: import Modeler.SoundLess as Sound
 import time

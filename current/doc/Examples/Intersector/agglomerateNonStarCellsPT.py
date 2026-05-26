@@ -1,4 +1,4 @@
-# - convexify any concave polygon in the mesh (array) -
+# - agglomerateNonStarCells (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 

@@ -186,7 +186,7 @@
 </ul>
 <pre><code class="language-sh">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
-sudo apt update &amp;&amp; apt install docker-ce -y
+sudo apt update &amp;&amp; sudo apt install docker-ce -y
 sudo systemctl status docker
 </code></pre>
 <ul>
@@ -195,6 +195,9 @@ sudo systemctl status docker
 <pre><code class="language-sh">sudo usermod -aG docker ${USER}
 groups ${USER}
 </code></pre>
+<ul>
+<li>Reboot your machine</li>
+</ul>
 <p><br></br></p>
 <h2 id="2-pulling-from-dockerhub">2. Pulling from DockerHub</h2>
 <ul>
