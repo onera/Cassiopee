@@ -9,4 +9,4 @@ z = Internal.newZone('Zone', zsize=[[10, 2, 0]], ztype='Structured'); Internal.p
 # Create a zone node and attach it to tree
 t = Internal.newCGNSTree()
 b = Internal.newCGNSBase('Base', 3, 3, parent=t)
-z = Internal.newZone('Zone', [[10],[2],[0]], 'Structured', parent=b)
+z = Internal.newZone('Zone', [[10,9,0]], 'Structured', parent=b)

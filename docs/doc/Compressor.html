@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Compressor: Field compression module &#8212; Compressor 4.1 documentation</title>
+    <title>Compressor: Field compression module &#8212; Compressor 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Compressor 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Compressor 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Compressor: Field compression module</a></li> 
       </ul>
     </div>  
@@ -61,17 +61,6 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.deltaIndex" title="Compressor.deltaIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.deltaIndex</span></code></a></p></td>
 <td><p>Return the delta between index and ref.</p></td>
-</tr>
-</tbody>
-</table>
-<p><strong>&#8211; Object serializer/compression</strong></p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Compressor.pack" title="Compressor.pack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.pack</span></code></a></p></td>
-<td><p>Serialize or compress a.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Compressor.unpack" title="Compressor.unpack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compressor.unpack</span></code></a></p></td>
-<td><p>Deserialize or decompress a.</p></td>
 </tr>
 </tbody>
 </table>
@@ -134,7 +123,7 @@ number of suppressed indices, the list of suppressed indices.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Compressor/deltaIndex.py">Compression by delta (numpy)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deltaIndex -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deltaIndex (array) -</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">Compressor</span>
 
@@ -146,62 +135,6 @@ number of suppressed indices, the list of suppressed indices.</p>
 
 <span class="n">delta</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">deltaIndex</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">indRef</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
-<hr class="docutils" />
-<section id="object-serialize-compression">
-<h3>Object serialize/compression</h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="Compressor.pack">
-<span class="sig-prename descclassname"><span class="pre">Compressor.</span></span><span class="sig-name descname"><span class="pre">pack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Serialize/compress a python object a. For now, this is only a general interface
-to pickle module.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>a</strong> (<em>python object</em>) &#8211; any python object</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>serialized stream</p>
-</dd>
-</dl>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Compressor/pack.py">Object serialization (numpy)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - pack -</span>
-<span class="kn">import</span> <span class="nn">Compressor</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<hr class="docutils" />
-<dl class="py function">
-<dt class="sig sig-object py" id="Compressor.unpack">
-<span class="sig-prename descclassname"><span class="pre">Compressor.</span></span><span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
-<dd><p>Deserialize/decompress a serialized stream b. For now, this is only a general interface
-to pickle module.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>a</strong> (<em>serialized stream</em>) &#8211; a serialized stream as produced by pack</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>python object</p>
-</dd>
-</dl>
-<ul class="simple">
-<li><p><a class="reference external" href="Examples/Compressor/unpack.py">Object deserialization (numpy)</a>:</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - unpack -</span>
-<span class="kn">import</span> <span class="nn">Compressor</span>
-<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">Compressor</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -624,7 +557,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Compressor 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Compressor 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Compressor: Field compression module</a></li> 
       </ul>
     </div>

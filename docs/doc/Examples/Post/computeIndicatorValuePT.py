@@ -1,4 +1,4 @@
-# - compIndicatorValue(pyTree) -
+# - computeIndicatorValue (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Geom.PyTree as D
@@ -11,4 +11,4 @@ res = G.octree2Struct(o, vmin=11,merged=1)
 res = G.getVolumeMap(res)
 o = P.computeIndicatorValue(o,res,'centers:vol')
 t = C.newPyTree(['Base']); t[2][1][2] +=[o]
-C.convertPyTree2File(t,"out.cgns")
+C.convertPyTree2File(t, "out.cgns")

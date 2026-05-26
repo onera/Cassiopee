@@ -1,4 +1,4 @@
-# - boolean diffSurf (PyTree) -
+# - diffSurf (pyTree) -
 import Generator.PyTree as G
 import Geom.PyTree as D
 import Converter.PyTree as C

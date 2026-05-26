@@ -1,4 +1,4 @@
-# - getDistantIndex -
+# - getDistantIndex (array) -
 import Converter as C
 import Geom as D
 import KCore.test as test

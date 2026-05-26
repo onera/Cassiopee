@@ -1,4 +1,4 @@
-# - merge (array)
+# - merge (array) -
 import Converter as C
 import Generator as G
 import Transform as T

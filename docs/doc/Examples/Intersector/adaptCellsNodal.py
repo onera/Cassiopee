@@ -1,4 +1,4 @@
-# - adapts a cells with respect to b points (array) -
+# - adaptCellsNodal (array) -
 import Intersector as XOR
 import Converter as C
 import Generator as G
@@ -15,13 +15,13 @@ n = C.getNPts(a)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2
 
-## HEXA static adaptation
+# HEXA static adaptation
 m = XOR.adaptCells(a, nodal_vals, sensor_type=2, smoothing_type=1)
 
 m = XOR.closeCells(m[0])
 C.convertArrays2File([m], 'out.plt')
 
-## TETRA static adaptation
+# TETRA static adaptation
 n = C.getNPts(aTH4)
 nodal_vals = numpy.empty((n,), dtype=Internal.E_NpyInt)
 nodal_vals[:] = 2

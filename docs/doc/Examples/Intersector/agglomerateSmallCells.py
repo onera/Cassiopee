@@ -1,4 +1,4 @@
-# - boolean diffSurf (array) -
+# - agglomerateSmallCells (array) -
 import Generator as G
 import Geom as D
 import Converter as C

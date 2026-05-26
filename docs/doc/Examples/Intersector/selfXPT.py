@@ -1,4 +1,4 @@
-# - boolean difference (array) -
+# - selfX (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import Transform.PyTree as T
@@ -15,7 +15,6 @@ M2 = C.conformizeNGon(M2)
 M2 = XOR.closeCells(M2)
 
 tol = -0.5e-3
-
 
 M = T.join(M1,M2)
 M = XOR.selfX(M)

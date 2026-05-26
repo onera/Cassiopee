@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Dist2Walls: wall distance computation &#8212; Dist2Walls 4.1 documentation</title>
+    <title>Dist2Walls: wall distance computation &#8212; Dist2Walls 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Dist2Walls 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Dist2Walls 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Dist2Walls: wall distance computation</a></li> 
       </ul>
     </div>  
@@ -93,7 +93,7 @@ The algorithm &#8216;mininterf&#8217; does not compute the distance to a vertex 
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>bodies</strong> (<em>[</em><em>array</em><em>, </em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; body definition</p></li>
+<li><p><strong>bodies</strong> (<em>[</em><em>list</em><em> of </em><em>arrays</em><em>] or </em><em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; body definition</p></li>
 <li><p><strong>type</strong> (<em>string</em>) &#8211; type of wall distance computation in [&#8216;ortho&#8217;, &#8216;mininterf&#8217;]</p></li>
 <li><p><strong>loc</strong> (<em>string</em>) &#8211; location of distance field in [&#8216;nodes&#8217;, &#8216;centers&#8217;]</p></li>
 <li><p><strong>signed</strong> (<em>int</em>) &#8211; if 0 absolut distance, if 1 signed distance (negative inside)</p></li>
@@ -122,7 +122,7 @@ if loc=&#8217;centers&#8217;, it is stored in nodes located at centers.</p>
 <span class="n">cellN</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">sphere</span><span class="p">,</span><span class="s1">&#39;cellN&#39;</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
 <span class="c1"># Calcul de la distance a la paroi</span>
 <span class="n">dist</span> <span class="o">=</span> <span class="n">Dist2Walls</span><span class="o">.</span><span class="n">distance2Walls</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="n">sphere</span><span class="p">],</span> <span class="n">cellnbodies</span><span class="o">=</span><span class="p">[</span><span class="n">cellN</span><span class="p">],</span>
-                                 <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
+                                 <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
 <span class="n">ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">ac</span><span class="p">,</span> <span class="n">dist</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">ac</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
@@ -289,7 +289,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Dist2Walls 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Dist2Walls 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Dist2Walls: wall distance computation</a></li> 
       </ul>
     </div>

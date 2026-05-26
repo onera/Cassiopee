@@ -1,4 +1,4 @@
-# - getCEBBIntersectingDomains 3D (pyTree) -
+# - getCEBBIntersectingDomains (pyTree) -
 import Connector.PyTree as X
 import Converter.PyTree as C
 import Generator.PyTree as G

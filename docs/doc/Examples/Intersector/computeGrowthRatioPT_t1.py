@@ -1,5 +1,4 @@
-# - Extract pathological cells (uncomputable or non-star) - (array)
-
+# - computeGrowthRatio (pyTree) -
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
 import KCore.test as test

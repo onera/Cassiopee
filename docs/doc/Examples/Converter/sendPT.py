@@ -1,4 +1,4 @@
-# - send (pyTree) -
+# - Send (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Transform.PyTree as T

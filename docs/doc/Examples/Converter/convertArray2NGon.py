@@ -1,4 +1,4 @@
-# - convertArray2NGon(array) -
+# - convertArray2NGon (array) -
 import Converter as C
 import Generator as G
 

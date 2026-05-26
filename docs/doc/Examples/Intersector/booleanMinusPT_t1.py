@@ -1,4 +1,4 @@
-# - boolean difference (pyTree) -
+# - booleanMinus (pyTree) -
 import Intersector.PyTree as XOR
 import Generator.PyTree as G
 import Converter.PyTree as C

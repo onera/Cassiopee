@@ -1,4 +1,4 @@
-# - volumeFromCrossSection (pyTree) -
+# - volumeFromCrossSections (pyTree) -
 import Converter.PyTree as C
 import Geom.PyTree as D
 contours = []

@@ -1,4 +1,4 @@
-# - adapts a cells with respect to b points (PyTree) -
+# - adaptCells (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import Generator.PyTree as G

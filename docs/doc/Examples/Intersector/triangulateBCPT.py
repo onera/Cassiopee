@@ -1,4 +1,4 @@
-# - triangulateExteriorFaces (PyTree) -
+# - triangulateBC (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 

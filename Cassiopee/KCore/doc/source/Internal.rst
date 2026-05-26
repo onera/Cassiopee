@@ -121,6 +121,11 @@ List of functions
     Converter.Internal.getPathAncestor
     Converter.Internal.getZonePaths
 
+    Converter.Internal.getFamilyBCs
+    Converter.Internal.getFamilyBCNamesOfType
+    Converter.Internal.getBCNodesFromName
+    Converter.Internal.getBCNodesFromType
+
     Converter.Internal.getZones
     Converter.Internal.getZonesPerIteration
     Converter.Internal.getBases
@@ -1192,6 +1197,98 @@ Acess nodes
 
     .. note:: New in version 2.5
 
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getFamilyBCs(a, familyName)
+
+    Get all BC nodes corresponding to a given familyName (family of BCs).
+
+    :param a: input data 
+    :type a: [pyTree, base, zone, list of zones]
+    :rtype: list of BC nodes (shared with a)
+
+    *Example of use:*
+
+    * `Get family BC nodes (pyTree) <Examples/Converter/getFamilyBCsPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getFamilyBCsPT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getFamilyBCNamesOfType(a, bndType=None)
+
+    Return all family BC names of a given type. If type is None, 
+    return all family BC names.
+    
+    :param a: input data 
+    :type a: [pyTree, base]
+    :rtype: list of familyBC names
+
+    *Example of use:*
+
+    * `Get familyBC names of given type (pyTree) <Examples/Converter/getFamilyBCNamesOfTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getFamilyBCNamesOfTypePT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getBCNodesFromName(a, bndName=None)
+
+    Return all BC nodes of a given name. If name is None, return all BC nodes.
+    Wildcards are accepted.
+    
+    :param a: input data 
+    :type a: [pyTree, base, zone, list of zones, BC_t node]
+    :param bndName: name(s) of the BC node(s) to get
+    :type bndName: string or list of strings
+    :rtype: list of BC nodes (shared with a)
+
+    *Example of use:*
+
+    * `Get BC nodes of given name (pyTree) <Examples/Converter/getBCNodesFromNamePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getBCNodesFromNamePT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getBCNodesFromType(a, bndType=None)
+
+    Return all BC nodes of a given type. If type is None, return all BC nodes.
+    Wildcards are accepted.
+    
+    :param a: input data 
+    :type a: [pyTree, base, zone, list of zones, BC_t node]
+    :param bndType: name(s) of the BC type(s) to get
+    :type bndType: string or list of strings
+    :rtype: list of BC nodes (shared with a)
+
+    *Example of use:*
+
+    * `Get BC nodes of given type (pyTree) <Examples/Converter/getBCNodesFromTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getBCNodesFromTypePT.py
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Internal.getBCNodesFromNameAndType(a, bndType=None, bndType=None)
+
+    Return all BC nodes of a given name and type. If name and type are noth None,
+    return all BC nodes. Wildcards are accepted.
+    
+    :param a: input data 
+    :type a: [pyTree, base, zone, list of zones, BC_t node]
+    :param bndName: name(s) of the BC node(s) to get
+    :type bndName: string or list of strings
+    :param bndType: name(s) of the BC type(s) to get
+    :type bndType: string or list of strings
+    :rtype: list of BC nodes (shared with a)
+
+    *Example of use:*
+
+    * `Get BC nodes of given type (pyTree) <Examples/Converter/getBCNodesFromNameAndTypePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getBCNodesFromNameAndTypePT.py
+        
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getZones(t)

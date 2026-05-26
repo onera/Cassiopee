@@ -1,4 +1,4 @@
-# - pointedHat -
+# - pointedHat (array) -
 import Geom as D
 import Generator as G
 import KCore.test as test

@@ -8,7 +8,7 @@ def nearest(a):
     f = G.cartHexa((2,0,0),(1,1,1),(3,1,1))
     f = T.translate(f,(0.15,0.,0.))
     if isinstance(a[0], list):
-        a=a[0]; f = [f,f]
+        a = a[0]; f = [f,f]
     hook = C.createHook(a, function='nodes')
     nodes = C.nearestNodes(hook, f)
     C.freeHook(hook)

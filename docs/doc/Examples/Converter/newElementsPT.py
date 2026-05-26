@@ -8,5 +8,5 @@ b = Internal.newElements(name='Elements', etype='UserDefined', econnectivity=Non
 #>>   |_['ElementRange',None,[0 son],'IndexRange_t']
 
 # Attach it to zone
-z = Internal.newZone('Zone', [[10],[2],[0]], 'Unstructured')
+z = Internal.newZone('Zone', [[10,9,0]], 'Unstructured')
 Internal.newElements(name='Elements', etype='UserDefined', econnectivity=None, eboundary=0, parent=z)

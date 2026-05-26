@@ -1,4 +1,4 @@
-# - dual (pyTree)
+# - dual (pyTree) -
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Geom.PyTree as D

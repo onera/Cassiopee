@@ -1,4 +1,4 @@
-# - convexify any concave polygon in the mesh (array) -
+# - agglomerateNonStarCells (array) -
 import Intersector as XOR
 import Converter as C
 

@@ -1,4 +1,4 @@
-# - prepareIBMData_legacy (pyTree) -
+# - extractIBMInfo (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Connector.ToolboxIBM as IBM

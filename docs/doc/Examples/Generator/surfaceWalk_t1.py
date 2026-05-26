@@ -1,4 +1,4 @@
-# - surfaceWalk (array)
+# - surfaceWalk (array) -
 import Geom as D
 import Transform as T
 import Generator as G

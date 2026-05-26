@@ -1,4 +1,4 @@
-# - Extract pathological cells (uncomputable or non-star) (array) -
+# - computeGrowthRatio (array) -
 import Converter as C
 import Intersector as XOR
 

@@ -1,4 +1,4 @@
-# - getDistribution -
+# - getDistribution (array) -
 import Geom as D
 import KCore.test as test
 import Transform as T

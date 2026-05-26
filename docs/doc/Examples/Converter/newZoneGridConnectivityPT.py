@@ -6,5 +6,5 @@ n = Internal.newZoneGridConnectivity(name='ZoneGridConnectivity'); Internal.prin
 #>> ['ZoneGridConnectivity',None,[0 son],'ZoneGridConnectivity_t']
 
 # Attach it to a parent node
-z = Internal.newZone('Zone', zsize=[[10],[2],[0]], ztype='Structured')
+z = Internal.newZone('Zone', zsize=[[10,9,0]], ztype='Structured')
 Internal.newZoneGridConnectivity('ZoneGridConnectivity', parent=z)

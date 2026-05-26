@@ -1,4 +1,4 @@
-# - boolean union (array) -
+# - booleanUnion (array) -
 import Intersector as XOR
 import Generator as G
 import Converter as C

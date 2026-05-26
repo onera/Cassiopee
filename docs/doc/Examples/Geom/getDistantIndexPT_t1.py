@@ -1,4 +1,4 @@
-# - getDistantIndex (PyTree)-
+# - getDistantIndex (pyTree) -
 import Geom.PyTree as D
 import KCore.test as test
 

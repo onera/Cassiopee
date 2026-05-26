@@ -28,7 +28,7 @@ hub = T.translate(hub, (0,0,-0.25))
 C.convertPyTree2File(hub, 'hub.cgns')
 
 # stick
-T._stick(t, hub, amplitude=1.)
+T._stick(t, hub)
 C.convertPyTree2File(t, 'out.cgns')
 
 # Compare surfaces

@@ -37,12 +37,11 @@ test.testA([b],9)
 indices = []
 b = P.exteriorFaces(a,indices)
 test.testO([b,indices],29)
+# EMPTY BAR
 a = D.circle((0,0,0),1.)
 a = C.convertArray2Tetra(a); a = G.close(a)
-indices=[]
-try:
-    b = P.exteriorFaces(a,indices)
-except: pass
+b = P.exteriorFaces(a)
+test.testA([b],39)
 
 # TRI
 a = G.cartTetra((0,0,0), (1,1,1), (20,3,1))
@@ -51,6 +50,10 @@ test.testA([b],4)
 indices = []
 b = P.exteriorFaces(a,indices)
 test.testO([b,indices],24)
+# EMPTY TRI
+a = D.sphere6( (0,0,0), 1., N=3, ntype='TRI')
+b = P.exteriorFaces(a)
+test.testA([b],34)
 
 # QUAD
 a = G.cartHexa((0,0,0), (1,1,1), (20,3,1))
@@ -59,6 +62,10 @@ test.testA([b],5)
 indices = []
 b = P.exteriorFaces(a)
 test.testO([b,indices],25)
+# EMPTY QUAD
+a = D.sphere6( (0,0,0), 1., N=3, ntype='QUAD')
+b = P.exteriorFaces(a)
+test.testA([b],35)
 
 # TETRA
 a = G.cartTetra((0,0,0), (1,1,1), (3,3,3))
@@ -83,14 +90,9 @@ test.testA([b],8)
 indices = []
 b = P.exteriorFaces(a)
 test.testO([b,indices],28)
-# EMPTY
+# EMPTY NGON
 a = D.sphere( (0,0,0), 1.)
-a = C.convertArray2Tetra(a)
+a = C.convertArray2NGon(a)
 a = G.close(a)
-try:
-    b = P.exteriorFaces(a)
-except: pass
-indices = []
-try:
-    b = P.exteriorFaces(a,indices)
-except: pass
+b = P.exteriorFaces(a)
+test.testA([b],38)

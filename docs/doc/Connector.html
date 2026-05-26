@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Connector: Grid connectivity module &#8212; Connector 4.1 documentation</title>
+    <title>Connector: Grid connectivity module &#8212; Connector 4.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>  
@@ -251,7 +251,7 @@ Periodicity can be defined either by rotation or translation or by a composition
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/connectMatchPeriodicPT.py">Add periodic  1-to-1 abutting grid connectivity in a pyTree (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - connectMatch (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - connectMatchPeriodic (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
@@ -1020,7 +1020,7 @@ The cellN variable is defined as a FlowSolution#Center node. The cellN is set to
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/blankIntersectingCells.py">Blank intersecting cells (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankIntersectingCells (array)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankIntersectingCells (array) -</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -1031,13 +1031,13 @@ The cellN variable is defined as a FlowSolution#Center node. The cellN is set to
 <span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">]</span>
 <span class="n">Ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">A</span><span class="p">);</span> <span class="n">Ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">Ac</span><span class="p">,</span><span class="s1">&#39;cellN&#39;</span><span class="p">,</span><span class="mf">1.</span><span class="p">);</span>
 <span class="n">Ac</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">blankIntersectingCells</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">Ac</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-10</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">Ac</span><span class="p">,</span><span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">Ac</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/blankIntersectingCellsPT.py">Blank intersecting cells (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankIntersectingCells (pyTree)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - blankIntersectingCells (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
@@ -1151,7 +1151,7 @@ func defines a python function defining the motion of base, funcs is the list of
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/getCEBBTimeIntersectingDomainsPT.py">CEBB intersection between bases with motions (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getCEBBIntersectingDomains (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getCEBBTimeIntersectingDomains (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -1456,7 +1456,7 @@ If type=&#8217;cf&gt;value&#8217;,  extrapolated points where the sum of absolut
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/extractChimeraInfoPT.py">Extract chimera points (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - chimeraInfo (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractChimeraInfo (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
@@ -1509,7 +1509,7 @@ cfMax is a threshold value for a valid extrapolation: if the sum of the extrapol
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/setInterpolationsPT.py">set interpolations  (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setInterpolation (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - setInterpolations (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
@@ -1710,7 +1710,8 @@ the fluid region</p></li>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/prepareIBMDataPT.py">compute the IBM preprocessing (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData_legacy (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData (pyTree) -</span>
+<span class="c1"># legacy</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
@@ -1724,11 +1725,11 @@ the fluid region</p></li>
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span> <span class="n">body</span><span class="p">])</span>
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;EquationDimension&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
-<span class="n">DTW</span><span class="o">.</span><span class="n">_distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
-<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;t.cgns&#39;</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;tc.cgns&#39;</span><span class="p">)</span>
+<span class="n">DTW</span><span class="o">.</span><span class="n">_distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;t.cgns&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;tc.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -1748,7 +1749,7 @@ as updated points for the IBM approach and the corresponding wall and interpolat
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Connector/extractIBMInfoPT.py">extract all the IBM points (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - prepareIBMData_legacy (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractIBMInfo (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
@@ -1924,7 +1925,7 @@ Exists also as a parallel distributed function (X.Mpi._setInterpTransfers)</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;wall&#39;</span><span class="p">,</span> <span class="s1">&#39;BCWall&#39;</span><span class="p">,</span> <span class="s1">&#39;jmin&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;imin&#39;</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addBC2Zone</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;BCOverlap&#39;</span><span class="p">,</span> <span class="s1">&#39;imax&#39;</span><span class="p">)</span>
-<span class="n">t1</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">]);</span> <span class="n">t1</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">];</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">]);</span> <span class="n">t1</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">]);</span> <span class="n">t2</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span>
 <span class="n">t1</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">fillEmptyBCWith</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="s1">&#39;nref&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">fillEmptyBCWith</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="s1">&#39;nref&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFarfield&#39;</span><span class="p">)</span>
@@ -1934,7 +1935,7 @@ Exists also as a parallel distributed function (X.Mpi._setInterpTransfers)</p>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Density&#39;</span><span class="p">])</span>
 
 <span class="n">t2</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">applyBCOverlaps</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">t1</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setInterpData</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">double_wall</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setInterpData</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span>
                      <span class="n">storage</span><span class="o">=</span><span class="s1">&#39;inverse&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">t2</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setInterpTransfers</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Density&#39;</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
@@ -2087,7 +2088,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 4.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>

@@ -1,4 +1,4 @@
-# - polyline -
+# - polyline (array) -
 import Geom as D
 import KCore.test as test
 

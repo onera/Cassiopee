@@ -1,4 +1,4 @@
-# - hyper2D2 (array)-
+# - hyper2D2 (array) -
 import KCore.test as test
 import Geom as D
 import Generator as G

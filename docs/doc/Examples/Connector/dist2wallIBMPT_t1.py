@@ -1,4 +1,4 @@
-# - dist2wallIBM 2D (pyTree) -
+# - dist2wallIBM (pyTree) -
 import Generator.PyTree as G
 import Geom.IBM as DIBM
 import Connector.IBM as XIBM

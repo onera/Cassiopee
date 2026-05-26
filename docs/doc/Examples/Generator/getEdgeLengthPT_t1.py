@@ -1,4 +1,4 @@
-# - getEdgeLength(pyTree) -
+# - getEdgeLength (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import KCore.test as test

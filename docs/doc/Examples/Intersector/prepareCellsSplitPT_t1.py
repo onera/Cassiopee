@@ -1,4 +1,4 @@
-# - convexify any concave polygon in the mesh (array) -
+# - prepareCellsSplit (pyTree) -
 import Intersector.PyTree as XOR
 import Converter.PyTree as C
 import KCore.test as test

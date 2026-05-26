@@ -1,4 +1,4 @@
-# - convertArrays2ZoneNode
+# - convertArrays2ZoneNode (array) -
 import Converter.PyTree as C
 import Generator as G
 

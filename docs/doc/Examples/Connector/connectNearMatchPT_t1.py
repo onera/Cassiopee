@@ -1,4 +1,5 @@
-# - connectNearMatch 2D (pyTree)-
+# - connectNearMatch (pyTree) -
+# 2D
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Connector.PyTree as X

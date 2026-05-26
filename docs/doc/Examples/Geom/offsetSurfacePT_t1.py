@@ -16,3 +16,7 @@ b = Geom.Offset.offsetSurface(a, offset=1., pointsPerUnitLength=10., algo=0, dim
 test.testT(b,3)
 b = Geom.Offset.offsetSurface(a, offset=1., pointsPerUnitLength=10., algo=1, dim=2)
 test.testT(b,4)
+b = Geom.Offset.offsetSurface(a, offset=1., pointsPerUnitLength=10., algo=0, dim=3)
+test.testT(b,5)
+b = Geom.Offset.offsetSurface(a, offset=1., pointsPerUnitLength=10., algo=1, dim=3)
+test.testT(b,6)

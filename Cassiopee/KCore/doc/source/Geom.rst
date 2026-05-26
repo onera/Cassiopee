@@ -108,6 +108,11 @@ List of functions
    Geom.getTangent
    Geom.getUV
    Geom.getUVFromIJ
+   Geom.getArea
+   Geom.getVolume
+   Geom.getMassCenter
+   Geom.distance
+
 
 Contents
 ########
@@ -1407,6 +1412,88 @@ all the points of the geometry.
     .. literalinclude:: ../build/Examples/Geom/getUVFromIJPT.py
 
 ---------------------------------------
+
+.. py:function:: Geom.getArea(a)
+  
+    Return area of surface a.
+
+    :param a: input surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get area of surface (array) <Examples/Geom/getArea.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getArea.py
+
+    * `Get are of surface (pyTree) <Examples/Geom/getAreaPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getAreaPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.getVolume(a)
+  
+    Return volume of closed surface.
+
+    :param a: input closed surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Get volume of surface (array) <Examples/Geom/getVolume.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getVolume.py
+
+    * `Get volume of surface (pyTree) <Examples/Geom/getVolumePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getVolumePT.py
+
+---------------------------------------
+
+.. py:function:: Geom.getMassCenter(a)
+  
+    Return center of mass of closed surface.
+
+    :param a: input closed surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :rtype: identical to input
+
+    *Example of use:*
+
+    * `Get center of mass of surface (array) <Examples/Geom/getMassCenter.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getMassCenter.py
+
+    * `Get center of mass of surface (pyTree) <Examples/Geom/getMassCenterPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/getMassCenterPT.py
+
+---------------------------------------
+
+.. py:function:: Geom.distance(a, b)
+  
+    Return the distance between a and b (curve or surface).
+
+    :param a: input closed curve or surface
+    :type a: [array, arrays] or [zone, zones, base, tree]
+    :param b: compared closed curve or surface
+    :type b: [array, arrays] or [zone, zones, base, tree]
+    
+    :rtype: float
+
+    *Example of use:*
+
+    * `Get the distance between two cruves or surfaces (array) <Examples/Geom/distance.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distance.py
+
+    * `Get the distance between two curves or surfaces (pyTree) <Examples/Geom/distancePT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Geom/distancePT.py
+
 
 .. toctree::
    :maxdepth: 2   

@@ -1,4 +1,4 @@
-# - convertFile2Arrays (arrays) -
+# - convertFile2Arrays (array) -
 import Generator as G
 import Converter as C
 

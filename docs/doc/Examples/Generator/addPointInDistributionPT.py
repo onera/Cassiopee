@@ -1,4 +1,4 @@
-# - addPointInDistribution (pyTree)-
+# - addPointInDistribution (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 

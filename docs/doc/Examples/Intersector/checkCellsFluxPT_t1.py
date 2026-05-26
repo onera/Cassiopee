@@ -1,9 +1,8 @@
-# - selectCells (pyTree) -
+# - checkCellsFlux (pyTree) -
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
 import Converter.Internal as I
 import KCore.test as test
-
 
 t = C.convertFile2PyTree('boolNG_M1.tp')
 t = C.convertArray2NGon(t)

@@ -1,4 +1,4 @@
-# - silhouette ( array) -
+# - silhouette (array) -
 import Generator as G
 import Converter as C
 import Post as P
