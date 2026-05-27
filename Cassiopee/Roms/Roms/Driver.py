@@ -1694,6 +1694,70 @@ class Driver:
 
         return None
 
+    # FD derivative of distance on mesh
+    def dDdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-10):
+        """Compute derivatives dD/dmu on entity."""
+
+        if len(self.freeParams) == 0:
+            print("Warning: no free vars.")
+            return None
+
+        if freeParams is None: # no param given
+            listVars = self.freeParams
+        elif isinstance(freeParams, str): # free param given by name
+            listVars = []
+            for f in self.freeParams:
+                if self.scalars[f.name].name == freeParams: listVars.append(f)
+        elif isinstance(freeParams, list): # suppose list of names
+            listVars = []
+            for f in self.freeParams:
+                if self.scalars[f.name].name in freeParams: listVars.append(f)
+        else:
+            raise TypeError("Warning: dXdmu: incorrect freevars.")
+
+        dDdmu = []    
+        if mesh is not None: # array (by rmesh)
+            import Geom
+            for c, f in enumerate(listVars):
+                # free vars value dict
+                d = {}
+                for q in self.freeParams:
+                    d[q.name] = self.scalars[q.name].v
+                d[f.name] += deps
+                print("DIFF on: ", f.name)
+                # update CAD at param+eps
+                self.instantiate(d)
+                mesho = entity.rmesh(mesh)
+                dist = Geom.distance(mesh, mesho)/deps
+                dDdmu.append(dist)
+
+        else: # pyTree (by remesh)
+            import Geom.PyTree as Geom
+            Mesho = Internal.copyTree(Mesh)
+            zoneso = Internal.getZones(Mesho)
+            for c, f in enumerate(listVars):
+                # free vars value dict
+                d = {}
+                for q in self.freeParams:
+                    d[q.name] = self.scalars[q.name].v
+                d[f.name] += deps
+                print("DIFF on: ", f.name)
+                # update CAD at param+eps
+                self.instantiate(d)
+                # deform reference mesh to match parameters
+                # if entity is sketch, new mesh
+                # if entity is surface, ref surface deformed
+                Meshd = entity.Dmesh()
+                dist = Geom.distance(Mesh, Meshd)/deps
+                dDdmu.append(dist)
+
+        # remet le hook original
+        d = {}
+        for q in self.freeParams:
+            d[q.name] = self.scalars[q.name].v
+        self.instantiate(d)
+        return dDdmu
+    
     # connect driver to db
     def connect(self, db):
         """Connect driver to db."""

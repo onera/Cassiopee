@@ -6,7 +6,7 @@ import KCore
 import numpy, fnmatch, re, os.path
 __version__ = Converter.__version__
 
-# Variables globales
+# Global variables
 __ZoneNameServer__ = {}
 __BCNameServer__ = {}
 __BaseNameServer__ = {}
@@ -15,37 +15,40 @@ __BaseNameServer__ = {}
 FORCER4PERIODIC = True
 
 #==============================================================================
-# -- Gestion du nommage unique --
+# -- Unique naming management --
 #==============================================================================
 
 # -- getZoneName
-# Retourne un nom de zone (unique par rapport au __ZoneNameServer__)
-# IN: proposedName: nom propose
-# OUT: nouveau nom unique
+# Returns a zone name (unique with respect to __ZoneNameServer__)
+# IN: proposedName: proposed name
+# OUT: new unique name
 def getZoneName(proposedName):
+    """Return an unique zone name from proposed name."""
     global __ZoneNameServer__
     (name, __ZoneNameServer__) = getUniqueName(proposedName, __ZoneNameServer__)
     return name
 
-# Enregistre les noms de zones de t dans le __ZoneNameServer__
+# Registers zone names of t in __ZoneNameServer__
 def registerZoneNames(t):
+    """Register zone name in server."""
     global __ZoneNameServer__
     nodes = Internal.getZones(t)
     for i in nodes: __ZoneNameServer__[i[0]] = 0
 
 # -- getBCName
-# Retourne un nom de BC unique, stocke les noms de BC_t, GridConnectivity_t
-# IN: proposedName: nom propose
+# Returns a unique BC name, stores BC_t, GridConnectivity_t names
+# IN: proposedName: proposed name
 def getBCName(proposedName):
+    """Return unique BC name from proposed name."""
     global __BCNameServer__
     (name, __BCNameServer__) = getUniqueName(proposedName, __BCNameServer__)
     return name
 
-# Retourne le denier nom de BC propose par le serveur pour le nom proposedName
+# Returns the last BC name proposed by the server for name proposedName
 def getLastBCName(proposedName):
     return getLastName(proposedName, __BCNameServer__)
 
-# Enregistre les noms des BCs de t dans le __BCNameServer__
+# Registers BC names of t in __BCNameServer__
 def registerBCNames(t):
     global __BCNameServer__
     zones = Internal.getZones(t)
@@ -62,22 +65,22 @@ def registerBCNames(t):
             for i in nodes: __BCNameServer__[i[0]] = 0
 
 # -- getBaseName
-# Retourne un nom de base (unique)
-# IN: proposedName: nom propose
-# OUT: nouveau nom unique
+# Returns a base name (unique)
+# IN: proposedName: proposed name
+# OUT: new unique name
 def getBaseName(proposedName):
     global __BaseNameServer__
     (name, __BaseNameServer__) = getUniqueName(proposedName, __BaseNameServer__)
     return name
 
-# Enregistre les noms de base de t dans le __BaseNameServer__
+# Registers base names of t in __BaseNameServer__
 def registerBaseNames(t):
     global __BaseNameServer__
     nodes = Internal.getBases(t)
     for i in nodes:
         __BaseNameServer__[i[0]] = 0
 
-# Enregistre les Zone names, les Base names, les BC names
+# Registers Zone names, Base names, BC names
 def registerAllNames(t):
     registerZoneNames(t); registerBaseNames(t); registerBCNames(t)
 
@@ -91,7 +94,7 @@ def clearAllNames():
     __BaseNameServer__ = {}
     return None
 
-# Retourne proposedName ou proposedName.count
+# Returns proposedName or proposedName.count
 def getUniqueName(proposedName, server):
     namespl = proposedName.rsplit('.', 1)
     if len(namespl) == 2:
@@ -112,7 +115,7 @@ def getUniqueName(proposedName, server):
         server[name] = c
         return (name2, server)
 
-# Retourne le dernier nom fourni par le serveur
+# Returns the last name provided by the server
 def getLastName(proposedName, server):
     namespl = proposedName.rsplit('.', 1)
     if len(namespl) == 2:
@@ -127,7 +130,7 @@ def getLastName(proposedName, server):
         else: return name+'.'+str(c-1)
 
 #==============================================================================
-# -- pyTree informations --
+# -- pyTree information --
 #==============================================================================
 
 # -- printTree
@@ -136,7 +139,7 @@ def printTree(t, file=None, stdOut=None, editor=False):
     Internal.printTree(t, file, stdOut, editor)
 
 # -- getNPts
-# Retourne le nombre de pts dans t
+# Returns the number of points in t
 def getNPts(t):
     """Return the number of points in t.
     Usage: getNPts(t)"""
@@ -149,7 +152,7 @@ def getNPts(t):
     return npts
 
 # -- getNCells
-# Retourne le nombre de cellules dans t
+# Returns the number of cells in t
 def getNCells(t):
     """Return the number of cells in t.
     Usage: getNCells(t)"""
@@ -180,11 +183,11 @@ def convertPyTree2ZoneNames(t):
                 l.append('%s/%s'%(baseName,zoneName))
     return l
 
-# -- getStdNodesFromName. Applique uniquement sur une zone.
-# Retourne les noeuds des champs de nom 'name' dans les conteneurs standards
-# Accepte les variables 'centers:var', les noms de containers (GridCoordinates)
-# ou les noms Container/name
-# Si pas trouve, retourne []
+# -- getStdNodesFromName. Applied only on a zone.
+# Returns the nodes of fields named 'name' in standard containers
+# Accepts variables 'centers:var', container names (GridCoordinates)
+# or Container/name names
+# If not found, returns []
 def getStdNodesFromName(z, name):
     loc = '*'
     v = name.split(':',1)
@@ -220,16 +223,16 @@ def getStdNodesFromName(z, name):
     return result
 
 # -- getVarNames
-# Retourne une liste des noms de variables presents pour chaque zone
-# avec leur localisation (mode 0)
-# localisation=centers: ou nom du container:
-# Ex: pour t contenant 2 zones:
+# Returns a list of variable names present for each zone
+# with their location (mode 0)
+# location=centers: or container name:
+# Ex: for t containing 2 zones:
 # [ ['CoordinateX','CoordinateY'], ['centers:F'] ]
-# Si excludeXYZ=True, les coordonnees ne font pas partie des champs retournes
-# Si loc='both', retourne les variables en centres et en noeuds
-# Sinon loc='centers' ou loc='nodes'
-# Si mode=1: retourne l'union des variables de toutes les zones
-# Si mode=2: retourne les variables communes a toutes les zones
+# If excludeXYZ=True, coordinates are not part of returned fields
+# If loc='both', returns variables at centers and nodes
+# Otherwise loc='centers' or loc='nodes'
+# If mode=1: returns union of variables from all zones
+# If mode=2: returns variables common to all zones
 def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
     allvars = []
     nodes = Internal.getZones(t)
@@ -279,10 +282,10 @@ def getVarNames(t, excludeXYZ=False, loc='both', mode=0):
     return allvars
 
 # -- isNamePresent
-# isNamePresent dans un arbre t
-# Retourne -1: la variable n'est presente dans aucune zone de t
-# Retourne 0: la variable est presente dans au moins une zone, mais pas toutes.
-# Retourne 1: la variables est presente dans toutes les zones
+# isNamePresent in a tree t
+# Returns -1: variable is not present in any zone of t
+# Returns 0: variable is present in at least one zone, but not all.
+# Returns 1: variable is present in all zones
 def isNamePresent(t, varname):
     v = varname.split(':',1)
     if len(v) > 1 and v[0] == 'nodes': varname = v[1]
@@ -301,8 +304,8 @@ def isNamePresent(t, varname):
 
 # -- getNobNozOfZone
 # IN: a: zone
-# IN: t: le top tree de a
-# OUT: (nob, noz): no de la base et no de la zone a dans toptree
+# IN: t: the top tree of a
+# OUT: (nob, noz): index of the base and index of zone a in toptree
 # If zone can not be found, return (-1, -1)
 # Must be faster than getParentOfNode
 def getNobNozOfZone(a, t):
@@ -319,8 +322,8 @@ def getNobNozOfZone(a, t):
 
 # -- getNobOfBase
 # IN: b: base
-# IN: t: le top tree de a
-# OUT: nob: no de la base dans le top tree
+# IN: t: the top tree of a
+# OUT: nob: index of the base in the top tree
 # If base can not be found, return -1
 # Must be faster than getParentOfNode
 def getNobOfBase(base, t):
@@ -333,13 +336,13 @@ def getNobOfBase(base, t):
     return -1
 
 # -- GetZoneNames
-# Retourne une liste contenant le nom des zones de l'arbre, trie ainsi:
-# En premier, les zones structurees
-# En second, les zones non structurees
+# Returns a list containing the names of zones in the tree, sorted as follows:
+# First, structured zones
+# Second, unstructured zones
 def getZoneNames(t, prefixByBase=True):
     bases = Internal.getBases(t)
     names = []
-    if bases == [] or not prefixByBase: # Juste zone name
+    if bases == [] or not prefixByBase: # Just zone name
         zones = Internal.getZones(t)
         for z in zones:
             type = Internal.getZoneType(z)
@@ -363,12 +366,12 @@ def getZoneNames(t, prefixByBase=True):
     return names
 
 # -- getConnectedZones
-# IN: a: zone, tree, base, liste de zones
-# IN: toptree: le toptree de a
-# OUT: la liste des zones connectees a a par:
-# - des matchs
-# - des near matchs
-# Attention: le nom des zones doit etre unique dans l'arbre!
+# IN: a: zone, tree, base, list of zones
+# IN: toptree: the toptree of a
+# OUT: list of zones connected to a by:
+# - matches
+# - near matches
+# Warning: zone names must be unique in the tree!
 def getConnectedZones(a, topTree, type='all'):
     """Return the list of zones connected to a through match or nearMatch.
     Usage: getConnectedZones(a, topTree, type)"""
@@ -393,7 +396,7 @@ def getConnectedZones(a, topTree, type='all'):
                 donor = Internal.getValue(n)
                 out.add(donor)
 
-    # Retrouve les zones
+    # Finds the zones
     outz = []
     zones = Internal.getZones(topTree)
     for i in out:
@@ -2000,9 +2003,9 @@ def TZGC3(t, locout, writeDim, F, *args):
 
 
 # -- TZGF
-# Traitement agissant sur le conteneur fieldName, effectue par zones.
-# Prend les champs definis dans le conteneur fieldName, applique F, met
-# le resultat dans un conteneur suivant locout.
+# Processing acting on the fieldName container, performed by zones.
+# Takes the fields defined in the fieldName container, applies F, puts
+# the result in a container following locout.
 def TZGF(t, locout, fieldName, F, *args):
     tp = Internal.copyRef(t)
     _TZGF(tp, locout, fieldName, F, *args)
@@ -2018,20 +2021,20 @@ def _TZGF(t, locout, fieldName, F, *args):
     return None
 
 # -- TZA
-# Traitement requerant les coord + tous les champs, effectue par zones.
-# Prend les champs situes dans locin, effectue le traitement F sur ces champs,
-# Remet le resultat dans locout.
+# Processing requiring coords + all fields, performed by zones.
+# Takes the fields located in locin, performs the processing F on these fields,
+# Puts the result back in locout.
 # IN: locin: nodes, centers, both
 # IN: locout: nodes, centers, both
-# sont permis nodes / nodes, nodes / centers, centers / nodes,
-# centers / centers, both / both (dans ce cas => nodes/nodes + centers/centers)
-# IN: F: fonction de traitement pour les noeuds (possible None)
-# IN: Fc: fonction de traitement pour les centres (possible None)
-# IN: args: argument de la fonction F
-# Si locin=both, args doit contenir les arguments de F pour les noeuds
-# suivis des arguments de Fc pour les centres. Les champs en centres ne
-# contiennent pas les coordonnees. La fonction F est appelee une
-# fois pour les noeuds, Fc une fois pour les centres.
+# nodes / nodes, nodes / centers, centers / nodes are allowed,
+# centers / centers, both / both (in this case => nodes/nodes + centers/centers)
+# IN: F: processing function for nodes (can be None)
+# IN: Fc: processing function for centers (can be None)
+# IN: args: argument of function F
+# If locin=both, args must contain F arguments for nodes
+# followed by Fc arguments for centers. Fields in centers do not
+# contain coordinates. Function F is called once
+# for nodes, Fc once for centers.
 def TZA(t, locin, locout, F, Fc, *args):
     tp = Internal.copyRef(t)
     _TZA(tp, locin, locout, F, Fc, *args)
@@ -2045,7 +2048,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
             fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
             fa = getFields(Internal.__FlowSolutionNodes__, z, api=1)[0]
             if fc != [] and fa != []:
-                Converter._addVars([fc, fa]) # modifie fc
+                Converter._addVars([fc, fa]) # modifies fc
                 fp = F(fc, *args)
                 setFields([fp], z, locout)
             elif fa != []:
@@ -2060,7 +2063,7 @@ def _TZA(t, locin, locout, F, Fc, *args):
                 fp = Fc(fa, *args)
                 setFields([fp], z, locout)
         else: # both
-            # Dans ce cas, on suppose que F ne change pas la localisation
+            # In this case, we assume that F does not change the location
             l = len(args)//2
             args1 = args[0:l]; args2 = args[l:]
             fc = getFields(Internal.__GridCoordinates__, z, api=1)[0]
@@ -2439,19 +2442,19 @@ def TZA2(t, locin, locout, writeDim, F, *args):
 def TZA3(t, locin, locout, writeDim, F, *args):
     return TZAX(3, t, locin, locout, writeDim, F, *args)
 
-# -- TZAGC generique
-# Traitement effectue pour tous les champs + coord. memes pour les centres.
-# Dans ce cas, on reconstruit un maillage en centres qui sera associe
-# aux champs en centres.
-# IN: t: arbre a traiter
+# -- TZAGC generic
+# Processing performed for all fields + coords, even for centers.
+# In this case, we reconstruct a mesh at centers that will be associated
+# with the fields at centers.
+# IN: t: tree to process
 # IN: locin: nodes, centers, both
 # IN: locout: nodes, centers, both
-# IN: F: fonction a appliquer pour les noeuds
-# IN: Fc: fonction a appliquer pour les centres
-# IN: args: arguments de F pour les noeuds + arguments de Fc pour les centres
-# dans le cas both.
-# La fonction F est appelee une fois pour les noeuds, Fc une fois pour les
-# centres.
+# IN: F: function to apply for nodes
+# IN: Fc: function to apply for centers
+# IN: args: arguments of F for nodes + arguments of Fc for centers
+# in the both case.
+# Function F is called once for nodes, Fc once for
+# centers.
 def _TZAGCX(api, t, locin, locout, writeDim, F, Fc, *args):
     zones = Internal.getZones(t)
     for z in zones:
@@ -3546,6 +3549,7 @@ def convertArray2Tetra(t, split='simple'):
     return tp
 
 def _convertArray2Tetra(t, split='simple'):
+    """Convert a zone to an unstructured zone."""
     _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
     if split == 'simple':
@@ -3578,6 +3582,7 @@ def convertArray2Hexa(t):
     return tp
 
 def _convertArray2Hexa(t):
+    """Convert a structured zone to an unstructured quad/hexa zone."""
     _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
     _TZA1(t, 'both', 'nodes', True, Converter.convertArray2Hexa)
@@ -3592,6 +3597,7 @@ def convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
     return tp
 
 def _convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
+    """Convert a zone to a NGON zone."""
     if recoverBC:
         if method != "geometric" and Internal.hasBCDataSets(t, loc=None): #['EdgeCenter', 'FaceCenter']):
             method = "geometric"
@@ -3661,6 +3667,7 @@ def convertArray2Node(t):
     return tp
 
 def _convertArray2Node(t):
+    """Convert an array to a node array."""
     _deleteFlowSolutions__(t, 'centers')
     _deleteZoneBC__(t)
     _deleteGridConnectivity__(t)
@@ -3694,6 +3701,7 @@ def conformizeNGon(a, tol=1.e-6):
     return TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
 
 def _conformizeNGon(a, tol=1.e-6):
+    """Conformize topologically a NGON zone."""
     _TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
     return None
 
@@ -3725,6 +3733,7 @@ def _addBC2Zone(a, bndName, bndType, wrange=[],
                 faceList=None, pointList=None, elementList=None, elementRange=[], data=None,
                 subzone=None, faceListDonor=None, elementListDonor=None,
                 elementRangeDonor=None, tol=1.e-12, unitAngle=None):
+    """Add a BC to a zone node."""
     bndName = getBCName(bndName)
     zones = Internal.getZones(a)
     for z in zones:
@@ -5998,7 +6007,7 @@ def computeBCMatchField(z, allMatch, variables=None):
 # fldFace  : champ de la zone donneuse extrapole sur les faces frontieres
 # ===================================================================================
 def extractBCMatch(zdonor, gc, dimzR, variables=None):
-    # On verifie que gc donne le raccord dans zdonor
+    # We check that gc gives the bc match in zdonor
     # ==============================================
     # if Internal.getValue(gc) != zdonor[0]:
     # raise ValueError("extractBCMatch: GridConnectivity doesn't match zdonor.")
@@ -6025,11 +6034,11 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
-    # Traitement pour maillage struture
+    # Processing for structured mesh
     if zoneType == 1: # Structured mesh
-        # Tableau des champs a extraire
+        # Array of fields to extract
         for var in varList:
-            # on verifie qu'on cherche des variables aux centres
+            # we check that we are looking for variables at centers
             spl = var.split(':')
             if len(spl) != 1:
                 if spl[0] != 'centers':
@@ -6050,7 +6059,7 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
         if fields != []:
             # raise ValueError("extractBCMatch: Variable(s) not found:", variables)
 
-            # Infos raccord
+            # Connection info
             # =============
             prr = Internal.getNodeFromName1(gc, 'PointRange')
             prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
@@ -6113,16 +6122,16 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
     return indR, fldD
 
 # ===================================================================================
-# ** ATTENTION : Code non fonctionnel pour le moment. **
-# Extraction des champs sur les raccords de type no-match
-# Le champs en centre est extrapole sur les centres des faces et pondere (via l'algo
-# superMesh qui permet de decouper les faces)
+# ** WARNING: Code not functional for now. **
+# Extraction of fields on no-match type connections
+# The center field is extrapolated to face centers and weighted (via the superMesh
+# algorithm which allows splitting faces)
 # ===================================================================================
 def extractAllBCMatchTNC(t, variables=None):
     zones = Internal.getZones(t)
     allMatchTNC = {}
 
-    # Variables a extraire
+    # Variables to extract
     # ====================
     if variables is not None:
         if not isinstance(variables, list): varList = [variables]
@@ -6134,7 +6143,7 @@ def extractAllBCMatchTNC(t, variables=None):
             if Internal.getType(fs) == 'DataArray_t':
                 varList.append(Internal.getName(fs))
 
-    # Parcours des zones et raccords
+    # Loop through zones and connections
     # ==============================
     for zoneA in zones:
         if not isXZone(zoneA):
@@ -6154,7 +6163,7 @@ def extractAllBCMatchTNC(t, variables=None):
                 else: print("TNC or near-field match found: ", gcA[0])
 
                 zname = Internal.getValue(gcA)
-                zoneB = Internal.getNodeFromName(t,zname) # A MODIFIER POUR TNC
+                zoneB = Internal.getNodeFromName(t,zname) # TO MODIFY FOR TNC
 
                 gcBs = Internal.getNodesFromType2(zoneB, 'GridConnectivity_t')
                 gcBs += Internal.getNodesFromType2(zoneB, 'GridConnectivity1to1_t')
@@ -6193,8 +6202,8 @@ def extractMatchOfName(t, bndName, reorder=True, extrapFlow=True, method="geomet
     return tp
 
 # ==============================================================================
-# ** ATTENTION : Code non fonctionnel pour le moment. **
-# Interpolation des champs sur les raccords de type no-match
+# ** WARNING: Code not functional for now. **
+# Interpolation of fields on no-match type connections
 # ==============================================================================
 def computeBCMatchTNC(zoneA, zoneB, gcA, gcB, varList):
 
@@ -6203,7 +6212,7 @@ def computeBCMatchTNC(zoneA, zoneB, gcA, gcB, varList):
     try: import Intersector.PyTree as XOR
     except: raise ImportError("computeBCMatchTNC: requires Intersector module.")
 
-    # Type de la zone
+    # Type of zone
     # ================
     dim = Internal.getZoneDim(zoneB)
 
@@ -6243,7 +6252,7 @@ def computeBCMatchTNC(zoneA, zoneB, gcA, gcB, varList):
     fields = []
 
     for var in varList:
-        # on verifie qu'on cherche des variables aux centres
+        # we check that we are looking for variables at centers
         spl = var.split(':')
         if len(spl) != 1:
             if spl[0] != 'centers':
@@ -6648,8 +6657,8 @@ def node2Center(t, var='', accurate=0):
         else: _node2Center__(a, var, accurate)
         return a
 
-# commentaire SP : mauvais fonctionnement : modifie a et retourne a
-# est appele par etc tel quel...
+# SP comment: malfunction: modifies a and returns a
+# is called by etc as is...
 def node2Center__(a, var, accurate=0):
     var, loc = Internal.fixVarName(var)
     if loc == 1: return a
@@ -6666,7 +6675,7 @@ def _node2Center__(a, var, accurate=0):
     setFields(fieldc, a, 'centers', writeDim=False)
     return None
 
-# Adapte les arrays pour les cas nk=1 => passe en nk=2 si la zone est nk=2
+# Adapts arrays for nk=1 cases => switches to nk=2 if zone is nk=2
 def _patchArrayForCenter2NodeNK1__(fields, a):
     zones = Internal.getZones(a)
     c = 0
@@ -6703,7 +6712,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
     """Converts array defined at centers to an array defined at nodes.
     Usage: center2Node(t, var, cellNType)"""
 
-# Preparation pour le topTree
+# Preparation for topTree
 #     istoptree = Internal.isTopTree(t)
 #     if not istoptree and topTree != []:
 #       zones = C.getConnectedZones(t, topTree=topTree)
@@ -6715,7 +6724,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
 
     ghost = Internal.getNodeFromName(t, 'ZoneRind')
     if var is None: # all grid
-        # solution en centres
+        # solution at centers
         res = Internal.getNodesFromName3(t, Internal.__FlowSolutionCenters__)
         fieldsc = []
         if res != []:
@@ -6739,7 +6748,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
                                               modified=[listVar, Internal.__FlowSolutionCenters__])
                 fieldsc = getFields(Internal.__FlowSolutionNodes__, a, api=1)
 
-        # destruction
+        # cleanup
         t = deleteFlowSolutions__(t, 'centers')
         t = TZA1(t, 'nodes', 'nodes', True, Converter.center2Node, cellNType, None)
         if fieldsc != []: setFields(fieldsc, t, 'centers', writeDim=False)
@@ -6788,8 +6797,8 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
             a = Internal.rmGhostCells(a, a, 1, adaptBCs=0, modified=var2)
         return a
 
-# mauvais fonctionnement : modifie a et retourne a
-# mais appele dans etc tel quel.
+# malfunction: modifies a and returns a
+# but called in etc as is.
 def center2Node__(a, var, cellNType):
     _center2Node__(a, var, cellNType)
     return a
@@ -6811,9 +6820,9 @@ def node2ExtCenter(t, var=''):
     """Convert zones defined on nodes to zones defined on extended centers.
     Usage: node2ExtCenter(a)"""
     a = Internal.copyRef(t)
-    if var == '': # on prend ts les champs
+    if var == '': # we take all fields
         if Internal.isStdNode(a) == 0: la = a
-        else: la = [a] # noeud standard => liste de noeuds standards
+        else: la = [a] # standard node => list of standard nodes
         for i in range(len(la)):
             zones = Internal.getZones(la[i])
             for z in zones:
@@ -6833,7 +6842,7 @@ def node2ExtCenter(t, var=''):
                     if p is None: la[i] = z
                     else: p[2][pos] = z
         if Internal.isStdNode(a) == 0: a = la
-        else: a = la[0] # liste de noeuds standards => noeud standard
+        else: a = la[0] # list of standard nodes => standard node
         return a
 
     elif var == Internal.__GridCoordinates__:
@@ -6904,7 +6913,7 @@ def diffArraysGeom(A, B, removeCoordinates=True, atol=1.e-10, rtol=0.):
         # geometric diff
         diffn, diffc = diffArraysGeom__(zones1[no], zones2[no], atol=atol, rtol=rtol)
         if diffn is None: return None # one array is different on coordinates
-        # remplacement des solutions aux noeuds par diffn
+        # replacement of node solutions with diffn
         A1 = getAllFields(zones1[no], 'nodes', api=3); A1 = Internal.clearList(A1)
         A2 = getAllFields(zones2[no], 'nodes', api=3); A2 = Internal.clearList(A2)
         node = Internal.getNodeFromName1(zones1[no], Internal.__FlowSolutionNodes__)
@@ -6914,7 +6923,7 @@ def diffArraysGeom(A, B, removeCoordinates=True, atol=1.e-10, rtol=0.):
         if A1 != [] and A2 != []:
             setFields(diffn, zones1[no], 'nodes')
 
-        # remplacement des solutions aux centres par diffc
+        # replacement of center solutions with diffc
         if diffc is None: continue # one array is different on coordinates
         A1 = getAllFields(zones1[no], 'centers', api=3); A1 = Internal.clearList(A1)
         A2 = getAllFields(zones2[no], 'centers', api=3); A2 = Internal.clearList(A2)
@@ -7110,7 +7119,7 @@ def _addState(t, state=None, value=None, adim='adim1',
 
     return None
 
-# Ajoute un noeud state/value suivant le type de t (in place)
+# Adds a state/value node according to t type (in place)
 def addState2Node2__(t, ntype, state, value):
     if ntype == 1: # add to zone
         addState2Node__(t, state, value)
@@ -7125,7 +7134,7 @@ def addState2Node2__(t, ntype, state, value):
         for b in t: addState2Node__(b, state, value)
     else: addState2Node__(t, state, value) # direct to node
 
-# Ajoute un noeud state/value au noeud a (in place)
+# Adds a state/value node to node a (in place)
 def addState2Node__(a, state, value):
     # Container: FlowEquationSet or ReferenceState
     if state in ['EquationDimension', 'GoverningEquations', 'TurbulenceModel']:
@@ -7170,8 +7179,8 @@ def addState2Node__(a, state, value):
     return a
 
 # -- getState
-# Retourne un vecteur identique a Adim.
-# Doit etre l'exact inverse de addState.
+# Returns a vector identical to Adim.
+# Must be the exact inverse of addState.
 def getState__(state, name):
     A = Internal.getNodeFromName1(state, name)
     if A is None: raise ValueError("getState: %s is missing in tree ReferenceState."%name)
@@ -7269,7 +7278,7 @@ def _addChimera2Base(base, setting, value):
     return None
 
 #==============================================================================
-# Retourne un arbre ou certaines bases ont ete eliminees
+# Returns a tree where certain bases have been eliminated
 #==============================================================================
 def getPrimaryTree(t):
     import re
@@ -7296,17 +7305,17 @@ def checkNameInList(name, list):
 
 #==============================================================================
 # mergeTrees
-# Merge 2 arbres. Les bases de t2 sont ajoutees a t1. Les noms des bases
-# sont modifies si elles existent deja dans t1.
+# Merge 2 trees. The bases of t2 are added to t1. The base names
+# are modified if they already exist in t1.
 #==============================================================================
 def mergeTrees(t1, t2):
     t1p = Internal.copyRef(t1)
-    # Enregistre les noms des bases de t1
+    # Registers base names of t1
     t1BaseNames = []
     bases = Internal.getBases(t1)
     for b in bases: t1BaseNames.append(b[0])
 
-    # traitement par base
+    # processing by base
     bases = Internal.getBases(t2)
     for b in bases:
         ret = checkNameInList(b[0], t1BaseNames)
@@ -7319,7 +7328,7 @@ def mergeTrees(t1, t2):
             b[0] = '%s.%d'%(b[0],c-1)
             t1p[2].append(b)
 
-    # noeud extra base
+    # extra base node
     nodes = []
     for n in t2[2]:
         if n[3] != 'CGNSBase_t' and n[3] != 'CGNSLibraryVersion_t': nodes.append(n)
@@ -7330,12 +7339,12 @@ def mergeTrees(t1, t2):
     return t1p
 
 #==============================================================================
-# Retourne les faces des BCs pour les zones non structurees et pour
-# les BCs definies par faces (BC physiques) une liste par zone
-# [ ['nomBC', numpy(faces), 'nomBC', numpy(faces)...] ...]
-# si nameType=0: nomBC est le nom de la BC
-# si nameType=1: nomBC concatene le nom de la BC et son type (BCName_BCType
-# ou BCName_FamilyName)
+# Returns the BC faces for unstructured zones and for
+# BCs defined by faces (physical BCs) a list per zone
+# [ ['BCname', numpy(faces), 'BCname', numpy(faces)...] ...]
+# if nameType=0: BCname is the BC name
+# if nameType=1: BCname concatenates the BC name and its type (BCName_BCType
+# or BCName_FamilyName)
 #==============================================================================
 def getBCFaces(t, nameType=0):
     BCFaces = []
@@ -7365,7 +7374,7 @@ def getBCFaces(t, nameType=0):
     return BCFaces
 
 #==============================================================================
-# Ajoute les BCFaces dans l'arbre
+# Adds BCFaces in the tree
 #==============================================================================
 def addBCFaces(t, BCFaces):
     tp = Internal.copyRef(t)
@@ -7392,7 +7401,7 @@ def _addBCFaces(t, BCFaces):
         c += 1
     return None
 
-# Ajoute les BCFields dans l'arbre
+# Adds BCFields in the tree
 #def addBCFields(t, BCFields):
 #    tp = Internal.copyRef(t)
 #    _addBCFields(t, BCFields)
@@ -7403,7 +7412,7 @@ def _addBCFaces(t, BCFaces):
 #    return None
 
 #==============================================================================
-# -- Fonctions de preconditionnement (hook) --
+# -- Preconditioning functions (hook) --
 #==============================================================================
 
 # -- createHook
@@ -7439,10 +7448,10 @@ def freeHook(hook):
     Converter.freeHook(hook)
 
 #==============================================================================
-# -- Fonctions d'identification geometrique --
+# -- Geometric identification functions --
 #==============================================================================
 
-# -- identifyNodes: identifie les noeuds de a dans hook
+# -- identifyNodes: identifies nodes of a in hook
 def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
     """Find in a hook nearest points of nodes of a. return identified node indices.
     Usage: identifyNodes(hook, a)"""
@@ -7450,7 +7459,7 @@ def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
     if len(fields) == 1: return Converter.identifyNodes(hook, fields[0], tol, rtol)
     else: return Converter.identifyNodes(hook, fields, tol, rtol)
 
-# -- identifyFaces: identifie les centres de faces de a dans hook
+# -- identifyFaces: identifies face centers of a in hook
 def identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12):
     """Find in a hook nearest points of face centers of a. return identified face indices.
     Usage: identifyFaces(hook, a)"""
@@ -7458,7 +7467,7 @@ def identifyFaces(hook, a, tol=1.e-11, rtol=1.e-12):
     if len(fields) == 1: return Converter.identifyFaces(hook, fields[0], tol, rtol)
     else: return Converter.identifyFaces(hook, fields, tol, rtol)
 
-# -- identifyElements: identifie le centre des elements de a dans hook
+# -- identifyElements: identifies element centers of a in hook
 def identifyElements(hook, a, tol=1.e-11, rtol=1.e-12):
     """Find in a hook nearest points of element centers of a. return identified element indices.
     Usage: identifyElements(hook, a)"""
@@ -7466,8 +7475,8 @@ def identifyElements(hook, a, tol=1.e-11, rtol=1.e-12):
     if len(fields) == 1: return Converter.identifyElements(hook, fields[0], tol, rtol)
     else: return Converter.identifyElements(hook, fields, tol, rtol)
 
-# -- identifySolutions: recopie la solution de tDnr dans tRcv par identification
-# des noeuds et des centres
+# -- identifySolutions: copies solution from tDnr to tRcv by identifying
+# nodes and centers
 def identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
     """Identify points in stored in a global hook to mesh points and set the solution if donor
     and receptor points are distant from tol.
@@ -7513,7 +7522,7 @@ def _identifySolutions(tRcv, tDnr, hookN=None, hookC=None, vars=[], tol=1.e6):
         setFields(resc, zones, 'centers')
     return None
 
-# -- nearestNodes: identifie le noeud de a le plus proche d'un point de hook
+# -- nearestNodes: identifies the node of a closest to a hook point
 def nearestNodes(hook, a):
     """Identify nearest nodes to a in hook. return identified face indices.
     Usage: nearestNodes(hook, a)"""
@@ -7521,7 +7530,7 @@ def nearestNodes(hook, a):
     if len(fields) == 1: return Converter.nearestNodes(hook, fields[0])
     else: return Converter.nearestNodes(hook, fields)
 
-# -- nearestFaces: identifie la face de a la plus proches d'un point de hook
+# -- nearestFaces: identifies the face of a closest to a hook point
 def nearestFaces(hook, a):
     """Identify nearest face centers to a in hook. return identified face indices.
     Usage: nearestFaces(hook, a)"""
@@ -7529,8 +7538,8 @@ def nearestFaces(hook, a):
     if len(fields) == 1: return Converter.nearestFaces(hook, fields[0])
     else: return Converter.nearestFaces(hook, fields)
 
-# -- nearestElements: identifie le centre de l'elements de a le plus proche
-# d'un point de hook
+# -- nearestElements: identifies the element center of a closest
+# to a hook point
 def nearestElements(hook, a):
     """Identify nearest element centers to a in hook. return identified face indices.
     Usage: nearestFaces(hook, a)"""
@@ -7567,14 +7576,14 @@ def _recoverGlobalIndex(a, b):
     return __TZA3(a, 'nodes', Converter._recoverGlobalIndex, fb)
 
 #==============================================================================
-# Construction de la structure de recherche BBTree
+# Construction of BBTree search structure
 #==============================================================================
 def createBBTree(t):
     """Create BBtree."""
     zones = Internal.getZones(t)
     minBBoxes = []; maxBBoxes = []
     for z in zones:
-        # BBox de la zone
+        # BBox of the zone
         gc = Internal.getNodeFromName1(z, Internal.__GridCoordinates__)
         xCoords = Internal.getNodeFromName1(gc, 'CoordinateX')[1]
         yCoords = Internal.getNodeFromName1(gc, 'CoordinateY')[1]
@@ -7585,9 +7594,9 @@ def createBBTree(t):
     return converter.createBBTree(minBBoxes, maxBBoxes)
 
 #==============================================================================
-# Recherche des intersections entre une bbox de zone et un arbre de BBox
-# IN: Bbox d'une zone + arbre de recherche de BBox
-# OUT: tableau de taille de nombre des BBox avec True or False
+# Search for intersections between a zone bbox and a BBox tree
+# IN: Bbox of a zone + BBox search tree
+# OUT: array of size number of BBox with True or False
 #==============================================================================
 def intersect(zone, BBTree):
     """Check intersection using BBTree."""
@@ -7622,10 +7631,10 @@ def intersect2(t, BBTree):
 #==============================================================================
 
 # -- mergeConnectivity
-# IN: z1: zone BE
-# IN: z2: zone BE (to be merged in z1) avec un seul type d'elements
-# si boundary==1, les noeuds de z2 sont identifies dans z1
-# si boundary==0, les noeuds de z2 sont merges dans z1 et reidentifies
+# IN: z1: BE zone
+# IN: z2: BE zone (to be merged in z1) with a single element type
+# if boundary==1, nodes of z2 are identified in z1
+# if boundary==0, nodes of z2 are merged in z1 and reidentified
 # IN: boundary: 0 (not a boundary zone), 1 (a boundary zone, add it as a
 # boundary connectivity)
 def mergeConnectivity(z1, z2=None, boundary=0):
@@ -7646,12 +7655,12 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
         else:
             return z1
 
-    # Analyse zone z2
+    # Analyze zone z2
     dims = Internal.getZoneDim(z2)
-    neb = dims[2] # nbre d'elts de z2
-    eltType, _ = Internal.eltName2EltNo(dims[3]) # type d'elements de z2
+    neb = dims[2] # number of elements of z2
+    eltType, _ = Internal.eltName2EltNo(dims[3]) # element type of z2
 
-    # On cherche l'element max dans les connectivites de z1
+    # We look for the max element in z1 connectivities
     maxElt = 0
     connects = Internal.getNodesFromType(z1, 'Elements_t')
     for cn in connects:
@@ -7659,9 +7668,9 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
         m = r[1][1]
         maxElt = max(maxElt, m)
 
-    # connectivite ajoutee=volumique non shared
+    # added connectivity=volumetric non-shared
     if boundary == 0 and not shared:
-        # on fusionne les coordonnees
+        # we merge coordinates
         import Transform.PyTree as T
         zn1 = convertArray2Node(z1)
         zn2 = convertArray2Node(z2)
@@ -7673,7 +7682,7 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
             p1 = Internal.getNodeFromName1(cont1, name)
             pn = Internal.getNodeFromName1(contn, name)
             p1[1] = pn[1]
-        # Recupere le container noeud
+        # Retrieves the node container
         cont1 = Internal.getNodeFromName1(z1, Internal.__FlowSolutionNodes__)
         contn = Internal.getNodeFromName1(zn, Internal.__FlowSolutionNodes__)
         if contn is not None:
@@ -7682,12 +7691,12 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
                     p1 = Internal.getNodeFromName1(cont1, n[0])
                     if p1 is not None: p1[1] = n[1]
 
-        # Nouveau nbre de points dans z1
+        # New number of points in z1
         np = Internal.getZoneDim(zn)[1]
         z1[1] = numpy.copy(z1[1])
         z1[1][0,0] = np
 
-        # Reidentifie les connectivites de z1
+        # Reidentifies z1 connectivities
         hook = createHook(zn, 'nodes')
         ids = identifyNodes(hook, z1)
         nodes = Internal.getNodesFromType1(z1, 'Elements_t')
@@ -7698,7 +7707,7 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
             newc[:] = ids[oldc[:]-1]
             node[1] = newc
 
-        # Ajoute les FlowSolutions en centres
+        # Adds FlowSolutions at centers
         cont1 = Internal.getNodeFromName1(z1, Internal.__FlowSolutionCenters__)
         cont2 = Internal.getNodeFromName1(z2, Internal.__FlowSolutionCenters__)
         if cont2 is not None:
@@ -7707,12 +7716,12 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
                     p1 = Internal.getNodeFromName1(cont1, n[0])
                     if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
 
-        # Ajoute les connectivites de z2
+        # Adds z2 connectivities
         z1[1][0,1] += neb # nouveau nbre de cellules
 
-        # on identifie les noeuds connectivity de z2 dans zn
+        # we identify z2 connectivity nodes in zn
         ids = identifyNodes(hook, z2)
-        # On ajoute les connectivites de z2
+        # We add z2 connectivities
         nodes = Internal.getNodesFromType1(z2, 'Elements_t')
         for n in nodes:
             node = Internal.createUniqueChild(z1, n[0]+'-2', 'Elements_t', value=n[1])
@@ -7726,7 +7735,7 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
             newc[:] = ids[oldc[:]-1]
             Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
 
-        # decale les ranges des zoneBC de z2
+        # shifts z2 zoneBC ranges
         zbc1 = Internal.getNodeFromType1(z1, 'ZoneBC_t')
         zbc2 = Internal.getNodesFromType2(z2, 'BC_t')
         if zbc1 is None and zbc2 != []: zbc1 = Internal.newZoneBC(parent=z1)
@@ -7737,13 +7746,13 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
             n = Internal.createUniqueChild(zbc1, bc[0], 'BC_t', value=bc[1])
             Internal.createUniqueChild(n, rn[0], rn[3], value=[[r0,r1]])
 
-        # Tri des connectivites
+        # Sort connectivities
         Internal._sortNodesInZone(z1)
 
-    elif boundary == 0 and shared: # connectivite ajoutee=volumique shared
-        # on cree des nouveaux noeuds connectivites dans z1
+    elif boundary == 0 and shared: # added connectivity=volumetric shared
+        # we create new connectivity nodes in z1
         elts = Internal.getNodesFromType2(z2, 'Elements_t')
-        z1[1][0,1] += neb # update le nbre d'elements de z1
+        z1[1][0,1] += neb # update z1 element count
         nebb = 0
         for e in elts:
             if e[1][1] == 0: # volumique uniquement
@@ -7756,7 +7765,7 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
                 Internal.createUniqueChild(e2, 'ElementConnectivity', 'DataArray_t', value=newc)
                 nebb += nbe2
 
-        # Ajoute les FlowSolutions en centres
+        # Adds FlowSolutions at centers
         cont1 = Internal.getNodeFromName1(z1, Internal.__FlowSolutionCenters__)
         cont2 = Internal.getNodeFromName1(z2, Internal.__FlowSolutionCenters__)
         if cont2 is not None:
@@ -7765,18 +7774,18 @@ def _mergeConnectivity(z1, z2=None, boundary=0, shared=False):
                     p1 = Internal.getNodeFromName1(cont1, n[0])
                     if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
 
-        # Tri des connectivites
+        # Sort connectivities
         Internal._sortNodesInZone(z1)
 
 
-    else: # connectivite ajoutee=boundary (subzone)
-        # on identifie les noeuds de z2 dans z1
+    else: # added connectivity=boundary (subzone)
+        # we identify z2 nodes in z1
         hook = createHook(z1, 'nodes')
         ids = identifyNodes(hook, z2)
         z1[1] = numpy.copy(z1[1])
         #z1[1][0,2] += neb # must be suppressed to pass cgnscheck
 
-        # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
+        # we create a new connectivity node in z1 (with z2 zone name)
         nebb = neb
         node = Internal.createUniqueChild(z1, z2[0], 'Elements_t', value=[eltType,nebb])
         Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
@@ -7792,15 +7801,15 @@ def _mergeConnectivities(z, boundary=0, shared=False):
     nebs = []; eltTypes = []
     for zone in z:
         dims = Internal.getZoneDim(zone)
-        nebs.append(dims[2]) # nbre d'elts de zone
-        eltType, _ = Internal.eltNames2EltNos(dims[3]) # types d'elements
+        nebs.append(dims[2]) # number of zone elements
+        eltType, _ = Internal.eltNames2EltNos(dims[3]) # element types
         eltTypes.extend(eltType)
     maxElts = numpy.cumsum(nebs)
-    nnewElts = maxElts[-1] - maxElts[0] # nbre d'elts ajoutes a z[0]
+    nnewElts = maxElts[-1] - maxElts[0] # number of elements added to z[0]
 
-    # connectivite ajoutee=volumique non shared
+    # added connectivity=volumetric non-shared
     if boundary == 0 and not shared:
-        # on fusionne les coordonnees
+        # we merge coordinates
         import Transform.PyTree as T
         zn = convertArray2Node(z)
         zn = T.join(zn)
@@ -7811,7 +7820,7 @@ def _mergeConnectivities(z, boundary=0, shared=False):
             p1 = Internal.getNodeFromName1(cont1, name)
             pn = Internal.getNodeFromName1(contn, name)
             p1[1] = pn[1]
-        # Recupere le container noeud
+        # Retrieves the node container
         cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionNodes__)
         contn = Internal.getNodeFromName1(zn, Internal.__FlowSolutionNodes__)
         if contn is not None:
@@ -7820,12 +7829,12 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                     p1 = Internal.getNodeFromName1(cont1, n[0])
                     if p1 is not None: p1[1] = n[1]
 
-        # Nouveau nbre de points dans z[0]
+        # New number of points in z[0]
         np = Internal.getZoneDim(zn)[1]
         z[0][1] = numpy.copy(z[0][1])
         z[0][1][0,0] = np
 
-        # Reidentifie les connectivites de z[0]
+        # Reidentifies z[0] connectivities
         hook = createHook(zn, 'nodes')
         ids = identifyNodes(hook, z[0])
         nodes = Internal.getNodesFromType1(z[0], 'Elements_t')
@@ -7836,7 +7845,7 @@ def _mergeConnectivities(z, boundary=0, shared=False):
             newc[:] = ids[oldc[:]-1]
             node[1] = newc
 
-        # Ajoute les FlowSolutions en centres
+        # Adds FlowSolutions at centers
         cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionCenters__)
         if cont1 is not None:
             for i in range(1, len(z)):
@@ -7846,14 +7855,14 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                         p1 = Internal.getNodeFromName1(cont1, n[0])
                         if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
 
-        # Ajoute les connectivites de z[1] a z[-1]
+        # Adds connectivities from z[1] to z[-1]
         z[0][1][0,1] += nnewElts # nouveau nbre de cellules
 
-        # on identifie les noeuds connectivity de z[1] a z[-1] dans zn
+        # we identify connectivity nodes from z[1] to z[-1] in zn
         zbc1 = Internal.getNodeFromType1(z[0], 'ZoneBC_t')
         for i in range(1, len(z)):
             ids = identifyNodes(hook, z[i])
-            # On ajoute les connectivites de z[i]
+            # We add z[i] connectivities
             nodes = Internal.getNodesFromType1(z[i], 'Elements_t')
             for n in nodes:
                 node = Internal.createUniqueChild(z[0], n[0]+'-'+str(i+1), 'Elements_t',
@@ -7869,7 +7878,7 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                 Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t',
                                            value=newc)
 
-            # decale les ranges des zoneBC de z[i]
+            # shifts z[i] zoneBC ranges
             zbc2 = Internal.getNodesFromType2(z[i], 'BC_t')
             if zbc1 is None and zbc2 != []: zbc1 = Internal.newZoneBC(parent=z[0])
             for bc in zbc2:
@@ -7879,12 +7888,12 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                 n = Internal.createUniqueChild(zbc1, bc[0], 'BC_t', value=bc[1])
                 Internal.createUniqueChild(n, rn[0], rn[3], value=[[r0,r1]])
 
-        # Tri des connectivites
+        # Sort connectivities
         Internal._sortNodesInZone(z[0])
 
-    elif boundary == 0 and shared: # connectivite ajoutee=volumique shared
-        # on cree des nouveaux noeuds connectivites dans z[0]
-        z[0][1][0,1] += nnewElts # update le nbre d'elements de z[0]
+    elif boundary == 0 and shared: # added connectivity=volumetric shared
+        # we create new connectivity nodes in z[0]
+        z[0][1][0,1] += nnewElts # update z[0] element count
         nebb = maxElts[0]
         for i in range(1, len(z)):
             elts = Internal.getNodesFromType2(z[i], 'Elements_t')
@@ -7901,7 +7910,7 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                                                value=newc)
                     nebb += nbe2
 
-        # Ajoute les FlowSolutions en centres
+        # Adds FlowSolutions at centers
         cont1 = Internal.getNodeFromName1(z[0], Internal.__FlowSolutionCenters__)
         if cont1 is not None:
             for i in range(1, len(z)):
@@ -7911,17 +7920,17 @@ def _mergeConnectivities(z, boundary=0, shared=False):
                         p1 = Internal.getNodeFromName1(cont1, n[0])
                         if p1 is not None: p1[1] = numpy.concatenate((p1[1],n[1]))
 
-        # Tri des connectivites
+        # Sort connectivities
         Internal._sortNodesInZone(z[0])
 
-    else: # connectivite ajoutee=boundary (subzone)
+    else: # added connectivity=boundary (subzone)
         z[0][1] = numpy.copy(z[0][1])
         z[0][1][0,2] += nnewElts
-        # on identifie les noeuds de z[i] dans z[0]
+        # we identify z[i] nodes in z[0]
         hook = createHook(z[0], 'nodes')
         for i in range(1, len(z)):
             ids = identifyNodes(hook, z[i])
-            # on cree un nouveau noeud connectivite dans z[0] (avec le nom de la zone z[i])
+            # we create a new connectivity node in z[0] (with z[i] zone name)
             node = Internal.createUniqueChild(z[0], z[i][0], 'Elements_t',
                                               value=[eltTypes[i],nebs[i]])
             Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t',
@@ -7969,9 +7978,9 @@ def sliceNGonFaces(z, indices=None):
     return faceVertices, faceOffset
 
 #============================================
-# Soit z une sous zone de zt
-# Remap la connectivite de z sur celle de zt
-# Share nodes field a la fin
+# Let z be a subzone of zt
+# Remap z connectivity onto zt
+# Share nodes field at the end
 #============================================
 def _mapConnectOnZone(z, zt):
     hook = createHook(zt, 'nodes')
@@ -8011,13 +8020,13 @@ def breakConnectivity(t):
         for c in range(l):
             z = b[2][c]
             if z[3] == 'Zone_t':
-                # compte les connectivites elements (hors boundary)
+                # counts element connectivities (excluding boundary)
                 connects = Internal.getElementNodes(z)
                 N = len(connects)
-                if N <= 1: break # une seule connectivite
+                if N <= 1: break # single connectivity
                 if N == 2:
                     type1 = connects[0][1][0]; type2 = connects[1][1][0]
-                    if (type1 == 22 and type2 == 23) or (type1 == 23 and type2 == 22): # pur NGON
+                    if (type1 == 22 and type2 == 23) or (type1 == 23 and type2 == 22): # pure NGON
                         break
 
                 iBE = []; iNGon = -1; iNFace = -1; i = 0
@@ -8029,7 +8038,7 @@ def breakConnectivity(t):
                     i += 1
 
                 N = len(iBE)
-                # split les connectivites volumiques
+                # split volumetric connectivities
                 for p in range(N):
                     i = iBE[p]
                     zp = Internal.copyRef(z)
@@ -8037,30 +8046,30 @@ def breakConnectivity(t):
                     GEl = Internal.getNodesFromType1(zp, 'Elements_t')
                     GE = Internal.getNodeFromName1(zp, connects[i][0])
                     eltType, _ = Internal.eltNo2EltName(GE[1][0])
-                    # Nouveau nom de la zone
+                    # New zone name
                     zp[0] = getZoneName(z[0]+'_'+eltType)
-                    # Enleve toutes les connects volumiques a part la ieme
+                    # Removes all volumetric connectivities except the ith
                     for GEj in GEl:
                         if GEj is not GE and GEj[1][1] == 0: Internal._rmNodesByName(zp, GEj[0])
-                    # Renumerote la connectivite
+                    # Renumber connectivity
                     r = Internal.getNodeFromName(GE, 'ElementRange'); r = r[1]
                     start = r[0]; end = r[1]
-                    # modifie le range de la connectivite
+                    # modifies connectivity range
                     r[0] = 1; r[1] = end-start+1
-                    # modifie le nbre d'elements dans la zone
+                    # modifies number of elements in zone
                     zp[1] = numpy.copy(z[1])
                     zp[1][0,1] = end-start+1
                     if i == 0: b[2][c] = zp
                     else: b[2] += [zp]
-                    # On slice le champ en centres (shared)
+                    # We slice the field at centers (shared)
                     cont = Internal.getNodeFromName1(zp, Internal.__FlowSolutionCenters__)
                     if cont is not None:
                         for v in cont[2]:
                             if v[3] == 'DataArray_t': v[1] = v[1][start-1:end] # view
-                    # On modifie le range des connectivites BCs
+                    # We modify BC connectivities range
                     Internal._sortNodesInZone(zp)
 
-                if iNGon != -1 and iNFace != -1: # NGon additionnel
+                if iNGon != -1 and iNFace != -1: # additional NGon
                     i1 = iNGon; i2 = iNFace
                     zp = Internal.copyRef(z)
                     _deleteFlowSolutions__(zp, 'centers')
@@ -8070,19 +8079,19 @@ def breakConnectivity(t):
                     GE1 = Internal.getNodeFromName1(zp, connects[i1][0])
                     GE2 = Internal.getNodeFromName1(zp, connects[i2][0])
                     zp[0] = getZoneName(z[0]+'_NGON')
-                    # Enleve toutes les connects a part la ieme
+                    # Removes all connectivities except the ith
                     for GEj in GEl:
                         if GEj is not GE1 and GEj is not GE2: Internal._rmNodesByName(zp, GEj[0])
-                    # Renumerote la connectivite
+                    # Renumber connectivity
                     r = Internal.getNodeFromName(GE1, 'ElementRange'); r = r[1]
                     start = r[0]; end = r[1]
-                    # modifie le range de la connectivite
+                    # modifies connectivity range
                     r[0] = 1; r[1] = end-start+1; fin = end-start+1
                     r = Internal.getNodeFromName(GE2, 'ElementRange'); r = r[1]
                     start = r[0]; end = r[1]
-                    # modifie le range de la connectivite
+                    # modifies connectivity range
                     r[0] = fin; r[1] = fin+end-start+1
-                    # modifie le nbre d'elements dans la zone
+                    # modifies number of elements in zone
                     zp[1] = numpy.copy(z[1])
                     zp[1][0,1] = end-start+1
                     b[2] += [zp]
@@ -8092,8 +8101,8 @@ def breakConnectivity(t):
     return Internal.pyTree2Node(tp, typen)
 
 #==============================================================================
-# renumerote les ElementRanges pour qu'ils soient dans un ordre contigue
-# y compris pour les BCCs
+# renumbers ElementRanges so they are in contiguous order
+# including for BCCs
 #==============================================================================
 def _renumberElementConnectivity(t):
     zones = Internal.getZones(t)
@@ -8108,10 +8117,10 @@ def _renumberElementConnectivity(t):
     return None
 
 # -- selectOneConnectivity
-# Retourne une nouvelle zone avec une seule de ses connectivites
-# (passee en connectivite volumique)
-# IN: name: nom de la ElementConnectivity a conserver
-# or IN: number: no de la ElementConnectivity a conserver (first=0)
+# Returns a new zone with only one of its connectivities
+# (passed as volumetric connectivity)
+# IN: name: name of ElementConnectivity to keep
+# or IN: number: number of ElementConnectivity to keep (first=0)
 # or IN: irange=[min,max]
 def selectOneConnectivity(z, name=None, number=None, irange=None):
     zp = Internal.copyRef(z)
@@ -8123,12 +8132,12 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
     elif number is not None:
         c = 0
         for e in elts:
             if c != number: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
             c += 1
     elif irange is not None:
         for e in elts:
@@ -8139,11 +8148,11 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
                     Internal._rmNodesByName(zp, e[0])
                 else:
                     if r[0] == irange[0] and r[1] == irange[1]: # full
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
                     else: # slice
                         (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                         if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                            e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+                            e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
                             r = Internal.getNodeFromName1(e, 'ElementRange')
                             r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
                             c = Internal.getNodeFromName1(e, 'ElementConnectivity')
@@ -8154,10 +8163,10 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
     return None
 
 # -- selectConnectivity
-# Retourne une nouvelle zone avec une seule de ses connectivites
-# (passee en connectivite volumique)
-# IN: name: nom de la ElementConnectivity a conserver
-# or IN: number: no de la ElementConnectivity a conserver (first=0)
+# Returns a new zone with only one of its connectivities
+# (passed as volumetric connectivity)
+# IN: name: name of ElementConnectivity to keep
+# or IN: number: number of ElementConnectivity to keep (first=0)
 # or IN: irange=[min,max]
 def selectConnectivity(z, name=None, number=None, irange=None):
     zp = Internal.copyRef(z)
@@ -8166,12 +8175,12 @@ def selectConnectivity(z, name=None, number=None, irange=None):
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
     elif number is not None:
         c = 0
         for e in elts:
             if c != number: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
             c += 1
     elif irange is not None:
         for e in elts:
@@ -8181,11 +8190,11 @@ def selectConnectivity(z, name=None, number=None, irange=None):
                 if r[0] != irange[0] and r[1] != irange[1]:
                     Internal._rmNodesByName(zp, e[0])
                 if r[0] == irange[0] and r[1] == irange[1]: # full
-                    e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+                    e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
                 if r[0] == irange[0] and r[1] < irange[1]: # full
                     (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                     if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
                         r0 = r[0]; r1 = r[1]
                         r = Internal.getNodeFromName1(e, 'ElementRange')
                         r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
@@ -8196,7 +8205,7 @@ def selectConnectivity(z, name=None, number=None, irange=None):
                 if r[0] > irange[0] and r[1] == irange[1]: # full
                     (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                     if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumique
+                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
                         r0 = r[0]; r1 = r[1]
                         r = Internal.getNodeFromName1(e, 'ElementRange')
                         r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
@@ -8279,19 +8288,19 @@ def _addPeriodicZones__(a):
                                 if angle >0.: signangle = -1
                                 else: signangle = 1
                                 rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
-                                # creation du noeud temporaire le marquant comme periodique
+                                # creation of temporary node marking it as periodic
                                 zddup[0] = getZoneName(zddup[0]+'_dup')
                                 Internal.createChild(zddup, 'TempPeriodicZone', 'UserDefinedData_t', value=zdonorname, children=[rotationInfo])
                                 zonesdup.append(zddup)
                         elif translated:
                             tvx = translVect[0]; tvy = translVect[1]; tvz = translVect[2]
                             zddup = T.translate(zd,(-tvx,-tvy,-tvz))
-                            # creation du noeud temporaire le marquant comme periodique
+                            # creation of temporary node marking it as periodic
                             zddup[0] = getZoneName(zddup[0]+'_dup')
                             Internal.createChild(zddup, 'TempPeriodicZone', 'UserDefinedData_t', value=zdonorname, children=None)
                             zonesdup.append(zddup)
 
-        # Chimere periodique: compatible avec elsA uniquement
+        # Periodic Chimera: compatible with elsA only
         else:
             print("Info: Periodic Chimera for zone %s"%(z[0]))
             perdir = Internal.getNodeFromName1(usd,'periodic_dir')
@@ -8311,7 +8320,7 @@ def _addPeriodicZones__(a):
                         zdup = T.rotate(z,(xc,yc,zc), (vx,vy,vz),angle)
                         signangle = 1
                         rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
-                        # creation du noeud temporaire le marquant comme periodique
+                        # creation of temporary node marking it as periodic
                         #zdup[0] = getZoneName(zdup[0]+'_dup')
                         pref = zdup[0].split('_')
                         if len(pref) == 1: pref = pref[0]
@@ -8323,7 +8332,7 @@ def _addPeriodicZones__(a):
                         zdup = T.rotate(z,(xc,yc,zc), (vx,vy,vz),-angle)
                         signangle =-1
                         rotationInfo = Internal.createNode('SignOfRotationAngle', 'UserDefinedData_t', value=signangle)
-                        # creation du noeud temporaire le marquant comme periodique
+                        # creation of temporary node marking it as periodic
                         zdup[0] = getZoneName(zdup[0]+'_dup')
                         pref = zdup[0].split('_')
                         if len(pref) == 1: pref = pref[0]
@@ -8421,7 +8430,7 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
     """Convert a mixed-element monozone to an NGON.
     Usage: convertMIXED2NGon(a, recoverBC, merged)"""
     zones = Internal.getZones(a)
-    # Extrait les BCs comme des zones
+    # Extracts BCs as zones
     AllBCs = []; AllBCNames = []; AllBCTypes = []
     for z in zones:
         dimZ = Internal.getZoneDim(z)
@@ -8431,7 +8440,7 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
         for b in bcs:
             myZone = Internal.rmNodesFromType(z, 'Elements_t')
             ntype = Internal.getValue(b)
-            # Trouve la connectivite avec le nom de la BC (!)
+            # Finds connectivity with BC name (!)
             split = b[0].split('-')
             namebc = split[0]
             bctype = split[-1]
@@ -8473,13 +8482,13 @@ def convertMIXED2NGon(a, recoverBC=True, merged=False):
     except:
         pass
 
-    # Convertit les connectivites MIXED volumique
+    # Converts volumetric MIXED connectivities
     for z in Internal.getZones(a):
         nodes = Internal.getNodesFromType(z, 'Elements_t')
         for n in nodes:
             p = Internal.getNodeFromName1(n, 'ElementConnectivity')
             out = converter.convertMix2BE(p[1])
-            # Replace et renumerotes
+            # Replaces and renumbers
             if out[0] is not None:
                 Internal._rmNode(z, p[0])
             if out[1] is not None:

@@ -133,6 +133,7 @@ def arrayNS(vars, npoints, nelts, eltType, api=1):
 # OUT: 2 (array2) or array3 (structured, mono element because identical)
 # OUT: 3 (array3) (ME, NGONv4)
 def getApi(a):
+    """Return the array api."""
     if len(a) == 5: # structure
         if not isinstance(a[0], str): return -1
         if isinstance(a[1], numpy.ndarray): return 1
@@ -1809,6 +1810,7 @@ def _recoverGlobalIndex(a, b):
 # into a single multiconnectivity mesh (array3 only)
 # simple concatenation
 def mergeConnectivity(a1, a2):
+    """Merge two connectivities of basic elements."""
     if a1[0] != a2[0]: raise ValueError('mergeConnectivity: only for same fields.')
     if len(a1) != 4 or len(a2) != 4: raise ValueError('mergeConnectivity: only for unstructured arrays.')
     if a1[3] == 'NGON' or a2[3] == 'NGON': raise ValueError('mergeConnectivity: only for element arrays.')
@@ -1853,7 +1855,7 @@ def _signNGonFaces(a):
     return None
 
 def _unsignNGonFaces(a):
-    """Unsign NFACE connectivity"""
+    """Unsign NFACE connectivity."""
     if isinstance(a[0], list):
         isSigned = 1
         for i in a:
@@ -1864,6 +1866,7 @@ def _unsignNGonFaces(a):
     return isSigned
 
 def makeParentElements(a):
+    """Return Parent Element array."""
     PEs = []
     if isinstance(a[0], list):
         for i in a:

@@ -1,10 +1,10 @@
-# Ce module permet de manipuler les SkeletonTree, les PartialTree et les
+# This module allows manipulating SkeletonTree, PartialTree and
 # BBoxTree
-# - Skeleton tree: arbre complet avec les numpy float de taille > 100 non
-# charge et valant None
-# - Partial tree: arbre partiel ne contenant que les zones chargees
-# - BBox tree: arbre identique a un pyTree mais ou les zones sont les
-# BBox des zones du pyTree.
+# - Skeleton tree: complete tree with numpy floats of size > 100 not
+# loaded and equal to None
+# - Partial tree: partial tree containing only loaded zones
+# - BBox tree: tree identical to a pyTree but where zones are the
+# BBox of the pyTree zones.
 
 from . import Converter
 from . import Internal
@@ -12,8 +12,8 @@ from . import PyTree
 import numpy
 
 #==============================================================================
-# Lit un arbre squelette
-# Warning: pour l'instant limite a hdf et adf
+# Reads a skeleton tree
+# Warning: currently limited to hdf and adf
 #==============================================================================
 def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
                              maxDepth=-1, dataShape=None, links=None):
@@ -23,7 +23,7 @@ def convertFile2SkeletonTree(fileName, format=None, maxFloatSize=5,
         dataShape=dataShape, links=links)
 
 #==============================================================================
-# Lit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
+# Reads only one node of the tree or its children (depending on maxDepth)
 #==============================================================================
 def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1,
                        dataShape=None, skipTypes=None, com=None, readIntMode=0):
@@ -40,8 +40,8 @@ def readNodesFromPaths(fileName, paths, format=None, maxFloatSize=-1, maxDepth=-
     else: return ret
 
 #==============================================================================
-# Lit un noeud de l'arbre ou ses enfants (suivant maxDepth)
-# et complete t
+# Reads a node of the tree or its children (depending on maxDepth)
+# and completes t
 #==============================================================================
 def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
                         dataShape=None, skipTypes=None, com=None, readIntMode=0):
@@ -52,6 +52,7 @@ def readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDep
 
 def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDepth=-1, setOnlyValue=True,
                          dataShape=None, skipTypes=None, com=None, readIntMode=0):
+    """Read nodes from file given their path and complete t."""
     nodes = readNodesFromPaths(fileName, paths, format, maxFloatSize, maxDepth, dataShape, skipTypes, com, readIntMode)
     if not isinstance(paths, list): nodes = [nodes]; paths = [paths]
     if len(paths) != len(nodes):
@@ -78,7 +79,7 @@ def _readPyTreeFromPaths(t, fileName, paths, format=None, maxFloatSize=-1, maxDe
     return None
 
 #==============================================================================
-# Ecrit seulement un noeud de l'arbre ou ses enfants (suivant maxDepth)
+# Writes only one node of the tree or its children (depending on maxDepth)
 #==============================================================================
 def writeNodesFromPaths(fileName, paths, nodes, format=None, maxDepth=-1, mode=0, isize=8, rsize=8):
     """Write nodes to file given their paths."""
@@ -119,9 +120,9 @@ def deletePaths(fileName, paths, format=None):
     return None
 
 #=========================================================================
-# Fix paths pour writePaths
-# 1. Ne doit pas contenir CGNSTree en premier
-# 2. Ne doit pas contenir nodeName en dernier
+# Fix paths for writePaths
+# 1. Must not contain CGNSTree first
+# 2. Must not contain nodeName last
 #=========================================================================
 def fixPath__(path, nodeName=None):
     p = path; r = p
@@ -144,9 +145,9 @@ def fixPaths__(paths, nodes=None):
     return out
 
 #==============================================================================
-# Determine si une zone est une zone squelette
-# if ntype=0, se base sur les coord + FlowSolution
-# if ntype=1, se base sur les coord uniquement
+# Determine if a zone is a skeleton zone
+# if ntype=0, based on coords + FlowSolution
+# if ntype=1, based on coords only
 #==============================================================================
 def isZoneSkeleton__(z, ntype=0):
     if len(z[2]) == 0: return True
@@ -166,8 +167,8 @@ def isZoneSkeleton__(z, ntype=0):
     return False
 
 #==============================================================================
-# Converti un arbre en arbre squelette
-# i.e supprime les noeuds DataArray_t et les remplace par None
+# Converts a tree to a skeleton tree
+# i.e. removes DataArray_t nodes and replaces them with None
 #==============================================================================
 def convert2SkeletonTree(t, maxSize=6):
     """Convert a tree to a skeleton tree."""
@@ -186,10 +187,10 @@ def _convert2SkeletonTree(t, maxSize=6):
     return None
 
 #==============================================================================
-# Converti un arbre squelette charge en arbre partiel
-# rank=-1: enleve les zones squelettes (coord=None)
-# rank>=0: enleve les zones de proc != rank
-# Supprime aussi les champs squelettes
+# Converts a loaded skeleton tree to a partial tree
+# rank=-1: removes skeleton zones (coord=None)
+# rank>=0: removes zones with proc != rank
+# Also removes skeleton fields
 #==============================================================================
 def convert2PartialTree(t, rank=-1):
     """Convert a tree to a partial tree."""
@@ -209,11 +210,11 @@ def _convert2PartialTree(t, rank=-1):
                 proc = Internal.getValue(proc)
                 crit = (rank != proc)
         if crit:
-            # Supprime entierement la zone
+            # Completely removes the zone
             (p, c) = Internal.getParentOfNode(t, z)
             if Internal.isStdNode(t) == 0 and id(p) == id(t): del p[c]
             else: del p[2][c]
-        else: # enleve les champs squelettes
+        else: # removes skeleton fields
             cx = Internal.getNodesFromType1(z, 'FlowSolution_t')
             for x in cx:
                 t1 = Internal.getNodesFromType1(x, 'DataArray_t')
@@ -224,13 +225,13 @@ def _convert2PartialTree(t, rank=-1):
     return None
 
 #==============================================================================
-# Lit des zones et les remplace dans l'arbre
-# IN: tree: arbre
-# IN: rank: zones a charger
-# IN: ou zoneNames: une liste des noms des zones a charger (['Base/Zone'])
-# Warning: limite a adf et hdf
-# Note: si un noeud Proc existe dans la zone remplacee, il est recopie
-# dans la nouvelle zone
+# Reads zones and replaces them in the tree
+# IN: tree: input tree
+# IN: rank: zones to load
+# IN: or zoneNames: a list of zone names to load (['Base/Zone'])
+# Warning: limited to adf and hdf
+# Note: if a Proc node exists in the replaced zone, it is copied
+# into the new zone
 #==============================================================================
 def readZones(t, fileName, format=None, rank=None, zoneNames=None):
     """Read some zones in a skeleton tree (by rank or name)."""
@@ -243,7 +244,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
     if zoneNames is None and rank is None: return None
     bases = Internal.getBases(t)
     if rank is not None: # load zones by rank
-        # Chemins des zones a remplacer
+        # Paths of zones to be replaced
         paths = []
         for b in bases:
             zones = Internal.getNodesFromType1(b, 'Zone_t')
@@ -277,7 +278,7 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
     for p in paths:
         z = Internal.getNodeFromPath(t, p)
         if z is not None:
-            if rank is not None: # recopie les solveurs data
+            if rank is not None: # copies solver data
                 nproc = Internal.getNodeFromName2(z, 'proc')
                 if nproc is not None:
                     nproc = Internal.getValue(nproc)
@@ -305,11 +306,11 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
     return None
 
 #==============================================================================
-# Ecrit des zones dans un fichier deja cree
-# si zoneNames != None: ecrit les zones specifiees
-# si proc == rank: ecrit les zones dont le noeud proc correspond
-# si proc == -1: ecrit tout les zones de t
-# Warning: limite a adf et hdf
+# Writes zones to an already created file
+# if zoneNames != None: writes specified zones
+# if proc == rank: writes zones whose proc node matches
+# if proc == -1: writes all zones of t
+# Warning: limited to adf and hdf
 #==============================================================================
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, isize=8, rsize=8):
     """Write some zones in an existing file (adf or hdf)."""
@@ -317,7 +318,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, 
     tp, ntype = Internal.node2PyTree(t)
     bases = Internal.getBases(tp)
     if proc is not None: # write zones by proc
-        # Chemins des noeuds a remplacer (Zone et IntegralData)
+        # Paths of nodes to be replaced (Zone and IntegralData)
         paths = []; nodes = []
         for b in bases:
             zones = Internal.getNodesFromType1(b, 'Zone_t') + Internal.getNodesFromType1(b, 'IntegralData_t')
@@ -351,12 +352,12 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, 
     return None
 
 #==============================================================================
-# zones est une liste de zones, mais triees par procs
+# zones is a list of zones, but sorted by procs
 # Ex: [ [zonesDeProc0], [zonesDeProc1], ...]
-# IN: liste des zones a remplacer dans t
-# IN: size: nbre de processeurs
-# Met les zones dans l'arbre par identification des noms des zones
-# Si le nom des zones est base/zone, essaie de retrouver la base
+# IN: list of zones to replace in t
+# IN: size: number of processors
+# Puts zones in the tree by identifying zone names
+# If zone name is base/zone, tries to find the base
 #==============================================================================
 def setZonesInTree(t, zones):
     tp = Internal.copyRef(t)
@@ -396,7 +397,7 @@ def _setZonesInTree(t, zones):
     return None
 
 #==============================================================================
-# update le graph si zoneName sur proc est a envoyer a popp
+# Updates the graph if zoneName on proc is to be sent to popp
 #==============================================================================
 def updateGraph__(graph, proc, popp, zoneName):
     if popp != proc:
@@ -409,9 +410,10 @@ def updateGraph__(graph, proc, popp, zoneName):
     return graph
 
 #==============================================================================
-# merge deux graph
+# Merges two graphs
 #==============================================================================
 def mergeGraph(graph1, graph2):
+    """Merge two graphs."""
     import copy
     graph = copy.deepcopy(graph1)
     for proc in graph2.keys():
@@ -435,7 +437,7 @@ def updateGraphSet__(graph, proc, popp, zoneName):
     return graph
 
 #==============================================================================
-# Retourne le proc de z si z est local ou dans le procDict si il existe
+# Returns the proc of z if z is local or in procDict if it exists
 #==============================================================================
 def getProcLocal__(z, procDict=None):
     if procDict is not None: return procDict[z[0]]
@@ -446,7 +448,7 @@ def getProcLocal__(z, procDict=None):
         return proc
 
 #==============================================================================
-# Retourne le proc de z si z est global ou dans le procDict si il existe
+# Returns the proc of z if z is global or in procDict if it exists
 #==============================================================================
 def getProcGlobal__(zoneName, t, procDict=None):
     if procDict is not None: return procDict[zoneName]
@@ -458,32 +460,32 @@ def getProcGlobal__(zoneName, t, procDict=None):
         return proc
 
 #==============================================================================
-# Calcule le graph
-# IN: t: arbre contenant des noeuds 'proc' entierement charge
-# IN: type: type de graph voulu
-# type='bbox' si intersection de bbox des zones (full/bbox)
-# type='bbox2' si intersection de bbox et pas sur la meme base (full/bbox)
-# type='bbox3' si intersection de bbox avec t2 (t:full/bbox et t2:full/bbox)
-# type='match' si match entre zones (full/skel/load skel/partial[+procDict])
-# type='nmatch' si nearmatch entre zones (full/skel/load skel/partial[+procDict])
-# type='ID' si donnees d'interpolation entre zones (full/skel/load skel/partial+procDict)
-# type='IBCD' si donnees IBC entres zones (full/skel/load skel/partial+procDict)
-# type='ALLD' si toutes donnees (Interp+IBC) (full/skel/load skel/partial+procDict)
-# type='proc' si la zone a un noeud proc different du proc courant (full/skel/load skel/partial)
+# Computes the graph
+# IN: t: tree containing fully loaded 'proc' nodes
+# IN: type: type of graph wanted
+# type='bbox' if bbox intersection of zones (full/bbox)
+# type='bbox2' if bbox intersection and not on same base (full/bbox)
+# type='bbox3' if bbox intersection with t2 (t:full/bbox and t2:full/bbox)
+# type='match' if match between zones (full/skel/load skel/partial[+procDict])
+# type='nmatch' if nearmatch between zones (full/skel/load skel/partial[+procDict])
+# type='ID' if interpolation data between zones (full/skel/load skel/partial+procDict)
+# type='IBCD' if IBC data between zones (full/skel/load skel/partial+procDict)
+# type='ALLD' if all data (Interp+IBC) (full/skel/load skel/partial+procDict)
+# type='proc' if zone has a proc node different from current proc (full/skel/load skel/partial)
 # type='POST': t donor tree and t2 receptor tree. To interpolate data from donor to receptor where interpolation
 #              data is stored in t in ID* subregions nodes. Requires procDict and procDict2
-# intersectionsDict: dictionnaire Python contenant la liste de zones intersectantes,
-# comme produit par "X.getIntersectingDomains". Attention, si type='bbox3',
-# l'utilisateur doit fournir l'arbre t2 et intersectionDict doit decrire les
-# intersections entre t et t2, comme produit par "X.getIntersectingDomains(t,t2)".
-# exploc: True si explicite local
-# OUT: graph: dictionnaire contenant des informations d'envoie
-# des zones entre processeurs
-# graph est construit de telle sorte que:
-# graph[P0][P1] renvoie la liste des zones du processeur P0
-# "connectees" avec au moins une zone du processeur P1
-# Ex: addXZones: envoie les zones graph[rank][opp] au proc opp,
-# attend ensuite les zones graph[opp][rank] pour tout opp.
+# intersectionsDict: Python dictionary containing the list of intersecting zones,
+# as produced by "X.getIntersectingDomains". Note: if type='bbox3',
+# the user must provide tree t2 and intersectionDict must describe the
+# intersections between t and t2, as produced by "X.getIntersectingDomains(t,t2)".
+# exploc: True if explicit local
+# OUT: graph: dictionary containing send information
+# of zones between processors
+# graph is constructed such that:
+# graph[P0][P1] returns the list of zones of processor P0
+# "connected" with at least one zone of processor P1
+# Ex: addXZones: sends zones graph[rank][opp] to proc opp,
+# then waits for zones graph[opp][rank] for all opp.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                  intersectionsDict=None, exploc=False, procDict2=None,
@@ -491,7 +493,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
     graph = {}
-    if type == 'bbox': # zone de t de P0 intersectent une zone de t de P1
+    if type == 'bbox': # zone of t from P0 intersect a zone of t from P1
         if not intersectionsDict:
             try: import Connector.PyTree as X
             except: raise ImportError("computeGraph: requires Connector module.")
@@ -510,7 +512,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         #        popp = getProcGlobal__(d[0], t, procDict)
         #        updateGraph__(graph, proc, popp, z[0])
 
-    elif type == 'bbox2': # zone de t de P0 qui intersecte une zone de t de P1 mais qui n'est pas sur la meme base
+    elif type == 'bbox2': # zone of t from P0 that intersects a zone of t from P1 but not on same base
         if not intersectionsDict:
             try: import Connector.PyTree as X
             except: raise ImportError("computeGraph: requires Connector module.")
@@ -549,7 +551,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
         #                     if z[0] not in graph[proc][popp]:
         #                         graph[proc][popp].append(z[0])
 
-    elif type == 'bbox3': # zone de t sur P0 qui intersecte une zone de t2 sur P1
+    elif type == 'bbox3': # zone of t on P0 that intersects a zone of t2 on P1
         #if not t2: raise ValueError("computeGraph: type bbox3 requires a t2.")
         zones2 = Internal.getZones(t2)
         if not intersectionsDict:
@@ -589,7 +591,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     popp = getProcGlobal__(rcvname, t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])
 
-    elif type == 'ID_Unsteady': # base sur les interpolations data
+    elif type == 'ID_Unsteady': # based on interpolation data
         graph_steady={}; graph_unsteady={}
         for z in zones:
             proc = getProcLocal__(z, procDict)
@@ -601,7 +603,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                         numero_iter = int( s[0].split('#')[1].split('_')[0] )
                         donor = Internal.getValue(s)
                         idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
-                        if idn != []: # la subRegion decrit des interpolations
+                        if idn != []: # the subRegion describes interpolations
                             popp = getProcGlobal__(donor, t, procDict)
                             if numero_iter not in graph_unsteady: graph_unsteady[numero_iter] = {}
                             #if(numero_iter==55):  print("subregion", s[0], z[0], donor, proc, popp)
@@ -609,13 +611,13 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     else:
                         donor = Internal.getValue(s)
                         idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
-                        if idn != []: # la subRegion decrit des interpolations
+                        if idn != []: # the subRegion describes interpolations
                             popp = getProcGlobal__(donor, t, procDict)
                             updateGraph__(graph_steady, proc, popp, z[0])
 
         return graph_steady, graph_unsteady
 
-    elif type == 'ID': # base sur les interpolations data
+    elif type == 'ID': # based on interpolation data
         if not exploc:
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -628,13 +630,13 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                             if numero_iter == it:
                                 donor = Internal.getValue(s)
                                 idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph, proc, popp, z[0])
                         else:
                             donor = Internal.getValue(s)
                             idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
-                            if idn != []: # la subRegion decrit des interpolations
+                            if idn != []: # the subRegion describes interpolations
                                 popp = getProcGlobal__(donor, t, procDict)
                                 updateGraph__(graph, proc, popp, z[0])
 
@@ -672,30 +674,29 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
 
                         if levdnr > levrcv and ssiter <= nssiter:
                             if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr < levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1):
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==cycl//2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1):
-                                #print(donor, ssiter)
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter > nssiter:
                             ssiter_ = ssiter - nssiter
                             if ssiter_%cycl==cycl//2 and (ssiter_//cycl)%2==1:
                                 #if ssiter_%2==0 and ssiter_%cycl==cycl/2 and (ssiter_//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                 list_graph_.append(graph_)
 
-    elif type == 'IBCD': # base sur les IBC data
+    elif type == 'IBCD': # based on IBC data
         if not exploc:
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -707,7 +708,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 for s in subRegions:
                     donor = Internal.getValue(s)
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                    if idn != []: # la subRegion decrit des IBC
+                    if idn != []: # the subRegion describes IBC
                         popp = getProcGlobal__(donor, t, procDict)
                         updateGraph__(graph, proc, popp, z[0])
 
@@ -745,30 +746,30 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                         cycl = nssiter//levdnr
                         if levdnr > levrcv and ssiter <= nssiter:
                             if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr < levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1):
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==cycl//2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1):
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter > nssiter:
                             #if (ssiter%8==6):
                             ssiter_ = ssiter - nssiter
                             if ssiter_%2==0 and ssiter_%cycl==cycl//2 and (ssiter_//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                 list_graph_.append(graph_)
 
 
-    elif type == 'INV_IBCD': # base sur les IBC data inverse (from receiver)
+    elif type == 'INV_IBCD': # based on inverse IBC data (from receiver)
         if not exploc:
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -780,12 +781,12 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 for s in subRegions:
                     donor = Internal.getValue(s)
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                    if idn != []: # la subRegion decrit des IBC
+                    if idn != []: # the subRegion describes IBC
                         popp = getProcGlobal__(donor, t, procDict)
                         updateGraph__(graph, popp, proc, donor)
 
 
-    elif type == '2_IBCD': # base sur les IBC data
+    elif type == '2_IBCD': # based on IBC data
         if not exploc:
             for z in zones:
                 proc = getProcLocal__(z, procDict)
@@ -797,7 +798,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 for s in subRegions:
                     donor = Internal.getValue(s)
                     idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                    if idn != []: # la subRegion decrit des IBC
+                    if idn != []: # the subRegion describes IBC
                         popp = getProcGlobal__(donor, t, procDict)
                         updateGraph__(graph, proc, popp, z[0])
 
@@ -836,41 +837,41 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                         cycl = nssiter//levdnr
                         if levdnr > levrcv and ssiter <= nssiter:
                             if ssiter%cycl==cycl-1 or ssiter%cycl==cycl//2 and (ssiter//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr < levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==1 or ssiter%cycl==cycl//4 or ssiter%cycl==cycl//2-1 or ssiter%cycl==cycl//2+1 or ssiter%cycl==cycl//2+cycl//4 or ssiter%cycl==cycl-1):
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter <= nssiter:
                             if (ssiter%cycl==cycl//2-1 or (ssiter%cycl==cycl//2 and (ssiter//cycl)%2==0) or ssiter%cycl==cycl-1):
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                         if levdnr == levrcv and ssiter > nssiter:
                             #if (ssiter%8==6):
                             ssiter_ = ssiter - nssiter
                             if ssiter_%2==0 and ssiter_%cycl==cycl//2 and (ssiter_//cycl)%2==1:
-                                if idn != []: # la subRegion decrit des interpolations
+                                if idn != []: # the subRegion describes interpolations
                                     popp = getProcGlobal__(donor, t, procDict)
                                     updateGraph__(graph_, proc, popp, z[0])
                 list_graph_.append(graph_)
 
 
-    elif type == 'ALLD': # base sur les Interpolations+IBC data
+    elif type == 'ALLD': # based on Interpolations+IBC data
         for z in zones:
             proc = getProcLocal__(z, procDict)
             subRegions = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
             for s in subRegions:
                 donor = Internal.getValue(s)
                 idn = Internal.getNodesFromName1(s,'InterpolantsDonor')
-                if idn != []: # la subRegion decrit des interpolations/IBC
+                if idn != []: # the subRegion describes interpolations/IBC
                     popp = getProcGlobal__(donor, t, procDict)
                     updateGraph__(graph, proc, popp, z[0])
 
-    elif type == 'match': # base sur les raccords matchs
+    elif type == 'match': # based on match connections
         for z in zones:
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
@@ -884,7 +885,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                 popp = getProcGlobal__(donor, t, procDict)
                 updateGraph__(graph, proc, popp, z[0])
 
-    elif type == 'nmatch': # base sur les nearmatchs
+    elif type == 'nmatch': # based on nearmatches
         for z in zones:
             proc = getProcLocal__(z, procDict)
             GC = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -906,6 +907,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
 
 # Split graph in one zone graphs
 def splitGraph(graph):
+    """Split graph in one zone graph."""
     graphs = []
     c = 0; goon = True
     while goon:
@@ -922,8 +924,8 @@ def splitGraph(graph):
     return graphs
 
 #==============================================================================
-# Retourne le dictionnaire proc['blocName']
-# a partir d'un arbre distribue contenant des noeuds proc
+# Returns the dictionary proc['blocName']
+# from a distributed tree containing proc nodes
 #==============================================================================
 def getProcDict(t):
     """Return the dictionary proc['zoneName']."""
@@ -957,6 +959,7 @@ def setProc(t, nproc):
     return tp
 
 def _setProc(t, nproc):
+    """Set the proc to a zone or a set of zones."""
     zones = Internal.getZones(t)
     for z in zones:
         node = Internal.getNodeFromName1(z, '.Solver#Param')
@@ -973,8 +976,8 @@ def _setProc(t, nproc):
     return None
 
 #==============================================================================
-# Retourne le dictionnaire prop['blocName']
-# a partir d'un arbre distribue contenant des noeuds 'propname'
+# Returns the dictionary prop['blocName']
+# from a distributed tree containing 'propname' nodes
 #==============================================================================
 def getPropertyDict(t, propname):
     """Return the dictionary prop['zoneName']."""

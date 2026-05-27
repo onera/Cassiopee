@@ -28,7 +28,12 @@ L2 = Geom.getLength(m2)
 dLdR = (L2-L1)/1.e-10
 print("dLdR by FD:", dLdR)
 
-# compute dL/dR by dL/dX * dX/dR by FD and AD
+# compute dX/dmu by FD
 D.DRIVER.instantiate({'radius': 1.5})
 D.DRIVER._dXdmu(sketch1, mesh=m1, freeParams=['radius'])
-print(m1)
+
+# compute  dD/dmu by FD
+dDdmu = D.DRIVER.dDdmu(sketch1, mesh=m1, freeParams=['radius'])
+print(dDdmu)
+
+Converter.convertArrays2File(m1, 'out.plt')
