@@ -12,12 +12,14 @@ import OCC
 #============================================================
 __NameServer__ = {}
 def getName(proposedName):
+    """Return unique entity name from proposed name."""
     global __NameServer__
     (name, __NameServer__) = getUniqueName(proposedName, __NameServer__)
     return name
 
-# Retourne proposedName#count
+# Returns proposedName#count
 def getUniqueName2(proposedName, server, sep='#'):
+    """Return proposedName#count, incrementing count from server."""
     namespl = proposedName.rsplit(sep, 1)
     if len(namespl) == 2:
         try: c = int(namespl[1]); name = namespl[0]
@@ -40,8 +42,9 @@ def getUniqueName2(proposedName, server, sep='#'):
         server[name] = c
         return (name2, server)
 
-# Retourne proposedNamecount
+# Returns proposedNamecount
 def getUniqueName(proposedName, server):
+    """Return proposedNamecount, incrementing count from server."""
     if proposedName in server:
         c = server[proposedName]+1
     else:
@@ -54,6 +57,7 @@ def getUniqueName(proposedName, server):
 #============================================================
 # from arrays, export zone
 def exportEdges(edges):
+    """From arrays, export zones."""
     t = C.newPyTree(['EDGES'])
     b = Internal.getNodeFromName1(t, 'EDGES')
     for c, e in enumerate(edges):
@@ -94,7 +98,7 @@ class Scalar( sympy.core.symbol.Symbol ):
 
     # print content
     def print(self, shift=0):
-        """Display informations."""
+        """Print scalar parameter informations."""
         #print(" "*shift, "name", self.name)
         print(" "*shift, "value", self.v)
         if self.range is not None:
@@ -144,7 +148,7 @@ class Vec2:
 
     # print content
     def print(self, shift=0):
-        """Display informations."""
+        """Print vector informations."""
         print(" "*shift, "x")
         self.x.print(shift+4)
         print(" "*shift, "y")
@@ -190,7 +194,7 @@ class Point:
             self.z.v = valuez
 
     def print(self, shift=0):
-        """Display informations."""
+        """Print information on point."""
         print(" "*shift, self.x.name)
         self.x.print(shift+4)
         print(" "*shift, self.y.name)
@@ -256,16 +260,19 @@ class Grid:
 
     # return value
     def v(self, T):
+        """Return grid value."""
         (i,j,k) = T
         return (self.P[i][j][k].x.v, self.P[i][j],[k].y.v, self.P[i][j][k].z.v)
 
     def print(self, shift=0):
+        """Display information."""
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
                     self.P[i][j][k].print(shift+4)
 
     def check(self):
+        """Check if grid is in range."""
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -396,6 +403,7 @@ class Entity:
 
     # check parameters validity
     def check(self):
+        """Check entity validity from ranges."""
         for P in self.P:
             ret = P.check()
             if ret == 0: return 0
@@ -568,6 +576,7 @@ class Sketch():
     # Compute a rmesh identically to a reference mesh that is topologically
     # equivalent (same names). copy distributions, return arrays, remesh on CAD.
     def rmesh(self, refEdges):
+        """Generate a mesh with same distributions as refEdges but on current CAD (array)."""
         import Geom
         s = Geom.getCurvilinearAbscissa(refEdges)
         for c, e in enumerate(refEdges):
@@ -582,6 +591,7 @@ class Sketch():
     # Compute a rmesh identically to reference mesh that is topologically
     # equivalent (same names). copy distributions, return arrays
     def Rmesh(self, RefEdges):
+        """Generate a mesh with same distributions as refEdges but on current CAD (pyTree)."""
         arrays = C.getAllFields(RefEdges, 'nodes', api=3)
         edges = self.rmesh(arrays)
         out = []
@@ -868,7 +878,7 @@ class Surface():
         self.dy1 = {}
         self.dz1 = {}
         zones = Internal.getZones(self.RefMeshUV)
-        for i, z in enumerate(zones): # pour chaque face
+        for i, z in enumerate(zones): # for each face
 
             # init inds
             self.inds[i+1] = []
@@ -978,7 +988,7 @@ class Surface():
             nedges.append(b)
 
         zones = Internal.getZones(self.RefMeshUV)
-        for i, z in enumerate(zones): # pour chaque face
+        for i, z in enumerate(zones): # for each face
             self.dx1[i+1][:] = 0.
             self.dy1[i+1][:] = 0.
             self.dz1[i+1][:] = 0.
@@ -1010,7 +1020,7 @@ class Surface():
             self.DefTree[i+1].makeSources()
             self.DefTree[i+1].computeMeshDisplacement()
 
-        # copie Displacement#0/DisplacementX dans UV
+        # copy Displacement#0/DisplacementX to UV
         #zones1 = Internal.getZones(self.RefMeshUV)
         zones2 = Internal.getZones(self.RefMeshUV2)
         zones3 = Internal.getZones(self.RefMesh)
@@ -1235,7 +1245,7 @@ class Volume2D():
         self.DefTree.makeSources()
         self.DefTree.computeMeshDisplacement()
 
-        # copie Displacement#0/DisplacementX dans Coordinates
+        # copy Displacement#0/DisplacementX to Coordinates
         zones = Internal.getZones(self.RefMesh)
         z1 = zones[0]
         cont = Internal.getNodeFromName1(z1, "GridCoordinates#Init")
@@ -1299,7 +1309,7 @@ class Volume3D():
 class Eq:
     """Define an equation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'equation sympy
+        # references to the sympy equation
         self.s = sympy.Eq(expr1, expr2)
         DRIVER.registerEquation(self)
 
@@ -1308,7 +1318,7 @@ class Eq:
         keywords = ["=", "length", "*", "+", "-", "/", "cos", "sin", "(", ")"]
         pattern = f"({'|'.join(keywords)})"
         segments = re.split(pattern, self.expr)
-        segments = [s.strip() for s in segments if s]  # nettoyage
+        segments = [s.strip() for s in segments if s]  # cleanup
         # replace by their id
         out = ''; vars = []
         for s in segments:
@@ -1323,7 +1333,7 @@ class Eq:
 class Lt:
     """Define constraint inequation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'inequation sympy
+        # references to the sympy inequality
         self.s = sympy.Lt(expr1, expr2)
         DRIVER.registerInequation(self)
 
@@ -1331,7 +1341,7 @@ class Lt:
 class Le:
     """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'inequation sympy
+        # references to the sympy inequality
         self.s = sympy.Le(expr1, expr2)
         DRIVER.registerInequation(self)
 
@@ -1339,7 +1349,7 @@ class Le:
 class Gt:
     """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'inequation sympy
+        # references to the sympy inequality
         self.s = sympy.Gt(expr1, expr2)
         DRIVER.registerInequation(self)
 
@@ -1347,7 +1357,7 @@ class Gt:
 class Ge:
     """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'inequation sympy
+        # references to the sympy inequality
         self.s = sympy.Ge(expr1, expr2)
         DRIVER.registerInequation(self)
 
@@ -1355,7 +1365,7 @@ class Ge:
 class Ne:
     """Define a constraint inequation."""
     def __init__(self, expr1, expr2=None):
-        # references sur l'inequation sympy
+        # references to the sympy inequality
         self.s = sympy.Ne(expr1, expr2)
         DRIVER.registerInequation(self)
 
@@ -1428,7 +1438,7 @@ class Driver:
         for s in symbols:
             scalar = self.scalars[s.name]
             if scalar.range is None:
-                scalar.range = [-999.99, 999.99] # range ajustable
+                scalar.range = [-999.99, 999.99] # adjustable range
 
     def registerInequation(self, eq):
         """Register inequation."""
@@ -1439,7 +1449,7 @@ class Driver:
         for s in symbols:
             scalar = self.scalars[s.name]
             if scalar.range is None:
-                scalar.range = [-999.99, 999.99] # range ajustable
+                scalar.range = [-999.99, 999.99] # adjustable range
 
     def print(self):
         """Print registered entities."""
@@ -1582,7 +1592,7 @@ class Driver:
 
     # FD of free parameters on discrete mesh
     # if freevars is None, derivate for all free parameters else derivate for given parameters
-    def _dXdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-10):
+    def _dXdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-6):
         """Compute derivatives dX/dmu on entity."""
         import KCore
 
@@ -1686,7 +1696,7 @@ class Driver:
                     p2z = Internal.getNodeFromName2(cont2, 'CoordinateZ')[1]
                     p1z[:] = p2z[:]
 
-        # remet le hook original
+        # restore original hook
         d = {}
         for q in self.freeParams:
             d[q.name] = self.scalars[q.name].v
@@ -1695,7 +1705,7 @@ class Driver:
         return None
 
     # FD derivative of distance on mesh
-    def dDdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-10):
+    def dDdmu(self, entity, mesh=None, Mesh=None, freeParams=None, deps=1.e-6):
         """Compute derivatives dD/dmu on entity."""
 
         if len(self.freeParams) == 0:
@@ -1751,7 +1761,7 @@ class Driver:
                 dist = Geom.distance(Mesh, Meshd)/deps
                 dDdmu.append(dist)
 
-        # remet le hook original
+        # restore original hook
         d = {}
         for q in self.freeParams:
             d[q.name] = self.scalars[q.name].v
@@ -1866,7 +1876,7 @@ class Driver:
         for k in self.doeRange:
             ranges.append(range(k.size))
             size += k.size
-        raf = size - size%Cmpi.size # seq reste a faire
+        raf = size - size%Cmpi.size # remaining sequence to do
 
         for indexes in itertools.product(*ranges):
             # create value dict
@@ -1997,7 +2007,7 @@ class Driver:
     def createROM(self, F, K=-1):
         # on deformation from
         mean = numpy.mean(F, axis=1, keepdims=True)
-        self.mean = mean # maillage moyen
+        self.mean = mean # average mesh
         #F = F - mean
         Phi, S, Vt = numpy.linalg.svd(F, full_matrices=False)
         # energy of each modes
@@ -2033,7 +2043,7 @@ class Driver:
         for k in self.doeRange:
             ranges.append(range(k.size))
             size += k.size
-        raf = size - size%Cmpi.size # seq reste a faire
+        raf = size - size%Cmpi.size # remaining sequence to do
 
         m = self.readSnaphot(0)
         nv = m[1].shape[1]

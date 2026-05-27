@@ -167,7 +167,7 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
     m = [a, b]
     return export__(m, ntype)
 
-# IN: liste de maillages struct
+# IN: list of structured meshes
 def export__(a, ntype='STRUCT'):
     try: import Converter; import Transform; import Generator
     except ImportError:
@@ -339,6 +339,7 @@ def curve(f, N=100):
 
 # Parametric curve from a formula
 def curve_(f, N):
+    """Create a curve from a user defined parametric function or a formula."""
     import Converter; import Generator
     a = Generator.cart( (0,0,0), (1./(N-1),1,1), (N,1,1))
     a[0] = 't,y,z'
@@ -367,6 +368,7 @@ def surface(f, N=100, isVectorized=False):
 
 # Parametric surface from a formula
 def surface_(f, N):
+    """Create a surface from a user defined parametric function or a formula."""
     import Converter; import Generator
     a = Generator.cart((0,0,0), (1./(N-1),1./(N-1),1), (N,N,1))
     a[0] = 't,u,z'
@@ -652,7 +654,7 @@ def lineGenerate(a, d):
 
 def lineGenerate2__(array, drivingCurves):
     import Converter; import Generator
-    # Copie la distribution de 0 sur les autres courbes
+    # Copy the distribution from 0 to the other curves
     d = []
     ref = drivingCurves[0]; d += [ref]
     #l = getLength(ref)
@@ -662,8 +664,8 @@ def lineGenerate2__(array, drivingCurves):
         d += [Generator.map(i, distrib)]
     return geom.lineGenerate2(array, d)
 
-# Ortho drive avec copy ou avec stack
-# IN: a et d doivent etre orthogonals
+# Ortho drive with copy or with stack
+# IN: a and d must be orthogonal
 # IN: mode=0 (stack), mode=1 (copy)
 def orthoDrive(a, d, mode=0):
     """Generate a surface mesh starting from a curve and a driving orthogonally to curve defined by d.
@@ -705,11 +707,11 @@ def orthoDrive(a, d, mode=0):
             Pi = [coord[0,i],coord[1,i],coord[2,i]]
             Pip = [coord[0,i+1],coord[1,i+1],coord[2,i+1]]
             v = Vector.sub(Pi, P0)
-        # vecteur e1 (transformation de S)
+        # vector e1 (transformation of S)
         e1 = Vector.sub(Pip, Pi)
         e1 = Vector.normalize(e1)
-        # vecteur e2 (intersection plan)
-        # intersection du plan normal a e1 avec le plan x,y
+        # vector e2 (plane intersection)
+        # intersection of the plane normal to e1 with the x,y plane
         if abs(S[1]) > 1.e-12 and abs(S[2]) > 1.e-12: # x,S plane
             alpha = -e1[0]
             e2 = Vector.mul(alpha, e1)
@@ -763,7 +765,7 @@ def volumeFromCrossSections(contours):
         raise ImportError("volumeFromCrossSections: require Converter, Transform and Generator.")
 
     c = {}
-    # Dictionnaire des contours suivant z
+    # Dictionary of contours by z
     for i in contours:
         posz = KCore.isNamePresent(i, "z")
         if posz == -1:
@@ -964,9 +966,9 @@ def text3D(string, font='vera', smooth=0, offset=0.5, thickness=8.):
 
 #======================================================================
 # connect 1D curves
-# IN: sharpness=0: par des lignes, =1 par des splines
-# IN: N: nbre de pts dans les raccords
-# IN: lengthFactor: enleve les raccords trop longs
+# IN: sharpness=0: by lines, =1 by splines
+# IN: N: number of points in the connections
+# IN: lengthFactor: removes connections that are too long
 #======================================================================
 def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     """Connect 1D curves in a single curve.
@@ -1034,7 +1036,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     out = G.close(out)
     return out
 
-# Pt d'intersection par minimal distance
+# Intersection point by minimal distance
 def intersectionPoint__(P1, n1, P2, n2):
     s = Vector.dot(n1, n2)
     s2 = max(1.-s*s, 1.e-12)
@@ -1050,11 +1052,11 @@ def intersectionPoint__(P1, n1, P2, n2):
     PI = Vector.mul(0.5,PI)
     return PI
 
-# trouve le pt le plus proche de Pt dans Pts mais different de c
+# finds the nearest point to Pt in Pts but different from c
 def findNearest__(Pt, Pts, c):
     minDist = 1.e6; nearest = None; dmin = -1; ext=0
     for d in range(len(Pts)):
-        if d <= c: # possible sur lui meme !!
+        if d <= c: # possible on itself !!
             e2a = Pts[d][0]; e2b = Pts[d][1]
             d1 = Vector.squareDist(Pt, e2a)
             d2 = Vector.squareDist(Pt, e2b)
@@ -1071,7 +1073,7 @@ def getUV(a, normalDeviationWeight=2., texResolution=1920, fields=None):
     a = Converter.initVars(a, '_v_', 0.)
     return geom.getUV(a, normalDeviationWeight, texResolution, fields)
 
-# Init _u_ et _v_ from i,j (struct surface)
+# Init _u_ and _v_ from i,j (struct surface)
 def getUVFromIJ(a):
     """Return uv of structured surface."""
     import Converter

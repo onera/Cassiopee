@@ -31,7 +31,7 @@ __all__ = [
 # Add two layers to surface arrays
 # if planarity=True: height is max(eps, cellPlanarity)
 # else height is eps
-# retourne 1 si tous les arrays ont ete etendus
+# returns 1 if all arrays have been extended
 #==============================================================================
 def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
     import Generator; import Transform
@@ -56,7 +56,7 @@ def extrudeLayer__(i, nlayers, planarity, eps, dplus, dmoins):
         p = Transform.join(b, c); p = Generator.close(p)
         p = Converter.convertArray2Tetra(p)
 
-    if p[3] == 'TRI': # une BAR au depart
+    if p[3] == 'TRI': # initially a BAR
         p = Transform.reorder(p, (1,))
         b = Generator.addNormalLayers(p, dplus)
         p = Transform.reorder(p, (-1,))
@@ -606,9 +606,9 @@ def streamLine(arrays, X0, vector, N=2000, dir=2):
         else: raise ValueError('Empty streamline.')
 
 # IN: arrays: coords + solution
-# IN: X0: (x,y,z) ou liste de tuples
+# IN: X0: (x,y,z) or list of tuples
 # IN: vector: ['vx','vy','vz']
-# IN: eps: hauteur extrusion quand on nous donne une surface
+# IN: eps: extrusion height when a surface is provided
 def streamLine2(arrays, X0, vector, N=2000, dir=2, eps=1.e-2):
     """Compute a streamline starting from (x0,y0,z0) given
     a list of arrays containing 'vector' information.
@@ -682,18 +682,18 @@ def streamSurf(arrays, b, vector, N=2000, dir=1):
     return post.compStreamSurf(arrays, b, vector, dir, N)
 
 #------------------------------------------------------------------------------
-# Construit le tag pour les formules
+# Build the tag for formulas
 #------------------------------------------------------------------------------
 def buildTag2__(array, F):
     a = Converter.copy(array)
 
-    # Extrait les variables de a
+    # Extract variables from a
     varstring = a[0]
     vars = varstring.split(',')
 
     eq = F.replace('centers:', '')
 
-    # Instantiation de la formule
+    # Formula instantiation
     ap = a[1]
     loc = eq
     c = 0
@@ -701,7 +701,7 @@ def buildTag2__(array, F):
         loc = loc.replace('{%s}'%v, 'ap[%d,:]'%c); c += 1
 
     # Evaluation
-    formula = eval(loc) # est un numpy bool
+    formula = eval(loc) # is a numpy bool
     tag = numpy.zeros(ap.shape[1], numpy.float64)
     tag[:] = formula[:]
     tag = tag.reshape(1, tag.size)
@@ -710,7 +710,7 @@ def buildTag2__(array, F):
     return out
 
 #------------------------------------------------------------------------------
-# construit le tag pour une fonction F
+# build the tag for a function F
 #------------------------------------------------------------------------------
 def buildTag1__(array, F, varStrings):
     import KCore
@@ -1102,7 +1102,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
 
     valMin = Converter.getMinValue(indicVal,valName); epsInf = valMin/4.
     valMax = Converter.getMaxValue(indicVal,valName); epsSup = valMax*4.
-    # calcul de l'indicateur : tous les pts sont raffines (low)
+    # indicator calculation: all points are refined (low)
     indicator1 = computeIndicatorFieldForBounds(indicator, indicVal,
                                                 epsInf/4., 4.*epsInf)
     res = G.adaptOctree(octreeHexa, indicator1)
@@ -1110,7 +1110,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
     print('Number of points for low bound value %g is %d (targetPts=%d)'%(epsInf, nptsfin, nbTargetPts))
     if nptsfin < nbTargetPts: return indicator1, epsInf/4., epsInf*4.
 
-    # calcul de l'indicateur : ts les pts sont deraffines
+    # indicator calculation: all points are coarsened
     indicator1 = computeIndicatorFieldForBounds(indicator, indicVal, \
                                                 epsSup/4., epsSup*4.)
     res = G.adaptOctree(octreeHexa, indicator1)
@@ -1120,7 +1120,7 @@ def computeIndicatorField(octreeHexa, indicVal, nbTargetPts=-1, bodies=[],
         #print('Warning: computeIndicator: the number of final points cannot be lower than the target.')
         return indicator1, epsSup/4., epsSup*4.
 
-    # dichotomie
+    # dichotomy
     count = 0; Delta = nbTargetPts
     diffmax = 1.e-8*nbTargetPts/max(Delta,1e-6); diff = diffmax+1.
     while count < 100 and Delta > 0.02*nbTargetPts and diff > diffmax:
@@ -1145,7 +1145,7 @@ def sharpEdges(array, alphaRef=30.):
     Usage: sharpEdges(a, alpharef)"""
     try: import Generator as G; import Transform as T
     except: raise ImportError("sharpEdges: requires Generator and Transform modules.")
-    if isinstance(array[0], list): # liste d'arrays
+    if isinstance(array[0], list): # list of arrays
         out = []
         for i in array:
             if len(i) == 5: out.append(Converter.convertArray2Hexa(i))# structure
@@ -1172,7 +1172,7 @@ def silhouette(array, vector):
     try: import Generator as G
     except: raise ImportError("silhouette: requires Generator module.")
 
-    if isinstance(array[0], list): # liste d'arrays
+    if isinstance(array[0], list): # list of arrays
         res = []
         for a in array:
             if len(a) == 5: #structure
@@ -1194,7 +1194,7 @@ def silhouette(array, vector):
 #==============================================================================
 def renameVars(array, varsPrev, varsNew):
     """Rename variables names in varsPrev with names defined by varsNew."""
-    if isinstance(array[0], list): # liste d'arrays
+    if isinstance(array[0], list): # list of arrays
         res = []
         for a in array:
             b = a[:]

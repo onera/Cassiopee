@@ -10,7 +10,7 @@ def f(t,u):
     return (x,y,z)
 
 # Array definition of geometry
-a = D.surface(f)
+a = D.surface(f, isVectorized=True)
 
 c = D.circle((1.2,1.7,0.6), 0.1)
 c = T.rotate(c, (1.2,1.7,0.6), (0,1,0), 90.)

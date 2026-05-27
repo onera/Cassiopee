@@ -6,7 +6,7 @@ def f(t,u):
     x = t+u; y = t*t+1+u*u; z = u
     return (x,y,z)
 
-a = D.surface(f)
+a = D.surface(f, isVectorized=True)
 b = T.splitSize(a, 100)
 b = T.merge(b)
 C.convertArrays2File(b, "out.plt")

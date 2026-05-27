@@ -16,11 +16,11 @@ def FI(x,y,z):
     return x*x + y*y + z*z
 
 # Creation de la surface portant la solution
-a = D.surface(FS, 50)
+a = D.surface(FS, 50, isVectorized=True)
 a = C.initVars(a, 'sol', FI, ['x','y','z'])
 
 # Creation de la surface d'extraction
-e = D.surface(FS, 100)
+e = D.surface(FS, 100, isVectorized=True)
 e2 = P.extractMesh([a], e, order=2, tol=1.e-3)
 test.testA([a,e2], 1)
 e2 = P.extractMesh([a], [e], order=2, tol=1.e-3)

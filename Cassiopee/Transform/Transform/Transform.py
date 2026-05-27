@@ -349,8 +349,8 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
            projConstraints=[], delta=1., point=(0,0,0), radius=-1.):
     """Smooth a mesh with a Laplacian.
     Usage: smooth(a, eps, niter, type, fixedConstraints, projConstraints, delta, (xR,yR,zR), radius)"""
-    import KCore; import numpy
-    try: import Generator as G
+    import KCore
+    try: import Generator
     except:
         raise ImportError("smooth: requires Converter and Generator modules.")
     if len(fixedConstraints) != 0:
@@ -384,7 +384,7 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
                 raise TypeError("smooth: list of zones must be all structured or all unstructured.")
 
         if listeType == 1: # all struct
-            b = Converter.convertArray2Hexa(a); b = join(b); b = G.close(b)
+            b = Converter.convertArray2Hexa(a); b = join(b); b = Generator.close(b)
             listOfIndices = KCore.indiceStruct2Unstr2(a, b, 1.e-14)
             c = transform.smooth(b, eps, niter, type,
                                  fixedConstraint, projConstraint, delta,
@@ -406,7 +406,7 @@ def smooth(a, eps=0.5, niter=4, type=0, fixedConstraints=[],
             return coords
 
     elif len(a) == 5: # array structure
-        b = Converter.convertArray2Hexa(a); b = G.close(b)
+        b = Converter.convertArray2Hexa(a); b = Generator.close(b)
         c = transform.smooth(b, eps, niter, type, fixedConstraint,
                              projConstraint, delta, point, radius)
         listOfIndices = []
@@ -540,7 +540,7 @@ def deform(a, vector=['dx','dy','dz']):
         if isinstance(vector[0], list):
             vector = vector[0][0].split(',')
         else: vector = vector[0].split(',')
-    else :
+    else:
         if len(vector) != 3:
             raise ValueError("deform: 3 variables are required.")
 
@@ -614,7 +614,7 @@ def deformMesh(a, surfDelta, beta=4., type='nearest'):
         for i in a:
             if len(i) == 5:
                 if type == 'nearest': out.append(deformMeshStruct1__(i, surfDelta, beta))
-                elif type =='gridline': out.append(deformMeshStruct2__(i, surfDelta, beta))
+                elif type == 'gridline': out.append(deformMeshStruct2__(i, surfDelta, beta))
                 else: raise TypeError("deformMesh: type is invalid.")
             else: raise TypeError("deformMesh: not valid for unstructured arrays.")
         return out
@@ -655,7 +655,7 @@ def deformMeshStruct1__(arrayi, surfDelta, beta):
     return array
 
 def deformMeshStruct2__(arrayi, surfDelta, beta):
-    try: import Generator as G
+    try: import Generator
     except: raise ImportError("deformMesh: requires Converter and Generator modules.")
     array = Converter.copy(arrayi)
     surfDelta = Converter.convertArray2Tetra(surfDelta)
@@ -687,7 +687,7 @@ def deformMeshStruct2__(arrayi, surfDelta, beta):
         borders = [m1,m2,m3,m4]
 
     del res
-    delta = G.TFI(borders)
+    delta = Generator.TFI(borders)
     delta = Converter.extractVars(delta, ['dx','dy','dz'])
     dim = delta[1].shape[0]
     array[1][:dim,:] += delta[1][:dim,:]

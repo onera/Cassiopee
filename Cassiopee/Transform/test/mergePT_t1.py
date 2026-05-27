@@ -12,7 +12,7 @@ def f(t,u):
     return (x,y,z)
 
 # surface grid
-a = D.surface(f, N=50)
+a = D.surface(f, N=50, isVectorized=True)
 b = T.splitSize(a, 100)
 b = X.connectMatch(b, dim=2)
 t = C.newPyTree(['Surface', 2]); t[2][1][2] += b
@@ -42,7 +42,7 @@ t = C.newPyTree(['Base', 2]); t[2][1][2] += a
 test.testT(t,3)
 
 # volume grid
-a = D.surface(f, N=50)
+a = D.surface(f, N=50, isVectorized=True)
 distrib = G.cart((0.,0.,0.),(0.1,1,1),(11,1,1))
 a = G.addNormalLayers(a, distrib)
 b = T.splitSize(a, 5000)
