@@ -1715,7 +1715,7 @@ class Driver:
         else:
             raise TypeError("Warning: dXdmu: incorrect freevars.")
 
-        dDdmu = []    
+        dDdmu = []
         if mesh is not None: # array (by rmesh)
             import Geom
             for c, f in enumerate(listVars):
@@ -1757,7 +1757,7 @@ class Driver:
             d[q.name] = self.scalars[q.name].v
         self.instantiate(d)
         return dDdmu
-    
+
     # connect driver to db
     def connect(self, db):
         """Connect driver to db."""
