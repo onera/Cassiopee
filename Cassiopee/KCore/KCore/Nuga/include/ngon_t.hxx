@@ -2061,8 +2061,7 @@ struct ngon_t
     typedef K_FLD::ArrayAccessor<K_FLD::FloatArray > acrd_t;
     acrd_t acrd(crd);
     E_Float W[3];
-    
-    
+
 #ifndef DEBUG_NGON_T
 #pragma omp parallel for private(err, dt, cT3, W) reduction(+:normal_err_hat_count, normal_err_spike_count, normal_err_unknown_count, delaunay_err_count)
 #endif
@@ -2163,7 +2162,8 @@ struct ngon_t
     }
     
     errcount = normal_err_hat_count + normal_err_spike_count + normal_err_unknown_count + delaunay_err_count;
-    if (errcount){
+    if (errcount)
+    {
       std::cout << errcount << " uncomputable surfaces were detected : " << std::endl;
       std::cout << "  -- Normal failure    : " << normal_err_hat_count + normal_err_spike_count + normal_err_unknown_count << std::endl;
       std::cout << "  ----- hat       : " << normal_err_hat_count << std::endl;

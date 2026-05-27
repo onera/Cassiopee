@@ -193,7 +193,6 @@ PyObject* K_POST::comp_stream_line(PyObject* self, PyObject* args)
       E_Int posx = K_ARRAY::isCoordinateXPresent(unstrVarString[no]); posx++;
       E_Int posy = K_ARRAY::isCoordinateYPresent(unstrVarString[no]); posy++;
       E_Int posz = K_ARRAY::isCoordinateZPresent(unstrVarString[no]); posz++;
-      E_Int posc = K_ARRAY::isCellNatureField2Present(unstrVarString[no]); posc++;
       // On extrait la position du vecteur servant au streamline (a priori la vitesse!) du champs structF :
       E_Int posv1 = K_ARRAY::isNamePresent(vnames[0], unstrVarString[no]);
       E_Int posv2 = K_ARRAY::isNamePresent(vnames[1], unstrVarString[no]);

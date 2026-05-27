@@ -207,7 +207,6 @@ NodeAssociator::__make_pairs
 
   std::sort(palmares.begin(), palmares.end());
 
-  E_Int count = 0;
   for (size_t i = 0; i < palmares.size(); ++i)
   {
     const std::pair<E_Int, E_Int>& p = palmares[i].second;
@@ -221,12 +220,10 @@ NodeAssociator::__make_pairs
 
     pairs[Nj] = Ni;
     pairs[Ni] = Nj;
-    count++;
   }
 
   // Final cleaning
-  for (E_Int i = 0; i < nb_contours; ++i)
-    delete trees[i];
+  for (E_Int i = 0; i < nb_contours; ++i) delete trees[i];
 
 #ifdef WIN32
 #ifdef E_DEBUG

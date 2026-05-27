@@ -148,10 +148,10 @@ PyObject* K_CONVERTER::adapt2FastP(PyObject* self, PyObject* args)
   E_Int* nni = new E_Int [nfaces];
   
   E_Int ni0 = 0;
-  E_Int nrac= nfaces_int0;
-  E_Int ni1 = nrac  + nfaces_rac0;
-  E_Int nbc1= ni1   + nfaces_int1;
-  E_Int nbc0= nbc1  + nfaces_bc1;
+  E_Int nrac = nfaces_int0;
+  E_Int ni1 = nrac + nfaces_rac0;
+  E_Int nbc1 = ni1 + nfaces_int1;
+  E_Int nbc0 = nbc1 + nfaces_bc1;
   //E_Int ni2 = nbc0  + nfaces_bc0;
 
   //printf(" pt rac= %d, ptfi1= %d, ptbc0= %d, ptbc1= %d \n", nrac, ni1, nbc0,nbc1);

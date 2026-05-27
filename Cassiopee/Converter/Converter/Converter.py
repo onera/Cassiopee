@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 # -- Create an array --
-# Les champs sont mis a zero, sauf si pour les champs cellN et cellNF
+# Fields are set to zero, except for cellN and cellNF fields
 def array(vars, n1, n2, sub, api=1):
     """Create a structured or unstructured array.
     Usage: array(vars, ni, nj, nk)
@@ -136,7 +136,7 @@ def getApi(a):
     if len(a) == 5: # structure
         if not isinstance(a[0], str): return -1
         if isinstance(a[1], numpy.ndarray): return 1
-        if isinstance(a[1], list): return 2 # compat. 3
+        if isinstance(a[1], list): return 2 # compatibility with version 3
         return -1
     elif len(a) == 4: # non structure
         if not isinstance(a[0], str): return -1
@@ -152,7 +152,7 @@ def getApi(a):
                     else: return 2
                 else: return -1
             else: # ELTS
-                if len(a[2]) == 1: return 2 # compat. 3
+                if len(a[2]) == 1: return 2 # compatibility with version 3
                 else: return 3
             if isinstance(a[2], list): return 3
             return -1
@@ -310,7 +310,7 @@ def addVar(array, vars):
     Usage: a = addVar(array, vars)"""
     if isinstance(vars, list):
         a = array
-        for i in vars: a = converter.addVar(a, i) # super cher
+        for i in vars: a = converter.addVar(a, i) # expensive operation
         return a
     else:
         return converter.addVar(array, vars)
@@ -322,9 +322,9 @@ def addVars1(arrays):
     Usage: a = addVars(arrays)"""
     return converter.addVars(arrays)
 
-# -- Nouvelle version (array1/array2) --
+# -- New version (array1/array2) --
 def addVars2(a, varNames=None):
-    if varNames is None: # concat une liste
+    if varNames is None: # concatenate a list
         b = list(a)
         b[0] = copy(b[0])
     else: b = copy(a)
@@ -344,7 +344,7 @@ def _addVars(a, varNames=None):
         else: _addVars__(a, varNames)
     return None
 
-# add a list of varnames
+# Add a list of variable names
 def _addVars__(a, varNames):
     if isinstance(varNames, str): varNames = [varNames]
     if isinstance(a[1], list): # array2
@@ -366,8 +366,8 @@ def _addVars__(a, varNames):
         a[1] = n
     return None
 
-# a est une liste d'arrays qu'il faut concatener dans le premier
-# modifie le premier array in place
+# a is a list of arrays that need to be concatenated into the first one
+# modifies the first array in place
 def _addVars2__(a):
     if isinstance(a[0][1], list): # array2/3
         a0 = a[0]
@@ -600,7 +600,7 @@ def _initVarByFunction__(a, var, F, fargs=[], isVectorized=False):
                         a[1][posvar,:] = res[i]
     return None
 
-# Initialisation par une formule par numpy
+# Initialization by formula using numpy
 def _initVarByEq__(a, eq):
     import re
     varstring = a[0]
@@ -633,11 +633,11 @@ def _initVarByEq__(a, eq):
         pattern = re.compile(rf'(?<!\.)\b{re.escape(instr)}')
         eq = pattern.sub(replacements[instr], eq)
 
-    # Split suivant ; si plusieurs formules sont definies
+    # Split by ; if multiple formulas are defined
     eq = eq.split(';')
 
     for eq0 in eq:
-        # Extrait la variable a initialiser de eq
+        # Extract the variable to initialize from eq
         s = eq0.split('=', 1)
         #if len(s) != 2:
         #    print('Error: initVars: equation is incorrect.'); return None
@@ -648,7 +648,7 @@ def _initVarByEq__(a, eq):
         if varp == -1:
             _addVars(a, var); varp = KCore.isNamePresent(a, var)
 
-        # Initialisation de la variable
+        # Initialize the variable
         if not isinstance(a[1], list): # array1
             loc = s[1]; c = 0
             for v in vars:
@@ -664,22 +664,22 @@ def _initVarByEq__(a, eq):
             ap1[varp][:] = eval(loc)
     return None
 
-# Initialisation par une formule avec expression.ast
+# Initialization by formula using expression.ast
 def _initVarByEq2__(a, eq):
     from . import expression as expr
-    # Extrait les variables de a
+    # Extract variables from a
     varstring = a[0]
     vars = varstring.split(',')
 
     eq = eq.replace('centers:', '')
     eq = eq.replace('nodes:', '')
 
-    # Split suivant ; si plusieurs formules sont definies
+    # Split by ; if multiple formulas are defined
     eq = eq.split(';')
 
     for eq0 in eq:
         ast_eq = expr.ast(eq0)
-        # Extrait la variable a initialiser de eq
+        # Extract the variable to initialize from eq
         s = eq0.split('=', 1)
 
         var = s[0]; var = var.replace('{', ''); var = var.replace('}', '')
@@ -829,9 +829,9 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             f = file.read()
             file.close()
             f = f.split('\n')
-            np = len(f) # nbre d'enregistrements
+            np = len(f) # number of records
             if f[np-1] == '' or f[np-1] == ' ': np = np-1
-            nv = 1 # nbre de variables
+            nv = 1 # number of variables
             if np > 2: line = f[2]
             elif np > 1: line = f[1]
             elif np > 0: line = f[0]
@@ -957,7 +957,7 @@ def diffArraysGeom__(array1, array2, atol=1.e-10, rtol=0.):
         return None # one array is different on coordinates
     ids[:] -= 1
     pt = array1[1]
-    # renumerote a in place
+    # renumber a in place
     if isinstance(pt, list): # array2/3
         pt2 = []
         for c, p in enumerate(pt):
@@ -1280,7 +1280,7 @@ def adaptSurfaceNGon(array):
     else:
         return converter.adaptSurfaceNGon(array)
 
-# -- interne --
+# -- Internal --
 def convertArray2Tetra1__(array, arrayC=[], split='simple'):
     try: sub = array[3]
     except: raise TypeError("convertArray2Tetra: arg must be an array.")
@@ -1352,7 +1352,7 @@ def convertArray2Tetra(array, split='simple'):
         return b
     else: return convertArray2Tetra1__(array, split=split)
 
-# -- interne --
+# -- Internal --
 def convertArray2Hexa1__(array):
     try: sub = array[3]
     except: raise TypeError("convertArray2Hexa: arg must be an array.")
@@ -1492,7 +1492,7 @@ def center2ExtCenter(array):
     else:
         return converter.center2ExtCenter(array)
 
-# -- convert arrays(s) to node array(s).
+# -- Convert arrays(s) to node array(s).
 def convertArray2Node(array):
     """Convert an array in an unstructured node array.
     Usage: convertArray2Node(array)"""
@@ -1558,7 +1558,7 @@ def rmGhostCellsNGon(arrayN, arrayC=[], depth=2):
         else: return converter.rmGhostCellsNGonBoth(arrayN, arrayC, depth)
 
 #==============================================================================
-# Retourne une liste des noms de variables presents dans l'arrays
+# Returns a list of variable names present in the arrays
 #==============================================================================
 def getVarNames(a):
     """Get variable names.
@@ -1572,15 +1572,15 @@ def getVarNames(a):
     return allvars
 
 #==============================================================================
-# Fonctions de preconditionement (hook)
-# IN: function: le nom de la fonction qui va utiliser le hook
+# Preconditioning functions (hook)
+# IN: function: the name of the function that will use the hook
 #==============================================================================
 def createHook(a, function='None'):
     """Create a hook for a given function.
     Usage: hook = createHook(a, function)"""
     if function == 'None': return None
     elif function == 'faceCenters': # 0
-        # Retourne un KDT pour les centres des faces
+        # Returns a KDT for face centers
         if isinstance(a[0], list):
             b = []
             for i in a:
@@ -1589,7 +1589,7 @@ def createHook(a, function='None'):
         else:
             return converter.registerFaces(a)
     elif function == 'nodes': # 2
-        # Retourne un KDT pour les noeuds
+        # Returns a KDT for nodes
         if isinstance(a[0], list):
             b = []
             for i in a:
@@ -1598,7 +1598,7 @@ def createHook(a, function='None'):
         else:
             return converter.registerNodes(a)
     elif function == 'elementCenters': # 3
-        # Retourne un KDT pour les centres des elements
+        # Returns a KDT for element centers
         if isinstance(a[0], list):
             b = []
             for i in a:
@@ -1609,13 +1609,13 @@ def createHook(a, function='None'):
             return converter.registerElements(a)
             #return converter.registerElements(convertArray2NGon(a))
     elif function == 'extractMesh': # 1
-        # Retourne un ADT pour les elements
+        # Returns an ADT for elements
         try: import Post as P
         except: inl = a
         else: inl, modified = P.growOfEps__(a, 1.e-6, nlayers=2, planarity=False)
         return converter.registerCells(inl, None, None, 0, 0.)
 
-    elif function == 'adt': # 1 ADT pour les interpolations
+    elif function == 'adt': # 1 ADT for interpolations
         return converter.registerCells(a, None, None, 0, 0.)
 
     else: raise ValueError("function %s is invalid."%function)
@@ -1625,12 +1625,12 @@ def createHookAdtCyl(a, center=(0,0,0), axis=(0,0,1), depth=0, thetaShift=0.):
     return converter.registerCells(a, center, axis, depth, thetaShift)
 
 #===============================================================================
-# Fonctions de preconditionement (hook)
-# IN: function: le nom de la fonction qui va utiliser le hook
-# IN: a: liste des zones utilisees pour faire le preconditionnement global
-# IN: indir: 0: pas d'indirection sur les zones
-#            1: sauvegarde de indirZones:
-#               indirection sur le no de la zone pour chq pt du hook
+# Preconditioning functions (hook)
+# IN: function: the name of the function that will use the hook
+# IN: a: list of zones used for global preconditioning
+# IN: indir: 0: no indirection on zones
+#            1: save indirZones:
+#               indirection on zone number for each point of the hook
 # OUT: hook(,indirZones)
 #===============================================================================
 def createGlobalHook(a, function='None', indir=0):
@@ -1638,15 +1638,15 @@ def createGlobalHook(a, function='None', indir=0):
     Usage: hook = createGlobalHook(a, function)"""
     if function == 'None': return None
     elif function == 'faceCenters': # 0
-        # Retourne un KDT pour les centres des faces
+        # Returns a KDT for face centers
         if not isinstance(a[0],list): return converter.registerAllFaces([a], indir)
         else: return converter.registerAllFaces(a, indir)
     elif function == 'nodes': # 2
-        # Retourne un KDT pour les noeuds
+        # Returns a KDT for nodes
         if not isinstance(a[0],list): return converter.registerAllNodes([a], indir)
         else: return converter.registerAllNodes(a, indir)
     elif function == 'elementCenters': # 3
-        # Retourne un KDT pour les centres des elements
+        # Returns a KDT for element centers
         if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]), indir)
         else: return converter.registerAllElements(convertArray2NGon(a), indir)
     elif function == 'extractMesh': # 1
@@ -1664,7 +1664,7 @@ def freeHook(hook):
         if hook is not None: converter.freeHook(hook)
 
 #==============================================================================
-# Fonctions d'identification geometrique
+# Geometric identification functions
 #==============================================================================
 def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
     """Identify nodes of a in KDT. return identified indices.
@@ -1711,18 +1711,18 @@ def identifySolutions(coordsRcv, solDnr, hookDnr, vars=[], tol=1.e6):
     if isinstance(coordsRcv[0], list): # receptor is a list of zones
         if isinstance(solDnr[0], list):
             res = converter.identifySolutions(hookDnr, solDnr, coordsRcv, tol)
-        elif not isinstance(solDnr[0], list): # une seule zone
+        elif not isinstance(solDnr[0], list): # single zone
             res = converter.identifySolutions(hookDnr, [solDnr], coordsRcv, tol)
 
     else: # receptor is a single zone
         if isinstance(solDnr[0], list):
             res = converter.identifySolutions(hookDnr, solDnr, [coordsRcv], tol)[0]
-        elif not isinstance(solDnr[0], list): # une seule zone
+        elif not isinstance(solDnr[0], list): # single zone
             res = converter.identifySolutions(hookDnr, [solDnr], [coordsRcv], tol)[0]
     return res
 
 #==============================================================================
-# Fonctions d'identification du noeud/element/face le plus proche
+# Functions for identifying the nearest node/element/face
 #==============================================================================
 def nearestNodes(hook, a):
     """Find in KDT nearest points to nodes of a. return identified indices.
@@ -1805,9 +1805,9 @@ def _recoverGlobalIndex(a, b):
             converter.recoverGlobalIndex(b, a)
     return None
 
-# mergeConnectivity: merge deux connectivites en elements basiques
-# en un seul maillage multiconnectivite (array3 uniquement)
-# concatenation simple
+# mergeConnectivity: merge two connectivities in basic elements
+# into a single multiconnectivity mesh (array3 only)
+# simple concatenation
 def mergeConnectivity(a1, a2):
     if a1[0] != a2[0]: raise ValueError('mergeConnectivity: only for same fields.')
     if len(a1) != 4 or len(a2) != 4: raise ValueError('mergeConnectivity: only for unstructured arrays.')
@@ -1826,9 +1826,9 @@ def mergeConnectivity(a1, a2):
     return [a1[0], fo, co, a1[3]+','+a2[3]]
 
 
-# Retourne -1: la variable n'est presente dans aucun array
-# Retourne 0: la variable est presente dans au moins un array
-# Retourne 1: la variable est presente dans tous les arrays
+# Returns -1: the variable is not present in any array
+# Returns 0: the variable is present in at least one array
+# Returns 1: the variable is present in all arrays
 def isNamePresent(a, varname):
     """Test if varName is present in a."""
     if isinstance(a[0], list):
@@ -1839,7 +1839,7 @@ def isNamePresent(a, varname):
         if one == len(a): return 1
         elif one == 0: return -1
         else: return 0
-    else: # un seul array
+    else: # single array
         p = KCore.isNamePresent(a, varname)
         if p == -1: return -1
         else: return 1
@@ -1983,7 +1983,7 @@ def checkFileType(fileName):
     import os
     try: file = os.open(fileName, os.O_RDONLY)
     except: raise IOError("checkFileType: file %s not found."%fileName)
-    #header = file.read(512)  # lecture des 512 premiers octets
+    #header = file.read(512)  # read first 512 bytes
     header = os.read(file, 512)
     os.close(file)
 
@@ -2021,17 +2021,17 @@ def checkFileType(fileName):
     dt = numpy.dtype('<i4')
     ieader = numpy.fromfile(fileName, dtype=dt, count=128, sep="")
     if ieader[0] == 4:
-        ninjnk = ieader[1] * 3 * 4   # 3 pour ni,nj,nk, 4 pour 4 octets cas 3D multibloc
-        ninj   = ieader[1] * 2 * 4 # 3 pour ni,nj, 4 pour 4 octets cas 2D multibloc
+        ninjnk = ieader[1] * 3 * 4   # 3 for ni,nj,nk, 4 for 4 bytes 3D multiblock case
+        ninj   = ieader[1] * 2 * 4 # 3 for ni,nj, 4 for 4 bytes 2D multiblock case
         if ieader[3] == ninjnk or ieader[3] == ninj:
             return 'bin_plot3d'
-    if ieader[0] == 12 or ieader[0] == 8:  # cas 2D ou 3d monobloc
+    if ieader[0] == 12 or ieader[0] == 8:  # 2D or 3D single block case
         return 'bin_plot3d'
 
     fileSize = os.path.getsize(fileName)
     try: ntri = header[80:82]; ntri = int(ntri)
     except: ntri = 0
-    sizet = ntri*50+84  #format bin_stl 80 octets d'entete/nombre de triangles/50 octets par triangles
+    sizet = ntri*50+84  # bin_stl format 80 bytes header/number of triangles/50 bytes per triangle
     if fileSize == sizet: return 'bin_stl'
 
     eolx1 = beader.find(eol, 0)

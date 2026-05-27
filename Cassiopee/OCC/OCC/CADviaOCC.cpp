@@ -549,7 +549,7 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
   std::sort(palma.begin(), palma.end());
   
   // move the node
-  E_Int Fi, Mi, nb_merges(0);
+  E_Int Fi, Mi;
   size_t psz = palma.size();
   std::vector<bool> mergeable(crdA.size(), true);
   
@@ -565,9 +565,8 @@ E_Int K_OCC::CADviaOCC::__clean(const K_FLD::ArrayAccessor<K_FLD::FloatArray>& c
     // rule of merging : if target and moving has not been moved already
     if (mergeable[Fi] && mergeable[Mi])
     {
-      nids[Mi]=Fi;
-      ++nb_merges;
-      mergeable[Fi]=mergeable[Mi]=false;
+      nids[Mi] = Fi;
+      mergeable[Fi] = mergeable[Mi]=false;
       tol2 = std::max(tol2, palma[i].first); // set the global tolerance
     }
   }

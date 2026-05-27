@@ -1596,12 +1596,13 @@ PyObject* K_INTERSECTOR::extractBadVolCells(PyObject* self, PyObject* args)
   ngon_type::stats_bad_volumes<DELAUNAY::Triangulator>(crd, ngi, neighborsi, vols, -1., growth_ratio);
 
   std::vector<bool> keep(nphs, false);
-  E_Int badcount=0;
+  //E_Int badcount=0;
   for (size_t i=0; i < (size_t)nphs; ++i)
   {
-    if ( (growth_ratio[i] < aratio) || (vols[i] < vmin) ) {
-      ++badcount;
-      keep[i]=true;
+    if ( (growth_ratio[i] < aratio) || (vols[i] < vmin) ) 
+    {
+      //++badcount;
+      keep[i] = true;
     }
   }
 
@@ -2330,13 +2331,13 @@ PyObject* K_INTERSECTOR::reorientSpecifiedFaces(PyObject* self, PyObject* args)
   ngon_type::reorient_connex_PGs(pgs, (dir==-1), orient);
 
   // replace reverted polygons
-  E_Int count(0);
+  //E_Int count(0);
   E_Int nb_pgs = pgs.size();
   for (E_Int i=0; i < nb_pgs; ++i)
   {
     if (orient[i] == 1) continue;
 
-    ++count;
+    //++count;
     
     E_Int PGi = oids[i];
 

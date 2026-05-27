@@ -23,7 +23,7 @@
 #include "IO/DynArrayIO.h"
 #include <vector>
 #include "Fld/FldArray.h"
-# include "Nuga/include/DynArray.h"
+#include "Nuga/include/DynArray.h"
 #include <string.h>
 #include "IO/GenIO.h"
 #include <iostream>
@@ -106,9 +106,9 @@ E_Int DynArrayIO::read
   
   if (ret) return ret;
   
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  //E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
+  //E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
+  //E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
   //E_Float eps = 1.e-12;
   
   size_t sz = zoneNames.size();
@@ -215,9 +215,9 @@ E_Int DynArrayIO::read
   
   if (ret) return ret;
   
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  //E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
+  //E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
+  //E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
   //E_Float eps = 1.e-12;
   
   size_t sz = zoneNames.size();

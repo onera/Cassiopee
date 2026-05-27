@@ -235,8 +235,7 @@ namespace NUGA
       ++rank_wnps[Lcompid];
     }
 
-    E_Int i = 0;
-    for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it, ++i)
+    for (auto it = decrease_prior_per_comp.begin(); it != decrease_prior_per_comp.end(); ++it)
     {
       //E_Int compid = it->first;
       std::sort(ALL(it->second), 

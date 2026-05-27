@@ -4433,13 +4433,11 @@ unsigned int optimize_intervals_float_1D_opt_MSST19(float *oriData, size_t dataL
 
 	float * data_pos = oriData + 2;
 	float divider = log2(1+realPrecision)*2;
-	int tempIndex = 0;
 	while(data_pos - oriData < dataLength){
 		if(*data_pos == 0){
     		data_pos += confparams_cpr->sampleDistance;
             continue;
 		}	
-	    tempIndex++;
 		totalSampleSize++;
 		pred_value = data_pos[-1];
 		pred_err = fabs((double)*data_pos / pred_value);

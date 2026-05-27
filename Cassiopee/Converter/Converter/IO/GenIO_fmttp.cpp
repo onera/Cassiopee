@@ -72,7 +72,6 @@ E_Int K_IO::GenIO::tpread(
   E_Int np = 0; E_Int ne = 0; E_Int nfaces = 0;
   E_Int sizeElt = 0;
   E_LONG pos = 0;
-  E_Int nheadlines=0;
   char lastSeparator='\0';
   /* Local vector for structured and unstructured zones names */
   vector<char*> structZoneNames, unstructZoneNames;
@@ -135,7 +134,6 @@ E_Int K_IO::GenIO::tpread(
   {
     compressString(keyword);
 
-    nheadlines++;
     pos = KFTELL(ptrFile);
     res = readDataAndKeyword(ptrFile, buf,
                              knownKeywords,
@@ -298,8 +296,6 @@ E_Int K_IO::GenIO::tpread(
       else packing = 1;
     }
     strcpy(keyword, nextKeyword);
-    for (size_t i = 0; i < strlen(prevData); i++)
-      if (prevData[i] == '\n') nheadlines++;
   }
 
   printf("standard header: nil=%d np=%d nvar=%d\n", nil, np, nvar); fflush(stdout);
@@ -645,7 +641,6 @@ E_Int K_IO::GenIO::tpread(
   E_Int np = 0; E_Int ne = 0; E_Int nfaces = 0;
   E_Int ngonDim = -1;
   E_LONG pos = 0;
-  E_Int nheadlines=0;
   char lastSeparator='\0';
   /* Local vector for structured and unstructured zones names */
   vector<char*> structZoneNames, unstructZoneNames;
@@ -708,7 +703,6 @@ E_Int K_IO::GenIO::tpread(
   {
     compressString(keyword);
 
-    nheadlines++;
     pos = KFTELL(ptrFile);
     res = readDataAndKeyword(ptrFile, buf,
                              knownKeywords,
@@ -891,8 +885,6 @@ E_Int K_IO::GenIO::tpread(
       else packing = 1;
     }
     strcpy(keyword, nextKeyword);
-    for (size_t i = 0; i < strlen(prevData); i++)
-      if (prevData[i] == '\n') nheadlines++;
   }
 
   // Allocating arrays

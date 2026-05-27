@@ -1311,10 +1311,10 @@ def newParentElementsPosition(value=None, parent=None):
 # -- Node access --
 #==============================================================================
 
-# -- Retourne le path d'un noeud
-# IN: t: noeud de depart (generalement pyTree)
-# IN: node: le noeud dont on cherche le chemin par rapport a t
-# OUT: le chemin du noeud ou None si not found
+# -- Returns the path of a node
+# IN: t: starting node (generally pyTree)
+# IN: node: the node for which we search the path relative to t
+# OUT: the path of the node or None if not found
 def getPath(t, node, pyCGNSLike=False):
   """Return the path of node."""
   if t is node: return ''
@@ -1332,9 +1332,9 @@ def getPath__(n, node, path, found):
   for c in n[2]:
     getPath__(c, node, path, found)
 
-# -- Retourne un noeud d'apres son path
-# IN: node: noeud de depart pour la recherche
-# IN: path: chemin relatif par rapport a ce noeud
+# -- Returns a node from its path
+# IN: node: starting node for the search
+# IN: path: relative path from this node
 def getNodeFromPath(t, path):
   """Return a node from a path."""
   if path == '' or path == '/': return t
@@ -1380,7 +1380,7 @@ def getNodesFromType__(node, ntype, result):
   if node[3] == ntype: result.append(node)
   for c in node[2]: getNodesFromType__(c, ntype, result)
 
-# Parcours 1 niveau de recursivite seulement
+# Traverse only 1 level of recursion
 def getNodesFromType1(node, ntype):
   result = []
   isStd = isStdNode(node)
@@ -1396,7 +1396,7 @@ def getNodesFromType1__(node, ntype, result):
   for c in node[2]:
     if c[3] == ntype: result.append(c)
 
-# Parcours 2 niveaux de recursivite seulement
+# Traverse only 2 levels of recursion
 def getNodesFromType2(node, ntype):
   result = []
   isStd = isStdNode(node)
@@ -1414,7 +1414,7 @@ def getNodesFromType2__(node, ntype, result):
     for d in c[2]:
       if d[3] == ntype: result.append(d)
 
-# Parcours 3 niveaux de recursivite seulement
+# Traverse only 3 levels of recursion
 def getNodesFromType3(node, ntype):
   result = []
   isStd = isStdNode(node)

@@ -130,12 +130,12 @@ namespace NUGA
     id_to_PG_to_plan_t& zid_to_PG_to_plan)
   {
     bool has_omp_changes{ true }, has_local_changes{ false };
-    int omp_iter = -1;
+    //int omp_iter = -1;
     
 
     while (has_omp_changes)
     {
-      ++omp_iter;
+      //++omp_iter;
       //std::cout << "rank : " << rank << " : C : omp iter : " << omp_iter << std::endl;
 
       exchange_omp_data(meshes, zids, zid_to_rid_to_list, rid_to_zones, zid_to_PG_to_plan); //zid_to_PG_to_plan is appended with local contributions (might have distant contrib upon entry)

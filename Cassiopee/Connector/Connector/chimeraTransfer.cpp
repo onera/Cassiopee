@@ -176,7 +176,6 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
   E_Int* donorPts = donorPtsI->begin();
   E_Int* types = typesI->begin();
   E_Int nfldr0 = posvarsR.size();
-  E_Float sumCf;
   vector<E_Float> cfLoc(ncoefs);
   E_Int dim3 = 1; // 3d problem
   if (kmd == 1) dim3 = 0;  // 2d problem
@@ -201,13 +200,12 @@ PyObject* K_CONNECTOR::chimeraTransfer(PyObject* self, PyObject* args)
         {
           E_Float* fieldR = fieldROut->begin(posvarsR[eq]);
           E_Float* fieldD = fd->begin(posvarsD[eq]);
-          fieldR[indR] = 0.; nocf = 0; sumCf = 0.;
+          fieldR[indR] = 0.; nocf = 0;
           for (E_Int kk=0; kk<2; kk++)
             for (E_Int jj=0; jj<2; jj++)
               for (E_Int ii=0; ii<2; ii++)
               {
                 indDLoc = (i+ii)+(j+jj)*imd+dim3*(k+kk)*imdjmd;
-                sumCf += cfLoc[nocf]; 
                 fieldR[indR] += cfLoc[nocf]*fieldD[indDLoc];
                 nocf++;
               }

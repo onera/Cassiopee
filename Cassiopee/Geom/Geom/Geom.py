@@ -169,25 +169,25 @@ def sphereYinYang(C, R, N=100, ntype='STRUCT'):
 
 # IN: liste de maillages struct
 def export__(a, ntype='STRUCT'):
-    try: import Converter as C; import Transform as T; import Generator as G
+    try: import Converter; import Transform; import Generator
     except ImportError:
         raise ImportError("export: requires Converter, Generator and Transform modules.")
     if ntype == 'STRUCT': return a
     elif ntype == 'QUAD':
-        a = C.convertArray2Hexa(a)
-        a = T.join(a)
-        a = G.close(a)
+        a = Converter.convertArray2Hexa(a)
+        a = Transform.join(a)
+        a = Generator.close(a)
         return a
     elif ntype == 'TRI':
-        a = C.convertArray2Tetra(a)
-        a = T.join(a)
-        a = G.close(a)
+        a = Converter.convertArray2Tetra(a)
+        a = Transform.join(a)
+        a = Generator.close(a)
         return a
 
 def disc(C, R, N=100, ntype='STRUCT'):
     """Create a disc of center C and radius R made of 5 parts.
     Usage: a = disc((xc,yc,zc), R, N)"""
-    try: import Generator as G; import Transform as T; import math
+    try: import Generator; import Transform; import math
     except ImportError:
         raise ImportError("disc: requires Generator and Transform module.")
     coeff = R*math.sqrt(2.)*0.25
@@ -196,36 +196,36 @@ def disc(C, R, N=100, ntype='STRUCT'):
     l1 = line((x+coeff,y-coeff,z), (x+coeff,y+coeff,z), N=N)
     l2 = line((x+coeff,y-coeff,z), (x+2*coeff,y-2*coeff,z), N=N)
     l3 = line((x+coeff,y+coeff,z), (x+2*coeff,y+2*coeff,z), N=N)
-    m1 = G.TFI([c, l1, l2, l3])
+    m1 = Generator.TFI([c, l1, l2, l3])
 
     c = circle(C, R, tetas=45., tetae=45.+90., N=N)
     l1 = line((x+coeff,y+coeff,z), (x-coeff,y+coeff,z), N=N)
     l2 = line((x+coeff,y+coeff,z), (x+2*coeff,y+2*coeff,z), N=N)
     l3 = line((x-coeff,y+coeff,z), (x-2*coeff,y+2*coeff,z), N=N)
-    m2 = G.TFI([c, l1, l2, l3])
+    m2 = Generator.TFI([c, l1, l2, l3])
 
     c = circle(C, R, tetas=45.+90, tetae=45.+180., N=N)
     l1 = line((x-coeff,y+coeff,z), (x-coeff,y-coeff,z), N=N)
     l2 = line((x-coeff,y+coeff,z), (x-2*coeff,y+2*coeff,z), N=N)
     l3 = line((x-coeff,y-coeff,z), (x-2*coeff,y-2*coeff,z), N=N)
-    m3 = G.TFI([c, l1, l2, l3])
+    m3 = Generator.TFI([c, l1, l2, l3])
 
     c = circle(C, R, tetas=45.+180, tetae=45.+270., N=N)
     l1 = line((x-coeff,y-coeff,z), (x+coeff,y-coeff,z), N=N)
     l2 = line((x-coeff,y-coeff,z), (x-2*coeff,y-2*coeff,z), N=N)
     l3 = line((x+coeff,y-coeff,z), (x+2*coeff,y-2*coeff,z), N=N)
-    m4 = G.TFI([c, l1, l2, l3])
+    m4 = Generator.TFI([c, l1, l2, l3])
 
     h = 2*coeff/(N-1)
-    m5 = G.cart((x-coeff,y-coeff,z), (h,h,h), (N, N, 1))
-    m5 = T.reorder(m5, (-1,2,3))
+    m5 = Generator.cart((x-coeff,y-coeff,z), (h,h,h), (N, N, 1))
+    m5 = Transform.reorder(m5, (-1,2,3))
     m = [m1,m2,m3,m4,m5]
     return export__(m, ntype)
 
 def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     """Create a single quadrangle with points P1, P2, P3, P4.
     Usage: a = quadrangle((x1,y,1,z1), (x2,y2,z2), (x3,y3,z3), (x4,y4,z4))"""
-    try: import Generator as G
+    try: import Generator
     except ImportError:
         raise ImportError("quadrangle: requires Generator module.")
     if N == 0 and ntype == 'QUAD': return geom.quadrangle(P1, P2, P3, P4)
@@ -233,7 +233,7 @@ def quadrangle(P1, P2, P3, P4, N=0, ntype='QUAD'):
     l2 = line(P2, P3, N)
     l3 = line(P3, P4, N)
     l4 = line(P4, P1, N)
-    m = [G.TFI([l1, l2, l3, l4])]
+    m = [Generator.TFI([l1, l2, l3, l4])]
     return export__(m, ntype)
 
 def triangle(P0, P1, P2, N=0, ntype='TRI'):
@@ -243,7 +243,7 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
     if len(P1) == 2: P1 = (P1[0],P1[1],0.)
     if len(P2) == 2: P2 = (P2[0],P2[1],0.)
     if N == 0 and ntype == 'TRI': return geom.triangle(P0, P1, P2)
-    try: import Generator as G; import Transform as T
+    try: import Generator; import Transform
     except ImportError:
         raise ImportError("triangle: requires Generator and Transform module.")
     C01 = (0.5*(P0[0]+P1[0]), 0.5*(P0[1]+P1[1]), 0.5*(P0[2]+P1[2]))
@@ -257,28 +257,28 @@ def triangle(P0, P1, P2, N=0, ntype='TRI'):
     l2 = line(C01, C, N)
     l3 = line(C, C02, N)
     l4 = line(C02, P0, N)
-    m1 = G.TFI([l1, l2, l3, l4])
-    m1 = T.reorder(m1, (-1,2,3))
+    m1 = Generator.TFI([l1, l2, l3, l4])
+    m1 = Transform.reorder(m1, (-1,2,3))
 
     l1 = line(C01, P1, N)
     l2 = line(P1, C12, N)
     l3 = line(C12, C, N)
     l4 = line(C, C01, N)
-    m2 = G.TFI([l1, l2, l3, l4])
-    m2 = T.reorder(m2, (-1,2,3))
+    m2 = Generator.TFI([l1, l2, l3, l4])
+    m2 = Transform.reorder(m2, (-1,2,3))
 
     l1 = line(C, C12, N)
     l2 = line(C12, P2, N)
     l3 = line(P2, C02, N)
     l4 = line(C02, C, N)
-    m3 = G.TFI([l1, l2, l3, l4])
-    m3 = T.reorder(m3, (-1,2,3))
+    m3 = Generator.TFI([l1, l2, l3, l4])
+    m3 = Transform.reorder(m3, (-1,2,3))
     m = [m1, m2, m3]
     return export__(m, ntype)
 
 def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     """Create a box passing by Pmin and Pmax (axis aligned)."""
-    try: import Generator as G; import Transform as T
+    try: import Generator; import Transform
     except ImportError:
         raise ImportError("box: requires Generator and Transform module.")
     N = max(N, 2)
@@ -287,29 +287,28 @@ def box(Pmin, Pmax, N=100, ntype='STRUCT'):
     hx = abs(xmax-xmin)/(N-1.)
     hy = abs(ymax-ymin)/(N-1.)
     hz = abs(zmax-zmin)/(N-1.)
-
-    s1 = G.cart(Pmin, (hx,hy,hz), (N, N, 1))
-    s1 = T.reorder(s1, (-1,2,3))
-    s2 = G.cart((xmin,ymin,zmax), (hx,hy,hz), (N, N, 1))
-    s3 = G.cart( Pmin, (hx,hy,hz), (N, 1, N) )
-    s3 = T.reorder(s3, (2,1,3))
-    s4 = G.cart((xmin,ymax,zmin), (hx,hy,hz), (N, 1, N))
-    s4 = T.reorder(s4, (-2,1,3))
-    s5 = G.cart(Pmin, (hx,hy,hz), (1, N, N))
-    s5 = T.reorder(s5, (1,-2,3))
-    s6 = G.cart((xmax,ymin,zmin), (hx,hy,hz), (1, N, N))
+    s1 = Generator.cart(Pmin, (hx,hy,hz), (N, N, 1))
+    s1 = Transform.reorder(s1, (-1,2,3))
+    s2 = Generator.cart((xmin,ymin,zmax), (hx,hy,hz), (N, N, 1))
+    s3 = Generator.cart( Pmin, (hx,hy,hz), (N, 1, N) )
+    s3 = Transform.reorder(s3, (2,1,3))
+    s4 = Generator.cart((xmin,ymax,zmin), (hx,hy,hz), (N, 1, N))
+    s4 = Transform.reorder(s4, (-2,1,3))
+    s5 = Generator.cart(Pmin, (hx,hy,hz), (1, N, N))
+    s5 = Transform.reorder(s5, (1,-2,3))
+    s6 = Generator.cart((xmax,ymin,zmin), (hx,hy,hz), (1, N, N))
     s = [s1, s2, s3, s4, s5, s6]
     return export__(s, ntype)
 
 def cylinder(C, R, H, N=100, ntype='STRUCT'):
     """Create a cylinder of center C, radius R and height H."""
-    try: import Transform as T
+    try: import Transform
     except ImportError:
         raise ImportError("cylinder: requires Generator and Transform module.")
     (x0,y0,z0) = C
     m0 = disc(C, R, N)
     m1 = disc((x0,y0,z0+H), R, N)
-    m1 = T.reorder(m1, (-1,2,3))
+    m1 = Transform.reorder(m1, (-1,2,3))
     m2 = circle(C, R, tetas=-45, tetae=-45+360, N=4*N-3)
     l = line(C, (x0,y0,z0+H), N=N)
     m2 = lineDrive(m2, l)
@@ -597,15 +596,34 @@ def getMassCenter(a):
 
 def distance(a, b):
     """Get the distance from one curve or surface to another."""
-    import Dist2Walls, numpy
+    import Dist2Walls, Post, Converter, numpy
     if not isinstance(b[0], list): b = [b]
     d = Dist2Walls.distance2Walls(a, b, type='ortho', loc='nodes')
-    maxValue = 0.
-    if isinstance(d[0], list):
-        for e in d: maxValue = max(maxValue, numpy.max(e[1]))
+    #maxValue = 0.
+    #if isinstance(d[0], list):
+    #    for e in d: maxValue = max(maxValue, numpy.max(e[1]))
+    #else:
+    #    maxValue = numpy.max(d[1])
+    allcoords = []; allfields = []
+    if isinstance(a[0], list):
+        for i, b in enumerate(a):
+            if Converter.isNamePresent(a, 'x') >= 0:
+                coord = Converter.extractVars(b, ['x','y','z'])
+            else:
+                coord = Converter.extractVars(b, ['CoordinateX','CoordinateY','CoordinateZ'])
+            field = Converter.extractVars(d[i], ['TurbulentDistance'])
+            allcoords.append(coord)
+            allfields.append(field)
     else:
-        maxValue = numpy.max(d[1])
-    return maxValue
+        if Converter.isNamePresent(a, 'x') >= 0:
+            coord = Converter.extractVars(a, ['x','y','z'])
+        else:
+            coord = Converter.extractVars(a, ['CoordinateX','CoordinateY','CoordinateZ'])
+        field = Converter.extractVars(d, ['TurbulentDistance'])
+        allcoords.append(coord)
+        allfields.append(field)
+    dist = Post.integ(allcoords, allfields)
+    return dist[0]
 
 # - generate surfaces from curves
 def lineDrive(a, d):
@@ -1017,7 +1035,7 @@ def connect1D(curves, sharpness=0, N=10, lengthFactor=1.):
     return out
 
 # Pt d'intersection par minimal distance
-def intersectionPoint__(P1,n1,P2,n2):
+def intersectionPoint__(P1, n1, P2, n2):
     s = Vector.dot(n1, n2)
     s2 = max(1.-s*s, 1.e-12)
     dP1P2 = Vector.sub(P1, P2)
