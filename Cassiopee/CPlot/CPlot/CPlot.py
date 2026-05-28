@@ -302,7 +302,7 @@ def convertRGB2String(T):
     a3 = int(b*255.)
     return f"#{a1:02X}{a2:02X}{a3:02X}"
 
-# Ajoute des colormaps indirectes
+# Adds indirect colormaps
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
     shift = colormap % 2

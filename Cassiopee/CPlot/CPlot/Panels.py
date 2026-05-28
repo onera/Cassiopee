@@ -39,7 +39,7 @@ docData = {}
 WIDGETS = {}
 
 #==============================================================================
-# Affiche le about et les informations d'install
+# Displays the "about" and "installation" informations
 #==============================================================================
 def about():
     """About panel."""
@@ -178,7 +178,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     winl.columnconfigure(0, weight=1)
     winl.rowconfigure(0, weight=1)
     winl.minsize(320, 300)
-    # position de la fenetre parent
+    # position of the parent window
     xpos = winl.master.winfo_rootx()+45
     ypos = winl.master.winfo_rooty()+45
     winl.geometry("%+d%+d" % (xpos, ypos))
@@ -268,8 +268,8 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
     return
 
 #==============================================================================
-# Affiche la fenetre pour la cle d'activation
-# Ecrit simplement un fichier avec la cle
+# Displays the window for the activation key
+# Simply writes a file with the key
 #==============================================================================
 def activation():
     global AVARS
@@ -280,7 +280,7 @@ def activation():
     winl.columnconfigure(1, weight=1)
     winl.rowconfigure(0, weight=1)
     AVARS.append(winl)
-    # position de la fenetre parent
+    # position of the parent window
     xpos = winl.master.winfo_rootx()+45
     ypos = winl.master.winfo_rooty()+45
     winl.geometry("%+d%+d" % (xpos, ypos))
@@ -333,7 +333,7 @@ def submitKey(event=None):
 
     import KCore.installPath
     path = KCore.installPath.libPath
-    # Essai dans installPath/.CassiopeKey
+    # Try in installPath/.CassiopeeKey
     file = path+'/.CassiopeeKey'
     d = readKeyFile(file)
     d[name] = key
@@ -350,7 +350,7 @@ def submitKey(event=None):
         AVARS[0].destroy()
         return
 
-    # Essai dans home/.CassiopeeKey
+    # Try in home/.CassiopeeKey
     import os.path
     path = os.path.expanduser('~')
     file = path+'/.CassiopeeKey'
@@ -397,7 +397,7 @@ def displayErrors(errors, header=''):
         ERRORWINDOW.columnconfigure(0, weight=1)
         ERRORWINDOW.rowconfigure(0, weight=1)
         ERRORWINDOW.title("Errors...")
-        # position de la fenetre parent
+        # position of the parent window
         xpos = ERRORWINDOW.master.winfo_rootx()+45
         ypos = ERRORWINDOW.master.winfo_rooty()+45
         ERRORWINDOW.geometry("%+d%+d" % (xpos, ypos))
@@ -413,7 +413,7 @@ def displayErrors(errors, header=''):
         myText.grid(sticky=TK.NSEW, row=0, column=0)
         scrollbar.config(command=myText.yview)
     else:
-        # trick pour avoir la fenetre d'erreur au premier plan
+        # trick to have the error window in the foreground
         ERRORWINDOW.withdraw(); ERRORWINDOW.deiconify(); ERRORWINDOW.focus_set()
         myText = ERRORWINDOW.winfo_children()[1] # text
         # myText.delete(1.0, TK.END)
@@ -471,7 +471,7 @@ def createMail():
     titleText = mailData['titleText']
     if bugReport: titleText = '[BUG]'+titleText
     messageText = mailData['messageText']
-    # ajoute la location si possible
+    # adds the location if possible
     if CTK.FILE != '':
         p = os.path.abspath(CTK.FILE)
         messageText += '\nLink: %s\n'%p
@@ -505,9 +505,6 @@ def createMail():
         os.remove('.tmp001203.png')
         CTK.TXT.insert('START', 'No valid SMTP server on your machine.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
-        # essai de passer par gmail
-        #s = smtplib.SMTP('smtp.gmail.com', 587)
-        #s = smtplib.SMTP('mailhost.onera')
 
     s.sendmail(me, friends, msg.as_string())
     s.quit()
@@ -572,7 +569,7 @@ def openMailWindow():
         MAILWINDOW.rowconfigure(3, weight=1)
         MAILWINDOW.rowconfigure(4, weight=0)
         MAILWINDOW.title("Mail image...")
-        # position de la fenetre parent
+        # position of the parent window
         xpos = MAILWINDOW.master.winfo_rootx()+45
         ypos = MAILWINDOW.master.winfo_rooty()+45
         MAILWINDOW.geometry("%+d%+d" % (xpos, ypos))
@@ -770,7 +767,7 @@ def openDocWindow():
         DOCWINDOW.rowconfigure(1, weight=1)
         DOCWINDOW.rowconfigure(2, weight=0)
         DOCWINDOW.title("Save to document...")
-        # position de la fenetre parent
+        # position of the parent window
         xpos = DOCWINDOW.master.winfo_rootx()+45
         ypos = DOCWINDOW.master.winfo_rooty()+45
         DOCWINDOW.geometry("%+d%+d" % (xpos, ypos))
@@ -816,7 +813,7 @@ def _destroyRenderWindow(event):
     global RENDERPANEL
     RENDERPANEL = None
 
-# update listboxes du render panel
+# update listboxes of the render panel
 def updateRenderPanel():
     if RENDERPANEL is None: return
     filter = VARS[9].get()
@@ -880,7 +877,7 @@ def updateRenderPanel():
                 listz.see(i)
                 listz.selection_set(i)
 
-# appele quand quelque chose est selectionne dans n'importe quelle listbox
+# called when something is selected in any listbox
 def renderSelect(event=None):
     myset = set() # selected lines
     for l in WIDGETS['myLists']:
@@ -892,15 +889,16 @@ def renderSelect(event=None):
     meshOverlay = None; meshColor = None; meshWidth = None
     shader1 = None; shader2 = None
 
-    # select les zones dans CPlot
+    # select the zones in CPlot
     CPlot.unselectAllZones()
     selected = []
     myList = WIDGETS['myLists'][0]
+    dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
     for i in myset:
         name = myList.get(i)
         name = name.strip(); name = name.split('/')
         baseName = name[0]; zoneName = name[1]
-        noz = CPlot.getCPlotNumber(CTK.t, baseName, zoneName)
+        noz = dnz[baseName][zoneName]
         selected.append( (noz, 1) )
         if len(myset) == 1:
             z = Internal.getNodeFromPath(CTK.t, baseName+'/'+zoneName)
@@ -919,8 +917,8 @@ def renderSelect(event=None):
 
     CPlot.setSelectedZones(selected)
 
-    # set les datas dans les setters
-    if len(myset) == 1: # uniquement si une seule zone selectionnee et pour le mesh overlay
+    # set the data in the setters
+    if len(myset) == 1: # only if a single zone is selected and for the mesh overlay
         if meshOverlay == 0 or meshOverlay is None: VARS[3].set(0)
         elif meshOverlay == 1: VARS[3].set(1)
         #if blending is not None: WIDGETS['blending'].set(blending*100)
@@ -986,7 +984,7 @@ def selectAll(event=None):
     myList.selection_set(0, TK.END)
 
 def getSelection(event=None):
-    updateRenderPanel() # pour forcer l'update
+    updateRenderPanel() # to force the update
     myList = WIDGETS['myLists'][0]
     for l in WIDGETS['myLists']: l.selection_clear(0, TK.END)
     nzs = CPlot.getSelectedZones()
@@ -1003,7 +1001,7 @@ def getSelection(event=None):
                 myList.selection_set(c)
                 break
 
-# reselect la list box i items from CPlot selected zones
+# reselect list box i items from CPlot selected zones
 def reselect(i):
     zList = WIDGETS['myLists'][0]
     myList = WIDGETS['myLists'][i]
@@ -1212,13 +1210,13 @@ def setShaderParameter2(event=None):
     updateRenderPanel()
     CPlot.render()
 
-# fonction de scroll globale
+# global scroll function
 def updateScrollLists(*args):
     for l in WIDGETS['myLists']:
         l.yview(*args)
 
-# fonctions de scroll pour chaque listbox
-# chacun se base sur i
+# scroll functions for each listbox
+# each one is based on i
 def yscrolli(i, *args):
     l0 = WIDGETS['myLists'][i]
     for c, l in enumerate(WIDGETS['myLists']):
@@ -1256,7 +1254,7 @@ def openRenderPanel():
         RENDERPANEL.rowconfigure(3, weight=0)
 
         RENDERPANEL.title("Render panel")
-        # position de la fenetre parent
+        # position of the parent window
         xpos = RENDERPANEL.master.winfo_rootx()+45
         ypos = RENDERPANEL.master.winfo_rooty()+45
         RENDERPANEL.geometry("%+d%+d" % (xpos, ypos))
@@ -1476,7 +1474,7 @@ def openRenderPanel():
         WIDGETS['meshWidth'] = B
 
     else:
-        # trick pour avoir la fenetre au premier plan
+        # trick to have the window in the foreground
         RENDERPANEL.withdraw(); RENDERPANEL.deiconify(); RENDERPANEL.focus_set()
     updateRenderPanel()
 
@@ -1493,8 +1491,8 @@ def openLoadFileDialog(event=None):
     CTK.tkLoadFile(files, mode='partial')
     updateLoadPanel()
 
-# IN: wname: string dans le widget
-# OUT: retourne: le nom (/Base/Zone) et le nom tagge (/Base/Zone [X])
+# IN: wname: string in the widget
+# OUT: returns: the name (/Base/Zone) and the tagged name (/Base/Zone [X])
 def ripTag(wname):
     l = len(wname)
     if wname[l-4:l] == ' [X]':
@@ -1512,7 +1510,7 @@ def getNumber(l, e, et):
         if li == et: return i
     return -1
 
-# Met a jour les listes en fonction du handle et de CTK.t (si deja loade)
+# Updates the lists based on the handle and CTK.t (if already loaded)
 def updateLoadPanel():
     if CTK.HANDLE is None: return
     OVARS[0].set(CTK.HANDLE.fileName)
@@ -1536,7 +1534,7 @@ def updateLoadPanel():
 def loadVars(event=None):
     if CTK.HANDLE is None: return
     CTK.setCursor(2, WIDGETS['loadVars'])
-    # Recupere les variables selectionnees
+    # Retrieves the selected variables
     selection = WIDGETS['LBVARS'].curselection()
     varList = []
     for s in selection:
@@ -1547,7 +1545,7 @@ def loadVars(event=None):
         i = getNumber(OVARS[3], v, tname)
         OVARS[3][i] = tname
         varList.append(v)
-    # Load les variables donnees pour toutes zones existants dans t
+    # Loads the given variables for all existing zones in t
     CTK.HANDLE._loadVariables(CTK.t, varList)
 
     CTK.t = CTK.upgradeTree(CTK.t)
@@ -1560,7 +1558,7 @@ def loadVars(event=None):
 
 def unloadVars(event=None):
     if CTK.HANDLE is None: return
-    # Recupere les variables selectionnees
+    # Retrieves the selected variables
     selection = WIDGETS['LBVARS'].curselection()
     varList = []
     for s in selection:
@@ -1571,7 +1569,7 @@ def unloadVars(event=None):
         i = getNumber(OVARS[3], v, tname)
         OVARS[3][i] = v
         varList.append(v)
-    # Enleve les variables selectionnees pour toutes les zones existants dans t
+    # Removes the selected variables for all existing zones in t
     C._rmVars(CTK.t, varList)
     (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
     CTK.TKTREE.updateApp()
@@ -1596,7 +1594,7 @@ def loadZones(event=None):
     # First load
     if len(Internal.getZones(CTK.t)) == 0: firstLoad = True
     else: firstLoad = False
-    # Recupere les zones selectionnees
+    # Retrieves the selected zones
     selection = WIDGETS['LBZONES'].curselection()
     zList = []
     for s in selection:
@@ -1608,7 +1606,7 @@ def loadZones(event=None):
         #v = v.encode('utf-8') # Cedre!!
         OVARS[4][i] = tname
         zList.append(v)
-    # Charge les GC+GC+BC pour les zones selectionnees + variables deja dans t
+    # Loads the GC+GC+BC for the selected zones + variables already in t
     CTK.HANDLE._loadZonesWoVars(CTK.t, zList)
     vars = C.getVarNames(CTK.t, excludeXYZ=True)
     if len(vars)>1:
@@ -1627,7 +1625,7 @@ def loadZones(event=None):
 
 def unloadZones(event=None):
     if CTK.HANDLE is None: return
-    # Decharge les zones selectionnees
+    # Unloads the selected zones
     selection = WIDGETS['LBZONES'].curselection()
     zList = []
     for s in selection:
@@ -1672,7 +1670,7 @@ def openLoadPanel(event=None):
         LOADPANEL.title("File load panel")
         LOADPANEL.bind_all("<Control-o>", openLoadFileDialog)
 
-        # position de la fenetre parent
+        # position of the parent window
         xpos = LOADPANEL.master.winfo_rootx()+45
         ypos = LOADPANEL.master.winfo_rooty()+45
         LOADPANEL.geometry("%+d%+d" % (xpos, ypos))
@@ -1700,7 +1698,7 @@ def openLoadPanel(event=None):
         # -4- Store Zone list
         OVARS.append([])
 
-        # Entete
+        # Header
         B = TTK.Entry(F, textvariable=OVARS[0], background='White')
         BB = CTK.infoBulle(parent=B, text='File for reading.')
         B.grid(row=0, column=0, columnspan=5, sticky=TK.EW)
@@ -1759,6 +1757,6 @@ def openLoadPanel(event=None):
         BB = CTK.infoBulle(parent=B, text='Filter vars by this regexp.')
 
     else:
-        # trick pour avoir la fenetre au premier plan
+        # trick to have the window in the foreground
         LOADPANEL.withdraw(); LOADPANEL.deiconify(); LOADPANEL.focus_set()
     updateLoadPanel()

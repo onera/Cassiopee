@@ -506,7 +506,7 @@ class Node:
 
             if pid[3] == 'Zone_t':
                 if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
-                bases = CTK.t[2][1:]
+                bases = Internal.getBases(CTK.t)
                 active = []
                 for b in bases:
                     baseName = b[0]
@@ -522,13 +522,12 @@ class Node:
             elif pid[3] == 'CGNSBase_t':
                 if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
                 zones = Internal.getNodesFromType1(pid, 'Zone_t')
-                bases = CTK.t[2][1:]
                 active = []
                 dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
+                dnzb = dnz[pid[0]]
                 for z in zones:
                     zoneName = pid[0]+Internal.SEP1+z[0]
-                    #i = CPlot.getCPlotNumber(CTK.t, pid[0], z[0])
-                    i = dnz[pid[0]][z[0]]
+                    i = dnzb[z[0]]
                     active.append((i, zoneName))
                 CPlot.setZoneNames(active)
                 (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
@@ -561,13 +560,15 @@ class Node:
         if pid[3] == 'CGNSTree_t':
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             bases = Internal.getBases(pid)
+            dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             activated = []
             s = -1
             for b in bases:
                 baseName = b[0]
+                dnzb = dnz[baseName]
                 nodes = Internal.getNodesFromType1(b, 'Zone_t')
                 if nodes != []:
-                    noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                    noz = dnzb[nodes[0][0]]
                     if s == -1:
                         sp = CPlot.getActiveStatus(noz)
                         if sp == 0: s = 1
@@ -601,13 +602,11 @@ class Node:
             s = -1
             dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             if nodes != []:
-                #noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
                 noz = dnz[baseName][nodes[0][0]]
                 s = CPlot.getActiveStatus(noz)
                 if s == 0: s = 1
                 else: s = 0
             for z in nodes:
-                #noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
                 noz = dnz[baseName][z[0]]
                 activated.append( (noz, s) )
             if s == 0:
@@ -628,7 +627,6 @@ class Node:
                 zones = C.getFamilyZones(base, pid[0])
                 nzones += len(zones)
                 for z in zones:
-                    #noz = CPlot.getCPlotNumber(CTK.t, base[0], z[0])
                     noz = dnz[base[0]][z[0]]
                     if active == -2: active = CPlot.getActiveStatus(noz)
                     if active == 1: activated.append( (noz, 0) )
@@ -670,11 +668,13 @@ class Node:
             if CTK.__MAINTREE__ <= 0: CTK.display(CTK.t)
             bases = Internal.getBases(pid)
             s = -1
+            dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             for b in bases:
                 baseName = b[0]
+                dnzb = dnz[baseName]
                 nodes = Internal.getNodesFromType1(b, 'Zone_t')
                 if nodes != []:
-                    noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
+                    noz = dnzb[nodes[0][0]]
                     if s == -1:
                         sp = CPlot.getSelectedStatus(noz)
                         if sp == 0: s = 1
@@ -697,7 +697,6 @@ class Node:
             s = 1
             dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
             if nodes != []:
-                #noz = CPlot.getCPlotNumber(CTK.t, baseName, nodes[0][0])
                 noz = dnz[baseName][nodes[0][0]]
                 s = CPlot.getSelectedStatus(noz)
                 if s == 0: s = 1
@@ -705,7 +704,6 @@ class Node:
             if clear: CPlot.unselectAllZones(); s = 1 # force select
             selected = []
             for z in nodes:
-                #noz = CPlot.getCPlotNumber(CTK.t, baseName, z[0])
                 noz = dnz[baseName][z[0]]
                 selected.append((noz, s))
             CPlot.setSelectedZones(selected)

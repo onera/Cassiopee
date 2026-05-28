@@ -1205,11 +1205,14 @@ def toggleSelectAll():
     selected = []
     s = -1
 
+    dnz = CPlot.updateCPlotGlobalNumbering(t)
+
     for b in bases:
         baseName = b[0]
+        dnzb = dnz[baseName]
         nodes = Internal.getNodesFromType1(b, 'Zone_t')
         if nodes != []:
-            noz = CPlot.getCPlotNumber(t, baseName, nodes[0][0])
+            noz = dnzb[nodes[0][0]]
             if s == -1:
                 sp = CPlot.getSelectedStatus(noz)
                 if sp == 0: s = 1

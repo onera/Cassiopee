@@ -25,20 +25,23 @@ def setFilter(event=None):
         CTK.TXT.insert('START', 'Fail on a temporary tree.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
 
+    dnz = CPlot.updateCPlotGlobalNumbering(CTK.t)
+
     # Get filter type
     filterType = VARS[1].get()
     actionType = VARS[2].get()
     # Filter by name
     if filterType == 'By Zone name':
         rexp = VARS[0].get()
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
             baseName = b[0]
+            dnzb = dnz[baseName]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if CTK.matchString(rexp, zoneName): active.append((i,1))
                     else: active.append((i,0))
 
@@ -54,7 +57,7 @@ def setFilter(event=None):
     # Filter by Zone family
     if filterType == 'By Zone family':
         rexp = VARS[0].get()
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         familySelect = C.getFamilyZones(bases, rexp)
         listFmlySlct=[]
@@ -62,10 +65,11 @@ def setFilter(event=None):
         del familySelect
         for b in bases:
             baseName = b[0]
+            dnzb = dnz[baseName]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     zoneName = baseName + '/' + z[0]
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if z[0] in listFmlySlct: active.append((i,1))
                     else: active.append((i,0))
 
@@ -87,14 +91,15 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
 
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         c = 0
         for b in bases:
             baseName = b[0]
+            dnzb = dnz[baseName]
             for z in b[2]:
                 if z[3] == 'Zone_t':
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if no == c: active.append((i,1))
                     else: active.append((i,0))
                     c += 1
@@ -115,15 +120,16 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
                     if dim[0] == 'Structured': np = dim[1]*dim[2]*dim[3]
                     else: np = dim[1]
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if np > size: active.append((i,1))
                     else: active.append((i,0))
 
@@ -143,9 +149,10 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
@@ -153,7 +160,7 @@ def setFilter(event=None):
                         np = dim[1]*dim[2]*dim[3]
                     else:
                         np = dim[1]
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if np < size: active.append((i,1))
                     else: active.append((i,0))
 
@@ -174,13 +181,14 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
         fac = 2**lvl
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if dim[0] == 'Structured':
                         celldim = dim[4]
                         ni = dim[1]; nj = dim[2]; nk = dim[3]
@@ -211,16 +219,17 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
         fac = 2**lvl
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     dim = Internal.getZoneDim(z)
                     if dim[0] == 'Structured':
                         celldim = dim[4]
                         ni = dim[1]; nj = dim[2]; nk = dim[3]
-                        i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                        i = dnzb[z[0]]
                         if celldim == 2:
                             if ((ni-1)%fac == 0 and (nj-1)%fac == 0):
                                 active.append((i,0))
@@ -248,12 +257,13 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     proc = Internal.getNodeFromName(z, 'proc')
                     if proc is not None and D2.getProc(z) == myProc:
                         active.append((i,1))
@@ -275,24 +285,25 @@ def setFilter(event=None):
             CTK.TXT.insert('START', 'Filter value must be int.\n')
             CTK.TXT.insert('START', 'Error: ', 'Error')
             return
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             prios = Internal.getNodesFromName2(b, 'Priority')
             if prios != [] and prios[0][1][0,0] == prio:
                 for z in b[2]:
                     if z[3] == 'Zone_t':
-                        i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                        i = dnzb[z[0]]
                         active.append((i,1))
             elif prios == [] and prio == 0:
                 for z in b[2]:
                     if z[3] == 'Zone_t':
-                        i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                        i = dnzb[z[0]]
                         active.append((i,1))
             else:
                 for z in b[2]:
                     if z[3] == 'Zone_t':
-                        i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                        i = dnzb[z[0]]
                         active.append((i,0))
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':
@@ -333,9 +344,10 @@ def setFilter(event=None):
                 formula1 = formula.replace('=', '<=')
                 formula2 = formula.replace('=', '>=')
 
-        bases = CTK.t[2][1:]
+        bases = Internal.getBases(CTK.t)
         active = []
         for b in bases:
+            dnzb = dnz[b[0]]
             for z in b[2]:
                 if z[3] == 'Zone_t':
                     fmin = C.getMinValue(z, field)
@@ -344,12 +356,12 @@ def setFilter(event=None):
                     res1 = eval(ff)
                     ff = formula2.replace('{'+field+'}', str(fmax))
                     res2 = eval(ff)
-                    i = CPlot.getCPlotNumber(CTK.t, b[0], z[0])
+                    i = dnzb[z[0]]
                     if testType == 0:
-                        if res1 == True and res2 == True: active.append((i,1))
+                        if res1 and res2: active.append((i,1))
                         else: active.append((i,0))
                     else:
-                        if res1 == True or res2 == True: active.append((i,1))
+                        if res1 or res2: active.append((i,1))
                         else: active.append((i,0))
         if actionType == 'Activate': CPlot.setActiveZones(active)
         elif actionType == 'Deactivate':

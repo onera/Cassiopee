@@ -4,7 +4,7 @@ import numpy
 import os.path
 from . import CPlot
 
-# Separateur intra-nom
+# Intra-name separator
 SEP1 = '/'
 
 __version__ = CPlot.__version__
@@ -83,7 +83,7 @@ def display(t,
                   zoneNames, renderTags, frameBuffer, offscreen,
                   posCamList, posEyeList, dirCamList)
 
-# CB: temporaire. Raw data direct display.
+# CB: temporary. Raw data direct display.
 def displayRaw(t,
                dim=-1,
                mode=-1,
@@ -154,12 +154,12 @@ def add(t, nob, noz, zone):
     zoneName = t[2][nob][0]+SEP1+zone[0]
     renderTag = getRenderTags__(zone, [])[0]
 
-    if noz == -1: noz = len(t[2][nob][2]) # insere a la fin
+    if noz == -1: noz = len(t[2][nob][2]) # insert at the end
     t[2][nob][2].insert(noz, zone)
     if CPlot.__slot__ is None: display(t); return
     (nzs, nzu) = getNzs(t, zone)
 
-    if __LOCATION__ == 'nodes': # ajouter le toptree
+    if __LOCATION__ == 'nodes': # add the toptree
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
@@ -177,7 +177,7 @@ def replace(t, nob, noz, zone):
     if CPlot.__slot__ is None: display(t); return
     (nzs, nzu) = getNzs(t, zone)
 
-    if __LOCATION__ == 'nodes': # ajouter le toptree
+    if __LOCATION__ == 'nodes': # add the toptree
         zone = C.center2Node(zone, Internal.__FlowSolutionCenters__)
     else: zone = C.node2Center(zone)
     array = C.getAllFields(zone, 'nodes', api=3)[0]
@@ -481,8 +481,8 @@ def setWindowTitle(file, path):
 #==============================================================================
 # -- Numbering functions --
 #==============================================================================
-# Retourne la numerotation (base, zone) dans l'arbre
-# a partir de la numerotation zone de CPlot
+# Return the numbering (base, zone) in the tree
+# from the CPlot global zone numbering
 #==============================================================================
 def updateCPlotNumbering(t):
     """Update the CPlot numbering."""
@@ -513,7 +513,7 @@ def updateCPlotNumbering(t):
     return (Nb, Nz)
 
 #==============================================================================
-# Retourne le numero global nz de la basename/zonename dans CPlot
+# Return the global nz number of basename/zonename in CPlot
 #==============================================================================
 def updateCPlotGlobalNumbering(t):
     dnz = {}
@@ -539,10 +539,10 @@ def updateCPlotGlobalNumbering(t):
     return dnz
 
 #==============================================================================
-# Retourne la numerotation CPlot de la zone baseName/zoneName de t
-# IN: t: un noeud pyTree (et pas autre chose)
-# IN: baseName: le nom de la base
-# IN: zoneName: le nom de la zone
+# Return the CPlot numbering of zone baseName/zoneName from t
+# IN: t: a pyTree node (and nothing else)
+# IN: baseName: the name of the base
+# IN: zoneName: the name of the zone
 #==============================================================================
 def getCPlotNumber(t, baseName, zoneName):
     """Return the CPlot number of zone defined by baseName/zoneName."""
@@ -587,8 +587,8 @@ def getCPlotNumber(t, baseName, zoneName):
         return unstr-1
 
 #==============================================================================
-# Retourne le nombre de zones structurees (nzs) et le nombre de zones
-# non structurees (nzu) qui sont avant zone dans l'arbre t (sans compter zone)
+# Return the number of structured zones (nzs) and unstructured zones
+# (nzu) that are before zone in tree t (not counting zone)
 #==============================================================================
 def getNzs(t, zone):
     """Get the number of structured zones and untructured zones in t before zone."""
@@ -602,11 +602,11 @@ def getNzs(t, zone):
     return (nzs, nzu)
 
 #==============================================================================
-# Delete la selection (CPlot) dans t
+# Delete the selection (CPlot) in t
 # IN: t: pyTree
 # IN: Nb, Nz: CPlot numbering
-# IN: nzs: selection CPlot
-# OUT: t: avec les zones correspondant a la selection supprimees
+# IN: nzs: CPlot selection
+# OUT: t: with zones corresponding to the selection removed
 #==============================================================================
 def deleteSelection(t, Nb, Nz, nzs):
     """Delete a selection of zones."""
@@ -632,9 +632,9 @@ def deleteSelection(t, Nb, Nz, nzs):
     return t
 
 #==============================================================================
-# Determine si la selection correspond a une base complete
-# Retourne le no de la base si c'est le cas
-# Retourne -1 sinon
+# Determine if the selection corresponds to a complete base
+# Return the base number if so
+# Return -1 otherwise
 #==============================================================================
 def isSelAFullBase(t, Nb, nzs):
     """Return true if selection corresponds to a full base."""
@@ -651,12 +651,12 @@ def isSelAFullBase(t, Nb, nzs):
 
 #==============================================================================
 # getRenderTags
-# Retourne les tags de render dans l'arbre, trie ainsi:
-# En premier, les zones structurees
-# En second, les zones non structurees
-# Un tag est de la forme:
+# Return the render tags in the tree, sorted as follows:
+# First, the structured zones
+# Second, the unstructured zones
+# A tag is of the form:
 # color:material:blending:meshOverlay:meshColor:meshWidth:shaderParameters,
-# si renderInfo n'est pas present, on retourne None:None:None:None:None:None:None.
+# if renderInfo is not present, return None:None:None:None:None:None:None.
 #==============================================================================
 def getRenderTags(t):
     """Return the render tags of zones."""
@@ -922,9 +922,9 @@ def _addRender2PyTree(a, slot=0, posCam=None, posEye=None, dirCam=None,
     return None
 
 #==============================================================================
-# IN: nom de la colormap
-# IN: light: 0 ou 1
-# OUT: style (entier)
+# IN: colormap name
+# IN: light: 0 or 1
+# OUT: style (integer)
 #==============================================================================
 def colormap2Style(colormapName, light=0):
     style = 0
@@ -1580,7 +1580,7 @@ def display360(t, type360=0, **kwargs):
     stereoDist = kwargs.get("stereoDist", 0.07) # stereoDist is in real world distance
     kwargs['stereo'] = 0 # force no anaglyph
 
-    # orthogonalisation de v1 et dirCam si ils ne sont pas orthos
+    # orthogonalize v1 and dirCam if they are not orthogonal
     v1 = Vector.sub(posEye, posCam) # view vector
     vz = Vector.normalize(dirCam)
     s = Vector.dot(v1, vz)
@@ -1710,7 +1710,7 @@ def display360(t, type360=0, **kwargs):
 
     return None
 
-# assemble 6 cube images en une image panoramique
+# Assemble 6 cube images into a panoramic image
 # type360=0 -> 360, type360=1 -> 180
 def panorama(export, exportRez, type360=0):
     res = exportRez.split('x')
@@ -1740,7 +1740,7 @@ def panorama(export, exportRez, type360=0):
     C.convertPyTree2File(a7, export)
     return a7
 
-# assemble 2 images panoramiques en une image panoramique stereo
+# Assemble 2 panoramic images into a single stereo panoramic image
 # export1: right, export2: left
 def panoramaStereo(export, export1, export2, exportRez, type360=0):
     import Generator.PyTree as G
@@ -1782,9 +1782,9 @@ def panoramaStereo(export, export1, export2, exportRez, type360=0):
                 if v == 'a': pr[0:2*ni,0:nj] = 255
                 else: pr[0:2*ni,0:nj] = 0
 
-    C.convertPyTree2File(a, export) # finale
+    C.convertPyTree2File(a, export) # final
 
-# assemble n cube images en une image panoramique
+# Assemble n cube images into a panoramic image
 # type360=0 -> 360, type360=1 -> 180
 def panoramaODS(export, exportRez, type360=0):
 
