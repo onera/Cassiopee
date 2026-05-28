@@ -216,7 +216,7 @@ def filterLonelyEdges(event=None):
     dnze = dnz['EDGES']
     if activeMode == 1:
         for z in Internal.getZones(EDGES):
-            noz = dnze[z[0]]   
+            noz = dnze[z[0]]
             p = Internal.getNodeFromPath(z, '.RenderInfo/Color')
             active = 0
             if p is not None:
@@ -225,11 +225,11 @@ def filterLonelyEdges(event=None):
 
     else:
         for z in Internal.getZones(EDGES):
-            noz = dnze[z[0]]   
+            noz = dnze[z[0]]
             activeList.append((noz,1))
 
     CPlot.setActiveZones(activeList)
-    
+
     CTK.TXT.insert('START', 'Lonely edges displayed.\n')
 
 #==============================================================================
