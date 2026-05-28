@@ -2008,7 +2008,7 @@ def _doubleWall(t, tc, familyBC1, familyBC2, ghostCells=False, check=False, surf
 #==============================================================================
 def initDoubleWall(t, familyBC1, check=False):
     from . import DoubleWall
-    
+
     if isinstance(familyBC1, str): familyBC1 = [familyBC1]
 
     listOfMismatch1 = []
