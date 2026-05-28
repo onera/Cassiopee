@@ -10,21 +10,21 @@ import numpy
 
 #==============================================================================
 # - distribute -
-# IN: arrays: les arrays a equilibrer ou le nbre de pts de chaque zone
-# IN: NProc: le nombre de processeurs
-# IN: prescribed: le tableaux des blocs dont le proc est impose
-# prescribed[i] = 0 veut dire que le bloc i doit etre place sur le proc 0
-# IN: perfo: performance de chaque processeur
-# perfo[0] = (alpha, beta, gamma) avec alpha le ratio du solveur
-# beta le ratio des communications par connection (latence) et gamma le ratio
-# des communications par volume (comSpeed)
-# IN: weight: poids relatif pour chaque bloc. Utile si le solveur n'est
-# pas le meme sur tous les blocs
-# IN: com: la matrice du volume de communication
-# com[i,j] matrice NblocxNbloc indiquant le volume de com entre le bloc i
-# et le bloc j
+# IN: arrays: the arrays to balance or the number of points of each zone
+# IN: NProc: the number of processors
+# IN: prescribed: the array of blocks whose proc is prescribed
+# prescribed[i] = 0 means that block i must be placed on proc 0
+# IN: perfo: performance of each processor
+# perfo[0] = (alpha, beta, gamma) with alpha the solver ratio
+# beta the ratio of communications by connection (latency) and gamma the ratio
+# of communications by volume (comSpeed)
+# IN: weight: relative weight for each block. Useful if the solver is not
+# the same on all blocks
+# IN: com: the communication volume matrix
+# com[i,j] NblocxNbloc matrix indicating the com volume between block i
+# and block j
 # IN: algorithm: 'gradient0', 'gradient1', 'genetic', 'fast'
-# IN: nghost: nbre de couches de ghost cells
+# IN: nghost: number of ghost cell layers
 #==============================================================================
 def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None, comd=None,
                algorithm='graph', mode='nodes', nghost=0):
@@ -33,29 +33,29 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
     if NProc <= 0:
         raise ValueError("distribute: can not distribute on %d (<=0) processors."%NProc)
 
-    # Liste du nombre de points pour chaque arrays
-    # mode: equilibre le nbre de pts ou de cellules suivant 'nodes','cells'
+    # List of the number of points for each array
+    # mode: balances the number of pts or cells according to 'nodes','cells'
     nbPts = []
-    if isinstance(arrays[0], int): # le nbre de pts est deja dans arrays
+    if isinstance(arrays[0], int): # the number of pts is already in arrays
         nbPts = arrays
-    else: # sinon, on calcule nbPts a partir des arrays
+    else: # otherwise, we calculate nbPts from the arrays
         for a in arrays:
             if mode == 'cells': c = Converter.getNCells(a)
             else: c = Converter.getNPts(a)
             nbPts.append(c)
 
-    # Liste des arrays deja distribues
+    # List of already distributed arrays
     if prescribed is None: # nothing set
         setArrays = [-1]*len(arrays)
     else: setArrays = prescribed
 
-    # Liste des alpha, beta, gamma pour chaque processeur
+    # List of alpha, beta, gamma for each processor
     if perfo is None:
-        # Poids du solveur (par defaut)
+        # Solver weight (by default)
         alpha = 1.
-        # Poids de la latence (temps pour chaque com)
+        # Weight of latency (time for each com)
         beta = 1.e-2
-        # Poids de la vitesse de com pour une unite de volume de com
+        # Weight of com speed for one unit of com volume
         gamma = 0.1
         perfProcs = [(alpha,beta,gamma)]*NProc
     elif isinstance(perfo, tuple):
@@ -63,11 +63,11 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
     else:
         perfProcs = perfo
 
-    # Liste des poids du solveur pour chaque bloc
+    # List of solver weights for each block
     Nb = len(arrays)
     if weight is None: weight = [1.]*Nb
 
-    # Matrice du volume des coms (volCom ou volComd)
+    # Matrix of com volumes (volCom or volComd)
     volCom = None; volComd = None
     if com is None and comd is None: volComd = numpy.empty((0), dtype=E_NpyInt)
     elif com is not None and comd is None:
@@ -83,7 +83,7 @@ def distribute(arrays, NProc, prescribed=None, perfo=None, weight=None, com=None
                 volComd[2*i+1] = comd[k]
         else: volComd = comd
 
-    # Si algo=graph et pas de com, force algo=fast
+    # If algo=graph and no com, force algo=fast
     if volCom is not None:
         if algorithm == 'graph' and numpy.amax(volCom) <= 0: algorithm = 'fast'
     if volComd is not None:

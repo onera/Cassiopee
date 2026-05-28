@@ -34,7 +34,7 @@ def initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
 def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
                loc='nodes'):
     """Init the pyTree by the reference state if it is defined in t, else by input parameters."""
-    if MInf is None: # recuperation de reference state
+    if MInf is None: # retrieval of reference state
         eq = Internal.getNodeFromName(t, 'GoverningEquations')
         state = Internal.getNodeFromName(t, 'ReferenceState')
         if state is None: raise ValueError("initConst: no reference state and no argument.")
@@ -46,7 +46,7 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
             if node is not None:
                 val = Internal.getValue(node)
                 C._initVars(t, loc+':'+v, val)
-    else: # recuperation des arguments
+    else: # retrieval of arguments
         nodes = Internal.getZones(t)
         for z in nodes:
             a = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
@@ -62,8 +62,8 @@ def _initConst(t, adim='adim1', MInf=None, alphaZ=0., alphaY=0., ReInf=1.e8,
                 raise ValueError("initConst: wrong location: %s."%loc)
     return None
 
-# Initialise a partir d'un ReferenceState les grandeurs conservatives
-# La vitesse est proportionelle a la distance
+# Initialize from a ReferenceState the conservative quantities
+# The velocity is proportional to the distance
 def _initDist(t, adim='adim1', loc='nodes'):
     eq = Internal.getNodeFromName(t, 'GoverningEquations')
     state = Internal.getNodeFromName(t, 'ReferenceState')
@@ -286,7 +286,7 @@ def _overlayField(t1, t2, MInf=0.5, loc='nodes'):
             C.setFields([ret], z1, 'nodes')
     return None
 
-# passage variables conservatives en variables primitives (ro,u,T)
+# conversion from conservative variables to primitive variables (rho, u, T)
 def cons2Prim(t, Gamma=1.4, Rgas=287.053, loc='centers'):
     """Compute primitive variables from conservative variables"""
     tp = Internal.copyRef(t)

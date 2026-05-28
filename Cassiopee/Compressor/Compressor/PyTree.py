@@ -113,7 +113,7 @@ def writeUnsteadyCoefs(iteration, indices, filename, loc, format="b"):
     """Write interpolation coefficients for unsteady computations."""
     Compressor.writeUnsteadyCoefs(iteration, indices, filename, loc, format)
 
-# Remplace les coordonnees d'une grille cartesienne par un noeud CartesianData
+# Replace Cartesian grid coordinates with a CartesianData node
 #
 # if layers not None, only communicate the desired number of layers
 # bboxDict is dict with the zones of t as keys and their specific bboxes as key values, used when layers not None
@@ -216,7 +216,6 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
         if abs(xp[4*ni*nj] - x0) > tol: cartesian = False
         if abs(yp[4*ni*nj] - y0) > tol: cartesian = False
 
-    #print(cartesian, abs(zp[2*ni*nj] - zp[ni*nj] - hk), abs(zp[3*ni*nj] - zp[2*ni*nj] - hk))
     if cartesian:
         px = Internal.createUniqueChild(gc, 'CoordinateX', 'DataArray_t', value=[0.]*10) # important for skeleton read
         Internal.createChild(px, 'ZData', 'DataArray_t', value=[6., x0, hi, float(ni), float(nj), float(nk)])
@@ -229,9 +228,9 @@ def _compressCartesian__(z, ztype, gc, tol=1.e-10):
 
     return cartesian
 
-# Si la zone est cartesienne :
-# Ajoute un noeud CartesianData a la zone
-# remplace Coordinates par des noeuds avec des champs de taille 10
+# If the zone is Cartesian:
+# Adds a CartesianData node to the zone
+# Replaces Coordinates with nodes containing arrays of size 10
 def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
     """For Cartesian grids, replace Grid Coordinates with a compressed node."""
     zones = Internal.getZones(t)
@@ -243,7 +242,7 @@ def _compressCartesian(t, bbox=[], layers=None, subr=True, tol=1.e-10):
         cartesian = _compressCartesian__(z, ztype, gc, tol)
         #print('cartesian?=', cartesian)
 
-        # traitement layers
+        # layers processing
         if cartesian and layers is not None:
             ni = ztype[1]; nj = ztype[2]; nk = ztype[3]
             xp = Internal.getNodeFromName1(gc, 'CoordinateX')
@@ -345,9 +344,9 @@ def _uncompressCartesian__(z, ztype, gc):
     # cartesianData is automatically removed
     return None
 
-# Si la zone n'est pas skeleton et contient un noeud CartesianData :
-# Reconstruit CoordinateX, CoordinateY, CoordinateZ
-# Supprime CartesianData
+# If the zone is not a skeleton and contains a CartesianData node:
+# Reconstructs CoordinateX, CoordinateY, CoordinateZ
+# Removes CartesianData
 def _uncompressCartesian(t):
     """For Cartesian grids, recreate Grid Coordinates from compressed zones."""
     zones = Internal.getZones(t)
@@ -367,8 +366,9 @@ def _uncompressCartesian(t):
 # ctype=3: compress basic element connectivity (lossless)
 # ctype=4: compress ngon connectivity (losless)
 # ctype=5: compress with fpc (lossless)
-# ctype=6: reserve pour compressCartesian (lossless)
+# ctype=6: reserved for compressCartesian (lossless)
 def _packNode(node, tol=1.e-8, ctype=0):
+    """Compress a pyTree node."""
     if Internal.getNodeFromName1(node, 'ZData') is not None: return None # already compressed node
     if ctype == 0: # sz
         from . import sz
@@ -389,7 +389,7 @@ def _packNode(node, tol=1.e-8, ctype=0):
         shape = [2.,tol,float(iscorder)]+list(ret[0])
         node[1] = ret[1]
         Internal._createUniqueChild(node, 'ZData', 'DataArray_t', value=shape)
-    elif ctype == 3: # Elements basiques
+    elif ctype == 3: # Basic elements
         net = int(tol)
         ret = Compressor.compressor.compressIndices((net,node[1]))
         iscorder = not numpy.isfortran(node[1])
@@ -413,6 +413,7 @@ def _packNode(node, tol=1.e-8, ctype=0):
     return None
 
 def _unpackNode(node):
+    """Uncompress a pyTree node."""
     shape = Internal.getNodeFromName1(node, 'ZData')
     if shape is not None and node[1] is not None:
         shape = shape[1]
@@ -435,7 +436,7 @@ def _unpackNode(node):
         elif ctype == 2: # cellN
             node[1] = Compressor.compressor.uncompressCellN((shape,node[1],iscorder))
             Internal._rmNodesFromName1(node, 'ZData')
-        elif ctype == 3: # Elements (basiques)
+        elif ctype == 3: # Elements (basic)
             ret = Compressor.compressor.uncompressIndices((shape[0], shape[1], node[1],iscorder))
             node[1] = ret[0]
             Internal._rmNodesFromName1(node, 'ZData')
@@ -508,7 +509,7 @@ def compressFields(t, tol=1.e-8, ctype=0, varNames=None):
     _compressFields(tp, tol, ctype, varNames)
     return tp
 
-# Compresse un cellN 0,1,2
+# Compress cellN 0,1,2
 def _compressCellN(t, varNames=['cellN']):
     """Compress cellN (0,1,2) lossless on 2 bits."""
     zones = Internal.getZones(t)
@@ -527,7 +528,7 @@ def compressCellN(t, varNames=['cellN']):
     _compressCellN(tp, varNames)
     return tp
 
-# Compress Elements_t (elts basiques ou NGONs)
+# Compress Elements_t (basic elements or NGONs)
 def _compressElements(t):
     """Compress lossless Element connectivities."""
     zones = Internal.getZones(t)
@@ -550,7 +551,7 @@ def compressElements(t):
     _compressElements(tp)
     return tp
 
-# uncompressFields of zones (si ZData est trouve dans le noeud DataArray_t)
+# uncompressFields of zones (if ZData is found in the DataArray_t node)
 def _uncompressAll(t):
     """Uncompress all compressed data."""
     zones = Internal.getZones(t)
@@ -576,7 +577,7 @@ def uncompressAll(t):
     _uncompressAll(tp)
     return tp
 
-# compresse le plus possible en lossless (sauf le cartesien)
+# compress as much as possible in lossless (except Cartesian)
 def _compressAll(t):
     """Compress coords, fields and connectivity (lossless)."""
     _compressCellN(t)

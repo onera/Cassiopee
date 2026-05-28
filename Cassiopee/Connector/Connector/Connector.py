@@ -305,7 +305,6 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol=1.e-12, cel
     mask = connector.createTetraMask(meshT4, maskSkin, tol)
 
     for i in range(len(coords)):
-        #print 'coords : %d / %d' %(i+1, len(coords))
         bt = blankingType
         if blankingType == 2: # center_in: simplement un node_in sur les centres
             coords[i] = C.node2Center(coords[i])
@@ -337,7 +336,6 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol=1.e-12,
     mask = connector.createTriMask(meshT3, tol)
 
     for i in range(len(coords)):
-        #print('coords : %d / %d' %(i+1, len(coords)))
         bt = blankingType
         if blankingType == 2: # center_in: simplement un node_in sur les centres
             coords[i] = C.node2Center(coords[i])
@@ -633,20 +631,20 @@ def changeWallEX__(EXPts, zc, zn, firstWallCenters, projectionSurfaces, planarTo
 #----------------------------------------------------------------------------------------------
 # Pour determiner les frontieres de projection double wall, dans le cas ou les frontieres
 # sont decoupees en sous fenetres, on etend la sous-fenetre en centres etendus (input
-# array) qu on modifie localement en prenant le pt milieu avec le point interieur
-# IN: array : frontiere structuree 2D en centres etendus
+# array) qu'on modifie localement en prenant le pt milieu avec le point interieur
+# IN: array: frontiere structuree 2D en centres etendus
 # IN: iminL, imaxL, jminL, jmaxL : indices de la sous fenetre dans la fenetre topologique
-# OUT : array modifie aux bords (si iminL > 1 alors on prend le pt milieu avec iminL+1 par ex)
+# OUT: array modifie aux bords (si iminL > 1 alors on prend le pt milieu avec iminL+1 par ex)
 #----------------------------------------------------------------------------------------------
 def modifyBorders__(array,iminL,imaxL,jminL,jmaxL):
     return connector.modifyBorders(array, iminL,imaxL,jminL,jmaxL)
 #-----------------------------------------------------------------------------
 # Calcul des transferts Chimere
-# IN: cellRcv     : tableau numpy des indices des cellules interpolees
-# IN: cellDonor   : tableau numpy des indices des cellules donneuses
-# IN: interpDonor : tableau numpy des coefficients d'interpolation
-# IN: interpType  : tableau numpy du type des interpolations 102 cablees pour elsA
-# IN: lRcvArrays  : liste des champs sur lesquels le transfert est applique (array)
+# IN: cellRcv: tableau numpy des indices des cellules interpolees
+# IN: cellDonor: tableau numpy des indices des cellules donneuses
+# IN: interpDonor: tableau numpy des coefficients d'interpolation
+# IN: interpType: tableau numpy du type des interpolations 102 cablees pour elsA
+# IN: lRcvArrays: liste des champs sur lesquels le transfert est applique (array)
 # IN: lDonorArrays: liste des champs du domaine d'interpolation (array)
 #-----------------------------------------------------------------------------
 def chimeraTransfer(cellRcv, cellDonor, interpType,
@@ -678,8 +676,8 @@ def setInterpTransfers(rcvFields, donorFields, indicesRcv, indicesDnr,
 # indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
 # donorType: type d'interpolation sous forme de numpy array 1D
 # coefs: coefficients d'interpolation sous forme de numpy array 1D
-# bcType : 'slip','noslip'
-# varType : 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
+# bcType: 'slip','noslip'
+# varType: 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
 #------------------------------------------------------------------------------
 def setIBCTransfers(rcvFields, donorFields, indicesRcv, indicesDnr, donorType,
                     coefs, xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI,
@@ -709,8 +707,8 @@ def setInterpTransfersD(donorFields, indicesDnr, donorType, coefs):
 # indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
 # donorType: type d'interpolation sous forme de numpy array 1D
 # coefs: coefficients d'interpolation sous forme de numpy array 1D
-# bcType : type de CL (slip, noslip)
-# varType : 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
+# bcType: type de CL (slip, noslip)
+# varType: 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
 #------------------------------------------------------------------------------
 def setIBCTransfersD(donorFields, indicesDnr, donorType, coefs,
                      xPC, yPC, zPC, xPW, yPW, zPW, xPI, yPI, zPI,

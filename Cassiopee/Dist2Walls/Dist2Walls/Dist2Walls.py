@@ -6,8 +6,8 @@ except ImportError: raise ImportError("Dist2Walls: requires Converter modules.")
 __version__ = '4.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
-# Types de solver pour Eikonal
-fmm=0; fim=1; fim_old=2 # Temporaire
+# Types of solver for Eikonal
+fmm=0; fim=1; fim_old=2 # Temporary
 
 def signDistance__(zones, distances, bodies, loc, dimPb):
     import Connector as X
@@ -24,7 +24,7 @@ def signDistance__(zones, distances, bodies, loc, dimPb):
         for b in bodies:
             cellns = X.blankCells(zones, cellns, [b], blankingType=2,
                                   dim=dimPb)
-    # calcul de distances
+    # distance calculation
     distances = C.addVars([distances, cellns])
     distances = C.initVars(distances, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)+(-1.)*{TurbulentDistance}*({cellN}<1.)')
     distances = C.extractVars(distances, ['TurbulentDistance'])
@@ -32,8 +32,8 @@ def signDistance__(zones, distances, bodies, loc, dimPb):
 
 
 # ==============================================================================
-# Calcul de la distance a des surfaces pour une liste de zones, a partir d'une
-# liste de surfaces (bodies) et d'une liste de champs celln associee a bodies
+# Compute distance to surfaces for a list of zones, based on a
+# list of surfaces (bodies) and a list of cellN fields associated with bodies
 # ==============================================================================
 def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
                    loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
@@ -56,8 +56,8 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
     if type != 'ortho' and type != 'mininterf' and type != 'mininterf_ortho' and type != 'ortho_local':
         raise ValueError("distance2Walls: type must be ortho, mininterf, mininterf_ortho or ortho_local.")
 
-    # Recuperation du cellN en noeuds ou centres selon loc
-    bodies0 = []  # argument dans la fonction c associe a bodies et cellN
+    # Recovery of cellN at nodes or centers depending on loc
+    bodies0 = []  # argument in the c function associated with bodies and cellN
     if cellnbodies == []:
         bodies0 = C.initVars(bodies, 'cellN', 1.)
     elif len(cellnbodies) != len(bodies):
@@ -73,11 +73,11 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
             else:
                 print('Warning: distance2Walls: bodies and celln must be of same dimensions: cellN set to 1 for invalid body zones.')
                 bodies0[c] = C.initVars(bodies0[c], 'cellN', 1.)
-    # conversion en triangles de bodies (important pour les champs aux centres
-    # sur maillages en centres)
+    # conversion to triangles of bodies (important for fields at centers
+    # on center meshes)
     bodies0 = C.convertArray2Tetra(bodies0, split='withBarycenters')
 
-    # calcul de la distance a la paroi localisee aux centres ou aux noeuds
+    # computation of distance to wall located at centers or nodes
     dist = []
     if loc == 'nodes':
         if type == 'ortho' or type == 'ortho_local':
@@ -108,7 +108,7 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
             if type == 'mininterf_ortho': isminortho = 1
             dist = dist2walls.distance2Walls(zonesc, bodies0, isminortho)
 
-    # distance signee
+    # signed distance
     if signed == 1:
         dist = signDistance__(zones, dist, bodies0, loc, dim)
 
@@ -119,6 +119,5 @@ def distance2Walls(zones, bodies, flags=None, cellnbodies=[], type='ortho',
 # Solve eikonal on a Cartesian grid
 # ========================================================================================
 def eikonal(a, algo=fim_old):
-    """Solve Eikonal equation on a Cartesian grid.
-       Usage: eikonal(a)"""
+    """Solve Eikonal equation on a Cartesian grid."""
     return dist2walls.eikonal(a, algo)

@@ -362,8 +362,8 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     try: import Geom as D; import math; import KCore
     except: raise ImportError("enforceCurvature2: requires Converter and Geom modules.")
 
-    tol = 1.e-12 # tolerance sur les pts confondues(=close)
-    loop = 0 # le contour est il une boucle
+    tol = 1.e-12 # tolerance on coincident points (=close)
+    loop = 0 # is the contour a loop
 
     posx = KCore.isNamePresent(arrayC, 'x')
     if posx != -1: xt = C.extractVars(arrayC, ['x'])[1]
@@ -402,7 +402,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     dhmax = C.getMaxValue(dh, 'dhloc'); dhmin = C.getMinValue(dh, 'dhloc')
     if abs(dhmax-dhmin) < 1.e-10: return arrayD
 
-    # premier point
+    # first point
     if loop == 0:
         if dht[0,0] < dht[0,1]: minima.append(0)
     else: # loop = 1
@@ -412,10 +412,10 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
         im1=i-1; ip1=i+1; dhm1 = dht[0,im1]; dhp1 = dht[0,ip1]
         if dhloc < dhm1 and dhloc<dhp1: minima.append(i)
 
-    # dernier point
+    # last point
     if loop == 0 and dht[0,nmax]<dht[0,nmax-1]: minima.append(nmax)
     if minima == [] : return arrayD
-    if len(minima) > 1: # verifier que 2 pts separes d'un pt ne sont pas minima
+    if len(minima) > 1: # verify that 2 points separated by one point are not minima
         minima0 = []
         m = minima[0]; mp1 = minima[1]; mm1 = m
         if mp1-m > 2: minima0.append(m)
@@ -425,13 +425,13 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
             elif m-mm1 <= 2 and mp1-m <= 2: minima0.append(m)
             elif m-mm1 == 2: minima0.append(m-1)
             mm1 = m
-        # dernier pt
+        # last point
         m = mp1; mm1 = minima0[len(minima0)-1]
-        if m-mm1 > 2: minima0.append(m) # le precedent si adjacent n a pas ete pris en compte
+        if m-mm1 > 2: minima0.append(m) # the previous one if adjacent was not taken into account
         minima = minima0
     if minima == []: return arrayD
     #---------------------
-    # abscisse curviligne
+    # curvilinear abscissa
     #---------------------
     posx = KCore.isNamePresent(arrayD, 'x')
     if posx!=-1: varx='x'
@@ -444,7 +444,7 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     stot = s[0, ni-1]
     for i in range(ni): s[0,i] = (s[0,i]/stot)*(xe-xs)+xs
 
-    # recherche du point a forcer dans distrib
+    # search for the point to enforce in distribution
     distrib = C.copy(arrayD)
     distrib[0] = 'x,y,z'
     for indc in minima:
@@ -472,12 +472,12 @@ def map(array, d, dir=0, h1=None, h2=None, isAvg=False, nAvg=2):
         return map1dpl(array, d, dir, h1, h2, isAvg, nAvg)
     else: return map1d(array, d)
 
-# map sur une courbe
+# map on a curve
 def map1d(array, d):
     """Map on a curve."""
     return generator.map(array, d)
 
-# map par lignes dans la direction dir
+# map by lines in the direction dir
 def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
     try: import Transform as T
     except:
@@ -513,7 +513,7 @@ def map1dpl(array, d, dir, h1, h2, isAvg, pnts):
                 d = MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
 
                 if isAvg:
-                    d_sum=d[1][0]
+                    d_sum = d[1][0]
                     if j>pnts and j<nj-(pnts+1):
                         for i in range(1,pnts+1):
                             d_local_val = d_local(m,j-i,k,ni,h1,h2,N)
@@ -556,7 +556,7 @@ def d_local(m,j,k,ni,h1,h2,N):
     d = MapE.buildDistrib(h1_local/length_local,h2_local/length_local,N+1)
     return d
 
-# map sur une surface
+# map on a surface
 def map2d(array, d):
     try: import Transform as T
     except:
@@ -565,7 +565,7 @@ def map2d(array, d):
     b = T.rotate(d, (0,0,0), (0,0,1), -90.)
     b = T.reorder(b, (2,1,3))
     dj = T.subzone(b, (1,1,1), (b[2],1,1)); ndj = dj[2]
-    # Passage en i
+    # Switch to i
     ni = array[2]; nj = array[3]
     m = C.array('x,y,z', ndi, nj, 1)
     for j in range(nj):
@@ -584,7 +584,7 @@ def map2d(array, d):
             C.setValue(p, (i+1,j+1,1), v)
     return p
 
-# Map un maillage structure suivant sa courbure
+# Map a structured mesh according to its curvature
 def mapCurvature(array, N, power, dir):
     """Remesh with a step proportional to curvature."""
     if isinstance(array[0], list):
@@ -618,7 +618,7 @@ def mapCurvature___(array, N, power, dir):
     return a
 
 #==============================================================================
-# Raffine un maillage structure (dir=0,1,2,3)
+# Refine a structured mesh (dir=0,1,2,3)
 #==============================================================================
 def refine(array, power, dir=0):
     """Refine a mesh of power power along all the directions or on a specified one. Usage: refine(a,power,dir)"""
@@ -664,7 +664,7 @@ def refinePerDir__(a, power, dir):
     vvJ = 1./max(NJ-1, 1.e-12)
     vvK = 1./max(NK-1, 1.e-12)
     NINJ = NI*NJ; ninj = ni*nj
-    # Distribution fine a interpoler: cartesienne a pas constant par direction
+    # Fine distribution to interpolate: cartesian with constant step by direction
     for k in range(NK):
         for j in range(NJ):
             for i in range(NI):
@@ -673,7 +673,7 @@ def refinePerDir__(a, power, dir):
                 distribI[1][1,ind] = j*vvJ
                 distribI[1][2,ind] = k*vvK
 
-    # Calcul de la distribution en i
+    # Calculation of the distribution in i
     dhi =  1./max(ni-1, 1.e-12)
     dhj =  1./max(nj-1, 1.e-12)
     dhk =  1./max(nk-1, 1.e-12)
@@ -719,7 +719,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
     szcs = C.convertArray2Hexa(sizeConstraints)
     c = Transform.join(szcs)
     v = Generator.getVolumeMap(c)
-    v = C.center2Node(v) # devrait etre max
+    v = C.center2Node(v) # should be max
     c = C.addVars([c,v])
     hook = C.createHook(c, function='nodes')
     ret = C.nearestNodes(hook, array)
@@ -734,7 +734,7 @@ def defineSizeMapForMMGs(array, hmax, sizeConstraints):
     #C.convertArrays2File(array, 'array.plt')
     return array
 
-# Remaille une surface avec mmgs
+# Remesh a surface with mmgs
 def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
          anisotropy=0, optim=0, fixedConstraints=[], sizeConstraints=[]):
     """Surface remeshing using MMGS."""
@@ -779,10 +779,10 @@ def mmgs(array, ridgeAngle=45., hmin=0., hmax=0., hausd=0.01, grow=1.1,
                               grow, anisotropy, optim, fixedNodes, fixedEdges)
 
 #==============================================================================
-# Densifie le maillage d'un i-array
+# Densifies the mesh of an i-array
 # IN: array: i-array
-# IN: h: pas de discretisation
-# OUT: i-array avec la nouvelle discretisation
+# IN: h: discretization step
+# OUT: i-array with the new discretization
 #==============================================================================
 def densify(array, h):
     """Densify a mesh."""
@@ -1005,10 +1005,10 @@ def getNormalMap(array):
     else:
         return generator.getNormalMap(array)
 
-# IN: niter: nbre d'iterations de lissage
-# IN: eps: possible float ou numpy de taille des vertex: eps lissage
-# IN: cellN: si present, extrapole en cas de cellN=0
-# IN: algo: si 0: lisse n, si 1: lisse dn
+# IN: niter: number of smoothing iterations
+# IN: eps: possible float or numpy of vertex size: smoothing eps
+# IN: cellN: if present, extrapolate in case of cellN=0
+# IN: algo: if 0: smooth n, if 1: smooth dn
 def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
     """Return the map of smoothed surface normals in an array.
     Usage: getSmoothNormalMap(array, niter, eps)"""
@@ -1047,7 +1047,7 @@ def getSmoothNormalMap(array, niter=2, eps=0.4, cellN=None, algo=0):
         n = C.normalize(n, ['sx','sy','sz'])
     return n
 
-# identique a getSmoothNormalMap mais utilisant smoothField
+# same as getSmoothNormalMap but using smoothField
 def getSmoothNormalMap2(array, niter=2, eps=0.4, algo=0):
     try: import Transform as T
     except: raise ImportError("getSmoothNormalMap: requires Converter, Transform module.")
@@ -1107,7 +1107,7 @@ def collarMesh(s1, s2, distribj,distribk, niterj=100, niterk=100, ext=10,
 #=============================================================================
 # generates a structured collar surface starting from a list of surfaces
 # and the curve c shared by them
-# les i-array contraintes doivent etre orientes dans le sens de la marche
+# the constrained i-arrays must be oriented in the walking direction
 # alphaRef is the deviation angle wrt 180 deg above which the walk is stopped
 #=============================================================================
 def surfaceWalk(surfaces, c, distrib, constraints=[], niter=0,
@@ -1135,7 +1135,7 @@ def buildExtension(c, surfaces, dh, niter=0):
 #==============================================================================
 # Determines the factor h0 to multiply the hloc in the vicinity of sharp
 # angles.
-# IN : sn: normales a la surface s non structuree
+# IN: sn: normals to the unstructured surface s
 # OUT: ht the amplification factor of h, the step in the marching direction
 #==============================================================================
 def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
@@ -1144,7 +1144,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
     sc = C.node2Center(sc)
     if algo == 0:
         ht = generator.getLocalStepFactor(s, sc)
-        # Lissage hauteur du pas
+        # Step height smoothing
         niter = 10; it = 0
         while it < niter:
             ht = C.node2Center(ht)
@@ -1153,9 +1153,9 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
         #ht = Transform.smoothField(ht, eps=0.25, niter=niter, varNames=['ht'])
 
     else:
-        # Nouvelle version
+        # New version
         ht = generator.getLocalStepFactor2(s, sc, kappaType, kappaS[0], kappaS[1])
-        # Lissage epsilon local
+        # Local epsilon smoothing
         it = 0
         hl = C.extractVars(ht, ['hl'])
         if smoothType == 2:
@@ -1176,7 +1176,7 @@ def getLocalStepFactor__(s, sn, smoothType, nitLocal, kappaType, kappaS, algo):
     return ht
 
 #===============================================================================
-# Regle la hauteur des normales, retourne aussi le champ pour le lisseur (algo=1)
+# Sets the height of the normals, also returns the field for the smoother (algo=1)
 def modifyNormalWithMetric(array, narray, algo=0, smoothType=0, eps=0.4, nitLocal=3, kappaType=0, kappaS=[0.2,1.6]):
     """Correct the normals located at nodes with respect to metric."""
     a = C.copy(array); n = C.copy(narray)
@@ -1238,12 +1238,12 @@ def addNormalLayers(surface, distrib, check=0,
         else: return addNormalLayersUnstr__(surface, distrib, check, niterType, niter, niterK, smoothType, eps, nitLocal, kappaType, kappaS, blanking, cellNs, algo) # NS
 
 #-----------------------------------------------------------------------------
-# Generation de grilles cartesiennes multibloc a partir de:
-# grilles de corps: bodies
-# h: pas d'espace sur la grille la plus fine
-# Dfar: distance d eloignement au corps
-# nlvl: nb de points par niveau, sauf sur le niveau le plus fin
-# nlvl[0]: niveau le plus grossier
+# Generation of multiblock Cartesian grids from:
+# body grids: bodies
+# h: space step on the finest grid
+# Dfar: distance from the body
+# nlvl: number of points per level, except on the finest level
+# nlvl[0]: coarsest level
 #-----------------------------------------------------------------------------
 def gencartmb(bodies, h, Dfar, nlvl):
     """Generate a muliblock Cartesian mesh."""
@@ -1256,11 +1256,11 @@ def gencartmb(bodies, h, Dfar, nlvl):
         if ni < 2 or nj < 2 or nk < 2:
             raise ValueError("gencartmb: arrays must be 3D.")
 
-    # Cree un bloc
-    # IN: pmin: indices min sur la grille composite
-    # IN: pmax: indices max sur la grille composite
-    # IN: level: niveau de raffinement (1 = grossier)
-    # IN: ref: grille composite
+    # Create a block
+    # IN: pmin: min indices on the composite grid
+    # IN: pmax: max indices on the composite grid
+    # IN: level: refinement level (1 = coarsest)
+    # IN: ref: composite grid
     def createBlock( pmin, pmax, level, ref):
         Href = ref[1][0,1] - ref[1][0,0]
         xmin = ref[1][0,0] + (pmin[0]-1)*Href
@@ -1275,10 +1275,10 @@ def gencartmb(bodies, h, Dfar, nlvl):
         Nk = (pmax[2]-pmin[2])*hloc+1
         return cart((xmin,ymin,zmin), (Href/hloc, Href/hloc, Href/hloc),
                     (Ni,Nj,Nk))
-    # Cree un niveau
-    # IN: nb: epaisseur en nombre de cellules de la grille composite
-    # IN: level: level du niveau
-    # IN/OUT: ref: grille composite
+    # Create a level
+    # IN: nb: thickness in number of cells of the composite grid
+    # IN: level: level of the level
+    # IN/OUT: ref: composite grid
     def createLevel(nb, level, ref):
         out = []
         pmin = (1,1,1)
@@ -1326,7 +1326,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     ymax = bb[4] + Dfar
     zmax = bb[5] + Dfar
 
-    # Grille composite
+    # Composite grid
     nc = 2**len(nlvl)
     Href = h * nc
     Ni = (xmax - xmin)/Href; Ni = nc*(int(Ni/nc)+1)+1
@@ -1334,7 +1334,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
     Nk = (zmax - zmin)/Href; Nk = nc*(int(Nk/nc)+1)+1
     ref = cart((xmin,ymin,zmin), (Href,Href,Href), (Ni,Nj,Nk))
 
-    # Niveaux
+    # Levels
     out = []
     c = 1
     for i in nlvl:
@@ -1342,7 +1342,7 @@ def gencartmb(bodies, h, Dfar, nlvl):
         c += 1
         out = out + lev
 
-    # Derniere grille
+    # Last grid
     pmin = (1,1,1)
     pmax = (ref[2],ref[3],ref[4])
     level = 4
@@ -1621,13 +1621,13 @@ def snapSharpEdges(meshes, surfaces, step=None, angle=30.):
 
 #------------------------------------------------------------------------------
 # Get refined sharp edges from a given surface
-# IN: surfaces ou contours
+# IN: surfaces or contours
 # IN: step: step for refinement
 # IN: angle: angle for surfaces splitting
 # OUT: outList: list which contains:
 #               - the surfaces joined in a unique array
-#               - the contours (if not nul)
-#               - the corners (if not nul)
+#               - the contours (if not null)
+#               - the corners (if not null)
 #------------------------------------------------------------------------------
 def refinedSharpEdges__(surfaces, step, angle):
     """Get refined sharp edges from a given surface. 
@@ -1639,7 +1639,7 @@ def refinedSharpEdges__(surfaces, step, angle):
         raise ImportError("snapSharpEdges: requires Post, Geom, Converter, Transform module.")
     b = C.convertArray2Tetra(surfaces); b = T.join(b); b = close(b)
 
-    # dimension de surfaces: 1D ou 2D
+    # dimension of surfaces: 1D or 2D
     dim = 2
     if b[3] == 'BAR': dim = 1
 
@@ -1650,10 +1650,10 @@ def refinedSharpEdges__(surfaces, step, angle):
 
         if contours != []:
             contours = T.splitConnexity(contours)
-            # split les contours par rapport aux angles
+            # split the contours with respect to angles
             try: contours = T.splitSharpEdges(contours, angle)
             except: pass
-            # split les contours non structures par rapport aux branches
+            # split the unstructured contours with respect to branches
             try: contours = T.splitTBranches(contours)
             except: pass
             # get corners from contours
@@ -1663,22 +1663,22 @@ def refinedSharpEdges__(surfaces, step, angle):
         # get contours and corners from 1D-surfaces
         try: contours = T.splitConnexity(b)
         except: contours = b
-        # split les contours par rapport aux angles
+        # split the contours with respect to angles
         try: contours = T.splitSharpEdges(contours, angle)
         except: pass
-        # split les contours non structures par rapport aux branches
+        # split the unstructured contours with respect to branches
         try: contours = T.splitTBranches(contours)
         except: pass
         try: corners = P.sharpEdges(b, angle)
         except: corners = []
-        #contours = [] # force pour debug
+        #contours = [] # force for debug
 
-    # remaillage des contraintes (contours) en fonction
-    # d'un pas defini par l'utilisateur
+    # remesh the constraints (contours) according to
+    # a step defined by the user
     ncontours = []
     if step is not None:
         for c in contours:
-            # conversion en structure pour map
+            # conversion to structured for map
             c = C.convertBAR2Struct(c)
             l = D.getLength(c)
             N = int(l/step)+1
@@ -1688,8 +1688,8 @@ def refinedSharpEdges__(surfaces, step, angle):
             ncontours.append(c)
     else: ncontours = contours
 
-    # les contraintes contours et corners sont passes en un array unique
-    # non-structure
+    # the contours and corners constraints are passed as a single array
+    # unstructured
     if ncontours != []:
         contours =  C.convertArray2Tetra(ncontours)
         contours = T.join(contours)
@@ -1737,8 +1737,8 @@ def octree2Struct(a, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
         print('Warning: octree2Struct: ext must be equal or greater than 0. Set to 0.')
     return cartzones
 
-# Decoupe un octant (octant)
-# N multiple de 4 (2D) ou de 8 (3D)
+# Cuts an octant (octant)
+# N multiple of 4 (2D) or 8 (3D)
 def cutOctant(octant, N, ind, dim=3):
     if dim == 2:
         M = N**0.5
@@ -2228,7 +2228,7 @@ def addNormalLayersStruct__(surfaces, distrib, check=0, niterType=0, niter=0, ni
         k1 += 1
     return listOfCoords
 
-# addNormalLayers pour un array non structure
+# addNormalLayers for an unstructured array
 def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, niterK=[],
                            smoothType=0, eps=0.4, nitLocal=3,
                            kappaType=0, kappaS=[0.2,1.6], blanking=False, cellNs=[], algo=0):
@@ -2245,14 +2245,14 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
     hmin = distrib[1][0,1]-distrib[1][0,0]
     hmax = distrib[1][0,kmax-1]-distrib[1][0,kmax-2]
     hmean = (distrib[1][0,kmax-1]-distrib[1][0,0])/(kmax-1)
-    # determination de kb1,kb2
+    # determination of kb1,kb2
     kb1 =-1; kb2 =-1
     for k1 in range(kmax-1):
         if distrib[1][0,k1+1] >= 0.1*hmean and kb1 == -1: kb1 = k1
         elif distrib[1][0,k1+1] >= 1.*hmean and kb2 == -1: kb2 = k1
     kb2 = max(kb2, kb1+2)
-    epsl = None # champ pour le lissage
-    cellN = None # champ pour le blanking
+    epsl = None # field for smoothing
+    cellN = None # field for blanking
 
     for k1 in range(kmax-1):
         #print("Generating layer %d"%k1)

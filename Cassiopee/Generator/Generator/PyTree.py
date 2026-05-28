@@ -87,8 +87,8 @@ def cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim=3, rank=None, size=Non
     return CartGen.cartRxHollow(XC0, XC1, HC, XH0, XH1, XF0, XF1, R, dim, rank, size)
 
 #------------------------------------------------------------------------------
-# Generation d'un quadtree en 2D ou octree en 3D a partir d'une liste
-# de contours ou surfaces
+# Generation of a quadtree in 2D or octree in 3D from a list
+# of contours or surfaces
 #------------------------------------------------------------------------------
 def octree(surfaces, snearList=[], dfarList=[], dfar=-1., balancing=0, levelMax=1000, ratio=2, octant=None, dfarDir=0, octreeMode=0):
     """Generate an octree (or a quadtree) mesh starting from a list of TRI
@@ -110,7 +110,7 @@ def conformOctree3(o):
     return C.convertArrays2ZoneNode(o[0], [a2])
 
 #------------------------------------------------------------------------------
-# Conformisation d'une soupe de TRI ou de BAR
+# Conformization of a TRI or BAR soup
 #------------------------------------------------------------------------------
 def conformUnstr(surface1, surface2=None, tol=0., left_or_right=0):
     """Conformizes a TRI or BAR soup (surface1) with taking into account surface2 if it's provided.
@@ -229,7 +229,7 @@ def freeHook4AdaptMesh(hook):
     return None
 
 #------------------------------------------------------------------------------
-# Conversion d'un maillage octree en ensemble de grilles cartesiennes
+# Conversion of an octree mesh into a set of Cartesian grids
 #------------------------------------------------------------------------------
 def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
                   sizeMax=1000000000):
@@ -254,17 +254,17 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
     eps = 1.e-6
     a = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
 
-    # Conversion en structure (extension faites plus tard)
+    # Conversion to structured (extensions done later)
     cartzones = Generator.octree2Struct(a, vmin, ext, optimized, merged,
                                         AMR, sizeMax)
-    # Creation des zones du pyTree
+    # Creation of pyTree zones
     c = 1; zones = []
     for mc in cartzones:
         zone = C.convertArrays2ZoneNode('cart'+str(c), [mc])
         zones.append(zone); c += 1
 
     cartzones = None
-    # Extension des grilles
+    # Extension of grids
     #if ext > 0:
     #    coords = C.getFields(Internal.__GridCoordinates__, zones, api=3)
     #    coords = Generator.extendOctreeGrids__(coords, ext=ext, optimized=optimized)
@@ -285,9 +285,9 @@ def octree2Struct(o, vmin=15, ext=0, optimized=1, merged=1, AMR=0,
         return zones
     else:
         #-----------------------
-        # Creation des BCOverlap
+        # Creation of BCOverlap
         #-----------------------
-        # determination de la bounding box de la grille
+        # determination of the bounding box of the grid
         xmin = 1.e12; ymin = xmin; zmin = xmin
         xmax =-xmin;  ymax =-ymin; zmax =-zmin
         for z in zones:
@@ -510,12 +510,12 @@ def front2Struct(front, surf, distrib, Vmin):
     return zones
 
 #------------------------------------------------------------------------------
-# Projection de t sur des surfaces surfs
-# optimized=0,1,2 (front exterieur, front optimise, front avec projection sur les contours)
-# Les arguments suivants sont requis si optimized=2 (ignores sinon):
-# step: pas de discretisation pour un remaillage regulier des surfaces
-# (ce pas doit correspondre a peu pres a la taille des mailles de t projetees)
-# angle: angle suivant lequel les surfaces sont decoupees
+# Projection of t onto surfaces surfs
+# optimized=0,1,2 (outer front, optimized front, front with projection on contours)
+# The following arguments are required if optimized=2 (ignored otherwise):
+# step: discretization step for regular remeshing of surfaces
+# (this step must approximately correspond to the size of projected t cells)
+# angle: angle along which surfaces are split
 #------------------------------------------------------------------------------
 def snapFront(t, surfs, optimized=1):
     """Adapt t to a given surface (cellN defined in t). 
@@ -532,7 +532,7 @@ def _snapFront(t, surfs, optimized=1):
                    arrays, optimized)
 
 #------------------------------------------------------------------------------
-# Deplacement de points de t sur ceux des surfaces surfs discretisees
+# Movement of t points onto those of discretized surfaces surfs
 #------------------------------------------------------------------------------
 def snapSharpEdges(t, surfs, step=None, angle=30.):
     """Adapt t to a given surface. 
@@ -1217,7 +1217,7 @@ def coarsenBCRanges__(r0, ni0, nj0, nk0, ni, nj, nk, dir, factor):
     i1N = i1; i2N = i2; j1N = j1; j2N = j2; k1N = k1; k2N = k2
     shift = factor-1
 
-    # nouveaux indices
+    # new indices
     if dir == 1:
         if i1 == 1: i1N = 1
         elif i1 == ni0: i1N = ni
@@ -1674,7 +1674,7 @@ def collarMesh(s1, s2, distribj, distribk,
         ranges = info[1:]
         z = C.convertArrays2ZoneNode('Collar', [info[0]])
         for r in ranges: C._addBC2Zone(z,'wall','BCWall',r)
-        # ajout des BCOverlaps
+        # add BCOverlaps
         if type == 'union':
             C._addBC2Zone(z, 'match', 'BCMatch', 'jmin', z, 'jmax', trirac=[1,2,3])
             C._addBC2Zone(z, 'match', 'BCMatch', 'jmax', z, 'jmin', trirac=[1,2,3])
@@ -1687,7 +1687,7 @@ def collarMesh(s1, s2, distribj, distribk,
     return zones
 
 #=============================================================================
-# Generation de grilles cartesiennes coincidentes
+# Generation of coincident Cartesian grids
 #=============================================================================
 def gencartmb(t, h, Dfar, nlvl):
     """Generate a Cartesian multiblock set of grids, whose sizes are based
@@ -1704,8 +1704,8 @@ def gencartmb(t, h, Dfar, nlvl):
     return zones
 
 #=============================================================================
-# Generation d'un maillage a partir d'une polyline definie par une zone
-# Retourne une liste de zones
+# Generation of a mesh from a polyline defined by a zone
+# Returns a list of zones
 #=============================================================================
 def polyLineMesher(z, h, yplus, density):
     """Generate a multiple mesh for a polyline defined by z.
@@ -1740,8 +1740,8 @@ def polyLineMesher(z, h, yplus, density):
     return [zones, hout, dout]
 
 #=============================================================================
-# Generation d'un maillage a partir d'une courbe polyC1 definie par une zone
-# Retourne une liste de zones
+# Generation of a mesh from a polyC1-curve defined by a zone
+# Returns a list of zones
 #=============================================================================
 def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
     """Generate a multiple mesh for a polyC1-curve defined by z.
@@ -1775,8 +1775,8 @@ def polyC1Mesher(z, h, yplus, density, splitCrit=10., dalpha=5., depth=1):
     return [zones, hout, dout]
 
 #=============================================================================
-# Generation d'un maillage a partir d'un polyQuad
-# Retourne une liste de zones
+# Generation of a mesh from a polyQuad
+# Returns a list of zones
 #=============================================================================
 def polyQuadMesher(z, h, hf, density, next):
     """Generate a multiple mesh for a polyquad defined by z.
@@ -1811,8 +1811,8 @@ def polyQuadMesher(z, h, hf, density, next):
     return [zones, hout, dout]
 
 #=============================================================================
-# Generation d'un maillage a partir d'un polyTri
-# Retourne une liste de zones
+# Generation of a mesh from a polyTri
+# Returns a list of zones
 #=============================================================================
 def polyTriMesher(z, h, hf, density, next):
     """Generate a multiple mesh for a polytri defined by z.
@@ -1826,7 +1826,7 @@ def polyTriMesher(z, h, hf, density, next):
     coord = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
     res = GP.polyTriMesher(coord, h, hf, density, next)
     allmeshes = res[0]; allwalls = res[1]; hout = res[2]; dout = res[3]
-    # creation des maillages
+    # creation of meshes
     noz = 1
     zones = []
     for m in allmeshes:
@@ -1864,10 +1864,10 @@ def mapSplit(z, d, split_crit, dens_max=1000):
     return zones
 
 #------------------------------------------------------------------------------
-# Calcul la carte d'orhogonalite d'une grille
-# 1D: retourne un tableau d'angles alpha constants egaux a 90 degres
-# 2D: retourne un tableau d'angles alpha
-# 3D: retourne 3 tableaux d'angles alpha (dans l'ordre alpha_IJ, alpha_IK and alpha_JK pour les grilles structures)
+# Compute the orthogonality map of a grid
+# 1D: returns an array of constant alpha angles equal to 90 degrees
+# 2D: returns an array of alpha angles
+# 3D: returns 3 arrays of alpha angles (in order alpha_IJ, alpha_IK and alpha_JK for structured grids)
 #------------------------------------------------------------------------------
 def getOrthogonalityMap(t, normalized=False):
     """Return the orthogonality map in an array.
@@ -1878,7 +1878,7 @@ def _getOrthogonalityMap(t, normalized=False):
     return C._TZGC3(t, 'centers', False, Generator.getOrthogonalityMap, normalized)
 
 #------------------------------------------------------------------------------
-# Calcul de la regularite (ratio entre des mailles adjacentes) d'une grille
+# Compute the regularity (ratio between adjacent cells) of a grid
 #------------------------------------------------------------------------------
 def getRegularityMap(t, addGC=False):
     """Return the regularity map in an array.
@@ -1897,7 +1897,7 @@ def _getRegularityMap(t, addGC=False):
     return None
 
 #------------------------------------------------------------------------------
-# Calcul de la regularite (angles entre mailles adjacentes) d'une grille
+# Compute the regularity (angles between adjacent cells) of a grid
 #------------------------------------------------------------------------------
 def getAngleRegularityMap(t, addGC=False, normalized=False):
     """Return the regularity map in an array (wrt angles).
@@ -1916,7 +1916,7 @@ def _getAngleRegularityMap(t, addGC=False, normalized=False):
     return None
 
 #------------------------------------------------------------------------------
-# Calcul la qualite pour un maillage TRI (0. triangle degenere, 1. equilateral)
+# Compute the quality for a TRI mesh (0. for degenerated triangle, 1. for equilateral)
 #------------------------------------------------------------------------------
 def getTriQualityMap(t):
     """Return the quality map of a TRI array (0. for a degenerated triangle, 1. for an equilateral one).
@@ -1929,7 +1929,7 @@ def _getTriQualityMap(t):
     return C._TZGC1(t, 'centers', False, Generator.getTriQualityMap)
 
 #------------------------------------------------------------------------------
-# Genere des pyramides ayant pour base les QUAD d'une surface donnee
+# Generates pyramids having as base the QUADs of a given surface
 #------------------------------------------------------------------------------
 def quad2Pyra(t, hratio=1.):
     """Creates a set of pyramids from a set of quads.
@@ -1937,10 +1937,10 @@ def quad2Pyra(t, hratio=1.):
     a = C.getFields(Internal.__GridCoordinates__, t, api=1)[0]
     return C.convertArrays2ZoneNode('pyra', [Generator.quad2Pyra(a, hratio)])
 
-# IN: t: arbre deep copy de torig
-# IN: t: torig: maillage originale
+# IN: t: deep copy tree of torig
+# IN: torig: original mesh
 # IN: refine: direction (1,2,3)
-# IN: dim_local: dimension=2 ou 3 -> dim
+# IN: dim_local: dimension=2 or 3 -> dim
 # refine__
 def refine__(t, torig, refine, dim):
     """Refine xyz"""

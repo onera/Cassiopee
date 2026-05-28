@@ -10,13 +10,13 @@ except ImportError:
     raise ImportError("Dist2Walls: requires Converter module.")
 
 PHIMAX = 1.e12
-# Les differents algorithmes qu'on peut choisir pour la resolution de l'equation Eikonale
+# The different algorithms that can be chosen for solving the Eikonal equation
 fmm = 0; fim = 1
-# temporaire
+# temporary
 fim_old = 2
 
 #==============================================================================
-# Calcul de la distance a la paroi pour a (tree, base, zone)
+# Compute wall distance for a (tree, base, zone)
 #==============================================================================
 def distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isIBM_F1=False, dTarget=1000.):
     """Compute distance field.
@@ -33,7 +33,7 @@ def _distance2Walls(t, bodies, type='ortho', loc='centers', signed=0, dim=3, isI
 
     bodyZones = Internal.getZones(bodies)
     bodiesa = C.getFields(Internal.__GridCoordinates__, bodyZones, api=1)
-    cellnba = [] # cellN localise au meme endroit que bodies
+    cellnba = [] # cellN localized at the same location as bodies
     varn = 'cellN'; varn2 = 'cellnf'
     for zb in bodyZones:
         posn = C.isNamePresent(zb, varn)
@@ -91,14 +91,14 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
     nzones = len(Internal.getNodesFromType2(t, 'Zone_t'))
     isConverged=[0]*nzones
     it = 0
-    nocv = 0 # nb de zones convergees
-    # calcul de la taille de maille sur le niveau le plus fin
+    nocv = 0 # number of converged zones
+    # calculation of cell size at the finest level
     dhmin = PHIMAX
     for z in Internal.getNodesFromType2(t, 'Zone_t'):
         dhmin = min(dhmin,C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0))
     while nocv < nzones and it < nitmax+1:
         print('Iteration %d'%it)
-        # Eikonal sur les zones non convergees et sources
+        # Eikonal on non-converged zones and sources
         if loc == 'nodes': C._initVars(t,'{PhiM}={Phi}')
         else: C._initVars(t,'{centers:PhiM}={centers:Phi}')
         no = 0
@@ -114,11 +114,11 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
         if tc is not None:
             no = 0
             for z in Internal.getNodesFromType2(t,"Zone_t"):
-                if isConverged[no] == -1: # a ete eikonalise: transferts
+                if isConverged[no] == -1: # has been eikonalized: transfers
                     z2 = Internal.getNodeFromName(tc, z[0])
                     C._cpVars(z, loc+':Phi', z2, 'Phi')
                     C._initVars(z2, 'flag', 1.)
-                    # PAS THREADE ?????
+                    # NOT THREADED ?????
                     X._setInterpTransfers(t, z2, variables=['Phi','flag'], variablesIBC=None)
                 no += 1
 
@@ -130,7 +130,7 @@ def _eikonal(t,tc=None,loc='nodes', nitmax=10, err=0.01,algo=fmm):
                 else:C._initVars(z,'{centers:DPhi}=abs({centers:Phi}-{centers:PhiM})/(maximum(1.e-12,{centers:Phi}))')
                 valmax = C.getMaxValue(z,loc+':DPhi')
                 dhloc = C.getValue(z,'CoordinateX',1)-C.getValue(z,'CoordinateX',0)
-                errloc = err*dhloc/dhmin # on augmente la tolerance au fur et a mesure qu on diminue la resolution
+                errloc = err*dhloc/dhmin # we increase tolerance as we decrease resolution
                 if valmax< errloc and isConverged[no]==-1:
                     isConverged[no] = 1
                     nocv += 1
@@ -180,7 +180,7 @@ def _eikonalForZone(z,loc='nodes',algo=fim_old):
     return None
 
 #------------------------------------------------------------------
-# transfert du cellN aux raccords
+# transfer cellN to matching connections
 # min/max cellN
 #------------------------------------------------------------------
 def transferCellN__(t,tc,DEPTH,loc):
@@ -188,10 +188,10 @@ def transferCellN__(t,tc,DEPTH,loc):
     try: import Connector.PyTree as X
     except ImportError:
         raise ImportError("Dist2Walls: Eikonal version requires Connector module.")
-    # POINTS EXTERIEURS
-    # Marquage des pts de front entre du 0 et du 1
+    # EXTERIOR POINTS
+    # Marking front points between 0 and 1
     t = X.setHoleInterpolatedPoints(t,depth=DEPTH,loc=loc)
-    # transfert du cellN aux raccords
+    # transfer cellN to matching connections
     if tc is not None:
         C._cpVars(t,loc+':cellN',tc,'cellN')
         for zc in Internal.getNodesFromType2(tc,"Zone_t"):
@@ -211,12 +211,12 @@ def transferCellN__(t,tc,DEPTH,loc):
         C._initVars(t,'{centers:cellN} = 1-{centers:cellN}+({centers:cellN}>1.5)*3')
         C._initVars(t,'{centers:cellN2}={centers:cellN}')
 
-    # POINTS INTERIEURS
+    # INTERIOR POINTS
     if loc == 'nodes': C._initVars(t,'{cellN}=minimum(1.,{cellN})')
     else: C._initVars(t,'{centers:cellN}=minimum(1.,{centers:cellN})')
 
     t = X.setHoleInterpolatedPoints(t,depth=-DEPTH,loc=loc)
-    # transfert du cellN aux raccords
+    # transfer cellN to matching connections
     if tc is not None:
         C._cpVars(t,loc+':cellN',tc,'cellN')
         for zc in Internal.getNodesFromType2(tc,"Zone_t"):
@@ -254,21 +254,21 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
 
     if loc == 'nodes':
         C._initVars(t,'{sign}=({cellN}>0.)-1.*({cellN}<1.)')
-        # Marquage des points
+        # Marking points
         C._initVars(t,'{Phi}=%g*{flag}'%PHIMAX)#'Phi=%g*({flag}<1.)+({flag}>0.)'%PHIMAX)
 
     else:
         C._initVars(t,'{centers:sign}=({centers:cellN}>0.)-1.*({centers:cellN}<1.)')
-        # Marquage des points
+        # Marking points
         C._initVars(t,'{centers:Phi}=%g*({centers:flag}<1.)+({centers:flag}>0.)'%PHIMAX)
 
     #----------------------------------------------
-    # Marquage des pts de front entre du 0 et du 1
+    # Marking front points between 0 and 1
     #----------------------------------------------
-    #print('transfer cellN : a passer par la fonction recente de Connector')
+    #print('transfer cellN : to be done through the recent Connector function')
     t = transferCellN__(t,tc,DEPTH,loc)
 
-    # Initialisation du front
+    # Front initialization
     #print('initDistance')
     #beg2 = time.time()
     for z in Internal.getZones(t):
@@ -279,12 +279,13 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         C._initVars(t,distName,PHIMAX)
         #end4 = time.time()
         #print("Temps init vars phi : {} secondes".format(end4-beg4))
-        # calcul de la distance a la paroi reelle
+        # calculation of distance to real wall
         if C.getMaxValue(z,flagName) == 1.:
             #beg3 = time.time()
             _distance2Walls(z,body,type='ortho',loc=loc)
             #end3 = time.time()
             #print("Calcul distance initiale : {} secondes".format(end3-beg3))
+            #print("Initial distance calculation: {} seconds".format(end3-beg3))
 
         #beg5 = time.time()
         if loc == 'nodes':
@@ -293,6 +294,7 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
             C._initVars(z,'{centers:Phi}={centers:TurbulentDistance}*({centers:flag}>0.)+%g*({centers:flag}<1.)'%PHIMAX)
         #end5 = time.time()
         #print("Temps passe init var turbulentDistance : {} secondes".format(end5-beg5))
+        #print("Time spent initializing turbulentDistance var: {} seconds".format(end5-beg5))
 
         if type == 0:
             ni = dims[1]; nj = dims[2]; nk = dims[3]
@@ -305,8 +307,10 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
         else: C._initVars(z,loc+':speed',1.)
     #end2 =time.time()
     #print("Temps initialisation au front : {} secondes".format(end2-beg2))
+    #print("Front initialization time: {} seconds".format(end2-beg2))
     #end = time.time()
     #print("Temps initialisation champs pour l'Eikonal : {} secondes".format(end-beg))
+    #print("Eikonal field initialization time: {} seconds".format(end-beg))
     # Eikonal
     #print('eikonal')
     _eikonal(t,tc,loc=loc, nitmax=nitmax, err=err,algo=algo)
@@ -314,8 +318,8 @@ def distance2WallsEikonal(t, body, tc=None, DEPTH=2, loc='nodes', err=0.01, nitm
     #-----------------------------------------------------------------------------
     if loc =='nodes':
         C._initVars(t,'{TurbulentDistance}={sign}*{Phi}')
-        C._rmVars(t,['flag','PhiM','DPhi','speed','Phi']) # pour l instant on detruit tout
+        C._rmVars(t,['flag','PhiM','DPhi','speed','Phi']) # for now we destroy everything
     else:
         C._initVars(t,'{centers:TurbulentDistance}={centers:sign}*{centers:Phi}')
-        C._rmVars(t,['centers:flag','centers:PhiM','centers:DPhi','centers:speed','centers:Phi']) # pour l instant on detruit tout
+        C._rmVars(t,['centers:flag','centers:PhiM','centers:DPhi','centers:speed','centers:Phi']) # for now we destroy everything
     return t

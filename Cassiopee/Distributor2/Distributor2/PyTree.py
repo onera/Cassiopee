@@ -8,9 +8,9 @@ import numpy
 __version__ = Distributor2.__version__
 
 #==============================================================================
-# Calcul la liste des bbox
-# IN: arrays: liste des zones sous forme array
-# IN: zoneNames: nom des zones correspondant
+# Calculate the list of bboxes
+# IN: arrays: list of zones in array form
+# IN: zoneNames: names of corresponding zones
 #==============================================================================
 def computeBBoxes__(arrays, zoneNames):
     bboxes = []; c = 0
@@ -19,7 +19,7 @@ def computeBBoxes__(arrays, zoneNames):
         except: bb = [0,0,0,1,1,1,zoneNames[c],False]
         bboxes.append(bb)
         c += 1
-    # Parallel eventuel
+    # Optional parallel
     try:
         import Converter.Mpi as Cmpi
         allboxes = Cmpi.allgather(bboxes)
@@ -34,7 +34,7 @@ def computeBBoxes__(arrays, zoneNames):
     except: pass
     return bboxes
 
-# Retourne une cle unique pour le dictionnaire de com
+# Returns a unique key for the communication dictionary
 def addCom__(comd, c, d, NBlocs, vol):
     key = c+d*NBlocs
     if key in comd: comd[key] += vol
@@ -54,7 +54,7 @@ def addCom__(comd, c, d, NBlocs, vol):
 # if useCom='overlap', take only overlap into account (full/load skel)
 # if useCom='bbox', take bbox intersection into account (full/load skel)
 # IN: algorithm: gradient0, gradient1, genetic, fast
-# IN: nghost: nbre de couches de ghost cells ajoutees
+# IN: nghost: number of added ghost cell layers
 #==============================================================================
 def distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='match',
                algorithm='graph', mode='nodes', nghost=0, tbb=None):
@@ -74,13 +74,13 @@ def _distribute(t, NProc, prescribed=None, perfo=None, weight=None, useCom='matc
 
     (nbPts, aset, com, comd, weightlist) = getData__(t, NProc, prescribed, weight, useCom, mode, tbb)
 
-    # Equilibrage
+    # Balancing
     out = Distributor2.distribute(nbPts, NProc, prescribed=aset,
                                   com=com, comd=comd,
                                   perfo=perfo, weight=weightlist,
                                   algorithm=algorithm, mode=mode, nghost=nghost)
 
-    # Sortie
+    # Output
     zones = Internal.getZones(t)
     procs = out['distrib']
     i = 0
@@ -136,7 +136,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
     com = None; comd = {}
 
     if useCom == 'match' or useCom == 'all':
-        # Formation des coms - raccords coincidents
+        # Formation of coms - matching connections
         tpp, typen = Internal.node2PyTree(t)
         bases = Internal.getBases(tpp)
         zc = 0; c = 0
@@ -147,7 +147,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
             for z in zones: mdict[z[0]] = pc; pc += 1
 
             for z in zones:
-                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t') # forcement structure
+                match = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t') # necessarily structured
                 for m in match:
                     donorName = Internal.getValue(m)
                     if donorName in mdict: d = mdict[donorName]+zc
@@ -158,7 +158,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
                         w = Internal.range2Window(win)
                         vol = (w[1]-w[0]+1)*(w[3]-w[2]+1)*(w[5]-w[4]+1)
                         if d != -1: addCom__(comd, c, d, Nb, vol)
-                match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # non structure
+                match = Internal.getNodesFromType2(z, 'GridConnectivity_t') # unstructured
                 for m in match:
                     donorName = Internal.getValue(m)
                     if donorName in mdict: d = mdict[donorName]+zc
@@ -171,7 +171,7 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
             zc += len(zones)
 
     if useCom == 'overlap' or useCom == 'all':
-        # Formation des coms - raccords recouvrants
+        # Formation of coms - overlapping connections
         tol = 1.e-12
         bboxes = computeBBoxes__(arrays, zoneNames)
         c = 0
@@ -205,13 +205,13 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
             c += 1
 
     if useCom == 'bbox':
-        # Formation des coms - si les blocs se recouvrent
+        # Formation of coms - if blocks overlap
         tol = 1.e-12
         if tbb is None:
-            # Calcul les bbox a partir de l'arbre
+            # Calculate bboxes from the tree
             bboxes = computeBBoxes__(arrays, zoneNames)
         else:
-            # Calcul les bbox a partir d'un arbre de bbox global
+            # Calculate bboxes from a global bbox tree
             bboxes = []
             for z in Internal.getZones(tbb):
                 minx = C.getMinValue(z, 'CoordinateX')
@@ -262,8 +262,8 @@ def getData__(t, NProc, prescribed=None, weight=None, useCom='match', mode='node
     return (nbPts, aset, com, comd, weightlist)
 
 #==============================================================================
-# Retourne le dictionnaire proc['blocName']
-# a partir d'un arbre distribue contenant des noeuds proc
+# Returns the dictionary proc['blocName']
+# from a distributed tree containing proc nodes
 #==============================================================================
 def getProcDict(t, prefixByBase=False):
     """Return the proc of a zone in a dictionary proc['zoneName']."""
@@ -281,7 +281,7 @@ def getProcDict(t, prefixByBase=False):
     return proc
 
 #==============================================================================
-# Retourne la liste des zones pour un processeur donne
+# Returns the list of zones for a given processor
 #==============================================================================
 def getProcList(t, NProc=None, sort=False):
     """Return the list of zones for each proc."""
@@ -296,19 +296,19 @@ def getProcList(t, NProc=None, sort=False):
     procList = []
     for s in range(NProc): procList.append([])
 
-    if not sort: # pas de tri
+    if not sort: # no sorting
         for z in zones:
             proc = Internal.getNodeFromName2(z, 'proc')
             if proc is not None:
                 procList[Internal.getValue(proc)].append(z[0])
 
     else:
-        # On trie les zones par taille decroissante
+        # Sort zones by decreasing size
         bases = Internal.getNodesFromType1(t, 'CGNSBase_t')
         for base in bases:
             zones = Internal.getNodesFromType1(base, 'Zone_t')
 
-            # calcul taille de la zone
+            # calculate zone size
             sizeZone = []
             for z in zones:
                 dim = Internal.getZoneDim(z)
@@ -319,7 +319,7 @@ def getProcList(t, NProc=None, sort=False):
                 else: ndimdx = dim[2]
                 sizeZone.append( (z,ndimdx) )
 
-            # Tri les zones par taille decroissante
+            # Sort zones by decreasing size
             newZones = sorted(sizeZone, key=lambda x: x[1], reverse=True)
 
             for z in newZones:
@@ -331,8 +331,8 @@ def getProcList(t, NProc=None, sort=False):
     return procList
 
 #==============================================================================
-# Copie la distribution de b dans a
-# Match par noms
+# Copy distribution of b into a
+# Match by names
 #==============================================================================
 def copyDistribution(a, b):
     """Copy distribution of a in b."""
@@ -381,9 +381,9 @@ def _addProcNode(t, proc):
 
 #==============================================================================
 # getProc
-# Si une seule zone: retourne proc
-# Si plusieurs zones: retourne [procs]
-# Si non trouve, retourne -1
+# If only one zone: returns proc
+# If multiple zones: returns [procs]
+# If not found, returns -1
 #==============================================================================
 def getProc(t):
     """Return the value of proc node."""
