@@ -115,7 +115,7 @@ CAD to surface mesh
 
     .. literalinclude:: ../build/Examples/OCC/projectOnFacesPT.py
 
-.. py:function:: OCC.PyTree.meshDeviation(hook, t)
+.. py:function:: OCC.PyTree._meshDeviation(hook, t)
 
     Measure deviation of mesh to CAD.
     Project the center of mesh triangles on CAD and return the projection distance

@@ -19,7 +19,7 @@ from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, \
     getFaceNos, getEdgeNos, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
-    _translate, _rotate, _scale, _sewing, _reverse, _splitFaces, \
+    _translate, _rotate, _scale, _fixShape, _sewing, _reverse, _splitFaces, \
     _mergeFaces, _trimFaces, _removeFaces, _fillHole, \
     _addFillet, _offset, mergeCAD, _splitEdge, \
     _addArc, _addCircle, _addEllipse, _addSuperEllipse, _addLine, \
