@@ -115,13 +115,13 @@ PyObject* K_GENERATOR::TFI3D(PyObject* arrays)
   {
     for (E_Int nos = 0; nos < nzones; nos++)
       RELEASESHAREDS(objs[nos], fields[nos]);
-    if ( isok == -1)
+    if (isok == -1)
       PyErr_SetString(PyExc_TypeError,
                       "TFI: imin and imax borders are not of same size ni.");
-    else if ( isok == -2)
+    else if (isok == -2)
       PyErr_SetString(PyExc_TypeError,
                       "TFI: jmin and jmax borders are not of same size nj.");
-    else if ( isok == -3)
+    else if (isok == -3)
       PyErr_SetString(PyExc_TypeError,
                       "TFI: kmin and kmax borders are not of same size nk.");    
     else    
@@ -150,51 +150,58 @@ short K_GENERATOR::TFIstruct3D(
   E_Float invni1 = 1./ni1;
   E_Float invnj1 = 1./nj1;
   E_Float invnk1 = 1./nk1;
-  E_Int ind, indij, indjk, indik;
-  E_Float ip, jp, kp, ip1, jp1, kp1, t1x, t2x, t3x;
   E_Int ninj = ni*nj;
-  for (E_Int eq = 1; eq <= nfld; eq++)
+
+  #pragma omp parallel
   {
-    E_Float* ximin = fields[imin]->begin(eq);
-    E_Float* ximax = fields[imax]->begin(eq);
-    E_Float* xjmin = fields[jmin]->begin(eq);
-    E_Float* xjmax = fields[jmax]->begin(eq);
-    E_Float* xkmin = fields[kmin]->begin(eq);
-    E_Float* xkmax = fields[kmax]->begin(eq);
-    E_Float* xt = coords.begin(eq);
-    for (E_Int k = 0; k < nk; k++)
-      for (E_Int j = 0; j < nj; j++)
-        for (E_Int i = 0; i < ni; i++)
-        {
-          ind = i + j * ni + k * ninj;
-          ip = i*invni1;ip1 = 1.-ip;
-          jp = j*invnj1;jp1 = 1.-jp;
-          kp = k*invnk1; kp1 = 1.-kp;
-          indij = i+j*ni;
-          indjk = j+k*nj;
-          indik = i+k*ni;
-          t1x = 
-            ip1 * ximin[indjk] + ip * ximax[indjk] +
-            jp1 * xjmin[indik] + jp * xjmax[indik] +
-            kp1 * xkmin[indij] + kp * xkmax[indij];
+    E_Int ind, indij, indjk, indik;
+    E_Float ip, jp, kp, ip1, jp1, kp1, t1x, t2x, t3x;
 
-         t2x = 
-           ip1 * (jp1*ximin[k*nj] + jp*ximin[nj1+k*nj]) + ip * (jp1*ximax[k*nj] + jp*ximax[nj1+k*nj]) +
-           jp1 * (kp1*xjmin[i]    + kp*xjmin[i+nk1*ni]) + jp * (kp1*xjmax[i]    + kp*xjmax[i+nk1*ni]) +
-           kp1 * (ip1*xkmin[j*ni] + ip*xkmin[ni1+j*ni]) + kp * (ip1*xkmax[j*ni] + ip*xkmax[ni1+j*ni]);
+    for (E_Int eq = 1; eq <= nfld; eq++)
+    {
+      E_Float* ximin = fields[imin]->begin(eq);
+      E_Float* ximax = fields[imax]->begin(eq);
+      E_Float* xjmin = fields[jmin]->begin(eq);
+      E_Float* xjmax = fields[jmax]->begin(eq);
+      E_Float* xkmin = fields[kmin]->begin(eq);
+      E_Float* xkmax = fields[kmax]->begin(eq);
+      E_Float* xt = coords.begin(eq);
 
+      #pragma omp for collapse(3)
+      for (E_Int k = 0; k < nk; k++)
+        for (E_Int j = 0; j < nj; j++)
+          for (E_Int i = 0; i < ni; i++)
+          {
+            ind = i + j * ni + k * ninj;
+            ip = i*invni1;ip1 = 1.-ip;
+            jp = j*invnj1;jp1 = 1.-jp;
+            kp = k*invnk1; kp1 = 1.-kp;
+            indij = i+j*ni;
+            indjk = j+k*nj;
+            indik = i+k*ni;
+            t1x = 
+              ip1 * ximin[indjk] + ip * ximax[indjk] +
+              jp1 * xjmin[indik] + jp * xjmax[indik] +
+              kp1 * xkmin[indij] + kp * xkmax[indij];
 
-         t3x = 
-           ip1*jp1* ( kp1 * xkmin[0]     + kp * xkmax[0] ) + 
-           ip1*jp * ( kp1 * xkmin[nj1*ni]+ kp * xkmax[nj1*ni] ) +
-           ip*jp1 * ( kp1 * xkmin[ni1]   + kp * xkmax[ni1]) + 
-           ip*jp  * ( kp1 * xkmin[ni1+nj1*ni] + kp * xkmax[ni1+nj1*ni]);
+            t2x = 
+              ip1 * (jp1*ximin[k*nj] + jp*ximin[nj1+k*nj]) + ip * (jp1*ximax[k*nj] + jp*ximax[nj1+k*nj]) +
+              jp1 * (kp1*xjmin[i]    + kp*xjmin[i+nk1*ni]) + jp * (kp1*xjmax[i]    + kp*xjmax[i+nk1*ni]) +
+              kp1 * (ip1*xkmin[j*ni] + ip*xkmin[ni1+j*ni]) + kp * (ip1*xkmax[j*ni] + ip*xkmax[ni1+j*ni]);
+
+            t3x = 
+              ip1*jp1* ( kp1 * xkmin[0]     + kp * xkmax[0] ) + 
+              ip1*jp * ( kp1 * xkmin[nj1*ni]+ kp * xkmax[nj1*ni] ) +
+              ip*jp1 * ( kp1 * xkmin[ni1]   + kp * xkmax[ni1]) + 
+              ip*jp  * ( kp1 * xkmin[ni1+nj1*ni] + kp * xkmax[ni1+nj1*ni]);
         
-         xt[ind] = t1x - t2x + t3x;
-        }
+            xt[ind] = t1x - t2x + t3x;
+          }
+    }
   }
   return 1;
 }
+
 //============================================================================
 /* TFI 3D structure.*/
 //============================================================================
@@ -207,8 +214,6 @@ short K_GENERATOR::TFIstruct3D2(
   E_Int ni1 = ni-1;
   E_Int nj1 = nj-1;
   E_Int nk1 = nk-1;
-  E_Int ind, indij, indjk, indik;
-  E_Float t1x, t3x, t2x12, t2x13, t2x23;
   E_Int ninj = ni*nj;
   if ( fields[imin]->getSize() != fields[imax]->getSize()) return -1;
   if ( fields[jmin]->getSize() != fields[jmax]->getSize()) return -2;
@@ -253,166 +258,174 @@ short K_GENERATOR::TFIstruct3D2(
   E_Int indicejmaxkmax = nj1+nk1*nj;
   //E_Int indiceimaxkmax = ni1+nk1*ni;
 
-  for (E_Int eq = 1; eq <= nfld; eq++)
+  #pragma omp parallel
   {
-    E_Float* ximin = fields[imin]->begin(eq);
-    E_Float* ximax = fields[imax]->begin(eq);
-    E_Float* xjmin = fields[jmin]->begin(eq);
-    E_Float* xjmax = fields[jmax]->begin(eq);
-    E_Float* xkmin = fields[kmin]->begin(eq);
-    E_Float* xkmax = fields[kmax]->begin(eq);
-    E_Float* xt = coords.begin(eq);
-    for (E_Int k = 0; k < nk; k++)
-      for (E_Int j = 0; j < nj; j++)
-        for (E_Int i = 0; i < ni; i++)
-        {
-          ind = i + j * ni + k * ninj;
-          indij = i+j*ni;
-          indjk = j+k*nj;
-          indik = i+k*ni;
+    E_Int ind, indij, indjk, indik;
+    E_Float t1x, t3x, t2x12, t2x13, t2x23;
 
-          //  permutations courant/fixe min/max pour 3 couple d'indices
-          E_Int indicei_jmin = i+0*ni;
-          E_Int indicej_kmin = j+0*nj;
-          E_Int indicei_kmin = i+0*ni;
+    for (E_Int eq = 1; eq <= nfld; eq++)
+    {
+      E_Float* ximin = fields[imin]->begin(eq);
+      E_Float* ximax = fields[imax]->begin(eq);
+      E_Float* xjmin = fields[jmin]->begin(eq);
+      E_Float* xjmax = fields[jmax]->begin(eq);
+      E_Float* xkmin = fields[kmin]->begin(eq);
+      E_Float* xkmax = fields[kmax]->begin(eq);
+      E_Float* xt = coords.begin(eq);
 
-          E_Int indiceimin_j = 0+j*ni;
-          E_Int indicejmin_k = 0+k*nj;
-          E_Int indiceimin_k = 0+k*ni;
+      #pragma omp for collapse(3)
+      for (E_Int k = 0; k < nk; k++)
+        for (E_Int j = 0; j < nj; j++)
+          for (E_Int i = 0; i < ni; i++)
+          {
+            ind = i + j * ni + k * ninj;
+            indij = i+j*ni;
+            indjk = j+k*nj;
+            indik = i+k*ni;
 
-          E_Int indiceimax_j = ni1+j*ni;
-          E_Int indicejmax_k = nj1+k*nj;
-          E_Int indiceimax_k = ni1+k*ni;
+            //  permutations courant/fixe min/max pour 3 couple d'indices
+            E_Int indicei_jmin = i+0*ni;
+            E_Int indicej_kmin = j+0*nj;
+            E_Int indicei_kmin = i+0*ni;
 
-          E_Int indicei_jmax = i+nj1*ni;
-          E_Int indicej_kmax = j+nk1*nj;
-          E_Int indicei_kmax = i+nk1*ni;
+            E_Int indiceimin_j = 0+j*ni;
+            E_Int indicejmin_k = 0+k*nj;
+            E_Int indiceimin_k = 0+k*ni;
 
-          E_Int indice_i_j = i+j*ni;
-          E_Int indice_j_k = j+k*nj;
-          E_Int indice_i_k = i+k*ni;
+            E_Int indiceimax_j = ni1+j*ni;
+            E_Int indicejmax_k = nj1+k*nj;
+            E_Int indiceimax_k = ni1+k*ni;
 
-          //  2 ponderations par faces donc 12 ponderations
-          E_Float pondximindisttotalj = pow( pow((pondximin[indicejmax_k] - pondximin[indicejmin_k]) , 2.0) + pow((pondyimin[indicejmax_k] - pondyimin[indicejmin_k]) , 2.0) + pow((pondzimin[indicejmax_k] - pondzimin[indicejmin_k]) , 2.0) , 0.5);
-          E_Float pondximindisttotalk = pow( pow((pondximin[indicej_kmax] - pondximin[indicej_kmin]) , 2.0) + pow((pondyimin[indicej_kmax] - pondyimin[indicej_kmin]) , 2.0) + pow((pondzimin[indicej_kmax] - pondzimin[indicej_kmin]) , 2.0) , 0.5);
-          E_Float pondximaxdisttotalj = pow( pow((pondximax[indicejmax_k] - pondximax[indicejmin_k]) , 2.0) + pow((pondyimax[indicejmax_k] - pondyimax[indicejmin_k]) , 2.0) + pow((pondzimax[indicejmax_k] - pondzimax[indicejmin_k]) , 2.0) , 0.5);
-          E_Float pondximaxdisttotalk = pow( pow((pondximax[indicej_kmax] - pondximax[indicej_kmin]) , 2.0) + pow((pondyimax[indicej_kmax] - pondyimax[indicej_kmin]) , 2.0) + pow((pondzimax[indicej_kmax] - pondzimax[indicej_kmin]) , 2.0) , 0.5);
+            E_Int indicei_jmax = i+nj1*ni;
+            E_Int indicej_kmax = j+nk1*nj;
+            E_Int indicei_kmax = i+nk1*ni;
 
-          E_Float pondxjmindisttotali = pow( pow((pondxjmin[indiceimax_k] - pondxjmin[indiceimin_k]) , 2.0) + pow((pondyjmin[indiceimax_k] - pondyjmin[indiceimin_k]) , 2.0) + pow((pondzjmin[indiceimax_k] - pondzjmin[indiceimin_k]) , 2.0) , 0.5);
-          E_Float pondxjmindisttotalk = pow( pow((pondxjmin[indicei_kmax] - pondxjmin[indicei_kmin]) , 2.0) + pow((pondyjmin[indicei_kmax] - pondyjmin[indicei_kmin]) , 2.0) + pow((pondzjmin[indicei_kmax] - pondzjmin[indicei_kmin]) , 2.0) , 0.5);
-          E_Float pondxjmaxdisttotali = pow( pow((pondxjmax[indiceimax_k] - pondxjmax[indiceimin_k]) , 2.0) + pow((pondyjmax[indiceimax_k] - pondyjmax[indiceimin_k]) , 2.0) + pow((pondzjmax[indiceimax_k] - pondzjmax[indiceimin_k]) , 2.0) , 0.5);
-          E_Float pondxjmaxdisttotalk = pow( pow((pondxjmax[indicei_kmax] - pondxjmax[indicei_kmin]) , 2.0) + pow((pondyjmax[indicei_kmax] - pondyjmax[indicei_kmin]) , 2.0) + pow((pondzjmax[indicei_kmax] - pondzjmax[indicei_kmin]) , 2.0) , 0.5);
+            E_Int indice_i_j = i+j*ni;
+            E_Int indice_j_k = j+k*nj;
+            E_Int indice_i_k = i+k*ni;
 
-          E_Float pondxkmindisttotali = pow( pow((pondxkmin[indiceimax_j] - pondxkmin[indiceimin_j]) , 2.0) + pow((pondykmin[indiceimax_j] - pondykmin[indiceimin_j]) , 2.0) + pow((pondzkmin[indiceimax_j] - pondzkmin[indiceimin_j]) , 2.0) , 0.5);
-          E_Float pondxkmindisttotalj = pow( pow((pondxkmin[indicei_jmax] - pondxkmin[indicei_jmin]) , 2.0) + pow((pondykmin[indicei_jmax] - pondykmin[indicei_jmin]) , 2.0) + pow((pondzkmin[indicei_jmax] - pondzkmin[indicei_jmin]) , 2.0) , 0.5);
-          E_Float pondxkmaxdisttotali = pow( pow((pondxkmax[indiceimax_j] - pondxkmax[indiceimin_j]) , 2.0) + pow((pondykmax[indiceimax_j] - pondykmax[indiceimin_j]) , 2.0) + pow((pondzkmax[indiceimax_j] - pondzkmax[indiceimin_j]) , 2.0) , 0.5);
-          E_Float pondxkmaxdisttotalj = pow( pow((pondxkmax[indicei_jmax] - pondxkmax[indicei_jmin]) , 2.0) + pow((pondykmax[indicei_jmax] - pondykmax[indicei_jmin]) , 2.0) + pow((pondzkmax[indicei_jmax] - pondzkmax[indicei_jmin]) , 2.0) , 0.5);
+            //  2 ponderations par faces donc 12 ponderations
+            E_Float pondximindisttotalj = pow( pow((pondximin[indicejmax_k] - pondximin[indicejmin_k]) , 2.0) + pow((pondyimin[indicejmax_k] - pondyimin[indicejmin_k]) , 2.0) + pow((pondzimin[indicejmax_k] - pondzimin[indicejmin_k]) , 2.0) , 0.5);
+            E_Float pondximindisttotalk = pow( pow((pondximin[indicej_kmax] - pondximin[indicej_kmin]) , 2.0) + pow((pondyimin[indicej_kmax] - pondyimin[indicej_kmin]) , 2.0) + pow((pondzimin[indicej_kmax] - pondzimin[indicej_kmin]) , 2.0) , 0.5);
+            E_Float pondximaxdisttotalj = pow( pow((pondximax[indicejmax_k] - pondximax[indicejmin_k]) , 2.0) + pow((pondyimax[indicejmax_k] - pondyimax[indicejmin_k]) , 2.0) + pow((pondzimax[indicejmax_k] - pondzimax[indicejmin_k]) , 2.0) , 0.5);
+            E_Float pondximaxdisttotalk = pow( pow((pondximax[indicej_kmax] - pondximax[indicej_kmin]) , 2.0) + pow((pondyimax[indicej_kmax] - pondyimax[indicej_kmin]) , 2.0) + pow((pondzimax[indicej_kmax] - pondzimax[indicej_kmin]) , 2.0) , 0.5);
 
+            E_Float pondxjmindisttotali = pow( pow((pondxjmin[indiceimax_k] - pondxjmin[indiceimin_k]) , 2.0) + pow((pondyjmin[indiceimax_k] - pondyjmin[indiceimin_k]) , 2.0) + pow((pondzjmin[indiceimax_k] - pondzjmin[indiceimin_k]) , 2.0) , 0.5);
+            E_Float pondxjmindisttotalk = pow( pow((pondxjmin[indicei_kmax] - pondxjmin[indicei_kmin]) , 2.0) + pow((pondyjmin[indicei_kmax] - pondyjmin[indicei_kmin]) , 2.0) + pow((pondzjmin[indicei_kmax] - pondzjmin[indicei_kmin]) , 2.0) , 0.5);
+            E_Float pondxjmaxdisttotali = pow( pow((pondxjmax[indiceimax_k] - pondxjmax[indiceimin_k]) , 2.0) + pow((pondyjmax[indiceimax_k] - pondyjmax[indiceimin_k]) , 2.0) + pow((pondzjmax[indiceimax_k] - pondzjmax[indiceimin_k]) , 2.0) , 0.5);
+            E_Float pondxjmaxdisttotalk = pow( pow((pondxjmax[indicei_kmax] - pondxjmax[indicei_kmin]) , 2.0) + pow((pondyjmax[indicei_kmax] - pondyjmax[indicei_kmin]) , 2.0) + pow((pondzjmax[indicei_kmax] - pondzjmax[indicei_kmin]) , 2.0) , 0.5);
 
-          E_Float inv_pondximindisttotalj = 1.0 / pondximindisttotalj ;
-          E_Float inv_pondximindisttotalk = 1.0 / pondximindisttotalk ;
-          E_Float inv_pondximaxdisttotalj = 1.0 / pondximaxdisttotalj ;
-          E_Float inv_pondximaxdisttotalk = 1.0 / pondximaxdisttotalk ;
-          E_Float inv_pondxjmindisttotali = 1.0 / pondxjmindisttotali ;
-          E_Float inv_pondxjmindisttotalk = 1.0 / pondxjmindisttotalk ;
-          E_Float inv_pondxjmaxdisttotali = 1.0 / pondxjmaxdisttotali ;
-          E_Float inv_pondxjmaxdisttotalk = 1.0 / pondxjmaxdisttotalk ;
-          E_Float inv_pondxkmindisttotali = 1.0 / pondxkmindisttotali ;
-          E_Float inv_pondxkmindisttotalj = 1.0 / pondxkmindisttotalj ;
-          E_Float inv_pondxkmaxdisttotali = 1.0 / pondxkmaxdisttotali ;
-          E_Float inv_pondxkmaxdisttotalj = 1.0 / pondxkmaxdisttotalj ;
+            E_Float pondxkmindisttotali = pow( pow((pondxkmin[indiceimax_j] - pondxkmin[indiceimin_j]) , 2.0) + pow((pondykmin[indiceimax_j] - pondykmin[indiceimin_j]) , 2.0) + pow((pondzkmin[indiceimax_j] - pondzkmin[indiceimin_j]) , 2.0) , 0.5);
+            E_Float pondxkmindisttotalj = pow( pow((pondxkmin[indicei_jmax] - pondxkmin[indicei_jmin]) , 2.0) + pow((pondykmin[indicei_jmax] - pondykmin[indicei_jmin]) , 2.0) + pow((pondzkmin[indicei_jmax] - pondzkmin[indicei_jmin]) , 2.0) , 0.5);
+            E_Float pondxkmaxdisttotali = pow( pow((pondxkmax[indiceimax_j] - pondxkmax[indiceimin_j]) , 2.0) + pow((pondykmax[indiceimax_j] - pondykmax[indiceimin_j]) , 2.0) + pow((pondzkmax[indiceimax_j] - pondzkmax[indiceimin_j]) , 2.0) , 0.5);
+            E_Float pondxkmaxdisttotalj = pow( pow((pondxkmax[indicei_jmax] - pondxkmax[indicei_jmin]) , 2.0) + pow((pondykmax[indicei_jmax] - pondykmax[indicei_jmin]) , 2.0) + pow((pondzkmax[indicei_jmax] - pondzkmax[indicei_jmin]) , 2.0) , 0.5);
 
 
-          //  2 ponderations par faces donc 12 ponderations
-          E_Float pondximindistpartialj = pow( pow((pondximin[indice_j_k] - pondximin[indicejmin_k]) , 2.0) + pow((pondyimin[indice_j_k] - pondyimin[indicejmin_k]) , 2.0) + pow((pondzimin[indice_j_k] - pondzimin[indicejmin_k]) , 2.0) , 0.5);
-          E_Float pondximindistpartialk = pow( pow((pondximin[indice_j_k] - pondximin[indicej_kmin]) , 2.0) + pow((pondyimin[indice_j_k] - pondyimin[indicej_kmin]) , 2.0) + pow((pondzimin[indice_j_k] - pondzimin[indicej_kmin]) , 2.0) , 0.5);
-          E_Float pondximaxdistpartialj = pow( pow((pondximax[indice_j_k] - pondximax[indicejmin_k]) , 2.0) + pow((pondyimax[indice_j_k] - pondyimax[indicejmin_k]) , 2.0) + pow((pondzimax[indice_j_k] - pondzimax[indicejmin_k]) , 2.0) , 0.5);
-          E_Float pondximaxdistpartialk = pow( pow((pondximax[indice_j_k] - pondximax[indicej_kmin]) , 2.0) + pow((pondyimax[indice_j_k] - pondyimax[indicej_kmin]) , 2.0) + pow((pondzimax[indice_j_k] - pondzimax[indicej_kmin]) , 2.0) , 0.5);
-
-          E_Float pondxjmindistpartiali = pow( pow((pondxjmin[indice_i_k] - pondxjmin[indiceimin_k]) , 2.0) + pow((pondyjmin[indice_i_k] - pondyjmin[indiceimin_k]) , 2.0) + pow((pondzjmin[indice_i_k] - pondzjmin[indiceimin_k]) , 2.0) , 0.5);
-          E_Float pondxjmindistpartialk = pow( pow((pondxjmin[indice_i_k] - pondxjmin[indicei_kmin]) , 2.0) + pow((pondyjmin[indice_i_k] - pondyjmin[indicei_kmin]) , 2.0) + pow((pondzjmin[indice_i_k] - pondzjmin[indicei_kmin]) , 2.0) , 0.5);
-          E_Float pondxjmaxdistpartiali = pow( pow((pondxjmax[indice_i_k] - pondxjmax[indiceimin_k]) , 2.0) + pow((pondyjmax[indice_i_k] - pondyjmax[indiceimin_k]) , 2.0) + pow((pondzjmax[indice_i_k] - pondzjmax[indiceimin_k]) , 2.0) , 0.5);
-          E_Float pondxjmaxdistpartialk = pow( pow((pondxjmax[indice_i_k] - pondxjmax[indicei_kmin]) , 2.0) + pow((pondyjmax[indice_i_k] - pondyjmax[indicei_kmin]) , 2.0) + pow((pondzjmax[indice_i_k] - pondzjmax[indicei_kmin]) , 2.0) , 0.5);
-
-          E_Float pondxkmindistpartiali = pow( pow((pondxkmin[indice_i_j] - pondxkmin[indiceimin_j]) , 2.0) + pow((pondykmin[indice_i_j] - pondykmin[indiceimin_j]) , 2.0) + pow((pondzkmin[indice_i_j] - pondzkmin[indiceimin_j]) , 2.0) , 0.5);
-          E_Float pondxkmindistpartialj = pow( pow((pondxkmin[indice_i_j] - pondxkmin[indicei_jmin]) , 2.0) + pow((pondykmin[indice_i_j] - pondykmin[indicei_jmin]) , 2.0) + pow((pondzkmin[indice_i_j] - pondzkmin[indicei_jmin]) , 2.0) , 0.5);
-          E_Float pondxkmaxdistpartiali = pow( pow((pondxkmax[indice_i_j] - pondxkmax[indiceimin_j]) , 2.0) + pow((pondykmax[indice_i_j] - pondykmax[indiceimin_j]) , 2.0) + pow((pondzkmax[indice_i_j] - pondzkmax[indiceimin_j]) , 2.0) , 0.5);
-          E_Float pondxkmaxdistpartialj = pow( pow((pondxkmax[indice_i_j] - pondxkmax[indicei_jmin]) , 2.0) + pow((pondykmax[indice_i_j] - pondykmax[indicei_jmin]) , 2.0) + pow((pondzkmax[indice_i_j] - pondzkmax[indicei_jmin]) , 2.0) , 0.5);
-
-          //  2 ratio par couple de face donc 12 ratio
-          E_Float pondximindistratioj =  pondximindistpartialj * inv_pondximindisttotalj ;
-          E_Float pondximindistratiok =  pondximindistpartialk * inv_pondximindisttotalk ;
-          E_Float pondximaxdistratioj =  pondximaxdistpartialj * inv_pondximaxdisttotalj ;
-          E_Float pondximaxdistratiok =  pondximaxdistpartialk * inv_pondximaxdisttotalk ;
-          E_Float pondxjmindistratioi =  pondxjmindistpartiali * inv_pondxjmindisttotali ;
-          E_Float pondxjmindistratiok =  pondxjmindistpartialk * inv_pondxjmindisttotalk ;
-          E_Float pondxjmaxdistratioi =  pondxjmaxdistpartiali * inv_pondxjmaxdisttotali ;
-          E_Float pondxjmaxdistratiok =  pondxjmaxdistpartialk * inv_pondxjmaxdisttotalk ;
-          E_Float pondxkmindistratioi =  pondxkmindistpartiali * inv_pondxkmindisttotali ;
-          E_Float pondxkmindistratioj =  pondxkmindistpartialj * inv_pondxkmindisttotalj ;
-          E_Float pondxkmaxdistratioi =  pondxkmaxdistpartiali * inv_pondxkmaxdisttotali ;
-          E_Float pondxkmaxdistratioj =  pondxkmaxdistpartialj * inv_pondxkmaxdisttotalj ;
-
-          //  1 ratio moyen par couple de face donc 3 ratio moyen
-
-          E_Float pondxdir_i_ratio = (pondxjmindistratioi + pondxjmaxdistratioi +  pondxkmindistratioi +  pondxkmaxdistratioi) / 4.0 ;
-          E_Float pondxdir_j_ratio = (pondximindistratioj + pondximaxdistratioj +  pondxkmindistratioj +  pondxkmaxdistratioj) / 4.0 ;
-          E_Float pondxdir_k_ratio = (pondximindistratiok + pondximaxdistratiok +  pondxjmindistratiok +  pondxjmaxdistratiok) / 4.0 ;
-
-          E_Float pondxdir_i_ratio1 = 1.0 - pondxdir_i_ratio ;
-          E_Float pondxdir_j_ratio1 = 1.0 - pondxdir_j_ratio ;
-          E_Float pondxdir_k_ratio1 = 1.0 - pondxdir_k_ratio ;
-
-          // E_Float pondxdir_i_ratio1 = (pondxjmindistratioi + pondxjmaxdistratioi +  pondxkmindistratioi +  pondxkmaxdistratioi) / 4.0 ;
-          // E_Float pondxdir_j_ratio1 = (pondximindistratioj + pondximaxdistratioj +  pondxkmindistratioj +  pondxkmaxdistratioj) / 4.0 ;
-          // E_Float pondxdir_k_ratio1 = (pondximindistratiok + pondximaxdistratiok +  pondxjmindistratiok +  pondxjmaxdistratiok) / 4.0 ;
-
-          // E_Float pondxdir_i_ratio = 1.0 - pondxdir_i_ratio1 ;
-          // E_Float pondxdir_j_ratio = 1.0 - pondxdir_j_ratio1 ;
-          // E_Float pondxdir_k_ratio = 1.0 - pondxdir_k_ratio1 ;
-
-          // U + V + W
-          t1x =
-            pondxdir_i_ratio1 * ximin[indjk] + pondxdir_i_ratio * ximax[indjk] +
-            pondxdir_j_ratio1 * xjmin[indik] + pondxdir_j_ratio * xjmax[indik] +
-            pondxdir_k_ratio1 * xkmin[indij] + pondxdir_k_ratio * xkmax[indij];
-
-          // UV
-          t2x12 =
-            pondxdir_i_ratio1 * pondxdir_j_ratio1 * ximin[indicejmin_k] +
-            pondxdir_i_ratio1 * pondxdir_j_ratio  * ximin[indicejmax_k] +
-            pondxdir_i_ratio  * pondxdir_j_ratio1 * ximax[indicejmin_k] +
-            pondxdir_i_ratio  * pondxdir_j_ratio  * ximax[indicejmax_k] ;
+            E_Float inv_pondximindisttotalj = 1.0 / pondximindisttotalj ;
+            E_Float inv_pondximindisttotalk = 1.0 / pondximindisttotalk ;
+            E_Float inv_pondximaxdisttotalj = 1.0 / pondximaxdisttotalj ;
+            E_Float inv_pondximaxdisttotalk = 1.0 / pondximaxdisttotalk ;
+            E_Float inv_pondxjmindisttotali = 1.0 / pondxjmindisttotali ;
+            E_Float inv_pondxjmindisttotalk = 1.0 / pondxjmindisttotalk ;
+            E_Float inv_pondxjmaxdisttotali = 1.0 / pondxjmaxdisttotali ;
+            E_Float inv_pondxjmaxdisttotalk = 1.0 / pondxjmaxdisttotalk ;
+            E_Float inv_pondxkmindisttotali = 1.0 / pondxkmindisttotali ;
+            E_Float inv_pondxkmindisttotalj = 1.0 / pondxkmindisttotalj ;
+            E_Float inv_pondxkmaxdisttotali = 1.0 / pondxkmaxdisttotali ;
+            E_Float inv_pondxkmaxdisttotalj = 1.0 / pondxkmaxdisttotalj ;
 
 
-          // UW
-          t2x13 =
-            pondxdir_i_ratio1 * pondxdir_k_ratio1 * ximin[indicej_kmin] +
-            pondxdir_i_ratio1 * pondxdir_k_ratio  * ximin[indicej_kmax] +
-            pondxdir_i_ratio  * pondxdir_k_ratio1 * ximax[indicej_kmin] +
-            pondxdir_i_ratio  * pondxdir_k_ratio  * ximax[indicej_kmax] ;
+            //  2 ponderations par faces donc 12 ponderations
+            E_Float pondximindistpartialj = pow( pow((pondximin[indice_j_k] - pondximin[indicejmin_k]) , 2.0) + pow((pondyimin[indice_j_k] - pondyimin[indicejmin_k]) , 2.0) + pow((pondzimin[indice_j_k] - pondzimin[indicejmin_k]) , 2.0) , 0.5);
+            E_Float pondximindistpartialk = pow( pow((pondximin[indice_j_k] - pondximin[indicej_kmin]) , 2.0) + pow((pondyimin[indice_j_k] - pondyimin[indicej_kmin]) , 2.0) + pow((pondzimin[indice_j_k] - pondzimin[indicej_kmin]) , 2.0) , 0.5);
+            E_Float pondximaxdistpartialj = pow( pow((pondximax[indice_j_k] - pondximax[indicejmin_k]) , 2.0) + pow((pondyimax[indice_j_k] - pondyimax[indicejmin_k]) , 2.0) + pow((pondzimax[indice_j_k] - pondzimax[indicejmin_k]) , 2.0) , 0.5);
+            E_Float pondximaxdistpartialk = pow( pow((pondximax[indice_j_k] - pondximax[indicej_kmin]) , 2.0) + pow((pondyimax[indice_j_k] - pondyimax[indicej_kmin]) , 2.0) + pow((pondzimax[indice_j_k] - pondzimax[indicej_kmin]) , 2.0) , 0.5);
+
+            E_Float pondxjmindistpartiali = pow( pow((pondxjmin[indice_i_k] - pondxjmin[indiceimin_k]) , 2.0) + pow((pondyjmin[indice_i_k] - pondyjmin[indiceimin_k]) , 2.0) + pow((pondzjmin[indice_i_k] - pondzjmin[indiceimin_k]) , 2.0) , 0.5);
+            E_Float pondxjmindistpartialk = pow( pow((pondxjmin[indice_i_k] - pondxjmin[indicei_kmin]) , 2.0) + pow((pondyjmin[indice_i_k] - pondyjmin[indicei_kmin]) , 2.0) + pow((pondzjmin[indice_i_k] - pondzjmin[indicei_kmin]) , 2.0) , 0.5);
+            E_Float pondxjmaxdistpartiali = pow( pow((pondxjmax[indice_i_k] - pondxjmax[indiceimin_k]) , 2.0) + pow((pondyjmax[indice_i_k] - pondyjmax[indiceimin_k]) , 2.0) + pow((pondzjmax[indice_i_k] - pondzjmax[indiceimin_k]) , 2.0) , 0.5);
+            E_Float pondxjmaxdistpartialk = pow( pow((pondxjmax[indice_i_k] - pondxjmax[indicei_kmin]) , 2.0) + pow((pondyjmax[indice_i_k] - pondyjmax[indicei_kmin]) , 2.0) + pow((pondzjmax[indice_i_k] - pondzjmax[indicei_kmin]) , 2.0) , 0.5);
+
+            E_Float pondxkmindistpartiali = pow( pow((pondxkmin[indice_i_j] - pondxkmin[indiceimin_j]) , 2.0) + pow((pondykmin[indice_i_j] - pondykmin[indiceimin_j]) , 2.0) + pow((pondzkmin[indice_i_j] - pondzkmin[indiceimin_j]) , 2.0) , 0.5);
+            E_Float pondxkmindistpartialj = pow( pow((pondxkmin[indice_i_j] - pondxkmin[indicei_jmin]) , 2.0) + pow((pondykmin[indice_i_j] - pondykmin[indicei_jmin]) , 2.0) + pow((pondzkmin[indice_i_j] - pondzkmin[indicei_jmin]) , 2.0) , 0.5);
+            E_Float pondxkmaxdistpartiali = pow( pow((pondxkmax[indice_i_j] - pondxkmax[indiceimin_j]) , 2.0) + pow((pondykmax[indice_i_j] - pondykmax[indiceimin_j]) , 2.0) + pow((pondzkmax[indice_i_j] - pondzkmax[indiceimin_j]) , 2.0) , 0.5);
+            E_Float pondxkmaxdistpartialj = pow( pow((pondxkmax[indice_i_j] - pondxkmax[indicei_jmin]) , 2.0) + pow((pondykmax[indice_i_j] - pondykmax[indicei_jmin]) , 2.0) + pow((pondzkmax[indice_i_j] - pondzkmax[indicei_jmin]) , 2.0) , 0.5);
+
+            //  2 ratio par couple de face donc 12 ratio
+            E_Float pondximindistratioj =  pondximindistpartialj * inv_pondximindisttotalj ;
+            E_Float pondximindistratiok =  pondximindistpartialk * inv_pondximindisttotalk ;
+            E_Float pondximaxdistratioj =  pondximaxdistpartialj * inv_pondximaxdisttotalj ;
+            E_Float pondximaxdistratiok =  pondximaxdistpartialk * inv_pondximaxdisttotalk ;
+            E_Float pondxjmindistratioi =  pondxjmindistpartiali * inv_pondxjmindisttotali ;
+            E_Float pondxjmindistratiok =  pondxjmindistpartialk * inv_pondxjmindisttotalk ;
+            E_Float pondxjmaxdistratioi =  pondxjmaxdistpartiali * inv_pondxjmaxdisttotali ;
+            E_Float pondxjmaxdistratiok =  pondxjmaxdistpartialk * inv_pondxjmaxdisttotalk ;
+            E_Float pondxkmindistratioi =  pondxkmindistpartiali * inv_pondxkmindisttotali ;
+            E_Float pondxkmindistratioj =  pondxkmindistpartialj * inv_pondxkmindisttotalj ;
+            E_Float pondxkmaxdistratioi =  pondxkmaxdistpartiali * inv_pondxkmaxdisttotali ;
+            E_Float pondxkmaxdistratioj =  pondxkmaxdistpartialj * inv_pondxkmaxdisttotalj ;
+
+            //  1 ratio moyen par couple de face donc 3 ratio moyen
+
+            E_Float pondxdir_i_ratio = (pondxjmindistratioi + pondxjmaxdistratioi +  pondxkmindistratioi +  pondxkmaxdistratioi) / 4.0 ;
+            E_Float pondxdir_j_ratio = (pondximindistratioj + pondximaxdistratioj +  pondxkmindistratioj +  pondxkmaxdistratioj) / 4.0 ;
+            E_Float pondxdir_k_ratio = (pondximindistratiok + pondximaxdistratiok +  pondxjmindistratiok +  pondxjmaxdistratiok) / 4.0 ;
+
+            E_Float pondxdir_i_ratio1 = 1.0 - pondxdir_i_ratio ;
+            E_Float pondxdir_j_ratio1 = 1.0 - pondxdir_j_ratio ;
+            E_Float pondxdir_k_ratio1 = 1.0 - pondxdir_k_ratio ;
+
+            // E_Float pondxdir_i_ratio1 = (pondxjmindistratioi + pondxjmaxdistratioi +  pondxkmindistratioi +  pondxkmaxdistratioi) / 4.0 ;
+            // E_Float pondxdir_j_ratio1 = (pondximindistratioj + pondximaxdistratioj +  pondxkmindistratioj +  pondxkmaxdistratioj) / 4.0 ;
+            // E_Float pondxdir_k_ratio1 = (pondximindistratiok + pondximaxdistratiok +  pondxjmindistratiok +  pondxjmaxdistratiok) / 4.0 ;
+
+            // E_Float pondxdir_i_ratio = 1.0 - pondxdir_i_ratio1 ;
+            // E_Float pondxdir_j_ratio = 1.0 - pondxdir_j_ratio1 ;
+            // E_Float pondxdir_k_ratio = 1.0 - pondxdir_k_ratio1 ;
+
+            // U + V + W
+            t1x =
+              pondxdir_i_ratio1 * ximin[indjk] + pondxdir_i_ratio * ximax[indjk] +
+              pondxdir_j_ratio1 * xjmin[indik] + pondxdir_j_ratio * xjmax[indik] +
+              pondxdir_k_ratio1 * xkmin[indij] + pondxdir_k_ratio * xkmax[indij];
+
+            // UV
+            t2x12 =
+              pondxdir_i_ratio1 * pondxdir_j_ratio1 * ximin[indicejmin_k] +
+              pondxdir_i_ratio1 * pondxdir_j_ratio  * ximin[indicejmax_k] +
+              pondxdir_i_ratio  * pondxdir_j_ratio1 * ximax[indicejmin_k] +
+              pondxdir_i_ratio  * pondxdir_j_ratio  * ximax[indicejmax_k] ;
 
 
-          // UW
-          t2x23 =
-            pondxdir_j_ratio1 * pondxdir_k_ratio1 * xjmin[indicei_kmin] +
-            pondxdir_j_ratio1 * pondxdir_k_ratio  * xjmin[indicei_kmax] +
-            pondxdir_j_ratio  * pondxdir_k_ratio1 * xjmax[indicei_kmin] +
-            pondxdir_j_ratio  * pondxdir_k_ratio  * xjmax[indicei_kmax] ;
+            // UW
+            t2x13 =
+              pondxdir_i_ratio1 * pondxdir_k_ratio1 * ximin[indicej_kmin] +
+              pondxdir_i_ratio1 * pondxdir_k_ratio  * ximin[indicej_kmax] +
+              pondxdir_i_ratio  * pondxdir_k_ratio1 * ximax[indicej_kmin] +
+              pondxdir_i_ratio  * pondxdir_k_ratio  * ximax[indicej_kmax] ;
 
 
-          // UVW
-          t3x =
-            pondxdir_i_ratio1 * pondxdir_j_ratio1 * pondxdir_k_ratio1 * ximin[indicejminkmin] + pondxdir_i_ratio1 * pondxdir_j_ratio1 * pondxdir_k_ratio * ximin[indicejminkmax] +
-            pondxdir_i_ratio1 * pondxdir_j_ratio  * pondxdir_k_ratio1 * ximin[indicejmaxkmin] + pondxdir_i_ratio1 * pondxdir_j_ratio  * pondxdir_k_ratio * ximin[indicejmaxkmax] +
-            pondxdir_i_ratio  * pondxdir_j_ratio1 * pondxdir_k_ratio1 * ximax[indicejminkmin] + pondxdir_i_ratio  * pondxdir_j_ratio1 * pondxdir_k_ratio * ximax[indicejminkmax] +
-            pondxdir_i_ratio  * pondxdir_j_ratio  * pondxdir_k_ratio1 * ximax[indicejmaxkmin] + pondxdir_i_ratio  * pondxdir_j_ratio  * pondxdir_k_ratio * ximax[indicejmaxkmax] ;
+            // UW
+            t2x23 =
+              pondxdir_j_ratio1 * pondxdir_k_ratio1 * xjmin[indicei_kmin] +
+              pondxdir_j_ratio1 * pondxdir_k_ratio  * xjmin[indicei_kmax] +
+              pondxdir_j_ratio  * pondxdir_k_ratio1 * xjmax[indicei_kmin] +
+              pondxdir_j_ratio  * pondxdir_k_ratio  * xjmax[indicei_kmax] ;
 
 
-          // U + V + W - UV -UW - VW + UVW
-          xt[ind] = t1x - t2x12 - t2x13 - t2x23 + t3x;
+            // UVW
+            t3x =
+              pondxdir_i_ratio1 * pondxdir_j_ratio1 * pondxdir_k_ratio1 * ximin[indicejminkmin] + pondxdir_i_ratio1 * pondxdir_j_ratio1 * pondxdir_k_ratio * ximin[indicejminkmax] +
+              pondxdir_i_ratio1 * pondxdir_j_ratio  * pondxdir_k_ratio1 * ximin[indicejmaxkmin] + pondxdir_i_ratio1 * pondxdir_j_ratio  * pondxdir_k_ratio * ximin[indicejmaxkmax] +
+              pondxdir_i_ratio  * pondxdir_j_ratio1 * pondxdir_k_ratio1 * ximax[indicejminkmin] + pondxdir_i_ratio  * pondxdir_j_ratio1 * pondxdir_k_ratio * ximax[indicejminkmax] +
+              pondxdir_i_ratio  * pondxdir_j_ratio  * pondxdir_k_ratio1 * ximax[indicejmaxkmin] + pondxdir_i_ratio  * pondxdir_j_ratio  * pondxdir_k_ratio * ximax[indicejmaxkmax] ;
 
-        }
+
+            // U + V + W - UV -UW - VW + UVW
+            xt[ind] = t1x - t2x12 - t2x13 - t2x23 + t3x;
+
+          }
+    }
   }
   return 1;
 }

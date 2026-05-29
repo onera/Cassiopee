@@ -66,7 +66,7 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   for (E_Int v = 0; v < nzones; v++)
   {
     E_Int ni = nit[v]; E_Int nj = njt[v]; E_Int nk = nkt[v];
-    if ( ni < 2 || nj != 1 || nk != 1 )
+    if (ni < 2 || nj != 1 || nk != 1)
     {
       for (E_Int v = 0; v < nzones; v++) RELEASESHAREDS(objs[v], fields[v]);
       PyErr_SetString(PyExc_TypeError,

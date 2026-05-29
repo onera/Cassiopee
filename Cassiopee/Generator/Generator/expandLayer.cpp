@@ -23,10 +23,10 @@ using namespace std;
 
 //=============================================================================
 /* Modify the indicator to expand layers
-  checkType = 0 : none
-  checkType = 1 : check blanking of neighbouring cells
-  checkType = 2 : check spacing of neighbouring cells
-  checkType = 3 : raffine si un voisin est masque et la cellule voisine masquee
+  checkType = 0: none
+  checkType = 1: check blanking of neighbouring cells
+  checkType = 2: check spacing of neighbouring cells
+  checkType = 3: raffine si un voisin est masque et la cellule voisine masquee
   est plus fine que la cellule courante.
 */
 //=============================================================================

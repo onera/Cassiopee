@@ -31,36 +31,36 @@ using namespace K_SEARCH;
 
 namespace K_GENERATOR 
 {
-struct stackData3
-{
-  OctreeNode* current;
-};
+  struct stackData3
+  {
+    OctreeNode* current;
+  };
 
-OctreeNode* splitNode27(OctreeNode* current, E_Int levelMax, E_Int dim, E_Int& split);
-OctreeNode* splitNode9(OctreeNode* current, E_Int levelMax, E_Int& split);
+  OctreeNode* splitNode27(OctreeNode* current, E_Int levelMax, E_Int dim, E_Int& split);
+  OctreeNode* splitNode9(OctreeNode* current, E_Int levelMax, E_Int& split);
 
-OctreeNode* splitVoisinBoth(OctreeNode* node, E_Int levelMax, E_Int dim, stack<stackData3>& stack);
-OctreeNode* splitVoisin9(OctreeNode* node, E_Int levelMax, stack<stackData3>& stack);
-OctreeNode* splitVoisin27(OctreeNode* node, E_Int levelMax, 
+  OctreeNode* splitVoisinBoth(OctreeNode* node, E_Int levelMax, E_Int dim, stack<stackData3>& stack);
+  OctreeNode* splitVoisin9(OctreeNode* node, E_Int levelMax, stack<stackData3>& stack);
+  OctreeNode* splitVoisin27(OctreeNode* node, E_Int levelMax, 
                           stack<stackData3>& stack);
 
-OctreeNode* addSplitVoisin9(OctreeNode* voisin, E_Int l0, E_Int levelMax, 
+  OctreeNode* addSplitVoisin9(OctreeNode* voisin, E_Int l0, E_Int levelMax, 
                              stack<stackData3>& stack);
-OctreeNode* addSplitVoisin27(OctreeNode* voisin, E_Int l0, E_Int levelMax, 
+  OctreeNode* addSplitVoisin27(OctreeNode* voisin, E_Int l0, E_Int levelMax, 
                              stack<stackData3>& stack);
 
-OctreeNode* updateVoisin1_9(OctreeNode* node);
-OctreeNode* updateVoisin2_9(OctreeNode* node);
-OctreeNode* updateVoisin3_9(OctreeNode* node);
-OctreeNode* updateVoisin4_9(OctreeNode* node);
-OctreeNode* updateVoisin5_9(OctreeNode* node);
-OctreeNode* updateVoisin6_9(OctreeNode* node);
-OctreeNode* updateVoisin1_27(OctreeNode* node);
-OctreeNode* updateVoisin2_27(OctreeNode* node);
-OctreeNode* updateVoisin3_27(OctreeNode* node);
-OctreeNode* updateVoisin4_27(OctreeNode* node);
-OctreeNode* updateVoisin5_27(OctreeNode* node);
-OctreeNode* updateVoisin6_27(OctreeNode* node);
+  OctreeNode* updateVoisin1_9(OctreeNode* node);
+  OctreeNode* updateVoisin2_9(OctreeNode* node);
+  OctreeNode* updateVoisin3_9(OctreeNode* node);
+  OctreeNode* updateVoisin4_9(OctreeNode* node);
+  OctreeNode* updateVoisin5_9(OctreeNode* node);
+  OctreeNode* updateVoisin6_9(OctreeNode* node);
+  OctreeNode* updateVoisin1_27(OctreeNode* node);
+  OctreeNode* updateVoisin2_27(OctreeNode* node);
+  OctreeNode* updateVoisin3_27(OctreeNode* node);
+  OctreeNode* updateVoisin4_27(OctreeNode* node);
+  OctreeNode* updateVoisin5_27(OctreeNode* node);
+  OctreeNode* updateVoisin6_27(OctreeNode* node);
 
 //============================================================================
 /* Generation d'un octree � 27 branches 

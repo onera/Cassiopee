@@ -28,10 +28,10 @@ using namespace K_SEARCH;
 
 namespace K_GENERATOR 
 {
-struct stackData
-{
+  struct stackData
+  {
     OctreeNode* current;
-};
+  };
 
   OctreeNode* splitNode(OctreeNode* current, E_Int levelMax, E_Int dim, 
                         E_Int& split, E_Int& indmax);
