@@ -159,10 +159,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
 
     maxDistanceFrontIP = 0.0
     turbDistanceTmp = Internal.getNodeFromName(frontIP, 'TurbulentDistance')[1]
-    print('WARNING: Rank:%d || len(turbDistanceTmp)=%d'%(Cmpi.rank, len(turbDistanceTmp)), flush=True)
     if len(turbDistanceTmp)>0: maxDistanceFrontIP = C.getMaxValue(frontIP, 'TurbulentDistance')
     maxDistanceFrontIP = Cmpi.allreduce(maxDistanceFrontIP, op=Cmpi.MAX)
-    if Cmpi.master: print('WARNING=maxDistanceFrontIP=%g'%maxDistanceFrontIP, flush=True)
+    if Cmpi.master: print('extractFrontDP Info: maxDistanceFrontIP=%g'%maxDistanceFrontIP, flush=True)
         
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
     t = P.selectCells(t, "{cellN}==1.", strict=1)
@@ -374,7 +373,7 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     minLen = min(minLen, lenZ)
     factorX = int(lenX/minLen); factorY = int(lenY/minLen); factorZ = 1
     factorZ = int(lenZ/minLen)
-    factorX = min(factorX, 2); factorY = min(factorY, 2); factorZ = min(factorZ, 2)
+    factorX = min(factorX, 2); factorY = min(factorY, 2); factorZ = min(factorZ, 2) # can cause some wrinkles on the surface
     
     ni_core = 61; nj_core = 61; nk_core = 61
     hi_core = (xmax_core-xmin_core)/(ni_core-1)
@@ -418,10 +417,10 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
     import Geom.IBM as D_IBM
     if dim == 2 and not isFastApproach:
         isFastApproach = True
-        if Cmpi.master: print("WARNING: extractFrontDP based on the Robust approach is incomptabile with 2D test cases. Forcing Fast Approach...", flush=True)
+        if Cmpi.master: print("extractFrontDP: for 2D test cases... Robust approach == Fast approach.", flush=True)
     if isFastApproach:
         startTimeExtract = time.perf_counter()
-        if Cmpi.master: print("WARNING: extractFrontDP - using Fast approach based on the integration points. This approach may yield unsatisfactory results for small resolutions", flush=True)
+        if Cmpi.master: print("extractFrontDP - using Fast approach based on the integration points. This approach may yield unsatisfactory results for small resolutions", flush=True)
         ##Orig Approach - Based on Integration points front (frontIP_gath)
         ##                fast approach but can lead to errors in the IBM points - encountered when running CODA
         if Cmpi.master:
@@ -431,7 +430,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
             frontIP_gath = G.close(frontIP_gath)
             frontIP_gath[0] = "frontIP_gath"
             if dim == 3 and dir_sym > 0:           
-                print("Symmetry of frontIP gathered:%d"%Cmpi.rank)
+                print("Symmetry of frontIP: Sym. Plane: %d"%dir_sym)
                 frontIP_gath = C.newPyTree(["Base", frontIP_gath])
                 frontIP_gath= Internal.getNodeFromName(frontIP_gath, 'Base')
                 minval = C.getMinValue(frontIP_gath, ['CoordinateX', 'CoordinateY','CoordinateZ'])
@@ -452,7 +451,9 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         outputTime(startTimeExtract,functionName='extractFrontDP - Fast Approach')
     else:
         startTimeExtract = time.perf_counter()
-        if Cmpi.master: print("WARNING: extractFrontDP - using Robust approach based on the offsets & dist2wall. This approach can take some time.", flush=True)
+        if Cmpi.master:
+            print("extractFrontDP - using Robust approach based on the offsets & dist2wall. This approach can take some time.", flush=True)
+            if dir_sym > 0: print("Symmetry of frontIP: Sym. Plane: %d"%dir_sym, flush=True)
         ## Robust - based on tb (input geomtery), offset, selectcells, & dist2wall approach
         ##          more expensive but proven to be more robust
 
@@ -460,7 +461,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         G._getVolumeMap(t)
         hminTmp = (C.getMinValue(t,"centers:vol"))**(1/dim)
         hminTmp = Cmpi.allreduce(hminTmp, op=Cmpi.MIN)
-        
+        if Cmpi.master: print('extractFrontDP Info: Smallest cell size (snear): %g'%hminTmp, flush=True)
         # Generate Offset - scaled tb
         frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=dir_sym, minSnear=hminTmp, distIP=distIP)
         Cmpi.convertPyTree2File(frontIP_gathScale, 'check_frontIP_gathScale.cgns')
@@ -1165,7 +1166,7 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
                   localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False,
-                  tIn=None):
+                  tIn=None, isFastApproach=True):
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
@@ -1202,7 +1203,8 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     ## ==================
     ## ==== IBM Prep ====
     ## ==================
-    t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir, forceAlignment=forceAlignment)
+    t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir,
+                           forceAlignment=forceAlignment, isFastApproach=isFastApproach)
     ## Ncells output
     Ncells = C.getNCells(t_AMR)
     Ncells = Cmpi.allreduce(Ncells, op=Cmpi.SUM)
