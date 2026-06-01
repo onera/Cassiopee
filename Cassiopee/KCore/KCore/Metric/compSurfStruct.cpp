@@ -29,8 +29,7 @@
 void K_METRIC::__AD(compSurfStruct2D)(
   const E_Int ni, const E_Int nj, const E_Int nk,
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  E_Float* surface
-)
+  E_Float* surface)
 {
   E_Int ni1, nj1, nk1;
   E_Int ind1, ind2, ind3, ind4, indcell;

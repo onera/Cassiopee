@@ -242,10 +242,10 @@ PyObject* K_POST::dinteg(PyObject* self, PyObject* args)
 
       /*
       if (case1D == 1)
-          res = integStruct1D(nic, njc, nkc, center2node, posx, posy, posz, 
+          res = dintegStruct1D(nic, njc, nkc, center2node, posx, posy, posz, 
                       *fc, *ff, *ratio, resultat);
       else
-          res = integStruct2D(nic, njc, nkc, center2node, posx, posy, posz,
+          res = dintegStruct2D(nic, njc, nkc, center2node, posx, posy, posz,
                       *fc, *ff, *ratio, resultat);
       */
       if (res == 0) 
@@ -322,10 +322,10 @@ PyObject* K_POST::dinteg(PyObject* self, PyObject* args)
 
       /*
       if (case1D == 1)
-        res = integUnstruct1D(center2node, posx, posy, posz, 
+        res = dintegUnstruct1D(center2node, posx, posy, posz, 
           *cnc, eltTypec, *fc, *ff, *ratio, resultat);
       else
-        res = integUnstruct2D(center2node, posx, posy, posz, 
+        res = dintegUnstruct2D(center2node, posx, posy, posz, 
           *cnc, eltTypec, *fc, *ff, *ratio, resultat);
       */
 
@@ -369,90 +369,384 @@ PyObject* K_POST::dinteg(PyObject* self, PyObject* args)
   }
   return l;
 }
-  
+
 //=============================================================================
-/* Calcul de l'integrale de la solution (pour le pyTree) */
-// ============================================================================
-PyObject* K_POST::dinteg2(PyObject* self, PyObject* args)
+// Integre "surfaciquement" les grandeurs de F comme des scalaires
+// Retourne 1 si succes, 0 si echec
+//=============================================================================
+E_Int K_POST::dintegStruct2D(E_Int ni, E_Int nj, E_Int nk, 
+                             E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                             FldArrayF& coord, FldArrayF& F, 
+                             FldArrayF& ratio, FldArrayF& resultat)
 {
-  PyObject* zone; char* varName;
-  char* GridCoordinates; char* FlowSolutionNodes; char* FlowSolutionCenters;
-  if (!PYPARSETUPLE_(args, O_ SSSS_,
-                     &zone, &varName, &GridCoordinates, 
-                     &FlowSolutionNodes, &FlowSolutionCenters)) return NULL;
+  E_Int NI, NJ;
+  E_Int numberOfVariables = F.getNfld();
 
-  E_Int ni, nj, nk, cnSize, cnNfld;
-  char* varString; char* eltType;
-  vector<E_Float*> fields; vector<E_Int> locs;
-  vector<E_Int*> cn;
-  vector<PyArrayObject*> hook;
-  E_Int res = K_PYTREE::getFromZone(zone, 0, 1, varString, 
-                                    fields, locs, ni, nj, nk,
-                                    cn, cnSize, cnNfld,
-                                    eltType, hook,
-                                    GridCoordinates, 
-                                    FlowSolutionNodes, FlowSolutionCenters);
+  if      (nk == 1) {NI = ni; NJ = nj;}
+  else if (nj == 1) {NI = ni; NJ = nk;}
+  else if (ni == 1) {NI = nj; NJ = nk;}
+  else return 0;
 
-  // Get the pointers on fields
-  E_Int posVol = K_ARRAY::isNamePresent("vol", varString);
-  E_Int posRatio = K_ARRAY::isNamePresent("ratio", varString);
-  E_Int posVar = K_ARRAY::isNamePresent(varName, varString); 
+  E_Int ncells = (NI-1)*(NJ-1);
+    
+  // point
+  E_Float* xt = coord.begin(posx); // coords
+  E_Float* yt = coord.begin(posy);
+  E_Float* zt = coord.begin(posz);
+  E_Float* dxt = coord.begin(4); // tangent
+  E_Float* dyt = coord.begin(5);
+  E_Float* dzt = coord.begin(6);
 
-  if (posVar == -1)
+  auto x = new E_Float [3*NI*NJ];
+  for (E_Int i = 0; i < NI*NJ; i++)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "integ2: variable doesn't exist in array.");
-    RELEASESHAREDZ(hook, varString, eltType);
-    return NULL;
+    x[3*i] = xt[i];
+    x[3*i+1] = yt[i];
+    x[3*i+2] = zt[i];
   }
 
-  E_Float* fp = fields[posVar];
-  E_Float* v = fields[posVol];
-  
-  E_Int n;
-  E_Int one = 1;
-  if (res == 1)
+  // tangent
+  auto dx = new E_Float [3*NI*NJ];
+  for (E_Int i = 0; i < NI; i++)
   {
-    n = K_FUNC::E_max(ni-1, one) * K_FUNC::E_max(nj-1, one) * K_FUNC::E_max(nk-1, one);
+    dx[3*i] = dxt[i];
+    dx[3*i+1] = dyt[i];
+    dx[3*i+2] = dzt[i];
   }
-  else n = nj;
 
-  E_Float ret = 0.;
-  E_Int nthreads = __NUMTHREADS__;
-  E_Float* reti = new E_Float [nthreads];
+  // gradient
+  auto df = new E_Float [3*NI*NJ];
 
-  if (posRatio == -1)
+  // actives
+  auto ax = new adouble[3*NI*NJ];
+
+  trace_on(0);
+
+  for (E_Int i = 0; i < 3*NI*NJ; i++) 
   {
-    #pragma omp parallel
-    {
-      E_Int it = __CURRENT_THREAD__;
-      reti[it] = 0.;
-      #pragma omp for
-      for (E_Int i = 0; i < n; i++)
-        reti[it] += fp[i]*v[i];
-    }
-    for (E_Int it = 0; it < nthreads; it++)
-    {
-      ret += reti[it];
+    ax[i] <<= xt[i];
+  }
+
+  // Compute surface of each "block" i cell, with coordinates coord
+  adouble* surf = new adouble [ncells];
+  adouble result = 0;
+  adouble* results = new adouble [numberOfVariables];
+
+  /*
+  K_METRIC::d__compSurfStruct2D(
+    NI, NJ, 1,
+    ax, ax+3*NI*NJ, ax+6*NI*NJ,
+    surf);
+  */
+
+  if (center2node == 1) 
+  {
+    // Compute integral, coordinates defined in node 
+    // and field F in center 
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    { 
+      /*
+      K_POST::d__integStructCellCenter2D(
+        NI-1, NJ-1,
+        ratio.begin(), surf, F.begin(n),
+        result);
+      */
+      results[n-1] += result;
     }
   }
   else
   {
-    E_Float* r = fields[posRatio];
-    #pragma omp parallel
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
     {
-      E_Int it = __CURRENT_THREAD__;
-      reti[it] = 0.;
-      #pragma omp for
-      for (E_Int i = 0; i < n; i++)
-        reti[it] += fp[i]*v[i]*r[i];
-    }
-    for (E_Int it = 0; it < nthreads; it++)
-    {
-      ret += reti[it];
+      /*
+      K_POST::d__integStructNodeCenter2D(
+        NI, NJ,
+        ratio.begin(), surf, F.begin(n),
+        result);
+      */
+      results[n-1] += result;
     }
   }
-  RELEASESHAREDZ(hook, varString, eltType);
-  delete [] reti;
-  return Py_BuildValue(R_, ret);
+
+  trace_off();
+  gradient(0, 3*NI*NJ, x, df);
+
+  resultat.malloc(NI*NJ, 3*numberOfVariables);
+  for (E_Int n = 0; n < numberOfVariables; n++)
+  {
+    E_Float* dFxt = resultat.begin(3*n+1);
+    E_Float* dFyt = resultat.begin(3*n+2);
+    E_Float* dFzt = resultat.begin(3*n+3);
+
+    for (E_Int i = 0; i < NI*NJ; i++)
+    {
+      dFxt[i] = df[3*n+3*i];
+      dFyt[i] = df[3*n+3*i+1];
+      dFzt[i] = df[3*n+3*i+2];
+    }
+  }
+
+  // store df in resultat
+  delete [] surf; delete [] results;
+  delete [] ax; delete [] df;
+
+  return 1;
 }
+
+//=============================================================================
+// Integre "surfaciquement" les grandeurs de F comme des scalaires
+// Retourne 1 si succes, 0 si echec
+//=============================================================================
+E_Int K_POST::dintegStruct1D(E_Int ni, E_Int nj, E_Int nk, 
+                             E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                             FldArrayF& coord, FldArrayF& F, 
+                             FldArrayF& ratio, FldArrayF& resultat)
+{
+  E_Int NI;
+  E_Int numberOfVariables = F.getNfld();
+
+  if      (ni > 1) NI = ni;
+  else if (nj > 1) NI = nj;
+  else if (nk > 1) NI = nk;
+  else return 0;
+
+  E_Int ncells = (NI-1);
+
+  // point
+  E_Float* xt = coord.begin(posx); // coords
+  E_Float* yt = coord.begin(posy);
+  E_Float* zt = coord.begin(posz);
+  E_Float* dxt = coord.begin(4); // tangent
+  E_Float* dyt = coord.begin(5);
+  E_Float* dzt = coord.begin(6);
+
+  auto x = new E_Float [3*NI];
+  for (E_Int i = 0; i < NI; i++)
+  {
+    x[3*i] = xt[i];
+    x[3*i+1] = yt[i];
+    x[3*i+2] = zt[i];
+  }
+
+  // tangent
+  auto dx = new E_Float [3*NI];
+  for (E_Int i = 0; i < NI; i++)
+  {
+    dx[3*i] = dxt[i];
+    dx[3*i+1] = dyt[i];
+    dx[3*i+2] = dzt[i];
+  }
+
+  // gradient
+  auto df = new E_Float [3*NI];
+
+  // actives
+  auto ax = new adouble[3*NI];
+
+  trace_on(0);
+
+  for (E_Int i = 0; i < 3*NI; i++) 
+  {
+    ax[i] <<= xt[i];
+  }
+
+  // Compute surface of each "block" i cell, with coordinates coord
+  auto length = new adouble [ncells];
+  adouble result = 0;
+  adouble* results = new adouble [numberOfVariables];
+
+  /*
+  K_METRIC::d__compSurfStruct1D(
+    NI, 1, 1,
+    coord.begin(posx), coord.begin(posy), coord.begin(posz),
+    length.begin());
+  */
+  if (center2node == 1) 
+  {
+    // Compute integral, coordinates defined in node 
+    // and field F in center 
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    { 
+      /*
+      K_POST::d__integStructCellCenter1D(
+        NI-1,
+        ratio.begin(), length, F.begin(n),
+        result);
+      */
+      results[n-1] += result;
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      /*
+      K_POST::d__integStructNodeCenter1D(
+        NI,
+        ratio.begin(), length, F.begin(n),
+        result);
+      */
+      results[n-1] += result;
+    }
+  }
+  
+  
+  trace_off();
+  gradient(0, 3*NI, x, df);
+
+  // store df in resultat
+  resultat.malloc(NI, 3*numberOfVariables);
+  for (E_Int n = 0; n < numberOfVariables; n++)
+  {
+    E_Float* dFxt = resultat.begin(3*n+1);
+    E_Float* dFyt = resultat.begin(3*n+2);
+    E_Float* dFzt = resultat.begin(3*n+3);
+
+    for (E_Int i = 0; i < NI; i++)
+    {
+      dFxt[i] = df[3*n+3*i];
+      dFyt[i] = df[3*n+3*i+1];
+      dFzt[i] = df[3*n+3*i+2];
+    }
+  }
+  
+  delete [] length;
+  delete [] ax; delete [] df;
+
+  return 1;
+}
+
+//=============================================================================
+// Integre les grandeurs de F comme des scalaires
+// Retourne 1 si succes, 0 si echec
+// 1D and 2D
+//=============================================================================
+E_Int K_POST::dintegUnstruct(E_Int center2node,
+                             E_Int posx, E_Int posy, E_Int posz,
+                             FldArrayI& cn, const char* eltType, FldArrayF& coord, 
+                             FldArrayF& F, FldArrayF& ratio, 
+                             FldArrayF& resultat)
+{
+  E_Int numberOfVariables = F.getNfld();
+  E_Int ntotElts = 0;
+  E_Int nc = cn.getNConnect();
+  for (E_Int ic = 0; ic < nc; ic++)
+  {
+    FldArrayI& cm = *(cn.getConnect(ic));
+    E_Int nelts = cm.getSize();
+    ntotElts += nelts;
+  }
+
+  // point
+  E_Float* xt = coord.begin(posx); // coords
+  E_Float* yt = coord.begin(posy);
+  E_Float* zt = coord.begin(posz);
+  E_Float* dxt = coord.begin(4); // tangent
+  E_Float* dyt = coord.begin(5);
+  E_Float* dzt = coord.begin(6);
+
+  E_Int npts = coord.getSize();
+
+  auto x = new E_Float [3*npts];
+  for (E_Int i = 0; i < npts; i++)
+  {
+    x[3*i] = xt[i];
+    x[3*i+1] = yt[i];
+    x[3*i+2] = zt[i];
+  }
+
+  // tangent
+  auto dx = new E_Float [3*npts];
+  for (E_Int i = 0; i < npts; i++)
+  {
+    dx[3*i] = dxt[i];
+    dx[3*i+1] = dyt[i];
+    dx[3*i+2] = dzt[i];
+  }
+
+  // gradient
+  auto df = new E_Float [3*npts];
+
+  // actives
+  auto ax = new adouble[3*npts];
+
+  trace_on(0);
+
+  for (E_Int i = 0; i < 3*npts; i++) 
+  {
+    ax[i] <<= xt[i];
+  }
+
+  adouble* surf = new adouble [ntotElts];
+  adouble* snx = new adouble [ntotElts];
+  adouble* sny = new adouble [ntotElts];
+  adouble* snz = new adouble [ntotElts];
+  adouble result = 0;
+  adouble* results = new adouble [numberOfVariables];
+
+  /*
+  K_METRIC::d__compSurfUnstruct(
+    cn, eltType,
+    coord.begin(posx), coord.begin(posy), coord.begin(posz),
+    snx, sny, snz, surf);
+  */
+  if (center2node == 1) 
+  {
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      // Compute integral, coordinates defined in node 
+      // and field F in center
+      /*
+      K_POST::d__integUnstructCellCenter(
+        ntotElts,
+        ratio.begin(), surf, F.begin(n),
+        result);
+      */
+      results[n-1] += result;
+    }
+  }
+  else
+  {
+    // Compute integral, coordinates and field have the same size
+    for (E_Int n = 1; n <= numberOfVariables; n++)
+    {
+      /*
+      K_POST::d__integUnstructNodeCenter(
+        cn,
+        ratio.begin(), surf, F.begin(n),
+        result
+      ); */
+      results[n-1] += result;
+    }
+  }
+
+  trace_off();
+  gradient(0, 3*npts, x, df);
+
+  // store df in resultat
+  resultat.malloc(npts, 3*numberOfVariables);
+  for (E_Int n = 0; n < numberOfVariables; n++)
+  {
+    E_Float* dFxt = resultat.begin(3*n+1);
+    E_Float* dFyt = resultat.begin(3*n+2);
+    E_Float* dFzt = resultat.begin(3*n+3);
+
+    for (E_Int i = 0; i < npts; i++)
+    {
+      dFxt[i] = df[3*n+3*i];
+      dFyt[i] = df[3*n+3*i+1];
+      dFzt[i] = df[3*n+3*i+2];
+    }
+  }
+
+  delete [] surf;
+  delete [] snx;
+  delete [] sny;
+  delete [] snz;
+  delete [] ax; delete [] df;
+
+  return 1;
+}
+

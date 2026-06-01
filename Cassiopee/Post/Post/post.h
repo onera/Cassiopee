@@ -87,8 +87,7 @@ namespace K_POST
   PyObject* silhouette(PyObject* self, PyObject* args);
 #ifdef E_ADOLC
   PyObject* dinteg(PyObject* self, PyObject* args);
-  PyObject* dinteg2(PyObject* self, PyObject* args);
-#endif
+  #endif
 
 // ******************************* INTEGRATION ****************************** //
 // ============================================================================
@@ -112,7 +111,7 @@ namespace K_POST
 // ============================================================================
 // Compute surface integral of field F, coordinates in nodes,
 // field defined in centers, structured case
-// IN: ni1, nj1 : dim en centres
+// IN: ni1, nj1: dim en centres
 // ============================================================================
   void integStructCellCenter2D(
     const E_Int ni1, const E_Int nj1,
@@ -162,6 +161,12 @@ namespace K_POST
                       E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
                       FldArrayF& coord, FldArrayF& F,
                       FldArrayF& ratio, FldArrayF& resultat);
+#ifdef E_ADOLC
+  E_Int dintegStruct2D(E_Int ni, E_Int nj, E_Int nk,
+                       E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                       FldArrayF& coord, FldArrayF& F,
+                       FldArrayF& ratio, FldArrayF& resultat);
+#endif
 /*
   Compute the linear integral of field F
   ni*nj*nk: dimension of coordinate array (coord)
@@ -176,6 +181,12 @@ namespace K_POST
                       E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
                       FldArrayF& coord, FldArrayF& F,
                       FldArrayF& ratio, FldArrayF& resultat);
+#ifdef E_ADOLC
+  E_Int dintegStruct1D(E_Int ni, E_Int nj, E_Int nk,
+                       E_Int center2node, E_Int posx, E_Int posy, E_Int posz,
+                       FldArrayF& coord, FldArrayF& F,
+                       FldArrayF& ratio, FldArrayF& resultat);
+#endif
 /*
   Compute the surface integral of field F
   posx, posy, posz: positions de x,y,z dans coord
@@ -188,10 +199,17 @@ namespace K_POST
   resultat: integration result, same size as F variable number
 */
   E_Int integUnstruct(E_Int center2node,
-                        E_Int posx, E_Int posy, E_Int posz,
-                        FldArrayI& cn, const char* eltType, FldArrayF& coord,
-                        FldArrayF& F, FldArrayF& ratio,
-                        FldArrayF& resultat);
+                      E_Int posx, E_Int posy, E_Int posz,
+                      FldArrayI& cn, const char* eltType, FldArrayF& coord,
+                      FldArrayF& F, FldArrayF& ratio,
+                      FldArrayF& resultat);
+#ifdef E_ADOLC
+  E_Int dintegUnstruct(E_Int center2node,
+                       E_Int posx, E_Int posy, E_Int posz,
+                       FldArrayI& cn, const char* eltType, FldArrayF& coord,
+                       FldArrayF& F, FldArrayF& ratio,
+                       FldArrayF& resultat);
+#endif
 /*
    Compute the surface integral of field F * normal vect(n)
    ni*nj*nk: dimension of coordinate array (coord)

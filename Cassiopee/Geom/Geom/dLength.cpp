@@ -154,6 +154,8 @@ PyObject* K_GEOM::dLength(PyObject* self, PyObject* args)
     dFzt[i] = df[3*i+2]; // dL/dzi
   }
 
+  delete [] ax; delete [] df;
+  
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDS(tpl, fo);
   

@@ -1695,7 +1695,6 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
   #pragma omp parallel
   {
     E_Int nelts, nvpf, fidx, indv;
-    E_Int nextFaces = 0;  // number of exterior faces found in all conn. of that thread
     E_Int nextFacesIc;  // number of exterior faces found in a given conn. of that thread
     std::vector<std::vector<E_Int> > facets;
 
@@ -1721,7 +1720,7 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
           if (faceMask[fidx] == 1)  // exterior face found
           {
             nvpf = facets[f].size();  // number of vertices per face
-            nextFaces++; nextFacesIc++;
+            nextFacesIc++;
             loc_toffset[nvpf-1]++;  // from NODE (0) to QUAD (3)
             // Tag vertices of that faces as exterior vertices
             for (E_Int j = 0; j < nvpf; j++)

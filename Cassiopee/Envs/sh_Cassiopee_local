@@ -583,8 +583,13 @@ elif [ "$MAC" = "sator_coda" ]; then
     module load swig/4.2.1-gnu850
     PROD_PATH=/stck/rhea/opt/python3.10_modules/bin
     PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
-    module use /tmp_user/sator/rhea/sator_coda_v2025_11/modules/linux-rocky8-x86_64_v3
-    module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
+    
+    #module use /tmp_user/sator/rhea/sator_coda_v2025_11/modules/linux-rocky8-x86_64_v3
+    #module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
+    
+    module use /tmp_user/sator/rhea/sator_coda_v2026_02/modules/linux-rocky8-x86_64_v3
+    module load coda/2026.02.0-gnu12.1.0 fszoltanintegration/2026.02.0-gnu12.1.0 fsoversetblanking/2026.02.0-gnu12.1.0  fsui-coda/2026.02.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2026.02.1-gnu12.1.0 fsgridvelocity/2026.02.0-gnu12.1.0
+
     module load openblas/0.3.15-gnu12.1.0
     module load fmt/8.1.1-gnu12.1.0
     export OMP_PLACES=cores

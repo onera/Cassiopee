@@ -87,7 +87,6 @@ static PyMethodDef Pypost [] =
   {"perlinNoise", K_POST::perlinNoise, METH_VARARGS},
 #ifdef E_ADOLC
   {"dinteg", K_POST::dinteg, METH_VARARGS},
-  {"dinteg2", K_POST::dinteg2, METH_VARARGS},
 #endif
   {NULL, NULL}
 };
