@@ -489,7 +489,7 @@ def getProcGlobal__(zoneName, t, procDict=None):
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                  intersectionsDict=None, exploc=False, procDict2=None,
-                 it=None, reduction=True):
+                 it=None, reduction=True, Nbpass=1):
     """Return the communication graph for different block relation types."""
     zones = Internal.getZones(t)
     graph = {}
@@ -591,12 +591,16 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     popp = getProcGlobal__(rcvname, t2, procDict2)
                     updateGraph__(graph, proc, popp, z[0])
 
-    elif type == 'ID_Unsteady': # based on interpolation data
-        graph_steady={}; graph_unsteady={}
-        for z in zones:
-            proc = getProcLocal__(z, procDict)
-            subRegions = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
-            for s in subRegions:
+
+    elif type == 'ID_Unsteady': # base sur les interpolations data
+        graphSteadyList=[];graphUnsteadyList=[]
+        for i in range(1,Nbpass+1):
+          graph_steady={}; graph_unsteady={}
+          for z in zones:
+             proc = getProcLocal__(z, procDict)
+             subRegions = Internal.getNodesFromType1(z,'ZoneSubRegion_t')
+             for s in subRegions:
+
                 sname = s[0][0:2]
                 if sname=='ID':
                     if '#' in s[0]:
@@ -605,17 +609,23 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                         idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
                         if idn != []: # the subRegion describes interpolations
                             popp = getProcGlobal__(donor, t, procDict)
-                            if numero_iter not in graph_unsteady: graph_unsteady[numero_iter] = {}
-                            #if(numero_iter==55):  print("subregion", s[0], z[0], donor, proc, popp)
-                            updateGraph__(graph_unsteady[numero_iter], proc, popp, z[0])
+                            if Nbpass==1 or s[0][-6:]== '_pass'+str(i):
+                              if numero_iter not in graph_unsteady: graph_unsteady[numero_iter] = {}
+                              updateGraph__(graph_unsteady[numero_iter], proc, popp, z[0])
                     else:
                         donor = Internal.getValue(s)
                         idn = Internal.getNodesFromName1(s, 'InterpolantsDonor')
                         if idn != []: # the subRegion describes interpolations
                             popp = getProcGlobal__(donor, t, procDict)
-                            updateGraph__(graph_steady, proc, popp, z[0])
 
-        return graph_steady, graph_unsteady
+                            if Nbpass==1 or s[0][-6:]== '_pass'+str(i):
+                              updateGraph__(graph_steady, proc, popp, z[0])
+                              #if i==2: print("ajout dans graph", s[0], 'pass=', i, graph_steady, 'procPop', proc, popp, z[0], flush=True)
+
+          graphSteadyList.append(  graph_steady.copy() )
+          graphUnsteadyList.append(graph_unsteady.copy() )
+
+        return graphSteadyList, graphUnsteadyList
 
     elif type == 'ID': # based on interpolation data
         if not exploc:

@@ -617,11 +617,11 @@ def createBboxDict(t):
 # computeGraph dans Distributed.py pour plus de details.
 #==============================================================================
 def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
-                 intersectionsDict=None, exploc=False, procDict2=None, it=0):
+                 intersectionsDict=None, exploc=False, procDict2=None, it=0, Nbpass=1):
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
     graph = Distributed.computeGraph(t, type, t2, procDict, rank,
-                                     intersectionsDict, exploc, procDict2, it)
+                                     intersectionsDict, exploc, procDict2, it, reduction=reduction, Nbpass=Nbpass)
 
     if reduction:
         # Assure que le graph est le meme pour tous les processeurs
