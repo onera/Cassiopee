@@ -45,7 +45,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def reduce(a, op=None, root=0): return a
         def Reduce(a, b, op=None, root=0): return a
         def allreduce(a, op=None): return a
-        def Allreduce(a, b, op=None): b[:] = a[:]; return None
+        def Allreduce(a, b, op=None): b[...] = a; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
@@ -100,7 +100,7 @@ else: # try import (may fail - core or hang)
         def reduce(a, op=None, root=0): return a
         def Reduce(a, b, op=None, root=0): return a
         def allreduce(a, op=None): return a
-        def Allreduce(a, b, op=None): b[:] = a[:]; return None
+        def Allreduce(a, b, op=None): b[...] = a; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passNext(a): return a
         def seq(F, *args): F(*args)
