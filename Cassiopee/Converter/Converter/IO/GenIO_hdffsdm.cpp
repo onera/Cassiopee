@@ -664,7 +664,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   PyList_Append(children5, nzc); Py_DECREF(nzc);
   delete [] r;
 
-  // Create FlowSolution
+  // Create FlowSolution - read data sets
   hid_t gid = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Datasets", H5P_DEFAULT);
   H5G_info_t info;
   H5Gget_info(gid, &info);
@@ -1259,7 +1259,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     E_Int nvars = sols.size();
     //printf("detected nvars=%d\n", nvars);
   
-    gid = H5Gcreate(ds, "AugState", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    gid = H5Gcreate(ds, "CellAvgState", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     
     // number of vars
     dims[0] = 1;
@@ -1309,10 +1309,10 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     did = H5Screate_simple(1, dims, NULL);
     E_Int value = 1;
 #ifdef E_DOUBLEINT
-    aid = H5Acreate(gid, "SpanAllCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
+    aid = H5Acreate(gid, "SpansAllCells", H5T_NATIVE_INT64, did, H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(aid, H5T_NATIVE_INT64, &value);
 #else
-    aid = H5Acreate(gid, "SpanAllCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
+    aid = H5Acreate(gid, "SpansAllCells", H5T_NATIVE_INT, did, H5P_DEFAULT, H5P_DEFAULT);
     H5Awrite(aid, H5T_NATIVE_INT, &value);
 #endif
     H5Aclose(aid); H5Sclose(did);
@@ -1333,13 +1333,13 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
 
       if (pass == 0)
       {
-        gid2 = H5Gcreate(ds, "CellType0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        gid2 = H5Gcreate(gid, "CellType0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         sprintf(name, "CellType" SF_D_, count);
         did = H5Screate(H5S_SCALAR);
         tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen("HEXA8")+1);
         aid = H5Acreate(gid2, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
         H5Awrite(aid, tid, "HEXA8");
-        H5Sclose(did); H5Aclose(aid); 
+        H5Sclose(did); H5Aclose(aid);
         count += 1;
         H5Gclose(gid2);
       }
@@ -1366,13 +1366,26 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     for (E_Int n = 0; n < nvars; n++)
     {
       sprintf(name, "Variable" SF_D_, n);
-      char* name2 = K_PYTREE::getNodeName(sols[n]); 
+      char* name2 = K_PYTREE::getNodeName(sols[n]);
       gid2 = H5Gcreate(gid, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       did = H5Screate(H5S_SCALAR);
-      tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen(name)+1);
+      tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen(name2)+1);
       aid = H5Acreate(gid2, "Name", tid, did, H5P_DEFAULT, H5P_DEFAULT);
       H5Awrite(aid, tid, name2);
-      H5Sclose(did); H5Aclose(aid); 
+      H5Sclose(did); H5Aclose(aid);
+      
+      hid_t gid3 = H5Gcreate(gid2, "DataSpecification", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      did = H5Screate(H5S_SCALAR);
+      tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen("[]")+1);
+      aid = H5Acreate(gid3, "InfoString", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+      H5Awrite(aid, tid, "[]");
+      H5Sclose(did); H5Aclose(aid);
+      did = H5Screate(H5S_SCALAR);
+      tid = H5Tcopy(H5T_C_S1); H5Tset_size(tid, strlen("NonDimensional")+1);
+      aid = H5Acreate(gid3, "Type", tid, did, H5P_DEFAULT, H5P_DEFAULT);
+      H5Awrite(aid, tid, "NonDimensional");
+      H5Sclose(did); H5Aclose(aid);
+      H5Gclose(gid3);
       H5Gclose(gid2);
     }
 
