@@ -42,15 +42,13 @@ K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
 
   while (it != itEnd) *(it++) = val++;
 
-  if (!do_omp){
-    //std::cout << "MERGE SEQ 1" << std::endl;
+  if (!do_omp)
+  {
     __insert(indices.begin(), itEnd, 0/*depth*/);
   }
   else
   {
-    //std::cout << "MERGE OMP1" << std::endl;
-    //omp_set_nested(1);
-#pragma omp parallel
+    #pragma omp parallel
     {
       #pragma omp single
       {
@@ -73,14 +71,13 @@ K_SEARCH::KdTree<CoordArrayType>::KdTree(const coord_access_type& posAcc,
   size_type none = IDX_NONE;
   _tree.resize(3, _tree_sz + indices.size(), &none);
 
-  if (!do_omp){
-    //std::cout << "MERGE SEQ 2" << std::endl;
+  if (!do_omp)
+  {
     __insert(indices.begin(), indices.end(), 0/*depth*/);
   }
   else
   {
-    //std::cout << "MERGE OMP 2" << std::endl;
-#pragma omp parallel
+    #pragma omp parallel
     {
 
       #pragma omp single
@@ -362,7 +359,8 @@ K_SEARCH::KdTree<CoordArrayType>::getClosest(E_Int n, const E_Float& guessed_d2,
   size_type m = IDX_NONE;  
   dist2 = guessed_d2;
 
-  if (_tolerance < dist2){
+  if (_tolerance < dist2)
+  {
     E_Float Xn[3];
     _posAcc.getEntry(n, Xn);
     __seek_closest(n, Xn, 0/*root col*/, 0/*axis*/, dist2, m);
@@ -432,7 +430,7 @@ void K_SEARCH::KdTree<CoordArrayType>::getInSphere
     {
       ++i;
     }
-    else Ni=out[--sz];
+    else Ni = out[--sz];
   }
   out.resize(sz);
 }

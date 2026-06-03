@@ -166,8 +166,8 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-      dist = sqrt(dx*dx + dy*dy + dz*dz);
-      if (dist < etol) nptr[i] = ind+1;
+      dist = dx*dx + dy*dy + dz*dz;
+      if (dist*dist < etol*etol) nptr[i] = ind+1;
       else nptr[i] = -1;
     }
   }
@@ -327,10 +327,10 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-      dist = sqrt(dx*dx + dy*dy + dz*dz);
+      dist = dx*dx + dy*dy + dz*dz;
       // local effective tolerance
       etol = atol + rtol*lmax;
-      if (dist < etol) nptr[i] = ind+1; 
+      if (dist*dist < etol*etol) nptr[i] = ind+1; 
       else nptr[i] = -1;
     }
   }
@@ -514,8 +514,8 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
 
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-        dist = sqrt(dx*dx + dy*dy + dz*dz);
-        if (dist < etol) nptr[ic] = ind+1;
+        dist = dx*dx + dy*dy + dz*dz;
+        if (dist*dist < etol*etol) nptr[ic] = ind+1;
         else nptr[ic] = -1;
       }
     }
@@ -612,10 +612,10 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
         pt[0] = xf; pt[1] = yf; pt[2] = zf;
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-        dist = sqrt(dx*dx + dy*dy + dz*dz);
+        dist = dx*dx + dy*dy + dz*dz;
         // local effective tolerance
         etol = atol + rtol*lmax;
-        if (dist < etol) nptr[i] = ind+1;
+        if (dist*dist < etol*etol) nptr[i] = ind+1;
         else nptr[i] = -1;
       }
     }
@@ -762,10 +762,10 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           pt[0] = xf; pt[1] = yf; pt[2] = zf;
           ind = globalKdt->getClosest(pt); // closest pt
           dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-          dist = sqrt(dx*dx + dy*dy + dz*dz);
+          dist = dx*dx + dy*dy + dz*dz;
           // local effective tolerance
           etol = atol + rtol*lmax;
-          if (dist < etol) nptr[offset+i] = ind+1;
+          if (dist*dist < etol*etol) nptr[offset+i] = ind+1;
           else nptr[offset+i] = -1;
         }
       }

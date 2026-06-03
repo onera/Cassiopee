@@ -417,30 +417,32 @@ void Mesh_update_global_face_ids(Mesh *M)
     }
 
     // Toutes mes anciennes/nouvelles faces proc
-    
+    /*
     E_Int tnp_new = 0, tnp_old = 0;
-
-    for (E_Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) 
+    {
         PPatch *P = &M->pps[i];
 
-        for (E_Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) 
+        {
             E_Int lfid = P->pf[j];
             E_Int fstate = M->fref[lfid];
             if (fstate == FACE_NEW) tnp_new++;
             else tnp_old++;
         }
-    }
+    }*/
 
     // Count the pfaces that I control
 
     E_Int my_npf = 0;
-
-    for (E_Int i = 0; i < M->npp; i++) {
+    for (E_Int i = 0; i < M->npp; i++) 
+    {
         PPatch *P = &M->pps[i];
 
         if (M->pid > P->nei) continue;
 
-        for (E_Int j = 0; j < P->nf; j++) {
+        for (E_Int j = 0; j < P->nf; j++) 
+        {
             E_Int lfid = P->pf[j];
             E_Int fstate = M->fref[lfid];
             if (fstate == FACE_NEW) my_npf++;
