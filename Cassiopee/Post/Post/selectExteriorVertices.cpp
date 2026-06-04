@@ -46,8 +46,11 @@ PyObject* K_POST::selectExteriorVertices(PyObject* self, PyObject* args)
   {
     if (K_STRING::cmp(eltType, "NODE") == 0)
     {
+      FldArrayI* cnn = new FldArrayI();
+      tpl = K_ARRAY::buildArray3(*f, varString, *cnn, eltType, f->getApi());
+      delete cnn;
       RELEASESHAREDU(array, f, cn);
-      return array;
+      return tpl;
     }
     else if (strcmp(eltType, "NGON") == 0)
     {
