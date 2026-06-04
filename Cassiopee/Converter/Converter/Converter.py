@@ -1667,7 +1667,7 @@ def freeHook(hook):
 #==============================================================================
 # Geometric identification functions
 #==============================================================================
-def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
+def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-12):
     """Identify nodes of a in KDT. return identified indices.
     Usage: identifyNodes(hook, a)"""
     if isinstance(a[0], list):
