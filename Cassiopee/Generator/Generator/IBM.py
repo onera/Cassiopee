@@ -827,9 +827,9 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         zones = Internal.getZones(t1)
         t = splitZoneForConservative(t1,dimPb=dimPb )
         c=0
-        for z in Internal.getZones(t): 
-           z[0]='Cart.'+str(c)
-           c+=1
+        for z in Internal.getZones(t):
+            z[0]='Cart.'+str(c)
+            c+=1
     else:
         t = C.newPyTree(['CARTESIAN', res])
 
@@ -1760,7 +1760,7 @@ def splitZoneForConservative(t, dimPb=3):
                         llist.pop(i)
                     else:
 
-                      i +=1
+                        i +=1
 
                 if not same: racFinal.append(l)
                 if not fusion:
