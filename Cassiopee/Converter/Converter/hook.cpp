@@ -450,24 +450,14 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
   }
 
   // get the bbox of centers
-  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
   E_Int npts = centers->getSize();
   E_Float* cx = centers->begin(1);
   E_Float* cy = centers->begin(2);
   E_Float* cz = centers->begin(3);
-  for (E_Int i = 0; i < npts; i++)
-  {
-    xmin = K_FUNC::E_min(xmin, cx[i]);
-    xmax = K_FUNC::E_max(xmax, cx[i]);
-    ymin = K_FUNC::E_min(ymin, cy[i]);
-    ymax = K_FUNC::E_max(ymax, cy[i]);
-    zmin = K_FUNC::E_min(zmin, cz[i]);
-    zmax = K_FUNC::E_max(zmax, cz[i]);
-  }
   E_Float* bbox = new E_Float [6];
-  bbox[0] = xmin; bbox[1] = xmax; 
-  bbox[2] = ymin; bbox[3] = ymax;
-  bbox[4] = zmin; bbox[5] = zmax;
+  K_COMPGEOM::boundingBoxUnstruct(npts, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
 
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers
@@ -717,20 +707,10 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
   }
 
   // get the bbox of coords
-  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
-  for (E_Int i = 0; i < npts; i++)
-  {
-    xmin = K_FUNC::E_min(xmin, cx[i]);
-    xmax = K_FUNC::E_max(xmax, cx[i]);
-    ymin = K_FUNC::E_min(ymin, cy[i]);
-    ymax = K_FUNC::E_max(ymax, cy[i]);
-    zmin = K_FUNC::E_min(zmin, cz[i]);
-    zmax = K_FUNC::E_max(zmax, cz[i]);
-  }
   E_Float* bbox = new E_Float [6];
-  bbox[0] = xmin; bbox[1] = xmax; 
-  bbox[2] = ymin; bbox[3] = ymax;
-  bbox[4] = zmin; bbox[5] = zmax;
+  K_COMPGEOM::boundingBoxUnstruct(npts, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
 
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*coords, 1, 2, 3); // ref sur coords
@@ -1009,24 +989,14 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
   }//BE/ME
   
   // get the bbox of coords
-  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
   E_Int npts = centers->getSize();
   E_Float* cx = centers->begin(1);
   E_Float* cy = centers->begin(2);
   E_Float* cz = centers->begin(3);
-  for (E_Int i = 0; i < npts; i++)
-  {
-    xmin = K_FUNC::E_min(xmin, cx[i]);
-    xmax = K_FUNC::E_max(xmax, cx[i]);
-    ymin = K_FUNC::E_min(ymin, cy[i]);
-    ymax = K_FUNC::E_max(ymax, cy[i]);
-    zmin = K_FUNC::E_min(zmin, cz[i]);
-    zmax = K_FUNC::E_max(zmax, cz[i]);
-  }
   E_Float* bbox = new E_Float [6];
-  bbox[0] = xmin; bbox[1] = xmax; 
-  bbox[2] = ymin; bbox[3] = ymax;
-  bbox[4] = zmin; bbox[5] = zmax;
+  K_COMPGEOM::boundingBoxUnstruct(npts, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
 
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers

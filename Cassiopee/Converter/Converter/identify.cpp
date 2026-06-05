@@ -115,55 +115,14 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
   {
     // Compute the maximum delta in x-, y-, z-coordinates
     // and add rtol/(npts^(1/dim)-1)*max(dx, dy, dz) to the absolute tolerance
-    const E_Int nthreads = __NUMTHREADS__;
+    E_Float xmin, ymin, zmin, xmax, ymax, zmax;
     E_Float dx, dy, dz, ncells1d, charlen;
-    E_Float xmin = K_CONST::E_MAX_FLOAT; E_Float xmax = -K_CONST::E_MAX_FLOAT;
-    E_Float ymin = K_CONST::E_MAX_FLOAT; E_Float ymax = -K_CONST::E_MAX_FLOAT;
-    E_Float zmin = K_CONST::E_MAX_FLOAT; E_Float zmax = -K_CONST::E_MAX_FLOAT;
-    E_Float* txmin = new E_Float [nthreads]; E_Float* txmax = new E_Float [nthreads];
-    E_Float* tymin = new E_Float [nthreads]; E_Float* tymax = new E_Float [nthreads];
-    E_Float* tzmin = new E_Float [nthreads]; E_Float* tzmax = new E_Float [nthreads];
-
-    for (E_Int tid = 0; tid < nthreads; tid++)
-    {
-      txmin[tid] = K_CONST::E_MAX_FLOAT; txmax[tid] = -K_CONST::E_MAX_FLOAT;
-      tymin[tid] = K_CONST::E_MAX_FLOAT; tymax[tid] = -K_CONST::E_MAX_FLOAT;
-      tzmin[tid] = K_CONST::E_MAX_FLOAT; tzmax[tid] = -K_CONST::E_MAX_FLOAT;
-    }
-
-    #pragma omp parallel
-    {
-      const E_Int tid = __CURRENT_THREAD__;
-      #pragma omp for
-      for (E_Int i = 0; i < npts; i++)
-      {
-        txmin[tid] = K_FUNC::E_min(txmin[tid], xp[i]);
-        txmax[tid] = K_FUNC::E_max(txmax[tid], xp[i]);
-        tymin[tid] = K_FUNC::E_min(tymin[tid], yp[i]);
-        tymax[tid] = K_FUNC::E_max(tymax[tid], yp[i]);
-        tzmin[tid] = K_FUNC::E_min(tzmin[tid], zp[i]);
-        tzmax[tid] = K_FUNC::E_max(tzmax[tid], zp[i]);
-      }
-    }
-
-    for (E_Int tid = 0; tid < nthreads; tid++)
-    {
-      xmin = K_FUNC::E_min(txmin[tid], xmin);
-      xmax = K_FUNC::E_max(txmax[tid], xmax);
-      ymin = K_FUNC::E_min(tymin[tid], ymin);
-      ymax = K_FUNC::E_max(tymax[tid], ymax);
-      zmin = K_FUNC::E_min(tzmin[tid], zmin);
-      zmax = K_FUNC::E_max(tzmax[tid], zmax);
-    }
-
+    K_COMPGEOM::boundingBoxUnstruct(npts, xp, yp, zp,
+                                    xmin, ymin, zmin, xmax, ymax, zmax);
     dx = xmax - xmin; dy = ymax - ymin; dz = zmax - zmin;
     ncells1d = pow(npts, 1./dim) - 1;  // estimated number of cells along 1 dim
     charlen = K_FUNC::E_max(dx, K_FUNC::E_max(dy, dz))/ncells1d;
     etol = atol + rtol*charlen;
-
-    delete[] txmin; delete[] txmax;
-    delete[] tymin; delete[] tymax;
-    delete[] tzmin; delete[] tzmax;
   }
 
   // Remplissage
@@ -284,7 +243,7 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
   // Acces non universel sur les ptrs
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
-  
+
 #pragma omp parallel default(shared)
   {
     E_Int v1, v2, nv, ind;
