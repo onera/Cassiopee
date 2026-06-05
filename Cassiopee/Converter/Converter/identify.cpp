@@ -59,6 +59,7 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
   //  (K_SEARCH::KdTree<FldArrayF>*) packet[2];
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
     (K_SEARCH::KdTree<FldArrayF>*) packet[3];
+  E_Float* bbox = (E_Float*) packet[4];
 
   // Recupere l'array a identifier
   E_Int nil, njl, nkl, res;
@@ -158,23 +159,30 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
     dx = xmax - xmin; dy = ymax - ymin; dz = zmax - zmin;
     ncells1d = pow(npts, 1./dim) - 1;  // estimated number of cells along 1 dim
     charlen = K_FUNC::E_max(dx, K_FUNC::E_max(dy, dz))/ncells1d;
-    etol += rtol*charlen;
+    etol = atol + rtol*charlen;
+
     delete[] txmin; delete[] txmax;
     delete[] tymin; delete[] tymax;
     delete[] tzmin; delete[] tzmax;
   }
 
   // Remplissage
-#pragma omp parallel
+  #pragma omp parallel
   {
     E_Float pt[3];
     E_Float xf, yf, zf, dx, dy, dz, dist;
     E_Int ind;
 
-#pragma omp for schedule(dynamic)
+    #pragma omp for schedule(dynamic)
     for (E_Int i = 0; i < npts; i++)
     {
       xf = xp[i]; yf = yp[i]; zf = zp[i];
+      if (xf < bbox[0] - etol) { nptr[i] = -1; continue; } // fast return
+      if (xf > bbox[1] + etol) { nptr[i] = -1; continue; }
+      if (yf < bbox[2] - etol) { nptr[i] = -1; continue; }
+      if (yf > bbox[3] + etol) { nptr[i] = -1; continue; }
+      if (zf < bbox[4] - etol) { nptr[i] = -1; continue; }
+      if (zf > bbox[5] + etol) { nptr[i] = -1; continue; }
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
@@ -218,6 +226,7 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
   FldArrayF* centers = (FldArrayF*)packet[1];
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
     (K_SEARCH::KdTree<FldArrayF>*) packet[3];
+  E_Float* bbox = (E_Float*)packet[4];
 
   // Recupere l'array a identifier
   E_Int nil, njl, nkl, res;
@@ -275,7 +284,7 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
   // Acces non universel sur les ptrs
   E_Int* ngon = cn->getNGon();
   E_Int* indPG = cn->getIndPG();
-
+  
 #pragma omp parallel default(shared)
   {
     E_Int v1, v2, nv, ind;
@@ -286,32 +295,47 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
     quad_double qinv;
 #endif
 
+  etol = atol;
+
 #pragma omp for schedule(dynamic)
     for (E_Int i = 0; i < nfaces; i++)
     {
-      lmax = -K_CONST::E_MAX_FLOAT;
-          
       // Acces universel face i
       E_Int* face = cn->getFace(i, nv, ngon, indPG);
 
 #ifdef QUADDOUBLE
       qxf = 0.; qyf = 0.; qzf = 0.;
-      for (E_Int j = 0; j < nv; j++)
+      if (K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
       {
-        v1 = face[j]-1;
-        qxf += quad_double(xp[v1]); 
-        qyf += quad_double(yp[v1]); 
-        qzf += quad_double(zp[v1]);
+        for (E_Int j = 0; j < nv; j++)
+        {
+          v1 = face[j]-1;
+          qxf += quad_double(xp[v1]); 
+          qyf += quad_double(yp[v1]); 
+          qzf += quad_double(zp[v1]);
+        }
+      }
+      else
+      {
+        lmax = 0.;
+        for (E_Int j = 0; j < nv; j++)
+        {
+          v1 = face[j]-1;
+          qxf += quad_double(xp[v1]); 
+          qyf += quad_double(yp[v1]); 
+          qzf += quad_double(zp[v1]);
 
-        // local max edge length
-        if (j == nv-1) v2 = face[0]-1;
-        else v2 = face[j+1]-1;
-        qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
-        qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
-        qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
-        qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
-        len = E_Float(qlen);
-        lmax = K_FUNC::E_max(lmax, len);
+          // local max edge length
+          if (j == nv-1) v2 = face[0]-1;
+          else v2 = face[j+1]-1;
+          qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
+          qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
+          qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
+          qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
+          len = E_Float(qlen);
+          lmax = K_FUNC::E_max(lmax, len);
+        }
+        etol = atol + rtol*lmax;
       }
       qinv = quad_double(nv); qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
       xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
@@ -321,27 +345,44 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
         #ifdef __INTEL_COMPILER
         #pragma float_control(precise, on)
         #endif
-        for (E_Int j = 0; j < nv; j++)
+        if (K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
         {
-          v1 = face[j]-1;
-          xf += xp[v1]; yf += yp[v1]; zf += zp[v1];
-
-          // local max edge length
-          if (j == nv-1) v2 = face[0]-1;
-          else v2 = face[j+1]-1;
-          dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
-          len = sqrt(dx*dx + dy*dy + dz*dz);
-          lmax = K_FUNC::E_max(lmax, len);
+          for (E_Int j = 0; j < nv; j++)
+          {
+            v1 = face[j]-1;
+            xf += xp[v1]; yf += yp[v1]; zf += zp[v1];
+          }
+        }
+        else // with rtol
+        {
+          lmax = 0.;
+          for (E_Int j = 0; j < nv; j++)
+          {
+            v1 = face[j]-1;
+            xf += xp[v1]; yf += yp[v1]; zf += zp[v1];
+          
+            // local max edge length
+            if (j == nv-1) v2 = face[0]-1;
+            else v2 = face[j+1]-1;
+            dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
+            len = sqrt(dx*dx + dy*dy + dz*dz);
+            lmax = K_FUNC::E_max(lmax, len);
+          }
+          etol = atol + rtol*lmax;
         }
         inv = 1./E_Float(nv); xf *= inv; yf *= inv; zf *= inv;
       }
 #endif
+      if (xf < bbox[0] - etol) { nptr[i] = -1; continue; } // fast return
+      if (xf > bbox[1] + etol) { nptr[i] = -1; continue; }
+      if (yf < bbox[2] - etol) { nptr[i] = -1; continue; }
+      if (yf > bbox[3] + etol) { nptr[i] = -1; continue; }
+      if (zf < bbox[4] - etol) { nptr[i] = -1; continue; }
+      if (zf > bbox[5] + etol) { nptr[i] = -1; continue; }
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
       dist = dx*dx + dy*dy + dz*dz;
-      // local effective tolerance
-      etol = atol + rtol*lmax;
       if (dist*dist < etol*etol) nptr[i] = ind+1; 
       else nptr[i] = -1;
     }
@@ -384,6 +425,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
   //  (K_SEARCH::KdTree<FldArrayF>*) packet[2];
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
     (K_SEARCH::KdTree<FldArrayF>*) packet[3];
+  E_Float* bbox = (E_Float*)packet[4];
 
   // Recupere l'array a identifier
   E_Int nil, njl, nkl, res;
@@ -440,14 +482,13 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       E_Float pt[3];
       E_Int ic = 0;
 
+      etol = atol;
+
 #pragma omp for schedule(dynamic) collapse(3)
       for (E_Int k = 0; k < nke; k++)
       for (E_Int j = 0; j < nje; j++)
       for (E_Int i = 0; i < nie; i++)
       {
-        lmax = -K_CONST::E_MAX_FLOAT;
-        etol = atol;
-
         ic = i+j*nie+k*nie*nje;
         xf = 0.; yf = 0.; zf = 0.;
         ind1 = i+j*nil+k*nijl;
@@ -468,10 +509,13 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
         xf += xp[ind8]; yf += yp[ind8]; zf += zp[ind8];
 
         xf = xf/8.; yf = yf/8.; zf = zf/8.;
+        
         pt[0] = xf; pt[1] = yf; pt[2] = zf;
 
         if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
         {
+          lmax = 0.;
+        
           // Edge (ind1, ind2)
           dx = xp[ind2]-xp[ind1]; dy = yp[ind2]-yp[ind1]; dz = zp[ind2]-zp[ind1];
           len = sqrt(dx*dx + dy*dy + dz*dz);
@@ -521,8 +565,15 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           len = sqrt(dx*dx + dy*dy + dz*dz);
           lmax = K_FUNC::E_max(lmax, len);
           // Effective tolerance
-          etol += rtol*lmax;
+          etol = atol + rtol*lmax;
         }
+
+        if (xf < bbox[0] - etol) { nptr[i] = -1; continue; }
+        if (xf > bbox[1] + etol) { nptr[i] = -1; continue; }
+        if (yf < bbox[2] - etol) { nptr[i] = -1; continue; }
+        if (yf > bbox[3] + etol) { nptr[i] = -1; continue; }
+        if (zf < bbox[4] - etol) { nptr[i] = -1; continue; }
+        if (zf > bbox[5] + etol) { nptr[i] = -1; continue; }
 
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
@@ -561,10 +612,12 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       quad_double qinv;
 #endif
 
+      etol = atol;
+
 #pragma omp for schedule(dynamic)
       for (E_Int i = 0; i < nelts; i++)
       {
-        lmax = -K_CONST::E_MAX_FLOAT;
+        lmax = 0.;
 
         // Acces universel element i
         E_Int* elem = cn->getElt(i, nf, nface, indPH);
@@ -583,17 +636,21 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
             qzf += quad_double(zp[v1]);
             c++;
 
-            // local max edge length
-            if (j == nv-1) v2 = face[0]-1;
-            else v2 = face[j+1]-1;
-            qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
-            qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
-            qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
-            qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
-            len = E_Float(qlen);
-            lmax = K_FUNC::E_max(lmax, len);
+            if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
+            {
+              // local max edge length
+              if (j == nv-1) v2 = face[0]-1;
+              else v2 = face[j+1]-1;
+              qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
+              qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
+              qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
+              qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
+              len = E_Float(qlen);
+              lmax = K_FUNC::E_max(lmax, len);
+            }
           }
         }
+        etol = atol + rtol*lmax;
         qinv = quad_double(c); qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
         xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
 #else
@@ -608,25 +665,33 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
             {
               v1 = face[j]-1;
               xf += xp[v1]; yf += yp[v1]; zf += zp[v1]; c++;
-
-              // local max edge length
-              if (j == nv-1) v2 = face[0]-1;
-              else v2 = face[j+1]-1;
-              dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
-              len = sqrt(dx*dx + dy*dy + dz*dz);
-              lmax = K_FUNC::E_max(lmax, len);
+              
+              if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
+              {
+                // local max edge length
+                if (j == nv-1) v2 = face[0]-1;
+                else v2 = face[j+1]-1;
+                dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
+                len = sqrt(dx*dx + dy*dy + dz*dz);
+                lmax = K_FUNC::E_max(lmax, len);
+              }
             }
           }
           inv = 1./E_Float(c); xf *= inv; yf *= inv; zf *= inv;
         }
 #endif
+        etol = atol + rtol*lmax;
+        if (xf < bbox[0] - etol) { nptr[i] = -1; continue; }
+        if (xf > bbox[1] + etol) { nptr[i] = -1; continue; }
+        if (yf < bbox[2] - etol) { nptr[i] = -1; continue; }
+        if (yf > bbox[3] + etol) { nptr[i] = -1; continue; }
+        if (zf < bbox[4] - etol) { nptr[i] = -1; continue; }
+        if (zf > bbox[5] + etol) { nptr[i] = -1; continue; }
 
         pt[0] = xf; pt[1] = yf; pt[2] = zf;
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
         dist = dx*dx + dy*dy + dz*dz;
-        // local effective tolerance
-        etol = atol + rtol*lmax;
         if (dist*dist < etol*etol) nptr[i] = ind+1;
         else nptr[i] = -1;
       }
@@ -706,10 +771,12 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
         quad_double qxf, qyf, qzf, qdx, qdy, qdz, qlen;
 #endif
 
+        etol = atol;
+
 #pragma omp for schedule(dynamic)
         for (E_Int i = 0; i < nelts; i++)
         {
-          lmax = -K_CONST::E_MAX_FLOAT;
+          lmax = 0.;
 
 #ifdef QUADDOUBLE
           qxf = 0.; qyf = 0.; qzf = 0.;
@@ -723,22 +790,25 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           qxf = qxf/qinv; qyf = qyf/qinv; qzf = qzf/qinv;
           xf = E_Float(qxf); yf = E_Float(qyf); zf = E_Float(qzf);
 
-          // Loop over each facet of this element
-          for (E_Int f = 0; f < nfpe[ic]; f++)
+          if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
           {
-            // Number of vertices per face
-            nvpf = facets[f].size();
-            for (E_Int j = 0; j < nvpf; j++)
+            // Loop over each facet of this element
+            for (E_Int f = 0; f < nfpe[ic]; f++)
             {
-              v1 = cm(i, facets[f][j]) - 1;
-              if (j == nvpf-1) v2 = cm(i, facets[f][0]) - 1;
-              else v2 = cm(i, facets[f][j+1]) - 1;
-              qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
-              qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
-              qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
-              qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
-              len = E_Float(qlen);
-              lmax = K_FUNC::E_max(lmax, len);
+              // Number of vertices per face
+              nvpf = facets[f].size();
+              for (E_Int j = 0; j < nvpf; j++)
+              {
+                v1 = cm(i, facets[f][j]) - 1;
+                if (j == nvpf-1) v2 = cm(i, facets[f][0]) - 1;
+                else v2 = cm(i, facets[f][j+1]) - 1;
+                qdx = quad_double(xp[v2]) - quad_double(xp[v1]);
+                qdy = quad_double(yp[v2]) - quad_double(yp[v1]);
+                qdz = quad_double(zp[v2]) - quad_double(zp[v1]);
+                qlen = sqrt(qdx*qdx + qdy*qdy + qdz*qdz);
+                len = E_Float(qlen);
+                lmax = K_FUNC::E_max(lmax, len);
+              }
             }
           }
 #else
@@ -755,28 +825,37 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
             xf *= inv; yf *= inv; zf *= inv;
           }
 
-          // Loop over each facet of this element
-          for (E_Int f = 0; f < nfpe[ic]; f++)
+          if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
           {
-            // Number of vertices per face
-            nvpf = facets[f].size();
-            for (E_Int j = 0; j < nvpf; j++)
+            // Loop over each facet of this element
+            for (E_Int f = 0; f < nfpe[ic]; f++)
             {
-              v1 = cm(i, facets[f][j]) - 1;
-              if (j == nvpf-1) v2 = cm(i, facets[f][0]) - 1;
-              else v2 = cm(i, facets[f][j+1]) - 1;
-              dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
-              len = sqrt(dx*dx + dy*dy + dz*dz);
-              lmax = K_FUNC::E_max(lmax, len);
+              // Number of vertices per face
+              nvpf = facets[f].size();
+              for (E_Int j = 0; j < nvpf; j++)
+              {
+                v1 = cm(i, facets[f][j]) - 1;
+                if (j == nvpf-1) v2 = cm(i, facets[f][0]) - 1;
+                else v2 = cm(i, facets[f][j+1]) - 1;
+                dx = xp[v2]-xp[v1]; dy = yp[v2]-yp[v1]; dz = zp[v2]-zp[v1];
+                len = sqrt(dx*dx + dy*dy + dz*dz);
+                lmax = K_FUNC::E_max(lmax, len);
+              }
             }
           }
 #endif
+          etol = atol + rtol*lmax;
+          if (xf < bbox[0] - etol) { nptr[i] = -1; continue; }
+          if (xf > bbox[1] + etol) { nptr[i] = -1; continue; }
+          if (yf < bbox[2] - etol) { nptr[i] = -1; continue; }
+          if (yf > bbox[3] + etol) { nptr[i] = -1; continue; }
+          if (zf < bbox[4] - etol) { nptr[i] = -1; continue; }
+          if (zf > bbox[5] + etol) { nptr[i] = -1; continue; }
+      
           pt[0] = xf; pt[1] = yf; pt[2] = zf;
           ind = globalKdt->getClosest(pt); // closest pt
           dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
           dist = dx*dx + dy*dy + dz*dz;
-          // local effective tolerance
-          etol = atol + rtol*lmax;
           if (dist*dist < etol*etol) nptr[offset+i] = ind+1;
           else nptr[offset+i] = -1;
         }

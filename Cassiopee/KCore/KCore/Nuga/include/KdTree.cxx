@@ -141,8 +141,8 @@ K_SEARCH::KdTree<CoordArrayType>::__insert
 {
   if (begin == end) return IDX_NONE;
 
-  InputIterator                    it(begin + (end - begin)/2);
-  size_type                        cols(_tree_sz);
+  InputIterator it(begin + (end - begin)/2);
+  size_type cols(_tree_sz);
   
   //if (_posAcc.isOutOfRange(*it)) return IDX_NONE;
 
@@ -256,11 +256,11 @@ K_SEARCH::KdTree<CoordArrayType>::getClose(const E_Float* point, E_Float& dist2)
 
 // ============================================================================
 // Returns a close node to node of index N. It is not necessarily the 
-//closest one.
+// closest one.
 // ============================================================================
 template <typename CoordArrayType>
 E_Int
-K_SEARCH::KdTree<CoordArrayType>::getClose (E_Int n) const
+K_SEARCH::KdTree<CoordArrayType>::getClose(E_Int n) const
 {
   size_type m(IDX_NONE);
   E_Float dist2;
@@ -269,10 +269,11 @@ K_SEARCH::KdTree<CoordArrayType>::getClose (E_Int n) const
 }
 
 // ============================================================================
-// Returns a close node to node N (it is not necessarily the closest one) and the distance between them.
+// Returns a close node to node N (it is not necessarily the closest one) and 
+// the distance between them.
 // ============================================================================
 template <typename CoordArrayType>
-E_Int K_SEARCH::KdTree<CoordArrayType>::getClose (E_Int n, E_Float& dist2) const
+E_Int K_SEARCH::KdTree<CoordArrayType>::getClose(E_Int n, E_Float& dist2) const
 {
   size_type m(IDX_NONE);
   E_Float Xn[3];
@@ -541,7 +542,7 @@ K_SEARCH::KdTree<CoordArrayType>::getInSphere
       ++i;
     }
     else
-      Ni=out[--sz];
+      Ni = out[--sz];
   }
   out.resize(sz);
 }
@@ -554,7 +555,7 @@ void K_SEARCH::KdTree<CoordArrayType>::__insert(size_type n)
   size_type i(0), axis(0), parent(0), child(1), *tbegin(_tree.begin());
   const size_type *pi;
 
-  _posAcc.getEntry(n,_Xn);
+  _posAcc.getEntry(n, _Xn);
 
   while (i < _tree_sz)
   {
@@ -621,7 +622,7 @@ void K_SEARCH::KdTree<CoordArrayType>::__getClosest_through_path(size_type n, co
       d2 = d2tmp;
       m = *Ni;
     }
-    i= (Xn[axis] < _posAcc.getVal(*Ni, axis)) ? *(Ni+1) : *(Ni+2);
+    i = (Xn[axis] < _posAcc.getVal(*Ni, axis)) ? *(Ni+1) : *(Ni+2);
     axis = (axis+1) % _dim;
   }
 }
@@ -699,7 +700,7 @@ void K_SEARCH::KdTree<CoordArrayType>::__getInBox
 
   if (do_left && do_right) // might be in so do the complete checking
   {
-    bool is_in=true;
+    bool is_in = true;
     size_type ax = (axis+1)%_dim;
     for (E_Int j = 0; j < _dim-1; ++j)
     {

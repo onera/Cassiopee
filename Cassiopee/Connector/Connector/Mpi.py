@@ -160,7 +160,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         #print(Cmpi.rank, "receive done", zu[0], flush=True)
 
         # identify faces and build matches
-        ids = C.identifyElements(hook, zu, tol)
+        ids = C.identifyElements(hook, zu, tol, rtol=0.)
 
         # get the indices of ids where ids is not -1
         # since they correspond to indices in zu

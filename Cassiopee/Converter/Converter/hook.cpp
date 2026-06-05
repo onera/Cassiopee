@@ -449,6 +449,26 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
     }
   }
 
+  // get the bbox of centers
+  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
+  E_Int npts = centers->getSize();
+  E_Float* cx = centers->begin(1);
+  E_Float* cy = centers->begin(2);
+  E_Float* cz = centers->begin(3);
+  for (E_Int i = 0; i < npts; i++)
+  {
+    xmin = K_FUNC::E_min(xmin, cx[i]);
+    xmax = K_FUNC::E_max(xmax, cx[i]);
+    ymin = K_FUNC::E_min(ymin, cy[i]);
+    ymax = K_FUNC::E_max(ymax, cy[i]);
+    zmin = K_FUNC::E_min(zmin, cz[i]);
+    zmax = K_FUNC::E_max(zmax, cz[i]);
+  }
+  E_Float* bbox = new E_Float [6];
+  bbox[0] = xmin; bbox[1] = xmax; 
+  bbox[2] = ymin; bbox[3] = ymax;
+  bbox[4] = zmin; bbox[5] = zmax;
+
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
@@ -456,12 +476,13 @@ PyObject* K_CONVERTER::registerFaces(PyObject* self, PyObject* args)
 
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 0;
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = centers;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else
@@ -694,6 +715,23 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
   {
     cx[i] = xp[i]; cy[i] = yp[i]; cz[i] = zp[i];
   }
+
+  // get the bbox of coords
+  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
+  for (E_Int i = 0; i < npts; i++)
+  {
+    xmin = K_FUNC::E_min(xmin, cx[i]);
+    xmax = K_FUNC::E_max(xmax, cx[i]);
+    ymin = K_FUNC::E_min(ymin, cy[i]);
+    ymax = K_FUNC::E_max(ymax, cy[i]);
+    zmin = K_FUNC::E_min(zmin, cz[i]);
+    zmax = K_FUNC::E_max(zmax, cz[i]);
+  }
+  E_Float* bbox = new E_Float [6];
+  bbox[0] = xmin; bbox[1] = xmax; 
+  bbox[2] = ymin; bbox[3] = ymax;
+  bbox[4] = zmin; bbox[5] = zmax;
+
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*coords, 1, 2, 3); // ref sur coords
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
@@ -701,13 +739,13 @@ PyObject* K_CONVERTER::registerNodes(PyObject* self, PyObject* args)
 
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 2;
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = coords;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
-
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else
@@ -970,6 +1008,26 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
     }
   }//BE/ME
   
+  // get the bbox of coords
+  E_Float xmin=E_MAXFLOAT, xmax=-E_MAXFLOAT, ymin=E_MAXFLOAT, ymax=-E_MAXFLOAT, zmin=E_MAXFLOAT, zmax=-E_MAXFLOAT;
+  E_Int npts = centers->getSize();
+  E_Float* cx = centers->begin(1);
+  E_Float* cy = centers->begin(2);
+  E_Float* cz = centers->begin(3);
+  for (E_Int i = 0; i < npts; i++)
+  {
+    xmin = K_FUNC::E_min(xmin, cx[i]);
+    xmax = K_FUNC::E_max(xmax, cx[i]);
+    ymin = K_FUNC::E_min(ymin, cy[i]);
+    ymax = K_FUNC::E_max(ymax, cy[i]);
+    zmin = K_FUNC::E_min(zmin, cz[i]);
+    zmax = K_FUNC::E_max(zmax, cz[i]);
+  }
+  E_Float* bbox = new E_Float [6];
+  bbox[0] = xmin; bbox[1] = xmax; 
+  bbox[2] = ymin; bbox[3] = ymax;
+  bbox[4] = zmin; bbox[5] = zmax;
+
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
@@ -978,12 +1036,13 @@ PyObject* K_CONVERTER::registerElements(PyObject* self, PyObject* args)
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 3;
 
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = centers;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else
@@ -1028,9 +1087,11 @@ PyObject* K_CONVERTER::freeHook(PyObject* self, PyObject* args)
       //  (ArrayAccessor<FldArrayF>*) packet[2];
       K_SEARCH::KdTree<FldArrayF>* globalKdt = 
         (K_SEARCH::KdTree<FldArrayF>*) packet[3];
+      E_Float* bbox = (E_Float*)packet[4];
       
       delete pt;
       delete globalKdt; // delete tout
+      delete [] bbox;
     }
     break;
 

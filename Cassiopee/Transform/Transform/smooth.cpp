@@ -518,6 +518,7 @@ void  K_TRANSFORM::umbrella(FldArrayF& coord, FldArrayF& coordo,
           //printf("delta %f\n", delta);
 
           // verifie si les vertex voisins ont deja ete projetes
+          /*
           E_Int dejaProj = 0;
           for (E_Int vi = 0; vi < nbV; vi++)
           {
@@ -525,7 +526,7 @@ void  K_TRANSFORM::umbrella(FldArrayF& coord, FldArrayF& coordo,
             if ((f1x[nov]-projx[nov])*(f1x[nov]-projx[nov])+
                 (f1y[nov]-projy[nov])*(f1y[nov]-projy[nov])+
                 (f1z[nov]-projz[nov])*(f1z[nov]-projz[nov]) < 0.1*maxL*maxL) dejaProj++;
-          }
+          }*/
 
           if (distP < 0.25*maxL) // on projete exactement
           {

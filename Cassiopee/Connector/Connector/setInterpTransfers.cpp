@@ -283,7 +283,7 @@ PyObject* K_CONNECTOR::_setInterpTransfers(PyObject* self, PyObject* args)
   else if (K_FUNC::E_abs(AngleZ) > 0.) {dirR=3; theta=AngleZ;}
 
   vector<PyArrayObject*> hook;
-  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars,ndimdxR, ndimdxD,meshtype;
+  E_Int imdjmd, imd,jmd,kmd, cnNfldD, nvars,ndimdxR, ndimdxD=1, meshtype;
   E_Float* iptroD; E_Float* iptroR;
 
 # include "extract_interpD.h"
