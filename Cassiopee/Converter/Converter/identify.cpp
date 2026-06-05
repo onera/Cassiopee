@@ -87,6 +87,16 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
+  E_Int dim = 0;
+  if (res == 1)
+  {
+    if (nil > 1) dim += 1;
+    if (njl > 1) dim += 1;
+    if (nkl > 1) dim += 1;
+  }
+  else if (K_STRING::cmp(eltType, 4, "NGON") == 0) dim = cn->getDim();
+  else dim = K_CONNECT::getDimME(eltType);
+
   // Cree le numpy de sortie
   E_Int npts = f->getSize();
   E_Float* xp = f->begin(posx);
@@ -103,9 +113,9 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
   if (!K_FUNC::fEqualZero(rtol, K_CONST::E_ZERO_MACHINE))
   {
     // Compute the maximum delta in x-, y-, z-coordinates
-    // and add rtol*max(dx, dy, dz) to the absolute tolerance
+    // and add rtol/(npts^(1/dim)-1)*max(dx, dy, dz) to the absolute tolerance
     const E_Int nthreads = __NUMTHREADS__;
-    E_Float dx, dy, dz;
+    E_Float dx, dy, dz, ncells1d, charlen;
     E_Float xmin = K_CONST::E_MAX_FLOAT; E_Float xmax = -K_CONST::E_MAX_FLOAT;
     E_Float ymin = K_CONST::E_MAX_FLOAT; E_Float ymax = -K_CONST::E_MAX_FLOAT;
     E_Float zmin = K_CONST::E_MAX_FLOAT; E_Float zmax = -K_CONST::E_MAX_FLOAT;
@@ -146,7 +156,9 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
     }
 
     dx = xmax - xmin; dy = ymax - ymin; dz = zmax - zmin;
-    etol += rtol*K_FUNC::E_max(dx, K_FUNC::E_max(dy, dz));
+    ncells1d = pow(npts, 1./dim) - 1;  // estimated number of cells along 1 dim
+    charlen = K_FUNC::E_max(dx, K_FUNC::E_max(dy, dz))/ncells1d;
+    etol += rtol*charlen;
     delete[] txmin; delete[] txmax;
     delete[] tymin; delete[] tymax;
     delete[] tzmin; delete[] tzmax;

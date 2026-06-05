@@ -7452,7 +7452,7 @@ def freeHook(hook):
 #==============================================================================
 
 # -- identifyNodes: identifies nodes of a in hook
-def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-14):
+def identifyNodes(hook, a, tol=1.e-11, rtol=1.e-12):
     """Find in a hook nearest points of nodes of a. return identified node indices.
     Usage: identifyNodes(hook, a)"""
     fields = getFields(Internal.__GridCoordinates__, a, api=3)
