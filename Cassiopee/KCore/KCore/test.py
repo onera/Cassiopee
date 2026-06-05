@@ -31,30 +31,32 @@ def getLocal():
 # Verifie que arrays est egal au arrays de reference stocke dans un fichier
 # number est le no du test dans le script
 #=============================================================================
-def testA(arrays, number=1):
+def testA(arrays, number=1, reference=""):
     """Test arrays."""
     import Converter as C
     if not isinstance(arrays[0], list): arrays = [arrays]
 
-    # Check Data directory
-    if not os.access(DATA, os.F_OK):
-        print("{} directory doesn't exist. Created.".format(DATA))
-        os.mkdir(DATA)
-
-    # Build reference file path once
-    fileName = sys.argv[0]
-    baseName = os.path.basename(fileName)
-    dirName = os.path.dirname(fileName)
-    fileName = os.path.splitext(baseName)[0]
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    # Build reference file path if it is not provided
+    fmt = 'bin_cgns'
+    if not reference:
+        # Check Data directory
+        if not os.access(DATA, os.F_OK):
+            print("{} directory doesn't exist. Created.".format(DATA))
+            os.mkdir(DATA)
+        fileName = sys.argv[0]
+        baseName = os.path.basename(fileName)
+        dirName = os.path.dirname(fileName)
+        fileName = os.path.splitext(baseName)[0]
+        if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+        else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+        fmt = 'bin_pickle'
 
     if not os.access(reference, os.R_OK):
         print("Warning: reference file %s has been created." % reference)
-        C.convertArrays2File(arrays, reference, 'bin_pickle')
+        C.convertArrays2File(arrays, reference, fmt)
         return True
     else:
-        old = C.convertFile2Arrays(reference, 'bin_pickle')
+        old = C.convertFile2Arrays(reference, fmt)
         if GEOMETRIC_DIFF:
             # geometrical check
             if all(coord in oldArr[0].split(',') for oldArr in old for coord in 'xyz'):
@@ -106,7 +108,7 @@ def outA(arrays, number=1):
 # Verifie que le pyTree est egal au pyTree de reference stocke dans un fichier
 # number est le no du test dans le script
 #=============================================================================
-def testT(t, number=1):
+def testT(t, number=1, reference=""):
     """Test pyTrees."""
     import Converter.PyTree as C
     import Converter.Internal as Internal
@@ -120,25 +122,27 @@ def testT(t, number=1):
     # Check OWNDATA / copy
     C._ownNumpyArrays(t)
 
-    # Check Data directory
-    if not os.access(DATA, os.F_OK):
-        print("{} directory doesn't exist. Created.".format(DATA))
-        os.mkdir(DATA)
+    # Build reference file path if it is not provided
+    fmt = 'bin_cgns'
+    if not reference:
+        # Check Data directory
+        if not os.access(DATA, os.F_OK):
+            print("{} directory doesn't exist. Created.".format(DATA))
+            os.mkdir(DATA)
+        fileName = sys.argv[0]
+        baseName = os.path.basename(fileName)
+        dirName = os.path.dirname(fileName)
+        fileName = os.path.splitext(baseName)[0]
+        if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+        else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+        fmt = 'bin_pickle'
 
-    # Construit le nom du fichier de reference
-    fileName = sys.argv[0]
-    baseName = os.path.basename(fileName)
-    dirName = os.path.dirname(fileName)
-    fileName = os.path.splitext(baseName)[0]
-
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     if not os.access(reference, os.R_OK):
         print("Warning: reference file %s has been created."%reference)
-        C.convertPyTree2File(t, reference, 'bin_pickle')
+        C.convertPyTree2File(t, reference, fmt)
         return True
     else:
-        old = C.convertFile2PyTree(reference, 'bin_pickle')
+        old = C.convertFile2PyTree(reference, fmt)
         checkTree(t, old)
         if GEOMETRIC_DIFF:
             # geometrical check
@@ -184,24 +188,26 @@ def outT(t, number=1):
 # Verifie que le fichier est identique au fichier de reference
 # Diff byte to byte
 #=============================================================================
-def testF(infile, number=1):
+def testF(infile, number=1, reference=""):
     # Chek infile
     a = os.access(infile, os.F_OK)
     if not a:
         print("DIFF: file "+infile+" doesnt exist.")
 
-    # Check Data directory
-    a = os.access(DATA, os.F_OK)
-    if not a:
-        print("{} directory doesn't exist. Created.".format(DATA))
-        os.mkdir(DATA)
-    fileName = sys.argv[0]
-    baseName = os.path.basename(fileName)
-    dirName = os.path.dirname(fileName)
-    fileName = os.path.splitext(baseName)[0]
+    # Build reference file path if it is not provided
+    if not reference:
+        # Check Data directory
+        a = os.access(DATA, os.F_OK)
+        if not a:
+            print("{} directory doesn't exist. Created.".format(DATA))
+            os.mkdir(DATA)
+        fileName = sys.argv[0]
+        baseName = os.path.basename(fileName)
+        dirName = os.path.dirname(fileName)
+        fileName = os.path.splitext(baseName)[0]
+        if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+        else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
 
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
     a = os.access(reference, os.R_OK)
     if not a:
         print("Can not open file %s for reading."%reference)
@@ -280,24 +286,25 @@ def checkObject_(objet, refObjet, reference):
 # Verifie que l'objet python est identique a celui stocke dans le
 # fichier de reference
 #=============================================================================
-def testO(objet, number=1):
+def testO(objet, number=1, reference=""):
     """Test python object."""
     if isinstance(objet, dict):
         # perform some sort on dict to be predictible
         from collections import OrderedDict
         objet = OrderedDict(sorted(objet.items(), key=lambda t: t[0]))
 
-    # Check Data directory
-    if not os.access(DATA, os.F_OK):
-        print("{} directory doesn't exist. Created.".format(DATA))
-        os.mkdir(DATA)
-    fileName = sys.argv[0]
-    baseName = os.path.basename(fileName)
-    dirName = os.path.dirname(fileName)
-    fileName = os.path.splitext(baseName)[0]
-
-    if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
-    else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
+    # Build reference file path if it is not provided
+    if not reference:
+        # Check Data directory
+        if not os.access(DATA, os.F_OK):
+            print("{} directory doesn't exist. Created.".format(DATA))
+            os.mkdir(DATA)
+        fileName = sys.argv[0]
+        baseName = os.path.basename(fileName)
+        dirName = os.path.dirname(fileName)
+        fileName = os.path.splitext(baseName)[0]
+        if dirName == '': reference = '%s/%s.ref%d'%(DATA, fileName, number)
+        else: reference = '%s/%s/%s.ref%d'%(dirName, DATA, fileName, number)
 
     # OWNDATA check / copy
     if isinstance(objet, numpy.ndarray) and not objet.flags['OWNDATA']:
