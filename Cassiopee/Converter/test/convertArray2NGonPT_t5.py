@@ -3,6 +3,10 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
+import numpy as np
+
+np.random.seed(42)
+randVals = np.random.rand(100000)
 
 # Simple box, Elements, with BCs
 N = 10
@@ -35,11 +39,11 @@ def _addBCDataAtFaceCenters(t):
     d = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
                               gridLocation='FaceCenter', parent=b)
     d = Internal.newBCData('BCNeumann', parent=d)
-    Internal.newDataArray('Density', value=nfaces*[1.05], parent=d)
-    Internal.newDataArray('MomentumX', value=nfaces*[1.], parent=d)
-    Internal.newDataArray('MomentumY', value=nfaces*[0.], parent=d)
-    Internal.newDataArray('MomentumZ', value=nfaces*[0.], parent=d)
-    Internal.newDataArray('EnergyStagnationDensity', value=nfaces*[1.], parent=d)
+    Internal.newDataArray('Density', value=randVals[:nfaces], parent=d)
+    Internal.newDataArray('MomentumX', value=randVals[:nfaces], parent=d)
+    Internal.newDataArray('MomentumY', value=randVals[:nfaces], parent=d)
+    Internal.newDataArray('MomentumZ', value=randVals[:nfaces], parent=d)
+    Internal.newDataArray('EnergyStagnationDensity', value=randVals[:nfaces], parent=d)
 
 def _convertStruct2NGon(method="geometric", addDataSets=False, api=1):
     C.clearAllNames()
@@ -51,7 +55,7 @@ def _convertStruct2NGon(method="geometric", addDataSets=False, api=1):
     _addData(t)
     if addDataSets: _addBCDataAtFaceCenters(t)
     tng = C.convertArray2NGon(t, recoverBC=True, method=method, api=api)
-    test.testT(tng, 1)
+    test.testT(tng, 1+4*addDataSets)
 
 def _convertQuad2NGon(method="geometric", addDataSets=False, api=1):
     C.clearAllNames()
@@ -61,7 +65,7 @@ def _convertQuad2NGon(method="geometric", addDataSets=False, api=1):
     # _addBCDataAtNodes(t)
     if addDataSets: _addBCDataAtFaceCenters(t)
     tng = C.convertArray2NGon(t, recoverBC=True, method=method, api=api)
-    test.testT(tng, 2)
+    test.testT(tng, 2+4*addDataSets)
 
 def _convertHexa2NGon(method="geometric", addDataSets=False, api=1):
     C.clearAllNames()
@@ -70,7 +74,7 @@ def _convertHexa2NGon(method="geometric", addDataSets=False, api=1):
     _addData(t)
     if addDataSets: _addBCDataAtFaceCenters(t)
     tng = C.convertArray2NGon(t, recoverBC=True, method=method, api=api)
-    test.testT(tng, 3)
+    test.testT(tng, 3+4*addDataSets)
 
 def _convertME2NGon(method="geometric", addDataSets=False):
     C.clearAllNames()
@@ -81,8 +85,9 @@ def _convertME2NGon(method="geometric", addDataSets=False):
     _addData(t)
     if addDataSets: _addBCDataAtFaceCenters(t)
     tng = C.convertArray2NGon(t, recoverBC=True, method=method, api=3)
-    test.testT(tng, 4)
+    test.testT(tng, 4+4*addDataSets)
 
+# - Without BCDatasets
 # 3D STRUCT
 _convertStruct2NGon(method="topologic", addDataSets=False, api=3)
 
@@ -94,3 +99,17 @@ _convertHexa2NGon(method="topologic", addDataSets=False, api=1)
 
 # 3D ME: pyra - hexa
 _convertME2NGon(method="topologic", addDataSets=False)
+
+
+# - With BCDatasets (face centers)
+# 3D STRUCT
+#_convertStruct2NGon(method="topologic", addDataSets=True, api=3)
+
+# 2D BE
+_convertQuad2NGon(method="topologic", addDataSets=True, api=1)
+
+# 3D BE
+_convertHexa2NGon(method="topologic", addDataSets=True, api=3)
+
+# 3D ME: pyra - hexa
+_convertME2NGon(method="topologic", addDataSets=True)
