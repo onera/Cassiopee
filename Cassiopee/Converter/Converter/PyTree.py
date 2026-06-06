@@ -3599,10 +3599,6 @@ def convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
 def _convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
     """Convert a zone to a NGON zone."""
     if recoverBC:
-        if method != "geometric" and Internal.hasBCDataSets(t, loc=None): #['EdgeCenter', 'FaceCenter']):
-            method = "geometric"
-            print("Warning: convertArray2NGon: switching method to geometric "
-                  "because of BCDataSets defined at FaceCenter")
         zones = Internal.getZones(t)
         gbcs = []
         for z in zones:
@@ -4470,9 +4466,10 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
         if dim[0] == 'Structured':
             raise TypeError("recoverBC: not for structured grids.")
 
+        indicesF = None
         if method == "geometric":
-            indicesF = []
             # Get boundary face indices
+            indicesF = []
             zf = P.exteriorFaces(z, indices=indicesF)
             indicesF = indicesF[0]
             undefBC = False
@@ -4540,7 +4537,6 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
                         ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
                                                    gridLocation='FaceCenter', parent=bcz)
                         d = Internal.newBCData('NeumannData', parent=ds)
-
                         for node in Internal.getChildren(fsc):
                             if Internal.isType(node, 'DataArray_t'):
                                 val0 = Internal.getValue(node)
@@ -4551,19 +4547,25 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
                                 val1 = val0[validIds]
                                 Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
                 else:  # topologic
-                    #print("*"*30+BCNames[c]+"*"*30)
+                    # print("*"*30+BCNames[c]+"*"*30)
+                    isCustomTuple = isinstance(b, tuple) and len(b) == 2
                     #print("b", b)
-                    if isinstance(b, tuple) and len(b) == 2:  # input formatted by getBC__
+                    if isCustomTuple:  # input formatted by getBC__
                         if b[0] == 'Window':
                             pointList = converter.window2VertexPointList(*b[1])
                         elif b[0] == 'VertexList':  # e.g., a connectivity w/o offsets
                             pointList = b[1] - 1
+                        elif b[0] == 'tuple':  # (zone, node)
+                            bcElt = Internal.getNodeFromType1(b[1][1], "Elements_t")
+                            bcEC = Internal.getNodeFromName2(bcElt, "ElementConnectivity")
+                            pointList = bcEC[1] - 1
                         else:
-                            raise KeyError(f"_recoverBCs: {b[0]} is not supported")
+                            raise KeyError("_recoverBCs: topologic key "
+                                           f"'{b[0]}' is not supported")
                     else:  # a CGNS node
                         bcElt = Internal.getNodeFromType1(b, "Elements_t")
                         bcEC = Internal.getNodeFromName2(bcElt, "ElementConnectivity")
-                        pointList = bcEC[1]
+                        pointList = bcEC[1] - 1
                         #print("pointList", pointList)
                     pointList = indices[pointList] + 1
                     pointList = numpy.unique(pointList)
@@ -4571,12 +4573,49 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
                     # print("pointList", pointList)
                     if dim[3] == 'NGON':
                         faceList = converter.adaptBCVertexPL2FacePL(array, pointList)
-                        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=faceList)
+                        orderedFaceList = faceList
+                        # print("faceList", faceList)
+                        if b[0] == 'tuple':
+                            array2 = getFields('GridCoordinates', b[1][0], api=3)[0]
+                            fmap = converter.identifyFacesTopo(
+                                array, array2,
+                                indices, faceList
+                            )
+                            if numpy.any(fmap == -1):
+                                raise ValueError(
+                                    "_recoverBCs: topologic identication of "
+                                    "boundary faces failed."
+                                )
+                            orderedFaceList = faceList[fmap]
+                        # print("faceList[fmap]", orderedFaceList)
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=orderedFaceList)
                     else:  # BE/ME
                         _addBC2Zone(z, BCNames[c], BCTypes[c], pointList=pointList)
 
                     # Recover BCDataSets
-                    # TODO
+                    # TODO:
+                    # - do not delete faceCenter BCDatasets
+                    # - will also preserve non-Neumann datasets
+                    # - at last, no need to pass a zone using selectConnectivity, just an array
+                    if isCustomTuple and b[0] == 'tuple':
+                        fsc = Internal.getNodeFromName(b[1][0], Internal.__FlowSolutionCenters__)
+                        if fsc is not None:
+                            newBCName = getLastBCName(BCNames[c])
+                            bcz = Internal.getNodeFromNameAndType(z, newBCName, 'BC_t')
+                            ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
+                                                       gridLocation='FaceCenter', parent=bcz)
+                            d = Internal.newBCData('NeumannData', parent=ds)
+                            for node in Internal.getChildren(fsc):
+                                if Internal.isType(node, 'DataArray_t'):
+                                    val0 = Internal.getValue(node)
+                                    if isinstance(val0, numpy.ndarray):
+                                        val0 = numpy.reshape(val0, val0.size, order='F')
+                                    else:
+                                        val0 = numpy.array([val0])
+                                    # No need to map val0 since face ordering
+                                    # in PointList using fmap is consistent with
+                                    # the BC storage order
+                                    Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val0)
 
         if method == "geometric": freeHook(hook)
     return None
@@ -5444,14 +5483,13 @@ def _keepBCDataSet(zbc, zorig, bc, extrapFlow=True):
 # IN: method: geometric or topologic
 # OUT: res
 def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geometric"):
-    def _add2Res__(i, z, zp, res, extrapFlow=True):
+    def _prepRes__(i, z, zp, res, extrapFlow=True):
         zp[0] = z[0]+Internal.SEP1+i[0]
         _deleteZoneBC__(zp)
         _deleteGridConnectivity__(zp)
         _deleteSolverNodes__(zp)
         # Get BCDataSet if any
         _keepBCDataSet(zp, z, i, extrapFlow=extrapFlow)
-        res.append(zp)
         return None
 
     zdim = Internal.getZoneDim(z)
@@ -5500,10 +5538,17 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                     if eltRg[0] == r[0,0] and eltRg[1] == r[0,1]:
                         eltCn = Internal.getNodeFromName1(e, 'ElementConnectivity')
                         if eltCn is None: continue
-                        res.append(("VertexList", eltCn[1]))
+                        # if Internal.hasBCDataSets(z): TODO optimize in a second pass
+                        zp = selectConnectivity(z, irange=[r[0,0], r[0,1]])
+                        _prepRes__(i, z, zp, res, extrapFlow)
+                        ## array = getFields('GridCoordinates', zp, api=3)[0]
+                        res.append(("tuple", (zp, e)))
+                        # else:
+                        #     res.append(("VertexList", eltCn[1]))
                         return None
             zp = selectConnectivity(z, irange=[r[0,0], r[0,1]])
-            _add2Res__(i, z, zp, res, extrapFlow)
+            _prepRes__(i, z, zp, res, extrapFlow)
+            res.append(zp)
         return None
 
     # IndexArray (PointList)
@@ -5550,7 +5595,8 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                             if etype[1] != 0: etype[1] = 0
                             zp = T.subzone(zp, faceListFiltered, type='elements')
                             _deleteFlowSolutions__(zp, loc='centers') # sadly
-                            _add2Res__(i, z, zp, res, extrapFlow)
+                            _prepRes__(i, z, zp, res, extrapFlow)
+                            res.append(zp)
                         if len(res) > 1: res = [mergeConnectivity(z1=res)]
                         return None
                     else:  # BE ou NGON
@@ -5588,7 +5634,8 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                 zp = T.subzone(z, faceList2, type='faces')
             else: zp = T.subzone(z, faceList, type='faces')
 
-        _add2Res__(i, z, zp, res, extrapFlow)
+        _prepRes__(i, z, zp, res, extrapFlow)
+        res.append(zp)
         return None
     return None
 
@@ -5750,9 +5797,9 @@ def getBCs(t, reorder=True, extrapFlow=True, method="geometric"):
             BCs.append(zBC); BCNames.append(name); BCTypes.append(typeBC)
 
         # Raccords Stage* definis par des familles
-        nodes = Internal.getNodesFromType2(z, 'ZoneGridConnectivity_t')
+        nodes = Internal.getNodesFromType2(z, "ZoneGridConnectivity_t")
         for n in nodes:
-            for gc in Internal.getNodesFromType1(n, 'GridConnectivity_t'):
+            for gc in Internal.getNodesFromType1(n, "GridConnectivity_t"):
                 name = Internal.getName(gc)
                 fname = Internal.getNodeFromType1(gc, 'FamilyName_t')
                 if fname is not None:

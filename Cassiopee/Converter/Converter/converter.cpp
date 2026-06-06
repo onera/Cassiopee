@@ -130,6 +130,7 @@ static PyMethodDef Pyconverter [] =
   {"identifyFaces", K_CONVERTER::identifyFaces, METH_VARARGS},
   {"identifyNodes", K_CONVERTER::identifyNodes, METH_VARARGS},
   {"identifySolutions", K_CONVERTER::identifySolutions, METH_VARARGS},
+  {"identifyFacesTopo", K_CONVERTER::identifyFacesTopo, METH_VARARGS},
   {"nearestElements", K_CONVERTER::nearestElements, METH_VARARGS},
   {"nearestFaces", K_CONVERTER::nearestFaces, METH_VARARGS},
   {"nearestNodes", K_CONVERTER::nearestNodes, METH_VARARGS},
