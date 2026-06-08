@@ -50,7 +50,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
   packet = (void**) PyCapsule_GetPointer(hook, NULL);
 #endif
   E_Int* type = (E_Int*)packet[0];
-  if (*type != 100 && *type != 102 &&  *type != 103)
+  if (*type != 100 && *type != 102 && *type != 103)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "identifySolutions: this function requires a hook on a global kdtree.");
@@ -90,7 +90,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // Donor zones : fields
+  // Donor zones: fields
   skipNoCoord = false;
   skipStructured = false;
   skipUnstructured = false;
@@ -185,7 +185,7 @@ PyObject* K_CONVERTER::identifySolutions(PyObject* self, PyObject* args)
           // algo dichotomique a brancher eventuellement       
           for (E_Int nod = 0; nod < nDnrFields; nod++)
           {
-            if (indkdt < indirZones[nod]) 
+            if (indkdt < indirZones[nod])
             {
               noblkD = nod;
               if (nod == 0) indD = indkdt;

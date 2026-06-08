@@ -847,9 +847,6 @@ namespace DELAUNAY
       nb_refine_nodes = refine_nodes.size();
       carry_on = (nb_refine_nodes != 0);
 
-      // must not be here!
-      //std::shuffle(ALL(refine_nodes), _random.gen);
-
       _data->ancestors.resize(_data->pos->cols(), IDX_NONE);
 
       for (size_type i = 0; (i < nb_refine_nodes) && !_err; ++i)

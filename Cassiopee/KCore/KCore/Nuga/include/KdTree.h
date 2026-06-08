@@ -58,13 +58,13 @@ class KdTree {
     /// Destructor.
     ~KdTree(){};
 
-    void build(std::vector<size_type>* indices = nullptr, E_Float tolerance = EPSILON);
+    void build(std::vector<size_type>* indices=nullptr, E_Float tolerance=EPSILON);
 
     void clear();
     
   public: /*Accessors */
     
-    E_Int nb_nodes(){ return _tree_sz;}
+    E_Int nb_nodes(){ return _tree_sz; }
 
   public: /** Insertion methods */
 
@@ -75,12 +75,12 @@ class KdTree {
 
     /// Returns a close node to a given point. It is not necessarily the closest one.
     size_type getClose(const E_Float* pt) const;
-    size_type getClose(const E_Float *pt, E_Float& d2) const;
+    size_type getClose(const E_Float* pt, E_Float& d2) const;
 
     /// Returns a close node to node N. It is not necessarily the closest one.
     size_type getClose(size_type N) const;
     size_type getClose(size_type N, E_Float& d2) const;
-    size_type getClosest(E_Int n, const E_Float& guessed_d2, E_Float& dist2) const ;
+    size_type getClosest(E_Int n, const E_Float& guessed_d2, E_Float& dist2) const;
 
     /// Returns the global closest node.
     size_type getClosest(const E_Float* pt) const;
@@ -95,7 +95,7 @@ class KdTree {
     /** Warning: out is not cleared upon entry.*/
     void getInBox(const E_Float* minB, const E_Float* maxB, std::vector<size_type>& out) const;
 
-     /// Returns all the nodes in the input sphere centered on C by appending the vector 'out'.
+    /// Returns all the nodes in the input sphere centered on C by appending the vector 'out'.
     /** Warning: out is not cleared upon entry.*/
     void getInSphere(const E_Float* C, E_Float radius, std::vector<size_type>& out) const;
     void getInSphere(const E_Float* C, E_Float radius, std::vector<size_type>& out, std::vector<E_Float>& d2) const;
@@ -133,7 +133,7 @@ class KdTree {
 
   private:
 
-    ///
+    /// accessor on coordinates
     const coord_access_type& _posAcc;
 
     /// kd tree

@@ -156,17 +156,25 @@ PyObject* K_CONVERTER::registerAllFaces(PyObject* self, PyObject* args)
     }
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
   }
+
+  // get the bbox of coords
+  E_Float* bbox = new E_Float [6];
+  K_COMPGEOM::boundingBoxUnstruct(nfacesTot, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
+
   ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers
   K_SEARCH::KdTree<FldArrayF>* globalKdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc); // ref sur coordAcc
 
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 100;
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = centers;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else
@@ -282,17 +290,25 @@ PyObject* K_CONVERTER::registerAllNodes(PyObject* self, PyObject* args)
     }
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
   }
+
+  // get the bbox of coords
+  E_Float* bbox = new E_Float [6];
+  K_COMPGEOM::boundingBoxUnstruct(nptsTot, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
+
   ArrayAccessor<FldArrayF>* coordAcc = new ArrayAccessor<FldArrayF>(*coords, 1, 2, 3); // ref sur coords
   K_SEARCH::KdTree<FldArrayF>* globalKdt = new K_SEARCH::KdTree<FldArrayF>(*coordAcc); // ref sur coordAcc
 
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 102;
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = coords;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else
@@ -463,6 +479,12 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
     indirZones = K_NUMPY::buildNumpyArray(*numZones);
   }
 
+  // get the bbox of coords
+  E_Float* bbox = new E_Float [6];
+  K_COMPGEOM::boundingBoxUnstruct(neltsTot, cx, cy, cz,
+                                  bbox[0], bbox[2], bbox[4],
+                                  bbox[1], bbox[3], bbox[5]);
+
   ArrayAccessor<FldArrayF>* coordAcc = 
     new ArrayAccessor<FldArrayF>(*centers, 1, 2, 3); // ref sur centers
   K_SEARCH::KdTree<FldArrayF>* globalKdt = 
@@ -470,13 +492,13 @@ PyObject* K_CONVERTER::registerAllElements(PyObject* self, PyObject* args)
 
   PyObject* hook;
   E_Int* type = new E_Int [1]; type[0] = 103;
-
-  E_Int sizePacket = 4;
+  E_Int sizePacket = 5;
   void** packet = new void* [sizePacket];
   packet[0] = type; // hook type
   packet[1] = centers;
   packet[2] = coordAcc;
   packet[3] = globalKdt;
+  packet[4] = bbox;
 #if (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION < 7) || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 1)
   hook = PyCObject_FromVoidPtr(packet, NULL);
 #else

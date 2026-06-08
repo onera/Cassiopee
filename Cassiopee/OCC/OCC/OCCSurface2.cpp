@@ -116,9 +116,8 @@ E_Int K_OCC::OCCSurface::findNextElement(E_Int e, K_FLD::IntArray& found,
   
   // Cherche les seams si plusieurs next
   // Je ne suis pas sur de ne pas louper certains trucs
-  E_Int i = 0;
-  for (std::set<E_Int>::iterator it=nexts.begin(); it!=nexts.end(); ++it)
-  { next.push_back(*it); i++; }
+  for (std::set<E_Int>::iterator it=nexts.begin(); it != nexts.end(); ++it)
+  { next.push_back(*it); }
       
   size_t s = next.size();
   if (s == 0) return -1; // pas de choix

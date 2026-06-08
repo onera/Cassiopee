@@ -123,7 +123,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
   E_Float dhloc = dhmin;
   FldArrayF f2(f->getSize(),3); FldArrayI cn2 = *cn; FldArrayF indico = indic;
   f2.setOneField(*f,posx,1); f2.setOneField(*f,posy,2);f2.setOneField(*f,posz,3);// copy 
-  E_Int level = 1;
+  //E_Int level = 1;
   FldArrayF fo; FldArrayI cno;
   FldArrayF indicout(nelts,1); indicout.setAllValuesAtNull();
   while ( dhloc < dhmax ) 
@@ -214,7 +214,7 @@ PyObject* K_GENERATOR::octree2AMR(PyObject* self, PyObject* args)
       dhmax = K_FUNC::E_max(dhmax, dht[eto]);
     } 
     dhloc = dhmin; // pas d'espace du niveau courant
-    level++;
+    //level++;
   }// while dhloc < dhmax 
 
   // dernier  niveau

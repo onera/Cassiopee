@@ -441,7 +441,7 @@ E_Float K_COMPGEOM::compTriangleArea(
 }
 
 //===========================================================================
-// Calcul de la bounding box d'un array structure
+// Calcul de la bounding box d'un array non structuree
 //===========================================================================
 void K_COMPGEOM::boundingBoxUnstruct(
   const E_Int npts, const E_Float* xt, const E_Float* yt, const E_Float* zt,
@@ -449,62 +449,55 @@ void K_COMPGEOM::boundingBoxUnstruct(
   E_Float& xmax, E_Float& ymax, E_Float& zmax
 )
 {
-  xmin =  K_CONST::E_MAX_FLOAT;
-  ymin =  K_CONST::E_MAX_FLOAT;
-  zmin =  K_CONST::E_MAX_FLOAT;
-  xmax = -K_CONST::E_MAX_FLOAT;
-  ymax = -K_CONST::E_MAX_FLOAT;
-  zmax = -K_CONST::E_MAX_FLOAT;
+  xmin = K_CONST::E_MAX_FLOAT; xmax = -K_CONST::E_MAX_FLOAT;
+  ymin = K_CONST::E_MAX_FLOAT; ymax = -K_CONST::E_MAX_FLOAT;
+  zmin = K_CONST::E_MAX_FLOAT; zmax = -K_CONST::E_MAX_FLOAT;
 
-  E_Int nthreads = __NUMTHREADS__;
-  E_Float* xminl = new E_Float [nthreads];
-  E_Float* yminl = new E_Float [nthreads];
-  E_Float* zminl = new E_Float [nthreads];
-  E_Float* xmaxl = new E_Float [nthreads];
-  E_Float* ymaxl = new E_Float [nthreads];
-  E_Float* zmaxl = new E_Float [nthreads];
+  const E_Int nthreads = __NUMTHREADS__;
+  E_Float* txmin = new E_Float [nthreads];
+  E_Float* txmax = new E_Float [nthreads];
+  E_Float* tymin = new E_Float [nthreads];
+  E_Float* tymax = new E_Float [nthreads];
+  E_Float* tzmin = new E_Float [nthreads];
+  E_Float* tzmax = new E_Float [nthreads];
+
+  for (E_Int tid = 0; tid < nthreads; tid++)
+  {
+    txmin[tid] = K_CONST::E_MAX_FLOAT; txmax[tid] = -K_CONST::E_MAX_FLOAT;
+    tymin[tid] = K_CONST::E_MAX_FLOAT; tymax[tid] = -K_CONST::E_MAX_FLOAT;
+    tzmin[tid] = K_CONST::E_MAX_FLOAT; tzmax[tid] = -K_CONST::E_MAX_FLOAT;
+  }
 
   #pragma omp parallel
   {
-    E_Int ithread = __CURRENT_THREAD__;
-
-    xminl[ithread] =  K_CONST::E_MAX_FLOAT;
-    yminl[ithread] =  K_CONST::E_MAX_FLOAT;
-    zminl[ithread] =  K_CONST::E_MAX_FLOAT;
-    xmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
-    ymaxl[ithread] = -K_CONST::E_MAX_FLOAT;
-    zmaxl[ithread] = -K_CONST::E_MAX_FLOAT;
-
+    const E_Int tid = __CURRENT_THREAD__;
     #pragma omp for
-    for (E_Int ind = 0; ind < npts; ind++)
+    for (E_Int i = 0; i < npts; i++)
     {
-      xminl[ithread] = K_FUNC::E_min(xminl[ithread], xt[ind]);
-      yminl[ithread] = K_FUNC::E_min(yminl[ithread], yt[ind]);
-      zminl[ithread] = K_FUNC::E_min(zminl[ithread], zt[ind]);
-      xmaxl[ithread] = K_FUNC::E_max(xmaxl[ithread], xt[ind]);
-      ymaxl[ithread] = K_FUNC::E_max(ymaxl[ithread], yt[ind]);
-      zmaxl[ithread] = K_FUNC::E_max(zmaxl[ithread], zt[ind]);
+      txmin[tid] = K_FUNC::E_min(txmin[tid], xt[i]);
+      txmax[tid] = K_FUNC::E_max(txmax[tid], xt[i]);
+      tymin[tid] = K_FUNC::E_min(tymin[tid], yt[i]);
+      tymax[tid] = K_FUNC::E_max(tymax[tid], yt[i]);
+      tzmin[tid] = K_FUNC::E_min(tzmin[tid], zt[i]);
+      tzmax[tid] = K_FUNC::E_max(tzmax[tid], zt[i]);
     }
   }
 
-  //final reduction
-  for (E_Int ithread = 0; ithread < nthreads; ithread++) 
+  // final reduction
+  for (E_Int tid = 0; tid < nthreads; tid++)
   {
-    xmax = K_FUNC::E_max(xmaxl[ithread], xmax);
-    ymax = K_FUNC::E_max(ymaxl[ithread], ymax);
-    zmax = K_FUNC::E_max(zmaxl[ithread], zmax);
-    xmin = K_FUNC::E_min(xminl[ithread], xmin);
-    ymin = K_FUNC::E_min(yminl[ithread], ymin);
-    zmin = K_FUNC::E_min(zminl[ithread], zmin);
+    xmin = K_FUNC::E_min(txmin[tid], xmin);
+    xmax = K_FUNC::E_max(txmax[tid], xmax);
+    ymin = K_FUNC::E_min(tymin[tid], ymin);
+    ymax = K_FUNC::E_max(tymax[tid], ymax);
+    zmin = K_FUNC::E_min(tzmin[tid], zmin);
+    zmax = K_FUNC::E_max(tzmax[tid], zmax);
   }
 
-  //clean
-  delete [] xminl;
-  delete [] xmaxl;
-  delete [] yminl;
-  delete [] ymaxl;
-  delete [] zminl;
-  delete [] zmaxl;
+  // clean
+  delete[] txmin; delete[] txmax;
+  delete[] tymin; delete[] tymax;
+  delete[] tzmin; delete[] tzmax;
 }
 
 //=============================================================================

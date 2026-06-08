@@ -46,11 +46,12 @@ void K_DISTRIBUTOR2::genetic(
   //for (E_Int i = 0; i < nb; i++) printf("bloc %d : %g\n", i, nbPts[i]);
 
   // Nombre de blocs a equilibrer: nbeq
+  /*
   E_Int nbeq = 0;
   for (E_Int i = 0; i < nb; i++)
   {
     if (setBlocks[i] < 0) nbeq++;
-  }
+  }*/
 
   // Nb de noeuds des maillages imposes par processeurs: nbNodePerProc
   FldArrayF nbNodePerProc(NProc);
