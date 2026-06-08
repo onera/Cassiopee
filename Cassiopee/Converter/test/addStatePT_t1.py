@@ -29,4 +29,4 @@ test.testT(t, 3)
 # Add by ref state dim2
 t = C.newPyTree(['Base',3]); t[2][1][2].append(a)
 t = C.addState(t, adim='dim2', UInf=35., TInf=294., RoInf=1.2, LInf=1.)
-test.testT(t, 3)
+test.testT(t, 4)
