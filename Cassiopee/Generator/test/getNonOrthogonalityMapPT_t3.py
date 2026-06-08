@@ -14,7 +14,6 @@ a = C.convertArray2Tetra(a)
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(1, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 1)
 
 # 2D unstructured tri
@@ -23,21 +22,18 @@ a = G.cartTetra((0.,0.,0.), (0.1,0.1,1), (10,10,1))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 2)
 # XZ
 a = G.cartTetra((0.,0.,0.), (0.1,1,0.1), (10,1,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 21)
 # YZ
 a = G.cartTetra((0.,0.,0.), (1,0.1,0.1), (1,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 22)
 
 # 2D unstructured quad
@@ -46,21 +42,18 @@ a = G.cartHexa((0.,0.,0.), (0.1,0.1,1), (10,10,1))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 3)
 # XZ
 a = G.cartHexa((0.,0.,0.), (0.1,1,0.1), (10,1,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 31)
 # YZ
 a = G.cartHexa((0.,0.,0.), (1,0.1,0.1), (1,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 32)
 
 # 3D unstructured hexa
@@ -68,7 +61,6 @@ a = G.cartHexa((0.,0.,0.), (0.1,0.1,0.1), (10,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(4, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 4)
 
 # 3D unstructured tetra
@@ -76,7 +68,6 @@ a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.1), (10,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(5, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 5)
 
 # 3D unstructured pyra
@@ -84,7 +75,6 @@ a = G.cartPyra((0.,0.,0.), (0.1,0.1,0.1), (10,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(6, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 6)
 
 # 3D unstructured penta
@@ -92,7 +82,6 @@ a = G.cartPenta((0.,0.,0.), (0.1,0.1,0.1), (10,10,10))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(7, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 7)
 
 # --- ME ---
@@ -105,7 +94,6 @@ a = C.mergeConnectivity([a, b, c, d], None)
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(8, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 8)
 
 # 2D unstructured ME: tri-quad-tri
@@ -119,7 +107,6 @@ a = C.mergeConnectivity([a, b, c, d], None)
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(9, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 9)
 
 # 3D unstructured ME: tetra   pyra
@@ -133,5 +120,4 @@ a = C.mergeConnectivity([a, b, c, d], None)
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(10, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 10)

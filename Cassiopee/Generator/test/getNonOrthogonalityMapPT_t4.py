@@ -16,7 +16,6 @@ Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(2, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 2)
 
 # 2D unstructured quad
@@ -28,7 +27,6 @@ Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(3, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 3)
 
 # 3D unstructured hexa
@@ -41,7 +39,6 @@ Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 Internal.getNodeFromName(a, 'CoordinateZ')[1] = z
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(4, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 4)
 
 # 3D unstructured penta
@@ -54,5 +51,4 @@ Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 Internal.getNodeFromName(a, 'CoordinateZ')[1] = z
 t = G.getNonOrthogonalityMap(a)
 nonOrtho = Internal.getNodeFromName(t, 'nonOrthogonality')[1]
-print('test %d: min/max = %f/%f'%(5, numpy.min(nonOrtho), numpy.max(nonOrtho)))
 test.testT(t, 5)
