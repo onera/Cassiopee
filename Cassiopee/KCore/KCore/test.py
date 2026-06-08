@@ -351,7 +351,7 @@ def checkTree(t1, t2):
     for k in dict2:
         # cherche le noeud equivalent dans t1
         if k in dict1:
-            checkTree__(dict1[k], dict2[k])
+            checkTree__(k, dict1[k], dict2[k])
         elif not any(k.startswith(p + "/") or k == p for p in missing):
             # parent node of k was found but k isn't: report as missing in current
             missing.append(k)
@@ -372,14 +372,15 @@ def buildDict__(curr, mdict, node):
     mdict[d] = node
     for i in node[2]: buildDict__(d, mdict, i)
 
-def checkTree__(node1, node2):
+def checkTree__(nodePath, node1, node2):
+    nodePathl = nodePath.replace("./CGNSTree/", "")
     if node1[0] != node2[0]: # nom du noeud
         print('DIFF: nom des noeuds differents:')
         print('DIFF: reference: %s.'%node2[0])
         print('DIFF: courant: %s.'%node1[0])
         return 0
     if node1[3] != node2[3]: # type du noeud
-        print('DIFF: type de noeud differents pour le noeud: %s.'%node1[0])
+        print('DIFF: type de noeud differents pour le noeud: %s.'%nodePathl)
         print('DIFF: reference: %s.'%node2[3])
         print('DIFF: courant: %s.'%node1[3])
         return 0
@@ -392,7 +393,7 @@ def checkTree__(node1, node2):
         childNamesSet2 = set(childNames2)
         diffSet12 = childNamesSet1 - childNamesSet2
         diffSet21 = childNamesSet2 - childNamesSet1
-        print('DIFF: longueur des fils differente pour le noeud: %s.'%node1[0])
+        print('DIFF: longueur des fils differente pour le noeud: %s.'%nodePathl)
         if len(diffSet12) > 0:
             print('  - Noms des noeuds de courant qui ne sont pas dans '\
                   'ref:\n{}.'.format(', '.join(f'{i}' for i in diffSet12)))
@@ -415,99 +416,89 @@ def checkTree__(node1, node2):
     val1 = node1[1]; val2 = node2[1]
     if isinstance(val1, str):
         if not isinstance(val2, str):
-            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%nodePathl)
             print('DIFF: reference: {}'.format(type(val2)))
             print('DIFF: courant: str')
             return 0
         if val1 != val2:
-            print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+            print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
             print('DIFF: reference:'+val2)
             print('DIFF: courant:'+val1)
             return 0
     elif isinstance(val1, float):
         if not isinstance(val2, float):
-            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%nodePathl)
             print('DIFF: reference: {}'.format(type(val2)))
             print('DIFF: courant: float')
             return 0
         if val1 != val2:
-            print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+            print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
             print('DIFF: reference: %f'%val2)
             print('DIFF: courant: %f'%val1)
             return 0
     elif isinstance(val1, int):
         if not isinstance(val2, int):
-            print('DIFF: types de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: types de valeurs differents pour le noeud: %s.'%nodePathl)
             print('DIFF: reference: {}'.format(type(val2)))
             print('DIFF: courant: int')
             return 0
         if val1 != val2:
-            print('DIFF: valeurs differentes au noeud:'%node1[0])
+            print('DIFF: valeurs differentes au noeud:'%nodePathl)
             print('DIFF: reference: %d'%val2)
             print('DIFF: courant: %d'%val1)
             return 0
     elif isinstance(val1, numpy.ndarray):
         if not isinstance(val2, numpy.ndarray):
-            print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+            print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%nodePathl)
             print('DIFF: reference:', val2.dtype)
             print('DIFF: courant:', val1.dtype)
             print('DIFF: reference:', val2)
             print('DIFF: courant:', val1)
             return 0
-        if val1.dtype == numpy.int32 or val1.dtype == numpy.int64:
-            if val2.dtype != numpy.int32 and val2.dtype != numpy.int64:
-                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+        if val1.dtype in [numpy.int32, numpy.int64]:
+            if val2.dtype not in [numpy.int32, numpy.int64]:
+                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
             if val1.shape != val2.shape:
-                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: shape differentes pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2.shape)
                 print('DIFF: courant:', val1.shape)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
-            if ((val1 == val2).all()) == False:
-                print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
+            if (val1 != val2).any():
+                print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
-        if val1.dtype == numpy.float64:
-            if val2.dtype != numpy.float64:
-                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
+        if val1.dtype in [numpy.float32, numpy.float64]:
+            if val2.dtype != val1.dtype:
+                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2.dtype)
                 print('DIFF: courant:', val1.dtype)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
             if val1.shape != val2.shape:
-                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
-                print('DIFF: reference:', val2.shape)
-                print('DIFF: courant:', val1.shape)
-                print('DIFF: reference:', val2)
-                print('DIFF: courant:', val1)
-                return 0
-        if val1.dtype == numpy.float32:
-            if val2.dtype != numpy.float32:
-                print('DIFF: types numpy de valeurs differents pour le noeud: %s.'%node1[0])
-                print('DIFF: reference:', val2.dtype)
-                print('DIFF: courant:', val1.dtype)
-                print('DIFF: reference:', val2)
-                print('DIFF: courant:', val1)
-                return 0
-            if val1.shape != val2.shape:
-                print('DIFF: shape differentes pour le noeud: %s.'%node1[0])
+                print('DIFF: shape differentes pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2.shape)
                 print('DIFF: courant:', val1.shape)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0
 
-        #     if (numpy.abs(val1 -val2)<1.e-6).all() == False:
-        #         print('DIFF: valeurs differentes pour le noeud: %s.'%node1[0])
-        #         delta = numpy.max(numpy.abs(val1 -val2))
-        #         print('DIFF: ', delta)
-        #         return 0
+            # Check fields in BCDataSets only
+            # FlowSolution nodes are taken care of in C.diffArrays
+            if "BCDataSet" in nodePath:
+                absdiff = numpy.abs(val1-val2)
+                if (absdiff > TOLERANCE + RELTOLERANCE*numpy.abs(val2)).any():
+                    mindelta = numpy.min(absdiff)
+                    maxdelta = numpy.max(absdiff)
+                    print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
+                    print(f'      min diff: {mindelta}, max diff: {maxdelta}')
+                    return 0
     return 1
 
 #==============================================================================
