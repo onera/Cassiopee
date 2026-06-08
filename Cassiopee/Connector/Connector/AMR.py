@@ -464,7 +464,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         if Cmpi.master: print('extractFrontDP Info: Smallest cell size (snear): %g'%hminTmp, flush=True)
         # Generate Offset - scaled tb
         frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=dir_sym, minSnear=hminTmp, distIP=distIP)
-        Cmpi.convertPyTree2File(frontIP_gathScale, 'check_frontIP_gathScale.cgns')
+        #Cmpi.convertPyTree2File(frontIP_gathScale, 'check_frontIP_gathScale.cgns') # Keep for now - debugging
 
         # blankcells - what is inside the offset
         C._initVars(t, 'cellNTmp', 1.)
