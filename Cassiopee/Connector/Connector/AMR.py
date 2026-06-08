@@ -162,7 +162,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if len(turbDistanceTmp)>0: maxDistanceFrontIP = C.getMaxValue(frontIP, 'TurbulentDistance')
     maxDistanceFrontIP = Cmpi.allreduce(maxDistanceFrontIP, op=Cmpi.MAX)
     if Cmpi.master: print('extractFrontDP Info: maxDistanceFrontIP=%g'%maxDistanceFrontIP, flush=True)
-        
+
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
     t = P.selectCells(t, "{cellN}==1.", strict=1)
     Internal._rmNodesFromName(t,"FlowSolution")
@@ -313,7 +313,7 @@ def computationDistancesNormals(t, tb, dim=3):
 def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     # A lot of redundancies with Generator/AMR.py - TODO: can some parts be generalized
     import Geom.IBM as D_IBM
-    
+
     distOffset = distIP + 7*minSnear # 5 (real) & 2 for security
 
     # [Connector/AMR.py specific]
@@ -348,7 +348,7 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
                 fixedConstraints = []
             z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
             tbSym[2][nob][2] = Internal.getZones(z)
-    
+
     # Background mesh for offset - only around orig. tb & not its symmetry one
     BB = G.bbox(tbLocal)
     ni = 150; nj = 150; nk = 150
@@ -368,13 +368,13 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     xmax = BB[3]+2*delta2; ymax = BB[4]+2*delta2; zmax = BB[5]+2*delta2
 
     ## Get factor of lengths - cartRX core is rectilinear [Connector/AMR.py specific]
-    lenX = xmax_core-xmin_core; lenY = ymax_core-ymin_core; lenZ = zmax_core-zmin_core   
+    lenX = xmax_core-xmin_core; lenY = ymax_core-ymin_core; lenZ = zmax_core-zmin_core
     minLen = min(lenX, lenY)
     minLen = min(minLen, lenZ)
     factorX = int(lenX/minLen); factorY = int(lenY/minLen); factorZ = 1
     factorZ = int(lenZ/minLen)
     factorX = min(factorX, 2); factorY = min(factorY, 2); factorZ = min(factorZ, 2) # can cause some wrinkles on the surface
-    
+
     ni_core = 61; nj_core = 61; nk_core = 61
     hi_core = (xmax_core-xmin_core)/(ni_core-1)
     hj_core = (ymax_core-ymin_core)/(nj_core-1)
@@ -429,7 +429,7 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
             frontIP_gath = C.convertArray2Tetra(frontIP_gath)
             frontIP_gath = G.close(frontIP_gath)
             frontIP_gath[0] = "frontIP_gath"
-            if dim == 3 and dir_sym > 0:           
+            if dim == 3 and dir_sym > 0:
                 print("Symmetry of frontIP: Sym. Plane: %d"%dir_sym)
                 frontIP_gath = C.newPyTree(["Base", frontIP_gath])
                 frontIP_gath= Internal.getNodeFromName(frontIP_gath, 'Base')
@@ -475,11 +475,11 @@ def extractFrontDP(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='
         BM = numpy.ones((nbases,nbodies),dtype=Internal.E_NpyInt)
         t = X.blankCells(t, bodiesTmp, BM, blankingType='node_in', XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1,
                          dim=dim, cellNName='cellNTmp')
-        
+
         # select cells - small region to do dist2wall
         tTmp = P.selectCells(t, "{cellNTmp}<1", strict=0)
         C._rmVars(t,['cellNTmp','vol'])
-        
+
         # dist2wall on region of select cells
         if len(Internal.getZones(tTmp))>0:
             DTW._distance2Walls(tTmp, frontIP_gath, type='ortho', signed=0, dim=dim, loc='nodes')
