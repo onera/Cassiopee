@@ -490,7 +490,7 @@ def checkTree__(nodePath, node1, node2):
                 return 0
 
             # Check fields in BCDataSets only
-            # FloWSolution nodes are taken care of in C.diffArrays
+            # FlowSolution nodes are taken care of in C.diffArrays
             if "BCDataSet" in nodePath:
                 absdiff = numpy.abs(val1-val2)
                 if (absdiff > TOLERANCE + RELTOLERANCE*numpy.abs(val2)).any():
