@@ -31,24 +31,24 @@ inline bool relativeDist(E_Float p1x, E_Float p1y, E_Float p1z, E_Float nbg1x, E
   E_Float dist2 = (p1x - p2x)*(p1x - p2x) + (p1y - p2y)*(p1y - p2y) + (p1z - p2z)*(p1z - p2z);
   return (dist2 >= 1e-12 * refL2);
 }
-
-inline E_Int stepCorrection(E_Int isOpen, E_Int nUnique) 
+ 
+inline E_Int pbStep (E_Int isOpen, E_Int nUnique) 
 {
   // Case of a CLOSED curve with an ODD number of points
   if ((isOpen == 0) && (nUnique % 2 != 0)) 
   {
-    printf("Warning: consSmooth: step=2 is invalid for closed curve with odd number of points. Forcing step=1.\n");
+    printf("Warning: consSmooth: step=2 will not give a perfect symetric smoothing for closed curve with an odd number of points.\n");
     return 1;
   }
   
   // Case of an OPEN curve with an EVEN number of points
   if ((isOpen == 1) && (nUnique % 2 == 0)) 
   {
-    printf("Warning: consSmooth: step=2 is invalid for open curve with even number of points. Forcing step=1.\n");
+    printf("Warning: consSmooth: step=2 will not give a perfect symetric smoothing for open curve with an even number of points.\n");
     return 1;
   }
-
-  return 2;
+  
+  return 0;
 }
 
 // ============================================================================
@@ -141,45 +141,95 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     {
       printf("Info: consSmooth: open geometry: fixed nodes %d and %d.\n", 0, npts-1);
     }
+    else
     {
       printf("Info: consSmooth: closed geometry with double points.\n");
     }
-
 
     E_Int nUnique = (isOpen == 0) ? npts - 1 : npts; 
     E_Int start = 0;
     E_Int end = (isOpen == 0) ? nUnique : nUnique - 3; 
 
-    // step 2 invalid for some cases, correction by taking step = 1
+
+    E_Int isPbStep = 0;
+    
     if (step == 2)
     {
-      step = stepCorrection (isOpen, nUnique);
+      isPbStep = pbStep (isOpen, nUnique); 
     }
 
+    E_Int currStart = start;
+    E_Int currEnd = end;
+    
     for (E_Int k = 0; k < sweeps; k++)
     {
 
+      if (isPbStep == 1 && isOpen == 0)
+      {
+        currStart = start + k;
+        currEnd = end + k;
+      }
+      // printf("start == %d ; end == %d \n", currStart, currEnd);
+
       for (E_Int j = 0; j < twoWays + 1; j++)
       {
-        
-        for (E_Int i = start; i < end; i = i + step)
+
+        for (E_Int i = currStart; i < currEnd; i = i + step)
         {
           
           if (isOpen == 0)
           {
             // Cycle, always in [0, nUnique-1]
-            idx0 = (j == 0) ? i % nUnique : (nUnique - i % nUnique) % nUnique;
-            idx1 = (j == 0) ? (i + 1) % nUnique : (nUnique - ((i + 1)   % nUnique)) % nUnique;
-            idx2 = (j == 0) ? (i + 2) % nUnique : (nUnique - ((i + 2)   % nUnique)) % nUnique;
-            idx3 = (j == 0) ? (i + 3) % nUnique : (nUnique - ((i + 3)   % nUnique)) % nUnique;
+            if (j == 0) 
+            {
+              idx0 = i % nUnique;
+              idx1 = (i + 1) % nUnique;
+              idx2 = (i + 2) % nUnique;
+              idx3 = (i + 3) % nUnique;
+            } 
+            else 
+            {
+              E_Int offset = 0;
+              if (isPbStep == 1)
+              {
+                offset = (j % 2 != 0) ? 1 : 0;
+              }
+              idx0 = (nUnique - (i % nUnique) + offset) % nUnique;
+              idx1 = (nUnique - ((i + 1) % nUnique) + offset) % nUnique;
+              idx2 = (nUnique - ((i + 2) % nUnique) + offset) % nUnique;
+              idx3 = (nUnique - ((i + 3) % nUnique) + offset) % nUnique;
+            }
           }
           else 
           {
-            idx0 = (j == 0) ? i  : (nUnique-1) - i;
-            idx1 = (j == 0) ? (i + 1) : (nUnique-1) - (i + 1);
-            idx2 = (j == 0) ? (i + 2)  : (nUnique-1) - (i + 2);
-            idx3 = (j == 0) ? (i + 3)  : (nUnique-1) - (i + 3) ;
+            if (j == 0) 
+            {
+              idx0 = i;
+              idx1 = (i + 1);
+              idx2 = (i + 2);
+              idx3 = (i + 3);
+            } 
+            else 
+            {
+              E_Int offset = 0;
+              if (isPbStep == 1)
+              {
+                offset = (j % 2 != 0) ? 1 : 0;
+              }
+              
+              idx0 = (nUnique-1) - (i + offset);
+              idx1 = (nUnique-1) - (i + 1 + offset);
+              idx2 = (nUnique-1) - (i + 2 + offset);
+              idx3 = (nUnique-1) - (i + 3 + offset);
+
+              if (idx0 < 4)
+              {
+                continue;
+              }
+            }
           }
+
+          // printf("j == %d: on regarde les points : %d, %d, %d, %d ET on change les points : %d and %d.\n", j, idx0, idx1, idx2, idx3, idx1, idx2);
 
           /* Get points i, i+1, i+2, i+3 */
           E_Float xi = x[idx0], yi = y[idx0], zi = z[idx0]; 
@@ -206,10 +256,12 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
           E_Float h = 1.5 * aire;
 
+          /* Determines new xi+1 and xi+2 */
           x[idx1] = 2.0/3.0 * xi + 1.0 /3.0 * xip3 + h * uNormalx; y[idx1] = 2.0/3.0 * yi + 1.0 /3.0 * yip3 + h * uNormaly; z[idx1] = 2.0/3.0 * zi + 1.0 /3.0 * zip3 + h * uNormalz;
           x[idx2] = 1.0/3.0 * xi + 2.0 /3.0 * xip3 + h * uNormalx; y[idx2] = 1.0/3.0 * yi + 2.0 /3.0 * yip3 + h * uNormaly; z[idx2] = 1.0/3.0 * zi + 2.0 /3.0 * zip3 + h * uNormalz;
           
         }
+
       }
     
     }
@@ -270,7 +322,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
     if (n1 != -1 && n2 != -1)
     {
-      E_Int elt = nodeAdj[n1][0]; // ID de l'élément
+      E_Int elt = nodeAdj[n1][0]; // ID of element
       E_Int nA = (*cn)(elt, 1) - 1;
       E_Int nB = (*cn)(elt, 2) - 1;
       E_Int n1Ngb = (nA == n1) ? nB : nA;
@@ -283,7 +335,6 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         printf("Info: consSmooth: closed geometry with double points: %d and %d.\n", n1, n2);
       }
       else // CASE 3: mesh is OPEN (extremities will stay fixed)
-
       {
         printf("Info: consSmooth: open geometry: fixed nodes %d and %d.\n", n1, n2);
       } 
@@ -329,34 +380,79 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     E_Int start = 0;
     E_Int end = (isOpen == 0) ? nUnique : nUnique - 3;
 
-    // step 2 invalid for some cases, correction by taking step = 1
+    E_Int isPbStep = 0;
+    E_Int currStart = start;
+    E_Int currEnd = end;
+    
     if (step == 2)
     {
-      step = stepCorrection(isOpen, nUnique);
+      isPbStep = pbStep (isOpen, nUnique); 
     }
   
     for (E_Int k = 0; k < sweeps; k++)
     {
+      if (isPbStep == 1 && isOpen == 0)
+      {
+        currStart = start + k;
+        currEnd = end + k;
+      }
       for (E_Int j = 0; j < twoWays + 1; j++)
       {
-        for (E_Int i = start; i < end; i += step)
+        for (E_Int i = currStart; i < currEnd; i += step)
         {
           E_Int c0, c1, c2, c3; // indexes in BAR
           if (isOpen == 0)
           {
             // Closed case
-            c0 = (j == 0) ? i % nUnique : (nUnique - i % nUnique) % nUnique;
-            c1 = (j == 0) ? (i + 1) % nUnique : (nUnique - ((i + 1)   % nUnique)) % nUnique;
-            c2 = (j == 0) ? (i + 2) % nUnique : (nUnique - ((i + 2)   % nUnique)) % nUnique;
-            c3 = (j == 0) ? (i + 3) % nUnique : (nUnique - ((i + 3)   % nUnique)) % nUnique;
+            // Cycle, always in [0, nUnique-1]
+            if (j == 0) 
+            {
+              c0 = i % nUnique;
+              c1 = (i + 1) % nUnique;
+              c2 = (i + 2) % nUnique;
+              c3 = (i + 3) % nUnique;
+            } 
+            else 
+            {
+              E_Int offset = 0;
+              if (isPbStep == 1)
+              {
+                offset = (j % 2 != 0) ? 1 : 0;
+              }
+              c0 = (nUnique - (i % nUnique) + offset) % nUnique;
+              c1 = (nUnique - ((i + 1) % nUnique) + offset) % nUnique;
+              c2 = (nUnique - ((i + 2) % nUnique) + offset) % nUnique;
+              c3 = (nUnique - ((i + 3) % nUnique) + offset) % nUnique;
+            }
           }
           else
           {
             // Open case
-            c0 = (j == 0) ? i : (nUnique - 1) - i;
-            c1 = (j == 0) ? (i + 1) : (nUnique - 1) - (i + 1);
-            c2 = (j == 0) ? (i + 2) : (nUnique - 1) - (i + 2);
-            c3 = (j == 0) ? (i + 3) : (nUnique - 1) - (i + 3);
+            if (j == 0) 
+            {
+              c0 = i;
+              c1 = (i + 1);
+              c2 = (i + 2);
+              c3 = (i + 3);
+            } 
+            else 
+            {
+              E_Int offset = 0;
+              if (isPbStep == 1)
+              {
+                offset = (j % 2 != 0) ? 1 : 0;
+              }
+              
+              c0 = (nUnique-1) - (i + offset);
+              c1 = (nUnique-1) - (i + 1 + offset);
+              c2 = (nUnique-1) - (i + 2 + offset);
+              c3 = (nUnique-1) - (i + 3 + offset);
+
+              if (c0 < 4)
+              {
+                continue;
+              }
+            }
           }
 
           // Nodes indices
@@ -389,6 +485,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
           E_Float h = 1.5 * aire;
 
+          /* Determines new xi+1 and xi+2 */
           x[idx1] = 2.0/3.0 * xi + 1.0 /3.0 * xip3 + h * uNormalx; y[idx1] = 2.0/3.0 * yi + 1.0 /3.0 * yip3 + h * uNormaly; z[idx1] = 2.0/3.0 * zi + 1.0 /3.0 * zip3 + h * uNormalz;
           x[idx2] = 1.0/3.0 * xi + 2.0 /3.0 * xip3 + h * uNormalx; y[idx2] = 1.0/3.0 * yi + 2.0 /3.0 * yip3 + h * uNormaly; z[idx2] = 1.0/3.0 * zi + 2.0 /3.0 * zip3 + h * uNormalz;
           
