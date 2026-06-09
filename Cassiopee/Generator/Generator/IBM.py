@@ -190,7 +190,7 @@ def _modifPhysicalBCs__(zp, depth=2, dimPb=3):
             prange[0][1] = pr
     return None
 
-def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
+def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3, optimized=0):
     """Add external BCs of given type to BCs out of or on bbox."""
     dirs = [0,1,2,3,4,5]
     rangeDir=['imin','jmin','kmin','imax','jmax','kmax']
@@ -205,10 +205,15 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3):
         x2 = C.getValue(zp,'CoordinateX',indM)
         y2 = C.getValue(zp,'CoordinateY',indM)
         z2 = C.getValue(zp,'CoordinateZ',indM)
+
+        epsi = 1.e-6
+        if optimized==-1:
+            dx = C.getValue(zp,'CoordinateX',1)-x1
+            epsi +=2*dx
         bbz=[x1,y1,z1,x2,y2,z2]
         external = False
         for idir in dirs:
-            if abs(bbz[idir]-bbox[idir])< 1.e-6:
+            if abs(bbz[idir]-bbox[idir])< epsi:
                 C._addBC2Zone(zp, 'external', externalBCType, rangeDir[idir])
                 external = True
         if externalBCType != 'BCOverlap' and externalBCType != 'BCDummy':
@@ -822,6 +827,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         t1 = C.newPyTree(['CARTESIAN', res])
         zones = Internal.getZones(t1)
         t = splitZoneForConservative(t1,dimPb=dimPb )
+        for c, z in enumerate(Internal.getZones(t)): z[0] = 'Cart.'+str(c)
     else:
         t = C.newPyTree(['CARTESIAN', res])
 
@@ -918,7 +924,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
 
     if symmetry == 0:
         _addBCOverlaps(t, bbox=bb)
-        _addExternalBCs(t, bbox=bb, dimPb=dimPb)
+        _addExternalBCs(t, bbox=bb, dimPb=dimPb, optimized=optimized)
     else:
         _addBCsForSymmetry(t, bbox=bb, dimPb=dimPb, dir_sym=dir_sym, X_SYM=X_SYM, depth=ext-1)
 
@@ -1750,8 +1756,9 @@ def splitZoneForConservative(t, dimPb=3):
                     if fusion:
                         print("dirF", l[0], rg[0,0], rg[0,1], rg[1,0], rg[1,1], rg[2,0], rg[2,1] )
                         llist.pop(i)
+                    else:
 
-                    i +=1
+                        i +=1
 
                 if not same: racFinal.append(l)
                 if not fusion:
