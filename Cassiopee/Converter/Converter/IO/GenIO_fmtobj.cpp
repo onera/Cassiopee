@@ -63,7 +63,7 @@ E_Int K_IO::GenIO::objread(
 
   // Recherche du nombre de materiaux differents
   vector<char*> matnames;
-  E_Int nm = 0; nomres = 1;
+  E_Int nm = 0; res = 1;
   vector<E_Int> matindir; matindir.reserve(200);
   char buffer[256];
   while (res == 1)

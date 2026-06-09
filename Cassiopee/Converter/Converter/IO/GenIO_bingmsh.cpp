@@ -139,6 +139,7 @@ E_Int K_IO::GenIO::bingmshread(
 #include "GenIO_gmsh3.h"
   
   E_Int tagl, ind;
+  E_Int nDiscard = 0;
   /* Compte les elements par type */
   E_LONG pos = KFTELL(ptrFile);
 #define BINARY
