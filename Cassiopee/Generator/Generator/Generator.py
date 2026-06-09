@@ -33,6 +33,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
            'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getVolumeRatioMap',
            'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
+           'getRegularityMap', 'getAngleRegularityMap', 'getOrthogonalityMap', # aliases for backward compatibility
            'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
