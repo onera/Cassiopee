@@ -402,13 +402,17 @@ typedef struct {
      Retourne 0. si triangle degenere */
   E_Float compTriangleArea(const E_Float a, const E_Float b, const E_Float c);
 
-  /* Computes an angle formed by three points (P1,P2,P3)
+  /* Computes an angle formed by three points (P1,P2,P3) or two vectors (u,v)
       Returns a float between 0 and pi
       Returns 0 if two points are superimposed */
   E_Float computeAngle(
     E_Float x1, E_Float y1, E_Float z1,
     E_Float x2, E_Float y2, E_Float z2,
     E_Float x3, E_Float y3, E_Float z3);
+
+  E_Float computeAngle(
+    E_Float ux, E_Float uy, E_Float uz,
+    E_Float vx, E_Float vy, E_Float vz);
   
   /* Computes a skewness value from three points (P1,P2,P3) and a reference angle
       Returns a skewness angle or a float if normalized=1
