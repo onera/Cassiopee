@@ -33,18 +33,18 @@ def _getRegularityMap(t, addGC=False):
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
-def getAngleRegularityMap(t, addGC=False):
+def getGridSkewnessMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
-    Usage: getAngleRegularityMap(t)"""
+    Usage: getGridSkewnessMap(t)"""
     if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getGridSkewnessMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getAngleRegularityMap(t, addGC=False):
+def _getGridSkewnessMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles)."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getGridSkewnessMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
@@ -121,7 +121,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
     Internal._rmNodesFromName(m, 'regularity')
 
-    _getAngleRegularityMap(m, addGC)
+    _getGridSkewnessMap(m, addGC)
     amin,amax,amean,acrit = getMeshFieldInfo__(m, 'regularityAngle', critAngReg, verbose)
     Internal._rmNodesFromName(m, 'regularityAngle')
 

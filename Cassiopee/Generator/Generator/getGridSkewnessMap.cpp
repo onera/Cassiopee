@@ -17,7 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getAngleRegularityMap
+// getGridSkewnessMap
 
 # include "generator.h"
 
@@ -27,7 +27,7 @@ using namespace K_FUNC;
 // ============================================================================
 /* Return angle regularity map */
 // ============================================================================
-PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int normalized;
@@ -284,7 +284,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getAngleRegularityMap: Error computing nfpe.");
+                      "getGridSkewnessMap: Error computing nfpe.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

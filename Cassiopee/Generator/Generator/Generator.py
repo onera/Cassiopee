@@ -32,7 +32,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
            'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
            'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getRegularityMap',
-           'getAngleRegularityMap', 'getTriQualityMap', 'getTriQualityStat',
+           'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
            'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
@@ -2393,6 +2393,8 @@ def getCellSkewnessMap(array, normalized=False):
         return b
     else:
         return generator.getCellSkewnessMap(array, normalized)
+    
+getOrthogonalityMap = getCellSkewnessMap # alias old name
 
 # Fonction retournant la carte de regularite d'une grille
 def getRegularityMap(array):
@@ -2406,16 +2408,18 @@ def getRegularityMap(array):
     else:
         return generator.getRegularityMap(array)
 
-def getAngleRegularityMap(array, normalized=False):
+def getGridSkewnessMap(array, normalized=False):
     """Return the regularity map in an array.
-    Usage: getAngleRegularityMap(array)"""
+    Usage: getGridSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getAngleRegularityMap(i, normalized))
+            b.append(generator.getGridSkewnessMap(i, normalized))
         return b
     else:
-        return generator.getAngleRegularityMap(array, normalized)
+        return generator.getGridSkewnessMap(array, normalized)
+    
+getAngleRegularityMap = getGridSkewnessMap # alias old name
 
 def getNonOrthogonalityMap(array, normalized=False):
     """Return the non-orthogonality map in an array.
@@ -2468,7 +2472,7 @@ def getMeshFieldInfo__(array, field, critValue, verbose):
     size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
-    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
+    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getRegularityMap, 'regularityAngle':getGridSkewnessMap}
 
     for cpt, m in enumerate(array):
         f = DictFunction[field](m)[1]

@@ -1902,21 +1902,24 @@ def _getRegularityMap(t, addGC=False):
 #------------------------------------------------------------------------------
 # Compute the regularity (angles between adjacent cells) of a grid
 #------------------------------------------------------------------------------
-def getAngleRegularityMap(t, addGC=False, normalized=False):
+def getGridSkewnessMap(t, addGC=False, normalized=False):
     """Return the regularity map in an array (wrt angles).
-    Usage: getAngleRegularityMap(t)"""
+    Usage: getGridSkewnessMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC3(t, 'centers', True, Generator.getAngleRegularityMap, normalized)
+    t = C.TZGC3(t, 'centers', True, Generator.getGridSkewnessMap, normalized)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getAngleRegularityMap(t, addGC=False, normalized=False):
+def _getGridSkewnessMap(t, addGC=False, normalized=False):
     """Return the regularity map in an array (wrt angles).
-    Usage: getAngleRegularityMap(t)"""
+    Usage: getGridSkewnessMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC3(t, 'centers', False, Generator.getAngleRegularityMap, normalized)
+    C._TZGC3(t, 'centers', False, Generator.getGridSkewnessMap, normalized)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
+
+getAngleRegularityMap = getGridSkewnessMap # alias old name
+_getAngleRegularityMap = _getGridSkewnessMap # alias old name
 
 #------------------------------------------------------------------------------
 #
@@ -2077,7 +2080,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
     Internal._rmNodesFromName(m, 'regularity')
 
-    _getAngleRegularityMap(m, addGC)
+    _getGridSkewnessMap(m, addGC)
     amin,amax,amean,acrit = getMeshFieldInfo__(m, 'regularityAngle', critAngReg, verbose)
     Internal._rmNodesFromName(m, 'regularityAngle')
 
