@@ -208,8 +208,8 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3, opti
 
         epsi = 1.e-6
         if optimized==-1:
-           dx = C.getValue(zp,'CoordinateX',1)-x1
-           epsi +=2*dx
+            dx = C.getValue(zp,'CoordinateX',1)-x1
+            epsi +=2*dx
         bbz=[x1,y1,z1,x2,y2,z2]
         external = False
         for idir in dirs:
