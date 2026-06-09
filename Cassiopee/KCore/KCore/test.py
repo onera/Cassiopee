@@ -30,6 +30,8 @@ def getLocal():
 #=============================================================================
 # Verifie que arrays est egal au arrays de reference stocke dans un fichier
 # number est le no du test dans le script
+# reference est optionel. Si present, utilise comme fichier de reference
+# sinon, utilise Data.
 #=============================================================================
 def testA(arrays, number=1, reference=""):
     """Test arrays."""

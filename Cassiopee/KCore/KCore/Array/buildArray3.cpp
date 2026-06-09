@@ -49,10 +49,8 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld, const char* varString,
     }
     else // Array2 ou Array3
     {
-        npy_intp dim[3]; int ndim=3;
+        npy_intp dim[3];
         dim[0] = ni; dim[1] = nj; dim[2] = nk;
-        if (nk == 1) ndim--;
-        if (nj == 1) ndim--;
         PyObject* rake = PyList_New(0);
         for (E_Int n=0; n < nfld; n++)
         {

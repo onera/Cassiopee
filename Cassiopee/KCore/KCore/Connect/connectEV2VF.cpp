@@ -39,7 +39,7 @@ void K_CONNECT::connectEV2VF(FldArrayI& cEV, const char* eltType,
   // Acces universel aux eltTypes
   vector<char*> eltTypes;
   K_ARRAY::extractVars(eltType, eltTypes);
-  E_Int elOffset = 0; // element offset for subsequent connectivities
+  //E_Int elOffset = 0; // element offset for subsequent connectivities
   // Number of elements and faces per connectivity
   vector<E_Int> nelts(nc);
   vector<E_Int> nfaces(nc);
@@ -169,6 +169,6 @@ void K_CONNECT::connectEV2VF(FldArrayI& cEV, const char* eltType,
         cmpt++;
       }
     }
-    elOffset += nelts[ic]; // increment element offset
+    //elOffset += nelts[ic]; // increment element offset
   }
 }

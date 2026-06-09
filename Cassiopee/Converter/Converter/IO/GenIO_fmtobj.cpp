@@ -63,7 +63,7 @@ E_Int K_IO::GenIO::objread(
 
   // Recherche du nombre de materiaux differents
   vector<char*> matnames;
-  E_Int nm = 0; E_Int nom = 0; res = 1;
+  E_Int nm = 0; nomres = 1;
   vector<E_Int> matindir; matindir.reserve(200);
   char buffer[256];
   while (res == 1)
@@ -86,12 +86,8 @@ E_Int K_IO::GenIO::objread(
         matindir.push_back(nm);
         nm++;
       }
-      nom++;
     }
   }
-  //printf("I found %d materials (occurences=%d)\n", nm, nom);
-  //for (E_Int i = 0; i < nm; i++) printf("material %d: %s\n", i, matnames[i]);
-  //for (E_Int i = 0; i < nom; i++) printf("occurence %d: %I64d\n", i, matpos[i]); 
 
   // Recherche du nombre de V
   KFSEEK(ptrFile, 0, SEEK_SET);

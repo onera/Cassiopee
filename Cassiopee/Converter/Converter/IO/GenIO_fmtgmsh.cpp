@@ -98,8 +98,6 @@ E_Int K_IO::GenIO::gmshread(
   FldArrayI indirElements(ne);
   // declarations
 #include "GenIO_gmsh3.h"
-  E_Int nDiscard = 0;
-
   E_Int tagl, ind;
   /* Compte les elements par type */
   E_LONG pos = KFTELL(ptrFile);
