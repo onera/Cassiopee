@@ -110,6 +110,7 @@ cpp_srcs = [
     'Converter/identify.cpp',
     'Converter/nearest.cpp',
     'Converter/identifySolutions.cpp',
+    'Converter/identifyTopo.cpp',
     'Converter/hook.cpp',
     'Converter/globalHook.cpp',
     'Converter/globalIndex.cpp',

@@ -135,16 +135,17 @@ namespace K_CONVERTER
   PyObject* registerAllElements(PyObject* self, PyObject* args);
   // free hook
   PyObject* freeHook(PyObject* self, PyObject* args);
-  // identification
+  // geometric identification
   PyObject* identifyElements(PyObject* self, PyObject* args);
   PyObject* identifyFaces(PyObject* self, PyObject* args);
   PyObject* identifyNodes(PyObject* self, PyObject* args);
-  PyObject* identifySolutions( PyObject* self, PyObject* args );
+  PyObject* identifySolutions(PyObject* self, PyObject* args);
   // voisin le plus proche
   PyObject* nearestElements(PyObject* self, PyObject* args);
   PyObject* nearestFaces(PyObject* self, PyObject* args);
   PyObject* nearestNodes(PyObject* self, PyObject* args);
   // topological identification
+  PyObject* identifyFacesTopo(PyObject* self, PyObject* args);
   PyObject* createGlobalIndex(PyObject* self, PyObject* args);
   PyObject* recoverGlobalIndex(PyObject* self, PyObject* args);
   // Adapter
