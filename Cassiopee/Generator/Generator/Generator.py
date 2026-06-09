@@ -2393,7 +2393,7 @@ def getCellSkewnessMap(array, normalized=False):
         return b
     else:
         return generator.getCellSkewnessMap(array, normalized)
-    
+
 getOrthogonalityMap = getCellSkewnessMap # alias old name
 
 # Fonction retournant la carte de regularite d'une grille
@@ -2418,7 +2418,7 @@ def getGridSkewnessMap(array, normalized=False):
         return b
     else:
         return generator.getGridSkewnessMap(array, normalized)
-    
+
 getAngleRegularityMap = getGridSkewnessMap # alias old name
 
 def getNonOrthogonalityMap(array, normalized=False):
