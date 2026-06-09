@@ -45,28 +45,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 factorThreshold = dict(
-    minF = 0.1,
-    maxF = 6.0,
-    minSweeps = 0,
-    )
+    minF=0.1,
+    maxF=6.0,
+    minSweeps=0,
+)
 
 DEFAULT_MESH_QUALITY = dict(
-    maxAcrit = 10,     # no bad-angle cells
-    minVBL = 1e-10,
-    minVT3= 1e-8,
-    maxVcrit = 0,     # no bad-volume cells
-    minAngleBL = 0.0,  # minimum angle in BL quad mesh [°]
-    minAngleT3 = 5.0,   # minimum angle in T3 mesh [°]
-    maxRBL = 25.0,
-    maxRT3 = 25.0
-    )
+    maxAcrit=10,     # no bad-angle cells
+    minVBL=1e-10,
+    minVT3=1e-8,
+    maxVcrit=0,     # no bad-volume cells
+    minAngleBL=0.0,  # minimum angle in BL quad mesh [°]
+    minAngleT3=5.0,   # minimum angle in T3 mesh [°]
+    maxRBL=25.0,
+    maxRT3=25.0
+)
 
 def defaultGeoQuality () :
     return dict(
-        maxInward  = 0.005,   # 0.5 % corde
-        maxOutward = 0.005,
-        stdDev     = 0.005,
-        meanDev    = 0.005
+        maxInward=0.005,   # 0.5 % corde
+        maxOutward=0.005,
+        stdDev=0.005,
+        meanDev=0.005
     )
 
 nptsName = 2500
@@ -85,16 +85,16 @@ def updateMeshThreshold (BAR1, hf, dz):
 
     secu = 0.01
     x, y, _ = getCoords(C.convertBAR2Struct(BAR1))
-    
+
     # Calcul des espacements entre chaque point consécutif
-    dl = np.sqrt(np.diff(x)**2 + np.diff(y)**2)   
+    dl = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
     mindl = np.min(dl)
     # print (f'mindl = {mindl}')
-    
+
     vminBL = hf * mindl * secu
     vminT3 = 0.433 * mindl**2 * dz * secu
 
-    oldBL = DEFAULT_MESH_QUALITY['minVBL'] 
+    oldBL = DEFAULT_MESH_QUALITY['minVBL']
     oldT3 = DEFAULT_MESH_QUALITY['minVT3']
 
     if vminBL > 0:
@@ -102,7 +102,7 @@ def updateMeshThreshold (BAR1, hf, dz):
         DEFAULT_MESH_QUALITY['minVBL'] = vminBL
 
     if vminT3 > 0:
-        vminT3 = 10 ** np.floor(np.log10(vminT3))   
+        vminT3 = 10 ** np.floor(np.log10(vminT3))
         DEFAULT_MESH_QUALITY['minVT3'] = vminT3
 
     print (f"new vmin= {DEFAULT_MESH_QUALITY['minVBL']} (vs old {oldBL}) et vminT3 = {DEFAULT_MESH_QUALITY['minVT3']} (vs old {oldT3})")
@@ -124,29 +124,29 @@ def checkOrder(profile):
 # generaters a TXT file with the BC markers to copy paste into solver (fsui)
 #===============================================================================================
 def genBCMarkers (m2, profileName):
-        symBCs = [bc for bc in Internal.getNodesFromType(m2, 'BC_t') 
-            if Internal.getValue(bc) == 'BCSymmetryPlane']
-        nSym = len(symBCs)
+    symBCs = [bc for bc in Internal.getNodesFromType(m2, 'BC_t')
+              if Internal.getValue(bc) == 'BCSymmetryPlane']
+    nSym = len(symBCs)
 
-        with open(f'Solveur/Résolution/{profileName}/0_{nptsName}/info/bc_markers.txt', 'w') as f:
-            f.write(f"# Généré automatiquement - {nSym} sym détectées\n")
-            f.write("[Marker]\n")
-            f.write("    aircraft   = 1\n")
-            f.write("    farfield   = 2\n")
-            for i in range(nSym):
-                f.write(f"    sym{i:<8}= {i+3}\n")
-            f.write("[Families]\n")
-            f.write("    Aircraft   = aircraft\n")
-            f.write("    Farfield   = farfield\n")
-            for i in range(nSym):
-                f.write(f"    Symmetry{i:<3}= sym{i}\n")
-            f.write("[BoundaryConditions]\n")
-            f.write("    [[Aircraft]]\n        FlowSolverBCType = BCWallViscousIsothermal\n        [[[input data specification]]]\n            type = scalar\n            temperature = 280 [K]\n")
-            f.write("    [[Farfield]]\n        FlowSolverBCType = BCFarfield\n")
-            for i in range(nSym):
-                f.write(f"    [[Symmetry{i}]]\n        FlowSolverBCType = BCSymmetryPlane\n")
+    with open(f'Solveur/Résolution/{profileName}/0_{nptsName}/info/bc_markers.txt', 'w') as f:
+        f.write(f"# Généré automatiquement - {nSym} sym détectées\n")
+        f.write("[Marker]\n")
+        f.write("    aircraft   = 1\n")
+        f.write("    farfield   = 2\n")
+        for i in range(nSym):
+            f.write(f"    sym{i:<8}= {i+3}\n")
+        f.write("[Families]\n")
+        f.write("    Aircraft   = aircraft\n")
+        f.write("    Farfield   = farfield\n")
+        for i in range(nSym):
+            f.write(f"    Symmetry{i:<3}= sym{i}\n")
+        f.write("[BoundaryConditions]\n")
+        f.write("    [[Aircraft]]\n        FlowSolverBCType = BCWallViscousIsothermal\n        [[[input data specification]]]\n            type = scalar\n            temperature = 280 [K]\n")
+        f.write("    [[Farfield]]\n        FlowSolverBCType = BCFarfield\n")
+        for i in range(nSym):
+            f.write(f"    [[Symmetry{i}]]\n        FlowSolverBCType = BCSymmetryPlane\n")
 
-        print(f"BC block generated for {nSym} symmetries in bc_markers.txt")
+    print(f"BC block generated for {nSym} symmetries in bc_markers.txt")
 
 #===============================================================================================
 # IN: BAR1: profile with ice, correctly meshed, in XY plane, simple loop, no branching
@@ -296,13 +296,13 @@ def mesherT3(BAR1, BAR3, bl, dz):
 #===============================================================================================
 def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac=0.02):
 
-    
+
     N = getNpts(profile)
     density = N / chord
     ratio = density / targetDensity
 
     if factor == None:
-        factor = ratio 
+        factor = ratio
     else :
         factor = factor + 1
 
@@ -317,7 +317,7 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
         p = C.convertBAR2Struct(profile)
         x, y, _ = getCoords(p)
         te_x_threshold = chord * (1.0 - te_protect_frac)
-        
+
         te_indices = np.where(x >= te_x_threshold)[0]
         print(f"    → {len(te_indices)} points protégés au TE (x >= {te_x_threshold:.4f})")
 
@@ -326,23 +326,23 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
         # p_coarse = T.oneovern(p, (factor, 1, 1)) premiere stratégie
 
         # Coarsening global via refine
-        targetN = int(targetDensity * chord)    
+        targetN = int(targetDensity * chord)
         print(f"    → Coarsening {N}→{targetN} via refine")
         p_coarse = D.refine(p, N=targetN)
-        
+
         # Réinjecter les points TE supprimés si nécessaire
         xc, yc, _ = getCoords(p_coarse)
         te_x_coarse = np.where(xc >= te_x_threshold)[0]
-        
+
         if len(te_x_coarse) < 2:
             # Le TE a été trop coarsen — on reconstruit avec les points originaux
             print(f"    → TE sous-résolu après coarsening, réinjection des points TE")
-            
+
             # Points non-TE du profil coarsen
             non_te_mask = xc < te_x_threshold
             x_new = np.concatenate([xc[non_te_mask], x[te_indices]])
             y_new = np.concatenate([yc[non_te_mask], y[te_indices]])
-            
+
             # Reconstruction de la zone
             npts_new = len(x_new)
             rebuilt = D.line(
@@ -358,7 +358,7 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
             profile = C.convertArray2Tetra(p_coarse)
 
         type = 'coarser'
-       
+
     elif ratio < 0.8:
         nTarget = max(10, int(round(targetDensity * chord)))
         print(f"    → Under-dense (×{ratio:.1f}): refine to {nTarget} pts")
@@ -366,17 +366,17 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
         type = 'refinement'
     else:
         print(f"    → Density OK : no change")
-    
+
     aAfter = checkArea(profile)
     if aBefore > 1e-12:
         areaError = (aAfter - aBefore) / aBefore * 100
         print(f"\n[Conservation] Area error due to {type}: {areaError:.8f} % ")
-        
+
     return profile
 
-# Suppose qu'on rafine tjrs. 
+# Suppose qu'on rafine tjrs.
 def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
-    
+
     factor = factor + 1
     N = getNpts(profile)
     density = N / chord
@@ -390,27 +390,27 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
     p = C.convertBAR2Struct(profile)
     x, y, _ = getCoords(p)
     te_x_threshold = chord * (1.0 - te_protect_frac)
-    
+
     te_indices = np.where(x >= te_x_threshold)[0]
     print(f"    → {len(te_indices)} points protégés au TE (x >= {te_x_threshold:.4f})")
 
     # Coarsening global via oneovern
     print(f"    → Coarsening ×{factor} via T.oneovern")
     p_coarse = T.oneovern(p, (factor, 1, 1))
-    
+
     # Réinjecter les points TE supprimés si nécessaire
     xc, yc, _ = getCoords(p_coarse)
     te_x_coarse = np.where(xc >= te_x_threshold)[0]
-    
+
     if len(te_x_coarse) < 2:
         # Le TE a été trop coarsen — on reconstruit avec les points originaux
         print(f"    → TE sous-résolu après coarsening, réinjection des points TE")
-        
+
         # Points non-TE du profil coarsen
         non_te_mask = xc < te_x_threshold
         x_new = np.concatenate([xc[non_te_mask], x[te_indices]])
         y_new = np.concatenate([yc[non_te_mask], y[te_indices]])
-        
+
         # Reconstruction de la zone
         npts_new = len(x_new)
         rebuilt = D.line(
@@ -424,7 +424,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
         profile = C.convertArray2Tetra(rebuilt)
     else:
         profile = C.convertArray2Tetra(p_coarse)
-       
+
     N_final  = getNpts(profile)
     ds_mean  = chord / N_final
     # Loi empirique : entre 5° (très fin) et 20° (très grossier)
@@ -432,7 +432,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
 
     print(f"    → N_final={N_final}  ds_mean={ds_mean:.4e}"
           f"  splitSensib adaptatif={splitSensib:.2f}°")
-    
+
     aAfter = checkArea(profile)
     if aBefore > 1e-12:
         areaError = (aAfter - aBefore) / aBefore * 100
@@ -501,23 +501,23 @@ def repairShortSegments(curve, hf, factor=5.0):
     except Exception as e:
         print(f"  [repairShortSegments] failed ({e}) — curve unchanged")
         return curve
-    
+
 #===========================================================================
 # Classifies a sub-curve based on its junction angles and internal rugosity
 #===========================================================================
 def getZoneType(rug, angleLeft, signLeft, angleRight, signRight, roughThreshold, protectAngle):
-    
+
     if angleLeft <= angleRight:
         sharpAngle, sharpSign = angleLeft, signLeft
     else:
         sharpAngle, sharpSign = angleRight, signRight
 
     isSharp = sharpAngle < protectAngle
-    
+
     if isSharp and sharpSign == -1: return 'p'
     if isSharp and sharpSign == +1: return 'v'
     if rug > roughThreshold: return 'r'
-    
+
     return 'n'
 
 def scoreZone(rug, alphaInternal, angleLeft, signLeft, angleRight, signRight,
@@ -689,14 +689,14 @@ def computeSplitSensib(profile, targetDensity, chord, percentile=15.0, minVal=3.
 # Detects topology
 #===========================================================================
 def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
-                   roughThreshold, protectAngle, chord=1.0, borrowFrac=0.0):
-    
+                    roughThreshold, protectAngle, chord=1.0, borrowFrac=0.0):
+
     _SIGN = {+1: "PIC▲", -1: "creux▼", 0: "flat"}
     profile = C.initVars(BAR1, 'CoordinateZ', 0.)
     profile = C.convertBAR2Struct(profile)
     if isClockwise(profile):
         T._reorder(profile, (-1, 2, 3))
-    
+
     # subCurves = T.splitCurvatureAngle(profile, splitSensib)
     subCurves = splitting (profile, splitSensib, roughThreshold, chord=chord, maxSegFrac=0.05)
 
@@ -724,13 +724,13 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
     if profileBody is not None:
         if isClockwise(profileBody):
             T._reorder(profileBody, (-1, 2, 3))
-        chord = getChord(profileBody) 
+        chord = getChord(profileBody)
         thr = distThreshold if distThreshold is not None else 0.001 * chord
         print(f"  Mode DISTANCE  corde={chord:.4f}  seuil={thr:.4f}")
         subCurves = D2W.distance2Walls(subCurves, [profileBody], type='ortho', loc='nodes', signed=0)
     else:
         xN, _, _ = getCoords(profile)
-        chord = getChord(profile) 
+        chord = getChord(profile)
 
     # ================================
     # Junction calculation
@@ -786,7 +786,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
 
         # If more than one protected block exists, we clean
         if len(blocks) > 1:
-            
+
             # trailing edge is protected in priority and protects adjacents, fall back to the heaviest block.
             te_idx = max( range(nSub), key=lambda i: np.mean((getCoords(subCurves[i])[0])))
             print(f"  [Topology] 📍 Trailing edge auto-detected at sub-curve [{te_idx+1:02d}]")
@@ -801,7 +801,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
                 score = [sum(getNpts(subCurves[i]) for i in block) for block in blocks]
                 bestBlockIdx = int(np.argmax(score))
                 print("  [Topology] ⚠️  Trailing edge sub-curve not in any protected block — "
-                    "falling back to largest block.")
+                      "falling back to largest block.")
             # ── END AUTO-DETECT ────────────────────────────────────────────────────
 
             # Unprotect all other blocks (the "false pearls" / ice chunks)
@@ -810,8 +810,8 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
                     for idx in block:
                         isProtList[idx] = False
                         print(f"  [Topology] 🧹 Sub-curve [{idx+1:02d}] unprotected "
-                            f"(merged into ice)")
-                        
+                              f"(merged into ice)")
+
     # ====================================================================
     # PRE-GROUPING: Merge adjacent zones of the SAME TYPE
     # ====================================================================
@@ -845,14 +845,14 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
 
     for offset in range(1, nSub):
         idx = (startIdx + offset) % nSub
-        
+
         # If same type, add to current block
         if zoneTypes[idx] == zoneTypes[currentBlock[-1]]:
             currentBlock.append(idx)
         else:
             blocks.append(currentBlock)
             currentBlock = [idx]
-            
+
     blocks.append(currentBlock)
 
     mergedCurves = []
@@ -866,12 +866,12 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
             curvesToJoin = [subCurves[i] for i in block]
             mergedCurves.append(T.join(curvesToJoin))
             print(f"  [Grouping] 🔗 Merged {len(block)} adjacent '{zoneTypes[block[0]]}' zones into one macro-block.")
-            
+
         mergedProt.append(isProtList[block[0]])
         mergedTypes.append(zoneTypes[block[0]])
 
         mergedScores[idx_block] = scoresMap[block[0]]
-    
+
     # Replace old lists with the new merged ones
     subCurves = mergedCurves
     isProtList = mergedProt
@@ -881,7 +881,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
 
     for i in range(n):
         print (f"[{i}] {macroTypes[i]} : p={scoresMap[i].get('p',0):.2f} v={scoresMap[i].get('v',0):.2f} r={scoresMap[i].get('r',0):.2f}")
-        
+
 
     alphaCache = [getSharpestAngles(sub) for sub in subCurves]
     rugCache   = [rugosity(alpha) for alpha in alphaCache]
@@ -906,7 +906,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
         pinfo = pinfoList[i]
         xA, yA, zA = getCoords(sub)
 
-        #  Point borrowing at protected/free boundaries 
+        #  Point borrowing at protected/free boundaries
         if not protected:
             targetDist = L * borrowFrac
             if i > 0 and isProtList[i - 1]:
@@ -945,8 +945,8 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
         Internal.getNodeFromName(seg, 'CoordinateZ')[1].flat[:] = zA
 
         subCurves[i] = seg
-      
-    # Si besoin de print pour voir ce qu'il se passe Rafine protege ? 
+
+    # Si besoin de print pour voir ce qu'il se passe Rafine protege ?
     # for i, sub in enumerate(subCurves):
 
     #     npts = getNpts(sub)
@@ -956,9 +956,9 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
 
     #     protected = isProtList[i]
     #     if protected:
-    #         L = D.getLength (sub) 
+    #         L = D.getLength (sub)
     #         n = max(3, int(L * 200))
-    #         if not (L< 1e-10 or npts < 3) : 
+    #         if not (L< 1e-10 or npts < 3) :
     #             sub = refineProfile (sub, n, i)
     #         subCurves[i] = forceEndpoints(sub, pStart, pEnd)
 
@@ -980,15 +980,15 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
     #     else:
     #         scoresMap[i] = {}
 
-        
+
     return subCurves, isProtList, macroTypes, junctionData, profile, scoresMap
-    
-def refineProfile (curve, npts = 300, i = 0):
+
+def refineProfile (curve, npts=300, i=0):
 
     C.convertPyTree2File(curve, f'monitoring/bef{i}.plt')
     # x, y, _ = getCoords(curve)
     # h1 = np.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2)
-    # h2 = np.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2)   
+    # h2 = np.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2)
     # d = D.distrib2(curve, h1, h2)
 
     h = D.getLength(curve)/(npts-1)
@@ -997,12 +997,12 @@ def refineProfile (curve, npts = 300, i = 0):
     C.convertPyTree2File(d, f'monitoring/line{i}.plt')
     curve = G.map(curve, d)
     C.convertPyTree2File(curve, f'monitoring/{i}.plt')
-   
+
     return curve
 
 #============================================================================
 # IN: BAR1: 1D struct or BAR (input geometry)
-# IN: splitSensib: [°] cuts if angle < (180 - splitSensib) 
+# IN: splitSensib: [°] cuts if angle < (180 - splitSensib)
 # IN: peakFactor: refine ration for rough zones
 # IN: valleyFactor: coarse ratio for smoothed or valley zones
 # IN: roughThreshold: rough zone to smooth
@@ -1016,9 +1016,9 @@ def refineProfile (curve, npts = 300, i = 0):
 # OUT: chord : chord length
 #============================================================================
 def mapper(subCurves, isProtList, macroTypes,
-                     peakFactor=1.5, valleyFactor=0.5,
-                     roughFactor=1.4):
-    
+           peakFactor=1.5, valleyFactor=0.5,
+           roughFactor=1.4):
+
     processedFree, processedProtected, shapeLabels = [], [], []
     orderMap = []
     for i, sub in enumerate(subCurves):
@@ -1031,19 +1031,19 @@ def mapper(subCurves, isProtList, macroTypes,
 
         protected = isProtList[i]
         if not protected:
-            currentType = macroTypes[i] 
+            currentType = macroTypes[i]
             sub, shape = adaptiveRemesh(sub, zType=currentType,
-                             peakFactor=peakFactor, valleyFactor=valleyFactor,
-                             roughFactor=roughFactor)
-                        
+                                        peakFactor=peakFactor, valleyFactor=valleyFactor,
+                                        roughFactor=roughFactor)
+
             sub = forceEndpoints(sub, pStart, pEnd)
             processedFree.append(Internal.copyTree(sub))
             orderMap.append(('free', len(processedFree) - 1))
             shapeLabels.append(shape)
         else:
-            # L = D.getLength (sub) 
+            # L = D.getLength (sub)
             # n = max(3, int(L * 200))
-            # if not (L< 1e-10 or npts < 2) : 
+            # if not (L< 1e-10 or npts < 2) :
             #     sub = refineProfile (sub, n, i)
             # sub = forceEndpoints(sub, pStart, pEnd)
             # sub = T.oneovern(sub, (2, 1, 1))
@@ -1052,9 +1052,9 @@ def mapper(subCurves, isProtList, macroTypes,
             processedProtected.append(Internal.copyTree(sub))
             orderMap.append(('protected', len(processedProtected) - 1))
             shapeLabels.append('protected')
-        
+
         print(f"  [{i+1:02d}] {'PROT' if protected else 'FREE'} ({npts} → {getNpts(sub)} pts)")
-        
+
     return processedFree, processedProtected, shapeLabels, orderMap
 
 #===========================================================================
@@ -1084,7 +1084,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
         xB, yB, zB = getCoords(ordered[next_i])
 
         gap = np.sqrt((float(xA[-1]) - float(xB[0]))**2 +
-                    (float(yA[-1]) - float(yB[0]))**2)
+                      (float(yA[-1]) - float(yB[0]))**2)
 
         if gap > 1e-12:
             print ("il y a une rupture")
@@ -1118,8 +1118,8 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
         xA2, yA2, _ = getCoords(ordered[i])
         xB2, yB2, _ = getCoords(ordered[next_i])
         print(f"  [joinInOrder] jonction {i}→{next_i}: "
-            f"{orderMap[i][0]} | {orderMap[next_i][0]} | gap_after={gap:.2e}")
-        
+              f"{orderMap[i][0]} | {orderMap[next_i][0]} | gap_after={gap:.2e}")
+
     # =========================================================================
     # Join (endpoints are aligned)
     # =========================================================================
@@ -1131,7 +1131,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
 
     C.convertPyTree2File(ordered, f'monitoring/joined.cgns')
 
-    # Remove micro-segments 
+    # Remove micro-segments
     if mergeTol > 0:
         try:
             print(f"  [joinInOrder] Cleaning needed for micro-segment(s)")
@@ -1153,8 +1153,8 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
                 print(f"  [joinInOrder] cleaned {nBefore - nAfter} micro-segment(s)"
                       f" (tol={tol:.2e})")
             print(f"  [joinInOrder] cleaned {nBefore - nAfter} micro-segment(s)"
-                      f" (tol={tol:.2e})")
-            
+                  f" (tol={tol:.2e})")
+
             return joined_clean
         except Exception as e:
             print(f"  [joinInOrder] micro-segment cleanup failed ({e}) — using raw join")
@@ -1162,7 +1162,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
     return joined
 
 #===============================================================================================
-# Main iterative loop for mesh smoothing and generation. 
+# Main iterative loop for mesh smoothing and generation.
 # 1. Normalizes the point density of the profile and repairs short segments.
 # 2. Analyzes the topology to separate free zones (to be smoothed) from protected zones.
 # 3. Iteratively applies smoothing (T.smooth) to free zones and remeshes the boundary layer (BL) and far-field (T3).
@@ -1195,7 +1195,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
 # OUT: bestSmooth: The final 1D smoothed profile contour
 # OUT: bestReport: Dictionary containing the mesh quality metrics from the final iteration
 #===============================================================================================
-def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
+def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz=1,
                # remesh params (used once)
                distThreshold=None, splitSensib=15.0,
                protectAngle=160.0, borrowFrac=0.0,
@@ -1209,7 +1209,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
                # mesh quality thresholds
                meshQuality=None,
                extruder=0, profileName='horn', limZoom=[0,0,0,0]):
-    
+
     nptsName = getNpts(BAR1)
     exportName (SWEEPSname, nptsName)
     currPF = peakFactor
@@ -1224,7 +1224,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
     BLpb = False
 
     history = {
-        'iter': [], 'pf': [], 'vf': [], 'rf': [], 'sweeps': [], 'density': [], 
+        'iter': [], 'pf': [], 'vf': [], 'rf': [], 'sweeps': [], 'density': [],
         'rmaxBL': [], 'vminBL': [], 'rmaxT3': [], 'vminT3': [],
         'nk': [], 'nLayers': [], 'npts': []
     }
@@ -1232,7 +1232,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
     bestMesh = None
     bestSmooth = None
     bestReport = {}
-    
+
     os.makedirs(f"photos/{profileName}", exist_ok=True)
     os.makedirs("monitoring", exist_ok=True)
     exportPathInfo = f"Solveur/Résolution/{profileName}/0_{nptsName}/info"
@@ -1258,13 +1258,13 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
     BAR1norm = repairShortSegments(BAR1norm, hf, factor=5.0)
     currN = getNpts(BAR1norm)
     oldN = currN
-    C.convertPyTree2File([BAR1, BAR1norm], f'Solveur/Résolution/{profileName}/0_{nptsName}/profile.plt')   
+    C.convertPyTree2File([BAR1, BAR1norm], f'Solveur/Résolution/{profileName}/0_{nptsName}/profile.plt')
 
     subCurves, isProtList, macroTypes, junctionData, profile, scoresMap = \
         detectTopology (BAR1norm, profileBody, distThreshold, currSplitSensib,
-                   roughThreshold, protectAngle, chord=chord, borrowFrac=borrowFrac)
+                        roughThreshold, protectAngle, chord=chord, borrowFrac=borrowFrac)
 
-    #  STEP 3: smoothing iteration 
+    #  STEP 3: smoothing iteration
     for it in range(1, maxIter + 1):
 
         print(f"\n{'━'*60}")
@@ -1292,9 +1292,9 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
         #             roughThreshold, protectAngle, borrowFrac=borrowFrac)
 
         procFree, procProt, shapeLabels, currentOrderMap = mapper(
-                                                            subCurves, isProtList, macroTypes, 
-                                                            peakFactor=currPF, valleyFactor=currVF, roughFactor=currRF,
-                                                            )      
+            subCurves, isProtList, macroTypes,
+            peakFactor=currPF, valleyFactor=currVF, roughFactor=currRF,
+        )
 
         processed_ordered = []
         for kind, idx in currentOrderMap:
@@ -1330,10 +1330,10 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
             currentFree, currentProt, currentOrderMap,
             currSweeps, twoWays, step
         )
-        
+
         # Reconstruct full profile in order
         smoothed1D = joinInOrder(currentFree, currentProt, currentOrderMap)
-        
+
         smoothed1D = C.convertBAR2Struct(smoothed1D)
 
         aAfter = checkArea(smoothed1D)
@@ -1347,7 +1347,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
         checkGeometryIntegrity(smoothed1D, label=f'iter {it}', exportPath=exportPathInfo)
         oldSweeps = currSweeps
         oldPF = currPF
-        oldVF = currVF 
+        oldVF = currVF
         oldRF = currRF
         oldN = currN
         currN = getNpts(smoothed1D)
@@ -1372,11 +1372,11 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
         passedDev, reportDev = checkGeoQuality(profile, smoothed1D)
         checkMeshQuality (curve=smoothed1D)
         if passedDev:
-                print(f"  ✅ Geometry deviation GOOD at iter {it} (sweeps={currSweeps})")
+            print(f"  ✅ Geometry deviation GOOD at iter {it} (sweeps={currSweeps})")
         else :
             print(f"  ⛔ Geometry deviation BAD at iter {it} (sweeps={currSweeps})")
             currSweeps, currPF, currVF, currRF = getGeometryDeviation (reportDev, currSweeps, currPF, currVF, currRF)
-            continue 
+            continue
 
         # Reaffine
         # print(f"  GEOMETRY CHECK WITH DEMESHING")
@@ -1397,7 +1397,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
 
     # return bestMesh, bestSmooth, bestReport
         print(f"  Building mesh...")
-        
+
         # BL Mesher (crash critique → on skip l'itération)
         try:
             BAR1BL, bl, nk, nLayers = mesherBL(Internal.copyTree(smoothed1D), ht, hf, extruder)
@@ -1426,12 +1426,12 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
 
             currSweeps = currSweeps + 10
             currVF = max(factorThreshold['minF'], currVF * 0.9)
-            
+
             # BLpb = True
             # currfactor = currfactor + 1
             continue
-        
-        BLpb = False    
+
+        BLpb = False
         print(f"  ✅ BL Mesh quality GOOD at iter {it} (sweeps={currSweeps})")
 
         # T3 Mesher (crash → skip iteration)
@@ -1448,12 +1448,12 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
         history['rmaxT3'][-1] = reportT3.get('rmaxT3', float('nan'))
         history['vminT3'][-1] = reportT3.get('vminT3', float('nan'))
 
-        # Export historique 
+        # Export historique
         try:
             plotHistory(history, exportPath=exportPathInfo)
             exportHistory(history, bestReport={**reportBL, **reportT3},
-                        reportDev=reportDev, finalAreaError=finalAreaError,
-                        exportPath=exportPathInfo)
+                          reportDev=reportDev, finalAreaError=finalAreaError,
+                          exportPath=exportPathInfo)
         except Exception as e:
             print(f"  ⚠️  Export history failed (non-blocking): {e}")
 
@@ -1466,7 +1466,7 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
 
         bestMesh = fullMesh
         bestSmooth = smoothed1D
-        bestReport = {**reportBL, **reportT3} 
+        bestReport = {**reportBL, **reportT3}
 
         if passedT3:
             print(f"  ✅ Mesh quality OK at iter {it} (sweeps={currSweeps})")
@@ -1483,24 +1483,24 @@ def smoothLoop(BAR1, BAR3, profileBody, ht, hf, dz = 1,
         bestSmooth = joinInOrder(currentFree, currentProt, currentOrderMap)
         bestMesh = None
         bestReport = {'passed': False}
-    
+
     return bestMesh, bestSmooth, bestReport
 
 #===========================================================================
 # Join contiguous free sub-curves into blocks, smooth each block together
 #===========================================================================
 def smoothFreeBlocks(procFree, processedProtected, orderMap, sweeps, twoWays, step):
-    
+
     n = len(orderMap)
-    
+
     newFreeList = []      # Nouvelles zones libres (possiblement fusionnées)
     newProtList = list(processedProtected)  # Zones protégées inchangées
     newOrderMap = []      # Nouvelle carte d'ordre
-    
+
     i = 0
     while i < n:
         kind, idx = orderMap[i]
-        
+
         # =====================================================================
         # CAS 1 : Zone protégée → copier tel quel
         # =====================================================================
@@ -1508,47 +1508,47 @@ def smoothFreeBlocks(procFree, processedProtected, orderMap, sweeps, twoWays, st
             newOrderMap.append(('protected', idx))
             i += 1
             continue
-        
+
         # =====================================================================
         # CAS 2 : Zone(s) libre(s) contiguë(s) → fusionner + lisser
         # =====================================================================
         block_idxs = []   # indices dans orderMap
         free_idxs = []    # indices dans procFree
         j = i
-        
+
         # Trouver toutes les zones libres consécutives
         while j < n and orderMap[j][0] == 'free':
             block_idxs.append(j)
             free_idxs.append(orderMap[j][1])
             j += 1
-        
+
         block_zones = [Internal.copyTree(procFree[fi]) for fi in free_idxs]
-        
+
         # Si une seule zone → lisser directement
         if len(block_zones) == 1:
             smoothed_block = T.consSmooth(block_zones[0], sweeps, twoWays, step)
             newFreeList.append(smoothed_block)
             newOrderMap.append(('free', len(newFreeList) - 1))
-        
+
         # Si plusieurs zones → fusionner, lisser, GARDER FUSIONNÉ
         else:
             # Réparer les endpoints avant fusion
             for k in range(len(block_zones) - 1):
                 xA, yA, zA = getCoords(block_zones[k])
                 xB, yB, zB = getCoords(block_zones[k + 1])
-                
+
                 mx = 0.5 * (float(xA[-1]) + float(xB[0]))
                 my = 0.5 * (float(yA[-1]) + float(yB[0]))
                 mz = 0.5 * (float(zA[-1]) + float(zB[0]))
-                
+
                 Internal.getNodeFromName(block_zones[k],     'CoordinateX')[1].flat[-1] = mx
                 Internal.getNodeFromName(block_zones[k],     'CoordinateY')[1].flat[-1] = my
                 Internal.getNodeFromName(block_zones[k],     'CoordinateZ')[1].flat[-1] = mz
-                
+
                 Internal.getNodeFromName(block_zones[k + 1], 'CoordinateX')[1].flat[0]  = mx
                 Internal.getNodeFromName(block_zones[k + 1], 'CoordinateY')[1].flat[0]  = my
                 Internal.getNodeFromName(block_zones[k + 1], 'CoordinateZ')[1].flat[0]  = mz
-            
+
             # Fusionner
             joined = T.join(block_zones)
 
@@ -1563,7 +1563,7 @@ def smoothFreeBlocks(procFree, processedProtected, orderMap, sweeps, twoWays, st
                 Internal.getNodeFromName(joined, 'CoordinateY')[1].flat[0]  = float(yP[-1])
                 Internal.getNodeFromName(joined, 'CoordinateZ')[1].flat[0]  = float(zP[-1])
 
-            # Forcer endpoint fin → première coord de la PROT suivante  
+            # Forcer endpoint fin → première coord de la PROT suivante
             if next_map_idx < n and orderMap[next_map_idx][0] == 'protected':
                 xN2, yN2, zN2 = getCoords(processedProtected[orderMap[next_map_idx][1]])
                 Internal.getNodeFromName(joined, 'CoordinateX')[1].flat[-1] = float(xN2[0])
@@ -1571,13 +1571,13 @@ def smoothFreeBlocks(procFree, processedProtected, orderMap, sweeps, twoWays, st
                 Internal.getNodeFromName(joined, 'CoordinateZ')[1].flat[-1] = float(zN2[0])
 
             smoothed_block = T.consSmooth(joined, sweeps, twoWays, step)
-            
+
             # ✅ GARDER LE BLOC FUSIONNÉ (ne pas split !)
             newFreeList.append(smoothed_block)
             newOrderMap.append(('free', len(newFreeList) - 1))
-        
+
         i = j  # Passer au bloc suivant
-    
+
     return newFreeList, newProtList, newOrderMap
 
 #===========================================================================
@@ -1596,7 +1596,7 @@ def getNpts(curve):
     return Internal.getZoneDim(curve)[1]
 
 #===========================================================================
-# Sharpest angle at each node [°] 
+# Sharpest angle at each node [°]
 # 180° = flat, small = sharp corner.
 #===========================================================================
 def getSharpestAngles(curve):
@@ -1629,9 +1629,9 @@ def getKFromDist(x, y, targetDist, fromEnd=True):
     distAcc = 0.0
     k = 0
     nPts = len(x)
-    if targetDist <= 1e-12: 
+    if targetDist <= 1e-12:
         return 0
-    
+
     if fromEnd:
         for j in range(nPts - 1, 0, -1):
             distAcc += np.sqrt((x[j]-x[j-1])**2 + (y[j]-y[j-1])**2)
@@ -1642,7 +1642,7 @@ def getKFromDist(x, y, targetDist, fromEnd=True):
             distAcc += np.sqrt((x[j+1]-x[j])**2 + (y[j+1]-y[j])**2)
             k += 1
             if distAcc >= targetDist: break
-            
+
     # On sécurise : au moins 2 points, max la moitié de la courbe
     return max(2, min(k, nPts // 2))
 #===========================================================================
@@ -1651,7 +1651,7 @@ def getKFromDist(x, y, targetDist, fromEnd=True):
 def getStepSize(curve, end="first"):
     x, y, z = getCoords(curve)
     if len(x) < 2: return 1e-5
-    
+
     if end == "first":
         return float(np.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2 + (z[1]-z[0])**2))
     else:
@@ -1667,57 +1667,57 @@ def getStepSize(curve, end="first"):
 def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
     import os
     import matplotlib.pyplot as plt
-    
+
     ok = True
- 
+
     # Convert to consistent format
     p = C.initVars(profile, 'CoordinateZ', 0.)
     try:
         p = C.convertBAR2Struct(p)
     except Exception:
         pass
- 
+
     x, y, _ = getCoords(p)
     N = len(x)
- 
+
     # Check closure
     dist2 = (float(x[0]) - float(x[-1]))**2 + (float(y[0]) - float(y[-1]))**2
     ref2 = (float(x[0]) - float(x[1]))**2  + (float(y[0]) - float(y[1]))**2 if N >= 2 else 1.
     isClosed = dist2 < 1e-12 * max(ref2, 1e-30)
- 
+
     # Check for duplicate consecutive points (zero-length segments)
     ds = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
     nDuplicates = int(np.sum(ds < 1e-14))
- 
+
     # Check for very short segments (< 0.1% of mean spacing)
     meanDs = float(np.mean(ds)) if len(ds) > 0 else 1.
-    
+
     # ON IDENTIFIE LES MAUVAIS SEGMENTS
     dup_mask = ds < 1e-14
     nDuplicates = int(np.sum(dup_mask))
-    
+
     bad_mask = ds < 1e-2 * meanDs
 
     print ("tol = ", 1e-2 * meanDs)
     nVeryShort = int(np.sum(bad_mask))
- 
+
     print(f"\n[checkGeometryIntegrity] {label}")
     print(f"  N = {N}  |  closed = {isClosed}  |  duplicates = {nDuplicates}"
           f"  |  very-short segments = {nVeryShort}")
- 
+
     if not isClosed:
         gap = float(np.sqrt(dist2))
         print(f"  ⚠️  NOT CLOSED — gap = {gap:.2e}  (should be < {1e-6*float(np.sqrt(ref2)):.2e})")
         ok = False
-        
+
     if nDuplicates > 0:
         print(f"  ⚠️  {nDuplicates} duplicate consecutive point(s) — may cause mesher issues")
         ok = False
-        
+
     if nVeryShort > 0:
         print(f"  ⚠️  {nVeryShort} very-short segment(s) — may cause T3mesher2D failures")
         ok = False
-        
+
     # ====================================================================
     # GÉNÉRATION DE L'IMAGE DEBUG (ZOOM SUR LES DÉFAUTS)
     # ====================================================================
@@ -1725,13 +1725,13 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
         try:
             dup_indices = np.where(dup_mask)[0]
             bad_indices = np.where(bad_mask)[0]
-            
+
             os.makedirs(exportPath, exist_ok=True)
             fig, ax = plt.subplots(figsize=(8, 6))
-            
+
             # Tracer tout le profil en gris fin
             ax.plot(x, y, color='gray', linestyle='-', linewidth=0.5, label='Profil complet', alpha=0.7)
-            
+
             # Mettre en évidence les points en DOUBLE (en gros et en ORANGE)
             for i in dup_indices:
                 ax.plot(x[i:i+2], y[i:i+2], color='orange', linestyle='-', marker='X', markersize=8, linewidth=2)
@@ -1741,17 +1741,17 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
             for i in bad_indices:
                 ax.plot(x[i:i+2], y[i:i+2], color='red', linestyle='-', marker='o', markersize=6, linewidth=2)
                 ax.text(x[i], y[i], f" Pt {i}", color='red', fontsize=9, ha='left', va='bottom')
-            
+
             # Légende dynamique
             if nDuplicates > 0:
                 ax.plot([], [], color='orange', marker='X', markersize=8, linewidth=2, label='Doublons (dist ≈ 0)')
             if nVeryShort > 0:
                 ax.plot([], [], color='red', marker='o', markersize=6, linewidth=2, label='Micro-segments')
-            
+
             ax.set_aspect('equal')
             ax.legend(loc='best')
             ax.set_title(f"DEBUG: {nDuplicates} Doublon(s) | {nVeryShort} Micro-segment(s) - {label}")
-            
+
             # On zoom autour du TOUT PREMIER défaut détecté pour le voir clairement
             all_bad = np.concatenate((dup_indices, bad_indices))
             if len(all_bad) > 0:
@@ -1770,7 +1770,7 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
 
     if ok:
         print(f"  ✓ Geometry OK")
- 
+
     return ok
 
 #===========================================================================
@@ -1816,7 +1816,7 @@ def getWallDistances(curve, profileBody):
                                 type='ortho',
                                 loc='nodes',
                                 signed=0)
-    
+
     dist = Internal.getNodeFromName(result, 'TurbulentDistance')[1].ravel()
     return dist
 
@@ -1839,7 +1839,7 @@ def getChord(profile):
 # Rough ('r'): ×roughFactor
 #===========================================================================
 def adaptiveRemesh(curve, zType, peakFactor=1.5, valleyFactor=0.5, roughFactor=1.4):
-        
+
     info = {}
     L = D.getLength(curve)
     N = getNpts(curve)
@@ -1867,25 +1867,25 @@ def adaptiveRemesh(curve, zType, peakFactor=1.5, valleyFactor=0.5, roughFactor=1
 
     nNew = max(4, int(N * factor))
 
-    h1, h2 = getH(L, nNew, grading)   
+    h1, h2 = getH(L, nNew, grading)
     print(f"        Remesh: {N:4d} → {nNew:4d} pts  |  {label}")
 
     # Remaillage uniforme sur tout le macro-bloc
     # ref = D.line((0., 0., 0.), (1., 0., 0.), N=nNew)
     d = D.distrib2(curve, h1, h2, normalized=True, algo=1)
-    
+
     if nNew != N:
-        return G.map(curve, d), info["shape"]  
+        return G.map(curve, d), info["shape"]
     else :
         return curve, info["shape"]
 #===========================================================================
 # GARDÉE pour si besoin d'une autre stratégie de remaillage 1D (plus complex)
 #===========================================================================
 def adaptiveRemesh2(curve, angleLeft=180.0, signLeft=0,
-                          angleRight=180.0, signRight=0,
-                          peakFactor=1.5, valleyFactor=0.5, roughFactor = 1.4,
-                          roughThreshold=5.0, protectAngle=120.0):
-        
+                    angleRight=180.0, signRight=0,
+                    peakFactor=1.5, valleyFactor=0.5, roughFactor=1.4,
+                    roughThreshold=5.0, protectAngle=120.0):
+
     info = {}
     L = D.getLength(curve)
     N = getNpts(curve)
@@ -1931,15 +1931,15 @@ def adaptiveRemesh2(curve, angleLeft=180.0, signLeft=0,
         info['shape'] = 'n'
 
     nNew = max(3, int(N * factor))
-    h1, h2 = getH(L, nNew, grading)   
-    
+    h1, h2 = getH(L, nNew, grading)
+
     if not sharpIsLeft:
-        h1, h2 = h2, h1  
+        h1, h2 = h2, h1
 
     print(f"      Remesh: {N:4d} → {nNew:4d} pts  |  {label}")
     d = D.distrib2(curve, h1, h2, normalized=True, algo=1)
     if nNew != N:
-        return G.map(curve, d), info["shape"]  
+        return G.map(curve, d), info["shape"]
     else :
         return curve, info["shape"]
 
@@ -1949,18 +1949,18 @@ def adaptiveRemesh2(curve, angleLeft=180.0, signLeft=0,
 def getH (L, N, r=1.1):
     n = N - 1
     if n <= 0: return L, L
-    
+
     # If the ratio is 1.0 (no grading, uniform mesh)
     if abs(r - 1.0) < 1e-6:
         h = L / n
         return h, h
-        
+
     # Calcul exact de la première maille (h1)
     h1 = L * (1.0 - r) / (1.0 - r**n)
-    
+
     # Calcul exact de la dernière maille (h2)
     h2 = h1 * (r**(n - 1))
-    
+
     return h1, h2
 
 #===========================================================================
@@ -1968,12 +1968,12 @@ def getH (L, N, r=1.1):
 # 1 - minimum angle < protectAngle
 # 2 - (optional) curvilinear length < maxCornerLength (0 = disabled) (to develop to protected profile profil)
 #===========================================================================
-def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, roughThreshold = 4.0, protectAngle=60.0, maxCornerLength=0.0):
-    
+def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, roughThreshold=4.0, protectAngle=60.0, maxCornerLength=0.0):
+
     info = {}
 
     info['rugosity'] = False
-    
+
     # Si la rugosité est forte, on veut protéger la zone du lissage
     isRugous = (rug > roughThreshold)
 
@@ -2002,7 +2002,7 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
             reason = f"Rugosité forte ({rug:.2f} > {roughThreshold})"
 
         xN, _, _ = getCoords(curve)
-        if np.mean(xN) >= chord * 0.2: 
+        if np.mean(xN) >= chord * 0.2:
             protected = True
             info['forced'] = True
             info['rugosity'] = False
@@ -2020,7 +2020,7 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
 
         print(f"  [isProtected - Distance] -> {protected} | Raison: {reason}")
         return protected, info
-    
+
     alphas = alphaCache
     if len(alphas) > 2:
         alphas = alphas[1:-1]
@@ -2058,7 +2058,7 @@ def forceEndpoints(curve, pStart, pEnd):
 #===========================================================================
 #                     VALIDATION / INDICATOR RESULTS
 #===========================================================================
-    
+
 #==============================
 # check quality of output mesh
 #==============================
@@ -2076,7 +2076,7 @@ def checkQuality(m):
 #===============================================
 # check deviation of profile from input profile
 #===============================================
-def checkDeviation(rough, smoothed, refLen, method = "ortho"):
+def checkDeviation(rough, smoothed, refLen, method="ortho"):
 
     rIce = Internal.copyTree(rough) #rough Ice
     sIce = Internal.copyTree(smoothed) #smooth ice
@@ -2106,7 +2106,7 @@ def checkDeviation(rough, smoothed, refLen, method = "ortho"):
     maxOutward = float(np.max(values)) / refLen
     stdDev = float(np.std(values)) / refLen
     meanDev = float(np.mean(values)) / refLen
-    
+
     aSmooth = checkArea(sIce)
     aRough = checkArea(rIce)
     if aRough > 1e-12:
@@ -2139,11 +2139,11 @@ def closeGeometryRelative(curve, toClose=False):
 
     refL2 = (cx[n1] - cx[n1Ngb])**2 + (cy[n1] - cy[n1Ngb])**2 + (cz[n1] - cz[n1Ngb])**2
     dist2 = (cx[n1] - cx[n2])**2    + (cy[n1] - cy[n2])**2    + (cz[n1] - cz[n2])**2
-    
+
     isOpen = (dist2 >= 1e-12 * refL2)
     if not toClose:
         return isOpen
-    
+
     if not isOpen:
         print(f"Closed geometry (Actual edge points: {n1} and {n2}).")
     else:
@@ -2153,11 +2153,11 @@ def closeGeometryRelative(curve, toClose=False):
         segment = D.line(end, start, N=5)
         curve2Check = T.join(curve2Check, segment)
         print("-> Connection successful")
-    
+
     return curve2Check
 
 #==========================================
-# check area of profile from input profile 
+# check area of profile from input profile
 #==========================================
 def checkArea(curve):
 
@@ -2176,7 +2176,7 @@ def checkArea(curve):
 
         # Close if open
         if closeGeometryRelative(profile, toClose=False):
-            profile = closeGeometryRelative(profile, toClose=True)  
+            profile = closeGeometryRelative(profile, toClose=True)
 
         profile = C.convertArray2Tetra(profile)
 
@@ -2204,7 +2204,7 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
 
     report = {
         'passed': True,
-        'failures': {} 
+        'failures': {}
     }
     passed = True
 
@@ -2212,13 +2212,13 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
 
         # Extraction Boundary Layer (C)
         infoC = G.checkMesh(curve)
-        
+
         vcritC = int(infoC.get('vcrit', 0))
         vminC, vmaxC, vmeanC = float(infoC.get('vmin', 0.)), float(infoC.get('vmax', 0.)), float(infoC.get('vmean', 0.))
-        
+
         acritC = int(infoC.get('acrit', 0))
         aminC, amaxC, ameanC = float(infoC.get('amin', 0.)), float(infoC.get('amax', 0.)), float(infoC.get('amean', 0.))
-        
+
         rcritC = int(infoC.get('rcrit', 0))
         rminC, rmaxC, rmeanC = float(infoC.get('rmin', 0.)), float(infoC.get('rmax', 0.)), float(infoC.get('rmean', 0.))
 
@@ -2256,13 +2256,13 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
 
         # Extraction Boundary Layer (BL)
         infoBL = G.checkMesh(bl)
-        
+
         vcritBL = int(infoBL.get('vcrit', 0))
         vminBL, vmaxBL, vmeanBL = float(infoBL.get('vmin', 0.)), float(infoBL.get('vmax', 0.)), float(infoBL.get('vmean', 0.))
-        
+
         acritBL = int(infoBL.get('acrit', 0))
         aminBL, amaxBL, ameanBL = float(infoBL.get('amin', 0.)), float(infoBL.get('amax', 0.)), float(infoBL.get('amean', 0.))
-        
+
         rcritBL = int(infoBL.get('rcrit', 0))
         rminBL, rmaxBL, rmeanBL = float(infoBL.get('rmin', 0.)), float(infoBL.get('rmax', 0.)), float(infoBL.get('rmean', 0.))
 
@@ -2306,10 +2306,10 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
 
         vcritT3 = int(infoT3.get('vcrit', 0))
         vminT3, vmaxT3, vmeanT3 = float(infoT3.get('vmin', 0.)), float(infoT3.get('vmax', 0.)), float(infoT3.get('vmean', 0.))
-        
+
         acritT3 = int(infoT3.get('acrit', 0))
         aminT3, amaxT3, ameanT3 = float(infoT3.get('amin', 0.)), float(infoT3.get('amax', 0.)), float(infoT3.get('amean', 0.))
-        
+
         rcritT3 = int(infoT3.get('rcrit', 0))
         rminT3, rmaxT3, rmeanT3 = float(infoT3.get('rmin', 0.)), float(infoT3.get('rmax', 0.)), float(infoT3.get('rmean', 0.))
 
@@ -2336,8 +2336,8 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
         print (f"Comparaison avec régularitymap : rmax = {rmaxT3} vs rmaxReg = {a}")
 
         print ('On trouve ', report.get('rmaxT3'))
-        # passedT3 = okVcritT3 and okRmaxT3 and okVminT3 
-        passedT3 = okRmaxT3 and okVminT3 
+        # passedT3 = okVcritT3 and okRmaxT3 and okVminT3
+        passedT3 = okRmaxT3 and okVminT3
         passed = passed and passedT3
 
         print(f"\n  Mesh Quality Check:")
@@ -2360,15 +2360,15 @@ def checkGeoQuality(profile, smoothed1D, devThresholds=None):
 
     report = {
         'passed': True,
-        'failures': {} 
+        'failures': {}
     }
-    
+
     chord = getChord(smoothed1D)
     refLen = chord
     infoDev = checkDeviation(profile,smoothed1D, refLen)
 
     maxInward, maxOutward, stdDev, meanDev = float(infoDev.get('maxInward', 0.)), float(infoDev.get('maxOutward', 0.)), float(infoDev.get('stdDev', 0.)), float(infoDev.get('meanDev', 0.))
-    
+
     # Évaluations
     okInward = abs(maxInward) <= devThresholds['maxInward']
     okOutward = maxOutward <= devThresholds['maxOutward']
@@ -2384,7 +2384,7 @@ def checkGeoQuality(profile, smoothed1D, devThresholds=None):
     report.update({'maxInward': maxInward, 'maxOutward': maxOutward, 'stdDev': stdDev, 'meanDev': meanDev})
 
     passedDev = okInward and okOutward and okStd and okMean
-    
+
     print(f"\n  Geometry Deviation Check (Smoothing vs Rough Ice):")
     print(f"      Inward : max = {abs(maxInward):>+7.4f} {'✓' if okInward else '✗'} (tol <= {devThresholds['maxInward']:>+7.4f})")
     print(f"      Outward : max = {maxOutward:>+7.4f} {'✓' if okOutward else '✗'} (tol <= {devThresholds['maxOutward']:>+7.4f})")
@@ -2421,20 +2421,20 @@ def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="
         import matplotlib.pyplot as plt
         _use_decorator = False
 
-    # Extraction des coordonnées et Bounding Box globale 
+    # Extraction des coordonnées et Bounding Box globale
     allX, allY = [], []
     for curve, _, _ in subcurves_with_shapes:
         x, y, _ = getCoords(curve)
         allX.extend(x)
         allY.extend(y)
-        
+
     allX = np.array(allX)
     allY = np.array(allY)
 
     # LE FILTRE ULTIME ANTI-NAN
     # On crée un masque qui ne garde que les points qui SONT des nombres
     valid_mask = ~(np.isnan(allX) | np.isnan(allY))
-    
+
     # Si tout est corrompu (cas extrême), on annule le dessin proprement
     if not np.any(valid_mask):
         print("  [visualizeRemeshing] ⚠️ Image ignorée : données corrompues (NaN).")
@@ -2448,7 +2448,7 @@ def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="
     xmin, xmax = np.min(allX_clean), np.max(allX_clean)
     ymin, ymax = np.min(allY_clean), np.max(allY_clean)
 
-    # Calcul des limites (Global et Zoom) 
+    # Calcul des limites (Global et Zoom)
 
     # Vue Globale
     mX = (xmax - xmin) * 0.05
@@ -2530,7 +2530,7 @@ def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="
             else:
                 plt.close('all')
 
-    #  Génération des deux figures 
+    #  Génération des deux figures
     draw_and_save(xlimGlobal, ylimGlobal, "global")
     draw_and_save(xlimZoom, ylimZoom, "zoom")
 
@@ -2540,20 +2540,20 @@ def checkBL(ext_outer):
     try:
         test_contour = G.T3mesher2D(ext_outer, triangulateOnly=1)
         print("   ✅ Contour valide, aucune queue d'aronde !")
-        return True 
+        return True
     except Exception as e:
         print("   ❌ Échec : La bordure extérieure se croise (Queue d'aronde détectée).")
         return False # Le test a échoué
-    
+
 
 def getMeshQuality (report, sweeps, pf, vf, rf):
 
     failures = report.get('failures', {})
-    
+
     if 'vmin' in failures:
         vf = max(factorThreshold['minF'], vf * 0.9)   # ← moins de points dans les creux
         rf = max(factorThreshold['minF'], rf * 0.9)
-        # pf = pf * (1 - 0.1) 
+        # pf = pf * (1 - 0.1)
         # if sweeps < 1000 :
         #     sweeps = int(sweeps * (1.10))
 
@@ -2561,7 +2561,7 @@ def getMeshQuality (report, sweeps, pf, vf, rf):
         vf = min(factorThreshold['maxF'], vf * 1.05)   # ← plus de points dans les creux
         # rf = rf * (1 + 0.05)
         pf = min(factorThreshold['maxF'], pf * 1.05)    # ← plus de points sur les pics
-    
+
     if 'acrit' in failures:
         pf = min(factorThreshold['maxF'], pf * 1.05)
         vf = min(factorThreshold['maxF'], vf * 1.05)
@@ -2578,7 +2578,7 @@ def getGeometryDeviation (report, sweeps, pf, vf, rf):
         pf = min(factorThreshold['maxF'], pf * 1.05)
         if sweeps < 1000 :
             sweeps = int(sweeps * (0.90))
-    
+
     if 'stdDev' in failures:
         # Dispersion hétérogène → raffiner la résolution du profil
         pf = min(factorThreshold['maxF'], pf * 1.05)
@@ -2591,9 +2591,9 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
     import numpy as np
 
     os.makedirs(exportPath, exist_ok=True)
-    
+
     iters = np.array(history['iter'])
-    
+
     # Création d'une figure avec 2 sous-graphes empilés qui partagent l'axe X
     fig, axs = plt.subplots(2, 1, figsize=(10, 12), sharex=True)
     fig.suptitle("Évolution des Paramètres et Critères au fil des Itérations", fontsize=16)
@@ -2610,15 +2610,15 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
     ax0_twin2.spines['right'].set_position(('outward', 60))
     line_sw = ax0_twin1.plot(iters, history['sweeps'], label='Number of Sweeps', marker='v', color='purple', linewidth=2, linestyle='--')
     line_pts = ax0_twin2.plot(iters, history['npts'], label='Nb Points Profil', marker='d', color='brown', linewidth=2, linestyle='--')
-    
+
     axs[0].set_ylabel('Valeur des Facteurs')
     ax0_twin1.set_ylabel('Sweeps', color='purple')
     ax0_twin2.set_ylabel('Nb Points', color='brown')
     ax0_twin1.tick_params(axis='y', colors='purple')
     ax0_twin2.tick_params(axis='y', colors='brown')
-    
+
     axs[0].grid(True, linestyle=':', alpha=0.7)
-    
+
     # Regrouper les légendes du graphe du haut
     lines_top = line_pf + line_vf + line_rf + line_sw + line_pts
     labels_top = [l.get_label() for l in lines_top]
@@ -2642,7 +2642,7 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
         ax3.set_ylabel('Nombre de Couches BL', color='red')
         ax3.tick_params(axis='y', labelcolor='red')
         ax3.axhline(y=history['nLayers'][0], color='red', linestyle='--', alpha=0.5, label='nLayers target')
-        
+
 
         # Axe droite : Vmin (Échelle Logarithmique)
         line2 = ax3_twin.plot(valid_iters, valid_vmin, label='Vmin BL', marker='.', color='black', linewidth=2)
@@ -2651,19 +2651,19 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
         ax3_twin.tick_params(axis='y', labelcolor='black')
         ax3_twin.axhline(y=DEFAULT_MESH_QUALITY['minVBL'], color='black', linestyle='--', alpha=0.5, label='Tolérance vminBL')
         print (DEFAULT_MESH_QUALITY['minVBL'])
-        
+
         # Regrouper les légendes du graphe du bas
         lines_bot = line1 + line2
         labels_bot = [l.get_label() for l in lines_bot]
         ax3.legend(lines_bot, labels_bot, loc='upper left')
-    
+
     ax3.set_xlabel('Itérations')
     ax3.grid(True, linestyle=':', alpha=0.7)
 
     # Ajustement et sauvegarde
     plt.tight_layout()
-    plt.subplots_adjust(top=0.95) 
-    
+    plt.subplots_adjust(top=0.95)
+
     outPath = os.path.join(exportPath, figName)
     plt.savefig(outPath, dpi=200, bbox_inches='tight')
     plt.close(fig)
@@ -2672,9 +2672,9 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
 def plotHistory(history, exportPath="photos", figName="optimizationHistory.png"):
 
     os.makedirs(exportPath, exist_ok=True)
-    
+
     iters = np.array(history['iter'])
-    
+
     # Création d'une figure avec 3 sous-graphes empilés qui partagent l'axe X (Itérations)
     fig, axs = plt.subplots(2, 1, figsize=(10, 12), sharex=True)
     fig.suptitle("Évolution des Paramètres et Critères au fil des Itérations", fontsize=16)
@@ -2688,7 +2688,7 @@ def plotHistory(history, exportPath="photos", figName="optimizationHistory.png")
 
     ax0_twin = axs[0].twinx()
     ax0_twin.plot(iters, history['sweeps'], label='Number of Sweeps', marker='v', color='purple', linewidth=2)
-    
+
     axs[0].set_ylabel('Valeur des Facteurs')
     ax0_twin.set_ylabel('Sweeps', color='purple')
     ax0_twin.tick_params(axis='y', labelcolor='purple')
@@ -2707,10 +2707,10 @@ def plotHistory(history, exportPath="photos", figName="optimizationHistory.png")
     valid_vmin = np.array(history['vminT3'])[valid_idx]
 
     if len(valid_iters) > 0:
-    # Rmax (Axe de gauche, linéaire)
+        # Rmax (Axe de gauche, linéaire)
         line1 = ax3.plot(valid_iters, valid_rmax, label='Rmax T3', marker='x', color='red', linewidth=2)
         line2 = ax3_twin.plot(valid_iters, valid_vmin, label='Vmin T3', marker='.', color='black', linewidth=2)
-        
+
         ax3.set_ylabel('Rmax', color='red')
         ax3.tick_params(axis='y', labelcolor='red')
         ax3.axhline(y=DEFAULT_MESH_QUALITY['maxRT3'], color='red', linestyle='--', alpha=0.5, label='Tolérance RmaxT3') # Ligne de tolérance
@@ -2720,26 +2720,26 @@ def plotHistory(history, exportPath="photos", figName="optimizationHistory.png")
         ax3_twin.set_ylabel('Vmin (Échelle Log)', color='black')
         ax3_twin.tick_params(axis='y', labelcolor='black')
         ax3_twin.axhline(y=DEFAULT_MESH_QUALITY['minVT3'], color='black', linestyle='--', alpha=0.5, label='Tolérance vminT3') # Ligne de tolérance
-        
+
         # Rassembler les légendes des deux axes
         lines = line1 + line2
         labels = [l.get_label() for l in lines]
         ax3.legend(lines, labels, loc='upper left')
-    
+
     ax3.set_xlabel('Itérations')
     ax3.grid(True, linestyle=':', alpha=0.7)
 
     # Ajustement et sauvegarde
     plt.tight_layout()
     plt.subplots_adjust(top=0.95) # Laisse de la place pour le titre principal
-    
+
     outPath = os.path.join(exportPath, figName)
     plt.savefig(outPath, dpi=200, bbox_inches='tight')
     plt.close(fig)
     print(f"  [Graphe] 📈 Historique d'optimisation généré : {outPath}")
 
 
-def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None, devThresholds = None, tol = None, exportPath="photos", fileName="optimizationHistory.txt"):
+def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None, devThresholds=None, tol=None, exportPath="photos", fileName="optimizationHistory.txt"):
     """Exporte l'historique d'optimisation dans un fichier texte bien formaté,
        incluant les derniers rapports de qualité à la fin."""
     import os
@@ -2759,7 +2759,7 @@ def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None,
             vf = history['vf'][i]
             rf = history['rf'][i]
             sw = history['sweeps'][i]
-            
+
             rmaxT3 = f"{history['rmaxT3'][i]:9.2f}" if not np.isnan(history['rmaxT3'][i]) else "      NaN"
             vminT3 = f"{history['vminT3'][i]:10.2e}" if not np.isnan(history['vminT3'][i]) else "       NaN"
 
@@ -2793,7 +2793,7 @@ def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None,
         if bestReport is not None:
             if tol is None:
                 tol = DEFAULT_MESH_QUALITY
-            
+
             # Couche Limite (BL)
             if 'vminBL' in bestReport:
                 f.write(f"\n  BL Mesh Quality Check:\n")
