@@ -1,4 +1,5 @@
 # - getGridSkewnessMap (pyTree) -
+import Converter.Internal as Internal
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Converter.PyTree as C
@@ -17,6 +18,7 @@ y = numpy.array([1,0,0], dtype=numpy.float64)
 Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 t = G.getGridSkewnessMap(a)
+Internal._renameNode(t, 'gridSkewness', 'regularityAngle') # backward compatibility with test case references
 test.testT(t, 1)
 
 # 2D unstructured tri
@@ -26,6 +28,7 @@ y = numpy.array([0,-0.5,-0.5,1], dtype=numpy.float64)
 Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 t = G.getGridSkewnessMap(a)
+Internal._renameNode(t, 'gridSkewness', 'regularityAngle') # backward compatibility with test case references
 test.testT(t, 2)
 
 # 2D unstructured quad
@@ -36,6 +39,7 @@ Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
 t = G.getGridSkewnessMap(a)
+Internal._renameNode(t, 'gridSkewness', 'regularityAngle') # backward compatibility with test case references
 test.testT(t, 3)
 
 # 3D unstructured hexa
@@ -47,6 +51,7 @@ Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 Internal.getNodeFromName(a, 'CoordinateZ')[1] = z
 t = G.getGridSkewnessMap(a)
+Internal._renameNode(t, 'gridSkewness', 'regularityAngle') # backward compatibility with test case references
 test.testT(t, 4)
 
 # 3D unstructured penta
@@ -58,4 +63,5 @@ Internal.getNodeFromName(a, 'CoordinateX')[1] = x
 Internal.getNodeFromName(a, 'CoordinateY')[1] = y
 Internal.getNodeFromName(a, 'CoordinateZ')[1] = z
 t = G.getGridSkewnessMap(a)
+Internal._renameNode(t, 'gridSkewness', 'regularityAngle') # backward compatibility with test case references
 test.testT(t, 5)

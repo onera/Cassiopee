@@ -115,7 +115,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray3(1, "regularityAngle", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "gridSkewness", im1, jm1, km1, api);
     // pointeur sur le tableau d'angle
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1);
@@ -262,7 +262,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
   else // if (res == 2)
   {
     PyObject* tpl = K_ARRAY::buildArray3(
-      1, "regularityAngle", npts, *cn, eltType, true, api, true
+      1, "gridSkewness", npts, *cn, eltType, true, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1); // pointeur sur le tableau d'angle
