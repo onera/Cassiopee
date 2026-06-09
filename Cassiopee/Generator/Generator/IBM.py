@@ -206,9 +206,10 @@ def _addExternalBCs(t, bbox, DEPTH=2, externalBCType='BCFarfield', dimPb=3, opti
         y2 = C.getValue(zp,'CoordinateY',indM)
         z2 = C.getValue(zp,'CoordinateZ',indM)
 
-        dx = C.getValue(zp,'CoordinateX',1)-x1
         epsi = 1.e-6
-        if optimized==-1: epsi +=2*dx
+        if optimized==-1:
+           dx = C.getValue(zp,'CoordinateX',1)-x1
+           epsi +=2*dx
         bbz=[x1,y1,z1,x2,y2,z2]
         external = False
         for idir in dirs:
@@ -826,10 +827,7 @@ def generateIBMMesh(tb, dimPb=3, vmin=15, snears=0.01, dfars=10., dfarDir=0,
         t1 = C.newPyTree(['CARTESIAN', res])
         zones = Internal.getZones(t1)
         t = splitZoneForConservative(t1,dimPb=dimPb )
-        c=0
-        for z in Internal.getZones(t):
-            z[0]='Cart.'+str(c)
-            c+=1
+        for c, z in enumerate(Internal.getZones(t)): z[0] = 'Cart.'+str(c)
     else:
         t = C.newPyTree(['CARTESIAN', res])
 
