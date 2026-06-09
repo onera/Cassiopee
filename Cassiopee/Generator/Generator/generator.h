@@ -59,7 +59,7 @@ namespace K_GENERATOR
   PyObject* getCellCenters(PyObject* self, PyObject* args);
   PyObject* getFaceCentersAndAreas(PyObject* self, PyObject* args);
   PyObject* getCellSkewnessMap(PyObject* self, PyObject* args);
-  PyObject* getRegularityMap(PyObject* self, PyObject* args);
+  PyObject* getVolumeRatioMap(PyObject* self, PyObject* args);
   PyObject* getGridSkewnessMap(PyObject* self, PyObject* args);
   PyObject* getNonOrthogonalityMap(PyObject* self, PyObject* args);
   PyObject* getNormalMapOfMesh(PyObject* self, PyObject* args);

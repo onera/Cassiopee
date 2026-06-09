@@ -54,7 +54,7 @@ inline E_Float ratioMax6(E_Float v, E_Float v1, E_Float v2, E_Float v3, E_Float 
 // ============================================================================
 /* Return regularity map */
 // ============================================================================
-PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getVolumeRatioMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
   if (!PYPARSETUPLE_(args, O_, &array)) return NULL;
@@ -70,7 +70,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getRegularityMap: unknown type of array.");
+                    "getVolumeRatioMap: unknown type of array.");
     return NULL;
   }
 
@@ -86,7 +86,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "getRegularityMap: can't find coordinates in array.");
+                    "getVolumeRatioMap: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
@@ -290,7 +290,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getRegularityMap: not implemented for NGON arrays.");
+                      "getVolumeRatioMap: not implemented for NGON arrays.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -307,7 +307,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getRegularityMap: Error computing nfpe.");
+                      "getVolumeRatioMap: Error computing nfpe.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -328,7 +328,7 @@ PyObject* K_GENERATOR::getRegularityMap(PyObject* self, PyObject* args)
     if (ierr == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getRegularityMap: Error computing cEEN.");
+                      "getVolumeRatioMap: Error computing cEEN.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

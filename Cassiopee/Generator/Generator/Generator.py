@@ -31,7 +31,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
            'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
            'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
-           'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getRegularityMap',
+           'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getVolumeRatioMap',
            'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
            'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
@@ -2397,17 +2397,20 @@ def getCellSkewnessMap(array, normalized=False):
 getOrthogonalityMap = getCellSkewnessMap # alias old name
 
 # Fonction retournant la carte de regularite d'une grille
-def getRegularityMap(array):
+def getVolumeRatioMap(array):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(array)"""
+    Usage: getVolumeRatioMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getRegularityMap(i))
+            b.append(generator.getVolumeRatioMap(i))
         return b
     else:
-        return generator.getRegularityMap(array)
+        return generator.getVolumeRatioMap(array)
+    
+getRegularityMap = getVolumeRatioMap # alias old name
 
+# Fonction ...
 def getGridSkewnessMap(array, normalized=False):
     """Return the regularity map in an array.
     Usage: getGridSkewnessMap(array)"""
@@ -2472,7 +2475,7 @@ def getMeshFieldInfo__(array, field, critValue, verbose):
     size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
-    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getRegularityMap, 'regularityAngle':getGridSkewnessMap}
+    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getVolumeRatioMap, 'regularityAngle':getGridSkewnessMap}
 
     for cpt, m in enumerate(array):
         f = DictFunction[field](m)[1]

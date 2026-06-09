@@ -1883,21 +1883,24 @@ _getOrthogonalityMap = _getCellSkewnessMap # alias old name
 #------------------------------------------------------------------------------
 # Compute the regularity (ratio between adjacent cells) of a grid
 #------------------------------------------------------------------------------
-def getRegularityMap(t, addGC=False):
+def getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(t)"""
+    Usage: getVolumeRatioMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC3(t, 'centers', True, Generator.getRegularityMap)
+    t = C.TZGC3(t, 'centers', True, Generator.getVolumeRatioMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getRegularityMap(t, addGC=False):
+def _getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(t)"""
+    Usage: getVolumeRatioMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC3(t, 'centers', False, Generator.getRegularityMap)
+    C._TZGC3(t, 'centers', False, Generator.getVolumeRatioMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
+
+getRegularityMap = getVolumeRatioMap # alias old name
+_getRegularityMap = _getVolumeRatioMap # alias old name
 
 #------------------------------------------------------------------------------
 # Compute the regularity (angles between adjacent cells) of a grid
@@ -2076,7 +2079,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
     Internal._rmNodesFromName(m, 'orthogonality')
 
-    _getRegularityMap(m, addGC)
+    _getVolumeRatioMap(m, addGC)
     rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
     Internal._rmNodesFromName(m, 'regularity')
 

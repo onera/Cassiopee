@@ -311,7 +311,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
     if (ierr == 1)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getRegularityMap: Error computing cFE.");
+                      "getGridSkewnessMap: Error computing cFE.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

@@ -1,4 +1,4 @@
-# - getRegularityMap (pyTree) -
+# - getVolumeRatioMap (pyTree) -
 import Generator.PyTree as G
 import Converter.PyTree as C
 import Geom.PyTree as D
@@ -13,7 +13,7 @@ a = C.addBC2Zone(a, 'match1','BCMatch','imin',a,'imax',[1,2,3])
 a = C.addBC2Zone(a, 'match2','BCMatch','imax',a,'imin',[1,2,3])
 a = C.fillEmptyBCWith(a, 'overlap', 'BCOverlap')
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
-t = G.getRegularityMap(a)
+t = G.getVolumeRatioMap(a)
 test.testT(t, 1)
 
 # Test 2D structure
@@ -25,11 +25,11 @@ a = G.hyper2D(msh, distrib, "C")
 a = T.reorder(a, (-3,2,1))
 a = C.addBC2Zone(a, 'wall1','BCWall','imin')
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
-t = G.getRegularityMap(a)
+t = G.getVolumeRatioMap(a)
 test.testT(t, 2)
 
 # Test 1D structure
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (1,10,1))
 a = C.initVars(a,'Density',1.); a = C.initVars(a,'centers:cellN',1.)
-t = G.getRegularityMap(a)
+t = G.getVolumeRatioMap(a)
 test.testT(t, 3)

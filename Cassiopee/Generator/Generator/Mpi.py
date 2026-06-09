@@ -18,18 +18,18 @@ def bbox(t):
     Cmpi.Allreduce(bb, bb2, Cmpi.MAX)
     return [bb1[0],bb1[1],bb1[2],bb2[3],bb2[4],bb2[5]]
 
-def getRegularityMap(t, addGC=False):
+def getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(t)"""
+    Usage: getVolumeRatioMap(t)"""
     if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', True, Generator.getRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getVolumeRatioMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getRegularityMap(t, addGC=False):
+def _getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC1(t, 'centers', False, Generator.getRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getVolumeRatioMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
@@ -117,7 +117,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
     Internal._rmNodesFromName(m, 'orthogonality')
 
-    _getRegularityMap(m, addGC)
+    _getVolumeRatioMap(m, addGC)
     rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
     Internal._rmNodesFromName(m, 'regularity')
 
