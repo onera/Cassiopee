@@ -8,6 +8,7 @@ import KCore.test as test
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,50,10))
 ac = C.node2Center(a)
 ortho = G.getCellSkewnessMap(a)
+ortho[0] = 'orthogonality' # backward compatibility with test case references
 ortho = C.addVars([ac,  ortho])
 test.testA([ortho], 1)
 
@@ -15,6 +16,7 @@ test.testA([ortho], 1)
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (10,10,1))
 ac = C.node2Center(a)
 ortho = G.getCellSkewnessMap(a)
+ortho[0] = 'orthogonality' # backward compatibility with test case references
 ortho = C.addVars([ac,  ortho])
 test.testA([ortho], 2)
 
@@ -22,6 +24,7 @@ test.testA([ortho], 2)
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (1,10,1))
 ac = C.node2Center(a)
 ortho = G.getCellSkewnessMap(a)
+ortho[0] = 'orthogonality' # backward compatibility with test case references
 ortho = C.addVars([ac,  ortho])
 ortho = T.reorder(ortho, (2,1,3))
 test.testA([ortho], 3)

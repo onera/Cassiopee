@@ -124,7 +124,7 @@ PyObject* K_GENERATOR::getCellSkewnessMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray3(1, "orthogonality", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "cellSkewness", im1, jm1, km1, api);
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* skewness = f2->begin(1); // pointeur sur le tableau d'angle
 
@@ -191,7 +191,7 @@ PyObject* K_GENERATOR::getCellSkewnessMap(PyObject* self, PyObject* args)
   else // Cas non structure
   {
     tpl = K_ARRAY::buildArray3(
-      1, "orthogonality", npts, *cn, eltType, true, api, true
+      1, "cellSkewness", npts, *cn, eltType, true, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* skewness = f2->begin(1); // pointeur sur le tableau d'angle
