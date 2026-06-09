@@ -172,7 +172,7 @@ PyObject* K_GENERATOR::getVolumeRatioMap(PyObject* self, PyObject* args)
 
     // Construction du tableau numpy stockant les champs 
     // definissant la regularite
-    tpl = K_ARRAY::buildArray3(1, "regularity", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "volumeRatio", im1, jm1, km1, api);
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* reg = f2->begin(1);
       
@@ -282,7 +282,7 @@ PyObject* K_GENERATOR::getVolumeRatioMap(PyObject* self, PyObject* args)
     // Construction du tableau numpy stockant le ratio max de volumes entre
     // elements voisins, definissant la regularite
     tpl = K_ARRAY::buildArray3(
-      1, "regularity", npts, *cn, eltType, 1, api, true
+      1, "volumeRatio", npts, *cn, eltType, 1, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* reg = f2->begin(1);

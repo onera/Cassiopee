@@ -9,6 +9,7 @@ import KCore.test as test
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,50,10))
 ac = C.node2Center(a)
 reg = G.getVolumeRatioMap(a)
+reg[0] = 'regularity' # backward compatibility with test case references
 reg = C.addVars([ac,  reg])
 test.testA([reg], 1)
 
@@ -21,6 +22,7 @@ a = G.hyper2D(msh, distrib, "C")
 a = T.reorder(a, (-3,2,1))
 ac = C.node2Center(a)
 reg = G.getVolumeRatioMap(a)
+reg[0] = 'regularity' # backward compatibility with test case references
 reg = C.addVars([ac,  reg])
 test.testA([reg], 2)
 
@@ -28,6 +30,7 @@ test.testA([reg], 2)
 a = G.cart((0.,0.,0.), (0.1,0.1,0.2), (1,10,1))
 ac = C.node2Center(a)
 reg = G.getVolumeRatioMap(a)
+reg[0] = 'regularity' # backward compatibility with test case references
 reg = C.addVars([ac,  reg])
 reg = T.reorder(reg, (2,1,3))
 test.testA([reg], 3)
