@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getOrthogonalityMap
-
 # include "generator.h"
 # include <math.h>
 
@@ -32,7 +30,7 @@ using namespace K_FUNC;
 // the dihedral angle of the element and the dihedral angle for an 
 // "ideal" element.
 // ============================================================================
-PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getCellSkewnessMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int normalized;
@@ -51,7 +49,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOrthogonalityMap: unknown type of array.");
+                    "getCellSkewnessMap: unknown type of array.");
     return NULL;
   }
 
@@ -67,7 +65,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "getOrthogonalityMap: can't find coordinates in array.");
+                    "getCellSkewnessMap: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
@@ -201,7 +199,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getOrthogonalityMap: not implemented for NGON arrays.");
+                      "getCellSkewnessMap: not implemented for NGON arrays.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -215,7 +213,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getOrthogonalityMap: Error computing nfpe.");
+                      "getCellSkewnessMap: Error computing nfpe.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

@@ -22,7 +22,7 @@ def quality(meshes):
     """Measure the quality of mesh."""
     score = 0.
     for m in meshes:
-        ortho = G.getOrthogonalityMap(m)
+        ortho = G.getCellSkewnessMap(m)
         vol = G.getVolumeMap(m)
         min1 = C.getMinValue(ortho, 'orthogonality')
         max1 = C.getMaxValue(ortho, 'orthogonality')

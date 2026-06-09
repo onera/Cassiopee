@@ -113,7 +113,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     vmin,vmax,vmean,vcrit = getMeshFieldInfo__(m, 'vol', critVol, verbose)
     Internal._rmNodesFromName(m, 'vol')
 
-    G._getOrthogonalityMap(m)
+    G._getCellSkewnessMap(m)
     omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
     Internal._rmNodesFromName(m, 'orthogonality')
 

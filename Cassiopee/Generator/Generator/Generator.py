@@ -31,7 +31,7 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
            'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
            'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
-           'forceMatch', '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap',
+           'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getRegularityMap',
            'getAngleRegularityMap', 'getTriQualityMap', 'getTriQualityStat',
            'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
@@ -2383,16 +2383,16 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
     return m
 
 # Fonction retournant la carte d'orthogonalite d'une grille
-def getOrthogonalityMap(array, normalized=False):
+def getCellSkewnessMap(array, normalized=False):
     """Return the orthogonality map in an array.
-    Usage: getOrthogonalityMap(array)"""
+    Usage: getCellSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getOrthogonalityMap(i, normalized))
+            b.append(generator.getCellSkewnessMap(i, normalized))
         return b
     else:
-        return generator.getOrthogonalityMap(array, normalized)
+        return generator.getCellSkewnessMap(array, normalized)
 
 # Fonction retournant la carte de regularite d'une grille
 def getRegularityMap(array):
@@ -2468,7 +2468,7 @@ def getMeshFieldInfo__(array, field, critValue, verbose):
     size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
-    DictFunction = {'vol':getVolumeMap, 'orthogonality':getOrthogonalityMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
+    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
 
     for cpt, m in enumerate(array):
         f = DictFunction[field](m)[1]

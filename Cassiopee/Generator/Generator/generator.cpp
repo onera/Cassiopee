@@ -44,7 +44,7 @@ static PyMethodDef Pygenerator [] =
   {"getVolumeMap", K_GENERATOR::getVolumeMapOfMesh, METH_VARARGS},
   {"getCellCenters", K_GENERATOR::getCellCenters, METH_VARARGS},
   {"getFaceCentersAndAreas", K_GENERATOR::getFaceCentersAndAreas, METH_VARARGS},
-  {"getOrthogonalityMap", K_GENERATOR::getOrthogonalityMap, METH_VARARGS},
+  {"getCellSkewnessMap", K_GENERATOR::getCellSkewnessMap, METH_VARARGS},
   {"getRegularityMap", K_GENERATOR::getRegularityMap, METH_VARARGS},
   {"getAngleRegularityMap", K_GENERATOR::getAngleRegularityMap, METH_VARARGS},
   {"getNonOrthogonalityMap", K_GENERATOR::getNonOrthogonalityMap, METH_VARARGS},

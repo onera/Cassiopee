@@ -134,7 +134,7 @@ def mono1mesh(a1, a2, a3):
 def quality(meshes):
     score = 0.
     for m in meshes:
-        ortho = Generator.getOrthogonalityMap(m)
+        ortho = Generator.getCellSkewnessMap(m)
         vol = Generator.getVolumeMap(m)
         min1 = Converter.getMinValue(ortho, 'orthogonality')
         max1 = Converter.getMaxValue(ortho, 'orthogonality')

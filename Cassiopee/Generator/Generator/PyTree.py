@@ -1869,13 +1869,16 @@ def mapSplit(z, d, split_crit, dens_max=1000):
 # 2D: returns an array of alpha angles
 # 3D: returns 3 arrays of alpha angles (in order alpha_IJ, alpha_IK and alpha_JK for structured grids)
 #------------------------------------------------------------------------------
-def getOrthogonalityMap(t, normalized=False):
+def getCellSkewnessMap(t, normalized=False):
     """Return the orthogonality map in an array.
-    Usage: getOrthogonalityMap(t)"""
-    return C.TZGC3(t, 'centers', True, Generator.getOrthogonalityMap, normalized)
+    Usage: getCellSkewnessMap(t)"""
+    return C.TZGC3(t, 'centers', True, Generator.getCellSkewnessMap, normalized)
 
-def _getOrthogonalityMap(t, normalized=False):
-    return C._TZGC3(t, 'centers', False, Generator.getOrthogonalityMap, normalized)
+def _getCellSkewnessMap(t, normalized=False):
+    return C._TZGC3(t, 'centers', False, Generator.getCellSkewnessMap, normalized)
+
+getOrthogonalityMap = getCellSkewnessMap # alias old name
+_getOrthogonalityMap = _getCellSkewnessMap # alias old name
 
 #------------------------------------------------------------------------------
 # Compute the regularity (ratio between adjacent cells) of a grid
@@ -2066,7 +2069,7 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     vmin,vmax,vmean,vcrit = getMeshFieldInfo__(m, 'vol', critVol, verbose)
     Internal._rmNodesFromName(m, 'vol')
 
-    _getOrthogonalityMap(m)
+    _getCellSkewnessMap(m)
     omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
     Internal._rmNodesFromName(m, 'orthogonality')
 
