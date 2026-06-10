@@ -475,7 +475,7 @@ def checkTree__(nodePath, node1, node2):
             if (val1 != val2).any():
                 if node1[0] == "PointList" and (numpy.sort(val1) == numpy.sort(val2)).all():
                     print("DIFF: valeurs identiques pour le noeud: "
-                          f"{nodePathl} mais rangees differemment.") 
+                          f"{nodePathl} mais rangees differemment.")
                 else:
                     print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2)

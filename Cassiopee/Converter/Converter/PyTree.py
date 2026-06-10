@@ -4449,7 +4449,7 @@ def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
         _recoverBCsGeometric(t, BCInfo, tol, removeBC)
     else:
         _recoverBCsTopologic(t, BCInfo, removeBC, indices)
-        
+
 def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
     try: import Post.PyTree as P
     except: raise ImportError("_recoverBCsGeometric: requires Post module.")
@@ -4494,9 +4494,9 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
                 nfacesDef = indicesBC.shape[1]
                 if nfacesExt < nfacesDef:
                     print(f"Warning: zone {z[0]}: number of faces defined "
-                            "by BCs is greater than the number of external "
-                            "faces. Try to  reduce the matching "
-                            "tolerance.")
+                          "by BCs is greater than the number of external "
+                          "faces. Try to  reduce the matching "
+                          "tolerance.")
                 elif nfacesExt > nfacesDef:
                     indicesBC = indicesBC.reshape((indicesBC.size))
                     indicesF = converter.diffIndex(indicesF, indicesBC)
@@ -4531,7 +4531,7 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
                     newBCName = getLastBCName(BCNames[c])
                     bcz = Internal.getNodeFromNameAndType(z, newBCName, 'BC_t')
                     ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
-                                                gridLocation='FaceCenter', parent=bcz)
+                                               gridLocation='FaceCenter', parent=bcz)
                     d = Internal.newBCData('NeumannData', parent=ds)
                     for node in Internal.getChildren(fsc):
                         if Internal.isType(node, 'DataArray_t'):
@@ -4580,7 +4580,7 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                         pointList = bcEC[1] - 1
                     else:
                         raise KeyError("_recoverBCsTopologic: topologic key "
-                                        f"'{b[0]}' is not supported")
+                                       f"'{b[0]}' is not supported")
                 else:  # a CGNS node
                     bcElt = Internal.getNodeFromType1(b, "Elements_t")
                     bcEC = Internal.getNodeFromName2(bcElt, "ElementConnectivity")
@@ -4622,7 +4622,7 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                         newBCName = getLastBCName(BCNames[c])
                         bcz = Internal.getNodeFromNameAndType(z, newBCName, 'BC_t')
                         ds = Internal.newBCDataSet(name='BCDataSet', value='UserDefined',
-                                                    gridLocation='FaceCenter', parent=bcz)
+                                                   gridLocation='FaceCenter', parent=bcz)
                         d = Internal.newBCData('NeumannData', parent=ds)
                         for node in Internal.getChildren(fsc):
                             if Internal.isType(node, 'DataArray_t'):
