@@ -120,83 +120,83 @@ PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
         E_Int ind, ind1, ind2, ind3, ind4;
         if (nk1 == 1)
         {
+          #pragma omp for collapse(2)
           for (E_Int j = 0; j < nj1; j++)
-#pragma omp for
-            for (E_Int i = 0; i < ni1; i++)
-            {
-              //starts from 1
-              ind1 = i + j*nil + 1; //(i,j,1)
-              ind2 = ind1 + 1;      //(i+1,j,1)
-              ind3 = ind2 + nil;    //(i+1,j+1,1)
-              ind4 = ind3 - 1;      //(i,j+1,1)
-              ind = i + j*ni1;
-              cm(ind,1) = ind1;
-              cm(ind,2) = ind2;
-              cm(ind,3) = ind3;
-              cm(ind,4) = ind4;
-            }
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            //starts from 1
+            ind1 = i + j*nil + 1; //(i,j,1)
+            ind2 = ind1 + 1;      //(i+1,j,1)
+            ind3 = ind2 + nil;    //(i+1,j+1,1)
+            ind4 = ind3 - 1;      //(i,j+1,1)
+            ind = i + j*ni1;
+            cm(ind,1) = ind1;
+            cm(ind,2) = ind2;
+            cm(ind,3) = ind3;
+            cm(ind,4) = ind4;
+          }
         }
         else if (nj1 == 1)
         {
+          #pragma omp for collapse(2)
           for (E_Int k = 0; k < nk1; k++)
-#pragma omp for
-            for (E_Int i = 0; i < ni1; i++)
-            {
-              ind1 = i + k*ninj + 1;  //(i,1,k)
-              ind2 = ind1 + ninj;     //(i,1,k+1)
-              ind3 = ind2 + 1;        //(i+1,1,k+1)
-              ind4 = ind1 + 1;        //(i+1,1,k)
-              ind = i + k*ni1;
-              cm(ind,1) = ind1;
-              cm(ind,2) = ind2;
-              cm(ind,3) = ind3;
-              cm(ind,4) = ind4;      
-            }
+          for (E_Int i = 0; i < ni1; i++)
+          {
+            ind1 = i + k*ninj + 1;  //(i,1,k)
+            ind2 = ind1 + ninj;     //(i,1,k+1)
+            ind3 = ind2 + 1;        //(i+1,1,k+1)
+            ind4 = ind1 + 1;        //(i+1,1,k)
+            ind = i + k*ni1;
+            cm(ind,1) = ind1;
+            cm(ind,2) = ind2;
+            cm(ind,3) = ind3;
+            cm(ind,4) = ind4;      
+          }
         }
         else // i1 = 1 
         {
+          #pragma omp for collapse(2)
           for (E_Int k = 0; k < nk1; k++)
-#pragma omp for
-            for (E_Int j = 0; j < nj1; j++)
-            {
-              ind1 = 1 + j*nil + k*ninj; //(1,j,k)
-              ind2 = ind1 + nil;         //(1,j+1,k)
-              ind3 = ind2 + ninj;        //(1,j+1,k+1)
-              ind4 = ind3 - nil;         //(1,j,k+1)
-              ind = j+k*nj1;
-              cm(ind,1) = ind1;
-              cm(ind,2) = ind2;
-              cm(ind,3) = ind3;
-              cm(ind,4) = ind4;
-            }
+          for (E_Int j = 0; j < nj1; j++)
+          {
+            ind1 = 1 + j*nil + k*ninj; //(1,j,k)
+            ind2 = ind1 + nil;         //(1,j+1,k)
+            ind3 = ind2 + ninj;        //(1,j+1,k+1)
+            ind4 = ind3 - nil;         //(1,j,k+1)
+            ind = j+k*nj1;
+            cm(ind,1) = ind1;
+            cm(ind,2) = ind2;
+            cm(ind,3) = ind3;
+            cm(ind,4) = ind4;
+          }
         }// i1 = 1
       }
       else
       {
         E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+        #pragma omp for collapse(3)
         for (E_Int k = 0; k < nk1; k++)
-          for (E_Int j = 0; j < nj1; j++)
-#pragma omp for
-            for (E_Int i = 0; i < ni1; i++)
-            {
-              ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
-              ind2 = ind1 + 1;               //B(i+1,  j,k)
-              ind3 = ind2 + nil;             //C(i+1,j+1,k)
-              ind4 = ind3 - 1;               //D(  i,j+1,k)
-              ind5 = ind1 + ninj;            //E(  i,  j,k+1)
-              ind6 = ind2 + ninj;            //F(i+1,  j,k+1)
-              ind7 = ind3 + ninj;            //G(i+1,j+1,k+1)
-              ind8 = ind4 + ninj;            //H(  i,j+1,k+1) 
-              ind = i+j*ni1+k*ni1*nj1;
-              cm(ind,1) = ind1;
-              cm(ind,2) = ind2;
-              cm(ind,3) = ind3;
-              cm(ind,4) = ind4;
-              cm(ind,5) = ind5;
-              cm(ind,6) = ind6;
-              cm(ind,7) = ind7;
-              cm(ind,8) = ind8;
-            }
+        for (E_Int j = 0; j < nj1; j++)
+        for (E_Int i = 0; i < ni1; i++)
+        {
+          ind1 = 1 + i + j*nil + k*ninj; //A(  i,  j,k)
+          ind2 = ind1 + 1;               //B(i+1,  j,k)
+          ind3 = ind2 + nil;             //C(i+1,j+1,k)
+          ind4 = ind3 - 1;               //D(  i,j+1,k)
+          ind5 = ind1 + ninj;            //E(  i,  j,k+1)
+          ind6 = ind2 + ninj;            //F(i+1,  j,k+1)
+          ind7 = ind3 + ninj;            //G(i+1,j+1,k+1)
+          ind8 = ind4 + ninj;            //H(  i,j+1,k+1) 
+          ind = i+j*ni1+k*ni1*nj1;
+          cm(ind,1) = ind1;
+          cm(ind,2) = ind2;
+          cm(ind,3) = ind3;
+          cm(ind,4) = ind4;
+          cm(ind,5) = ind5;
+          cm(ind,6) = ind6;
+          cm(ind,7) = ind7;
+          cm(ind,8) = ind8;
+        }
       }
 
       // Copy fields to f2
