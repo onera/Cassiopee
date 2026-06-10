@@ -119,6 +119,9 @@ def _connectMatchNGon(z, tol=1.e-6):
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
 
+    if z[3] != 'Zone_t': 
+        raise TypeError("connectMatchNGon: only for one zone.")
+    
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -154,35 +157,57 @@ def _connectMatchNGon(z, tol=1.e-6):
 
     for trip in range(Cmpi.size-1):
 
+        #print("trip number ", trip, flush=True)
         data = [zu, indicesE]
         data = Cmpi.passNext(data)
         (zu, indicesE) = data
-        #print(Cmpi.rank, "receive done", zu[0], flush=True)
+        if zu is None: continue
+
+        #if Cmpi.rank == trip: C.convertPyTree2File(zu, "%d-%dout.cgns"%(trip,Cmpi.rank))
+        #if Cmpi.rank == trip: print(trip,Cmpi.rank,indicesE)
+        #print(Cmpi.rank, "receive ", zu[0], flush=True)
 
         # identify faces and build matches
+        #print(Cmpi.rank, "identifying face of npts ", C.getNPts(zu), flush=True)
         ids = C.identifyElements(hook, zu, tol, rtol=0.)
+        #print(Cmpi.rank, "done", flush=True)
 
-        # get the indices of ids where ids is not -1
-        # since they correspond to indices in zu
-        ids2 = numpy.copy(ids)
-        #if Cmpi.rank == 0: print(ids2.ravel('k'))
-        ids2[:] += 1
-        ids2 = numpy.argwhere(ids2)
-        #if Cmpi.rank == 0: print(ids2.ravel('k'))
-
+        # get indices where ids != -1
+        mask = ids >= 0
+        ids2 = numpy.flatnonzero(mask)
+        ids2 = ids2.astype(Internal.E_NpyInt)
+        
         # keep non -1 indices
-        ids = ids[ids[:]>=0]
+        idsValid = ids[mask] # indices de z        
+        sizebc = idsValid.size
 
-        sizebc = ids.size
-        if sizebc > 0:
-            id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-            id2[:] = indicesF[ids[:]-1]
-            #id1 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
-            #id1[:] = indicesE[ids2[:]]
-            id1 = indicesE[ids2[:]]
+        if sizebc > 0:            
+            id2 = indicesF[idsValid - 1]
+            id1 = indicesE[ids2]
+
             #print(Cmpi.rank, 'source', id2.shape, id2.ravel('k'))
             #print(Cmpi.rank, 'donor', id1.shape, id1.ravel('k'))
             C._addBC2Zone(z, 'match', 'BCMatch', faceList=id2, zoneDonor=zu[0], faceListDonor=id1)
+
+            # reduce zu
+            #if Cmpi.rank == trip: print(trip, Cmpi.rank, "ids", ids, flush=True)
+            mask2 = ids == -1
+            indices = numpy.flatnonzero(mask2)
+            indices = indices.astype(Internal.E_NpyInt)
+            #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indices(-1)", indices, flush=True)
+            #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indicesE", indicesE, flush=True)
+            
+            if indices.size == 0: zu = None; indicesE = []
+            else:
+                zoneName = zu[0]
+                indices = list(indices)
+                #if Cmpi.rank == trip: print(trip, Cmpi.rank, indices, flush=True) 
+                zu = T.subzone(zu, indices, type='elements')
+                #if Cmpi.rank == trip: C.convertPyTree2File(zu, "%d-%dend.cgns"%(trip,Cmpi.rank))
+                zu[0] = zoneName
+                indicesE = indicesE[mask2]
+                #if Cmpi.rank == trip: print(Cmpi.rank, "indicesE2(sans-1)", indicesE, flush=True)
+            if trip == Cmpi.size-2 and zu is not None: print("Warning: %d: remaining unidentified points=%d"%(Cmpi.rank,indices.size), flush=True)
 
     C.freeHook(hook)
     return None

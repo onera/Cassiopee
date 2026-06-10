@@ -459,13 +459,13 @@ def _computeDiv2(t, var, rmVar=False):
                             bcfpy = bcfy[1].ravel(order='K')
                             bcfpz = bcfz[1].ravel(order='K')
                             if zn not in indices: indices[zn] = indsp
-                            else: indices[zn] = numpy.concatenate((indices[zn], indsp), axis=1)
+                            else: indices[zn] = numpy.concatenate((indices[zn], indsp))
                             if zn not in BCFieldX: BCFieldX[zn] = bcfpx
-                            else: BCFieldX[zn] = numpy.concatenate((BCFieldX[zn], bcfpx), axis=1)
+                            else: BCFieldX[zn] = numpy.concatenate((BCFieldX[zn], bcfpx))
                             if zn not in BCFieldY: BCFieldY[zn] = bcfpy
-                            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], bcfpy), axis=1)
+                            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], bcfpy))
                             if zn not in BCFieldZ: BCFieldZ[zn] = bcfpz
-                            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], bcfpz), axis=1)
+                            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], bcfpz))
 
         f = C.getFields(loc, z, vars=vareList, api=1)[0]
         x = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]

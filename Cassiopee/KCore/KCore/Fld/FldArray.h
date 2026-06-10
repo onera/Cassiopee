@@ -265,13 +265,13 @@ class FldArray
     /// pushBack a std::vector for a one-row FldArray
     void pushBack(const std::vector<value_type>& a);
     /// Set the sizeLoc to 0. Do not clear the memory.
-    void clear(){_sizeLoc = _nfldLoc= 0;}
+    void clear() {_sizeLoc = _nfldLoc= 0;}
     // copy (static and dynamic interface)
     void copy(const FldArray& rhs, E_Int beg, E_Int end);
     /// Compacts the array using the input flag vector.
     /** Any column with a flag to false(true) is removed(kept). */
     template <typename Vector1, typename Vector2>
-    static E_Int compact (FldArray& a, const Vector1& keep, Vector2& new_Ids);
+    static E_Int compact(FldArray& a, const Vector1& keep, Vector2& new_Ids);
 
   public:
     ///+ 8- Specific to FldArrayF
