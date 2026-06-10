@@ -15,6 +15,10 @@ import Generator.PyTree as G
 def computeGradLSQ(t, fldNames):
     if Cmpi.size == 1: return P.computeGradLSQ(t, fldNames)
 
+    if isinstance(fldNames, str):
+        fldNames = [fldNames]
+    fldNames = [fldName.split(':')[-1] for fldName in fldNames]
+
     fcenters, fareas = G.getFaceCentersAndAreas(t)
     centers = G.getCellCenters(t, fcenters, fareas)
     zones = Internal.getZones(t)
@@ -22,22 +26,20 @@ def computeGradLSQ(t, fldNames):
         cc = centers[i]
         if cc is None: continue
         fsolc = Internal.getNodeFromName(zone, Internal.__FlowSolutionCenters__)
-        Internal.createNode('CCx', 'DataArray_t', cc[0], None, fsolc)
-        Internal.createNode('CCy', 'DataArray_t', cc[1], None, fsolc)
-        Internal.createNode('CCz', 'DataArray_t', cc[2], None, fsolc)
+        if fsolc is None: raise ValueError("computeGradLSQ: FlowSolutionCenters not found.")
+        Internal.newDataArray('CCx', cc[0], fsolc)
+        Internal.newDataArray('CCy', cc[1], fsolc)
+        Internal.newDataArray('CCz', cc[2], fsolc)
 
     # exchange fields and cell centers
-    allNames = fldNames
-    allNames.append('CCx')
-    allNames.append('CCy')
-    allNames.append('CCz')
-    rfields = X.exchangeFields(t, fldNames)
+    allFldNames = fldNames + ['CCx', 'CCy', 'CCz']
+    rfields = X.exchangeFields(t, allFldNames)
 
     # get comm list
     zgc = Internal.getNodeFromType1(zone, 'ZoneGridConnectivity_t')
-    if zgc is None: raise ValueError('ZoneGridConnectivity not found.')
+    if zgc is None: raise ValueError('computeGradLSQ: ZoneGridConnectivity not found.')
     comms = Internal.getNodesFromType1(zgc, 'GridConnectivity1to1_t')
-    if comms is None: raise ValueError('GridConnectivity1to1 not found.')
+    if comms is None: raise ValueError('computeGradLSQ: GridConnectivity1to1 not found.')
     ptlists = []
     for comm in comms:
         ptlist = Internal.getNodeFromName(comm, 'PointList')[1]
@@ -46,7 +48,6 @@ def computeGradLSQ(t, fldNames):
     # compute lsq gradients
     parRun = 1
     t = P.computeGradLSQ(t, fldNames, parRun, fcenters, ptlists, rfields)
-    # TODO(Imad): delete cell centers from tree
     return t
 
 #==============================================================================
