@@ -119,9 +119,9 @@ def _connectMatchNGon(z, tol=1.e-6):
     import Transform.PyTree as T
     if Cmpi.size == 1: return None
 
-    if z[3] != 'Zone_t': 
+    if z[3] != 'Zone_t':
         raise TypeError("connectMatchNGon: only for one zone.")
-    
+
     # get exterior faces and indirection
     indicesF = []
     zf = P.exteriorFaces(z, indices=indicesF)
@@ -176,12 +176,12 @@ def _connectMatchNGon(z, tol=1.e-6):
         mask = ids >= 0
         ids2 = numpy.flatnonzero(mask)
         ids2 = ids2.astype(Internal.E_NpyInt)
-        
+
         # keep non -1 indices
-        idsValid = ids[mask] # indices de z        
+        idsValid = ids[mask] # indices de z
         sizebc = idsValid.size
 
-        if sizebc > 0:            
+        if sizebc > 0:
             id2 = indicesF[idsValid - 1]
             id1 = indicesE[ids2]
 
@@ -196,12 +196,12 @@ def _connectMatchNGon(z, tol=1.e-6):
             indices = indices.astype(Internal.E_NpyInt)
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indices(-1)", indices, flush=True)
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indicesE", indicesE, flush=True)
-            
+
             if indices.size == 0: zu = None; indicesE = []
             else:
                 zoneName = zu[0]
                 indices = list(indices)
-                #if Cmpi.rank == trip: print(trip, Cmpi.rank, indices, flush=True) 
+                #if Cmpi.rank == trip: print(trip, Cmpi.rank, indices, flush=True)
                 zu = T.subzone(zu, indices, type='elements')
                 #if Cmpi.rank == trip: C.convertPyTree2File(zu, "%d-%dend.cgns"%(trip,Cmpi.rank))
                 zu[0] = zoneName
