@@ -69,7 +69,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     dir_sym = 0
     if "symmetryPlane" in IBM_parameters["IBM type"].keys():
         dir_sym = int(IBM_parameters["IBM type"]["symmetryPlane"])
-        if IBM_parameters["IBM type"]["symmetryPlane"] < 1 or IBM_parameters["IBM type"]["symmetryPlane"] > 3:
+        if IBM_parameters["IBM type"]["symmetryPlane"] < 0 or IBM_parameters["IBM type"]["symmetryPlane"] > 3:
             if Cmpi.master: print("Warning: Symmetry plane direction can only be : 1 (x-direction), 2 (y-direction) or 3 (z-direction)... exiting", flush=True)
             raise ValueError("Choose a valid symmetry plane direction. Exiting..")
             Cmpi.abort(errorcode=1)
