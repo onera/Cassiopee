@@ -717,7 +717,6 @@ E_Int K_CONNECT::build_parent_elements_ngon(
 
   // look for first external cell
   std::vector<E_Int> processed(nelts, 0);
-  E_Int nconnex = 0;
   E_Int seed = 0;
   std::stack<E_Int> cpool;
 
@@ -725,8 +724,7 @@ E_Int K_CONNECT::build_parent_elements_ngon(
   {
     while ((seed < nelts) && (processed[seed] || exPH[seed] == -1)) ++seed;
     if (seed >= nelts) break;
-    nconnex++;
-
+    
     cpool.push(seed);
 
     while (!cpool.empty())
@@ -820,8 +818,6 @@ E_Int K_CONNECT::build_parent_elements_ngon(
       }
     }
   }
-
-  //printf("build_parent_elements(): connex parts: " SF_D_ "\n", nconnex);
   
   return 0;
 }

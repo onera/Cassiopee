@@ -473,7 +473,6 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       E_Int nelts, nvpf, fidx, indv;
-      E_Int ntagFaces = 0;  // number of tagged faces found in all conn. of that thread
       E_Int ntagFacesIc;  // number of tagged faces found in a given conn. of that thread
       std::vector<std::vector<E_Int> > facets;
 
@@ -499,7 +498,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
             if (faceMask[fidx] == 1)  // tagged face found
             {
               nvpf = facets[f].size();  // number of vertices per face
-              ntagFaces++; ntagFacesIc++;
+              ntagFacesIc++;
               loc_toffset[nvpf-2]++;  // from BAR (0) to QUAD (2)
               // Tag vertices of that faces as tagged vertices
               for (E_Int j = 0; j < nvpf; j++)

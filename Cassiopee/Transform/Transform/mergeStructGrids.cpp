@@ -258,8 +258,8 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   if (api == -1) api = 1;
 
   // calcul de la normale aux centres sur la premiere couche en k
-  E_Int nptsAll = 0;
-  for (E_Int v = 0; v < nzones; v++) nptsAll += (nit[v]-1)*(njt[v]-1);
+  //E_Int nptsAll = 0;
+  //for (E_Int v = 0; v < nzones; v++) nptsAll += (nit[v]-1)*(njt[v]-1);
   FldArrayF* mergedField = NULL;
   FldArrayF* mergedFieldc = NULL;
 
@@ -287,7 +287,6 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
   list<Block*> listOfBlks;
   list<BlockEdge*> listOfMergeableEdges;
   buildListOfBlks(nit, njt, nkt, structF, structFc, listOfBlks);
-  E_Int compt = 0;
   E_Int res, res2;
   /* 1 - determination des facettes mergeables */
   nzones = listOfBlks.size();
@@ -501,7 +500,6 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     gradeEdge(dim, *itrf, listOfBlks, listOfMergeableEdges, tol);
 
   /* 11- si liste des mergeables non vide : restart*/
-  compt++;
   if (both == 0) { delete mergedFieldc; mergedFieldc = NULL; }
   if (listOfMergeableEdges.size() != 0) goto restart;
   end:;

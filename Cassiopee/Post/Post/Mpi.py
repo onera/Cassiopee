@@ -419,13 +419,12 @@ def _computeDiv2(t, var, rmVar=False):
                 raise(TypeError, "computeDiv2: invalid grid type.")
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))
-            # TODO: change path fld1[1][0] now that there is a list of vars
             if zn not in BCFieldX: BCFieldX[zn] = fld1[1][0].ravel('k')
             else: BCFieldX[zn] = numpy.concatenate((BCFieldX[zn], fld1[1][0].ravel('k')))
-            if zn not in BCFieldY: BCFieldY[zn] = fld1[1][0].ravel('k')
-            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], fld1[1][0].ravel('k')))
-            if zn not in BCFieldZ: BCFieldZ[zn] = fld1[1][0].ravel('k')
-            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], fld1[1][0].ravel('k')))
+            if zn not in BCFieldY: BCFieldY[zn] = fld1[1][1].ravel('k')
+            else: BCFieldY[zn] = numpy.concatenate((BCFieldY[zn], fld1[1][1].ravel('k')))
+            if zn not in BCFieldZ: BCFieldZ[zn] = fld1[1][2].ravel('k')
+            else: BCFieldZ[zn] = numpy.concatenate((BCFieldZ[zn], fld1[1][2].ravel('k')))
 
     for z in zones:
         zn = z[0]
@@ -441,7 +440,7 @@ def _computeDiv2(t, var, rmVar=False):
 
         # get BCDataSet
         isghost = Internal.getNodeFromType1(z, 'Rind_t')
-        if isghost is None: # not a ghost cells zone : add BCDataSet
+        if isghost is None: # not a ghost cells zone: add BCDataSet
             zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
             if zoneBC is not None:
                 BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
@@ -475,7 +474,7 @@ def _computeDiv2(t, var, rmVar=False):
             inds = indices[zn] if zn in indices else None
             bcfx = BCFieldX[zn] if zn in BCFieldX else None
             bcfy = BCFieldY[zn] if zn in BCFieldY else None
-            bcfz = BCFieldZ[zn] if zn in BCFieldX else None
+            bcfz = BCFieldZ[zn] if zn in BCFieldZ else None
             centers = Post.computeDiv2(
                 x, f, vol, cellN, indices=inds,
                 BCFieldX=bcfx, BCFieldY=bcfy, BCFieldZ=bcfz
