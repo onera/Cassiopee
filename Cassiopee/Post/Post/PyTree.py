@@ -1507,9 +1507,9 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
                                         ptlists, rflds)
 
         for j, fldName in enumerate(fldNames):
-            Internal.newDataArray(f"grad{fldName}x", grads[j][0], fsolc)
-            Internal.newDataArray(f"grad{fldName}y", grads[j][1], fsolc)
-            Internal.newDataArray(f"grad{fldName}z", grads[j][2], fsolc)
+            Internal.newDataArray(f"gradx{fldName}", grads[j][0], fsolc)
+            Internal.newDataArray(f"grady{fldName}", grads[j][1], fsolc)
+            Internal.newDataArray(f"gradz{fldName}", grads[j][2], fsolc)
     return None
 
 def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
