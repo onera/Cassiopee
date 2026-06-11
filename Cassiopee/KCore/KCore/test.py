@@ -357,7 +357,7 @@ def checkTree(t1, t2):
         elif not any(k.startswith(p + "/") or k == p for p in missing):
             # parent node of k was found but k isn't: report as missing in current
             missing.append(k)
-            print(f"DIFF: node {k.replace("./CGNSTree/", "")} exists in "
+            print(f"DIFF: node {k.replace('./CGNSTree/', '')} exists in "
                   "reference but not in current.")
 
     missing = []
@@ -368,7 +368,7 @@ def checkTree(t1, t2):
         elif not any(k.startswith(p + "/") or k == p for p in missing):
             # parent node of k was found but k isn't: report as missing in reference
             missing.append(k)
-            print(f"DIFF: node {k.replace("./CGNSTree/", "")} exists in "
+            print(f"DIFF: node {k.replace('./CGNSTree/', '')} exists in "
                   "current but not in reference.")
 
 def buildDict__(curr, mdict, node):
