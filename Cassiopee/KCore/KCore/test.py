@@ -357,7 +357,8 @@ def checkTree(t1, t2):
         elif not any(k.startswith(p + "/") or k == p for p in missing):
             # parent node of k was found but k isn't: report as missing in current
             missing.append(k)
-            print(f'DIFF: node {k} exists in reference but not in current.')
+            print(f"DIFF: node {k.replace("./CGNSTree/", "")} exists in "
+                  "reference but not in current.")
 
     missing = []
     for k in dict1:
@@ -367,7 +368,8 @@ def checkTree(t1, t2):
         elif not any(k.startswith(p + "/") or k == p for p in missing):
             # parent node of k was found but k isn't: report as missing in reference
             missing.append(k)
-            print(f'DIFF: node {k} exists in current but not in reference.')
+            print(f"DIFF: node {k.replace("./CGNSTree/", "")} exists in "
+                  "current but not in reference.")
 
 def buildDict__(curr, mdict, node):
     d = f"{curr}/{node[0]}"
@@ -471,7 +473,11 @@ def checkTree__(nodePath, node1, node2):
                 print('DIFF: courant:', val1)
                 return 0
             if (val1 != val2).any():
-                print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
+                if node1[0] == "PointList" and (numpy.sort(val1) == numpy.sort(val2)).all():
+                    print("DIFF: valeurs identiques pour le noeud: "
+                          f"{nodePathl} mais rangees differemment.")
+                else:
+                    print('DIFF: valeurs differentes pour le noeud: %s.'%nodePathl)
                 print('DIFF: reference:', val2)
                 print('DIFF: courant:', val1)
                 return 0

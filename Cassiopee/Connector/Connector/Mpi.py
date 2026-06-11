@@ -191,7 +191,7 @@ def _connectMatchNGon(z, tol=1.e-6):
 
             # reduce zu
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "ids", ids, flush=True)
-            mask2 = ids == -1
+            mask2 = ~mask
             indices = numpy.flatnonzero(mask2)
             indices = indices.astype(Internal.E_NpyInt)
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indices(-1)", indices, flush=True)
@@ -207,7 +207,8 @@ def _connectMatchNGon(z, tol=1.e-6):
                 zu[0] = zoneName
                 indicesE = indicesE[mask2]
                 #if Cmpi.rank == trip: print(Cmpi.rank, "indicesE2(sans-1)", indicesE, flush=True)
-            if trip == Cmpi.size-2 and zu is not None: print("Warning: %d: remaining unidentified points=%d"%(Cmpi.rank,indices.size), flush=True)
+            if trip == Cmpi.size-2 and zu is not None:
+                print("Warning: %d: remaining unidentified points=%d"%(Cmpi.rank, len(indices)), flush=True)
 
     C.freeHook(hook)
     return None
