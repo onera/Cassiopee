@@ -1466,6 +1466,10 @@ def computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
 
 def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
                     rfields=None):
+    if isinstance(fldNames, str):
+        fldNames = [fldNames]
+    fldNames = [fldName.split(':')[-1] for fldName in fldNames]
+
     fc = None
     if parRun == 0:
         fc, fa = G.getFaceCentersAndAreas(t)
@@ -1473,45 +1477,39 @@ def _computeGradLSQ(t, fldNames, parRun=0, fcenters=None, ptlists=None,
 
     zones = Internal.getZones(t)
     for i, zone in enumerate(zones):
-
         arr = C.getFields(Internal.__GridCoordinates__, zone, api=3)[0]
         if arr is None: continue
-
-        fsolc = Internal.getNodeFromName1(zone,
-                                          Internal.__FlowSolutionCenters__)
-        if fsolc is None: raise ValueError("FlowSolutionCenters not found.")
+        fsolc = Internal.getNodeFromName1(zone, Internal.__FlowSolutionCenters__)
+        if fsolc is None: raise ValueError("_computeGradLSQ: FlowSolutionCenters not found.")
+        pe = Internal.getNodeFromName2(zone, 'ParentElements')
+        if pe is None: raise ValueError("_computeGradLSQ: ParentElements not found.")
+        pe = pe[1]
 
         flds = []
         for fldName in fldNames:
             fsol = Internal.getNodeFromName1(fsolc, fldName)
             if fsol is None:
-                raise ValueError('Field ' + fldName + ' not found.')
+                raise ValueError(f"_computeGradLSQ: Field centers:{fldName} not found.")
             flds.append(fsol[1])
-
-        pe = Internal.getNodeFromName(zone, 'ParentElements')[1]
 
         rflds = None
         if parRun == 0:
             cc = centers[i]
-            Grads = post.computeGradLSQ(arr, flds, pe, cc[0], cc[1], cc[2], fc[i],
+            grads = post.computeGradLSQ(arr, flds, pe, cc[0], cc[1], cc[2], fc[i],
                                         None, rflds)
         else:
             rflds = rfields[i]
             cx = Internal.getNodeFromName1(fsolc, 'CCx')[1]
             cy = Internal.getNodeFromName1(fsolc, 'CCy')[1]
             cz = Internal.getNodeFromName1(fsolc, 'CCz')[1]
-            Grads = post.computeGradLSQ(arr, flds, pe, cx, cy, cz, fcenters[0],
+            flds.extend([cx, cy, cz])
+            grads = post.computeGradLSQ(arr, flds, pe, cx, cy, cz, fcenters[0],
                                         ptlists, rflds)
 
-        for j in range(len(fldNames)-3):
-            Grad = Grads[j]
-            Internal.createNode('grad' + fldNames[j] + 'x', 'DataArray_t',
-                                Grad[0], None, fsolc)
-            Internal.createNode('grad' + fldNames[j] + 'y', 'DataArray_t',
-                                Grad[1], None, fsolc)
-            Internal.createNode('grad' + fldNames[j] + 'z', 'DataArray_t',
-                                Grad[2], None, fsolc)
-
+        for j, fldName in enumerate(fldNames):
+            Internal.newDataArray(f"grad{fldName}x", grads[j][0], fsolc)
+            Internal.newDataArray(f"grad{fldName}y", grads[j][1], fsolc)
+            Internal.newDataArray(f"grad{fldName}z", grads[j][2], fsolc)
     return None
 
 def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
@@ -1522,8 +1520,7 @@ def computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
 
 def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
     """Compute the gradient of a variable defined in array."""
-
-    if type(var) == list:
+    if isinstance(var, list):
         raise ValueError("computeGrad2: not available for lists of variables.")
     vare = var.split(':')
     if len(vare) > 1: vare = vare[1]
