@@ -58,7 +58,7 @@ def connectNearMatch(a, ratio=2, tol=1.e-6, dim=3):
         iratio = ratio
     else:
         iratio = 1
-        for r in ratio: iratio=max(iratio,r)
+        for r in ratio: iratio = max(iratio,r)
 
     # Ajout des bandelettes
     Cmpi._addBXZones(a, depth=iratio+1)
@@ -191,7 +191,7 @@ def _connectMatchNGon(z, tol=1.e-6):
 
             # reduce zu
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "ids", ids, flush=True)
-            mask2 = ids == -1
+            mask2 = ~mask
             indices = numpy.flatnonzero(mask2)
             indices = indices.astype(Internal.E_NpyInt)
             #if Cmpi.rank == trip: print(trip, Cmpi.rank, "indices(-1)", indices, flush=True)
@@ -200,14 +200,14 @@ def _connectMatchNGon(z, tol=1.e-6):
             if indices.size == 0: zu = None; indicesE = []
             else:
                 zoneName = zu[0]
-                indices = list(indices)
                 #if Cmpi.rank == trip: print(trip, Cmpi.rank, indices, flush=True)
                 zu = T.subzone(zu, indices, type='elements')
                 #if Cmpi.rank == trip: C.convertPyTree2File(zu, "%d-%dend.cgns"%(trip,Cmpi.rank))
                 zu[0] = zoneName
                 indicesE = indicesE[mask2]
                 #if Cmpi.rank == trip: print(Cmpi.rank, "indicesE2(sans-1)", indicesE, flush=True)
-            if trip == Cmpi.size-2 and zu is not None: print("Warning: %d: remaining unidentified points=%d"%(Cmpi.rank,indices.size), flush=True)
+            #if trip == Cmpi.size-2 and zu is not None:
+            #    print("Warning: %d: remaining unidentified points=%d"%(Cmpi.rank, indices.size), flush=True)
 
     C.freeHook(hook)
     return None

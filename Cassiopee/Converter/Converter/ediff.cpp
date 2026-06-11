@@ -124,7 +124,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
                              E_Float atol, E_Float rtol)
 {
   PyObject* tpl;
-  E_Int res;
+  E_Int res1, res2;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
   vector<char*> varString1; char* eltType1; char* varString1i;
@@ -143,9 +143,9 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
   for (E_Int i = 0; i < n1; i++)
   {
     tpl = PyList_GetItem(arrays1, i);
-    res = K_ARRAY::getFromArray3(tpl, varString1i, f, ni, nj, nk, cn, eltType1);
+    res1 = K_ARRAY::getFromArray3(tpl, varString1i, f, ni, nj, nk, cn, eltType1);
     object1.push_back(tpl);
-    if (res == 1)
+    if (res1 == 1)
     {
       if (ni*nj*nk > 0)
       {
@@ -167,7 +167,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
       }
       else printf("Warning: diff2: one array is empty.\n");
     }
-    else if (res == 2) 
+    else if (res1 == 2) 
     {
       varString1.push_back(varString1i);
       ni1.push_back(-1); nj1.push_back(-1); nk1.push_back(-1);
@@ -191,10 +191,10 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
   for (E_Int i = 0; i < n2; i++)
   {
     tpl = PyList_GetItem(arrays2, i);
-    res = K_ARRAY::getFromArray3(tpl, varString2i, f, ni, nj, nk, cn, eltType2);
+    res2 = K_ARRAY::getFromArray3(tpl, varString2i, f, ni, nj, nk, cn, eltType2);
     object2.push_back(tpl);
 
-    if (res == 1)
+    if (res2 == 1)
     {
       if (ni*nj*nk > 0)
       {
@@ -216,7 +216,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
       }
       else printf("Warning: diff2: one array is empty.\n");
     }
-    else if (res == 2)
+    else if (res2 == 2)
     {
       varString2.push_back(varString2i);
       ni2.push_back(-1); nj2.push_back(-1); nk2.push_back(-1);
@@ -227,6 +227,13 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
     {
       printf("Warning: diff2: not an array. Array skipped...\n");
     }
+  }
+
+  if (res1 != res2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "diff2: arrays have different element types.");
+    return NULL;
   }
 
   if (nfld1 != nfld2) 
@@ -242,6 +249,32 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
     PyErr_SetString(PyExc_TypeError,
                     "diff2: no valid field to compare.");
     return NULL;
+  }
+
+  if (res1 == 1) // if structured, compare grid dimensions
+  {
+    for (size_t i = 0; i < ni1.size(); i++)
+    {
+      if (ni1[i] != ni2[i] || nj1[i] != nj2[i] || nk1[i] != nk2[i])
+      {
+        PyErr_SetString(PyExc_TypeError,
+                      "diff2: grid dimensions are different.");
+        return NULL;
+      }
+    }
+  }
+
+  if (res1 == 2) // if unstructured, compare grid sizes
+  {
+    for (size_t i = 0; i < field1.size(); i++)
+    {
+      if (field1[i]->getSize() != field2[i]->getSize())
+      {
+        PyErr_SetString(PyExc_TypeError,
+                      "diff2: grid sizes are different.");
+        return NULL;
+      }
+    }
   }
 
   /*-----------------------*/

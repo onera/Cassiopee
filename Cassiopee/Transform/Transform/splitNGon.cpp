@@ -58,9 +58,9 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
     RELEASESHAREDU(array, f, cn); return NULL;
   }
 
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  //E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
+  //E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
+  //E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
 
   // Construit le graph
   FldArrayI cFE;
@@ -71,8 +71,7 @@ PyObject* K_TRANSFORM::splitNGon(PyObject* self, PyObject* args)
   E_Int* nface = cn->getNFace();
   E_Int* indPH = cn->getIndPH();
   E_Int nelts = cn->getNElts();
-  //printf("nelts=%d\n", nelts);
-
+  
   E_Int nf;
   E_Int size = 0; // size of adj
   for (E_Int i = 0; i < nelts; i++)
