@@ -27,6 +27,7 @@ a = T.join (a1, a2)
 test.testA([a],2)
 # avec champs en centres
 ac1 = C.node2Center(a1); ac2 = C.node2Center(a2)
+ac2 = T.reorder(ac2,(2,1,3))
 res = T.join (a1, a2, ac1, ac2)
 test.testA(res,22)
 
@@ -40,5 +41,6 @@ a = T.join (a1, a2)
 test.testA([a],3)
 # avec champs en centres
 ac1 = C.node2Center(a1); ac2 = C.node2Center(a2)
+ac2 = T.reorder(ac2,(2,3,1))
 res = T.join (a1, a2, ac1, ac2)
 test.testA(res,23)

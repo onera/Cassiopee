@@ -77,15 +77,13 @@ PyObject* K_CONVERTER::node2Center(PyObject* self, PyObject* args)
     
   if (res == 1)
   {
-    E_Int nil=ni, njl=nj, nkl=nk;
-    if (ni == 1 && nj == 1) { nil = nk-1; nkl = 1; }
-    else if (ni == 1 && nk == 1) {nil = nj-1; njl = 1;}
-    else
-    {
-      if (ni != 1) nil = ni-1;
-      if (nj != 1) njl = nj-1;
-      if (nk != 1) nkl = nk-1;
-    }
+    E_Int nil = ni;
+    E_Int njl = nj;
+    E_Int nkl = nk;
+    if (ni != 1) nil--;
+    if (nj != 1) njl--;
+    if (nk != 1) nkl--;
+
     tpl = K_ARRAY::buildArray3(nfld, varString, nil, njl, nkl, api);
     K_ARRAY::getFromArray3(tpl, FCenter);
 
