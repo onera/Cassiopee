@@ -114,8 +114,8 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
     E_Int ni1 = E_max(1, E_Int(ni)-1);
     E_Int nj1 = E_max(1, E_Int(nj)-1);
     E_Int nk1 = E_max(1, E_Int(nk)-1);
-    E_Int ni1nj1 = ni1*nj1;
-    E_Int ninj = ni*nj;
+    //E_Int ni1nj1 = ni1*nj1;
+    //E_Int ninj = ni*nj;
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
@@ -136,10 +136,10 @@ PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
     #pragma omp parallel
     {
       //E_Int ithread = __CURRENT_THREAD__;
-      E_Int ind, indn, ind1, ind2, ind3;
-      E_Int iprev, jprev, kprev;
-      E_Int inext, jnext, knext;
-      E_Int inext2, jnext2, knext2;
+      //E_Int ind, indn, ind1, ind2, ind3;
+      //E_Int iprev, jprev, kprev;
+      //E_Int inext, jnext, knext;
+      //E_Int inext2, jnext2, knext2;
 
       if (dim == 1) // dimension = 1D
       {

@@ -1051,7 +1051,7 @@
           if (nf == 3 || nf == 4) continue;
 
           blank = 0;
-          for (E_Int j = 1; j <= nf; j++)
+          for (E_Int n = 1; n <= nf; n++)
           {
             face = ptrelt[1]-1;
             ptrface = &connect[zonep->posFaces[face]];

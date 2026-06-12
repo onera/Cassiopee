@@ -124,7 +124,7 @@ PyObject* K_CONVERTER::diff2(PyObject* arrays1, PyObject* arrays2,
                              E_Float atol, E_Float rtol)
 {
   PyObject* tpl;
-  E_Int res1, res2;
+  E_Int res1=0, res2=0;
   FldArrayF* f; FldArrayI* cn;
   E_Int ni, nj, nk;
   vector<char*> varString1; char* eltType1; char* varString1i;
