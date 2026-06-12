@@ -523,12 +523,15 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     snearloc = 2**levelSkel*snearMin
     while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - atleast
         snearloc  /= 2.; levelSkel -= 1
-    if extrude: # Deltax_i needs to the same in each direction - want only 1 background cells in the y-direction
-        while snearloc > (cartbgExtent[4]-cartbgExtent[1])*1.2: # security so that levelSkel is not too big
+    tolYdirection = 1.2
+    if extrude: # Deltax_i needs to the same in each direction - check how many large Dx fit in the y-direction
+        multipleYdirection = (lengthBG[1]*tolYdirection)//snearloc
+        if multipleYdirection < 1: multipleYdirection = 1
+        while snearloc > multipleYdirection*lengthBG[1]*tolYdirection: # security so that levelSkel is not too big
             snearloc  /= 2.; levelSkel -= 1
 
-        if snearloc > (cartbgExtent[4]-cartbgExtent[1]):
-            translateTmp = snearloc-abs(cartbgExtent[1])-abs(cartbgExtent[4])
+        if multipleYdirection*snearloc > lengthBG[1]:
+            translateTmp = multipleYdirection*snearloc-lengthBG[1]
             cartbgExtent[1]-=translateTmp/2
             cartbgExtent[4]+=translateTmp/2
             lengthBG[1] = cartbgExtent[4]-cartbgExtent[1]
