@@ -1115,10 +1115,10 @@ def _scale(hook, factor, X, faceList=None):
     return None
 
 # fix shape, wire and unify edges and faces if possible
-def _fixShape(hook, fixShape=0, fixWires=0, unifyEdges=0, unifyFaces=0, 
+def _fixShape(hook, fixShape=0, fixWires=0, unifyEdges=0, unifyFaces=0,
               tol=1.e-6, linearDeflection=1.e-6, angularDeflection=1.):
     """Fix shape, wires and unify them when possible."""
-    occ.fixShape(hook, fixShape, fixWires, unifyEdges, unifyFaces, 
+    occ.fixShape(hook, fixShape, fixWires, unifyEdges, unifyFaces,
                  tol, linearDeflection, angularDeflection)
     return None
 
