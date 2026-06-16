@@ -90,36 +90,12 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
   
   if (res == 1)
   {
-    E_Int nin, njn, nkn;
-    
-    if (ni == 1)
-    {
-      if ((nj != 1)&&(nk != 1))
-      { nin = 1; njn = nj+1; nkn = nk+1; }
-      else if (nj == 1)
-      { nin = 1; njn = 1; nkn = nk+1; }
-      else //if (nk == 1)
-      { nin = 1; njn = 1; nkn = nk+1; }
-    }
-    else if (nj == 1)
-    {
-      if ((ni != 1)&&(nk != 1))
-      { nin = ni+1; njn = 1; nkn = nk+1; }
-      else if (ni == 1)
-      { nin = 1; njn = 1; nkn = nk+1; }
-      else // if (nk == 1)
-      { nin = ni+1; njn = 1; nkn = 1; }
-    }
-    else if (nk == 1)
-    {
-      if ((ni != 1)&&(nj != 1))
-      { nin = ni+1; njn = nj+1; nkn = 1; }
-      else if (ni == 1)
-      { nin = 1; njn = nj+1; nkn = 1; }
-      else //if (nj == 1)
-      { nin = ni+1; njn = 1; nkn = 1; }
-    }
-    else { nin = ni+1; njn = nj+1; nkn = nk+1; }
+    E_Int nin = ni;
+    E_Int njn = nj;
+    E_Int nkn = nk;
+    if (ni > 1) nin++;
+    if (nj > 1) njn++;
+    if (nk > 1) nkn++;
 
     tpl = K_ARRAY::buildArray3(nfld, varString, nin, njn, nkn);
     K_ARRAY::getFromArray3(tpl, fn2);
