@@ -209,11 +209,6 @@ namespace K_CONVERTER
                            E_Int sizeFN2, E_Int sizeEF2, std::vector<E_Int>& facesExt,
                            K_FLD::FldArrayF*& f2, K_FLD::FldArrayI*& cn2);
 
-  // Conformisation topologique d'un NGON
-  void conformizeNGon(K_FLD::FldArrayF& f, E_Int posx, E_Int posy, E_Int posz,
-                      K_FLD::FldArrayI& cn, E_Float tol,
-                      K_FLD::FldArrayI*& cno);
-
   // a mettre ensuite dans K_CONNECT
   void orderBAR2Struct(E_Int posx, E_Int posy, E_Int posz,
                        K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
