@@ -256,6 +256,7 @@ def exchangeBCMatchData(t, varList):
                 else: export[oppNode] += [n]
         elif dim[0] == 'Unstructured':
             if dim[3] == 'NGON':
+                Internal._adaptNGon42NGon3(z)  # TO DELETE!
                 Internal._adaptNFace2PE(z, remove=False)
                 # get face values
                 GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
