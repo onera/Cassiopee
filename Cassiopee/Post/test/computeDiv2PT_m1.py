@@ -122,4 +122,3 @@ if Cmpi.master: test.testT(t, 11)
 _createTest(filepath, meshType, dim=3, axis="Z", api=3)
 t = runTest(filepath, meshType)
 if Cmpi.master: test.testT(t, 12)
-
