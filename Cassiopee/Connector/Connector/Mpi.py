@@ -212,6 +212,109 @@ def _connectMatchNGon(z, tol=1.e-6):
     C.freeHook(hook)
     return None
 
+#=============================================================================
+# Exchange BCMatch data
+#=============================================================================
+def exchangeBCMatchData(t, varList):
+    # Compute graph of match
+    procDict = Cmpi.getProcDict(t)
+    graph = Cmpi.computeGraph(t, type='match', procDict=procDict)
+    zones = Internal.getZones(t)
+    export = {}
+    nvars = len(varList)
+
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Structured':
+            fields = C.getFields("centers", z, vars=varList, api=3)[0]
+            # get face values
+            GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
+            for gc in GCs:
+                donor = Internal.getValue(gc)
+                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
+                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
+                prr = Internal.getNodeFromName1(gc, 'PointRange')
+                prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
+                wr = Internal.range2Window(prr[1])
+                wd = Internal.range2Window(prd[1])
+                iminR, imaxR, jminR, jmaxR, kminR, kmaxR = wr
+                iminD, imaxD, jminD, jmaxD, kminD, kmaxD = wd
+                niR = dim[1]; njR = dim[2]; nkR = dim[3] # TODO
+                tri = Internal.getNodeFromName1(gc, 'Transform')
+                tri = Internal.getValue(tri)
+                t1, t2, t3 = tri
+                indR, fld = Converter.converter.extractBCMatchStruct(
+                    fields,
+                    (iminD, jminD, kminD, imaxD, jmaxD, kmaxD),
+                    (iminR, jminR, kminR, imaxR, jmaxR, kmaxR),
+                    (niR, njR, nkR),
+                    (t1, t2, t3)
+                )
+                oppNode = procDict[donor]
+                n = [donor, z[0], fld, PLD.ravel('k')]
+                if oppNode not in export: export[oppNode] = [n]
+                else: export[oppNode] += [n]
+        elif dim[0] == 'Unstructured':
+            if dim[3] == 'NGON':
+                Internal._adaptNFace2PE(z, remove=False)
+                # get face values
+                GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
+                for gc in GCs:
+                    donor = Internal.getValue(gc)
+                    PL = Internal.getBCFaceNode(z, gc)[1] # PointList
+                    PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
+                    fld = Converter.converter.extractBCMatchNG(
+                        z, PL, varList,
+                        Internal.__GridCoordinates__,
+                        Internal.__FlowSolutionNodes__,
+                        Internal.__FlowSolutionCenters__
+                    )
+                    oppNode = procDict[donor]
+                    n = [donor, z[0], fld, PLD.ravel('k')]
+                    if oppNode not in export: export[oppNode] = [n]
+                    else: export[oppNode] += [n]
+            else:
+                raise NotImplementedError("exchangeBCMatchData: Element "
+                                          f"type {dim[3]} not supported")
+
+    # sendrecv
+    recvDatas = Cmpi.sendRecv(export, graph)
+
+    # Mean on faces (we must find the opposite face from donor name)
+    indices = {}
+    BCField = [{} for _ in range(nvars)]
+
+    for i in recvDatas:
+        for n in recvDatas[i]:
+            # donor is supposed to have a unique matching match
+            donor, _, fld, PLD = n
+            z = Internal.getNodeFromName2(t, donor)
+            zn = z[0]
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Structured':
+                fields = C.getFields('centers', z, vars=varList, api=3)[0]
+                fld1 = Converter.converter.buildBCMatchFieldStruct(fields, PLD, fld, None)
+            elif dim[0] == 'Unstructured':
+                if dim[3] == 'NGON':
+                    fld1 = Converter.converter.buildBCMatchFieldNG(
+                        z, PLD, fld, varList,
+                        Internal.__GridCoordinates__,
+                        Internal.__FlowSolutionNodes__,
+                        Internal.__FlowSolutionCenters__
+                    )
+                else:
+                    raise NotImplementedError("exchangeBCMatchData: Element "
+                                              f"type {dim[3]} not supported")
+
+            if zn not in indices: indices[zn] = PLD
+            else: indices[zn] = numpy.concatenate((indices[zn], PLD))
+            for v in range(nvars):
+                BCFieldv = BCField[v]
+                if zn not in BCFieldv: BCFieldv[zn] = fld1[1][v].ravel('k')
+                else: BCFieldv[zn] = numpy.concatenate((BCFieldv[zn], fld1[1][v].ravel('k')))
+
+    return indices, BCField
+
 #==============================================================================
 # setHoleInterpolatedPoints
 # NGON, centered cellN, depth=1
