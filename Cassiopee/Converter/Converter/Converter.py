@@ -725,6 +725,7 @@ def convertExt2Format__(fileName):
         '.v3d': 'bin_v3d',
         '.fv3d': 'fmt_v3d',
         '.vtk': 'bin_vtk',
+        '.vtu': 'bin_vtu',
         '.mesh': 'fmt_mesh',
         '.msh': 'fmt_gmsh',
         '.stl': 'fmt_stl',
@@ -872,7 +873,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             except:
                 FORMATS = [
                     'bin_ply', 'fmt_tp', 'fmt_v3d',
-                    'bin_tp', 'bin_v3d', 'bin_vtk', 'fmt_mesh',
+                    'bin_tp', 'bin_v3d', 'bin_vtk', 'bin_vtu', 'fmt_mesh',
                     'fmt_gmsh', 'bin_gmsh', 'fmt_stl',
                     'bin_stl', 'bin_gltf',
                     'fmt_xfig', 'fmt_svg', 'bin_3ds',

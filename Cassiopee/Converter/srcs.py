@@ -83,6 +83,7 @@ cpp_srcs = [
     'Converter/IO/GenIO_bindf3.cpp',
     'Converter/IO/GenIO_binwav.cpp',
     'Converter/IO/GenIO_binvtk.cpp',
+    'Converter/IO/GenIO_binvtu.cpp',
     'Converter/IO/GenIO_fmtxfig.cpp',
     'Converter/IO/GenIO_fmtsvg.cpp',
     'Converter/IO/GenIO_fmtgts.cpp',
