@@ -60,8 +60,8 @@ def runTest(filepath, meshType="STRUCT"):
         t = h.loadFromProc()
         t = Xmpi.connectMatch(t)
         Pmpi._computeDiv2(t, var='centers:Velocity', rmVar=False)
-    #Cmpi.convertPyTree2File(t, filepath)
-    if Cmpi.master: os.remove(filepath)
+    Cmpi.convertPyTree2File(t, filepath)
+    #if Cmpi.master: os.remove(filepath)
     Cmpi.barrier()
     return t
 
