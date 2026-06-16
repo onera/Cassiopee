@@ -56,9 +56,9 @@ PyObject* K_TRANSFORM::splitElement(PyObject* self, PyObject* args)
     RELEASESHAREDU(array, f, cn); return NULL;
   }
 
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
+  //E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
+  //E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
+  //E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
 
   // Construit le graph
   E_Int np = f->getSize();

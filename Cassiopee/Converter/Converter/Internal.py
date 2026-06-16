@@ -3544,7 +3544,7 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
       elif lsize == 3: ni = size[0]; nj = size[1]; nk = size[2]
       return [vars, field, ni, nj, nk]
 
-  # unstructured
+  # unstructured NGON - prioritized over BE if both are present
   iBE = 0; isNGon = False; iNGon = None; iNFace = None
   cr = [None,None,None,None,None]; et = []
   for c in connects:
@@ -3567,7 +3567,12 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
       if pt is not None: cr[3] = pt[1]
       pt = getNodeFromName1(c, 'ElementIndex')
       if pt is not None: cr[3] = pt[1]
-    else: # BE
+
+  # unstructred BE/ME
+  if not isNGon:
+    cr = [None,None,None,None,None]
+    for c in connects:
+      ctype = c[1][0]
       pt = getNodeFromName1(c, 'ElementConnectivity')
       if pt is not None:
         if iBE < 5: cr[iBE] = pt[1]

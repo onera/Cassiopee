@@ -161,9 +161,10 @@ void K_LINEAR::tql2(E_Float V[3][3], E_Float d[3], E_Float e[3])
 
     if (m > l) 
     {
-      E_Int iter = 0;
-      do {
-        iter += 1;  // (Could check iteration count here.)
+      //E_Int iter = 0;
+      do 
+      {
+        //iter += 1;  // (Could check iteration count here.)
 
         // Compute implicit shift
         E_Float g = d[l];

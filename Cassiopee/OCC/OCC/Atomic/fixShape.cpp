@@ -43,16 +43,21 @@
 PyObject* K_OCC::fixShape(PyObject* self, PyObject* args)
 {
   PyObject* hook;
-  E_Int unify; E_Int fixShape; E_Int fixWires;
-  E_Float tol;
-  if (!PYPARSETUPLE_(args, O_ III_ R_, &hook, &fixShape, &fixWires, &unify, &tol)) return NULL;
+  E_Int fixShape, fixWires;
+  E_Int unifyEdges, unifyFaces; 
+  E_Float tol; // use in fixShapes
+  E_Float linearDeflection; // used in unify
+  E_Float angularDeflection; // used in unify, in degrees
+  if (!PYPARSETUPLE_(args, O_ IIII_ RRR_, &hook, &fixShape, &fixWires, 
+    &unifyEdges, &unifyFaces, 
+    &tol, &linearDeflection, &angularDeflection)) return NULL;
 
   GETPACKET;
   GETSHAPE;
   
   TopoDS_Shape* newshp;
 
-  if (fixShape == 0 && fixWires == 0 && unify == 0)
+  if (fixShape == 0 && fixWires == 0 && unifyEdges == 0 && unifyFaces == 0)
   {
     Py_INCREF(Py_None);
     return Py_None;
@@ -93,9 +98,14 @@ PyObject* K_OCC::fixShape(PyObject* self, PyObject* args)
   }
 
   // unify edges / faces
-  if (unify == 1)
+  if (unifyEdges == 1 || unifyFaces == 1)
   {
-    ShapeUpgrade_UnifySameDomain usd(*shape, Standard_True, Standard_True, Standard_True); // UnifyFaces mode on, UnifyEdges mode on, ConcatBSplines mode on.
+    E_Bool concatSplines = false;
+    if (unifyEdges == 1) concatSplines = true;
+    ShapeUpgrade_UnifySameDomain usd(*shape, unifyFaces, unifyEdges, concatSplines);
+    usd.AllowInternalEdges(Standard_True);
+    usd.SetLinearTolerance(linearDeflection);
+    usd.SetAngularTolerance(angularDeflection*K_CONST::E_PI/180.);
     usd.Build();
     newshp = new TopoDS_Shape();
     *newshp = usd.Shape();
