@@ -502,9 +502,9 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
               noindint++;
             }
           } 
-        } // triI=1
+        } // triI=2
 
-        if (abs(triI)==3) // jD <-> kR et  kD <-> iR
+        else if (abs(triI)==3) // jD <-> kR et  kD <-> iR
         {
           E_Int shift = (jminR-1)*niR + nbIntIR ;
 
@@ -550,7 +550,7 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
               noindint++;
             }
           } 
-        } // triI=1
+        } // triI=2
 
         else if (abs(triI)==3) // jD <-> jR et  kD <-> iR
         {
