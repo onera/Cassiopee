@@ -797,7 +797,7 @@ def _setCADcontainer(t, fileName, fileFmt, hmin, hmax, hausd):
     if fileName is not None: Internal._createUniqueChild(CAD, 'file', 'DataArray_t', value=fileName)
     if fileFmt is not None: Internal._createUniqueChild(CAD, 'format', 'DataArray_t', value=fileFmt)
     if hmax is not None: Internal._createUniqueChild(CAD, 'hmax', 'DataArray_t', value=hmax)
-    if hmin is not None: Internal._createUniqueChild(CAD, 'hmin', 'DataArray_t', value=hmax)
+    if hmin is not None: Internal._createUniqueChild(CAD, 'hmin', 'DataArray_t', value=hmin)
     if hausd is not None: Internal._createUniqueChild(CAD, 'hausd', 'DataArray_t', value=hausd)
     return None
 

@@ -54,7 +54,7 @@ E_Int K_IO::GenIO::f3dsread(
   }
 
   int i; // Index variable
-  int obj = 0; // Nbre d'objets
+  //int obj = 0; // Nbre d'objets
 
   float tf;
   unsigned short ti;
@@ -117,7 +117,7 @@ E_Int K_IO::GenIO::f3dsread(
       case 0x4000:
       {
         i = 0;
-        obj++; 
+        //obj++; 
         char* name = new char[128];
         //printf(" objet no: %i\n", obj);
         

@@ -374,7 +374,7 @@ namespace NUGA
         
         E_Float face_ratio = E_Float(nbf) / E_Float (nb_neighs);
         E_Float surface_ratio = s /stot;
-        E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
+        //E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
         //E_Float volume_ratio = 1. / (1. + fabs(vi / vj));
         E_Int delta_reflex = nb_reflex_new - (nb_reflex_edges_1 + nb_reflex_edges_2);
         
@@ -393,7 +393,7 @@ namespace NUGA
         if (enforce_reflex_criteria == 1)
         {
           // prioritize contributions
-          reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
+          //reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
           N++;
           reflex_a *= 2;// sqrt(worst_reflex_a);   // increase impact
           N++;
@@ -916,7 +916,7 @@ namespace NUGA
 
         E_Float face_ratio = E_Float(nbf) / E_Float(nb_neighs);
         E_Float surface_ratio = s / stot;
-        E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
+        //E_Float reflex_ratio = (1. + E_Float(nb_reflex_edges_1 + nb_reflex_edges_2)) / (1. + E_Float(nb_reflex_new));
         //E_Float volume_ratio = 1. / (1. + fabs(vi / vj));
         E_Int delta_reflex = nb_reflex_new - (nb_reflex_edges_1 + nb_reflex_edges_2);
         
@@ -938,7 +938,7 @@ namespace NUGA
         if (enforce_reflex_criteria_and_or_badagglo_allowance == 1 || enforce_reflex_criteria_and_or_badagglo_allowance == 3)
         {
           // prioritize contributions
-          reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
+          //reflex_ratio *= 2;// sqrt(reflex_ratio); // increase impact
           N++;
           worst_reflex_a *= 2;// sqrt(worst_reflex_a);   // increase impact
           N++;
