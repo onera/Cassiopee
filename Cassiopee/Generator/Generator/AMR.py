@@ -16,7 +16,7 @@ __TOL__ = 1.0e-9
 
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
     # example of the dictExtension - the value provided (-1, 1) correspond to
-    # whether the extrusion is towards - or + direction 
+    # whether the extrusion is towards - or + direction
     # dictExtension = {
     #    "midplane": -1
     # }
