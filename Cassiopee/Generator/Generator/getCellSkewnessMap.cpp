@@ -24,11 +24,7 @@ using namespace K_FLD;
 using namespace K_FUNC;
 
 // ============================================================================
-/* Return orthogonality map */
-/* angle is given in degree */
-// Definition of the returned value: maximum of the difference between 
-// the dihedral angle of the element and the dihedral angle for an 
-// "ideal" element.
+/* Return cell skewness map */
 // ============================================================================
 PyObject* K_GENERATOR::getCellSkewnessMap(PyObject* self, PyObject* args)
 {

@@ -17,15 +17,13 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getGridSkewnessMap
-
 # include "generator.h"
 
 using namespace K_FLD;
 using namespace K_FUNC;
 
 // ============================================================================
-/* Return angle regularity map */
+/* Return grid skewness map */
 // ============================================================================
 PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
 {
@@ -46,7 +44,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getAngleOrthogonalityMap: unknown type of array.");
+                    "getGridSkewnessMap: unknown type of array.");
     return NULL;
   }
 
@@ -62,7 +60,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "getAngleOrthogonalityMap: can't find coordinates in array.");
+                    "getGridSkewnessMap: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
@@ -270,7 +268,7 @@ PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getAngleRegumarityMap: not implemented for NGON arrays.");
+                      "getGridSkewnessMap: not implemented for NGON arrays.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

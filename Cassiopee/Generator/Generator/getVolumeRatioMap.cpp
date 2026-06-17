@@ -52,7 +52,7 @@ inline E_Float ratioMax6(E_Float v, E_Float v1, E_Float v2, E_Float v3, E_Float 
 }
 
 // ============================================================================
-/* Return regularity map */
+/* Return volume ratio map */
 // ============================================================================
 PyObject* K_GENERATOR::getVolumeRatioMap(PyObject* self, PyObject* args)
 {

@@ -2383,9 +2383,9 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
 
     return m
 
-# Fonction retournant la carte d'orthogonalite d'une grille
+# Mesh quality function: cell skewness (ex. getOrthogonalityMap)
 def getCellSkewnessMap(array, normalized=False):
-    """Return the orthogonality map in an array.
+    """Return the cell skewness map in an array.
     Usage: getCellSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
@@ -2397,9 +2397,9 @@ def getCellSkewnessMap(array, normalized=False):
 
 getOrthogonalityMap = getCellSkewnessMap # alias old name
 
-# Fonction retournant la carte de regularite d'une grille
+# Mesh quality function: volume ratio (ex. getRegularityMap)
 def getVolumeRatioMap(array):
-    """Return the regularity map in an array.
+    """Return the volume ratio map in an array.
     Usage: getVolumeRatioMap(array)"""
     if isinstance(array[0], list):
         b = []
@@ -2411,9 +2411,9 @@ def getVolumeRatioMap(array):
 
 getRegularityMap = getVolumeRatioMap # alias old name
 
-# Fonction ...
+# Mesh quality function: grid skewness (ex. getAngleRegularityMap)
 def getGridSkewnessMap(array, normalized=False):
-    """Return the regularity map in an array.
+    """Return the grid skewness map in an array.
     Usage: getGridSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
@@ -2425,6 +2425,7 @@ def getGridSkewnessMap(array, normalized=False):
 
 getAngleRegularityMap = getGridSkewnessMap # alias old name
 
+# Mesh quality function: facet non-orthogonality
 def getNonOrthogonalityMap(array, normalized=False):
     """Return the non-orthogonality map in an array.
     Usage: getNonOrthogonalityMap(array)"""

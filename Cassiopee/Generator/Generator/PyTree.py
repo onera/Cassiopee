@@ -1864,27 +1864,31 @@ def mapSplit(z, d, split_crit, dens_max=1000):
     return zones
 
 #------------------------------------------------------------------------------
-# Compute the orthogonality map of a grid
-# 1D: returns an array of constant alpha angles equal to 90 degrees
-# 2D: returns an array of alpha angles
-# 3D: returns 3 arrays of alpha angles (in order alpha_IJ, alpha_IK and alpha_JK for structured grids)
+# Mesh quality function: cell skewness (ex. getOrthogonalityMap)
+# Returns the maximum intra-cell deviation angle from 
+# reference (90° for squares or 60° for triangles)
+#
+# if normalized=True: returns metric information between 0 and 1
 #------------------------------------------------------------------------------
 def getCellSkewnessMap(t, normalized=False):
-    """Return the orthogonality map in an array.
+    """Return the cell skewness map in an array.
     Usage: getCellSkewnessMap(t)"""
     return C.TZGC3(t, 'centers', True, Generator.getCellSkewnessMap, normalized)
 
 def _getCellSkewnessMap(t, normalized=False):
+    """Return the cell skewness map in an array.
+    Usage: _getCellSkewnessMap(t)"""
     return C._TZGC3(t, 'centers', False, Generator.getCellSkewnessMap, normalized)
 
 getOrthogonalityMap = getCellSkewnessMap # alias old name
 _getOrthogonalityMap = _getCellSkewnessMap # alias old name
 
 #------------------------------------------------------------------------------
-# Compute the regularity (ratio between adjacent cells) of a grid
+# Mesh quality function: volume ratio (ex. getRegularityMap)
+# Returns the maximum volume ratio between adjacent cells
 #------------------------------------------------------------------------------
 def getVolumeRatioMap(t, addGC=False):
-    """Return the regularity map in an array.
+    """Return the volume ratio map in an array.
     Usage: getVolumeRatioMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     t = C.TZGC3(t, 'centers', True, Generator.getVolumeRatioMap)
@@ -1892,8 +1896,8 @@ def getVolumeRatioMap(t, addGC=False):
     return t
 
 def _getVolumeRatioMap(t, addGC=False):
-    """Return the regularity map in an array.
-    Usage: getVolumeRatioMap(t)"""
+    """Return the volume ratio map in an array.
+    Usage: _getVolumeRatioMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC3(t, 'centers', False, Generator.getVolumeRatioMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
@@ -1903,10 +1907,15 @@ getRegularityMap = getVolumeRatioMap # alias old name
 _getRegularityMap = _getVolumeRatioMap # alias old name
 
 #------------------------------------------------------------------------------
-# Compute the regularity (angles between adjacent cells) of a grid
+# Mesh quality function: grid skewness (ex. getAngleRegularityMap)
+# Returns the maximum inter-cell deviation angle between adjacent cells
+# This angle is formed at the face centroid, between the two
+# cell-centroid-to-face-centroid vectors
+#
+# if normalized=True: returns metric information between 0 and 1
 #------------------------------------------------------------------------------
 def getGridSkewnessMap(t, addGC=False, normalized=False):
-    """Return the regularity map in an array (wrt angles).
+    """Return the grid skewness map in an array.
     Usage: getGridSkewnessMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     t = C.TZGC3(t, 'centers', True, Generator.getGridSkewnessMap, normalized)
@@ -1914,8 +1923,8 @@ def getGridSkewnessMap(t, addGC=False, normalized=False):
     return t
 
 def _getGridSkewnessMap(t, addGC=False, normalized=False):
-    """Return the regularity map in an array (wrt angles).
-    Usage: getGridSkewnessMap(t)"""
+    """Return the grid skewness map in an array.
+    Usage: _getGridSkewnessMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC3(t, 'centers', False, Generator.getGridSkewnessMap, normalized)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
@@ -1925,15 +1934,24 @@ getAngleRegularityMap = getGridSkewnessMap # alias old name
 _getAngleRegularityMap = _getGridSkewnessMap # alias old name
 
 #------------------------------------------------------------------------------
+# Mesh quality function: facet non-orthogonality
+# Returns the maximum non-orthogonality facet angle
+# This angle is formed by the centroid-to-centroid vector and the 
+# face normal vector
 #
+# if normalized=True: returns metric information between 0 and 1
 #------------------------------------------------------------------------------
 def getNonOrthogonalityMap(t, addGC=False, normalized=False):
+    """Return the non-orthogonality ma in an array.
+    Usage: getNonOrthogonalityMap(t)"""
     if addGC: t = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     t = C.TZGC3(t, 'centers', True, Generator.getNonOrthogonalityMap, normalized)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
 def _getNonOrthogonalityMap(t, addGC=False, normalized=False):
+    """Return the non-orthogonality ma in an array.
+    Usage: _getNonOrthogonalityMap(t)"""
     if addGC: Internal._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
     C._TZGC3(t, 'centers', False, Generator.getNonOrthogonalityMap, normalized)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
