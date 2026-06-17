@@ -154,7 +154,7 @@ def getOpenedApps():
         if (i != '---'):
             app = __import__(i)
             info = app.WIDGETS['frame'].grid_info()
-            if info != {}: opened.append(i)
+            if info: opened.append(i)
 
     st = ''
     for i in opened: st += i+';'

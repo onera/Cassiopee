@@ -2482,7 +2482,7 @@ class IBM(Common):
             dictOfInterpPtsByIBCType2   ={}
         interDictIBM2={}
 
-        if dictOfCorrectedPtsByIBCType!={}:
+        if dictOfCorrectedPtsByIBCType:
             for ibcTypeL in dictOfCorrectedPtsByIBCType:
                 allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
                 allWallPts      = dictOfWallPtsByIBCType[ibcTypeL]
@@ -2548,7 +2548,7 @@ class IBM(Common):
         if model is not None: model = Internal.getValue(model)
         else:                 model = "Euler"
 
-        if dictOfCorrectedPtsByIBCType!={}:
+        if dictOfCorrectedPtsByIBCType:
             for ibcTypeL in dictOfCorrectedPtsByIBCType:
                 allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
                 allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
@@ -2598,7 +2598,7 @@ class IBM(Common):
                             else:
                                 if destProc not in datas: datas[destProc] = []
 
-        if dictOfCorrectedPtsByIBCType2 != {}:
+        if dictOfCorrectedPtsByIBCType2:
             for ibcTypeL in dictOfCorrectedPtsByIBCType2:
                 allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
                 allWallPts2      = dictOfWallPtsByIBCType2[ibcTypeL]

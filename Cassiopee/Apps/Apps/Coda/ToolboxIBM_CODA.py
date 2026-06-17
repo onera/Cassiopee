@@ -390,7 +390,7 @@ def prepare(t_case, t, tskel, check=False):
 
     #transfer PLD
     rcvDataM = Cmpi.sendRecv(datas, graphM)
-    if rcvDataM != {}:
+    if rcvDataM:
         for origProc in rcvDataM:
             dataorig = rcvDataM[origProc]
             for info in dataorig:
@@ -776,7 +776,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
 
     #transfer PLD
     rcvDataM = Cmpi.sendRecv(datas, graphM)
-    if rcvDataM != {}:
+    if rcvDataM:
         for origProc in rcvDataM:
             matchname=rcvDataM[origProc][0]
             PLD = rcvDataM[origProc][1]

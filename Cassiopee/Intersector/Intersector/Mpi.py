@@ -225,7 +225,7 @@ def _conformizeHMesh(t, hooks, zidDict, procDict, rid_to_zones=None, zonerank=No
 
         zone_to_rid_to_list_owned[zid] = rid_to_ptlist #dico z_to_rid_to_ptlist_owned est mis à jour avant de le donner à exchangePointList
 
-        if rid_to_ptlist != {}:
+        if rid_to_ptlist:
             XOR.updateJoinsPointLists3(z, zidDict, rid_to_ptlist, 'PointList')
 
         # MAJ FIELDS

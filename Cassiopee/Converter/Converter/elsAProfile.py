@@ -604,7 +604,7 @@ def _addFlowSolution(t, name='', loc='CellCenter', variables=None,
                 childrenNodes += [child]
 
             FS = Internal.createNode("FlowSolution"+name,"FlowSolution_t",children=childrenNodes)
-            if outputDict != {}: _addOutput(FS, outputDict)
+            if outputDict: _addOutput(FS, outputDict)
             # add the flow solution to zone node
             z[2].append(FS) # SP : a mettre en unique or not ?
 

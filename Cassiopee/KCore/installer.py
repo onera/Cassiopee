@@ -118,7 +118,7 @@ def changeMachineName(event=None):
     machine = Vmachine.get()
 
     # Reset color
-    if WIDGETS != {}:
+    if WIDGETS:
         for name in ['Cppcompiler', 'f77compiler',
                      'f90compiler',
                      'additionalIncludePaths', 'additionalLibs',

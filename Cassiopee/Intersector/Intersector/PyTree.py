@@ -2926,7 +2926,7 @@ def _conformizeHMesh(t, hooks, conformize=1):
 
         zone_to_rid_to_list_owned[zid] = rid_to_ptlist #dico z_to_rid_to_ptlist_owned est mis à jour avant de le donner à exchangePointList
 
-        if rid_to_ptlist != {}:
+        if rid_to_ptlist:
             updateJoinsPointLists3(z, zidDict, rid_to_ptlist, 'PointList')
 
         # MAJ FIELDS

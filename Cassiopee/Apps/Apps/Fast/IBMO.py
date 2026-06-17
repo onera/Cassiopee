@@ -861,7 +861,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     dictOfWallPtsByIBCType = res[1]
     dictOfInterpPtsByIBCType = res[2]
     interDictIBM={}
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
@@ -908,7 +908,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     nbZonesIBC = len(zonesRIBC)
     for i in range(Cmpi.size): datas[i] = [] # force
 
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]

@@ -256,7 +256,6 @@ def exchangeBCMatchData(t, varList):
                 else: export[oppNode] += [n]
         elif dim[0] == 'Unstructured':
             if dim[3] == 'NGON':
-                Internal._adaptNGon42NGon3(z)  # TO DELETE!
                 Internal._adaptNFace2PE(z, remove=False)
                 # get face values
                 GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
@@ -855,7 +854,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     # 2. envoie data interpolation globale en asynchrone
         #Cmpi.trace("2. transfer2")
         reqs = []
-        if graph != {}:
+        if graph:
             if Cmpi.rank in graph:
                 g = graph[Cmpi.rank] # graph du proc courant
                 for oppNode in g:
@@ -903,7 +902,7 @@ def _transfer2(t, tc, variables, graph, intersectionDict, dictOfADT,
     # 4. reception des donnees d'interpolation globales
     #Cmpi.trace("4. transfer2")
     if hook is not None and len(hook) == 0:
-        if graph != {}:
+        if graph:
             for node in graph:
                 if Cmpi.rank in graph[node]:
                     rec = Converter.converter.recv(node, Cmpi.rank, Cmpi.KCOMM)

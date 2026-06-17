@@ -1407,7 +1407,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
         dictOfInterpPtsByIBCType2={}
         interDictIBM2={}
 
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
@@ -1467,7 +1467,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
 
     for i in range(Cmpi.size): datas[i] = [] # force
 
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts = dictOfWallPtsByIBCType[ibcTypeL]
@@ -1511,7 +1511,7 @@ def prepare1(t_case, t_out, tc_out, t_in=None, to=None, snears=0.01, dfar=10., d
                         else:
                             if destProc not in datas: datas[destProc] = []
 
-    if dictOfCorrectedPtsByIBCType2!={}:
+    if dictOfCorrectedPtsByIBCType2:
         for ibcTypeL in dictOfCorrectedPtsByIBCType2:
             allCorrectedPts2 = dictOfCorrectedPtsByIBCType2[ibcTypeL]
             allWallPts2 = dictOfWallPtsByIBCType2[ibcTypeL]
