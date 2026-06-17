@@ -1585,10 +1585,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if isTboxSnearAdd:
         vminTboxAtLeastOne = False
         for z in listTboxSnearAdd:
-            vminLocalNode = Internal.getNodeFromName(z, 'vmin')
-            if vminLocalNode:
-                vminTboxAtLeastOne=True
-                break
+            if z is not None:
+                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
+                if vminLocalNode:
+                    vminTboxAtLeastOne=True
+                    break
         tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
         # same approach as tbox
         numTbox = len(Internal.getBases(tboxAdd))
