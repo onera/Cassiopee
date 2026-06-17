@@ -54,7 +54,6 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
                 bNew = Internal.getZones(bNew)
                 bNew= Internal.rmNodesByName(bNew, '.Solver#define')
                 bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
-                Internal.printTree(bNew)
                 bNew = T.join(bNew)
 
             if tboxAdd is None:
