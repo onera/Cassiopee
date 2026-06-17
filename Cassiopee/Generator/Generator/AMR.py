@@ -44,22 +44,25 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
             baseNum = Internal.getValue(Internal.getNodeFromName(base, 'baseNumber'))
             vminLocalNode = Internal.getNodeFromName(base, 'vmin')
             # Close the open zone/base from tb
-            bNew = D_IBM.closeContour(base)
             if dim == 2:
+                bNew = D_IBM.closeContour(base)
                 bNew = T.reorder(bNew, (1,2,3))
                 bNew = D.uniformize(bNew, N=1000)
-            else:
-                if Cmpi.master: print("WARNING:: createTboxSnearAdd: NOT YET READY for 3D... exiting", flush=True)
-                Cmpi.barrier()
-                Cmpi.abort()
                 
+            else:
+                bNew = D_IBM.closeSurface(base)
+                bNew = Internal.getZones(bNew)
+                bNew= Internal.rmNodesByName(bNew, '.Solver#define')
+                bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
+                Internal.printTree(bNew)
+                bNew = T.join(bNew)
+
             if tboxAdd is None:
                 tboxAdd = C.newPyTree(["Base"+'_'+str(baseNum)+'_'+base[0], bNew])
             else:
                 base = Internal.createBaseNode("Base"+'_'+str(baseNum)+'_'+base[0], cellDim=3);
                 tboxAdd[2].append(base)
                 base[2].append(bNew)
-                
             if vminLocalNode:
                 vminLocal = Internal.getValue(vminLocalNode)
                 vminsTboxAddTmp = [5]*len(vmins[baseNum])
@@ -1505,19 +1508,25 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     isTboxSnearAdd = False
     listTboxSnearAdd = []
     # loop per base
+    tbTmp = Internal.copyTree(tb)
+    if baseSYM:
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tbTmp = Internal.rmNodesByNameAndType(tbTmp, 'SYM', 'CGNSBase_t')
+        tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
     for iLocal, snearTmp in enumerate(snears):
         # per base - snear in zones are all equal?
-        diffSnearValues = len(snearTmp) == len(set(snearTmp))
+        diffSnearValues = len(set(snearTmp)) > 1
         if diffSnearValues:
             isTboxSnearAdd = True
             # snear in zones (per base) are not all equal
-            listTboxSnearAdd = selectTboxZonesFromGeom(tb, iLocal, snearTmp, listTboxSnearAdd)
+            listTboxSnearAdd = selectTboxZonesFromGeom(tbTmp, iLocal, snearTmp, listTboxSnearAdd)
     if isTboxSnearAdd:
         for s1 in snears:
             maxVal = max(s1)
             s1[:] = [maxVal] * len(s1)
-    ## --------- --------- --------- --------- --------- --------- 
-        
+    del tbTmp
+    ## --------- --------- --------- --------- --------- ---------
+
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
 
     if baseSYM:
