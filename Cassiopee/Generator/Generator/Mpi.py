@@ -114,16 +114,16 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     Internal._rmNodesFromName(m, 'vol')
 
     G._getCellSkewnessMap(m)
-    omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
-    Internal._rmNodesFromName(m, 'orthogonality')
+    omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'cellSkewness', critOrtho, verbose)
+    Internal._rmNodesFromName(m, 'cellSkewness')
 
     _getVolumeRatioMap(m, addGC)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
-    Internal._rmNodesFromName(m, 'regularity')
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'volumeRatio', critReg, verbose)
+    Internal._rmNodesFromName(m, 'volumeRatio')
 
     _getGridSkewnessMap(m, addGC)
-    amin,amax,amean,acrit = getMeshFieldInfo__(m, 'regularityAngle', critAngReg, verbose)
-    Internal._rmNodesFromName(m, 'regularityAngle')
+    amin,amax,amean,acrit = getMeshFieldInfo__(m, 'gridSkewness', critAngReg, verbose)
+    Internal._rmNodesFromName(m, 'gridSkewness')
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

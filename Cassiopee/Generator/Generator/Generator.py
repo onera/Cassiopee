@@ -119,7 +119,7 @@ def constrainedDelaunay(cont0, tol=1.e-10, keepBB=0):
     return tri
 
 def check(array):
-    """Check a mesh for regularity, orthogonality...
+    """Check a mesh for regularity, cellSkewness...
     Usage: check(array)"""
     generator.check(array)
 
@@ -2476,7 +2476,7 @@ def getMeshFieldInfo__(array, field, critValue, verbose):
     size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
-    DictFunction = {'vol':getVolumeMap, 'orthogonality':getCellSkewnessMap, 'regularity':getVolumeRatioMap, 'regularityAngle':getGridSkewnessMap}
+    DictFunction = {'vol':getVolumeMap, 'cellSkewness':getCellSkewnessMap, 'volumeRatio':getVolumeRatioMap, 'gridSkewness':getGridSkewnessMap}
 
     for cpt, m in enumerate(array):
         f = DictFunction[field](m)[1]
@@ -2511,9 +2511,9 @@ def checkMesh(array, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., add
     #addGC: dummy argument to match the pyTree function
 
     vmin,vmax,vmean,vcrit = getMeshFieldInfo__(array, 'vol', critVol, verbose)
-    omin,omax,omean,ocrit = getMeshFieldInfo__(array, 'orthogonality', critOrtho, verbose)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(array, 'regularity', critReg, verbose)
-    amin,amax,amean,acrit = getMeshFieldInfo__(array, 'regularityAngle', critAngReg, verbose)
+    omin,omax,omean,ocrit = getMeshFieldInfo__(array, 'cellSkewness', critOrtho, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(array, 'volumeRatio', critReg, verbose)
+    amin,amax,amean,acrit = getMeshFieldInfo__(array, 'gridSkewness', critAngReg, verbose)
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

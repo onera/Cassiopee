@@ -136,8 +136,8 @@ def quality(meshes):
     for m in meshes:
         ortho = Generator.getCellSkewnessMap(m)
         vol = Generator.getVolumeMap(m)
-        min1 = Converter.getMinValue(ortho, 'orthogonality')
-        max1 = Converter.getMaxValue(ortho, 'orthogonality')
+        min1 = Converter.getMinValue(ortho, 'cellSkewness')
+        max1 = Converter.getMaxValue(ortho, 'cellSkewness')
         min2 = Converter.getMinValue(vol, 'vol')
         max2 = Converter.getMaxValue(vol, 'vol')
         score = max(score, min1); score = max(score, max1)

@@ -23,8 +23,8 @@ def quality(meshes):
     for m in meshes:
         ortho = G.getCellSkewnessMap(m)
         vol = G.getVolumeMap(m)
-        min1 = C.getMinValue(ortho, 'orthogonality')
-        max1 = C.getMaxValue(ortho, 'orthogonality')
+        min1 = C.getMinValue(ortho, 'cellSkewness')
+        max1 = C.getMaxValue(ortho, 'cellSkewness')
         min2 = C.getMinValue(vol, 'vol')
         max2 = C.getMaxValue(vol, 'vol')
         score = max(score, min1); score = max(score, max1)

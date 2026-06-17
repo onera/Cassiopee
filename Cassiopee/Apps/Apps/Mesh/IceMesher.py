@@ -1167,7 +1167,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
 # 2. Analyzes the topology to separate free zones (to be smoothed) from protected zones.
 # 3. Iteratively applies smoothing (T.smooth) to free zones and remeshes the boundary layer (BL) and far-field (T3).
 #   → Adapts smoothing sweeps and geometry mapping parameters (peak/valley factors) if mesh quality checks fail.
-# Stops when geometry deviation and mesh quality (volume, orthogonality) criteria are met or max iterations reached.
+# Stops when geometry deviation and mesh quality (volume, cellSkewness) criteria are met or max iterations reached.
 
 # IN: BAR1: Inner profile boundary
 # IN: BAR3: Outer domain boundary
