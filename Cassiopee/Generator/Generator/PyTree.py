@@ -1865,7 +1865,7 @@ def mapSplit(z, d, split_crit, dens_max=1000):
 
 #------------------------------------------------------------------------------
 # Mesh quality function: cell skewness (ex. getOrthogonalityMap)
-# Returns the maximum intra-cell deviation angle from 
+# Returns the maximum intra-cell deviation angle from
 # reference (90° for squares or 60° for triangles)
 #
 # if normalized=True: returns metric information between 0 and 1
@@ -1936,7 +1936,7 @@ _getAngleRegularityMap = _getGridSkewnessMap # alias old name
 #------------------------------------------------------------------------------
 # Mesh quality function: facet non-orthogonality
 # Returns the maximum non-orthogonality facet angle
-# This angle is formed by the centroid-to-centroid vector and the 
+# This angle is formed by the centroid-to-centroid vector and the
 # face normal vector
 #
 # if normalized=True: returns metric information between 0 and 1
