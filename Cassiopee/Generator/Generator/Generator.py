@@ -2408,7 +2408,7 @@ def getVolumeRatioMap(array):
         return b
     else:
         return generator.getVolumeRatioMap(array)
-    
+
 getRegularityMap = getVolumeRatioMap # alias old name
 
 # Fonction ...
