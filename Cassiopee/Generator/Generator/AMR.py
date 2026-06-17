@@ -32,7 +32,7 @@ def selectTboxZonesFromGeom(tb, iLocal, snearTmp, listTboxSnearAdd):
         listTboxSnearAdd.append(zCopy)
     return listTboxSnearAdd
 
-def createTboxSnearAdd(listTboxSnear, vmins, dim=3):
+def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
     import Geom.PyTree as D
     import Geom.IBM as D_IBM
     vminsTboxAdd = []
@@ -42,6 +42,7 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3):
         if base is not None:
             snear = Internal.getValue(Internal.getNodeFromName(base, 'snear'))
             baseNum = Internal.getValue(Internal.getNodeFromName(base, 'baseNumber'))
+            vminLocalNode = Internal.getNodeFromName(base, 'vmin')
             # Close the open zone/base from tb
             bNew = D_IBM.closeContour(base)
             if dim == 2:
@@ -59,7 +60,18 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3):
                 tboxAdd[2].append(base)
                 base[2].append(bNew)
                 
-            vminsTboxAdd.append(vmins[baseNum])
+            if vminLocalNode:
+                vminLocal = Internal.getValue(vminLocalNode)
+                vminsTboxAddTmp = [5]*len(vmins[baseNum])
+                for i in range(len(vminLocal)):
+                    vminsTboxAddTmp[i]=vminLocal[i]
+                vminsTboxAdd.append(vminsTboxAddTmp)
+            else:
+                if vminTboxAtLeastOne:
+                    vminsTboxAddTmp = [5]*len(vmins[baseNum])
+                    vminsTboxAdd.append(vminsTboxAddTmp)
+                else:
+                    vminsTboxAdd.append(vmins[baseNum])
             snearsTboxAdd.append([snear])
     return tboxAdd, snearsTboxAdd, vminsTboxAdd
 
@@ -1571,8 +1583,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     ## --------- Variable Snear on Immersed Boundary ---------
     if isTboxSnearAdd:
-        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim)
-
+        vminTboxAtLeastOne = False
+        for z in listTboxSnearAdd:
+            vminLocalNode = Internal.getNodeFromName(z, 'vmin')
+            if vminLocalNode:
+                vminTboxAtLeastOne=True
+                break
+        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
         # same approach as tbox
         numTbox = len(Internal.getBases(tboxAdd))
         numBase += numTbox
