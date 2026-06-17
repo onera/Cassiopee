@@ -47,7 +47,7 @@ def _setBCDataSet__(z, bc, variables):
 
     imin = w[0]; imax = w[1]; jmin = w[2]; jmax = w[3]; kmin = w[4]; kmax = w[5]
     zw = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
-    # zw = CP.subzoneWithReorder__(z, w) # Modif CW 04/11/16
+    # zw = C.subzoneWithReorder__(z, w) # Modif CW 04/11/16
     datas = Internal.getBCDataSet(z,bc)
     FSC = Internal.getNodeFromName1(zw, Internal.__FlowSolutionCenters__)
     FSN = Internal.getNodeFromName1(zw, Internal.__FlowSolutionNodes__)
