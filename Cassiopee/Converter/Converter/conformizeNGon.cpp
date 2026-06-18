@@ -17,6 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "converter.h"
+# include "Nuga/include/BbTree.h"
 
 using namespace K_FLD;
 
@@ -31,10 +32,10 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
 
   // Check array
   E_Int ni, nj, nk, res;
-  FldArrayF* f; FldArrayI* cnl;
+  FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   res = K_ARRAY::getFromArray3(array, varString, 
-                               f, ni, nj, nk, cnl, eltType);
+                               f, ni, nj, nk, cn, eltType);
 
   if (res != 2)
   {
@@ -43,8 +44,16 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
                     "conformizeNGon: array is invalid.");
     return NULL;
   }
-  if (strcmp(eltType, "NGON") != 0)
-  { RELEASESHAREDU(array, f, cnl); return array; }
+
+  E_Int api = f->getApi();
+
+  if (K_STRING::cmp(eltType, "NGON") != 0)
+  {
+    // BE/ME: return a copy
+    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
+    RELEASESHAREDU(array, f, cn);
+    return tpl;
+  }
 
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
@@ -53,18 +62,373 @@ PyObject* K_CONVERTER::conformizeNGon(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError, 
                     "conformizeNGon: coordinates not found.");
-    RELEASESHAREDU(array, f, cnl); return NULL;
+    RELEASESHAREDU(array, f, cn);
+    return NULL;
   }
 
-  // nouveau code
-  E_Int api = f->getApi();
-  FldArrayI* cn;
-  conformizeNGon(*f, posx, posy, posz, *cnl, tol, cn);
-  
-  // Construction de l'array de sortie
-  PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, "NGON", api);
-  delete cn;
-  RELEASESHAREDU(array, f, cnl);
+  // On enregistre les BB des faces dans un BbTree
+  E_Float* px = f->begin(posx);
+  E_Float* py = f->begin(posy);
+  E_Float* pz = f->begin(posz);
 
+  E_Int npts = f->getSize();
+  E_Int nfld = f->getNfld();
+
+  E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
+  E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
+  E_Int nelts = cn->getNElts(); E_Int nfaces = cn->getNFaces();
+  E_Int sizeFN = cn->getSizeNGon();
+  E_Int ngonType = cn->getNGonType();
+  E_Bool hasCnOffsets = (ngonType == 2 || ngonType == 3);
+ 
+  typedef K_SEARCH::BoundingBox<3> BBox3DType;
+  K_SEARCH::BbTree3D* bbtree;
+  std::vector<BBox3DType*> boxes(nfaces);
+
+  #pragma omp parallel default(shared)
+  {
+    E_Int nv, ind;
+    E_Float x, y, z;
+    E_Float minB[3], maxB[3];
+
+    #pragma omp for schedule(static)
+    for (E_Int i = 0; i < nfaces; i++)
+    {
+      E_Int* face = cn->getFace(i, nv, ngon, indPG);
+      minB[0] = K_CONST::E_MAX_FLOAT; maxB[0] = -K_CONST::E_MAX_FLOAT;
+      minB[1] = K_CONST::E_MAX_FLOAT; maxB[1] = -K_CONST::E_MAX_FLOAT;
+      minB[2] = K_CONST::E_MAX_FLOAT; maxB[2] = -K_CONST::E_MAX_FLOAT;
+      
+      for (E_Int j = 0; j < nv; j++)
+      {
+        ind = face[j]-1;
+        x = px[ind]; y = py[ind]; z = pz[ind];
+        minB[0] = K_FUNC::E_min(minB[0], x);
+        minB[1] = K_FUNC::E_min(minB[1], y);
+        minB[2] = K_FUNC::E_min(minB[2], z);
+        maxB[0] = K_FUNC::E_max(maxB[0], x);
+        maxB[1] = K_FUNC::E_max(maxB[1], y);
+        maxB[2] = K_FUNC::E_max(maxB[2], z);
+      }
+      boxes[i] = new BBox3DType(minB, maxB);
+    }
+  }
+  
+  bbtree = new K_SEARCH::BbTree3D(boxes, 1.e-12);
+
+  // Recherche des matching faces (topogeometrique)
+  E_Int** indir = new E_Int* [nfaces];
+  #pragma omp parallel for default(shared)
+  for (E_Int i = 0; i < nfaces; i++) indir[i] = NULL;
+
+  #pragma omp parallel default(shared)
+  {
+    E_Int size, initFrontSize;
+    E_Float* edge;
+    E_Int nof1, nof2, match;
+    std::list<E_Float*>::iterator it; 
+    std::list<E_Float*>::iterator it1; std::list<E_Float*>::iterator it2;
+    std::list<E_Int>::iterator iti;
+    E_Int frontSize;
+    E_Float minB[3]; E_Float maxB[3];
+    E_Int np, np2, ind, ret3, ret4;
+    E_Float x, y, z, xp, yp, zp;
+    E_Float pt1[3]; E_Float pt2[3]; E_Float pt3[3]; E_Float pt4[3];
+
+    #pragma omp for schedule(dynamic)
+    for (nof1 = 0; nof1 < nfaces; nof1++)
+    {
+      // BB de la face courante
+      E_Int* face = cn->getFace(nof1, np, ngon, indPG);
+      minB[0] = boxes[nof1]->minB[0];
+      minB[1] = boxes[nof1]->minB[1];
+      minB[2] = boxes[nof1]->minB[2];
+      maxB[0] = boxes[nof1]->maxB[0];
+      maxB[1] = boxes[nof1]->maxB[1];
+      maxB[2] = boxes[nof1]->maxB[2];
+
+      // Formation du front de F1 (front)
+      std::list<E_Float*> front; std::list<E_Float*> newFront;
+      std::list<E_Int> replacement; // indices des faces remplacant F1
+      ind = face[np-1]-1;
+      xp = px[ind]; yp = py[ind]; zp = pz[ind];
+      for (E_Int j = 0; j < np; j++)
+      {
+        ind = face[j]-1;
+        x = px[ind]; y = py[ind]; z = pz[ind];
+        edge = new E_Float[7];
+        edge[0] = x; edge[1] = y; edge[2] = z;
+        edge[3] = xp; edge[4] = yp; edge[5] = zp;
+        edge[6] = 0; // tag
+        front.push_back(edge);
+        xp = x; yp = y; zp = z;
+      }
+      initFrontSize = front.size();
+
+      // Recherche des faces intersectant la face (au sens BB Tree)
+      // indicesBB est la liste des facettes candidates (contient elle-meme)
+      std::vector<E_Int> indicesBB;
+      bbtree->getOverlappingBoxes(minB, maxB, indicesBB);
+
+      for (size_t k = 0; k < indicesBB.size(); k++) // faces candidates
+      {
+        nof2 = indicesBB[k];
+        if (nof1 != nof2)
+        {
+          // liste des edges de F2
+          std::list<E_Float*> F2edges;
+          E_Int* face2 = cn->getFace(nof2, np2, ngon, indPG);
+          ind = face2[np2-1]-1;
+          xp = px[ind]; yp = py[ind]; zp = pz[ind];
+          for (E_Int j = 0; j < np2; j++)
+          {
+            ind = face2[j]-1;
+            x = px[ind]; y = py[ind]; z = pz[ind];
+            edge = new E_Float[7];
+            edge[0] = x; edge[1] = y; edge[2] = z;
+            edge[3] = xp; edge[4] = yp; edge[5] = zp;
+            edge[6] = 0; // tag
+            F2edges.push_back(edge);
+            xp = x; yp = y; zp = z;
+          }
+
+          // recherche les edges de F2 qui matchent le front
+          match = 0;
+          for (it1 = front.begin(); it1 != front.end(); it1++)
+          {
+            edge = (*it1);
+            pt1[0] = edge[0]; pt1[1] = edge[1]; pt1[2] = edge[2];
+            pt2[0] = edge[3]; pt2[1] = edge[4]; pt2[2] = edge[5];
+            for (it2 = F2edges.begin(); it2 != F2edges.end(); it2++)
+            {
+              // is edge2 in edge1?
+              edge = (*it2);
+              pt3[0] = edge[0]; pt3[1] = edge[1]; pt3[2] = edge[2];
+              pt4[0] = edge[3]; pt4[1] = edge[4]; pt4[2] = edge[5];
+
+              ret3 = K_COMPGEOM::pointInSegment(pt1, pt2, pt3, tol);
+              ret4 = K_COMPGEOM::pointInSegment(pt1, pt2, pt4, tol);
+              if (ret3 > 0 && ret4 > 0) match++;
+            }
+          }
+
+          std::list<E_Float*> added;
+          if (match < 2) goto skip; // 2 edges sont requis au moins pour matcher
+
+          for (it1 = front.begin(); it1 != front.end(); it1++)
+          {
+            edge = (*it1);
+            pt1[0] = edge[0]; pt1[1] = edge[1]; pt1[2] = edge[2];
+            pt2[0] = edge[3]; pt2[1] = edge[4]; pt2[2] = edge[5];
+            for (it2 = F2edges.begin(); it2 != F2edges.end(); it2++)
+            {
+              // is edge2 in edge1?
+              edge = (*it2);
+              pt3[0] = edge[0]; pt3[1] = edge[1]; pt3[2] = edge[2];
+              pt4[0] = edge[3]; pt4[1] = edge[4]; pt4[2] = edge[5];
+
+              ret3 = K_COMPGEOM::pointInSegment(pt1, pt2, pt3, tol);
+              ret4 = K_COMPGEOM::pointInSegment(pt1, pt2, pt4, tol);
+              if (ret3 == 1 && ret4 == 2) { // full edge match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+              }
+              else if (ret3 == 2 && ret4 == 1) { // full edge match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+              }
+              else if (ret3 == 1 && ret4 == 3) { // partial edge match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+                x = pt4[0]; y = pt4[1]; z = pt4[2];
+                xp = pt2[0]; yp = pt2[1]; zp = pt2[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+              }
+              else if (ret3 == 3 && ret4 == 2) { // partial match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+                x = pt1[0]; y = pt1[1]; z = pt1[2];
+                xp = pt3[0]; yp = pt3[1]; zp = pt3[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+              }
+              else if (ret3 == 3 && ret4 == 3) { // partial match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+                x = pt1[0]; y = pt1[1]; z = pt1[2];
+                xp = pt3[0]; yp = pt3[1]; zp = pt3[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+                x = pt4[0]; y = pt4[1]; z = pt4[2];
+                xp = pt2[0]; yp = pt2[1]; zp = pt2[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+              }
+              else if (ret4 == 1 && ret3 == 3) { // partial match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+                x = pt3[0]; y = pt3[1]; z = pt3[2];
+                xp = pt2[0]; yp = pt2[1]; zp = pt2[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+              }
+              else if (ret4 == 3 && ret3 == 2) { // partial match
+                (*it1)[6] = 1; (*it2)[6] = 1;
+                x = pt1[0]; y = pt1[1]; z = pt1[2];
+                xp = pt4[0]; yp = pt4[1]; zp = pt4[2];
+                edge = new E_Float[7];
+                edge[0] = x; edge[1] = y; edge[2] = z;
+                edge[3] = xp; edge[4] = yp; edge[5] = zp;
+                edge[6] = 0; // tag
+                added.push_back(edge);
+              }
+            }
+          } // identification
+          front.insert(front.end(), added.begin(), added.end());
+
+          // nettoyage du front
+          newFront.clear();
+          for (it = front.begin(); it != front.end(); it++) 
+          {
+            if ((*it)[6] == 1) { delete [] *it; } 
+            else newFront.push_back(*it);
+          }
+          front = newFront;
+          
+          replacement.push_back(nof2);
+          skip:;
+          // Clear les edges de F2
+          for (it = F2edges.begin(); it != F2edges.end(); it++) delete [] *it;
+          
+        } // nof1 != nof2
+      } // faces candidates
+
+      frontSize = front.size();
+      if (frontSize != initFrontSize && frontSize != 0) // partial match
+      {
+        ;
+        //printf("face %d: partial match (front=%d) - no replace\n", nof1, front.size());
+      }
+      else if (frontSize != initFrontSize && frontSize == 0) // full match
+      {
+        // replace
+        size = replacement.size();
+        E_Int* a = new E_Int [size+1];
+        E_Int c = 1;
+        a[0] = size;
+        for (iti = replacement.begin(); iti != replacement.end(); iti++)
+        {
+          a[c] = (*iti); c++;
+        }
+        indir[nof1] = a;
+      }
+      else  ; //printf("face %d: no match\n", nof1);
+
+      // Clear le front (si il en reste)
+      for (it = front.begin(); it != front.end(); it++) delete [] *it;
+      front.clear();
+    }
+  }
+
+  // free boxes
+  for (E_Int i = 0; i < nfaces; i++) delete boxes[i];
+  delete bbtree;
+
+  // reconstruction de la connectivite elt->faces
+  E_Int nf; 
+  E_Int* addr;
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
+  E_Int sizeEF2 = 0;
+
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    E_Int* elem = cn->getElt(i, nf, nface, indPH);
+    for (E_Int j = 0; j < nf; j++) 
+    { 
+      addr = indir[elem[j]-1];
+      if (addr == NULL) sizeEF2++;
+      else sizeEF2 += addr[0];
+    }
+  }
+  if (ngonType != 3) sizeEF2 += nelts;
+
+  // Create new NGON connectivity
+  PyObject* tpl = K_ARRAY::buildArray3(
+    nfld, varString, npts, nelts, nfaces, "NGON",
+    sizeFN, sizeEF2, ngonType, false, api
+  );
+  FldArrayF* f2; FldArrayI* cn2;
+  K_ARRAY::getFromArray3(tpl, f2, cn2);
+
+  E_Int* ngon2 = cn2->getNGon();
+  E_Int* nface2 = cn2->getNFace();
+  E_Int *indPG2 = NULL, *indPH2 = NULL;
+  if (hasCnOffsets) // set offsets
+  {
+    indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
+  }
+
+  // Recopie des champs et de la connectivite faces/noeuds
+  #pragma omp parallel
+  {
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      E_Float* fp = f->begin(n);
+      E_Float* f2p = f2->begin(n);
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+    }
+    
+    #pragma omp for nowait
+    for (E_Int i = 0; i < sizeFN; i++) ngon2[i] = ngon[i];
+
+    if (hasCnOffsets)
+    {
+      #pragma omp for
+      for (E_Int i = 0; i < nfaces; i++) indPG2[i] = indPG[i];
+    }
+  }
+  
+  // Connectivite elements/faces
+  E_Int c = 0, nf2 = 0;
+  if (hasCnOffsets) indPH2[0] = 0;
+  for (E_Int i = 0; i < nelts; i++)
+  {
+    E_Int* elem = cn->getElt(i, nf, nface, indPH);
+    nf2 = 0;
+    for (E_Int j = 0; j < nf; j++)
+    {
+      addr = indir[elem[j]-1];
+      if (addr == NULL) { nface2[c+shift+nf2] = elem[j]; nf2++; }
+      else
+      {
+        for (E_Int k = 0; k < addr[0]; k++)
+        { nface2[c+shift+nf2] = addr[k+1]+1; nf2++; }
+      }
+    }
+    if (ngonType != 3) nface2[c] = nf2;
+    if (hasCnOffsets && i != nelts-1) indPH2[i+1] = indPH2[i] + nf2 + shift;
+    c += nf2+shift;
+  }
+  
+  // free indir
+  for (E_Int i = 0; i < nfaces; i++)
+  {
+    if (indir[i] != NULL) delete [] indir[i];
+  }
+  delete [] indir;
+  
+  RELEASESHAREDU(tpl, f2, cn2);
+  RELEASESHAREDU(array, f, cn);
   return tpl;
 }

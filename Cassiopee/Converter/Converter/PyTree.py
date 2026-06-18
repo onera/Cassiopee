@@ -3694,11 +3694,11 @@ def convertTri2Quad(z, alpha=30.):
 def conformizeNGon(a, tol=1.e-6):
     """Conformize topologically a NGON zone.
     Usage: conformizeNGon(a, tol)"""
-    return TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
+    return TZGC3(a, 'nodes', True, Converter.conformizeNGon, tol)
 
 def _conformizeNGon(a, tol=1.e-6):
     """Conformize topologically a NGON zone."""
-    _TZGC1(a, 'nodes', True, Converter.conformizeNGon, tol)
+    _TZGC3(a, 'nodes', True, Converter.conformizeNGon, tol)
     return None
 
 #=============================================================================

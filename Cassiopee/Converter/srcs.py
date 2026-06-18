@@ -106,7 +106,6 @@ cpp_srcs = [
     'Converter/getBorderIndices.cpp',
     'Converter/getJoinDonorIndices.cpp',
     'Converter/conformizeNGon.cpp',
-    'Converter/conformizeNGon1.cpp',
     'Converter/identify.cpp',
     'Converter/nearest.cpp',
     'Converter/identifySolutions.cpp',
