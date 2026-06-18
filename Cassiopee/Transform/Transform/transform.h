@@ -229,16 +229,10 @@ namespace K_TRANSFORM
                                 E_Float* xt2, E_Float* yt2, E_Float* zt2);
 
   /* break a NGON connectivity into elements */
-  void breakNGonElements(FldArrayF& field, FldArrayI& cFNEF,
-                         std::vector<FldArrayI*>& cEV,
-                         std::vector<FldArrayF*>& fields,
-                         std::vector<E_Int>& eltType,
-                         char* varString);
+  PyObject* breakNGonElements(FldArrayF& field, FldArrayI& cFNEF,
+                              char* varString);
   /* break a MIXED connectivity into elements */
-  void breakMixedElements(FldArrayF& field, FldArrayI& ce,
-                         std::vector<FldArrayI*>& cEV,
-                         std::vector<FldArrayF*>& fields,
-                         std::vector<E_Int>& eltType);
+  PyObject* breakMixedElements(FldArrayF& field, FldArrayI& ce, char* varString);
 
   /* Cree le dual d un maillage NGON 1D, 2D ou 3D.
    IN: f: champs contenant les coordonnees localises aux noeuds du
