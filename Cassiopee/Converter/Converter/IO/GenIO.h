@@ -624,8 +624,30 @@ class GenIO
       std::vector<FldArrayF*>& unstructField,
       std::vector<FldArrayI*>& connectivity,
       std::vector<E_Int>& eltType, std::vector<char*>& zoneNames);
-    /** gltf write */
+    /** vtk write */
     E_Int binvtkwrite(
+      char* file, char* dataFmt, char* varString,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector <FldArrayF*>& structField,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connect,
+      std::vector< std::vector<E_Int> >& eltTypes,
+      std::vector<char*>& zoneNames);
+    ///-
+
+    ///+ VTU functions
+    /** vtu read */
+    E_Int binvturead(
+      char* file, char*& varString,
+      std::vector<FldArrayF*>& structField,
+      std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
+      std::vector<FldArrayF*>& unstructField,
+      std::vector<FldArrayI*>& connectivity,
+      std::vector<std::vector<E_Int> >& eltType,
+      std::vector<char*>& zoneNames,
+      E_Int api=3);
+    /** vtu write */
+    E_Int binvtuwrite(
       char* file, char* dataFmt, char* varString,
       std::vector<E_Int>& ni, std::vector<E_Int>& nj, std::vector<E_Int>& nk,
       std::vector <FldArrayF*>& structField,
