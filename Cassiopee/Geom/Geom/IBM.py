@@ -716,13 +716,14 @@ def closeContour(contour, N=2):
 #==============================================================================
 #
 #==============================================================================
-def closeSurface(surface):
+def closeSurface(surface, isSmooth=False):
     """Closes a 2D surface with a patch or a set of patches."""
 
     import Post.PyTree as P
     import Transform.PyTree as T
     import Generator.PyTree as G
 
+    fixedConstraints = []
     cont = P.exteriorFaces(surface)
     cont = T.splitConnexity(cont)
 
@@ -737,9 +738,27 @@ def closeSurface(surface):
         try:
             p = G.fittingPlaster(c)
             p = G.gapfixer(c, p)
+            if isSmooth:
+                extTmp = P.exteriorFaces(p)
+                extTmp = T.splitConnexity(extTmp)
+                p = T.smooth(p, eps=0.5, niter=100, type=0,
+                             fixedConstraints=extTmp,
+                             delta=0.1)
             listOfZones.append(p)
         except:
-            print("Info: closeSurface: one gapfixer failed, moving on to the next")
+            try:
+                print("Info: closeSurface: one gapfixer failed, using manual tetraMesher")
+                p = G.tetraMesher(c, algo=1, quality=1.1, recoverBC=True)
+                if isSmooth:
+                    extTmp = P.exteriorFaces(p)
+                    extTmp = T.splitConnexity(extTmp)
+                    p = T.smooth(p, eps=0.5, niter=100, type=0,
+                                 fixedConstraints=extTmp,
+                                 delta=0.1)
+                listOfZones.append(p)
+            except:
+                print("Info: closeSurface: one gapfixer failed, moving on to the next")
+
 
     surface2 = C.newPyTree(['Base', listOfZones])
 

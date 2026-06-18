@@ -50,7 +50,7 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
                 bNew = D.uniformize(bNew, N=1000)
                 
             else:
-                bNew = D_IBM.closeSurface(base)
+                bNew = D_IBM.closeSurface(base, isSmooth=True)
                 bNew = Internal.getZones(bNew)
                 bNew= Internal.rmNodesByName(bNew, '.Solver#define')
                 bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
@@ -101,6 +101,7 @@ def createExtension__(tbIn):
     ##    │││                    │││
     ##     ↑                      ↑
     ## Domain boundary        Domain boundary
+    if Cmpi.master: print('Creating automatic extension at symmetry plane...start', flush=True)
 
     tb = Internal.copyTree(tbIn)
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
@@ -180,6 +181,7 @@ def createExtension__(tbIn):
             Internal._rmNode(tb, node)
     Internal._rmNodesFromType(tb, "FlowSolution_t")
     Internal._rmNodesFromType(tb, "UserDefinedData_t")
+    if Cmpi.master: print('Creating automatic extension at symmetry plane...end', flush=True)
 
     return tb
 
@@ -425,7 +427,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
         t = C.newPyTree(["BASE", Internal.getZones(b)])
         # using the input bodies provided (tb & tbox) - safe to use blankCellsTri
-        if dim == 2: X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
+        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
@@ -1504,6 +1506,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     ## --------- Variable Snear on Immersed Boundary ---------
     #snear = list of [Base1, Base2]; Base1 = list of [zone1, zones2]
+    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...start', flush=True)
     isTboxSnearAdd = False
     listTboxSnearAdd = []
     # loop per base
@@ -1520,10 +1523,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             # snear in zones (per base) are not all equal
             listTboxSnearAdd = selectTboxZonesFromGeom(tbTmp, iLocal, snearTmp, listTboxSnearAdd)
     if isTboxSnearAdd:
+        if Cmpi.master: print('Identified multiple snear on the same immsered boundary', flush=True)
         for s1 in snears:
             maxVal = max(s1)
             s1[:] = [maxVal] * len(s1)
     del tbTmp
+    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...end', flush=True)
     ## --------- --------- --------- --------- --------- ---------
 
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
@@ -1591,6 +1596,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     ## --------- Variable Snear on Immersed Boundary ---------
     if isTboxSnearAdd:
+        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...start', flush=True)
         vminTboxAtLeastOne = False
         for z in listTboxSnearAdd:
             if z is not None:
@@ -1599,12 +1605,14 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     vminTboxAtLeastOne=True
                     break
         tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
+        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
         # same approach as tbox
         numTbox = len(Internal.getBases(tboxAdd))
         numBase += numTbox
         tb_tbox[2] += Internal.getBases(tboxAdd)
         snearsTbTbox.extend(snearsTboxAdd)
         vmins.extend(vminsTboxAdd)
+        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
     ## --------- --------- --------- --------- --------- ---------
     
     tCartin = False
