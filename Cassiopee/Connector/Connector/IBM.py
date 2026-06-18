@@ -1498,7 +1498,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
         dictOfInterpPtsByIBCType2   ={}
     interDictIBM2={}
 
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             allCorrectedPts = dictOfCorrectedPtsByIBCType[ibcTypeL]
             allWallPts      = dictOfWallPtsByIBCType[ibcTypeL]
@@ -1572,7 +1572,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
 
     for i in range(Cmpi.size): datas[i] = [] # force
 
-    if dictOfCorrectedPtsByIBCType!={}:
+    if dictOfCorrectedPtsByIBCType:
         for ibcTypeL in dictOfCorrectedPtsByIBCType:
             if '#' in ibcTypeL: ibcNameL = 'IBCD_'+'_'.join(ibcTypeL.split('#')) #ibctype with familyname
             else: ibcNameL = 'IBCD_'+ibcTypeL #regular ibctype
@@ -1614,7 +1614,7 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                         else:
                             if destProc not in datas: datas[destProc] = []
 
-    if dictOfCorrectedPtsByIBCType2!={}:
+    if dictOfCorrectedPtsByIBCType2:
         for ibcTypeL in dictOfCorrectedPtsByIBCType2:
             if '#' in ibcTypeL: ibcNameL = '2_IBCD_'+'_'.join(ibcTypeL.split('#'))
             else: ibcNameL = '2_IBCD_'+ibcTypeL

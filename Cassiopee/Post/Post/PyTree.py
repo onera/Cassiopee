@@ -1582,7 +1582,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
                             else: BCField = numpy.concatenate((BCField, bcfp))
 
         # compute field on BCMatch for current zone
-        if allMatch != {}:
+        if allMatch:
             indFace, fldFace = C.computeBCMatchField(z, allMatch, vare)
             # --------------------------------------------------------------
             if fldFace is not None:
@@ -1603,7 +1603,7 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False):
             # --------------------------------------------------------------
 
         # compute field on TNC match for current zone
-        if allMatchTNC != {}:
+        if allMatchTNC:
             indFaceTNC, fldFaceTNC = C.computeBCMatchField(z, allMatchTNC, vare)
             # --------------------------------------------------------------
             if fldFaceTNC is not None:
