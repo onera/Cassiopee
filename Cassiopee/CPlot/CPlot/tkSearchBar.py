@@ -119,8 +119,8 @@ applet = {
     'Create Octree -structured-':'tkOctree',
     # tkMeshQual
     'tkMeshQual':'tkMeshQual', 'Check mesh quality':'tkMeshQual',
-    'Check mesh regularity':'tkMeshQual',
-    'Check mesh orthogonality':'tkMeshQual',
+    'Check mesh volume ratio':'tkMeshQual',
+    'Check mesh cell skewness':'tkMeshQual',
     'Compute cell volume':'tkMeshQual',
     'View negative volume cells':'tkMeshQual',
     # tkMeshInfo

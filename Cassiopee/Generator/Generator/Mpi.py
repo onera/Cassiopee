@@ -18,33 +18,33 @@ def bbox(t):
     Cmpi.Allreduce(bb, bb2, Cmpi.MAX)
     return [bb1[0],bb1[1],bb1[2],bb2[3],bb2[4],bb2[5]]
 
-def getRegularityMap(t, addGC=False):
+def getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array.
-    Usage: getRegularityMap(t)"""
+    Usage: getVolumeRatioMap(t)"""
     if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', True, Generator.getRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getVolumeRatioMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getRegularityMap(t, addGC=False):
+def _getVolumeRatioMap(t, addGC=False):
     """Return the regularity map in an array."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC1(t, 'centers', False, Generator.getRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getVolumeRatioMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
-def getAngleRegularityMap(t, addGC=False):
+def getGridSkewnessMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles).
-    Usage: getAngleRegularityMap(t)"""
+    Usage: getGridSkewnessMap(t)"""
     if addGC: t = Cmpi.addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    t = C.TZGC1(t, 'centers', True, Generator.getAngleRegularityMap)
+    t = C.TZGC1(t, 'centers', True, Generator.getGridSkewnessMap)
     if addGC: t = Internal.rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return t
 
-def _getAngleRegularityMap(t, addGC=False):
+def _getGridSkewnessMap(t, addGC=False):
     """Return the regularity map in an array (wrt angles)."""
     if addGC: Cmpi._addGhostCells(t, t, 1, adaptBCs=0, modified=[], fillCorner=1)
-    C._TZGC1(t, 'centers', False, Generator.getAngleRegularityMap)
+    C._TZGC1(t, 'centers', False, Generator.getGridSkewnessMap)
     if addGC: Internal._rmGhostCells(t, t, 1, adaptBCs=0, modified=[])
     return None
 
@@ -113,17 +113,17 @@ def checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=F
     vmin,vmax,vmean,vcrit = getMeshFieldInfo__(m, 'vol', critVol, verbose)
     Internal._rmNodesFromName(m, 'vol')
 
-    G._getOrthogonalityMap(m)
-    omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'orthogonality', critOrtho, verbose)
-    Internal._rmNodesFromName(m, 'orthogonality')
+    G._getCellSkewnessMap(m)
+    omin,omax,omean,ocrit = getMeshFieldInfo__(m, 'cellSkewness', critOrtho, verbose)
+    Internal._rmNodesFromName(m, 'cellSkewness')
 
-    _getRegularityMap(m, addGC)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'regularity', critReg, verbose)
-    Internal._rmNodesFromName(m, 'regularity')
+    _getVolumeRatioMap(m, addGC)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(m, 'volumeRatio', critReg, verbose)
+    Internal._rmNodesFromName(m, 'volumeRatio')
 
-    _getAngleRegularityMap(m, addGC)
-    amin,amax,amean,acrit = getMeshFieldInfo__(m, 'regularityAngle', critAngReg, verbose)
-    Internal._rmNodesFromName(m, 'regularityAngle')
+    _getGridSkewnessMap(m, addGC)
+    amin,amax,amean,acrit = getMeshFieldInfo__(m, 'gridSkewness', critAngReg, verbose)
+    Internal._rmNodesFromName(m, 'gridSkewness')
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,

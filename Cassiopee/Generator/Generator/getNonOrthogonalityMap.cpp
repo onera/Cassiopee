@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getNonOrthogonalityMap
-
 # include "generator.h"
 # include <math.h>
 
@@ -26,7 +24,7 @@ using namespace K_FLD;
 using namespace K_FUNC;
 
 // ============================================================================
-/* Return angle regularity map */
+/* Return non-orthogonality map */
 // ============================================================================
 PyObject* K_GENERATOR::getNonOrthogonalityMap(PyObject* self, PyObject* args)
 {

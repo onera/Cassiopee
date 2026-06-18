@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getOrthogonalityMap
-
 # include "generator.h"
 # include <math.h>
 
@@ -26,13 +24,9 @@ using namespace K_FLD;
 using namespace K_FUNC;
 
 // ============================================================================
-/* Return orthogonality map */
-/* angle is given in degree */
-// Definition of the returned value: maximum of the difference between 
-// the dihedral angle of the element and the dihedral angle for an 
-// "ideal" element.
+/* Return cell skewness map */
 // ============================================================================
-PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getCellSkewnessMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int normalized;
@@ -51,7 +45,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getOrthogonalityMap: unknown type of array.");
+                    "getCellSkewnessMap: unknown type of array.");
     return NULL;
   }
 
@@ -67,7 +61,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "getOrthogonalityMap: can't find coordinates in array.");
+                    "getCellSkewnessMap: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
@@ -126,7 +120,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray3(1, "orthogonality", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "cellSkewness", im1, jm1, km1, api);
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* skewness = f2->begin(1); // pointeur sur le tableau d'angle
 
@@ -193,7 +187,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
   else // Cas non structure
   {
     tpl = K_ARRAY::buildArray3(
-      1, "orthogonality", npts, *cn, eltType, true, api, true
+      1, "cellSkewness", npts, *cn, eltType, true, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* skewness = f2->begin(1); // pointeur sur le tableau d'angle
@@ -201,7 +195,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getOrthogonalityMap: not implemented for NGON arrays.");
+                      "getCellSkewnessMap: not implemented for NGON arrays.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -215,7 +209,7 @@ PyObject* K_GENERATOR::getOrthogonalityMap(PyObject* self, PyObject* args)
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getOrthogonalityMap: Error computing nfpe.");
+                      "getCellSkewnessMap: Error computing nfpe.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

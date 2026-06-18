@@ -1167,7 +1167,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
 # 2. Analyzes the topology to separate free zones (to be smoothed) from protected zones.
 # 3. Iteratively applies smoothing (T.smooth) to free zones and remeshes the boundary layer (BL) and far-field (T3).
 #   → Adapts smoothing sweeps and geometry mapping parameters (peak/valley factors) if mesh quality checks fail.
-# Stops when geometry deviation and mesh quality (volume, orthogonality) criteria are met or max iterations reached.
+# Stops when geometry deviation and mesh quality (volume, cellSkewness) criteria are met or max iterations reached.
 
 # IN: BAR1: Inner profile boundary
 # IN: BAR3: Outer domain boundary
@@ -2295,7 +2295,7 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
         print(f"      Angle : acrit = {acritBL:<8} {'✓' if okAcritBL else '✗'} (tol <= {thresholds['maxAcrit']:<2}) | amin = {aminBL:>5.1f}° | amax = {amaxBL:>5.1f}° | amean = {ameanBL:>5.1f}°")
         print(f"      Regularity : rcrit = {rcritBL:<8} (info)       | rmin = {rminBL:.2e} | rmax = {rmaxBL:.2e} {'✓' if okRmaxBL else '✗'} (tol <= {thresholds['maxRBL']})| rmean = {rmeanBL:.2e}")
 
-        regMap = G.getRegularityMap(bl)
+        regMap = G.getVolumeRatioMap(bl)
         a = C.getMaxValue(regMap, 'centers:regularity')
         print (f"Comparaison avec régularitymap : rmax = {rmaxBL} vs rmaxReg = {a}")
 
@@ -2331,7 +2331,7 @@ def checkMeshQuality(bl=None, m2=None, curve=None, thresholds=None):
             'rcritT3': rcritT3, 'rminT3': rminT3, 'rmaxT3': rmaxT3, 'rmeanT3': rmeanT3
         })
 
-        regMap = G.getRegularityMap(m2)
+        regMap = G.getVolumeRatioMap(m2)
         a = C.getMaxValue(regMap, 'centers:regularity')
         print (f"Comparaison avec régularitymap : rmax = {rmaxT3} vs rmaxReg = {a}")
 

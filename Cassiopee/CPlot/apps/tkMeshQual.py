@@ -44,10 +44,10 @@ def computeQual():
         CTK.t = G.getVolumeMap(CTK.t)
         CTK.TXT.insert('START', 'Volume map computed.\n')
     elif qtype == 'Orthogonality map':
-        CTK.t = G.getOrthogonalityMap(CTK.t)
+        CTK.t = G.getCellSkewnessMap(CTK.t)
         CTK.TXT.insert('START', 'Orthogonality map computed.\n')
     elif qtype == 'Regularity map':
-        CTK.t = G.getRegularityMap(CTK.t)
+        CTK.t = G.getVolumeRatioMap(CTK.t)
         CTK.TXT.insert('START', 'Regularity map computed.\n')
     CTK.TKTREE.updateApp()
     CTK.display(CTK.t)

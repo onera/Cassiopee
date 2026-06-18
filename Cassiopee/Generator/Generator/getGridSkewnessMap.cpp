@@ -17,17 +17,15 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getAngleRegularityMap
-
 # include "generator.h"
 
 using namespace K_FLD;
 using namespace K_FUNC;
 
 // ============================================================================
-/* Return angle regularity map */
+/* Return grid skewness map */
 // ============================================================================
-PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
+PyObject* K_GENERATOR::getGridSkewnessMap(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int normalized;
@@ -46,7 +44,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "getAngleOrthogonalityMap: unknown type of array.");
+                    "getGridSkewnessMap: unknown type of array.");
     return NULL;
   }
 
@@ -62,7 +60,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   {
     RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_ValueError,
-                    "getAngleOrthogonalityMap: can't find coordinates in array.");
+                    "getGridSkewnessMap: can't find coordinates in array.");
     return NULL;
   }
   posx++; posy++; posz++;
@@ -115,7 +113,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     
     // Construction du tableau numpy stockant les angles 
     // definissant l'orthogonalite
-    tpl = K_ARRAY::buildArray3(1, "regularityAngle", im1, jm1, km1, api);
+    tpl = K_ARRAY::buildArray3(1, "gridSkewness", im1, jm1, km1, api);
     // pointeur sur le tableau d'angle
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1);
@@ -262,7 +260,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
   else // if (res == 2)
   {
     PyObject* tpl = K_ARRAY::buildArray3(
-      1, "regularityAngle", npts, *cn, eltType, true, api, true
+      1, "gridSkewness", npts, *cn, eltType, true, api, true
     );
     K_ARRAY::getFromArray3(tpl, f2);
     E_Float* alphamax = f2->begin(1); // pointeur sur le tableau d'angle
@@ -270,7 +268,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     if (strcmp(eltType, "NGON") == 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getAngleRegumarityMap: not implemented for NGON arrays.");
+                      "getGridSkewnessMap: not implemented for NGON arrays.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -284,7 +282,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     if (ierr != 0)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getAngleRegularityMap: Error computing nfpe.");
+                      "getGridSkewnessMap: Error computing nfpe.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;
@@ -311,7 +309,7 @@ PyObject* K_GENERATOR::getAngleRegularityMap(PyObject* self, PyObject* args)
     if (ierr == 1)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "getRegularityMap: Error computing cFE.");
+                      "getGridSkewnessMap: Error computing cFE.");
       RELEASESHAREDS(tpl, f2);
       RELEASESHAREDU(array, f, cn);
       return NULL;

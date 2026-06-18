@@ -31,8 +31,9 @@ __all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
            'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
            'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
            'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
-           'forceMatch', '_forceMatch', 'getOrthogonalityMap', 'getRegularityMap',
-           'getAngleRegularityMap', 'getTriQualityMap', 'getTriQualityStat',
+           'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getVolumeRatioMap',
+           'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
+           'getRegularityMap', 'getAngleRegularityMap', 'getOrthogonalityMap', # aliases for backward compatibility
            'quad2Pyra', 'extendCartGrids', 'checkMesh']
 
 def cart(Xo, H, N, api=1):
@@ -118,7 +119,7 @@ def constrainedDelaunay(cont0, tol=1.e-10, keepBB=0):
     return tri
 
 def check(array):
-    """Check a mesh for regularity, orthogonality...
+    """Check a mesh for regularity, cellSkewness...
     Usage: check(array)"""
     generator.check(array)
 
@@ -2382,41 +2383,49 @@ def addNormalLayersUnstr__(surface, distrib, check=0, niterType=0, niter=0, nite
 
     return m
 
-# Fonction retournant la carte d'orthogonalite d'une grille
-def getOrthogonalityMap(array, normalized=False):
-    """Return the orthogonality map in an array.
-    Usage: getOrthogonalityMap(array)"""
+# Mesh quality function: cell skewness (ex. getOrthogonalityMap)
+def getCellSkewnessMap(array, normalized=False):
+    """Return the cell skewness map in an array.
+    Usage: getCellSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getOrthogonalityMap(i, normalized))
+            b.append(generator.getCellSkewnessMap(i, normalized))
         return b
     else:
-        return generator.getOrthogonalityMap(array, normalized)
+        return generator.getCellSkewnessMap(array, normalized)
 
-# Fonction retournant la carte de regularite d'une grille
-def getRegularityMap(array):
-    """Return the regularity map in an array.
-    Usage: getRegularityMap(array)"""
+getOrthogonalityMap = getCellSkewnessMap # alias old name
+
+# Mesh quality function: volume ratio (ex. getRegularityMap)
+def getVolumeRatioMap(array):
+    """Return the volume ratio map in an array.
+    Usage: getVolumeRatioMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getRegularityMap(i))
+            b.append(generator.getVolumeRatioMap(i))
         return b
     else:
-        return generator.getRegularityMap(array)
+        return generator.getVolumeRatioMap(array)
 
-def getAngleRegularityMap(array, normalized=False):
-    """Return the regularity map in an array.
-    Usage: getAngleRegularityMap(array)"""
+getRegularityMap = getVolumeRatioMap # alias old name
+
+# Mesh quality function: grid skewness (ex. getAngleRegularityMap)
+def getGridSkewnessMap(array, normalized=False):
+    """Return the grid skewness map in an array.
+    Usage: getGridSkewnessMap(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(generator.getAngleRegularityMap(i, normalized))
+            b.append(generator.getGridSkewnessMap(i, normalized))
         return b
     else:
-        return generator.getAngleRegularityMap(array, normalized)
+        return generator.getGridSkewnessMap(array, normalized)
 
+getAngleRegularityMap = getGridSkewnessMap # alias old name
+
+# Mesh quality function: facet non-orthogonality
 def getNonOrthogonalityMap(array, normalized=False):
     """Return the non-orthogonality map in an array.
     Usage: getNonOrthogonalityMap(array)"""
@@ -2468,7 +2477,7 @@ def getMeshFieldInfo__(array, field, critValue, verbose):
     size  = 0
     info = 'INFO %s: min = %1.2e, max = %1.2e, mean = %1.2e, crit(%s %s %s) = %s cells out of %s | %2.2f%% (%s)'
 
-    DictFunction = {'vol':getVolumeMap, 'orthogonality':getOrthogonalityMap, 'regularity':getRegularityMap, 'regularityAngle':getAngleRegularityMap}
+    DictFunction = {'vol':getVolumeMap, 'cellSkewness':getCellSkewnessMap, 'volumeRatio':getVolumeRatioMap, 'gridSkewness':getGridSkewnessMap}
 
     for cpt, m in enumerate(array):
         f = DictFunction[field](m)[1]
@@ -2503,9 +2512,9 @@ def checkMesh(array, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., add
     #addGC: dummy argument to match the pyTree function
 
     vmin,vmax,vmean,vcrit = getMeshFieldInfo__(array, 'vol', critVol, verbose)
-    omin,omax,omean,ocrit = getMeshFieldInfo__(array, 'orthogonality', critOrtho, verbose)
-    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(array, 'regularity', critReg, verbose)
-    amin,amax,amean,acrit = getMeshFieldInfo__(array, 'regularityAngle', critAngReg, verbose)
+    omin,omax,omean,ocrit = getMeshFieldInfo__(array, 'cellSkewness', critOrtho, verbose)
+    rmin,rmax,rmean,rcrit = getMeshFieldInfo__(array, 'volumeRatio', critReg, verbose)
+    amin,amax,amean,acrit = getMeshFieldInfo__(array, 'gridSkewness', critAngReg, verbose)
 
     return {'vmin':vmin,'vmax':vmax,'vmean':vmean,'vcrit':vcrit,
             'rmin':rmin,'rmax':rmax,'rmean':rmean,'rcrit':rcrit,
