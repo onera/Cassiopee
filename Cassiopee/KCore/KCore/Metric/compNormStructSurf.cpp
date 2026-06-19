@@ -40,51 +40,49 @@ void K_METRIC::compNormStructSurf(
     E_Float surf1x, surf1y, surf1z;
     E_Float surf2x, surf2y, surf2z;
 
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int j = 0; j < nj - 1; j++)
+    for (E_Int i = 0; i < ni - 1; i++)
     {
-      for (E_Int i = 0; i < ni - 1; i++)
-      {
-        ind1 = i + j * ni;
-        ind2 = ind1 + 1;
-        ind3 = ind2 + ni;
-        ind4 = ind1 + ni;
-        indcell = i + j * (ni - 1);
-        
-        // AB x AC
-        x1 = xt[ind1];
-        y1 = yt[ind1];
-        z1 = zt[ind1];
+      ind1 = i + j * ni;
+      ind2 = ind1 + 1;
+      ind3 = ind2 + ni;
+      ind4 = ind1 + ni;
+      indcell = i + j * (ni - 1);
+      
+      // AB x AC
+      x1 = xt[ind1];
+      y1 = yt[ind1];
+      z1 = zt[ind1];
 
-        l1x = xt[ind2] - x1;
-        l1y = yt[ind2] - y1;
-        l1z = zt[ind2] - z1;
+      l1x = xt[ind2] - x1;
+      l1y = yt[ind2] - y1;
+      l1z = zt[ind2] - z1;
 
-        l2x = xt[ind3] - x1;
-        l2y = yt[ind3] - y1;
-        l2z = zt[ind3] - z1;
+      l2x = xt[ind3] - x1;
+      l2y = yt[ind3] - y1;
+      l2z = zt[ind3] - z1;
 
-        surf1x = l1y * l2z - l1z * l2y;
-        surf1y = l1z * l2x - l1x * l2z;
-        surf1z = l1x * l2y - l1y * l2x;
+      surf1x = l1y * l2z - l1z * l2y;
+      surf1y = l1z * l2x - l1x * l2z;
+      surf1z = l1x * l2y - l1y * l2x;
 
-        // AC x AD
-        l1x = xt[ind3] - x1;
-        l1y = yt[ind3] - y1;
-        l1z = zt[ind3] - z1;
+      // AC x AD
+      l1x = xt[ind3] - x1;
+      l1y = yt[ind3] - y1;
+      l1z = zt[ind3] - z1;
 
-        l2x = xt[ind4] - x1;
-        l2y = yt[ind4] - y1;
-        l2z = zt[ind4] - z1;
+      l2x = xt[ind4] - x1;
+      l2y = yt[ind4] - y1;
+      l2z = zt[ind4] - z1;
 
-        surf2x = l1y * l2z - l1z * l2y;
-        surf2y = l1z * l2x - l1x * l2z;
-        surf2z = l1x * l2y - l1y * l2x;
+      surf2x = l1y * l2z - l1z * l2y;
+      surf2y = l1z * l2x - l1x * l2z;
+      surf2z = l1x * l2y - l1y * l2x;
 
-        nxt[indcell] = K_CONST::ONE_HALF * (surf1x + surf2x);
-        nyt[indcell] = K_CONST::ONE_HALF * (surf1y + surf2y);
-        nzt[indcell] = K_CONST::ONE_HALF * (surf1z + surf2z);
-      }   
+      nxt[indcell] = K_CONST::ONE_HALF * (surf1x + surf2x);
+      nyt[indcell] = K_CONST::ONE_HALF * (surf1y + surf2y);
+      nzt[indcell] = K_CONST::ONE_HALF * (surf1z + surf2z);
     }
   }
 }

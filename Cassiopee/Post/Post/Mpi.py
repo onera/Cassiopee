@@ -71,7 +71,8 @@ def extractMesh(t, extractionMesh, order=2, extrapOrder=1,
     nztl = len(Internal.getZones(tl))
     nzext = len(Internal.getZones(ext))
     print('Rank %d has %d source zones and %d destination zones.'%(Cmpi.rank, nztl, nzext))
-    ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder, constraint=constraint, tol=tol, mode=mode,
+    ext = P.extractMesh(tl, ext, order=order, extrapOrder=extrapOrder,
+                        constraint=constraint, tol=tol, mode=mode,
                         hook=hook)
     return ext
 
@@ -163,46 +164,6 @@ def streamLine2(t, X0, vector, N=2000, eps=1.e-2, maxCompt=20):
     return out
 
 #=============================================================================
-# Helper functions for computeGrad2 and computeDiv2
-#=============================================================================
-def _getVolAndCellN__(z, vol, cellN, withCellN=True):
-    fsolc = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
-    if fsolc is not None:
-        vol = Internal.getNodeFromName1(fsolc, 'vol')
-        if vol is not None: vol = vol[1]
-        cellN = Internal.getNodeFromName1(fsolc, 'cellN')
-        if cellN is not None: cellN = cellN[1]
-    return None
-
-def _addBCDataSet2ExchangeBCMatchData__(z, varList, indices, BCField):
-    # Add BCDataSet data if zone is not a ghost cell zone
-    isghost = Internal.getNodeFromType1(z, 'Rind_t')
-    zoneBC = Internal.getNodesFromType1(z, 'ZoneBC_t')
-    if (isghost is not None) or zoneBC is None: return
-
-    zn = z[0]
-    nvars = len(varList)
-    BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
-    for b in BCs:
-        datas = Internal.getBCDataSet(z, b)
-        inds = Internal.getBCFaceNode(z, b)
-        if datas == [] or inds == []: continue
-        bcf = [None for _ in range(nvars)]
-        for i in datas:
-            for v in range(nvars):
-                if i[0] == varList[v] and bcf[v] is None: bcf[v] = i
-        if all(bcfv is not None for bcfv in bcf):
-            indsp = inds[1].ravel(order='K')
-            bcfp = [bcfv[1].ravel(order='K') for bcfv in bcf]
-            if zn not in indices: indices[zn] = indsp
-            else: indices[zn] = numpy.concatenate((indices[zn], indsp))
-            for v, bcfpv in enumerate(bcfp):
-                BCFieldv = BCField[v]
-                if zn not in BCFieldv: BCFieldv[zn] = bcfpv
-                else: BCFieldv[zn] = numpy.concatenate((BCFieldv[zn], bcfpv))
-    return None
-
-#=============================================================================
 # Parallel computeGrad2 for STRUCT and NGON zones
 # BCMatch must be set in t
 #=============================================================================
@@ -211,33 +172,11 @@ def _computeGrad2(t, var, withCellN=True):
     if Cmpi.size == 1:
         return P._computeGrad2(t, var, withCellN=withCellN)
 
+    # Store exchange BCMatch data and pass it to P._computeGrad2
     import Connector.Mpi as Xmpi
-    import Post
-
-    # Exchange BCMatch data
     varList = [var.split(':')[-1]]
     indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
-
-    zones = Internal.getZones(t)
-    for z in zones:
-        zn = z[0]
-        f = C.getField(var, z, api=3)[0]
-        if f == []: continue
-
-        # Test if vol and cellN are present
-        vol, cellN = None, None
-        _getVolAndCellN__(z, vol, cellN, withCellN=withCellN)
-
-        # Add BCDataSet data to exchange BCMatch data
-        _addBCDataSet2ExchangeBCMatchData__(z, varList, indices, BCField)
-
-        x = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
-        inds = indices[zn] if zn in indices else None
-        bcf = BCField[0][zn] if zn in BCField[0] else None
-
-        gradFlds = Post.computeGrad2(x, f, vol, cellN, indices=inds, BCField=bcf)
-        C.setFields([gradFlds], z, 'centers')
-
+    P._computeGrad2(t, var, withCellN=withCellN, indices=indices, BCField=BCField)
     return None
 
 #=============================================================================
@@ -249,43 +188,9 @@ def _computeDiv2(t, var, rmVar=False):
     if Cmpi.size == 1:
         return P._computeDiv2(t, var, rmVar=rmVar)
 
+    # Store exchange BCMatch data and pass it to P._computeDiv2
     import Connector.Mpi as Xmpi
-    import Post
-
-    # Exchange BCMatch data
     varList = [var.split(':')[-1] + d for d in ["X", "Y", "Z"]]
     indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
-
-    zones = Internal.getZones(t)
-    for z in zones:
-        zn = z[0]
-        f = C.getFields("centers", z, vars=varList, api=3)[0]
-        if f == []: continue
-
-        # Test if vol and cellN are present
-        vol, cellN = None, None
-        _getVolAndCellN__(z, vol, cellN)
-
-        # Add BCDataSet data to exchange BCMatch data
-        _addBCDataSet2ExchangeBCMatchData__(z, varList, indices, BCField)
-
-        x = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
-        BCFieldX = BCField[0]; BCFieldY = BCField[1]; BCFieldZ = BCField[2]
-        inds = indices[zn] if zn in indices else None
-        bcfx = BCFieldX[zn] if zn in BCFieldX else None
-        bcfy = BCFieldY[zn] if zn in BCFieldY else None
-        bcfz = BCFieldZ[zn] if zn in BCFieldZ else None
-
-        divFld = Post.computeDiv2(
-            x, f, vol, cellN, indices=inds,
-            BCFieldX=bcfx, BCFieldY=bcfy, BCFieldZ=bcfz
-        )
-        C.setFields([divFld], z, 'centers')
-
-    # Conditional clean up of partial derivatives
-    if rmVar:
-        varWLocList = [var + d for d in ["X", "Y", "Z"]]
-        C._rmVars(t, varWLocList)
-        C._rmBCDataVars(t, varList)
-
+    P._computeDiv2(t, var, rmVar=rmVar, indices=indices, BCField=BCField)
     return None
