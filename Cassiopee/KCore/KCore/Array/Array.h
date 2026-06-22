@@ -526,7 +526,12 @@ namespace K_ARRAY
                        E_Int sizeNGon=1, E_Int sizeNFace=1,
                        E_Int nface=1, E_Int api=1);
   PyObject* buildArray3(E_Int nfld, const char* varString,
-                        E_Int nvertex, E_Int nelt, E_Int nface, 
+                        E_Int nvertex, E_Int nelts, E_Int nfaces, 
+                        const char* etString,
+                        E_Int sizeNGon=1, E_Int sizeNFace=-1, E_Int ngonType=1,
+                        E_Bool center=false, E_Int api=1);
+  PyObject* buildArray3(FldArrayF& f, const char* varString,
+                        E_Int nelts, E_Int nfaces, 
                         const char* etString,
                         E_Int sizeNGon=1, E_Int sizeNFace=-1, E_Int ngonType=1,
                         E_Bool center=false, E_Int api=1);
