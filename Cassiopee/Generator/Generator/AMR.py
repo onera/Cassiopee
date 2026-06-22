@@ -15,6 +15,11 @@ import os, numpy, math, time
 __TOL__ = 1.0e-9
 
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
+    # example of the dictExtension - the value provided (-1, 1) correspond to
+    # whether the extrusion is towards - or + direction
+    # dictExtension = {
+    #    "midplane": -1
+    # }
     for i, zoneNameTmp in enumerate(dictExtension):
         node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
         Internal._createUniqueChild(node, '.Solver#define', 'UserDefinedData_t')
@@ -1432,10 +1437,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # NumBase is only the num. of 'real' bodies
     snears, numBase = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-    if tbv2 is not None: tbv2 = C.convertFile2PyTree(tbv2)
-    tbv2 = createExtension__(tb)
-    if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb)): tbv2 = None
-    if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
+
+    if baseSYM:
+        if tbv2 is not None:
+            # Keep this option for expert & debug purposes
+            tbv2 = C.convertFile2PyTree(tbv2)
+        else:
+            # Default operating mode
+            tbv2 = createExtension__(tb)
+            # Remove SYM Base & Zones - keep real closed tb & tbox
+            tbTmp = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+            tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
+            if len(Internal.getZones(tbv2)) == len(Internal.getZones(tbTmp)): tbv2 = None
+            del tbTmp
+        if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
     # list of vmins
     # This section::
