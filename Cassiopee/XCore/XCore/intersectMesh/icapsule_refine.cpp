@@ -106,12 +106,9 @@ std::vector<PointLoc> ICapsule::refine(Smesh &Mf, std::set<E_Int> &mfids,
 {
     size_t ref_M, ref_S;
     
-    E_Int iter = 0;
-    
     std::vector<PointLoc> plocs_s;
 
     do {
-        iter++;
 
         std::vector<E_Int> fat_sfids;
         std::vector<E_Int> fat_mfids;

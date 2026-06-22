@@ -28,7 +28,7 @@
 E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
 {
     size_t refM = 0, refS = 0;
-    E_Int iter = 0;
+    //E_Int iter = 0;
 
     S.init_adaptation_data();
     M.init_adaptation_data();
@@ -36,10 +36,9 @@ E_Int meshes_mutual_refinement(IMesh &M, IMesh &S)
     E_Int S_np_before = S.np;
 
     do {
-        iter++;
+        //iter++;
 
         // Refine M wrt S
-
         S.make_point_faces();
         M.make_bbox();
         M.hash_skin(); // TODO(Imad): hash_patch!
@@ -258,12 +257,11 @@ size_t IMesh::refine_slave(const IMesh &master)
 
     //printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
-    E_Int iter = 0;
     size_t ret = 0;
 
-    while (!ref_stids_to_mtids.empty()) {
-        iter++;
-
+    while (!ref_stids_to_mtids.empty()) 
+    {
+    
         auto ref_data = smooth_ref_data(ref_stids_to_mtids);
 
         auto ref_faces = prepare_for_refinement(ref_data);
@@ -424,12 +422,10 @@ size_t IMesh::refine(const IMesh &S)
 
     //printf("Faces to refine: %zu\n", ref_mfaces_to_sfaces.size());
 
-    E_Int iter = 0;
     size_t ret = 0;
 
-    while (!ref_mfaces_to_sfaces.empty()) {
-        iter++;
-
+    while (!ref_mfaces_to_sfaces.empty()) 
+    {
         auto ref_data = smooth_ref_data(ref_mfaces_to_sfaces);
 
         auto ref_faces = prepare_for_refinement(ref_data);

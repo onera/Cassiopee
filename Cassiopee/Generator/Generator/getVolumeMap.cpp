@@ -157,7 +157,8 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
     else // ME
     {
       E_Int ierr;
-      E_Int ntotFacets = 0, ntotElts = 0;
+      E_Int ntotFacets = 0;
+      //E_Int ntotElts = 0;
       E_Int nc = cn->getNConnect();
 
       // Number of facets per element
@@ -178,7 +179,7 @@ PyObject* K_GENERATOR::getVolumeMapOfMesh(PyObject* self, PyObject* args)
         K_FLD::FldArrayI& cm = *(cn->getConnect(ic));
         E_Int nelts = cm.getSize();
         ntotFacets += nfpe[ic]*nelts;
-        ntotElts += nelts;
+        //ntotElts += nelts;
       }
 
       // Get dimensionality

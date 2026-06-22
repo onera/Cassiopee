@@ -131,11 +131,8 @@ namespace NUGA
 
     bool has_mpi_changes{ true };
 
-    int mpi_iter = -1;
-
     while (has_mpi_changes)
     {
-      ++mpi_iter;
       has_mpi_changes = false;
 
       id_to_PG_to_plan_t zid_to_PG_to_plan;

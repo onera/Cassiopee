@@ -30,6 +30,7 @@
 #include "BRepLib.hxx"
 #include "BRep_Builder.hxx"
 #include "ShapeFix_ShapeTolerance.hxx"
+#include <StdFail_NotDone.hxx>
 
 #include <ShapeFix_Edge.hxx>
 #include <ShapeFix_Wire.hxx>
@@ -152,9 +153,10 @@ PyObject* K_OCC::fixShape(PyObject* self, PyObject* args)
     newshp = new TopoDS_Shape();
     *newshp = usd.Shape();
     delete shape;
+    shape = newshp;
   }
 
-  SETSHAPE(newshp);
+  SETSHAPE(shape);
 
   printf("INFO: after fixShape: Nb edges=%d\n", se->Extent());
   printf("INFO: after fixShape: Nb faces=%d\n", sf->Extent());
