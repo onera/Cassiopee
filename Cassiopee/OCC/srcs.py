@@ -38,6 +38,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/createEmptyCAD.cpp',
         'OCC/Atomic/mergeCAD.cpp',
         'OCC/Atomic/freeHook.cpp',
+        'OCC/Atomic/utils.cpp',
 
         'OCC/Atomic/printOCAF.cpp',
         'OCC/Atomic/getFaceNameInOCAF.cpp',

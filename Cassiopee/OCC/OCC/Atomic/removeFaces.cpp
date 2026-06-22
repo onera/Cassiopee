@@ -45,7 +45,7 @@ void getEdgeMap(TopTools_IndexedMapOfShape& oldEdges, TopTools_IndexedMapOfShape
     for (E_Int j = 1; j <= neold; j++)
     {
       const TopoDS_Edge& EO = TopoDS::Edge(oldEdges(j));
-      if (E.IsSame(EO)) 
+      if (E.IsSame(EO))
       {
         //printf("edge identified %d %d\n", i, j);
         PyList_Append(edgeMap, PyLong_FromLong(j));

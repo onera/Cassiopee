@@ -23,6 +23,7 @@
 #include "packet.h"
 
 #include "TopoDS_Shape.hxx"
+#include "TopoDS_Compound.hxx" 
 #include "TDocStd_Document.hxx"
 #include <map>
 
@@ -45,6 +46,12 @@ namespace K_OCC
   void copyTopShape2OCAF(TopoDS_Shape& topShape, 
     std::map< E_Int, std::vector<E_Int> >& label2Edges, 
     std::map< E_Int, std::vector<E_Int> >& label2Faces, TDocStd_Document& doc);
+  // Build a compound from list of faces
+  void buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound);
+  // Build a compound from faces not in list
+  void buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound);
+  // sew a shape
+  void sewShape(TopoDS_Shape& shape, E_Float tol);
 
   PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher
