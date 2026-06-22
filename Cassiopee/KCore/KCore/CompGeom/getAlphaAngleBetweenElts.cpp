@@ -42,51 +42,51 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenTriangles(
   E_Float dx = ptA1[0]-ptA2[0]; 
   E_Float dy = ptA1[1]-ptA2[1]; 
   E_Float dz = ptA1[2]-ptA2[2];
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 1; c++; goto B1;}
   dx = ptA1[0]-ptB2[0]; dy = ptA1[1]-ptB2[1]; dz = ptA1[2]-ptB2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 2; c++;  goto B1;}
   dx = ptA1[0]-ptC2[0]; dy = ptA1[1]-ptC2[1]; dz = ptA1[2]-ptC2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 3; c++; goto B1;}
   B1:;
   dx = ptB1[0]-ptA2[0]; dy = ptB1[1]-ptA2[1]; dz = ptB1[2]-ptA2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 1; c++;  goto C1;}
   dx = ptB1[0]-ptB2[0]; dy = ptB1[1]-ptB2[1]; dz = ptB1[2]-ptB2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 2; c++; goto C1;}
   dx = ptB1[0]-ptC2[0]; dy = ptB1[1]-ptC2[1]; dz = ptB1[2]-ptC2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 3; c++; goto C1;}
   C1:;
   dx = ptC1[0]-ptA2[0]; dy = ptC1[1]-ptA2[1]; dz = ptC1[2]-ptA2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 1; c++; goto fin;}
   dx = ptC1[0]-ptB2[0]; dy = ptC1[1]-ptB2[1]; dz = ptC1[2]-ptB2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 2; c++; goto fin;}
   dx = ptC1[0]-ptC2[0]; dy = ptC1[1]-ptC2[1]; dz = ptC1[2]-ptC2[2]; 
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true) 
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 3; c++; goto fin;}
   fin:;
   if (c < 2) {return -1000.;}
@@ -162,8 +162,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenTriangles(
   E_Float sy2 = surfy;
   E_Float sz2 = surfz;
 
-  if (K_FUNC::fEqualZero(surf1, 1.e-16) == true || 
-      K_FUNC::fEqualZero(surf2, 1.e-16) == true)
+  if (K_FUNC::fEqualZero(surf1, 1.e-16) || 
+      K_FUNC::fEqualZero(surf2, 1.e-16))
   {
     return -1000.;
   }
@@ -181,9 +181,9 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenTriangles(
 
   // Angle entre la normale n1 avec un vecteur tangent de T2 
   E_Float normt1 = K_FUNC::normalize<3>(t1);
-  if (K_FUNC::fEqualZero(normt1,eps) == true) return -1000.;
+  if (K_FUNC::fEqualZero(normt1,eps)) return -1000.;
   E_Float normt2 = K_FUNC::normalize<3>(t2);
-  if (K_FUNC::fEqualZero(normt2,eps) == true) return -1000.;
+  if (K_FUNC::fEqualZero(normt2,eps)) return -1000.;
 
   E_Float ps1 = K_FUNC::dot<3>(n2, t1);
   E_Float ps2 = K_FUNC::dot<3>(n1, t2);
@@ -224,90 +224,90 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   E_Float dx = ptA1[0]-ptA2[0]; 
   E_Float dy = ptA1[1]-ptA2[1]; 
   E_Float dz = ptA1[2]-ptA2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 1; c++; goto B1;}
   dx = ptA1[0]-ptB2[0]; dy = ptA1[1]-ptB2[1]; dz = ptA1[2]-ptB2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 2; c++;  goto B1;}
   dx = ptA1[0]-ptC2[0]; dy = ptA1[1]-ptC2[1]; dz = ptA1[2]-ptC2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 3; c++; goto B1;}
   dx = ptA1[0]-ptD2[0]; dy = ptA1[1]-ptD2[1]; dz = ptA1[2]-ptD2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundA1 = 4; c++; goto B1;}
   B1:;
 
   dx = ptB1[0]-ptA2[0]; dy = ptB1[1]-ptA2[1]; dz = ptB1[2]-ptA2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 1; c++;  goto C1;}
   dx = ptB1[0]-ptB2[0]; dy = ptB1[1]-ptB2[1]; dz = ptB1[2]-ptB2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true)  
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps))  
   {foundB1 = 2; c++; goto C1;}
   dx = ptB1[0]-ptC2[0]; dy = ptB1[1]-ptC2[1]; dz = ptB1[2]-ptC2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 3; c++; goto C1;}
   dx = ptB1[0]-ptD2[0]; dy = ptB1[1]-ptD2[1]; dz = ptB1[2]-ptD2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundB1 = 4; c++; goto C1;}
   C1:;
 
   dx = ptC1[0]-ptA2[0]; dy = ptC1[1]-ptA2[1]; dz = ptC1[2]-ptA2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 1; c++; goto D1;}
   dx = ptC1[0]-ptB2[0]; dy = ptC1[1]-ptB2[1]; dz = ptC1[2]-ptB2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 2; c++; goto D1;}
   dx = ptC1[0]-ptC2[0]; dy = ptC1[1]-ptC2[1]; dz = ptC1[2]-ptC2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 3; c++; goto D1;}
   dx = ptC1[0]-ptD2[0]; dy = ptC1[1]-ptD2[1]; dz = ptC1[2]-ptD2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundC1 = 4; c++; goto D1;}
   D1:;
 
   dx = ptD1[0]-ptA2[0]; dy = ptD1[1]-ptA2[1]; dz = ptD1[2]-ptA2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundD1 = 1; c++; goto fin;}
   dx = ptD1[0]-ptB2[0]; dy = ptD1[1]-ptB2[1]; dz = ptD1[2]-ptB2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundD1 = 2; c++; goto fin;}
   dx = ptD1[0]-ptC2[0]; dy = ptD1[1]-ptC2[1]; dz = ptD1[2]-ptC2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundD1 = 3; c++; goto fin;}
   dx = ptD1[0]-ptD2[0]; dy = ptD1[1]-ptD2[1]; dz = ptD1[2]-ptD2[2]; 
-  if ( K_FUNC::fEqualZero(dx,eps) == true && 
-       K_FUNC::fEqualZero(dy,eps) == true && 
-       K_FUNC::fEqualZero(dz,eps) == true) 
+  if ( K_FUNC::fEqualZero(dx,eps) && 
+       K_FUNC::fEqualZero(dy,eps) && 
+       K_FUNC::fEqualZero(dz,eps)) 
   {foundD1 = 4; c++; goto fin;}
   fin:;
   if (c < 2) {return -1000.;}
@@ -447,8 +447,8 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
   E_Float sz2 = surf1z + surf2z;
   E_Float surf2 = sqrt(sx2*sx2+sy2*sy2+sz2*sz2);
 
-  if ( K_FUNC::fEqualZero(surf1, 1.e-16) == true || 
-       K_FUNC::fEqualZero(surf2, 1.e-16) == true )
+  if ( K_FUNC::fEqualZero(surf1, 1.e-16) || 
+       K_FUNC::fEqualZero(surf2, 1.e-16) )
   {
     return -1000.;
   }
@@ -466,9 +466,9 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenQuads(
 
   //Angle entre la normale n1 avec un vecteur tangent de T2 avec 
   E_Float normt1 = K_FUNC::normalize<3>(t1);
-  if ( K_FUNC::fEqualZero(normt1,eps) == true ) return -1000.;
+  if ( K_FUNC::fEqualZero(normt1,eps) ) return -1000.;
   E_Float normt2 = K_FUNC::normalize<3>(t2);
-  if ( K_FUNC::fEqualZero(normt2,eps) == true ) return -1000.;
+  if ( K_FUNC::fEqualZero(normt2,eps) ) return -1000.;
   E_Float ps1 = K_FUNC::dot<3>(n2, t1);
   E_Float ps2 = K_FUNC::dot<3>(n1, t2);
   if (ps > tolps)
@@ -510,36 +510,36 @@ E_Float K_COMPGEOM::getAlphaAngleBetweenBars(E_Float* ptA1, E_Float* ptB1,
   E_Float dx, dy, dz;
   
   dx = ptA1[0]-ptA2[0]; dy = ptA1[1]-ptA2[1]; dz = ptA1[2]-ptA2[2];
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true)
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps))
   {
     t1[0] = ptB1[0]-ptA1[0]; t1[1] = ptB1[1]-ptA1[1]; t1[2] = ptB1[2]-ptA1[2];
     t2[0] = ptB2[0]-ptA2[0]; t2[1] = ptB2[1]-ptA2[1]; t2[2] = ptB2[2]-ptA2[2];
     goto fin;
   }
   dx = ptA1[0]-ptB2[0]; dy = ptA1[1]-ptB2[1]; dz = ptA1[2]-ptB2[2];
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true)
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps))
   {
     t1[0] = ptB1[0]-ptA1[0]; t1[1] = ptB1[1]-ptA1[1]; t1[2] = ptB1[2]-ptA1[2];
     t2[0] = ptA2[0]-ptB2[0]; t2[1] = ptA2[1]-ptB2[1]; t2[2] = ptA2[2]-ptB2[2];
     goto fin;
   }  
   dx = ptB1[0]-ptA2[0]; dy = ptB1[1]-ptA2[1]; dz = ptB1[2]-ptA2[2];
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true)
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps))
   {
     t1[0] = ptA1[0]-ptB1[0]; t1[1] = ptA1[1]-ptB1[1]; t1[2] = ptA1[2]-ptB1[2];
     t2[0] = ptB2[0]-ptA2[0]; t2[1] = ptB2[1]-ptA2[1]; t2[2] = ptB2[2]-ptA2[2];
     goto fin;
   }
   dx = ptB1[0]-ptB2[0]; dy = ptB1[1]-ptB2[1]; dz = ptB1[2]-ptB2[2];
-  if (K_FUNC::fEqualZero(dx,eps) == true && 
-      K_FUNC::fEqualZero(dy,eps) == true && 
-      K_FUNC::fEqualZero(dz,eps) == true)
+  if (K_FUNC::fEqualZero(dx,eps) && 
+      K_FUNC::fEqualZero(dy,eps) && 
+      K_FUNC::fEqualZero(dz,eps))
   {
     t1[0] = ptA1[0]-ptB1[0]; t1[1] = ptA1[1]-ptB1[1]; t1[2] = ptA1[2]-ptB1[2];
     t2[0] = ptA2[0]-ptB2[0]; t2[1] = ptA2[1]-ptB2[1]; t2[2] = ptA2[2]-ptB2[2];
