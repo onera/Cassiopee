@@ -150,6 +150,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     E_Int j, itrl, nv, vidx;
     E_Int ind = 0;
     // 1.c Reindex vertices in FN (no change in size)
+    //     In 1D, EF contains vertex indices, reindex as well
     for (E_Int i = 0; i < nfaces; i++)
     {
       cn.getFace(i, nv, ngon, indPG);
@@ -159,6 +160,16 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
         if (indir[vidx] != vidx) ngon[ind+p] = indir[vidx]+1;
       }
       ind += nv+shift;
+    }
+    if (dim == 1)
+    {
+      ind = 0;
+      for (E_Int i = 0; i < nelts; i++)
+      {
+        ind = i*(2 + shift) + shift;
+        nface[ind] = indir[nface[ind]-1]+1;
+        nface[ind+1] = indir[nface[ind+1]-1]+1;
+      }
     }
 
     // 1.d Reindex and compress fields
