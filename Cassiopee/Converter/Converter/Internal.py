@@ -2700,11 +2700,14 @@ def printTree(node, file=None, stdOut=None, editor=None, color=False):
   if stdOut: stdOut.write(rep)
   if editor:
     from tempfile import mkstemp
-    import os
+    import os, subprocess, shlex
     fd, tmpfl = mkstemp('.py')
     os.write(fd, rep.encode("utf8"))
     os.close(fd)
-    os.system('%s %s ;rm -f %s' %(editor, tmpfl, tmpfl))
+    try:
+      subprocess.run(shlex.split(editor) + [tmpfl], check=False)
+    finally:
+      os.remove(tmpfl)
   if file:
     fi = open(file, 'w')
     fi.write(rep)
