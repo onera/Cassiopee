@@ -214,13 +214,13 @@ def testF(infile, number=1, reference=""):
     if not a:
         print("Can not open file %s for reading."%reference)
         print("Reference file %s has been created."%reference)
-        os.system("cp "+infile+" "+reference)
+        import shutil
+        shutil.copy(infile, reference)
         return True
     else:
         print("Diffing with '"+reference+"'... done.")
         import filecmp
         ret = filecmp.cmp(reference, infile, shallow=False)
-        #ret = os.system("diff "+reference+" "+infile)
         if not ret:
             print("DIFF: with file "+reference+'.')
             return False
