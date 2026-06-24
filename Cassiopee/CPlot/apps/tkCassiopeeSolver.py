@@ -208,7 +208,7 @@ def run():
         subprocess.run([sys.executable, "dump.py"], check=False)
         subprocess.Popen(
             ["xterm", "-e", "sh", "-c",
-            f"{sys.executable} setup.py; sleep 1000000"]
+             f"{sys.executable} setup.py; sleep 1000000"]
         )
     else:
         f = open(outputFile, "w")
