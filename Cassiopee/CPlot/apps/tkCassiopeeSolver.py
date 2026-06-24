@@ -199,16 +199,25 @@ def writeSetupFile():
 #==============================================================================
 def run():
     if (CTK.t == []): return
+    import subprocess
     treeFile = os.path.splitext(CTK.FILE)[0]+'.cgns'
     outputFile = 'xterm'
     C.convertPyTree2File(CTK.t, treeFile)
     writeSetupFile()
-    if (outputFile == 'xterm'):
-        os.system('python dump.py')
-        os.system('xterm -e \'python setup.py; sleep 1000000\'&')
+    if outputFile == 'xterm':
+        subprocess.run([sys.executable, "dump.py"], check=False)
+        subprocess.Popen(
+            ["xterm", "-e", "sh", "-c",
+             f"{sys.executable} setup.py; sleep 1000000"]
+        )
     else:
-        os.system('python dump.py')
-        os.system('python setup.py\ >& '+outputFile+'\'&')
+        f = open(outputFile, "w")
+        subprocess.Popen(
+            [sys.executable, "setup.py"],
+            stdout=f,
+            stderr=subprocess.STDOUT,
+        )
+        f.close()
     return
 
 #==============================================================================

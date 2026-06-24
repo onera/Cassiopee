@@ -1463,11 +1463,12 @@ def _addBCDataSet2BCData__(z, varList, indices, BCField):
     BCs = Internal.getNodesFromType1(zoneBC, 'BC_t')
     for b in BCs:
         inds = Internal.getBCFaceNode(z, b)
-        datas = Internal.getBCDataSet(z, b)
-        if inds == [] or datas == []: continue
+        data = Internal.getBCDataSet(z, b)
+        if inds == [] or data == []: continue
         bcf = [None for _ in range(nvars)]
-        for i in datas:
-            v = varList.index(i[0])
+        for i in data:
+            try: v = varList.index(i[0])
+            except ValueError: continue
             bcf[v] = i
         if any(bcfv is not None for bcfv in bcf):
             indsp = inds[1].ravel(order='K')
