@@ -94,7 +94,7 @@ def identifyDegenerated(A, tol=1.e-6):
     return connector.identifyDegenerated(A, tol)
 
 #===============================================================================
-# Retourne [ [[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac] ]
+# Returns [ [[noz1,noz2],[imin1,imax1,...],[imin2,imax2,...],trirac] ]
 def gatherMatching(listOfWins, listOfTags, typeOfWins, blkOfWins,
                    allNI, allNJ, allNK, dim=3, tol=1.e-6):
     return connector.gatherMatching(listOfWins, listOfTags, typeOfWins,
@@ -113,7 +113,7 @@ def gatherDegenerated(listOfTags, typeOfWins, blkOfWins,
     return connector.gatherDegenerated(listOfTags, typeOfWins, blkOfWins,
                                        allNI, allNJ, allNK, dim)
 #------------------------------------------------------------------------------
-# Verifie si les deux windows en raccord match ont des normales opposees
+# Check if the two matching windows have opposite normals
 #------------------------------------------------------------------------------
 def checkMatchWindows__(a, win, aopp, winopp, tol):
     """Check if matching windows are opposed in terms of normals."""
@@ -182,7 +182,7 @@ def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
             Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else:
             _getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
-    else: # non structure avec champ celln en centres
+    else: # unstructured with celln field at centers
         if depth < 0:
             Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             _getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
@@ -207,7 +207,7 @@ def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN', indices=
             celln = Converter.initVars(celln,
                                        '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
         else: celln = getOversetHolesInterpNodes__(celln, depth, dir, cellNName)
-    else: # non structure avec champ celln en centres
+    else: # unstructured with celln field at centers
         if depth < 0:
             celln = Converter.initVars(celln,
                                        '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
@@ -226,9 +226,9 @@ def blankCells(coords, cellnfields, body, blankingType=1, \
     Usage: blankCells(coords, cellnfields, body, blankingType, delta, dim, maskNot, tol)"""
     try: import Converter as C
     except: raise ImportError("blankCells: requires Converter module.")
-    # passe body en centres etendus si structure et pas node_in
+    # convert body to extended centers if structured and not node_in
     if blankingType != 0:
-        # verif que ts les body sont structures
+        # verify that all bodies are structured
         struct = 1
         for z in body:
             if len(z) != 5: struct = 0; break
@@ -237,7 +237,7 @@ def blankCells(coords, cellnfields, body, blankingType=1, \
     for z in body:
         z = C.convertArray2Tetra(z)
         bodyt.append(z)
-    if blankingType == 2: # center_in: simplement un node_in sur les centres
+    if blankingType == 2: # center_in: simply a node_in on centers
         coords = C.node2Center(coords); blankingType = 0
     return connector.blankCells(coords, cellnfields, bodyt, blankingType, \
                                 delta, dim, masknot, tol, XRaydim1, XRaydim2, cellNName)
@@ -251,9 +251,9 @@ def _blankCells(coords, cellnfields, body, blankingType=1, \
     Usage: blankCells(coords, cellnfields, body, blankingType, delta, dim, maskNot, tol)"""
     try: import Converter as C
     except: raise ImportError("blankCells: requires Converter module.")
-    # passe body en centres etendus si structure et pas node_in
+    # convert body to extended centers if structured and not node_in
     if blankingType != 0:
-        # verif que ts les body sont structures
+        # verify that all bodies are structured
         struct = 1
         for z in body:
             if len(z) != 5: struct = 0; break
@@ -262,7 +262,7 @@ def _blankCells(coords, cellnfields, body, blankingType=1, \
     for z in body:
         z = C.convertArray2Tetra(z)
         bodyt.append(z)
-    if blankingType == 2: # center_in: simplement un node_in sur les centres
+    if blankingType == 2: # center_in: simply a node_in on centers
         coords = C.node2Center(coords); blankingType = 0
 
     return connector._blankCells(coords, cellnfields, bodyt, blankingType, \
@@ -306,7 +306,7 @@ def blankCellsTetra(coords, cellnfields, meshT4, blankingType=1, tol=1.e-12, cel
 
     for i in range(len(coords)):
         bt = blankingType
-        if blankingType == 2: # center_in: simplement un node_in sur les centres
+        if blankingType == 2: # center_in: simply a node_in on centers
             coords[i] = C.node2Center(coords[i])
             bt = 0
         cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
@@ -337,7 +337,7 @@ def blankCellsTri(coords, cellnfields, meshT3, blankingType=1, tol=1.e-12,
 
     for i in range(len(coords)):
         bt = blankingType
-        if blankingType == 2: # center_in: simplement un node_in sur les centres
+        if blankingType == 2: # center_in: simply a node_in on centers
             coords[i] = C.node2Center(coords[i])
             bt = 0
         cellnt.append(connector.blankCellsTetra(coords[i], cellnfields[i], mask, bt, cellnval, overwrite, cellNName))
@@ -376,13 +376,13 @@ def applyBCOverlapsStruct__(a, minIndex, maxIndex, depth, loc, val=2, cellNName=
     return b
 
 #=============================================================================
-# Application des conditions aux limites doublement definies pour une zone z
-# cellN: cellnaturefield aux centres: 2 si point interpole
-# listOfInterpZones: liste des domaines d interpolation de z
-# range: [imin,imax,jmin,jmax,kmin,kmax] de la CL de z
-# depth: nb de rangees de points interpoles
-# retourne le cellN modifie de la zone: si un point de la CL n est pas
-# interpolable a partir de la listOfInterpZones, le cellN est remis a 1
+# Apply doubly defined boundary conditions for zone z
+# cellN: cell nature field at centers: 2 if interpolated point
+# listOfInterpZones: list of interpolation domains of z
+# range: [imin,imax,jmin,jmax,kmin,kmax] of the BC of z
+# depth: number of rows of interpolated points
+# returns the modified cellN of the zone: if a BC point is not
+# interpolable from listOfInterpZones, cellN is reset to 1
 #=============================================================================
 def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
                        depth=1):
@@ -396,36 +396,36 @@ def setDoublyDefinedBC(z, cellN, listOfInterpZones, listOfCelln, winrange,
                                         listOfCelln, winrange, depth)
 
 #===============================================================================
-# Calcul les donneurs et coefs d interpolation pour une zone receveuse
-# a partir d'une liste de zones donneuses. Si plusieurs candidats possibles
-# pour l'interpolation issus de plusieurs zones donneuses, selectionne la
-# cellule d interpolation de plus petit volume
+# Compute donors and interpolation coefficients for a receiver zone
+# from a list of donor zones. If several candidates are possible
+# for interpolation from several donor zones, selects the
+# interpolation cell with smallest volume
 #
-# IN: interpPts: pts a interpoler (sous forme de liste d arrays avec coordonnees modifiees pour le double wall)
-# IN: zonesD: liste de zones donneuses, contenant la variable cellN
-# IN: order: ordre des interpolations
-# IN: penalty=1: penalise une cellule donneuse en terme de volume si elle est au bord
-# IN: nature=0: aucun sommet de la cellule d'interpolation ne doit etre avec un cellN=0
-#     nature=1: toutes les sommets de la cellule d'interpolation doivent etre de cellN=1
-# IN: extrap=0: pas de calcul des point extrapoles
-#     extrap=1: calcul et stockage des eventuels pts extrapoles
-# IN: hook: hook sur l'adt (pas reconstruit dans setInterpData), l'ordre doit suivre celui de zonesD
+# IN: interpPts: points to interpolate (as list of arrays with coordinates modified for double wall)
+# IN: zonesD: list of donor zones, containing cellN variable
+# IN: order: order of interpolations
+# IN: penalty=1: penalizes a donor cell in terms of volume if it is at the edge
+# IN: nature=0: no vertex of the interpolation cell must have cellN=0
+#     nature=1: all vertices of the interpolation cell must have cellN=1
+# IN: extrap=0: no extrapolated points calculation
+#     extrap=1: calculation and storage of possible extrapolated points
+# IN: hook: hook on the ADT (not reconstructed in setInterpData), order must follow that of zonesD
 # IN : interpDataType : 1 for ADT, 0 if donor are cartesian (optimized)
 # OUT: res = [[rcvInd1],[donorInd1D],[donorType],[coefs],extrapInd1D, orphanInd1D]
-#      res[0] liste des indices 1D des pts interpoles/extrapoles par zone donneuse (numerotation de interpPts)
-#      res[1] liste des indices 1D des molecules donneuses, dont le stockage est defini par le type
-#      res[2] liste des types pour chq pt interpole par un bloc donneur
-#      res[3] liste par bloc donneur des coefs d interpolation, sous forme d un tableau 1D
-#      res[4] liste par bloc donneur des pts extrapoles
-#      res[5] orphanInd1D: indice 1D des points orphelins (numero ds interpPts)
+#      res[0] list of 1D indices of interpolated/extrapolated points per donor zone (numbering from interpPts)
+#      res[1] list of 1D indices of donor cells, whose storage is defined by the type
+#      res[2] list of types for each interpolated point by a donor block
+#      res[3] list per donor block of interpolation coefficients, as a 1D array
+#      res[4] list per donor block of extrapolated points
+#      res[5] orphanInd1D: 1D index of orphan points (number in interpPts)
 #
 #===============================================================================
 def setInterpData__(interpPts, zonesD, order=2, penalty=1, extrap=1, nature=0, method='lagrangian', interpDataType=1, hook=None, dim=3):
     if method == 'lagrangian':
-        if isinstance(interpPts[0], list): # liste d'arrays
+        if isinstance(interpPts[0], list): # list of arrays
             if interpPts[0][1].shape[1] >0: return connector.setInterpDataDW(interpPts, zonesD, order, nature, penalty, hook)
             else: return None
-        else: # pas de liste d'arrays = pas de double wall
+        else: # no list of arrays = no double wall
             if interpPts[1].shape[1]>0:
                 if not isinstance(interpDataType,list): interpDataTypeL=[interpDataType]*len(zonesD)
                 else: interpDataTypeL = interpDataType
@@ -433,7 +433,7 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, extrap=1, nature=0, m
             else: return None
 
     elif method == 'leastsquares':
-        if isinstance(interpPts[0], list): # liste d'arrays
+        if isinstance(interpPts[0], list): # list of arrays
             print('Warning: setInterpData: only 1st zone in 1st arg taken into account.')
             if interpPts[0][1].shape[1]>0:
                 return connector.setInterpDataLS(interpPts[0], zonesD, order, nature, penalty, hook, dim)
@@ -446,24 +446,24 @@ def setInterpData__(interpPts, zonesD, order=2, penalty=1, extrap=1, nature=0, m
         raise ValueError("setInterpData__: %s: not a valid interpolation method."%method)
 
 #-----------------------------------------------------------------------------
-# Calcul et stockage des coefficients d'interpolation pour les pts donnes
-# sous forme de 'NODE'
-# IN: rcvzonename: nom de la zone interpolee contenant les pts interpPts
-# IN: nir, njr dimensions (I,J) de la zone interpolee
-# IN: interpPts: x,y,z au moins des pts interpoles
-# IN: listOfInterpolationZones: liste des domaines d interpolation - en noeuds
-# IN: listOfInterpolationCelln: liste des champs celln associes - en centres
-# IN: isEX=0 si traitement aux centres, isEX=1 si interpPts = pts EX
-# IN: zoneId: numero global (en parallele) de la zone, commence a 1
-# IN: cfMax, valeur max. authorisee (pour la somme des valeurs absolues des coefs) pour l extrapolation
-# OUT: coefficients d'interpolation
-# OUT: indices pour les cellules interpolees
-# OUT: indices pour les cellules d interpolation
-# OUT: indices des centres etendus des cellules d interpolation
-# OUT: volumes des cellules d interpolation
-# OUT: interpTypes: type d'interpolation appliquee pour reconstruire la formule ensuite
-# OUT: indices pour les cellules orphelines
-# OUT: si isEX=1, direction pour les points EX
+# Compute and store interpolation coefficients for given points
+# as 'NODE' form
+# IN: rcvzonename: name of the interpolated zone containing interpPts
+# IN: nir, njr dimensions (I,J) of the interpolated zone
+# IN: interpPts: x,y,z at least of interpolated points
+# IN: listOfInterpolationZones: list of interpolation domains - at nodes
+# IN: listOfInterpolationCelln: list of associated celln fields - at centers
+# IN: isEX=0 if processing at centers, isEX=1 if interpPts = EX points
+# IN: zoneId: global number (in parallel) of the zone, starts at 1
+# IN: cfMax, max authorized value (for sum of absolute coefficient values) for extrapolation
+# OUT: interpolation coefficients
+# OUT: indices for interpolated cells
+# OUT: indices for interpolation cells
+# OUT: indices of extended centers of interpolation cells
+# OUT: volumes of interpolation cells
+# OUT: interpTypes: type of interpolation applied to reconstruct the formula afterwards
+# OUT: indices for orphan cells
+# OUT: if isEX=1, direction for EX points
 #-----------------------------------------------------------------------------
 def setInterpolations__(rcvzonename,nir, njr, interpPts,
                         listOfInterpolationZones=[],
@@ -473,7 +473,7 @@ def setInterpolations__(rcvzonename,nir, njr, interpPts,
     resInterp = connector.setInterpolations(nir, njr, interpPts,
                                             listOfInterpolationZones,
                                             listOfInterpolationCelln, isEX, zoneId, cfMax)
-    # Bilan :
+    # Summary:
     nborphan = 0; nbextrapolated = 0; nbinterpolated = 0
     nbinterpolated = interpPts[0][1].shape[1]
     if len(resInterp[5])>0:
@@ -490,21 +490,21 @@ def setInterpolations__(rcvzonename,nir, njr, interpPts,
     return resInterp
 
 #-----------------------------------------------------------------------------
-# Ecriture des coefficients d'interpolation dans des fichiers pour elsA
-# IN: ntotZones: nombre total de zones
-# IN: listRcvId: liste des Id des zones interpolees par bloc donneur
-# IN: listCellIndicesRcv: liste des tableaux d'indices des cellules interpolees, par bloc donneur
-# IN: listOfDirectionEX: liste des tableaux d'indirection des points EX, par bloc donneur
-# IN: listCellIndicesDonor: liste des tableaux d'indices des cellules donneuses, par bloc donneur
-# IN: listInterpolantsDonor: liste des tableaux de coefficients d'interpolation, par bloc donneur
-# IN: listInterpTypes: liste des types d interpolation (100 classique, 102 et 103 pour le periodique en azimut)
-# IN: listCellN: liste des champs cellNatureField, par bloc donneur
-# IN: listDonorDim: liste des dimensions des blocs donneurs
-# IN: nbInterpCellsForDonor: liste du nombre de cellules interpolees dans un bloc interpolee, par bloc donneur
-# IN: PrefixFile : nom du fichier de sortie pour le solveur.
-# IN: isEX=0 si traitement aux centres, isEX=1 si interpPts = pts EX
-# IN: solver : nom du solveur pour lequel le fichier est genere. 1: elsA, 2: Cassiopee
-# IN: nGhostCells: nb de cellules fictives pour l ecriture des donnees pour elsA
+# Write interpolation coefficients to files for elsA
+# IN: ntotZones: total number of zones
+# IN: listRcvId: list of receiver zone IDs per donor block
+# IN: listCellIndicesRcv: list of arrays of interpolated cell indices, per donor block
+# IN: listOfDirectionEX: list of arrays of EX point indirection, per donor block
+# IN: listCellIndicesDonor: list of arrays of donor cell indices, per donor block
+# IN: listInterpolantsDonor: list of arrays of interpolation coefficients, per donor block
+# IN: listInterpTypes: list of interpolation types (100 classic, 102 and 103 for azimuthal periodicity)
+# IN: listCellN: list of cellNatureField fields, per donor block
+# IN: listDonorDim: list of donor block dimensions
+# IN: nbInterpCellsForDonor: list of number of interpolated cells in a receiver block, per donor block
+# IN: PrefixFile: output filename for the solver
+# IN: isEX=0 if processing at centers, isEX=1 if interpPts = EX points
+# IN: solver: solver name for which the file is generated. 1: elsA, 2: Cassiopee
+# IN: nGhostCells: number of ghost cells for elsA data writing
 #-----------------------------------------------------------------------------
 def writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCellIndicesDonor,listInterpolantsDonor,
                listInterpTypes, listCellN, listDonorDim, nbInterpCellsForDonor,
@@ -513,9 +513,9 @@ def writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCell
     connector.writeCoefs(ntotZones,listRcvId,listCellIndicesRcv,listOfDirectionEX,listCellIndicesDonor,listInterpolantsDonor, listInterpTypes, listCellN, listDonorDim, nbInterpCellsForDonor, PrefixFile, isEX, solver, nGhostCells)
 
 #-----------------------------------------------------------------------------
-# Retourne le celln modifie des cellules interpolees au voisinage des pts masques
-# IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
-# IN: depth: nb de rangees de cellules interpolees
+# Returns the modified celln of interpolated cells in the vicinity of masked points
+# IN: zc: contains at least celln (celln=0 for interpolated points)
+# IN: depth: number of rows of interpolated cells
 #-----------------------------------------------------------------------------
 def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN',
                                        indices=None, BCField=None):
@@ -523,39 +523,39 @@ def getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN',
     equal to 0."""
     return connector.getOversetHolesInterpCellCenters(zc, depth, dir, cellNName, indices, BCField)
 
-# version getFromArray2: ne marche qu en structure
+# version getFromArray2: works only for structured
 def _getOversetHolesInterpCellCenters__(zc, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated cells around cells of celln
     equal to 0."""
     return connector._getOversetHolesInterpCellCenters(zc, depth, dir, cellNName)
 
 #-----------------------------------------------------------------------------
-# Retourne le celln modifie des noeuds interpoles au voisinage des pts masques
-# IN: zc: contient au moins le celln (celln=0 pour les pts interpoles)
-# IN: depth: nb de rangees de pts interpoles
+# Returns the modified celln of interpolated nodes in the vicinity of masked points
+# IN: zc: contains at least celln (celln=0 for interpolated points)
+# IN: depth: number of rows of interpolated points
 #-----------------------------------------------------------------------------
 def getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated nodes around nodes of celln
     equal to 0."""
     return connector.getOversetHolesInterpNodes(z, depth, dir, cellNName)
 
-# version getFromArray2: ne marche qu'en structure
+# version getFromArray2: works only for structured
 def _getOversetHolesInterpNodes__(z, depth=2, dir=0, cellNName='cellN'):
     """Set cellN=2 for the fringe of interpolated nodes around nodes of celln
     equal to 0."""
     return connector._getOversetHolesInterpNodes(z, depth, dir, cellNName)
 
 #------------------------------------------------------------------------------
-# Retourne les coordonnees des pts EX et les indices dans le maillage initial
-# en centres des cellules interpolees adjacentes qui constituent la frange
-# de pts EX autour des cellules masquees, ainsi que ceux pres des frontieres
-# IN: z: maillage en noeuds
-# IN: celln: celln en centres avec 0 et 2 pour les pts masques et interpoles
-# OUT: infoEX: x,y,z,indcell1,indcell2, nodemin,dirEX des pts EX : elts 'NODE'
-# indcell1 correspond au centre interpole d ou provient le point EX
-# indcell2 correspond au deuxieme centre auquel est rattachee l interface du pt EX
-# nodemin: indice du noeud d'indice le plus petit de l'interface dont EX est le centre
-# dirEX: direction de l'interface dont EX est le centre (1,2 ou 3)
+# Returns the coordinates of EX points and indices in the initial mesh
+# at centers of adjacent interpolated cells that constitute the fringe
+# of EX points around masked cells, as well as those near boundaries
+# IN: z: mesh at nodes
+# IN: celln: celln at centers with 0 and 2 for masked and interpolated points
+# OUT: infoEX: x,y,z,indcell1,indcell2, nodemin,dirEX of EX points: 'NODE' elements
+# indcell1 corresponds to the interpolated center from which the EX point originates
+# indcell2 corresponds to the second center to which the EX point interface is attached
+# nodemin: index of the node with smallest index of the interface whose center is EX
+# dirEX: direction of the interface whose center is EX (1, 2, or 3)
 #------------------------------------------------------------------------------
 def getEXPoints__(z, celln):
     """Return the coordinates of the EX points."""
@@ -591,9 +591,9 @@ def _modCellN2(a, cellNName='cellN'):
     return None
 
 #------------------------------------------------------------------------------
-# IN: x,y,z, cellN localises au meme endroit
-# OUT: array 'NODE' avec 'x,y,z,indcell'
-#      avec indcell l'indice du noeud correspondant de z tq cellN(indcell)=2
+# IN: x,y,z, cellN located at the same place
+# OUT: 'NODE' array with 'x,y,z,indcell'
+#      with indcell the index of the corresponding node of z such that cellN(indcell)=2
 #-----------------------------------------------------------------------------
 def getInterpolatedPoints__(a):
     if isinstance(a[0], list):
@@ -604,48 +604,48 @@ def getInterpolatedPoints__(a):
         return connector.getInterpolatedPoints(a)
 
 #------------------------------------------------------------------------------
-# Nouvel algo de changeWall, sans tolerance double wall
-# IN: z: maillage a projeter
-# IN: firstWallPoints: indices des premiers pts du maillage pres de sa paroi
-#      avec dir1, dir2, dir3, hmax des premiers centres pres des parois
-# IN: projectionSurfaces: liste des surfaces TRI correspondant aux surfaces de projection
-# OUT: z modifie pour les pts de cellN=2
+# New changeWall algorithm, without double wall tolerance
+# IN: z: mesh to project
+# IN: firstWallPoints: indices of the first points of the mesh near its wall
+#      with dir1, dir2, dir3, hmax of the first centers near the walls
+# IN: projectionSurfaces: list of TRI surfaces corresponding to the projection surfaces
+# OUT: z modified for points with cellN=2
 #------------------------------------------------------------------------------
 def changeWall__(z, firstWallPoints, projectionSurfaces, planarTol=0.):
     if projectionSurfaces == [] or firstWallPoints == []: return z
     else: return connector.changeWall(z, firstWallPoints, projectionSurfaces, planarTol)
 
 #-----------------------------------------------------------------------------
-# Nouvel algo de changeWall, sans tolerance double wall
-# IN: EXPts: (x,y,z,indcell1,indcell2,nodemin,EXdir) pour les pts EX
-# IN: zc: maillage en centres de la zone contenant les pts EX a projeter
-# IN: zn: maillage en noeuds de la zone contenant les pts EX a projeter
-# IN: firstWallCenters: indices en centres, dir1, dir2, dir3, hmax des premiers centres pres des parois
-# IN: projectionSurfaces: liste des surfaces TRI correspondant aux surfaces de projection
-# OUT: zc modifie pour les pts de cellN=2
+# New changeWall algorithm, without double wall tolerance
+# IN: EXPts: (x,y,z,indcell1,indcell2,nodemin,EXdir) for EX points
+# IN: zc: mesh at centers of the zone containing EX points to project
+# IN: zn: mesh at nodes of the zone containing EX points to project
+# IN: firstWallCenters: indices at centers, dir1, dir2, dir3, hmax of the first centers near the walls
+# IN: projectionSurfaces: list of TRI surfaces corresponding to the projection surfaces
+# OUT: zc modified for points with cellN=2
 #-----------------------------------------------------------------------------
 def changeWallEX__(EXPts, zc, zn, firstWallCenters, projectionSurfaces, planarTol=0.):
     if projectionSurfaces == [] or firstWallCenters == []: return zc
     else: return connector.changeWallEX(EXPts, zn, zc, firstWallCenters, projectionSurfaces, planarTol)
 
 #----------------------------------------------------------------------------------------------
-# Pour determiner les frontieres de projection double wall, dans le cas ou les frontieres
-# sont decoupees en sous fenetres, on etend la sous-fenetre en centres etendus (input
-# array) qu'on modifie localement en prenant le pt milieu avec le point interieur
-# IN: array: frontiere structuree 2D en centres etendus
-# IN: iminL, imaxL, jminL, jmaxL : indices de la sous fenetre dans la fenetre topologique
-# OUT: array modifie aux bords (si iminL > 1 alors on prend le pt milieu avec iminL+1 par ex)
+# To determine the double wall projection boundaries, in the case where boundaries
+# are split into sub-windows, we extend the sub-window to extended centers (input
+# array) which we modify locally by taking the midpoint with the interior point
+# IN: array: 2D structured boundary at extended centers
+# IN: iminL, imaxL, jminL, jmaxL: indices of the sub-window in the topological window
+# OUT: array modified at the edges (if iminL > 1 then we take the midpoint with iminL+1 for example)
 #----------------------------------------------------------------------------------------------
 def modifyBorders__(array,iminL,imaxL,jminL,jmaxL):
     return connector.modifyBorders(array, iminL,imaxL,jminL,jmaxL)
 #-----------------------------------------------------------------------------
-# Calcul des transferts Chimere
-# IN: cellRcv: tableau numpy des indices des cellules interpolees
-# IN: cellDonor: tableau numpy des indices des cellules donneuses
-# IN: interpDonor: tableau numpy des coefficients d'interpolation
-# IN: interpType: tableau numpy du type des interpolations 102 cablees pour elsA
-# IN: lRcvArrays: liste des champs sur lesquels le transfert est applique (array)
-# IN: lDonorArrays: liste des champs du domaine d'interpolation (array)
+# Compute Chimera transfers
+# IN: cellRcv: numpy array of interpolated cell indices
+# IN: cellDonor: numpy array of donor cell indices
+# IN: interpDonor: numpy array of interpolation coefficients
+# IN: interpType: numpy array of interpolation types (102 hardcoded for elsA)
+# IN: lRcvArrays: list of fields on which the transfer is applied (array)
+# IN: lDonorArrays: list of fields of the interpolation domain (array)
 #-----------------------------------------------------------------------------
 def chimeraTransfer(cellRcv, cellDonor, interpType,
                     interpDonor, lRcvArrays, lDonorArrays):
@@ -653,15 +653,15 @@ def chimeraTransfer(cellRcv, cellDonor, interpType,
                                      interpDonor,lRcvArrays,lDonorArrays)
 
 #------------------------------------------------------------------------------
-# Calcul des interpolations a partir de champs donnes dans donorFields
-# rcvFields: champs a interpoler sous forme de Converter.array
-# donorFields: champs donneurs sous forme d'arrays au sens de Converter
-# indicesRcv: indices des pts a interpoler dans zonesR, sous forme de numpy array1D,
-# indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
-# donorType: type d'interpolation sous forme de numpy array 1D
-# coefs: coefficients d'interpolation sous forme de numpy array 1D
-# variables: si None: transfert de toutes les variables sauf le cellN
-#            si ['a','b']: transfert des variables ['a','b'] uniquement
+# Compute interpolations from fields given in donorFields
+# rcvFields: fields to interpolate as Converter.array
+# donorFields: donor fields as arrays in the Converter sense
+# indicesRcv: indices of points to interpolate in zonesR, as numpy array1D,
+# indicesDnr: indices of donors, to retrieve according to type, as numpy array1D
+# donorType: interpolation type as numpy array 1D
+# coefs: interpolation coefficients as numpy array 1D
+# variables: if None: transfer of all variables except cellN
+#            if ['a','b']: transfer of variables ['a','b'] only
 #------------------------------------------------------------------------------
 def setInterpTransfers(rcvFields, donorFields, indicesRcv, indicesDnr,
                        donorType, coefs, variables=[]):
@@ -669,13 +669,13 @@ def setInterpTransfers(rcvFields, donorFields, indicesRcv, indicesDnr,
                                         indicesDnr, donorType, coefs)
 
 #------------------------------------------------------------------------------
-# Calcul des interpolations IBC a partir de champs donnes dans donorFields
-# rcvFields: champs a interpoler sous forme de Converter.array
-# donorFields: champs donneurs sous forme d'arrays au sens de Converter
-# indicesRcv: indices des pts a interpoler dans zonesR, sous forme de numpy array1D,
-# indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
-# donorType: type d'interpolation sous forme de numpy array 1D
-# coefs: coefficients d'interpolation sous forme de numpy array 1D
+# Compute IBC interpolations from fields given in donorFields
+# rcvFields: fields to interpolate as Converter.array
+# donorFields: donor fields as arrays in the Converter sense
+# indicesRcv: indices of points to interpolate in zonesR, as numpy array1D,
+# indicesDnr: indices of donors, to retrieve according to type, as numpy array1D
+# donorType: interpolation type as numpy array 1D
+# coefs: interpolation coefficients as numpy array 1D
 # bcType: 'slip','noslip'
 # varType: 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
 #------------------------------------------------------------------------------
@@ -690,24 +690,24 @@ def setIBCTransfers(rcvFields, donorFields, indicesRcv, indicesDnr, donorType,
                                      bcType, varType)
 
 #------------------------------------------------------------------------------
-# Calcul des interpolations a partir de champs donnes dans donorFields
-# donorFields: champs donneurs sous forme d'arrays au sens de Converter
-# indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
-# donorType: type d'interpolation sous forme de numpy array 1D
-# coefs: coefficients d'interpolation sous forme de numpy array 1D
-# Retourne un array avec les champs interpoles
+# Compute interpolations from fields given in donorFields
+# donorFields: donor fields as arrays in the Converter sense
+# indicesDnr: indices of donors, to retrieve according to type, as numpy array1D
+# donorType: interpolation type as numpy array 1D
+# coefs: interpolation coefficients as numpy array 1D
+# Returns an array with interpolated fields
 #------------------------------------------------------------------------------
 def setInterpTransfersD(donorFields, indicesDnr, donorType, coefs):
     return connector.setInterpTransfersD(donorFields, indicesDnr, donorType, coefs)
 
 #------------------------------------------------------------------------------
-# Calcul des interpolations IBC a partir des champs donnes dans donorFields
-# donorFields: champs donneurs sous forme d'arrays au sens de Converter
-#              ces champs sont ordonnes dans le sens de varType
-# indicesDnr: indices des donneurs, a retrouver selon le type, sous forme de numpy array1D
-# donorType: type d'interpolation sous forme de numpy array 1D
-# coefs: coefficients d'interpolation sous forme de numpy array 1D
-# bcType: type de CL (slip, noslip)
+# Compute IBC interpolations from fields given in donorFields
+# donorFields: donor fields as arrays in the Converter sense
+#              these fields are ordered according to varType
+# indicesDnr: indices of donors, to retrieve according to type, as numpy array1D
+# donorType: interpolation type as numpy array 1D
+# coefs: interpolation coefficients as numpy array 1D
+# bcType: BC type (slip, noslip)
 # varType: 1=[ro,rou,rov,row,roE], 2=[ro,u,v,w,t], 3=[ro,u,v,w,p]
 #------------------------------------------------------------------------------
 def setIBCTransfersD(donorFields, indicesDnr, donorType, coefs,

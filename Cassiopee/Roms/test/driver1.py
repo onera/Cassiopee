@@ -1,4 +1,4 @@
-# test driver
+# generate a simple geometry
 import Roms.Driver as D
 import Roms.DB.DataBase as DataBase
 
