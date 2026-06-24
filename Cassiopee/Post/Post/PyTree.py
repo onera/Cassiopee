@@ -1773,14 +1773,10 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False,
             C.setFields([divFld], z, 'centers')
 
     # Conditional clean up of partial derivatives
-    # if rmVar:  # TODO - CORRECT VERSION
-    #     varWLocList = " ".join(f"{v}X {v}Y {v}Z" for v in var).split()
-    #     C._rmVars(t, varWLocList)
-    #     C._rmBCDataVars(t, varList)
     if rmVar:
-        for i in range(0, 3*nvars, 3): # WRONG - does not delete all compos in 2D
-            C._rmVars(t, ['{}:{}'.format('centers', v) for v in varList[i:i+dim]])
-            C._rmBCDataVars(t, varList[i:i+dim])
+        varWLocList = " ".join(f"{v}X {v}Y {v}Z" for v in var).split()
+        C._rmVars(t, varWLocList)
+        C._rmBCDataVars(t, varList)
 
     return None
 
