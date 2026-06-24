@@ -184,7 +184,7 @@ class Vec2:
 #============================================================
 class Point:
     """Define a parametric point."""
-    
+
     # Create a parametric point
     # IN: name: parameter name (optional, auto-generated if None)
     # IN: value: initial value of parameter as tuple (x,y,z) (default: (0.0,0.0,0.0))
@@ -281,7 +281,7 @@ Vec3 = Point # alias
 #============================================================
 class Grid:
     """Define a parametric grid (cartesian)."""
-    
+
     # Create a parametric cartesian grid
     # IN: name: grid name (optional, auto-generated if None)
     # IN: Xo: origin coordinates (x0, y0, z0) (default: (0.0,0.0,0.0))
@@ -339,7 +339,7 @@ class Grid:
 #============================================================
 class Entity:
     """Define a 1D parametric entity."""
-    
+
     # Create a 1D parametric entity
     # IN: name: entity name (optional, auto-generated if None)
     # IN: listP: list of parameters (Scalars, Points, Vec2, Grids, or numeric values)
@@ -577,7 +577,7 @@ class Sketch():
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.createEmptyCAD('sketch.step')
         hooks = []
-        for e in self.entities: 
+        for e in self.entities:
             if e.hook is None:
                 print("sketch.update: %s has null hook."%e.name)
             else: hooks.append(e.hook)
@@ -709,7 +709,7 @@ class Sketch():
 #============================================================
 class Surface():
     """Define a parametric surface."""
-    
+
     # Create a parametric surface
     # IN: name: surface name (optional, auto-generated if None)
     # IN: listSketches: list of Sketch objects (required for loft, revolve, fill types)
@@ -1242,7 +1242,7 @@ def Sphere(name="sphere", C=(0.,0.,0.), R=1., h=None):
 #============================================================
 class Volume2D():
     """Define a parametric 2D volume."""
-    
+
     # Create a parametric 2D volume
     # IN: name: volume name (optional, auto-generated if None)
     # IN: listSketches: list of Sketch objects defining the bounded volume
@@ -1450,7 +1450,7 @@ class Volume3D():
 #============================================================
 class Eq:
     """Define an equation."""
-    
+
     # Create an equation
     # IN: expr1: left side of the equation (sympy expression or Scalar)
     # IN: expr2: right side of the equation (optional, defaults to None)
@@ -1529,7 +1529,7 @@ class Ge:
 #============================================================
 class Ne:
     """Define a constraint inequation (not equal)."""
-    
+
     # Create a not-equal constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
