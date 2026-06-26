@@ -313,8 +313,7 @@ def exchangeBCMatchData(t, varList):
                 if zn not in BCFieldv: BCFieldv[zn] = fld1[1][v].ravel('k')
                 else:
                     BCFieldv[zn] = numpy.concatenate(
-                        (BCFieldv[zn], fld1[1][v].ravel('k')),
-                        axis=1
+                        (BCFieldv[zn], fld1[1][v].ravel('k'))
                     )
 
     return indices, BCField

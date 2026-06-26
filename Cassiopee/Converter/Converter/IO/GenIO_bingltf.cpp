@@ -38,8 +38,26 @@ static void readAccessor(std::vector<float>& data, const cgltf_accessor* accesso
   cgltf_accessor_unpack_floats(accessor, &data[0], data.size());
 }
 
+void writeImage(cgltf_texture* tex, char* fileName)
+{
+  cgltf_image* img = tex->image;
+  const cgltf_buffer_view* view = img->buffer_view;
+  const cgltf_buffer* buffer = view->buffer;
 
-// parse gltf data
+  const unsigned char* data_ptr =
+    (const unsigned char*)buffer->data + view->offset;
+
+  FILE* f = fopen(fileName, "wb");
+  if (!f)
+  {
+    printf("Warning: gltfread: can not write texture file.");
+    return;
+  }
+  fwrite(data_ptr, 1, view->size, f);
+  fclose(f);
+}
+
+// parse gltf data to find mesh informations
 void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField, 
   std::vector<FldArrayI*>& connect, std::vector<E_Int>& eltType)
 {
@@ -227,6 +245,34 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
   }
 }
 
+// parse gltf data to find texture information
+void parseTextureGltf(cgltf_data* data)
+{
+  char fileName[128];
+  for (size_t i = 0; i < data->materials_count; i++) 
+  {
+    cgltf_material* mat = &data->materials[i];
+
+    // base color
+    cgltf_texture* tex = NULL;
+    if (mat->pbr_metallic_roughness.base_color_texture.texture) 
+    {
+      tex = mat->pbr_metallic_roughness.base_color_texture.texture;
+      sprintf(fileName, "baseColor%ld", i);
+      strcat(fileName, ".png");
+      writeImage(tex, fileName);
+    }
+    if (mat->normal_texture.texture) 
+    {
+      tex = mat->normal_texture.texture;
+      tex = mat->pbr_metallic_roughness.base_color_texture.texture;
+      sprintf(fileName, "normalMap%ld", i);
+      strcat(fileName, ".png");
+      writeImage(tex, fileName);
+    }
+  }
+}
+
 //=============================================================================
 /* 
    gltfread 
@@ -258,6 +304,7 @@ E_Int K_IO::GenIO::gltfread(
   result = (result == cgltf_result_success) ? cgltf_validate(data) : result;
 
   parseMeshesGltf(data, unstructField, connect, eltType);
+  parseTextureGltf(data);
   cgltf_free(data);
   
   // Cree les noms de zones
