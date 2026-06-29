@@ -33,7 +33,7 @@ __all__ = ['convertCAD2Arrays',
            '_addSquare', '_addSquare2',
            '_addBox', '_addBox2', '_addSphere', '_addCylinder',
            '_addSplineSurface', '_addGordonSurface', '_addDomain',
-           '_revolve', '_sweep', '_loft', '_boolean',
+           '_revolve', '_sweep', '_loft', '_boolean', '_booleanWires',
            '_projectOnEdges', '_projectOnFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -1065,6 +1065,12 @@ def _boolean(hook, faces1, faces2, op=0, rev1=1, rev2=1):
     faces1 = getFaceList__(hook, faces1)
     faces2 = getFaceList__(hook, faces2)
     occ.boolean(hook, faces1, faces2, op, rev1, rev2)
+
+def _booleanWires(hook, edges1, edges2, op=0):
+    """Boolean operation on two wires."""
+    edges1 = getEdgeList__(hook, edges1)
+    edges2 = getFaceList__(hook, edges2)
+    occ.booleanWires(hook, edges1, edges2, op)
 
 #=============================================================================
 # CAD global operations

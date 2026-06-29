@@ -71,7 +71,8 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   // Build wire
   TopoDS_Wire myWire;
   bool fail = false;
-  try {
+  try 
+  {
     myWire = wireMaker.Wire();
     //myWire.Reversed();
   } catch (StdFail_NotDone& e) { fail = true; }

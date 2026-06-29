@@ -130,6 +130,7 @@ static PyMethodDef Pyocc [] =
   {"intersectEdgeFace", K_OCC::intersectEdgeFace, METH_VARARGS},
   {"trimFaces", K_OCC::trimFaces, METH_VARARGS},
   {"boolean", K_OCC::boolean, METH_VARARGS},
+  {"booleanWires", K_OCC::booleanWires, METH_VARARGS},
   
   {"getOppData", K_OCC::getOppData, METH_VARARGS},
   {"identifyTags", K_OCC::identifyTags, METH_VARARGS},

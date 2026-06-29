@@ -249,6 +249,8 @@ void parseMeshesGltf(cgltf_data* data, std::vector<FldArrayF*>& unstructField,
 void parseTextureGltf(cgltf_data* data)
 {
   char fileName[128];
+  E_Int nBaseColorTexs = 0;
+  E_Int nNormalColorTexs = 0;
   for (size_t i = 0; i < data->materials_count; i++) 
   {
     cgltf_material* mat = &data->materials[i];
@@ -258,19 +260,23 @@ void parseTextureGltf(cgltf_data* data)
     if (mat->pbr_metallic_roughness.base_color_texture.texture) 
     {
       tex = mat->pbr_metallic_roughness.base_color_texture.texture;
-      sprintf(fileName, "baseColor%ld", i);
+      sprintf(fileName, "baseColor" SF_D_, i);
       strcat(fileName, ".png");
       writeImage(tex, fileName);
+      nBaseColorTexs++;
     }
+    // normal textures
     if (mat->normal_texture.texture) 
     {
       tex = mat->normal_texture.texture;
       tex = mat->pbr_metallic_roughness.base_color_texture.texture;
-      sprintf(fileName, "normalMap%ld", i);
+      sprintf(fileName, "normalMap" SF_D_, i);
       strcat(fileName, ".png");
       writeImage(tex, fileName);
+      nNormalColorTexs++;
     }
   }
+  printf("write %d baseColor and %d normaMap...", nBaseColorTexs, nNormalColorTexs);
 }
 
 //=============================================================================

@@ -150,6 +150,7 @@ namespace K_OCC
   PyObject* intersectEdgeFace(PyObject* self, PyObject* args);
   PyObject* trimFaces(PyObject* self, PyObject* args);
   PyObject* boolean(PyObject* self, PyObject* args);
+  PyObject* booleanWires(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);
