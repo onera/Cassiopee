@@ -743,7 +743,7 @@ def runSingleCFDTest(no, module, test, update=False):
     if mySystem == 'mingw' or mySystem == 'windows':
         path = path.replace('/', '\\')
     if not seq:
-        # Read the first line of the test. If a usage line is found, use that
+        # Read the first line of the test. If 'kpython -n...' is found, use that
         # number of procs
         ncpus = 2
         with open(os.path.join(path, test), "r") as f:
