@@ -382,7 +382,7 @@ typedef struct {
 
   /* Calcule la distance minimale entre deux blocs structurés 
      et retourne les indices correspondants */
-  void compMeanDist(const E_Int ni1, const E_Int nj1,
+  void compMinDist(const E_Int ni1, const E_Int nj1,
     const E_Float* x1, const E_Float* y1, const E_Float* z1,
     const E_Int ni2, const E_Int nj2,
     const E_Float* x2, const E_Float* y2, const E_Float* z2,

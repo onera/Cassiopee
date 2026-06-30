@@ -181,7 +181,7 @@ PyObject* K_TRANSFORM::reorderAll(PyObject* self, PyObject* args)
           posz2 = poszt[v2];
           FldArrayF* field2 = vectOfFields[v2];
 
-          K_COMPGEOM::compMeanDist(ni1, nj1, 
+          K_COMPGEOM::compMinDist(ni1, nj1, 
           field1->begin(posx1), field1->begin(posy1), field1->begin(posz1),
           ni2, nj2, 
           field2->begin(posx2), field2->begin(posy2), field2->begin(posz2),
