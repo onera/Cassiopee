@@ -109,6 +109,8 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
 
         'OCC/Atomic/intersectEdgeFace.cpp',
         'OCC/Atomic/trimFaces.cpp',
+        'OCC/Atomic/untrimFaces.cpp',
+        
         'OCC/Atomic/boolean.cpp',
         'OCC/Atomic/booleanWires.cpp',
 

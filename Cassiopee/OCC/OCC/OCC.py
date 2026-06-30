@@ -25,7 +25,7 @@ __all__ = ['convertCAD2Arrays',
            'getFaceNos', 'getEdgeNos',
            'getFaceArea', 'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
-           '_splitFaces', '_mergeFaces', '_trimFaces', '_removeFaces',
+           '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces', '_removeFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
            '_splitEdge',
            '_addArc', '_addCircle', '_addEllipse',
@@ -1188,7 +1188,6 @@ def _mergeCAD(hooks):
     return None
 
 # trim two set of surfaces
-# trim two set of surfaces
 # if mode=0, faces2 cut faces1
 # if mode=1, faces1 cut faces2
 # if mode=2, both cut
@@ -1197,6 +1196,12 @@ def _trimFaces(hook, faces1, faces2, mode=2, algo=0):
     faces1 = getFaceList__(hook, faces1)
     faces2 = getFaceList__(hook, faces2)
     occ.trimFaces(hook, faces1, faces2, mode, algo)
+    return None
+
+def _untrimFaces(hook, faceList):
+    """Untrim a set of faces."""
+    faceList = getFaceList__(hook, faceList)
+    occ.untrimFaces(hook, faceList)
     return None
 
 # split all faces to be less than area
