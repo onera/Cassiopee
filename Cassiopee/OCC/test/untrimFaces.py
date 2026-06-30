@@ -9,5 +9,5 @@ cube2 = ret[5]
 #OCC._translate(hook, (+300.,0,0), cube2)
 OCC._trimFaces(hook, cube1, cube2)
 OCC._sewing(hook, tol=1.e-2)
-OCC._untrimFaces(hook, cube1+cube2)
+OCC._untrimFaces(hook, [8])
 OCC.writeCAD(hook, 'out.step', 'fmt_step')

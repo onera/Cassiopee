@@ -26,6 +26,7 @@
 #include "TopoDS.hxx"
 #include "Geom_Surface.hxx"
 #include "BRep_Tool.hxx"
+#include "BRepTools.hxx"
 #include "BRep_Builder.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
 
@@ -53,6 +54,7 @@ PyObject* K_OCC::untrimFaces(PyObject* self, PyObject* args)
     E_Int faceNo = PyLong_AsLong(faceNoO);
     tag[faceNo-1] = 1;
   }
+  double u1, u2, v1, v2;
   TopoDS_Compound compound;
   BRep_Builder builder;
   builder.MakeCompound(compound);
@@ -62,9 +64,26 @@ PyObject* K_OCC::untrimFaces(PyObject* self, PyObject* args)
     if (tag[i] == 0) builder.Add(compound, F);
     else
     {
-      Handle(Geom_Surface) surf = BRep_Tool::Surface(F);
-      TopoDS_Face face = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
+      // get the bound of the input face
+      BRepTools::UVBounds(F, u1, u2, v1, v2);
+      E_Float extension = 10.;
+      u1 -= extension;
+      u2 += extension;
+      v1 -= extension;
+      v2 += extension;
+      TopLoc_Location faceLocation;
+      Handle(Geom_Surface) surf = BRep_Tool::Surface(F, faceLocation);
+      //surf->Bounds(u1, u2, v1, v2);
+      printf("%g %g %g %g\n", u1,u2,v1,v2);
+      TopoDS_Face face = BRepBuilderAPI_MakeFace(surf, u1, u2, v1, v2, Precision::Confusion());
+      //TopoDS_Face face = BRepBuilderAPI_MakeFace(surf, true, Precision::Confusion()).Face();
+      //BRepBuilderAPI_MakeFace maker;
+      //maker.Init(surf, true, Precision::Confusion());
+      //TopoDS_Face face = maker.Face();
+      face.Location(faceLocation);
+      face.Orientation(F.Orientation());
       builder.Add(compound, face);
+      //builder.Add(compound, BRepTools::OuterWire(face));
     }
   }
 

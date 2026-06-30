@@ -45,6 +45,7 @@
 #include "BOPAlgo_Builder.hxx"
 #include "BRepAlgoAPI_Fuse.hxx"
 #include "BRepTools.hxx"
+#include "StdFail_NotDone.hxx"
 
 //=====================================================================
 // boolean operations on wires
