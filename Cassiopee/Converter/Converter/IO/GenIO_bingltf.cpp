@@ -260,7 +260,7 @@ void parseTextureGltf(cgltf_data* data)
     if (mat->pbr_metallic_roughness.base_color_texture.texture) 
     {
       tex = mat->pbr_metallic_roughness.base_color_texture.texture;
-      sprintf(fileName, "baseColor" SF_D_, i);
+      sprintf(fileName, "baseColor%zu", i);
       strcat(fileName, ".png");
       writeImage(tex, fileName);
       nBaseColorTexs++;
@@ -270,13 +270,13 @@ void parseTextureGltf(cgltf_data* data)
     {
       tex = mat->normal_texture.texture;
       tex = mat->pbr_metallic_roughness.base_color_texture.texture;
-      sprintf(fileName, "normalMap" SF_D_, i);
+      sprintf(fileName, "normalMap%zu", i);
       strcat(fileName, ".png");
       writeImage(tex, fileName);
       nNormalColorTexs++;
     }
   }
-  printf("write %d baseColor and %d normaMap...", nBaseColorTexs, nNormalColorTexs);
+  printf("write " SF_D_ " baseColor and " SF_D_ " normalMap...", nBaseColorTexs, nNormalColorTexs);
 }
 
 //=============================================================================

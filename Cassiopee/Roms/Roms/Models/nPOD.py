@@ -11,7 +11,7 @@ class nPOD( POD.POD ):
     def __init__(self, name, type):
         super().__init__(name, type)
 
-    # build Phi from matrix A keeping K modes with svd
+    # build Phi basis from matrix A keeping K modes with svd
     def buildPhi(self, K=-1):
         """Build phi modes with SVD."""
         if self.A is None:
@@ -26,6 +26,7 @@ class nPOD( POD.POD ):
         self.Phi = numpy.ascontiguousarray(self.Phi)
         return Phi, S, Vt
 
+    # save Phi basis to self.fileName
     def savePhi(self):
         """Save Phi base modes."""
         if Cmpi.rank > 0: return None
@@ -55,6 +56,7 @@ class nPOD( POD.POD ):
         C.convertPyTree2File(t, self.fileName, format='bin_hdf')
         return None
 
+    # load Phi basis from self.fileName
     def loadPhi(self):
         """Load phi from mod file."""
         node = Filter.readNodesFromPaths(self.fileName, ['CGNSTree/POD/phi'])[0]
@@ -70,6 +72,7 @@ class nPOD( POD.POD ):
         for i in nodes[3][2]:
             self.parameters.append(Internal.getValue(i))
 
+    # build the coords of snapshots on Phi basis
     def buildCoords(self):
         """Build snapshots coords."""
         if self.A is None:
@@ -86,6 +89,7 @@ class nPOD( POD.POD ):
                 coords[i] = c0
             self.coords[j,:] = coords[:]
 
+    # save coords to self.fileName
     def saveCoords(self):
         """Save snapshot coords."""
         if self.coords is None:
@@ -94,12 +98,14 @@ class nPOD( POD.POD ):
         Compressor._packNode(node)
         Filter.writeNodesFromPaths(self.fileName, 'CGNSTree/POD', node, format='bin_hdf')
 
+    # load coords from self.fileName
     def loadCoords(self):
         """Load all snapshot coords."""
         node = Filter.readNodesFromPaths(self.fileName, ['CGNSTree/POD/coords'])[0]
         Compressor._unpackNode(node)
         self.coords = node[1]
 
+    # save a point to self.fileName
     def savePoints(self):
         """Save snapshot points."""
         if self.P is None:
@@ -108,17 +114,20 @@ class nPOD( POD.POD ):
         Compressor._packNode(node)
         Filter.writeNodesFromPaths(self.fileName, 'CGNSTree/POD', node, format='bin_hdf')
 
+    # load existing points from self.fileName
     def loadPoints(self):
         """Load all snapshot points."""
         node = Filter.readNodesFromPaths(self.fileName, ['CGNSTree/POD/points'])[0]
         Compressor._unpackNode(node)
         self.P = node[1]
 
+    # compute a point from coords
     def instantiate(self, coords):
         """Return field vector from coords."""
         m = self.Phi @ coords
         return m
 
+    # build a tree from coords
     def buildTree(self, coords):
         """Rebuild tree from field vector."""
         if self.dbDirName is None:
@@ -155,6 +164,7 @@ class nPOD( POD.POD ):
                     pt0 += ncells
         return tref
 
+    # rebuild a tree from a point
     def fetchTree(self, point):
         """Rebuild pyTree for given point."""
         from scipy.interpolate import RBFInterpolator
