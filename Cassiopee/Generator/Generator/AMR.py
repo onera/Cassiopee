@@ -1473,7 +1473,10 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
+    
     NumMinDxLarge = 1
+    tCartIn = False
+    extrude = False
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1549,6 +1552,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     ## --------- --------- --------- --------- --------- ---------
 
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+    if isSymLocal: snears = snears[:-1]
 
     if baseSYM:
         if tbv2 is not None:
@@ -1564,24 +1568,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             del tbTmp
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
-    # list of vmins
-    # This section::
-    # ================== SECTION START ==================
-    # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
+    # Checks that the vmin input is correct & if needed corrects it 
+    # (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, numBase, levelMax)
-    snearEnd = len(snears)
-    if isSymLocal: snearEnd = -1
-    snearsTbTbox = snears[0:snearEnd]
 
+    # Tbox section
     tb_tbox = Internal.copyTree(tb)
     if tbox:
         snearsTbox, numTbox = getListSnear__(tbox, 1)
         vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
 
         tb_tbox[2] += Internal.getBases(tbox)
+        
         vmins.extend(vminsTbox)
-
-        snearsTbTbox.extend(snearsTbox)
+        snears.extend(snearsTbox)
     else:
         snearsTbox, numTbox = [], 0
 
@@ -1620,36 +1620,37 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         # might be tuned
         # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
         o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+
+        # correct vmins to match newLevelMax if necessary
+        if newLevelMax != levelMax:
+            if Cmpi.master:
+                print("=======================================================================", flush=True)
+                print("========================       WARNING!        ========================", flush=True)
+                print("================= Input Number of AMR Levels too high =================", flush=True)
+                print("=============== Using Automatic # of Refinement Levels ================", flush=True)
+                print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
+                print("=======================================================================", flush=True)
+            levelMax = newLevelMax
+            for nBase in range(numBase):
+                while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
+                vmins[nBase] = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
     else:
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("===================== Using input background grid  ====================", flush=True)
             print("=======================================================================", flush=True)
-        tCartIn = True; newLevelMax = levelMax
+        tCartIn = True
         if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)
         else: o = Internal.copyTree(tIn)
         del tIn
-        deltaY = (C.getMinValue(o,"centers:vol"))**(1/dim)
-        ymin = C.getMinValue(o, 'CoordinateY'); ymax = C.getMaxValue(o, 'CoordinateY')
-        if abs((ymax-ymin)-deltaY)< 1.e-08: extrude=True
+        deltaY = (C.getMinValue(o, 'centers:vol'))**(1/dim)
+        ymin, ymax = C.getMinValue(o, 'CoordinateY'), C.getMaxValue(o, 'CoordinateY')
+        if abs((ymax-ymin)-deltaY) < 1.e-08: extrude = True
         if Cmpi.master and extrude:
             print("=======================================================================", flush=True)
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
-
-    if newLevelMax != levelMax:
-        if Cmpi.master:
-            print("=======================================================================", flush=True)
-            print("========================       WARNING!        ========================", flush=True)
-            print("================= Input Number of AMR Levels too high =================", flush=True)
-            print("=============== Using Automatic # of Refinement Levels ================", flush=True)
-            print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
-            print("=======================================================================", flush=True)
-        for nBase in range(numBase):
-            while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
-            vmins[nBase] = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
-            levelMax = newLevelMax
-
+            
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
@@ -1670,8 +1671,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         for nBase in range(numBase):
             # we only check the first zone of each base as CODA (currently)
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
-            snearMult = snearsTbTbox[nBase][0]//minSnearsOrig
-            snearsTbTbox[nBase] = [snearMult*hmin]
+            snearMult = snears[nBase][0]//minSnearsOrig
+            snears[nBase] = [snearMult*hmin]
 
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
@@ -1722,7 +1723,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             offsetprev       = 0.
             offsetValuesBase = []
             for no_adapt in range(len(vmins[nBase])):
-                hminLocal = snearsTbTbox[nBase][0]
+                hminLocal = snears[nBase][0]
                 offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
                 # Pull request note: the line below causes regressions in the mesh generation
                 if offsetloc < 0.99*dfarmaxLocal[nBase]:
@@ -1731,7 +1732,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     offsetprev=offsetloc
             if not offsetValuesBase:
                 if tCartIn:
-                    hminLocal = snearsTbTbox[nBase][0]
+                    hminLocal = snears[nBase][0]
                     offsetloc = hminLocal*1
                     offsetValuesBase.append(offsetloc)
                 else:
@@ -1744,7 +1745,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         # generate list of offsets
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
+        toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
