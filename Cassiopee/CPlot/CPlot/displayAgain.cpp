@@ -137,7 +137,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
                       GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
   }
 
-  d->ptrState->farClip = 1;
+  d->ptrState->preClip = 1;
   d->ptrState->render = 0; // 1 ou pas?
   d->ptrState->shootScreen = 0;
   gdisplay(); // build DL
@@ -193,7 +193,7 @@ PyObject* K_CPLOT::displayAgain(PyObject* self, PyObject* args)
   }
   else
   { // Direct ou FBO offscreen
-    d->ptrState->farClip = 1;
+    d->ptrState->preClip = 1;
     d->ptrState->render = 1;
   }
 

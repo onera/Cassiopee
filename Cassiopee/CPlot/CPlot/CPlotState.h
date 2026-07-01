@@ -62,7 +62,7 @@ struct CPlotState
   int inmenu;             // we are in menu mode or not?
   int smoke;              // if particles smoke is to be displayed
 
-  E_Int farClip;            // if 1 perform farClipping before display
+  E_Int preClip;            // if 1 perform clipping before display
   E_Int render;             // -1: dont push data, dont flush buffer
                             // 0: push but dont flush
                             // 1, push and flush at end of display

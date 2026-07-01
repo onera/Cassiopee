@@ -275,7 +275,7 @@ void Data::initState()
   ptrState->activePointF = NULL;
 
   // Render
-  ptrState->farClip = 0;
+  ptrState->preClip = 0;
   ptrState->render = 1;
   ptrState->bb = 0;
   ptrState->header = 1;
@@ -869,16 +869,17 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
                              E_Int shadow, E_Int dof,
                              char* exportFile, char* exportResolution, E_Int exportAA)
 {
-  if (xcam != -999) _view.xcam = xcam;
-  if (ycam != -999) _view.ycam = ycam;
-  if (zcam != -999) _view.zcam = zcam;
-  if (xeye != -999) _view.xeye = xeye;
-  if (yeye != -999) _view.yeye = yeye;
-  if (zeye != -999) _view.zeye = zeye;
-  if (dirx != -999) _view.dirx = dirx;
-  if (diry != -999) _view.diry = diry;
-  if (dirz != -999) _view.dirz = dirz;
-  if (viewAngle != -1) { _view.angle = viewAngle; }
+  if (xcam != -999) { _view.xcam = xcam; ptrState->preClip = 1; }
+  if (ycam != -999) { _view.ycam = ycam; ptrState->preClip = 1; }
+  if (zcam != -999) { _view.zcam = zcam; ptrState->preClip = 1; }
+  if (xeye != -999) { _view.xeye = xeye; ptrState->preClip = 1; }
+  if (yeye != -999) { _view.yeye = yeye; ptrState->preClip = 1; }
+  if (zeye != -999) { _view.zeye = zeye; ptrState->preClip = 1; }
+  if (dirx != -999) { _view.dirx = dirx; ptrState->preClip = 1; }
+  if (diry != -999) { _view.diry = diry; ptrState->preClip = 1; }
+  if (dirz != -999) { _view.dirz = dirz; ptrState->preClip = 1; }
+  if (viewAngle != -1) { _view.angle = viewAngle;  ptrState->preClip = 1; }
+  
   if (meshStyle != -1) ptrState->meshStyle = meshStyle;
   if (solidStyle != -1) ptrState->solidStyle = solidStyle;
   if (colormap != -1)

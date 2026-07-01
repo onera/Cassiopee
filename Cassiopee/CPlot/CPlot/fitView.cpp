@@ -27,6 +27,6 @@ PyObject* K_CPLOT::fitView(PyObject* self, PyObject* args)
 {
   Data* d = Data::getInstance();
   d->initCam(); 
-  d->ptrState->farClip = 1;
+  d->ptrState->preClip = 1;
   return Py_BuildValue("i", KSUCCESS);
 }

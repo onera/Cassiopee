@@ -152,7 +152,16 @@ void fdisplay()
 void gdisplay()
 {
   Data* d = Data::getInstance();
-  if (d->ptrState->farClip == 1) {d->farClipping(); d->ptrState->farClip = 0; }
+  if (d->ptrState->preClip == 1) 
+  {
+    E_Float dx = d->_view.xeye - d->_view.xcam;
+    E_Float dy = d->_view.yeye - d->_view.ycam;
+    E_Float dz = d->_view.zeye - d->_view.zcam;
+    E_Float dist = sqrt(dx*dx+dy*dy+dz*dz);
+    d->adaptiveClipping(dist); 
+    //d->farClipping();
+    d->ptrState->preClip = 0; 
+  }
 
   d->ptrState->lockDisplay();
   // Free GPU ressources command

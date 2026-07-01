@@ -145,7 +145,7 @@ PyObject* K_CPLOT::setState(PyObject* self, PyObject* args)
   
   if (lightOffsetX != -999.) d->ptrState->lightOffsetX = lightOffsetX;
   if (lightOffsetY != -999.) d->ptrState->lightOffsetY = lightOffsetY;
-  //if (viewAngle != -1) d->ptrState->farClip = 1;
+  //if (viewAngle != -1) d->ptrState->preClip = 1;
 
   if (timer != -1) d->ptrState->ktimer = timer;
   if (selectionStyle != -1) d->ptrState->selectionStyle = selectionStyle;

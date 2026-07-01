@@ -49,7 +49,7 @@ void lookForActiveZone(Data* data)
   {
     // global fit 
     data->initCam(); 
-    data->ptrState->farClip = 1; 
+    data->ptrState->preClip = 1; 
     return;
   }
   
@@ -100,7 +100,7 @@ void lookForActiveZone(Data* data)
     view.xeye = 0.5*(xmax + xmin);
     view.yeye = 0.5*(ymax + ymin);
     view.zeye = 0.5*(zmax + zmin);
-    data->ptrState->farClip = 1;
+    data->ptrState->preClip = 1;
   }
   else
   {
@@ -117,7 +117,7 @@ void lookForActiveZone(Data* data)
     view.xcam = view.xeye + k*( xcam-xeye );
     view.ycam = view.yeye + k*( ycam-yeye );
     view.zcam = view.zeye + k*( zcam-zeye );
-    data->ptrState->farClip = 1;
+    data->ptrState->preClip = 1;
   }
 
   if (suiviDir > 0) // cam doit suivre
@@ -254,7 +254,7 @@ void lookForMaxValue(Data* data)
   view.ycam = view.yeye + kfact*( ycam-yeye );
   view.zcam = view.zeye + kfact*( zcam-zeye );
 
-  data->ptrState->farClip = 1;
+  data->ptrState->preClip = 1;
 }
 
 //=============================================================================
@@ -370,5 +370,5 @@ void lookForMinValue(Data* data)
   view.ycam = view.yeye + kfact*( ycam - yeye );
   view.zcam = view.zeye + kfact*( zcam - zeye );
 
-  data->ptrState->farClip = 1;
+  data->ptrState->preClip = 1;
 }

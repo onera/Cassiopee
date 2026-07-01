@@ -155,7 +155,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     OSMesaMakeCurrent(*ctx, d->ptrState->offscreenBuffer[d->ptrState->frameBuffer], 
                       GL_UNSIGNED_BYTE, d->_view.w, d->_view.h);
     d->init();
-    d->ptrState->farClip = 1;
+    d->ptrState->preClip = 1;
     d->ptrState->render = 0;
     d->ptrState->shootScreen = 0;
     gdisplay(); // build DL
@@ -216,7 +216,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   }
   else
   { // direct ou offscreen FBO
-    d->ptrState->farClip = 1;
+    d->ptrState->preClip = 1;
     // thread en python
     Py_BEGIN_ALLOW_THREADS;
     Data* d = Data::getInstance();
