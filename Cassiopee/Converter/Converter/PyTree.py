@@ -4600,10 +4600,11 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                             array, array2,
                             indices, faceList
                         )
-                        if numpy.any(fmap == -1):
+                        nmissing = numpy.sum(fmap == -1)
+                        if nmissing:
                             raise ValueError(
                                 "_recoverBCsTopologic: topologic identication of "
-                                "boundary faces failed."
+                                f"{nmissing} boundary faces failed."
                             )
                         orderedFaceList = faceList[fmap]
                     # print("faceList[fmap]", orderedFaceList)
