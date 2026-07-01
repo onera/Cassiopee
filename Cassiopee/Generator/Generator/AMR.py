@@ -232,7 +232,7 @@ def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
             vminsLocal[nbase][:] = vminsTMP[nbase][:levelMaxTMP]
         else:
             vminsLocal[nbase][:] = vminsTMP[nbase][:]
-            
+
     vminsTMP = []
     for nbase in range(nbasesTMP):
         vminsTMP.append(list(vminsLocal[nbase]))
@@ -1207,7 +1207,7 @@ def _createBCStandard__(a_hexa, a):
 def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
-    
+
     o, res = XC.loadAndSplitNGon(fileSkeleton)
     Cmpi.barrier()
 
@@ -1236,7 +1236,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     newOffsetsTbox = []
     # -> dictOffset = {snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
     # -> newOffsets = [[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
-    
+
     # combine zones with the same snear
     for z in Internal.getZones(toffset):
         if 'Tbox' in z[0]:
@@ -1320,9 +1320,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                     if False: Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
                     if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...end"%adaptPass, flush=True)
                     adaptPass += 1
-            
+
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_names[nbase], flush=True)
-    
+
     if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%level, flush=True)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
@@ -1484,7 +1484,7 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
-    
+
     NumMinDxLarge = 1 # default value
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
@@ -1527,7 +1527,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     snears, nbases = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     snearMin = min(snearsFlat)
-    # Checks that the vmin input is correct & if needed corrects it 
+    # Checks that the vmin input is correct & if needed corrects it
     # (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
@@ -1537,7 +1537,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
     if baseSYM:
-        if Internal.getNodeFromName(baseSYM, 'snear'): 
+        if Internal.getNodeFromName(baseSYM, 'snear'):
             # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
             snears = snears[:-1]
 
@@ -1564,7 +1564,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         vminsTbox = vminsInputCheck__(vminsTbox, nboxes, levelMax)
 
         tb_tbox[2] += Internal.getBases(tbox)
-        
+
         vmins.extend(vminsTbox)
         snears.extend(snearsTbox)
         nbases += nboxes
@@ -1722,7 +1722,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                 if offsetLocal < 0.99*dfarmaxLocal[nbase]: # old: if offsetLocal < 0.99*dfarmax:
                     offsetValuesBase.append(offsetLocal)
                     offsetPrev = offsetLocal
-            
+
             if not offsetValuesBase:
                 if tCartIn:
                     hminLocal = snears[nbase][0]
@@ -1741,7 +1741,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, nboxes=nboxes, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
-    
+
     #============================
     # STEP 8: Mesh adaptation
     #============================
@@ -1751,7 +1751,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     Cmpi.barrier()
     o = adaptMesh__(pathSkeleton, hmin, tb, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
-    
+
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
 def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None):
