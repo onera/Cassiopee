@@ -1492,8 +1492,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
 
-    checkBaseNames__(tb, tbox)
-
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
     #  b) If levelMax/=0 :
@@ -1522,15 +1520,27 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         NumMinDxLarge = 1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
+    #============================
+    # STEP 1: Check snears/vmins
+    #============================
+    checkBaseNames__(tb, tbox)
+    # NumBase is only the num. of 'real' bodies
+    snears, nbases = getListSnear__(tb, snears)
+    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+    snearMin = min(snearsFlat)
+    # Checks that the vmin input is correct & if needed corrects it 
+    # (if info. is missing it will apply default values & default copies)
+    vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
     #============================
-    # STEP 1: Check for baseSYM
+    # STEP 2: Check baseSYM
     #============================
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
-    isSymLocal = False
     if baseSYM:
-        if Internal.getNodeFromName(baseSYM, 'snear'): isSymLocal = True
+        if Internal.getNodeFromName(baseSYM, 'snear'): 
+            # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
+            snears = snears[:-1]
 
         if tbv2 is not None:
             # Keep this option for expert & debug purposes
@@ -1545,34 +1555,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             del tb_noSym
 
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
-
-    #============================
-    # STEP 2: Check snears/vmins
-    #============================
-    # NumBase is only the num. of 'real' bodies
-    snears, nbases = getListSnear__(tb, snears)
-    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-    snearMin = min(snearsFlat)
-    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
-    if isSymLocal: snears = snears[:-1]
-
-    if baseSYM:
-        if tbv2 is not None:
-            # Keep this option for expert & debug purposes
-            tbv2 = C.convertFile2PyTree(tbv2)
-        else:
-            # Default operating mode
-            tbv2 = createExtension__(tb)
-            # Remove SYM Base & Zones - keep real closed tb & tbox
-            tbTmp = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-            tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
-            if len(Internal.getZones(tbv2)) == len(Internal.getZones(tbTmp)): tbv2 = None
-            del tbTmp
-        if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
-
-    # Checks that the vmin input is correct & if needed corrects it 
-    # (if info. is missing it will apply default values & default copies)
-    vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
     #============================
     # STEP 3: Check tbox
@@ -1676,7 +1658,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
-    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    if Cmpi.master and not tCartIn: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
     if abs(hmin-snearMin) > __TOL__:
         for nbase in range(nbases):
             # we only check the first zone of each base as CODA (currently)
@@ -1779,8 +1761,8 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     #  b) If levelMax/=0 :
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
-    if levelMax<1:
-        levelMax=50 #random large number
+    if levelMax < 1:
+        levelMax = 50 #random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
@@ -1789,9 +1771,8 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
             print("=======================================================================", flush=True)
 
     # snears & nbases for the input tb only.
-    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     # NumBase is only the num. of 'real' bodies
-    snears, nbases = getListSnear__(tb, snears)
+    snears, _ = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
 
     if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
@@ -1801,7 +1782,6 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
         if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
         if 'extrude' not in dictGridCart: dictGridCart['extrude'] = False
 
-    extrude = dictGridCart['extrude']
     # e.g. for dictGridCart
     #dictGridCart={
     #    'gridType': 'cartesian',
@@ -1810,17 +1790,13 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     #    'matchExtent': [False, False, False, True, True, False]
     #}
 
-    # check to see if the sym bases have snear?
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
-    isSymLocal = False
+    # check to see if the sym bases have snear
+    baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM:
-        zoneTmp = Internal.getZones(baseSYM)
         if Internal.getNodeFromName(baseSYM, 'snear'):
-            isSymLocal = True
+            if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
+            Cmpi.barrier(); Cmpi.abort()
 
-    if isSymLocal:
-        if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
-        Cmpi.barrier(); Cmpi.abort()
     o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelMax)
 
     if newLevelMax != levelMax:
@@ -1834,12 +1810,11 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
         levelMax = newLevelMax
 
     G._getVolumeMap(o)
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
+    hmin_skel = (C.getMinValue(o, "centers:vol"))**(1/dim)
+    hmin = hmin_skel * 2**(-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     return o, newLevelMax
-
 
 # ORIG F.Basile files - kept 'just in case' - TO BE DELETED AFTER [06/2026]
 #def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
