@@ -206,7 +206,7 @@ def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLoca
     #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
     return to
 
-def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
+def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
     import copy
     vminsTMP = copy.deepcopy(vminsIN)
     # list of vminsTMP
@@ -215,28 +215,28 @@ def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
         if not isinstance(vminsTMP[0],list): vminsTMP = [vminsTMP] # vmin = [] --> vmin = [[]]
 
         # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
-        while len(vminsTMP) < numBaseTMP: vminsTMP.append(vminsTMP[-1])
+        while len(vminsTMP) < nbasesTMP: vminsTMP.append(vminsTMP[-1])
     else:
         # vmin = 10
-        vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
+        vminsTMP = numpy.ones((nbasesTMP,levelMaxTMP))*vminsTMP
         vminsTMP = vminsTMP.tolist() # needed
 
-    vminsLocal = numpy.ones((numBaseTMP, levelMaxTMP))
-    for nBase in range(numBaseTMP):
-        if not isinstance(vminsTMP[nBase],list):
-            vminsLocal[nBase][:] = vminsTMP[nBase][:]
-        elif len(vminsTMP[nBase]) < levelMaxTMP:
-            vminsLocal[nBase][:len(vminsTMP[nBase])] = vminsTMP[nBase][:]
-            vminsLocal[nBase][len(vminsTMP[nBase]):] = vminsTMP[nBase][-1]
-        elif len(vminsTMP[nBase]) > levelMaxTMP:
-            vminsLocal[nBase][:] = vminsTMP[nBase][:levelMaxTMP]
+    vminsLocal = numpy.ones((nbasesTMP, levelMaxTMP))
+    for nbase in range(nbasesTMP):
+        if not isinstance(vminsTMP[nbase],list):
+            vminsLocal[nbase][:] = vminsTMP[nbase][:]
+        elif len(vminsTMP[nbase]) < levelMaxTMP:
+            vminsLocal[nbase][:len(vminsTMP[nbase])] = vminsTMP[nbase][:]
+            vminsLocal[nbase][len(vminsTMP[nbase]):] = vminsTMP[nbase][-1]
+        elif len(vminsTMP[nbase]) > levelMaxTMP:
+            vminsLocal[nbase][:] = vminsTMP[nbase][:levelMaxTMP]
         else:
-            vminsLocal[nBase][:] = vminsTMP[nBase][:]
+            vminsLocal[nbase][:] = vminsTMP[nbase][:]
             
     vminsTMP = []
-    for nBase in range(numBaseTMP):
-        vminsTMP.append(list(vminsLocal[nBase]))
-        vminsTMP[nBase] = [max(5,v) for v in vminsTMP[nBase]] # vmin values should not be inferior to a given threshold
+    for nbase in range(nbasesTMP):
+        vminsTMP.append(list(vminsLocal[nbase]))
+        vminsTMP[nbase] = [max(5,v) for v in vminsTMP[nbase]] # vmin values should not be inferior to a given threshold
     return vminsTMP
 
 # Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
@@ -267,8 +267,8 @@ def getListSnear__(tb, snears):
     tbTMP = Internal.copyTree(tb)
     baseSYM = Internal.getNodesFromName1(tbTMP, "SYM")
     if baseSYM: tbTMP = Internal.rmNodesByNameAndType(tbTMP, 'SYM', 'CGNSBase_t')
-    numBase = len(Internal.getBases(tbTMP))
-    return snears, numBase
+    nbases = len(Internal.getBases(tbTMP))
+    return snears, nbases
 
 def checkBaseNames__(tb,tbox):
     # check consistency of base names in tb and tbox
@@ -314,10 +314,10 @@ def cleanOffset__(offsetTmp):
     offsetTmp = G.close(offsetTmp, closeVal)
     return offsetTmp
 
-def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None, blankCellsAlgo='xray'):
+def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxes=0, tbv2=None, blankCellsAlgo='xray'):
     import Geom.IBM as D_IBM
     if offsetValues == []: return []
-    numBase = len(Internal.getBases(tb))
+    nbases = len(Internal.getBases(tb))
     if Cmpi.master: print('Generating list of offsets...start', flush=True)
 
     minSnear=1e10
@@ -334,7 +334,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             node = Internal.getNodesFromNameAndType(b, '*_sym', 'Zone_t')
             if node: listShiftBase.append(b[0])
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-    numBase = len(Internal.getBases(tb))
+    nbases = len(Internal.getBases(tb))
     if opt and dim == 3:
         for nob in range(len(tb[2])):
             if Internal.getType(tb[2][nob]) == 'CGNSBase_t':
@@ -381,13 +381,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
 
     t_offset = C.newPyTree()
     no_offsetGlobal = 0
-    for nBase, tbLocal in enumerate(Internal.getBases(tb)):
+    for nbase, tbLocal in enumerate(Internal.getBases(tb)):
         BB = G.bbox(tbLocal)
         ni = 150; nj = 150; nk = 150
         XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
 
-        offsetValMin = min(offsetValues[nBase])
-        offsetValMax = max(offsetValues[nBase])
+        offsetValMin = min(offsetValues[nbase])
+        offsetValMax = max(offsetValues[nbase])
         alpha = 1.1
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
@@ -435,7 +435,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
         tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
-        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nBase, tElapse), flush=True)
+        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nbase, tElapse), flush=True)
 
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
@@ -447,27 +447,27 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nbase) # DEBUG ONLY
 
         # all body offsets are prefaced by 'z_offsetBase' - only the zone name
         # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         preffixLocal = 'z_offsetBase'
-        if nBase >= numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
-        for no_offset, offsetval in enumerate(offsetValues[nBase]):
-            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nBase][0]*2**no_offset), flush=True)
+        if nbase >= nbases-nboxes: preffixLocal = 'Tbox_offsetBase'
+        for no_offset, offsetval in enumerate(offsetValues[nbase]):
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nbase][0]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance', offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nbase, no_offset)) #leave here for now - related to cleanOffset
             iso = cleanOffset__(offsetTmp=iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nbase, no_offset)) #leave here for now - related to cleanOffset
             #Cmpi.barrier()
             #iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
-            iso[0]='%s%d_%d'%(preffixLocal, nBase, no_offset)
-            D_IBM._setSnear(iso, snears[nBase][0]*2**no_offset)
-            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase, no_offset))
+            iso[0]='%s%d_%d'%(preffixLocal, nbase, no_offset)
+            D_IBM._setSnear(iso, snears[nbase][0]*2**no_offset)
+            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nbase, no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal += 1
     return t_offset
@@ -1205,7 +1205,7 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0, blankCellsAlgo='xray'):
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
     
@@ -1262,13 +1262,13 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     offset_names = ['IBM body', 'tbox'] # for I/O purposes only
     offset_zones = [newOffsetsIBM, newOffsetsTbox]
     offset_inside = [Internal.getZones(tb)]
-    if numTbox > 0: offset_inside.append(None)
+    if nboxes > 0: offset_inside.append(None)
 
     noffsets = max(offset_nbases) # max offset for all the bases
 
     for level in range(noffsets-1, -1, -1):
         if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%level, flush=True)
-        for nbase in range(1 + min(1,numTbox)): # nbase = 0(IBM), 1(tbox - if it exists))
+        for nbase in range(1 + min(1,nboxes)): # nbase = 0(IBM), 1(tbox - if it exists))
             # if level (offset) is greater than the num. offset for nbase - we continue to the next offset number
             if level > offset_nbases[nbase]-1: continue
             if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_names[nbase], flush=True)
@@ -1486,11 +1486,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
     
-    NumMinDxLarge = 1
+    NumMinDxLarge = 1 # default value
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
+
+    checkBaseNames__(tb, tbox)
 
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
@@ -1520,7 +1522,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         NumMinDxLarge = 1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
-    # check to see if the sym bases have snear?
+
+    #============================
+    # STEP 1: Check for baseSYM
+    #============================
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
     isSymLocal = False
@@ -1541,14 +1546,14 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
-    checkBaseNames__(tb, tbox)
-
-    # snears & numBase for the input tb only.
-    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
+    #============================
+    # STEP 2: Check snears/vmins
+    #============================
     # NumBase is only the num. of 'real' bodies
-    snears, numBase = getListSnear__(tb, snears)
+    snears, nbases = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     snearMin = min(snearsFlat)
+    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     if isSymLocal: snears = snears[:-1]
 
     if baseSYM:
@@ -1567,21 +1572,23 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     # Checks that the vmin input is correct & if needed corrects it 
     # (if info. is missing it will apply default values & default copies)
-    vmins = vminsInputCheck__(vmins, numBase, levelMax)
+    vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
-    # Tbox section
+    #============================
+    # STEP 3: Check tbox
+    #============================
     tb_tbox = Internal.copyTree(tb)
     if tbox:
-        snearsTbox, numTbox = getListSnear__(tbox, 1)
-        vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
+        snearsTbox, nboxes = getListSnear__(tbox, 1)
+        vminsTbox = vminsInputCheck__(vminsTbox, nboxes, levelMax)
 
         tb_tbox[2] += Internal.getBases(tbox)
         
         vmins.extend(vminsTbox)
         snears.extend(snearsTbox)
-        numBase = numBase + numTbox
+        nbases += nboxes
     else:
-        snearsTbox, numTbox = [], 0
+        snearsTbox, nboxes = [], 0
 
     # ================== SECTION END  ==================
 
@@ -1629,9 +1636,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                 print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
                 print("=======================================================================", flush=True)
             levelMax = newLevelMax
-            for nBase in range(numBase):
-                while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
-                vmins[nBase] = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
+            for nbase in range(nbases):
+                while len(vmins[nbase]) < newLevelMax: vmins[nbase].append(vmins[nbase][-1]) # if newLevelMax > levelMax
+                vmins[nbase] = vmins[nbase][:newLevelMax] # if newLevelMax < levelMax
     else:
         if Cmpi.master:
             print("=======================================================================", flush=True)
@@ -1660,6 +1667,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
             Cmpi.abort(errorcode=1)
 
+    #============================
+    # STEP 5: Update snears
+    #============================
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
     # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
@@ -1668,12 +1678,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
     if abs(hmin-snearMin) > __TOL__:
-        for nBase in range(numBase):
+        for nbase in range(nbases):
             # we only check the first zone of each base as CODA (currently)
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
-            snearMult = snears[nBase][0] // snearMin
-            snears[nBase] = [snearMult*hmin]
+            snearMult = snears[nbase][0] // snearMin
+            snears[nbase] = [snearMult*hmin]
 
+    #============================
+    # STEP 6: Update dfar
+    #============================
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
     # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
@@ -1714,9 +1727,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
         if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
+    #============================
+    # STEP 7: Generate offsets
+    #============================
     if toffset == None:
         offsetValues = []
-        for nbase in range(numBase):
+        for nbase in range(nbases):
             offsetPrev = 0.
             offsetValuesBase = []
             for level in range(len(vmins[nbase])):
@@ -1742,15 +1758,19 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         # generate list of offsets
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
+        toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, nboxes=nboxes, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
-
+    
+    #============================
+    # STEP 8: Mesh adaptation
+    #============================
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     # only tb --> for blanking & tagging inside the geometry
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox, blankCellsAlgo=blankCellsAlgo)
+    o = adaptMesh__(pathSkeleton, hmin, tb, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
+    
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
 def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None):
@@ -1768,10 +1788,10 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
             print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
             print("=======================================================================", flush=True)
 
-    # snears & numBase for the input tb only.
+    # snears & nbases for the input tb only.
     # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     # NumBase is only the num. of 'real' bodies
-    snears, numBase = getListSnear__(tb, snears)
+    snears, nbases = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
 
     if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
