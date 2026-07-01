@@ -1513,8 +1513,21 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
     isSymLocal = False
     if baseSYM:
-        if Internal.getNodeFromName(baseSYM, 'snear'):
-            isSymLocal = True
+        if Internal.getNodeFromName(baseSYM, 'snear'): isSymLocal = True
+
+        if tbv2 is not None:
+            # Keep this option for expert & debug purposes
+            tbv2 = C.convertFile2PyTree(tbv2)
+        else:
+            # Default operating mode
+            tbv2 = createExtension__(tb)
+            # Remove SYM Base & Zones - keep real closed tb & tbox
+            tb_noSym = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+            tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
+            if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb_noSym)): tbv2 = None
+            del tb_noSym
+
+        if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
     checkBaseNames__(tb, tbox)
 
@@ -1522,34 +1535,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     # NumBase is only the num. of 'real' bodies
     snears, numBase = getListSnear__(tb, snears)
-
-    ## --------- Variable Snear on Immersed Boundary ---------
-    #snear = list of [Base1, Base2]; Base1 = list of [zone1, zones2]
-    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...start', flush=True)
-    isTboxSnearAdd = False
-    listTboxSnearAdd = []
-    # loop per base
-    tbTmp = Internal.copyTree(tb)
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tbTmp = Internal.rmNodesByNameAndType(tbTmp, 'SYM', 'CGNSBase_t')
-        tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
-    for iLocal, snearTmp in enumerate(snears):
-        # per base - snear in zones are all equal?
-        diffSnearValues = len(set(snearTmp)) > 1
-        if diffSnearValues:
-            isTboxSnearAdd = True
-            # snear in zones (per base) are not all equal
-            listTboxSnearAdd = selectTboxZonesFromGeom(tbTmp, iLocal, snearTmp, listTboxSnearAdd)
-    if isTboxSnearAdd:
-        if Cmpi.master: print('Identified multiple snear on the same immsered boundary', flush=True)
-        for s1 in snears:
-            maxVal = max(s1)
-            s1[:] = [maxVal] * len(s1)
-    del tbTmp
-    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...end', flush=True)
-    ## --------- --------- --------- --------- --------- ---------
-
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
     snearMin = min(snearsFlat)
     if isSymLocal: snears = snears[:-1]
@@ -1582,10 +1567,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         
         vmins.extend(vminsTbox)
         snears.extend(snearsTbox)
+        numBase = numBase + numTbox
     else:
         snearsTbox, numTbox = [], 0
 
-    numBase = numBase + numTbox
     # ================== SECTION END  ==================
 
     ## --------- Variable Snear on Immersed Boundary ---------
@@ -1604,7 +1589,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         numTbox = len(Internal.getBases(tboxAdd))
         numBase += numTbox
         tb_tbox[2] += Internal.getBases(tboxAdd)
-        snearsTbTbox.extend(snearsTboxAdd)
+        snears.extend(snearsTboxAdd)
         vmins.extend(vminsTboxAdd)
         if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
     ## --------- --------- --------- --------- --------- ---------
@@ -1709,6 +1694,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             else: dfarmaxTmp = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
             dfarmax = min(dfarmaxTmp, dfarmax)
         dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
+
+    del tb_tbox_noSym
 
     # Old dfar max calc. Stays here in case it is needed in the future
     if False:
