@@ -1475,8 +1475,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
     
     NumMinDxLarge = 1
-    tCartIn = False
-    extrude = False
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1511,6 +1509,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
     # check to see if the sym bases have snear?
+    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
     isSymLocal = False
     if baseSYM:
@@ -1552,6 +1551,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     ## --------- --------- --------- --------- --------- ---------
 
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+    snearMin = min(snearsFlat)
     if isSymLocal: snears = snears[:-1]
 
     if baseSYM:
@@ -1609,7 +1609,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
     ## --------- --------- --------- --------- --------- ---------
 
-    tCartin = False
+    # use tIn (background grid) or automatically generate octree skeleton
+    tCartIn = False
     extrude = False
     if tIn is None:
         if Cmpi.master:
@@ -1650,11 +1651,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             print("=======================================================================", flush=True)
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
-            
-    G._getVolumeMap(o)
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
-    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+
+    # mandatory save file for loadAndSplit for adaptation
+    if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
+    Cmpi.barrier()
 
     # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
     if False:
@@ -1666,56 +1666,54 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
     # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
-    minSnearsOrig = min(snearsFlat)
-    if abs(hmin-minSnearsOrig) > __TOL__:
+    G._getVolumeMap(o)
+    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
+    hmin = hmin_skel * 2 ** (-levelMax)
+    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    if abs(hmin-snearMin) > __TOL__:
         for nBase in range(numBase):
             # we only check the first zone of each base as CODA (currently)
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
-            snearMult = snears[nBase][0]//minSnearsOrig
+            snearMult = snears[nBase][0] // snearMin
             snears[nBase] = [snearMult*hmin]
-
-    # mandatory save file for loadAndSplit for adaptation
-    if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
-    Cmpi.barrier()
-
-    bbo = G.bbox(o)
-    minval_bbo = C.getMinValue(o, 'GridCoordinates');
-    maxval_bbo = C.getMaxValue(o, 'GridCoordinates');
-
-    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
-    # adaptation of the mesh wrt to the bodies (finest level) and offsets
-    # only a part is returned per processor
-    tb_tboxLocal = Internal.copyTree(tb_tbox)
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, 'SYM', 'CGNSBase_t')
-        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, '*_sym*', 'Zone_t')
 
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
     # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
     dfarmaxLocal = []
-    for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
-        bbTbLocal = G.bbox(tbLocal)
 
-        minval_bbTbLocal = C.getMinValue(tbLocal, 'GridCoordinates');
-        maxval_bbTbLocal = C.getMaxValue(tbLocal, 'GridCoordinates');
-        dfarmax   = 1e10
+    bbo = G.bbox(o)
+    minval_bbo = C.getMinValue(o, 'GridCoordinates')
+    maxval_bbo = C.getMaxValue(o, 'GridCoordinates')
+
+    tb_tbox_noSym = Internal.copyTree(tb_tbox)
+    if baseSYM:
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tb_tbox_noSym = Internal.rmNodesByNameAndType(tb_tbox_noSym, 'SYM', 'CGNSBase_t')
+        tb_tbox_noSym = Internal.rmNodesByNameAndType(tb_tbox_noSym, '*_sym*', 'Zone_t')
+
+    for b in Internal.getBases(tb_tbox_noSym):
+        bbloc = G.bbox(b)
+        minval_bbloc = C.getMinValue(b, 'GridCoordinates')
+        maxval_bbloc = C.getMaxValue(b, 'GridCoordinates')
+
+        dfarmax = 1e10
         for i in range(dim):
-            isSkipMin=False; isSkipMax=False;
+            isSkipMin, isSkipMax = False, False
             if tCartIn:
-                if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
-                if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
-            if extrude and i==1: continue
-            if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
-            elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
-            else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
-            dfarmax    = min(dfarmaxTmp, dfarmax)
+                if (minval_bbloc[i] <= minval_bbo[i] - 2*__TOL__): isSkipMin=True
+                if (maxval_bbloc[i] >= maxval_bbo[i] + 2*__TOL__): isSkipMax=True
+            if extrude and i == 1: continue
+            if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbloc[i+3]-bbo[i+3])
+            elif isSkipMax: dfarmaxTmp = abs(bbloc[i]-bbo[i])
+            else: dfarmaxTmp = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
+            dfarmax = min(dfarmaxTmp, dfarmax)
         dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
 
     # Old dfar max calc. Stays here in case it is needed in the future
-    dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
-    if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
+    if False:
+        dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
+        if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
     if toffset == None:
         offsetValues = []
