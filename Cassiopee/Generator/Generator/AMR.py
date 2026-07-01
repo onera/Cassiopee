@@ -220,6 +220,23 @@ def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
         # vmin = 10
         vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
         vminsTMP = vminsTMP.tolist() # needed
+
+    vminsLocal = numpy.ones((numBaseTMP, levelMaxTMP))
+    for nBase in range(numBaseTMP):
+        if not isinstance(vminsTMP[nBase],list):
+            vminsLocal[nBase][:] = vminsTMP[nBase][:]
+        elif len(vminsTMP[nBase]) < levelMaxTMP:
+            vminsLocal[nBase][:len(vminsTMP[nBase])] = vminsTMP[nBase][:]
+            vminsLocal[nBase][len(vminsTMP[nBase]):] = vminsTMP[nBase][-1]
+        elif len(vminsTMP[nBase]) > levelMaxTMP:
+            vminsLocal[nBase][:] = vminsTMP[nBase][:levelMaxTMP]
+        else:
+            vminsLocal[nBase][:] = vminsTMP[nBase][:]
+            
+    vminsTMP = []
+    for nBase in range(numBaseTMP):
+        vminsTMP.append(list(vminsLocal[nBase]))
+        vminsTMP[nBase] = [max(5,v) for v in vminsTMP[nBase]] # vmin values should not be inferior to a given threshold
     return vminsTMP
 
 # Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
@@ -232,7 +249,7 @@ def _addItemDict__(d, key, value):
         d[key] = [value]
     return None
 
-def getListSnear__(tb,snears):
+def getListSnear__(tb, snears):
     # List of snears
     if not isinstance(snears, list):
         snearsList = []
@@ -1454,9 +1471,9 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     tbv2=None, blankCellsAlgo='xray', tIn=None):
-    NumMinDxLarge=1
+    NumMinDxLarge = 1
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1467,14 +1484,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #  b) If levelMax/=0 :
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
-    if levelMax<1:
-        levelMax=50 #random large number
+    if levelMax < 1:
+        levelMax = 50 # random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
             print("================== Automatic # of Refinement Levels ===================", flush=True)
             print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
             print("=======================================================================", flush=True)
+
     # NumMinDxLarge : min. number of cells at the largest Deltax between the first refinement & the domain boundary conditions
     # e.g. NumMinDxLarge = 1
     #      |   |   |
@@ -1490,14 +1508,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
     # check to see if the sym bases have snear?
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
     isSymLocal = False
     if baseSYM:
-        zoneTmp = Internal.getZones(baseSYM)
         if Internal.getNodeFromName(baseSYM, 'snear'):
             isSymLocal = True
 
-    checkBaseNames__(tb,tbox)
+    checkBaseNames__(tb, tbox)
 
     # snears & numBase for the input tb only.
     # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
@@ -1552,46 +1569,23 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # ================== SECTION START ==================
     # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, numBase, levelMax)
-
-    snearsTbox = []
-    numTbox    = 0
-    tb_tbox    = Internal.copyTree(tb)
-    if tbox:
-        numTbox     = len(Internal.getBases(tbox))
-        tb_tbox[2] += Internal.getBases(tbox)
-
-        if vminsTbox is None:
-            vminsTbox = numpy.ones((numTbox,levelMax))*3
-            vminsTbox = vminsTbox.tolist()
-        else:
-            vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
-
-        Cmpi.barrier()
-        snearsTbox, tmpRMV = getListSnear__(tbox, 1)
-        vmins.extend(vminsTbox)
-
-    # add the tbox snear parameters
     snearEnd = len(snears)
     if isSymLocal: snearEnd = -1
     snearsTbTbox = snears[0:snearEnd]
-    if snearsTbox: snearsTbTbox.extend(snearsTbox)
+
+    tb_tbox = Internal.copyTree(tb)
+    if tbox:
+        snearsTbox, numTbox = getListSnear__(tbox, 1)
+        vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
+
+        tb_tbox[2] += Internal.getBases(tbox)
+        vmins.extend(vminsTbox)
+
+        snearsTbTbox.extend(snearsTbox)
+    else:
+        snearsTbox, numTbox = [], 0
 
     numBase = numBase + numTbox
-    vminsLocal = numpy.ones((numBase, levelMax))
-    for nBase in range(numBase):
-        if not isinstance(vmins[nBase],list):
-            vminsLocal[nBase][:] = vmins[nBase][:]
-        elif len(vmins[nBase]) < levelMax:
-            vminsLocal[nBase][:len(vmins[nBase])] = vmins[nBase][:]
-            vminsLocal[nBase][len(vmins[nBase]):] = vmins[nBase][-1]
-        elif len(vmins[nBase]) > levelMax:
-            vminsLocal[nBase][:] = vmins[nBase][:levelMax]
-        else:
-            vminsLocal[nBase][:] = vmins[nBase][:]
-    vmins=[]
-    for nBase in range(numBase):
-        vmins.append(list(vminsLocal[nBase]))
-        vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
     ## --------- Variable Snear on Immersed Boundary ---------
@@ -1631,7 +1625,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             print("=======================================================================", flush=True)
             print("===================== Using input background grid  ====================", flush=True)
             print("=======================================================================", flush=True)
-        tCartin = True; newLevelMax = levelMax
+        tCartIn = True; newLevelMax = levelMax
         if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)
         else: o = Internal.copyTree(tIn)
         del tIn
@@ -1653,7 +1647,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             print("=======================================================================", flush=True)
         for nBase in range(numBase):
             while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
-            vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
+            vmins[nBase] = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
             levelMax = newLevelMax
 
     G._getVolumeMap(o)
@@ -1662,10 +1656,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
-    #Ncells = C.getNCells(o)
-    #if Ncells < Cmpi.size:
-    #    raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
-    #    Cmpi.abort(errorcode=1)
+    if False:
+        Ncells = C.getNCells(o)
+        if Ncells < Cmpi.size:
+            raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
+            Cmpi.abort(errorcode=1)
 
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
@@ -1686,7 +1681,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     minval_bbo = C.getMinValue(o, 'GridCoordinates');
     maxval_bbo = C.getMaxValue(o, 'GridCoordinates');
 
-    dir_sym      = getSymmetryPlaneInfo__(tb, dim=dim)
+    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
     tb_tboxLocal = Internal.copyTree(tb_tbox)
@@ -1707,7 +1702,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         dfarmax   = 1e10
         for i in range(dim):
             isSkipMin=False; isSkipMax=False;
-            if tCartin:
+            if tCartIn:
                 if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
                 if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
             if extrude and i==1: continue
@@ -1735,7 +1730,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     offsetValuesBase.append(offsetloc)
                     offsetprev=offsetloc
             if not offsetValuesBase:
-                if tCartin:
+                if tCartIn:
                     hminLocal = snearsTbTbox[nBase][0]
                     offsetloc = hminLocal*1
                     offsetValuesBase.append(offsetloc)
