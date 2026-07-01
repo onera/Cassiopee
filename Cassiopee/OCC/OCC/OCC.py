@@ -25,7 +25,7 @@ __all__ = ['convertCAD2Arrays',
            'getFaceNos', 'getEdgeNos',
            'getFaceArea', 'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
-           '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces', 
+           '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
            '_removeFaces', '_extractFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
            '_splitEdge', '_booleanWires',
@@ -34,7 +34,7 @@ __all__ = ['convertCAD2Arrays',
            '_addSquare', '_addSquare2',
            '_addBox', '_addBox2', '_addSphere', '_addCylinder',
            '_addSplineSurface', '_addGordonSurface', '_addDomain',
-           '_revolve', '_sweep', '_loft', '_boolean', 
+           '_revolve', '_sweep', '_loft', '_boolean',
            '_projectOnEdges', '_projectOnFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
