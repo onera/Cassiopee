@@ -130,6 +130,7 @@ namespace K_OCC
   PyObject* mergeFaces(PyObject* self, PyObject* args);
   PyObject* mergeEdges(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
+  PyObject* extractFaces(PyObject* self, PyObject* args);
   
   PyObject* fixShape(PyObject* self, PyObject* args);
   PyObject* sewing(PyObject* self, PyObject* args);

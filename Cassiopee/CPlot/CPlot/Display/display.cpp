@@ -152,13 +152,15 @@ void fdisplay()
 void gdisplay()
 {
   Data* d = Data::getInstance();
-  if (d->ptrState->preClip == 1) 
+  if (d->ptrState->preClip == 1)
   {
-    E_Float dx = d->_view.xeye - d->_view.xcam;
-    E_Float dy = d->_view.yeye - d->_view.ycam;
-    E_Float dz = d->_view.zeye - d->_view.zcam;
-    E_Float dist = sqrt(dx*dx+dy*dy+dz*dz);
-    d->adaptiveClipping(dist); 
+    double alpha = 0.15;
+    double dx = d->_view.xeye - d->_view.xcam;
+    double dy = d->_view.yeye - d->_view.ycam;
+    double dz = d->_view.zeye - d->_view.zcam;
+    printf("%g %g %g -> %g %g %g\n", d->_view.xcam, d->_view.ycam, d->_view.zcam, d->_view.xeye, d->_view.yeye, d->_view.zeye); 
+    double dist = sqrt(dx*dx+dy*dy+dz*dz) * alpha;
+    d->adaptiveClipping(dist);
     //d->farClipping();
     d->ptrState->preClip = 0; 
   }

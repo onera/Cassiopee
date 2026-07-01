@@ -110,6 +110,7 @@ static PyMethodDef Pyocc [] =
   {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
   {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
   {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
+  {"extractFaces", K_OCC::extractFaces, METH_VARARGS},
 
   {"fixShape", K_OCC::fixShape, METH_VARARGS},
   {"sewing", K_OCC::sewing, METH_VARARGS},

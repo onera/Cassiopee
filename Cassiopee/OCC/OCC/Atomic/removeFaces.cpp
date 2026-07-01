@@ -126,7 +126,7 @@ PyObject* K_OCC::removeFaces(PyObject* self, PyObject* args)
   GETMAPEDGES;
   GETMAPSURFACES;
 
-// get top shape
+  // get top shape
   E_Int nbFaces = surfaces.Extent();
 
   ShapeBuild_ReShape reshaper;
