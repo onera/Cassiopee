@@ -1205,114 +1205,126 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0, blankCellsAlgo='xray'):
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
+    import Generator.Mpi as Gmpi
+    
+    o, res = XC.loadAndSplitNGon(fileSkeleton)
+    Cmpi.barrier()
+
     coarseXray = False
-    bbtb = G.bbox(tb)
     lenMax = 0.0
+    bbo = Gmpi.bbox(o)
     for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
     if lenMax/hmin < 100: coarseXray = True
 
-    numBase = len(Internal.getZones(tb))
-    o, res = XC.loadAndSplitNGon(fileSkeleton)
-    Cmpi.barrier()
+    # Remove SYM Base & Zones - keep real closed tb
+    tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+    tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+
+    # init. AdaptMesh
     gcells = res[5]
     gfaces = res[6]
     comm = res[1]
-    if dim == 3: normal2D=None
+    if dim == 3: normal2D = None
     else: normal2D = numpy.array([0.0, 0.0, 1.0])
     hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
-    offset_zones = Internal.getZones(toffset)
-    offset_inside = [Internal.getZones(tb)]
-    noffsetBase = []
 
-    sortDicOffsetIBM  = {}
-    sortDicOffsetTbox = {}
-    newOffsetsTbox    = []
-    # combine zones with the same snear
-    for i in offset_zones:
-        # dict={snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
-        if 'Tbox' in i[0]:
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict__(sortDicOffsetTbox, hminLocal, i[0])
-        else:
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict__(sortDicOffsetIBM, hminLocal, i[0])
-
-    # newOffsetsIBM=[[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
-    # corresponding for tbox also
+    # get new Offset lists for and tbox
+    sortDictOffsetIBM = {}
+    sortDictOffsetTbox = {}
     newOffsetsIBM = []
-    for snearLocal in sortDicOffsetIBM:
+    newOffsetsTbox = []
+    # -> dictOffset = {snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
+    # -> newOffsets = [[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
+    
+    # combine zones with the same snear
+    for z in Internal.getZones(toffset):
+        if 'Tbox' in z[0]:
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(z, 'snear'))
+            _addItemDict__(sortDictOffsetTbox, hminLocal, z[0])
+        else:
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(z, 'snear'))
+            _addItemDict__(sortDictOffsetIBM, hminLocal, z[0])
+
+    for snearLocal in sortDictOffsetIBM:
         tmpOffset = []
-        for tt in sortDicOffsetIBM[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
+        for tt in sortDictOffsetIBM[snearLocal]: tmpOffset.append(Internal.getNodeFromName(toffset, tt))
         newOffsetsIBM.append(tmpOffset)
 
-    if numTbox > 0:
-        for snearLocal in sortDicOffsetTbox:
-            tmpOffset = []
-            for tt in sortDicOffsetTbox[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
-            newOffsetsTbox.append(tmpOffset)
-        offset_inside.append(None)
+    for snearLocal in sortDictOffsetTbox:
+        tmpOffset = []
+        for tt in sortDictOffsetTbox[snearLocal]: tmpOffset.append(Internal.getNodeFromName(toffset, tt))
+        newOffsetsTbox.append(tmpOffset)
 
-    noffsetBase = [len(newOffsetsIBM), len(newOffsetsTbox)]
-    offset_zonesNew = [newOffsetsIBM, newOffsetsTbox]
-    offset_name = ['IBM body', 'tbox'] # for I/O purposes only
-    noffsets = max(noffsetBase) # max offset for all the bases
-    for i in range(noffsets-1, -1,-1):
-        if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        for nBase in range(1+min(1,numTbox)): #nBase = 0(IBM), 1(tbox - if it exists))
-            # if i (offset) is greater than the num. offset for nBase - we continue to the next offset number
-            if i > noffsetBase[nBase]-1: continue
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
-            offsetloc = offset_zonesNew[nBase][i][0] # as all offset at this level have the same snear we just take the first one in the list
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
-            hx        = hminLocal# * 2**i
+    # init. offset lists
+    offset_nbases = [len(newOffsetsIBM), len(newOffsetsTbox)]
+    offset_names = ['IBM body', 'tbox'] # for I/O purposes only
+    offset_zones = [newOffsetsIBM, newOffsetsTbox]
+    offset_inside = [Internal.getZones(tb)]
+    if numTbox > 0: offset_inside.append(None)
+
+    noffsets = max(offset_nbases) # max offset for all the bases
+
+    for level in range(noffsets-1, -1, -1):
+        if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%level, flush=True)
+        for nbase in range(1 + min(1,numTbox)): # nbase = 0(IBM), 1(tbox - if it exists))
+            # if level (offset) is greater than the num. offset for nbase - we continue to the next offset number
+            if level > offset_nbases[nbase]-1: continue
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_names[nbase], flush=True)
+
+            offsetLocal = offset_zones[nbase][level][0] # as all offset at this level have the same snear we just take the first one in the list
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetLocal, 'snear'))
+            hx = hminLocal#* 2**i
             adaptPass = 0
-            adapting  = True
+            adapting = True
+
             while adapting:
                 Ncells = Cmpi.getNCells(o)
-                C._initVars(o,'centers:indicator',0.)
-                # loop through the offsets in the list for base=nBase and offset level=i
-                for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
+                C._initVars(o, 'centers:indicator', 0.)
+
+                # loop through the offsets in the list for base=nbase and offset level=i
+                for offsetLocal in offset_zones[nbase][level]:
                     # body offset: tag the region between the body & the offset
-                    # tbox offset: tagethe region enclosed by the offset
+                    # tbox offset: tage the region enclosed by the offset
                     # offset1: cgns base of tb or tbox (tag outside)
                     # offset2: offset (tag inside)
-                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
-                    C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
+                    o = tagInsideOffset__(o, offset1=offset_inside[nbase], offset2=offsetLocal, dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                    C._initVars(o, "{centers:indicator} = {centers:indicator} + {centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
-                # Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
+
                 # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
-                o = tagOutsideBody__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
-                C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
+                o = tagOutsideBody__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
                 C._rmVars(o, ["centers:indicatorTmp"])
-                ## AdaptMesh -> 0=no refinement | >=1 refinement
-                ## To avoid unexpected behaviors the indicator needs to be binary --> 0=no refinement & 1=refinement
-                C._initVars(o,"{centers:indicator}=({centers:indicator}>=1)")
-                indicMax = C.getMaxValue(o,"centers:indicator")
-                indicMax = Cmpi.allgather(indicMax)
-                indicMax = max(indicMax)
-                if indicMax<1. or (i == 0 and adaptPass > 0 and nBase == 0):
-                    adapting=False
-                    C._rmVars(o,["centers:indicator"])
-                    break
+
+                # AdaptMesh -> 0: no refinement & >=1: refinement
+                # To avoid unexpected behaviors the indicator needs to be binary -> 0: no refinement & 1: refinement
+                C._initVars(o, "{centers:indicator} = ({centers:indicator} >= 1)")
+
+                indicMax = Cmpi.getMaxValue(o, "centers:indicator")
+                if indicMax < 1. or (level == 0 and adaptPass > 0 and nbase == 0): # break
+                    adapting = False
+                    C._rmVars(o, ["centers:indicator"])
                 else:
-                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
+                    if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...start"%adaptPass, flush=True)
                     f = Internal.getNodeFromName(o, 'indicator')[1]
                     REF = f.astype(dtype=Internal.E_NpyInt)
                     XC.AdaptMesh_AssignRefData(hookAM, REF)
                     # [TODO] check if 4 cells is a global limit
                     # it was found that at least 4 cells are required if not the PT-Scotch partitioning can have partitions with 0 cells. This is empirical and subject to change as the sample
                     # size of the test cases increases
-                    if loadBalancing and Ncells//Cmpi.size>3 and adaptPass<1: XC.AdaptMesh_LoadBalance(hookAM)
+                    if loadBalancing and Ncells//Cmpi.size > 3 and adaptPass < 1: XC.AdaptMesh_LoadBalance(hookAM)
                     XC.AdaptMesh_Adapt(hookAM)
                     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
                     o = Internal.getZones(o)[0]
-                    #Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
-                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
-                    adaptPass+=1
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
-    if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
+                    if False: Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
+                    if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...end"%adaptPass, flush=True)
+                    adaptPass += 1
+            
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_names[nbase], flush=True)
+    
+    if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%level, flush=True)
 
     o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
     o = Internal.getZones(o)[0]
@@ -1704,27 +1716,27 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     if toffset == None:
         offsetValues = []
-        for nBase in range(numBase):
-            offsetprev       = 0.
+        for nbase in range(numBase):
+            offsetPrev = 0.
             offsetValuesBase = []
-            for no_adapt in range(len(vmins[nBase])):
-                hminLocal = snears[nBase][0]
-                offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                # Pull request note: the line below causes regressions in the mesh generation
-                if offsetloc < 0.99*dfarmaxLocal[nBase]:
-                    #if offsetloc < 0.99*dfarmax: # for old dfar max cal. Stays here in case it is needed in the future
-                    offsetValuesBase.append(offsetloc)
-                    offsetprev=offsetloc
+            for level in range(len(vmins[nbase])):
+                hminLocal = snears[nbase][0]
+                offsetLocal = offsetPrev + hminLocal*(2**level) * vmins[nbase][level]
+                if offsetLocal < 0.99*dfarmaxLocal[nbase]: # old: if offsetLocal < 0.99*dfarmax:
+                    offsetValuesBase.append(offsetLocal)
+                    offsetPrev = offsetLocal
+            
             if not offsetValuesBase:
                 if tCartIn:
-                    hminLocal = snears[nBase][0]
-                    offsetloc = hminLocal*1
-                    offsetValuesBase.append(offsetloc)
+                    hminLocal = snears[nbase][0]
+                    offsetLocal = hminLocal
+                    offsetValuesBase.append(offsetLocal)
                 else:
-                    no_adapt = 0
-                    offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
+                    level = 0
+                    offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nbase][level]
+                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nbase, offsetLocal, 0.99*dfarmaxLocal[nbase]))
                     Cmpi.abort(errorcode=1)
+
             offsetValues.append(offsetValuesBase)
 
         # generate list of offsets
@@ -1735,14 +1747,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb
-        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-
-    Cmpi.barrier()
     # only tb --> for blanking & tagging inside the geometry
-    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox, blankCellsAlgo=blankCellsAlgo)
+    Cmpi.barrier()
+    o = adaptMesh__(pathSkeleton, hmin, tb, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
