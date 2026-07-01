@@ -264,10 +264,10 @@ def getListSnear__(tb, snears):
         bodies = Internal.getZones(tb)
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
     snears = snearsList
-    tbTMP = Internal.copyTree(tb)
-    baseSYM = Internal.getNodesFromName1(tbTMP, "SYM")
-    if baseSYM: tbTMP = Internal.rmNodesByNameAndType(tbTMP, 'SYM', 'CGNSBase_t')
-    nbases = len(Internal.getBases(tbTMP))
+    tbLocal = Internal.copyTree(tb)
+    baseSYM = Internal.getNodesFromName1(tbLocal, "SYM")
+    if baseSYM: tbLocal = Internal.rmNodesByNameAndType(tbLocal, 'SYM', 'CGNSBase_t')
+    nbases = len(Internal.getBases(tbLocal))
     return snears, nbases
 
 def checkBaseNames__(tb,tbox):
@@ -305,8 +305,8 @@ def cleanOffset__(offsetTmp):
             val = Internal.getNodeFromName(z, 'edge_'+var)[1]
             positive = val[val > __TOL__]
             if positive.any(): values2print.append([positive.mean(), positive.min(), positive.max()])
-    minVal   = numpy.array(values2print[:3])[:, 1]
-    meanVal  = numpy.array(values2print[:3])[:, 0]
+    minVal = numpy.array(values2print[:3])[:,1]
+    meanVal = numpy.array(values2print[:3])[:,0]
     closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6) # 0.975 & 0.025 are partially 'arbitrary' - TODO: better choice of weights
     if Cmpi.master: print('Offset: Close value:: %g'%closeVal, flush=True)
     Internal._rmNodesFromType(offsetTmp, "FlowSolution_t")
@@ -669,32 +669,32 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     Internal._adaptNGon32NGon4(o)
     return o, levelSkel
 
-def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
+def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
 
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to, 'centers:indicatorTmp', 0.)
 
-    if dim == 2: tbTMP = T.addkplane(tbTMP)
-    bodies1 = [Internal.getZones(tbTMP)]
-    bb1 = G.bbox(tbTMP)
+    if dim == 2: body = T.addkplane(body)
+    bodies1 = [Internal.getZones(body)]
+    bb1 = G.bbox(body)
     L1 = max(bb1[3]-bb1[0], bb1[4]-bb1[1])
     if dim == 3: L1 = max(L1, bb1[5]-bb1[2])
 
     BM = numpy.ones((1,1), dtype=Internal.E_NpyInt)
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
-    XRAYDIM1 = int(L1/h_target)+10;
+    XRAYDIM1 = int(L1/h_target) + 10;
     # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
-    if (noffsets is None) or (noffsets > 2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
-    elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
-    elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
-    elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
+    if (noffsets is None) or (noffsets > 2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1)) #x1
+    elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
+    elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1)) #x5
+    elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1)) #x10
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn", 1.)
 
-    # tbTMP - offset body - blankCells is more tested due to uncertainties on the quality of the offset
+    # body - offset body - blankCells is more tested due to uncertainties on the quality of the offset
     if dim == 2: to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                    XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                    cellNName='cellN') # or blankCellsAlgo == 'xray'
@@ -702,7 +702,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
 
     to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=int(dim), functionName='tagOutsideBody')
     to = C.node2Center(to,["cellN"])
-    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0)")
+    C._initVars(to, "{centers:indicatorTmp} = ({centers:cellN}>0)")
     C._rmVars(to, ["cellN","centers:cellN"])
     o = Internal.getZones(to)[0]
     return o
@@ -736,23 +736,22 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
         L2 = max(L1, bb2[5]-bb2[2])
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
-    XRAYDIM1 = int(L1/h_target)+10; XRAYDIM2 = int(L2/h_target)+10
+    XRAYDIM1 = int(L1/h_target) + 10; XRAYDIM2 = int(L2/h_target) + 10
     # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
     # XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
     # XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
-    # Pull request note: causes regressions in the mesh generation
     if (noffsets is None) or (noffsets > 2) or coarseXray:
-        XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
-        XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
+        XRAYDIM1 = max(500, min(5000, XRAYDIM1)) #x1
+        XRAYDIM2 = max(500, min(5000, XRAYDIM2)) #x1
     elif noffsets == 2:
-        XRAYDIM1 = max(1500, min(15000, XRAYDIM1)); #x3
-        XRAYDIM2 = max(1500, min(15000, XRAYDIM2))  #x3
+        XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
+        XRAYDIM2 = max(1500, min(15000, XRAYDIM2)) #x3
     elif noffsets == 1:
-        XRAYDIM1 = max(2500, min(25000, XRAYDIM1)); #x5
-        XRAYDIM2 = max(2500, min(25000, XRAYDIM2))  #x5
+        XRAYDIM1 = max(2500, min(25000, XRAYDIM1)) #x5
+        XRAYDIM2 = max(2500, min(25000, XRAYDIM2)) #x5
     elif noffsets == 0:
-        XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
-        XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
+        XRAYDIM1 = max(5000, min(50000, XRAYDIM1)) #x10
+        XRAYDIM2 = max(5000, min(50000, XRAYDIM2)) #x10
 
     C._initVars(to, "cellNOut", 1.)
     C._initVars(to, "cellNIn", 1.)
@@ -762,22 +761,22 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
                                                                cellNName='cellNIn')
     else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
 
-    if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
+    if isTbox: C._initVars(to, '{cellN}=({cellNIn} < 1)')
     else:
         if dim == 2 : to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                         XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                         cellNName='cellNOut') #or blankCellsAlgo == 'xray'
         else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
         to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellNOut', functionName='tagInsideOffset', dirLocal=int(dim))
-        C._initVars(to, '{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
+        C._initVars(to, '{cellN} = ({cellNIn} < 1)*({cellNOut} > 0.)')
 
     to = C.node2Center(to, ["cellN"])
-    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0.)")
-    #
+    C._initVars(to, "{centers:indicatorTmp} = ({centers:cellN} > 0.)")
+
     G._getVolumeMap(to)
-    vol_target = h_target**dim * 1.01 # add a tolerance
+    vol_target = (h_target**dim) * 1.01 # add a tolerance
     C._initVars(to, "{centers:indicatorTmp}={centers:indicatorTmp}*({centers:vol}>%g)"%(vol_target))
-    #
+
     C._rmVars(to, ["cellN", "cellNIn", "cellNOut", "centers:cellN", "centers:vol", "centers:h"])
     o = Internal.getZones(to)[0]
     return o
@@ -1294,7 +1293,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                     C._rmVars(o, ["centers:indicatorTmp"])
 
                 # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
-                o = tagOutsideBody__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                o = tagOutsideBody__(o, body=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                 C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
                 C._rmVars(o, ["centers:indicatorTmp"])
 
