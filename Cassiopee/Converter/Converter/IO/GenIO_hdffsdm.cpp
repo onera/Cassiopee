@@ -672,18 +672,6 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   
   if (nds > 1) // because of coordinates always present I guess
   {
-    // Create FlowSolution#Centers and GridLocation
-    PyObject* childrenFS = PyList_New(0);
-    PyObject* FS = Py_BuildValue("[sOOs]", "FlowSolution#Centers", Py_None, childrenFS, "FlowSolution_t");
-    PyList_Append(children4, FS); Py_DECREF(FS);
-    npy_dim_vals[0] = 10;
-    PyObject* children14 = PyList_New(0);
-    PyArrayObject* r14 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
-    char* pp14 = (char*)PyArray_DATA(r14);
-    K_STRING::cpy(pp14, "CellCenter", npy_dim_vals[0], false);
-    PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r14, children14, "GridLocation_t");
-    PyList_Append(childrenFS, gl); Py_DECREF(gl);
-
     char** names = new char* [nds+1];
     for (E_Int i = 0; i < nds+1; i++) names[i] = NULL;
     #if H5_VERSION_LE(1,11,9)
@@ -692,7 +680,58 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       H5Literate2(gid, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, feed_children_names, (void*)names);
     #endif
     //for (E_Int i = 0; i < nds; i++) printf(" %s ", names[i]);
+
+    // First pass over Datasets to read their dimension, and thus get their locality
     char str[1028];
+    std::vector<E_Int> datasetLoc(nds, -1);
+    E_Int nvarsNodes = 0, nvarsCenters = 0;
+    for (E_Int i = 0; i < nds; i++)
+    {
+      strcpy(str, "/FS:Mesh/UnstructuredCells/Datasets/");
+      strcat(str, names[i]);
+      if (strcmp(names[i], "Coordinates") == 0) continue; // pass coordinates
+
+      node = H5Gopen(fid, str, H5P_DEFAULT);
+    
+      hid_t aid = H5Aopen_by_name(node, ".", "NumberOfVariables", H5P_DEFAULT, H5P_DEFAULT);
+      E_Int nvars = 0;
+      H5Aread(aid, H5T_NATIVE_INT, &nvars);
+      H5Aclose(aid);
+      aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
+      E_Int size = 0;
+      H5Aread(aid, H5T_NATIVE_INT, &size);
+      H5Aclose(aid);
+      if (size == nvertex) {datasetLoc[i] = 0; nvarsNodes += nvars; } // FlowSolution#Nodes
+      else {datasetLoc[i] = 1; nvarsCenters += nvars; }  // FlowSolution#Centers
+      // printf("nvars = %d, size=%d\n", nvars, size);
+
+      H5Gclose(node);
+    }
+
+    // Create FlowSolution
+    PyObject* childrenFS = NULL;
+    if (nvarsNodes > 0)
+    {
+      childrenFS = PyList_New(0);
+      PyObject* FS = Py_BuildValue("[sOOs]", "FlowSolution", Py_None, childrenFS, "FlowSolution_t");
+      PyList_Append(children4, FS); Py_DECREF(FS);
+    }
+
+    // Create FlowSolution#Centers and GridLocation
+    PyObject* childrenFSc = NULL;
+    if (nvarsCenters > 0)
+    {
+      childrenFSc = PyList_New(0);
+      PyObject* FSc = Py_BuildValue("[sOOs]", "FlowSolution#Centers", Py_None, childrenFSc, "FlowSolution_t");
+      PyList_Append(children4, FSc); Py_DECREF(FSc);
+      npy_dim_vals[0] = 10;
+      PyObject* children14 = PyList_New(0);
+      PyArrayObject* r14 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+      char* pp14 = (char*)PyArray_DATA(r14);
+      K_STRING::cpy(pp14, "CellCenter", npy_dim_vals[0], false);
+      PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r14, children14, "GridLocation_t");
+      PyList_Append(childrenFSc, gl); Py_DECREF(gl);
+    }
 
     for (E_Int i = 0; i < nds; i++)
     {
@@ -710,7 +749,6 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       E_Int ncells = 0;
       H5Aread(aid, H5T_NATIVE_INT, &ncells);
       H5Aclose(aid);
-      //printf("nvars = %d, ncells=%d\n", nvars, ncells);
 
       dims[0] = ncells; dims[1] = nvars;
       did = H5Screate_simple(2, dims, NULL);
@@ -747,7 +785,9 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         H5Dread(vid, tid, memspace, sid, H5P_DEFAULT, fp);
         PyObject* fc = PyList_New(0);
         PyObject* fl = Py_BuildValue("[sOOs]", name3, f, fc, "DataArray_t");
-        PyList_Append(childrenFS, fl); Py_DECREF(fl);
+        if (datasetLoc[i] == 0) PyList_Append(childrenFS, fl);
+        else if (datasetLoc[i] == 1) PyList_Append(childrenFSc, fl);
+        Py_DECREF(fl);
       }
       H5Dclose(vid); H5Sclose(did);
       H5Gclose(node);
@@ -770,7 +810,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   }
 
   // Create GridElements
-  E_Int nhexa=0; E_Int ntetra=0; E_Int npenta=0; E_Int npyra=0; 
+  E_Int nhexa = 0; E_Int ntetra = 0; E_Int npenta = 0; E_Int npyra = 0; 
   //E_Int ntri=0; E_Int nquad=0;
   //E_Int npoly3d=0; E_Int npoly2d=0;
   /*
