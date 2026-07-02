@@ -159,9 +159,9 @@ void gdisplay()
     double dy = d->_view.yeye - d->_view.ycam;
     double dz = d->_view.zeye - d->_view.zcam;
     printf("%g %g %g -> %g %g %g\n", d->_view.xcam, d->_view.ycam, d->_view.zcam, d->_view.xeye, d->_view.yeye, d->_view.zeye); 
-    double dist = sqrt(dx*dx+dy*dy+dz*dz) * alpha;
+    double dist = sqrt(dx*dx+dy*dy+dz*dz)*alpha;
+    d->farClipping();
     d->adaptiveClipping(dist);
-    //d->farClipping();
     d->ptrState->preClip = 0; 
   }
 
