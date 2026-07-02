@@ -26,7 +26,7 @@ try:
         **installBaseUser.installDict,
         **installBase.installDict,
     }
-except ModuleNotFoundError:
+except (ModuleNotFoundError, FileNotFoundError):
     installDict = installBase.installDict
 Dist.setConfigDict(installDict)
 additionalLibPaths = Dist.getAdditionalLibPaths()

@@ -51,7 +51,7 @@
 // boolean operations on wires
 // op=0 (fuse), 1 (cut), 2 (common)
 //=====================================================================
-PyObject* K_OCC::booleanWires(PyObject* self, PyObject* args)
+PyObject* K_OCC::booleanEdges(PyObject* self, PyObject* args)
 {
   PyObject* hook; PyObject* listEdges1; PyObject* listEdges2;
   E_Int op;

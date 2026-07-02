@@ -857,8 +857,6 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
   std::vector<E_Int> pneis; 
 
-  E_Int nif = 0;
-
   std::vector<int> rncount(nproc,0);
   for (E_Int i = 0; i < nproc; i++) 
   {
@@ -884,7 +882,6 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 
       if (ho && hn) 
       {
-        nif++;
         continue; // internal face
       }
 

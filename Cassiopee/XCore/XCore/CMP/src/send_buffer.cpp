@@ -166,7 +166,7 @@ namespace CMP {
         const std::size_t min_size_for_parallel_copy = 8 * data_chunk;  // Taille minimal pour faire une copie parallèle
         if (m_cur_size > m_arr_buffer.size())
             std::vector<value_t>( m_cur_size ).swap( m_arr_buffer );
-        std::size_t count = 0;
+        //std::size_t count = 0;
         //m_arr_buffer.resize( m_cur_size );
         Buffer::iterator itB = m_arr_buffer.begin( );
 
@@ -197,7 +197,7 @@ namespace CMP {
 		}
             itB += ( *it_d ).size( );
             assert( itB <= m_arr_buffer.end( ) );
-            count += ( *it_d ).size( );
+            //count += ( *it_d ).size( );
         }
     }
     // ===========================================================================================
