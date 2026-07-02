@@ -20,13 +20,14 @@ from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getFaceNos, getEdgeNos, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
     _translate, _rotate, _scale, _fixShape, _sewing, _reverse, _splitFaces, \
-    _mergeFaces, _trimFaces, _removeFaces, _extractFaces, _fillHole, \
+    _mergeFaces, _trimFaces, _removeFaces, _removeEdges, \
+    _extractFaces, _fillHole, \
     _addFillet, _offset, mergeCAD, _splitEdge, \
     _addArc, _addCircle, _addEllipse, _addSuperEllipse, _addLine, \
     _addSquare, _addSquare2, _addBox, _addBox2, \
     _addSpline, _addSphere, _addCylinder, _addSplineSurface, \
     _addGordonSurface, _addDomain, \
-    _revolve, _sweep, _loft, _boolean, _booleanWires
+    _revolve, _sweep, _loft, _boolean, _booleanEdges
 
 #==============================================================================
 # -- convertCAD2PyTree --

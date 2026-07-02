@@ -130,6 +130,7 @@ namespace K_OCC
   PyObject* mergeFaces(PyObject* self, PyObject* args);
   PyObject* mergeEdges(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);
+  PyObject* removeEdges(PyObject* self, PyObject* args);
   PyObject* extractFaces(PyObject* self, PyObject* args);
   
   PyObject* fixShape(PyObject* self, PyObject* args);
@@ -153,7 +154,7 @@ namespace K_OCC
   PyObject* untrimFaces(PyObject* self, PyObject* args);
   
   PyObject* boolean(PyObject* self, PyObject* args);
-  PyObject* booleanWires(PyObject* self, PyObject* args);
+  PyObject* booleanEdges(PyObject* self, PyObject* args);
 
   PyObject* getOppData(PyObject* self, PyObject* args);
   PyObject* identifyTags(PyObject* self, PyObject* args);

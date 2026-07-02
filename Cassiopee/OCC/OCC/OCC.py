@@ -26,15 +26,15 @@ __all__ = ['convertCAD2Arrays',
            'getFaceArea', 'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
-           '_removeFaces', '_extractFaces',
+           '_removeFaces', '_removeEdges', '_extractFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
-           '_splitEdge', '_booleanWires',
+           '_splitEdge', 
            '_addArc', '_addCircle', '_addEllipse',
            '_addSuperEllipse', '_addLine', '_addSpline',
            '_addSquare', '_addSquare2',
            '_addBox', '_addBox2', '_addSphere', '_addCylinder',
            '_addSplineSurface', '_addGordonSurface', '_addDomain',
-           '_revolve', '_sweep', '_loft', '_boolean',
+           '_revolve', '_sweep', '_loft', '_boolean', '_booleanEdges',
            '_projectOnEdges', '_projectOnFaces']
 
 # algo=0: mailleur open cascade (chordal_error)
@@ -1067,11 +1067,11 @@ def _boolean(hook, faces1, faces2, op=0, rev1=1, rev2=1):
     faces2 = getFaceList__(hook, faces2)
     occ.boolean(hook, faces1, faces2, op, rev1, rev2)
 
-def _booleanWires(hook, edges1, edges2, op=0):
+def _booleanEdges(hook, edges1, edges2, op=0):
     """Boolean operation on two wires."""
     edges1 = getEdgeList__(hook, edges1)
     edges2 = getFaceList__(hook, edges2)
-    occ.booleanWires(hook, edges1, edges2, op)
+    occ.booleanEdges(hook, edges1, edges2, op)
 
 #=============================================================================
 # CAD global operations
@@ -1162,6 +1162,13 @@ def _removeFaces(hook, faceList, new2OldEdgeMap=[], new2OldFaceMap=[]):
     """Remove given faces."""
     faceList = getFaceList__(hook, faceList)
     occ.removeFaces(hook, faceList, new2OldEdgeMap, new2OldFaceMap)
+    return None
+
+# remove edges
+def _removeEdges(hook, edgeList):
+    """Remove given edge."""
+    edgeList = getEdgeList__(hook, edgeList)
+    occ.removeEdges(hook, edgeList)
     return None
 
 def _extractFaces(hook, faceList):
