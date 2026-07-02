@@ -84,7 +84,7 @@ def saveConfigFile(event=None):
     try: additionalLibPaths = parseList(VadditionalLibPaths.get())
     except: additionalLibPaths = []
 
-    dict[machine] = [
+    installDict[machine] = [
         Vdescription.get(),
         Vf77compiler.get(),
         Vf90compiler.get(),
@@ -99,7 +99,7 @@ def saveConfigFile(event=None):
         False,
         []
     ]
-    userDict = {machine: dict[machine]}
+    userDict = {machine: installDict[machine]}
     Dist.writeInstallBase(userDict)
     return
 
@@ -128,12 +128,12 @@ def changeMachineName(event=None):
             entry.config(foreground=entry.master.cget('fg'))
 
     key = ''
-    for i in dict:
+    for i in installDict:
         if re.compile(i).search(machine) is not None:
             key = i; break
 
-    if key in dict: # already defined in install base
-        setVars(dict[key])
+    if key in installDict: # already defined in install base
+        setVars(installDict[key])
     else: setDefaultVars()
 
 #==============================================================================
@@ -292,8 +292,14 @@ def checkMpeg(event=None):
 
 #==============================================================================
 # Load install base
+try:
+    import installBaseUser
+    installDictUser = installBaseUser.installDict
+except ModuleNotFoundError:
+    installDictUser = {}
 import installBase
-dict = installBase.installDict
+installDict = {**installDictUser, **installBase.installDict}
+
 
 #==============================================================================
 # Get machine
@@ -323,7 +329,7 @@ WIDGETS = {}
 
 # Init
 key = ''
-for i in dict:
+for i in installDict:
     if (re.compile(i).search(host) is not None or
             re.compile(i).search(prod) is not None):
         key = i; break
@@ -331,8 +337,8 @@ for i in dict:
 if (re.compile(key).search(host) is not None): setMachineName(host)
 if (re.compile(key).search(prod) is not None): setMachineName(prod)
 
-if key in dict: # already defined in install base
-    setVars(dict[key])
+if key in installDict: # already defined in install base
+    setVars(installDict[key])
 
 #==============================================================================
 def instructions():
@@ -404,7 +410,7 @@ file.add_command(label='Save installBase', command=saveConfigFile)
 file.add_command(label='Quit', command=quit)
 machines = TK.Menu(menu, tearoff=0)
 menu.add_cascade(label='Machines', menu=machines)
-for i in dict:
+for i in installDict:
     machines.add_command(label=i, command=lambda i=i : setMachineName(i))
 master.config(menu=menu)
 help = TK.Menu(menu, tearoff=0)

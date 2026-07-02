@@ -20,7 +20,15 @@ def loadModuleFromPath(modname):
 # Compiler settings must be set in installBase.py / installBaseUser.py
 Dist = loadModuleFromPath('Dist')
 installBase = loadModuleFromPath('installBase')
-Dist.setConfigDict(installBase.installDict)
+try:
+    installBaseUser = loadModuleFromPath("installBaseUser")
+    installDict = {
+        **installBaseUser.installDict,
+        **installBase.installDict,
+    }
+except ModuleNotFoundError:
+    installDict = installBase.installDict
+Dist.setConfigDict(installDict)
 additionalLibPaths = Dist.getAdditionalLibPaths()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibs = Dist.getAdditionalLibs()

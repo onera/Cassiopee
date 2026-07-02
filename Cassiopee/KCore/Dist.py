@@ -22,8 +22,17 @@ def setConfigDict(installDict=None):
     prod = os.getenv("ELSAPROD")
     if installDict is None:
         try: import KCore.installBase as installBase
-        except: import installBase
-        installDict = installBase.installDict
+        except ModuleNotFoundError: import installBase
+        try:
+            import KCore.installBaseUser as installBaseUser
+            installDictUser = installBaseUser.installDict
+        except ModuleNotFoundError:
+            try:
+                import installBaseUser as installBaseUser
+                installDictUser = installBaseUser.installDict
+            except ModuleNotFoundError:
+                installDictUser = {}
+        installDict = {**installDictUser, **installBase.installDict}
 
     cassProd = None
     # prod est tout d'abord cherche dans le dictionnaire
@@ -45,9 +54,10 @@ def setConfigDict(installDict=None):
             if prod in installDict: cassProd = prod
 
     if cassProd is None:  # not found in installDict
-        print(f"Warning: {prod} not found in KCore/installBase.py.")
-        print("Warning: using default compilers and options.")
-        print("Warning: to change that, add a block in KCore/installBase.py.")
+        print(f"Warning: {prod} not found in KCore/installBase.py nor "
+              "KCore/installBaseUser.py.\n"
+              "Warning: using default compilers and options.\n"
+              "Warning: to change that, add a block in KCore/installBase.py.")
         cassProd = 'default'
 
     CONFIGDICT = installDict[cassProd]
