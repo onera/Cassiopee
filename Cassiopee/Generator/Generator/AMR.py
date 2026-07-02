@@ -48,7 +48,7 @@ def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
                 bNew = D_IBM.closeContour(base)
                 bNew = T.reorder(bNew, (1,2,3))
                 bNew = D.uniformize(bNew, N=1000)
-                
+
             else:
                 bNew = D_IBM.closeSurface(base, isSmooth=True)
                 bNew = Internal.getZones(bNew)
@@ -1614,7 +1614,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         vmins.extend(vminsTboxAdd)
         if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
     ## --------- --------- --------- --------- --------- ---------
-    
+
     tCartin = False
     extrude = False
     if tIn is None:
