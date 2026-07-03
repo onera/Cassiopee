@@ -251,8 +251,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   H5Dclose(did);
 
   // Check total number of faces and number of faces per element * number of elts
-  E_Int size1 = 0;
-  for (E_Int i = 0; i < size; i++) size1 += c2fc[i];
+  //E_Int size1 = 0;
+  //for (E_Int i = 0; i < size; i++) size1 += c2fc[i];
   //printf("total number of faces by elements: " SF_D_ "\n", size1);
 
   // read face2nodecounts (face -> node cell indirect)  
