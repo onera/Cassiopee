@@ -1483,9 +1483,11 @@ def _addPhysicalBCs__(z_ngon, tb, dim=3):
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
-                    tbv2=None, blankCellsAlgo='xray', tIn=None):
+                    blankCellsAlgo='xray', tIn=None, **kwargs):
 
-    NumMinDxLarge = 1 # default value
+    # debug parameters
+    tbv2 = kwargs.get('tbv2', None)
+    NumMinDxLarge = kwargs.get('NumMinDxLarge', 1)
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1657,7 +1659,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     G._getVolumeMap(o)
     hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
     hmin = hmin_skel * 2 ** (-levelMax)
-    if Cmpi.master and not tCartIn: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
     if abs(hmin-snearMin) > __TOL__:
         for nbase in range(nbases):
             # we only check the first zone of each base as CODA (currently)
