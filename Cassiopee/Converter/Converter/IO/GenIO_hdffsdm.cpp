@@ -664,141 +664,6 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   PyList_Append(children5, nzc); Py_DECREF(nzc);
   delete [] r;
 
-  // Create FlowSolution - read data sets
-  hid_t gid = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Datasets", H5P_DEFAULT);
-  H5G_info_t info;
-  H5Gget_info(gid, &info);
-  E_Int nds = info.nlinks; // number of dataSets
-  
-  if (nds > 1) // because of coordinates always present I guess
-  {
-    char** names = new char* [nds+1];
-    for (E_Int i = 0; i < nds+1; i++) names[i] = NULL;
-    #if H5_VERSION_LE(1,11,9)
-      H5Literate(gid, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
-    #else
-      H5Literate2(gid, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, feed_children_names, (void*)names);
-    #endif
-    //for (E_Int i = 0; i < nds; i++) printf(" %s ", names[i]);
-
-    // First pass over Datasets to read their dimension, and thus get their locality
-    char str[1028];
-    std::vector<E_Int> datasetLoc(nds, -1);
-    E_Int nvarsNodes = 0, nvarsCenters = 0;
-    for (E_Int i = 0; i < nds; i++)
-    {
-      strcpy(str, "/FS:Mesh/UnstructuredCells/Datasets/");
-      strcat(str, names[i]);
-      if (strcmp(names[i], "Coordinates") == 0) continue; // pass coordinates
-
-      node = H5Gopen(fid, str, H5P_DEFAULT);
-    
-      hid_t aid = H5Aopen_by_name(node, ".", "NumberOfVariables", H5P_DEFAULT, H5P_DEFAULT);
-      E_Int nvars = 0;
-      H5Aread(aid, H5T_NATIVE_INT, &nvars);
-      H5Aclose(aid);
-      aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
-      E_Int size = 0;
-      H5Aread(aid, H5T_NATIVE_INT, &size);
-      H5Aclose(aid);
-      if (size == nvertex) {datasetLoc[i] = 0; nvarsNodes += nvars; } // FlowSolution#Nodes
-      else {datasetLoc[i] = 1; nvarsCenters += nvars; }  // FlowSolution#Centers
-      // printf("nvars = %d, size=%d\n", nvars, size);
-
-      H5Gclose(node);
-    }
-
-    // Create FlowSolution
-    PyObject* childrenFS = NULL;
-    if (nvarsNodes > 0)
-    {
-      childrenFS = PyList_New(0);
-      PyObject* FS = Py_BuildValue("[sOOs]", "FlowSolution", Py_None, childrenFS, "FlowSolution_t");
-      PyList_Append(children4, FS); Py_DECREF(FS);
-    }
-
-    // Create FlowSolution#Centers and GridLocation
-    PyObject* childrenFSc = NULL;
-    if (nvarsCenters > 0)
-    {
-      childrenFSc = PyList_New(0);
-      PyObject* FSc = Py_BuildValue("[sOOs]", "FlowSolution#Centers", Py_None, childrenFSc, "FlowSolution_t");
-      PyList_Append(children4, FSc); Py_DECREF(FSc);
-      npy_dim_vals[0] = 10;
-      PyObject* children14 = PyList_New(0);
-      PyArrayObject* r14 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
-      char* pp14 = (char*)PyArray_DATA(r14);
-      K_STRING::cpy(pp14, "CellCenter", npy_dim_vals[0], false);
-      PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r14, children14, "GridLocation_t");
-      PyList_Append(childrenFSc, gl); Py_DECREF(gl);
-    }
-
-    for (E_Int i = 0; i < nds; i++)
-    {
-      strcpy(str, "/FS:Mesh/UnstructuredCells/Datasets/");
-      strcat(str, names[i]);
-      if (strcmp(names[i], "Coordinates") == 0) continue; // pass coordinates
-
-      node = H5Gopen(fid, str, H5P_DEFAULT);
-    
-      hid_t aid = H5Aopen_by_name(node, ".", "NumberOfVariables", H5P_DEFAULT, H5P_DEFAULT);
-      E_Int nvars = 0;
-      H5Aread(aid, H5T_NATIVE_INT, &nvars);
-      H5Aclose(aid);
-      aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
-      E_Int ncells = 0;
-      H5Aread(aid, H5T_NATIVE_INT, &ncells);
-      H5Aclose(aid);
-
-      dims[0] = ncells; dims[1] = nvars;
-      did = H5Screate_simple(2, dims, NULL);
-      tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
-      hid_t vid = H5Dopen2(node, "Values", H5P_DEFAULT);
-
-      hsize_t start[2]; hsize_t scount[2];
-      char name[35]; char name2[76]; char name3[200];
-      for (E_Int n = 0; n < nvars; n++)
-      {
-        // Read name
-        sprintf(name, "Variable" SF_D_, n);
-        hid_t gid2 = H5Gopen(node, name, H5P_DEFAULT);
-        aid = H5Aopen_by_name(gid2, ".", "Name", H5P_DEFAULT, H5P_DEFAULT);
-        hid_t atype = H5Aget_type(aid);
-        size = H5Tget_size(atype);
-        H5Aread(aid, atype, name2);
-        name2[size] = '\0';
-        strcpy(name3, names[i]);
-        strcat(name3, ".");
-        strcat(name3, name2);
-        //H5Aread(aid, H5T_C_S1, name2);
-        H5Aclose(aid); H5Gclose(gid2);
-
-        // Read values (partial)
-        npy_dim_vals[0] = ncells;
-        hid_t sid = H5Scopy(did);
-        start[0] = 0; start[1] = n;
-        scount[0] = ncells; scount[1] = 1;
-        H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
-        hid_t memspace = H5Screate_simple(2, scount, NULL);
-        PyArrayObject* f = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
-        E_Float* fp = (E_Float*)PyArray_DATA(f);
-        H5Dread(vid, tid, memspace, sid, H5P_DEFAULT, fp);
-        PyObject* fc = PyList_New(0);
-        PyObject* fl = Py_BuildValue("[sOOs]", name3, f, fc, "DataArray_t");
-        if (datasetLoc[i] == 0) PyList_Append(childrenFS, fl);
-        else if (datasetLoc[i] == 1) PyList_Append(childrenFSc, fl);
-        Py_DECREF(fl);
-      }
-      H5Dclose(vid); H5Sclose(did);
-      H5Gclose(node);
-    }
-  
-    for (E_Int i = 0; i < nds+1; i++) delete [] names[i];
-    delete [] names;
-  }
-
-  H5Gclose(gid);
-
   // Read MappingCellType2Index
   if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/MappingCellType2Index", H5P_DEFAULT) > 0)
   {
@@ -811,22 +676,22 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 
   // Create GridElements
   E_Int nhexa = 0; E_Int ntetra = 0; E_Int npenta = 0; E_Int npyra = 0; 
-  //E_Int ntri=0; E_Int nquad=0;
-  //E_Int npoly3d=0; E_Int npoly2d=0;
+  //E_Int ntri = 0; E_Int nquad = 0;
+  //E_Int npoly3d = 0; E_Int npoly2d = 0;
   /*
   hid_t* chids = HDF.getChildren(uc);
   E_Int nchildren = 0;
   while (chids[nchildren] != -1) { nchildren++; }
   char** names = new char* [nchildren+1];
   for (E_Int i = 0; i < nchildren+1; i++) names[i] = NULL;
-#if H5_VERSION_LE(1,11,9)
+  #if H5_VERSION_LE(1,11,9)
   H5Literate(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
-#else
+  #else
   H5Literate2(uc, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
-#endif
+  #endif
   */
   hid_t id = 0; PyObject* GE;
-  E_Int ncells=0; E_Int istart=1; E_Int n3dcells=0; 
+  E_Int ncells = 0; E_Int istart = 1; E_Int n3dcells = 0; 
   std::map<E_Int, E_Int> tagmap; // map of bc tags
   int32_t* bct = NULL; size = 0; // bc tag merged
 
@@ -908,6 +773,111 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   }
 
   pp4[1] = n3dcells;
+
+  // Create FlowSolution - read data sets
+  hid_t gid = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Datasets", H5P_DEFAULT);
+  H5G_info_t info;
+  H5Gget_info(gid, &info);
+  E_Int nds = info.nlinks; // number of dataSets
+
+  if (nds > 1) // because of coordinates always present I guess
+  {
+    char** names = new char* [nds+1];
+    for (E_Int i = 0; i < nds+1; i++) names[i] = NULL;
+    #if H5_VERSION_LE(1,11,9)
+      H5Literate(gid, H5_INDEX_NAME, H5_ITER_INC, NULL, feed_children_names, (void*)names);
+    #else
+      H5Literate2(gid, H5_INDEX_NAME, H5_ITER_NATIVE, NULL, feed_children_names, (void*)names);
+    #endif
+    // for (E_Int i = 0; i < nds; i++) printf(" %s ", names[i]);
+
+    for (E_Int i = 0; i < nds; i++)
+    {
+      if (strcmp(names[i], "Coordinates") == 0) continue; // pass coordinates
+      char str[1028];
+      strcpy(str, "/FS:Mesh/UnstructuredCells/Datasets/");
+      strcat(str, names[i]);
+
+      node = H5Gopen(fid, str, H5P_DEFAULT);
+
+      hid_t aid = H5Aopen_by_name(node, ".", "NumberOfVariables", H5P_DEFAULT, H5P_DEFAULT);
+      E_Int nvars = 0;
+      H5Aread(aid, H5T_NATIVE_INT, &nvars);
+      H5Aclose(aid);
+      aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
+      ncells = 0;
+      H5Aread(aid, H5T_NATIVE_INT, &ncells);
+      H5Aclose(aid);
+
+      char nameFSCont[76];
+      PyObject* childrenFS = PyList_New(0);
+      if (ncells == nvertex)
+      {
+        // FlowSolution at nodes
+        strcpy(nameFSCont, "FS#");
+        strcat(nameFSCont, names[i]);
+        PyObject* FS = Py_BuildValue("[sOOs]", nameFSCont, Py_None, childrenFS, "FlowSolution_t");
+        PyList_Append(children4, FS); Py_DECREF(FS);
+      }
+      else //if (ncells == n3dcells)
+      {
+        // FlowSolution at centers and GridLocation
+        strcpy(nameFSCont, "FSC#");
+        strcat(nameFSCont, names[i]);
+        PyObject* FS = Py_BuildValue("[sOOs]", nameFSCont, Py_None, childrenFS, "FlowSolution_t");
+        PyList_Append(children4, FS); Py_DECREF(FS);
+        npy_dim_vals[0] = 10;
+        PyObject* children14 = PyList_New(0);
+        PyArrayObject* r14 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_STRING, 1);
+        char* pp14 = (char*)PyArray_DATA(r14);
+        K_STRING::cpy(pp14, "CellCenter", npy_dim_vals[0], false);
+        PyObject* gl = Py_BuildValue("[sOOs]", "GridLocation", r14, children14, "GridLocation_t");
+        PyList_Append(childrenFS, gl); Py_DECREF(gl);
+      }
+
+      dims[0] = ncells; dims[1] = nvars;
+      did = H5Screate_simple(2, dims, NULL);
+      tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
+      hid_t vid = H5Dopen2(node, "Values", H5P_DEFAULT);
+
+      hsize_t start[2]; hsize_t scount[2];
+      char name[35]; char name2[76];
+      for (E_Int n = 0; n < nvars; n++)
+      {
+        // Read name
+        sprintf(name, "Variable" SF_D_, n);
+        hid_t gid2 = H5Gopen(node, name, H5P_DEFAULT);
+        aid = H5Aopen_by_name(gid2, ".", "Name", H5P_DEFAULT, H5P_DEFAULT);
+        hid_t atype = H5Aget_type(aid);
+        size = H5Tget_size(atype);
+        H5Aread(aid, atype, name2);
+        name2[size] = '\0';
+        //H5Aread(aid, H5T_C_S1, name2);
+        H5Aclose(aid); H5Gclose(gid2);
+
+        // Read values (partial)
+        npy_dim_vals[0] = ncells;
+        hid_t sid = H5Scopy(did);
+        start[0] = 0; start[1] = n;
+        scount[0] = ncells; scount[1] = 1;
+        H5Sselect_hyperslab(sid, H5S_SELECT_SET, start, NULL, scount, NULL);
+        hid_t memspace = H5Screate_simple(2, scount, NULL);
+        PyArrayObject* f = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_FLOAT64, 1);
+        E_Float* fp = (E_Float*)PyArray_DATA(f);
+        H5Dread(vid, tid, memspace, sid, H5P_DEFAULT, fp);
+        PyObject* fc = PyList_New(0);
+        PyObject* fl = Py_BuildValue("[sOOs]", name2, f, fc, "DataArray_t");
+        PyList_Append(childrenFS, fl); Py_DECREF(fl);
+      }
+      H5Dclose(vid); H5Sclose(did);
+      H5Gclose(node);
+    }
+
+    for (E_Int i = 0; i < nds+1; i++) delete [] names[i];
+    delete [] names;
+  }
+
+  H5Gclose(gid);
 
   // Add zoneBC
   if (size > 0)
