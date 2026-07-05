@@ -529,6 +529,7 @@ def getUVFromIJ(t):
 
 def _getUVFromIJ(a):
     """Return uv of structured surface."""
+    import numpy
     zones = Internal.getZones(a)
     for z in zones:
         C._initVars(z, '_u_=0.')
@@ -540,10 +541,10 @@ def _getUVFromIJ(a):
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured':
             ni = dim[1]; nj = dim[2]
-            for j in range(nj):
-                for i in range(ni):
-                    pu[i+j*ni] = j*1./(nj-1)
-                    pv[i+j*ni] = i*1./(ni-1)
+            u = numpy.arange(nj, dtype=numpy.float64)/(nj-1)
+            v = numpy.arange(ni, dtype=numpy.float64)/(ni-1)
+            pu[:] = numpy.repeat(u, ni)
+            pv[:] = numpy.tile(v, nj)
     return None
 
 def offsetSurface(a, offset=1., pointsPerUnitLength=1., algo=0, dim=3):
