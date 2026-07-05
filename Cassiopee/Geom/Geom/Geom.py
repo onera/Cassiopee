@@ -7,7 +7,10 @@ from . import geom
 import numpy
 import KCore.Vector as Vector
 
-from .MapEdge import enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2, smooth, mapCurvature, enforceh3D
+from .MapEdge import (
+    enforceh, uniformize, refine, setH, setF, enforce, distrib1, distrib2,
+    smooth, mapCurvature, enforceh3D
+)
 
 # - Basic entities -
 def point(P):
@@ -411,6 +414,8 @@ def getLength(a):
 
 def dLength(a):
     """Return dlength of 1D-mesh."""
+    import KCore.Dist as Dist
+    if not Dist.checkAdolc()[0]: return
     if isinstance(a[0], list):
         b = []
         for i in a: b.append(geom.dLength(i))
@@ -819,84 +824,29 @@ def text1D(string, font='vera', smooth=0, offset=0.5):
         raise ImportError("text1D: requires Transform.")
     retour = []
     offx = 0.; offy = 0.; s = 6
+    asciiLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    numbers = "0123456789"
+    charMap = {
+        ".": "POINT",
+        ",": "COMMA",
+        ";": "POINTCOMMA",
+        ":": "TWOPOINTS",
+        "!": "EXCLAMATION",
+        "?": "INTERROGATION",
+        "+": "PLUS",
+        "-": "MINUS",
+        "=": "EQUAL",
+        "(": "LEFTBRACE",
+        ")": "RIGHTBRACE",
+        "é": "EACUTE",
+        "è": "ELOW",
+        "à": "ALOW",
+        "ç": "CCEDILLE"
+    }
     for i in string:
-        if i == 'A': a, s = Text.A()
-        elif i == 'a': a, s = Text.a()
-        elif i == 'B': a, s = Text.B()
-        elif i == 'b': a, s = Text.b()
-        elif i == 'C': a, s = Text.C()
-        elif i == 'c': a, s = Text.c()
-        elif i == 'D': a, s = Text.D()
-        elif i == 'd': a, s = Text.d()
-        elif i == 'E': a, s = Text.E()
-        elif i == 'e': a, s = Text.e()
-        elif i == 'F': a, s = Text.F()
-        elif i == 'f': a, s = Text.f()
-        elif i == 'G': a, s = Text.G()
-        elif i == 'g': a, s = Text.g()
-        elif i == 'H': a, s = Text.H()
-        elif i == 'h': a, s = Text.h()
-        elif i == 'I': a, s = Text.I()
-        elif i == 'i': a, s = Text.i()
-        elif i == 'J': a, s = Text.J()
-        elif i == 'j': a, s = Text.j()
-        elif i == 'K': a, s = Text.K()
-        elif i == 'k': a, s = Text.k()
-        elif i == 'L': a, s = Text.L()
-        elif i == 'l': a, s = Text.l()
-        elif i == 'M': a, s = Text.M()
-        elif i == 'm': a, s = Text.m()
-        elif i == 'N': a, s = Text.N()
-        elif i == 'n': a, s = Text.n()
-        elif i == 'O': a, s = Text.O()
-        elif i == 'o': a, s = Text.o()
-        elif i == 'P': a, s = Text.P()
-        elif i == 'p': a, s = Text.p()
-        elif i == 'Q': a, s = Text.Q()
-        elif i == 'q': a, s = Text.q()
-        elif i == 'R': a, s = Text.R()
-        elif i == 'r': a, s = Text.r()
-        elif i == 'S': a, s = Text.S()
-        elif i == 's': a, s = Text.s()
-        elif i == 'T': a, s = Text.T()
-        elif i == 't': a, s = Text.t()
-        elif i == 'U': a, s = Text.U()
-        elif i == 'u': a, s = Text.u()
-        elif i == 'V': a, s = Text.V()
-        elif i == 'v': a, s = Text.v()
-        elif i == 'W': a, s = Text.W()
-        elif i == 'w': a, s = Text.w()
-        elif i == 'X': a, s = Text.X()
-        elif i == 'x': a, s = Text.x()
-        elif i == 'Y': a, s = Text.Y()
-        elif i == 'y': a, s = Text.y()
-        elif i == 'Z': a, s = Text.Z()
-        elif i == 'z': a, s = Text.z()
-        elif i == '0': a, s = Text.C0()
-        elif i == '1': a, s = Text.C1()
-        elif i == '2': a, s = Text.C2()
-        elif i == '3': a, s = Text.C3()
-        elif i == '4': a, s = Text.C4()
-        elif i == '5': a, s = Text.C5()
-        elif i == '6': a, s = Text.C6()
-        elif i == '7': a, s = Text.C7()
-        elif i == '8': a, s = Text.C8()
-        elif i == '9': a, s = Text.C9()
-        elif i == '.': a, s = Text.POINT()
-        elif i == ',': a, s = Text.COMMA()
-        elif i == ';': a, s = Text.POINTCOMMA()
-        elif i == ':': a, s = Text.TWOPOINTS()
-        elif i == '!': a, s = Text.EXCLAMATION()
-        elif i == '?': a, s = Text.INTERROGATION()
-        elif i == '+': a, s = Text.PLUS()
-        elif i == '-': a, s = Text.MINUS()
-        elif i == '=': a, s = Text.EQUAL()
-        elif i == '(': a, s = Text.LEFTBRACE()
-        elif i == ')': a, s = Text.RIGHTBRACE()
-        elif i == 'é': a, s = Text.EACUTE()
-        elif i == 'è': a, s = Text.ELOW()
-        elif i == 'à': a, s = Text.ALOW()
-        elif i == 'ç': a, s = Text.CCEDILLE()
+        if i in asciiLetters: a, s = getattr(Text, i)()
+        elif i in numbers: a, s = getattr(Text, "C" + i)()
+        elif i in charMap: a, s = getattr(Text, charMap[i])()
         elif i == '\n':
             offy = offy - 8 - offset
             offx = -6 - offset
@@ -1084,8 +1034,8 @@ def getUVFromIJ(a):
     else: # array1
         pu = a[1][3].ravel('k'); pv = a[1][4].ravel('k')
     ni = a[2]; nj = a[3]
-    for j in range(nj):
-        for i in range(ni):
-            pu[i+j*ni] = j*1./(nj-1)
-            pv[i+j*ni] = i*1./(ni-1)
+    u = numpy.arange(nj, dtype=numpy.float64)/(nj-1)
+    v = numpy.arange(ni, dtype=numpy.float64)/(ni-1)
+    pu[:] = numpy.repeat(u, ni)
+    pv[:] = numpy.tile(v, nj)
     return a
