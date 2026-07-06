@@ -215,7 +215,7 @@ def getInstallPaths():
                     pyPath = os.path.join(absd, 'py')
                     if os.path.isdir(pyPath):
                         fspluginsDirs.append(os.path.abspath(pyPath))
-    return cassiopeeIncDir, fastIncDir, pmodulesDir, *fspluginsDirs
+    return [cassiopeeIncDir, fastIncDir, pmodulesDir, *fspluginsDirs]
 
 def checkEnvironment():
     # Check environment
@@ -398,12 +398,11 @@ def setPaths():
     # Module paths when the global base is used
     parentDirname = os.path.join('/stck', 'cassiope', 'git')
     if getDBInfo():  # check if a global base exists
-        cassiopeeIncDir = os.path.join(parentDirname, 'Cassiopee', 'Cassiopee')
-        fastIncDir = os.path.join(parentDirname, 'Fast', 'Fast')
-        if not os.path.isdir(fastIncDir): fastIncDir = None
-        pmodulesIncDir = os.path.join(parentDirname, 'PModules')
-        if not os.path.isdir(pmodulesIncDir): pmodulesIncDir = None
-        _setModuleDirs(cassiopeeIncDir, fastIncDir, pmodulesIncDir, loc='GLOBAL')
+        parentDirnameLoc = os.path.dirname(os.path.dirname(allPackageDirs[0]))
+        for i, dirname in enumerate(allPackageDirs):
+            if dirname is not None:
+                allPackageDirs[i] = dirname.replace(parentDirnameLoc, parentDirname)
+        _setModuleDirs(*allPackageDirs, loc='GLOBAL')
 
         # Global valid paths
         VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
