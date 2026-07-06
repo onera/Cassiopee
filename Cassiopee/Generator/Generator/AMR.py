@@ -14,6 +14,69 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
+def selectTboxZonesFromGeom(tb, iLocal, snearTmp, listTboxSnearAdd):
+    # Select all zones in a base from tb that do not have the maximum snear
+    # These zones are copied and saved in a list. These zones have the IBM node that specified the snear & number of base in the tb
+    maxSnearLocal = max(snearTmp)
+    bases = Internal.getBases(tb)
+    # per zone - create a copy & assume it will be a new base
+    for z in Internal.getZones(bases[iLocal]):
+        snearNode = Internal.getNodeFromName(z, 'snear')
+        snearVal = Internal.getValue(snearNode)
+        # if zone has the same snear as max, add None node
+        zCopy = None
+        if snearVal < maxSnearLocal*0.9:
+            zCopy = Internal.copyTree(z)
+            Internal._createUniqueChild(Internal.getNodeFromName1(zCopy, '.Solver#define'), 'baseNumber', 'DataArray_t', int(iLocal))
+            Internal._setValue(snearNode, maxSnearLocal)
+        listTboxSnearAdd.append(zCopy)
+    return listTboxSnearAdd
+
+def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
+    import Geom.PyTree as D
+    import Geom.IBM as D_IBM
+    vminsTboxAdd = []
+    snearsTboxAdd = []
+    tboxAdd = None
+    for base in listTboxSnear:
+        if base is not None:
+            snear = Internal.getValue(Internal.getNodeFromName(base, 'snear'))
+            baseNum = Internal.getValue(Internal.getNodeFromName(base, 'baseNumber'))
+            vminLocalNode = Internal.getNodeFromName(base, 'vmin')
+            # Close the open zone/base from tb
+            if dim == 2:
+                bNew = D_IBM.closeContour(base)
+                bNew = T.reorder(bNew, (1,2,3))
+                bNew = D.uniformize(bNew, N=1000)
+
+            else:
+                bNew = D_IBM.closeSurface(base, isSmooth=True)
+                bNew = Internal.getZones(bNew)
+                bNew= Internal.rmNodesByName(bNew, '.Solver#define')
+                bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
+                bNew = T.join(bNew)
+
+            if tboxAdd is None:
+                tboxAdd = C.newPyTree(["Base"+'_'+str(baseNum)+'_'+base[0], bNew])
+            else:
+                base = Internal.createBaseNode("Base"+'_'+str(baseNum)+'_'+base[0], cellDim=3);
+                tboxAdd[2].append(base)
+                base[2].append(bNew)
+            if vminLocalNode:
+                vminLocal = Internal.getValue(vminLocalNode)
+                vminsTboxAddTmp = [5]*len(vmins[baseNum])
+                for i in range(len(vminLocal)):
+                    vminsTboxAddTmp[i]=vminLocal[i]
+                vminsTboxAdd.append(vminsTboxAddTmp)
+            else:
+                if vminTboxAtLeastOne:
+                    vminsTboxAddTmp = [5]*len(vmins[baseNum])
+                    vminsTboxAdd.append(vminsTboxAddTmp)
+                else:
+                    vminsTboxAdd.append(vmins[baseNum])
+            snearsTboxAdd.append([snear])
+    return tboxAdd, snearsTboxAdd, vminsTboxAdd
+
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
     # example of the dictExtension - the value provided (-1, 1) correspond to
     # whether the extrusion is towards - or + direction
@@ -38,6 +101,7 @@ def createExtension__(tbIn):
     ##    │││                    │││
     ##     ↑                      ↑
     ## Domain boundary        Domain boundary
+    if Cmpi.master: print('Creating automatic extension at symmetry plane...start', flush=True)
 
     tb = Internal.copyTree(tbIn)
     baseSYM    = Internal.getNodesFromName1(tb,"SYM")
@@ -117,6 +181,7 @@ def createExtension__(tbIn):
             Internal._rmNode(tb, node)
     Internal._rmNodesFromType(tb, "FlowSolution_t")
     Internal._rmNodesFromType(tb, "UserDefinedData_t")
+    if Cmpi.master: print('Creating automatic extension at symmetry plane...end', flush=True)
 
     return tb
 
@@ -362,7 +427,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         BM = numpy.ones((1, nbodies), dtype=numpy.int32)
         t = C.newPyTree(["BASE", Internal.getZones(b)])
         # using the input bodies provided (tb & tbox) - safe to use blankCellsTri
-        if dim == 2: X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
+        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
         #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
@@ -1193,7 +1258,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=
                 # loop through the offsets in the list for base=nBase and offset level=i
                 for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
                     # body offset: tag the region between the body & the offset
-                    # tbox offset: tage the region enclosed by the offset
+                    # tbox offset: tagethe region enclosed by the offset
+                    # offset1: cgns base of tb or tbox (tag outside)
+                    # offset2: offset (tag inside)
                     o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                     C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
@@ -1436,6 +1503,34 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
     # NumBase is only the num. of 'real' bodies
     snears, numBase = getListSnear__(tb, snears)
+
+    ## --------- Variable Snear on Immersed Boundary ---------
+    #snear = list of [Base1, Base2]; Base1 = list of [zone1, zones2]
+    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...start', flush=True)
+    isTboxSnearAdd = False
+    listTboxSnearAdd = []
+    # loop per base
+    tbTmp = Internal.copyTree(tb)
+    if baseSYM:
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tbTmp = Internal.rmNodesByNameAndType(tbTmp, 'SYM', 'CGNSBase_t')
+        tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
+    for iLocal, snearTmp in enumerate(snears):
+        # per base - snear in zones are all equal?
+        diffSnearValues = len(set(snearTmp)) > 1
+        if diffSnearValues:
+            isTboxSnearAdd = True
+            # snear in zones (per base) are not all equal
+            listTboxSnearAdd = selectTboxZonesFromGeom(tbTmp, iLocal, snearTmp, listTboxSnearAdd)
+    if isTboxSnearAdd:
+        if Cmpi.master: print('Identified multiple snear on the same immsered boundary', flush=True)
+        for s1 in snears:
+            maxVal = max(s1)
+            s1[:] = [maxVal] * len(s1)
+    del tbTmp
+    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...end', flush=True)
+    ## --------- --------- --------- --------- --------- ---------
+
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
 
     if baseSYM:
@@ -1499,6 +1594,27 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
     # ================== SECTION END  ==================
 
+    ## --------- Variable Snear on Immersed Boundary ---------
+    if isTboxSnearAdd:
+        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...start', flush=True)
+        vminTboxAtLeastOne = False
+        for z in listTboxSnearAdd:
+            if z is not None:
+                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
+                if vminLocalNode:
+                    vminTboxAtLeastOne=True
+                    break
+        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
+        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
+        # same approach as tbox
+        numTbox = len(Internal.getBases(tboxAdd))
+        numBase += numTbox
+        tb_tbox[2] += Internal.getBases(tboxAdd)
+        snearsTbTbox.extend(snearsTboxAdd)
+        vmins.extend(vminsTboxAdd)
+        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
+    ## --------- --------- --------- --------- --------- ---------
+
     tCartin = False
     extrude = False
     if tIn is None:
@@ -1526,7 +1642,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             print("=======================================================================", flush=True)
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
-
 
     if newLevelMax != levelMax:
         if Cmpi.master:
@@ -1636,7 +1751,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
         toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
-    Cmpi.barrier()
 
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
