@@ -1285,7 +1285,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                 # loop through the offsets in the list for base=nbase and offset level=i
                 for offsetLocal in offset_zones[nbase][level]:
                     # body offset: tag the region between the body & the offset
-                    # tbox offset: tage the region enclosed by the offset
+                    # tbox offset: tag the region enclosed by the offset
                     # offset1: cgns base of tb or tbox (tag outside)
                     # offset2: offset (tag inside)
                     o = tagInsideOffset__(o, offset1=offset_inside[nbase], offset2=offsetLocal, dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
@@ -1573,29 +1573,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     else:
         snearsTbox, nboxes = [], 0
 
-    # ================== SECTION END  ==================
-
-    ## --------- Variable Snear on Immersed Boundary ---------
-    if isTboxSnearAdd:
-        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...start', flush=True)
-        vminTboxAtLeastOne = False
-        for z in listTboxSnearAdd:
-            if z is not None:
-                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
-                if vminLocalNode:
-                    vminTboxAtLeastOne=True
-                    break
-        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
-        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
-        # same approach as tbox
-        numTbox = len(Internal.getBases(tboxAdd))
-        numBase += numTbox
-        tb_tbox[2] += Internal.getBases(tboxAdd)
-        snears.extend(snearsTboxAdd)
-        vmins.extend(vminsTboxAdd)
-        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
-    ## --------- --------- --------- --------- --------- ---------
-
+    #============================
+    # STEP 4: Generate back. grid
+    #============================
     # use tIn (background grid) or automatically generate octree skeleton
     tCartIn = False
     extrude = False
