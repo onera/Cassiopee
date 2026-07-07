@@ -464,7 +464,6 @@ void K_INTERP::NGONStencil(
   E_Int sizeN1=indicesIn.size(); //taille du 1er voisinage
   E_Int sizeN2=0; //taille du 2eme voisinage
   E_Int sizeN3=0; //taille du 3eme voisinage
-  E_Int sizeN4=0; //taille du 4eme voisinage
 
   if (depth >= 2)  //deuxieme voisinage
   {
@@ -566,7 +565,6 @@ void K_INTERP::NGONStencil(
       if (find(indicesIn.begin(), indicesIn.end(), neighbour[ii]) == indicesIn.end())
       {
         indicesIn.push_back(neighbour[ii]);
-        sizeN4++;
       }
     }
   }

@@ -302,12 +302,12 @@ E_Int K_INTERP::getInterpolationData(
           if (ic == 0 || ic == ni-2 || jc == 0 || jc == nj-2) isBorder = 1;
           type = 22; indi[0] = ic + jc*ni; 
           //report des coefs
-          E_Float sumCf = 0.;
+          //E_Float sumCf = 0.;
           for (E_Int nocf = 0; nocf < 4; nocf++)
           {
             cf[nocf] += cf[nocf+4];
             cf[nocf+4] = 0.;
-            sumCf += K_FUNC::E_abs(cf[nocf]);
+            //sumCf += K_FUNC::E_abs(cf[nocf]);
           }
           if (cellN != NULL)
           {

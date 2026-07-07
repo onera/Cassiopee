@@ -179,11 +179,11 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   else // metric field, ridgeAngle, hgrad can be set
   {
     nargs = 2;
-    if (anisotropy == 1) argc += 1;
     vals = new char* [nargs];
     vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
     vals[1] = new char [20]; sprintf(vals[1], "%g", hgrad);
     argc = 2*nargs+1;
+    if (anisotropy == 1) argc += 1;
     argv = new char* [argc];
     argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
     argv[1] = new char [20]; strcpy(argv[1], "-ar");

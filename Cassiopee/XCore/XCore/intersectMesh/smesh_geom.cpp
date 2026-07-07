@@ -95,8 +95,9 @@ void Smesh::replace_by_projections(const std::vector<E_Int> &pids,
 void Smesh::compute_min_distance_between_points()
 {
     min_pdist = EFLOATMAX;
+#ifndef NDEBUG
     size_t ndists = 0;
-
+#endif
     for (E_Int i = 0; i < np; i++) {
         E_Float xi = X[i];
         E_Float yi = Y[i];
@@ -113,8 +114,9 @@ void Smesh::compute_min_distance_between_points()
             E_Float dist = sqrt(dx*dx + dy*dy + dz*dz);
 
             if (dist < min_pdist) min_pdist = dist;
-
+#ifndef NDEBUG
             ndists++;
+#endif
         }
     }
 
