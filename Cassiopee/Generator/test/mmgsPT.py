@@ -17,4 +17,3 @@ C.convertPyTree2File(b, 'out2.cgns')
 a = C.initVars(a, '{sizemap}=0.2*abs({CoordinateX})+0.05')
 b = G.mmgs(a)
 C.convertPyTree2File(b, 'out3.cgns')
-

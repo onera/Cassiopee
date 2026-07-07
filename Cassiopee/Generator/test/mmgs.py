@@ -21,4 +21,3 @@ C.convertArrays2File(b, 'out3.plt')
 a = C.initVars(a, 'sizemap=0.2*abs({x})+0.05')
 b = G.mmgs(a)
 C.convertArrays2File(b, 'out4.plt')
-
