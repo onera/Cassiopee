@@ -29,6 +29,9 @@
 /* inttypes.h is needed to handle prints of MMG5_int using PRId32 and PRId64 macros */
 #include <inttypes.h>
 
+#define MMG_POSIX
+#define MMG_GNU
+
 //@DEF_POSIX@
 //@DEF_GNU@
 

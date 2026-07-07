@@ -27,6 +27,10 @@
 #ifndef MMGVERSION_H
 #define MMGVERSION_H
 
+#define MMG_GIT_DATE "2024"
+#define MMG_GIT_COMMIT "0"
+#define MMG_GIT_BRANCH "main"
+   
 #define MMG_VERSION_RELEASE "5.8.0"
 #define MMG_VERSION_MAJOR 5
 #define MMG_VERSION_MINOR 8
