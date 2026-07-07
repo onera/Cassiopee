@@ -20,6 +20,7 @@
 # include "transform.h"
 # include <algorithm>
 # include <random>
+# include <array>
 using namespace K_FLD;
 using namespace K_SEARCH;
 
@@ -175,7 +176,7 @@ bool buildRingAroundP(E_Int p, E_Int pStart, const std::vector<E_Int>& eltsOfP, 
     if (!found) return false; // boundary node
   }
 
-  if (ring.size() != nNbrs) return false;
+  if (ring.size() != static_cast<std::size_t>(nNbrs)) return false;
 
   // Check: ensure the last node properly closes the loop at pStart.
   E_Int last = ring.back();
