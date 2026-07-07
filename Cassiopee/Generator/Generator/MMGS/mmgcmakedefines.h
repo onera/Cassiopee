@@ -1,7 +1,7 @@
 /* =============================================================================
 **  This file is part of the mmg software package for the tetrahedral
 **  mesh modification.
-**  Copyright (c) Bx INP/CNRS/Inria/UBordeaux/UPMC, 2004-
+**  Copyright (c) Bx INP/Inria/UBordeaux/UPMC, 2004- .
 **
 **  mmg is free software: you can redistribute it and/or modify it
 **  under the terms of the GNU Lesser General Public License as published
@@ -20,42 +20,49 @@
 **  use this copy of the mmg distribution only if you accept them.
 ** =============================================================================
 */
-/**
- * \file common/librnbg.h
- * \brief header file for the librnbg.c librnbg_s.c librnbg_3d.c files
- * \author Cedric Lachat  (Inria/UBordeaux)
- * \version 5
- * \date 2013
- * \copyright GNU Lesser General Public License.
- */
 
-#ifdef USE_SCOTCH
+#ifndef MMGCMAKEDEFINE_H
+#define MMGCMAKEDEFINE_H
 
-#ifndef __RENUM__
-#define __RENUM__
+#include "Def/DefTypes.h"
 
-#include <scotch.h>
+/* inttypes.h is needed to handle prints of MMG5_int using PRId32 and PRId64 macros */
+#include <inttypes.h>
 
-#define HASHPRIME 37
+//@DEF_POSIX@
+//@DEF_GNU@
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+//@DEF_MMG5_INT@ /*!< Integer type for C */
+#ifdef E_DOUBLEINT
+#define MMG5_int int64_t
+#else
+#define MMG5_int int32_t
+#endif
 
-#define SCOTCH_5 (!strcmp(TOSTRING(SCOTCH_VERSION),"5.0") ||            \
-                  !strcmp(TOSTRING(SCOTCH_VERSION),"5.1") || !strcmp(TOSTRING(SCOTCH_VERSION),"5"))
+//@DEF_MMG5_INTMAX@ /*!< INT_MAX or LONG_MAX depending on MMG5_INT size */
+#define MMG5_INTMAX E_MAXINT
 
-#define SCOTCH_6 !strcmp(TOSTRING(SCOTCH_VERSION),"6")
 
-#define CHECK_SCOTCH(t,m,e) if(0!=t){perror(m);return e;}
+//@DEF_MMG5_PRId@ /*!< Printing format for MMG5_int type */
+#if defined E_DOUBLEINT
+#if defined _WIN32
+#define MMG5_PRId "lld"
+#define MMG5_abs llabs
+#else
+#define MMG5_PRId "ld"
+#define MMG5_abs labs
+#endif
+#else
+#define MMG5_PRId "d"
+#define MMG5_abs abs
+#endif
 
-typedef struct MeshGraphHash_ {
-  int vertNum;
-  int vertEnd;
-} MeshGraphHash;
+//@DEF_MMG_SWPBIN@ /*!< MMG5_swapbin function for MMG5_int */
+#define MMG_SWPBIN 
 
-int    _SCOTCHintSort2asc1(SCOTCH_Num * sortPartTb, int vertNbr);
-int    MMG5_kPartBoxCompute(SCOTCH_Graph, int, int, SCOTCH_Num*,MMG5_pMesh);
-void   MMG5_swapNod(MMG5_pPoint, double*, int*, int, int, int);
+//@DEF_MMG_ABS@ /*!< Abs function for MMG5_int */
 
-#endif /* __RENUM__ */
+//#cmakedefine   USE_POINTMAP /*!< Flag to enable and export the pointmap used */
+//#cmakedefine01 MMG_DYN_LIB
+
 #endif

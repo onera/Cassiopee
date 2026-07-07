@@ -33,14 +33,16 @@
  * \todo Doxygen documentation
  */
 
-#include "mmgs.h"
-#include "inlined_functions.h"
+#include "libmmgs_private.h"
+#include "inlined_functions_private.h"
+#include "mmgsexterns_private.h"
+#include "mmgexterns_private.h"
 
-extern char  ddb;
+extern int8_t ddb;
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \param iel element index
  * \return 0 if fail, -1 if orientation is reversed with regards to orientation
  * of vertices, the computed quality otherwise.
@@ -49,12 +51,12 @@ extern char  ddb;
  * to normal to vertices.
  *
  */
-double caleltsig_ani(MMG5_pMesh mesh,MMG5_pSol met,int iel) {
+double caleltsig_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int iel) {
   MMG5_pTria    pt;
   MMG5_pPoint   pa,pb,pc;
   double        ps1,ps2,abx,aby,abz,acx,acy,acz,dd,rap,anisurf;
   double        n[3],pv[3],l[3],*ncomp,*a,*b,*c;
-  int           ia,ib,ic;
+  MMG5_int      ia,ib,ic;
 
   pt = &mesh->tria[iel];
   ia = pt->v[0];
@@ -136,12 +138,12 @@ double caleltsig_ani(MMG5_pMesh mesh,MMG5_pSol met,int iel) {
 }
 
 /* Same quality function but puts a sign according to deviation to normal to vertices */
-double caleltsig_iso(MMG5_pMesh mesh,MMG5_pSol met,int iel) {
+double caleltsig_iso(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int iel) {
   MMG5_pTria     pt;
   MMG5_pPoint    pa,pb,pc;
-  double   *a,*b,*c,cal,abx,aby,abz,acx,acy,acz,bcx,bcy,bcz,rap;
-  double    n[3],*ncomp,pv[3],ps1,ps2,sqcal,invsqcal;
-  int       ia,ib,ic;
+  double         *a,*b,*c,cal,abx,aby,abz,acx,acy,acz,bcx,bcy,bcz,rap;
+  double         n[3],*ncomp,pv[3],ps1,ps2,sqcal,invsqcal;
+  MMG5_int       ia,ib,ic;
 
   pt = &mesh->tria[iel];
   ia = pt->v[0];
@@ -269,8 +271,8 @@ inline double diamelt(MMG5_pPoint p0,MMG5_pPoint p1,MMG5_pPoint p2) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \param metRidTyp Type of storage of ridges metrics: 0 for classic storage,
  * 1 for special storage.
  * \return 0 if fail, 1 otherwise.
@@ -280,19 +282,30 @@ inline double diamelt(MMG5_pPoint p0,MMG5_pPoint p1,MMG5_pPoint p2) {
  */
 int MMGS_prilen(MMG5_pMesh mesh, MMG5_pSol met, int metRidTyp) {
   MMG5_pTria      pt;
-  MMG5_Hash      hash;
+  MMG5_Hash       hash;
   double          len,avlen,lmin,lmax;
-  int             k,np,nq,amin,bmin,amax,bmax,ned,hl[9],nullEdge;
-  char            ia,i0,i1,i;
+  MMG5_int        ned,hl[9],nullEdge;
+  MMG5_int        k,np,nq,amin,bmin,amax,bmax;
+  int8_t          ia,i0,i1,i;
   static double   bd[9]= {0.0, 0.3, 0.6, 0.7071, 0.9, 1.3, 1.4142, 2.0, 5.0};
 
-  memset(hl,0,9*sizeof(int));
+  memset(hl,0,9*sizeof(MMG5_int));
   ned = 0;
   avlen = 0.0;
   lmax = 0.0;
   lmin = 1.e30;
   amin = amax = bmin = bmax = 0;
   nullEdge = 0;
+
+  if ( (!met) || (!met->m) ) {
+    /* the functions that computes the edge length cannot be called without an
+     * allocated metric */
+    return 0;
+  }
+
+  if ( !mesh->nt ) {
+    return 0;
+  }
 
   /* Hash all edges in the mesh */
   if ( !MMG5_hashNew(mesh,&hash,mesh->np,7*mesh->np) )  return 0;
@@ -375,8 +388,8 @@ int MMGS_prilen(MMG5_pMesh mesh, MMG5_pSol met, int metRidTyp) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \return 0 if the worst element has a nul quality, 1 otherwise.
  *
  * Print histogram of mesh qualities for classical storage of ridges
@@ -386,7 +399,8 @@ int MMGS_prilen(MMG5_pMesh mesh, MMG5_pSol met, int metRidTyp) {
 int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
   MMG5_pTria    pt;
   double        rap,rapmin,rapmax,rapavg,med;
-  int           i,k,iel,ok,ir,imax,nex,his[5];
+  MMG5_int      his[5],k,iel,nex,ok;
+  int           i,ir,imax;
 
   rapmin  = 1.0;
   rapmax  = 0.0;
@@ -407,8 +421,9 @@ int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
     if ( met->m && (met->size == 6) ) {
       rap = MMGS_ALPHAD * MMG5_caltri33_ani(mesh,met,pt);
     }
-    else
-      rap = MMGS_ALPHAD * MMG5_calelt(mesh,NULL,pt);
+    else {
+      rap = MMGS_ALPHAD * MMG5_caltri_iso (mesh,NULL,pt);
+    }
 
     if ( rap < rapmin ) {
       rapmin = rap;
@@ -422,8 +437,8 @@ int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
     his[ir] += 1;
   }
 
-  fprintf(stdout,"\n  -- MESH QUALITY   %d\n",mesh->nt - nex);
-  fprintf(stdout,"     BEST   %8.6f  AVRG.   %8.6f  WRST.   %8.6f (%d)\n",
+  fprintf(stdout,"\n  -- MESH QUALITY   %" MMG5_PRId "\n",mesh->nt - nex);
+  fprintf(stdout,"     BEST   %8.6f  AVRG.   %8.6f  WRST.   %8.6f (%" MMG5_PRId ")\n",
           rapmax,rapavg / (mesh->nt-nex),rapmin,iel);
 
   if ( mesh->info.imprim >= 3 ){
@@ -432,7 +447,7 @@ int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
     fprintf(stdout,"     HISTOGRAMM:  %6.2f %% > 0.5\n",100.0*(med/(float)(mesh->nt-nex)));
     imax = MG_MIN(4,(int)(5.*rapmax));
     for (i=imax; i>=(int)(5*rapmin); i--) {
-      fprintf(stdout,"     %5.1f < Q < %5.1f   %7d   %6.2f %%\n",
+      fprintf(stdout,"     %5.1f < Q < %5.1f   %7"MMG5_PRId"   %6.2f %%\n",
               i/5.,i/5.+0.2,his[i],100.*(his[i]/(float)(mesh->nt-nex)));
     }
   }
@@ -441,8 +456,8 @@ int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \return 0 if the worst element has a nul quality, 1 otherwise.
  *
  * Print histogram of mesh qualities for special storage of ridges metrics
@@ -452,7 +467,8 @@ int MMGS_inqua(MMG5_pMesh mesh,MMG5_pSol met) {
 int MMGS_outqua(MMG5_pMesh mesh,MMG5_pSol met) {
   MMG5_pTria    pt;
   double        rap,rapmin,rapmax,rapavg,med;
-  int           i,k,iel,ok,ir,imax,nex,his[5];
+  MMG5_int      nex,his[5],k,iel,ok;
+  int           i,ir,imax;
 
   if ( mesh->info.imprim <= 0 ) return 1;
 
@@ -486,8 +502,8 @@ int MMGS_outqua(MMG5_pMesh mesh,MMG5_pSol met) {
     his[ir] += 1;
   }
 
-  fprintf(stdout,"\n  -- MESH QUALITY   %d\n",mesh->nt - nex);
-  fprintf(stdout,"     BEST   %8.6f  AVRG.   %8.6f  WRST.   %8.6f (%d)\n",
+  fprintf(stdout,"\n  -- MESH QUALITY   %" MMG5_PRId "\n",mesh->nt - nex);
+  fprintf(stdout,"     BEST   %8.6f  AVRG.   %8.6f  WRST.   %8.6f (%" MMG5_PRId ")\n",
           rapmax,rapavg / (mesh->nt-nex),rapmin,iel);
 
   if ( mesh->info.imprim >= 3 ){
@@ -495,7 +511,7 @@ int MMGS_outqua(MMG5_pMesh mesh,MMG5_pSol met) {
     fprintf(stdout,"     HISTOGRAMM:  %6.2f %% > 0.5\n",100.0*(med/(float)(mesh->nt-nex)));
     imax = MG_MIN(4,(int)(5.*rapmax));
     for (i=imax; i>=(int)(5*rapmin); i--) {
-      fprintf(stdout,"     %5.1f < Q < %5.1f   %7d   %6.2f %%\n",
+      fprintf(stdout,"     %5.1f < Q < %5.1f   %7"MMG5_PRId"   %6.2f %%\n",
               i/5.,i/5.+0.2,his[i],100.*(his[i]/(float)(mesh->nt-nex)));
     }
   }
@@ -506,7 +522,7 @@ int MMGS_outqua(MMG5_pMesh mesh,MMG5_pSol met) {
 #define COS145   -0.81915204428899
 
 /* return 0: triangle ok, 1: needle, 2: obtuse; ia: edge problem */
-char typelt(MMG5_pPoint p[3],char *ia) {
+int8_t typelt(MMG5_pPoint p[3],int8_t *ia) {
   double   h1,h2,h3,hmi,hma,ux,uy,uz,vx,vy,vz,wx,wy,wz,dd;
 
   ux = p[1]->c[0] - p[0]->c[0];

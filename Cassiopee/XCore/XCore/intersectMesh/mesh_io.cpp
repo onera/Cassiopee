@@ -83,7 +83,7 @@ void IMesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     E_Int sizeNGon = -2;
     for (size_t i = 0; i < new_eids.size() + 1; i++) {
         sizeNGon += 2;
-        fprintf(fh, "%d ", sizeNGon);
+        fprintf(fh, SF_D_ " ", sizeNGon);
     }
     fprintf(fh, "\n");
     assert(sizeNGon == 2*NE);
@@ -97,24 +97,24 @@ void IMesh::write_ngon(const char *fname, const std::vector<E_Int> &faces) const
     }
     
     fprintf(fh, "NGON\n");
-    fprintf(fh, "%d\n", 2*NE);
+    fprintf(fh, SF_D_ "\n", 2*NE);
     for (const auto &e : nE) {
-        fprintf(fh, "%d %d ", e.p, e.q);
+        fprintf(fh, SF_D_ " " SF_D_ " ", e.p, e.q);
     }
     fprintf(fh, "\n");
 
     fprintf(fh, "INDPH\n");
-    fprintf(fh, "%d\n", NF+1);
+    fprintf(fh, SF_D_ "\n", NF+1);
     for (E_Int i = 0; i < NF+1; i++)
-        fprintf(fh, "%d ", INDPH[i]);
+        fprintf(fh, SF_D_ " ", INDPH[i]);
     fprintf(fh, "\n");
 
     fprintf(fh, "NFACE\n");
-    fprintf(fh, "%d\n", INDPH[NF]);
+    fprintf(fh, SF_D_ "\n", INDPH[NF]);
     for (size_t i = 0; i < faces.size(); i++) {
         const auto &pe = F2E[faces[i]];
         for (E_Int eid : pe) {
-            fprintf(fh, "%d ", new_eids[eid]);
+            fprintf(fh, SF_D_ " ", new_eids[eid]);
         }
     }
     fprintf(fh, "\n");

@@ -32,136 +32,8 @@
  * \copyright GNU Lesser General Public License.
  */
 
-#include "mmgcommon.h"
-
-
-/* /\** */
-/*  * \param m input metric. */
-/*  * \param n input metric. */
-/*  * \param mr computed output metric. */
-/*  * \param s parameter coordinate for the interpolation of metrics \a m and \a n. */
-/*  * \return 0 if fail, 1 otherwise. */
-/*  * */
-/*  * Compute the interpolated \f$(2 x 2)\f$ metric from metrics \a m and \a n, at */
-/*  * parameter \a s : \f$ mr = (1-s)*m +s*n \f$, both metrics being expressed in */
-/*  * the simultaneous reduction basis: linear interpolation of sizes. */
-/*  * */
-/*  *\/ */
-/* static int MMG5_intmet22(double *m,double *n,double *mr,double s) { */
-/*   double  det,imn[4],dd,sqDelta,trimn,lambda[2],vp0[2],vp1[2],dm[2],dn[2],vnorm,d0,d1,ip[4]; */
-
-/*   /\* Compute imn = M^{-1}N *\/ */
-/*   det = m[0]*m[2] - m[1]*m[1]; */
-/*   if ( fabs(det) < MMG5_EPS*MMG5_EPS ) { */
-/*     fprintf(stderr,"\n  ## Error: %s: null metric det : %E \n",__func__,det); */
-/*     return 0; */
-/*   } */
-/*   det = 1.0 / det; */
-
-/*   imn[0] = det * ( m[2]*n[0] - m[1]*n[1]); */
-/*   imn[1] = det * ( m[2]*n[1] - m[1]*n[2]); */
-/*   imn[2] = det * (-m[1]*n[0] + m[0]*n[1]); */
-/*   imn[3] = det * (-m[1]*n[1] + m[0]*n[2]); */
-/*   dd = imn[0] - imn[3]; */
-/*   sqDelta = sqrt(fabs(dd*dd + 4.0*imn[1]*imn[2])); */
-/*   trimn = imn[0] + imn[3]; */
-
-/*   lambda[0] = 0.5 * (trimn - sqDelta); */
-  /* if ( lambda[0] < 0.0 ) { */
-  /*   fprintf(stderr,"\n  ## Error: %s: Les valeurs propres : %f \n", */
-  /*            __func__,lambda[0]); */
-  /*   return 0; */
-  /* } */
-
-/*   /\** First case : matrices m and n are homothetic = n = lambda0*m *\/ */
-/*   if ( sqDelta < MMG5_EPS ) { */
-/*     dd  = (1.0-s)*sqrt(lambda[0]) + s; */
-/*     dd *= dd; */
-/*     if ( dd < MMG5_EPSD ) { */
-/*       mr[0] = m[0]; */
-/*       mr[1] = m[1]; */
-/*       mr[2] = m[2]; */
-/*       return 1; */
-/*     } */
-/*     dd = lambda[0] / dd; */
-/*     mr[0] = dd * m[0]; */
-/*     mr[1] = dd * m[1]; */
-/*     mr[2] = dd * m[2]; */
-/*     return 1; */
-/*   } */
-
-/*   /\** Second case : both eigenvalues of imn are distinct ; theory says qf */
-/*      associated to m and n are diagonalizable in basis (vp0, vp1) - the */
-/*      coreduction basis *\/ */
-/*   else { */
-/*     lambda[1] = 0.5 * (trimn + sqDelta); */
-/*     assert(lambda[1] >= 0.0); */
-
-/*     vp0[0] = imn[1]; */
-/*     vp0[1] = (lambda[0] - imn[0]); */
-/*     vnorm  = sqrt(vp0[0]*vp0[0] + vp0[1]*vp0[1]); */
-/*     if ( vnorm < MMG5_EPS ) { */
-/*       vp0[0] = (lambda[0] - imn[3]); */
-/*       vp0[1] = imn[2]; */
-/*       vnorm  = sqrt(vp0[0]*vp0[0] + vp0[1]*vp0[1]); */
-/*     } */
-/*     vnorm   = 1.0 / vnorm; */
-/*     vp0[0] *= vnorm; */
-/*     vp0[1] *= vnorm; */
-
-/*     vp1[0] = imn[1]; */
-/*     vp1[1] = (lambda[1] - imn[0]); */
-/*     vnorm  = sqrt(vp1[0]*vp1[0] + vp1[1]*vp1[1]); */
-/*     if ( vnorm < MMG5_EPS ) { */
-/*       vp1[0] = (lambda[1] - imn[3]); */
-/*       vp1[1] = imn[2]; */
-/*       vnorm  = sqrt(vp1[0]*vp1[0] + vp1[1]*vp1[1]); */
-/*     } */
-/*     vnorm   = 1.0 / vnorm; */
-/*     vp1[0] *= vnorm; */
-/*     vp1[1] *= vnorm; */
-
-/*     /\* Compute diagonal values in simultaneous reduction basis *\/ */
-/*     dm[0] = m[0]*vp0[0]*vp0[0] + 2.0*m[1]*vp0[0]*vp0[1] + m[2]*vp0[1]*vp0[1]; */
-/*     dm[1] = m[0]*vp1[0]*vp1[0] + 2.0*m[1]*vp1[0]*vp1[1] + m[2]*vp1[1]*vp1[1]; */
-/*     dn[0] = n[0]*vp0[0]*vp0[0] + 2.0*n[1]*vp0[0]*vp0[1] + n[2]*vp0[1]*vp0[1]; */
-/*     dn[1] = n[0]*vp1[0]*vp1[0] + 2.0*n[1]*vp1[0]*vp1[1] + n[2]*vp1[1]*vp1[1]; */
-
-/*     /\* Diagonal values of the interpolated metric *\/ */
-/*     dd  = (1.0-s)*sqrt(dn[0]) + s*sqrt(dm[0]); */
-/*     dd *= dd; */
-/*     if ( dd < MMG5_EPSD ) { */
-/*       d0 = s < 0.5 ? dm[0] : dn[0]; */
-/*     } */
-/*     else { */
-/*       d0 = dm[0]*dn[0] / dd; */
-/*     } */
-/*     dd = (1.0-s)*sqrt(dn[1]) + s*sqrt(dm[1]); */
-/*     dd *= dd; */
-/*     if ( dd < MMG5_EPSD ) { */
-/*       d1 = s < 0.5 ? dm[1] : dn[1]; */
-/*     } */
-/*     else{ */
-/*       d1 = dm[1]*dn[1] / dd; */
-/*     } */
-
-/*     /\* Intersected metric = tP^-1 diag(d0,d1)P^-1, P = (vp0, vp1) stored in columns *\/ */
-/*     det = vp0[0]*vp1[1] - vp0[1]*vp1[0]; */
-/*     if ( fabs(det) < MMG5_EPS )  return 0; */
-/*     det = 1.0 / det; */
-
-/*     ip[0] =  vp1[1]*det; */
-/*     ip[1] = -vp1[0]*det; */
-/*     ip[2] = -vp0[1]*det; */
-/*     ip[3] =  vp0[0]*det; */
-
-/*     mr[0] = d0*ip[0]*ip[0] + d1*ip[2]*ip[2]; */
-/*     mr[1] = d0*ip[0]*ip[1] + d1*ip[2]*ip[3]; */
-/*     mr[2] = d0*ip[1]*ip[1] + d1*ip[3]*ip[3]; */
-/*   } */
-
-/*   return 1; */
-/* } */
+#include "mmgcommon_private.h"
+#include "mmgexterns_private.h"
 
 /**
  * \param m input metric.
@@ -178,12 +50,12 @@
 int MMG5_mmgIntmet33_ani(double *m,double *n,double *mr,double s) {
   int     order;
   double  lambda[3],vp[3][3],mu[3],is[6],isnis[6],mt[9],P[9],dd;
-  char    i;
-  static char mmgWarn;
+  int8_t  i;
+  static int8_t mmgWarn=0;
 
   /* Compute inverse of square root of matrix M : is =
    * P*diag(1/sqrt(lambda))*{^t}P */
-  order = MMG5_eigenv(1,m,lambda,vp);
+  order = MMG5_eigenv3d(1,m,lambda,vp);
   if ( !order ) {
     if ( !mmgWarn ) {
       fprintf(stderr,"\n  ## Warning: %s: unable to diagonalize at least"
@@ -229,7 +101,7 @@ int MMG5_mmgIntmet33_ani(double *m,double *n,double *mr,double s) {
   isnis[4] = is[1]*mt[2] + is[3]*mt[5] + is[4]*mt[8];
   isnis[5] = is[2]*mt[2] + is[4]*mt[5] + is[5]*mt[8];
 
-  order = MMG5_eigenv(1,isnis,lambda,vp);
+  order = MMG5_eigenv3d(1,isnis,lambda,vp);
   if ( !order ) {
     if ( !mmgWarn ) {
       fprintf(stderr,"\n  ## Warning: %s: unable to diagonalize at least"
@@ -274,8 +146,8 @@ int MMG5_mmgIntmet33_ani(double *m,double *n,double *mr,double s) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \param ip1 global index of ridge extremity.
  * \param ip2 global index of ridge extremity.
  * \param s interpolation parameter (between 0 and 1).
@@ -288,7 +160,7 @@ int MMG5_mmgIntmet33_ani(double *m,double *n,double *mr,double s) {
  * at pointing towards direction of n1 at interpolated point.
  *
  */
-int MMG5_intridmet(MMG5_pMesh mesh,MMG5_pSol met,int ip1, int ip2,double s,
+int MMG5_intridmet(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int ip1, MMG5_int ip2,double s,
                     double v[3],double mr[6]) {
   MMG5_pxPoint   go1,go2;
   MMG5_pPoint    p1,p2;
@@ -304,6 +176,11 @@ int MMG5_intridmet(MMG5_pMesh mesh,MMG5_pSol met,int ip1, int ip2,double s,
   if ( (MG_SIN(p1->tag) || (p1->tag & MG_NOM)) &&
        (MG_SIN(p2->tag) || (p2->tag & MG_NOM)) ) {
     /* m1 and m2 are isotropic metrics */
+    /* Remark (Algiane): Perspective of improvement can be:
+       - 1. to not force isotropy at singular point
+       - 2. to not force the metric to be along tangent and normal dir at ridge point
+    */
+
     dd  = (1-s)*sqrt(m2[0]) + s*sqrt(m1[0]);
     dd *= dd;
     if ( dd < MMG5_EPSD ) {
@@ -613,10 +490,10 @@ int MMG5_interp_iso(double *ma,double *mb,double *mp,double t) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
- * \param pt pointer toward the triangle structure.
- * \param i char : edge of the triangle pt
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
+ * \param pt pointer to the triangle structure.
+ * \param i edge of the triangle pt
  * \param s interpolated parameter (comprise between 0 and 1)
  * \param mr computed interpolated metric
  * \return 0 if fail, 1 otherwise.
@@ -624,16 +501,17 @@ int MMG5_interp_iso(double *ma,double *mb,double *mp,double t) {
  * Metric interpolation between points p1 and p2, in tria \a pt at parameter 0
  * <= \a s <= 1 from p1 result is stored in \a mr. edge p1p2 must not be a ridge
  */
-int MMG5_interpreg_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_pTria pt,char i,
+int MMG5_interpreg_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_pTria pt,int8_t i,
                         double s,double mr[6]) {
   MMG5_pPoint    p1,p2;
   MMG5_Bezier    b;
   double         b1[3],b2[3],bn[3],c[3],nt[3],cold[3],nold[3],n[3];
   double         m1old[6],m2old[6],m1[6],m2[6],rbasis[3][3];
   double         *n1,*n2,step,u,r[3][3],dd,ddbn;
-  int            ip1,ip2,nstep,l;
-  char           i1,i2;
-  static int     warn=0;
+  int            nstep,l;
+  MMG5_int       ip1,ip2;
+  int8_t         i1,i2;
+  static int     warn=0,warnnorm=0;
 
   /* Number of steps for parallel transport */
   nstep = 4;
@@ -719,8 +597,19 @@ int MMG5_interpreg_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_pTria pt,char i,
     memcpy(m2,&met->m[6*ip2],6*sizeof(double));
 
     /* In this pathological case, n is empty */
-    if ( MG_SIN(p1->tag) || (p1->tag & MG_NOM))
+    if ( MG_SIN(p1->tag) || (p1->tag & MG_NOM) ) {
       memcpy(n,n2,3*sizeof(double));
+      assert( MMG5_EPSD < (n2[0]*n2[0]+n2[1]*n2[1]+n2[2]*n2[2]) && "normal at p2 is 0" );
+    }
+    else if (ddbn < MMG5_EPSD) {
+      /* Other case where n is empty: bezier normal is 0 */
+      if ( !warnnorm ) {
+        fprintf(stderr,"  ## Warning: %s: %d: unexpected case (null normal),"
+                " impossible interpolation.\n",__func__,__LINE__);
+        warnnorm = 1;
+      }
+      return 0;
+    }
   }
   else {
     if ( p2->tag & MG_GEO ) {
@@ -773,6 +662,27 @@ int MMG5_interpreg_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_pTria pt,char i,
       ++warn;
       fprintf(stderr,"\n  ## Warning: %s: at least 1 impossible metric"
               " interpolation.\n", __func__);
+
+      if ( mesh->info.ddebug ) {
+        fprintf(stderr," points: %"MMG5_PRId": %e %e %e (tag %s)\n",MMG5_indPt(mesh,ip1),
+                mesh->point[ip1].c[0],mesh->point[ip1].c[1],mesh->point[ip1].c[2],
+                MMG5_Get_tagName(mesh->point[ip1].tag));
+        fprintf(stderr,"         %"MMG5_PRId": %e %e %e (tag %s)\n",MMG5_indPt(mesh,ip2),
+                mesh->point[ip1].c[0],mesh->point[ip1].c[1],mesh->point[ip1].c[2],
+                MMG5_Get_tagName(mesh->point[ip2].tag));
+
+        fprintf(stderr,"\n BEFORE ROTATION:\n");
+        fprintf(stderr,"\n metric %e %e %e %e %e %e\n",
+                m1old[0],m1old[1],m1old[2],m1old[3],m1old[4],m1old[5]);
+        fprintf(stderr,"     %e %e %e %e %e %e\n",
+                m2old[0],m2old[1],m2old[2],m2old[3],m2old[4],m2old[5]);
+
+        fprintf(stderr,"\n AFTER ROTATION (to %e %e %e):\n",n[0],n[1],n[2]);
+        fprintf(stderr,"\n metric %e %e %e %e %e %e\n",
+                m1[0],m1[1],m1[2],m1[3],m1[4],m1[5]);
+        fprintf(stderr,"     %e %e %e %e %e %e\n",
+                m2[0],m2[1],m2[2],m2[3],m2[4],m2[5]);
+      }
     }
     return 0;
   }

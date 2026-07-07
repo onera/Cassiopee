@@ -41,7 +41,8 @@
  *
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
+#include "libmmgs.h"
 
 /**
  * See \ref MMGS_setfunc function in \ref mmgs/libmmgs.h file.
@@ -50,6 +51,26 @@ FORTRAN_NAME(MMGS_SETFUNC,mmgs_setfunc,
              (MMG5_pMesh *mesh,MMG5_pSol *met),
              (mesh,met)) {
   MMGS_setfunc(*mesh,*met);
+  return;
+}
+
+/**
+ * See \ref MMGS_Get_numberOfNonBdyEdges function in \ref mmgs/libmmgs.h file.
+ */
+FORTRAN_NAME(MMGS_GET_NUMBEROFNONBDYEDGES,mmgs_get_numberofnonbdyedges,
+             (MMG5_pMesh *mesh,MMG5_int* nb_edges, int* retval),
+             (mesh,nb_edges,retval)) {
+  *retval =  MMGS_Get_numberOfNonBdyEdges(*mesh,nb_edges);
+  return;
+}
+
+/**
+ * See \ref MMGS_Get_nonBdyEdge function in \ref mmgs/libmmgs.h file.
+ */
+FORTRAN_NAME(MMGS_GET_NONBDYEDGE,mmgs_get_nonbdyedge,
+             (MMG5_pMesh *mesh,MMG5_int* e0, MMG5_int* e1,MMG5_int *ref,MMG5_int* idx,int* retval),
+             (mesh,e0,e1,ref,idx,retval)) {
+  *retval =  MMGS_Get_nonBdyEdge(*mesh,e0,e1,ref,*idx);
   return;
 }
 
@@ -104,7 +125,7 @@ FORTRAN_NAME(MMGS_DESTOCKOPTIONS,mmgs_destockoptions,
  * See \ref MMGS_Get_adjaTri function in \ref mmgs/libmmgs.h file.
  */
 FORTRAN_NAME(MMGS_GET_ADJATRI,mmgs_get_adjatri,
-               (MMG5_pMesh *mesh,int* kel, int* listri, int* retval),
+               (MMG5_pMesh *mesh,MMG5_int* kel, MMG5_int* listri, int* retval),
                (mesh,kel,listri,retval)) {
   *retval =  MMGS_Get_adjaTri(*mesh,*kel,listri);
   return;
@@ -114,9 +135,30 @@ FORTRAN_NAME(MMGS_GET_ADJATRI,mmgs_get_adjatri,
  * See \ref MMGS_Get_adjaVerticesFast function in \ref mmgs/libmmgs.h file.
  */
 FORTRAN_NAME(MMGS_GET_ADJAVERTICESFAST,mmgs_get_adjaverticesfast,
-               (MMG5_pMesh *mesh,int* ip, int *start, int* lispoi, int* retval),
+               (MMG5_pMesh *mesh,MMG5_int* ip, MMG5_int *start, MMG5_int* lispoi, MMG5_int* retval),
                (mesh,ip,start,lispoi,retval)) {
   *retval =  MMGS_Get_adjaVerticesFast(*mesh,*ip, *start,lispoi);
+  return;
+}
+
+/**
+ * See \ref MMGS_Free_solutions function in \ref mmgs/libmmgs.h file.
+ */
+FORTRAN_NAME(MMGS_FREE_SOLUTIONS,mmgs_free_solutions,
+             (MMG5_pMesh *mesh,MMG5_pSol *sol),(mesh,sol)) {
+
+  MMGS_Free_solutions(*mesh,*sol);
+
+  return;
+}
+
+/**
+ * See \ref MMGS_doSol function in \ref mmgs/libmmgs.h file.
+ */
+FORTRAN_NAME(MMGS_DOSOL,mmgs_dosol,
+             (MMG5_pMesh *mesh,MMG5_pSol *met,int *retval),
+             (mesh,met,retval)) {
+  *retval = MMGS_doSol(*mesh,*met);
   return;
 }
 
@@ -127,5 +169,16 @@ FORTRAN_NAME(MMGS_SET_CONSTANTSIZE,mmgs_set_constantsize,
              (MMG5_pMesh *mesh,MMG5_pSol *met,int *retval),
              (mesh,met,retval)) {
   *retval =  MMGS_Set_constantSize(*mesh,*met);
+  return;
+}
+
+/**
+ * See \ref MMGS_Compute_eigenv function in \ref mmgs/libmmgs.h file.
+ */
+FORTRAN_NAME(MMGS_COMPUTE_EIGENV,mmgs_compute_eigenv,
+             (double m[6],double lambda[3],double vp[3][3],int *retval),
+             (m,lambda,vp,retval)) {
+
+  *retval = MMGS_Compute_eigenv(m,lambda,vp);
   return;
 }

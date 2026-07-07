@@ -15,6 +15,9 @@ from sys import version_info
 
 import importlib
 cplotm = None
+# Get the CPlot module (cplot or cplotOSMesa)
+# IN: offscreen: offscreen rendering mode (0=default, 1/5/6/7=OSMesa modes, 2/3/4=OpenGL)
+# OUT: None
 def getModule(offscreen=0):
     global cplotm
     if cplotm is None:
@@ -29,12 +32,21 @@ __slot__ = None
 
 #==============================================================================
 # -- configuration --
+#==============================================================================
+
+# Configure the type of renderer used internally
+# IN: useRender: renderer type (direct rendering, display lists, or VBO)
+# IN: offscreen: offscreen rendering mode (default=0)
+# OUT: None
 def configure(useRender, offscreen=0):
     """Configure CPlot for direct rendering (cplot.useDirect), display Lists (cplot.useDL)
         or VBO (cplot.useVBO)"""
     getModule(offscreen)
     cplotm.configure(useRender)
 
+# Check if direct rendering is available on host
+# IN: None
+# OUT: True if direct rendering is available, False otherwise
 def hasDirectRendering():
     """Detect if direct rendering is available on host (may not work on windows)"""
     try:
@@ -46,6 +58,60 @@ def hasDirectRendering():
 
 #==============================================================================
 # -- display --
+#==============================================================================
+
+# Main display function for CFD arrays
+# IN: arrays: list of arrays to display
+# IN: dim: dimension (3=3D, 2=2D, 1=1D, -1=auto)
+# IN: mode: display mode (-1=auto)
+# IN: scalarField: scalar field index for coloring
+# IN: vectorField1/2/3: vector field components
+# IN: displayBB: display bounding box (0/1)
+# IN: displayInfo: display info overlay (0/1)
+# IN: displayIsoLegend: display isosurface legend (0/1)
+# IN: meshStyle: mesh display style
+# IN: solidStyle: solid display style
+# IN: scalarStyle: scalar display style
+# IN: vectorStyle: vector display style
+# IN: vectorScale: vector scaling factor
+# IN: vectorDensity: vector density
+# IN: vectorNormalize: normalize vectors (0/1)
+# IN: vectorShowSurface: show surface with vectors (0/1)
+# IN: vectorShape: vector shape type
+# IN: vectorProjection: vector projection mode
+# IN: colormap: colormap index
+# IN: colormapC1/C2/C3: colormap color stops
+# IN: colormapC: colormap color array
+# IN: niso: number of isosurfaces
+# IN: isoEdges: display isosurface edges (0/1)
+# IN: isoScales: isosurface scale factors
+# IN: win: window position (x,y)
+# IN: posCam: camera position (x,y,z)
+# IN: posEye: camera eye position (x,y,z)
+# IN: dirCam: camera direction (x,y,z)
+# IN: viewAngle: camera view angle
+# IN: bgColor: background color
+# IN: backgroundFile: background image file
+# IN: shadow: enable shadows (0/1)
+# IN: lightOffset: light offset (x,y)
+# IN: dof: depth of field (0/1)
+# IN: dofPower: depth of field power
+# IN: gamma: gamma correction
+# IN: toneMapping: tone mapping mode
+# IN: stereo: stereo rendering mode
+# IN: stereoDist: stereo separation distance
+# IN: panorama: panorama mode
+# IN: export: export mode
+# IN: exportResolution: export resolution
+# IN: exportAA: anti-aliasing level for export
+# IN: zoneNames: zone names list
+# IN: renderTags: render tags list
+# IN: frameBuffer: frame buffer index
+# IN: offscreen: offscreen mode
+# IN: posCamList: list of camera positions for animation
+# IN: posEyeList: list of eye positions for animation
+# IN: dirCamList: list of directions for animation
+# OUT: None
 def display(arrays,
             dim=-1, mode=-1,
             scalarField=-1,
@@ -141,13 +207,17 @@ def display(arrays,
                        zoneNames, renderTags, frameBuffer, offscreen,
                        posCamList, posEyeList, dirCamList)
 
-#==============================================================================
+# Force rendering of the current scene
+# IN: None
+# OUT: None
 def render():
     """Force render.
     Usage: render()"""
     cplotm.render()
 
-#==============================================================================
+# Delete zones from the plotter
+# IN: zlist: list of zone indices to delete
+# OUT: None
 def delete(zlist):
     """Delete zones from plotter.
     Usage: delete([i1,i2,...])"""
@@ -155,6 +225,13 @@ def delete(zlist):
     cplotm.delete(zlist)
 
 #==============================================================================
+# Add one array/zone to plotter
+# IN: arrays: list of arrays
+# IN: no: index position to insert (-1=append)
+# IN: array: array to add
+# IN: zoneName: name of the zone
+# IN: renderTag: render tag associated with zone
+# OUT: None
 def add(arrays, no, array, zoneName=None, renderTag=None):
     """Add one zone to plotter.
     Usage: add(arrays, no, array, zoneName, renderTag)"""
@@ -173,6 +250,13 @@ def add(arrays, no, array, zoneName=None, renderTag=None):
         cplotm.add(array, (nzs, nzu), zoneName, renderTag)
 
 #==============================================================================
+# Replace an array/zone in plotter
+# IN: arrays: list of arrays
+# IN: no: index of array to replace
+# IN: array: new array to replace with
+# IN: zoneName: name of the zone
+# IN: renderTag: render tag associated with zone
+# OUT: None
 def replace(arrays, no, array, zoneName=None, renderTag=None):
     """Replace arrays[no] by array.
     Usage: replace(arrays, no, array, zoneName, renderTag)"""
@@ -192,6 +276,18 @@ def replace(arrays, no, array, zoneName=None, renderTag=None):
         cplotm.replace(array, (nzs, nzu, oldType), zoneName, renderTag)
 
 #==============================================================================
+# Display 1D curves/plots
+# IN: arrays: list of arrays or numpy arrays [x,y]
+# IN: slot: slot index for multi-grid display
+# IN: gridPos: grid position (row, col)
+# IN: gridSize: grid size (rows, cols) (-1,-1=auto)
+# IN: bgBlend: background blend factor
+# IN: var1: first variable name (x-axis)
+# IN: var2: second variable name (y-axis)
+# IN: r1: range for var1 (min, max)
+# IN: r2: range for var2 (min, max)
+# IN: offscreen: offscreen mode
+# OUT: None
 def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
               bgBlend=1., var1='x', var2='y', r1=None, r2=None, offscreen=0):
     """Display 1D plots.
@@ -227,6 +323,9 @@ def display1D(arrays, slot=0, gridPos=(0,0), gridSize=(-1,-1),
     time.sleep(__timeStep__)
 
 #==============================================================================
+# Wait for user to press a key in plotter window
+# IN: None
+# OUT: None
 def pressKey():
     """Wait for user to press a key.
     Usage: pressKey()"""
@@ -234,66 +333,106 @@ def pressKey():
 
 #==============================================================================
 # -- get/set functions --
+#==============================================================================
+
+# Get plotter state
+# IN: mode: state mode to retrieve (e.g., "posCam", "colormap", etc.)
+# OUT: state value
 def getState(mode):
     """Return a state in plotter.
     Usage: n = getState(mode)"""
     return cplotm.getState(mode)
 
+# Get selected zone
+# IN: None
+# OUT: currently selected zone index
 def getSelectedZone():
     """Return the selected zone in plotter.
     Usage: n = getSelectedZone()"""
     return cplotm.getSelectedZone()
 
+# Get selected zones
+# IN: None
+# OUT: list of currently selected zone indices
 def getSelectedZones():
     """Return the selected zones in plotter.
     Usage: list = getSelectedZones()"""
     return cplotm.getSelectedZones()
 
+# Get selected status
+# IN: zone: zone index
+# OUT: selection status (0=not selected, 1=selected)
 def getSelectedStatus(zone):
     """Return the selected status of a zone in plotter.
     Usage: status = getSelectedStatus(zone)"""
     return cplotm.getSelectedStatus(zone)
 
+# Get active zones
+# IN: None
+# OUT: list of active (displayed) zone indices
 def getActiveZones():
     """Return the active (displayed) zones in plotter.
     Usage: list = getActiveZones()"""
     return cplotm.getActiveZones()
 
+# Get active status
+# IN: zone: zone index
+# OUT: active status (0=not active, 1=active)
 def getActiveStatus(zone):
     """Return the active status of a zone in plotter.
     Usage: status = getActiveStatus(zone)"""
     return cplotm.getActiveStatus(zone)
 
+# Get active point
+# IN: None
+# OUT: active (clicked) point coordinates (x,y,z)
 def getActivePoint():
     """Return the active (clicked) point in plotter.
     Usage: n = getActivePoint()"""
     return cplotm.getActivePoint()
 
+# Get active point index
+# IN: None
+# OUT: active point index in mesh
 def getActivePointIndex():
     """Return the active (clicked) point index.
     Usage: n = getActivePointIndex()"""
     return cplotm.getActivePointIndex()
 
+# Get active point field values
+# IN: None
+# OUT: field values at active point
 def getActivePointF():
     """Return the active (clicked) point field values.
     Usage: f = getActivePointF()"""
     return cplotm.getActivePointF()
 
+# Get mouse state
+# IN: None
+# OUT: mouse state (position and button state)
 def getMouseState():
     """Return mouse state (mouse position and button state)."""
     return cplotm.getMouseState()
 
+# Get keyboard state
+# IN: None
+# OUT: pressed keys string
 def getKeyboard():
     """Return the pressed keys.
     Usage: n = getKeyboard()"""
     return cplotm.getKeyboard()
 
+# Reset keyboard state
+# IN: None
+# OUT: None
 def resetKeyboard():
     """Reset the keyboard string.
     Usage: resetKeyboard()"""
     return cplotm.resetKeyboard()
 
-# convert r,g,b in [0,1] to hexa color string
+# Convert r,g,b tuple in [0,1] to hexa color string
+# IN: T: tuple of (r, g, b) values in range [0,1]
+# OUT: hexa color string (e.g., "#FF0000")
 def convertRGB2String(T):
     """Convert r,g,b tuple to hexa color string."""
     r,g,b = T
@@ -302,7 +441,9 @@ def convertRGB2String(T):
     a3 = int(b*255.)
     return f"#{a1:02X}{a2:02X}{a3:02X}"
 
-# Adds indirect colormaps
+# Filter and convert colormap values to internal format
+# IN: values: list of [colormap, colormapC1, colormapC2, colormapC3, colormapC]
+# OUT: list of filtered colormap values in internal format
 def filterColormap(values):
     [colormap, colormapC1, colormapC2, colormapC3, colormapC] = values
     shift = colormap % 2
@@ -341,7 +482,10 @@ def filterColormap(values):
 
     return [colormap, colormapC1, colormapC2, colormapC3, colormapC]
 
-# when colormap is 10 or 11 from getState, return the correct colormap from colormapC
+# Get filtered colormap index from current state
+# Detects the actual colormap used when getState returns 10 or 11
+# IN: None
+# OUT: colormap index (16-31 for named colormaps)
 def getFilteredColormap():
     colormap = getState("colormap")
     if colormap != 10 and colormap != 11: return colormap
@@ -365,6 +509,70 @@ def getFilteredColormap():
     if numpy.allclose(CC, C1): return 30+shift
     return colormap
 
+# Set CPlot state parameters
+# IN: dim: dimension (3=3D, 2=2D, 1=1D)
+# IN: mode: display mode
+# IN: scalarField: scalar field index
+# IN: vectorField1/2/3: vector field components
+# IN: displayBB: display bounding box (0/1)
+# IN: displayInfo: display info overlay (0/1)
+# IN: displayIsoLegend: display isosurface legend (0/1)
+# IN: meshStyle: mesh display style
+# IN: solidStyle: solid display style
+# IN: scalarStyle: scalar display style
+# IN: vectorStyle: vector display style
+# IN: vectorScale: vector scaling factor
+# IN: vectorDensity: vector density
+# IN: vectorNormalize: normalize vectors (0/1)
+# IN: vectorShowSurface: show surface with vectors (0/1)
+# IN: vectorShape: vector shape type
+# IN: vectorProjection: vector projection mode
+# IN: colormap: colormap index
+# IN: colormapC1/C2/C3: colormap color stops
+# IN: colormapC: colormap color array
+# IN: niso: number of isosurfaces
+# IN: isoEdges: display isosurface edges (0/1)
+# IN: isoScales: isosurface scale factors
+# IN: win: window position (x,y)
+# IN: posCam: camera position (x,y,z)
+# IN: posEye: camera eye position (x,y,z)
+# IN: dirCam: camera direction (x,y,z)
+# IN: viewAngle: camera view angle
+# IN: lightOffset: light offset (x,y)
+# IN: bgColor: background color
+# IN: backgroundFile: background image file
+# IN: shadow: enable shadows (0/1)
+# IN: dof: depth of field (0/1)
+# IN: dofPower: depth of field power
+# IN: gamma: gamma correction
+# IN: toneMapping: tone mapping mode
+# IN: sobelThreshold: sobel threshold for edge detection
+# IN: sharpenPower: sharpening power
+# IN: ssaoPower: screen space ambient occlusion power
+# IN: ghostifyDeactivatedZones: ghostify deactivated zones (0/1)
+# IN: edgifyActivatedZones: edgify activated zones (0/1)
+# IN: edgifyDeactivatedZones: edgify deactivated zones (0/1)
+# IN: simplifyOnDrag: simplify rendering on drag (0/1)
+# IN: export: export mode
+# IN: exportResolution: export resolution
+# IN: exportAA: anti-aliasing level for export
+# IN: continuousExport: continuous export mode (0/1)
+# IN: envmap: environment map file
+# IN: message: message to display
+# IN: stereo: stereo rendering mode
+# IN: stereoDist: stereo separation distance
+# IN: cursor: cursor type
+# IN: gridSize: grid size (rows, cols)
+# IN: timer: timer value
+# IN: selectionStyle: selection style
+# IN: activateShortCuts: activate keyboard shortcuts (0/1)
+# IN: billBoards: billboard settings
+# IN: billBoardSize: billboard size
+# IN: materials: material settings
+# IN: bumpMaps: bump map settings
+# IN: frameBuffer: frame buffer index
+# IN: offscreen: offscreen mode
+# OUT: None
 def setState(dim=-1,
              mode=-1,
              scalarField=-1,
@@ -450,72 +658,116 @@ def setState(dim=-1,
                     activateShortCuts, billBoards, billBoardSize,
                     materials, bumpMaps, frameBuffer, offscreen)
 
+# Set CPlot display mode
+# IN: mode: display mode (0=solid, 1=wireframe, etc.)
+# OUT: None
 def setMode(mode):
     """Set CPlot display mode.
     Usage: setMode(0)"""
     cplotm.setMode(mode)
 
+# Change displayed variable interactively
+# IN: None
+# OUT: None
 def changeVariable():
     """Change displayed variable.
     Usage: changeVariable()"""
     cplotm.changeVariable()
 
+# Change CPlot display style interactively
+# IN: None
+# OUT: None
 def changeStyle():
     """Change CPlot display style.
     Usage: changeStyle()"""
     cplotm.changeStyle()
 
+# Change CPlot info display style interactively
+# IN: None
+# OUT: None
 def changeInfoDisplay():
     """Change CPlot info display style.
     Usage: changeInfoDisplay()"""
     cplotm.changeInfoDisplay()
 
+# Change the blanking procedure interactively
+# IN: None
+# OUT: None
 def changeBlanking():
     """Change the blanking procedure.
     Usage: changeBlanking()"""
     cplotm.changeBlanking()
 
+# Set CPlot display dimension
+# IN: dim: dimension (3=3D, 2=2D, 1=1D)
+# OUT: None
 def setDim(dim):
     """Set CPlot display dim 3, 2 or 1.
     Usage: setDim(2)"""
     cplotm.setDim(dim)
 
+# Set the active (clicked) point in plotter
+# IN: x: x coordinate
+# IN: y: y coordinate
+# IN: z: z coordinate
+# OUT: None
 def setActivePoint(x,y,z):
     """Set the active (clicked) point in plotter.
     Usage: setActivePoint(x,y,z)"""
     return cplotm.setActivePoint(x,y,z)
 
+# Set selected zones
+# IN: zlist: list of zone indices to select [(slot, zone), ...]
+# OUT: None
 def setSelectedZones(zlist):
     """Set selected zones.
     Usage: setSelectedZones([(0,1),(1,1),...])"""
     cplotm.setSelectedZones(zlist)
 
+# Unselect all zones
+# IN: None
+# OUT: None
 def unselectAllZones():
     """Unselect all zones.
     Usage: unselectAllZones()"""
     cplotm.unselectAllZones()
 
+# Set active (displayed) zones
+# IN: zlist: list of zone indices to activate [(slot, zone), ...]
+# OUT: None
 def setActiveZones(zlist):
     """Set active (displayed) zones.
     Usage: setActiveZones([(0,1)])"""
     cplotm.setActiveZones(zlist)
 
+# Set zone names
+# IN: zlist: list of (zone_index, name) tuples
+# OUT: None
 def setZoneNames(zlist):
     """Set zone names.
     Usage: setZoneNames([(0,'myZone')])"""
     cplotm.setZoneNames(zlist)
 
 #==============================================================================
+# Look for (focus on) selected zones
+# IN: None
+# OUT: None
 def lookFor():
     """Look for selected zones.
     Usage: lookFor()"""
     cplotm.lookFor()
 
+# Fit the view to objects in scene
+# IN: None
+# OUT: None
 def fitView():
     """Fit the view to objects.
     Usage: fitView()"""
     cplotm.fitView()
 
+# Finalize export operation
+# IN: action: export action type (0=default, 1/5/6/7=special modes)
+# OUT: None
 def finalizeExport(action=0):
     """Finalize export."""
     if action == 1 or action == 5 or action == 6 or action == 7:
@@ -524,14 +776,24 @@ def finalizeExport(action=0):
     while cplotm.isDisplayRunning() == 0: pass
     cplotm.finalizeExport(action)
 
+# Hide the CPlot window
+# IN: None
+# OUT: None
 def hide():
     """Hide window."""
     cplotm.hide()
 
+# Show the CPlot window if hidden
+# IN: None
+# OUT: None
 def show():
     """Show window if it has been hidden with flush."""
     cplotm.show()
 
+# Set the CPlot window title
+# IN: file: file name to display
+# IN: path: file path to display
+# OUT: None
 def setWindowTitle(file, path):
     """Set the CPlot window title."""
     getModule()
@@ -540,6 +802,15 @@ def setWindowTitle(file, path):
 #==============================================================================
 # camera
 #==============================================================================
+# Move camera following check points (animation path)
+# IN: posCams: list of camera positions for path
+# IN: posEyes: list of eye positions for path (optional)
+# IN: dirCams: list of camera directions for path (optional)
+# IN: moveEye: move eye position along path (0/1)
+# IN: N: number of interpolation points
+# IN: speed: animation speed factor
+# IN: pos: start position index (-1=start from beginning)
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=1., pos=-1):
     """Move posCam and posEye following check points."""
     # Set d, array of posCams and N nbre of points
@@ -672,6 +943,10 @@ def moveCamera(posCams, posEyes=None, dirCams=None, moveEye=False, N=100, speed=
 
     return posCam, posEye, dirCam
 
+# Travel camera right (orbit around target)
+# IN: xr: travel distance as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelRight(xr=0.1, N=100):
     """Travel camera right."""
     posCam = getState('posCam')
@@ -692,6 +967,10 @@ def travelRight(xr=0.1, N=100):
     checkPoints = [posCam,tuple(P2),tuple(P3)]
     return moveCamera(checkPoints, N=N)
 
+# Travel camera left (orbit around target)
+# IN: xr: travel distance as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelLeft(xr=0.1, N=100):
     """Travel camera left."""
     posCam = getState('posCam')
@@ -712,6 +991,10 @@ def travelLeft(xr=0.1, N=100):
     checkPoints = [posCam,tuple(P2),tuple(P3)]
     return moveCamera(checkPoints, N=N)
 
+# Travel camera up (move along view direction)
+# IN: xr: travel distance as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelUp(xr=0.1, N=100):
     """Travel camera up."""
     posCam = getState('posCam')
@@ -726,6 +1009,10 @@ def travelUp(xr=0.1, N=100):
     checkPoints = [posCam,tuple(P2)]
     return moveCamera(checkPoints, N=N)
 
+# Travel camera down (move opposite to view direction)
+# IN: xr: travel distance as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelDown(xr=0.1, N=100):
     """Travel camera down."""
     posCam = getState('posCam')
@@ -740,6 +1027,10 @@ def travelDown(xr=0.1, N=100):
     checkPoints = [posCam,tuple(P2)]
     return moveCamera(checkPoints, N=N)
 
+# Zoom camera in (move closer to target)
+# IN: xr: zoom factor as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelIn(xr=0.1, N=100):
     """Zoom camera in."""
     posCam = getState('posCam')
@@ -752,6 +1043,10 @@ def travelIn(xr=0.1, N=100):
     checkPoints = [posCam,tuple(P2)]
     return moveCamera(checkPoints, N=N)
 
+# Zoom camera out (move away from target)
+# IN: xr: zoom factor as fraction of camera distance
+# IN: N: number of interpolation points
+# OUT: tuple of (posCam, posEye, dirCam) final camera state
 def travelOut(xr=0.1, N=100):
     """Zoom camera out."""
     posCam = getState('posCam')
@@ -765,8 +1060,13 @@ def travelOut(xr=0.1, N=100):
     return moveCamera(checkPoints, N=N)
 
 #==============================================================================
-# image
+# image as array
 #==============================================================================
+
+# Blur an image array
+# IN: a: image array or list of arrays to blur
+# IN: blurSigma: blur sigma value (default=0.8)
+# OUT: None (modifies array in place)
 def blur(a, blurSigma=0.8):
     """Blur an image array."""
     getModule()
@@ -777,9 +1077,15 @@ def blur(a, blurSigma=0.8):
 
 #==============================================================================
 # -- Internal functions --
+#==============================================================================
+
+# Set internal file name for CPlot
+# IN: name: file name to set
+# OUT: None
 def setFileName__(name):
     cplotm.setFileName(name)
 
+# Internal function: Create new display window (threaded)
 def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                  vectorField3, displayBB, displayInfo, displayIsoLegend,
                  meshStyle, solidStyle, scalarStyle, vectorStyle,
@@ -836,6 +1142,7 @@ def displayNew__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
     a.start()
     __slot__ = a
 
+# Internal function: Update existing display (threaded)
 def displayAgain__(arrays, dim, mode, scalarField, vectorField1, vectorField2,
                    vectorField3, displayBB, displayInfo, displayIsoLegend,
                    meshStyle, solidStyle, scalarStyle, vectorStyle,

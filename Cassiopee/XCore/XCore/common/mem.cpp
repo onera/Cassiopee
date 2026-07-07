@@ -38,7 +38,7 @@ void *xmalloc(E_Int nbytes, const char *file, E_Int line)
 void *xcalloc(E_Int count, E_Int size, const char *file, E_Int line)
 {
     if (count < 0) {
-        fprintf(stderr, "xcalloc: count (%d) is negative in file %s:" SF_D_ "\n", count, file, line);
+        fprintf(stderr, "xcalloc: count (" SF_D_ ") is negative in file %s:" SF_D_ "\n", count, file, line);
         abort();
     }
 

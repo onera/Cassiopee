@@ -652,7 +652,7 @@ PyObject *K_XCORE::removeIntersectingKPlanes(PyObject *self, PyObject *args)
     PyObject *slaves_out = PyList_New(0);
 
     for (E_Int i = 0; i < nslaves; i++) {
-        printf("Projecting %d / %d\n", i+1, nslaves);
+        printf("Projecting " SF_D_ " / " SF_D_ "\n", i+1, nslaves);
         //PyObject *st = handle_slave2(M, sarrays[i], kmax);
         PyObject *st = handle_slave(M, M->Mf, sarrays[i]);
         PyList_Append(slaves_out, st);

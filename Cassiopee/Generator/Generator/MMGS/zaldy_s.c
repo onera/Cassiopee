@@ -33,12 +33,12 @@
  * \todo Doxygen documentation
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
 
 /* get new point address */
-int MMGS_newPt(MMG5_pMesh mesh,double c[3],double n[3]) {
+MMG5_int MMGS_newPt(MMG5_pMesh mesh,double c[3],double n[3]) {
   MMG5_pPoint  ppt;
-  int     curpt;
+  MMG5_int     curpt;
 
   if ( !mesh->npnil )  return 0;
 
@@ -55,7 +55,7 @@ int MMGS_newPt(MMG5_pMesh mesh,double c[3],double n[3]) {
   return curpt;
 }
 
-void MMGS_delPt(MMG5_pMesh mesh,int ip) {
+void MMGS_delPt(MMG5_pMesh mesh,MMG5_int ip) {
   MMG5_pPoint   ppt;
 
   ppt = &mesh->point[ip];
@@ -64,12 +64,12 @@ void MMGS_delPt(MMG5_pMesh mesh,int ip) {
   ppt->tmp    = mesh->npnil;
   mesh->npnil = ip;
   if ( ip == mesh->np ) {
-    while ( !MG_VOK((&mesh->point[mesh->np])) )  mesh->np--;
+    while ( (!MG_VOK((&mesh->point[mesh->np]))) && mesh->np )  mesh->np--;
   }
 }
 
-int MMGS_newElt(MMG5_pMesh mesh) {
-  int     curiel;
+MMG5_int MMGS_newElt(MMG5_pMesh mesh) {
+  MMG5_int     curiel;
 
   if ( !mesh->nenil )  return 0;
   curiel = mesh->nenil;
@@ -82,7 +82,7 @@ int MMGS_newElt(MMG5_pMesh mesh) {
 }
 
 /**
- * \param mesh pointer toward the mesh
+ * \param mesh pointer to the mesh
  * \param iel index of the element to delete
  *
  * \return 1 if success, 0 if fail
@@ -90,27 +90,27 @@ int MMGS_newElt(MMG5_pMesh mesh) {
  * Delete the element \a iel
  *
  */
-int MMGS_delElt(MMG5_pMesh mesh,int iel) {
+int MMGS_delElt(MMG5_pMesh mesh,MMG5_int iel) {
   MMG5_pTria    pt;
 
   pt = &mesh->tria[iel];
   if ( !MG_EOK(pt) ) {
-    fprintf(stderr,"\n  ## INVALID ELEMENT %d.\n",iel);
+    fprintf(stderr,"\n  ## INVALID ELEMENT %" MMG5_PRId ".\n",iel);
     return 0;
   }
   memset(pt,0,sizeof(MMG5_Tria));
   pt->v[2] = mesh->nenil;
   if ( mesh->adja )
-    memset(&mesh->adja[3*(iel-1)+1],0,3*sizeof(int));
+    memset(&mesh->adja[3*(iel-1)+1],0,3*sizeof(MMG5_int));
   mesh->nenil = iel;
   if ( iel == mesh->nt ) {
-    while ( !MG_EOK((&mesh->tria[mesh->nt])) )  mesh->nt--;
+    while ( (!MG_EOK((&mesh->tria[mesh->nt]))) && mesh->nt )  mesh->nt--;
   }
   return 1;
 }
 
 /**
- * \param mesh pointer toward the mesh structure
+ * \param mesh pointer to the mesh structure
  *
  * \return 0 if fail, 1 otherwise
  *
@@ -136,7 +136,7 @@ int MMGS_memOption_memSet(MMG5_pMesh mesh) {
 
   /* Compute the needed initial memory */
   usedMem = reservedMem + (mesh->np+1)*sizeof(MMG5_Point)
-    + (mesh->nt+1)*sizeof(MMG5_Tria) + (3*mesh->nt+1)*sizeof(int)
+    + (mesh->nt+1)*sizeof(MMG5_Tria) + (3*mesh->nt+1)*sizeof(MMG5_int)
     + (mesh->np+1)*sizeof(double);
 
   if ( usedMem > mesh->memMax  ) {
@@ -148,16 +148,38 @@ int MMGS_memOption_memSet(MMG5_pMesh mesh) {
 
   /* point+xpoint+tria+adja+aniso sol */
   bytes = sizeof(MMG5_Point) + sizeof(MMG5_xPoint) +
-    2*sizeof(MMG5_Tria) + 3*sizeof(int) + 6*sizeof(double);
+    2*sizeof(MMG5_Tria) + 3*sizeof(MMG5_int) + 6*sizeof(double);
 
   avMem = mesh->memMax-usedMem;
 
   /* If npadd is exactly the maximum memory available, we will use all the
    * memory and the analysis step will fail. As arrays may be reallocated, we
    * can have smaller values for xpmax and ntmax (npadd/2). */
-  npadd = avMem/(double)(2*bytes);
+  npadd = avMem/(2*bytes);
   mesh->npmax = MG_MIN(mesh->npmax,mesh->np+npadd);
   mesh->ntmax = MG_MIN(mesh->ntmax,2*npadd+mesh->nt);
+
+  if ( sizeof(MMG5_int) == sizeof(int32_t) ) {
+    /** Check that we will not overflow int32_max when allocating adja array */
+    /* maximal number of triangles, taking the
+     * computation of adjacency relationships into account */
+    int coef = 3;
+    int32_t int32_ntmax = (INT32_MAX-(coef+1))/coef;
+
+    if ( int32_ntmax < mesh->ntmax ) {
+      if ( int32_ntmax <= mesh->nt ) {
+        /* No possible allocation without int32 overflow */
+        fprintf(stderr,"\n  ## Error: %s: with %" MMG5_PRId " triangles Mmg will overflow"
+                " the 32-bit integer.\n",__func__,mesh->nt);
+        fprintf(stderr,"Please, configure Mmg with MMG5_INT=int64_t argument.\n");
+        return 0;
+      }
+      else {
+        /* Correction of maximal number of triangles */
+        mesh->ntmax = int32_ntmax;
+      }
+    }
+  }
 
   if ( abs(mesh->info.imprim) > 4 || mesh->info.ddebug ) {
     fprintf(stdout,"  MAXIMUM MEMORY AUTHORIZED (MB)    %zu\n",
@@ -165,15 +187,15 @@ int MMGS_memOption_memSet(MMG5_pMesh mesh) {
   }
 
   if ( abs(mesh->info.imprim) > 5 || mesh->info.ddebug ) {
-    fprintf(stdout,"  MMG2D_NPMAX    %d\n",mesh->npmax);
-    fprintf(stdout,"  MMG2D_NTMAX    %d\n",mesh->ntmax);
+    fprintf(stdout,"  MMG2D_NPMAX    %" MMG5_PRId "\n",mesh->npmax);
+    fprintf(stdout,"  MMG2D_NTMAX    %" MMG5_PRId "\n",mesh->ntmax);
   }
 
   return 1;
 }
 
 /**
- * \param mesh pointer toward the mesh structure
+ * \param mesh pointer to the mesh structure
  *
  * \return 0 if fail, 1 otherwise
  *
@@ -184,14 +206,14 @@ int MMGS_memOption(MMG5_pMesh mesh) {
 
   mesh->memMax = MMG5_memSize();
 
-  mesh->npmax = MG_MAX(1.5*mesh->np,MMGS_NPMAX);
-  mesh->ntmax = MG_MAX(1.5*mesh->nt,MMGS_NTMAX);
+  mesh->npmax = MG_MAX((MMG5_int)(1.5*mesh->np),MMGS_NPMAX);
+  mesh->ntmax = MG_MAX((MMG5_int)(1.5*mesh->nt),MMGS_NTMAX);
 
   return  MMGS_memOption_memSet(mesh);
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  *
  * \return 0 if failed, 1 otherwise.
  *
@@ -199,7 +221,7 @@ int MMGS_memOption(MMG5_pMesh mesh) {
  *
  */
 int MMGS_setMeshSize_alloc( MMG5_pMesh mesh ) {
-  int k;
+  MMG5_int k;
 
   MMG5_ADD_MEM(mesh,(mesh->npmax+1)*sizeof(MMG5_Point),"initial vertices",
                 fprintf(stderr,"  Exit program.\n");
@@ -231,7 +253,7 @@ int MMGS_setMeshSize_alloc( MMG5_pMesh mesh ) {
 }
 
 /**
- * \param mesh pointer toward the mesh
+ * \param mesh pointer to the mesh
  *
  * \return 1 if success, 0 if fail
  *

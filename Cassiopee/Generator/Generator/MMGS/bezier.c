@@ -33,10 +33,10 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgcommon.h"
+#include "mmgcommon_private.h"
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \param i0 index of the first extremity of the edge.
  * \param i1 index of the second extremity of the edge.
  * \param b0 first computed bezier coefficient.
@@ -48,8 +48,8 @@
  * \f$[p0;p1]\f$.
  *
  */
-inline void MMG5_bezierEdge(MMG5_pMesh mesh,int i0,int i1,
-                             double b0[3],double b1[3], char isrid,double v[3])
+inline void MMG5_bezierEdge(MMG5_pMesh mesh,MMG5_int i0,MMG5_int i1,
+                             double b0[3],double b1[3], int8_t isrid,double v[3])
 {
   MMG5_pPoint    p0,p1;
   double         ux,uy,uz,*n1,*n2,*t,ps1,ps2;

@@ -33,86 +33,27 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param start index of triangle to start.
- * \param ip index of point for wich we compute the ball.
- * \param list pointer toward the computed ball of \a ip.
- * \return the size of the computed ball or 0 if fail.
- *
- * Find all triangles sharing \a ip, \f$list[0] =\f$ \a start do not stop when
- * crossing ridge.
- *
- */
-int boulet(MMG5_pMesh mesh,int start,int ip,int *list) {
-  MMG5_pTria    pt;
-  MMG5_pPoint   ppt;
-  int           *adja,k,ilist;
-  char          i,i1,i2;
-
-  pt = &mesh->tria[start];
-
-  ppt = &mesh->point[pt->v[ip]];
-  ilist = 0;
-
-  /* store neighbors */
-  k = start;
-  i = ip;
-  do {
-    if ( ilist > MMGS_LMAX-2 )  return 0;
-    list[ilist] = 3*k + i;
-    ++ilist;
-
-    adja = &mesh->adja[3*(k-1)+1];
-    i1 = MMG5_inxt2[i];
-    k  = adja[i1] / 3;
-    i  = adja[i1] % 3;
-    i  = MMG5_inxt2[i];
-  }
-  while ( k && k != start );
-  if ( k > 0 )  return ilist;
-
-  if ( ppt->tag & MG_NOM )
-    return 0;
-
-  /* check if boundary hit */
-  k = start;
-  i = ip;
-  do {
-    adja = &mesh->adja[3*(k-1)+1];
-    i2 = MMG5_iprv2[i];
-    k  = adja[i2] / 3;
-    if ( k == 0 )  break;
-    i  = adja[i2] % 3;
-    i  = MMG5_iprv2[i];
-
-    if ( ilist > MMGS_LMAX-2 )  return 0;
-    list[ilist] = 3*k + i;
-    ilist++;
-  }
-  while ( k );
-
-  return ilist;
-}
-
-/**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \param start index of tetra to start to compute the ball.
  * \param ip index of point in tetra \a start for which we want to compute
  * the ball.
- * \param list pointer toward the computed ball of point.
+ * \param list pointer to the computed ball of point.
  *
- * Find all triangles sharing \a ip, \f$list[0] = start\f$. Do not stop when
+ * \return size of list if success, -size if overflow, 0 if cfg is non-manifold.
+ *
+ * Find all triangles sharing \a ip, \f$list[0] = start\f$ . Do not stop when
  * crossing ridge. Check whether resulting configuration is manifold.
  *
  */
-int boulechknm(MMG5_pMesh mesh,int start,int ip,int *list) {
+int boulechknm(MMG5_pMesh mesh,MMG5_int start,int ip,MMG5_int *list) {
   MMG5_pTria    pt;
   MMG5_pPoint   ppt;
-  int           *adja,k,ilist,base,iel;
-  char          i,i1,i2,ia,iq,voy;
+  MMG5_int      *adja,k,iel,base;
+  int           ilist;
+  int8_t        i,i1,i2,ia,iq,voy;
 
   base = ++mesh->base;
 
@@ -128,7 +69,7 @@ int boulechknm(MMG5_pMesh mesh,int start,int ip,int *list) {
   k = start;
   i = ip;
   do {
-    if ( ilist > MMGS_LMAX-2 )  return -ilist;
+    if ( ilist > MMG5_TRIA_LMAX-2 )  return -ilist;
     list[ilist] = 3*k + i;
     ++ilist;
 
@@ -168,7 +109,7 @@ int boulechknm(MMG5_pMesh mesh,int start,int ip,int *list) {
       i  = adja[i2] % 3;
       i  = MMG5_iprv2[i];
 
-      if ( ilist > MMGS_LMAX-2 )  return -ilist;
+      if ( ilist > MMG5_TRIA_LMAX-2 )  return -ilist;
       list[ilist] = 3*k + i;
       ilist++;
     }
@@ -238,70 +179,18 @@ int boulechknm(MMG5_pMesh mesh,int start,int ip,int *list) {
   return ilist;
 }
 
-/* return all vertices connected to ip, list[0] = ip */
-int boulep(MMG5_pMesh mesh,int start,int ip,int *list) {
-  MMG5_pTria    pt;
-  int     *adja,k,ilist;
-  char     i,i1,i2;
-
-  pt = &mesh->tria[start];
-  if ( !MG_EOK(pt) )  return 0;
-  list[0] = pt->v[ip];
-  ilist   = 0;
-
-  /* store neighbors */
-  k  = start;
-  i  = ip;
-  i1 = MMG5_inxt2[i];
-  i2 = MMG5_iprv2[i];
-  do {
-    if ( ilist > MMGS_LMAX-2 )  return -ilist;
-    ilist++;
-    list[ilist] = pt->v[i2];
-
-    adja = &mesh->adja[3*(k-1)+1];
-    k  = adja[i1] / 3;
-    i2 = adja[i1] % 3;
-    i1 = MMG5_iprv2[i2];
-    pt = &mesh->tria[k];
-  }
-  while ( k && k != start );
-  if ( k > 0 )  return ilist;
-
-  /* reverse loop */
-  k  = start;
-  i  = ip;
-  pt = &mesh->tria[k];
-  i1 = MMG5_inxt2[i];
-  i2 = MMG5_inxt2[i1];
-  do {
-    if ( ilist > MMGS_LMAX-2 )  return -ilist;
-    ilist++;
-    list[ilist] = pt->v[i1];
-
-    adja = &mesh->adja[3*(k-1)+1];
-    k  = adja[i2] / 3;
-    i1 = adja[i2] % 3;
-    i2 = MMG5_iprv2[i1];
-    pt = &mesh->tria[k];
-  }
-  while ( k > 0 );
-
-  return ilist;
-}
-
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \param start index of the starting triangle.
  * \param ip index of the looked ridge point.
- * \param il1 pointer toward the first ball size.
- * \param l1 pointer toward the first computed ball (associated to \a n1's
+ * \param il1 pointer to the first ball size.
+ * \param l1 pointer to the first computed ball (associated to \a n1's
  * side).
- * \param il2 pointer toward the second ball size.
- * \param l2 pointer toward the second computed ball (associated to \a n2's
+ * \param il2 pointer to the second ball size.
+ * \param l2 pointer to the second computed ball (associated to \a n2's
  * side).
- * \param ip0 index of the first extremity of the ridge.
- * \param ip1 index of the second extremity of the ridge.
+ * \param global ip0 index of the first extremity of the ridge.
+ * \param global ip1 index of the second extremity of the ridge.
  * \return 0 if fail, 1 otherwise.
  *
  * Computation of the two balls of a ridge point: the list \a l1 is associated
@@ -309,12 +198,13 @@ int boulep(MMG5_pMesh mesh,int start,int ip,int *list) {
  * point of the ridge. Both lists are returned enumerated in direct order.
  *
  */
-int bouletrid(MMG5_pMesh mesh,int start,int ip,int *il1,int *l1,int *il2,int *l2,int *ip0,int *ip1) {
-  MMG5_pTria           pt;
-  MMG5_pPoint          ppt;
-  int                  idp,k,kold,*adja,iel,*ilist1,*ilist2,*list1,*list2,aux;
-  unsigned char        i,iold,i1,i2,ipn;
-  double               *n1,*n2,nt[3],ps1,ps2;
+int bouletrid(MMG5_pMesh mesh,MMG5_int start,MMG5_int ip,int *il1,MMG5_int *l1,int *il2,MMG5_int *l2,MMG5_int *ip0,MMG5_int *ip1) {
+  MMG5_pTria   pt;
+  MMG5_pPoint  ppt;
+  MMG5_int     idp,k,kold,*adja,iel,*list1,*list2,aux;
+  int          *ilist1,*ilist2;
+  uint8_t      i,iold,i1,i2,ipn;
+  double       *n1,*n2,nt[3],ps1,ps2;
 
   pt = &mesh->tria[start];
   if ( !MG_EOK(pt) )  return 0;
@@ -374,7 +264,7 @@ int bouletrid(MMG5_pMesh mesh,int start,int ip,int *il1,int *l1,int *il2,int *l2
   do {
     pt   = &mesh->tria[k];
     adja = &mesh->adja[3*(k-1)+1];
-    if ( (*ilist1) > MMGS_LMAX-2 )  return 0;
+    if ( (*ilist1) > MMG5_TRIA_LMAX-2 )  return 0;
     list1[(*ilist1)] = 3*k+i;
     (*ilist1)++;
     i1 = MMG5_inxt2[i];
@@ -402,7 +292,7 @@ int bouletrid(MMG5_pMesh mesh,int start,int ip,int *il1,int *l1,int *il2,int *l2
   do {
     pt   = &mesh->tria[k];
     adja = &mesh->adja[3*(k-1)+1];
-    if ( *ilist2 > MMGS_LMAX-2 )  return 0;
+    if ( *ilist2 > MMG5_TRIA_LMAX-2 )  return 0;
     list2[*ilist2] = 3*k+i;
     (*ilist2)++;
     i1 = MMG5_inxt2[i];

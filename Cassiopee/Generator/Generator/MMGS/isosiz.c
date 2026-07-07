@@ -27,12 +27,12 @@
  * \copyright GNU Lesser General Public License.
  */
 
-#include "mmgcommon.h"
+#include "mmgcommon_private.h"
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the meric structure.
- * \param ptt pointer toward the triangle structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the meric structure.
+ * \param ptt pointer to the triangle structure.
  * \return The computed area.
  *
  * Compute the area of the surface triangle \a ptt with respect to
@@ -64,8 +64,8 @@ double MMG5_surftri_iso(MMG5_pMesh mesh,MMG5_pSol met,MMG5_pTria ptt) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \param funcname name of the calling function
  *
  * \return 1 if success, 0 if fail.
@@ -88,7 +88,7 @@ int MMG5_defsiz_startingMessage (MMG5_pMesh mesh,MMG5_pSol met,const char * func
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  *
  * Print gradation values (depending on the verbosity).
  *
@@ -114,8 +114,8 @@ void MMG5_gradation_info ( MMG5_pMesh mesh ) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  * \param ip0 index of the first edge extremity
  * \param ip1 index of the second edge extremity
  *
@@ -126,9 +126,9 @@ void MMG5_gradation_info ( MMG5_pMesh mesh ) {
  * increment the count of times we have processed this extremities.
  *
  */
-int MMG5_sum_reqEdgeLengthsAtPoint ( MMG5_pMesh mesh,MMG5_pSol met,int ip0,int ip1 ) {
+int MMG5_sum_reqEdgeLengthsAtPoint ( MMG5_pMesh mesh,MMG5_pSol met,MMG5_int ip0,MMG5_int ip1 ) {
   MMG5_pPoint p0,p1;
-  int         j;
+  int    j;
   double      len,dist;
 
   /* Compute the euclidean edge length */
@@ -153,8 +153,8 @@ int MMG5_sum_reqEdgeLengthsAtPoint ( MMG5_pMesh mesh,MMG5_pSol met,int ip0,int i
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
  *
  * \return 1 if success, 0 if fail.
  *
@@ -166,7 +166,8 @@ int MMG5_sum_reqEdgeLengthsAtPoint ( MMG5_pMesh mesh,MMG5_pSol met,int ip0,int i
  */
 int MMG5_compute_meanMetricAtMarkedPoints_iso ( MMG5_pMesh mesh,MMG5_pSol met ) {
   MMG5_pPoint p0;
-  int         k;
+  MMG5_int    k;
+  int         mmgWarn = 0;
 
   for ( k=1; k<=mesh->np; k++ ) {
     p0 = &mesh->point[k];
@@ -176,14 +177,23 @@ int MMG5_compute_meanMetricAtMarkedPoints_iso ( MMG5_pMesh mesh,MMG5_pSol met ) 
 
     met->m[k] /= p0->s;
     p0->flag = 3;
+
+    /* Warn the user that edge size is erased */
+    if ( !mmgWarn ) {
+      mmgWarn = 1;
+      if ( mesh->info.ddebug || (mesh->info.imprim > 4) ) {
+        printf("\n  -- SIZEMAP CORRECTION : overwritten of sizes at required vertices\n");
+      }
+    }
   }
 
   return 1;
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
+ * \param ismet 1 if user provided metric
  *
  * \return 1 if success, 0 if fail.
  *
@@ -191,10 +201,10 @@ int MMG5_compute_meanMetricAtMarkedPoints_iso ( MMG5_pMesh mesh,MMG5_pSol met ) 
  * that are at the extremities of a required edge.
  *
  */
-int MMG5_reset_metricAtReqEdges_surf ( MMG5_pMesh mesh,MMG5_pSol met ) {
+int MMG5_reset_metricAtReqEdges_surf ( MMG5_pMesh mesh,MMG5_pSol met,int8_t ismet ) {
   MMG5_pTria  pt;
-  int         k,i,j,ip0,ip1,iad0,iad1;
-  int8_t      ismet = mesh->info.inputMet;
+  int         i,j;
+  MMG5_int    k,ip0,ip1,iad0,iad1;
 
   if ( ismet ) {
     for ( k=1; k<=mesh->nt; k++ ) {
@@ -224,7 +234,7 @@ int MMG5_reset_metricAtReqEdges_surf ( MMG5_pMesh mesh,MMG5_pSol met ) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  *
  * Set the s field of the points that belongs to a required edge to 1, set it to
  * 0 otherwise.
@@ -233,7 +243,7 @@ int MMG5_reset_metricAtReqEdges_surf ( MMG5_pMesh mesh,MMG5_pSol met ) {
 void MMG5_mark_pointsOnReqEdge_fromTria (  MMG5_pMesh mesh ) {
   MMG5_pTria  pt;
   MMG5_pPoint ppt;
-  int         k;
+  MMG5_int    k;
   int8_t      i;
 
   for ( k=1; k<=mesh->np; k++ ) {
@@ -256,8 +266,8 @@ void MMG5_mark_pointsOnReqEdge_fromTria (  MMG5_pMesh mesh ) {
 }
 
 /**
- * \param mesh pointer toward the mesh
- * \param met pointer toward the metric
+ * \param mesh pointer to the mesh
+ * \param met pointer to the metric
  *
  * \return 0 if fail, 1 otherwise
  *
@@ -269,7 +279,9 @@ int MMG5_gradsiz_iso(MMG5_pMesh mesh,MMG5_pSol met) {
   MMG5_pTria        pt;
   MMG5_pPoint       p1,p2;
   double            hgrad,ll,h1,h2,hn,val;
-  int               k,it,ip1,ip2,maxit,nup,nu;
+  int               it,maxit;
+  MMG5_int          nup,nu;
+  MMG5_int          ip1,ip2,k;
   int8_t            i,j,i1,i2;
 
   if ( abs(mesh->info.imprim) > 5 || mesh->info.ddebug ) {
@@ -284,7 +296,8 @@ int MMG5_gradsiz_iso(MMG5_pMesh mesh,MMG5_pSol met) {
 
 
   hgrad = mesh->info.hgrad;
-  it = nup = 0;
+  it = 0;
+  nup = 0;
   maxit = 100;
 
   do {
@@ -340,15 +353,15 @@ int MMG5_gradsiz_iso(MMG5_pMesh mesh,MMG5_pSol met) {
   while ( ++it < maxit && nu > 0 );
 
   if ( abs(mesh->info.imprim) > 4 ) {
-    fprintf(stdout,"     gradation: %7d updated, %d iter.\n",nup,it);
+    fprintf(stdout,"     gradation: %7"MMG5_PRId" updated, %d iter.\n",nup,it);
   }
 
   return 1;
 }
 
 /**
- * \param mesh pointer toward the mesh
- * \param met pointer toward the metric
+ * \param mesh pointer to the mesh
+ * \param met pointer to the metric
  *
  * \return the number of updated metrics.
  *
@@ -360,8 +373,9 @@ int MMG5_gradsizreq_iso(MMG5_pMesh mesh,MMG5_pSol met) {
   MMG5_pTria        pt;
   MMG5_pPoint       p1,p2;
   double            hgrad,ll,h1,h2,hn,ux,uy;
-  int               k,it,ip1,ip2,ipmaster,ipslave,maxit,nup,nu;
-  unsigned char     i,i1,i2;
+  int               it,maxit,nup,nu;
+  MMG5_int          k,ip1,ip2,ipmaster,ipslave;
+  uint8_t           i,i1,i2;
 
 
   if ( abs(mesh->info.imprim) > 5 || mesh->info.ddebug ) {
@@ -394,7 +408,7 @@ int MMG5_gradsizreq_iso(MMG5_pMesh mesh,MMG5_pSol met) {
         p1 = &mesh->point[ip1];
         p2 = &mesh->point[ip2];
 
-        if ( abs ( p1->s - p2->s ) < 2 ) {
+        if ( MMG5_abs ( p1->s - p2->s ) < 2 ) {
           /* No size to propagate */
           continue;
         }

@@ -20,18 +20,35 @@
 **  use this copy of the mmg distribution only if you accept them.
 ** =============================================================================
 */
+//#ifndef _WIN32
+//#include "mmg/common/git_log_mmg.h"
+//#endif
 
-#include "mmgcommon.h"
+#ifndef MMGVERSION_H
+#define MMGVERSION_H
 
+#define MMG_VERSION_RELEASE "5.8.0"
+#define MMG_VERSION_MAJOR 5
+#define MMG_VERSION_MINOR 8
+#define MMG_VERSION_PATCH 0
+#define MMG_RELEASE_DATE "oct 2024"
 
-extern int  (*MMG5_chkmsh)(MMG5_pMesh,int,int);
-extern int  (*MMG5_bezierCP)(MMG5_pMesh ,MMG5_Tria *,MMG5_pBezier ,char );
-extern double (*MMG5_lenSurfEdg)(MMG5_pMesh mesh,MMG5_pSol sol ,int ,int, char );
-extern int  (*MMG5_indElt)(MMG5_pMesh mesh,int kel);
-extern int  (*MMG5_indPt)(MMG5_pMesh mesh,int kp);
-extern int  (*MMG5_grad2met_ani)(MMG5_pMesh,MMG5_pSol,MMG5_pTria,int,int);
-extern int  (*MMG5_grad2metreq_ani)(MMG5_pMesh,MMG5_pSol,MMG5_pTria,int,int);
-extern int    (*MMG5_compute_meanMetricAtMarkedPoints)( MMG5_pMesh,MMG5_pSol);
-#ifdef USE_SCOTCH
-extern int  (*MMG5_renumbering)(int vertBoxNbr, MMG5_pMesh mesh, MMG5_pSol sol);
+#define MMG_COPYRIGHT   "Copyright (c) Bdx INP/CNRS/Inria/UPMC, 2004-"
+
+#define MMG_VERSION_EQ(MAJOR,MINOR) \
+((MMG_VERSION_MAJOR == (MAJOR)) && (MMG_VERSION_MINOR == (MINOR)))
+
+#define MMG_VERSION_ MMG_VERSION_EQ
+
+#define MMG_VERSION_LT(MAJOR,MINOR)                                  \
+  (MMG_VERSION_MAJOR < (MAJOR) || (MMG_VERSION_MAJOR == (MAJOR) &&   \
+                                   (MMG_VERSION_MINOR < (MINOR) )))
+
+#define MMG_VERSION_LE(MAJOR,MINOR) \
+  (MMG_VERSION_LT(MAJOR,MINOR) || MMG_VERSION_EQ(MAJOR,MINOR))
+
+#define MMG_VERSION_GT(MAJOR,MINOR) (0 == MMG_VERSION_LE(MAJOR,MINOR))
+
+#define MMG_VERSION_GE(MAJOR,MINOR) (0 == MMG_VERSION_LT(MAJOR,MINOR))
+
 #endif

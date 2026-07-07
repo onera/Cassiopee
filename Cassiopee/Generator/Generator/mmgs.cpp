@@ -20,7 +20,7 @@
 // Remaillage surfacique avec mmgs
 
 #include "generator.h"
-#include "MMGS/mmgs.h"
+#include "MMGS/libmmgs.h"
 
 using namespace std;
 using namespace K_FLD;
@@ -87,9 +87,23 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   }
   posx++; posy++; posz++;
 
-  // Check sizemap field (if any)
+  // Check sizemap field (if any) -> isotropic remeshing
   E_Int posf = K_ARRAY::isNamePresent("sizemap", varString);
   posf++;
+
+  // check sizemap tensor (if any) -> anistropic remeshing
+  E_Int posf11 = K_ARRAY::isNamePresent("sizemap11", varString);
+  posf11++;
+  E_Int posf12 = K_ARRAY::isNamePresent("sizemap12", varString);
+  posf12++;
+  E_Int posf13 = K_ARRAY::isNamePresent("sizemap13", varString);
+  posf13++;
+  E_Int posf22 = K_ARRAY::isNamePresent("sizemap22", varString);
+  posf22++;
+  E_Int posf23 = K_ARRAY::isNamePresent("sizemap23", varString);
+  posf23++;
+  E_Int posf33 = K_ARRAY::isNamePresent("sizemap33", varString);
+  posf33++;
 
   /* update Info */
   MMG5_Info info;
@@ -114,76 +128,6 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   MMG5_pSol  metric;
 
   //====================================================================
-  // Comment faire de l'adaptation
-  //====================================================================
-  /*
-  mesh = NULL;
-  metric  = NULL;
-  MMGS_Init_mesh(MMG5_ARG_start,
-                 MMG5_ARG_ppMesh, &mesh, MMG5_ARG_ppMet,&metric,
-                 MMG5_ARG_end);
-
-  // load mesh
-  MMGS_loadMesh(mesh, "cube.mesh");
-  
-  // load metric
-  MMGS_loadSol(mesh, metric, "cube.sol");
-
-  // Check data
-  MMGS_Chk_meshData(mesh, metric);
-
-  // Remesh
-  MMGS_mmgslib(mesh, metric);
-
-  // Save the mesh
-  MMGS_saveMesh(mesh, "cubeOut.mesh");
-
-  // Save the sol
-  MMGS_saveSol(mesh, metric, "cubeOut.sol");
-
-  // Free all
-  MMGS_Free_all(MMG5_ARG_start,
-                MMG5_ARG_ppMesh, &mesh, MMG5_ARG_ppMet, &metric,
-                MMG5_ARG_end);
-  */
-
-
-  //====================================================================
-  // Comment remailler avec une distance de hausdorf
-  //====================================================================
-  /*
-  mesh = NULL;
-  metric  = NULL;
-  MMGS_Init_mesh(MMG5_ARG_start,
-                 MMG5_ARG_ppMesh, &mesh, MMG5_ARG_ppMet,&metric,
-                 MMG5_ARG_end);
-
-  // chope -hausd 0.01 (erreur de corde, default 0.01)
-  // chope -hmin,hmax (le step min et max)
-  // chope -ar : angle qu'il considere comme discontinu (default 45 degres)
-  // chope -hgrad : diff de h entre deux cellules voisines (default 1.105171.)
-  // chope -optim : optimise sans trop changer la taille des mailles
-  int argc = 3;
-  char* argv[] = {"mmgs_O3", "-hausd", "0.001", "-ar", "70."};
-  printf("%s %s %s\n", argv[0], argv[1], argv[2]);
-  MMGS_parsar(argc, argv, mesh, metric);
-
-  // load mesh
-  MMGS_loadMesh(mesh, "teapot.mesh");
-
-  // Remesh
-  MMGS_mmgslib(mesh, metric);
-
-  // Save the mesh
-  MMGS_saveMesh(mesh, "teapotOut.mesh");
-
-  // Free all
-  MMGS_Free_all(MMG5_ARG_start,
-                MMG5_ARG_ppMesh, &mesh, MMG5_ARG_ppMet, &metric,
-                MMG5_ARG_end);
-  */
-
-  //====================================================================
   // Comment faire tout en memoire (d'elephant)
   //====================================================================
   
@@ -195,7 +139,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
 
   E_Int nargs; E_Int argc; char** vals; char** argv;
 
-  if (optim == 1) // optimisation du maillage
+  if (optim == 1) // optimisation du maillage, pas de settings
   {
     nargs = 0; vals = NULL;
     argc = 1;
@@ -203,7 +147,9 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
     //argv[1] = new char [20]; strcpy(argv[1], "-optim");
   }
-  else 
+  else if (posf == 0 && 
+           posf11 == 0 && posf12 == 0 && posf13 == 0 &&
+           posf22 == 0 && posf23 == 0 && posf33 == 0) // pas de metric field, hmin,hmax,hausd,hgrad,ridgeAngle can be set
   {
     nargs = 5;
     vals = new char* [nargs];
@@ -214,6 +160,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     vals[4] = new char [20]; sprintf(vals[4], "%g", hgrad);
   
     argc = 2*nargs+1;
+    if (anisotropy == 1) argc += 1;
     argv = new char* [argc];
     argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
     argv[1] = new char [20]; strcpy(argv[1], "-hausd");
@@ -226,13 +173,27 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     argv[8] = new char [20]; strcpy(argv[8], vals[3]);
     argv[9] = new char [20]; strcpy(argv[9], "-hgrad");
     argv[10] = new char [20]; strcpy(argv[10], vals[4]);
+    if (anisotropy == 1) { argv[11] = new char [20]; strcpy(argv[11], "-A"); }
     printf("INFO: hausd=%s hmin=%s hmax=%s hgrad=%s\n", vals[0], vals[2], vals[3], vals[4]);
   }
-  // anisotropy
-  // if anisotropy == 1
-  //argv[11] = new char [20]; strcpy(argv[11], "-A");
+  else // metric field, ridgeAngle, hgrad can be set
+  {
+    nargs = 2;
+    if (anisotropy == 1) argc += 1;
+    vals = new char* [nargs];
+    vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
+    vals[1] = new char [20]; sprintf(vals[1], "%g", hgrad);
+    argc = 2*nargs+1;
+    argv = new char* [argc];
+    argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
+    argv[1] = new char [20]; strcpy(argv[1], "-ar");
+    argv[2] = new char [20]; strcpy(argv[2], vals[0]);
+    argv[3] = new char [20]; strcpy(argv[3], "-hgrad");
+    argv[4] = new char [20]; strcpy(argv[4], vals[1]);
+    if (anisotropy == 1) { argv[5] = new char [20]; strcpy(argv[5], "-A"); }
+  }
   
-  MMGS_parsar(argc, argv, mesh, metric);
+  MMGS_parsar(argc, argv, mesh, metric, NULL);
 
   // Conversion de l'array vers mesh
   // dimensionne nbre de vertex, nbre de triangles, nbre d'edges
@@ -271,9 +232,25 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   {
     E_Float* ff = f->begin(posf);
     MMGS_Set_solSize(mesh, metric, MMG5_Vertex, np, MMG5_Scalar);
-    for (E_Int k=1; k <= np; k++)
+    for (E_Int k = 1; k <= np; k++)
     {
       MMGS_Set_scalarSol(metric, ff[k-1], k); // existe aussi set_TensorSol
+    }
+  }
+
+  if (posf11 >=1 && posf12 && posf13 >=1 && posf22 >=1 && posf23>=1 && posf33>=1)
+  {
+    E_Float* ff11 = f->begin(posf11);
+    E_Float* ff12 = f->begin(posf12);
+    E_Float* ff13 = f->begin(posf13);
+    E_Float* ff22 = f->begin(posf22);
+    E_Float* ff23 = f->begin(posf23);
+    E_Float* ff33 = f->begin(posf33);
+    MMGS_Set_solSize(mesh, metric, MMG5_Vertex, np, MMG5_Tensor);
+    for (E_Int k = 1; k <= np; k++)
+    {
+      MMGS_Set_tensorSol(metric, ff11[k-1], ff12[k-1], ff13[k-1],
+        ff22[k-1], ff23[k-1], ff33[k-1], k);
     }
   }
 
@@ -302,8 +279,8 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
       K_NUMPY::getFromNumpyArray(o, ptr, nelts, nfld);
       for (E_Int i = 0; i < nelts; i++)
       {
-        int v0 = ptr[i];
-        int v1 = ptr[i+nelts];
+        E_Int v0 = ptr[i];
+        E_Int v1 = ptr[i+nelts];
         MMGS_Set_edge(mesh, v0, v1, 2, i+1); // define edge i+1
         MMGS_Set_requiredEdge(mesh, i+1);
       }
@@ -319,19 +296,19 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
 
   // 1) Manually get the mesh 
   // get the size of the mesh: vertices, tetra, triangles, edges
-  int npo, nto, nao; // flaws
+  E_Int npo, nto, nao; // flaws
   MMGS_Get_meshSize(mesh, &npo, &nto, &nao);
-  printf("INFO: output mesh has %d vertices, %d triangles.\n", npo, nto);
+  printf("INFO: output mesh has " SF_D_ " vertices, " SF_D_ " triangles.\n", npo, nto);
 
   // Table to know if a vertex is corner
   int* corner = new int [npo+1];
   
   // Table to know if a vertex/tetra/tria/edge is required
-  int size = std::max(npo, nto); size = std::max(size, nao);
+  E_Int size = std::max(npo, nto); size = std::max(size, nao);
   int* required = new int [ size+1 ];
   
   // Table to know if a component is corner and/or required
-  int* ridge = new int [nao+1];
+  E_Int* ridge = new E_Int [nao+1];
 
   // Allocate array2
   PyObject* o = K_ARRAY::buildArray3(3, "x,y,z", npo, nto, "TRI", false, f->getApi());
@@ -345,7 +322,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   E_Int* co3 = co->begin(3);
   stride = co->getStride();
 
-  int ref; E_Float px,py,pz;
+  E_Int ref; E_Float px,py,pz;
   for (E_Int k=1; k <= npo; k++) 
   {
     MMGS_Get_vertex(mesh, &px, &py, &pz,
@@ -355,8 +332,8 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     foz[k-1] = pz;
   }
 
-  int ind1,ind2,ind3;
-  for(E_Int k=1; k <= nto; k++) 
+  E_Int ind1,ind2,ind3;
+  for (E_Int k=1; k <= nto; k++) 
   {
     MMGS_Get_triangle(mesh, &ind1,&ind2,&ind3,
                       &ref, &(required[k]));
@@ -365,25 +342,6 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     co3[(k-1)*stride] = ind3;
     //printf("%d %d %d\n", ind1,ind2,ind3);
   }
-
-  // 2) Manually get the solution (in this example we show how to save the
-  // solution in the mesh.o.sol file)
-
-  // a) get the size of the sol: type of entity (SolAtVertices,...),
-  // number of sol, type of solution (scalar, tensor...)
-  //if ( MMGS_Get_solSize(mmgMesh,mmgSol,&typEntity,&np,&typSol) != 1 )
-  //  exit(EXIT_FAILURE);
-
-  //if ( ( typEntity != MMG5_Vertex )  || ( typSol != MMG5_Scalar ) )
-  //  exit(EXIT_FAILURE);
-
-  //fprintf(inm,"\nSolAtVertices\n%d\n",np);
-  //fprintf(inm,"1 1 \n\n");
-  //for(k=1; k<=np; k++) {
-    // b) Vertex recovering
-  //  if ( MMGS_Get_scalarSol(mmgSol,&Sol) != 1 )  exit(EXIT_FAILURE);
-  //  fprintf(inm,"%.15lg \n",Sol);
-  //}
   
   // Free all
   for (E_Int i = 0; i < nargs; i++) delete [] vals[i];
@@ -402,14 +360,6 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   /* Analysis */
   //_MMG5_analys(&mesh);
   
-  /* Main call */
-  //_MMG5_mmgs1(MMG5_pMesh mesh, MMG5_pSol met);
-
-  /* Export */
-  //unscaleMesh(&mesh,&met)
-  
-  //_MMGS_RETURN_AND_FREE(mesh, met, ier);
-
   RELEASESHAREDB(res, array, f, cn);
   RELEASESHAREDU(o, fo, co);
 

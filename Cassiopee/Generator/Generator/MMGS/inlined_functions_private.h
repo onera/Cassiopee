@@ -22,7 +22,6 @@
 */
 
 /**
- * \file common/inlined_functions.h
  * \brief inlined Functions
  * \author Charles Dapogny (UPMC)
  * \author Cécile Dobrzynski (Bx INP/Inria/UBordeaux)
@@ -32,30 +31,31 @@
  * \copyright GNU Lesser General Public License.
  */
 
-#include "mmgcommon.h"
+#include "mmgcommon_private.h"
 
 #ifndef _INLINED_FUNC_H
 #define _INLINED_FUNC_H
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \param np0 index of edge's extremity.
  * \param np1 index of edge's extremity.
  * \param m0 metric at point np0.
  * \param m1 metric at point np1.
  * \param isedg 1 if the edge is a ridge, 0 otherwise.
- * \return length of edge according to the prescribed metric, 0 if fail.
+ * \return length of a curve edge according to the prescribed metric, 0 if fail.
  *
- * Compute length of surface edge \f$[np0;np1]\f$ according to the prescribed
- * aniso metrics \a m0 and \a m1.
+ * Compute the curve length of surface edge \f$[np0;np1]\f$ according to the
+ * prescribed aniso metrics \a m0 and \a m1.
  *
+ * \remark the edge has to be a boundary edge
  */
 static inline
-double MMG5_lenEdg(MMG5_pMesh mesh,int np0,int np1,
-                    double *m0,double *m1,char isedg) {
+double MMG5_lenEdg(MMG5_pMesh mesh,MMG5_int np0,MMG5_int np1,
+                    double *m0,double *m1,int8_t isedg) {
   MMG5_pPoint   p0,p1;
   double        gammaprim0[3],gammaprim1[3],t[3],*n1,*n2,ux,uy,uz,ps1,ps2,l0,l1;
-  static char   mmgWarn=0;
+  static int8_t mmgWarn=0;
 
   p0 = &mesh->point[np0];
   p1 = &mesh->point[np1];
@@ -84,7 +84,6 @@ double MMG5_lenEdg(MMG5_pMesh mesh,int np0,int np1,
       n2 = &mesh->xpoint[p0->xp].n2[0];
       ps1 = ux*n1[0] + uy*n1[1] + uz*n1[2];
       ps2 = ux*n2[0] + uy*n2[1] + uz*n2[2];
-
       if ( fabs(ps2) < fabs(ps1) ) {
         n1  = &mesh->xpoint[p0->xp].n2[0];
         ps1 = ps2;
@@ -182,23 +181,25 @@ double MMG5_lenEdg(MMG5_pMesh mesh,int np0,int np1,
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the sol structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the sol structure.
  * \param np0 index of edge's extremity.
  * \param np1 index of edge's extremity.
  * \param isedg 1 if the edge is a ridge, 0 otherwise.
  * \return length of edge according to the prescribed metric, 0 if fail.
  *
- * Compute length of surface edge \f$[i0;i1]\f$ according to the prescribed
- * aniso metric (for special storage of metrics at ridges points). Here the
- * length is computed taking into account the curve nature of the surface edge.
+ * Compute the curve length of surface edge \f$[i0;i1]\f$ according to the
+ * prescribed aniso metric (for special storage of metrics at ridges
+ * points). Here the length is computed taking into account the curve nature of
+ * the surface edge.
  *
+ * \remark the edge has to be a boundary edge
  */
 static inline
-double MMG5_lenSurfEdg_ani(MMG5_pMesh mesh,MMG5_pSol met,int np0,int np1,char isedg) {
+double MMG5_lenSurfEdg_ani(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int np0,MMG5_int np1,int8_t isedg) {
   MMG5_pPoint   p0,p1;
   double        *m0,*m1,met0[6],met1[6],ux,uy,uz,rbasis[3][3];
-  static char   mmgWarn = 0;
+  static int8_t mmgWarn = 0;
 
   p0 = &mesh->point[np0];
   p1 = &mesh->point[np1];
@@ -251,20 +252,21 @@ double MMG5_lenSurfEdg_ani(MMG5_pMesh mesh,MMG5_pSol met,int np0,int np1,char is
 
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the sol structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the sol structure.
  * \param np0 index of edge's extremity.
  * \param np1 index of edge's extremity.
  * \param isedg 1 if the edge is a ridge, 0 otherwise.
  * \return length of edge according to the prescribed metric.
  *
- * Compute length of surface edge \f$[i0;i1]\f$ according to the prescribed
- * aniso metric (for classic storage of metrics at ridges points).
+ * Compute the curve length of surface edge \f$[i0;i1]\f$ according to the
+ * prescribed aniso metric (for classic storage of metrics at ridges points).
  *
+ * \remark the edge has to be a boundary edge
  */
 static inline
 double MMG5_lenSurfEdg33_ani(MMG5_pMesh mesh,MMG5_pSol met,
-                              int np0,int np1,char isedg) {
+                              MMG5_int np0,MMG5_int np1,int8_t isedg) {
   double        *m0,*m1;
 
   /* Set metrics */
@@ -275,22 +277,22 @@ double MMG5_lenSurfEdg33_ani(MMG5_pMesh mesh,MMG5_pSol met,
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the sol structure.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the sol structure.
  * \param ip1 index of edge's extremity.
  * \param ip2 index of edge's extremity.
  * \param isedg 1 if the edge is a ridge, 0 otherwise (dummy arg for
  * compatibility with \a lenedg_ani).
  * \return length of edge according to the prescribed metric.
  *
- * Compute length of surface edge \f$[i0;i1]\f$ according to the prescribed iso
- * metric.
+ * Compute the "straight" length of edge \f$[i0;i1]\f$ according to the
+ * prescribed iso metric.
  *
  */
 static
-inline double MMG5_lenSurfEdg_iso(MMG5_pMesh mesh,MMG5_pSol met,int ip1,int ip2, char isedg) {
+inline double MMG5_lenSurfEdg_iso(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int ip1,MMG5_int ip2, int8_t isedg) {
   MMG5_pPoint   p1,p2;
-  double   h1,h2,l,r,len;
+  double        h1,h2,l,r,len;
 
   p1 = &mesh->point[ip1];
   p2 = &mesh->point[ip2];
@@ -300,9 +302,57 @@ inline double MMG5_lenSurfEdg_iso(MMG5_pMesh mesh,MMG5_pSol met,int ip1,int ip2,
     + (p2->c[2]-p1->c[2])*(p2->c[2]-p1->c[2]);
   l = sqrt(l);
   r = h2 / h1 - 1.0;
-  len = fabs(r) < MMG5_EPS ? l / h1 : l / (h2-h1) * log(r+1.0);
+  len = fabs(r) < MMG5_EPS ? l / h1 : l / (h2-h1) * log1p(r);
 
   return len;
+}
+
+/**
+ * \param dim matrix size.
+ * \param m matrix array.
+ * \param dm diagonal values array.
+ * \param iv array of inverse coreduction basis.
+ *
+ * Recompose a symmetric matrix from its diagonalization on a simultaneous
+ * reduction basis.
+ * \warning Eigenvectors in Mmg are stored as matrix rows (the first dimension
+ * of the double array spans the number of eigenvectors, the second dimension
+ * spans the number of entries of each eigenvector). So the inverse (left
+ * eigenvectors) is also stored with transposed indices.
+ */
+static inline
+void MMG5_simredmat(int8_t dim,double *m,double *dm,double *iv) {
+  int8_t i,j,k,ij;
+
+  /* Storage of a matrix as a one-dimensional array: dim*(dim+1)/2 entries for
+   * a symmetric matrix. */
+  ij = 0;
+
+  /* Loop on matrix rows */
+  for( i = 0; i < dim; i++ ) {
+    /* Loop on the upper-triangular part of the matrix */
+    for( j = i; j < dim; j++ ) {
+      /* Initialize matrix entry */
+      m[ij] = 0.0;
+      /* Compute matrix entry as the recomposition of diagonal values after
+       * projection on the coreduction basis, using the inverse of the
+       * transformation:
+       *
+       * M_{ij} = \sum_{k,l} V^{-1}_{ki} Lambda_{kl} V^{-1}_{lj} =
+       *        = \sum_{k} lambda_{k} V^{-1}_{ki} V^{-1}_{kj}
+       *
+       * Since the inverse of the transformation is the inverse of an
+       * eigenvectors matrix (which is stored in Mmg by columns, and not by
+       * rows), the storage of the inverse matrix is also transposed and the
+       * indices have to be exchanged when implementing the above formula. */
+      for( k = 0; k < dim; k++ ) {
+        m[ij] += dm[k]*iv[i*dim+k]*iv[j*dim+k];
+      }
+      /* Go to the next entry */
+      ++ij;
+    }
+  }
+  assert( ij == (dim+1)*dim/2 );
 }
 
 #endif

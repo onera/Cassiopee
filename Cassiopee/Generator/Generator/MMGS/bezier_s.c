@@ -33,30 +33,30 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
 
-extern char ddb;
+extern int8_t ddb;
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param pt pointer toward the triangle structure.
- * \param pb pointer toward the computed Bezier structure.
+ * \param mesh pointer to the mesh structure.
+ * \param pt pointer to the triangle structure.
+ * \param pb pointer to the computed Bezier structure.
  * \param ori triangle orientation (unused but here for compatibility
  * with the MMG5_bezierCP interface).
  * \return 1.
  *
- * Compute Bezier control points on triangle \a pt (cf. Vlachos)
+ * Compute Bezier control points on triangle \a pt (cf. \cite vlachos2001curved).
  *
- * \todo merge with the MMG5_mmg3dBeizerCP function and remove the pointer
+ * \todo merge with the MMG5_mmg3dBezierCP function and remove the pointer
  * toward this functions.
  *
  */
 int MMG5_mmgsBezierCP(MMG5_pMesh mesh,MMG5_Tria *pt,MMG5_pBezier pb,
-                       char ori) {
+                      int8_t ori) {
   MMG5_pPoint    p[3];
   double         *n1,*n2,nt[3],ps,ps2,dd,ux,uy,uz,ll;
-  int            ia,ib,ic;
-  char           i,i1,i2;
+  MMG5_int       ia,ib,ic;
+  int8_t         i,i1,i2;
 
   ia   = pt->v[0];
   ib   = pt->v[1];
@@ -194,7 +194,7 @@ int MMG5_mmgsBezierCP(MMG5_pMesh mesh,MMG5_Tria *pt,MMG5_pBezier pb,
 }
 
 /**
- * \param pb pointer toward the Bezier structure.
+ * \param pb pointer to the Bezier structure.
  * \param uv coordinates of the point in the parametric space.
  * \param o computed coordinates of the point in the real space.
  * \param no computed normal.
@@ -206,7 +206,7 @@ int MMG5_mmgsBezierCP(MMG5_pMesh mesh,MMG5_Tria *pt,MMG5_pBezier pb,
  */
 int MMGS_bezierInt(MMG5_pBezier pb,double uv[2],double o[3],double no[3],double to[3]) {
   double    dd,u,v,w,ps,ux,uy,uz;
-  char      i;
+  int8_t    i;
 
   memset(to,0,3*sizeof(double));
   u = uv[0];

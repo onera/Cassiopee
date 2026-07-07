@@ -19,6 +19,8 @@
 #ifndef NUGA_DIAG_H
 #define NUGA_DIAG_H
 
+#include "String/kstring.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -343,7 +345,7 @@ int check_accuracy(E_Float mat[6], E_Float lambda[3], E_Float v[3][3],
         + v[2][i]*m[4] - lambda[i]*v[1][i];
       tmpz = v[0][i]*m[2] + v[1][i]*m[4]
         + v[2][i]*m[5] - lambda[i]*v[2][i];
-      fprintf(stderr,"\n  ## Error: %s: Av %d - lambda %d *v %d = %f %f %f\n",
+      fprintf(stderr,"\n  ## Error: %s: Av " SF_D_ " - lambda " SF_D_ " *v " SF_D_ " = %f %f %f\n",
               __func__,i,i,i,tmpx,tmpy,tmpz);
 
       fprintf(stderr,"\n  ## Error: %s:w1 %f %f %f\n",__func__,w1[0],w1[1],w1[2]);

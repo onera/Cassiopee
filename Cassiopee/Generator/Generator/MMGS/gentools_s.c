@@ -32,13 +32,13 @@
  * \copyright GNU Lesser General Public License.
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
 
 
 /* Delete all triangle references in mesh */
 int delref(MMG5_pMesh mesh) {
   MMG5_pTria    pt;
-  int      k;
+  MMG5_int      k;
 
   for(k=1; k<=mesh->nt; k++) {
     pt = &mesh->tria[k];
@@ -49,7 +49,7 @@ int delref(MMG5_pMesh mesh) {
 }
 
 /**
- * \param mesh pointer toward the mesh
+ * \param mesh pointer to the mesh
  * \param start index of the tetra from which we start
  * \param ref reference to set
  * \param putreq 1 if boundary edges must be set to required
@@ -61,13 +61,14 @@ int delref(MMG5_pMesh mesh) {
  * if boundary edges met must be set to MG_REQ, 0 otherwise.
  *
  */
-int setref(MMG5_pMesh mesh,int start,int ref,int putreq) {
-  MMG5_pTria      pt,pt1;
-  int        *list,*adja,cur,base,k,iel,jel,ilist;
-  char       j,voy;
+int setref(MMG5_pMesh mesh,MMG5_int start,MMG5_int ref,int putreq) {
+  MMG5_pTria pt,pt1;
+  MMG5_int   base,*list,*adja,cur,k,iel,jel;
+  int        ilist;
+  int8_t     j,voy;
 
   ilist = cur = 0;
-  MMG5_SAFE_CALLOC(list,mesh->nt+1,int,return 0);
+  MMG5_SAFE_CALLOC(list,mesh->nt+1,MMG5_int,return 0);
   base = ++mesh->base;
 
   /* Pile up triangles from start, till a GEO boundary is met */
@@ -119,9 +120,9 @@ int setref(MMG5_pMesh mesh,int start,int ref,int putreq) {
 }
 
 /** find the element number in packed numerotation */
-int MMGS_indElt(MMG5_pMesh mesh, int kel) {
+MMG5_int MMGS_indElt(MMG5_pMesh mesh, MMG5_int kel) {
   MMG5_pTria pt;
-  int    ne, k;
+  MMG5_int   ne, k;
 
   ne = 0;
   for (k=1; k<=mesh->nt; k++) {
@@ -135,9 +136,9 @@ int MMGS_indElt(MMG5_pMesh mesh, int kel) {
 }
 
 /** find the point number in packed numerotation */
-int MMGS_indPt(MMG5_pMesh mesh, int kp) {
+MMG5_int MMGS_indPt(MMG5_pMesh mesh, MMG5_int kp) {
   MMG5_pPoint ppt;
-  int         np, k;
+  MMG5_int    np, k;
 
   np = 0;
   for (k=1; k<=mesh->np; k++) {
@@ -148,4 +149,30 @@ int MMGS_indPt(MMG5_pMesh mesh, int kp) {
     }
   }
   return 0;
+}
+
+/**
+ * \param mesh pointer to the mesh structure.
+ * \param nsd index of subdomain to keep.
+ *
+ * Keep only subdomain of index \a nsd and remove other subdomains.
+ *
+ */
+void MMGS_keep_only1Subdomain ( MMG5_pMesh mesh,MMG5_int nsd ) {
+
+  if ( !nsd ) {
+    return;
+  }
+
+  if ( mesh->info.imprim > 4 || mesh->info.ddebug ) {
+    fprintf(stdout,"\n  -- ONLY KEEP DOMAIN OF REF %"MMG5_PRId"\n",nsd );
+  }
+
+  MMG5_mark_verticesAsUnused ( mesh );
+
+  MMG5_keep_subdomainElts ( mesh, nsd, MMGS_delElt );
+
+  MMG5_mark_usedVertices ( mesh,MMGS_delPt );
+
+  return;
 }

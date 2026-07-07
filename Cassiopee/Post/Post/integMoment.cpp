@@ -131,7 +131,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varStringc);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      printf("Warning: integMoment: coordinates not found in array %d. Array skipped...\n",i+1);
+      printf("Warning: integMoment: coordinates not found in array " SF_D_ ". Array skipped...\n",i+1);
       RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next; 
     }
@@ -167,7 +167,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
     {
       if (ff->getNfld() != nFld)
       {
-        printf("Warning: integMoment: invalid number of variables for field array %d.", i+1);
+        printf("Warning: integMoment: invalid number of variables for field array " SF_D_ ".", i+1);
         printf(" Array skipped...\n");
         RELEASESHAREDB(resc, coordObj, fc, cnc);
         RELEASESHAREDB(resf, FObj, ff, cnf);
@@ -190,7 +190,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
       sizef = nif*njf*nkf;
       if (nic > 1 && njc > 1 && nkc > 1)
       {
-        printf("Warning: integMoment: 3D arrays not valid. Array %d skipped...\n",i+1);
+        printf("Warning: integMoment: 3D arrays not valid. Array " SF_D_ " skipped...\n",i+1);
         RELEASESHAREDB(resc, coordObj, fc, cnc);
         RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
@@ -241,7 +241,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
         if (resr != 1)
         {
           RELEASESHAREDB(resr, ratioObj, ratio, cnr);
-          printf("Warning: integMoment: ratio %d is an invalid array. Set to 1.", i+1);
+          printf("Warning: integMoment: ratio " SF_D_ " is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
         }
@@ -319,7 +319,7 @@ PyObject* K_POST::integMoment(PyObject* self, PyObject* args)
         if (resr != 2)
         {
           if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
-          printf("Warning: integMoment: ratio %d is an invalid array. Set to 1.", i+1);
+          printf("Warning: integMoment: ratio " SF_D_ " is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
         }

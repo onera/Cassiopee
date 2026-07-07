@@ -21,70 +21,14 @@
 ** =============================================================================
 */
 
-#ifndef CHRONO_H
-#define CHRONO_H
+#ifndef MMGS_EXPORT_H
+#define MMGS_EXPORT_H
 
-#include <time.h>
-#include "mmgcommon.h"
-
-// HACK Cassiopee/win64
-#ifdef _WIN32
-#undef POSIX
-#endif
-// END HACK
-
-
-#ifndef POSIX
-#include <windows.h>
+#include "mmg_export.h"
+#if  defined(libmmg_so_EXPORTS) || defined(libmmgs_so_EXPORTS)
+#  define LIBMMGS_EXPORT MMG_DECL_EXPORT
 #else
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef  ON
-#define  RESET  0
-#define  ON     1
-#define  OFF    2
-#endif
-
-#define  BIG      1e6
-#define  BIG1     1e-6
-#define  TIMEMAX  12
-
-/**
- * \struct mytime
- * \brief Chrono object.
- *
- * mytime allow storage of chronograph informations.
- *
- */
-typedef struct mytime {
-  double  gini,gend,gdif,uini,uend,udif,sini,send,sdif;
-#ifdef POSIX
-  struct  timeval rutim;
-  struct  rusage  ru;
-#else
-  HANDLE        thisProcess;
-  FILETIME      ftIni, ftEnd, ftSys, ftUser;
-  SYSTEMTIME    stSys, stUser;
-  LARGE_INTEGER frequency;
-  LARGE_INTEGER rutim;
-#endif
-  int     call;
-} mytime;
-
-
-/* prototypes */
-void   chrono(int cmode,mytime *ptt);
-void   tminit(mytime *t,int maxtim);
-void   printim(double ,char *);
-
-#ifdef __cplusplus
-}
+#  define LIBMMGS_EXPORT MMG_DECL_IMPORT
 #endif
 
 #endif

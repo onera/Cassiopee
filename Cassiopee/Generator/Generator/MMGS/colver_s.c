@@ -33,30 +33,39 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgs.h"
-
-
+#include "libmmgs_private.h"
+#include "mmgexterns_private.h"
+#include "inlined_functions_private.h"
 
 /**
- * \param mesh pointer toward the mesh
- * \param met pointer toward the metric
+ * \param mesh pointer to the mesh
+ * \param met pointer to the metric
  * \param k index of the element in wich we collapse
  * \param i index of the edge to collapse
- * \param list pointer toward the ball of point
+ * \param list pointer to the ball of point
  * \param typchk type of check to perform
+ * \param MMGS_lenEdg pointer to the suitable fct to compute edge lengths
+ * depending on presence of input metric, metric type (iso/aniso) and \a typchk
+ * value (i.e. stage of adaptation)
+ * \param MMGS_caltri pointer to the suitable fct to compute tria quality
+ * depending on presence of input metric, metric type (iso/aniso) and \a typchk
+ * value (i.e. stage of adaptation)
  *
  * \return 0 if we can't move of if we fail, 1 if success
  *
  * check if geometry preserved by collapsing edge i
  *
  */
-int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
+int chkcol(MMG5_pMesh mesh,MMG5_pSol met,MMG5_int k,int8_t i,MMG5_int *list,int8_t typchk,
+           double (*MMGS_lenEdg)(MMG5_pMesh,MMG5_pSol,MMG5_int ,MMG5_int,int8_t),
+           double (*MMGS_caltri)(MMG5_pMesh,MMG5_pSol,MMG5_pTria)) {
   MMG5_pTria     pt,pt0,pt1,pt2;
   MMG5_pPoint    p1,p2;
   double         len,lon,ps,cosnold,cosnnew,kal,n0old[3],n1old[3],n00old[3];
   double         n0new[3],n1new[3],n00new[3];
-  int            *adja,jel,kel,ip1,ip2,l,ll,ilist;
-  char           i1,i2,j,jj,j2,lj,open,voy;
+  MMG5_int       *adja,jel,kel,ip1,ip2,l,ll;
+  int            ilist;
+  int8_t         i1,i2,j,jj,j2,lj,open,voy;
 
   pt0 = &mesh->tria[0];
   pt  = &mesh->tria[k];
@@ -64,8 +73,20 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
   i2  = MMG5_iprv2[i];
   ip1 = pt->v[i1];
   ip2 = pt->v[i2];
-  if ( typchk == 2 && met->m ) {
-    lon = MMG5_lenSurfEdg(mesh,met,ip1,ip2,0);
+
+#ifndef NDEBUG
+  /* suppression of maybe-uninitialized value on arm */
+  lon = 0.;
+  n00old[0] = n00old[1] = n00old[2] = 0.;
+  n0old[0]  = n0old[1]  = n0old[2]  = 0.;
+  n1old[0]  = n1old[1]  = n1old[2]  = 0.;
+  n00new[0] = n00new[1] = n00new[2] = 0.;
+  n0new[0]  = n0new[1]  = n0new[2]  = 0.;
+  n1new[0]  = n1new[1]  = n1new[2]  = 0.;
+#endif
+
+  if ( MMGS_lenEdg ) {
+    lon = MMGS_lenEdg(mesh,met,ip1,ip2,0);
     if ( !lon ) return 0;
     lon = MG_MIN(lon,MMGS_LSHRT);
     lon = MG_MAX(1.0/lon,MMGS_LLONG);
@@ -79,12 +100,12 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
   adja = &mesh->adja[3*(k-1)+1];
   open = adja[i] == 0;
 
-  if ( ilist > 3 ) {
+  if ( ilist+open > 3 ) {
     /* check references */
     if ( MG_EDG(pt->tag[i2]) ) {
       jel = list[1] / 3;
       pt1 = &mesh->tria[jel];
-      if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+      if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
     }
 
     /* analyze ball */
@@ -97,9 +118,9 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
       pt1 = &mesh->tria[jel];
 
       /* check length */
-      if ( typchk == 2 && met->m && !MG_EDG(mesh->point[ip2].tag) ) {
+      if ( MMGS_lenEdg ) {
         ip1 = pt1->v[j2];
-        len = MMG5_lenSurfEdg(mesh,met,ip1,ip2,0);
+        len = MMGS_lenEdg(mesh,met,ip1,ip2,0);
         if ( len > lon || !len )  return 0;
       }
 
@@ -148,10 +169,8 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
       if ( chkedg(mesh,0) )  return 0;
 
       /* check quality */
-      if ( typchk == 2 && met->m )
-        kal = MMGS_ALPHAD*MMG5_calelt(mesh,met,pt0);
-      else
-        kal = MMGS_ALPHAD*MMG5_caltri_iso(mesh,NULL,pt0);
+      kal = MMGS_ALPHAD*MMGS_caltri(mesh,met,pt0);
+
       if ( kal < MMGS_NULKAL )  return 0;
 
       memcpy(n0old,n1old,3*sizeof(double));
@@ -175,13 +194,16 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
       if ( MG_EDG(pt->tag[j]) ) {
         jel = list[ilist-2] / 3;
         pt1 = &mesh->tria[jel];
-        if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+        if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
       }
     }
   }
 
   /* specific test: no collapse if any interior edge is EDG */
   else if ( ilist == 3 ) {
+    /* Remark: if ilist==3 and i is an open ridge, we pass in the previous
+     * test (open+ilist > 3) so here, ip1 is in the middle of the 3
+     * triangles */
 
     p1 = &mesh->point[pt->v[i1]];
     if ( MS_SIN(p1->tag) )  return 0;
@@ -207,10 +229,8 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
     if ( chkedg(mesh,0) )  return 0;
 
     /* check quality */
-    if ( typchk == 2 && met->m )
-      kal = MMGS_ALPHAD*MMG5_calelt(mesh,met,pt0);
-    else
-      kal = MMGS_ALPHAD*MMG5_caltri_iso(mesh,NULL,pt0);
+    kal = MMGS_ALPHAD*MMGS_caltri(mesh,met,pt0);
+
     if ( kal < MMGS_NULKAL )  return 0;
   }
 
@@ -231,11 +251,11 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
 
     jj  = MMG5_inxt2[j];
     pt1 = &mesh->tria[jel];
-    if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+    if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
     else if ( !(pt1->tag[jj] & MG_GEO) )  return 0;
 
     p1 = &mesh->point[pt->v[i1]];
-    p2 = &mesh->point[pt1->v[jj]];
+    p2 = &mesh->point[pt1->v[j]];
     if ( p2->tag > p1->tag || p2->ref != p1->ref )  return 0;
 
     /* Check geometric approximation */
@@ -247,10 +267,8 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
     if ( chkedg(mesh,0) )  return 0;
 
     /* check quality */
-    if ( typchk == 2 && met->m )
-      kal = MMGS_ALPHAD*MMG5_calelt(mesh,met,pt0);
-    else
-      kal = MMGS_ALPHAD*MMG5_caltri_iso(mesh,NULL,pt0);
+    kal = MMGS_ALPHAD*MMGS_caltri(mesh,met,pt0);
+
     if ( kal < MMGS_NULKAL )  return 0;
 
   }
@@ -259,10 +277,10 @@ int chkcol(MMG5_pMesh mesh,MMG5_pSol met,int k,char i,int *list,char typchk) {
 }
 
 /* collapse edge i of k, i1->i2 */
-int colver(MMG5_pMesh mesh,int *list,int ilist) {
+int colver(MMG5_pMesh mesh,MMG5_int *list,int ilist) {
   MMG5_pTria    pt,pt1,pt2;
-  int     *adja,k,iel,jel,kel,ip1,ip2;
-  char     i,i1,i2,j,jj,open;
+  MMG5_int      *adja,k,iel,jel,kel,ip1,ip2;
+  int8_t        i,i1,i2,j,jj,open;
 
   iel = list[0] / 3;
   i1  = list[0] % 3;
@@ -341,18 +359,18 @@ int colver(MMG5_pMesh mesh,int *list,int ilist) {
 
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param list pointer toward the ball of the point to collapse.
+ * \param mesh pointer to the mesh structure.
+ * \param list pointer to the ball of the point to collapse.
  * \return 1 if success, 0 if fail.
  *
- * Collapse edge \f$list[0]%3\f$ in tet \f$list[0]/3\f$ (\f$ ip->i1\f$ ) for a
+ * Collapse edge \f$list[0]\%3\f$ in tet \f$list[0]/3\f$ (\f$ ip->i1\f$ ) for a
  * ball of the collapsed point of size 3: the collapsed point is removed.
  *
  */
-int colver3(MMG5_pMesh mesh,int* list) {
+int colver3(MMG5_pMesh mesh,MMG5_int* list) {
   MMG5_pTria   pt,pt1,pt2;
-  int          *adja,iel,jel,kel,mel,ip;
-  char         i,i1,j,j1,j2,k,m;
+  MMG5_int     *adja,iel,jel,kel,mel,ip;
+  int8_t       i,i1,j,j1,j2,k,m;
 
   /* update of new point for triangle list[0] */
   iel = list[0] / 3;
@@ -412,10 +430,10 @@ int colver3(MMG5_pMesh mesh,int* list) {
 
 
 /* collapse point along open ridge */
-int colver2(MMG5_pMesh mesh,int* list) {
+int colver2(MMG5_pMesh mesh,MMG5_int* list) {
   MMG5_pTria   pt,pt1;
-  int          *adja,iel,jel,kel,ip;
-  char         i1,i2,jj,j2,k;
+  MMG5_int     *adja,iel,jel,kel,ip;
+  int8_t       i1,i2,jj,j2,k;
 
   /* update of new point for triangle list[0] */
   iel = list[0] / 3;
@@ -452,12 +470,14 @@ int colver2(MMG5_pMesh mesh,int* list) {
 }
 
 /* collapse edge i of k, i1->i2 */
-int litcol(MMG5_pMesh mesh,int k,char i,double kali) {
+int litcol(MMG5_pMesh mesh,MMG5_int k,int8_t i,double kali) {
   MMG5_pTria     pt,pt0,pt1;
   MMG5_pPoint    p1,p2;
-  double         kal,ps,cosnold,cosnnew,n0old[3],n0new[3],n1old[3],n1new[3],n00old[3],n00new[3];
-  int            *adja,list[MMGS_LMAX+2],jel,ip2,l,ilist;
-  char           i1,i2,j,jj,j2,open;
+  double         kal,ps,cosnold,cosnnew;
+  double         n0old[3],n0new[3],n1old[3],n1new[3],n00old[3],n00new[3];
+  MMG5_int       list[MMG5_TRIA_LMAX+2],jel,ip2,l;
+  int            ilist;
+  int8_t         i1,i2,j,jj,j2,open;
 
   pt0 = &mesh->tria[0];
   pt  = &mesh->tria[k];
@@ -477,17 +497,21 @@ int litcol(MMG5_pMesh mesh,int k,char i,double kali) {
   /* collect all triangles around vertex i1 */
   if ( pt->v[i1] & MG_NOM )  return 0;
 
-  ilist = boulet(mesh,k,i1,list);
+  ilist = MMG5_boulet(mesh,k,i1,list,1,&open);
 
+#ifndef NDEBUG
   /* check for open ball */
-  adja = &mesh->adja[3*(k-1)+1];
-  open = adja[i] == 0;
+  int8_t opn;
+  MMG5_int *adja = &mesh->adja[3*(k-1)+1];
+  opn = adja[i] == 0;
+  assert ( opn == open );
+#endif
 
   if ( ilist > 3 ) {
     /* check references */
     jel = list[1] / 3;
     pt1 = &mesh->tria[jel];
-    if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+    if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
 
     /* analyze ball */
     assert ( ilist-1+open > 1 );
@@ -544,7 +568,7 @@ int litcol(MMG5_pMesh mesh,int k,char i,double kali) {
       pt  = &mesh->tria[jel];
       jel = list[ilist-2] / 3;
       pt1 = &mesh->tria[jel];
-      if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+      if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
     }
 
     return colver(mesh,list,ilist);
@@ -568,7 +592,7 @@ int litcol(MMG5_pMesh mesh,int k,char i,double kali) {
     j   = list[1] % 3;
     jj  = MMG5_inxt2[j];
     pt1 = &mesh->tria[jel];
-    if ( abs(pt->ref) != abs(pt1->ref) )  return 0;
+    if ( MMG5_abs(pt->ref) != MMG5_abs(pt1->ref) )  return 0;
     else if ( !(pt1->tag[jj] & MG_GEO) )  return 0;
 
     p1 = &mesh->point[pt->v[i1]];

@@ -123,7 +123,7 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varStringc);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      printf("Warning: integ: coordinates not found in array %d.", i+1);
+      printf("Warning: integ: coordinates not found in array " SF_D_ ".", i+1);
       printf(" Array skipped...\n");
       RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next; 
@@ -154,7 +154,7 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
     {
       if (ff->getNfld() != nFld)
       {
-        printf("Warning: integ: array %d doesn t have a valid number of variables.", i+1); 
+        printf("Warning: integ: array " SF_D_ " doesnt have a valid number of variables.", i+1); 
         printf("Array skipped...\n");
         RELEASESHAREDB(resc, coordObj, fc, cnc);
         RELEASESHAREDB(resf, FObj, ff, cnf);
@@ -231,7 +231,7 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         if (resr != 1)
         {
           RELEASESHAREDB(resr, ratioObj, ratio, cnr);
-          printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
+          printf("Warning: integ: ratio " SF_D_ " is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
         }
@@ -309,7 +309,7 @@ PyObject* K_POST::integ(PyObject* self, PyObject* args)
         if (resr != 2)
         {
           if (resr == 1) RELEASESHAREDS(ratioObj, ratio);
-          printf("Warning: integ: ratio %d is an invalid array. Set to 1.", i+1);
+          printf("Warning: integ: ratio " SF_D_ " is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
         }

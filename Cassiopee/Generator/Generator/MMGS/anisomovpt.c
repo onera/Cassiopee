@@ -33,13 +33,13 @@
  * \todo Doxygen documentation
  */
 
-#include "mmgcommon.h"
+#include "mmgcommon_private.h"
 
 /**
- * \param mesh pointer toward the mesh structure.
- * \param met pointer toward the metric structure.
- * \param pt pointer toward the tria on which we integrate.
- * \param p0 pointer toward the point that we want to move.
+ * \param mesh pointer to the mesh structure.
+ * \param met pointer to the metric structure.
+ * \param pt pointer to the tria on which we integrate.
+ * \param p0 pointer to the point that we want to move.
  * \param pb bezier patch of the triangle.
  * \param r rotation matrix that sends the normal at point \a p0 to e_z.
  * \param gv centre of mass that we want to update using the computed element
@@ -57,8 +57,8 @@ int MMG5_elementWeight(MMG5_pMesh mesh,MMG5_pSol met, MMG5_pTria pt,
   MMG5_pPoint    p1,p2;
   double         Jacsigma[3][2],Jactmp[3][2],m[6],mo[6],density,to[3],no[3],ll;
   double         dens[3],*n1,*n2,ps1,ps2,intpt[2],ux,uy,uz;
-  char           i0,i1,i2,j,nullDens;
-  static char    mmgErr=0;
+  int8_t         i0,i1,i2,j,nullDens;
+  static int8_t  mmgErr=0;
 
   i0 = 0;
   i1 = 1;
@@ -96,8 +96,15 @@ int MMG5_elementWeight(MMG5_pMesh mesh,MMG5_pSol met, MMG5_pTria pt,
     }
 
     /* Take metric at control point */
-    if ( !(MG_GEO & pt->tag[i2]) ) {
-      if ( !MMG5_interpreg_ani(mesh,met,pt,i2,0.5,m) )  return 0;
+    if ( !MG_GEO_OR_NOM(pt->tag[i2]) ) {
+      int ier = MMG5_interpreg_ani(mesh,met,pt,i2,0.5,m);
+      if ( !ier ) {
+        if ( mesh->info.ddebug ) {
+          fprintf(stdout,"  ## Warning:%s:%d: unable to move point (interpreg_ani failure).\n",
+                  __func__,__LINE__);
+        }
+        return 0;
+      }
     }
     else {
       if ( !MMG5_nortri(mesh,pt,no) )  return 0;
@@ -164,7 +171,7 @@ int MMG5_elementWeight(MMG5_pMesh mesh,MMG5_pSol met, MMG5_pTria pt,
 
     density = dens[0]*dens[2] - dens[1]*dens[1];
     if ( density <= MMG5_EPSD2 ) {
-#ifndef DNDEBUG
+#ifndef NDEBUG
       if ( !mmgErr ) {
         fprintf(stderr,"\n  ## Warning: %s: at least 1 negative or null density.\n",
                 __func__);

@@ -33,10 +33,10 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \return 1 if success, 0 if fail.
  *
  * tria packing
@@ -44,7 +44,7 @@
  */
 static int paktri(MMG5_pMesh mesh) {
   MMG5_pTria   pt,pt1;
-  int          k;
+  MMG5_int     k;
 
   k = 1;
   do {
@@ -68,7 +68,7 @@ static int paktri(MMG5_pMesh mesh) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \return 1 if success, 0 if fail.
  *
  * Create adjacency table.
@@ -84,10 +84,10 @@ int MMGS_hashTria(MMG5_pMesh mesh) {
   /* tassage */
   if ( !paktri(mesh) )  return 0;
 
-  MMG5_ADD_MEM(mesh,(3*mesh->ntmax+5)*sizeof(int),"adjacency table",
+  MMG5_ADD_MEM(mesh,(3*mesh->ntmax+5)*sizeof(MMG5_int),"adjacency table",
                 fprintf(stderr,"  Exit program.\n");
                 return 0);
-  MMG5_SAFE_CALLOC(mesh->adja,3*mesh->ntmax+5,int,return 0);
+  MMG5_SAFE_CALLOC(mesh->adja,3*mesh->ntmax+5,MMG5_int,return 0);
 
   if ( !MMG5_mmgHashTria(mesh, mesh->adja, &hash, 0) ) return 0;
 
@@ -97,7 +97,7 @@ int MMGS_hashTria(MMG5_pMesh mesh) {
 }
 
 /**
- * \param mesh pointer toward the mesh structure.
+ * \param mesh pointer to the mesh structure.
  * \return 1 if success, 0.
  *
  * Copy the properties (ref and tag) of the declared edges to the triangles,
@@ -110,19 +110,19 @@ int MMGS_hashTria(MMG5_pMesh mesh) {
  * \remark this function handle all the provided edges.
  *
  */
-int assignEdge(MMG5_pMesh mesh) {
+int MMGS_assignEdge(MMG5_pMesh mesh) {
   MMG5_Hash  hash;
   MMG5_pTria  pt;
   MMG5_pEdge  pa;
-  int         k,ia;
-  char        i,i1,i2;
+  MMG5_int    k,ia;
+  int8_t      i,i1,i2;
 
   if ( !mesh->na ) return 1;
 
   /* adjust hash table params */
   hash.siz  = mesh->na;
   hash.max  = 3*mesh->na+1;
-  MMG5_ADD_MEM(mesh,(hash.max+1)*sizeof(MMG5_Hash),"hash table",return 0);
+  MMG5_ADD_MEM(mesh,(hash.max+1)*sizeof(MMG5_hedge),"hash table",return 0);
   MMG5_SAFE_CALLOC(hash.item,hash.max+1,MMG5_hedge,return 0);
 
   hash.nxt  = mesh->na;
@@ -145,7 +145,7 @@ int assignEdge(MMG5_pMesh mesh) {
         i2 = MMG5_inxt2[i1];
         pa = &mesh->edge[ia];
         pt->edg[i2] = pa->ref;
-        pt->tag[i2] = pa->tag;
+        pt->tag[i2] |= pa->tag;
       }
     }
   }
@@ -154,6 +154,70 @@ int assignEdge(MMG5_pMesh mesh) {
   MMG5_DEL_MEM(mesh,hash.item);
   MMG5_DEL_MEM(mesh,mesh->edge);
   mesh->na = 0;
+
+  return 1;
+}
+
+/**
+ * \param mesh pointer to the mesh structure.
+ * \return 1 if success, 0.
+ *
+ * Copy the edge tags stored in triangles in the other triangles sharing the
+ * edge.
+ *
+ */
+int MMGS_bdryUpdate(MMG5_pMesh mesh) {
+  MMG5_Hash   hash;
+  MMG5_pTria  pt;
+  MMG5_int    k,nad;
+  uint16_t    tag;
+  int8_t      i,i1,i2;
+
+  /* adjust hash table params */
+  /* Euler formula : na ~ 3np */
+  if ( !MMG5_hashNew(mesh,&hash,3*mesh->np,9*mesh->np) ) {
+    printf("  # Error: %s: Not enough memory to allocate edge hash table",__func__);
+  }
+
+  /* hash tagged edges */
+  nad = 0;
+  for (k=1; k<=mesh->nt; k++) {
+    pt = &mesh->tria[k];
+    if ( !MG_EOK(pt) )  continue;
+
+    for ( i=0; i<3; ++i ) {
+      if ( mesh->tria[k].tag[i] ) {
+        i1 = MMG5_inxt2[i];
+        i2 = MMG5_iprv2[i];
+        if ( !MMG5_hashEdgeTag(mesh,&hash,pt->v[i1],pt->v[i2],pt->tag[i]) ) {
+          printf("  # Error: %s: Lack of memory.",__func__);
+          return 0;
+        }
+        ++nad;
+      }
+    }
+  }
+
+  /* update tags */
+  if ( nad ) {
+    for (k=1; k<=mesh->nt; k++) {
+      pt = &mesh->tria[k];
+      if ( !MG_EOK(pt) )  continue;
+
+      for (i=0; i<3; i++) {
+        i1 = MMG5_inxt2[i];
+        i2 = MMG5_iprv2[i];
+
+        tag = MMG5_hashGet(&hash,pt->v[i1],pt->v[i2]);
+        if ( tag ) {
+          pt->tag[i] |= tag;
+        }
+      }
+    }
+  }
+
+  /* free hash structure */
+  MMG5_DEL_MEM(mesh,hash.item);
 
   return 1;
 }

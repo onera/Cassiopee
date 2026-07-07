@@ -33,29 +33,30 @@
  * \todo doxygen documentation.
  */
 
-#include "mmgs.h"
+#include "libmmgs_private.h"
+#include "mmgcommon_private.h"
 
 /**
- * \param mesh pointer toward the mesh
+ * \param mesh pointer to the mesh
  *
  * \return 1 if success, 0 if fail
  *
  * topology: set adjacent, detect Moebius, flip faces, count connected comp.
  *
  */
-static int setadj(MMG5_pMesh mesh){
+int MMGS_setadj(MMG5_pMesh mesh){
   MMG5_pTria   pt,pt1;
-  int          *adja,*adjb,adji1,adji2,*pile,iad,ipil,ip1,ip2,gen;
-  int          k,kk,iel,jel,nvf,nf,nr,nt,nre,nreq,ncc,ned,ref;
-  int16_t      tag;
-  char         i,ii,i1,i2,ii1,ii2,voy;
+  MMG5_int     *adja,*adjb,adji1,adji2,*pile,iad,ipil,ip1,ip2,gen;
+  MMG5_int     k,kk,iel,jel,nvf,nf,nr,nt,nre,nreq,ncc,ned,ref;
+  uint16_t     tag;
+  int8_t       i,ii,i1,i2,ii1,ii2,voy;
 
   if ( abs(mesh->info.imprim) > 5  || mesh->info.ddebug )
     fprintf(stdout,"  ** SETTING TOPOLOGY\n");
 
   nvf = nf = ncc = ned = 0;
 
-  MMG5_SAFE_MALLOC(pile,mesh->nt+1,int,return 0);
+  MMG5_SAFE_MALLOC(pile,mesh->nt+1,MMG5_int,return 0);
 
   pile[1] = 1;
   ipil    = 1;
@@ -117,7 +118,7 @@ static int setadj(MMG5_pMesh mesh){
           continue;
         }
 
-        if ( abs(pt1->ref) != abs(pt->ref) ) {
+        if ( MMG5_abs(pt1->ref) != MMG5_abs(pt->ref) ) {
           pt->tag[i]   |= MG_REF;
           pt1->tag[ii] |= MG_REF;
           mesh->point[ip1].tag |= MG_REF;
@@ -132,18 +133,21 @@ static int setadj(MMG5_pMesh mesh){
         /* store adjacent */
         if ( !pt1->flag ) {
           pt1->flag    = 1;
-          pile[++ipil] = kk;
-        }
+            pile[++ipil] = kk;
+          }
 
         /* check orientation */
         ii1 = MMG5_inxt2[ii];
         ii2 = MMG5_iprv2[ii];
         if ( pt1->v[ii1] == ip1 ) {
           /* Moebius strip */
+          assert ( pt1->base );
           if ( pt1->base < 0 ) {
-            pt1->ref      = -abs(pt1->ref);
-            pt->tag[i]   |= MG_REF;
-            pt1->tag[ii] |= MG_REF;
+            pt1->ref      = -MMG5_abs(pt1->ref);
+            /* Add MG_NOM flag because it allows neighbours to have non
+             * consistent orientations */
+            pt->tag[i]   |= MG_REF + MG_NOM;
+            pt1->tag[ii] |= MG_REF + MG_NOM;
           }
           /* flip orientation */
           else {
@@ -180,6 +184,11 @@ static int setadj(MMG5_pMesh mesh){
             }
             nf++;
           }
+        }
+        else {
+          /* Mark triangles that have a consistent orientation with their
+           * neighbours */
+          pt1->base =  -pt1->base;
         }
       }
     }
@@ -218,15 +227,15 @@ static int setadj(MMG5_pMesh mesh){
   }
 
   if ( mesh->info.ddebug ) {
-    fprintf(stdout,"  a- ridges: %d found.\n",nr);
-    fprintf(stdout,"  a- requir: %d found.\n",nreq);
-    fprintf(stdout,"  a- connex: %d connected component(s)\n",ncc);
-    fprintf(stdout,"  a- orient: %d flipped\n",nf);
+    fprintf(stdout,"  a- ridges: %" MMG5_PRId " found.\n",nr);
+    fprintf(stdout,"  a- requir: %" MMG5_PRId " found.\n",nreq);
+    fprintf(stdout,"  a- connex: %" MMG5_PRId " connected component(s)\n",ncc);
+    fprintf(stdout,"  a- orient: %" MMG5_PRId " flipped\n",nf);
   }
   else if ( abs(mesh->info.imprim) > 3 ) {
     gen = (2 - nvf + ned - nt) / 2;
-    fprintf(stdout,"     Connected component: %d,  genus: %d,   reoriented: %d\n",ncc,gen,nf);
-    fprintf(stdout,"     Edges: %d,  tagged: %d,  ridges: %d, required: %d, refs: %d\n",
+    fprintf(stdout,"     Connected component: %" MMG5_PRId ",  genus: %" MMG5_PRId ",   reoriented: %" MMG5_PRId "\n",ncc,gen,nf);
+    fprintf(stdout,"     Edges: %" MMG5_PRId ",  tagged: %" MMG5_PRId ",  ridges: %" MMG5_PRId ", required: %" MMG5_PRId ", refs: %" MMG5_PRId "\n",
             ned,nr+nre+nreq,nr,nreq,nre);
   }
 
@@ -234,12 +243,18 @@ static int setadj(MMG5_pMesh mesh){
   return 1;
 }
 
-/* Detect non manifold points */
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 1 if succeed, 0 if fail
+ *
+ * Detect non manifold points
+ */
 static void nmpoints(MMG5_pMesh mesh) {
   MMG5_pTria      pt;
   MMG5_pPoint     p0;
-  int        k,np,numt,iel,jel,nmp,*adja;
-  char       i0,i1,i,jp;
+  MMG5_int        k,np,numt,iel,jel,nmp,*adja;
+  int8_t          i0,i1,i,jp;
   
   nmp = 0;
   /* Initialize point flags */
@@ -285,7 +300,10 @@ static void nmpoints(MMG5_pMesh mesh) {
       if ( jel == k ) {
         if ( !(p0->tag & MG_CRN) || !(p0->tag & MG_REQ) ) {
           nmp++;
-          // p0->tag |= MG_CRN + MG_REQ;
+          // p0->tag |= MG_CRN + MG_REQ; // Algiane 2022: this line has been
+          // commented by commit 1f592c. I think that it is a mistake (some
+          // forgotten debug thing). It seems that in any case, nm points are
+          // marked as CRN and REQ when checking handles in MMGS_singul
         }
         continue;
       }
@@ -321,16 +339,17 @@ static void nmpoints(MMG5_pMesh mesh) {
     mesh->point[k].s = 0;
 
   if ( nmp && abs(mesh->info.imprim) > 4 )
-    fprintf(stdout,"  ## %d non manifold points detected\n",nmp);
+    fprintf(stdout,"  ## %" MMG5_PRId " non manifold points detected\n",nmp);
 }
 
 /** improve badly shaped elts for isotropic mesh */
 /* static int delbad(MMG5_pMesh mesh) { */
 /*   MMG5_pTria    pt; */
 /*   MMG5_pPoint   p[3]; */
-/*   double   s,kal,declic,ux,uy,uz,vx,vy,vz; */
-/*   int     *adja,k,iel,nd,ndd,it; */
-/*   char     i,ia,i1,i2,j,typ; */
+/*   double        s,kal,declic,ux,uy,uz,vx,vy,vz; */
+/*   MMG5_int      *adja,k,iel,nd,ndd; */
+/*   int           it; */
+/*   int8_t   i,ia,i1,i2,j,typ; */
 
 /*   it = ndd = 0; */
 /*   declic = MMGS_BADKAL / MMGS_ALPHAD; */
@@ -405,23 +424,29 @@ static void nmpoints(MMG5_pMesh mesh) {
 /*       } */
 /*     } */
 /*     ndd += nd; */
-/*     if ( nd && (mesh->info.ddebug || mesh->info.imprim < -1) )  fprintf(stdout,"     %d improved\n",nd); */
+/*     if ( nd && (mesh->info.ddebug || mesh->info.imprim < -1) )  fprintf(stdout,"     %" MMG5_PRId " improved\n",nd); */
 /*   } */
 /*   while ( nd > 0 && ++it < 5 ); */
 
 /*   if ( abs(mesh->info.imprim) > 4 ) */
-/*     fprintf(stdout,"     %d bad elements improved\n",ndd); */
+/*     fprintf(stdout,"     %" MMG5_PRId " bad elements improved\n",ndd); */
 
 /*   return 1; */
 /* } */
 
 
-/* check for ridges: dihedral angle */
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 1 if succeed, 0 if fail
+ *
+ * check for ridges: dihedral angle
+ */
 static int setdhd(MMG5_pMesh mesh) {
   MMG5_pTria    pt,pt1;
-  double   n1[3],n2[3],dhd;
-  int     *adja,k,kk,nr;
-  char     i,ii,i1,i2;
+  double        n1[3],n2[3],dhd;
+  MMG5_int      *adja,k,kk,nr;
+  int8_t        i,ii,i1,i2;
 
   nr = 0;
   for (k=1; k<=mesh->nt; k++) {
@@ -455,18 +480,26 @@ static int setdhd(MMG5_pMesh mesh) {
   }
 
   if ( abs(mesh->info.imprim) > 4 && nr > 0 )
-    fprintf(stdout,"     %d ridges updated\n",nr);
+    fprintf(stdout,"     %" MMG5_PRId " ridges updated\n",nr);
 
   return 1;
 }
 
-/** check for singularities */
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 1 if succeed, 0 if fail
+ *
+ * check for singularities
+ *
+ */
 static int MMG5_singul(MMG5_pMesh mesh) {
   MMG5_pTria     pt;
   MMG5_pPoint    ppt,p1,p2;
   double         ux,uy,uz,vx,vy,vz,dd;
-  int            list[MMGS_LMAX+2],listref[MMGS_LMAX+2],k,nc,xp,nr,ns,nre;
-  char           i;
+  MMG5_int       list[MMG5_TRIA_LMAX+2],listref[MMG5_TRIA_LMAX+2],k,nc,nre;
+  int            xp,nr,ns;
+  int8_t         i;
 
   nre = nc = 0;
   for (k=1; k<=mesh->nt; k++) {
@@ -478,7 +511,7 @@ static int MMG5_singul(MMG5_pMesh mesh) {
       ppt->s++;
       if ( !MG_VOK(ppt) || ( ppt->tag & MG_CRN ) || ( ppt->tag & MG_NOM ) )  continue;
       else if ( MG_EDG(ppt->tag) ) {
-        ns = MMG5_bouler(mesh,mesh->adja,k,i,list,listref,&xp,&nr, MMGS_LMAX);
+        ns = MMG5_bouler(mesh,mesh->adja,k,i,list,listref,&xp,&nr, MMG5_TRIA_LMAX);
 
         if ( !ns )  continue;
         if ( (xp+nr) > 2 ) {
@@ -530,7 +563,8 @@ static int MMG5_singul(MMG5_pMesh mesh) {
     for (i=0; i<3; i++) {
       ppt = &mesh->point[pt->v[i]];
       if ( !ppt->s )  continue;
-      nr = boulet(mesh,k,i,list);
+      int8_t dummy;
+      nr = MMG5_boulet(mesh,k,i,list,1,&dummy);
       if ( nr != ppt->s ) {
         ppt->tag |= MG_CRN + MG_REQ;
         ppt->s = 0;
@@ -545,19 +579,30 @@ static int MMG5_singul(MMG5_pMesh mesh) {
   }
 
   if ( abs(mesh->info.imprim) > 3 && nre > 0 )
-    fprintf(stdout,"     %d corners, %d singular points detected\n",nc,nre);
+    fprintf(stdout,"     %" MMG5_PRId " corners, %" MMG5_PRId " singular points detected\n",nc,nre);
   return 1;
 }
 
-
-/* compute normals at C1 vertices, for C0: tangents */
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 1 if succeed, 0 if fail
+ *
+ * Compute normals at C1 vertices, for C0: tangents
+ * This function allocate the xpoint array. A point will have an xpoint if:
+ *   - it is along a reference edge, the xpoint then stores the normal at point while the n field of point containt the tangent at ref edge.
+ *   - it is along a ridge, the xpoint then stores both normals at point while ppt->n stores the tangent
+ *
+ * Corner, required and regular points don't have xpoints.
+ *
+ */
 static int norver(MMG5_pMesh mesh) {
   MMG5_pTria     pt;
   MMG5_pPoint    ppt;
   MMG5_pxPoint   go;
   double         n[3],dd;
-  int            *adja,k,kk,ier,xp,nn,nt,nf,nnr;
-  char           i,ii,i1;
+  MMG5_int       *adja,k,kk,ier,xp,nn,nt,nf,nnr;
+  int8_t         i,ii,i1;
 
   if ( abs(mesh->info.imprim) > 4 || mesh->info.ddebug )
     fprintf(stdout,"  ** DEFINING GEOMETRY\n");
@@ -571,6 +616,7 @@ static int norver(MMG5_pMesh mesh) {
 
     for (i=0; i<3; i++) {
       ppt = &mesh->point[pt->v[i]];
+
       if ( MS_SIN(ppt->tag) || MG_EDG(ppt->tag) ) {
         if ( mesh->nc1 ) {
           if ( ppt->n[0]*ppt->n[0]+ppt->n[1]*ppt->n[1]+ppt->n[2]*ppt->n[2] > 0 )
@@ -618,12 +664,15 @@ static int norver(MMG5_pMesh mesh) {
         if ( ppt->tag & MG_CRN || ppt->flag == mesh->base )  continue;
         else if ( !MG_EDG(pt->tag[i1]) )  continue;
 
+        /* As we skip non-manifold point, the edge should be manifold */
+        assert ( (!(MG_NOM & pt->tag[i1])) && "Unexpected non-manifold edge" );
+
         ier = MMG5_boulen(mesh,mesh->adja,k,i,n);
         if ( !ier )  continue;
 
         ++mesh->xp;
         if(mesh->xp > mesh->xpmax){
-          MMG5_TAB_RECALLOC(mesh,mesh->xpoint,mesh->xpmax,0.2,MMG5_xPoint,
+          MMG5_TAB_RECALLOC(mesh,mesh->xpoint,mesh->xpmax,MMG5_GAP,MMG5_xPoint,
                              "larger xpoint table",
                              mesh->xp--;
                              return 0);
@@ -682,19 +731,96 @@ static int norver(MMG5_pMesh mesh) {
 
   if ( abs(mesh->info.imprim) > 4 && nn+nt > 0 ) {
     if ( nnr )
-      fprintf(stdout,"     %d input normals ignored\n",nnr);
-    fprintf(stdout,"     %d normals,  %d tangents updated  (%d failed)\n",nn,nt,nf);
+      fprintf(stdout,"     %" MMG5_PRId " input normals ignored\n",nnr);
+    fprintf(stdout,"     %" MMG5_PRId " normals,  %" MMG5_PRId " tangents updated  (%" MMG5_PRId " failed)\n",nn,nt,nf);
   }
 
   return 1;
 }
 
-/* regularization procedure for derivatives, dual Laplacian */
-static int regnor(MMG5_pMesh mesh) {
+/**
+ * \param mesh pointer to the mesh
+ * \param pt pointer to current triangle
+ * \param k number of current point
+ * \param c newly computed coordinates (giving negative area)
+ * \param n normal of triangle before regularization
+ *
+ * \return 0 if fail, 1 if success
+ *
+ * In coordinate regularization, performs a dichotomy between previous point /
+ * and newly computed point in the case of negative area
+ *
+ */
+static inline int MMGS_dichotomy(MMG5_pMesh mesh, MMG5_pTria pt, MMG5_int k, double *c, double *n) {
+
+  MMG5_pPoint  ppt;
+  double       to,tp,t,nnew[3],p[3],o[3],result;
+  int          it,maxit,pos,ier;
+
+  it = 0;
+  maxit = 5;
+  to = 0.0;
+  tp = 1.0;
+  t = 0.5;
+  pos = 0;
+
+  ppt = &mesh->point[k];
+
+  /* initial coordinates of point before regularization */
+  o[0] = ppt->c[0];
+  o[1] = ppt->c[1];
+  o[2] = ppt->c[2];
+
+  /* initial coordinates of new point */
+  p[0] = c[0];
+  p[1] = c[1];
+  p[2] = c[2];
+
+  do {
+    mesh->point[0].c[0] = o[0] + t*(p[0] - o[0]);
+    mesh->point[0].c[1] = o[1] + t*(p[1] - o[1]);
+    mesh->point[0].c[2] = o[2] + t*(p[2] - o[2]);
+
+    MMG5_nortri(mesh, pt, nnew);
+    MMG5_dotprod(3,n,nnew,&result);
+
+    if ( result <= 0.0 ) {
+      tp = t;
+    }
+    else {
+      c[0] = mesh->point[0].c[0];
+      c[1] = mesh->point[0].c[1];
+      c[2] = mesh->point[0].c[2];
+      to = t;
+      pos = 1;
+    }
+
+    t = 0.5*(to + tp);
+  }
+  while ( ++it < maxit );
+
+  if ( pos ) {
+    return 1;
+  }
+  else
+    return 0;
+}
+
+/**
+ * \param mesh pointer to a MMG5 mesh structure.
+ * \return 0 if fail, 1 otherwise.
+ *
+ * Regularization procedure for vertices coordinates,
+ * dual Laplacian for a surface mesh.
+ *
+ */
+int MMGS_regver(MMG5_pMesh mesh) {
   MMG5_pTria    pt;
   MMG5_pPoint   ppt,p0;
-  double  *tabl,n[3],lm1,lm2,dd,nx,ny,nz,res0,res;
-  int      i,k,iad,it,nn,nit,iel,ilist,list[MMGS_LMAX];
+  MMG5_Tria     tnew;
+  double        *tabl,c[3],n[3],nnew[3],*cptr,lm1,lm2,cx,cy,cz,res0,res,result;
+  int           i,it,nit,ilist,noupdate,ier;
+  MMG5_int      k,kt,nn,iel,list[MMG5_LMAX],tlist[MMG5_LMAX],*adja,iad;
 
   /* assign seed to vertex */
   for (k=1; k<=mesh->nt; k++) {
@@ -706,51 +832,58 @@ static int regnor(MMG5_pMesh mesh) {
     }
   }
 
-  /* allocate memory for normals */
+  /* allocate memory for coordinates */
   MMG5_SAFE_CALLOC(tabl,3*mesh->np+1,double,return 0);
 
+  /* Pointer toward the suitable adjacency array */
+  adja = mesh->adja;
+
   it   = 0;
-  nit  = 2;
+  nit  = 10;
   res0 = 0.0;
-  lm1  = 0.4;
-  lm2  = 0.399;
+  lm1  = mesh->info.lxreg;
+  lm2  = 0.99*lm1;
   while ( it++ < nit ) {
     /* step 1: laplacian */
     for (k=1; k<=mesh->np; k++) {
       ppt = &mesh->point[k];
-      if ( !MG_VOK(ppt) || ppt->tag > MG_REF )  continue;
+
+      iad = 3*(k-1)+1;
+      tabl[iad+0] = ppt->c[0];
+      tabl[iad+1] = ppt->c[1];
+      tabl[iad+2] = ppt->c[2];
+
+      if ( !MG_VOK(ppt) )  continue;
+      if ( MG_SIN(ppt->tag) || ppt->tag & MG_NOM || MG_EDG(ppt->tag) ) continue;
 
       iel = ppt->s;
-      assert(iel);
+
       pt = &mesh->tria[iel];
       i  = 0;
       if ( pt->v[1] == k )  i = 1;
       else if ( pt->v[2] == k ) i = 2;
 
-      ilist = boulep(mesh,iel,i,list);  
+      ilist = MMG5_boulep(mesh,iel,i,adja,list,tlist);
 
-      /* average normal */
-      nx = ny = nz = 0.0;
+      /* average coordinates */
+      cx = cy = cz = 0.0;
       for (i=1; i<=ilist; i++) {
         p0  = &mesh->point[list[i]];
-        if ( p0->tag > MG_REF )  continue;
-        nx += p0->n[0];
-        ny += p0->n[1];
-        nz += p0->n[2];
+
+        cptr = p0->c;
+        cx += cptr[0];
+        cy += cptr[1];
+        cz += cptr[2];
       }
-      dd  = nx*nx + ny*ny + nz*nz;
-      if ( dd > MMG5_EPSD2 ) {
-        dd = 1.0 / sqrt(dd);
-        nx *= dd;
-        ny *= dd;
-        nz *= dd;
-      }
+      cx /= ilist;
+      cy /= ilist;
+      cz /= ilist;
 
       /* Laplacian */
-      iad = 3*(k-1)+1;
-      tabl[iad+0] = ppt->n[0] + lm1 * (nx - ppt->n[0]);
-      tabl[iad+1] = ppt->n[1] + lm1 * (ny - ppt->n[1]);
-      tabl[iad+2] = ppt->n[2] + lm1 * (nz - ppt->n[2]);
+      cptr = ppt->c;
+      tabl[iad+0] = cptr[0] + lm1 * (cx - cptr[0]);
+      tabl[iad+1] = cptr[1] + lm1 * (cy - cptr[1]);
+      tabl[iad+2] = cptr[2] + lm1 * (cz - cptr[2]);
     }
 
     /* step 2: anti-laplacian */
@@ -758,74 +891,155 @@ static int regnor(MMG5_pMesh mesh) {
     nn  = 0;
     for (k=1; k<=mesh->np; k++) {
       ppt = &mesh->point[k];
-      if ( !MG_VOK(ppt) || ppt->tag > MG_REF )  continue;
+
+      if ( !MG_VOK(ppt) )  continue;
+      if ( MG_SIN(ppt->tag) || ppt->tag & MG_NOM || MG_EDG(ppt->tag) ) continue;
 
       iel = ppt->s;
-      assert(iel);
+
       pt = &mesh->tria[iel];
       i = 0;
       if ( pt->v[1] == k )  i = 1;
       else if ( pt->v[2] == k ) i = 2;
 
-      ilist = boulep(mesh,iel,i,list);  
+      ilist = MMG5_boulep(mesh,iel,i,adja,list,tlist);
 
       /* average normal */
-      nx = ny = nz = 0.0;
+      cx = cy = cz = 0.0;
       for (i=1; i<=ilist; i++) {
         iad = 3*(list[i]-1) + 1;
-        nx += tabl[iad+0];
-        ny += tabl[iad+1];
-        nz += tabl[iad+2];
+        cx += tabl[iad+0];
+        cy += tabl[iad+1];
+        cz += tabl[iad+2];
       }
-      dd  = nx*nx + ny*ny + nz*nz;
-      if ( dd > MMG5_EPSD2 ) {
-        dd = 1.0 / sqrt(dd);
-        nx *= dd;
-        ny *= dd;
-        nz *= dd;
-      }
+      cx /= ilist;
+      cy /= ilist;
+      cz /= ilist;
 
       /* antiLaplacian */
       iad = 3*(k-1)+1;
-      n[0] = tabl[iad+0] - lm2 * (nx - tabl[iad+0]);
-      n[1] = tabl[iad+1] - lm2 * (ny - tabl[iad+1]);
-      n[2] = tabl[iad+2] - lm2 * (nz - tabl[iad+2]);
-      nn++;
-      res += (ppt->n[0]-n[0])*(ppt->n[0]*n[0]) + (ppt->n[1]-n[1])*(ppt->n[1]*n[1]) + (ppt->n[2]-n[2])*(ppt->n[2]*n[2]); 
-    }
+      c[0] = tabl[iad+0] - lm2 * (cx - tabl[iad+0]);
+      c[1] = tabl[iad+1] - lm2 * (cy - tabl[iad+1]);
+      c[2] = tabl[iad+2] - lm2 * (cz - tabl[iad+2]);
 
-    if ( it == 1 )  res0 = res;
-    if ( res0 > MMG5_EPSD )  res  = res / res0;
-    if ( mesh->info.imprim < -1 || mesh->info.ddebug ) {
-      fprintf(stdout,"     iter %5d  res %.3E\r",it,res); 
-      fflush(stdout);
-    }
-    if ( it > 1 && res < MMG5_EPS )  break;
-  }
+      cptr = ppt->c;
 
+      mesh->point[0].c[0] = c[0];
+      mesh->point[0].c[1] = c[1];
+      mesh->point[0].c[2] = c[2];
+
+      /* check for negative areas */
+      noupdate = 0;
+      for (kt = 0 ; kt<ilist ; kt++) {
+        pt = &mesh->tria[tlist[kt]];
+
+        if ( !MG_EOK(pt) ) continue;
+
+        MMG5_nortri(mesh, pt, n);
+
+        for (i=0;i<3;i++) {
+          tnew.v[i] = pt->v[i];
+        }
+
+        i = 0;
+        if ( pt->v[1] == k ) i = 1;
+        if ( pt->v[2] == k ) i = 2;
+
+        tnew.v[i] = 0;
+
+        MMG5_nortri(mesh, &tnew, nnew);
+        MMG5_dotprod(3,n,nnew,&result);
+        if ( result < 0.0 ) {
+          if (!MMGS_dichotomy(mesh,&tnew,k,c,n))
+            noupdate = 1;
+          continue;
+        }
+      }
+      if ( !noupdate ) {
+        res += (cptr[0]-c[0])*(cptr[0]-c[0]) + (cptr[1]-c[1])*(cptr[1]-c[1]) + (cptr[2]-c[2])*(cptr[2]-c[2]);
+        cptr[0] = c[0];
+        cptr[1] = c[1];
+        cptr[2] = c[2];
+        nn++;
+      }
+    }
+      if ( it == 1 )  res0 = res;
+      if ( res0 > MMG5_EPSD )  res  = res / res0;
+      if ( mesh->info.imprim < -1 || mesh->info.ddebug ) {
+        fprintf(stdout,"     iter %5d  res %.3E\r",it,res);
+        fflush(stdout);
+      }
+      if ( it > 1 && res < MMG5_EPS )  break;
+    }
   /* reset the ppt->s tag */
   for (k=1; k<=mesh->np; ++k) {
-    mesh->point[k].s = 0;
+    mesh->point[k].s    = 0;
   }
 
   if ( mesh->info.imprim < -1 || mesh->info.ddebug )  fprintf(stdout,"\n");
 
   if ( abs(mesh->info.imprim) > 4 )
-    fprintf(stdout,"     %d normals regularized: %.3e\n",nn,res);
+    fprintf(stdout,"     %" MMG5_PRId " coordinates regularized: %.3e\n",nn,res);
 
   MMG5_SAFE_FREE(tabl);
   return 1;
 }
 
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 0 if failed, 1 otherwise.
+ *
+ * Remove duplicated triangles.
+ *
+ */
+int MMGS_remDup(MMG5_pMesh mesh) {
+  MMG5_Hash     hash;
+  MMG5_pTria    ptt;
+  MMG5_int      k,jel,dup;
 
-/* preprocessing stage: mesh analysis */
-int MMGS_analys(MMG5_pMesh mesh) {
+  if ( !mesh->nt ) return 1;
 
-  /* set tria edges tags */
-  if ( !assignEdge(mesh) ) {
-    fprintf(stderr,"\n  ## Analysis problem. Exit program.\n");
+  /* Hash triangles */
+  if ( ! MMG5_hashNew(mesh,&hash,(MMG5_int)(0.51*mesh->nt),(MMG5_int)(1.51*mesh->nt)) ) {
     return 0;
   }
+
+  dup = 0;
+  for (k=1; k<=mesh->nt; k++) {
+    ptt = &mesh->tria[k];
+    jel = MMG5_hashFace(mesh,&hash,ptt->v[0],ptt->v[1],ptt->v[2],k);
+    if ( !jel ) {
+      MMG5_DEL_MEM(mesh,hash.item);
+      return 0;
+    }
+    else if ( jel > 0 ) {
+      ++dup;
+      /* Remove duplicated face */
+      MMGS_delElt(mesh,k);
+    }
+  }
+
+  if ( abs(mesh->info.imprim) > 5 && dup > 0 ) {
+    fprintf(stdout,"  ## ");  fflush(stdout);
+    if ( dup > 0 )  fprintf(stdout," %"MMG5_PRId" duplicate removed",dup);
+    fprintf(stdout,"\n");
+  }
+
+  MMG5_DEL_MEM(mesh,hash.item);
+
+  return 1;
+}
+
+/**
+ * \param mesh pointer to the mesh structure.
+ *
+ * \return 1 if succeed, 0 if fail
+ *
+ * Preprocessing stage: mesh analysis.
+ *
+ */
+int MMGS_analys_for_norver(MMG5_pMesh mesh) {
 
   /* create adjacency */
   if ( !MMGS_hashTria(mesh) ) {
@@ -840,7 +1054,7 @@ int MMGS_analys(MMG5_pMesh mesh) {
     }*/
 
   /* identify connexity */
-  if ( !setadj(mesh) ) {
+  if ( !MMGS_setadj(mesh) ) {
     fprintf(stderr,"\n  ## Topology problem. Exit program.\n");
     return 0;
   }
@@ -867,7 +1081,77 @@ int MMGS_analys(MMG5_pMesh mesh) {
       return 0;
     }
     /* regularize normals */
-    if ( mesh->info.nreg && !regnor(mesh) ) {
+    if ( mesh->info.nreg && !MMG5_regnor(mesh) ) {
+      fprintf(stderr,"\n  ## Normal regularization problem. Exit program.\n");
+      return 0;
+    }
+  }
+  return 1;
+}
+
+
+/* preprocessing stage: mesh analysis */
+int MMGS_analys(MMG5_pMesh mesh) {
+
+  /* Update tags stored into tria */
+  if ( !MMGS_bdryUpdate(mesh) ) {
+    fprintf(stderr,"\n  ## Analysis problem. Exit program.\n");
+    return 0;
+  }
+
+  /* set edges tags and refs to tria */
+  if ( !MMGS_assignEdge(mesh) ) {
+    fprintf(stderr,"\n  ## Analysis problem. Exit program.\n");
+    return 0;
+  }
+
+  /* create adjacency */
+  if ( !MMGS_hashTria(mesh) ) {
+    fprintf(stderr,"\n  ## Hashing problem. Exit program.\n");
+    return 0;
+  }
+
+  /* delete badly shaped elts */
+  /*if ( mesh->info.badkal && !delbad(mesh) ) {
+    fprintf(stderr,"\n  ## Geometry trouble. Exit program.\n");
+    return 0;
+    }*/
+
+  /* identify connexity */
+  if ( !MMGS_setadj(mesh) ) {
+    fprintf(stderr,"\n  ## Topology problem. Exit program.\n");
+    return 0;
+  }
+
+  /* check for nomanifold point */
+  nmpoints(mesh);
+
+  /* check for ridges */
+  if ( mesh->info.dhd > MMG5_ANGLIM && !setdhd(mesh) ) {
+    fprintf(stderr,"\n  ## Geometry problem. Exit program.\n");
+    return 0;
+  }
+
+  /* identify singularities */
+  if ( !MMG5_singul(mesh) ) {
+    fprintf(stderr,"\n  ## Singularity problem. Exit program.\n");
+    return 0;
+  }
+
+  /* regularize vertices coordinates */
+  if ( mesh->info.xreg && !MMGS_regver(mesh) ){
+    fprintf(stderr,"\n  ## Coordinates regularization problem. Exit program.\n");
+    return 0;
+  }
+
+  /* define normals */
+  if ( !mesh->xp ) {
+    if ( !norver(mesh) ) {
+      fprintf(stderr,"\n  ## Normal problem. Exit program.\n");
+      return 0;
+    }
+    /* regularize normals */
+    if ( mesh->info.nreg && !MMG5_regnor(mesh) ) {
       fprintf(stderr,"\n  ## Normal regularization problem. Exit program.\n");
       return 0;
     }
