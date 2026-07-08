@@ -104,11 +104,6 @@ def createExtension__(tbIn):
     if Cmpi.master: print('Creating automatic extension at symmetry plane...start', flush=True)
 
     tb = Internal.copyTree(tbIn)
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     bases = Internal.getBases(tb)
     # do each base separately
     for bTmp in bases:
@@ -264,10 +259,7 @@ def getListSnear__(tb, snears):
         bodies = Internal.getZones(tb)
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
     snears = snearsList
-    tbLocal = Internal.copyTree(tb)
-    baseSYM = Internal.getNodesFromName1(tbLocal, "SYM")
-    if baseSYM: tbLocal = Internal.rmNodesByNameAndType(tbLocal, 'SYM', 'CGNSBase_t')
-    nbases = len(Internal.getBases(tbLocal))
+    nbases = len(Internal.getBases(tb))
     return snears, nbases
 
 def checkBaseNames__(tb,tbox):
@@ -1217,10 +1209,6 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
     if lenMax/hmin < 100: coarseXray = True
 
-    # Remove SYM Base & Zones - keep real closed tb
-    tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-    tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-
     # init. AdaptMesh
     gcells = res[5]
     gfaces = res[6]
@@ -1522,48 +1510,49 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
     #============================
-    # STEP 1: Check snears/vmins
-    #============================
-    checkBaseNames__(tb, tbox)
-    # NumBase is only the num. of 'real' bodies
-    snears, nbases = getListSnear__(tb, snears)
-    # Checks that the vmin input is correct & if needed corrects it
-    # (if info. is missing it will apply default values & default copies)
-    vmins = vminsInputCheck__(vmins, nbases, levelMax)
-
-    #============================
-    # STEP 2: Check baseSYM
+    # STEP 1: Check baseSYM
     #============================
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
+    tb_noSym = Internal.copyTree(tb)
+
     if baseSYM:
-        if Internal.getNodeFromName(baseSYM, 'snear'):
-            # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
-            snears = snears[:-1]
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tb_noSym = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
 
         if tbv2 is not None:
             # Keep this option for expert & debug purposes
             tbv2 = C.convertFile2PyTree(tbv2)
         else:
             # Default operating mode
-            tbv2 = createExtension__(tb)
-            # Remove SYM Base & Zones - keep real closed tb & tbox
-            tb_noSym = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-            tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
+            tbv2 = createExtension__(tb_noSym)
             if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb_noSym)): tbv2 = None
-            del tb_noSym
 
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
+
+    #============================
+    # STEP 2: Check snears/vmins
+    #============================
+    checkBaseNames__(tb, tbox)
+    # NumBase is only the num. of 'real' bodies
+    snears, nbases = getListSnear__(tb_noSym, snears)
+    # Checks that the vmin input is correct & if needed corrects it
+    # (if info. is missing it will apply default values & default copies)
+    vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
     #============================
     # STEP 3: Check tbox
     #============================
     tb_tbox = Internal.copyTree(tb)
+    tb_tbox_noSym = Internal.copyTree(tb_noSym)
+
     if tbox:
         snearsTbox, nboxes = getListSnear__(tbox, 1)
         vminsTbox = vminsInputCheck__(vminsTbox, nboxes, levelMax)
 
         tb_tbox[2] += Internal.getBases(tbox)
+        tb_tbox_noSym[2] += Internal.getBases(tbox)
 
         vmins.extend(vminsTbox)
         snears.extend(snearsTbox)
@@ -1578,12 +1567,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     isTboxSnearAdd = False
     listTboxSnearAdd = []
 
-    tb_noSym = Internal.copyTree(tb)
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, 'SYM', 'CGNSBase_t')
-        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
-
     for iLocal, snearTmp in enumerate(snears):
         # per base - snear in zones are all equal?
         diffSnearValues = len(set(snearTmp)) > 1
@@ -1596,8 +1579,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             maxVal = max(s1)
             s1[:] = [maxVal] * len(s1)
     
-    del tb_noSym
-
     if isTboxSnearAdd:
         vminTboxAtLeastOne = False
         for z in listTboxSnearAdd:
@@ -1608,11 +1589,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                     break
         tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
         if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
+
         # same approach as tbox
         nboxesLocal = len(Internal.getBases(tboxAdd))
         nbases += nboxesLocal
         nboxes += nboxesLocal
+
         tb_tbox[2] += Internal.getBases(tboxAdd)
+        tb_tbox_noSym[2] += Internal.getBases(tboxAdd)
+
         snears.extend(snearsTboxAdd)
         vmins.extend(vminsTboxAdd)
 
@@ -1707,12 +1692,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     minval_bbo = C.getMinValue(o, 'GridCoordinates')
     maxval_bbo = C.getMaxValue(o, 'GridCoordinates')
 
-    tb_tbox_noSym = Internal.copyTree(tb_tbox)
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb_tbox_noSym = Internal.rmNodesByNameAndType(tb_tbox_noSym, 'SYM', 'CGNSBase_t')
-        tb_tbox_noSym = Internal.rmNodesByNameAndType(tb_tbox_noSym, '*_sym*', 'Zone_t')
-
     for b in Internal.getBases(tb_tbox_noSym):
         bbloc = G.bbox(b)
         minval_bbloc = C.getMinValue(b, 'GridCoordinates')
@@ -1730,8 +1709,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             else: dfarmaxLocal = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
             dfarmax = min(dfarmaxLocal, dfarmax)
         dfars.append(dfarmax-NumMinDxLarge*hmin_skel)
-
-    del tb_tbox_noSym
 
     # Old dfar max calc. Stays here in case it is needed in the future
     if False:
@@ -1780,7 +1757,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     # only tb --> for blanking & tagging inside the geometry
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
+    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
 
     return o # requirement for X_AMR (one zone per base, one base per proc)
