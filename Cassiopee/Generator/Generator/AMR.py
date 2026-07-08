@@ -1696,12 +1696,12 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             snears[nob] = [snearMult*hmin]
 
     #============================
-    # STEP 7: Update dfar
+    # STEP 7: Update dfars
     #============================
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
     # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
-    dfarmaxLocal = []
+    dfars = []
 
     bbo = G.bbox(o)
     minval_bbo = C.getMinValue(o, 'GridCoordinates')
@@ -1725,11 +1725,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                 if (minval_bbloc[i] <= minval_bbo[i] - 2*__TOL__): isSkipMin=True
                 if (maxval_bbloc[i] >= maxval_bbo[i] + 2*__TOL__): isSkipMax=True
             if extrude and i == 1: continue
-            if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbloc[i+3]-bbo[i+3])
-            elif isSkipMax: dfarmaxTmp = abs(bbloc[i]-bbo[i])
-            else: dfarmaxTmp = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
-            dfarmax = min(dfarmaxTmp, dfarmax)
-        dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
+            if i+1 == dir_sym or isSkipMin: dfarmaxLocal = abs(bbloc[i+3]-bbo[i+3])
+            elif isSkipMax: dfarmaxLocal = abs(bbloc[i]-bbo[i])
+            else: dfarmaxLocal = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
+            dfarmax = min(dfarmaxLocal, dfarmax)
+        dfars.append(dfarmax-NumMinDxLarge*hmin_skel)
 
     del tb_tbox_noSym
 
@@ -1744,12 +1744,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if toffset == None:
         offsetValues = []
         for nob in range(nbases):
+            dfarmaxLocal = dfars[nob]
             offsetPrev = 0.
             offsetValuesBase = []
             for level in range(len(vmins[nob])):
                 hminLocal = snears[nob][0]
                 offsetLocal = offsetPrev + hminLocal*(2**level) * vmins[nob][level]
-                if offsetLocal < 0.99*dfarmaxLocal[nob]: # old: if offsetLocal < 0.99*dfarmax:
+                if offsetLocal < 0.99*dfarmaxLocal: # old: if offsetLocal < 0.99*dfarmax:
                     offsetValuesBase.append(offsetLocal)
                     offsetPrev = offsetLocal
 
@@ -1761,7 +1762,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                 else:
                     level = 0
                     offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nob][level]
-                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nob, offsetLocal, 0.99*dfarmaxLocal[nob]))
+                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nob, offsetLocal, 0.99*dfarmaxLocal))
                     Cmpi.abort(errorcode=1)
 
             offsetValues.append(offsetValuesBase)
