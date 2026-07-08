@@ -34,7 +34,7 @@
 #include "Def/DefCplusPlusConst.h"
 
 #ifdef E_DOUBLEINT
-  #define IDX_NONE 9223372036854775806
+  #define IDX_NONE 9223372036854775807
 #else
   #define IDX_NONE 2147483647
 #endif

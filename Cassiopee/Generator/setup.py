@@ -26,7 +26,7 @@ Dist.writeSetupCfg()
 # Setting libraryDirs and libraries ===========================================
 prod = os.getenv("ELSAPROD") or "xx"
 libraryDirs = ["build/"+prod, kcoreLibDir]
-libraries = ["generator", "generator2", "generator3", "generator2", "kcore"]
+libraries = ["generator", "generator2", "generator3", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs()
