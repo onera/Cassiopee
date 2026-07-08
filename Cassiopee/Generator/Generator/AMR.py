@@ -1598,9 +1598,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     
     del tb_noSym
 
-    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-    snearMin = min(snearsFlat)
-
     if isTboxSnearAdd:
         vminTboxAtLeastOne = False
         for z in listTboxSnearAdd:
@@ -1613,10 +1610,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
         # same approach as tbox
         nboxesLocal = len(Internal.getBases(tboxAdd))
-        # nbases += nboxesLocal
-        # nboxes += nboxesLocal
         nbases += nboxesLocal
-        nboxes = nboxesLocal
+        nboxes += nboxesLocal
         tb_tbox[2] += Internal.getBases(tboxAdd)
         snears.extend(snearsTboxAdd)
         vmins.extend(vminsTboxAdd)
@@ -1627,6 +1622,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # use tIn (background grid) or automatically generate octree skeleton
     tCartIn = False
     extrude = False
+    # snearsFlat is needed for G.octree
+    if nboxes > 0: snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
+    else: snearsFlat = [item for sub in snears for item in sub]
+    snearMin = min(snearsFlat)
+
     if tIn is None:
         if Cmpi.master:
             print("=======================================================================", flush=True)
