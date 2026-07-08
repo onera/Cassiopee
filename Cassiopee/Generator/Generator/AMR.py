@@ -1527,8 +1527,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     checkBaseNames__(tb, tbox)
     # NumBase is only the num. of 'real' bodies
     snears, nbases = getListSnear__(tb, snears)
-    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-    snearMin = min(snearsFlat)
     # Checks that the vmin input is correct & if needed corrects it
     # (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, nbases, levelMax)
@@ -1574,7 +1572,57 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         snearsTbox, nboxes = [], 0
 
     #============================
-    # STEP 4: Generate back. grid
+    # STEP 4: Check multi. snears
+    #============================
+
+    isTboxSnearAdd = False
+    listTboxSnearAdd = []
+
+    tb_noSym = Internal.copyTree(tb)
+    if baseSYM:
+        # Remove SYM Base & Zones - keep real closed tb & tbox
+        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, 'SYM', 'CGNSBase_t')
+        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
+
+    for iLocal, snearTmp in enumerate(snears):
+        # per base - snear in zones are all equal?
+        diffSnearValues = len(set(snearTmp)) > 1
+        if diffSnearValues:
+            isTboxSnearAdd = True
+            # snear in zones (per base) are not all equal
+            listTboxSnearAdd = selectTboxZonesFromGeom(tb_noSym, iLocal, snearTmp, listTboxSnearAdd)
+    if isTboxSnearAdd:
+        for s1 in snears:
+            maxVal = max(s1)
+            s1[:] = [maxVal] * len(s1)
+    
+    del tb_noSym
+
+    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+    snearMin = min(snearsFlat)
+
+    if isTboxSnearAdd:
+        vminTboxAtLeastOne = False
+        for z in listTboxSnearAdd:
+            if z is not None:
+                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
+                if vminLocalNode:
+                    vminTboxAtLeastOne=True
+                    break
+        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
+        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
+        # same approach as tbox
+        nboxesLocal = len(Internal.getBases(tboxAdd))
+        # nbases += nboxesLocal
+        # nboxes += nboxesLocal
+        nbases += nboxesLocal
+        nboxes = nboxesLocal
+        tb_tbox[2] += Internal.getBases(tboxAdd)
+        snears.extend(snearsTboxAdd)
+        vmins.extend(vminsTboxAdd)
+
+    #============================
+    # STEP 5: Generate back. grid
     #============================
     # use tIn (background grid) or automatically generate octree skeleton
     tCartIn = False
@@ -1631,7 +1679,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             Cmpi.abort(errorcode=1)
 
     #============================
-    # STEP 5: Update snears
+    # STEP 6: Update snears
     #============================
     # Modifies the snears such that they are always a multiple of the smallest snear
     # Needed to quarantee a smooth transition of the flow field
@@ -1648,7 +1696,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             snears[nbase] = [snearMult*hmin]
 
     #============================
-    # STEP 6: Update dfar
+    # STEP 7: Update dfar
     #============================
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
@@ -1691,7 +1739,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
     #============================
-    # STEP 7: Generate offsets
+    # STEP 8: Generate offsets
     #============================
     if toffset == None:
         offsetValues = []
@@ -1725,7 +1773,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
     #============================
-    # STEP 8: Mesh adaptation
+    # STEP 9: Mesh adaptation
     #============================
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
@@ -1796,177 +1844,3 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     return o, newLevelMax
-
-# ORIG F.Basile files - kept 'just in case' - TO BE DELETED AFTER [06/2026]
-#def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    lens_vol = numpy.unique(length_volcells)
-#    lens_faces = numpy.unique(length_faces)
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    if len(indices_owners) == 0:
-#        indices_owners = range(len(length_volcells))
-#
-#    if dimPb == 3: n_smallfaces = 4
-#    else: n_smallfaces = 2
-#
-#    list_bigface = []
-#    for index_volume in indices_owners:
-#        stride = cranges[index_volume]
-#        stride_offset = numpy.cumsum(stride)
-#        idx_vol_init = offset_volcells[index_volume]
-#
-#        idx_sides = []
-#        for i in range(6):
-#            if stride[i] == n_smallfaces:
-#                idx_sides.append(i)
-#        if idx_sides != []:
-#            for idx_side in idx_sides:
-#                indices_faces = []
-#                start_idx = stride_offset[idx_side-1] if idx_side>0 else 0
-#                for i in range(start_idx,stride_offset[idx_side]):
-#                    face = EC_volcells[idx_vol_init+i]
-#                    indices_faces.append(face)
-#                conn_Nfaces = numpy.zeros((n_smallfaces,4), dtype=Internal.E_NpyInt)
-#                for i,idx_face in enumerate(indices_faces):
-#                    idx_face_init = offset_faces[idx_face-1]
-#                    len_face = length_faces[idx_face-1]
-#
-#                    if len_face != 4:
-#                        indices_face_5nodes = findFifthNode__(idx_face, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#                    k = 0
-#                    for j in range(len_face):
-#                        if len_face == 4 or (len_face != 4 and not j in indices_face_5nodes):
-#                            conn_Nfaces[i][k] = EC_faces[idx_face_init+j]
-#                            k+=1
-#                if dimPb == 3: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace3D(conn_Nfaces)
-#                else: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace2D(conn_Nfaces)
-#                list_bigface.append([point0, point1, point2, point3])
-#
-#    len_new_faces = len(list_bigface)
-#    flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
-#
-#    zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces,0]], ztype="Unstructured")
-#    gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
-#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gcBI)
-#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gcBI)
-#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gcBI)
-#    Internal.newElements(name="GridElements", etype=7, econnectivity=flat_list_bigfaces, erange=[1, len_new_faces], eboundary=0, parent=zsnc_big_internal)
-#    return zsnc_big_internal
-#
-#def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a, PL):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    #EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    #ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    #ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    #lens_vol = numpy.unique(length_volcells)
-#    #lens_faces = numpy.unique(length_faces)
-#
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    len_new_faces = len(PL)
-#    len_EC_faces = len(PL)*4
-#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
-#    idx_new = 0
-#    for idx in PL:
-#        idx_face_init = offset_faces[idx-1]
-#        len_face = length_faces[idx-1]
-#        if len_face !=4:
-#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#        for i in range(len_face):
-#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
-#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init+i]
-#                idx_new += 1
-#
-#    zone = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces, 0]], ztype="Unstructured")
-#    gc = Internal.newGridCoordinates(parent=zone)
-#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gc)
-#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gc)
-#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gc)
-#    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=new_EC_ngon_faces, erange=[1, len_new_faces], eboundary=0, parent=zone)
-#    return zone
-#
-#def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    lens_vol = numpy.unique(length_volcells)
-#    lens_faces = numpy.unique(length_faces)
-#
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    len_new_faces = len(PL)
-#    len_EC_faces = len(PL) * 4
-#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
-#    idx_new = 0
-#    for idx in PL:
-#        idx_face_init = offset_faces[idx - 1]
-#        len_face = length_faces[idx - 1]
-#        if len_face != 4:
-#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#        for i in range(len_face):
-#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
-#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init + i]
-#                idx_new += 1
-#
-#    elts = Internal.getNodesFromType(a_hexa, "Elements_t")
-#    maxElt = Internal.getNodeFromName(elts[-1], "ElementRange")[1][1]
-#    zones = Internal.getZones(a_hexa)
-#    Internal.newElements(
-#        name=bcname,
-#        etype=7,
-#        econnectivity=new_EC_ngon_faces,
-#        erange=[maxElt + 1, maxElt + len_new_faces],
-#        eboundary=0,
-#        parent=zones[0]
-#    )
-#    C._addBC2Zone(zones[0], bcname, bctype, elementRange=[maxElt + 1, maxElt + len_new_faces])
-#    return None
-#
-#
