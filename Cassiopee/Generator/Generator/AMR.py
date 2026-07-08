@@ -222,21 +222,21 @@ def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
         vminsTMP = vminsTMP.tolist() # needed
 
     vminsLocal = numpy.ones((nbasesTMP, levelMaxTMP))
-    for nbase in range(nbasesTMP):
-        if not isinstance(vminsTMP[nbase],list):
-            vminsLocal[nbase][:] = vminsTMP[nbase][:]
-        elif len(vminsTMP[nbase]) < levelMaxTMP:
-            vminsLocal[nbase][:len(vminsTMP[nbase])] = vminsTMP[nbase][:]
-            vminsLocal[nbase][len(vminsTMP[nbase]):] = vminsTMP[nbase][-1]
-        elif len(vminsTMP[nbase]) > levelMaxTMP:
-            vminsLocal[nbase][:] = vminsTMP[nbase][:levelMaxTMP]
+    for nob in range(nbasesTMP):
+        if not isinstance(vminsTMP[nob],list):
+            vminsLocal[nob][:] = vminsTMP[nob][:]
+        elif len(vminsTMP[nob]) < levelMaxTMP:
+            vminsLocal[nob][:len(vminsTMP[nob])] = vminsTMP[nob][:]
+            vminsLocal[nob][len(vminsTMP[nob]):] = vminsTMP[nob][-1]
+        elif len(vminsTMP[nob]) > levelMaxTMP:
+            vminsLocal[nob][:] = vminsTMP[nob][:levelMaxTMP]
         else:
-            vminsLocal[nbase][:] = vminsTMP[nbase][:]
+            vminsLocal[nob][:] = vminsTMP[nob][:]
 
     vminsTMP = []
-    for nbase in range(nbasesTMP):
-        vminsTMP.append(list(vminsLocal[nbase]))
-        vminsTMP[nbase] = [max(5,v) for v in vminsTMP[nbase]] # vmin values should not be inferior to a given threshold
+    for nob in range(nbasesTMP):
+        vminsTMP.append(list(vminsLocal[nob]))
+        vminsTMP[nob] = [max(5,v) for v in vminsTMP[nob]] # vmin values should not be inferior to a given threshold
     return vminsTMP
 
 # Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
@@ -381,13 +381,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
 
     t_offset = C.newPyTree()
     no_offsetGlobal = 0
-    for nbase, tbLocal in enumerate(Internal.getBases(tb)):
+    for nob, tbLocal in enumerate(Internal.getBases(tb)):
         BB = G.bbox(tbLocal)
         ni = 150; nj = 150; nk = 150
         XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
 
-        offsetValMin = min(offsetValues[nbase])
-        offsetValMax = max(offsetValues[nbase])
+        offsetValMin = min(offsetValues[nob])
+        offsetValMax = max(offsetValues[nob])
         alpha = 1.1
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
@@ -435,7 +435,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
         tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
-        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nbase, tElapse), flush=True)
+        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nob, tElapse), flush=True)
 
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
@@ -447,27 +447,27 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
         if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nbase) # DEBUG ONLY
+        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nob) # DEBUG ONLY
 
         # all body offsets are prefaced by 'z_offsetBase' - only the zone name
         # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         preffixLocal = 'z_offsetBase'
-        if nbase >= nbases-nboxes: preffixLocal = 'Tbox_offsetBase'
-        for no_offset, offsetval in enumerate(offsetValues[nbase]):
-            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nbase][0]*2**no_offset), flush=True)
+        if nob >= nbases-nboxes: preffixLocal = 'Tbox_offsetBase'
+        for no_offset, offsetval in enumerate(offsetValues[nob]):
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nob][0]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance', offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nbase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             iso = cleanOffset__(offsetTmp=iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nbase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             #Cmpi.barrier()
             #iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
-            iso[0]='%s%d_%d'%(preffixLocal, nbase, no_offset)
-            D_IBM._setSnear(iso, snears[nbase][0]*2**no_offset)
-            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nbase, no_offset))
+            iso[0]='%s%d_%d'%(preffixLocal, nob, no_offset)
+            D_IBM._setSnear(iso, snears[nob][0]*2**no_offset)
+            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nob, no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal += 1
     return t_offset
@@ -1267,12 +1267,12 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 
     for level in range(noffsets-1, -1, -1):
         if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%level, flush=True)
-        for nbase in range(1 + min(1,nboxes)): # nbase = 0(IBM), 1(tbox - if it exists))
-            # if level (offset) is greater than the num. offset for nbase - we continue to the next offset number
-            if level > offset_nbases[nbase]-1: continue
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_names[nbase], flush=True)
+        for nob in range(1 + min(1,nboxes)): # nob = 0(IBM), 1(tbox - if it exists))
+            # if level (offset) is greater than the num. offset for nob - we continue to the next offset number
+            if level > offset_nbases[nob]-1: continue
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_names[nob], flush=True)
 
-            offsetLocal = offset_zones[nbase][level][0] # as all offset at this level have the same snear we just take the first one in the list
+            offsetLocal = offset_zones[nob][level][0] # as all offset at this level have the same snear we just take the first one in the list
             hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetLocal, 'snear'))
             hx = hminLocal#* 2**i
             adaptPass = 0
@@ -1282,13 +1282,13 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                 Ncells = Cmpi.getNCells(o)
                 C._initVars(o, 'centers:indicator', 0.)
 
-                # loop through the offsets in the list for base=nbase and offset level=i
-                for offsetLocal in offset_zones[nbase][level]:
+                # loop through the offsets in the list for base=nob and offset level=i
+                for offsetLocal in offset_zones[nob][level]:
                     # body offset: tag the region between the body & the offset
                     # tbox offset: tag the region enclosed by the offset
                     # offset1: cgns base of tb or tbox (tag outside)
                     # offset2: offset (tag inside)
-                    o = tagInsideOffset__(o, offset1=offset_inside[nbase], offset2=offsetLocal, dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                    o = tagInsideOffset__(o, offset1=offset_inside[nob], offset2=offsetLocal, dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                     C._initVars(o, "{centers:indicator} = {centers:indicator} + {centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
@@ -1302,7 +1302,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                 C._initVars(o, "{centers:indicator} = ({centers:indicator} >= 1)")
 
                 indicMax = Cmpi.getMaxValue(o, "centers:indicator")
-                if indicMax < 1. or (level == 0 and adaptPass > 0 and nbase == 0): # break
+                if indicMax < 1. or (level == 0 and adaptPass > 0 and nob == 0): # break
                     adapting = False
                     C._rmVars(o, ["centers:indicator"])
                 else:
@@ -1321,7 +1321,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                     if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...end"%adaptPass, flush=True)
                     adaptPass += 1
 
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_names[nbase], flush=True)
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_names[nob], flush=True)
 
     if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%level, flush=True)
 
@@ -1647,9 +1647,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
                 print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
                 print("=======================================================================", flush=True)
             levelMax = newLevelMax
-            for nbase in range(nbases):
-                while len(vmins[nbase]) < newLevelMax: vmins[nbase].append(vmins[nbase][-1]) # if newLevelMax > levelMax
-                vmins[nbase] = vmins[nbase][:newLevelMax] # if newLevelMax < levelMax
+            for nob in range(nbases):
+                while len(vmins[nob]) < newLevelMax: vmins[nob].append(vmins[nob][-1]) # if newLevelMax > levelMax
+                vmins[nob] = vmins[nob][:newLevelMax] # if newLevelMax < levelMax
     else:
         if Cmpi.master:
             print("=======================================================================", flush=True)
@@ -1689,11 +1689,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     hmin = hmin_skel * 2 ** (-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
     if abs(hmin-snearMin) > __TOL__:
-        for nbase in range(nbases):
+        for nob in range(nbases):
             # we only check the first zone of each base as CODA (currently)
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
-            snearMult = snears[nbase][0] // snearMin
-            snears[nbase] = [snearMult*hmin]
+            snearMult = snears[nob][0] // snearMin
+            snears[nob] = [snearMult*hmin]
 
     #============================
     # STEP 7: Update dfar
@@ -1743,25 +1743,25 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #============================
     if toffset == None:
         offsetValues = []
-        for nbase in range(nbases):
+        for nob in range(nbases):
             offsetPrev = 0.
             offsetValuesBase = []
-            for level in range(len(vmins[nbase])):
-                hminLocal = snears[nbase][0]
-                offsetLocal = offsetPrev + hminLocal*(2**level) * vmins[nbase][level]
-                if offsetLocal < 0.99*dfarmaxLocal[nbase]: # old: if offsetLocal < 0.99*dfarmax:
+            for level in range(len(vmins[nob])):
+                hminLocal = snears[nob][0]
+                offsetLocal = offsetPrev + hminLocal*(2**level) * vmins[nob][level]
+                if offsetLocal < 0.99*dfarmaxLocal[nob]: # old: if offsetLocal < 0.99*dfarmax:
                     offsetValuesBase.append(offsetLocal)
                     offsetPrev = offsetLocal
 
             if not offsetValuesBase:
                 if tCartIn:
-                    hminLocal = snears[nbase][0]
+                    hminLocal = snears[nob][0]
                     offsetLocal = hminLocal
                     offsetValuesBase.append(offsetLocal)
                 else:
                     level = 0
-                    offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nbase][level]
-                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nbase, offsetLocal, 0.99*dfarmaxLocal[nbase]))
+                    offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nob][level]
+                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nob, offsetLocal, 0.99*dfarmaxLocal[nob]))
                     Cmpi.abort(errorcode=1)
 
             offsetValues.append(offsetValuesBase)
