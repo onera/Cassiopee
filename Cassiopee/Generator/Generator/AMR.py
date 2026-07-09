@@ -46,7 +46,7 @@ def createTboxSnear__(tb, vmins, snears, dim=3):
                 if snearLocal < maxSnearLocal*0.9:
                     zoneLocal = Internal.copyTree(z)
                     zoneLocal = Internal.rmNodesByName(zoneLocal, '.Solver#define')
-                    
+
                     # Close the open zone/base from tb
                     if dim == 2:
                         zoneLocal = D_IBM.closeContour(zoneLocal)
@@ -71,7 +71,7 @@ def createTboxSnear__(tb, vmins, snears, dim=3):
         tboxSnear = C.newPyTree(tboxSnear)
     else:
         tboxSnear = None
-    
+
     return tboxSnear, snearsTboxSnear, vminsTboxSnear
 
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
