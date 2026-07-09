@@ -1,6 +1,3 @@
-# IMPROVEMENTS
-# cartRX in offsets ?
-# snear to adjust as in FAST/IBM
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Transform.PyTree as T
@@ -14,6 +11,9 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
+#==================================================================
+# Helper functions for input geometry tree (tb)
+#==================================================================
 def createTboxSnear__(tb, vmins, snears, dim=3):
     import Geom.PyTree as D
     import Geom.IBM as D_IBM
@@ -231,9 +231,6 @@ def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
         vminsTMP[nob] = [max(5,v) for v in vminsTMP[nob]] # vmin values should not be inferior to a given threshold
     return vminsTMP
 
-# Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
-#                 Leaving it here temporarily - no certainty that it wont be used elsewhere.
-#                 If by June 2026 it is not used elsewhere make definite move to adaptMesh__
 def _addItemDict__(d, key, value):
     if key in d:
         d[key].append(value)
@@ -259,7 +256,7 @@ def getListSnear__(tb, snears):
     nbases = len(Internal.getBases(tb))
     return snears, nbases
 
-def checkBaseNames__(tb,tbox):
+def checkBaseNames__(tb, tbox):
     # check consistency of base names in tb and tbox
     # check that tb does not have base names that repeat
     # check that the tb and tbox do not have the same names
@@ -279,10 +276,31 @@ def checkBaseNames__(tb,tbox):
                 baseNameListLocal.append(b[0])
     return None
 
+def getSymmetryPlaneInfo__(tb, dim=3):
+    # determine where the symmetry plane is by dir
+    # 1 : xmin, 2 : ymin, 3 = zmin
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
+    dir_sym = 0
+    if baseSYM:
+        symplane = []
+        for zsym in Internal.getZones(baseSYM):
+            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
+        [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
+        if abs(xmax-xmin) < __TOL__:
+            dir_sym=1;
+        elif abs(ymax-ymin) < __TOL__:
+            dir_sym=2;
+        elif abs(zmax-zmin) < __TOL__ and dim == 3:
+            dir_sym=3;
+    return dir_sym
+
+#==================================================================
+# Automatic offset generation
 # Generation of the list of offset surfaces starting from tb
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
+#==================================================================
 def cleanOffset__(offsetTmp):
     ## Get estimates of the edges of the surface mesh
     a = G.bboxOfCells(offsetTmp)
@@ -461,7 +479,80 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
             no_offsetGlobal += 1
     return t_offset
 
+#==================================================================
+# Automatic skeleton mesh generation
 # Generates an isotropic skeleton mesh to be adapted then by AMR
+#==================================================================
+def _addPhysicalBCs__(z_ngon, tb, dim=3):
+    # Addition of Physical BCs on the skeleton NGON Mesh
+    bbo = G.bbox(z_ngon)
+
+    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
+
+    xmin = bbo[0]; ymin = bbo[1]; zmin = bbo[2]
+    xmax = bbo[3]; ymax = bbo[4]; zmax = bbo[5]
+
+    extFaces = P.exteriorFaces(z_ngon)
+    extFaces = T.splitSharpEdges(extFaces, 80.)
+
+    zbc_xmin = []; zbc_xmax = [];
+    zbc_ymin = []; zbc_ymax = [];
+    zbc_zmin = []; zbc_zmax = []
+    for e in extFaces:
+        bbe = G.bbox(e)
+        xmine = bbe[0]; ymine = bbe[1]; zmine = bbe[2]
+        xmaxe = bbe[3]; ymaxe = bbe[4]; zmaxe = bbe[5]
+        dx = xmaxe-xmine; dy = ymaxe-ymine; dz = zmaxe-zmine
+        if dx < __TOL__ and abs(xmine-xmin) < __TOL__: zbc_xmin.append(e)
+        elif dx < __TOL__ and abs(xmaxe-xmax) < __TOL__: zbc_xmax.append(e)
+        elif dy < __TOL__ and abs(ymine-ymin) < __TOL__: zbc_ymin.append(e)
+        elif dy < __TOL__ and abs(ymaxe-ymax) < __TOL__: zbc_ymax.append(e)
+        elif dz < __TOL__ and abs(zmine-zmin) < __TOL__: zbc_zmin.append(e)
+        elif dz < __TOL__ and abs(zmaxe-zmax) < __TOL__: zbc_zmax.append(e)
+
+    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0] = 'xmin'
+    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0] = 'xmax'
+    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0] = 'ymin'
+    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0] = 'ymax'
+    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0] = 'zmin'
+    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0] = 'zmax'
+    if dir_sym == 1:
+        zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_xmax)
+    else:
+        zbc_xmin[0] = C.getZoneName("BCFarfield")
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmax)
+
+    if dir_sym == 2:
+        zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_ymax)
+
+    else:
+        zbc_ymin[0] = C.getZoneName("BCFarfield")
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymax)
+
+    if dim == 2:
+        zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
+        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmax)
+    else:
+        if dir_sym == 3:
+            zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
+            C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"     , subzone=zbc_zmax)
+
+        else:
+            zbc_zmin[0] = C.getZoneName("BCFarfield")
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmax)
+
+    return None
+
 def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     surfaces=[]; dfarList=[]; snearsList=[]; levelSkelList=[]
     # This clips the upper limit on the number of offset level to the input value.
@@ -658,6 +749,10 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     Internal._adaptNGon32NGon4(o)
     return o, levelSkel
 
+#==================================================================
+# Automatic AMR mesh adaptation
+# Uses XCore algorithm by Imad Hammani
+#==================================================================
 def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
@@ -1193,6 +1288,46 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
+def _addBC2Zone__(z, bndName, bndType, zbc):
+    s = bndType.split(':')
+    bndType1 = s[0]
+    if len(s) > 1: bndType2 = s[1]
+    else: bndType2 = ''
+
+    # Analyse zone zbc
+    dims = Internal.getZoneDim(zbc)
+    neb = dims[2] # nbre d'elts de zbc
+
+    eltType, nf = Internal.eltName2EltNo(dims[3]) # type d'elements de zbc
+    # On cherche l'element max dans les connectivites de z
+    maxElt = 0
+    connects = Internal.getNodesFromType(z, 'Elements_t')
+    for cn in connects:
+        r = Internal.getNodeFromName1(cn, 'ElementRange')
+        m = r[1][1]
+        maxElt = max(maxElt, m)
+    # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
+    nebb = neb
+    node = Internal.createUniqueChild(z, bndName, 'Elements_t', value=[eltType, nebb])
+    Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t', value=[maxElt+1, maxElt+neb])
+    oldc = Internal.getNodeFromName2(zbc, 'ElementConnectivity')[1]
+    newc = numpy.copy(oldc)
+    hook = C.createHook(z, 'nodes')
+    ids = C.identifyNodes(hook, zbc)
+    newc[:] = ids[oldc[:]-1]
+    Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
+
+    zoneBC = Internal.createUniqueChild(z, 'ZoneBC', 'ZoneBC_t')
+    if len(s)==1:
+        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType)
+    else: # familyspecified
+        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType1)
+        Internal.createUniqueChild(info, 'FamilyName', 'FamilyName_t',value=bndType2)
+
+    Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
+    Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
+    return None
+
 def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
@@ -1331,139 +1466,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     Cmpi._setProc(cart_hexa, Cmpi.rank)
     return cart_hexa
 
-def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
-    s = bndType.split(':')
-    bndType1 = s[0]
-    if len(s) > 1: bndType2 = s[1]
-    else: bndType2 = ''
-
-    # Analyse zone zbc
-    dims = Internal.getZoneDim(zbc)
-    neb = dims[2] # nbre d'elts de zbc
-
-    eltType, nf = Internal.eltName2EltNo(dims[3]) # type d'elements de zbc
-    # On cherche l'element max dans les connectivites de z
-    maxElt = 0
-    connects = Internal.getNodesFromType(z, 'Elements_t')
-    for cn in connects:
-        r = Internal.getNodeFromName1(cn, 'ElementRange')
-        m = r[1][1]
-        maxElt = max(maxElt, m)
-    # on cree un nouveau noeud connectivite dans z1 (avec le nom de la zone z2)
-    nebb = neb
-    node = Internal.createUniqueChild(z, bndName, 'Elements_t', value=[eltType, nebb])
-    Internal.createUniqueChild(node, 'ElementRange', 'IndexRange_t', value=[maxElt+1, maxElt+neb])
-    oldc = Internal.getNodeFromName2(zbc, 'ElementConnectivity')[1]
-    newc = numpy.copy(oldc)
-    hook = C.createHook(z, 'nodes')
-    ids = C.identifyNodes(hook, zbc)
-    newc[:] = ids[oldc[:]-1]
-    Internal.createUniqueChild(node, 'ElementConnectivity', 'DataArray_t', value=newc)
-
-    zoneBC = Internal.createUniqueChild(z, 'ZoneBC', 'ZoneBC_t')
-    if len(s)==1:
-        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType)
-    else: # familyspecified
-        info = Internal.createChild(zoneBC, bndName, 'BC_t', value=bndType1)
-        Internal.createUniqueChild(info, 'FamilyName', 'FamilyName_t',value=bndType2)
-
-    Internal.createUniqueChild(info, 'GridLocation', 'GridLocation_t', value='FaceCenter')
-    Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
-    return None
-
-# determine where the symmetry plane is by dir
-# 1 : xmin, 2 : ymin, 3 = zmin
-def getSymmetryPlaneInfo__(tb, dim=3):
-    baseSYM = Internal.getNodesFromName1(tb, "SYM")
-    dir_sym = 0
-    if baseSYM:
-        symplane = []
-        for zsym in Internal.getZones(baseSYM):
-            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
-        [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
-        if abs(xmax-xmin) < __TOL__:
-            dir_sym=1;
-        elif abs(ymax-ymin) < __TOL__:
-            dir_sym=2;
-        elif abs(zmax-zmin) < __TOL__ and dim == 3:
-            dir_sym=3;
-    return dir_sym
-
 #==================================================================
-# Addition of Physical BCs on the skeleton NGON Mesh
-#==================================================================
-def _addPhysicalBCs__(z_ngon, tb, dim=3):
-    bbo = G.bbox(z_ngon)
-
-    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
-
-    xmin = bbo[0]; ymin = bbo[1]; zmin = bbo[2]
-    xmax = bbo[3]; ymax = bbo[4]; zmax = bbo[5]
-
-    extFaces = P.exteriorFaces(z_ngon)
-    extFaces = T.splitSharpEdges(extFaces, 80.)
-
-    zbc_xmin = []; zbc_xmax = [];
-    zbc_ymin = []; zbc_ymax = [];
-    zbc_zmin = []; zbc_zmax = []
-    for e in extFaces:
-        bbe = G.bbox(e)
-        xmine = bbe[0]; ymine = bbe[1]; zmine = bbe[2]
-        xmaxe = bbe[3]; ymaxe = bbe[4]; zmaxe = bbe[5]
-        dx = xmaxe-xmine; dy = ymaxe-ymine; dz = zmaxe-zmine
-        if dx < __TOL__ and abs(xmine-xmin) < __TOL__: zbc_xmin.append(e)
-        elif dx < __TOL__ and abs(xmaxe-xmax) < __TOL__: zbc_xmax.append(e)
-        elif dy < __TOL__ and abs(ymine-ymin) < __TOL__: zbc_ymin.append(e)
-        elif dy < __TOL__ and abs(ymaxe-ymax) < __TOL__: zbc_ymax.append(e)
-        elif dz < __TOL__ and abs(zmine-zmin) < __TOL__: zbc_zmin.append(e)
-        elif dz < __TOL__ and abs(zmaxe-zmax) < __TOL__: zbc_zmax.append(e)
-
-    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0] = 'xmin'
-    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0] = 'xmax'
-    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0] = 'ymin'
-    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0] = 'ymax'
-    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0] = 'zmin'
-    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0] = 'zmax'
-    if dir_sym == 1:
-        zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_xmax)
-    else:
-        zbc_xmin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmax)
-
-    if dir_sym == 2:
-        zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_ymax)
-
-    else:
-        zbc_ymin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymax)
-
-    if dim == 2:
-        zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmax)
-    else:
-        if dir_sym == 3:
-            zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-            C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"     , subzone=zbc_zmax)
-
-        else:
-            zbc_zmin[0] = C.getZoneName("BCFarfield")
-            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmax)
-
-    return None
-
-#==================================================================
-# Generation of the AMR mesh for IBMs
 # MAIN FUNCTION
+# Generation of the AMR mesh for IBMs
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
@@ -1740,6 +1745,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
+#==================================================================
+# Generate Cartesian background grid for tIn input in generateAMRMesh
+#==================================================================
 def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None):
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
