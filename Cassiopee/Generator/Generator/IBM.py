@@ -640,24 +640,24 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
         levelZone={}
         hmin_loc = 1.e30
         for z in zones:
-           h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
-           levelZone[z[0]] = h
-           if h < hmin_loc : hmin_loc = h
+            h = abs(C.getValue(z,'CoordinateX',0)-C.getValue(z,'CoordinateX',1))
+            levelZone[z[0]] = h
+            if h < hmin_loc : hmin_loc = h
         hmin_loc = Cmpi.allgather(hmin_loc)
         if Cmpi.size > 1:
-           hmin = 1.e30
-           for h in hmin_loc:
-              if h < hmin: hmin = h
+            hmin = 1.e30
+            for h in hmin_loc:
+                if h < hmin: hmin = h
         else:
-           hmin = hmin_loc
+            hmin = hmin_loc
         Nlevels = 1
         for i in levelZone:
-          levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001), 2)
-          if levelZone[i] +1  > Nlevels: Nlevels = int(levelZone[i]) +1
+            levelZone[i]= math.log( int(levelZone[i]/hmin + 0.00000001), 2)
+            if levelZone[i] +1  > Nlevels: Nlevels = int(levelZone[i]) +1
 
         ## partage des info level en mpi
         if Cmpi.size > 1:
-           levelZone = Cmpi.allgatherDict2(levelZone)
+            levelZone = Cmpi.allgatherDict2(levelZone)
 
         zonesFinale=[]
         NprocSimu=4
@@ -667,13 +667,13 @@ def octree2StructLoc__(o, parento=None, vmin=15, ext=0, optimized=0, sizeMax=4e6
         print("Warning")
         print("Warning")
         for level in range(Nlevels):
-           #filtre les zones par niveau de resolution
-           zonesLoc=[]
-           for z in zones:
-              if levelZone[z[0]]==level: zonesLoc.append(z)
-           res =T.splitSize(zonesLoc, 20000, multigrid=1, R=NprocSimu, minPtsPerDir=15)
-           D2._distribute(res, NprocSimu )
-           for z in res: zonesFinale.append(z)
+            #filtre les zones par niveau de resolution
+            zonesLoc=[]
+            for z in zones:
+                if levelZone[z[0]]==level: zonesLoc.append(z)
+            res =T.splitSize(zonesLoc, 20000, multigrid=1, R=NprocSimu, minPtsPerDir=15)
+            D2._distribute(res, NprocSimu )
+            for z in res: zonesFinale.append(z)
         zones = X.connectMatch(zonesFinale, dim=dimPb)
         for ratio0 in ratios:
             zones = X.connectNearMatch(zones, ratio=ratio0, dim=dimPb)
