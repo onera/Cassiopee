@@ -14,68 +14,65 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
-def selectTboxZonesFromGeom(tb, iLocal, snearTmp, listTboxSnearAdd):
-    # Select all zones in a base from tb that do not have the maximum snear
-    # These zones are copied and saved in a list. These zones have the IBM node that specified the snear & number of base in the tb
-    maxSnearLocal = max(snearTmp)
-    bases = Internal.getBases(tb)
-    # per zone - create a copy & assume it will be a new base
-    for z in Internal.getZones(bases[iLocal]):
-        snearNode = Internal.getNodeFromName(z, 'snear')
-        snearVal = Internal.getValue(snearNode)
-        # if zone has the same snear as max, add None node
-        zCopy = None
-        if snearVal < maxSnearLocal*0.9:
-            zCopy = Internal.copyTree(z)
-            Internal._createUniqueChild(Internal.getNodeFromName1(zCopy, '.Solver#define'), 'baseNumber', 'DataArray_t', int(iLocal))
-            Internal._setValue(snearNode, maxSnearLocal)
-        listTboxSnearAdd.append(zCopy)
-    return listTboxSnearAdd
-
-def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
+def createTboxSnear__(tb, vmins, snears, dim=3):
     import Geom.PyTree as D
     import Geom.IBM as D_IBM
-    vminsTboxAdd = []
-    snearsTboxAdd = []
-    tboxAdd = None
-    for base in listTboxSnear:
-        if base is not None:
-            snear = Internal.getValue(Internal.getNodeFromName(base, 'snear'))
-            baseNum = Internal.getValue(Internal.getNodeFromName(base, 'baseNumber'))
-            vminLocalNode = Internal.getNodeFromName(base, 'vmin')
-            # Close the open zone/base from tb
-            if dim == 2:
-                bNew = D_IBM.closeContour(base)
-                bNew = T.reorder(bNew, (1,2,3))
-                bNew = D.uniformize(bNew, N=1000)
 
-            else:
-                bNew = D_IBM.closeSurface(base, isSmooth=True)
-                bNew = Internal.getZones(bNew)
-                bNew= Internal.rmNodesByName(bNew, '.Solver#define')
-                bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
-                bNew = T.join(bNew)
+    tboxSnear = []
+    snearsTboxSnear = []
+    vminsTboxSnear = []
 
-            if tboxAdd is None:
-                tboxAdd = C.newPyTree(["Base"+'_'+str(baseNum)+'_'+base[0], bNew])
-            else:
-                base = Internal.createBaseNode("Base"+'_'+str(baseNum)+'_'+base[0], cellDim=3);
-                tboxAdd[2].append(base)
-                base[2].append(bNew)
-            if vminLocalNode:
-                vminLocal = Internal.getValue(vminLocalNode)
-                vminsTboxAddTmp = [5]*len(vmins[baseNum])
-                for i in range(len(vminLocal)):
-                    vminsTboxAddTmp[i]=vminLocal[i]
-                vminsTboxAdd.append(vminsTboxAddTmp)
-            else:
-                if vminTboxAtLeastOne:
-                    vminsTboxAddTmp = [5]*len(vmins[baseNum])
-                    vminsTboxAdd.append(vminsTboxAddTmp)
-                else:
-                    vminsTboxAdd.append(vmins[baseNum])
-            snearsTboxAdd.append([snear])
-    return tboxAdd, snearsTboxAdd, vminsTboxAdd
+    # per base - snear in zones are all equal?
+    for nob, baseLocal in enumerate(Internal.getBases(tb)):
+        snearsLocal = snears[nob]
+        vminsLocal = vmins[nob]
+        snearsLocal = list(set(snearsLocal))
+        maxSnearLocal = max(snearsLocal)
+
+        if len(snearsLocal) > 1: # different snear values in base
+            # update snears based in maxSnearLocal
+            snears[nob] = [maxSnearLocal]*len(snears[nob])
+
+            # find zones with local snear < maxSnearLocal
+            for z in Internal.getZones(baseLocal):
+                vminLocal = Internal.getNodeFromName2(z, 'vmin')
+                if vminLocal is not None: vminLocal = Internal.getValue(vminLocal)
+                else: vminLocal = vminsLocal[0]
+
+                snearLocal = Internal.getNodeFromName2(z, 'snear')
+                if snearLocal is not None: snearLocal = Internal.getValue(snearLocal)
+                else: continue
+
+                if snearLocal < maxSnearLocal*0.9:
+                    zoneLocal = Internal.copyTree(z)
+                    zoneLocal = Internal.rmNodesByName(zoneLocal, '.Solver#define')
+                    
+                    # Close the open zone/base from tb
+                    if dim == 2:
+                        zoneLocal = D_IBM.closeContour(zoneLocal)
+                        zoneLocal = T.reorder(zoneLocal, (1,2,3))
+                        zoneLocal = D.uniformize(zoneLocal, N=1000)
+                    else:
+                        zoneLocal = D_IBM.closeSurface(zoneLocal, isSmooth=True)
+                        zoneLocal = Internal.getZones(zoneLocal)
+                        zoneLocal = Internal.rmNodesByName(zoneLocal, 'FlowSolution#Centers')
+                        zoneLocal = T.join(zoneLocal)
+
+                    # Add closed zone to tboxSnear
+                    tboxSnear.extend(['Base%d_%s'%(nob, z[0]), zoneLocal])
+
+                    # update snearsTboxSnear
+                    snearsTboxSnear.append([snearLocal])
+
+                    # update vminsTboxSnear
+                    vminsTboxSnear.append(vminLocal)
+
+    if tboxSnear:
+        tboxSnear = C.newPyTree(tboxSnear)
+    else:
+        tboxSnear = None
+    
+    return tboxSnear, snearsTboxSnear, vminsTboxSnear
 
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
     # example of the dictExtension - the value provided (-1, 1) correspond to
@@ -1547,6 +1544,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     tb_tbox = Internal.copyTree(tb)
     tb_tbox_noSym = Internal.copyTree(tb_noSym)
 
+    nboxes = 0
     if tbox:
         snearsTbox, nboxes = getListSnear__(tbox, 1)
         vminsTbox = vminsInputCheck__(vminsTbox, nboxes, levelMax)
@@ -1557,49 +1555,26 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         vmins.extend(vminsTbox)
         snears.extend(snearsTbox)
         nbases += nboxes
-    else:
-        snearsTbox, nboxes = [], 0
 
     #============================
     # STEP 4: Check multi. snears
     #============================
+    tboxSnear, snearsTboxSnear, vminsTboxSnear = createTboxSnear__(tb_noSym, vmins, snears, dim=dim)
 
-    isTboxSnearAdd = False
-    listTboxSnearAdd = []
+    nboxesSnear = 0
+    if tboxSnear:
+        if Cmpi.master and check: C.convertPyTree2File(tboxSnear, os.path.join(localDir, 'tboxSnear.cgns'))
 
-    for iLocal, snearTmp in enumerate(snears):
-        # per base - snear in zones are all equal?
-        diffSnearValues = len(set(snearTmp)) > 1
-        if diffSnearValues:
-            isTboxSnearAdd = True
-            # snear in zones (per base) are not all equal
-            listTboxSnearAdd = selectTboxZonesFromGeom(tb_noSym, iLocal, snearTmp, listTboxSnearAdd)
-    if isTboxSnearAdd:
-        for s1 in snears:
-            maxVal = max(s1)
-            s1[:] = [maxVal] * len(s1)
-    
-    if isTboxSnearAdd:
-        vminTboxAtLeastOne = False
-        for z in listTboxSnearAdd:
-            if z is not None:
-                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
-                if vminLocalNode:
-                    vminTboxAtLeastOne=True
-                    break
-        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
-        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
+        nboxesSnear = len(Internal.getBases(tboxSnear))
+        vminsTboxSnear = vminsInputCheck__(vminsTboxSnear, nboxesSnear, levelMax)
 
-        # same approach as tbox
-        nboxesLocal = len(Internal.getBases(tboxAdd))
-        nbases += nboxesLocal
-        nboxes += nboxesLocal
+        tb_tbox[2] += Internal.getBases(tboxSnear)
+        tb_tbox_noSym[2] += Internal.getBases(tboxSnear)
 
-        tb_tbox[2] += Internal.getBases(tboxAdd)
-        tb_tbox_noSym[2] += Internal.getBases(tboxAdd)
-
-        snears.extend(snearsTboxAdd)
-        vmins.extend(vminsTboxAdd)
+        vmins.extend(vminsTboxSnear)
+        snears.extend(snearsTboxSnear)
+        nbases += nboxesSnear
+        nboxes += nboxesSnear
 
     #============================
     # STEP 5: Generate back. grid
@@ -1611,6 +1586,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if nboxes > 0: snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
     else: snearsFlat = [item for sub in snears for item in sub]
     snearMin = min(snearsFlat)
+
+    # key for no regression:
+    if nboxesSnear > 0: nboxes = nboxesSnear
 
     if tIn is None:
         if Cmpi.master:
