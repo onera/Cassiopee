@@ -37,7 +37,9 @@ def createTboxSnear__(tb, vmins, snears, dim=3, vminTboxAtLeastOne=False):
             for z in Internal.getZones(baseLocal):
                 vminLocal = Internal.getNodeFromName2(z, 'vmin')
                 if vminLocal is not None:
-                    vminLocal = Internal.getValue(vminLocal).tolist()
+                    vminLocal = Internal.getValue(vminLocal)
+                    if isinstance(vminLocal, numpy.ndarray): vminLocal = vminLocal.tolist()
+                    else: vminLocal = [vminLocal]
                     vminLocal.append(5)
                 else:
                     if vminTboxAtLeastOne: vminLocal = [5]*len(vminsLocal)
@@ -579,13 +581,20 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
         levelSkel = levelSkelInput
         if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
             surfaces.append(z)
+            if '_sym' in z[0][-4:]:
+                nameTmp  = z[0][:-4]
+                symCopyOrig = Internal.getNodesFromNameAndType(tb, nameTmp, 'Zone_t')
+                snearTmp = Internal.getNodeFromName(symCopyOrig, 'snear')
+                snearTmp = Internal.getValue(snearTmp)
+            else:
+                snearTmp = snears[c]
             # Pull request note: levelSkelLoc causes regressions in the mesh generation
-            levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
+            levelSkelLoc = int(math.log2(dfars[c]/snearTmp)) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
             #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
             #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
             if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc)
             dfarloc = dfars[c]
-            snearloc = 2**levelSkel*snears[c]
+            snearloc = 2**levelSkel*snearTmp
             while snearloc > dfarloc/2: # security so that levelSkel is not too big
                 snearloc  /= 2.
                 levelSkel -= 1
@@ -1479,7 +1488,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     blankCellsAlgo='xray', tIn=None, **kwargs):
-
+    import Geom.IBM as D_IBM
     # debug parameters
     tbv2 = kwargs.get('tbv2', None)
     NumMinDxLarge = kwargs.get('NumMinDxLarge', 1)
@@ -1601,7 +1610,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         snears.extend(snearsTboxSnear)
         nbases += nboxesSnear
         nboxes += nboxesSnear
-
     #============================
     # STEP 5: Generate back. grid
     #============================
@@ -1609,7 +1617,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     tCartIn = False
     extrude = False
     # snearsFlat is needed for G.octree
-    if nboxes > 0: snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
+    if nboxes > 0:
+        if nboxesSnear == 0: snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
+        else:
+            snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
+            snearsFlat2 = [item for sub in snears[-nboxesSnear:] for item in sub] # only keep body snears
+            snearsFlat += snearsFlat2
+            del snearsFlat2
     else: snearsFlat = [item for sub in snears for item in sub]
     snearMin = min(snearsFlat)
 
