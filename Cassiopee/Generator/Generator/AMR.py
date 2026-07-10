@@ -14,7 +14,7 @@ __TOL__ = 1.0e-9
 #==================================================================
 # Helper functions for input geometry tree (tb)
 #==================================================================
-def createTboxSnear__(tb, vmins, snears, dim=3, vminTboxAtLeastOne=False):
+def createTboxSnear__(tb, vmins, snears, dim=3):
     import Geom.PyTree as D
     import Geom.IBM as D_IBM
 
@@ -42,8 +42,7 @@ def createTboxSnear__(tb, vmins, snears, dim=3, vminTboxAtLeastOne=False):
                     else: vminLocal = [vminLocal]
                     vminLocal.append(5)
                 else:
-                    if vminTboxAtLeastOne: vminLocal = [5]*len(vminsLocal)
-                    else: vminLocal = vminsLocal
+                    vminLocal = [5]*len(vminsLocal)
 
 
                 snearLocal = Internal.getNodeFromName2(z, 'snear')
@@ -1579,22 +1578,9 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # STEP 4: Check multi. snears
     #============================
     # Behavior for vmins to variable snear zones
-    # 1) no dedicated vmin per snear zone --> use the global vmin used for the tb
-    # 2) dedicated vmin for each snear zone --> snear zone specific vmins for each snear zone
-    # 3) dedicated vmin for some of the snear zones only --> snear zone specific vmin for the zones with a specific vmin & default 5 for the rest
-    #    --> vminTboxAtLeastOne checks for this case
-    vminTboxAtLeastOne = False
-    bases = Internal.getBases(tb_noSym)
-    for i, snearTmp in enumerate(snears):
-        # per base - snear in zones are all equal?
-        diffSnearValues = len(set(snearTmp)) > 1
-        if diffSnearValues:
-            for z in Internal.getZones(bases[i]):
-                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
-                if vminLocalNode:
-                    vminTboxAtLeastOne=True
-                    break
-    tboxSnear, snearsTboxSnear, vminsTboxSnear = createTboxSnear__(tb_noSym, vmins, snears, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
+    # 1) snear zone has a specific vmin in #Solver.define--> use that vmin
+    # 2) snear zone doesnt have a specific vmin in #Solver.define --> use the default vmin of 5
+    tboxSnear, snearsTboxSnear, vminsTboxSnear = createTboxSnear__(tb_noSym, vmins, snears, dim=dim)
 
     nboxesSnear = 0
     if tboxSnear:
@@ -1617,6 +1603,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     tCartIn = False
     extrude = False
     # snearsFlat is needed for G.octree
+    # Recal: snears = [snearTbMaxSnear1, snearTbMaxSnear2, ..., snearTbMaxSnearN,
+    #                  snearTbox1, snearTbox2, ..., snearTboxN,
+    #                  snearTbVariableSnearZones1, snearTbVariableSnearZones2, ..., snearTbVariableSnearZonesN]
+    # i.e. all the Tbs, all the volume ref. Tboxes, all snear variable Tboxes
     if nboxes > 0:
         if nboxesSnear == 0: snearsFlat = [item for sub in snears[:-nboxes] for item in sub] # only keep body snears
         else:
