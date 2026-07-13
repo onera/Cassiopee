@@ -227,50 +227,58 @@ def exchangeBCMatchData(t, varList):
         dim = Internal.getZoneDim(z)
         if dim[0] == 'Structured':
             fields = C.getFields("centers", z, vars=varList, api=3)[0]
+            if fields == []:
+                print('Warning: exchangeBCMatchData: none of the fields were found ', varList)
+                return None, None
             # get face values
             GCs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
             for gc in GCs:
                 donor = Internal.getValue(gc)
-                PL = Internal.getBCFaceNode(z, gc)[1] # PointRange
-                PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointRangeDonor
                 prr = Internal.getNodeFromName1(gc, 'PointRange')
                 prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
                 wr = Internal.range2Window(prr[1])
                 wd = Internal.range2Window(prd[1])
                 iminR, imaxR, jminR, jmaxR, kminR, kmaxR = wr
                 iminD, imaxD, jminD, jmaxD, kminD, kmaxD = wd
-                niR = dim[1]; njR = dim[2]; nkR = dim[3] # TODO
+                sizeR = (imaxR - iminR + 1)*(jmaxR - jminR + 1)*(kmaxR - kminR + 1)
+                sizeD = (imaxD - iminD + 1)*(jmaxD - jminD + 1)*(kmaxD - kminD + 1)
+                if sizeR != sizeD:
+                    print("Warning: extractBCMatchData: not a coincident match: ", gc[0])
+                    return None, None
+
+                niR = dim[1]; njR = dim[2]; nkR = dim[3]
                 tri = Internal.getNodeFromName1(gc, 'Transform')
                 tri = Internal.getValue(tri)
-                t1, t2, t3 = tri
+                t1 = tri[0]; t2 = tri[1]; t3 = tri[2] if len(tri) == 3 else 0
                 indR, fld = Converter.converter.extractBCMatchStruct(
                     fields,
-                    (iminD, jminD, kminD, imaxD, jmaxD, kmaxD),
                     (iminR, jminR, kminR, imaxR, jmaxR, kmaxR),
+                    (iminD, jminD, kminD, imaxD, jmaxD, kmaxD),
                     (niR, njR, nkR),
                     (t1, t2, t3)
                 )
                 oppNode = procDict[donor]
-                n = [donor, z[0], fld, PLD.ravel('k')]
+                n = [donor, z[0], fld, indR.ravel('k')]
                 if oppNode not in export: export[oppNode] = [n]
                 else: export[oppNode] += [n]
         elif dim[0] == 'Unstructured':
             if dim[3] == 'NGON':
-                Internal._adaptNFace2PE(z, remove=False)
+                PE = Internal.getNodeFromName2(z, 'ParentElements')
+                if PE is None: Internal._adaptNFace2PE(z, remove=False)
                 # get face values
                 GCs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
                 for gc in GCs:
                     donor = Internal.getValue(gc)
-                    PL = Internal.getBCFaceNode(z, gc)[1] # PointList
-                    PLD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
+                    indR = Internal.getBCFaceNode(z, gc)[1] # PointList
+                    indD = Internal.getBCFaceNode(z, gc, donor=True)[1] # PointListDonor
                     fld = Converter.converter.extractBCMatchNG(
-                        z, PL, varList,
+                        z, indR, varList,
                         Internal.__GridCoordinates__,
                         Internal.__FlowSolutionNodes__,
                         Internal.__FlowSolutionCenters__
                     )
                     oppNode = procDict[donor]
-                    n = [donor, z[0], fld, PLD.ravel('k')]
+                    n = [donor, z[0], fld, indD.ravel('k')]
                     if oppNode not in export: export[oppNode] = [n]
                     else: export[oppNode] += [n]
             else:

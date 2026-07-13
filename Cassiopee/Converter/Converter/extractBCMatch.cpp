@@ -175,7 +175,7 @@ PyObject* K_CONVERTER::extractBCMatchNG(PyObject* self, PyObject* args )
 // Return index of boundary faces in receiver zone and associated fields 
 // extracted from donor zone
 //=============================================================================
-PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
+PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args)
 {
   PyObject *fields;
   E_Int niD, njD, nkD;        // dim zone donneuse
@@ -200,30 +200,37 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 
   if (res != 1)
   {
-    PyErr_SetString(PyExc_TypeError, "extractBCMatchStruct: array must be structured."); 
+    PyErr_SetString(PyExc_TypeError,
+                    "extractBCMatchStruct: array must be structured."); 
     if (res == 2) RELEASESHAREDS(fields, FCenter);
     return NULL; 
   }
 
   E_Int dim = 0;
-  if (niR > 0) dim += 1;
-  if (njR > 0) dim += 1;
-  if (nkR > 0) dim += 1;
-  E_Int noindint = 0;
-  E_Int ind, ifaceR, jfaceR, kfaceR, shift;
-  E_Int nbIntIR = (niR + 1)*njR*K_FUNC::E_max(1, nkR);
-  E_Int nbIntJR = (njR + 1)*niR*K_FUNC::E_max(1, nkR);
+  if (niR > 1) dim += 1;
+  if (njR > 1) dim += 1;
+  if (nkR > 1) dim += 1;
 
-  // build output arrays
-  E_Int nfld = FCenter->getNfld();
+  E_Int noindint;
+  E_Int ind, ifaceR, jfaceR, kfaceR, shift;
+  E_Int iminD1 = iminD-1, jminD1 = jminD-1, kminD1 = kminD-1;
+  E_Int imaxD1 = imaxD-1, jmaxD1 = jmaxD-1, kmaxD1 = kmaxD-1;
+  E_Int niR1 = K_FUNC::E_max(1, niR-1);
+  E_Int njR1 = K_FUNC::E_max(1, njR-1);
+  E_Int nkR1 = K_FUNC::E_max(1, nkR-1);
+  E_Int nbIntIR = niR*njR1*nkR1;
+  E_Int nbIntJR = njR*niR1*nkR1;
   E_Int nint = K_FUNC::E_max(1, imaxD-iminD)*K_FUNC::E_max(1, jmaxD-jminD)*K_FUNC::E_max(1, kmaxD-kminD); 
 
-  // 1. tableau des indices
-  // 1. a Indices des faces de la zone receveuse
+  // Build output arrays
+  E_Int nfld = FCenter->getNfld();
+  
+  // Tableau des indices
+  // Indices des faces de la zone receveuse
   PyObject* indFaceR = K_NUMPY::buildNumpyArray(nint, 1, 1);
   E_Int* ptrIndFaceR = K_NUMPY::getNumpyPtrI(indFaceR);
 
-  // 2. tableau des champs
+  // Tableau des champs
   PyObject* pyFldD = K_ARRAY::buildArray3(nfld, varString, nint, 1, 1, 3); 
   FldArrayF* fBC; 
   FldArrayI* cnBC;
@@ -233,90 +240,81 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   // Cas 2D
   if (dim == 2)
   {
-    // Face donneuse en i 
-    if (iminD == imaxD) 
+    if (iminD == imaxD)  // Frontiere donneuse en i
     { 
-      // 1. tableau des indices
-      // 1.a. face receveuse en i
-      if (iminR == imaxR) 
+      if (iminR == imaxR)  // Frontiere receveuse en i
       {
         noindint = 0;
-        for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+        for (E_Int j = jminD1; j < jmaxD1; j++) 
         { 
-          if (triJ > 0) jfaceR = jface + jminR - jminD;
-          else jfaceR = (jmaxR-2) - (jface-jminD+1);
-          ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1); noindint++;
+          if (triJ > 0) jfaceR = j + jminR - jminD;
+          else jfaceR = (jmaxR-2) - (j-jminD+1);
+          ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR;
+          noindint++;
         }
       }
-      // 1.b. face receveuse en j
-      else if (jminR == jmaxR) 
+      else if (jminR == jmaxR)  // Frontiere receveuse en j
       {
         noindint = 0;
-        for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+        for (E_Int j = jminD1; j < jmaxD1; j++) 
         { 
-          if (triI > 0) ifaceR = jface + iminR - jminD;
-          else ifaceR = (imaxR-2) - (jface-jminD+1);
-          shift = (jminR-1)*niR + nbIntIR; 
+          if (triI > 0) ifaceR = j + iminR - jminD;
+          else ifaceR = (imaxR-2) - (j-jminD+1);
+          shift = (jminR-1)*niR1 + nbIntIR; 
           ptrIndFaceR[noindint] = shift + ifaceR;
           noindint++;
         }
       }
 
-      // 2. tableau des champs 
       for (E_Int var = 1; var <= nfld; var++)
       {
         E_Float* fld = fBC->begin(var);
         E_Float* fce = FCenter->begin(var);
         noindint = 0;
-        for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+        for (E_Int j = jminD1; j < jmaxD1; j++) 
         {
-          if (iminD == 1) ind = jface*niD;
-          else ind = jface*niD + niD-1;
+          if (iminD == 1) ind = j*niD;
+          else ind = j*niD + niD-1;
           fld[noindint] = fce[ind]; 
           noindint++;
         } 
       }
     }
-    // Si frontiere en j
-    else if (jminD == jmaxD) 
+    else if (jminD == jmaxD)  // Frontiere donneuse en j
     {
-      // 1.a. face receveuse en i
-      if (iminR == imaxR) 
+      if (iminR == imaxR)  // Frontiere receveuse en i
       {
         noindint = 0;
-        for (E_Int iface = iminD - 1; iface < imaxD-1; iface++)
+        for (E_Int i = iminD - 1; i < imaxD1; i++)
         { 
-          if (triJ > 0) jfaceR = iface + jminR - iminD;
-          else jfaceR = (jmaxR-2) - (iface-iminD+1);
-          ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1);
+          if (triJ > 0) jfaceR = i + jminR - iminD;
+          else jfaceR = (jmaxR-2) - (i-iminD+1);
+          ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR;
           noindint++;
         }
       }
-
-      // 1.b. face receveuse en j
-      else if (jminR == jmaxR) 
+      else if (jminR == jmaxR)  // Frontiere receveuse en j
       {
         noindint = 0;
-        for (E_Int iface = iminD - 1; iface < imaxD-1; iface++)
+        for (E_Int i = iminD - 1; i < imaxD1; i++)
         { 
-          E_Int shift = (jminR-1)*niR + nbIntIR;
-          if (triI > 0) ifaceR = iface + iminR - iminD;
-          else ifaceR = (imaxR-2) - (iface-iminD+1);
+          shift = (jminR-1)*niR1 + nbIntIR;
+          if (triI > 0) ifaceR = i + iminR - iminD;
+          else ifaceR = (imaxR-2) - (i-iminD+1);
           ptrIndFaceR[noindint] = shift + ifaceR;
           noindint++;
         }
       }
   
-      // 2. tableau des champs 
       for (E_Int var = 1; var <= nfld; var++)
       {
         E_Float* fld = fBC->begin(var);
         E_Float* fce = FCenter->begin(var);
         noindint = 0;
-        for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+        for (E_Int i = iminD1; i < imaxD1; i++) 
         {
-          if (jminD == 1) ind = iface;
-          else ind = iface + niD*(njD-1);
+          if (jminD == 1) ind = i;
+          else ind = i + niD*(njD-1);
           fld[noindint] = fce[ind]; 
           noindint++;
         }
@@ -327,443 +325,393 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
   // Cas 3D
   else if (dim == 3)
   {
-    // Frontiere donneuse i 
-    if (iminD == imaxD)
+    if (iminD == imaxD)  // Frontiere donneuse en i
     {
-      // Frontiere receveuse en i 
-      if (iminR == imaxR)
+      if (iminR == imaxR)  // Frontiere receveuse en i
       {
         noindint = 0;
         if (K_FUNC::E_abs(triJ) == 2) // kD <-> kR et jD <-> jR
         {
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triK > 0) kfaceR = kface + kminR - kminD;
-            else kfaceR = (kmaxR-2)-(kface-kminD+1);
+            if (triK > 0) kfaceR = k + kminR - kminD;
+            else kfaceR = (kmaxR-2)-(k-kminD+1);
 
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+            for (E_Int j = jminD1; j < jmaxD1; j++) 
             {
-              if (triJ > 0) jfaceR = jface + jminR - jminD;
-              else jfaceR = (jmaxR-2)-(jface-jminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
-              // printf("%d ", ptrIndFaceR[noindint]);
+              if (triJ > 0) jfaceR = j + jminR - jminD;
+              else jfaceR = (jmaxR-2)-(j-jminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           }
         }
         else if (K_FUNC::E_abs(triJ) == 3) // kD <-> jR et jD <-> kR
         {
-          // printf("Face receveuse jD=kR, kD=jR) \n");
-          // printf("indR : ");
-
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+            for (E_Int j = jminD1; j < jmaxD1; j++)
             { 
-              if (triK > 0) kfaceR = jface + kminR - jminD;
-              else kfaceR = (kmaxR-2)-(jface-jminD+1);
-              if (triJ > 0) jfaceR = kface + jminR - kminD;
-              else jfaceR = (jmaxR-2)-(kface-kminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
+              if (triK > 0) kfaceR = j + kminR - jminD;
+              else kfaceR = (kmaxR-2)-(j-jminD+1);
+              if (triJ > 0) jfaceR = k + jminR - kminD;
+              else jfaceR = (jmaxR-2)-(k-kminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           } 
         }
       }
-     
-      // Frontiere receveuse en j 
-      else if (jminR == jmaxR)
+      else if (jminR == jmaxR)  // Frontiere receveuse en j
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triI) == 2) // jD <-> iR et kD <-> kR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
-
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          shift = (jminR-1)*niR1 + nbIntIR;
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triK > 0) kfaceR = kface + kminR - kminD;
-            else kfaceR = (kmaxR-2)-(kface-kminD+1);
+            if (triK > 0) kfaceR = k + kminR - kminD;
+            else kfaceR = (kmaxR-2)-(k-kminD+1);
 
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+            for (E_Int j = jminD1; j < jmaxD1; j++) 
             {
-              if (triI > 0) ifaceR = jface + iminR - jminD;
-              else ifaceR = (imaxR-2)-(jface-jminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
+              if (triI > 0) ifaceR = j + iminR - jminD;
+              else ifaceR = (imaxR-2)-(j-jminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triI) == 3) // jD <-> kR et kD <-> iR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          shift = (jminR-1)*niR1 + nbIntIR;
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+            for (E_Int j = jminD1; j < jmaxD1; j++)
             { 
-              if (triK > 0) kfaceR = jface + kminR - jminD;
-              else kfaceR = (kmaxR-2)-(jface-jminD+1);
-              if (triI > 0) ifaceR = kface + iminR - kminD;
-              else ifaceR = (imaxR-2)-(kface-kminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
+              if (triK > 0) kfaceR = j + kminR - jminD;
+              else kfaceR = (kmaxR-2)-(j-jminD+1);
+              if (triI > 0) ifaceR = k + iminR - kminD;
+              else ifaceR = (imaxR-2)-(k-kminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           }
         }
       }
-
-      // Frontiere receveuse en k
-      else if (kminR == kmaxR)
+      else if (kminR == kmaxR)  // Frontiere receveuse en k
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triI) == 2) // jD <-> iR et kD <-> jR
         {
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triJ > 0) jfaceR = kface + jminR - kminD;
-            else jfaceR = (jmaxR-2)-(kface-kminD+1);
+            if (triJ > 0) jfaceR = k + jminR - kminD;
+            else jfaceR = (jmaxR-2)-(k-kminD+1);
 
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+            for (E_Int j = jminD1; j < jmaxD1; j++) 
             {
-              if (triI > 0) ifaceR = jface + iminR - jminD;
-              else ifaceR = (imaxR-2)-(jface-jminD+1);
+              if (triI > 0) ifaceR = j + iminR - jminD;
+              else ifaceR = (imaxR-2)-(j-jminD+1);
 
-              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triI) == 3) // jD <-> jR et kD <-> iR
         {
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            if (triI > 0) ifaceR = kface + iminR - kminD;
-            else ifaceR = (imaxR-2)-(kface-kminD+1);
+            if (triI > 0) ifaceR = k + iminR - kminD;
+            else ifaceR = (imaxR-2)-(k-kminD+1);
 
-            for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+            for (E_Int j = jminD1; j < jmaxD1; j++)
             { 
-              if (triJ > 0) jfaceR = jface + jminR - jminD;
-              else jfaceR = (jmaxR-2)-(jface-jminD+1);
-      
-            ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
-            noindint++;
+              if (triJ > 0) jfaceR = j + jminR - jminD;
+              else jfaceR = (jmaxR-2)-(j-jminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
+              noindint++;
             }
           } 
         }
       }
 
-      // 2. tableau des champs 
       for (E_Int var = 1; var <= nfld; var++)
       {  
         E_Float* fld = fBC->begin(var);
         E_Float* fce = FCenter->begin(var);
         noindint = 0;
-        for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+        for (E_Int k = kminD1; k < kmaxD1; k++) 
         {
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+          for (E_Int j = jminD1; j < jmaxD1; j++) 
           {
-            if (iminD == 1) ind = iminD-1 + jface*niD + kface*njD*niD;
-            else ind = niD-1 + jface*niD + kface*njD*niD;
-
+            if (iminD == 1) ind = iminD1 + j*niD + k*njD*niD;
+            else ind = niD-1 + j*niD + k*njD*niD;
             fld[noindint] = fce[ind]; 
             noindint++;
           }
         }
       }
     }
-    // Si frontiere en j
-    else if (jminD == jmaxD)
+
+    else if (jminD == jmaxD)  // Frontiere donneuse en j
     {
-      // Frontiere receveuse en i 
-      if (iminR == imaxR)
+      if (iminR == imaxR)  // Frontiere receveuse en i
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triJ) == 1) // kD <-> kR et iD <-> jR
         {
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triK > 0) kfaceR = kface + kminR - kminD;
-            else kfaceR = (kmaxR-2)-(kface-kminD+1);
+            if (triK > 0) kfaceR = k + kminR - kminD;
+            else kfaceR = (kmaxR-2)-(k-kminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triJ > 0) jfaceR = iface + jminR - iminD;
-              else jfaceR = (jmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
+              if (triJ > 0) jfaceR = i + jminR - iminD;
+              else jfaceR = (jmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           }
         }
-
         else if (K_FUNC::E_abs(triJ) == 3) // kD <-> jR et iD <-> kR
         {
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triK > 0) kfaceR = iface + kminR - iminD;
-              else kfaceR = (kmaxR-2)-(iface-iminD+1);
-              if (triJ > 0) jfaceR = kface + jminR - kminD;
-              else jfaceR = (jmaxR-2)-(kface-kminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
+              if (triK > 0) kfaceR = i + kminR - iminD;
+              else kfaceR = (kmaxR-2)-(i-iminD+1);
+              if (triJ > 0) jfaceR = k + jminR - kminD;
+              else jfaceR = (jmaxR-2)-(k-kminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           }
         }
       }
-
-      // Frontiere receveuse en j 
-      else if (jminR == jmaxR)
+      else if (jminR == jmaxR)  // Frontiere receveuse en j
       {
         noindint = 0;
         if (K_FUNC::E_abs(triI) == 1) // iD <-> iR et kD <-> kR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
-
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          shift = (jminR-1)*niR1 + nbIntIR;
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triK > 0) kfaceR = kface + kminR - kminD;
-            else kfaceR = (kmaxR-2)-(kface-kminD+1);
+            if (triK > 0) kfaceR = k + kminR - kminD;
+            else kfaceR = (kmaxR-2)-(k-kminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triI > 0) ifaceR = iface + iminR - iminD;
-              else ifaceR = (imaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
-              // printf("%d ", ptrIndFaceR[noindint]);
+              if (triI > 0) ifaceR = i + iminR - iminD;
+              else ifaceR = (imaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triI) == 3) // iD <-> kR et kD <-> iR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
-
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          shift = (jminR-1)*niR1 + nbIntIR;
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triK > 0) kfaceR = iface + kminR - iminD;
-              else kfaceR = (kmaxR-2)-(iface-iminD+1);
-              if (triI > 0) ifaceR = kface + iminR - kminD;
-              else ifaceR = (imaxR-2)-(kface-kminD+1);
-
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
+              if (triK > 0) kfaceR = i + kminR - iminD;
+              else kfaceR = (kmaxR-2)-(i-iminD+1);
+              if (triI > 0) ifaceR = k + iminR - kminD;
+              else ifaceR = (imaxR-2)-(k-kminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           } 
         }
       }
-
-      // Frontiere receveuse en k
-      else if (kminR == kmaxR)
+      else if (kminR == kmaxR)  // Frontiere receveuse en k
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triI) == 1) // iD <-> iR et kD <-> jR
         {
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+          for (E_Int k = kminD1; k < kmaxD1; k++) 
           {
-            if (triJ > 0) jfaceR = kface + jminR - kminD;
-            else jfaceR = (jmaxR-2)-(kface-kminD+1);
+            if (triJ > 0) jfaceR = k + jminR - kminD;
+            else jfaceR = (jmaxR-2)-(k-kminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triI > 0) ifaceR = iface + iminR - iminD;
-              else ifaceR = (imaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
-              // printf("%d ", ptrIndFaceR[noindint]);
+              if (triI > 0) ifaceR = i + iminR - iminD;
+              else ifaceR = (imaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triI) == 3) // iD <-> jR et kD <-> iR
         {
-          // printf("Face receveuse iD=jR, kD=iR) \n");
-          // printf("indR : ");
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int kface = kminD-1; kface < kmaxD-1; kface++)
+          for (E_Int k = kminD1; k < kmaxD1; k++)
           {
-            if (triI > 0) ifaceR = kface + iminR - kminD;
-            else ifaceR = (imaxR-2)-(kface-kminD+1);
+            if (triI > 0) ifaceR = k + iminR - kminD;
+            else ifaceR = (imaxR-2)-(k-kminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triJ > 0) jfaceR = iface + jminR - iminD;
-              else jfaceR = (jmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
-              // printf("%d ", ptrIndFaceR[noindint]);
+              if (triJ > 0) jfaceR = i + jminR - iminD;
+              else jfaceR = (jmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
               noindint++;
             }
           } 
         }
       }
 
-      // 2. tableau des champs 
       for (E_Int var = 1; var <= nfld; var++)
       {  
         E_Float* fld = fBC->begin(var);
         E_Float* fce = FCenter->begin(var);
-
         noindint = 0;
 
-        for (E_Int kface = kminD-1; kface < kmaxD-1; kface++) 
+        for (E_Int k = kminD1; k < kmaxD1; k++) 
         {
-          for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+          for (E_Int i = iminD1; i < imaxD1; i++) 
           {
-            if (jminD == 1) ind = iface + kface*njD*niD;
-            else ind = iface + kface*njD*niD + (njD-1)*niD;
+            if (jminD == 1) ind = i + k*njD*niD;
+            else ind = i + k*njD*niD + (njD-1)*niD;
             fld[noindint] = fce[ind]; 
             noindint++;
           }
         }
       }
     }
-    // Si frontiere en k
-    else if (kminD == kmaxD)
+    
+    else if (kminD == kmaxD)  // Frontiere receveuse en k
     {
-      // Frontiere receveuse en i 
-      if (iminR == imaxR)
+      if (iminR == imaxR)  // Frontiere receveuse en i
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triJ) == 2) // iD <-> kR et jD <-> jR
         {
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+          for (E_Int j = jminD1; j < jmaxD1; j++) 
           {
-            if (triJ > 0) jfaceR = jface + jminR - jminD;
-            else jfaceR = (jmaxR-2)-(jface-jminD+1);
+            if (triJ > 0) jfaceR = j + jminR - jminD;
+            else jfaceR = (jmaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triK > 0) kfaceR = iface + kminR - iminD; 
-              else kfaceR = (kmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
+              if (triK > 0) kfaceR = i + kminR - iminD; 
+              else kfaceR = (kmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triJ) == 1) // iD <-> jR et jD <-> kR
         {
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+          for (E_Int j = jminD1; j < jmaxD1; j++)
           {
-            if (triK > 0) kfaceR = jface + kminR - jminD; 
-            else kfaceR = (kmaxR-2)-(jface-jminD+1);
+            if (triK > 0) kfaceR = j + kminR - jminD; 
+            else kfaceR = (kmaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triJ > 0) jfaceR = iface + jminR - iminD;
-              else jfaceR = (jmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*(niR+1) + kfaceR*(niR+1)*njR;
+              if (triJ > 0) jfaceR = i + jminR - iminD;
+              else jfaceR = (jmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = iminR - 1 + jfaceR*niR + kfaceR*niR*njR1;
               noindint++;
             }
           }
         }
       }
-
-      // Frontiere receveuse en j 
-      else if (jminR == jmaxR)
+      else if (jminR == jmaxR)  // Frontiere receveuse en j
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triI) == 2) // iD <-> kR et jD <-> iR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
+          shift = (jminR-1)*niR1 + nbIntIR;
 
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+          for (E_Int j = jminD1; j < jmaxD1; j++) 
           {
-            if (triI > 0) ifaceR = jface + iminR - jminD;
-            else ifaceR = (imaxR-2)-(jface-jminD+1);
+            if (triI > 0) ifaceR = j + iminR - jminD;
+            else ifaceR = (imaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triK > 0) kfaceR = iface + kminR - iminD;
-              else kfaceR = (kmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
+              if (triK > 0) kfaceR = i + kminR - iminD;
+              else kfaceR = (kmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           } 
-        } // triJ=2
-
+        }
         else if (K_FUNC::E_abs(triI) == 1) // iD <-> iR et jD <-> kR
         {
-          E_Int shift = (jminR-1)*niR + nbIntIR;
+          shift = (jminR-1)*niR1 + nbIntIR;
 
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+          for (E_Int j = jminD1; j < jmaxD1; j++)
           {
-            if (triK > 0) kfaceR = jface + kminR - jminD;
-            else kfaceR = (kmaxR-2)-(jface-jminD+1);
+            if (triK > 0) kfaceR = j + kminR - jminD;
+            else kfaceR = (kmaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triI > 0) ifaceR = iface + iminR - iminD;
-              else ifaceR = (imaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR*(njR+1);
+              if (triI > 0) ifaceR = i + iminR - iminD;
+              else ifaceR = (imaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + kfaceR*niR1*njR;
               noindint++;
             }
           } 
         }
       }
-     
-      // Frontiere receveuse en k
-      else if (kminR == kmaxR)
+      else if (kminR == kmaxR)  // Frontiere receveuse en k
       {
         noindint = 0;
-
         if (K_FUNC::E_abs(triI) == 1) // iD <-> iR et jD <-> jR
         {
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+          for (E_Int j = jminD1; j < jmaxD1; j++) 
           {
-            if (triJ > 0) jfaceR = jface + jminR - jminD;
-            else jfaceR = (jmaxR-2)-(jface-jminD+1);
+            if (triJ > 0) jfaceR = j + jminR - jminD;
+            else jfaceR = (jmaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+            for (E_Int i = iminD1; i < imaxD1; i++) 
             {
-              if (triI > 0) ifaceR = iface + iminR - iminD;
-              else ifaceR = (imaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
+              if (triI > 0) ifaceR = i + iminR - iminD;
+              else ifaceR = (imaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
               noindint++;
             }
           } 
         }
-
         else if (K_FUNC::E_abs(triI) == 2) // iD <-> jR et jD <-> iR
         {
-          E_Int shift = (kminR-1)*niR*njR + nbIntIR + nbIntJR;
+          shift = (kminR-1)*niR1*njR1 + nbIntIR + nbIntJR;
 
-          for (E_Int jface = jminD-1; jface < jmaxD-1; jface++)
+          for (E_Int j = jminD1; j < jmaxD1; j++)
           {
-            if (triI > 0) ifaceR = jface + iminR - jminD;
-            else ifaceR = (imaxR-2)-(jface-jminD+1);
+            if (triI > 0) ifaceR = j + iminR - jminD;
+            else ifaceR = (imaxR-2)-(j-jminD+1);
 
-            for (E_Int iface = iminD-1; iface < imaxD-1; iface++)
+            for (E_Int i = iminD1; i < imaxD1; i++)
             { 
-              if (triJ > 0) jfaceR = iface + jminR - iminD;
-              else jfaceR = (jmaxR-2)-(iface-iminD+1);
-              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR;
+              if (triJ > 0) jfaceR = i + jminR - iminD;
+              else jfaceR = (jmaxR-2)-(i-iminD+1);
+              ptrIndFaceR[noindint] = shift + ifaceR + jfaceR*niR1;
               noindint++;
             }
           } 
         }
       }
 
-      // 2. tableau des champs 
       for (E_Int var = 1; var <= nfld; var++)
       {
         E_Float* fld = fBC->begin(var);
@@ -771,12 +719,12 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 
         noindint = 0;
 
-        for (E_Int jface = jminD-1; jface < jmaxD-1; jface++) 
+        for (E_Int j = jminD1; j < jmaxD1; j++) 
         {
-          for (E_Int iface = iminD-1; iface < imaxD-1; iface++) 
+          for (E_Int i = iminD1; i < imaxD1; i++) 
           {
-            if (kminD == 1) ind = iface + jface*niD;
-            else ind = iface + jface*niD + (nkD-1)*niD*njD;
+            if (kminD == 1) ind = i + j*niD;
+            else ind = i + j*niD + (nkD-1)*niD*njD;
             fld[noindint] = fce[ind]; 
             noindint++;
           }
@@ -803,21 +751,13 @@ PyObject* K_CONVERTER::extractBCMatchStruct(PyObject* self, PyObject* args )
 //=============================================================================
 void K_CONVERTER::indface2index(E_Int indface, E_Int ni, E_Int nj, E_Int nk, E_Int& ind)
 {
-  // printf("indface : %d \n", indface);
-  // printf("ni : %d, nj : %d, nk : %d \n", ni,nj,nk);
-
-  E_Int i,j,k,res;
-
+  E_Int i, j, k, res;
   E_Int nbIntI = (ni+1)*nj*K_FUNC::E_max(1,nk);
   E_Int nbIntJ = (nj+1)*ni*K_FUNC::E_max(1,nk);
 
-  i = 10;
-  j = 20;
-  k = 30; 
-
   // printf("nbIntI : %d , nbIntJ : %d \n",nbIntI, nbIntJ); 
 
-  if ( indface < nbIntI )
+  if (indface < nbIntI)
   {
     k = indface/( (ni+1)*nj ) + 1;
     res = indface - (k-1)*(ni+1)*nj;
@@ -845,7 +785,7 @@ void K_CONVERTER::indface2index(E_Int indface, E_Int ni, E_Int nj, E_Int nk, E_I
   }
 
   ind = i-1 + (j-1)*ni + (k-1)*nj*ni;
-  // printf("iface: %d, i: %d, j: %d, k: %d, ind: %d \n",indface,i,j,k,ind);
+  // printf("indface: %d, ni: %d, nj: %d, nk: %d, i: %d, j: %d, k: %d, ind: %d \n",indface,ni,nj,nk,i,j,k,ind);
 
   return;
 }
@@ -1039,8 +979,6 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   E_Int res2 = K_ARRAY::getFromArray3(pyFldD, varString, fldD, ni2, nj2, nk2, 
                                       cn, eltType); 
 
-  // printf("ni2 : %d, nj2 : %d, nk2 : %d \n", ni2, nj2, nk2);
-
   if (res2 != 1)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1086,7 +1024,6 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   // Create output array 
   E_Int nn;
   PyObject* pyFld = K_ARRAY::buildArray3(nfld, varString, nind, 1, 1, 3); 
-  // printf("nfld : %d, nind : %d \n",nfld,nind);
   FldArrayF* fld;
   K_ARRAY::getFromArray3(pyFld, varString, fld, nind, nn, nn, cn, eltType);
 
@@ -1101,8 +1038,7 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
   for (E_Int noindint = 0; noindint < nind; noindint++)
   {
     indFace = ptrIndR[noindint]; 
-    indface2index(indFace,ni,nj,nk,ind);
-    // printf("indFace: %d, ind: %d \n", indFace,ind);
+    indface2index(indFace, ni, nj, nk, ind);
 
     for (E_Int var = 1; var <= nfld; var++)
     {
@@ -1115,7 +1051,6 @@ PyObject* K_CONVERTER::buildBCMatchFieldStruct(PyObject* self, PyObject* args )
       }
       else
       {
-        // std::cout << "ptrFieldsR[" << ind << "]= " << ptrFieldsR[ind] << ", ptrFldD[" << noindint << "]= " << ptrFldD[noindint] << std::endl;
         ptrFld[noindint] = 0.5*(ptrFieldsR[ind] + ptrFldD[noindint]);
       }
     }
