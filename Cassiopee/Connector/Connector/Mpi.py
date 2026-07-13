@@ -308,12 +308,15 @@ def exchangeBCMatchData(t, varList):
 
             if zn not in indices: indices[zn] = PLD
             else: indices[zn] = numpy.concatenate((indices[zn], PLD))
-            for v in range(nvars):
+            fldNames = fld1[0].split(",")
+            for v, var in enumerate(varList):
+                if var not in fldNames: continue
+                pos = fldNames.index(var)
                 BCFieldv = BCField[v]
-                if zn not in BCFieldv: BCFieldv[zn] = fld1[1][v].ravel('k')
+                if zn not in BCFieldv: BCFieldv[zn] = fld1[1][pos].ravel('k')
                 else:
                     BCFieldv[zn] = numpy.concatenate(
-                        (BCFieldv[zn], fld1[1][v].ravel('k'))
+                        (BCFieldv[zn], fld1[1][pos].ravel('k'))
                     )
 
     return indices, BCField
