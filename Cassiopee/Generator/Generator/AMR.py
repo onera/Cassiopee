@@ -566,46 +566,52 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     forceUpperLimitOffset = True
     if levelSkel==50: forceUpperLimitOffset = False
 
-    # list of dfars
-    bodies = Internal.getZones(tb)
+    # list of lists of dfars
+    bodies = Internal.getBases(tb)
     if not isinstance(dfars, list):
         dfars = [dfars*1.]*len(bodies)
-        for c, z in enumerate(bodies):
-            n = Internal.getNodeFromName2(z, 'dfar')
-            if n is not None: dfars[c] = Internal.getValue(n)*1.
+        for base in Internal.getBases(tb):
+            dfarsTmp = []
+            for z in Internal.getZones(base):
+                n = Internal.getNodeFromName2(z, 'dfar')
+                if n is not None: dfarsTmp.append(Internal.getValue(n)*1.)
+           dfars.append(dfarsTmp)
     else:
-        if len(bodies) != len(dfars): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
-
+        if len(bodies) != len(dfars):
+            raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
+        else:
+            for nob, base in enumerate(Internal.getBases(tb)):
+                bodies = Internal.getZones(base)
+                if len(bodies) != len(dfars[nob]):
+                    raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
     levelSkelInput = levelSkel
-    c = 0
-    for nBase, base in enumerate(Internal.getBases(tb)):
-        if dfars[c] > -1: #body snear is only considered if dfar_loc > -1       
+    for nob, base in enumerate(Internal.getBases(tb)):
+        if min(dfars[nob]) > -1: #body snear is only considered if dfar_loc > -1
             # Check if base has '*_sym' zones. These zones are generated during the
             # symmetrization of the tb needed for symmetric cases
             numZones = len(Internal.getZones(base))
-            numSnears = len(snears[nBase])
-            snearLocTmp = snears[nBase]
+            numSnears = len(snears[nob])
+            snearLocTmp = snears[nob]
             # snear does not include the symmetrized zones. If tb has these '*_sym' zones
             # snearLocTmp is equal to the double length of snear for that base
-            if numZones > numSnears: snearLocTmp = snears[nBase]+snears[nBase]
+            if numZones > numSnears: snearLocTmp = snears[nob]+snears[nob]
 
-            for nZone, z in enumerate(Internal.getZones(base)):
+            for noz, z in enumerate(Internal.getZones(base)):
                 levelSkel = levelSkelInput
                 surfaces.append(z)
                 # Pull request note: levelSkelLoc causes regressions in the mesh generation
-                levelSkelLoc = int(math.log2(dfars[c]/snearLocTmp[nZone])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
+                levelSkelLoc = int(math.log2(dfars[nob][noz]/snearLocTmp[noz])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
                 #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
                 #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
                 if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc)
-                dfarloc = dfars[c]
-                snearloc = 2**levelSkel*snearLocTmp[nZone]
+                dfarloc = dfars[nob][noz]
+                snearloc = 2**levelSkel*snearLocTmp[noz]
                 while snearloc > dfarloc/2: # security so that levelSkel is not too big
                     snearloc  /= 2.
                     levelSkel -= 1
                 levelSkelList.append(levelSkel)
                 snearsList.append(snearloc)
                 dfarList.append(dfarloc)
-                c += 1
 
     o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
     levelSkel = max(levelSkelList)
@@ -771,7 +777,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 #==================================================================
 # Automatic AMR mesh adaptation
 # Uses XCore algorithm by Imad Hammani
-#==================================================================    
+#==================================================================
 def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
@@ -1581,6 +1587,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
+    # Note snearsSave --> snears of the tb (without symmetry planes/zones) with the same format as in tb
+    # i.e. snearsSave = [[0.001, 0.002, 0.004], [0.001]] --> [[SnearsTb1], [SnearsTb2], ...., [SnearsTbN]]
+    # Needed for G.octree
+    snearsSave = copy.deepcopy(snears)    
     #============================
     # STEP 3: Check tbox
     #============================
@@ -1605,7 +1615,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # Behavior for vmins to variable snear zones
     # 1) snear zone has a specific vmin in #Solver.define--> use that vmin
     # 2) snear zone doesnt have a specific vmin in #Solver.define --> use the default vmin of 5
-    snearsSave = copy.deepcopy(snears)
     snears, tboxSnear, snearsTboxSnear, vminsTboxSnear = createTboxSnear__(tb_noSym, vmins, snears, dim=dim)
     nboxesSnear = 0
     if tboxSnear:
@@ -1631,8 +1640,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #                  snearTbox1, snearTbox2, ..., snearTboxN,
     #                  snearTbVariableSnearZones1, snearTbVariableSnearZones2, ..., snearTbVariableSnearZonesN]
     # i.e. all the Tbs, all the volume ref. Tboxes, all snear variable Tboxes
-    if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
-    else: snearsTmp = snears
+    #if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
+    #else: snearsTmp = snears
     snearMin = min(item for sub in snears for item in sub)
 
     # key for no regression:
