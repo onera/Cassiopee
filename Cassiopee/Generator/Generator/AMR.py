@@ -569,13 +569,13 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     # list of lists of dfars
     bodies = Internal.getBases(tb)
     if not isinstance(dfars, list):
-        dfars = [dfars*1.]*len(bodies)
+        dfars = []
         for base in Internal.getBases(tb):
             dfarsTmp = []
             for z in Internal.getZones(base):
                 n = Internal.getNodeFromName2(z, 'dfar')
                 if n is not None: dfarsTmp.append(Internal.getValue(n)*1.)
-           dfars.append(dfarsTmp)
+            dfars.append(dfarsTmp)
     else:
         if len(bodies) != len(dfars):
             raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
@@ -612,6 +612,11 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
                 levelSkelList.append(levelSkel)
                 snearsList.append(snearloc)
                 dfarList.append(dfarloc)
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master:
+        print('WARNING :: Debug - generateSkeletonMesh - dfars=', dfars, flush=True)
+        print('WARNING :: Debug - generateSkeletonMesh - snears=', snears, flush=True)
 
     o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
     levelSkel = max(levelSkelList)
@@ -1590,7 +1595,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # Note snearsSave --> snears of the tb (without symmetry planes/zones) with the same format as in tb
     # i.e. snearsSave = [[0.001, 0.002, 0.004], [0.001]] --> [[SnearsTb1], [SnearsTb2], ...., [SnearsTbN]]
     # Needed for G.octree
-    snearsSave = copy.deepcopy(snears)    
+    snearsSave = copy.deepcopy(snears)
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master:
+        print('WARNING:: Debug - after Step 2 check snears/vmins - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - snearsSave=', snearsSave, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - nbases=', nbases, flush=True)
+        print('===========================================================', flush=True)
     #============================
     # STEP 3: Check tbox
     #============================
@@ -1609,6 +1622,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         snears.extend(snearsTbox)
         nbases += nboxes
 
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master:
+        print('WARNING:: Debug - after Step 3 check tbox- snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox- vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox- nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox- nboxes=', nboxes, flush=True)
+        print('===========================================================', flush=True)
     #============================
     # STEP 4: Check multi. snears
     #============================
@@ -1630,6 +1650,17 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         snears.extend(snearsTboxSnear)
         nbases += nboxesSnear
         nboxes += nboxesSnear
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master:
+        print('WARNING:: Debug - after Step 4 check multi snears- snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- snearsTboxSnear=', snearsTboxSnear, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- vminsTboxSnear=', vminsTboxSnear, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- nboxes=', nboxes, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears- nboxesSnear=', nboxesSnear, flush=True)
+        print('===========================================================', flush=True)
     #============================
     # STEP 5: Generate back. grid
     #============================
@@ -1643,6 +1674,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
     #else: snearsTmp = snears
     snearMin = min(item for sub in snears for item in sub)
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master:
+        print('WARNING:: Debug - begining of  Step 5 - snearMin=', snearMin, flush=True)
+        print('===========================================================', flush=True)
 
     # key for no regression:
     if nboxesSnear > 0: nboxes = nboxesSnear
