@@ -46,15 +46,19 @@ PyObject* K_GEOM::dLength(PyObject* self, PyObject* args)
 
   if (res == 2)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDU(array, f, cn);
     PyErr_SetString(PyExc_TypeError,
                     "dLength: only for structured arrays.");
     return NULL;
   }
 
-  if (jm != 1 || km != 1)
+  E_Int dim = 0;
+  if (im > 1) dim += 1;
+  if (jm > 1) dim += 1;
+  if (km > 1) dim += 1;
+  if (dim != 1)
   {
-    RELEASESHAREDB(res, array, f, cn);
+    RELEASESHAREDS(array, f);
     PyErr_SetString(PyExc_TypeError,
                     "dLength: only for 1D structured arrays.");
     return NULL;
@@ -71,6 +75,7 @@ PyObject* K_GEOM::dLength(PyObject* self, PyObject* args)
     return NULL;
   }
   posx++; posy++; posz++;
+
   // coordinates
   E_Float* xt = f->begin(posx);
   E_Float* yt = f->begin(posy);
@@ -113,12 +118,12 @@ PyObject* K_GEOM::dLength(PyObject* self, PyObject* args)
 
   for (E_Int i = 0; i < 3*npts; i++) 
   {
-    ax[i] <<= xt[i];
+    ax[i] <<= x[i];
   }
 
   adouble adx, ady, adz, alength=0.;
   E_Int i1;
-  for (E_Int i = 1; i < im; i++)
+  for (E_Int i = 1; i < npts; i++)
   {
     i1 = i-1;
     adx = ax[3*i] - ax[3*i1];
@@ -155,8 +160,8 @@ PyObject* K_GEOM::dLength(PyObject* self, PyObject* args)
   }
 
   delete [] ax; delete [] df;
-  
-  RELEASESHAREDB(res, array, f, cn);
+
+  RELEASESHAREDS(array, f);
   RELEASESHAREDS(tpl, fo);
   
   return tpl;
