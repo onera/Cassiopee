@@ -765,7 +765,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 #==================================================================
 # Automatic AMR mesh adaptation
 # Uses XCore algorithm by Imad Hammani
-#==================================================================
+#==================================================================    
 def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
@@ -1341,7 +1341,7 @@ def _addBC2Zone__(z, bndName, bndType, zbc):
     Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray', isBodiesIntersect=False):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
 
@@ -1425,6 +1425,12 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                     C._initVars(o, "{centers:indicator} = {centers:indicator} + {centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
+                if isBodiesIntersect:
+                    if Cmpi.master: print('Warning: Bases in tb intersect - recursive tagOutsideBody to avoid refining the intersection of the bases...', flush=True)
+                    for base in Internal.getBases(tb):
+                        o = tagOutsideBody__(o, body=base, dim=dim, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                        C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
+                        C._rmVars(o, ["centers:indicatorTmp"])
                 # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
                 o = tagOutsideBody__(o, body=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                 C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
@@ -1486,7 +1492,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
-                    blankCellsAlgo='xray', tIn=None, **kwargs):
+                    blankCellsAlgo='xray', tIn=None, isBodiesIntersect=False, **kwargs):
     import Geom.IBM as D_IBM
     # debug parameters
     tbv2 = kwargs.get('tbv2', None)
@@ -1765,7 +1771,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     # only tb --> for blanking & tagging inside the geometry
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
+    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo, isBodiesIntersect=isBodiesIntersect)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
 
     return o # requirement for X_AMR (one zone per base, one base per proc)
