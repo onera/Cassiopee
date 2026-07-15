@@ -40,6 +40,7 @@ IGNORE_TESTS_DBG = [
     "Generator/generateAMRMeshPT_t2.py",
     "Generator/generateAMRMeshCartInPT_t1.py",
     "Generator/generateAMRMeshCartInPT_t2.py",
+    "Generator/generateAMRMeshVariableSnearPT_t1.py",
     "XCore/adaptMeshPT_t1.py",
     "XCore/adaptMesh_ExitPT_t1.py"
 ]
