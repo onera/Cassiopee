@@ -1627,7 +1627,10 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # use tIn (background grid) or automatically generate octree skeleton
     tCartIn = False
     extrude = False
-
+    # Recal: snears = [snearTbMaxSnear1, snearTbMaxSnear2, ..., snearTbMaxSnearN,
+    #                  snearTbox1, snearTbox2, ..., snearTboxN,
+    #                  snearTbVariableSnearZones1, snearTbVariableSnearZones2, ..., snearTbVariableSnearZonesN]
+    # i.e. all the Tbs, all the volume ref. Tboxes, all snear variable Tboxes
     if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
     else: snearsTmp = snears
     snearMin = min(item for sub in snears for item in sub)
