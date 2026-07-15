@@ -1492,7 +1492,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
-                    blankCellsAlgo='xray', tIn=None, isBodiesIntersect=False, **kwargs):
+                    blankCellsAlgo='xray', tIn=None, **kwargs):
     import Geom.IBM as D_IBM
     # debug parameters
     tbv2 = kwargs.get('tbv2', None)
@@ -1501,6 +1501,18 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
     pathSkeleton = os.path.join(localDir, fileSkeleton)
+
+    ##Check if bases in the same tb intersect
+    isBodiesIntersect = False
+    bases = Internal.getBases(tb)
+    for i in range(1,len(bases)):
+        zI = T.join(Internal.getZones(bases[i]))
+        for j in range(0,i):
+            zJ = T.join(Internal.getZones(bases[j]))
+            intersect = G.bboxIntersection(zI,zJ)
+            if intersect>0:
+                isBodiesIntersect=True
+                break;
 
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
