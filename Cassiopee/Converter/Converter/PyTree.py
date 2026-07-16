@@ -6059,36 +6059,31 @@ def extractBCMatch(zdonor, gc, dimzR, variables=None):
         if fields == []:
             print('Warning: extractBCMatch: none of the fields were found ', varList)
             return None, None
-        else:
-            # Connection info
-            prr = Internal.getNodeFromName1(gc, 'PointRange')
-            prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
-            tri = Internal.getNodeFromName1(gc, 'Transform')
-            tri = Internal.getValue(tri)
-            wr = Internal.range2Window(prr[1])
-            wd = Internal.range2Window(prd[1])
-            iminR, imaxR, jminR, jmaxR, kminR, kmaxR = wr
-            iminD, imaxD, jminD, jmaxD, kminD, kmaxD = wd
-            sizeR = (imaxR - iminR + 1)*(jmaxR - jminR + 1)*(kmaxR - kminR + 1)
-            sizeD = (imaxD - iminD + 1)*(jmaxD - jminD + 1)*(kmaxD - kminD + 1)
-            if sizeR != sizeD:
-                print("Warning: extractBCMatch: not a coincident match: ", gc[0])
-                return None, None
+        # Connection info
+        prr = Internal.getNodeFromName1(gc, 'PointRange')
+        prd = Internal.getNodeFromName1(gc, 'PointRangeDonor')
+        tri = Internal.getNodeFromName1(gc, 'Transform')
+        tri = Internal.getValue(tri)
+        wr = Internal.range2Window(prr[1])
+        wd = Internal.range2Window(prd[1])
+        iminR, imaxR, jminR, jmaxR, kminR, kmaxR = wr
+        iminD, imaxD, jminD, jmaxD, kminD, kmaxD = wd
+        sizeR = (imaxR - iminR + 1)*(jmaxR - jminR + 1)*(kmaxR - kminR + 1)
+        sizeD = (imaxD - iminD + 1)*(jmaxD - jminD + 1)*(kmaxD - kminD + 1)
+        if sizeR != sizeD:
+            print("Warning: extractBCMatch: not a coincident match: ", gc[0])
+            return None, None
 
-            niR = dimzR[1] - 1
-            njR = dimzR[2] - 1
-            nkR = dimzR[3] - 1
-            t1 = tri[0]
-            t2 = tri[1]
-            if len(tri) == 3: t3 = tri[2]
-            else: t3 = 0
+        niR = dimzR[1]; njR = dimzR[2]; nkR = dimzR[3]
+        t1 = tri[0]; t2 = tri[1]; t3 = tri[2] if len(tri) == 3 else 0
 
-            indR, fldD = converter.extractBCMatchStruct(
-                fields,
-                (iminD, jminD, kminD, imaxD, jmaxD, kmaxD),
-                (iminR, jminR, kminR, imaxR, jmaxR, kmaxR),
-                (niR, njR, nkR), (t1, t2, t3)
-            )
+        indR, fldD = converter.extractBCMatchStruct(
+            fields,
+            (iminD, jminD, kminD, imaxD, jmaxD, kmaxD),
+            (iminR, jminR, kminR, imaxR, jmaxR, kmaxR),
+            (niR, njR, nkR),
+            (t1, t2, t3)
+        )
 
     else:  # NGON
         indR = Internal.getNodeFromName1(gc, 'PointList')[1][0]
