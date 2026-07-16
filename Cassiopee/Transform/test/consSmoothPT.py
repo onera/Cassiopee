@@ -16,7 +16,7 @@ b = T.consSmooth(a, sweeps=5); I.setName(b, 'carreLisse')
 C.convertPyTree2File([a,b], "out1.cgns")
 
 # 3D : cube
-e = D.box((0.0, 0.0, 0.0), (10, 10, 10), N=5, ntype='QUAD')    
+e = D.box((0.0, 0.0, 0.0), (10, 10, 10), N=5, ntype='QUAD')
 e = C.convertArray2Tetra(e, split='withBarycenters')
 e = G.close(e)
 e = T.consSmooth(e, sweeps=5, omega=0.1)

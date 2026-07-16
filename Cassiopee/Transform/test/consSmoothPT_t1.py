@@ -32,7 +32,7 @@ d = T.consSmooth(d, sweeps=5)
 test.testT(d, 4)
 
 # 3D : cube
-e = G.cart((0.0, 0.0, 0.0), (0.1, 0.1, 0.1), (11, 11, 11))    
+e = G.cart((0.0, 0.0, 0.0), (0.1, 0.1, 0.1), (11, 11, 11))
 e = C.convertArray2Hexa(e)
 e = P.exteriorFaces(e)
 e = C.convertArray2Tetra(e, split='withBarycenters')
