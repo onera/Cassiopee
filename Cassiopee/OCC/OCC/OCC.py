@@ -793,16 +793,19 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 # mesh using OCC mesher (anisotropic, only hausd)
 #===============================================
 def meshAllOCC(hook, hausd, angularDeflection=28.):
+    """Mesh edges and faces with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     dedges = ret[0]
     dfaces = ret[1]
     return dedges, dfaces
 
 def meshAllEdgesOCC(hook, hausd, angularDeflection=28.):
+    """Mesh edges with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     return ret[0]
 
 def meshAllFacesTriOCC(hook, hausd, angularDeflection=28.):
+    """Mesh faces with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     return ret[1]
 

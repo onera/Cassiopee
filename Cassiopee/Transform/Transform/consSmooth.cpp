@@ -28,13 +28,14 @@ using namespace K_SEARCH;
 /* Local functions */
 //=============================================================================
 
+// compute relative distance between p1 and p2, ref taken from p1 and nbg1
 inline bool relativeDist(E_Float p1x, E_Float p1y, E_Float p1z, E_Float nbg1x, E_Float nbg1y, E_Float nbg1z, E_Float p2x, E_Float p2y, E_Float p2z) 
 {
   E_Float refL2 = (p1x - nbg1x)*(p1x - nbg1x) + (p1y - nbg1y)*(p1y - nbg1y) + (p1z - nbg1z)*(p1z - nbg1z);
   E_Float dist2 = (p1x - p2x)*(p1x - p2x) + (p1y - p2y)*(p1y - p2y) + (p1z - p2z)*(p1z - p2z);
   return (dist2 >= 1e-12 * refL2);
 }
- 
+
 inline E_Int pbStep (E_Int isOpen, E_Int nUnique) 
 {
   // Case of a CLOSED curve with an ODD number of points
@@ -54,6 +55,7 @@ inline E_Int pbStep (E_Int isOpen, E_Int nUnique)
   return 0;
 }
 
+// compute the diff between v1 and v2, return ej
 inline void calDiff(E_Float v1x, E_Float v1y, E_Float v1z,
   E_Float v2x, E_Float v2y, E_Float v2z,
   E_Float& ejx, E_Float& ejy, E_Float& ejz)
@@ -63,6 +65,7 @@ inline void calDiff(E_Float v1x, E_Float v1y, E_Float v1z,
   ejz = v2z - v1z;
 }
 
+// compute the cross product of e1 and e2, return v
 inline void calProdVec(E_Float e1x, E_Float e1y, E_Float e1z,
   E_Float e2x, E_Float e2y, E_Float e2z,
   E_Float& vx, E_Float& vy, E_Float& vz)
@@ -74,18 +77,21 @@ inline void calProdVec(E_Float e1x, E_Float e1y, E_Float e1z,
 
 inline void calArea(E_Float* x, E_Float* y, E_Float* z,
   const std::vector<E_Int>& ring, E_Int nNbrs, E_Int p,
-  E_Float& Ax, E_Float& Ay, E_Float& Az, bool& inverted, E_Float refx = 0.0, E_Float refy = 0.0, E_Float refz = 0.0)
+  E_Float& Ax, E_Float& Ay, E_Float& Az, bool& inverted, 
+  E_Float refx = 0.0, E_Float refy = 0.0, E_Float refz = 0.0)
 {
-  Ax = 0; Ay = 0; Az = 0;
+  Ax = 0.0; Ay = 0.0; Az = 0.0;
   inverted = false;
 
+  E_Float ejx, ejy, ejz, epx, epy, epz;
+  E_Int jNext;
   // calculate the total area (reference orientation)
   std::vector<E_Float> axs(nNbrs), ays(nNbrs), azs(nNbrs);
   for (E_Int j = 0; j < nNbrs; j++)
   {
-    E_Int jNext = (j+1) % nNbrs;
-    E_Float ejx = x[ring[j]]-x[p], ejy = y[ring[j]]-y[p], ejz = z[ring[j]]-z[p];
-    E_Float epx = x[ring[jNext]]-x[p], epy = y[ring[jNext]]-y[p], epz = z[ring[jNext]]-z[p];
+    jNext = (j+1) % nNbrs;
+    ejx = x[ring[j]]-x[p], ejy = y[ring[j]]-y[p], ejz = z[ring[j]]-z[p];
+    epx = x[ring[jNext]]-x[p], epy = y[ring[jNext]]-y[p], epz = z[ring[jNext]]-z[p];
     calProdVec(ejx, ejy, ejz, epx, epy, epz, axs[j], ays[j], azs[j]);
     Ax += axs[j]; Ay += ays[j]; Az += azs[j];
   }
@@ -113,10 +119,11 @@ inline void calArea(E_Float* x, E_Float* y, E_Float* z,
   }
 }
 
+// find neighbours of p (starts 0) starting with pStart and in the direct sense
 bool buildRingAroundP(E_Int p, E_Int pStart, const std::vector<E_Int>& eltsOfP, FldArrayI* cn, std::vector<E_Int>& ring)
 {
   E_Int nNbrs = eltsOfP.size();
-  std::vector<std::array<E_Int,2>> pNbrs(nNbrs);
+  std::vector<std::array<E_Int,3>> pNbrs(nNbrs);
 
   // Extract the 2 nodes != p for each triangle.
   E_Int k = 0;
@@ -148,6 +155,7 @@ bool buildRingAroundP(E_Int p, E_Int pStart, const std::vector<E_Int>& eltsOfP, 
 
   ring.push_back(pStart);
   ring.push_back(cur);
+
   pNbrs[startK][0] = pNbrs[startK][1] = -1;
 
   // Chaining of the remaining nodes
@@ -175,6 +183,7 @@ bool buildRingAroundP(E_Int p, E_Int pStart, const std::vector<E_Int>& eltsOfP, 
     }
     if (!found) return false; // boundary node
   }
+          
 
   if (ring.size() != static_cast<std::size_t>(nNbrs)) return false;
 
@@ -191,10 +200,11 @@ bool buildRingAroundP(E_Int p, E_Int pStart, const std::vector<E_Int>& eltsOfP, 
       return true;
   }
   return false; // unclosed loop = boundary node
+
 }
 
 // ============================================================================
-/* Conservative smoothing (Kuprat)*/
+/* Conservative smoothing (Kuprat) */
 // IN: array: mesh (Structured i-array ou unstructured 1D in the (x,y) plane)
 // IN: sweeps: number of smoothing sweeps
 // IN: twoWays: 0 = one way smoothing, 1 = one way and back (default 0, may lead to assymetry) 
@@ -208,8 +218,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   E_Int sweeps = 1;
   E_Int step = 1;
   E_Int twoWays = 0;
-  
-  if (!PYPARSETUPLE_(args, O_ III_, &array, &sweeps,  &twoWays, &step))
+  E_Float omega;
+  if (!PYPARSETUPLE_(args, O_ III_ R_, &array, &sweeps,  &twoWays, &step, &omega))
   {
     return NULL;
   }
@@ -278,11 +288,9 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     dim = K_CONNECT::getDimME(eltType);
   }
   
-  // printf ("dims = %d \n", dim);
-
-  if (dim == 1)
+  if (dim == 1) // 1d curves
   {
-    printf ("dim = 1 \n");
+    //printf ("consSmooth: on curves.\n");
     if (res == 1) // structured
     {
       tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, f->getApi());
@@ -292,19 +300,15 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       E_Float* y = fo->begin(posy);
       E_Float* z = fo->begin(posz);
 
-      E_Int npts = im;
-      
-      E_Int idx0;
-      E_Int idx1;
-      E_Int idx2;
-      E_Int idx3;
+      E_Int npts = im;      
+      E_Int idx0, idx1, idx2, idx3;
 
       // open or closed ?
       E_Int isOpen = relativeDist(x[0], y[0], z[0], x[1], y[1], z[1], x[npts-1], y[npts-1], z[npts-1]);
 
       if (isOpen)
       {
-        printf("Info: consSmooth: open geometry: fixed nodes %d and %d.\n", 0, npts-1);
+        printf("Info: consSmooth: open geometry: fixed nodes " SF_D_ " and " SF_D_ ".\n", 0, npts-1);
       }
       else
       {
@@ -425,9 +429,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
             x[idx2] = 1.0/3.0 * xi + 2.0 /3.0 * xip3 + h * uNormalx; y[idx2] = 1.0/3.0 * yi + 2.0 /3.0 * yip3 + h * uNormaly; z[idx2] = 1.0/3.0 * zi + 2.0 /3.0 * zip3 + h * uNormalz;
             
           }
-
         }
-      
       }
 
       if (isOpen == 0)
@@ -668,10 +670,9 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       RELEASESHAREDU(tpl, fo, cno); // free memory
     }
   } 
-  else if (dim==2) // TRI
+  else if (dim == 2) // TRI surface
   {
-    printf ("dim = 2 \n");
-    // printf("consSmooth: in dim3.\n");
+    //printf ("consSmooth: on surfaces.\n");
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString,
                                 f->getSize(), cn->getSize(),
                                 eltType, false, f->getApi());
@@ -712,7 +713,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       {
         E_Int p1 = (*cn)(t, edgeT + 1) - 1;
         E_Int p2 = (*cn)(t, (edgeT + 1) % ns + 1) - 1;
-
+        
         if (p1 > p2) continue; // Uniqueness
 
         // reference length (initial maximum edge)
@@ -728,6 +729,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         if (count == 2) 
         {
           activeEdges.push_back({p1, p2});
+          //printf("active p1=%d p2=%d\n", p1, p2);
         }
       }
     }
@@ -754,9 +756,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       if (norm > 1e-12) { refNx[p] /= norm; refNy[p] /= norm; refNz[p] /= norm; }
     }
 
-    E_Float lRef = (maxLen2 > 1e-28) ? sqrt(maxLen2) : 1.0;
-
-    E_Int incoherence = 0; E_Int outOf = 0; E_Int omegaSave = 0; E_Int count = 0; E_Float omegaMean = 0.0;
+    //E_Float lRef = (maxLen2 > 1e-28) ? sqrt(maxLen2) : 1.0;
+    E_Int incoherence = 0;
     E_Float normAMin = 1e-28;
 
     for (E_Int sweep = 0; sweep < sweeps; sweep++)
@@ -765,202 +766,149 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
       std::shuffle(activeEdges.begin(), activeEdges.end(), rng);
 
       // each node processed at most once per pass
-      std::vector<bool> isEdgeTreated(activeEdges.size(), false);
-      E_Int countE = 0;
       E_Int nActiveEdges = (E_Int)activeEdges.size();
-      // printf("Il y a %d edges to modify \n", nActiveEdges);
+      // printf("There are %d edges to modify \n", nActiveEdges);
 
-      while (countE < nActiveEdges)
-      {
-        std::vector<bool> isNodeTreated(npts, false);
+      for (E_Int edgeIdx = 0; edgeIdx < nActiveEdges; edgeIdx++)
+      {    
+        E_Int p1 = activeEdges[edgeIdx].first; // x1 de Kuprat
+        E_Int p2 = activeEdges[edgeIdx].second; // x2 de Kuprat
 
-        for (E_Int edgeIdx = 0; edgeIdx < nActiveEdges; edgeIdx++)
-        {
-          if (isEdgeTreated[edgeIdx]) continue;
+        //printf("traitement edge %d: " SF_D_ " -> " SF_D_ "\n", edgeIdx, p1, p2);
+        // printf("[triangle %d/%d] [%d/%d] p1=%d, p2=%d \n", t, nelts, edgeT, ns, p1, p2);
+
+        // Ring around p1
+        std::vector<E_Int> ring1;
+        E_Int closed1 = buildRingAroundP(p1, p2, cVE[p1], cn, ring1);
+        //printf("ring " SF_D_ " = ", p1);
+        //for (size_t i = 0; i < ring1.size(); i++) printf("%d ", ring1[i]);
+        //printf("\n");
+        //printf("closed1=%d\n", closed1);
           
-          E_Int p1 = activeEdges[edgeIdx].first; // x1 de Kuprat
-          E_Int p2 = activeEdges[edgeIdx].second; // x2 de Kuprat
+        //  Ring around p2
+        std::vector<E_Int> ring2;
+        E_Int closed2 = buildRingAroundP(p2, p1, cVE[p2], cn, ring2);
+        //printf("ring %d = ", p2);
+        //for (size_t i = 0; i < ring2.size(); i++) printf("%d ", ring2[i]);
+        //printf("\n");
+        //printf("closed2=%d\n", closed2);
+        E_Int n1 = ring1.size();
+        E_Int n2 = ring2.size();
 
-          if (isNodeTreated[p1] || isNodeTreated[p2]) continue;
-
-          isEdgeTreated[edgeIdx] = true;
-          isNodeTreated[p1] = true;
-          isNodeTreated[p2] = true;
-          countE++;
-
-          // printf("[triangle %d/%d] [%d/%d] p1=%d, p2=%d \n", t, nelts, edgeT, ns, p1, p2);
-
-          // Ring around p1
-          std::vector<E_Int> ring1;
-          E_Int closed1 = buildRingAroundP(p1, p2, cVE[p1], cn, ring1);
-
-          //  Ring around p2
-          std::vector<E_Int> ring2;
-          E_Int closed2 = buildRingAroundP(p2, p1, cVE[p2], cn, ring2);
-
-          if (!closed1 || !closed2) 
-          {
-            continue;  // untreatable edge → skip
-          }
-
-          E_Int nNbrs1 = (E_Int)ring1.size();
-          E_Int nNbrs2 = (E_Int)ring2.size();
-
-          E_Float Ax1, Ay1, Az1;
-          bool inverted1;
-          calArea(x, y, z, ring1, nNbrs1, p1, Ax1, Ay1, Az1, inverted1, refNx[p1], refNy[p1], refNz[p1]);
-          E_Float Ax2, Ay2, Az2;
-          bool inverted2;
-          calArea(x, y, z, ring2, nNbrs2, p2, Ax2, Ay2, Az2, inverted2, refNx[p2], refNy[p2], refNz[p2]);
-
-          if (inverted1 || inverted2) incoherence += 1;
-          outOf += 1;
-
-          E_Float vx = x[ring2[nNbrs2-1]] - x[ring2[1]];
-          E_Float vy = y[ring2[nNbrs2-1]] - y[ring2[1]];
-          E_Float vz = z[ring2[nNbrs2-1]] - z[ring2[1]];
-
-          E_Float sum1x = 0, sum1y = 0, sum1z = 0;
-          for (E_Int s = 1; s < nNbrs1; s++)
-          {
-            sum1x += x[ring1[s]];
-            sum1y += y[ring1[s]];
-            sum1z += z[ring1[s]];
-          }
-
-          E_Float sum2x = 0, sum2y = 0, sum2z = 0;
-          for (E_Int s = 1; s < nNbrs2; s++)
-          {
-            sum2x += x[ring2[s]];
-            sum2y += y[ring2[s]];
-            sum2z += z[ring2[s]];
-          }
-
-          // Equation (16) : x1^s
-          E_Float denom = 1 / (E_Float)(nNbrs1 * nNbrs2 - 1);
-          E_Float p1sx = (sum2x + (E_Float)nNbrs2 * sum1x) * denom;
-          E_Float p1sy = (sum2y + (E_Float)nNbrs2 * sum1y) * denom;
-          E_Float p1sz = (sum2z + (E_Float)nNbrs2 * sum1z) * denom;
-
-          // Equation (15) : x2^s
-          E_Float denom2 = 1 / (E_Float)nNbrs2;
-          E_Float p2sx = (p1sx + sum2x) * denom2;
-          E_Float p2sy = (p1sy + sum2y) * denom2;
-          E_Float p2sz = (p1sz + sum2z) * denom2;
-
-          E_Float omega = 1.0;
-          const E_Float omegaMin = 1e-2;
-
-          while (omega > omegaMin)
-          {
-            E_Float dp1sx = omega * (p1sx - x[p1]), dp1sy = omega * (p1sy - y[p1]), dp1sz = omega * (p1sz - z[p1]); 
-            E_Float dp2sx = omega * (p2sx - x[p2]), dp2sy = omega * (p2sy - y[p2]), dp2sz = omega * (p2sz - z[p2]); 
-
-            // A = A1 + A2 + v × (dx1s - dx2s)
-            E_Float diffx = dp1sx - dp2sx, diffy = dp1sy - dp2sy, diffz = dp1sz - dp2sz;
-            E_Float crossx, crossy, crossz;
-            calProdVec(vx, vy, vz, diffx, diffy, diffz, crossx, crossy, crossz);
-
-            E_Float Ax = Ax1 + Ax2 + crossx;
-            E_Float Ay = Ay1 + Ay2 + crossy;
-            E_Float Az = Az1 + Az2 + crossz;
-            E_Float normA = sqrt(Ax*Ax + Ay*Ay + Az*Az);
-
-            if (normA > normAMin)
-            {
-              E_Float divnormA = 1.0 / normA;
-              E_Float nx = Ax*divnormA, ny = Ay*divnormA, nz = Az*divnormA;
-              // dp1s · A1
-              E_Float dot1 = dp1sx*Ax1 + dp1sy*Ay1 + dp1sz*Az1;
-
-              // dp2s · A2
-              E_Float dot2 = dp2sx*Ax2 + dp2sy*Ay2 + dp2sz*Az2;
-              
-              // dp2s · (v × dp1s)
-              E_Float vxdp1x, vxdp1y, vxdp1z;
-              calProdVec(vx, vy, vz, dp1sx, dp1sy, dp1sz, vxdp1x, vxdp1y, vxdp1z);
-              E_Float dot3 = dp2sx*vxdp1x + dp2sy*vxdp1y + dp2sz*vxdp1z;
-
-              E_Float h = -(dot1 + dot2 + dot3) / normA;
-
-              // Save old coords
-              E_Float x1o=x[p1], y1o=y[p1], z1o=z[p1];
-              E_Float x2o=x[p2], y2o=y[p2], z2o=z[p2];
-
-              // if (diffx > 0.0) 
-              // {
-              //     printf("On obtient un déplacement : (%e, %e, %e) et une hauteur de : %e \n", diffx, diffy, diffz, h);
-              // }
-
-              // Final update
-              x[p1] += dp1sx + h*nx;  y[p1] += dp1sy + h*ny;  z[p1] += dp1sz + h*nz;
-              x[p2] += dp2sx + h*nx;  y[p2] += dp2sy + h*ny;  z[p2] += dp2sz + h*nz;
-
-              // Check that the A_i have not changed sign
-              E_Float Ax1n, Ay1n, Az1n; bool inv1n = false;
-              calArea(x, y, z, ring1, nNbrs1, p1, Ax1n, Ay1n, Az1n, inv1n, refNx[p1], refNy[p1], refNz[p1]);
-
-              E_Float Ax2n, Ay2n, Az2n; bool inv2n = false;
-              calArea(x, y, z, ring2, nNbrs2, p2, Ax2n, Ay2n, Az2n, inv2n, refNx[p2], refNy[p2], refNz[p2]);
-
-              if (!inv1n && !inv2n) break; // succès
-
-              // if (!inv1n || !inv2n) break; // remove inversion testing
-              // if (inv1n && inv2n) break;  // remove inversion testing
-
-              // Restor and proceed with a reduced omega
-              x[p1]=x1o; y[p1]=y1o; z[p1]=z1o;
-              x[p2]=x2o; y[p2]=y2o; z[p2]=z2o;
-              omega *= 0.5;  // converges with log2 stepping
-              // printf("[%d Sweep][%d/%d] Inversion %d %d try omega = %f \n",sweep, countE, nActiveEdges,inv1n,inv2n, omega);
-            }
-            else 
-            {
-              // to prevent infinite loop
-              printf("Debug Edge: countE=%d, omega=%f, normA=%f < %f \n", countE, omega, normA, normAMin);
-              break;
-            }
-          }
-
-          if (omega < 1.0) 
-          {
-            omegaSave += 1;
-
-            if (omega > omegaMin) printf("[%d Sweep][%d/%d] We find omega = %f \n",sweep, countE, nActiveEdges, omega);
-            else
-            {
-              printf("[%d Sweep][%d/%d] We find no omega \n",sweep, countE, nActiveEdges);
-              omega = 0.0;
-            }
-          }
-          omegaMean += omega;
-          count += 1;
+        // check
+        if (ring1[0] != p2) printf("PB1\n");
+        if (ring2[0] != p1) printf("PB1\n");
+        if (ring1[1] != ring2[n2-1]) printf("PB1\n");
+        if (ring1[n1-1] != ring2[1]) printf("PB1\n");
+          
+        if (!closed1 || !closed2) 
+        {
+          continue;  // untreatable edge → skip
         }
+
+        E_Int nNbrs1 = (E_Int)ring1.size();
+        E_Int nNbrs2 = (E_Int)ring2.size();
+
+        E_Float Ax1, Ay1, Az1;
+        bool inverted1;
+        calArea(x, y, z, ring1, nNbrs1, p1, Ax1, Ay1, Az1, inverted1, refNx[p1], refNy[p1], refNz[p1]);
+        //printf("area1=%g %g %g\n", Ax1, Ay1, Az1);
+        E_Float Ax2, Ay2, Az2;
+        bool inverted2;
+        calArea(x, y, z, ring2, nNbrs2, p2, Ax2, Ay2, Az2, inverted2, refNx[p2], refNy[p2], refNz[p2]);
+        //printf("area2=%g %g %g\n", Ax2, Ay2, Az2);
+          
+        if (inverted1 || inverted2) incoherence += 1;
         
+        E_Float vx = x[ring2[nNbrs2-1]] - x[ring2[1]];
+        E_Float vy = y[ring2[nNbrs2-1]] - y[ring2[1]];
+        E_Float vz = z[ring2[nNbrs2-1]] - z[ring2[1]];
+
+        // check
+        if (vx != x[ring1[1]] - x[ring1[n1-1]]) printf("PB2\n");
+        if (vy != y[ring1[1]] - y[ring1[n1-1]]) printf("PB2\n");
+        if (vz != z[ring1[1]] - z[ring1[n1-1]]) printf("PB2\n");
+
+        E_Float sum1x = 0.0, sum1y = 0.0, sum1z = 0.0;
+        for (E_Int s = 1; s < nNbrs1; s++)
+        {
+          sum1x += x[ring1[s]];
+          sum1y += y[ring1[s]];
+          sum1z += z[ring1[s]];
+        }
+
+        E_Float sum2x = 0.0, sum2y = 0.0, sum2z = 0.0;
+        for (E_Int s = 1; s < nNbrs2; s++)
+        {
+          sum2x += x[ring2[s]];
+          sum2y += y[ring2[s]];
+          sum2z += z[ring2[s]];
+        }
+
+        // Equation (16) : x1^s
+        E_Float denom = 1.0 / (E_Float)(nNbrs1 * nNbrs2 - 1);
+        E_Float p1sx = (sum2x + (E_Float)nNbrs2 * sum1x) * denom;
+        E_Float p1sy = (sum2y + (E_Float)nNbrs2 * sum1y) * denom;
+        E_Float p1sz = (sum2z + (E_Float)nNbrs2 * sum1z) * denom;
+
+        // Equation (15) : x2^s
+        E_Float denom2 = 1.0 / (E_Float)nNbrs2;
+        E_Float p2sx = (p1sx + sum2x) * denom2;
+        E_Float p2sy = (p1sy + sum2y) * denom2;
+        E_Float p2sz = (p1sz + sum2z) * denom2;
+        
+        E_Float dp1sx = omega * (p1sx - x[p1]), dp1sy = omega * (p1sy - y[p1]), dp1sz = omega * (p1sz - z[p1]); 
+        E_Float dp2sx = omega * (p2sx - x[p2]), dp2sy = omega * (p2sy - y[p2]), dp2sz = omega * (p2sz - z[p2]); 
+
+        // A = A1 + A2 + v × (dx1s - dx2s)
+        E_Float diffx = dp1sx - dp2sx, diffy = dp1sy - dp2sy, diffz = dp1sz - dp2sz;
+        E_Float crossx, crossy, crossz;
+        calProdVec(vx, vy, vz, diffx, diffy, diffz, crossx, crossy, crossz);
+
+        E_Float Ax = Ax1 + Ax2 + crossx;
+        E_Float Ay = Ay1 + Ay2 + crossy;
+        E_Float Az = Az1 + Az2 + crossz;
+        E_Float normA = sqrt(Ax*Ax + Ay*Ay + Az*Az);
+
+        if (normA > normAMin)
+        {
+          E_Float divnormA = 1.0 / normA;
+          E_Float nx = Ax*divnormA, ny = Ay*divnormA, nz = Az*divnormA;
+          //printf("nx=%g %g %g\n", nx, ny, nz);
+              
+          // dp1s · A1
+          E_Float dot1 = dp1sx*Ax1 + dp1sy*Ay1 + dp1sz*Az1;
+
+          // dp2s · A2
+          E_Float dot2 = dp2sx*Ax2 + dp2sy*Ay2 + dp2sz*Az2;
+              
+          // dp2s · (v × dp1s)
+          E_Float vxdp1x, vxdp1y, vxdp1z;
+          calProdVec(vx, vy, vz, dp1sx, dp1sy, dp1sz, vxdp1x, vxdp1y, vxdp1z);
+          E_Float dot3 = dp2sx*vxdp1x + dp2sy*vxdp1y + dp2sz*vxdp1z;
+
+          E_Float h = -(dot1 + dot2 + dot3) / normA;
+              
+          //printf("h=%g\n", h);
+          //printf("dp1s=%g %g %g\n", dp1sx, dp1sy, dp1sz);
+          //printf("dp2s=%g %g %g\n", dp2sx, dp2sy, dp2sz);
+          // final update
+          x[p1] += dp1sx + h*nx;  y[p1] += dp1sy + h*ny;  z[p1] += dp1sz + h*nz;
+          x[p2] += dp2sx + h*nx;  y[p2] += dp2sy + h*ny;  z[p2] += dp2sz + h*nz;
+
+          // Check that the A1 A2 have not changed sign
+          //E_Float Ax1n, Ay1n, Az1n; bool inv1n = false;
+          //calArea(x, y, z, ring1, nNbrs1, p1, Ax1n, Ay1n, Az1n, inv1n, refNx[p1], refNy[p1], refNz[p1]);
+          //E_Float Ax2n, Ay2n, Az2n; bool inv2n = false;
+          //calArea(x, y, z, ring2, nNbrs2, p2, Ax2n, Ay2n, Az2n, inv2n, refNx[p2], refNy[p2], refNz[p2]);
+          //if (inv1n || inv2n)
+          //  printf("Warning: consSmooth: [%d Sweep][%d/%d] Inversion %d %d try omega = %f \n",sweep, countE, nActiveEdges,inv1n,inv2n, omega);
+        }
       }
+      if (incoherence > 0)
+        printf("Warning: consSmooth: " SF_D_ " normal inversions\n", incoherence);
     }
-    omegaMean = omegaMean / count;
-    printf("We find mean omega = %f \n", omegaMean);
-    // if (incoherence > 0) printf ("Inconsistent mesh on %d/%d edges and %d omega modifications\n", incoherence, outOf, omegaSave);
-    printf ("Inconsistent mesh on %d/%d edges and %d omega modifications\n", incoherence, outOf, omegaSave);
-
     RELEASESHAREDU(tpl, fo, cno);
-
-
-
-
-
-
-        
-
-    
-      
-
-
-
-
-
-
   }
 
   RELEASESHAREDB(res, array, f, cn); 
