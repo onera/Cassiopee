@@ -380,7 +380,7 @@ K_SEARCH::KdTree<CoordArrayType>::getClosest(const E_Float* point, const E_Float
   size_type m = IDX_NONE;  
   dist2 = guessed_d2;
 
-  if (_tolerance*_tolerance < dist2)
+  if (_tolerance < dist2)
     __seek_closest(point, 0/*root col*/, 0/*axis*/, dist2, m);
 
   return m;
@@ -561,7 +561,7 @@ void K_SEARCH::KdTree<CoordArrayType>::__insert(size_type n)
   {
     pi = tbegin + 3*i; // pointer to the ith _tree's node.
     parent = i;
-    child = (_Xn[axis] < _posAcc.getVal(*pi, axis)) ? 1: 2;
+    child = (_Xn[axis] < _posAcc.getVal(*pi, axis)) ? 1 : 2;
     axis = (axis+1) % _dim;
     i = *(pi + child); //_tree(child, i)
   }
@@ -656,32 +656,82 @@ void K_SEARCH::KdTree<CoordArrayType>::__seek_closest
   }
 }
 
+// template <typename CoordArrayType>
+// void K_SEARCH::KdTree<CoordArrayType>::__seek_closest
+// (const E_Float *pt, size_type ci, size_type axis, E_Float& d2, size_type& m) const
+// {
+// 	if (ci == IDX_NONE) return;
+
+// 	const size_type* Ni = _tree.begin() + 3 * ci;// pointer to the ith _tree's node.
+//   E_Float D = (pt[axis] - _posAcc.getVal(*Ni, axis));
+ 
+//   if ((D*D) >= d2)
+//   {
+//     if (D < 0)
+//       __seek_closest(pt, *(Ni+1), (axis+1)%_dim, d2, m); //left traversal
+//     else
+//       __seek_closest(pt, *(Ni+2), (axis+1)%_dim, d2, m); //right traversal
+//   }
+//   else
+//   {
+//     E_Float di2 = _posAcc.dist2(pt, *Ni);
+//     if (di2 < d2)
+//     {
+// 		  d2 = di2;
+// 		  m = *Ni;
+// 	  }
+//     __seek_closest(pt, *(Ni+1), (axis+1)%_dim, d2, m); //left traversal
+//     __seek_closest(pt, *(Ni+2), (axis+1)%_dim, d2, m); //right traversal
+//   }
+// }
+
 template <typename CoordArrayType>
 void K_SEARCH::KdTree<CoordArrayType>::__seek_closest
-(const E_Float *pt, size_type ci, size_type axis, E_Float& d2, size_type& m) const
+(const E_Float *pt, size_type root, size_type axis, E_Float& d2, size_type& m) const
 {
-	if (ci == IDX_NONE) return;
+  if (root == IDX_NONE) return;
 
-	const size_type* Ni = _tree.begin() + 3 * ci;// pointer to the ith _tree's node.
-  E_Float D = (pt[axis] - _posAcc.getVal(*Ni, axis));
- 
-  if ((D*D) >= d2)
+  struct StackEntry
   {
-    if (D < 0)
-      __seek_closest(pt, *(Ni+1), (axis+1)%_dim, d2, m); //left traversal
-    else
-      __seek_closest(pt, *(Ni+2), (axis+1)%_dim, d2, m); //right traversal
-  }
-  else
+    size_type node;
+    size_type axis;
+  };
+
+  // KD-tree depth is log2(N), 64 is enough for all meshes
+  StackEntry stack[64];
+  E_Int top = 0;
+
+  stack[top++] = {root, axis};
+
+  while (top > 0)
   {
-    E_Float di2 = _posAcc.dist2(pt, *Ni);
-    if (di2 < d2)
+    StackEntry current = stack[--top];
+    size_type ci = current.node;
+    if (ci == IDX_NONE) continue;
+
+    const size_type* Ni = _tree.begin() + 3 * ci;
+    size_type ax = current.axis;
+    E_Float D = pt[ax] - _posAcc.getVal(*Ni, ax);
+    size_type left  = *(Ni+1);
+    size_type right = *(Ni+2);
+    size_type nextAxis = ax+1 == _dim ? 0 : ax+1;
+
+    if (D*D >= d2)
     {
-		  d2 = di2;
-		  m = *Ni;
-	  }
-    __seek_closest(pt, *(Ni+1), (axis+1)%_dim, d2, m); //left traversal
-    __seek_closest(pt, *(Ni+2), (axis+1)%_dim, d2, m); //right traversal
+      // Only one side can contain a closer point
+      if (D < 0) stack[top++] = {left, nextAxis};
+      else stack[top++] = {right, nextAxis};
+    }
+    else
+    {
+      // Check current point
+      E_Float di2 = _posAcc.dist2(pt, *Ni);
+      if (di2 < d2) { d2 = di2; m = *Ni; }
+
+      // Search both branches
+      stack[top++] = {right, nextAxis};
+      stack[top++] = {left, nextAxis};
+    }
   }
 }
 
