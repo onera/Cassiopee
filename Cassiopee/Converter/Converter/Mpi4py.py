@@ -634,7 +634,7 @@ def createBboxDict(t):
 def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
                  intersectionsDict=None, exploc=False, procDict2=None, it=0, nbpass=1):
     """Return the communication graph for different block relation types."""
-    if procDict is None: procDict = getProcDict(t)
+    if not procDict: procDict = getProcDict(t)
     graph = Distributed.computeGraph(t, type, t2, procDict, rank,
                                      intersectionsDict, exploc, procDict2, it,
                                      reduction=reduction, nbpass=nbpass)
