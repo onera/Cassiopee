@@ -1991,6 +1991,7 @@ def checkFileType(fileName):
     header = os.read(file, 512)
     os.close(file)
 
+    if header[0] == 0x80 and header[1] <= 0x10: return 'bin_pickle'
     if header[1:4] == b'HDF': return 'bin_hdf'
     if header[4:7] == b'ADF': return 'bin_adf'
     if header[0:5] == b'#!TDV': return 'bin_tp'
