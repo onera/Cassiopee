@@ -609,7 +609,6 @@ elif [ "$MAC" = "sator_coda" ]; then
     module purge
 
     module load emacs/27.2-gnu831
-    module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
     module load socle-fs/gnu1210_openmpi405
 
