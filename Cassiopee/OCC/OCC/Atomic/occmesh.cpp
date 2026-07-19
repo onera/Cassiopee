@@ -45,7 +45,6 @@ PyObject* K_OCC::occmesh(PyObject* self, PyObject* args)
   
   GETMAPEDGES;
   GETMAPSURFACES;
-  printf("nedges1=%d\n", edges.Extent());
 
   // Triangulate shape
   E_Float angle = angularDeflection * M_PI / 180.; // en radians
@@ -53,8 +52,6 @@ PyObject* K_OCC::occmesh(PyObject* self, PyObject* args)
   if (hausd < 0) { relative = Standard_True; hausd = -hausd; }
   BRepMesh_IncrementalMesh Mesh(*shape, hausd, relative, angle, Standard_True);
   Mesh.Perform(); 
-
-  printf("nedges2=%d\n", edges.Extent());
 
   //===================
   // Recupere les faces
@@ -140,10 +137,7 @@ PyObject* K_OCC::occmesh(PyObject* self, PyObject* args)
   //====================
   PyObject* dedges = PyList_New(0);
 
-  printf("nedges3=%d\n", edges.Extent());
-
   TopExp_Explorer expEdge;
-  E_Int count = 0;
   E_Int nbEdges = edges.Extent();
   for (E_Int i = 0; i < nbEdges; i++) 
   {

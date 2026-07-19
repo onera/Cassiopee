@@ -63,7 +63,7 @@ VARNAME2CGNS = {
 # Known CGNS BC types
 KNOWNBCS = [
     'BCWall', 'BCWallInviscid', 'BCWallViscous', 'BCWallViscousIsothermal',
-    'BCFarfield', 'BCExtrapolate',
+    'BCFarfield', 'BCExtrapolate', 'BCPeriodic',
     'BCInflow', 'BCInflowSubsonic', 'BCInflowSupersonic',
     'BCOutflow', 'BCOutflowSubsonic', 'BCOutflowSupersonic',
     'BCMatch', 'BCNearMatch', 'BCOverlap', 'BCSymmetryPlane',

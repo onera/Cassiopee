@@ -1709,9 +1709,10 @@ class Driver:
         self.params = params
         self.freeParams = freeParams
 
-        return solution, freeParams
+        return freeParams
 
-    # Instantiate all parameters from given values
+    # Instantiate all parameters from given values of free parameters
+    # solve must have been called before
     # IN: paramValues: dict of free parameters with their values
     # OUT: True if all values are valid (in range and satisfy inequations), False otherwise
     def instantiate(self, paramValues):
@@ -1755,6 +1756,127 @@ class Driver:
 
         for c, e in enumerate(self.inequations):
             ret = self.inequations[e].s.subs(params)
+            #ret = self.inequations[e].s.evalf()
+            if ret: print('SET: => ineq %d is valid'%c)
+            else: print("SET: => ineq %d is invalid"%c); valid = False
+
+        # update geometries
+        self.update()
+
+        # return True if valid in range and inequation constraints
+        return valid
+
+    # Solve equations to get free parameters
+    def solve2(self):
+        """Solve equations to get free parameters."""
+        # get params
+        params = []
+        for s in self.scalars:
+            mu = self.scalars[s]
+            if mu.isFree(): params.append(mu)
+        params.reverse() # reverse order to solve for explicit variables
+        print('SOLVE: params=', params)
+
+        # get equations, sub fixed params, replace cos/sin/log to get linear equations
+        equations = []
+        for e in self.equations:
+            eq = self.equations[e]
+            eqs = eq.s
+            eqs = eqs.replace(sympy.cos, lambda e: 1+e)
+            eqs = eqs.replace(sympy.sin, lambda e: e)
+            eqs = eqs.replace(sympy.tan, lambda e: e)
+            eqs = eqs.replace(sympy.log, lambda e: e)
+            eqs = eqs.replace(sympy.pi, 3.14)
+            eqs = eqs.replace(lambda e: e.is_Pow, lambda e: e)
+            eqs = eqs.replace(lambda e: isinstance(e, sympy.Mul) and any(t.is_Pow and t.exp < 0 for t in e.args),
+                lambda e: sympy.Mul(*[t.base**(-t.exp) if t.is_Pow and t.exp < 0 else t for t in e.args]))
+            equations.append(eqs)
+            for s in self.scalars:
+                mu = self.scalars[s]
+                if not mu.isFree(): eqs.subs(mu, mu.v)
+        print('SOLVE: eqs=', equations)
+
+        # solve([eq0,eq1], [x0,x1])
+        solution = sympy.solve(equations, params, dict=True)
+        if len(solution) == 0:
+            print('SOLVE: no solution')
+        elif len(solution) > 1:
+            print('SOLVE: many solutions, taking first.')
+            solution = solution[0]
+        else:
+            solution = solution[0]
+
+        # number of free vars
+        nparams = len(params)
+        neqs = len(equations)
+        nd = nparams - neqs
+        print("SOLVE: nparams=", nparams)
+        print("SOLVE: neqs=", neqs)
+        print("SOLVE: free params=", nd)
+
+        # who is free and valid at the end?
+        freeParams = params[:]
+        for s in solution:
+            if solution[s].is_Float or solution[s].is_Integer or solution[s].is_Rational:
+                print('SOLVE: fixed', s, 'to', solution[s])
+                self.scalars[s.name].v = solution[s]
+                if self.scalars[s.name].check(): print('=> valid')
+                else: print('=> invalid')
+            freeParams.remove(s)
+        print('SOLVE: free vars=', freeParams)
+
+        self.solution = None # solution is fake beacuase of replace
+        self.params = params
+        self.freeParams = freeParams
+
+        return freeParams
+
+    # Instantiate2 all parameters from given free parameters value
+    # Solve dont have to be called, numerical solution
+    def instantiate2(self, paramValues):
+        """Instantiate all from given paramValues."""
+        valid = True # return
+        # get params
+        params = []; guess = []
+        for s in self.scalars:
+            mu = self.scalars[s]
+            if mu.isFree(): 
+                params.append(mu)
+                guess.append(mu.v)
+        params.reverse() # reverse order to solve for explicit variables
+        guess.reverse()
+
+        # get equations, sub fixed params
+        equations = []
+        for e in self.equations:
+            eq = self.equations[e]
+            equations.append(eq.s)
+            for s in self.scalars:
+                mu = self.scalars[s]
+                if not mu.isFree(): eq.s.subs(mu, mu.v)
+
+        # ajout des equations de set sur les free vars
+        for p in paramValues:
+            equations.append(sympy.Eq(self.scalars[p], paramValues[p]))
+        soli = sympy.nsolve(equations, params, guess)        
+        
+        # check validity for ranges
+        for c, val in enumerate(soli):
+            s = params[c]
+            print('SET: fixed', s.name, '=', val)
+            self.scalars[s.name].v = val
+            if self.scalars[s.name].check(): print('SET: => valid')
+            else: print('SET: => invalid'); valid = False
+            
+        # Check validity for inequations
+        params2 = {}
+        for f in paramValues: params2[self.scalars[f]] = paramValues[f]
+        for c, val in enumerate(soli):
+            s = params[c]
+            params2[s.name] = self.scalars[s.name].v
+
+        for c, e in enumerate(self.inequations):
+            ret = self.inequations[e].s.subs(params2)
             #ret = self.inequations[e].s.evalf()
             if ret: print('SET: => ineq %d is valid'%c)
             else: print("SET: => ineq %d is invalid"%c); valid = False

@@ -17,7 +17,7 @@ import numpy
 from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getNbEdges, getNbFaces, getFileAndFormat, \
     printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, \
-    getFaceNos, getEdgeNos, \
+    getFaceNos, getEdgeNos, getMinMaxEdgeLength, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
     _translate, _rotate, _scale, _fixShape, _sewing, _reverse, _splitFaces, \
     _mergeFaces, _trimFaces, _removeFaces, _removeEdges, \

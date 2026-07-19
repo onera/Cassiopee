@@ -32,7 +32,7 @@
 
 //=====================================================================
 // Rotate the full shape or some faces
-// from an axis and an angle in degree
+// from an axis and an angle in degrees
 //=====================================================================
 PyObject* K_OCC::rotate(PyObject* self, PyObject* args)
 {

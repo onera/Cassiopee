@@ -118,6 +118,7 @@ namespace K_OCC
   PyObject* meshEdgesOfFace(PyObject* self, PyObject* args);
 
   PyObject* analyseEdges(PyObject* self, PyObject* args);
+  PyObject* getMinMaxEdgeLength(PyObject* self, PyObject* args);
   PyObject* getFaceArea(PyObject* self, PyObject* args);
   PyObject* getFaceVolume(PyObject* self, PyObject* args);
   PyObject* getFaceMassCenter(PyObject* self, PyObject* args);
