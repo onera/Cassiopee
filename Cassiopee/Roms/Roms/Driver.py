@@ -1789,7 +1789,7 @@ class Driver:
             eqs = eqs.replace(sympy.pi, 3.14)
             eqs = eqs.replace(lambda e: e.is_Pow, lambda e: e)
             eqs = eqs.replace(lambda e: isinstance(e, sympy.Mul) and any(t.is_Pow and t.exp < 0 for t in e.args),
-                lambda e: sympy.Mul(*[t.base**(-t.exp) if t.is_Pow and t.exp < 0 else t for t in e.args]))
+                              lambda e: sympy.Mul(*[t.base**(-t.exp) if t.is_Pow and t.exp < 0 else t for t in e.args]))
             equations.append(eqs)
             for s in self.scalars:
                 mu = self.scalars[s]
@@ -1840,7 +1840,7 @@ class Driver:
         params = []; guess = []
         for s in self.scalars:
             mu = self.scalars[s]
-            if mu.isFree(): 
+            if mu.isFree():
                 params.append(mu)
                 guess.append(mu.v)
         params.reverse() # reverse order to solve for explicit variables
@@ -1858,8 +1858,8 @@ class Driver:
         # ajout des equations de set sur les free vars
         for p in paramValues:
             equations.append(sympy.Eq(self.scalars[p], paramValues[p]))
-        soli = sympy.nsolve(equations, params, guess)        
-        
+        soli = sympy.nsolve(equations, params, guess)
+
         # check validity for ranges
         for c, val in enumerate(soli):
             s = params[c]
@@ -1867,7 +1867,7 @@ class Driver:
             self.scalars[s.name].v = val
             if self.scalars[s.name].check(): print('SET: => valid')
             else: print('SET: => invalid'); valid = False
-            
+
         # Check validity for inequations
         params2 = {}
         for f in paramValues: params2[self.scalars[f]] = paramValues[f]
