@@ -98,6 +98,7 @@ static PyMethodDef Pyocc [] =
 
   {"analyseEdges", K_OCC::analyseEdges, METH_VARARGS},
   {"getMinMaxEdgeLength", K_OCC::getMinMaxEdgeLength, METH_VARARGS},
+  {"getEdgeLength", K_OCC::getEdgeLength, METH_VARARGS},
   {"getFaceArea", K_OCC::getFaceArea, METH_VARARGS},
   {"getFaceVolume", K_OCC::getFaceVolume, METH_VARARGS},
   {"getFaceMassCenter", K_OCC::getFaceMassCenter, METH_VARARGS},
@@ -105,6 +106,7 @@ static PyMethodDef Pyocc [] =
   {"getBoundingBox", K_OCC::getBoundingBox, METH_VARARGS},
   {"getFaceOrientation", K_OCC::getFaceOrientation, METH_VARARGS},
   {"areEdgeIdentical", K_OCC::areEdgeIdentical, METH_VARARGS},
+  {"checkFaceOverlap", K_OCC::checkFaceOverlap, METH_VARARGS},
 
   {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"splitEdge", K_OCC::splitEdge, METH_VARARGS},

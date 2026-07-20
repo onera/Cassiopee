@@ -90,10 +90,11 @@ namespace NUGA
       }
       else // this vertex is near a m2's node => compute nodal normal : weighted with angle between each pair of ray in the node shell (sum is 2PI)
       {
+        #ifndef NDEBUG
         E_Float TOL2 = ARTOL*ARTOL;
         if (ARTOL < 0.) //relative
           TOL2 *= vertices[i].val2;
-
+        #endif
         // find near node : 
         E_Int PGi0 = pt_to_faces[i][0];
         auto PG0 = m2.element(PGi0);

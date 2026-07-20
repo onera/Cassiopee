@@ -22,9 +22,10 @@ __all__ = ['convertCAD2Arrays',
            'readCAD', 'writeCAD', 'createEmptyCAD', 'freeHook',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat',
            'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF',
-           'getFaceNos', 'getEdgeNos',
-           'getMinMaxEdgeLength', 'getFaceArea',
+           'getFaceNos', 'getEdgeNos', 'getEdgesByFace',
+           'getEdgeLength', 'getMinMaxEdgeLength', 'getFaceArea',
            'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
+           'checkFaceOverlap',
            '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
            '_removeFaces', '_removeEdges', '_extractFaces',
@@ -879,6 +880,11 @@ def getEdgeList__(hook, edgeList):
                 return out
     return edgeList
 
+# Return the edge no for a given face
+def getEdgesByFace(hook, noface):
+    edgeNo = occ.getEdgeNoByFace(hook, noface)
+    return edgeNo
+
 # Return the area of specified faces
 def getFaceArea(hook, faceList=None):
     """Return the area of given faces."""
@@ -901,11 +907,22 @@ def getBoundingBox(hook, faceList=None):
     faceList = getFaceList__(hook, faceList)
     return occ.getBoundingBox(hook, faceList)
 
+# Return the length of edges
+def getEdgeLength(hook, edgeList=None):
+    """Return the length by edges."""
+    edgeList = getEdgeList__(hook, edgeList)
+    return occ.getEdgeLength(hook, edgeList)
+
 # Return the min and max edge length by faces
 def getMinMaxEdgeLength(hook, faceList=None):
     """Return the min and max edge length by faces."""
     faceList = getFaceList__(hook, faceList)
     return occ.getMinMaxEdgeLength(hook, faceList)
+
+# Check if face overlaps
+def checkFaceOverlap(hook, face1, face2, tol=1.e-12):
+    """Check if two faces overlpa."""
+    return occ.checkFaceOverlap(hook, face1, face2, tol)
 
 # global CAD check
 def checkCAD(hook):

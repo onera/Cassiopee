@@ -4396,31 +4396,29 @@ static E_Int centroids(const ngon_t& ng, const K_FLD::FloatArray& crd, K_FLD::Fl
   centroids.resize(3, nb_phs, 0.);
 
   E_Float v;
-  E_Int err, errcount=0;
+  E_Int err;
   std::vector<E_Float> vols(nb_phs);
   TriangulatorType dt;
 
   if (!new_algo)
   {
 #ifndef DEBUG_NGON_T
-#pragma omp parallel for private(err, dt, v) reduction(+:errcount)
+#pragma omp parallel for private(err, dt, v)
 #endif
     for (E_Int i = 0; i < nb_phs; ++i){
       err = K_MESH::Polyhedron<UNKNOWN>::metrics<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, centroids.col(i));
       if (!err) vols[i] = v;
-      else ++errcount;
     }
   }
   else
   {
 #ifndef DEBUG_NGON_T
-#pragma omp parallel for private(err, dt, v) reduction(+:errcount)
+#pragma omp parallel for private(err, dt, v)
 #endif
     for (E_Int i = 0; i < nb_phs; ++i){
       err = K_MESH::Polyhedron<UNKNOWN>::metrics2<TriangulatorType>(dt, crd, ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i), v, centroids.col(i), false);
       v = fabs(v);
       if (!err) vols[i] = v;
-      else ++errcount;
     }
   }
 

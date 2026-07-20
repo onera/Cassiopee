@@ -560,16 +560,14 @@ E_Int NUGA::Splitter::triangulate_external_pgs(const K_FLD::FloatArray& crd, ngo
   if (in_or_out == 0) ngon_type::discard_by_box(crd, ngi, false/*i.e we want to discard external contour*/); //INTERNAL ONLY
   else if (in_or_out == 1) ngon_type::discard_by_box(crd, ngi, true/*i.e we want to discard holes*/); //EXTERNAL ONLY
 
-  E_Int nb_pgs = ngi.PGs.size(), count(0);
+  E_Int nb_pgs = ngi.PGs.size();
   Vector_t<bool> toprocess(nb_pgs, false);
   for (E_Int i = 0; i < nb_pgs; ++i)
   {
     toprocess[i] = (ngi.PGs._type[i] == INITIAL_SKIN);
-    if (toprocess[i])++count;
+    //if (toprocess[i]) ++count;
   }
   
-  //std::cout << "nb of remaining PG tp process : " << count << std::endl;
-
   // triangulate any specified PG
   ngon_unit split_graph;
   __split_pgs(crd, ngi, ngo, split_graph, triangulate_pgs<TriangulatorType>, qual_param, &toprocess);
