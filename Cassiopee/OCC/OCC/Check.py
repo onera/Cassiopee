@@ -59,4 +59,3 @@ def check(hook, tol=1.e-12):
     if len(em) > 0:
         print("Warning: multiple edges (connected to > 2 faces): ", em)
     return None
-
