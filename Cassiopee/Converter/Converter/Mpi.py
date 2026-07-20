@@ -47,6 +47,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
+        def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None):
@@ -102,6 +103,7 @@ else: # try import (may fail - core or hang)
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
         def getSizeOf(a): return Internal.getSizeOf(a)
+        def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
         def convertFile2PyTree(fileName, format=None, proc=None):

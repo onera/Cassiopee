@@ -20,7 +20,7 @@ __all__ = [
     'reduce', 'Reduce', 'allreduce', 'Allreduce',
     'bcastZone', 'gatherZones', 'allgatherZones',
     'allgatherDict', 'allgatherDict2', 'allgatherTree',
-    'allgather', 'passNext', 'allgatherNext',
+    'allgather', 'passPrevious', 'passNext', 'allgatherNext',
     'getSizeOf',
     'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
     'readNodesFromPaths', 'readPyTreeFromPaths', 'writeNodesFromPaths',
@@ -198,6 +198,22 @@ def sendRecvC(datas, graph):
     return rcvDatas
 
 #==============================================================================
+# passPrevious
+# pass data to the previous proc
+#==============================================================================
+def passPrevious(data):
+    """Pass data to previous proc."""
+    reqs = []
+    if rank > 0: s = isend(data, dest=rank-1)
+    else: s = isend(data, dest=size-1)
+    reqs.append(s)
+
+    if rank < size-1: data = recv(source=rank+1)
+    else: data = recv(source=0)
+    requestWaitall(reqs)
+    return data
+
+#==============================================================================
 # passNext
 # pass data to the next proc
 #==============================================================================
@@ -205,9 +221,8 @@ def passNext(data):
     """Pass data to next proc."""
     reqs = []
     if rank < size-1: s = isend(data, dest=rank+1)
-    else: s = isend(data, 0)
+    else: s = isend(data, dest=0)
     reqs.append(s)
-    barrier()
 
     if rank > 0: data = recv(source=rank-1)
     else: data = recv(source=size-1)
@@ -574,15 +589,15 @@ def seq(F, *args):
 #==============================================================================
 # Print uniquement du proc 0
 #==============================================================================
-def print0(a):
-    if rank == 0: print(a)
+def print0(*args):
+    if rank == 0: print(*args)
 
 #==============================================================================
 # Print sur tous les procs sequentiellement
 #==============================================================================
-def printA(A):
-    def fprint(A): print(A)
-    seq(fprint, A)
+def printA(*args):
+    def fprint(*args): print(*args)
+    seq(fprint, *args)
 
 #==============================================================================
 # Calcule le dictionnaire des bbox de l'arbre complet, identique
@@ -621,20 +636,23 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, reduction=True,
     """Return the communication graph for different block relation types."""
     if not procDict: procDict = getProcDict(t)
     graph = Distributed.computeGraph(t, type, t2, procDict, rank,
-                                     intersectionsDict, exploc, procDict2, it, reduction=reduction, nbpass=nbpass)
+                                     intersectionsDict, exploc, procDict2, it,
+                                     reduction=reduction, nbpass=nbpass)
+    if not reduction: return graph
 
-    if reduction:
-        # Assure que le graph est le meme pour tous les processeurs
-        g = KCOMM.allgather(graph)
-        graph = {}
-        for i in g:
-            for k in i:
-                if not k in graph: graph[k] = {}
-                for j in i[k]:
-                    if not j in graph[k]: graph[k][j] = []
-                    graph[k][j] += i[k][j]
-                    graph[k][j] = sorted(list(set(graph[k][j])))
+    # Assure que le graph est le meme pour tous les processeurs
+    g = KCOMM.allgather(graph)
+    graph = {}
+    for procg in g:
+        for src, dests in procg.items():
+            mergedSrc = graph.setdefault(src, {})
+            for dst, zoneNames in dests.items():
+                mergedSrc.setdefault(dst, set()).update(zoneNames)
 
+    graph = {
+        src: {dst: sorted(zoneNames) for dst, zoneNames in dests.items()}
+        for src, dests in graph.items()
+    }
     return graph
 
 #=============================================================================

@@ -88,10 +88,8 @@ void K_CONNECTOR::searchMaskInterpolatedCellsNGON(E_Int depth, FldArrayI& cNG,
                                                   FldArrayI& cellN)
 {
   FldArrayI cFE;
-  E_Int* cnp = cNG.begin();
-  E_Int sizeFN = cnp[1];         // taille de la connectivite face/noeuds
-  E_Int nelts = cnp[sizeFN+2];         // nombre d elements
-  std::vector< std::vector<E_Int> > cEEN(nelts);
+  E_Int nelts = cNG.getNElts();
+  std::vector<std::vector<E_Int> > cEEN(nelts);
   K_CONNECT::connectNG2FE(cNG, cFE);
   K_CONNECT::connectFE2EENbrs(cFE, cEEN);
   E_Int nvoisins;
