@@ -46,15 +46,17 @@ PyObject* K_OCC::checkFaceOverlap(PyObject* self, PyObject* args)
   // Find common part
   BRepAlgoAPI_Common common(F1, F2);
 
-  // Explore result (faces)
+  // Explore result in faces
   TopExp_Explorer expl1;
   TopTools_IndexedMapOfShape sf;
   TopExp::MapShapes(common, TopAbs_FACE, sf);
   E_Int nof = sf.Extent(); 
-  if (nof == 0) printf("no overlap.\n");
-  else printf("two faces overlap.\n");
+  //if (nof == 0) printf("no overlap.\n");
+  //else printf("two faces overlap.\n");
   
-  // compute area
+  E_Float returnValue = 0.0;
+
+  // compute commmon area
   GProp_GProps props;
   BRepGProp::SurfaceProperties(F1, props);
   E_Float area1 = props.Mass();
@@ -64,19 +66,37 @@ PyObject* K_OCC::checkFaceOverlap(PyObject* self, PyObject* args)
   {
     BRepGProp::SurfaceProperties(sf(1), props);
     E_Float area = props.Mass();
-    if (area > area1 - tol) printf("full overlap.\n");
-    else printf("partial overlap %g.\n", area/area1);
+    if (area > area1 - tol) 
+    { 
+      //printf("full overlap.\n");
+      returnValue = 1.0;
+    }
+    else 
+    {
+      //printf("partial overlap %g.\n", area/area1); 
+      returnValue = area/area1;
+    }
   }
 
-  // Explore result (edges)
+  // Explore result in edges
   TopTools_IndexedMapOfShape se;
   TopExp::MapShapes(common, TopAbs_EDGE, se);
   E_Int noe = se.Extent(); 
-  if (noe == 0) printf("no overlap.\n");
-  else if (noe == 1) printf("overlap in one edge.\n");
-  else printf("overlap in multiple edges.\n");
+  if (noe == 0) 
+  {
+    //printf("no overlap.\n");
+  }
+  else if (noe == 1) 
+  { 
+    //printf("overlap in one edge/contact.\n");
+    returnValue = -1.0;
+  }
+  else 
+  {
+    //printf("overlap in multiple edges.\n");
+    returnValue = -noe;
+  }
 
-  // Compute 
-  Py_INCREF(Py_None);
-  return Py_None;
+  // return the percentage of overlap (0 to 1)
+  return Py_BuildValue("d", returnValue);
 }

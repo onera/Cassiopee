@@ -447,7 +447,7 @@ E_Float K_COMPGEOM::computeSkewness(
 }
 
 //===========================================================================
-// Calcul de l'aire d un triangle ABC a partir des longueurs de ses 3 cotes
+// Calcul de l'aire d'un triangle ABC a partir des longueurs de ses 3 cotes
 // par la formule de Heron
 //===========================================================================
 E_Float K_COMPGEOM::compTriangleArea(

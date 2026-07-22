@@ -1099,10 +1099,14 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
                 fmt = Internal.getNodeFromName1(CAD, 'format')
                 if fmt is not None: fmt = Internal.getValue(fmt)
                 if file is not None and fmt is not None:
-                    import OCC.PyTree as OCC
-                    import CPlot.Tk as CTK
-                    hook = OCC.readCAD(file, fmt)
-                    CTK.CADHOOK = hook
+                    exists = os.path.exists(file)
+                    if exists:
+                        import OCC.PyTree as OCC
+                        import CPlot.Tk as CTK
+                        hook = OCC.readCAD(file, fmt)
+                        CTK.CADHOOK = hook
+                    else:
+                        print(f"Warning: convertFile2PyTree: CAD file {file} not found.")
             return t
         except:
             if format == 'bin_cgns' or format == 'bin_adf':

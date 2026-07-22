@@ -749,6 +749,35 @@ def _remeshTreeFromEdges(hook, t, edges):
 
     return None
 
+# remesh automatically for quality enhancement
+def _remeshTree4Qual(hook, t):
+    nbFaces = getNbFaces(hook)
+    # find missing faces
+    found = numpy.array((nbFaces), dtype=numpy.int32)
+    found[:] = False
+    FACES = Internal.getNodeFromName1(t, 'FACES')
+    zones = Internal.getZones(FACES)
+    for z in zones:
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        no = Internal.getNodeFromName1(CAD, 'no')
+        no = Internal.getValue(no)
+        found[no-1] = True
+    w = numpy.where(found == False)
+    nedges = []
+    for i in w: # toutes les faces failed
+        edgeno = OCC.getEdgesByFace(hook, i+1)
+        for e in edgeno: 
+            if e not in nedges: nedges.append(e)
+    edges = []
+    EDGES = Internal.getNodeFromName1(t, 'EDGES')
+    zones = Internal.getZones(EDGES)
+    for e in nedges:
+        z = zones[e-1]
+        z = G.refine(z, 0.5) 
+        edges.append(z)
+    _remeshTreeFromEdges(hook, t, edges)
+    return None
+
 # modify hsize for faces from hlist
 # IN: faceList: liste d'entiers start 1
 # IN: hList: liste de (hmin,hmax,hausd)
@@ -1552,7 +1581,7 @@ def _addOCAFCompoundNames(hook, t):
 
     return None
 
-def getComponents(t):
+def getComponents(t, tol=1.e-12):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
     # init FACES with a tag
@@ -1567,10 +1596,11 @@ def getComponents(t):
         C._initVars(z, '__tag__ = %d'%no)
 
     # join all zones
-    G._zip(zones, 1.e-10) # volontairement in place, maybe useless
-    a = T.join(zones)
+    G._zip(zones, tol) # volontairement in place, maybe useless
+    a = T.join(zones, tol=tol) # for self closing not done by zip
     #a = T.splitConnexity(a)
     a = T.splitManifold(a)
+    for c, z in enumerate(a): z[0] = f"component{c}"
 
     # Identify faces in component
     tags = {}
@@ -1589,12 +1619,14 @@ def getComponents(t):
     return a
 
 # tell if component (as obtained by getComponent) is watertight
-def isWatertight(component, leaks=[]):
-    """Tell if componenent is watertight."""
+def isWatertight(component, leaks=[], tol=1.e12):
+    """Tell if component is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T
+    import Geom.PyTree as D
     ext = P.exteriorFaces(component)
     ext = T.splitConnexity(ext)
-    leaks += ext
+    for e in ext: # check if exterior are not degenerated
+        if D.getLength(e) > tol: leaks += [e]
     if leaks != []: return False
     else: return True

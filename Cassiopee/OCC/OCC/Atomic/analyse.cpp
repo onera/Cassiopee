@@ -52,16 +52,21 @@ PyObject* K_OCC::analyseEdges(PyObject* self, PyObject* args)
   E_Float emin = K_CONST::E_MAX_FLOAT;
   E_Float emax = -K_CONST::E_MAX_FLOAT;
   E_Float ltot = 0.;
+  E_Int count = 0;
 
   for (E_Int i=1; i <= edges.Extent(); i++)
   {
     const TopoDS_Edge& E = TopoDS::Edge(edges(i));
     E_Float l = __getLength(E);
-    emax = std::max(emax, l);
-    emin = std::min(emin, l);
-    ltot += l;
+    if (l > 0.0) // avoid degenerated edges
+    {
+      emax = std::max(emax, l);
+      emin = std::min(emin, l);
+      ltot += l;
+      count += 1;
+    }
   }
-  E_Float emean = ltot / edges.Extent();
+  E_Float emean = ltot / count;
 
   // calcul hmax, hausd : 20 pts par edges moyen
   E_Float hmax = emean / 20.;

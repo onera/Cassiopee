@@ -601,8 +601,8 @@ def addFile():
 
     try:
         saveTree()
-        for f in files:
-            t2 = C.convertFile2PyTree(f, density=1.)
+        for file in files:
+            t2 = C.convertFile2PyTree(file, density=1.)
             # Fusion des bases de t et t2
             if t == []: t = t2
             else:

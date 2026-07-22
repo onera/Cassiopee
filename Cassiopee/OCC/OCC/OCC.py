@@ -921,19 +921,8 @@ def getMinMaxEdgeLength(hook, faceList=None):
 
 # Check if face overlaps
 def checkFaceOverlap(hook, face1, face2, tol=1.e-12):
-    """Check if two faces overlpa."""
+    """Check if two faces overlap."""
     return occ.checkFaceOverlap(hook, face1, face2, tol)
-
-# global CAD check
-def checkCAD(hook):
-    """Check CAD."""
-    # check for collapsed faces or edges
-    nbFaces = getNbFaces(hook)
-    for i in range(nbFaces):
-        area = getFaceArea(hook, [i+1])
-        if area < 1.e-16: print(f"Face {i+1} is collapsed.")
-        ret = getMinMaxEdgeLength(hook, [i+1])
-        if ret[0] < 1.e-16: print(f"Face {i+1} has collapsed edge.")
 
 #=============================================================================
 # CAD modeling

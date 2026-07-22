@@ -33,14 +33,13 @@
 // sum edge length
 void edgeLength(TopTools_IndexedMapOfShape& edges, E_Int no, E_Float& L)
 {
-  TopExp_Explorer expl, expl2;
   E_Float length = 0.;
   Standard_Real first, last;
   const TopoDS_Edge& E = TopoDS::Edge(edges(no));
   Handle(Geom_Curve) curve = BRep_Tool::Curve(E, first, last);
+  if (curve.IsNull()) return;
   GeomAdaptor_Curve adaptorCurve(curve, first, last);
-  if (curve.IsNull()) length = 0.;
-  else length = GCPnts_AbscissaPoint::Length(adaptorCurve, first, last);
+  length = GCPnts_AbscissaPoint::Length(adaptorCurve, first, last);
   L += length;
 }
 
@@ -55,7 +54,7 @@ PyObject* K_OCC::getEdgeLength(PyObject* self, PyObject* args)
   GETPACKET;
   GETMAPEDGES;
 
-  E_Float L = 0.;
+  E_Float L = 0.0;
   if (listEdges == Py_None) // all edges of topshape
   {
     for (E_Int noEdge=1; noEdge <= edges.Extent(); noEdge++)
