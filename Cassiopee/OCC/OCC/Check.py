@@ -92,7 +92,7 @@ def checkCAD(hook, tol=1.e-9, repair=False):
     print("INFO: checking degenerated egdes...", flush=True)
     degenEdges = getDegeneratedEdges(hook, tol=tol)
     if len(degenEdges) > 0: print("Warning: degenerated edges: ", degenEdges)
-    else: 
+    else:
         print("INFO: NONE.")
     if repair:
         print("INFO: degenerated edges are bypassed by mesher. No repair needed.")
@@ -123,15 +123,15 @@ def checkCAD(hook, tol=1.e-9, repair=False):
         if len(faces) == 1: edges1.append(e)
         if len(faces) > 2: edgesm.append(e)
     blocked = set(degenEdges)
-    edges1 = [x for x in edges1 if x not in blocked] 
-    edgesm = [x for x in edgesm if x not in blocked] 
+    edges1 = [x for x in edges1 if x not in blocked]
+    edgesm = [x for x in edgesm if x not in blocked]
 
     if len(edges1) > 0:
         print("Warning: lonely edges (connected to one face): ", edges1)
     elif len(edgesm) > 0:
         print("Warning: multiple edges (connected to > 2 faces): ", edgesm)
     else:
-        print("INFO: NONE.") 
+        print("INFO: NONE.")
         score += 1
     if repair:
         if len(edges1) > 0:
@@ -158,10 +158,10 @@ def checkCAD(hook, tol=1.e-9, repair=False):
     else: return True
 
 # check CAD through meshing (coarse)
-# generate: 
+# generate:
 # surface mesh: surface.cgns
 # surface components; component.cgns
-# internal mesh: mesh.cgns 
+# internal mesh: mesh.cgns
 def checkMesh(hook, tol=1.e-9, repair=False):
     import Transform.PyTree as T
     import Converter.PyTree as C
@@ -191,10 +191,10 @@ def checkMesh(hook, tol=1.e-9, repair=False):
     for c, i in enumerate(a):
         leaks = []
         ret = OCC.isWatertight(i, leaks, tol=tol)
-        if ret: 
+        if ret:
             print(f"INFO: component {c} is watertight.")
             watertight[c] = True
-        else: 
+        else:
             print(f"Warning: component {c} is NOT watertight ({len(leaks)} holes).")
             watertight[c] = False
 
@@ -226,7 +226,7 @@ def checkMesh(hook, tol=1.e-9, repair=False):
         e2 = Internal.getElementNodes(j)
         #result = e1[0][1] == e2[0][1]
         ret = numpy.array_equal(e1[0][1], e2[0][1])
-        if not ret: 
+        if not ret:
             print(f"Warning: component {c} is not reorder stable.")
             orderStable[c] = False
         else: orderStable[c] = True

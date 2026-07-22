@@ -766,14 +766,14 @@ def _remeshTree4Qual(hook, t):
     nedges = []
     for i in w: # toutes les faces failed
         edgeno = OCC.getEdgesByFace(hook, i+1)
-        for e in edgeno: 
+        for e in edgeno:
             if e not in nedges: nedges.append(e)
     edges = []
     EDGES = Internal.getNodeFromName1(t, 'EDGES')
     zones = Internal.getZones(EDGES)
     for e in nedges:
         z = zones[e-1]
-        z = G.refine(z, 0.5) 
+        z = G.refine(z, 0.5)
         edges.append(z)
     _remeshTreeFromEdges(hook, t, edges)
     return None
