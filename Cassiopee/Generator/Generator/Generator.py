@@ -873,7 +873,8 @@ def zip(array, tol=1e-12):
         for a in array:
             if len(a) == 4:
                 ext = P.exteriorFaces(a)
-                if C.getNCells(ext) > 0: extFaces.append(ext)
+                #if C.getNCells(ext) > 0: print("NULL FACE EXT", flush=True)
+                extFaces.append(ext)
         return generator.closeBorders(array, extFaces, tol)
     else:
         return generator.closeBorders([array], [], tol)[0]

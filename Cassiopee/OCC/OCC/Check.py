@@ -38,36 +38,70 @@ def getDegeneratedFaces(hook, tol=1.e-12):
         if area <= tol: out.append(i+1)
     return out
 
-# Check if face overlap
-def getFaceOverlap(hook, tol=1.e-12):
+# Check if faces overlap
+def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
     nbFaces = OCC.getNbFaces(hook)
-    # get bbox
+    # compute bbox of faces
     bb = {}
     for i in range(nbFaces):
         bb[i] = OCC.getBoundingBox(hook, [i+1])
-    # check overlap
-    intersectings = []
-    overlaps = []
-    for i in range(nbFaces):
-        bb1 = bb[i]
-        for j in range(i+1, nbFaces):
-            bb2 = bb[j]
-            if bb1[3] < bb2[0] or bb1[0] > bb2[3]: continue
-            if bb1[4] < bb2[1] or bb1[1] > bb2[4]: continue
-            if bb1[5] < bb2[2] or bb1[2] > bb2[5]: continue
-            ret = OCC.checkFaceOverlap(hook, i+1, j+1)
-            if ret == -1.:
-                print(f"INFO: Face {i+1} and {j+1} in contact.")
-            elif ret < -1:
-                print(f"INFO: Face {i+1} and {j+1} intersects.")
-                intersectings.append( (i+1,j+1) )
-            elif ret > 0:
-                print(f"INFO: Face {i+1} and {j+1} overlaps.")
-                overlaps.append( (i+1,j+1) )
+
+    # check face overlap
+    intersectings = []; overlaps = []
+    if byOCAFLabels: # by OCAF Label components
+        found = {}
+        for i in range(nbFaces): found[i+1] = False
+        ret = OCC.getFaceNameInOCAF(hook)
+        compounds = {}
+        for l in range(len(ret)//2):
+            label = ret[2*l]
+            nos = ret[2*l+1]
+            for no in nos: found[no] = True
+            compounds[label] = nos
+        rest = []
+        for no in found:
+            if not found[no]: rest.append(no)
+        compounds['noLabels'] = rest
+        for c in compounds:
+            print(f"INFO: overlaps in component {c}...", flush=True)
+            nos = compounds[c]; lnos = len(nos)
+            for n1 in range(lnos):
+                i = nos[n1]-1; bb1 = bb[i]
+                for n2 in range(n1+1, lnos):
+                    j = nos[n2]-1; bb2 = bb[j]
+                    if bb1[3] < bb2[0] or bb1[0] > bb2[3]: continue
+                    if bb1[4] < bb2[1] or bb1[1] > bb2[4]: continue
+                    if bb1[5] < bb2[2] or bb1[2] > bb2[5]: continue
+                    ret = OCC.checkFaceOverlap(hook, i+1, j+1, tol=tol)
+                    if ret == -1.:
+                        print(f"INFO: Face {i+1} and {j+1} in contact.")
+                    elif ret < -1:
+                        print(f"INFO: Face {i+1} and {j+1} intersects.")
+                        intersectings.append( (i+1,j+1) )
+                    elif ret > 0:
+                        print(f"INFO: Face {i+1} and {j+1} overlaps.")
+                        overlaps.append( (i+1,j+1) )
+    else: # for all faces in one go
+        for i in range(nbFaces):
+            bb1 = bb[i+1]
+            for j in range(i+1, nbFaces):
+                bb2 = bb[j+1]
+                if bb1[3] < bb2[0] or bb1[0] > bb2[3]: continue
+                if bb1[4] < bb2[1] or bb1[1] > bb2[4]: continue
+                if bb1[5] < bb2[2] or bb1[2] > bb2[5]: continue
+                ret = OCC.checkFaceOverlap(hook, i+1, j+1, tol=tol)
+                if ret == -1.:
+                    print(f"INFO: Face {i+1} and {j+1} in contact.")
+                elif ret < -1:
+                    print(f"INFO: Face {i+1} and {j+1} intersects.")
+                    intersectings.append( (i+1,j+1) )
+                elif ret > 0:
+                    print(f"INFO: Face {i+1} and {j+1} overlaps.")
+                    overlaps.append( (i+1,j+1) )
     return overlaps, intersectings
 
 # Check CAD
-def checkCAD(hook, tol=1.e-9, repair=False):
+def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     import numpy
     score = 0
 
@@ -143,7 +177,7 @@ def checkCAD(hook, tol=1.e-9, repair=False):
     # check for face overlap
     #=======================
     print("INFO: checking face overlap...", flush=True)
-    overlaps, intersectings = getFaceOverlap(hook, tol=tol)
+    overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
     if len(intersectings) == 0 and len(overlaps) == 0:
         print("INFO: NONE.")
         score += 1
@@ -162,7 +196,7 @@ def checkCAD(hook, tol=1.e-9, repair=False):
 # surface mesh: surface.cgns
 # surface components; component.cgns
 # internal mesh: mesh.cgns
-def checkMesh(hook, tol=1.e-9, repair=False):
+def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     import Transform.PyTree as T
     import Converter.PyTree as C
     import Generator.PyTree as G
@@ -177,13 +211,14 @@ def checkMesh(hook, tol=1.e-9, repair=False):
     (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
     #t = OCC.meshAll(hook, hmin=hmax, hmax=hmax, hausd=hausd) # constant hmax
     t = OCC.meshAll(hook, hmin=hmin, hmax=hmax*2., hausd=hausd*0.1) # variable h
+    #t = OCC.meshAllOCC(hook, hausd=hausd*0.1, angularDeflection=10.)
     C.convertPyTree2File(t, 'surface.cgns')
 
     #==============
     # is watertight
     #==============
     print("INFO: check if CAD is watertight...", flush=True)
-    a = OCC.getComponents(t, tol=hmin*1.e-4)
+    a = OCC.getComponents(t, tol=hmin*1.e-4, byOCAFLabels=byOCAFLabels)
     C.convertPyTree2File(a, 'components.cgns')
     print("INFO: find %d component(s)."%len(a))
     watertight = numpy.empty((len(a)), dtype=numpy.int32)
@@ -221,6 +256,7 @@ def checkMesh(hook, tol=1.e-9, repair=False):
     orderStable = numpy.empty((len(a)), dtype=numpy.int32)
     orderStable[:] = False
     for c, i in enumerate(a):
+        T._reorder(i, (1,))
         e1 = Internal.getElementNodes(i)
         j = T.reorder(i, (1,))
         e2 = Internal.getElementNodes(j)

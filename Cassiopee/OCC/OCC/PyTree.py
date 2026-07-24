@@ -611,7 +611,7 @@ def meshAllPara(hook, hmin=-1., hmax=-1., hausd=-1.):
     D2._addProcNode(t, Cmpi.rank)
     return t
 
-#=============================
+#==================================================
 def meshAllOCC(hook, hausd, angularDeflection=28.):
     t = C.newPyTree(['EDGES', 'FACES'])
 
@@ -749,7 +749,7 @@ def _remeshTreeFromEdges(hook, t, edges):
 
     return None
 
-# remesh automatically for quality enhancement
+# remesh automatically for quality enhancement or FAILED faces
 def _remeshTree4Qual(hook, t):
     nbFaces = getNbFaces(hook)
     # find missing faces
@@ -1550,8 +1550,8 @@ def identifyTags__(a):
 # add family name on faces taken from OCAF compounds
 def _addOCAFCompoundNames(hook, t):
     # FACES
-    ret = getFaceNameInOCAF(hook)
     pos = getAllPos(t)
+    ret = getFaceNameInOCAF(hook)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'FACES')
     for i in range(r):
@@ -1563,10 +1563,8 @@ def _addOCAFCompoundNames(hook, t):
                 C._tagWithFamily(z, name, add=True)
             except: pass
         C._addFamily2Base(b, name)
-
     # EDGES
-    ret = OCC.occ.getEdgeNameInOCAF2(hook)
-    pos = getAllPos(t)
+    ret = OCC.getEdgeNameInOCAF(hook)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'EDGES')
     for i in range(r):
@@ -1581,11 +1579,12 @@ def _addOCAFCompoundNames(hook, t):
 
     return None
 
-def getComponents(t, tol=1.e-12):
+def getComponents(t, tol=1.e-12, byOCAFLabels=False):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
-    # init FACES with a tag
     FACES = Internal.getNodeFromName1(t, 'FACES')
+
+    # add the no to FACES as __tag__ field
     zones = Internal.getZones(FACES)
     for z in zones:
         # Get face number
@@ -1595,12 +1594,41 @@ def getComponents(t, tol=1.e-12):
         # init tag
         C._initVars(z, '__tag__ = %d'%no)
 
-    # join all zones
-    G._zip(zones, tol) # volontairement in place, maybe useless
-    a = T.join(zones, tol=tol) # for self closing not done by zip
-    #a = T.splitConnexity(a)
-    a = T.splitManifold(a)
-    for c, z in enumerate(a): z[0] = f"component{c}"
+    if byOCAFLabels: # by OCAF Labels components
+        # Find components by OCAF names if possible
+        zones = Internal.getZones(FACES)
+        families = C.getFamilyZoneNames(FACES)
+        found = {}
+        for z in zones: found[z[0]] = False
+        compounds = {}
+        for f in families:
+            zs = C.getFamilyZones(FACES, f)
+            for z in zs: found[z[0]] = True
+            compounds[f] = zs
+        rest = []
+        for n in found:
+            if not found[n]:
+                z = Internal.getNodeFromName1(zones, n) 
+                rest.append(z)
+        compounds['noLabels'] = rest
+        a = []
+        for c in compounds:
+            print(f"INFO: building component {c}...", flush=True)
+            zs = compounds[c]
+            if zs == []: continue
+            G._zip(zs, tol) # volontairement in place, maybe useless
+            b = T.join(zs, tol=tol) # for self closing not done by zip
+            #b = T.splitConnexity(b)
+            b = T.splitManifold(b)
+            a += b
+        for c, z in enumerate(a): z[0] = f"component{c}"
+    else:
+        # join all zones
+        G._zip(zones, tol) # volontairement in place, maybe useless
+        a = T.join(zones, tol=tol) # for self closing not done by zip
+        #a = T.splitConnexity(a)
+        a = T.splitManifold(a)
+        for c, z in enumerate(a): z[0] = f"component{c}"
 
     # Identify faces in component
     tags = {}
@@ -1610,11 +1638,11 @@ def getComponents(t, tol=1.e-12):
     # Get the component number for each zone
     pos = getAllPos(t)
     for k in tags:
-        C._addFamily2Base(FACES, 'Component%02d'%k)
+        C._addFamily2Base(FACES, 'Component%03d'%k)
         faces = tags[k]
         for f in faces:
             z = getFace(t, pos, f)
-            C._tagWithFamily(z, 'Component%02d'%k, add=True)
+            C._tagWithFamily(z, 'Component%03d'%k, add=True)
 
     return a
 

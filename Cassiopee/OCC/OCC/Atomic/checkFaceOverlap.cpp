@@ -61,7 +61,7 @@ PyObject* K_OCC::checkFaceOverlap(PyObject* self, PyObject* args)
   BRepGProp::SurfaceProperties(F1, props);
   E_Float area1 = props.Mass();
   BRepGProp::SurfaceProperties(F2, props);
-  E_Float area2 = props.Mass();
+  //E_Float area2 = props.Mass();
   if (nof > 0)
   {
     BRepGProp::SurfaceProperties(sf(1), props);

@@ -2032,7 +2032,6 @@ E_Int K_IO::GenIO::hdfcgnsWritePaths(char* file, PyObject* treeList,
         strcpy(spath, path);
         strcat(spath, "/");
         strcat(spath, nodeName);
-
         herr_t status = H5Lexists(gidp, nodeName, H5P_DEFAULT);
         if (status > 0)
         {

@@ -17,9 +17,9 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "generator.h"
-using namespace std;
-using namespace K_FLD;
 # include "Tetgen/tetgen.h"
+
+#include <setjmp.h>
 int __Error__ = 0;
 jmp_buf __env__;
 
@@ -325,9 +325,10 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   int val;
   val = setjmp(__env__); // enregistre l'environnement pour retour d'erreur
   if (val == 0) // premier passage
+  {
     tetrahedralize(&b, &in, &out, NULL, NULL);
-
-  if (val == 1) // erreur
+  }
+  else // erreur
   { 
     PyErr_SetString(PyExc_TypeError, "tetgen: failed.");
     return NULL;

@@ -7314,7 +7314,6 @@ def mergeTrees(t1, t2):
     for n in t2[2]:
         if n[3] != 'CGNSBase_t' and n[3] != 'CGNSLibraryVersion_t': nodes.append(n)
 
-    for n in nodes: print(n[0])
     t1p[2] += nodes
 
     return t1p
