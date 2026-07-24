@@ -41,7 +41,8 @@ PyObject* K_CONNECT::V_cleanConnectivity(
   E_Float tol, E_Bool rmOverlappingPts,
   E_Bool rmOrphanPts, E_Bool rmDuplicatedFaces,
   E_Bool rmDuplicatedElts, E_Bool rmDegeneratedFaces,
-  E_Bool rmDegeneratedElts, E_Bool exportIndirPts
+  E_Bool rmDegeneratedElts, E_Bool exportIndirPts,
+  E_Bool* modified
 )
 {
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
@@ -62,14 +63,14 @@ PyObject* K_CONNECT::V_cleanConnectivity(
                                 tol, rmOverlappingPts, rmOrphanPts,
                                 rmDuplicatedFaces, rmDuplicatedElts,
                                 rmDegeneratedFaces, rmDegeneratedElts,
-                                exportIndirPts);
+                                exportIndirPts, modified);
   }
   else
   {
     o = V_cleanConnectivityME(posx, posy, posz, varString, f, cn,
                               eltType, tol, rmOverlappingPts, rmOrphanPts,
                               rmDuplicatedElts, rmDegeneratedElts,
-                              exportIndirPts);
+                              exportIndirPts, modified);
   }
   return o;
 }
@@ -81,7 +82,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   E_Float tol, E_Bool rmOverlappingPts, E_Bool rmOrphanPts,
   E_Bool rmDuplicatedFaces, E_Bool rmDuplicatedElts,
   E_Bool rmDegeneratedFaces, E_Bool rmDegeneratedElts,
-  E_Bool exportIndirPts
+  E_Bool exportIndirPts, E_Bool* modified
 )
 {
   E_Bool rmDirtyFaces = (rmDuplicatedFaces || rmDegeneratedFaces);
@@ -376,10 +377,12 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
     }
 
     RELEASESHAREDU(tpl, f2, cn2);
+    if (modified != NULL) *modified = true;
   }
   else  // nothing to do, copy input connectivity
   {
     tpl = K_ARRAY::buildArray3(f, varString, cn, "NGON", api);
+    if (modified != NULL) *modified = false;
   }
   if (exportIndirPts)
   {
@@ -731,7 +734,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   FldArrayF& f, FldArrayI& cn, const char* eltType,
   E_Float tol, E_Bool rmOverlappingPts, E_Bool rmOrphanPts,
   E_Bool rmDuplicatedElts, E_Bool rmDegeneratedElts,
-  E_Bool exportIndirPts
+  E_Bool exportIndirPts, E_Bool* modified
 )
 {
   PyObject* tpl = NULL;
@@ -923,10 +926,12 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       }
     }
     RELEASESHAREDU(tpl, f2, cn2);
+    if (modified != NULL) *modified = true;
   }
   else  // nothing to do, copy input connectivity
   {
     tpl = K_ARRAY::buildArray3(f, varString, cn, eltType, api);
+    if (modified != NULL) *modified = false;
   }
   
   if (exportIndirPts)
