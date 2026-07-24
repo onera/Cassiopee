@@ -1608,7 +1608,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
         rest = []
         for n in found:
             if not found[n]:
-                z = Internal.getNodeFromName1(zones, n) 
+                z = Internal.getNodeFromName1(zones, n)
                 rest.append(z)
         compounds['noLabels'] = rest
         a = []
