@@ -1582,7 +1582,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             intersect = G.bboxIntersection(zI,zJ)
             if intersect>0:
                 isBodiesIntersect=True
-                break;    
+                break;
 
     #============================
     # STEP 2: Check snears/vmins
