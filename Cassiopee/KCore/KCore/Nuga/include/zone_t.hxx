@@ -294,7 +294,7 @@ void zone_t<crd_t, ngo_t>::set_join_types(E_Int& color)
     for (E_Int i = 0; i < nbj; ++i)
     {
       E_Int id = ids[i] - 1;
-      assert (id > -1 && id < _ng.PGs._type.size());
+      assert (id > -1 && id < (E_Int)_ng.PGs._type.size());
       _ng.PGs._type[id] = color;
     }
     

@@ -218,7 +218,7 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     # is watertight
     #==============
     print("INFO: check if CAD is watertight...", flush=True)
-    a = OCC.getComponents(t, tol=hmin*1.e-4, byOCAFLabels=byOCAFLabels)
+    a = OCC.getComponents(t, tol=hmin*1.e-3, byOCAFLabels=byOCAFLabels)
     C.convertPyTree2File(a, 'components.cgns')
     print("INFO: find %d component(s)."%len(a))
     watertight = numpy.empty((len(a)), dtype=numpy.int32)

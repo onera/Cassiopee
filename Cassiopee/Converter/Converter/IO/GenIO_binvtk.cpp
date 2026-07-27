@@ -908,7 +908,7 @@ E_Int K_IO::GenIO::binvtkwrite(
   posx = K_ARRAY::isCoordinateXPresent(varString);
   posy = K_ARRAY::isCoordinateYPresent(varString);
   posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1)
+  if (posx == -1 || posy == -1 || posz == -1)
   {
     printf("Warning: binvtkwrite: zones do not have coordinates. Not written.\n");
     return 1;

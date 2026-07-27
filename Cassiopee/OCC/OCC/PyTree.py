@@ -986,7 +986,6 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1., hm
 
 # mesh all faces or a subset from edges U
 def _meshAllFacesStruct(hook, t, faceList=None):
-
     b = Internal.getNodeFromName1(t, 'EDGES')
     dedges = []
     for z in Internal.getZones(b):
@@ -1543,11 +1542,12 @@ def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
     _setLonelyEdgesColor(t)
     return None
 
+# internal function
 def identifyTags__(a):
     array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
     return OCC.identifyTags__(array)
 
-# add family name on faces taken from OCAF compounds
+# add family name on faces taken from OCAF labels
 def _addOCAFCompoundNames(hook, t):
     # FACES
     pos = getAllPos(t)
@@ -1579,6 +1579,11 @@ def _addOCAFCompoundNames(hook, t):
 
     return None
 
+# get components
+# IN: t: meshed tree
+# IN: tol: tolerance for face zipping
+# IN: byOCAFLabels: if true, make component following OCAF
+# return components with a field tag corresponding to face number
 def getComponents(t, tol=1.e-12, byOCAFLabels=False):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
@@ -1647,7 +1652,10 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
     return a
 
 # tell if component (as obtained by getComponent) is watertight
-def isWatertight(component, leaks=[], tol=1.e12):
+# IN: component: one zone component
+# IN: tol: tol to discard degenerated exterior faces check
+# OUT: leaks: leaks corresponding to exterior faces 
+def isWatertight(component, leaks=[], tol=1.e-12):
     """Tell if component is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T

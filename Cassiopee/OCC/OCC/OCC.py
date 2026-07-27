@@ -669,13 +669,116 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None, order=1):
         e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
     dedges = Generator.zip(dedges, tol=hmin/100.) # safe and necessary for corner/seam points
+    #dedges = regularizeEdges(hook, dedges)
     #if order > 1:
     #    dedges = switch2UV(dedges)
     #    for i, e in enumerate(dedges):
     #        e = Converter.convertLO2HO(e, order=order)
     #        dedges[i] = occ.evalEdge(hook, e, i+1)
-
     return dedges
+
+# regularize edges
+# IN: edges: meshed edges
+def regularizeEdges(hook, edges, tol=1.e-12):
+    import KCore.Vector as Vector
+    # get extreme points and h
+    Pe = {}
+    for c, e in enumerate(edges):
+        P1 = Converter.getValue(e, 0)
+        P1b = Converter.getValue(e, 1)
+        h1 = Vector.sub(P1, P1b)
+        h1 = Vector.norm(h1)
+        P2 = Converter.getValue(e, -1)
+        P2b = Converter.getValue(e, -2)
+        h2 = Vector.sub(P2, P2b)
+        h2 = Vector.norm(h2)
+        Pe[c] = (P1, h1, P2, h2)
+    nbEdges = len(edges)
+    for c in range(nbEdges):
+        edge = edges[c]
+        if KCore.isNamePresent(edge, 'CoordinateX') != -1:
+            edge2 = Converter.extractVars(edge, ['CoordinateX','CoordinateY','CoordinateZ'])
+        else:
+            edge2 = Converter.extractVars(edge, ['x','y','z'])
+        Pe1 = Pe[c]
+        # left side
+        hmin1 = Pe1[1]
+        for d in range(nbEdges):
+            Pe2 = Pe[d]
+            if c != d:
+                d1 = Vector.sub(Pe1[0], Pe2[0])
+                d1 = Vector.norm(d1)
+                if d1 < tol: hmin1 = min(hmin1, Pe2[1])
+                d2 = Vector.sub(Pe1[0], Pe2[2])
+                d2 = Vector.norm(d2)
+                if d2 < tol: hmin1 = min(hmin1, Pe2[3])
+        # right side
+        hmin2 = Pe1[3]
+        for d in range(nbEdges):
+            Pe2 = Pe[d]
+            if c != d:
+                d1 = Vector.sub(Pe1[2], Pe2[0])
+                d1 = Vector.norm(d1)
+                if d1 < tol: hmin2 = min(hmin2, Pe2[1])
+                d2 = Vector.sub(Pe1[2], Pe2[2])
+                d2 = Vector.norm(d2)
+                if d2 < tol: hmin2 = min(hmin2, Pe2[3])
+
+        # by refine
+        #factor = -1
+        #if hmin1 < 0.9*Pe1[1]: # remesh
+        #    factor = Pe1[1]/hmin1
+        #    factor = max(factor, 3.0)
+        #if hmin2 < 0.9*Pe1[3]: # remesh
+        #    factor = max(factor, Pe1[3]/hmin2)
+        #    factor = max(factor, 3.0)
+        #if factor > 0:
+        #    print("remeshing", factor)
+        #    edge2 = Generator.refine(edge2, factor, 1)
+        #    edge2 = Geom.getCurvilinearAbscissa(edge2)
+        #    edge2 = occ.meshOneEdge(hook, c+1, -1, -1, -1, -1, edge2)
+        #    edges[c] = edge2
+
+        # by geometric remeshing
+        factor = -1
+        if hmin1 < 0.9*Pe1[1]:
+            hmin1 = max(hmin1, Pe1[1]/3.0) # limiteur
+            npts = Converter.getNPts(edge2)
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2,1,1))
+            b2 = Transform.subzone(edge2, (npts//2,1,1), (-1,1,1))
+            P4 = Converter.getValue(b2, 0)
+            P5 = Converter.getValue(b2, 1)
+            h = Vector.sub(P4, P5)
+            h = Vector.norm(h)
+            if h > 1.e-12: 
+                d = Geom.distrib2(b1, hmin1, h, algo=1)
+                d = Geom.getDistribution(d)
+                b1 = Generator.map(b1, d, dir=1)
+                edge2 = Transform.join(b1, b2)
+                factor = 1
+            
+        if hmin2 < 0.9*Pe1[3]:
+            hmin2 = max(hmin2, Pe1[3]/3.0) # limiteur
+            npts = Converter.getNPts(edge2)
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2,1,1))
+            b2 = Transform.subzone(edge2, (npts//2,1,1), (-1,1,1))
+            P4 = Converter.getValue(b1, -1)
+            P5 = Converter.getValue(b1, -2)
+            h = Vector.sub(P4, P5)
+            h = Vector.norm(h)
+            if h > 1.e-12:
+                d = Geom.distrib2(b2, h, hmin2, algo=1)
+                d = Geom.getDistribution(d)
+                b2 = Generator.map(b2, d, dir=1)
+                edge2 = Transform.join(b1, b2)
+                factor = 1
+
+        if factor > 0:
+            edge2 = Geom.getCurvilinearAbscissa(edge2)
+            edge2 = occ.meshOneEdge(hook, c+1, -1, -1, -1, -1, edge2)
+            edges[c] = edge2
+
+    return edges
 
 #=================================================================
 # mesh TRI given CAD faces from discrete edges U + hList
