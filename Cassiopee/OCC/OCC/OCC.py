@@ -750,13 +750,13 @@ def regularizeEdges(hook, edges, tol=1.e-12):
             P5 = Converter.getValue(b2, 1)
             h = Vector.sub(P4, P5)
             h = Vector.norm(h)
-            if h > 1.e-12: 
+            if h > 1.e-12:
                 d = Geom.distrib2(b1, hmin1, h, algo=1)
                 d = Geom.getDistribution(d)
                 b1 = Generator.map(b1, d, dir=1)
                 edge2 = Transform.join(b1, b2)
                 factor = 1
-            
+
         if hmin2 < 0.9*Pe1[3]:
             hmin2 = max(hmin2, Pe1[3]/3.0) # limiteur
             npts = Converter.getNPts(edge2)

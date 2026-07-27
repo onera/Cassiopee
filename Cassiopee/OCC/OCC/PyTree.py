@@ -1654,7 +1654,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
 # tell if component (as obtained by getComponent) is watertight
 # IN: component: one zone component
 # IN: tol: tol to discard degenerated exterior faces check
-# OUT: leaks: leaks corresponding to exterior faces 
+# OUT: leaks: leaks corresponding to exterior faces
 def isWatertight(component, leaks=[], tol=1.e-12):
     """Tell if component is watertight."""
     import Post.PyTree as P
