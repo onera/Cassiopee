@@ -41,12 +41,13 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   E_Bool rmDegeneratedFaces = true;
   E_Bool rmDegeneratedElts = true;
   E_Bool exportIndirPts = false;
+  PyObject* status;
   
-  if (!PYPARSETUPLE_(args, O_ R_ BBB_ BBBB_,
+  if (!PYPARSETUPLE_(args, O_ R_ BBBB_ BBB_ O_,
                     &array, &eps, &rmOverlappingPts, &rmOrphanPts,
                     &rmDuplicatedFaces, &rmDuplicatedElts,
                     &rmDegeneratedFaces, &rmDegeneratedElts,
-                    &exportIndirPts)) return NULL;
+                    &exportIndirPts, &status)) return NULL;
 
   // Check array
   E_Int im, jm, km;
@@ -67,15 +68,21 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   posx++; posy++; posz++;
 
   E_Int api = f->getApi();
+  PyObject* tpl = NULL;
+  E_Bool modified = true;
 
-  if (res == 1)
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "close: unrecognised type of array.");
+    return NULL;
+  }
+  else if (res == 1)
   {
     closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api); 
-    RELEASESHAREDS(array, f);
-    return tpl;
+    tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
   }
-  else if (res == 2)
+  else  // res = 2
   { 
     if (strchr(eltType, '*') != NULL)
     {
@@ -85,20 +92,28 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
       return NULL;
     }
 
-    PyObject* tpl = K_CONNECT::V_cleanConnectivity(
-        varString, *f, *cn, eltType, eps,
-        rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces, rmDuplicatedElts,
-        rmDegeneratedFaces, rmDegeneratedElts, exportIndirPts);
+    tpl = K_CONNECT::V_cleanConnectivity(
+      varString, *f, *cn, eltType, eps,
+      rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces, rmDuplicatedElts,
+      rmDegeneratedFaces, rmDegeneratedElts, exportIndirPts, &modified);
+  }
 
-    RELEASESHAREDU(array, f, cn);
-    return tpl;
-  }
-  else
+  if (status != Py_None)
   {
-    PyErr_SetString(PyExc_TypeError,
-                    "close: unrecognised type of array.");
-    return NULL;
+    if (!PyDict_Check(status))
+    {
+      Py_XDECREF(tpl);
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                      "closeMesh: status must be a dict.");
+      return NULL;
+    }
+
+    PyDict_SetItemString(status, "modified", modified ? Py_True : Py_False);
   }
+
+  RELEASESHAREDB(res, array, f, cn);
+  return tpl;
 }
 
 // ============================================================================
@@ -184,73 +199,73 @@ void K_GENERATOR::closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
     E_Int ind, indt; // indt: index in kdtree
     // i = 1
     E_Int shifti = 0;
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < nk; k++)
-      for (E_Int j = 0; j < nj; j++)
-      {
-        ind = shifti + j*ni + k*ninj;
-        indt = k*nj + j;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirI[indt] = ind;
-      }
+    for (E_Int j = 0; j < nj; j++)
+    {
+      ind = shifti + j*ni + k*ninj;
+      indt = k*nj + j;
+      xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+      indirI[indt] = ind;
+    }
     // i = ni
     shifti = ni-1;
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < nk; k++)
-      for (E_Int j = 0; j < nj; j++)
-      {
-        ind = shifti + j*ni + k*ninj;
-        indt = njnk + k*nj + j;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirI[indt] = ind;
-      }    
+    for (E_Int j = 0; j < nj; j++)
+    {
+      ind = shifti + j*ni + k*ninj;
+      indt = njnk + k*nj + j;
+      xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+      indirI[indt] = ind;
+    }    
     // j = 1
     E_Int shiftj = 0;
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < nk; k++)
-      for (E_Int i = 0; i < ni; i++)
-      {
-        ind = i + shiftj*ni + k*ninj;
-        indt = 2*njnk + k*ni + i;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirI[indt] = ind;
-      }
+    for (E_Int i = 0; i < ni; i++)
+    {
+      ind = i + shiftj*ni + k*ninj;
+      indt = 2*njnk + k*ni + i;
+      xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+      indirI[indt] = ind;
+    }
     // j = nj
     shiftj = nj-1;
-    #pragma omp for
+    #pragma omp for collapse(2)
     for (E_Int k = 0; k < nk; k++)
-      for (E_Int i = 0; i < ni; i++)
-      {
-        ind = i + shiftj*ni + k*ninj;
-        indt = 2*njnk + nink + k*ni + i;
-        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-        indirI[indt] = ind;
-      }
+    for (E_Int i = 0; i < ni; i++)
+    {
+      ind = i + shiftj*ni + k*ninj;
+      indt = 2*njnk + nink + k*ni + i;
+      xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+      indirI[indt] = ind;
+    }
     
     if ( nk > 1 )
     {
       // k = 1
       E_Int shiftk = 0;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj; j++)
-        for (E_Int i = 0; i < ni; i++)
-        {
-          ind = i + j*ni + shiftk*ninj;
-          indt = 2*(njnk + nink) + j*ni + i;
-          xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-          indirI[indt] = ind;
-        }
+      for (E_Int i = 0; i < ni; i++)
+      {
+        ind = i + j*ni + shiftk*ninj;
+        indt = 2*(njnk + nink) + j*ni + i;
+        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+        indirI[indt] = ind;
+      }
       // k = nk
       shiftk = nk-1;
-      #pragma omp for
+      #pragma omp for collapse(2)
       for (E_Int j = 0; j < nj; j++)
-        for (E_Int i = 0; i < ni; i++)
-        {
-          ind = i + j*ni + shiftk*ninj;
-          indt = 2*(njnk + nink) + ninj + j*ni + i;
-          xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
-          indirI[indt] = ind;
-        }
+      for (E_Int i = 0; i < ni; i++)
+      {
+        ind = i + j*ni + shiftk*ninj;
+        indt = 2*(njnk + nink) + ninj + j*ni + i;
+        xp[indt] = xt[ind]; yp[indt] = yt[ind]; zp[indt] = zt[ind];
+        indirI[indt] = ind;
+      }
     }
   }
   
