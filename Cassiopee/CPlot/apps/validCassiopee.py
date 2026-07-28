@@ -353,15 +353,14 @@ def setPaths():
         loc = kwargs.get('loc', 'LOCAL')
         if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
         if PREFS["validType"] == "regression":
-            notTested = ['Upmost', 'FastP']
             paths = list(args)[1:]
             for path in paths:
                 if path is None: continue
-                print('Info: getting {} module tests in: {}.'.format(loc.lower(), path))
+                print(f'Info: getting {loc.lower()} module tests in: {path}.')
                 try: mods = [entry.name for entry in os.scandir(path) if entry.is_dir()]
                 except: mods = []
                 for mod in mods:
-                    if mod not in notTested and mod not in MODULESDIR[loc]:
+                    if mod not in MODULESDIR[loc]:
                         if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
                             # Skip modules which aren't found locally - would hang
                             continue
@@ -540,7 +539,7 @@ def runSingleTest(no, module, test, update=False):
     testName = module+'/'+test
     testr = os.path.splitext(test)
     if PREFS["validType"] == "validation":
-        path = os.path.join(modulesDir, testr[0]) # TODO
+        path = os.path.join(modulesDir, testr[0])
         test = "test.py"
         ncpus, nthreads = getCPUAndThreadFromUsageLine(os.path.join(path, test), 1)
         seq = True if ncpus == 1 else False
@@ -619,7 +618,7 @@ def runSingleTest(no, module, test, update=False):
         fileTime = os.path.join(
             MODULESDIR['LOCAL'][module], testr[0], DATA,
             testr[0] + ".time"
-        ) # TODO
+        )
     else:
         fileTime = os.path.join(
             MODULESDIR['LOCAL'][module], module, 'test', DATA,
@@ -1132,7 +1131,7 @@ def viewTest(event=None):
         module = splits[0].strip()
         test = splits[1].strip()
         modulesDir = MODULESDIR[BASE4COMPARE][module]
-        if PREFS["validType"] == "validation": #TODO
+        if PREFS["validType"] == "validation":
             pathl = os.path.join(modulesDir, test)
             testFile = 'test.py'
         else:
