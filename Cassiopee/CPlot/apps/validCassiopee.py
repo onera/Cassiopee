@@ -50,8 +50,6 @@ TESTMETA_UPDATE = False
 
 # Name of the data folders
 DATA = None
-# CFD Base
-CFDBASEPATH = os.path.join('Validation', 'Cases')
 # Paths for 'module' source tests and test/Data folder
 MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
 # Paths to the local and global ValidData folders
@@ -61,7 +59,9 @@ BASE4COMPARE = 'GLOBAL'
 
 # User settings dictionary
 PREFS = {
-    "editor": "emacs"
+    "editor": "emacs",
+    "CFDBaseRelPath": os.path.join('Validation', 'CFDBase'),  # CFD Base
+    "validType": "regression"  # regression or validation
 }
 
 # Si THREAD est None, les test unitaires ne tournent pas
@@ -349,50 +349,55 @@ def buildString(module, test, CPUtime='...', coverage='...%', status='...',
 #==============================================================================
 def setPaths():
     def _setModuleDirs(*args, **kwargs):
-        global MODULESDIR
+        cassiopeeIncDir = args[0]
         loc = kwargs.get('loc', 'LOCAL')
         if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
-        notTested = ['Upmost', 'FastP']
-        cassiopeeIncDir = args[0]
-        paths = list(args)[1:]
-        for path in paths:
-            if path is None: continue
-            print('Info: getting {} module tests in: {}.'.format(loc.lower(), path))
-            try: mods = os.listdir(path)
+        if PREFS["validType"] == "regression":
+            notTested = ['Upmost', 'FastP']
+            paths = list(args)[1:]
+            for path in paths:
+                if path is None: continue
+                print('Info: getting {} module tests in: {}.'.format(loc.lower(), path))
+                try: mods = [entry.name for entry in os.scandir(path) if entry.is_dir()]
+                except: mods = []
+                for mod in mods:
+                    if mod not in notTested and mod not in MODULESDIR[loc]:
+                        if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
+                            # Skip modules which aren't found locally - would hang
+                            continue
+                        pathMod = os.path.join(path, mod)
+                        a = os.access(os.path.join(pathMod, 'test'), os.F_OK) # PModules svn
+                        if a: MODULESDIR[loc][mod] = path
+                        else:
+                            a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
+                            if a: MODULESDIR[loc][mod] = pathMod
+
+            print(f'Info: getting {loc.lower()} module names in: {cassiopeeIncDir}.')
+            try: mods = [entry.name for entry in os.scandir(cassiopeeIncDir) if entry.is_dir()]
             except: mods = []
             for mod in mods:
-                if mod not in notTested and mod not in MODULESDIR[loc]:
-                    if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
-                        # Skip modules which aren't found locally - would hang
-                        continue
-                    pathMod = os.path.join(path, mod)
-                    a = os.access(os.path.join(pathMod, 'test'), os.F_OK) # PModules svn
-                    if a: MODULESDIR[loc][mod] = path
-                    else:
-                        a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
-                        if a: MODULESDIR[loc][mod] = pathMod
+                if mod not in MODULESDIR[loc]:
+                    a = os.access(os.path.join(cassiopeeIncDir, mod, 'test'), os.F_OK)
+                    if a: MODULESDIR[loc][mod] = cassiopeeIncDir
+        else:  # Validation CFD
+            parentDir = os.path.dirname(os.path.dirname(cassiopeeIncDir))
+            parentDir = os.path.join(parentDir, PREFS["CFDBaseRelPath"])
+            try: mods = [entry.name for entry in os.scandir(parentDir) if entry.is_dir()]
+            except: mods = []
+            for mod in mods: MODULESDIR[loc][mod] = os.path.join(parentDir, mod)
 
-        print('Info: getting {} module names in: {}.'.format(loc.lower(), cassiopeeIncDir))
-        try: mods = os.listdir(cassiopeeIncDir)
-        except: mods = []
-        for mod in mods:
-            if mod not in MODULESDIR[loc]:
-                a = os.access(os.path.join(cassiopeeIncDir, mod, 'test'), os.F_OK)
-                if a: MODULESDIR[loc][mod] = cassiopeeIncDir
-
-        # Validation CFD
-        MODULESDIR[loc]['CFDBase'] = os.path.dirname(os.path.dirname(cassiopeeIncDir))
-
-    global VALIDDIR
+    global MODULESDIR, VALIDDIR
+    MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
+    VALIDDIR = {'LOCAL': None, 'GLOBAL': None}
     # Module paths when the local base is used
     allPackageDirs = getInstallPaths()
     _setModuleDirs(*allPackageDirs, loc='LOCAL')
 
     # Local valid paths
     VALIDDIR['LOCAL'] = os.path.join(os.getenv('CASSIOPEE'), 'Cassiopee',
-                                     'Valid{}'.format(DATA))
+                                     f'Valid{DATA}')
     if not os.access(VALIDDIR['LOCAL'], os.W_OK):
-        VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
+        VALIDDIR['LOCAL'] = os.path.join(os.getcwd(), f"Valid{DATA}")
         if not os.path.isdir(VALIDDIR['LOCAL']): os.mkdir(VALIDDIR['LOCAL'])
 
     # Module paths when the global base is used
@@ -406,22 +411,20 @@ def setPaths():
 
         # Global valid paths
         VALIDDIR['GLOBAL'] = os.path.join(parentDirname, 'Cassiopee',
-                                          'Cassiopee', 'Valid{}'.format(DATA))
+                                          'Cassiopee', f'Valid{DATA}')
 
 #==============================================================================
-# Retourne la liste des modules situes dans Cassiopee, Fast et PModules
-# Eventuellement peut ajouter "CFDBase", nom referencant les tests
-# de validation des solveurs (CFDBase)
+# Retourne la liste des modules situes dans Cassiopee, PModules, CFDBase, etc.
 #==============================================================================
 def getModules():
     return sorted(MODULESDIR[BASE4COMPARE].keys())
 
 #==============================================================================
-# Retourne la liste des tests unitaires d'un module
-# si module == 'CFDBase', retourne la liste des cas de validation CFD
+# Retourne la liste des tests unitaires ou de validation CFD d'un module
+# suivant l'etat de PREFS["validType"].
 #==============================================================================
 def getTests(module):
-    if module == 'CFDBase': return getCFDBaseTests()
+    if PREFS["validType"] == "validation": return getCFDBaseTests(module)
     return getUnitaryTests(module)
 
 #==============================================================================
@@ -449,21 +452,23 @@ def getUnitaryTests(module):
 
 #==============================================================================
 # Retourne la liste des cas de validation CFD (CFDBase)
-# Il doivent etre dans Validation/Cases
+# Il doivent etre dans PREFS["CFDBaseRelPath"]
 #==============================================================================
-def getCFDBaseTests():
-    path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH)
-    try: reps = os.listdir(path)
+def getCFDBaseTests(module):
+    path = MODULESDIR[BASE4COMPARE][module]
+    try: reps = [entry.name for entry in os.scandir(path) if entry.is_dir()]
     except: reps = []
     tests = []
-    for r in reps: # a terme a supprimer
-        if r == 'NACA': tests.append(r) # MB 2D Euler
+    for r in reps:
+        if not os.access(os.path.join(path, r, ".validignore"), os.F_OK):
+            tests.append(r)
+        """if r == 'NACA': tests.append(r) # MB 2D Euler
         elif r == 'NACA_IBC': tests.append(r) # IBC 2D Euler
         elif r == 'DAUPHIN': tests.append(r) # MB 3D Euler
         elif r == 'FLATPLATE': tests.append(r) # MB 3D SA
         elif r == 'RAE2822': tests.append(r) # MB 2D SA
         elif r == 'RAE2822_IBC': tests.append(r) # IBC 2D SA
-        elif r == 'CUBE_IBC': tests.append(r) # IBC 3D SA
+        elif r == 'CUBE_IBC': tests.append(r) # IBC 3D SA"""
     return sorted(tests)
 
 #==============================================================================
@@ -511,7 +516,8 @@ def readStar(fileStar):
 # Lance un seul test unitaire ou un cas de la base de validation
 #==============================================================================
 def runSingleTest(no, module, test, update=False):
-    if module == 'CFDBase': return runSingleCFDTest(no, module, test, update)
+    if PREFS["validType"] == "validation":
+        return runSingleCFDTest(no, module, test, update)
     return runSingleUnitaryTest(no, module, test, update)
 
 #==============================================================================
@@ -717,15 +723,14 @@ def runSingleUnitaryTest(no, module, test, update=False):
     return CPUtime
 
 #==============================================================================
-# Lance un seul test de la base CFD (CFDBase)
-# module = 'CFDBase'
+# Lance un seul test de la base CFD
 # test = nom du repertoire du cas CFD
 #==============================================================================
 def runSingleCFDTest(no, module, test, update=False):
     global TESTS
-    print('Info: Running CFD test %s.'%test)
-    path = os.path.join(MODULESDIR[BASE4COMPARE]['CFDBase'], CFDBASEPATH, test)
+    path = os.path.join(MODULESDIR[BASE4COMPARE][module], test)
     testName = os.path.join(module, test)
+    print(f'Info: Running CFD test {testName}.')
 
     seq = True
     # force mpi test pour certains cas
@@ -776,6 +781,7 @@ def runSingleCFDTest(no, module, test, update=False):
         if regDiff.search(output) is not None: success = 1
         if regFailed.search(output) is not None: success = 1
         if regError.search(output) is not None: success = 1
+
         # Recupere le coverage
         coverage = '100%'
 
@@ -857,8 +863,8 @@ def runTests(update=False):
         test = splits[1].strip()
         if update:  # Delete reference
             modulesDir = MODULESDIR[BASE4COMPARE][module]
-            if module == 'CFDBase':
-                pathl = os.path.join(modulesDir, CFDBASEPATH, test)
+            if PREFS["validType"] == "validation":
+                pathl = os.path.join(modulesDir, test)
                 testref = 'post.ref*'
             else:
                 pathl = os.path.join(modulesDir, module, 'test')
@@ -916,9 +922,9 @@ def fillTestMetadata():
             # Get local tag and reference time
             modulesDirCmp = MODULESDIR[BASE4COMPARE][module]
             modulesDirLoc = MODULESDIR['LOCAL'][module]
-            if module == 'CFDBase':
-                fileTime = os.path.join(modulesDirCmp, CFDBASEPATH, test, DATA, test+'.time')
-                fileStar = os.path.join(modulesDirLoc, CFDBASEPATH, test, DATA, test+'.star')
+            if PREFS["validType"] == "validation":
+                fileTime = os.path.join(modulesDirCmp, test, DATA, test+'.time')
+                fileStar = os.path.join(modulesDirLoc, test, DATA, test+'.star')
             else:
                 testr = os.path.splitext(test)
                 fileTime = os.path.join(modulesDirCmp, module, 'test', DATA, testr[0]+'.time')
@@ -1292,8 +1298,8 @@ def viewTest(event=None):
         module = splits[0].strip()
         test = splits[1].strip()
         modulesDir = MODULESDIR[BASE4COMPARE][module]
-        if module == 'CFDBase':
-            pathl = os.path.join(modulesDir, CFDBASEPATH, test)
+        if PREFS["validType"] == "validation":
+            pathl = os.path.join(modulesDir, test)
             testFile = 'compute.py'
         else:
             pathl = os.path.join(modulesDir, module, 'test')
@@ -1327,7 +1333,7 @@ def showFilter(filter='FAILED'):
     return True
 
 #==============================================================================
-# Affiche les test qui ont deja tournes dans la listbox
+# Affiche les tests qui ont deja tourne dans la listbox
 #==============================================================================
 def showRunCases():
     filter = r'\.\.\.'
@@ -1341,7 +1347,7 @@ def showRunCases():
     return True
 
 #==============================================================================
-# Affiche les test qui n'ont deja tournes dans la listbox
+# Affiche les tests qui n'ont deja tourne dans la listbox
 #==============================================================================
 def showUnrunCases():
     filter = r'\.\.\.'
@@ -1625,7 +1631,7 @@ def Quit(event=None, sessionName="session"):
     # permissions
     if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDDIR['LOCAL'], "{}-{}.log".format(sessionName, now))
+        dst = os.path.join(VALIDDIR['LOCAL'], f"{sessionName}-{now}.log")
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     # Write test metadata
@@ -1700,6 +1706,15 @@ def toggleDB(**kwargs):
     if BASE4COMPARE == 'LOCAL': return setupGlobal(**kwargs)
     return setupLocal(**kwargs)
 
+def toggleVT(**kwargs):
+    global PREFS
+    if PREFS["validType"] == "regression": PREFS["validType"] = "validation"
+    else: PREFS["validType"] = "regression"
+    # Reset MODULESDIR and VALIDDIR paths, both locally and globally
+    setPaths()
+    if BASE4COMPARE == 'LOCAL': return setupLocal(**kwargs)
+    return setupGlobal(**kwargs)
+
 def setupLocal(**kwargs):
     global BASE4COMPARE
     # Change to local ref
@@ -1718,6 +1733,7 @@ def setupLocal(**kwargs):
     createEmptySessionLog()
     loadTestMetadata()
     buildTestList(**kwargs)
+    updateValidTypeLabel()
     updateDBLabel()
     setGUITitleBar(loc='LOCAL')
     return 0
@@ -1742,6 +1758,7 @@ def setupGlobal(**kwargs):
     createEmptySessionLog()
     loadTestMetadata()
     buildTestList(**kwargs)
+    updateValidTypeLabel()
     updateDBLabel()
     setGUITitleBar(loc='GLOBAL')
     return 0
@@ -1765,6 +1782,14 @@ def updateDBLabel():
         label = 'Switch to local data base'
     else:
         label = 'Switch to global data base ' + dbInfo
+    toolsTab.entryconfig(4, label=label)
+
+def updateValidTypeLabel():
+    if not INTERACTIVE: return
+    if PREFS["validType"] == "regression":
+        label = 'Switch to validation cases'
+    else:
+        label = 'Switch to regression tests'
     toolsTab.entryconfig(3, label=label)
 
 #==============================================================================
@@ -1807,6 +1832,9 @@ def parseArgs():
     parser.add_argument("-s", "--session-name", type=str, default='session',
                         dest="sessionName",
                         help="Name of the session file. Default: session")
+    parser.add_argument("-vt", "--valid-type", type=str, default='regression',
+                        dest="validType",
+                        help="Type of validation: regression or validation")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1826,12 +1854,12 @@ def purgeSessionLogs(n, sessionName="session"):
 def toggleASAN():
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
-    updateASANLabel(3)
+    updateASANLabel(4)
 
 def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
-    updateASANLabel(4)
+    updateASANLabel(5)
     updateASANOptions()
 
 def updateASANOptions():
@@ -1891,6 +1919,8 @@ def loadPrefFile():
         with open(configFile, 'r') as f:
             localPrefs = json.load(f)
         for k, v in localPrefs.items(): PREFS[k] = v
+        if PREFS.get("validType") not in ["regression", "validation"]:
+            PREFS["validType"] = "regression"
     else:
         savePrefFile()
 
@@ -1920,7 +1950,7 @@ if __name__ == '__main__':
     checkEnvironment()
     # Get name of the ValidData folder
     DATA = Dist.getDataFolderName()
-    # Set MODULESDIR and VALIDDIR paths once, both locally and globally
+    # Set MODULESDIR and VALIDDIR paths, both locally and globally
     setPaths()
 
     if INTERACTIVE:
@@ -2000,14 +2030,20 @@ if __name__ == '__main__':
         toolsTab.add_command(label='Tag selection', command=tagSelection)
         toolsTab.add_command(label='Untag selection', command=untagSelection)
 
+        toolsTab.add_separator()
+        if PREFS["validType"] == "regression":
+            toolsTab.add_command(label='Switch to validation cases',
+                                 command=toggleVT)
+        else:
+            toolsTab.add_command(label='Switch to regression tests',
+                                 command=toggleVT)
+
         dbInfo = getDBInfo()
         if dbInfo:
             # Show this button if the global database can be interrogated
-            toolsTab.add_separator()
             toolsTab.add_command(label='Switch to global data base ' + dbInfo,
                                  command=toggleDB)
         if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
-            toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
             toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
@@ -2112,6 +2148,8 @@ if __name__ == '__main__':
         getThreads()
 
         sessionName = vcargs.sessionName if vcargs.loadSession else None
+        if vcargs.validType in ["regression", "validation"]:
+            PREFS["validType"] = vcargs.validType
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
                 vcargs.global_db and not (vcargs.update or isDBAdmin())):
             ierr = setupGlobal(sessionName=sessionName)
