@@ -172,6 +172,9 @@ def createExtension__(tbIn):
 
 def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
     import copy
+
+    if levelMaxTMP < 1: levelMaxTMP = 50 # max value
+
     vminsTMP = copy.deepcopy(vminsIN)
     # list of vminsTMP
     if isinstance(vminsTMP,list):
@@ -522,7 +525,9 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     # This clips the upper limit on the number of offset level to the input value.
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
     forceUpperLimitOffset = True
-    if levelSkel==50: forceUpperLimitOffset = False
+    if levelSkel < 1:
+        levelSkel = 50 # max value
+        forceUpperLimitOffset = False
 
     # list of lists of dfars
     bodies = Internal.getBases(tb)
@@ -644,8 +649,10 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
 def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     # This clips the upper limit on the number of offset level to the input value.
     # This is needed to bypass G.adaptOctree that can be very expensive when we need a fine background (outside the offset levels) grid.
-    if levelSkel==50: forceUpperLimitOffset = False
-    else: forceUpperLimitOffset = True
+    forceUpperLimitOffset = True
+    if levelSkel < 1:
+        levelSkel = 50 # max value
+        forceUpperLimitOffset = False
 
     cartbgExtent = dictGridCart['cartbgExtent']
     cartbgBC = dictGridCart['cartbgBC']
@@ -1535,7 +1542,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
     if levelMax < 1:
-        levelMax = 50 # random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
@@ -1688,7 +1694,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
 
         # correct vmins to match newLevelMax if necessary
         if newLevelMax != levelMax:
-            if Cmpi.master:
+            if Cmpi.master and levelMax > 1:
                 print("=======================================================================", flush=True)
                 print("========================       WARNING!        ========================", flush=True)
                 print("================= Input Number of AMR Levels too high =================", flush=True)
@@ -1841,7 +1847,6 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
     if levelMax < 1:
-        levelMax = 50 #random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
@@ -1883,7 +1888,7 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelMax)
 
     if newLevelMax != levelMax:
-        if Cmpi.master:
+        if Cmpi.master and levelMax > 1:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
             print("================= Input Number of AMR Levels too high =================", flush=True)
