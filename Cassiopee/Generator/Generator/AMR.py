@@ -1348,11 +1348,12 @@ def _addItemDict__(d, key, value):
     return None
 
 def checkBodyIntersection__(tb):
-    bboxes = [G.bbox(base) for base in Internal.getBases(tb)]
-    for i in range(1, len(bboxes)):
-        for j in range(i):
-            if G.bboxIntersection(bboxes[i], bboxes[j], isBB=True) > 0:
-                return True
+    bases = Internal.getBases(tb)
+    for i in range(1, len(bases)):
+        zi = T.join(Internal.getZones(bases[i]))
+        for j in range(0, i):
+            zj = T.join(Internal.getZones(bases[j]))
+            if G.bboxIntersection(zi, zj) > 0: return True
     return False
 
 def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
