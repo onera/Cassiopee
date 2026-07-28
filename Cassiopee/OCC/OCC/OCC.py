@@ -616,6 +616,8 @@ def meshFaceInUV(hook, i, edges, grading, close, mesh, FAILED):
             a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
+        o = Converter.initVars(o, '{u}=0.')
+        o = Converter.initVars(o, '{v}=0.')
         mesh.append(o)
         SUCCESS = True
     except Exception as e:
@@ -654,6 +656,9 @@ def meshFaceWithPointedHat(hook, i, edges, close, mesh):
         a = Generator.close(a, 1.e-10) # needed for periodic faces
     if occ.getFaceOrientation(hook, i) == 0:
         o = Transform.reorder(o, (-1,))
+    o = Converter.initVars(o, '{u}=0.')
+    o = Converter.initVars(o, '{v}=0.')
+
     mesh.append(o)
 
     return True
@@ -669,7 +674,7 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None, order=1):
         e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
     dedges = Generator.zip(dedges, tol=hmin/100.) # safe and necessary for corner/seam points
-    #dedges = regularizeEdges(hook, dedges)
+    dedges = regularizeEdges(hook, dedges, 1.e-7)
     #if order > 1:
     #    dedges = switch2UV(dedges)
     #    for i, e in enumerate(dedges):
@@ -685,44 +690,61 @@ def regularizeEdges(hook, edges, tol=1.e-12):
     Pe = {}
     for c, e in enumerate(edges):
         P1 = Converter.getValue(e, 0)
-        P1b = Converter.getValue(e, 1)
-        h1 = Vector.sub(P1, P1b)
-        h1 = Vector.norm(h1)
         P2 = Converter.getValue(e, -1)
-        P2b = Converter.getValue(e, -2)
-        h2 = Vector.sub(P2, P2b)
-        h2 = Vector.norm(h2)
+        ne = Converter.getNPts(e)
+        if ne == 2:
+            h1 = Vector.sub(P1, P2)
+            h1 = Vector.norm(h1)
+            h2 = h1
+        elif ne >= 3:
+            P1b = Converter.getValue(e, 1)
+            h1 = Vector.sub(P1, P1b)
+            h1 = Vector.norm(h1)
+            P2b = Converter.getValue(e, -2)
+            h2 = Vector.sub(P2, P2b)
+            h2 = Vector.norm(h2)
         Pe[c] = (P1, h1, P2, h2)
     nbEdges = len(edges)
     for c in range(nbEdges):
+        #print(f"examining edge {c+1}")
         edge = edges[c]
         if KCore.isNamePresent(edge, 'CoordinateX') != -1:
             edge2 = Converter.extractVars(edge, ['CoordinateX','CoordinateY','CoordinateZ'])
         else:
             edge2 = Converter.extractVars(edge, ['x','y','z'])
         Pe1 = Pe[c]
-        # left side
+        # left side of edge
         hmin1 = Pe1[1]
         for d in range(nbEdges):
             Pe2 = Pe[d]
             if c != d:
                 d1 = Vector.sub(Pe1[0], Pe2[0])
                 d1 = Vector.norm(d1)
-                if d1 < tol: hmin1 = min(hmin1, Pe2[1])
+                if d1 < tol: 
+                    hmin1 = min(hmin1, Pe2[1])
+                    #print(f"is connected to {d+1} with h={Pe2[1]}")
                 d2 = Vector.sub(Pe1[0], Pe2[2])
                 d2 = Vector.norm(d2)
-                if d2 < tol: hmin1 = min(hmin1, Pe2[3])
-        # right side
+                if d2 < tol: 
+                    hmin1 = min(hmin1, Pe2[3])
+                    #print(f"is connected to {d+1} with h={Pe2[3]}")
+
+        # right side of edge
         hmin2 = Pe1[3]
         for d in range(nbEdges):
             Pe2 = Pe[d]
             if c != d:
                 d1 = Vector.sub(Pe1[2], Pe2[0])
                 d1 = Vector.norm(d1)
-                if d1 < tol: hmin2 = min(hmin2, Pe2[1])
+                if d1 < tol: 
+                    hmin2 = min(hmin2, Pe2[1])
+                    #print(f"is connected to {d+1} with h={Pe2[1]}")
+
                 d2 = Vector.sub(Pe1[2], Pe2[2])
                 d2 = Vector.norm(d2)
-                if d2 < tol: hmin2 = min(hmin2, Pe2[3])
+                if d2 < tol: 
+                    hmin2 = min(hmin2, Pe2[3])
+                    #print(f"is connected to {d+1} with h={Pe2[3]}")
 
         # by refine
         #factor = -1
@@ -744,13 +766,17 @@ def regularizeEdges(hook, edges, tol=1.e-12):
         if hmin1 < 0.9*Pe1[1]:
             hmin1 = max(hmin1, Pe1[1]/3.0) # limiteur
             npts = Converter.getNPts(edge2)
-            b1 = Transform.subzone(edge2, (1,1,1), (npts//2,1,1))
-            b2 = Transform.subzone(edge2, (npts//2,1,1), (-1,1,1))
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2+1,1,1))
+            b2 = Transform.subzone(edge2, (npts//2+1,1,1), (-1,1,1))
+            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2)) 
             P4 = Converter.getValue(b2, 0)
             P5 = Converter.getValue(b2, 1)
             h = Vector.sub(P4, P5)
             h = Vector.norm(h)
-            if h > 1.e-12:
+            L = Geom.getLength(b1)
+            if L < hmin1+h: h = 0.7*h
+            #print(hmin1, h, L)
+            if hmin1 > 1.e-12 and h > 1.e-12 and L > hmin1+h: 
                 d = Geom.distrib2(b1, hmin1, h, algo=1)
                 d = Geom.getDistribution(d)
                 b1 = Generator.map(b1, d, dir=1)
@@ -760,13 +786,17 @@ def regularizeEdges(hook, edges, tol=1.e-12):
         if hmin2 < 0.9*Pe1[3]:
             hmin2 = max(hmin2, Pe1[3]/3.0) # limiteur
             npts = Converter.getNPts(edge2)
-            b1 = Transform.subzone(edge2, (1,1,1), (npts//2,1,1))
-            b2 = Transform.subzone(edge2, (npts//2,1,1), (-1,1,1))
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2+1,1,1))
+            b2 = Transform.subzone(edge2, (npts//2+1,1,1), (-1,1,1))
+            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2))
             P4 = Converter.getValue(b1, -1)
             P5 = Converter.getValue(b1, -2)
             h = Vector.sub(P4, P5)
             h = Vector.norm(h)
-            if h > 1.e-12:
+            L = Geom.getLength(b2)
+            if L < hmin1+h: h = 0.7*h
+            #print(hmin2, h, L)
+            if h > 1.e-12 and h > 1.e-12 and L > hmin2+h:
                 d = Geom.distrib2(b2, h, hmin2, algo=1)
                 d = Geom.getDistribution(d)
                 b2 = Generator.map(b2, d, dir=1)
@@ -774,8 +804,20 @@ def regularizeEdges(hook, edges, tol=1.e-12):
                 factor = 1
 
         if factor > 0:
+            #print(f"remeshing edge {c+1}")
             edge2 = Geom.getCurvilinearAbscissa(edge2)
             edge2 = occ.meshOneEdge(hook, c+1, -1, -1, -1, -1, edge2)
+            # check edge2 is ok
+            #P0 = Converter.getValue(edge2, 0)
+            #P1 = Converter.getValue(edge2, 1)
+            #h1 = Vector.sub(P0, P1)
+            #h1 = Vector.norm(h1)
+            #P2 = Converter.getValue(edge2, -1)
+            #P3 = Converter.getValue(edge2, -2)
+            #h2 = Vector.sub(P2, P3)
+            #h2 = Vector.norm(h2)
+            #if hmin1 < 0.9*Pe1[1]: print("final1", h1, hmin1)
+            #if hmin2 < 0.9*Pe1[3]: print("final2", h2, hmin2)
             edges[c] = edge2
 
     return edges

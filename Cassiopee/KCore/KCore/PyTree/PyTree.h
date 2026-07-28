@@ -34,9 +34,9 @@
 #define FldArrayI K_FLD::FldArrayI
 
 // Release shared zone
-#define RELEASESHAREDZ(h, varString, eltType) {delete [] varString; delete [] eltType; for (unsigned int i = 0; i < h.size(); i++) Py_DECREF(h[i]); }
+#define RELEASESHAREDZ(h, varString, eltType) {delete [] varString; delete [] eltType; for (size_t i = 0; i < h.size(); i++) Py_DECREF(h[i]); }
 // Release hook
-#define RELEASEHOOK(h) {for (unsigned int i = 0; i < h.size(); i++) Py_DECREF(h[i]); h.clear(); }
+#define RELEASEHOOK(h) {for (size_t i = 0; i < h.size(); i++) Py_DECREF(h[i]); h.clear(); }
 
 namespace K_PYTREE
 {

@@ -299,8 +299,11 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     out = []
     for c, i in enumerate(a):
         if watertight[c] and orderStable[c] and volmin[c]:
-            b = G.tetraMesher(i)
-            if C.getNPts(b) > 0: out.append(b)
+            try:
+                b = G.tetraMesher(i)
+                if C.getNPts(b) > 0: out.append(b)
+            except: 
+                print(f"Error: component {c}: tetgen fails.")
         else:
             print(f"Warning: component {c} not meshed (", end="")
             if not watertight[c]: print("not watertight ", end="")
