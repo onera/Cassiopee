@@ -295,18 +295,13 @@ def exchangeBCMatchData(t, varList):
                     raise NotImplementedError("exchangeBCMatchData: Element "
                                               f"type {dim[3]} not supported")
 
-            if zn not in indices: indices[zn] = PLD
-            else: indices[zn] = numpy.concatenate((indices[zn], PLD))
+            indices.setdefault(zn, []).append(PLD)
             fldNames = fld1[0].split(",")
             for v, var in enumerate(varList):
                 if var not in fldNames: continue
                 pos = fldNames.index(var)
                 BCFieldv = BCField[v]
-                if zn not in BCFieldv: BCFieldv[zn] = fld1[1][pos].ravel('k')
-                else:
-                    BCFieldv[zn] = numpy.concatenate(
-                        (BCFieldv[zn], fld1[1][pos].ravel('k'))
-                    )
+                BCFieldv.setdefault(zn, []).append(fld1[1][pos].ravel(order='K'))
 
     return indices, BCField
 
