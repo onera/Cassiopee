@@ -81,20 +81,6 @@ def createTboxSnear__(tb, vmins, snears, dim=3):
 
     return snears, tboxSnear, snearsTboxSnear, vminsTboxSnear
 
-def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
-    # example of the dictExtension - the value provided (-1, 1) correspond to
-    # whether the extrusion is towards - or + direction
-    # dictExtension = {
-    #    "midplane": -1
-    # }
-    for i, zoneNameTmp in enumerate(dictExtension):
-        node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
-        Internal._createUniqueChild(node, '.Solver#define', 'UserDefinedData_t')
-        n = Internal.getNodeFromName1(node, '.Solver#define')
-        Internal._createUniqueChild(n, 'isAddKplane', 'DataArray_t', dictExtension[zoneNameTmp])
-        if dictTolerance: Internal._createUniqueChild(n, 'tolerancePlane', 'DataArray_t', list(dictTolerance.values())[i])
-    return None
-
 def createExtension__(tbIn):
     ## Function objection: add a small extension to the previously marked symmetry/boundary planes. │
     ## Note: it is not an extrusion for simulation purposes. It is a very limited extension for offset generation purposes.
@@ -140,8 +126,8 @@ def createExtension__(tbIn):
 
                 minval = C.getMinValue(z, 'centers:%s'%varName)
                 # reorder if : normals point + but extrudes in -1 or vice versa
-                if minval>0.0 and directionNormal == -1 : T._reorder(z, (-1,))
-                if minval<0.0 and directionNormal == 1: T._reorder(z, (-1,))
+                if minval > 0.0 and directionNormal == -1: T._reorder(z, (-1,))
+                if minval < 0.0 and directionNormal ==  1: T._reorder(z, (-1,))
 
                 # extrusion
                 d = G.cart((0,0,0), (0.05,1,1),(4,1,1))
@@ -184,27 +170,6 @@ def createExtension__(tbIn):
 
     return tb
 
-def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=0, functionName='Tagging'):
-    # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
-    # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
-    depthLocal = -1 # This should be number of cells. --> x2 to go from nodes to cells
-    if opt:
-        if noffsets == 0:   depthLocal = -3
-        elif noffsets == 1: depthLocal = -2
-    depthLocalFactor=1
-    depthLocal=depthLocal*depthLocalFactor
-    if depthLocal<-2 and depthLocalFactor>1:
-        for i in range(int(abs(depthLocal)/2)):
-            if Cmpi.master: print('%s :: recursive X.setHoleInterpolatedPoints: %d/%d'%(functionName,i,int(abs(depthLocal)/2)),flush=True)
-            C._initVars(to, '{%s}={%s}>0.'%(cellNNameLocal,cellNNameLocal))
-            to = X.setHoleInterpolatedPoints(to, depth=-2, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
-    else:
-        if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
-        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
-    #if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
-    #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
-    return to
-
 def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
     import copy
     vminsTMP = copy.deepcopy(vminsIN)
@@ -237,13 +202,6 @@ def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
         vminsTMP.append(list(vminsLocal[nob]))
         vminsTMP[nob] = [max(5,v) for v in vminsTMP[nob]] # vmin values should not be inferior to a given threshold
     return vminsTMP
-
-def _addItemDict__(d, key, value):
-    if key in d:
-        d[key].append(value)
-    else:
-        d[key] = [value]
-    return None
 
 def getListSnear__(tb, snears):
     # List of snears
@@ -291,7 +249,7 @@ def getSymmetryPlaneInfo__(tb, dim=3):
     if baseSYM:
         symplane = []
         for zsym in Internal.getZones(baseSYM):
-            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
+            if C.getMaxValue(zsym,'centers:cellN') > 0.: symplane.append(zsym)
         [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
         if abs(xmax-xmin) < __TOL__:
             dir_sym=1;
@@ -428,7 +386,6 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
             zmin = 0; zmax = 0
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
-        # Pull request note: h_core may cause regressions in the mesh generation
         h_core = min(h_core, 4.*minSnear)
 
         # Do not extend the CartCore beyond the symmetry plane (symClose)
@@ -585,6 +542,7 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
                 bodies = Internal.getZones(base)
                 if len(bodies) != len(dfars[nob]):
                     raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
+    
     levelSkelInput = levelSkel
     for nob, base in enumerate(Internal.getBases(tb)):
         if min(dfars[nob]) > -1: #body snear is only considered if dfar_loc > -1
@@ -600,15 +558,15 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
             for noz, z in enumerate(Internal.getZones(base)):
                 levelSkel = levelSkelInput
                 surfaces.append(z)
-                # Pull request note: levelSkelLoc causes regressions in the mesh generation
                 levelSkelLoc = int(math.log2(dfars[nob][noz]/snearLocTmp[noz])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
-                #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
-                #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
+                if False:
+                    levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
+                    if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
                 if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc)
                 dfarloc = dfars[nob][noz]
                 snearloc = 2**levelSkel*snearLocTmp[noz]
                 while snearloc > dfarloc/2: # security so that levelSkel is not too big
-                    snearloc  /= 2.
+                    snearloc /= 2.
                     levelSkel -= 1
                 levelSkelList.append(levelSkel)
                 snearsList.append(snearloc)
@@ -616,9 +574,8 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
 
     o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
     levelSkel = max(levelSkelList)
-    #
+
     # SYMMETRY - select only cells from one side
-    #
     # determine where the symmetry plane is
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(o)
@@ -635,14 +592,14 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
 
     if forceUpperLimitOffset:
         box = G.bbox(o)
-        dxdydz_local      = min(snearsList)
+        dxdydz_local = min(snearsList)
         nCellsCartesian_x = int((box[3]-box[0])/dxdydz_local)
         nCellsCartesian_y = int((box[4]-box[1])/dxdydz_local)
         nCellsCartesian_z = 0
-        dz_local          = box[5]-box[2]
+        dz_local = box[5]-box[2]
         if dim == 3:
             nCellsCartesian_z = int((box[5]-box[2])/dxdydz_local)
-            dz_local          = dxdydz_local
+            dz_local = dxdydz_local
         o = G.cart((box[0],box[1],box[2]), (dxdydz_local, dxdydz_local, dz_local), (nCellsCartesian_x+1, nCellsCartesian_y+1, nCellsCartesian_z+1))
     else:
         # adapt the mesh to get a single refinement level - uniform grid
@@ -656,10 +613,10 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
                 o = G.adaptOctree(o, 'centers:indicator', balancing=1)
                 G._getVolumeMap(o)
             else:
-                break
+                refined = False
         C._rmVars(o, ['centers:indicator', 'centers:vol'])
 
-    while(C.getNCells(o) < Cmpi.size):
+    while C.getNCells(o) < Cmpi.size:
         # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
         # yields procs with 0 cells. This is a safeguard to avoid this.
         if Cmpi.master:
@@ -669,6 +626,7 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
             print("======= The background has been divided due to Nmpi > Ncells!!  =======", flush=True)
             print("=== The background has been divided due to Nmpi [%d]> Ncells [%d]!! ==="%(Cmpi.size, C.getNCells(o)), flush=True)
             print("=======================================================================", flush=True)
+
         G._getVolumeMap(o)
         volminAll = C.getMinValue(o, "centers:vol")/2.
         tol_vol = 1e-2*volminAll
@@ -689,14 +647,14 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     if levelSkel==50: forceUpperLimitOffset = False
     else: forceUpperLimitOffset = True
 
-    cartbgExtent    = dictGridCart['cartbgExtent']
-    cartbgBC        = dictGridCart['cartbgBC']
-    matchExtent     = dictGridCart['matchExtent']
-    extrude         = dictGridCart['extrude']
+    cartbgExtent = dictGridCart['cartbgExtent']
+    cartbgBC = dictGridCart['cartbgBC']
+    matchExtent = dictGridCart['matchExtent']
+    extrude = dictGridCart['extrude']
 
     # Max length of the edges of the background Cartesian grid
     nCellsCartesian = [0, 0, 0]
-    lengthBG        = [1, 1, 1]
+    lengthBG = [1, 1, 1]
     for i in range(dim): lengthBG[i] = (cartbgExtent[i+3]-cartbgExtent[i])
 
     # The highest # of AMR levels corresponds to the min(snear) and max(edge length)
@@ -706,16 +664,17 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     if extrude:
         # determine levelSkel for the x-z plane - disregarding the y direction - needed for the y-extruded case
         lengthBGMin = lengthBG[0]; lengthBGMax = lengthBG[0]
-    if dim == 3:
-        lengthBGMin=min(lengthBGMax, lengthBG[2]); lengthBGMax=max(lengthBGMax, lengthBG[2])
-    levelSkelLoc = int(math.log2(lengthBGMax/snearMin))+1
+    if dim == 3: lengthBGMin=min(lengthBGMax, lengthBG[2]); lengthBGMax=max(lengthBGMax, lengthBG[2])
 
+    levelSkelLoc = int(math.log2(lengthBGMax/snearMin))+1
     if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small
     else: levelSkel = min(levelSkel, levelSkelLoc)
 
     snearloc = 2**levelSkel*snearMin
-    while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - atleast
-        snearloc  /= 2.; levelSkel -= 1
+    while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - at least
+        snearloc /= 2.
+        levelSkel -= 1
+
     tolYdirection = 1.2
     if extrude: # Deltax_i needs to the same in each direction - check how many large Dx fit in the y-direction
         multipleYdirection = (lengthBG[1]*tolYdirection)//snearloc
@@ -725,10 +684,11 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 
         if multipleYdirection*snearloc > lengthBG[1]:
             translateTmp = multipleYdirection*snearloc-lengthBG[1]
-            cartbgExtent[1]-=translateTmp/2
-            cartbgExtent[4]+=translateTmp/2
+            cartbgExtent[1] -= translateTmp/2
+            cartbgExtent[4] += translateTmp/2
             lengthBG[1] = cartbgExtent[4]-cartbgExtent[1]
-    for i in range(dim): nCellsCartesian[i]=int(lengthBG[i]/snearloc)
+
+    for i in range(dim): nCellsCartesian[i] = int(lengthBG[i]/snearloc)
 
     if dim == 2: cartbgExtent[2] = C.getMaxValue(tb, 'GridCoordinates')[2]
 
@@ -736,7 +696,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
                (snearloc, snearloc, snearloc),
                (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
 
-    while(C.getNCells(o) < Cmpi.size):
+    while C.getNCells(o) < Cmpi.size:
         # when the background grid has less # of cells than the Cmpi.size the load and split during the adaptMesh
         # yields procs with 0 cells. This is a safeguard to avoid this.
         if Cmpi.master:
@@ -746,30 +706,35 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
             print("======= The background has been divided due to Nmpi > Ncells!!  =======", flush=True)
             print("=== The background has been divided due to Nmpi [%d]> Ncells [%d]!! ==="%(Cmpi.size, C.getNCells(o)), flush=True)
             print("=======================================================================", flush=True)
+
         nCellsCartesian[0] *= 2
         nCellsCartesian[1] *= 2
         snearloc /= 2
+
         if dim == 3: nCellsCartesian[2] *= 2
+
         o = G.cart((cartbgExtent[0], cartbgExtent[1], cartbgExtent[2]),
                    (snearloc, snearloc, snearloc),
                    (nCellsCartesian[0]+1, nCellsCartesian[1]+1, nCellsCartesian[2]+1))
     for i in range(dim):
         if matchExtent[i+3]:
             maxVal = C.getMaxValue(o, 'GridCoordinates')[i]
-            if i==0: T._translate(o, (cartbgExtent[i+3]-maxVal, 0., 0.))
-            elif i==1: T._translate(o, (0., cartbgExtent[i+3]-maxVal, 0.))
+            if i == 0: T._translate(o, (cartbgExtent[i+3]-maxVal, 0., 0.))
+            elif i == 1: T._translate(o, (0., cartbgExtent[i+3]-maxVal, 0.))
             else: T._translate(o, (0., 0., cartbgExtent[i+3]-maxVal))
     if dim == 2: T._addkplane(o)
 
     ## BCs
     C._addBC2Zone(o,cartbgBC[0], cartbgBC[0],'imin'); C._addBC2Zone(o,cartbgBC[3], cartbgBC[3], 'imax')
     C._addBC2Zone(o,cartbgBC[1], cartbgBC[1],'jmin'); C._addBC2Zone(o,cartbgBC[4], cartbgBC[4], 'jmax')
+
     if dim == 2:
         C._addBC2Zone(o,'BCSymmetryPlane', 'BCSymmetryPlane', 'kmin')
         C._addBC2Zone(o,'BCSymmetryPlane', 'BCSymmetryPlane', 'kmax')
     else:
         C._addBC2Zone(o,cartbgBC[2], cartbgBC[2],'kmin')
         C._addBC2Zone(o,cartbgBC[5], cartbgBC[5],'kmax')
+
     o = C.convertArray2NGon(o)
     o = G.close(o)
     Internal._adaptNGon32NGon4(o)
@@ -779,6 +744,27 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 # Automatic AMR mesh adaptation
 # Uses XCore algorithm by Imad Hammani
 #==================================================================
+def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=0, functionName='Tagging'):
+    # artificial shift the location of the boundary by depthLocal cells inwards (inside the body)
+    # needed for the offset closest to the body as opt=True might coarsen certain critical regions (observed with CRM case 1 of the HLPW5)
+    depthLocal = -1 # This should be number of cells. --> x2 to go from nodes to cells
+    if opt:
+        if noffsets == 0:   depthLocal = -3
+        elif noffsets == 1: depthLocal = -2
+    depthLocalFactor=1
+    depthLocal=depthLocal*depthLocalFactor
+    if depthLocal<-2 and depthLocalFactor>1:
+        for i in range(int(abs(depthLocal)/2)):
+            if Cmpi.master: print('%s :: recursive X.setHoleInterpolatedPoints: %d/%d'%(functionName,i,int(abs(depthLocal)/2)),flush=True)
+            C._initVars(to, '{%s}={%s}>0.'%(cellNNameLocal,cellNNameLocal))
+            to = X.setHoleInterpolatedPoints(to, depth=-2, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
+    else:
+        if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
+        to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes')#, dir=dirLocal)
+    #if Cmpi.master: print('%s :: single X.setHoleInterpolatedPoints: %d'%(functionName,depthLocal),flush=True)
+    #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
+    return to
+
 def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
@@ -1354,6 +1340,13 @@ def _addBC2Zone__(z, bndName, bndType, zbc):
     Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
     return None
 
+def _addItemDict__(d, key, value):
+    if key in d:
+        d[key].append(value)
+    else:
+        d[key] = [value]
+    return None
+
 def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray', isBodiesIntersect=False):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
@@ -1391,6 +1384,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
         else:
             hminLocal = Internal.getValue(Internal.getNodeFromName2(z, 'snear'))
             _addItemDict__(sortDictOffsetIBM, hminLocal, z[0])
+
     # Needed for tbox & tboxSnear cases
     sortDictOffsetIBM=dict(sorted(sortDictOffsetIBM.items()))
     sortDictOffsetTbox=dict(sorted(sortDictOffsetTbox.items()))
@@ -1449,6 +1443,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                         o = tagOutsideBody__(o, body=base, dim=dim, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                         C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
                         C._rmVars(o, ["centers:indicatorTmp"])
+
                 # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
                 o = tagOutsideBody__(o, body=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
                 C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
@@ -1907,3 +1902,20 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     return o, newLevelMax
+
+#==================================================================
+#
+#==================================================================
+def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
+    # example of the dictExtension - the value provided (-1, 1) correspond to
+    # whether the extrusion is towards - or + direction
+    # dictExtension = {
+    #    "midplane": -1
+    # }
+    for i, zoneNameTmp in enumerate(dictExtension):
+        node = Internal.getNodeFromNameAndType(tb, zoneNameTmp, 'Zone_t')
+        Internal._createUniqueChild(node, '.Solver#define', 'UserDefinedData_t')
+        n = Internal.getNodeFromName1(node, '.Solver#define')
+        Internal._createUniqueChild(n, 'isAddKplane', 'DataArray_t', dictExtension[zoneNameTmp])
+        if dictTolerance: Internal._createUniqueChild(n, 'tolerancePlane', 'DataArray_t', list(dictTolerance.values())[i])
+    return None
