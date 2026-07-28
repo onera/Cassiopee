@@ -302,7 +302,7 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
             try:
                 b = G.tetraMesher(i)
                 if C.getNPts(b) > 0: out.append(b)
-            except: 
+            except:
                 print(f"Error: component {c}: tetgen fails.")
         else:
             print(f"Warning: component {c} not meshed (", end="")

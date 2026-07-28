@@ -720,12 +720,12 @@ def regularizeEdges(hook, edges, tol=1.e-12):
             if c != d:
                 d1 = Vector.sub(Pe1[0], Pe2[0])
                 d1 = Vector.norm(d1)
-                if d1 < tol: 
+                if d1 < tol:
                     hmin1 = min(hmin1, Pe2[1])
                     #print(f"is connected to {d+1} with h={Pe2[1]}")
                 d2 = Vector.sub(Pe1[0], Pe2[2])
                 d2 = Vector.norm(d2)
-                if d2 < tol: 
+                if d2 < tol:
                     hmin1 = min(hmin1, Pe2[3])
                     #print(f"is connected to {d+1} with h={Pe2[3]}")
 
@@ -736,13 +736,13 @@ def regularizeEdges(hook, edges, tol=1.e-12):
             if c != d:
                 d1 = Vector.sub(Pe1[2], Pe2[0])
                 d1 = Vector.norm(d1)
-                if d1 < tol: 
+                if d1 < tol:
                     hmin2 = min(hmin2, Pe2[1])
                     #print(f"is connected to {d+1} with h={Pe2[1]}")
 
                 d2 = Vector.sub(Pe1[2], Pe2[2])
                 d2 = Vector.norm(d2)
-                if d2 < tol: 
+                if d2 < tol:
                     hmin2 = min(hmin2, Pe2[3])
                     #print(f"is connected to {d+1} with h={Pe2[3]}")
 
@@ -768,7 +768,7 @@ def regularizeEdges(hook, edges, tol=1.e-12):
             npts = Converter.getNPts(edge2)
             b1 = Transform.subzone(edge2, (1,1,1), (npts//2+1,1,1))
             b2 = Transform.subzone(edge2, (npts//2+1,1,1), (-1,1,1))
-            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2)) 
+            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2))
             P4 = Converter.getValue(b2, 0)
             P5 = Converter.getValue(b2, 1)
             h = Vector.sub(P4, P5)
@@ -776,7 +776,7 @@ def regularizeEdges(hook, edges, tol=1.e-12):
             L = Geom.getLength(b1)
             if L < hmin1+h: h = 0.7*h
             #print(hmin1, h, L)
-            if hmin1 > 1.e-12 and h > 1.e-12 and L > hmin1+h: 
+            if hmin1 > 1.e-12 and h > 1.e-12 and L > hmin1+h:
                 d = Geom.distrib2(b1, hmin1, h, algo=1)
                 d = Geom.getDistribution(d)
                 b1 = Generator.map(b1, d, dir=1)
