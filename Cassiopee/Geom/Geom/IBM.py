@@ -145,13 +145,20 @@ def _symmetrizePb(t, bodySymName, snear_sym, dir_sym=2):
     if dir_sym not in [1,2,3]:
         raise ValueError('The symmetry direction %d is not supported. Must be '
                          '1(x), 2(y), or 3(z). Exiting...'%dir_sym)
-    base   = Internal.getNodeFromName(t, bodySymName)
+    if isinstance(bodySymName, list): base   = Internal.getNodeFromName(t, bodySymName[0])
+    else: base   = Internal.getNodeFromName(t, bodySymName)
     minval = C.getMinValue(base, ['CoordinateX', 'CoordinateY','CoordinateZ'])
     minval = minval[dir_sym-1]
     if dir_sym==1: symPlane=(minval,0,0)
     elif dir_sym==2: symPlane=(0,minval,0)
     else: symPlane=(0,0,minval)
     _symmetrizeBody(base, dir_sym=dir_sym, symPlane=symPlane)
+
+    if isinstance(bodySymName, list):
+        for bodySymNameTmp in bodySymName[1:]:
+            base   = Internal.getNodeFromName(t, bodySymNameTmp)
+            _symmetrizeBody(base, dir_sym=dir_sym, symPlane=symPlane)
+
     _addSymPlane(t, snear_sym, dir_sym=dir_sym, midPlane=minval)
     return None
 
