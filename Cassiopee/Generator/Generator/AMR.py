@@ -1347,7 +1347,15 @@ def _addItemDict__(d, key, value):
         d[key] = [value]
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray', isBodiesIntersect=False):
+def checkBodyIntersection__(tb):
+    bboxes = [G.bbox(base) for base in Internal.getBases(tb)]
+    for i in range(1, len(bboxes)):
+        for j in range(i):
+            if G.bboxIntersection(bboxes[i], bboxes[j]) > 0:
+                return True
+    return False
+
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
 
@@ -1359,6 +1367,9 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     bbo = Gmpi.bbox(o)
     for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
     if lenMax/hmin < 100: coarseXray = True
+
+    # Check for intersected bases in tb
+    bodyIntersection = checkBodyIntersection__(tb)
 
     # init. AdaptMesh
     gcells = res[5]
@@ -1437,7 +1448,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
                     C._initVars(o, "{centers:indicator} = {centers:indicator} + {centers:indicatorTmp}")
                     C._rmVars(o, ["centers:indicatorTmp"])
 
-                if isBodiesIntersect:
+                if bodyIntersection:
                     if Cmpi.master: print('Warning: Bases in tb intersect - recursive tagOutsideBody to avoid refining the intersection of the bases...', flush=True)
                     for base in Internal.getBases(tb):
                         o = tagOutsideBody__(o, body=base, dim=dim, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
@@ -1566,18 +1577,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb_noSym)): tbv2 = None
 
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
-
-    ##Check if bases in the same tb intersect
-    isBodiesIntersect = False
-    bases = Internal.getBases(tb_noSym)
-    for i in range(1,len(bases)):
-        zI = T.join(Internal.getZones(bases[i]))
-        for j in range(0,i):
-            zJ = T.join(Internal.getZones(bases[j]))
-            intersect = G.bboxIntersection(zI,zJ)
-            if intersect>0:
-                isBodiesIntersect=True
-                break;
 
     #============================
     # STEP 2: Check snears/vmins
@@ -1829,7 +1828,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     # only tb --> for blanking & tagging inside the geometry
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo, isBodiesIntersect=isBodiesIntersect)
+    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
 
     return o # requirement for X_AMR (one zone per base, one base per proc)
