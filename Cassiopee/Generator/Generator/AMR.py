@@ -1351,7 +1351,7 @@ def checkBodyIntersection__(tb):
     bboxes = [G.bbox(base) for base in Internal.getBases(tb)]
     for i in range(1, len(bboxes)):
         for j in range(i):
-            if G.bboxIntersection(bboxes[i], bboxes[j]) > 0:
+            if G.bboxIntersection(bboxes[i], bboxes[j], isBB=True) > 0:
                 return True
     return False
 
@@ -1517,8 +1517,8 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
                     blankCellsAlgo='xray', tIn=None, **kwargs):
-    import Geom.IBM as D_IBM
     import copy
+
     # debug parameters
     tbv2 = kwargs.get('tbv2', None)
     NumMinDxLarge = kwargs.get('NumMinDxLarge', 1)
@@ -1588,18 +1588,18 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # (if info. is missing it will apply default values & default copies)
     vmins = vminsInputCheck__(vmins, nbases, levelMax)
 
-    # Note snearsSave --> snears of the tb (without symmetry planes/zones) with the same format as in tb
-    # i.e. snearsSave = [[0.001, 0.002, 0.004], [0.001]] --> [[SnearsTb1], [SnearsTb2], ...., [SnearsTbN]]
+    # Note snearsTb --> snears of the tb (without symmetry planes/zones) with the same format as in tb
+    # i.e. snearsTb = [[0.001, 0.002, 0.004], [0.001]] --> [[SnearsTb1], [SnearsTb2], ...., [SnearsTbN]]
     # Needed for G.octree
-    snearsSave = copy.deepcopy(snears)
+    snearsTb = copy.deepcopy(snears)
 
-    ## Debugging print - to be commented in commited version
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - after Step 2 check snears/vmins - snears=', snears, flush=True)
-        print('WARNING:: Debug - after Step 2 check snears/vmins - snearsSave=', snearsSave, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - snearsTb=', snearsTb, flush=True)
         print('WARNING:: Debug - after Step 2 check snears/vmins - vmins=', vmins, flush=True)
         print('WARNING:: Debug - after Step 2 check snears/vmins - nbases=', nbases, flush=True)
         print('===========================================================', flush=True)
+
     #============================
     # STEP 3: Check tbox
     #============================
@@ -1618,13 +1618,13 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         snears.extend(snearsTbox)
         nbases += nboxes
 
-    ## Debugging print - to be commented in commited version
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - after Step 3 check tbox - snears=', snears, flush=True)
         print('WARNING:: Debug - after Step 3 check tbox - vmins=', vmins, flush=True)
         print('WARNING:: Debug - after Step 3 check tbox - nbases=', nbases, flush=True)
         print('WARNING:: Debug - after Step 3 check tbox - nboxes=', nboxes, flush=True)
         print('===========================================================', flush=True)
+
     #============================
     # STEP 4: Check multi. snears
     #============================
@@ -1648,7 +1648,6 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         nbases += nboxesSnear
         nboxes += nboxesSnear
 
-    ## Debugging print - to be commented in commited version
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - after Step 4 check multi snears - snears=', snears, flush=True)
         print('WARNING:: Debug - after Step 4 check multi snears - vmins=', vmins, flush=True)
@@ -1658,27 +1657,23 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         print('WARNING:: Debug - after Step 4 check multi snears - nbases=', nbases, flush=True)
         print('WARNING:: Debug - after Step 4 check multi snears - nboxes=', nboxes, flush=True)
         print('===========================================================', flush=True)
+
     #============================
     # STEP 5: Generate back. grid
     #============================
     # use tIn (background grid) or automatically generate octree skeleton
     tCartIn = False
     extrude = False
-    # Recal: snears = [snearTbMaxSnear1, snearTbMaxSnear2, ..., snearTbMaxSnearN,
+
+    # Recall: snears = [snearTbMaxSnear1, snearTbMaxSnear2, ..., snearTbMaxSnearN,
     #                  snearTbox1, snearTbox2, ..., snearTboxN,
     #                  snearTbVariableSnearZones1, snearTbVariableSnearZones2, ..., snearTbVariableSnearZonesN]
     # i.e. all the Tbs, all the volume ref. Tboxes, all snear variable Tboxes
-    #if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
-    #else: snearsTmp = snears
     snearMin = min(item for sub in snears for item in sub)
 
-    ## Debugging print - to be commented in commited version
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - begining of  Step 5 - snearMin=', snearMin, flush=True)
         print('===========================================================', flush=True)
-
-    # key for no regression:
-    #if nboxesSnear > 0: nboxes = nboxesSnear #Can be commented
 
     if tIn is None:
         if Cmpi.master:
@@ -1688,7 +1683,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         # levelSkel: initial refinement level of the skeleton octree
         # might be tuned
         # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
-        o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsSave, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+        o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsTb, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
 
         # correct vmins to match newLevelMax if necessary
         if newLevelMax != levelMax:
@@ -1747,10 +1742,11 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
             # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
             snearMult = snears[nob][0] // snearMin
             snears[nob] = [snearMult*hmin]
-    ## Debugging print - to be commented in commited version
+
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - end of  Step 6 - snears=', snears, flush=True)
         print('===========================================================', flush=True)
+
     #============================
     # STEP 7: Update dfars
     #============================
@@ -1856,7 +1852,7 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     # NumBase is only the num. of 'real' bodies
     snears, _ = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-    ## Debugging print - to be commented in commited version
+
     if Cmpi.master and isDebuggingPrint:
         print('snears=', snears, flush=True)
         print('snearsFlat=', snearsFlat, flush=True)
