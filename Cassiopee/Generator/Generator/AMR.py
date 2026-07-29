@@ -289,14 +289,33 @@ def cleanOffset__(offsetTmp):
     offsetTmp = G.close(offsetTmp, closeVal)
     return offsetTmp
 
+def _autoRemeshGeom__(tb):
+    for baseLocal in Internal.getBases(tb):
+        zones = Internal.getZones(baseLocal)
+        zones = C.convertArray2Tetra(zones)
+        z = T.join(zones)
+        bbz = G.bbox(z)
+        # [TODO] this needs to be related to the hmin
+        # hausd is a length and must be adapted to the dimensions of each case
+        hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
+        hmax = hausd*1000
+        if Cmpi.master:
+            print('Remeshing (tb) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
+        # exteriorFaces currently crashes if the surface is closed
+        fixedConstraints = P.exteriorFaces(z)
+        fixedConstraints = T.splitConnexity(fixedConstraints)
+        z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
+        baseLocal[2] = z
+
 def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxes=0, tbv2=None, blankCellsAlgo='xray'):
     import Geom.IBM as D_IBM
+    debugCheck = False
+
     if offsetValues == []: return []
-    nbases = len(Internal.getBases(tb))
+    
     if Cmpi.master: print('Generating list of offsets...start', flush=True)
 
-    minSnear=1e10
-    for snearLocal in snears: minSnear = min(minSnear, snearLocal[0])
+    minSnear = min([snearLocal[0] for snearLocal in snears])
 
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
@@ -309,67 +328,33 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
             node = Internal.getNodesFromNameAndType(b, '*_sym', 'Zone_t')
             if node: listShiftBase.append(b[0])
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
+
     nbases = len(Internal.getBases(tb))
     if opt and dim == 3:
-        for nob in range(len(tb[2])):
-            if Internal.getType(tb[2][nob]) == 'CGNSBase_t':
-                z = Internal.getZones(tb[2][nob])
-                z = C.convertArray2Tetra(z)
-                z = T.join(z)
-                bbz = G.bbox(z)
-                # [TODO] this needs to be related to the hmin
-                # hausd is a length and must be adapted to the dimensions of each case
-                hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
-                hmax = hausd*1000
-                if Cmpi.master:
-                    print('Remeshing (tb) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
-                # exteriorFaces currently crashes if the surface is closed
-                fixedConstraints = P.exteriorFaces(z)
-                fixedConstraints = T.splitConnexity(fixedConstraints)
-                z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
-                tb[2][nob][2] = Internal.getZones(z)
+        _autoRemeshGeom__(tb)
 
-        #[Temp. Patch] - This need to be generalized.
         # tbv2: tb version 2 - it is tb with an small extrusion outward of the calc. domain to guarantee a correct offset for the near body offsets.
         # This is a (very) temporary fix & is intended to be replaced with a more suitable approach after extensive testing.
         # Current use: 3D symmetric cases & needed for the CRM case 1 of the HLPW5.
-        if tbv2 is not None:
-            for nob in range(len(tbv2[2])):
-                if Internal.getType(tbv2[2][nob]) == 'CGNSBase_t':
-                    z = Internal.getZones(tbv2[2][nob])
-                    z = C.convertArray2Tetra(z)
-                    z = T.join(z)
-                    bbz = G.bbox(z)
-                    # hausd is a length and must be adapted to the dimensions of each case
-                    hausd = max(bbz[3]-bbz[0], bbz[4]-bbz[1], bbz[5]-bbz[2])/10000.
-                    hmax = hausd*1000
-                    if Cmpi.master:
-                        print('Remeshing aux. temp. (tbv2) surface mesh --> Maximum chordal deviation between final and initial mesh::%g || Maximum mesh step in final mesh::%g'%(hausd, hmax), flush=True)
-                    # exteriorFaces currently crashes if the surface is closed
-                    fixedConstraints = P.exteriorFaces(z)
-                    fixedConstraints = T.splitConnexity(fixedConstraints)
-                    z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
-                    tbv2[2][nob][2] = Internal.getZones(z)
+        if tbv2 is not None:_autoRemeshGeom__(tbv2)
 
-    tbTmp = Internal.copyTree(tb)
-    if tbv2 is not None: tbTmp = tbv2
-
-    t_offset = C.newPyTree()
+    toffset = C.newPyTree()
     no_offsetGlobal = 0
-    for nob, tbLocal in enumerate(Internal.getBases(tb)):
-        BB = G.bbox(tbLocal)
-        ni = 150; nj = 150; nk = 150
-        XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
+    XRAYDIM1 = 450; XRAYDIM2 = 450
+    for nob, baseLocal in enumerate(Internal.getBases(tb)):
+        bname = baseLocal[0]
 
-        offsetValMin = min(offsetValues[nob])
+        # get bbox body
+        BB = G.bbox(baseLocal)
+
+        # CartRx: exterior domain
         offsetValMax = max(offsetValues[nob])
         alpha = 1.1
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
         xmax = BB[3]+delta; ymax = BB[4]+delta; zmax = BB[5]+delta
 
-        # CARTRX
-        # delta2 = sum(offsetValues)/len(offsetValues)n
+        # CartRx: Cartesian core
         delta2 = max(BB[3]-BB[0], BB[4]-BB[1], BB[5]-BB[2])*0.02 # 2% seems enough for the external cases already tested
         xmin_core = BB[0]-delta2
         ymin_core = BB[1]-delta2
@@ -378,73 +363,80 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
         ymax_core = BB[4]+delta2
         zmax_core = BB[5]+delta2
 
-        if dim == 2: ni_core = 101; nj_core = 101; nk_core = 101
-        else: ni_core = 61; nj_core = 61; nk_core = 61
+        if dim == 3: ni_core = 61; nj_core = 61; nk_core = 61
+        else: ni_core = 101; nj_core = 101; nk_core = 101
         hi_core = (xmax_core-xmin_core)/(ni_core-1)
         hj_core = (ymax_core-ymin_core)/(nj_core-1)
         hk_core = (zmax_core-zmin_core)/(nk_core-1)
-        h_core = min(hi_core, hj_core)
+        h_core = min([4.*minSnear, hi_core, hj_core])
         if dim == 3: h_core = min(h_core, hk_core)
-        if dim == 2:
+        else:
             zmin = 0; zmax = 0
             zmin_core = 0.; zmax_core = 0.
             hk_core = 0.
-        h_core = min(h_core, 4.*minSnear)
 
         # Do not extend the CartCore beyond the symmetry plane (symClose)
-        if dir_sym > 0 and tbLocal[0] in listShiftBase:
+        if dir_sym > 0 and bname in listShiftBase:
             if   dir_sym == 1: xmin_core += delta2
             elif dir_sym == 2: ymin_core += delta2
             elif dir_sym == 3: zmin_core += delta2
-        # smaller and finer Cartesian core, bigger geometric factor
-        XC0 = (xmin_core, ymin_core, zmin_core); XF0 = (xmin, ymin, zmin)
-        XC1 = (xmax_core, ymax_core, zmax_core); XF1 = (xmax, ymax, zmax)
-        b = G.cartRx3(XC0, XC1, (h_core, h_core, h_core), XF0, XF1, (1.3, 1.3, 1.3), dim=dim, rank=Cmpi.rank, size=Cmpi.size)
 
-        tbLocalTmp = Internal.getNodeFromNameAndType(tbTmp, tbLocal[0], 'CGNSBase_t')
-        if tbLocalTmp is None: tbLocalTmp = tbLocal
-        C._initVars(tbLocalTmp, "cellN", 1.)
+        # CartRx: smaller and finer Cartesian core, bigger geometric factor
+        XF0 = (xmin, ymin, zmin)
+        XF1 = (xmax, ymax, zmax)
+        XC0 = (xmin_core, ymin_core, zmin_core)
+        XC1 = (xmax_core, ymax_core, zmax_core)
+        H = (h_core, h_core, h_core)
+        R = (1.3, 1.3, 1.3) # geometric factor
+        b = G.cartRx3(XC0, XC1, H, XF0, XF1, R, dim=dim, rank=Cmpi.rank, size=Cmpi.size)
 
+        if tbv2 is not None: # get extended body next to sym plan (if any)
+            tbLocal = Internal.getNodeFromNameAndType(tbv2, bname, 'CGNSBase_t')
+            if tbLocal is None: tbLocal = baseLocal
+        else:
+            tbLocal = baseLocal
+
+        C._initVars(tbLocal, 'cellN', 1.)
+        C._initVars(b, 'cellN', 1.)
+
+        # distance to wall
         t0 = time.perf_counter()
-        DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
+        DTW._distance2Walls(b, tbLocal, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
         tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
-        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nob, tElapse), flush=True)
+        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(bname, nob, tElapse), flush=True)
 
-        C._initVars(b,"cellN",1.)
-        # merging of symmetrical bodies in the original blanking bodies
-        # required for blankCells as a closed set of surfaces
-        bodies = [tbLocalTmp]; nbodies = 1
-        BM = numpy.ones((1, nbodies), dtype=numpy.int32)
+        # blanking (xray or tri)
+        BM = numpy.ones((1, 1), dtype=numpy.int32)
         t = C.newPyTree(["BASE", Internal.getZones(b)])
         # using the input bodies provided (tb & tbox) - safe to use blankCellsTri
-        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
-        else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
-        C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nob) # DEBUG ONLY
+        if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, [tbLocal], BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2)
+        else: X._blankCellsTri(t, [tbLocal], BM, blankingType='node_in')
+        C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)') # signed distance
+        if debugCheck: Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nob)
 
-        # all body offsets are prefaced by 'z_offsetBase' - only the zone name
-        # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
+        # generate offsets through isosurfaces
         preffixLocal = 'z_offsetBase'
         if nob >= nbases-nboxes: preffixLocal = 'Tbox_offsetBase'
+        # all body offsets are prefaced by 'z_offsetBase' - only the zone name
+        # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         for no_offset, offsetval in enumerate(offsetValues[nob]):
             if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nob][0]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance', offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
+            if debugCheck and Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             iso = cleanOffset__(offsetTmp=iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
-            #Cmpi.barrier()
-            #iso = G.close(iso, tol=1.e-6)
+            if debugCheck and Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             iso = T.smooth(iso)
             iso[0]='%s%d_%d'%(preffixLocal, nob, no_offset)
             D_IBM._setSnear(iso, snears[nob][0]*2**no_offset)
-            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nob, no_offset))
-            t_offset[2][no_offsetGlobal+1][2]=[iso]
+            C._addBase2PyTree(toffset, 'OFFSETBase%d_%d'%(nob, no_offset))
+            toffset[2][no_offsetGlobal+1][2] = [iso]
             no_offsetGlobal += 1
-    return t_offset
+
+    return toffset
 
 #==================================================================
 # Automatic skeleton mesh generation
