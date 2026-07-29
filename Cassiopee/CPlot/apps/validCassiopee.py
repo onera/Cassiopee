@@ -460,7 +460,7 @@ def getCFDBaseTests(module):
     tests = []
     for r in reps:
         if (
-            os.access(os.path.join(path, r, "test.py"), os.F_OK)
+            os.access(os.path.join(path, r, f"{r}.py"), os.F_OK)
             and not os.access(os.path.join(path, r, ".validignore"), os.F_OK)
         ): tests.append(r)
     return sorted(tests)
@@ -540,7 +540,7 @@ def runSingleTest(no, module, test, update=False):
     testr = os.path.splitext(test)
     if PREFS["validType"] == "validation":
         path = os.path.join(modulesDir, testr[0])
-        test = "test.py"
+        test = f"{testr[0]}.py"
         ncpus, nthreads = getCPUAndThreadFromUsageLine(os.path.join(path, test), 1)
         seq = True if ncpus == 1 else False
     else:
@@ -1133,7 +1133,7 @@ def viewTest(event=None):
         modulesDir = MODULESDIR[BASE4COMPARE][module]
         if PREFS["validType"] == "validation":
             pathl = os.path.join(modulesDir, test)
-            testFile = 'test.py'
+            testFile = f"{test}.py"
         else:
             pathl = os.path.join(modulesDir, module, 'test')
             testFile = test
