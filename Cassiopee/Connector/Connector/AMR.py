@@ -535,7 +535,7 @@ def computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=False):
 def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check, dim, forceAlignment=False, localDir='./'):
 
     projAlgo = 0
-    
+
     frontTypeDP = IBM_parameters["donor points"]["front type"]
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     IBMType = IBM_parameters["IBM type"]["type"]

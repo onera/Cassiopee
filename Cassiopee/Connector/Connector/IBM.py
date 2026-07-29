@@ -1430,13 +1430,13 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
             else:             tb_local= Internal.merge([tb,tbFilament])
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_local, tfront=front, frontType=frontType,
                               cellNName='cellNIBC', frontName='Front1',
-                              depth=depth, IBCType=IBCType, 
+                              depth=depth, IBCType=IBCType,
                               Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
                               projAlgo=projAlgo, isOrthoFirst=isFilamentOnly)
         if twoFronts:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
                                    cellNName='cellNIBC', frontName='Front2',
-                                   depth=depth, IBCType=IBCType, 
+                                   depth=depth, IBCType=IBCType,
                                    Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
                                    projAlgo=projAlgo, projMul=2) # get info twice as far
         if isWireModel:
@@ -1448,15 +1448,15 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                     Internal._rmNode(tb_filament_localWMM,zlocal)
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_filament_localWMM, tfront=frontWMM, frontType=frontType,
                                    cellNName='cellNFilWMM', frontName='WMM_Front2',
-                                   depth=depth, IBCType=IBCType, 
+                                   depth=depth, IBCType=IBCType,
                                    Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
                                    projAlgo=projAlgo, isWireModel=isWireModel, isOrthoFirst=isFilamentOnly)
 
             restmp = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_filament_localWMM, tfront=frontWMM, frontType=frontType,
-                                    cellNName='cellNFilWMM', frontName='WMM_Front1',
-                                    depth=depth, IBCType=IBCType, 
-                                    Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
-                                    projAlgo=projAlgo, isOrthoFirst=isFilamentOnly)
+                                     cellNName='cellNFilWMM', frontName='WMM_Front1',
+                                     depth=depth, IBCType=IBCType,
+                                     Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                                     projAlgo=projAlgo, isOrthoFirst=isFilamentOnly)
 
             for j in range(3):
                 ##delete in res
@@ -2399,10 +2399,10 @@ def _writeOutputProject__(outputProjection, tLocal):
     Cmpi._setProc(tLocal, Cmpi.rank)
     return tLocal
 
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontType=0, 
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontType=0,
                     cellNName='cellN', frontName='',
-                    IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, 
-                    isLBM=False, isWireModel=False, isOrthoFirst=False, 
+                    IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1,
+                    isLBM=False, isWireModel=False, isOrthoFirst=False,
                     check=False, projAlgo=0, projMul=1):
     """Returns the dictionary of IBM points."""
     if IBCType == -1: signOfDistCorrected = -1
