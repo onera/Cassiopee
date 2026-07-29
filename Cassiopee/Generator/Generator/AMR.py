@@ -312,7 +312,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxe
     debugCheck = False
 
     if offsetValues == []: return []
-    
+
     if Cmpi.master: print('Generating list of offsets...start', flush=True)
 
     minSnear = min([snearLocal[0] for snearLocal in snears])
@@ -539,7 +539,7 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
                 bodies = Internal.getZones(base)
                 if len(bodies) != len(dfars[nob]):
                     raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
-    
+
     levelSkelInput = levelSkel
     for nob, base in enumerate(Internal.getBases(tb)):
         if min(dfars[nob]) > -1: #body snear is only considered if dfar_loc > -1
