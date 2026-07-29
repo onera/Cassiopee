@@ -156,7 +156,7 @@ def _computeMeshInfo(t):
 
 def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=None, tbCurvi=None,
                    snears=0.01, snearsf=None, dfars=10., dfarDir=0, vmin=21, depth=2, frontType=1, octreeMode=0,
-                   IBCType=1, verbose=True, expand=3, ext=-1, optimized=1, order=2, nature=1, extrap=1, dTarget=1000,
+                   IBCType=1, verbose=True, expand=3, ext=-1, optimized=1, order=2, nature=1, extrap=1, projAlgo=0, dTarget=1000,
                    check=False, twoFronts=False, cartesian=True, cleanCellN=True,
                    yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
 
@@ -304,7 +304,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref, cartesian=cartesian, twoFronts=twoFronts,
                       check=check, nature=nature, extrap=extrap,
-                      tbFilament=tbFilament, frontWMM=frontWMM)
+                      projAlgo=projAlgo, tbFilament=tbFilament, frontWMM=frontWMM)
     if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0)
 
     #===================
@@ -344,7 +344,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     else: return t, tc
 
 def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
-                          depth=2, frontType=1, IBCType=1, optimized=1, order=2, nature=1, extrap=1,
+                          depth=2, frontType=1, IBCType=1, optimized=1, order=2, nature=1, extrap=1, projAlgo=0,
                           verbose=True, check=False, twoFronts=False, cartesian=True,
                           yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                           extrusion='cart'):
@@ -456,7 +456,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref, cartesian=cartesian, twoFronts=twoFronts,
                       check=check, nature=nature, extrap=extrap,
-                      tbFilament=tbFilament, frontWMM=frontWMM)
+                      projAlgo=projAlgo, tbFilament=tbFilament, frontWMM=frontWMM)
     if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
 
     #===================
@@ -510,7 +510,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t,
 
 def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
                         depth=2, IBCType=1, verbose=True,
-                        check=False, twoFronts=False, cartesian=True, optimized=1, order=2, nature=1, extrap=1,
+                        check=False, twoFronts=False, cartesian=True, optimized=1, order=2, nature=1, extrap=1, projAlgo=0,
                         yplus=100., Lref=1., correctionMultiCorpsF42=False, blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.):
 
     import time as python_time
@@ -595,7 +595,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1)
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                      cartesian=cartesian, twoFronts=twoFronts, check=check, nature=nature, extrap=extrap)
+                      cartesian=cartesian, twoFronts=twoFronts, check=check, nature=nature, extrap=extrap, projAlgo=projAlgo)
     if verbose: printTimeAndMemory__('compute interpolation data (IBM)', time=python_time.time()-pt0)
 
     #===================
@@ -1390,18 +1390,18 @@ def buildFrontIBM(t, tc, tb=None, dimPb=3, frontType=1, cartesian=True, twoFront
 #=========================================================================
 def setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                      yplus=100, Lref=1., cartesian=True, twoFronts=False, check=False, nature=1, penalty=1, extrap=1,
-                     tbFilament=None, frontWMM=None):
+                     projAlgo=0, tbFilament=None, frontWMM=None):
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tp = Internal.copyRef(t)
     _setInterpDataIBM(t, tc, tb, front, front2=front2, dimPb=dimPb, frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                       cartesian=cartesian, twoFronts=twoFronts, check=check,  nature=nature, penalty=penalty, extrap=extrap,
-                      tbFilament=tbFilament, frontWMM=frontWMM)
+                      projAlgo=projAlgo, tbFilament=tbFilament, frontWMM=frontWMM)
     return tp
 
 def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCType=1, depth=2, Reynolds=1.e6,
                       yplus=100, Lref=1., cartesian=True, twoFronts=False, check=False, nature=1, penalty=1, extrap=1,
-                      tbFilament=None, frontWMM=None):
+                      projAlgo=0, tbFilament=None, frontWMM=None):
     """Compute the transfer coefficients and data for IBM pre-processing."""
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
@@ -1429,12 +1429,16 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
             if isFilamentOnly:tb_local= tbFilament
             else:             tb_local= Internal.merge([tb,tbFilament])
         res = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_local, tfront=front, frontType=frontType,
-                              cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                              isOrthoFirst=isFilamentOnly, check=check)
+                              cellNName='cellNIBC', frontName='Front1',
+                              depth=depth, IBCType=IBCType, 
+                              Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                              projAlgo=projAlgo, isOrthoFirst=isFilamentOnly)
         if twoFronts:
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb, tfront=front2, frontType=frontType,
-                                   cellNName='cellNIBC', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
-                                   twoFronts=twoFronts)
+                                   cellNName='cellNIBC', frontName='Front2',
+                                   depth=depth, IBCType=IBCType, 
+                                   Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                                   projAlgo=projAlgo, projMul=2) # get info twice as far
         if isWireModel:
             tb_filament_localWMM=Internal.copyTree(tbFilament)
             for z in Internal.getZones(tbFilament):
@@ -1443,12 +1447,16 @@ def _setInterpDataIBM(t, tc, tb, front, front2=None, dimPb=3, frontType=1, IBCTy
                     zlocal=Internal.getNodeFromName(tb_filament_localWMM,z[0])
                     Internal._rmNode(tb_filament_localWMM,zlocal)
             res2 = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_filament_localWMM, tfront=frontWMM, frontType=frontType,
-                                   cellNName='cellNFilWMM', depth=depth, IBCType=IBCType, Reynolds=Reynolds, yplus=yplus, Lref=Lref,
-                                   isWireModel=isWireModel, isOrthoFirst=isFilamentOnly, check=check)
+                                   cellNName='cellNFilWMM', frontName='WMM_Front2',
+                                   depth=depth, IBCType=IBCType, 
+                                   Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                                   projAlgo=projAlgo, isWireModel=isWireModel, isOrthoFirst=isFilamentOnly)
 
             restmp = getAllIBMPoints(zonesRIBC, loc='centers',tb=tb_filament_localWMM, tfront=frontWMM, frontType=frontType,
-                                     cellNName='cellNFilWMM', depth=depth, IBCType=IBCType, Reynolds=Reynolds,
-                                     yplus=yplus, Lref=Lref, isOrthoFirst=isFilamentOnly, check=check)
+                                    cellNName='cellNFilWMM', frontName='WMM_Front1',
+                                    depth=depth, IBCType=IBCType, 
+                                    Reynolds=Reynolds, yplus=yplus, Lref=Lref, check=check,
+                                    projAlgo=projAlgo, isOrthoFirst=isFilamentOnly)
 
             for j in range(3):
                 ##delete in res
@@ -2391,9 +2399,11 @@ def _writeOutputProject__(outputProjection, tLocal):
     Cmpi._setProc(tLocal, Cmpi.rank)
     return tLocal
 
-def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontType=0, cellNName='cellN',
-                    IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
-                    hmod=0.1, isLBM=False, isWireModel=False, isOrthoFirst=False, check=False, twoFronts=False):
+def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontType=0, 
+                    cellNName='cellN', frontName='',
+                    IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1., hmod=0.1, 
+                    isLBM=False, isWireModel=False, isOrthoFirst=False, 
+                    check=False, projAlgo=0, projMul=1):
     """Returns the dictionary of IBM points."""
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected=1 # signe de la distance aux points corriges
@@ -2423,12 +2433,12 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX', z, api=1)[0][1][0]
             snearl = xt[1]-xt[0]
-            if twoFronts: snearl *= 2
+            snearl *= projMul
             listOfSnearsLoc.append(snearl)
 
             if frontType == 42:
                 hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-                if twoFronts: hmod *= 2
+                hmod *= projMul
                 listOfModelisationHeightsLoc.append(hmod)
             else:
                 listOfModelisationHeightsLoc.append(0.)
@@ -2451,12 +2461,12 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             allCorrectedPts.append(correctedPts)
             xt = C.getField('CoordinateX', z, api=1)[0][1][0]
             snearl = xt[1]-xt[0]
-            if twoFronts: snearl *= 2
+            snearl *= projMul
             listOfSnearsLoc.append(snearl)
 
             if frontType == 42:
                 hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
-                if twoFronts: hmod *= 2
+                hmod *= projMul
                 listOfModelisationHeightsLoc.append(hmod)
             else:
                 listOfModelisationHeightsLoc.append(0.)
@@ -2518,7 +2528,7 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             front = Converter.convertArray2Tetra(front)
             allCorrectedPts = Converter.extractVars(allCorrectedPts,['CoordinateX','CoordinateY','CoordinateZ']+varsn)
             res = connector.getIBMPtsWithFront(allCorrectedPts, listOfSnearsLoc, listOfModelisationHeightsLoc, bodies,
-                                               front, varsn, signOfDistCorrected, depth, int(isWireModel), int(isOrthoFirst))
+                                               front, varsn, signOfDistCorrected, depth, projAlgo, int(isWireModel), int(isOrthoFirst))
     allWallPts = res[0]
     allWallPts = Converter.extractVars(allWallPts,['CoordinateX','CoordinateY','CoordinateZ'])
 
@@ -2558,11 +2568,8 @@ def getAllIBMPoints(t, loc='nodes', hi=0., he=0., tb=None, tfront=None, frontTyp
             isWrite4 = 1
 
         if check:
-            suffixLocal = '.cgns'
-            if twoFronts: suffixLocal = '_Front2.cgns'
-            if cellNName=='cellNFilWMM':
-                suffixLocal = '_WMM_Front1.cgns'
-                if isWireModel: suffixLocal = '_WMM_Front2.cgns'
+            if frontName != '': suffixLocal = '_%s.cgns'%(frontName)
+            else: suffixLocal = '.cgns'
             if Cmpi.allreduce(isWrite3,op=Cmpi.MAX)>0: Cmpi.convertPyTree2File(tLocal3, 'projection3'+suffixLocal)
             if Cmpi.allreduce(isWrite4,op=Cmpi.MAX)>0: Cmpi.convertPyTree2File(tLocal4, 'projection4'+suffixLocal)
 

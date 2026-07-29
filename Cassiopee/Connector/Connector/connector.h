@@ -799,7 +799,6 @@ namespace K_CONNECTOR
   /*---------------------------------------------------*/
   PyObject* getIBMPtsBasic(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithFront(PyObject* self, PyObject* args);
-  PyObject* getIBMPtsWithTwoFronts(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithoutFront(PyObject* self, PyObject* args);
   PyObject* optimizeOverlap(PyObject* self, PyObject* args);
   PyObject* maximizeBlankedCells( PyObject* self, PyObject* args );

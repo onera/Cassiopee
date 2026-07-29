@@ -56,11 +56,12 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
     PyObject *ListOfSnearsLoc;
     PyObject *ListOfModelisationHeightsLoc;
     E_Int signOfDist; //if correctedPts are inside bodies: sign = -1, else sign=1 (e.g. for Euler sign=-1, for wall modeling sign=1)
-    E_Int depth;//nb of layers of ghost cells
-    E_Int isWireModel,isOrthoFirst;
-    if (!PYPARSETUPLE_(args, OOOO_ OO_ IIII_,
+    E_Int depth; //nb of layers of ghost cells
+    E_Int projAlgo; //if 0: old way of setting max projection distance, if 1: new way
+    E_Int isWireModel, isOrthoFirst;
+    if (!PYPARSETUPLE_(args, OOOO_ OO_ II_ III_,
                        &allCorrectedPts, &ListOfSnearsLoc, &ListOfModelisationHeightsLoc, &bodySurfaces, &frontSurfaces, 
-                       &normalNames, &signOfDist, &depth, &isWireModel, &isOrthoFirst)) return NULL;
+                       &normalNames, &signOfDist, &depth, &projAlgo, &isWireModel, &isOrthoFirst)) return NULL;
 
     // extract list of snearsloc
     if (PyList_Size(ListOfSnearsLoc) == 0)
@@ -486,22 +487,30 @@ PyObject* K_CONNECTOR::getIBMPtsWithFront(PyObject* self, PyObject* args)
         E_Float heightloc = vectOfModelisationHeightsLoc[noz];
         //distance max for image pt to its corrected pt : height*sqrt(3)
 
-        //old way of setting max tolerances
-        heightloc = heightloc*1.1 + 3*snearloc*sqrt(3.); // for 2nd image point
-        heightloc = heightloc*heightloc;
+        E_Float distMaxF2, distMaxB2;
 
-        snearloc = snearloc + 3*snearloc*sqrt(3); // for 2nd image point
-        snearloc = snearloc*snearloc;
+        // Old way of setting max tolerances
+        if (projAlgo == 0)
+        {
+          heightloc = heightloc*1.1 + 3*snearloc*sqrt(3.); // for 2nd image point
+          heightloc = heightloc*heightloc;
 
-        E_Float distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
-        E_Float distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
+          snearloc = snearloc + 3*snearloc*sqrt(3); // for 2nd image point
+          snearloc = snearloc*snearloc;
 
-        //new way of setting max tolerances
-        // heightloc = heightloc*heightloc;
-        // snearloc = snearloc*snearloc;
-        // E_Float distMaxF2 = max(toldistFactorImage*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
-        // E_Float distMaxB2 = max(toldistFactorWall*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
+          distMaxF2 = max(toldistFactorImage*snearloc, heightloc);// distance au carre maximale des pts cibles au front via depth ou modelisationHeight
+          distMaxB2 = max(toldistFactorWall*snearloc, heightloc);// distance au carre maximale des pts cibles au projete paroi via depth ou modelisationHeight
+        }
+
+        // New way of setting max tolerances - used for Constant et al. 2025
         // These max distances are based on 2*hmod instead of hmod to allow some tolerance for complex geometries
+        if (projAlgo == 1)
+        {
+          heightloc = heightloc*heightloc;
+          snearloc = snearloc*snearloc;
+          distMaxF2 = max(toldistFactorImage*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
+          distMaxB2 = max(toldistFactorWall*snearloc, 4*heightloc); // squared maximum projection distance for target points based on local near-wall resolution or modeling height
+        }
 
         vector<FldArrayI*> vectOfIndicesByIBCType(nbodies);
         vector<E_Int> nPtsPerIBCType(nbodies);//nb de pts projetes sur la surface paroi de type associe 
