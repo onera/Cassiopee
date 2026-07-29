@@ -442,8 +442,12 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
     # Find deleted tests (tests in refSession but not in newSession)
     deletedTests = sorted(refSet - newSet)
     # Find failed tests in newSession
-    failedTests = sorted([k for k, v in newDict.items() if v[5] != 'OK'])
-    failedTests = [t for t in failedTests if t not in tests2Ignore(prod)]
+    ignoreSet = set(tests2Ignore(prod))
+    failedTests = sorted(
+        k for k, v in newDict.items()
+        if v[5] != 'OK'
+        and not (v[5] == 'MEMLEAK' and k in ignoreSet)
+    )
 
     # Write differences to terminal or send an email
     baseState = 'OK'
