@@ -642,7 +642,7 @@ elif [ "$MAC" = "sator_coda" ]; then
 
 elif [ "$MAC" = "sator_coda2" ]; then
 #----------------------------- sator coda2 -------------------------------------
-    export ELSAPROD=sator_coda2
+    export ELSAPROD=sator_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48

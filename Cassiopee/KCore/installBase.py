@@ -720,27 +720,6 @@ installDict = {
         'NvccAdditionalOptions': []
     },
 
-    'sator_coda2': {
-        'description': 'Cluster de calcul Sator Saphire (ONERA)',
-        'f77compiler': 'gfortran',
-        'f90compiler': 'gfortran',
-        'Cppcompiler': 'gcc',
-        'CppAdditionalOptions': [
-            '-DCACHELINE=64',
-            '-DNB_SOCKET=2',
-            '-DCORE_PER_SOCK=48',
-            '-DSIMD=AVX2P512'
-        ],
-        'f77AdditionalOptions': [],
-        'useOMP': True,
-        'static': False,
-        'additionalIncludePaths': ['/usr/include/openblas/'],
-        'additionalLibs': ['openblas'],
-        'additionalLibPaths': ['/usr/lib64/'],
-        'useCuda': False,
-        'NvccAdditionalOptions': []
-    },
-
     'sator': {
         'description': 'Cluster de calcul Sator Broadwell (ONERA)',
         'f77compiler': 'ifort',
@@ -887,27 +866,6 @@ installDict = {
     },
 
     'juno_coda': {
-        'description': 'Machine dev Juno rocky8 (ONERA) (env. coda)',
-        'f77compiler': 'gfortran',
-        'f90compiler': 'gfortran',
-        'Cppcompiler': 'gcc',
-        'CppAdditionalOptions': [
-            '-DCACHELINE=64',
-            '-DNB_SOCKET=2',
-            '-DCORE_PER_SOCK=48',
-            '-DSIMD=AVX512'
-        ],
-        'f77AdditionalOptions': [],
-        'useOMP': True,
-        'static': False,
-        'additionalIncludePaths': [],
-        'additionalLibs': [],
-        'additionalLibPaths': [],
-        'useCuda': False,
-        'NvccAdditionalOptions': []
-    },
-
-    'juno_coda2': {
         'description': 'Machine dev Juno rocky8 (ONERA) (env. coda)',
         'f77compiler': 'gfortran',
         'f90compiler': 'gfortran',
