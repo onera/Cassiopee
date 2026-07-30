@@ -24,7 +24,7 @@ def createPart(name):
 
     # solve result
     #T1.solution = {P1.x: 0.0, P1.y: 0.0, P2.x: width, P3.x: width, P3.y: height, P4.y: height}
-    #T1.params = [P4.y, P3.y, P3.x, P2.x, P1.y, P1.x, width, height]  
+    #T1.params = [P4.y, P3.y, P3.x, P2.x, P1.y, P1.x, width, height]
     #T1.freeParams = [width, height]
     T1.solve()
 

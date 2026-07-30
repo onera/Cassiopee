@@ -198,7 +198,7 @@ class Point:
         self.y = Scalar(self.name+".y", value[1], part)
         self.z = Scalar(self.name+".z", value[2], part)
         # register
-        if part is not None: 
+        if part is not None:
             self.part = part
             part.registerPoint(self)
 
@@ -1584,7 +1584,7 @@ class Part:
         self.Phi = None # POD vectors
         self.ak = None # POD coefficients of each mesh in doe
         # register part in Driver
-        DRIVER.registerPart(self)            
+        DRIVER.registerPart(self)
 
     def Scalar(self, name=None, value=0.):
         s = Scalar(name, value, self)
@@ -1645,7 +1645,7 @@ class Part:
     def Sketch(self, name=None, listEntities=[], h=None):
         s = Sketch(name, listEntities, h, self)
         return s
-    
+
     def Surface(self, name=None, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, h=None, type="loft"):
         s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, self)
         return s
@@ -1662,13 +1662,13 @@ class Part:
 
     def Revolve(self, name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
         s = Surface(name=name, listSketches=[sketch],
-                   data={'center':center, 'axis':axis, 'angle':angle},
-                   type="revolve", h=h, part=self)
+                    data={'center':center, 'axis':axis, 'angle':angle},
+                    type="revolve", h=h, part=self)
         return s
 
     def Merge(self, name="compound", listSurfaces=[], h=None):
         s = Surface(name=name, listSurfaces=listSurfaces,
-                   type="merge", h=h, part=self)
+                    type="merge", h=h, part=self)
         return s
 
     def MergeEdges(self, name="mergeEdges", listSketches=[], h=None):
@@ -1677,26 +1677,26 @@ class Part:
 
     def Fill(self, name="fill", sketch=None, continuity=0, h=None):
         s = Surface(name=name, listSketches=[sketch],
-                   data={'continuity':continuity},
-                   type="fill", h=h, part=self)
+                    data={'continuity':continuity},
+                    type="fill", h=h, part=self)
         return s
 
     def Union(self, name="union", listSurfaces1=[], listSurfaces2=[], h=None):
         s = Surface(name=name, listSurfaces=listSurfaces1,
-                   listSurfaces2=listSurfaces2,
-                   type="union", h=h, part=self)
+                    listSurfaces2=listSurfaces2,
+                    type="union", h=h, part=self)
         return s
 
     def Sub(self, name="sub", listSurfaces1=[], listSurfaces2=[], h=None):
         s = Surface(name=name, listSurfaces=listSurfaces1,
-                   listSurfaces2=listSurfaces2,
-                   type="sub", h=h, part=self)
+                    listSurfaces2=listSurfaces2,
+                    type="sub", h=h, part=self)
         return s
 
     def Inter(self, name="inter", listSurfaces1=[], listSurfaces2=[], h=None):
         s = Surface(name=name, listSurfaces=listSurfaces1,
-                   listSurfaces2=listSurfaces2,
-                   type="inter", h=h, part=self)
+                    listSurfaces2=listSurfaces2,
+                    type="inter", h=h, part=self)
         return s
 
     def FillLinear(self, name="linearFill", listPoints=[], continuity=0, h=None):
@@ -1803,21 +1803,21 @@ class Part:
     def print(self, shift=0):
         """Print registered entities."""
         for k in self.scalars:
-            print(" "*shift, "Scalar:", k) 
+            print(" "*shift, "Scalar:", k)
             self.scalars[k].print(shift+4)
-        for k in self.points: 
+        for k in self.points:
             print(" "*shift, "Point:", k)
             self.points[k].print(shift+4)
-        for k in self.edges: 
+        for k in self.edges:
             print(" "*shift, "Edge:", k)
             self.edges[k].print(shift+4)
-        for k in self.sketches: 
+        for k in self.sketches:
             print(" "*shift, "Sketch:", k)
             self.sketches[k].print(shift+4)
-        for k in self.surfaces: 
+        for k in self.surfaces:
             print(" "*shift, "Surf:", k)
             self.surfaces[k].print(shift+4)
-        for k in self.equations: 
+        for k in self.equations:
             print(" "*shift, "Eq:", k)
             #self.equations[k].print(shift+4)
 
@@ -2071,7 +2071,7 @@ class Part:
             if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
         for f in self.surfaces:
             fh = self.surfaces[f]
-            if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])        
+            if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
         OCC.writeCAD(hook, fileName, format)
         OCC.freeHook(hook)
 
@@ -2663,7 +2663,7 @@ class Driver:
                 if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
             for f in part.surfaces:
                 fh = part.surfaces[f]
-                if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])        
+                if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
         OCC.writeCAD(hook, fileName, format)
         OCC.freeHook(hook)
 
@@ -2678,7 +2678,7 @@ class Driver:
         tools.add_command(label="tkDriver", command=module.showApp)
         if part is None:
             k = list(self.parts.keys())
-            if len(k) == 0: raise ValueError("plot: driver has no part.") 
+            if len(k) == 0: raise ValueError("plot: driver has no part.")
             part = self.parts[k[0]]
         if entity is None:
             k = list(part.sketches.keys())
@@ -2706,7 +2706,7 @@ class Driver:
         global PART
         if name in self.parts:
             PART = self.parts[name]
-        else: 
+        else:
             self.parts = Part(name)
 
     # save part

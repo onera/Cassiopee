@@ -48,7 +48,7 @@ def getEntitiesFromPart():
 def getPartsFromDriver():
     parts = []
     for k in DRIVER.parts:
-        parts.append(k)    
+        parts.append(k)
     return parts
 
 #==============================================================================
