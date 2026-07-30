@@ -534,6 +534,8 @@ def computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=False):
 
 def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check, dim, forceAlignment=False, localDir='./'):
 
+    projAlgo = 0
+
     frontTypeDP = IBM_parameters["donor points"]["front type"]
     frontTypeIP = IBM_parameters["integration points"]["front type"]
     IBMType = IBM_parameters["IBM type"]["type"]
@@ -577,7 +579,7 @@ def extractIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check
         listOfSnearsLoc.append(snear)
         if frontTypeIP == "2": listOfModelingHeightsLoc.append(distance_IP)
         else: listOfModelingHeightsLoc.append(0.)
-        res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, False, False)
+        res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, projAlgo, 0, 0)
         wallpts = res[0]
         imagepts = res[1]
 

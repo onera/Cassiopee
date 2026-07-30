@@ -27,7 +27,6 @@ static PyMethodDef Pyconnector [] =
 {
   {"getIBMPtsBasic", K_CONNECTOR::getIBMPtsBasic, METH_VARARGS},
   {"getIBMPtsWithFront", K_CONNECTOR::getIBMPtsWithFront, METH_VARARGS},
-  {"getIBMPtsWithTwoFronts", K_CONNECTOR::getIBMPtsWithTwoFronts, METH_VARARGS},
   {"getIBMPtsWithoutFront", K_CONNECTOR::getIBMPtsWithoutFront, METH_VARARGS},
   {"optimizeOverlap", K_CONNECTOR::optimizeOverlap, METH_VARARGS},
   {"maximizeBlankedCells", K_CONNECTOR::maximizeBlankedCells, METH_VARARGS},
