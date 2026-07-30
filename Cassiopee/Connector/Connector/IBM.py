@@ -257,7 +257,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     # STEP 3 : BLANKING IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1)
-    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb, 
+    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb,
                  frontType=frontType, IBCType=IBCType, depth=depth,
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                  heightMaxF42=heightMaxF42, wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
@@ -274,10 +274,10 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     tc = C.node2Center(t)
 
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-        Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', 
+        Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse',
                             sameName=1, dim=dimPb, itype='abutting', order=order, cartesian=cartesian)
 
-    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', 
+    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse',
                         sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0)
@@ -286,7 +286,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     # STEP 5 : BUILD FRONT
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1)
-    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament, 
+    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament,
                                                    dimPb=dimPb, frontType=frontType,
                                                    cartesian=cartesian, twoFronts=twoFronts, check=check)
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0)
@@ -295,7 +295,7 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     # STEP 6 : INTERP DATA IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1)
-    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb, 
+    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb,
                       frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                       nature=nature, penalty=penalty, extrap=extrap, projAlgo=projAlgo,
@@ -307,8 +307,8 @@ def prepareIBMData(t_case, t_out, tc_out, t_in=None, to=None, tbox=None, tinit=N
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1)
 
-    t, tc, tc2 = initializeIBM(t, tc, tb, 
-                               tbFilament=tbFilament, tbCurvi=tbCurvi, tinit=tinit, 
+    t, tc, tc2 = initializeIBM(t, tc, tb,
+                               tbFilament=tbFilament, tbCurvi=tbCurvi, tinit=tinit,
                                dimPb=dimPb, twoFronts=twoFronts)
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
@@ -360,7 +360,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t_in,
         raise ValueError('prepareIBMDataExtrude: order > 2 for Chimera transfers only applies for conservative IBMs (optimized = -1).')
     if optimized == -1:
         raise ValueError('prepareIBMData: Conservative Chimera transfers (optimized=-1) required FastC module')
-    
+
     if extrusion not in ['cart', 'cyl']:
         raise ValueError("prepareIBMDataExtrude: extrusion must be 'cyl' or 'cart' (current value = %s)"%(extrusion))
 
@@ -410,7 +410,7 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t_in,
     # STEP 3 : BLANKING IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1, functionName='prepareIBMDataExtrude')
-    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb, 
+    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb,
                  frontType=frontType, IBCType=IBCType, depth=depth,
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                  heightMaxF42=heightMaxF42, wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
@@ -442,10 +442,10 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t_in,
     tc = C.node2Center(t)
 
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse',
                             sameName=1, dim=dimPb, itype='abutting', order=order, cartesian=cartesian)
 
-    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', 
+    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse',
                         sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
@@ -454,16 +454,16 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t_in,
     # STEP 5 : BUILD FRONT
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1, functionName='prepareIBMDataExtrude')
-    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament, 
+    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament,
                                                    dimPb=dimPb, frontType=frontType,
                                                    cartesian=cartesian, twoFronts=twoFronts, check=check)
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='prepareIBMDataExtrude')
-    
+
     #===================
     # STEP 6 : INTERP DATA IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='prepareIBMDataExtrude')
-    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb, 
+    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb,
                       frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                       nature=nature, penalty=penalty, extrap=extrap, projAlgo=projAlgo,
@@ -474,11 +474,11 @@ def prepareIBMDataExtrude(t_case, t_out, tc_out, t_in,
     # STEP 7 : INIT IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1, functionName='prepareIBMDataExtrude')
-    _, tc, tc2 = initializeIBM(None, tc, tb, 
-                               tbFilament=tbFilament, tbCurvi=None, 
-                               tinit=None, 
+    _, tc, tc2 = initializeIBM(None, tc, tb,
+                               tbFilament=tbFilament, tbCurvi=None,
+                               tinit=None,
                                dimPb=dimPb, twoFronts=twoFronts)
-    
+
     _redispatch__(t=t, tc=tc, tc2=tc2)
 
     _setInjOutlet__(tc, tb)
@@ -577,7 +577,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     # STEP 3 : BLANKING IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('blank by IBC bodies', time=-1, functionName='prepareIBMDataAdapt')
-    _blankingIBM(t, tb, tbFilament=None, dimPb=dimPb, 
+    _blankingIBM(t, tb, tbFilament=None, dimPb=dimPb,
                  frontType=frontType, IBCType=IBCType, depth=depth,
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                  heightMaxF42=heightMaxF42, wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
@@ -594,10 +594,10 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     tc = C.node2Center(t)
 
     if Internal.getNodeFromType(t, "GridConnectivity1to1_t") is not None:
-        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse', 
+        Xmpi._setInterpData(t, tc, nature=1, loc='centers', storage='inverse',
                             sameName=1, dim=dimPb, itype='abutting', order=order, cartesian=cartesian)
 
-    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse', 
+    Xmpi._setInterpData(t, tc, nature=nature, loc='centers', storage='inverse',
                         sameName=1, sameBase=1, dim=dimPb, itype='chimera', order=order, extrap=extrap, cartesian=cartesian)
 
     if verbose: printTimeAndMemory__('compute interpolation data (Abutting & Chimera)', time=python_time.time()-pt0, functionName='prepareIBMDataAdapt')
@@ -606,7 +606,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     # STEP 5 : BUILD FRONT
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('build IBM front', time=-1, functionName='prepareIBMDataAdapt')
-    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament, 
+    t, tc, front, front2, frontWMM = buildFrontIBM(t, tc, tb=tb, tbFilament=tbFilament,
                                                    dimPb=dimPb, frontType=frontType,
                                                    cartesian=cartesian, twoFronts=twoFronts, check=check)
     if verbose: printTimeAndMemory__('build IBM front', time=python_time.time()-pt0, functionName='prepareIBMDataAdapt')
@@ -615,7 +615,7 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     # STEP 6 : INTERP DATA IBM
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('compute interpolation data (IBM)', time=-1, functionName='prepareIBMDataAdapt')
-    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb, 
+    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb,
                       frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                       nature=nature, penalty=penalty, extrap=extrap, projAlgo=projAlgo,
@@ -627,8 +627,8 @@ def prepareIBMDataAdapt(t_case, t_out, tc_out, t_in,
     #===================
     if verbose: pt0 = python_time.time(); printTimeAndMemory__('initialize and clean', time=-1, functionName='prepareIBMDataAdapt')
 
-    _, tc, tc2 = initializeIBM(None, tc, tb, 
-                               tbFilament=tbFilament, tbCurvi=tbCurvi, tinit=tinit, 
+    _, tc, tc2 = initializeIBM(None, tc, tb,
+                               tbFilament=tbFilament, tbCurvi=tbCurvi, tinit=tinit,
                                dimPb=dimPb, twoFronts=twoFronts)
 
     _redispatch__(t=t, tc=tc, tc2=tc2)
@@ -834,7 +834,7 @@ def _dist2wallIBM(t, tb, tbFilament=None, dimPb=3):
 # OUT: centers:cellN, centers:cellNIBC, centers:cellNChim, centers:cellNFront fields
 # OUT: (optional) centers:cellNIBC_2, centers:cellNFront_2 fields for second image points
 #=========================================================================
-def _blankingIBM__(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2, 
+def _blankingIBM__(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2,
                    Reynolds=1.e6, yplus=100, Lref=1.,
                    blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                    cleanCellN=True):
@@ -1031,20 +1031,20 @@ def _blankingIBM__(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, dept
     if not isFilamentOnly: _removeBlankedGrids(t, loc='centers')
     return None
 
-def blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2, 
+def blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2,
                 Reynolds=1.e6, yplus=100, Lref=1.,
                 blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                 twoFronts=False, cleanCellN=True):
     """Blank the computational tree by IBC bodies for IBM pre-processing."""
     tp = Internal.copyRef(t)
-    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb, 
+    _blankingIBM(t, tb, tbFilament=tbFilament, dimPb=dimPb,
                  frontType=frontType, IBCType=IBCType, depth=depth,
                  Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                  heightMaxF42=heightMaxF42, wallAdaptF42=wallAdaptF42, blankingF42=blankingF42,
                  twoFronts=twoFronts, cleanCellN=cleanCellN)
     return tp
 
-def _blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2, 
+def _blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=2,
                  Reynolds=1.e6, yplus=100, Lref=1.,
                  blankingF42=False, wallAdaptF42=None, heightMaxF42=-1.,
                  twoFronts=False, cleanCellN=True):
@@ -1238,7 +1238,7 @@ def _pushBackImageFront2__(t, tc, tbbc, cartesian=True):
 
     return None
 
-def buildFrontIBM(t, tc, tb=None, tbFilament=None, dimPb=3, frontType=1, 
+def buildFrontIBM(t, tc, tb=None, tbFilament=None, dimPb=3, frontType=1,
                   cartesian=True, twoFronts=False, check=False):
     """Build the IBM front for IBM pre-processing."""
 
@@ -1322,22 +1322,22 @@ def buildFrontIBM(t, tc, tb=None, tbFilament=None, dimPb=3, frontType=1,
 # OUT: IBCD* zones inside tc
 # OUT: (optional) 2_IBCD* zones inside tc
 #=========================================================================
-def setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, frontWMM=None, dimPb=3, 
-                      frontType=1, IBCType=1, depth=2, 
-                      Reynolds=1.e6, yplus=100, Lref=1.,
-                      nature=1, penalty=1, extrap=1, projAlgo=0,
-                      cartesian=True, twoFronts=False, check=False):
+def setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, frontWMM=None, dimPb=3,
+                     frontType=1, IBCType=1, depth=2,
+                     Reynolds=1.e6, yplus=100, Lref=1.,
+                     nature=1, penalty=1, extrap=1, projAlgo=0,
+                     cartesian=True, twoFronts=False, check=False):
     """Compute the transfer coefficients and data for IBM pre-processing."""
     tp = Internal.copyRef(t)
-    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb, 
+    _setInterpDataIBM(t, tc, tb, tbFilament=tbFilament, front=front, front2=front2, frontWMM=frontWMM, dimPb=dimPb,
                       frontType=frontType, IBCType=IBCType, depth=depth,
                       Reynolds=Reynolds, yplus=yplus, Lref=Lref,
                       nature=nature, penalty=penalty, extrap=extrap, projAlgo=projAlgo,
                       cartesian=cartesian, twoFronts=twoFronts, check=check)
     return tp
 
-def _setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, frontWMM=None, dimPb=3, 
-                      frontType=1, IBCType=1, depth=2, 
+def _setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, frontWMM=None, dimPb=3,
+                      frontType=1, IBCType=1, depth=2,
                       Reynolds=1.e6, yplus=100, Lref=1.,
                       nature=1, penalty=1, extrap=1, projAlgo=0,
                       cartesian=True, twoFronts=False, check=False):
