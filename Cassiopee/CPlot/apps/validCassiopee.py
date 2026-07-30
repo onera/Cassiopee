@@ -1715,7 +1715,7 @@ def updateASANOptions():
 
 def updateASANLabel(entry_index):
     if not INTERACTIVE: return
-    if getDBInfo(): entry_index += 2
+    if getDBInfo(): entry_index += 1
     label = toolsTab.entrycget(entry_index, "label")
     if label[0].startswith('E'): label = 'Dis' + label[2:]
     else: label = 'En' + label[3:]
