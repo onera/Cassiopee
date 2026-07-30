@@ -123,8 +123,9 @@ elif [ "$MAC" = "ld_coda" ]; then
     . /etc/profile.d/modules-onera.sh
     module purge
     
-    #module load lapack/3.9.1-gnu831
-    #module load occt/7.6.1-gnu831
+    module load lapack/3.9.1-gnu831
+    module load occt/7.6.1-gnu831
+    
     #module load socle-fs/gnu1210_openmpi405
     #source /stck/rhea/coda_modules/expose_modules.sh 2026.05
     #module load fsdm
