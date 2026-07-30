@@ -3684,8 +3684,8 @@ def groupByFamily(t, familyChilds=None, unique=False):
 
 # -- retourne la dimension d'une grille NGON
 # Retourne -1 si la grille n'est pas NGON
-def getZoneDimNGon(zone):
-  def getCellDimNGon(ngon):
+def getCellDimNGon(zone):
+  def getCellDimNGon__(ngon):
     # NGON4
     data = getNodeFromName1(ngon, 'ElementStartOffset')
     if data is not None:
@@ -3708,10 +3708,10 @@ def getZoneDimNGon(zone):
   if not c: return 3
   elif len(c) == 1:
     if c[0][1][0] not in [22, 23]: return -1
-    return getCellDimNGon(c[0])
+    return getCellDimNGon__(c[0])
   eltNames = [eltNo2EltName(e[1][0])[0] for e in c]
   if "NGON" in eltNames and "NFACE" in eltNames:
-    return getCellDimNGon(c[eltNames.index("NGON")])
+    return getCellDimNGon__(c[eltNames.index("NGON")])
   return -1
 
 # -- retourne les dimensions et le type de la grille
@@ -3752,14 +3752,14 @@ def getZoneDim(zone):
           eltName, _, cellDim = eltNo2EltInfo(elt)
           if elt in [22, 23]: # NGON or NFACE
             eltName = 'NGON'
-            cellDim = getZoneDimNGon(zone)
+            cellDim = getCellDimNGon(zone)
           return [gtype, np, ne, eltName, cellDim]
         else: # lc >= 2:
           # Y a t-il NGON et NFACE? Si oui, renvoie NGON meme si il
           # y a des BEs
           eltNames = [eltNo2EltName(i[1][0])[0] for i in c]
           if "NGON" in eltNames and "NFACE" in eltNames:
-            cellDim = getZoneDimNGon(zone)
+            cellDim = getCellDimNGon(zone)
             return [gtype, np, ne, 'NGON', cellDim]
           else: # BE/ME
             cellDim = 0
