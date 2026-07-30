@@ -130,15 +130,6 @@ def view(event=None):
     algo = VARS[5].get()
     CTK.setCursor(2, WIDGETS['view'], WIDGETS['plus'], WIDGETS['moins'])
 
-    nzs = CPlot.getSelectedZones()
-    if nzs != []:
-        point = CPlot.getActivePoint()
-        if len(point) == 3: # if active point, take it
-            if plane == 'X': pos = point[0]; XVALUE = pos
-            elif plane == 'Y': pos = point[1]; YVALUE = pos
-            elif plane == 'Z': pos = point[2]; ZVALUE = pos
-            VARS[1].set(str(pos))
-
     if plane == 'Mesh': CTK.display(CTK.t); return
     try:
         if CTK.__MAINTREE__ == CTK.MAIN:
@@ -220,14 +211,6 @@ def extract(event=None):
     algo = VARS[5].get()
 
     CTK.setCursor(2, WIDGETS['extract'])
-    nzs = CPlot.getSelectedZones()
-    if nzs != []:
-        point = CPlot.getActivePoint()
-        if plane == 'X': pos = point[0]; XVALUE = pos
-        elif plane == 'Y': pos = point[1]; YVALUE = pos
-        elif plane == 'Z': pos = point[2]; ZVALUE = pos
-        VARS[1].set(str(pos))
-
     if plane == 'Mesh': return
     try:
         CTK.saveTree()
