@@ -43,8 +43,8 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
         if base[3] == 'CGNSBase_t':
             basename = base[0]
             res = G_IBM.generateIBMMesh_legacy(base, vmin, snears, dfarloc, DEPTH=DEPTH, NP=NP, tbox=None, snearsf=None,
-                                         check=check, merged=merged, symmetry=symmetry, sizeMax=sizeMax, externalBCType='BCDummy', to=None,
-                                         composite=1, mergeByParents=False)
+                                               check=check, merged=merged, symmetry=symmetry, sizeMax=sizeMax, externalBCType='BCDummy', to=None,
+                                               composite=1, mergeByParents=False)
 
             res = Internal.getZones(res)
             t[2][nob][2]=res
@@ -77,8 +77,8 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
             tblank[2][nob][2]=[blankingBoxL]
 
     tcart = G_IBM.generateIBMMesh_legacy(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox,
-                                   snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax,
-                                   symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
+                                         snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax,
+                                         symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
     tcart[2][1][0] = 'OffBody'
     C._rmBCOfType(t,'BCDummy') # near body grids external borders must be BCOverlap
     t = C.fillEmptyBCWith(t,'ov_ext','BCOverlap',dim=dimPb)

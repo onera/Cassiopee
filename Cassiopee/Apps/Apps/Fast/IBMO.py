@@ -489,13 +489,13 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             if n is not None: dfars[c] = Internal.getValue(n)*1.
 
         o = G_IBM.buildOctree(tbo, snearFactor=1., dfars=dfars,
-                             dimPb=dimPb, vmin=vmin,
-                             expand=expand, dfarDir=dfarDir)
+                              dimPb=dimPb, vmin=vmin,
+                              expand=expand, dfarDir=dfarDir)
 
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
         parento = G_IBM.buildParentOctrees__(o, tbo, snearFactor=4., dfars=dfars,
-                                            dimPb=dimPb, vmin=vmin)
+                                             dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -844,7 +844,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         res = [{},{},{}]
     else:
         res = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tbibm, tfront=front, frontType=frontType,
-                                   cellNName='cellNIBC', depth=2, IBCType=IBCType)
+                                    cellNName='cellNIBC', depth=2, IBCType=IBCType)
 
     front = None
     # cleaning

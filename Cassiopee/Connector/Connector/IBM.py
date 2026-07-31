@@ -875,7 +875,7 @@ def _blankingIBM__(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, dept
         h = Cmpi.allreduce(h_loc, op=Cmpi.MIN)
         hmod = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # best compromise between the min snear and the modeling height
         yplus = G_IBM_Height.computeYplus(Re=Reynolds, height=hmod, L=Lref)
-    
+
     if heightMaxF42 > 0.: # security
         if hmod > heightMaxF42:
             hmod = heightMaxF42
@@ -2088,7 +2088,7 @@ def gatherFront(front):
 
 #=============================================================================
 # Extract all IBM info and save them as a tree (IBMInfo.cgns)
-# 
+#
 # IN: tc (tree): connectivity tree
 # IN: IBCNames (string): prefix of IBC regions
 # IN: fileout (string): output filename
@@ -2265,7 +2265,7 @@ def _writeOutputProject__(outputProjection, tLocal):
 def getAllIBMPoints(t, loc='nodes', tb=None, tfront=None, frontType=0,
                     cellNName='cellN', frontName='',
                     IBCType=1, depth=2, Reynolds=6.e6, yplus=100., Lref=1.,
-                    projAlgo=0, projMul=1, 
+                    projAlgo=0, projMul=1,
                     isWireModel=False, isOrthoFirst=False, check=False, **kwargs):
     """Returns dictionaries of IBM points."""
 
@@ -2281,7 +2281,7 @@ def getAllIBMPoints(t, loc='nodes', tb=None, tfront=None, frontType=0,
 
     # F42 special treatment
     heightMaxF42 = kwargs.get('heightMaxF42', -1.)
-    
+
     if yplus > 0.:
         hmod = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus, L=Lref)
     else:
@@ -2289,11 +2289,11 @@ def getAllIBMPoints(t, loc='nodes', tb=None, tfront=None, frontType=0,
         h = Cmpi.allreduce(h_loc, op=Cmpi.MIN)
         hmod = G_IBM_Height.computeBestModelisationHeight(Re=Reynolds, h=h) # best compromise between the min snear and the modeling height
         yplus = G_IBM_Height.computeYplus(Re=Reynolds, height=hmod, L=Lref)
-    
+
     if heightMaxF42 > 0.: # security
         if hmod > heightMaxF42:
             hmod = heightMaxF42
-    
+
     if IBCType == -1: signOfDistCorrected = -1
     else: signOfDistCorrected = 1
 
@@ -2357,7 +2357,7 @@ def getAllIBMPoints(t, loc='nodes', tb=None, tfront=None, frontType=0,
                 listOfModelisationHeightsLoc.append(hmod)
             else:
                 listOfModelisationHeightsLoc.append(0.)
-    
+
     #-------------------------------------------
     # 2. Get the list of IBC wall and interp pts
     #-------------------------------------------
@@ -2503,7 +2503,7 @@ def getAllIBMPoints(t, loc='nodes', tb=None, tfront=None, frontType=0,
 #=============================================================================
 # Extract yplus information after a first computation for hmod adaptation
 # Operate with prepareIBMDataAdapt and frontType=42
-# 
+#
 # IN: tc (tree): connectivity tree
 #=============================================================================
 def createWallAdapt(tc):
@@ -2922,7 +2922,7 @@ def prepareIBMData_legacy(t, tbody, DEPTH=2, loc='centers', frontType=1, interpD
     else: dictOfADT = None
     print('Interpolations Chimere.')
     tc = doInterp_legacy__(t, tc, tbb, tb=None, typeI='ID', dim=dimPb,
-                  interpDataType=interpDataType, dictOfADT=dictOfADT)
+                           interpDataType=interpDataType, dictOfADT=dictOfADT)
     if dictOfADT is not None:
         for dnrname in dictOfADT: C.freeHook(dictOfADT[dnrname])
 

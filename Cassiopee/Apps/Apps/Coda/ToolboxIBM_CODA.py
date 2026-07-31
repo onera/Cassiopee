@@ -473,16 +473,16 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
     test.printMem('>>> Octree unstruct [start]')
 
     o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList,
-                         to=to, tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin,
-                         expand=expand, dfarDir=dfarDir)
+                          to=to, tbox=tbox, snearsf=snearsf,
+                          dimPb=dimPb, vmin=vmin,
+                          expand=expand, dfarDir=dfarDir)
     if rank==0 and check: C.convertPyTree2File(o, fileout)
     bbo = G.bbox(o)
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin)
+                                         dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree

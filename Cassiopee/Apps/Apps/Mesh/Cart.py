@@ -36,7 +36,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
     o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList, to=to,
-                         dimPb=dimPb, vmin=vmin, expand=expand)
+                          dimPb=dimPb, vmin=vmin, expand=expand)
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
@@ -45,7 +45,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
     parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox,
-                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin)
+                                         snearsf=snearsf, dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
