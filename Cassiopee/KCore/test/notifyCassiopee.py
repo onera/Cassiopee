@@ -65,6 +65,8 @@ def parseArgs():
                         help="Name of the production.")
     parser.add_argument("-r", "--recipients", type=str, default='',
                         help="Single-quoted space-separated list of recipients")
+    parser.add_argument("-s", "--session-suffix", type=str, default='',
+                        help="Session log suffix")
     parser.add_argument("-u", "--update", action="store_true",
                         help="Update valid. log on stck. Default: disabled")
     parser.add_argument("-v", "--valid", action="store_true",
@@ -93,7 +95,7 @@ def readGitInfo(filename):
     return gitInfo
 
 # Find a two session logs of validCassiopee for a given production
-def findLogs(prodname, findRef=True):
+def findLogs(prodname, findRef=True, sessionSuffix=""):
     validDataFolder = f"/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{prodname}"
     if not os.access(validDataFolder, os.R_OK):
         import KCore.installPath as K
@@ -103,8 +105,8 @@ def findLogs(prodname, findRef=True):
 
     logs = None
     refLogs = []
-    if findRef: refLogs = sorted(glob(os.path.join(validDataFolder, "REF-session-*.log")))
-    sessionLogs = sorted(glob(os.path.join(validDataFolder, "session-*.log")))
+    if findRef: refLogs = sorted(glob(os.path.join(validDataFolder, f"REF-session{sessionSuffix}-*.log")))
+    sessionLogs = sorted(glob(os.path.join(validDataFolder, f"session{sessionSuffix}-*.log")))
     if refLogs: logs = [refLogs[-1], sessionLogs[-1]]
     elif len(sessionLogs) > 1: logs = sessionLogs[-2:]
     return logs
@@ -371,9 +373,10 @@ def checkCheckoutStatus(sendEmail=False):
     return messageSubject, messageText
 
 # Check valid status
-def checkValidStatus():
+def checkValidStatus(sessionSuffix=""):
     log_entries = []
-    logAllValids = '/stck/cassiope/git/logs/validation_status.txt'
+    if sessionSuffix: sessionSuffix = "_" + sessionSuffix
+    logAllValids = f'/stck/cassiope/git/logs/validation_status{sessionSuffix}.txt'
     if os.access(logAllValids, os.R_OK):
         with open(logAllValids, 'r') as f:
             for line in f:
@@ -415,7 +418,7 @@ def checkValidStatus():
 
 # Compare session logs
 def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
-                       showTestLogs=False, update=False):
+                       showTestLogs=False, update=False, sessionSuffix=""):
     # Read log files and git info
     refSession = readLog(logFiles[0])
     newSession = readLog(logFiles[1])
@@ -534,7 +537,8 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
         else: exitStatus = 1
 
         # Amend state of the base in logs/validation_status.txt
-        logAllValids = "/stck/cassiope/git/logs/validation_status.txt"
+        if sessionSuffix: sessionSuffix = "_" + sessionSuffix
+        logAllValids = f"/stck/cassiope/git/logs/validation_status{sessionSuffix}.txt"
         if os.access(os.path.dirname(logAllValids), os.W_OK):
             entry = (
                 f"{prod} - {gitInfo['Git branch']} - "
@@ -574,7 +578,8 @@ if __name__ == '__main__':
     elif scriptArgs.valid:
         if scriptArgs.prod:
             findRef = False if scriptArgs.logs == "latest" else True
-            scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef)
+            scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef,
+                                       sessionSuffix=scriptArgs.sessionSuffix)
             if not(
                 isinstance(scriptArgs.logs, list) and
                 len(scriptArgs.logs) == 2
@@ -590,13 +595,14 @@ if __name__ == '__main__':
             mode = "compare"
 
         if mode == "overview":
-            messageSubject, messageText = checkValidStatus()
+            messageSubject, messageText = checkValidStatus(sessionSuffix=scriptArgs.sessionSuffix)
         else:
             messageSubject, messageText, exitStatus = compareSessionLogs(
                 logFiles=scriptArgs.logs,
                 showExecTimeDiffs=scriptArgs.email,
                 showTestLogs=scriptArgs.full,
-                update=scriptArgs.update
+                update=scriptArgs.update,
+                sessionSuffix=scriptArgs.sessionSuffix
             )
 
     if scriptArgs.email:
