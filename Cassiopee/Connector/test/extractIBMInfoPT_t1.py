@@ -1,7 +1,7 @@
 # - extractIBMInfo (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Connector.ToolboxIBM as IBM
+import Connector.IBM as X_IBM
 import Post.PyTree as P
 import Geom.PyTree as D
 import Dist2Walls.PyTree as DTW
@@ -16,8 +16,8 @@ C._addState(tb, 'EquationDimension', 3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DTW._distance2Walls(t, bodies=tb, loc='centers', type='ortho')
 t = P.computeGrad(t, 'centers:TurbulentDistance')
-t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
-res = IBM.extractIBMInfo(tc)
+t,tc=X_IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
+res = X_IBM.extractIBMInfo(tc)
 test.testT(res,1)
 
 # CAS 2D
@@ -30,6 +30,6 @@ C._addState(tb, 'EquationDimension', 2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DTW._distance2Walls(t, bodies=tb, loc='centers', type='ortho', dim=2)
 t = P.computeGrad(t, 'centers:TurbulentDistance')
-t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
-res = IBM.extractIBMInfo(tc)
+t,tc=X_IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
+res = X_IBM.extractIBMInfo(tc)
 test.testT(res,2)

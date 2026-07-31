@@ -357,8 +357,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
                 interpDataType=1, hook=None, sameName=0, he=0., hi=0., tfront=None, dim=3, bcType=0,
                 Reynolds=6.e6, yplus=100., Lref=1., frontType=0, tb=None):
     """Compute Immersed Boundary data."""
-    try: from . import ToolboxIBM as IBM
-    except: raise ImportError("setIBCData: requires ToolboxIBM module.")
+    from Connector.IBM import getAllIBMPoints
 
     locR = loc
     ReferenceState = Internal.getNodeFromType2(aR,'ReferenceState_t')
@@ -396,7 +395,7 @@ def _setIBCData(aR, aD, order=2, penalty=0, nature=0,
     #-------------------------------------------
     # 1. Get the list of IBC pts
     #-------------------------------------------
-    res = IBM.getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he, tfront=tfront, Reynolds=Reynolds, yplus=yplus, Lref=Lref, frontType=frontType, tb=tb)
+    res = getAllIBMPoints(zonesRcv, loc=locR, hi=hi, he=he, tfront=tfront, Reynolds=Reynolds, yplus=yplus, Lref=Lref, frontType=frontType, tb=tb)
     if tfront is None:
         correctedPts=res[0][3]; wallPts=res[1][3]; interpPts=res[2][3]
     else:
