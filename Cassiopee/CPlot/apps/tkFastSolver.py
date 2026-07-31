@@ -414,7 +414,6 @@ def compute(nrun):
     Internal.createUniqueChild(CTK.t, 'Time', 'DataArray_t', value=time0)
 
     # Wall extraction
-    import Connector.ToolboxIBM as TIBM
     import Post.IBM as P_IBM
     global WALL
     # extract one BAR wall for each base (body)
