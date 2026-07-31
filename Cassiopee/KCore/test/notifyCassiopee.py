@@ -66,7 +66,7 @@ def parseArgs():
     parser.add_argument("-r", "--recipients", type=str, default='',
                         help="Single-quoted space-separated list of recipients")
     parser.add_argument("-s", "--session-suffix", type=str, default='',
-                        help="Session log suffix")
+                        dest="sessionSuffix", help="Session log suffix")
     parser.add_argument("-u", "--update", action="store_true",
                         help="Update valid. log on stck. Default: disabled")
     parser.add_argument("-v", "--valid", action="store_true",
