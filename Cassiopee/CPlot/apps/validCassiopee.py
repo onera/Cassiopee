@@ -1670,9 +1670,10 @@ def parseArgs():
     parser.add_argument("-s", "--session-name", type=str, default='session',
                         dest="sessionName",
                         help="Name of the session file. Default: session")
-    parser.add_argument("-vt", "--valid-type", type=str, default='regression',
+    parser.add_argument("-vt", "--valid-type", default="regression",
+                        choices=("regression", "validation"),
                         dest="validType",
-                        help="Type of validation: regression or validation")
+                        help="Validation mode. Default: regression")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1788,8 +1789,6 @@ if __name__ == '__main__':
     checkEnvironment()
     # Get name of the ValidData folder
     DATA = Dist.getDataFolderName()
-    # Set MODULESDIR and VALIDDIR paths, both locally and globally
-    setPaths()
 
     if INTERACTIVE:
         # --- Use GUI ---
@@ -1799,6 +1798,8 @@ if __name__ == '__main__':
         from functools import partial
         # Load user settings
         loadPrefFile()
+        # Set MODULESDIR and VALIDDIR paths, both locally and globally
+        setPaths()
 
         # Main window
         Master = TK.Tk()
@@ -1970,6 +1971,7 @@ if __name__ == '__main__':
     else:
         # --- Command line execution ---
         vcargs = parseArgs()
+        PREFS["validType"] = vcargs.validType
 
         generalFontFixed = 1
         Listbox = NoDisplayListbox()
@@ -1985,9 +1987,10 @@ if __name__ == '__main__':
         TextThreads = NoDisplayEntry()
         getThreads()
 
+        # Set MODULESDIR and VALIDDIR paths, both locally and globally
+        setPaths()
+
         sessionName = vcargs.sessionName if vcargs.loadSession else None
-        if vcargs.validType in ["regression", "validation"]:
-            PREFS["validType"] = vcargs.validType
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
                 vcargs.global_db and not (vcargs.update or isDBAdmin())):
             ierr = setupGlobal(sessionName=sessionName)
