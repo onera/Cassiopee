@@ -375,8 +375,8 @@ def checkCheckoutStatus(sendEmail=False):
 # Check valid status
 def checkValidStatus(sessionSuffix=""):
     log_entries = []
-    if sessionSuffix: sessionSuffix = "_" + sessionSuffix
-    logAllValids = f'/stck/cassiope/git/logs/validation_status{sessionSuffix}.txt'
+    sessionSuffixMod = "_" + sessionSuffix if sessionSuffix else sessionSuffix
+    logAllValids = f'/stck/cassiope/git/logs/validation_status{sessionSuffixMod}.txt'
     if os.access(logAllValids, os.R_OK):
         with open(logAllValids, 'r') as f:
             for line in f:
@@ -391,9 +391,10 @@ def checkValidStatus(sessionSuffix=""):
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
+    if not sessionSuffix: sessionSuffix = "Cassiopee"
     vnvState = 'OK'
-    messageText = "Non-regression testing of Cassiopee and all "\
-        "PModules:\n{}\n\n{}\n\n".format(52*'-', gitInfo)
+    messageText = "Non-regression testing of {}:\n{}\n\n{}\n\n".format(
+        sessionSuffix, 52*'-', gitInfo)
     messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
         "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:
@@ -407,7 +408,7 @@ def checkValidStatus(sessionSuffix=""):
             prod, gitBranch, gitHash, date, status)
         if 'FAILED' in log_machine: vnvState = 'FAILED'
 
-    messageSubject = "[V&V Cassiopee] State: {}".format(vnvState)
+    messageSubject = f"[V&V {sessionSuffix}] State: {vnvState}"
     if vnvState == 'FAILED':
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
             'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
