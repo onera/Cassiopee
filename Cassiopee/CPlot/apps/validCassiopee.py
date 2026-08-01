@@ -70,7 +70,7 @@ THREAD = None
 # Le process lance sinon None
 PROCESS = None
 # True if the GUI is used (interactive) or False (command line execution)
-INTERACTIVE = len(sys.argv) == 1
+INTERACTIVE = False
 # Use Address Sanitizer (ASan) and Leak Sanitizer (LSan) in DEBUG mode only
 USE_ASAN = [False, False]
 
@@ -80,8 +80,14 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+# Session filename
+SESSION_NAME = "session"
+
 # Sort test strings
-SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status', 'CPU time relDiff.']
+SORT_CATEGORIES = [
+    'Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status',
+    'CPU time relDiff.'
+]
 SORT_BY = 'Name'
 REV_SORT = False
 
@@ -880,7 +886,7 @@ def buildTestList(sessionName=None, modules=[]):
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
-        logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
+        logname = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log")
         if os.path.getsize(logname) > 0:
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1418,7 +1424,7 @@ def export2Text():
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
+    with open(os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log"), "w") as f:
         f.write("")
 
 def writeSessionLog():
@@ -1433,9 +1439,12 @@ def writeSessionLog():
     for t in TESTS: messageText += t+'\n'
 
     # Write time stamp dans ValidData/base.time et
-    # log dans ValidData/session.log
+    # log dans ValidData/SESSION_NAME.log
     writeFinal(os.path.join(VALIDDIR['LOCAL'], 'base.time'), gitInfo=gitInfo)
-    writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
+    writeFinal(
+        os.path.join(VALIDDIR['LOCAL'], f'{SESSION_NAME}.log'),
+        logTxt=messageText
+    )
 
 #==============================================================================
 # Notify "Commit ready"
@@ -1461,15 +1470,15 @@ def notifyValidOK():
         sys.exit()
 
 #==============================================================================
-def Quit(event=None, sessionName="session"):
+def Quit(event=None):
     import os
     import shutil
-    logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
+    logname = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
     if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDDIR['LOCAL'], f"{sessionName}-{now}.log")
+        dst = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}-{now}.log")
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     # Write test metadata
@@ -1639,7 +1648,7 @@ def parseArgs():
         def _throwError():
             raise argparse.ArgumentTypeError("Number of remaining logs must be "
                                              "a positive integer")
-            sys.exit()
+            sys.exit(1)
         try: n = int(n)
         except: _throwError()
         if n > 0: return n
@@ -1650,30 +1659,30 @@ def parseArgs():
     parser.add_argument("-f", "--filters", type=str, default='',
                         help="Single-quoted test filters")
     parser.add_argument("-gdb", "--global-database", action="store_true",
-                        dest="global_db",
+                        dest="globalDB",
                         help="Switch to global database. Default: local database")
     parser.add_argument("-l", "--load-session", dest='loadSession',
                         action="store_true",
                         help="Load last session. Default: False")
     parser.add_argument("--leak-sanitizer", action="store_true",
-                        dest="leak_sanitizer",
+                        dest="leakSanitizer",
                         help="Leak Sanitizer to detect memory leaks."
                              "Available in DEBUG mode only")
     parser.add_argument("--memory-sanitizer", action="store_true",
-                        dest="memory_sanitizer",
+                        dest="memorySanitizer",
                         help="Address Sanitizer to detect memory access errors."
                              "Available in DEBUG mode only")
     parser.add_argument("-p", "--purge", default=50, type=_checkInt,
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
-                        help="Run selected tests")
-    parser.add_argument("-s", "--session-name", type=str, default='session',
+                        help="Run selected tests without any graphical interface")
+    parser.add_argument("-s", "--session-name", type=str, default=SESSION_NAME,
                         dest="sessionName",
-                        help="Name of the session file. Default: session")
-    parser.add_argument("-vt", "--valid-type", default="regression",
-                        choices=("regression", "validation"),
+                        help=f"Name of the session file. Default: {SESSION_NAME}")
+    parser.add_argument("-vt", "--valid-type", default="",
+                        choices=("regression", "validation", ""),
                         dest="validType",
-                        help="Validation mode. Default: regression")
+                        help="Validation mode. Default: unset")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1681,8 +1690,8 @@ def parseArgs():
     return parser.parse_args()
 
 # Purge session logs by date down to the last n most recent
-def purgeSessionLogs(n, sessionName="session"):
-    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], '{}-*.log'.format(sessionName))))
+def purgeSessionLogs(n):
+    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], f'{SESSION_NAME}-*.log')))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1693,12 +1702,12 @@ def purgeSessionLogs(n, sessionName="session"):
 def toggleASAN():
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
-    updateASANLabel(4)
+    updateASANLabel(5)
 
 def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
-    updateASANLabel(5)
+    updateASANLabel(6)
     updateASANOptions()
 
 def updateASANOptions():
@@ -1789,6 +1798,14 @@ if __name__ == '__main__':
     checkEnvironment()
     # Get name of the ValidData folder
     DATA = Dist.getDataFolderName()
+    # Load user settings
+    loadPrefFile()
+    # Parse arguments
+    vcargs = parseArgs()
+    if vcargs.validType: PREFS["validType"] = vcargs.validType
+
+    SESSION_NAME = vcargs.sessionName
+    INTERACTIVE = not vcargs.run
 
     if INTERACTIVE:
         # --- Use GUI ---
@@ -1796,8 +1813,7 @@ if __name__ == '__main__':
         import CPlot.Tk as CTK
         import tkinter.font as Font
         from functools import partial
-        # Load user settings
-        loadPrefFile()
+
         # Set MODULESDIR and VALIDDIR paths, both locally and globally
         setPaths()
 
@@ -1826,7 +1842,7 @@ if __name__ == '__main__':
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
 
-        loadSessionWithArgs = partial(buildTestList, "session")
+        loadSessionWithArgs = partial(buildTestList, SESSION_NAME)
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
         fileTab.add_command(label='Purge session', command=buildTestList)
         fileTab.add_command(label='Export to text file', command=export2Text)
@@ -1883,6 +1899,7 @@ if __name__ == '__main__':
             toolsTab.add_command(label='Switch to global data base ' + dbInfo,
                                  command=toggleDB)
         if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
             toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
@@ -1963,16 +1980,22 @@ if __name__ == '__main__':
         CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
         CTK.infoBulle(parent=TextThreads, text='Number of threads.')
-        if isDBAdmin(): setupLocal()  # Local valid for the DB admin 'cassiope'
+
+        sessionName = vcargs.sessionName if vcargs.loadSession else None
+        if isDBAdmin(): setupLocal(sessionName=sessionName)  # Local valid for the DB admin 'cassiope'
         else:
-            ierr = setupGlobal()  # Comparison is made against the global valid
-            if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
+            ierr = setupGlobal(sessionName=sessionName)  # Comparison is made against the global valid
+            if ierr == 1: setupLocal(sessionName=sessionName)  # Global valid does not exist, default back to local
+        if vcargs.filters:
+            Filter.set(vcargs.filters)
+            filterTestList()
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            if vcargs.memorySanitizer: USE_ASAN[0] = True
+            if vcargs.leakSanitizer: USE_ASAN[1] = True
+            updateASANOptions()
         TK.mainloop()
     else:
-        # --- Command line execution ---
-        vcargs = parseArgs()
-        PREFS["validType"] = vcargs.validType
-
+        # --- Command line execution (headless) ---
         generalFontFixed = 1
         Listbox = NoDisplayListbox()
         Scrollbar = NoDisplayScrollbar()
@@ -1992,19 +2015,18 @@ if __name__ == '__main__':
 
         sessionName = vcargs.sessionName if vcargs.loadSession else None
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
-                vcargs.global_db and not (vcargs.update or isDBAdmin())):
+                vcargs.globalDB and not (vcargs.update or isDBAdmin())):
             ierr = setupGlobal(sessionName=sessionName)
             if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         else: setupLocal(sessionName=sessionName)
-        purgeSessionLogs(n=vcargs.purge, sessionName=vcargs.sessionName)
+        purgeSessionLogs(n=vcargs.purge)
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
-        if vcargs.run:
-            if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
-                if vcargs.memory_sanitizer: USE_ASAN[0] = True
-                if vcargs.leak_sanitizer: USE_ASAN[1] = True
-                updateASANOptions()
-            selectAll()
-            runTests(update=vcargs.update)
-            Quit(sessionName=vcargs.sessionName)
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            if vcargs.memorySanitizer: USE_ASAN[0] = True
+            if vcargs.leakSanitizer: USE_ASAN[1] = True
+            updateASANOptions()
+        selectAll()
+        runTests(update=vcargs.update)
+        Quit()
