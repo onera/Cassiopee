@@ -41,6 +41,7 @@ IGNORE_TESTS_DBG = [
     "Generator/generateAMRMeshCartInPT_t1.py",
     "Generator/generateAMRMeshCartInPT_t2.py",
     "Generator/generateAMRMeshVariableSnearPT_t1.py",
+    "Generator/generateAMRMeshVarSnearTboxPT_t1.py",
     "XCore/adaptMeshPT_t1.py",
     "XCore/adaptMesh_ExitPT_t1.py"
 ]
@@ -394,7 +395,7 @@ def checkValidStatus(sessionSuffix=""):
     if not sessionSuffix: sessionSuffix = "Cassiopee"
     vnvState = 'OK'
     messageText = "Non-regression testing of {}:\n{}\n\n{}\n\n".format(
-        sessionSuffix, 52*'-', gitInfo)
+        sessionSuffix, (26+len(sessionSuffix))*'-', gitInfo)
     messageText += '{:^22} | {:^6} | {:^7} | {:^24} | {:^10}\n{}\n'.format(
         "PROD.", "BRANCH", "HASH", "DATE", "STATUS", 83*'-')
     for log_machine in log_entries:
