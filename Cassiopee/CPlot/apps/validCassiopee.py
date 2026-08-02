@@ -707,10 +707,9 @@ def runTests(update=False):
             modulesDir = MODULESDIR[BASE4COMPARE][module]
             if PREFS["validType"] == "validation":
                 pathl = os.path.join(modulesDir, test)
-                testref = 'post.ref*'
             else:
                 pathl = os.path.join(modulesDir, module, 'test')
-                testref = os.path.splitext(test)[0] + '.ref*'
+            testref = os.path.splitext(test)[0] + '.ref*'
             rmFile(pathl, testref)
         current += 1; displayProgress(current, total, remaining, elapsed)
         remaining -= string2Time(splits[3])
