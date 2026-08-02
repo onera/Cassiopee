@@ -23,7 +23,7 @@ regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
 regError = re.compile(
     "|".join([
-        'Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
+        r'\bError\b', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
         'ERROR: AddressSanitizer', 'getFromArray', 'incoherency',
         'Your MPI job will now abort.',
         'Attempting to use an MPI routine before initializing MPICH'
@@ -80,8 +80,9 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
-# Session filename
+# Session filename and whether to save it
 SESSION_NAME = "session"
+SAVE_SESSION_LOG = True
 
 # Sort test strings
 SORT_CATEGORIES = [
@@ -1475,7 +1476,7 @@ def Quit(event=None):
     logname = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
-    if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
+    if (SAVE_SESSION_LOG and os.access(VALIDDIR['LOCAL'], os.W_OK) and os.path.getsize(logname) != 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
         dst = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}-{now}.log")
         print("Saving session to: {}".format(dst))
@@ -1671,6 +1672,8 @@ def parseArgs():
                         dest="memorySanitizer",
                         help="Address Sanitizer to detect memory access errors."
                              "Available in DEBUG mode only")
+    parser.add_argument("--no-log", dest="saveSessionLog", action="store_false",
+                        default=True, help="Do not save the session log")
     parser.add_argument("-p", "--purge", default=50, type=_checkInt,
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
@@ -1804,6 +1807,7 @@ if __name__ == '__main__':
     if vcargs.validType: PREFS["validType"] = vcargs.validType
 
     SESSION_NAME = vcargs.sessionName
+    SAVE_SESSION_LOG = vcargs.saveSessionLog
     INTERACTIVE = not vcargs.run
 
     if INTERACTIVE:
